@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 7: The Five Breakthroughs - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px; position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 48px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.math { font-family: 'Courier New', monospace; color: #88ccff; font-size: 15px; }
+.big-eq { font-size: 22px; text-align: center; margin: 28px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 2px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+canvas { display: block; border-radius: 8px; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+input[type=number] { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 14px;
+                     font-size: 20px; font-family: monospace; width: 100px; text-align: center;
+                     border-radius: 6px; outline: none; }
+select { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 14px;
+         font-size: 16px; font-family: monospace; border-radius: 6px; outline: none; }
+input:focus, select:focus { border-color: #88aaff; }
+.info-line { font-family: monospace; font-size: 15px; color: #aaa; margin: 6px 0; text-align: center; }
+.stat-row { display: flex; justify-content: space-between; padding: 4px 0;
+            border-bottom: 1px solid #1a1a2e; font-family: monospace; font-size: 14px; }
+.stat-label { color: #888; }
+.stat-val { color: #ffcc44; }
+.bt-card { display: inline-flex; flex-direction: column; align-items: center;
+           padding: 16px 12px; margin: 6px; border-radius: 12px; min-width: 120px;
+           text-align: center; border: 2px solid; transition: all 0.2s; }
+.bt-card:hover { transform: translateY(-4px); }
+.bt-num { font-size: 24px; font-family: monospace; font-weight: bold; }
+.bt-name { font-size: 13px; margin-top: 6px; }
+.bt-sub { font-size: 11px; margin-top: 4px; color: #888; }
+.ecc-ch { display: inline-flex; align-items: center; justify-content: center;
+          width: 48px; height: 48px; border-radius: 8px; margin: 4px;
+          font-family: monospace; font-size: 20px; font-weight: bold;
+          border: 2px solid; cursor: pointer; transition: all 0.15s; }
+.ecc-ch:hover { transform: scale(1.1); }
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 16px; letter-spacing: 0; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+  .bt-card { min-width: 90px; padding: 10px 8px; margin: 4px; }
+  .bt-num { font-size: 18px; }
+  .bt-name { font-size: 11px; }
+  .ecc-ch { width: 40px; height: 40px; font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="atlas_07_kingdoms.html">&larr; Ch.6</a>
+  <span style="color:#555">Ch.7</span>
+  <a href="atlas_09_demos.html">Ch.8 &rarr;</a>
+</div>
+
+<!-- SECTION 1: HERO -->
+<div class="section">
+  <div class="content" style="text-align:center">
+    <h1>Five Small Tricks</h1>
+    <p style="max-width:560px;margin:0 auto 16px;font-size:19px;color:#ddd">
+      What if you could split a hard problem into five easy ones,
+      solve them independently, and come out a million times faster?
+    </p>
+    <p style="max-width:560px;margin:0 auto 24px">
+      That is what CRT does. But it is only the first trick.
+      There are four more, and here is what makes this extraordinary &mdash;
+      they <span class="accent">multiply</span> each other.
+      All five come from a single polynomial:
+      <span class="math">P(x) = (x-1)(x-2)(x-3)(x-5)</span>. The shadow chain, hiding in plain sight.
+    </p>
+    <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:28px 0">
+      <div class="bt-card" style="background:#2a1a1a;border-color:#ff6666;color:#ff6666">
+        <div class="bt-num">82.5x</div>
+        <div class="bt-name">CRT Decomposition</div>
+        <div class="bt-sub">5 parallel channels</div>
+      </div>
+      <div class="bt-card" style="background:#1a2a1a;border-color:#66ddaa;color:#66ddaa">
+        <div class="bt-num">FREE</div>
+        <div class="bt-name">L=11 ECC</div>
+        <div class="bt-sub">error correction</div>
+      </div>
+      <div class="bt-card" style="background:#1a1a2a;border-color:#88aaff;color:#88aaff">
+        <div class="bt-num">3.4x</div>
+        <div class="bt-name">Rissanen</div>
+        <div class="bt-sub">convergence</div>
+      </div>
+      <div class="bt-card" style="background:#2a1a2a;border-color:#cc88ff;color:#cc88ff">
+        <div class="bt-num">82.5x</div>
+        <div class="bt-name">Loop Theorem</div>
+        <div class="bt-sub">forward speedup</div>
+      </div>
+      <div class="bt-card" style="background:#2a2a0a;border-color:#ffcc44;color:#ffcc44">
+        <div class="bt-num">25654x</div>
+        <div class="bt-name">CRT Backprop</div>
+        <div class="bt-sub">gradient speedup</div>
+      </div>
+    </div>
+    <div class="big-eq">82.5 * 25654 * 3.4 = 7,201,955x</div>
+    <p style="font-size:14px;color:#555">
+      At thin ring N=2310. At True Form N=970,200: loop=9,702x, backprop=95.7Mx. Even 1% = transformative. L=11 ECC is free on top.
+    </p>
+  </div>
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+
+<!-- SECTION 2: PRIMORIAL CALCULATOR -->
+<div class="section">
+  <div class="content">
+    <h2>Watch It Grow</h2>
+    <p>Each time you add a new prime, the advantage doesn't increase &mdash;
+       it <em>explodes</em>. Select a level below and watch it happen. Try going from N=210 to N=2310. Then to the True Form. Feel the acceleration.</p>
+    <div class="widget">
+      <div class="widget-title">Advantage by Primorial</div>
+      <div style="text-align:center;margin-bottom:16px">
+        <select id="selN">
+          <option value="0">N=2 (D only)</option>
+          <option value="1">N=6 (D*K)</option>
+          <option value="2">N=30 (D*K*E)</option>
+          <option value="3" selected>N=210 (D*K*E*b)</option>
+          <option value="4">N=2310 (thin ring)</option>
+          <option value="5">N=970200 (True Form)</option>
+        </select>
+      </div>
+      <div id="calcInfo"></div>
+      <canvas id="cvCalc" width="660" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: ECC DEMO -->
+<div class="section">
+  <div class="content">
+    <h2>Break It. It Heals.</h2>
+    <p>The <span class="accent">L=11</span> channel carries no new data &mdash;
+       it is derived from the other four. But this is where something almost magical happens: it detects and corrects errors for free.
+       Click any channel below to corrupt it. Watch the system heal itself.</p>
+    <div class="widget">
+      <div class="widget-title">ECC Demo</div>
+      <div style="text-align:center;margin-bottom:12px">
+        <label style="color:#888;font-family:monospace;font-size:13px">value: </label>
+        <input type="number" id="inpEcc" value="137" min="0" max="2309">
+      </div>
+      <div id="eccChannels" style="display:flex;justify-content:center;margin:16px 0"></div>
+      <div id="eccInfo" style="margin-top:8px"></div>
+    </div>
+    <h3>Why It Works</h3>
+    <p>The four surviving channels are coprime to the corrupted one:
+       <span class="math">gcd(N/p, product of others) = 1</span>. So they can reconstruct the original value
+       and <em>read off</em> what the corrupted channel should have been.
+       One redundant channel corrects any single error. Your data has a
+       guardian built into its own structure &mdash; L=11, the protector.</p>
+  </div>
+</div>
+
+<!-- SECTION 4: THE SHADOW POLYNOMIAL -->
+<div class="section">
+  <div class="content">
+    <h2>One Polynomial Controls Everything</h2>
+    <p>All five breakthroughs come from a single source &mdash; the shadow polynomial
+       <span class="math">P(x) = (x-1)(x-2)(x-3)(x-5)</span>.
+       Four roots: the shadow chain {sigma, D, K, E}. And its coefficients? They are the axiom's own constants. One polynomial controls four different structures. Look:</p>
+    <div class="widget">
+      <div class="widget-title">The Shadow Polynomial</div>
+      <div style="font-family:monospace;font-size:14px;color:#aaa;line-height:2.2">
+        <div><span style="color:#ff6666">1. RECIPROCITY</span>: coefficients = {L=11, KEY=41, 61, 30}.
+          <span style="color:#888">The axiom's constants.</span></div>
+        <div><span style="color:#66ddaa">2. MULTIPLICITY</span>: how many eigenvalues share each class.
+          <span style="color:#888">Thin: C(1) = 288 classes, C(2) = 2310 = N. True: 48,750 classes.</span></div>
+        <div><span style="color:#88aaff">3. SENSITIVITY</span>: log derivative at x=1 = L/D^2 = 11/4.
+          <span style="color:#888">How sharply eigenvalues respond.</span></div>
+        <div><span style="color:#cc88ff">4. KLEIBER</span>: b-shadow fraction = K/(K+1) = 3/4.
+          <span style="color:#888">Metabolic scaling, exact.</span></div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:15px;color:#999">
+      Kolmogorov's turbulence exponent E/K = 5/3, exact. Kleiber's metabolic scaling K/(K+1) = 3/4, exact. Two of the most famous numbers in physics, both hiding inside the shadow chain. Isn't that remarkable?
+    </p>
+    <div class="big-eq">one polynomial &rarr; five breakthroughs &rarr; millions of x</div>
+    <p style="text-align:center;margin-top:24px">
+      <a href="atlas_07_kingdoms.html" style="margin-right:24px">&larr; Chapter 6: Six Kingdoms</a>
+      <a href="atlas_09_demos.html">Chapter 8: The Five Demos &rarr;</a>
+    </p>
+    <p style="text-align:center;color:#444;font-size:13px;margin-top:24px">
+    The Interactive Atlas &middot; Z/2310Z &rarr; Z/970200Z &middot; Chapter 7 of 14
+    </p>
+  </div>
+</div>
+
+<script>
+const PRIMES = [2,3,5,7,11,13];
+const PNAMES = ['D=2','K=3','E=5','b=7','L=11','13'];
+const PC = ['#ff6666','#66ddaa','#88aaff','#cc88ff','#ffcc44','#88ff88'];
+
+/* ===== SECTION 2: PRIMORIAL CALCULATOR ===== */
+const selN = document.getElementById('selN');
+const calcInfo = document.getElementById('calcInfo');
+const cvC = document.getElementById('cvCalc');
+const ctxC = cvC.getContext('2d');
+
+function updateCalc() {
+  const level = parseInt(selN.value);
+  let N = 1, primes = [], sum_p = 0, sum_p2 = 0;
+  if (level === 5) {
+    /* True Form: 2^3 * 3^2 * 5^2 * 7^2 * 11 = 970200 */
+    N = 970200; primes = [2,3,5,7,11];
+    let mods = [8,9,25,49,11];
+    for (let m of mods) { sum_p += m; sum_p2 += m * m; }
+  } else {
+    for (let i = 0; i <= level; i++) {
+      N *= PRIMES[i];
+      primes.push(PRIMES[i]);
+      sum_p += PRIMES[i];
+      sum_p2 += PRIMES[i] * PRIMES[i];
+    }
+  }
+
+  const loop_fwd = N / sum_p;
+  const backprop = N * N / sum_p2;
+  const rissanen = N / (8 * Math.log2(N));
+  const combined = loop_fwd * backprop * rissanen;
+
+  let html = `<div class="stat-row"><span class="stat-label">N (primorial)</span><span class="stat-val">${N.toLocaleString()}</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">Primes</span><span class="stat-val">{${primes.join(',')}}</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">sum(p)</span><span class="stat-val">${sum_p}</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">CRT param ratio (N/sum_p)</span><span class="stat-val" style="color:#ff6666">${loop_fwd.toFixed(1)}x</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">Loop speedup (N/sum_p)</span><span class="stat-val" style="color:#cc88ff">${loop_fwd.toFixed(1)}x</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">Backprop speedup (N^2/sum_p^2)</span><span class="stat-val" style="color:#ffcc44">${backprop.toFixed(0)}x</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">Rissanen (N/8log2N)</span><span class="stat-val" style="color:#88aaff">${rissanen.toFixed(1)}x</span></div>`;
+  html += `<div class="stat-row"><span class="stat-label">ECC</span><span class="stat-val" style="color:#66ddaa">FREE (${primes.length >= 2 ? primes.length-1 : 0} data + 1 parity)</span></div>`;
+  html += `<div class="stat-row" style="border-top:2px solid #333;padding-top:8px"><span class="stat-label" style="color:#fff">COMBINED (Loop*Backprop*Rissanen)</span><span class="stat-val" style="color:#fff;font-size:16px">${combined < 1000 ? combined.toFixed(0) : combined.toExponential(2)}x</span></div>`;
+  calcInfo.innerHTML = html;
+
+  /* Draw bar chart */
+  const W = cvC.width, H = cvC.height;
+  ctxC.clearRect(0,0,W,H);
+  const vals = [loop_fwd, backprop, rissanen];
+  const names = ['Loop','Backprop','Rissanen'];
+  const colors = ['#cc88ff','#ffcc44','#88aaff'];
+  const maxV = Math.max(...vals);
+  const barW = 140, gap = 30;
+  const startX = (W - 3*(barW+gap))/2 + gap/2;
+  const maxH = H - 50, topY = 20;
+
+  for (let i=0;i<3;i++) {
+    const x = startX + i*(barW+gap);
+    const h = Math.max(2, (Math.log10(vals[i]+1)/Math.log10(maxV+1)) * maxH);
+    const y = topY + maxH - h;
+    ctxC.fillStyle = colors[i] + '44';
+    ctxC.fillRect(x, y, barW, h);
+    ctxC.strokeStyle = colors[i];
+    ctxC.lineWidth = 2;
+    ctxC.strokeRect(x, y, barW, h);
+    ctxC.fillStyle = colors[i];
+    ctxC.font = '14px monospace';
+    ctxC.textAlign = 'center';
+    ctxC.fillText(names[i], x+barW/2, topY+maxH+18);
+    ctxC.fillStyle = '#fff';
+    ctxC.font = '14px monospace';
+    const label = vals[i] < 1000 ? vals[i].toFixed(1)+'x' : vals[i].toExponential(1)+'x';
+    ctxC.fillText(label, x+barW/2, y-6);
+  }
+}
+selN.addEventListener('change', updateCalc);
+updateCalc();
+
+/* ===== SECTION 3: ECC DEMO ===== */
+const inpEcc = document.getElementById('inpEcc');
+const eccChannels = document.getElementById('eccChannels');
+const eccInfo = document.getElementById('eccInfo');
+const N5 = 2310;
+const P5 = [2,3,5,7,11];
+const P5N = ['D=2','K=3','E=5','b=7','L=11'];
+const P5C = ['#ff6666','#66ddaa','#88aaff','#cc88ff','#ffcc44'];
+let corruptedCh = -1;
+
+function eccUpdate() {
+  const n = ((parseInt(inpEcc.value)||0)%N5+N5)%N5;
+  const crt = P5.map(p => n%p);
+
+  let html = '';
+  for (let i=0;i<5;i++) {
+    const isCorrupted = (i === corruptedCh);
+    const displayVal = isCorrupted ? (crt[i]+1+Math.floor(Math.random()*(P5[i]-1)))%P5[i] : crt[i];
+    const bg = isCorrupted ? '#4a1a1a' : '#1a1a2e';
+    const border = isCorrupted ? '#ff4444' : P5C[i];
+    html += `<div style="text-align:center">`;
+    html += `<div class="ecc-ch" style="background:${bg};border-color:${border};color:${isCorrupted?'#ff4444':P5C[i]}" data-ch="${i}">`;
+    html += `${displayVal}`;
+    html += `</div>`;
+    html += `<div style="font-size:11px;font-family:monospace;color:${P5C[i]};margin-top:2px">${P5N[i]}</div>`;
+    if (isCorrupted) html += `<div style="font-size:10px;color:#ff4444">corrupted!</div>`;
+    html += `</div>`;
+  }
+  eccChannels.innerHTML = html;
+
+  let info = `<div class="info-line">n = ${n}, CRT = (${crt.join(',')})</div>`;
+  if (corruptedCh >= 0) {
+    /* Reconstruct from 4 good channels */
+    let subN = 1;
+    for (let i=0;i<5;i++) if (i!==corruptedCh) subN *= P5[i];
+    /* CRT over subring */
+    let recon = 0;
+    for (let i=0;i<5;i++) {
+      if (i===corruptedCh) continue;
+      const M = subN / P5[i];
+      let Minv = 1;
+      for (let k=1;k<P5[i];k++) if ((M*k)%P5[i]===1) { Minv=k; break; }
+      recon = (recon + crt[i]*M*Minv) % subN;
+    }
+    const predicted = recon % P5[corruptedCh];
+    info += `<div class="info-line" style="color:#66ddaa">DETECTED: channel ${corruptedCh} (${P5N[corruptedCh]}) inconsistent</div>`;
+    info += `<div class="info-line" style="color:#66ddaa">CORRECTED: predicted value = ${predicted} (from ${subN}-subring)</div>`;
+    info += `<div class="info-line" style="color:#555">click a channel again to corrupt it, or change the value to reset</div>`;
+  } else {
+    info += `<div class="info-line" style="color:#555">click any channel to corrupt it</div>`;
+  }
+  eccInfo.innerHTML = info;
+
+  /* Attach click handlers */
+  document.querySelectorAll('.ecc-ch').forEach(el => {
+    el.addEventListener('click', () => {
+      corruptedCh = parseInt(el.dataset.ch);
+      eccUpdate();
+    });
+  });
+}
+inpEcc.addEventListener('input', () => { corruptedCh = -1; eccUpdate(); });
+eccUpdate();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

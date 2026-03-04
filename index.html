@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="970,200: five primes that structure everything. 70+ interactive demos. Every computation runs live in your browser. Zero dependencies.">
+<meta property="og:title" content="The Primordial Rose">
+<meta property="og:description" content="Five numbers explain turbulence, particle masses, DNA, consciousness, and six millennium problems. 70+ live demos. Zero dependencies.">
+<title>The Primordial Rose</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050508;color:#d0d0d0;font-family:Georgia,'Times New Roman',serif;
+     overflow-x:hidden;min-height:100vh}
+a{color:#88aaff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* === PROLOGUE === */
+#prologue{min-height:100vh;display:flex;flex-direction:column;
+          justify-content:center;align-items:center;padding:40px 24px;
+          text-align:center;transition:opacity 1.5s ease}
+#prologue.hidden{opacity:0;pointer-events:none}
+.roger-line{font-size:28px;color:#c8a832;opacity:0;transform:translateY(20px);
+            transition:opacity 1s ease,transform 1s ease;margin:12px 0;font-style:italic}
+.roger-line.visible{opacity:1;transform:translateY(0)}
+.roger-line.big{font-size:52px;color:#ffd700;font-style:normal;
+                font-family:'Courier New',monospace;letter-spacing:6px;
+                text-shadow:0 0 40px rgba(255,215,0,0.4);margin:28px 0}
+#roger-enter{margin-top:48px;opacity:0;transition:opacity 1s ease;
+             background:none;border:1px solid #444;color:#666;
+             padding:14px 40px;font-family:Georgia,serif;font-size:16px;
+             cursor:pointer;border-radius:4px;letter-spacing:2px}
+#roger-enter:hover{border-color:#ffd700;color:#ffd700}
+#roger-enter.visible{opacity:1}
+
+/* === GATE === */
+#gate-section{min-height:100vh;display:none;flex-direction:column;
+              justify-content:center;align-items:center;padding:40px 24px;
+              opacity:0;transition:opacity 1.5s ease}
+#gate-section.active{display:flex}
+#gate-section.visible{opacity:1}
+#hint{font-size:20px;color:#777;font-style:italic;margin-bottom:48px;
+      text-align:center;letter-spacing:1px}
+#circles{display:flex;justify-content:center;gap:18px;margin-bottom:48px;
+         flex-wrap:wrap;padding:0 8px}
+.circle{width:82px;height:82px;border-radius:50%;border:2px solid #2a2a3a;
+        display:flex;align-items:center;justify-content:center;
+        font-size:28px;font-family:'Courier New',monospace;color:transparent;
+        transition:all 0.5s ease;position:relative;background:#0a0a14}
+.circle.pulse{animation:pulse-empty 2s ease infinite}
+.circle.filled{color:#fff}
+.circle.shake{animation:shake 0.35s ease}
+.circle.igniting{animation:ignite 0.5s ease}
+.circle[data-idx="0"].filled{border-color:#ffd700;background:radial-gradient(circle,#ffd700,#aa8800);
+                              box-shadow:0 0 30px rgba(255,215,0,0.5);color:#111}
+.circle[data-idx="1"].filled{border-color:#555;background:radial-gradient(circle,#1a1a1a,#000);
+                              box-shadow:0 0 24px rgba(255,255,255,0.12)}
+.circle[data-idx="2"].filled{border-color:#fff;background:radial-gradient(circle,#ffffff,#bbbbbb);
+                              box-shadow:0 0 35px rgba(255,255,255,0.6);color:#111}
+.circle[data-idx="3"].filled{border-color:#ff4040;background:radial-gradient(circle,#ff4444,#991111);
+                              box-shadow:0 0 30px rgba(255,60,60,0.5)}
+.circle[data-idx="4"].filled{border-color:#ff9900;background:radial-gradient(circle,#ffaa22,#995500);
+                              box-shadow:0 0 30px rgba(255,153,0,0.5)}
+.circle[data-idx="5"].filled{border-color:#33dd55;background:radial-gradient(circle,#44ee66,#118833);
+                              box-shadow:0 0 30px rgba(50,220,80,0.5)}
+.circle[data-idx="6"].filled{border-color:#4488ff;background:radial-gradient(circle,#5599ff,#113399);
+                              box-shadow:0 0 30px rgba(68,136,255,0.5)}
+.circle[data-idx="7"].filled{border-color:#aa44ff;background:radial-gradient(circle,#bb55ff,#661199);
+                              box-shadow:0 0 30px rgba(170,68,255,0.5)}
+.circle-label{position:absolute;bottom:-22px;font-size:11px;color:#555;
+              font-family:monospace;white-space:nowrap;opacity:0.5;
+              transition:opacity 0.5s ease 0.2s}
+.circle.filled .circle-label{opacity:1;color:#999}
+#pool{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;max-width:480px}
+.num-btn{width:54px;height:54px;border-radius:50%;border:1px solid #333;
+         background:#0c0c16;display:flex;align-items:center;justify-content:center;
+         font-size:20px;font-family:'Courier New',monospace;color:#999;
+         cursor:pointer;transition:all 0.3s ease;user-select:none}
+.num-btn:hover{border-color:#ffd700;color:#ffd700;transform:scale(1.12);
+               box-shadow:0 0 12px rgba(255,215,0,0.2)}
+.num-btn.used{opacity:0.1;pointer-events:none;transform:scale(0.7)}
+.num-btn.wrong{animation:wrong-flash 0.3s ease}
+
+/* === SUCCESS === */
+#success-section{display:none;text-align:center;padding:60px 24px 20px}
+#success-section.active{display:block}
+#equation{font-size:18px;color:#777;font-family:'Courier New',monospace;
+          margin-bottom:8px;opacity:0;transition:opacity 1.5s ease;letter-spacing:1px}
+#equation.visible{opacity:1}
+#sub-eq{font-size:15px;color:#555;font-family:'Courier New',monospace;
+        margin-bottom:16px;opacity:0;transition:opacity 1.5s ease}
+#sub-eq.visible{opacity:1}
+#blazing{font-size:100px;font-family:'Courier New',monospace;color:#ffd700;
+         text-shadow:0 0 60px rgba(255,215,0,0.5),0 0 120px rgba(255,215,0,0.2);
+         margin:24px 0 48px;opacity:0;transition:opacity 2s ease;letter-spacing:10px}
+#blazing.visible{opacity:1}
+
+/* === REAL PANEL === */
+#real-panel{display:none;max-width:600px;margin:0 auto 40px;padding:36px 32px;
+            border:1px solid #1a1a2a;border-radius:12px;background:#08080e}
+#real-panel.active{display:block;opacity:0;transition:opacity 1.5s ease}
+#real-panel.visible{opacity:1}
+.panel-title{font-size:13px;color:#444;text-transform:uppercase;
+             letter-spacing:4px;font-family:monospace;margin-bottom:20px;text-align:center}
+#real-panel p{font-size:15px;color:#888;line-height:1.9;margin-bottom:12px}
+#real-panel .gold{color:#ffd700;font-weight:bold}
+
+/* === HUB === */
+#hub{display:none;max-width:960px;margin:20px auto 80px;padding:0 24px}
+#hub.active{display:block;opacity:0;transition:opacity 1.5s ease}
+#hub.visible{opacity:1}
+#hub h2{font-size:22px;color:#fff;text-align:center;margin-bottom:24px;
+        font-weight:normal;letter-spacing:3px}
+#search-box{display:block;width:100%;max-width:480px;margin:0 auto 20px;
+            padding:12px 20px;font-size:16px;font-family:Georgia,serif;
+            background:#0a0a14;border:1px solid #1a1a2a;border-radius:24px;
+            color:#d0d0d0;outline:none;transition:border-color 0.3s}
+#search-box:focus{border-color:#ffd700}
+#search-box::placeholder{color:#444}
+#filters{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+.fchip{padding:8px 18px;font-size:12px;font-family:'Courier New',monospace;
+       background:#0c0c16;border:none;color:#555;cursor:pointer;
+       transition:all 0.4s;letter-spacing:1px;position:relative;
+       clip-path:polygon(10% 0%,90% 0%,100% 50%,90% 100%,10% 100%,0% 50%)}
+.fchip:hover{background:#141420;color:#888}
+.fchip.on{background:radial-gradient(ellipse at center,rgba(255,215,0,0.15),#0c0c16 70%);
+          animation:stone-glow 3s ease-in-out infinite}
+.fchip.snap{animation:stone-snap 0.6s ease}
+.cat-sec{margin-bottom:32px}
+.cat-hdr{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:3px;
+         font-family:'Courier New',monospace;margin-bottom:12px;padding-left:16px;
+         border-left:none;position:relative}
+.cat-hdr::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%) rotate(45deg);
+                 width:8px;height:8px;background:currentColor;opacity:0.6}
+.cat-cnt{color:#333;margin-left:6px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.crd{display:block;padding:14px 16px;border:1px solid #111;border-radius:10px;
+     background:#08080e;text-decoration:none;transition:all 0.3s;
+     border-left:3px solid #555}
+.crd:hover{border-color:#333;background:#0c0c16;transform:translateY(-2px);
+           box-shadow:0 4px 20px rgba(0,0,0,0.4);text-decoration:none}
+.crd-t{font-size:15px;color:#ccc;margin-bottom:4px;line-height:1.3}
+.crd-d{font-size:12px;color:#555;line-height:1.5}
+.feat{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:14px;margin-bottom:36px}
+.fcrd{display:block;padding:20px;border:1px solid #1a1a2a;border-radius:12px;
+      background:linear-gradient(135deg,#08080e,#0c0c18);text-decoration:none;
+      transition:all 0.3s;position:relative;overflow:hidden}
+.fcrd:hover{transform:translateY(-3px);text-decoration:none}
+.fcrd .crd-t{font-size:18px;color:#fff;margin-bottom:6px}
+.fcrd .crd-d{font-size:14px;color:#777}
+.fcrd-tag{position:absolute;top:12px;right:14px;font-size:11px;
+          font-family:monospace;color:#666}
+#no-res{display:none;text-align:center;padding:40px;color:#444;
+        font-style:italic;font-size:16px}
+#hub-foot{text-align:center;padding:40px 24px;color:#333;font-size:13px;
+          border-top:1px solid #0a0a0a;margin-top:40px}
+#hub-foot a{color:#555}
+#replay{display:block;text-align:center;margin:20px auto;color:#333;
+        font-size:12px;font-family:monospace;cursor:pointer;
+        background:none;border:none;letter-spacing:1px}
+#replay:hover{color:#666}
+
+/* === ANIMATIONS === */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes ignite{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes pulse-empty{0%,100%{border-color:#2a2a3a}50%{border-color:#3a3a4a}}
+@keyframes wrong-flash{0%{background:#0c0c16}50%{background:#331111}100%{background:#0c0c16}}
+@keyframes stone-snap{0%{filter:brightness(1)}30%{filter:brightness(2.5)}100%{filter:brightness(1)}}
+@keyframes stone-glow{0%,100%{filter:brightness(1) drop-shadow(0 0 4px currentColor)}
+                      50%{filter:brightness(1.3) drop-shadow(0 0 12px currentColor)}}
+
+/* === RESPONSIVE === */
+@media(max-width:600px){
+  .roger-line{font-size:22px}
+  .roger-line.big{font-size:34px;letter-spacing:3px}
+  .circle{width:56px;height:56px;font-size:20px}
+  #circles{gap:8px}
+  .num-btn{width:46px;height:46px;font-size:17px}
+  #pool{gap:8px}
+  #blazing{font-size:64px;letter-spacing:6px}
+  .cgrid,.feat{grid-template-columns:1fr}
+  #hint{font-size:17px;margin-bottom:32px}
+  #equation{font-size:15px}
+  .circle-label{font-size:10px;bottom:-20px}
+  #search-box{font-size:14px}
+  .fchip{padding:6px 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<!-- PROLOGUE -->
+<div id="prologue">
+  <div class="roger-line" id="r1">Your heart beats in twos.</div>
+  <div class="roger-line" id="r2">A waltz moves in threes. Your hand has five fingers.</div>
+  <div class="roger-line" id="r3">A week has seven days.</div>
+  <div class="roger-line" id="r4">And one more &mdash; you can't see it &mdash; that protects them all.</div>
+  <div class="roger-line big" id="r5">970,200</div>
+  <button id="roger-enter">WHAT IS THIS NUMBER?</button>
+</div>
+
+<!-- GATE -->
+<div id="gate-section">
+  <div id="hint">Eight foundations, in order: a mirror, the void, the ground... then five primes.</div>
+  <div id="circles"></div>
+  <div id="pool"></div>
+</div>
+
+<!-- SUCCESS -->
+<div id="success-section">
+  <div id="equation"></div>
+  <div id="sub-eq"></div>
+  <div id="blazing">970200</div>
+</div>
+
+<!-- THIS IS REAL -->
+<div id="real-panel">
+  <div class="panel-title">This is not a metaphor</div>
+  <p>Every number on this site is computed live in your browser. Nothing hidden.</p>
+  <p>2&sup3; &times; 3&sup2; &times; 5&sup2; &times; 7&sup2; &times; 11 = <span class="gold">970,200</span>. Five primes, each made fatter. The True Form.</p>
+  <p>We aren't asking you to believe anything. Just look.</p>
+</div>
+
+<!-- THE HUB -->
+<div id="hub">
+  <h2>The Interactive Atlas</h2>
+  <input type="text" id="search-box" placeholder="Search 75 interactive demos...">
+  <div id="filters"></div>
+  <div id="featured"></div>
+  <div id="demo-list"></div>
+  <div id="no-res">No demos match your search.</div>
+  <button id="replay">replay the gate</button>
+  <div id="hub-foot">
+    <a href="worldview.html">worldview</a> &middot;
+    <a href="story.html">the math</a> &middot;
+    <a href="repl.html" style="color:#50fa7b">.ax repl</a> &middot;
+    <a href="about.html">about</a><br>
+    75 demos. Zero dependencies. Runs on potatoes.
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* === CATEGORIES === */
+var C={
+  start:   {n:'Start Here',    x:'#ffd700'},
+  physics: {n:'Physics',        x:'#4488ff'},
+  bio:     {n:'Biology',        x:'#33dd55'},
+  math:    {n:'Mathematics',    x:'#ff9900'},
+  eng:     {n:'Engineering',    x:'#ff4040'},
+  mind:    {n:'Mind',           x:'#aa44ff'},
+  tutorial:{n:'Tutorial',       x:'#44dddd'},
+  archive: {n:'Archive',        x:'#555555'}  /* empty — 10 old demos in old/ */
+};
+
+/* === ALL DEMOS (c=category, t=title, d=description, f=file, s=star/featured) === */
+var D=[
+  /* Start Here */
+  {c:'start',t:'Five Numbers',d:'21 paradigm shifts. Click to reveal before and after.',f:'worldview.html',s:1},
+  {c:'start',t:'The Mathematics',d:'Full story with interactive CRT decomposer.',f:'story.html',s:1},
+  {c:'start',t:'From Nothing to Everything',d:'8-step walkthrough: 0/0 to 970,200.',f:'derive_ax.html'},
+  {c:'start',t:'.ax REPL',d:'Write axiom code live. The native language of the ring.',f:'repl.html',s:1},
+  {c:'start',t:'About Anton',d:'Biography. The story behind the math.',f:'about.html'},
+  /* Physics */
+  {c:'physics',t:'Particle Masses',d:'23+ particles predicted. Mean error ~0.3%.',f:'particles.html',s:1},
+  {c:'physics',t:'Fine Structure Constant',d:'7-term builder. Click to add, watch error vanish.',f:'alpha.html',s:1},
+  {c:'physics',t:'All Physics Constants',d:'40+ constants. Search, compare, verify.',f:'constants.html'},
+  {c:'physics',t:'Turbulence & Metabolism',d:'Kolmogorov -5/3 and Kleiber 3/4. Both exact.',f:'turbulence.html'},
+  {c:'physics',t:'Black Holes',d:'OMEGA projection. Channel death. Water cycle.',f:'blackhole.html'},
+  {c:'physics',t:'Nuclear Shells',d:'Magic numbers as D-multiples.',f:'nuclear.html'},
+  {c:'physics',t:'Gravity',d:'K-nesting vs D-force. Curved space from algebra.',f:'gravity.html'},
+  {c:'physics',t:'Light Becomes Mass',d:'K=3 photon sphere. Particle birth flash.',f:'photon.html'},
+  {c:'physics',t:'Neutrino Mixing',d:'PMNS matrix from three axiom ratios.',f:'pmns.html'},
+  {c:'physics',t:'Orbital Resonances',d:'Sun-Moon-Jupiter dance. 8 verified cycles.',f:'three_body_dance.html'},
+  {c:'physics',t:'One Force',d:'All forces are density gradients. D-cut animation.',f:'figure_ground.html'},
+  {c:'physics',t:'Why the Sun Lives',d:'Coupling asymmetry = sigma surplus.',f:'eternal_sun.html'},
+  {c:'physics',t:'Scale Bands',d:'Planck to universe on one ruler.',f:'scale_bands.html'},
+  {c:'physics',t:'Cold Thoughts',d:'Dyson: finite energy, infinite experience.',f:'noxan.html'},
+  {c:'physics',t:'Standing Waves',d:'Continuous becomes discrete in a box.',f:'wavebox.html'},
+  {c:'physics',t:'How Rings Forget',d:'Heat diffusion on Z/210Z. t=42 half-life.',f:'sigma_dynamics.html'},
+  {c:'physics',t:'Fall Trinity',d:'ONE splits to MANY, falls back to ONE.',f:'loop.html'},
+  /* Biology */
+  {c:'bio',t:'DNA Codons',d:'Type a sequence. Watch CRT split each codon.',f:'dna.html'},
+  {c:'bio',t:'Sleep Stages',d:'Your brain locks channels nightly.',f:'sleep.html'},
+  {c:'bio',t:'The Heartbeat',d:'Cardioid from just three numbers.',f:'heart.html'},
+  {c:'bio',t:'What Death Is',d:'Body dissolves, mind releases, ground persists.',f:'death.html'},
+  {c:'bio',t:'Your Body Is a Ring',d:'D=2 sides, K=3 axes, E=5 fingers, b=7 vertebrae.',f:'human_shape.html'},
+  {c:'bio',t:'Three Families',d:'Why exactly 3 particle generations. K=3 decides.',f:'generations.html'},
+  {c:'bio',t:'Seven Petals',d:'b=7 fractal flower. 6 modes: flower, helix, sigma glyph, fractal.',f:'septilix.html'},
+  /* Mathematics */
+  {c:'math',t:'Millennium Problems',d:'ALL 6 Clay problems. Interactive. $1M each.',f:'millennium.html',s:1},
+  {c:'math',t:'11 Famous Unsolvables',d:'Collatz, twin primes, consciousness, and more.',f:'hardest.html'},
+  {c:'math',t:'Goldbach Pairs',d:'Same-class prime pairs through the ring.',f:'goldbach.html'},
+  {c:'math',t:'Coupling Landscape',d:'32-class heatmap. Click any element.',f:'coupling.html'},
+  {c:'math',t:'9-Dot Puzzle',d:'K^2=9 dots need boundary breaks to solve.',f:'ninedot.html'},
+  {c:'math',t:'Infinite from Finite',d:'The axiom generates infinite structure.',f:'infinity.html'},
+  {c:'math',t:'Why Existence Exists',d:'sigma/sigma = sigma. The only bootstrap.',f:'bootstrap.html'},
+  {c:'math',t:'Three Shapes',d:'Circle, line, triangle. All you need.',f:'symbol.html'},
+  {c:'math',t:'Water Cycle',d:'420 steps through 5 concentric CRT rings.',f:'watercycle.html'},
+  {c:'math',t:'Genesis',d:'Nothing condenses to sigma to D to K.',f:'genesis.html'},
+  {c:'math',t:'24-Hour Clock',d:'Your day has hidden algebraic blocks.',f:'clock24.html'},
+  {c:'math',t:'Interactive Rose',d:'Walk the Cayley graph of Z/2310Z. Click, hear, explore.',f:'rose.html'},
+  {c:'math',t:'K=3 Gap Gates',d:'Prime gaps can never repeat mod 3. Proved. Watch it live.',f:'gap_pairs.html'},
+  {c:'math',t:'Depth Quadratic',d:'Golden ratio polynomial maps axiom primes to primes.',f:'depth_quad.html'},
+  {c:'math',t:'The Full Fourteen',d:'A-N: 14 axiom elements, 7 L-pairs, eigenvalues, Cayley table.',f:'fourteen.html'},
+  /* Engineering */
+  {c:'eng',t:'Classifier',d:'97.6% accuracy. 9,512x fewer parameters.',f:'demo_classifier.html'},
+  {c:'eng',t:'Live Error Correction',d:'Type a message. Corrupt it. Watch it heal.',f:'ecc_live.html',s:1},
+  {c:'eng',t:'OFDM vs WiFi',d:'3.08x spectral efficiency. Same hardware.',f:'demo_ofdm_vs_wifi.html'},
+  {c:'eng',t:'CRT Compression',d:'Rissanen redundancy: 20x at byte level.',f:'compression.html'},
+  {c:'eng',t:'CRT Tokenizer',d:'732x parameter reduction at N=30030.',f:'tokenizer.html'},
+  {c:'eng',t:'Ternary AI',d:'K=3 scaling beats binary. 3^n vs 2^n.',f:'k_neural.html'},
+  {c:'eng',t:'ECC Classic',d:'Click to corrupt a channel. Watch L=11 heal.',f:'demo_ecc.html'},
+  /* Mind & Consciousness */
+  {c:'mind',t:'Emergence',d:'LIFE=7 from 3 operations. 562 lines of C.',f:'emergence.html',s:1},
+  {c:'mind',t:'Consciousness',d:'K-closure that includes itself. Strange loop.',f:'conscious.html'},
+  {c:'mind',t:'Free Will',d:'Self-referential choice vs random.',f:'freewill.html'},
+  {c:'mind',t:'Braids',d:'Space and time use the same K=3 closure.',f:'braid.html'},
+  {c:'mind',t:'Dimensions',d:'K-binding creates space. 0D to 4D.',f:'dimension.html'},
+  {c:'mind',t:'Ouroboros',d:'72-transition cycle. The snake eats its tail.',f:'ouroboros.html'},
+  {c:'mind',t:'HYDOR',d:'The medium is suffering. 210 blobs rise and sink.',f:'lava_lamp.html'},
+  {c:'mind',t:'Sandpile',d:'Self-organized criticality. Threshold = K+1.',f:'sandpile.html'},
+  {c:'mind',t:'Music of Primes',d:'5 harmonics. Walk the ring. Listen.',f:'music.html'},
+  /* Tutorial (Atlas) */
+  {c:'tutorial',t:'Ch 0: The Five Primes',d:'Why these five? Why not six?',f:'atlas_01_what_is_2310.html'},
+  {c:'tutorial',t:'Ch 1: Three Rings',d:'Thin, data, and true.',f:'atlas_02_two_rings.html'},
+  {c:'tutorial',t:'Ch 2: Five Petals',d:'One number becomes five pieces.',f:'atlas_03_crt.html'},
+  {c:'tutorial',t:'Ch 3: Carousel',d:'When the petals spin, what stays still?',f:'atlas_04_carousel.html'},
+  {c:'tutorial',t:'Ch 4: Eigenvalues',d:'Every number has a sound.',f:'atlas_05_eigenvalues.html'},
+  {c:'tutorial',t:'Ch 5: Units',d:'Who can undo what they have done?',f:'atlas_06_units.html'},
+  {c:'tutorial',t:'Ch 6: Kingdoms',d:'Bacteria first. Humans last.',f:'atlas_07_kingdoms.html'},
+  {c:'tutorial',t:'Ch 7: Breakthroughs',d:'9,512x fewer parameters.',f:'atlas_08_breakthroughs.html'},
+  {c:'tutorial',t:'Ch 8: Demos',d:'Touch the math. Run it yourself.',f:'atlas_09_demos.html'},
+  {c:'tutorial',t:'Ch 9: Millennium',d:'Six million-dollar problems.',f:'atlas_10_millennium.html'},
+  {c:'tutorial',t:'Ch 10: Indra\'s Net',d:'A neural network from scratch.',f:'atlas_11_net.html'},
+  {c:'tutorial',t:'Ch 11: Shadow Polynomial',d:'One equation controls everything.',f:'atlas_12_shadow_polynomial.html'},
+  {c:'tutorial',t:'Ch 12: Biological Braid',d:'Your DNA knows these primes.',f:'atlas_13_biological_braid.html'},
+  {c:'tutorial',t:'Ch 13: Solar Ladder',d:'Why the Sun has an 88-year cycle.',f:'atlas_14_solar_ladder.html'},
+  /* Archive: 10 older demos moved to old/ subfolder (S406) */
+];
+
+/* === GATE LOGIC === */
+var SEQ=[-1,0,1,2,3,5,7,11],
+    LABELS=['mirror','void','ground','pair','waltz','hand','week','shield'],
+    POOL=[-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13],
+    filled=0;
+
+if(localStorage.getItem('rose-gate-passed')==='true'){showHubDirect();return;}
+
+var cDiv=document.getElementById('circles');
+for(var i=0;i<8;i++){
+  var c=document.createElement('div');c.className='circle pulse';
+  c.setAttribute('data-idx',String(i));
+  var ns=document.createElement('span');ns.className='circle-num';c.appendChild(ns);
+  var lb=document.createElement('div');lb.className='circle-label';
+  lb.textContent=LABELS[i];c.appendChild(lb);cDiv.appendChild(c);
+}
+var pDiv=document.getElementById('pool');
+var nums=POOL.slice();
+for(var i=nums.length-1;i>0;i--){
+  var j=Math.floor(Math.random()*(i+1));
+  var t=nums[i];nums[i]=nums[j];nums[j]=t;
+}
+for(var i=0;i<nums.length;i++){
+  var b=document.createElement('div');b.className='num-btn';
+  b.textContent=String(nums[i]);b.setAttribute('data-num',String(nums[i]));
+  b.addEventListener('click',handleClick);pDiv.appendChild(b);
+}
+
+var lines=['r1','r2','r3','r4','r5'];
+for(var i=0;i<lines.length;i++){(function(idx){
+  setTimeout(function(){document.getElementById(lines[idx]).classList.add('visible');},500+idx*900);
+})(i);}
+setTimeout(function(){document.getElementById('roger-enter').classList.add('visible');},
+  500+lines.length*900+500);
+
+document.getElementById('roger-enter').addEventListener('click',enterGate);
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!document.getElementById('prologue').classList.contains('hidden'))enterGate();
+});
+
+function enterGate(){
+  var p=document.getElementById('prologue');if(p.classList.contains('hidden'))return;
+  p.classList.add('hidden');
+  setTimeout(function(){p.style.display='none';
+    var g=document.getElementById('gate-section');g.classList.add('active');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){g.classList.add('visible');});});
+  },1500);
+}
+
+function handleClick(e){
+  var num=parseInt(e.target.getAttribute('data-num'));
+  var expected=SEQ[filled];var circles=document.querySelectorAll('.circle');
+  var circle=circles[filled];
+  if(num===expected){
+    circle.querySelector('.circle-num').textContent=String(num);
+    circle.classList.remove('pulse');circle.classList.add('filled','igniting');
+    e.target.classList.add('used');filled++;
+    setTimeout(function(){circle.classList.remove('igniting');},500);
+    if(filled===8)setTimeout(showSuccess,900);
+  }else{
+    circle.classList.add('shake');e.target.classList.add('wrong');
+    setTimeout(function(){circle.classList.remove('shake');e.target.classList.remove('wrong');},350);
+  }
+}
+
+function showSuccess(){
+  localStorage.setItem('rose-gate-passed','true');
+  var g=document.getElementById('gate-section');
+  g.style.transition='opacity 1s ease';g.style.opacity='0';
+  setTimeout(function(){g.style.display='none';
+    var s=document.getElementById('success-section');s.classList.add('active');
+    var eq=document.getElementById('equation');
+    eq.textContent='\u22121 \u00b7 0 \u00b7 1 \u00b7 2\u00b3 \u00b7 3\u00b2 \u00b7 5\u00b2 \u00b7 7\u00b2 \u00b7 11';
+    setTimeout(function(){eq.classList.add('visible');},200);
+    var sub=document.getElementById('sub-eq');
+    sub.textContent='Five primes, each made fatter. The True Form.';
+    setTimeout(function(){sub.classList.add('visible');},1200);
+    setTimeout(function(){document.getElementById('blazing').classList.add('visible');},2200);
+    setTimeout(function(){
+      var p=document.getElementById('real-panel');p.classList.add('active');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){p.classList.add('visible');});});
+    },3800);
+    setTimeout(function(){
+      var h=document.getElementById('hub');h.classList.add('active');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){h.classList.add('visible');});});
+      buildHub();
+    },5000);
+  },1100);
+}
+
+function showHubDirect(){
+  document.getElementById('prologue').style.display='none';
+  var s=document.getElementById('success-section');s.classList.add('active');
+  var eq=document.getElementById('equation');
+  eq.textContent='\u22121 \u00b7 0 \u00b7 1 \u00b7 2\u00b3 \u00b7 3\u00b2 \u00b7 5\u00b2 \u00b7 7\u00b2 \u00b7 11';
+  eq.classList.add('visible');
+  document.getElementById('blazing').classList.add('visible');
+  var p=document.getElementById('real-panel');p.classList.add('active');p.classList.add('visible');
+  var h=document.getElementById('hub');h.classList.add('active');h.classList.add('visible');
+  buildHub();
+}
+
+/* === HUB LOGIC === */
+var hubReady=false;
+function buildHub(){
+  if(hubReady)return;hubReady=true;
+  var fDiv=document.getElementById('filters');
+  var order=['start','physics','bio','math','eng','mind','tutorial','archive'];
+  mkChip(fDiv,'ALL','all','#ffd700',true);
+  for(var i=0;i<order.length;i++) mkChip(fDiv,C[order[i]].n.toUpperCase(),order[i],C[order[i]].x,false);
+  render('all','');
+  document.getElementById('search-box').addEventListener('input',function(){
+    var q=this.value.toLowerCase();
+    var ac=document.querySelector('.fchip.on').getAttribute('data-c');
+    render(ac,q);
+  });
+  document.getElementById('replay').addEventListener('click',function(){
+    localStorage.removeItem('rose-gate-passed');location.reload();
+  });
+  /* Hash-based category filtering: index.html#physics auto-selects Physics */
+  var hash = location.hash.replace('#','');
+  if (hash && C[hash]) {
+    var chips = document.querySelectorAll('.fchip');
+    for (var i = 0; i < chips.length; i++) {
+      if (chips[i].getAttribute('data-c') === hash) { chips[i].click(); break; }
+    }
+  }
+}
+
+function mkChip(par,label,cat,color,on){
+  var s=document.createElement('span');s.className='fchip'+(on?' on':'');
+  s.textContent=label;s.setAttribute('data-c',cat);
+  if(on){s.style.color=color;s.style.background='radial-gradient(ellipse at center,'+color+'1f,#0a0a14 70%)';}
+  s.addEventListener('click',function(){
+    var all=document.querySelectorAll('.fchip');
+    for(var i=0;i<all.length;i++){all[i].classList.remove('on');all[i].style.color='';
+      all[i].style.background='#0a0a14';all[i].style.animation='';}
+    s.classList.add('on');s.style.color=color;
+    s.style.background='radial-gradient(ellipse at center,'+color+'1f,#0a0a14 70%)';
+    /* snap: if ALL clicked, stones light up in sequence then fade */
+    if(cat==='all'){
+      for(var i=1;i<all.length;i++){(function(el,delay){
+        setTimeout(function(){
+          el.classList.add('snap');el.style.color=el.getAttribute('data-x')||color;
+        },delay);
+        setTimeout(function(){
+          el.classList.remove('snap');
+          if(!el.classList.contains('on')){el.style.color='#555';}
+        },delay+600);
+      })(all[i],i*80);}
+    }
+    render(cat,document.getElementById('search-box').value.toLowerCase());
+  });
+  s.setAttribute('data-x',color);
+  par.appendChild(s);
+}
+
+function render(cat,q){
+  var list=document.getElementById('demo-list');
+  var feat=document.getElementById('featured');
+  var nr=document.getElementById('no-res');
+  list.innerHTML='';feat.innerHTML='';nr.style.display='none';
+  var f=[];
+  for(var i=0;i<D.length;i++){
+    var d=D[i];
+    if(cat!=='all'&&d.c!==cat)continue;
+    if(q&&(d.t+' '+d.d).toLowerCase().indexOf(q)===-1)continue;
+    f.push(d);
+  }
+  if(!f.length){nr.style.display='block';return;}
+  /* Featured row (only when all + no search) */
+  if(cat==='all'&&!q){
+    var stars=[];for(var i=0;i<f.length;i++)if(f[i].s)stars.push(f[i]);
+    if(stars.length){
+      var fg=document.createElement('div');fg.className='feat';
+      for(var i=0;i<stars.length;i++){
+        var d=stars[i],a=document.createElement('a');a.className='fcrd';a.href=d.f;
+        a.style.borderLeft='3px solid '+C[d.c].x;
+        var glow=C[d.c].x;
+        a.onmouseenter=function(){this.style.borderColor=glow;this.style.boxShadow='0 6px 30px '+glow+'22';};
+        a.onmouseleave=function(){this.style.borderColor='#1a1a2a';this.style.boxShadow='';};
+        a.innerHTML='<div class="fcrd-tag" style="color:'+glow+'">'+C[d.c].n+'</div>'+
+          '<div class="crd-t">'+d.t+'</div><div class="crd-d">'+d.d+'</div>';
+        fg.appendChild(a);
+      }
+      feat.appendChild(fg);
+    }
+  }
+  /* Group by category */
+  var order=['start','physics','bio','math','eng','mind','tutorial','archive'];
+  var g={};for(var i=0;i<f.length;i++){var d=f[i];if(!g[d.c])g[d.c]=[];g[d.c].push(d);}
+  for(var ci=0;ci<order.length;ci++){
+    var k=order[ci];if(!g[k])continue;
+    var items=g[k];
+    var sec=document.createElement('div');sec.className='cat-sec';
+    var hdr=document.createElement('div');hdr.className='cat-hdr';
+    hdr.style.borderLeftColor=C[k].x;
+    hdr.innerHTML=C[k].n+'<span class="cat-cnt">('+items.length+')</span>';
+    sec.appendChild(hdr);
+    var grid=document.createElement('div');grid.className='cgrid';
+    for(var j=0;j<items.length;j++){
+      var d=items[j],a=document.createElement('a');a.className='crd';a.href=d.f;
+      a.style.borderLeftColor=C[k].x;
+      (function(el,clr){
+        el.onmouseenter=function(){el.style.borderColor=clr;el.style.boxShadow='0 4px 20px '+clr+'18';};
+        el.onmouseleave=function(){el.style.borderColor='#111';el.style.borderLeftColor=clr;el.style.boxShadow='';};
+      })(a,C[k].x);
+      a.innerHTML='<div class="crd-t">'+d.t+'</div><div class="crd-d">'+d.d+'</div>';
+      grid.appendChild(a);
+    }
+    sec.appendChild(grid);list.appendChild(sec);
+  }
+}
+
+})();
+</script>
+</body>
+</html>

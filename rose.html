@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Interactive Rose</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #e0e0e0; font-family: 'Courier New', monospace; overflow: hidden; }
+#app { display: flex; height: calc(100vh - 44px); }
+#canvas-wrap { flex: 1; position: relative; }
+canvas { display: block; cursor: crosshair; }
+#panel { width: 340px; background: #12121e; border-left: 1px solid #333; padding: 16px; overflow-y: auto; }
+h1 { font-size: 14px; color: #88aaff; margin-bottom: 8px; }
+h2 { font-size: 12px; color: #66ddaa; margin: 12px 0 4px; }
+.row { display: flex; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+.btn { background: #1a1a2e; border: 1px solid #444; color: #aaa; padding: 4px 8px;
+       cursor: pointer; font-family: inherit; font-size: 11px; border-radius: 3px; }
+.btn:hover { background: #2a2a3e; color: #fff; }
+.btn.active { background: #2a4a6a; color: #88ccff; border-color: #88ccff; }
+.info { font-size: 11px; line-height: 1.6; }
+.info b { color: #88aaff; }
+.nbr { cursor: pointer; color: #66ddaa; text-decoration: underline; }
+.nbr:hover { color: #aaffcc; }
+#ev-bar { height: 12px; background: #1a1a2e; border: 1px solid #333; margin: 4px 0; position: relative; }
+#ev-fill { height: 100%; transition: width 0.3s; }
+#ev-labels { display: flex; justify-content: space-between; font-size: 9px; color: #666; }
+.channel { display: flex; align-items: center; gap: 6px; margin: 2px 0; font-size: 11px; }
+.ch-bar { flex: 1; height: 8px; background: #1a1a2e; border: 1px solid #333; position: relative; }
+.ch-fill { height: 100%; position: absolute; }
+#tooltip { position: absolute; background: rgba(10,10,20,0.9); border: 1px solid #555;
+           padding: 6px 10px; font-size: 11px; pointer-events: none; display: none; border-radius: 4px; }
+#legend { position: absolute; bottom: 10px; left: 10px; background: rgba(10,10,20,0.8);
+          padding: 8px; font-size: 10px; border-radius: 4px; }
+#status { position: absolute; top: 10px; left: 10px; font-size: 11px; color: #666; }
+.contrast{margin-top:16px;padding:12px;border:1px solid #1a1a2a;border-radius:8px;background:#08080e}
+.contrast h2{color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.crow{display:flex;justify-content:space-between;font-size:10px;margin:3px 0;color:#888}
+.crow .ours{color:#ffd700} .crow .theirs{color:#555}
+@media(max-width:900px){
+  #app{flex-direction:column;height:auto}
+  #panel{width:100%;border-left:none;border-top:1px solid #333;max-height:50vh}
+  #canvas-wrap{min-height:50vh}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="canvas-wrap">
+  <canvas id="grid"></canvas>
+  <div id="tooltip"></div>
+  <div id="status">Z/2310Z = Z/2 x Z/3 x Z/5 x Z/7 x Z/11 | 2310 elements | Click to explore | Space to play</div>
+  <div id="legend"></div>
+</div>
+<div id="panel">
+  <h1>THE INTERACTIVE ROSE</h1>
+  <div class="info" style="color:#888; margin-bottom:8px;">
+    Z/2310Z explorer. Click any element to inspect and hear it.
+    Walk the Cayley graph by clicking neighbors.
+  </div>
+
+  <h2>COLOR BY</h2>
+  <div class="row">
+    <button class="btn active" data-mode="eigenvalue">Eigenvalue</button>
+    <button class="btn" data-mode="coupling">Coupling</button>
+    <button class="btn" data-mode="kingdom">Kingdom</button>
+    <button class="btn" data-mode="type">Type</button>
+  </div>
+
+  <h2>FILTER</h2>
+  <div class="row">
+    <button class="btn" data-filter="units">Units (480)</button>
+    <button class="btn" data-filter="idempotents">Idemp (32)</button>
+    <button class="btn" data-filter="selfinv">Self-inv (16)</button>
+    <button class="btn" data-filter="none">All</button>
+  </div>
+
+  <h2>WALK</h2>
+  <div class="row">
+    <button class="btn" id="btn-walk">Random Step</button>
+    <button class="btn" id="btn-walk10">Walk 10</button>
+    <button class="btn" id="btn-origin">Reset to 0</button>
+  </div>
+
+  <div id="elem-info" style="margin-top:12px;">
+    <h2>ELEMENT</h2>
+    <div class="info" id="elem-details">Click any element to begin.</div>
+
+    <h2 id="ev-header" style="display:none;">EIGENVALUE</h2>
+    <div id="ev-bar" style="display:none;"><div id="ev-fill"></div></div>
+    <div id="ev-labels" style="display:none;"><span>-7.5</span><span>0</span><span>9.5</span></div>
+
+    <h2 id="ch-header" style="display:none;">CRT CHANNELS</h2>
+    <div id="channels"></div>
+
+    <h2 id="nbr-header" style="display:none;">NEIGHBORS</h2>
+    <div id="neighbors" class="info"></div>
+  </div>
+  <div class="contrast">
+    <h2>What you're seeing</h2>
+    <div class="crow"><span>All 2310 elements of Z/2310Z</span></div>
+    <div class="crow"><span class="ours">CRT grid: 77 cols x 30 rows</span><span class="theirs">vs flat number line</span></div>
+    <div class="crow"><span class="ours">4 color modes (eigenvalue, coupling, kingdom, type)</span></div>
+    <div class="crow"><span class="ours">Cayley graph walk with sound</span><span class="theirs">vs silent spreadsheet</span></div>
+    <div class="crow"><span class="ours">288 eigenvalue classes</span><span class="theirs">vs 2310 random points</span></div>
+    <div class="crow"><span>Every number has a position, a color, and a sound.</span></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ---- Constants ----
+const N = 2310, PRIMES = [2,3,5,7,11], COLS = 77, ROWS = 30;
+const STEP_POS = [1155, 770, 462, 330, 210];
+const PRIME_NAME = ['D','K','E','b','L'];
+const EDGE_NAME = ['D+','K+','K-','E+','E-','b+','b-','L+','L-'];
+const KINGDOM_NAME = ['Bacteria','Protista','Fungi','Plants','Animals','Human'];
+const KINGDOM_DIV = [2310, 1155, 770, 462, 330, 210];
+const KINGDOM_COLOR = ['#ff4444','#ff8844','#ffaa22','#44cc44','#4488ff','#aa66ff'];
+const F0 = 110;
+
+// ---- Math ----
+function gcd(a,b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
+function mod(n,m) { return ((n%m)+m)%m; }
+function coupling(n) { let g = gcd(mod(n,N), N); return g===0?1:N/g; }
+function isUnit(n) { return gcd(mod(n,N), N) === 1; }
+function isIdemp(n) { let m = mod(n,N); return (m*m)%N === m; }
+function isSelfInv(n) { let m = mod(n,N); return (m*m)%N === 1; }
+function crtSig(n) { let m = mod(n,N); return PRIMES.map(p => m % p); }
+
+function channelWeights(n) {
+  let x = mod(n, N);
+  return [
+    Math.cos(Math.PI * x),
+    2 * Math.cos(2 * Math.PI * x / 3),
+    2 * Math.cos(2 * Math.PI * x / 5),
+    2 * Math.cos(2 * Math.PI * x / 7),
+    2 * Math.cos(2 * Math.PI * x / 11)
+  ];
+}
+
+function eigenvalue(n) { return channelWeights(n).reduce((a,b) => a+b, 0); }
+
+function kingdomOf(n) {
+  let m = mod(n, N);
+  if (m === 0) return 0; // Bacteria (origin is ground state)
+  for (let i = 5; i >= 0; i--) if (m % KINGDOM_DIV[i] === 0) return i;
+  return -1; // not a kingdom element
+}
+
+function neighbors(n) {
+  let m = mod(n, N), nbrs = [];
+  nbrs.push(mod(m + STEP_POS[0], N)); // D+ (self-conjugate: +1155 = -1155 mod 2310)
+  for (let i = 1; i < 5; i++) {
+    nbrs.push(mod(m + STEP_POS[i], N));
+    nbrs.push(mod(m - STEP_POS[i], N));
+  }
+  return nbrs;
+}
+
+// ---- Precompute ----
+const evAll = new Float64Array(N);
+let evMin = 99, evMax = -99;
+for (let i = 0; i < N; i++) {
+  evAll[i] = eigenvalue(i);
+  if (evAll[i] < evMin) evMin = evAll[i];
+  if (evAll[i] > evMax) evMax = evAll[i];
+}
+
+// Grid mapping: CRT gives n <-> (n mod 30, n mod 77) since gcd(30,77)=1
+// We use n mod 77 as column, n mod 30 as row
+function elemToGrid(n) { return { col: mod(n, COLS), row: mod(n, ROWS) }; }
+function gridToElem(row, col) {
+  // CRT reconstruct: find n such that n%30=row, n%77=col
+  // 77 * 77^(-1 mod 30) * row + 30 * 30^(-1 mod 77) * col mod 2310
+  // 77^(-1) mod 30: 77 mod 30 = 17, 17*23 = 391 = 13*30+1, so inv = 23
+  // 30^(-1) mod 77: 30*54 = 1620 = 21*77+3... let me just compute
+  // Actually simpler: iterate
+  for (let n = col; n < N; n += COLS) if (mod(n, ROWS) === row) return n;
+  return -1;
+}
+
+// Precompute grid mapping
+const gridMap = new Int32Array(ROWS * COLS);
+for (let r = 0; r < ROWS; r++)
+  for (let c = 0; c < COLS; c++)
+    gridMap[r * COLS + c] = gridToElem(r, c);
+
+// ---- Color schemes ----
+function evColor(ev) {
+  let t = (ev - evMin) / (evMax - evMin); // 0 to 1
+  // Blue (cold/min) -> Green -> Yellow -> Red (hot/max)
+  let r, g, b;
+  if (t < 0.33) { let s = t / 0.33; r = 30; g = Math.floor(50 + 150*s); b = Math.floor(200*(1-s)); }
+  else if (t < 0.66) { let s = (t-0.33)/0.33; r = Math.floor(50 + 200*s); g = Math.floor(200); b = 30; }
+  else { let s = (t-0.66)/0.34; r = 255; g = Math.floor(200*(1-s)); b = Math.floor(50*s); }
+  return `rgb(${r},${g},${b})`;
+}
+
+function coupColor(n) {
+  let c = coupling(n);
+  let t = Math.log(c) / Math.log(N); // 0 to 1
+  let r = Math.floor(255 * t), g = Math.floor(100 + 100*(1-t)), b = Math.floor(255*(1-t));
+  return `rgb(${r},${g},${b})`;
+}
+
+function kingdomColor(n) {
+  let k = kingdomOf(n);
+  if (k >= 0) return KINGDOM_COLOR[k];
+  return '#333';
+}
+
+function typeColor(n) {
+  if (isIdemp(n)) return '#ff44ff';
+  if (isSelfInv(n)) return '#ffff44';
+  if (isUnit(n)) return '#44ff88';
+  return '#444466';
+}
+
+// ---- State ----
+let colorMode = 'eigenvalue';
+let filterMode = 'none';
+let selected = -1;
+let walkPath = [];
+
+// ---- Canvas ----
+const canvas = document.getElementById('grid');
+const ctx = canvas.getContext('2d');
+let cellW, cellH, padL = 50, padT = 40;
+
+function resize() {
+  let wrap = document.getElementById('canvas-wrap');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  cellW = (canvas.width - padL - 20) / COLS;
+  cellH = (canvas.height - padT - 30) / ROWS;
+  draw();
+}
+
+function getColor(n) {
+  switch(colorMode) {
+    case 'eigenvalue': return evColor(evAll[n]);
+    case 'coupling': return coupColor(n);
+    case 'kingdom': return kingdomColor(n);
+    case 'type': return typeColor(n);
+  }
+  return '#888';
+}
+
+function passFilter(n) {
+  switch(filterMode) {
+    case 'units': return isUnit(n);
+    case 'idempotents': return isIdemp(n);
+    case 'selfinv': return isSelfInv(n);
+  }
+  return true;
+}
+
+function draw() {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Axis labels
+  ctx.fillStyle = '#555';
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'center';
+  for (let c = 0; c < COLS; c += 7) {
+    ctx.fillText(c, padL + c * cellW + cellW/2, padT - 5);
+  }
+  ctx.textAlign = 'right';
+  for (let r = 0; r < ROWS; r += 5) {
+    ctx.fillText(r, padL - 5, padT + r * cellH + cellH/2 + 3);
+  }
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#444';
+  ctx.font = '10px monospace';
+  ctx.fillText('col = n mod 77 (b*L)', padL, padT - 22);
+  ctx.save();
+  ctx.translate(12, padT + (ROWS * cellH) / 2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('row = n mod 30 (D*K*E)', 0, 0);
+  ctx.restore();
+
+  // Draw cells
+  let gap = Math.max(0.5, cellW * 0.08);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      let n = gridMap[r * COLS + c];
+      let x = padL + c * cellW, y = padT + r * cellH;
+      let pass = passFilter(n);
+
+      if (pass) {
+        ctx.fillStyle = getColor(n);
+      } else {
+        ctx.fillStyle = '#111118';
+      }
+      ctx.fillRect(x + gap, y + gap, cellW - 2*gap, cellH - 2*gap);
+
+      // Highlight selected
+      if (n === selected) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, cellW, cellH);
+      }
+    }
+  }
+
+  // Draw walk path
+  if (walkPath.length > 1) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < walkPath.length; i++) {
+      let g = elemToGrid(walkPath[i]);
+      let x = padL + g.col * cellW + cellW/2;
+      let y = padT + g.row * cellH + cellH/2;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // Draw neighbor highlights
+  if (selected >= 0) {
+    let nbrs = neighbors(selected);
+    for (let nb of nbrs) {
+      let g = elemToGrid(nb);
+      let x = padL + g.col * cellW, y = padT + g.row * cellH;
+      ctx.strokeStyle = 'rgba(102,221,170,0.6)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + gap/2, y + gap/2, cellW - gap, cellH - gap);
+    }
+  }
+}
+
+// ---- Audio (Web Audio API) ----
+let audioCtx = null;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+function playElement(n, duration) {
+  initAudio();
+  let w = channelWeights(n);
+  let gain = audioCtx.createGain();
+  gain.connect(audioCtx.destination);
+  let t = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.15, t + 0.02);
+  gain.gain.setValueAtTime(0.15, t + duration - 0.05);
+  gain.gain.linearRampToValueAtTime(0, t + duration);
+
+  for (let i = 0; i < 5; i++) {
+    let osc = audioCtx.createOscillator();
+    let chGain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = F0 * PRIMES[i];
+    // Amplitude proportional to channel weight (normalized)
+    let amp = (w[i] + 2) / 4; // roughly 0 to 1
+    chGain.gain.value = Math.max(0, amp) * 0.3;
+    osc.connect(chGain);
+    chGain.connect(gain);
+    osc.start(t);
+    osc.stop(t + duration);
+  }
+}
+
+// ---- Interaction ----
+function hitTest(mx, my) {
+  let c = Math.floor((mx - padL) / cellW);
+  let r = Math.floor((my - padT) / cellH);
+  if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return -1;
+  return gridMap[r * COLS + c];
+}
+
+function selectElement(n) {
+  selected = mod(n, N);
+  updatePanel(selected);
+  draw();
+  playElement(selected, 0.4);
+}
+
+canvas.addEventListener('click', (e) => {
+  let rect = canvas.getBoundingClientRect();
+  let n = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+  if (n >= 0) {
+    walkPath = [n];
+    selectElement(n);
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  let rect = canvas.getBoundingClientRect();
+  let n = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+  let tip = document.getElementById('tooltip');
+  if (n >= 0) {
+    let sig = crtSig(n);
+    tip.innerHTML = `<b>${n}</b> sig(${sig.join(',')}) ev=${evAll[n].toFixed(2)} c=${coupling(n)}`;
+    tip.style.display = 'block';
+    tip.style.left = (e.clientX - rect.left + 12) + 'px';
+    tip.style.top = (e.clientY - rect.top - 8) + 'px';
+  } else {
+    tip.style.display = 'none';
+  }
+});
+
+// ---- Panel update ----
+function updatePanel(n) {
+  let sig = crtSig(n);
+  let ev = evAll[n];
+  let c = coupling(n);
+  let w = channelWeights(n);
+  let k = kingdomOf(n);
+  let nbrs = neighbors(n);
+
+  // Null channels
+  let nulls = [];
+  for (let i = 0; i < 5; i++) if (sig[i] === 0) nulls.push(PRIME_NAME[i]);
+
+  let types = [];
+  if (isUnit(n)) types.push('UNIT');
+  if (isIdemp(n)) types.push('IDEMPOTENT');
+  if (isSelfInv(n)) types.push('SELF-INVERSE');
+  if (types.length === 0) types.push('zero-divisor');
+
+  let kname = k >= 0 ? KINGDOM_NAME[k] : 'non-kingdom';
+
+  document.getElementById('elem-details').innerHTML =
+    `<b>n = ${n}</b><br>` +
+    `CRT: (${sig.join(', ')})<br>` +
+    `Coupling: ${c}<br>` +
+    `Type: ${types.join(', ')}<br>` +
+    `Kingdom: ${kname}<br>` +
+    `Null: ${nulls.length ? nulls.join(', ') : '(none)'}`;
+
+  // Eigenvalue bar
+  ['ev-header','ev-bar','ev-labels'].forEach(id => document.getElementById(id).style.display = '');
+  let frac = (ev - evMin) / (evMax - evMin);
+  let fill = document.getElementById('ev-fill');
+  fill.style.width = (frac * 100) + '%';
+  fill.style.background = evColor(ev);
+  document.getElementById('ev-header').textContent = `EIGENVALUE: ${ev.toFixed(4)}`;
+
+  // Channel bars
+  document.getElementById('ch-header').style.display = '';
+  let chHTML = '';
+  const chColors = ['#ff6666','#ff9944','#44cc44','#4488ff','#aa66ff'];
+  for (let i = 0; i < 5; i++) {
+    let norm = (w[i] + 2) / 4; // approx 0-1
+    let pct = Math.max(0, Math.min(100, norm * 100));
+    chHTML += `<div class="channel">
+      <span style="color:${chColors[i]};width:16px;">${PRIME_NAME[i]}</span>
+      <span style="width:24px;text-align:right;">${PRIMES[i]}</span>
+      <div class="ch-bar"><div class="ch-fill" style="width:${pct}%;background:${chColors[i]};"></div></div>
+      <span style="width:44px;text-align:right;font-size:10px;">${w[i].toFixed(2)}</span>
+    </div>`;
+  }
+  document.getElementById('channels').innerHTML = chHTML;
+
+  // Neighbors
+  document.getElementById('nbr-header').style.display = '';
+  let nHTML = '';
+  for (let i = 0; i < nbrs.length; i++) {
+    let ne = nbrs[i];
+    let ns = crtSig(ne);
+    nHTML += `<span class="nbr" data-n="${ne}">${EDGE_NAME[i]}: ${ne}</span> (${ns.join(',')}) ev=${evAll[ne].toFixed(1)}<br>`;
+  }
+  document.getElementById('neighbors').innerHTML = nHTML;
+
+  // Add neighbor click handlers
+  document.querySelectorAll('.nbr').forEach(el => {
+    el.addEventListener('click', () => {
+      let nn = parseInt(el.dataset.n);
+      walkPath.push(nn);
+      selectElement(nn);
+    });
+  });
+}
+
+// ---- Controls ----
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    colorMode = btn.dataset.mode;
+    draw();
+  });
+});
+
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterMode = btn.dataset.filter;
+    draw();
+  });
+});
+
+document.getElementById('btn-walk').addEventListener('click', () => {
+  if (selected < 0) selectElement(0);
+  let nbrs = neighbors(selected);
+  let next = nbrs[Math.floor(Math.random() * nbrs.length)];
+  walkPath.push(next);
+  selectElement(next);
+});
+
+document.getElementById('btn-walk10').addEventListener('click', () => {
+  if (selected < 0) selected = 0;
+  let cur = selected;
+  for (let i = 0; i < 10; i++) {
+    let nbrs = neighbors(cur);
+    cur = nbrs[Math.floor(Math.random() * nbrs.length)];
+    walkPath.push(cur);
+  }
+  selectElement(cur);
+});
+
+document.getElementById('btn-origin').addEventListener('click', () => {
+  walkPath = [0];
+  selectElement(0);
+});
+
+// Keyboard: space plays current, arrows walk
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (selected >= 0) playElement(selected, 0.6);
+  }
+  if (selected >= 0) {
+    let nbrs = neighbors(selected);
+    if (e.code === 'ArrowRight') { walkPath.push(nbrs[0]); selectElement(nbrs[0]); }
+    if (e.code === 'ArrowUp') { walkPath.push(nbrs[1]); selectElement(nbrs[1]); }
+    if (e.code === 'ArrowDown') { walkPath.push(nbrs[2]); selectElement(nbrs[2]); }
+    if (e.code === 'ArrowLeft') { walkPath.push(nbrs[3]); selectElement(nbrs[3]); }
+  }
+});
+
+// ---- Legend ----
+function updateLegend() {
+  let lg = document.getElementById('legend');
+  if (colorMode === 'kingdom') {
+    lg.innerHTML = KINGDOM_NAME.map((k,i) =>
+      `<span style="color:${KINGDOM_COLOR[i]}">&#9632;</span> ${k}`
+    ).join(' &nbsp; ');
+  } else if (colorMode === 'type') {
+    lg.innerHTML = '<span style="color:#44ff88">&#9632;</span> Unit &nbsp; ' +
+      '<span style="color:#ff44ff">&#9632;</span> Idempotent &nbsp; ' +
+      '<span style="color:#ffff44">&#9632;</span> Self-inverse &nbsp; ' +
+      '<span style="color:#444466">&#9632;</span> Zero-divisor';
+  } else if (colorMode === 'eigenvalue') {
+    lg.innerHTML = '<span style="color:#1e32c8">&#9632;</span> min (-7.3) &nbsp; ' +
+      '<span style="color:#32c832">&#9632;</span> mid &nbsp; ' +
+      '<span style="color:#ff3200">&#9632;</span> max (9.0)';
+  } else {
+    lg.innerHTML = '<span style="color:#1e6496">&#9632;</span> low coupling &nbsp; ' +
+      '<span style="color:#ff6432">&#9632;</span> high coupling';
+  }
+}
+
+// ---- Init ----
+window.addEventListener('resize', () => { resize(); updateLegend(); });
+resize();
+updateLegend();
+selectElement(0);
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

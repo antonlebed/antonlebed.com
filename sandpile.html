@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandpile — Self-Organized Criticality</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#ccc;font-family:'Courier New',monospace;overflow-x:hidden}
+h1{text-align:center;color:#f0c040;padding:20px 10px 5px;font-size:1.5em}
+.subtitle{text-align:center;color:#888;font-size:0.9em;margin-bottom:15px}
+.container{max-width:1100px;margin:0 auto;padding:0 15px}
+.main{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.panel{background:#111118;border:1px solid #333;border-radius:8px;padding:15px}
+.grid-panel{flex:0 0 auto}
+.stats-panel{flex:1;min-width:280px;max-width:400px}
+canvas{display:block;border:1px solid #444;border-radius:4px;cursor:pointer}
+.controls{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;align-items:center;justify-content:center}
+button{background:#222;color:#f0c040;border:1px solid #f0c040;padding:6px 14px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.85em}
+button:hover{background:#f0c040;color:#000}
+button.active{background:#f0c040;color:#000}
+label{color:#888;font-size:0.85em}
+select,input[type=range]{background:#222;color:#ccc;border:1px solid #555;border-radius:3px;padding:3px 6px}
+.stat-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1a25}
+.stat-label{color:#888}
+.stat-value{color:#f0c040;font-weight:bold}
+.insight{background:#1a1520;border-left:3px solid #f0c040;padding:10px 12px;margin:12px 0;font-size:0.85em;line-height:1.5}
+.insight em{color:#f0c040;font-style:normal}
+.histogram{margin-top:10px}
+.hist-bar-wrap{display:flex;align-items:center;margin:2px 0;font-size:0.75em}
+.hist-label{width:35px;text-align:right;color:#888;margin-right:6px}
+.hist-bar{height:12px;background:#f0c040;border-radius:2px;transition:width 0.3s}
+.hist-count{margin-left:6px;color:#666;min-width:30px}
+.contrast{background:#0d1117;border:1px solid #333;border-radius:8px;padding:15px;margin:20px auto;max-width:800px}
+.contrast h3{color:#f0c040;margin-bottom:10px;font-size:1em}
+.contrast-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.contrast-header{background:#1a1a25;padding:6px 10px;font-weight:bold;font-size:0.85em}
+.contrast-cell{background:#111118;padding:6px 10px;font-size:0.8em;line-height:1.4}
+.c-old{color:#ff6b6b}
+.c-new{color:#4ecdc4}
+.footer{text-align:center;color:#555;padding:20px;font-size:0.8em}
+.legend{display:flex;gap:12px;justify-content:center;margin:8px 0;font-size:0.75em;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-swatch{width:14px;height:14px;border-radius:2px;border:1px solid #444}
+.mode-info{text-align:center;color:#666;font-size:0.8em;margin:4px 0}
+@media(max-width:700px){.main{flex-direction:column;align-items:center}.stats-panel{max-width:100%}}
+</style>
+</head>
+<body>
+
+<h1>SANDPILE</h1>
+<p class="subtitle">Self-Organized Criticality: why hoarding always collapses</p>
+
+<div class="container">
+<div class="main">
+
+<div class="panel grid-panel">
+  <canvas id="grid" width="400" height="400"></canvas>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#0a0a1a"></div> 0</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#1a3a5a"></div> 1</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#2a6a3a"></div> 2</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#8a7a2a"></div> 3</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#cc3333"></div> 4+ avalanche!</div>
+  </div>
+  <div class="controls">
+    <button id="btnPlay" onclick="togglePlay()">Play</button>
+    <button onclick="step()">Step</button>
+    <button onclick="drop10()">+10</button>
+    <button onclick="drop100()">+100</button>
+    <button onclick="reset()">Reset</button>
+  </div>
+  <div class="controls">
+    <label>Speed: <input type="range" id="speed" min="1" max="100" value="30" oninput="updateSpeed()"></label>
+    <label>Mode:
+      <select id="dropMode" onchange="updateMode()">
+        <option value="random">Random rain</option>
+        <option value="center">Center pour</option>
+        <option value="click">Click to drop</option>
+      </select>
+    </label>
+  </div>
+  <div class="mode-info" id="modeInfo">Grains fall at random positions</div>
+</div>
+
+<div class="panel stats-panel">
+  <h3 style="color:#f0c040;margin-bottom:10px">Statistics</h3>
+  <div class="stat-row"><span class="stat-label">Grains dropped</span><span class="stat-value" id="sGrains">0</span></div>
+  <div class="stat-row"><span class="stat-label">Avalanches</span><span class="stat-value" id="sAval">0</span></div>
+  <div class="stat-row"><span class="stat-label">Largest avalanche</span><span class="stat-value" id="sMax">0</span></div>
+  <div class="stat-row"><span class="stat-label">Average height</span><span class="stat-value" id="sAvg">0.00</span></div>
+  <div class="stat-row"><span class="stat-label">Max cell</span><span class="stat-value" id="sCell">0</span></div>
+  <div class="stat-row"><span class="stat-label">Std deviation</span><span class="stat-value" id="sStd">0.00</span></div>
+  <div class="stat-row"><span class="stat-label">Grains lost (edge)</span><span class="stat-value" id="sLost">0</span></div>
+
+  <div class="insight">
+    <em>The threshold is 4.</em> No cell can hold 4 or more grains — it topples,
+    sending one grain to each neighbor. At edges, grains fall off the table.
+    <br><br>
+    The system self-organizes to a <em>critical state</em> where the average
+    height converges to ~2.1. Small avalanches are common, large ones are rare
+    — a <em>power law</em>. Hoarding is structurally impossible.
+  </div>
+
+  <h3 style="color:#f0c040;margin:15px 0 8px">Avalanche Size Distribution</h3>
+  <div class="histogram" id="histogram"></div>
+
+  <div class="insight" style="margin-top:15px">
+    <em>The axiom connection:</em> threshold = 4 = K+sigma = spacetime dimensions.
+    Each topple redistributes to 4 neighbors (up/down/left/right = D*D directions).
+    The grid = Z/20 x Z/20. Boundary loss = OMEGA projection (grains that leave
+    don't return). Power law = spectral gap selecting for equality.
+  </div>
+</div>
+
+</div>
+
+<div class="contrast">
+  <h3>Contrast Panel</h3>
+  <div class="contrast-grid">
+    <div class="contrast-header c-old">Standard View</div>
+    <div class="contrast-header c-new">Axiom View</div>
+    <div class="contrast-cell c-old">SOC is an empirical phenomenon</div>
+    <div class="contrast-cell c-new">SOC is spectral gap enforcing equality</div>
+    <div class="contrast-cell c-old">Power laws "just happen"</div>
+    <div class="contrast-cell c-new">Power laws = eigenvalue distribution of ring Laplacian</div>
+    <div class="contrast-cell c-old">Threshold 4 is arbitrary</div>
+    <div class="contrast-cell c-new">4 = K+sigma = minimum for spacetime closure</div>
+    <div class="contrast-cell c-old">Redistribution is a model choice</div>
+    <div class="contrast-cell c-new">Redistribution IS the D-bridge: distinction shares to neighbors</div>
+    <div class="contrast-cell c-old">Cooperation is a nice social idea</div>
+    <div class="contrast-cell c-new">Cooperation is mathematically enforced by spectral gap > 0</div>
+    <div class="contrast-cell c-old">Avalanches are destructive events</div>
+    <div class="contrast-cell c-new">Avalanches are sigma restoring balance: sigma*n = n</div>
+  </div>
+</div>
+
+<p class="footer">
+  Based on Bak-Tang-Wiesenfeld (1987). Axiom: Z/970200Z.
+  <br>Source: <a href="https://github.com" style="color:#f0c040">test_sandpile.c</a> from archive/reason/code/
+</p>
+
+</div>
+
+<script>
+const W=20, THRESH=4;
+let grid=[], playing=false, timer=null, delay=60;
+let totalGrains=0, totalAval=0, maxAval=0, grainsLost=0;
+let avalHist={};
+let dropMode='random';
+
+const canvas=document.getElementById('grid'), ctx=canvas.getContext('2d');
+const cellW=canvas.width/W, cellH=canvas.height/W;
+
+// Colors for cell values
+const colors=['#0a0a1a','#1a3a5a','#2a6a3a','#8a7a2a'];
+const avalColor='#cc3333';
+const flashColor='#ff6600';
+
+function init(){
+  grid=[];
+  for(let i=0;i<W;i++){grid[i]=[];for(let j=0;j<W;j++)grid[i][j]=0;}
+  totalGrains=0;totalAval=0;maxAval=0;grainsLost=0;avalHist={};
+}
+
+function draw(flashing){
+  for(let i=0;i<W;i++){
+    for(let j=0;j<W;j++){
+      let v=grid[i][j];
+      if(v>=THRESH){
+        ctx.fillStyle=flashing&&flashing[i*W+j]?flashColor:avalColor;
+      } else {
+        ctx.fillStyle=colors[v]||colors[3];
+      }
+      ctx.fillRect(j*cellW, i*cellH, cellW-1, cellH-1);
+      // Show number if > 0
+      if(v>0){
+        ctx.fillStyle=v>=THRESH?'#fff':'#aaa';
+        ctx.font='10px monospace';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(v, j*cellW+cellW/2, i*cellH+cellH/2);
+      }
+    }
+  }
+}
+
+function dropGrain(r,c){
+  if(r<0||r>=W||c<0||c>=W)return;
+  grid[r][c]++;
+  totalGrains++;
+}
+
+function topple(){
+  // Full relaxation
+  let totalToppled=0;
+  let changed=true;
+  while(changed){
+    changed=false;
+    for(let i=0;i<W;i++){
+      for(let j=0;j<W;j++){
+        if(grid[i][j]>=THRESH){
+          grid[i][j]-=THRESH;
+          totalToppled++;
+          changed=true;
+          if(i>0)grid[i-1][j]++;else grainsLost++;
+          if(i<W-1)grid[i+1][j]++;else grainsLost++;
+          if(j>0)grid[i][j-1]++;else grainsLost++;
+          if(j<W-1)grid[i][j+1]++;else grainsLost++;
+        }
+      }
+    }
+  }
+  return totalToppled;
+}
+
+function addDrop(){
+  let r,c;
+  if(dropMode==='center'){r=Math.floor(W/2);c=Math.floor(W/2);}
+  else{r=Math.floor(Math.random()*W);c=Math.floor(Math.random()*W);}
+  dropGrain(r,c);
+  let size=topple();
+  if(size>0){
+    totalAval++;
+    if(size>maxAval)maxAval=size;
+    avalHist[size]=(avalHist[size]||0)+1;
+  }
+}
+
+function step(){addDrop();draw();updateStats();}
+function drop10(){for(let i=0;i<10;i++)addDrop();draw();updateStats();}
+function drop100(){for(let i=0;i<100;i++)addDrop();draw();updateStats();}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('btnPlay').textContent=playing?'Pause':'Play';
+  document.getElementById('btnPlay').classList.toggle('active',playing);
+  if(playing)run();else if(timer){clearTimeout(timer);timer=null;}
+}
+
+function run(){
+  if(!playing)return;
+  addDrop();
+  draw();
+  updateStats();
+  timer=setTimeout(run, delay);
+}
+
+function updateSpeed(){
+  let v=document.getElementById('speed').value;
+  delay=Math.max(1, 150-v*1.4);
+}
+
+function updateMode(){
+  dropMode=document.getElementById('dropMode').value;
+  let info=document.getElementById('modeInfo');
+  if(dropMode==='random')info.textContent='Grains fall at random positions';
+  else if(dropMode==='center')info.textContent='All grains fall at center (10,10)';
+  else info.textContent='Click the grid to drop a grain';
+}
+
+canvas.addEventListener('click', function(e){
+  if(dropMode!=='click')return;
+  let rect=canvas.getBoundingClientRect();
+  let c=Math.floor((e.clientX-rect.left)/cellW);
+  let r=Math.floor((e.clientY-rect.top)/cellH);
+  if(r>=0&&r<W&&c>=0&&c<W){dropGrain(r,c);let s=topple();if(s>0){totalAval++;if(s>maxAval)maxAval=s;avalHist[s]=(avalHist[s]||0)+1;}draw();updateStats();}
+});
+
+function updateStats(){
+  document.getElementById('sGrains').textContent=totalGrains;
+  document.getElementById('sAval').textContent=totalAval;
+  document.getElementById('sMax').textContent=maxAval;
+  document.getElementById('sLost').textContent=grainsLost;
+  // Average and std
+  let sum=0, max=0;
+  for(let i=0;i<W;i++)for(let j=0;j<W;j++){sum+=grid[i][j];if(grid[i][j]>max)max=grid[i][j];}
+  let avg=sum/(W*W);
+  let variance=0;
+  for(let i=0;i<W;i++)for(let j=0;j<W;j++){let d=grid[i][j]-avg;variance+=d*d;}
+  variance/=(W*W);
+  document.getElementById('sAvg').textContent=avg.toFixed(2);
+  document.getElementById('sCell').textContent=max;
+  document.getElementById('sStd').textContent=Math.sqrt(variance).toFixed(2);
+  // Histogram
+  renderHistogram();
+}
+
+function renderHistogram(){
+  let el=document.getElementById('histogram');
+  let keys=Object.keys(avalHist).map(Number).sort((a,b)=>a-b);
+  if(keys.length===0){el.innerHTML='<div style="color:#555;font-size:0.8em">No avalanches yet</div>';return;}
+  // Bucket into ranges for readability
+  let buckets={};
+  let maxCount=0;
+  for(let k of keys){
+    let bucket;
+    if(k<=5)bucket=k+'';
+    else if(k<=10)bucket='6-10';
+    else if(k<=20)bucket='11-20';
+    else if(k<=50)bucket='21-50';
+    else if(k<=100)bucket='51-100';
+    else bucket='100+';
+    buckets[bucket]=(buckets[bucket]||0)+avalHist[k];
+    if(buckets[bucket]>maxCount)maxCount=buckets[bucket];
+  }
+  let html='';
+  let order=['1','2','3','4','5','6-10','11-20','21-50','51-100','100+'];
+  for(let b of order){
+    if(!buckets[b])continue;
+    let pct=maxCount>0?(buckets[b]/maxCount*100):0;
+    html+=`<div class="hist-bar-wrap">
+      <div class="hist-label">${b}</div>
+      <div class="hist-bar" style="width:${pct}%;max-width:200px"></div>
+      <div class="hist-count">${buckets[b]}</div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+function reset(){
+  playing=false;
+  if(timer){clearTimeout(timer);timer=null;}
+  document.getElementById('btnPlay').textContent='Play';
+  document.getElementById('btnPlay').classList.remove('active');
+  init();
+  draw();
+  updateStats();
+}
+
+// Init
+init();
+draw();
+updateStats();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

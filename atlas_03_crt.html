@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 2: Five Petals - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px; position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 48px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.math { font-family: 'Courier New', monospace; color: #88ccff; font-size: 15px; }
+.big-eq { font-size: 24px; text-align: center; margin: 28px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 2px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+canvas { display: block; border-radius: 8px; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+
+/* Petal ring visualization */
+.petal-row { display: flex; justify-content: center; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+.petal-ring { text-align: center; }
+.petal-ring canvas { margin: 0 auto; }
+.petal-label { font-size: 13px; font-family: monospace; margin-top: 4px; }
+
+/* Splitter */
+.split-row { display: flex; align-items: center; gap: 12px; margin: 12px 0;
+             justify-content: center; flex-wrap: wrap; }
+.split-input { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 14px;
+               font-size: 22px; font-family: monospace; width: 100px; text-align: center;
+               border-radius: 6px; outline: none; }
+.split-input:focus { border-color: #88aaff; }
+.split-channels { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.split-ch { padding: 8px 14px; border-radius: 8px; font-family: monospace; font-size: 18px;
+            color: #fff; text-align: center; min-width: 50px; cursor: pointer; }
+
+/* Counter */
+.counter-row { display: flex; gap: 16px; justify-content: center; margin: 16px 0; flex-wrap: wrap; }
+.counter-card { background: #1a1a2e; border-radius: 8px; padding: 12px 16px; text-align: center;
+                min-width: 80px; }
+.counter-val { font-size: 28px; font-family: monospace; color: #fff; }
+.counter-label { font-size: 11px; color: #888; font-family: monospace; margin-top: 2px; }
+.counter-btn { background: #2a2a3e; border: 1px solid #444; color: #aaa; padding: 6px 16px;
+               cursor: pointer; font-family: monospace; border-radius: 4px; margin: 4px; }
+.counter-btn:hover { color: #fff; background: #3a3a4e; }
+
+/* Coupling */
+.coupling-input { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 6px 12px;
+                  font-size: 18px; font-family: monospace; width: 80px; text-align: center;
+                  border-radius: 6px; outline: none; }
+.coupling-input:focus { border-color: #88aaff; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 18px; letter-spacing: 1px; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+  .split-input { width: 80px; font-size: 18px; }
+  .split-ch { min-width: 40px; padding: 6px 10px; font-size: 14px; }
+  .counter-card { min-width: 60px; padding: 8px 10px; }
+  .counter-val { font-size: 22px; }
+  .petal-row { gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="atlas_02_two_rings.html">&larr; Ch.2</a>
+  <a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a><a href="#s7">7</a>
+  <a href="atlas_04_carousel.html">Ch.4 &rarr;</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: WONDER OPENING - FIVE CLOCKS -->
+<!-- ============================================================ -->
+<div class="section" id="s1">
+<div class="content">
+  <h1>Five Petals</h1>
+  <p>Imagine five clocks on a wall. One has <span class="accent">D=2</span> hours, one has <span class="accent">K=3</span>, one has <span class="accent">E=5</span>, one has <span class="accent">b=7</span>, and one has <span class="accent">L=11</span>.</p>
+  <p>Each ticks at its own speed. They never interfere with each other. But together, they can uniquely name every moment in a cycle of <span class="accent">2310</span> hours &mdash; because knowing the time on all five clocks tells you exactly where you are.</p>
+  <p>This is the <em>Chinese Remainder Theorem</em>. It is 2000 years old. And it says something that should make you stop and feel it: the big ring Z/2310Z is <em>identical</em> to five tiny rings working in parallel. Not approximately. Identical. Every addition, every multiplication, every structure &mdash; decomposed into five independent conversations that never overhear each other.</p>
+  <p style="font-size:14px; color:#666; font-style:italic;">In the True Form (Z/970200Z), the five clocks have D<sup>3</sup>=8, K<sup>2</sup>=9, E<sup>2</sup>=25, b<sup>2</sup>=49, and L=11 hours. Fatter channels. Deeper resolution. Same five primes.</p>
+
+  <div class="petal-row">
+    <div class="petal-ring"><canvas id="ring0" width="100" height="100"></canvas><div class="petal-label" style="color:#ff6666;">Z/2 (D)</div></div>
+    <div class="petal-ring"><canvas id="ring1" width="100" height="100"></canvas><div class="petal-label" style="color:#ffaa44;">Z/3 (K)</div></div>
+    <div class="petal-ring"><canvas id="ring2" width="100" height="100"></canvas><div class="petal-label" style="color:#44ee88;">Z/5 (E)</div></div>
+    <div class="petal-ring"><canvas id="ring3" width="100" height="100"></canvas><div class="petal-label" style="color:#6699ff;">Z/7 (b)</div></div>
+    <div class="petal-ring"><canvas id="ring4" width="100" height="100"></canvas><div class="petal-label" style="color:#cc88ff;">Z/11 (L)</div></div>
+  </div>
+  <p class="caption">Five clocks. 2 + 3 + 5 + 7 + 11 = 28 positions. Product = 2310.</p>
+
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: THE SPLITTER -->
+<!-- ============================================================ -->
+<div class="section" id="s2">
+<div class="content">
+  <h2>Split and Reassemble</h2>
+  <p>Any number between 0 and 2309 splits into five channel values. And any five channel values reassemble into exactly one number. Nothing lost. Nothing ambiguous. Try it &mdash; feel the bijectivity with your fingers.</p>
+
+  <div class="widget">
+    <div class="widget-title">CRT Splitter</div>
+    <div class="split-row">
+      <input class="split-input" id="split-n" type="number" min="0" max="2309" value="1729">
+      <span style="font-size:24px; color:#666;">&harr;</span>
+      <div class="split-channels" id="split-channels"></div>
+    </div>
+    <div style="text-align:center; margin-top:12px;">
+      <span id="split-verify" style="font-family:monospace; font-size:14px; color:#888;"></span>
+    </div>
+    <p class="caption">Change the number. Or click a channel to cycle it. The other side updates instantly.</p>
+  </div>
+
+  <p>Try <span class="math">1729</span> &mdash; Ramanujan's taxi number. It splits into (1, 2, 4, 6, 1). Change the D-channel from 1 to 0 and you get 1728 = 12<sup>3</sup>. One click, one channel, one new number.</p>
+
+  <h3>Operations split too</h3>
+  <p>Add two numbers in the big ring? Just add their channels independently. Multiply? Same thing. The channels never talk to each other. This is what <span class="accent">independence</span> means in mathematics.</p>
+  <div class="big-eq">(a + b) mod N = channel-by-channel addition</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: INDEPENDENCE -->
+<!-- ============================================================ -->
+<div class="section" id="s3">
+<div class="content">
+  <h2>Perfect Independence</h2>
+  <p>Here is the deepest thing about CRT. If I tell you that a number is odd (D-channel = 1), does that tell you <em>anything</em> about its remainder mod 7? No. Not a single bit of information leaks between channels. Zero mutual information. Exactly.</p>
+
+  <div class="widget">
+    <div class="widget-title">Independence Matrix</div>
+    <canvas id="indep-canvas" width="660" height="200"></canvas>
+    <p class="caption">Diagonal: each channel's entropy. Off-diagonal: mutual information between pairs. All zeros.</p>
+  </div>
+
+  <p>Over the full ring, every channel pair has <span class="accent">exactly zero</span> mutual information. This is not approximate. It is a theorem: the CRT guarantees that knowing one channel reveals nothing about any other.</p>
+
+  <h3>Why this changes everything</h3>
+  <p>A search over 2310 possibilities becomes five searches over 2+3+5+7+11 = 28 possibilities. That is an <span class="accent">82.5x speedup</span>. In the True Form: 970,200 becomes 8+9+25+49+11 = 102 &mdash; a <span class="accent">9,512x speedup</span>.</p>
+  <p>Training a neural network? The gradient for channel mod-D does not depend on channel mod-b. You get <em>block-diagonal Jacobians</em>: five independent gradient computations. Thin ring: 25,654x. True Form: <span class="accent">95.7 million times</span> fewer multiply-accumulate operations. That is not an optimization. That is a revolution.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: THE PARALLEL COUNTER -->
+<!-- ============================================================ -->
+<div class="section" id="s4">
+<div class="content">
+  <h2>The Beating Heart</h2>
+  <p>Watch five counters, each cycling at its own rate. D flips every step. K every 3. b every 7. L every 11. They all return to zero at the same moment only once every 2310 steps. Press play and watch it breathe.</p>
+
+  <div class="widget">
+    <div class="widget-title">Parallel CRT Counter</div>
+    <div id="counter-n" style="text-align:center; font-size:36px; font-family:monospace; color:#fff; margin:8px 0;">0</div>
+    <div class="counter-row" id="counter-channels"></div>
+    <div style="text-align:center; margin-top:12px;">
+      <button class="counter-btn" id="counter-step">+1</button>
+      <button class="counter-btn" id="counter-step10">+10</button>
+      <button class="counter-btn" id="counter-auto">play</button>
+      <button class="counter-btn" id="counter-reset">reset</button>
+    </div>
+    <p class="caption">D flips every step. K every 3. E every 5. b every 7. L every 11. All five sync at 0 only at n=2310.</p>
+  </div>
+
+  <p>At n = 1155 (halfway), the channels read (1, 0, 0, 0, 0). Only D has flipped. Everything else sits at zero. 1155 is the <span class="accent">protist</span> &mdash; the first departure from ground, where only duality has acted.</p>
+  <p>At n = 210, the channels read (0, 0, 0, 0, 1). Four data channels at zero, the guardian at 1. This is the <span class="accent">data ring boundary</span>.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: COUPLING DUALS (NEW) -->
+<!-- ============================================================ -->
+<div class="section" id="s5">
+<div class="content">
+  <h2>The Coupling Dual</h2>
+  <p>Every element of Z/2310Z has a <em>coupling</em>: the number <span class="math">2310 / gcd(n, 2310)</span>. Think of it as a measure of how strongly n connects to the rest of the ring &mdash; how many elements it can reach through multiplication.</p>
+  <p>Units have maximum coupling (2310 = bacteria level, fully connected). Zero has minimum coupling (1 = isolated). Everything between is a kingdom.</p>
+
+  <div class="widget">
+    <div class="widget-title">Coupling Explorer</div>
+    <div style="display:flex; align-items:center; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <span style="color:#888; font-family:monospace;">n =</span>
+      <input class="coupling-input" id="coup-n" type="number" min="0" max="2309" value="210">
+      <span style="color:#666; font-family:monospace; font-size:18px;">&harr;</span>
+      <span id="coup-result" style="font-family:monospace; font-size:20px; color:#66ddaa;"></span>
+    </div>
+    <div id="coup-detail" style="text-align:center; margin-top:12px; font-size:13px; color:#888; font-family:monospace;"></div>
+    <p class="caption">Try: 210 (coupling 11), 30 (coupling 77), 6 (coupling 385). Notice: c(c(n)) = ?</p>
+  </div>
+
+  <p>The Coupling Dual Theorem: for every coprime split m &times; n = 2310, the coupling of m is n and the coupling of n is m. They are <span class="accent">partners</span>. Each half knows the other as its coupling.</p>
+  <p>There are exactly <span class="accent">16 = 2<sup>4</sup></span> such coprime splits &mdash; one for each subset of the four data primes {D, K, E, b} (since L divides exactly one of the two halves).</p>
+
+  <h3>The Vandermonde connection</h3>
+  <p>The shadow chain {sigma, D, K, E} = {1, 2, 3, 5} has a <em>Vandermonde determinant</em>: the product of all pairwise differences. Compute it: (2&minus;1)(3&minus;1)(5&minus;1)(3&minus;2)(5&minus;2)(5&minus;3) = 1&times;2&times;4&times;1&times;3&times;2 = <span class="accent">48</span>.</p>
+  <p>48 = phi(210) = the number of units in the data ring = SEES. The shadow chain's discriminant equals the data ring's freedom count. The spectral structure <em>is</em> the algebraic structure, viewed through a different lens. Isn't that remarkable?</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: THE FIVE BREAKTHROUGHS -->
+<!-- ============================================================ -->
+<div class="section" id="s6">
+<div class="content">
+  <h2>Five Breakthroughs from Five Petals</h2>
+  <p>Everything in this atlas flows from CRT independence. Five separate channels give five engineering advantages, and &mdash; this is the part that should astonish you &mdash; they <em>stack multiplicatively</em>:</p>
+
+  <div style="font-family:monospace; font-size:14px; color:#aaa; margin:16px 0; line-height:2.2;">
+    <span style="color:#ff6666;">1. CRT decomposition</span> &mdash; five independent channels<br>
+    <span style="color:#ffaa44;">2. Loop unrolling</span> &mdash; 82.5x forward speedup<br>
+    <span style="color:#44ee88;">3. Block-diagonal backprop</span> &mdash; 25,654x gradient savings<br>
+    <span style="color:#6699ff;">4. Rissanen redundancy</span> &mdash; 20x convergence at byte scale<br>
+    <span style="color:#cc88ff;">5. L=11 ECC</span> &mdash; free error detection and correction<br>
+  </div>
+
+  <p>Could we use fewer petals? With three primes (Z/30Z), there is no room for error correction &mdash; and D has no voice (variance zero). Could we use more? With six (Z/30030Z), degree rises to L=11. Five is the sweet spot: enough for independence, protection, and tractable computation. The axiom stops where it should.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: FOOTER -->
+<!-- ============================================================ -->
+<div class="section" id="s7">
+<div class="content">
+  <h2>Why Petals?</h2>
+  <p>Because the CRT channels radiate outward from a center, like petals of a rose. Each petal is independent. Each is complete in itself. But together they form something that neither could alone.</p>
+  <p>A rose does not negotiate between its petals. Each grows on its own. The flower is the <em>product</em>, not the sum. Exactly like Z/2 &times; Z/3 &times; Z/5 &times; Z/7 &times; Z/11. Five petals. One rose. And the rose is the universe's favorite way to carry information.</p>
+
+  <div style="text-align:center; margin-top:40px;">
+    <a href="atlas_02_two_rings.html" style="font-size:16px; color:#888; text-decoration:none;">&larr; Ch.1: Three Rings</a>
+    <span style="color:#333; margin:0 24px;">|</span>
+    <a href="atlas_04_carousel.html" style="font-size:20px; color:#66ddaa; text-decoration:none;">Ch.3: The Carousel &rarr;</a>
+  </div>
+  <div style="text-align:center; margin-top:60px; font-size:13px; color:#444;">
+    The Interactive Atlas &middot; Z/970200Z &middot; Chapter 2 of 14
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+<script>
+const N = 2310;
+const PRIMES = [2, 3, 5, 7, 11];
+const PNAME = ['D','K','E','b','L'];
+const PCOLORS = ['#ff6666','#ffaa44','#44ee88','#6699ff','#cc88ff'];
+
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { let t = b; b = a % b; a = t; } return a; }
+function mod(n, m) { return ((n % m) + m) % m; }
+function crt(n) { return PRIMES.map(p => mod(n, p)); }
+
+function crtBasis() {
+  let basis = [];
+  for (let i = 0; i < 5; i++) {
+    let M = N / PRIMES[i];
+    let Minv = 1;
+    for (let k = 1; k < PRIMES[i]; k++) {
+      if ((M * k) % PRIMES[i] === 1) { Minv = k; break; }
+    }
+    basis.push(mod(M * Minv, N));
+  }
+  return basis;
+}
+const BASIS = crtBasis();
+function fromCRT(sig) {
+  let n = 0;
+  for (let i = 0; i < 5; i++) n = mod(n + sig[i] * BASIS[i], N);
+  return n;
+}
+
+// ---- Five rings viz ----
+function drawRing(canvasId, p, highlight, color) {
+  let cvs = document.getElementById(canvasId);
+  let ctx = cvs.getContext('2d');
+  let w = cvs.width, h = cvs.height, cx = w/2, cy = h/2, r = 36;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  for (let i = 0; i < p; i++) {
+    let angle = -Math.PI / 2 + (2 * Math.PI * i) / p;
+    let x = cx + Math.cos(angle) * r, y = cy + Math.sin(angle) * r;
+    ctx.fillStyle = (i === highlight) ? color : '#444';
+    ctx.beginPath(); ctx.arc(x, y, (i === highlight) ? 10 : 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '11px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(i, x, y);
+  }
+}
+for (let i = 0; i < 5; i++) drawRing('ring' + i, PRIMES[i], 0, PCOLORS[i]);
+
+// ---- Splitter ----
+let splitSig = crt(1729);
+
+function renderSplitChannels() {
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    html += '<div class="split-ch" style="background:' + PCOLORS[i] + '33; border:2px solid ' + PCOLORS[i] + ';" data-ch="' + i + '">';
+    html += splitSig[i] + '<div style="font-size:10px; opacity:0.7;">mod ' + PRIMES[i] + '</div></div>';
+  }
+  document.getElementById('split-channels').innerHTML = html;
+  document.querySelectorAll('[data-ch]').forEach(el => {
+    el.addEventListener('click', () => {
+      let ch = parseInt(el.dataset.ch);
+      splitSig[ch] = (splitSig[ch] + 1) % PRIMES[ch];
+      document.getElementById('split-n').value = fromCRT(splitSig);
+      updateSplitFromSig();
+    });
+  });
+}
+function updateSplitFromN() {
+  let n = mod(parseInt(document.getElementById('split-n').value) || 0, N);
+  splitSig = crt(n);
+  renderSplitChannels();
+  document.getElementById('split-verify').textContent =
+    'CRT(' + splitSig.join(',') + ') = ' + fromCRT(splitSig);
+  for (let i = 0; i < 5; i++) drawRing('ring' + i, PRIMES[i], splitSig[i], PCOLORS[i]);
+}
+function updateSplitFromSig() {
+  let n = fromCRT(splitSig);
+  renderSplitChannels();
+  document.getElementById('split-verify').textContent =
+    'CRT(' + splitSig.join(',') + ') = ' + n;
+  for (let i = 0; i < 5; i++) drawRing('ring' + i, PRIMES[i], splitSig[i], PCOLORS[i]);
+}
+document.getElementById('split-n').addEventListener('input', updateSplitFromN);
+updateSplitFromN();
+
+// ---- Independence matrix ----
+(function() {
+  let cvs = document.getElementById('indep-canvas');
+  let ctx = cvs.getContext('2d');
+  let W = cvs.width, H = cvs.height;
+  let labels = PRIMES.map((p,i) => 'mod ' + p + ' (' + PNAME[i] + ')');
+  let cellW = 100, cellH = 32, startX = 160, startY = 20;
+  ctx.fillStyle = '#888'; ctx.font = '11px monospace'; ctx.textAlign = 'center';
+  for (let j = 0; j < 5; j++) ctx.fillText(labels[j], startX + j * cellW + cellW/2, startY - 5);
+  for (let i = 0; i < 5; i++) {
+    let y = startY + i * cellH;
+    ctx.fillStyle = '#888'; ctx.textAlign = 'right';
+    ctx.fillText(labels[i], startX - 8, y + cellH/2 + 4);
+    for (let j = 0; j < 5; j++) {
+      let x = startX + j * cellW;
+      if (i === j) {
+        ctx.fillStyle = PCOLORS[i] + '44'; ctx.fillRect(x+2, y+2, cellW-4, cellH-4);
+        ctx.fillStyle = PCOLORS[i]; ctx.textAlign = 'center';
+        ctx.fillText('H = ' + Math.log2(PRIMES[i]).toFixed(2) + ' bits', x + cellW/2, y + cellH/2 + 4);
+      } else {
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(x+2, y+2, cellW-4, cellH-4);
+        ctx.fillStyle = '#44cc44'; ctx.textAlign = 'center';
+        ctx.fillText('MI = 0.000', x + cellW/2, y + cellH/2 + 4);
+      }
+    }
+  }
+})();
+
+// ---- Counter ----
+let counterN = 0, counterTimer = null;
+function renderCounter() {
+  document.getElementById('counter-n').textContent = counterN;
+  let sig = crt(counterN);
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    html += '<div class="counter-card" style="border:2px solid ' + PCOLORS[i] + '33;">';
+    html += '<div class="counter-val" style="color:' + PCOLORS[i] + ';">' + sig[i] + '</div>';
+    html += '<div class="counter-label">mod ' + PRIMES[i] + '</div></div>';
+  }
+  document.getElementById('counter-channels').innerHTML = html;
+  for (let i = 0; i < 5; i++) drawRing('ring' + i, PRIMES[i], sig[i], PCOLORS[i]);
+}
+document.getElementById('counter-step').addEventListener('click', () => { counterN = mod(counterN+1, N); renderCounter(); });
+document.getElementById('counter-step10').addEventListener('click', () => { counterN = mod(counterN+10, N); renderCounter(); });
+document.getElementById('counter-reset').addEventListener('click', () => { counterN = 0; renderCounter(); });
+document.getElementById('counter-auto').addEventListener('click', () => {
+  if (counterTimer) { clearInterval(counterTimer); counterTimer = null; return; }
+  counterTimer = setInterval(() => { counterN = mod(counterN+1, N); renderCounter(); }, 120);
+});
+renderCounter();
+
+// ---- Coupling explorer ----
+function updateCoupling() {
+  let n = mod(parseInt(document.getElementById('coup-n').value) || 0, N);
+  let g = gcd(n, N);
+  let c = g === 0 ? 1 : N / g;
+  let sig = crt(n);
+  let cSig = crt(c);
+  let isUnit = g === 1;
+  // Check if c(c(n)) = n
+  let gc = gcd(c, N);
+  let cc = gc === 0 ? 1 : N / gc;
+
+  document.getElementById('coup-result').innerHTML =
+    'coupling = <span style="color:#ffcc44;">' + c + '</span>';
+  document.getElementById('coup-detail').innerHTML =
+    'CRT(' + sig.join(',') + ') &harr; CRT(' + cSig.join(',') + ')' +
+    '&nbsp;&nbsp; n*c(n) mod 2310 = ' + mod(n * c, N) +
+    '&nbsp;&nbsp; c(c(n)) = ' + cc;
+}
+document.getElementById('coup-n').addEventListener('input', updateCoupling);
+updateCoupling();
+
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

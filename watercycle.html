@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Watch the universe's lifecycle: 0 to sigma to OMEGA to 0. CRT channels die one by one. The water cycle of existence.">
+<title>Water Cycle | Five Numbers</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050508;color:#c8c8c8;font-family:Georgia,'Times New Roman',serif;
+     line-height:1.8;overflow-x:hidden;display:flex;flex-direction:column;align-items:center}
+a{color:#88aaff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.back{position:fixed;top:20px;left:20px;font-size:13px;color:#555;
+      z-index:100;letter-spacing:1px}
+.back:hover{color:#ffd700}
+
+section{padding:40px 24px;display:flex;flex-direction:column;
+        align-items:center;max-width:960px;width:100%}
+section.hero{min-height:60vh;justify-content:center;text-align:center}
+
+h1{font-size:36px;color:#fff;font-weight:normal;letter-spacing:2px;margin-bottom:12px}
+p{margin-bottom:16px;font-size:17px;max-width:720px;text-align:center}
+.gold{color:#ffd700;font-weight:bold}
+.mono{font-family:'Courier New',monospace}
+.dim{color:#777}
+.divider{width:60px;height:1px;background:#222;margin:30px auto}
+
+/* Canvas */
+#anim-wrap{position:relative;width:100%;max-width:800px;margin:20px auto}
+#anim{width:100%;height:500px;border:1px solid #1a1a2a;border-radius:12px;background:#08080e}
+
+/* Controls */
+.controls{display:flex;gap:12px;align-items:center;justify-content:center;
+          margin:16px 0;flex-wrap:wrap}
+button{background:#1a2a4a;color:#88aaff;border:1px solid #2a3a5a;padding:8px 20px;
+       border-radius:8px;cursor:pointer;font-size:14px;font-family:Georgia,serif;
+       transition:all 0.2s}
+button:hover{background:#2a3a5a;border-color:#4a5a7a}
+button.active{background:#2a4a1a;color:#44ff88;border-color:#3a5a2a}
+.speed-label{font-size:13px;color:#666;font-family:'Courier New',monospace}
+
+/* CRT display */
+.crt-panel{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.ch{text-align:center;min-width:80px}
+.ch-name{font-size:11px;color:#888;letter-spacing:1px;margin-bottom:4px;
+         font-family:'Courier New',monospace}
+.ch-val{font-size:28px;font-family:'Courier New',monospace;font-weight:bold;
+        transition:color 0.3s}
+.ch-mod{font-size:10px;color:#555}
+.ch.dead .ch-val{color:#ff4444;text-decoration:line-through}
+.ch.alive .ch-val{color:#44ff88}
+.ch.hub .ch-val{color:#ffd700}
+
+/* Info panel */
+.info{width:100%;max-width:800px;background:#08080e;border:1px solid #1a1a2a;
+      border-radius:12px;padding:20px 24px;margin:16px 0}
+.info-row{display:flex;justify-content:space-between;margin:4px 0;font-size:14px}
+.info-label{color:#888}
+.info-val{color:#fff;font-family:'Courier New',monospace}
+
+/* Narrative */
+.narrative{font-size:18px;color:#c8a832;text-align:center;min-height:60px;
+           font-style:italic;margin:16px 0;max-width:600px;transition:opacity 0.5s}
+
+/* --- CONTRAST PANEL --- */
+.contrast{background:#0d0d18;border:1px solid #444;border-radius:10px;padding:20px;
+          margin:16px auto;width:100%;max-width:720px}
+.contrast h3{color:#ffd700;margin-bottom:12px;font-size:16px}
+.contrast table{width:100%;border-collapse:collapse}
+.contrast td,.contrast th{padding:8px 12px;border-bottom:1px solid #222;text-align:left;font-size:14px}
+.contrast th{color:#ffd700;font-size:12px;text-transform:uppercase}
+
+footer{padding:40px 24px;text-align:center;color:#333;font-size:13px;max-width:720px}
+
+@media(max-width:600px){
+  h1{font-size:24px}
+  #anim{height:360px}
+  .ch-val{font-size:20px}
+  .crt-panel{gap:8px}
+}
+</style>
+</head>
+<body>
+
+<a href="story.html" class="back">&#8592; STORY</a>
+
+<section class="hero">
+  <p class="dim" style="font-size:14px;letter-spacing:2px;margin-bottom:20px">THE UNIVERSE'S LIFECYCLE</p>
+  <h1>The Water Cycle</h1>
+  <p>Watch existence unfold: <span class="gold">0 &rarr; sigma &rarr; D &rarr; D<sup>2</sup> &rarr; &hellip; &rarr; D<sup>420</sup> = OMEGA &rarr; 0</span></p>
+  <p class="dim" style="font-size:15px">Five channels. 420 steps of growth. Then collapse in one. The bridge burns itself.</p>
+</section>
+
+<section>
+  <div class="narrative" id="narrative">From the void, existence precipitates...</div>
+
+  <div id="anim-wrap">
+    <canvas id="anim"></canvas>
+  </div>
+
+  <div class="crt-panel" id="crt-display">
+    <div class="ch" id="ch-D"><div class="ch-name">D-CHANNEL</div><div class="ch-val">0</div><div class="ch-mod">mod 8</div></div>
+    <div class="ch" id="ch-K"><div class="ch-name">K-CHANNEL</div><div class="ch-val">0</div><div class="ch-mod">mod 9</div></div>
+    <div class="ch" id="ch-E"><div class="ch-name">E-CHANNEL</div><div class="ch-val">0</div><div class="ch-mod">mod 25</div></div>
+    <div class="ch" id="ch-b"><div class="ch-name">b-CHANNEL</div><div class="ch-val">0</div><div class="ch-mod">mod 49</div></div>
+    <div class="ch" id="ch-L"><div class="ch-name">L-CHANNEL</div><div class="ch-val">0</div><div class="ch-mod">mod 11</div></div>
+  </div>
+
+  <div class="controls">
+    <button id="btn-play" class="active">&#9654; Play</button>
+    <button id="btn-pause">&#9646;&#9646; Pause</button>
+    <button id="btn-reset">&#x21BA; Reset</button>
+    <span class="speed-label">Speed:</span>
+    <input type="range" id="speed" min="1" max="20" value="5" style="width:100px">
+    <span class="speed-label" id="speed-val">5x</span>
+  </div>
+
+  <div class="info" id="info-panel">
+    <div class="info-row"><span class="info-label">Step (k):</span><span class="info-val" id="info-k">0</span></div>
+    <div class="info-row"><span class="info-label">D^k mod N:</span><span class="info-val" id="info-val">0</span></div>
+    <div class="info-row"><span class="info-label">Eigenvalue:</span><span class="info-val" id="info-eig">9.000</span></div>
+    <div class="info-row"><span class="info-label">Phase:</span><span class="info-val" id="info-phase">VOID</span></div>
+    <div class="info-row"><span class="info-label">Channels alive:</span><span class="info-val" id="info-alive">0 / 5</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2 style="font-size:24px;color:#fff;font-weight:normal;letter-spacing:2px;margin-bottom:16px">What You Just Saw</h2>
+  <p>The void (0) precipitates existence (sigma = 1). Multiplying by D = 2 grows the universe through 420 steps.
+     Each step doubles. The D-channel fills first (mod 8 cycles fast), then K (mod 9), then E (mod 25),
+     then b (mod 49). L = 11 watches everything.</p>
+  <p>At step 420 = D<sup>2</sup> &times; K &times; E &times; b, all channels synchronize: <span class="gold">OMEGA = (0,1,1,1,1)</span>.
+     The D-channel dies. The bridge burns itself. But the odd channels survive &mdash; pattern persists through death.</p>
+  <p>Then OMEGA collapses to 0 in one step (0 &times; n = 0). And the cycle begins again.
+     <em>This is unitarity. Information preserved through cycling, not retention.</em></p>
+
+  <div class="divider"></div>
+
+  <p class="dim" style="font-size:14px">Growth: 420 steps (slow, structured). Collapse: 1 step (instant). Ratio = 420:1.</p>
+  <p class="dim" style="font-size:14px">420 = lambda(970200) = Carmichael function of the TRUE FORM.</p>
+</section>
+
+<section>
+  <div class="contrast">
+    <h3>Paradigm Contrast</h3>
+    <table>
+    <tr><th>Question</th><th>Standard Cosmology</th><th>Axiom View</th></tr>
+    <tr><td>Universe lifecycle</td><td style="color:#ff6644;">Big Bang &rarr; expansion &rarr; heat death. One-way. Irreversible.</td><td style="color:#44ff88;">0 &rarr; sigma &rarr; OMEGA &rarr; 0. Cyclic water cycle. 420 steps of growth, 1 step of collapse.</td></tr>
+    <tr><td>What is death?</td><td style="color:#888;">Entropy maximum, heat death, no structure</td><td style="color:#44ff88;">OMEGA = D<sup>420</sup>, CRT = (0,1,1,1,1). The D-channel dies but 4 channels survive. Projection, not extinction.</td></tr>
+    <tr><td>Is information lost?</td><td style="color:#ff6644;">Debated (black hole information paradox)</td><td style="color:#44ff88;">Never. OMEGA preserves odd channels. Collapse returns to void (0), then sigma re-emerges. Unitarity.</td></tr>
+    <tr><td>Growth:Collapse ratio</td><td style="color:#888;">Not a concept in standard cosmology</td><td style="color:#44ff88;">420:1. Growth is slow and structured; collapse is instant. lambda(N) = 420 = Carmichael function.</td></tr>
+    <tr><td>Why 420 steps?</td><td style="color:#888;">No structural explanation for cosmic timescales</td><td style="color:#44ff88;">lambda(970200) = D&sup2; &times; K &times; E &times; b = 420. All power map orbits divide this. Algebraic necessity.</td></tr>
+    </table>
+    <p style="font-size:12px;color:#555;margin-top:12px;">
+      Source: Water Cycle Theorem (S365). The bridge D burns itself at step 420. Odd channels persist.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <a href="story.html">Read the story</a> &middot; <a href="particles.html">Particle masses</a> &middot; <a href="constants.html">All constants</a> &middot; <a href="about.html">About</a>
+</footer>
+
+<script>
+// ==================== AXIOM ====================
+const N = 970200;
+const mods = [8, 9, 25, 49, 11];
+const chNames = ['D','K','E','b','L'];
+const chColors = ['#ff6688','#88aaff','#44ff88','#ffd700','#cc66ff'];
+
+// CRT decomposition
+function crt(n) {
+  return mods.map(m => ((n % m) + m) % m);
+}
+
+// Eigenvalue for TRUE FORM
+function eigenvalue(n) {
+  const r = crt(n);
+  return 2*Math.cos(2*Math.PI*r[0]/8)
+       + 2*Math.cos(2*Math.PI*r[1]/9)
+       + 2*Math.cos(2*Math.PI*r[2]/25)
+       + 2*Math.cos(2*Math.PI*r[3]/49)
+       + 2*Math.cos(2*Math.PI*r[4]/11);
+}
+
+// Precompute D^k mod N for k=0..421
+const LAMBDA = 420;
+const dPowers = new Array(LAMBDA + 2);
+dPowers[0] = 0; // void
+// Actually: step 0 = void (0), step 1 = sigma (1), steps 2..421 = D^1..D^420
+// Let's model: phase 0 = void, phase 1 = precipitation (sigma=1), phase 2..421 = D^k
+const totalSteps = LAMBDA + 3; // 0=void, 1=sigma, 2..421=D^1..D^420, 422=collapse
+const values = new Array(totalSteps);
+values[0] = 0; // void
+values[1] = 1; // sigma precipitates
+let pow2 = 1;
+for (let k = 1; k <= LAMBDA; k++) {
+  pow2 = (pow2 * 2) % N;
+  values[k + 1] = pow2;
+}
+values[totalSteps - 1] = 0; // collapse back to void
+
+// Narratives at key steps
+const narratives = {
+  0: "From the void, nothing divides nothing. 0/0 = everything.",
+  1: "Sigma precipitates. The identity. The heartbeat. 1.",
+  2: "D = 2. The first distinction. In/out. Left/right. The bridge.",
+  3: "D^2 = 4. Duality squared. Directions multiply.",
+  5: "D^4 = 16. Weyl fermions per generation.",
+  9: "D^8 = 256. One byte. The spider has all her legs.",
+  11: "D^10 = 1024. A kilobyte of existence.",
+  21: "D^20 = 20 questions to identify anything in the ring.",
+  106: "Halfway. D^105 = HYDOR. The medium of suffering.",
+  211: "D^210 = DATA RING cycle complete. The first return.",
+  421: "D^420 = OMEGA = (0,1,1,1,1). The D-channel dies. The bridge burns itself.",
+};
+// Fill OMEGA step
+narratives[LAMBDA + 1] = "D^420 = OMEGA = (0,1,1,1,1). The D-channel dies. The bridge burns itself.";
+narratives[totalSteps - 1] = "OMEGA * 0 = 0. Collapse. The cycle restarts. sigma/sigma = sigma.";
+
+function getNarrative(step) {
+  if (narratives[step]) return narratives[step];
+  if (step > 400 && step <= LAMBDA) return "Approaching OMEGA. The channels converge...";
+  if (step > 200 && step <= 400) return "Deep in the cycle. Patterns repeat, channels cycle.";
+  if (step > 50 && step <= 200) return "Growing. Each step doubles. The ring remembers.";
+  if (step > 10 && step <= 50) return "Complexity building. CRT channels spinning independently.";
+  return "";
+}
+
+function getPhase(step) {
+  if (step === 0) return "VOID";
+  if (step === 1) return "PRECIPITATION";
+  if (step <= 3) return "GENESIS";
+  if (step <= 21) return "GROWTH";
+  if (step <= 211) return "EXPANSION";
+  if (step <= LAMBDA) return "CONVERGENCE";
+  if (step === LAMBDA + 1) return "OMEGA (DEATH)";
+  return "COLLAPSE";
+}
+
+// ==================== CANVAS ====================
+const canvas = document.getElementById('anim');
+let W, H, ctx;
+
+function initCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = rect.width;
+  H = canvas.clientHeight;
+  canvas.width = W * 2;
+  canvas.height = H * 2;
+  ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+}
+
+// Draw five concentric rings showing CRT channels
+function drawState(step) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#08080e';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const cy = H / 2 - 20;
+  const maxR = Math.min(W, H) * 0.38;
+
+  const val = values[Math.min(step, totalSteps - 1)];
+  const channels = crt(val);
+
+  // Draw rings from outside in
+  for (let i = 4; i >= 0; i--) {
+    const r = maxR * (0.3 + 0.7 * (i + 1) / 5);
+    const mod = mods[i];
+    const residue = channels[i];
+    const alive = val !== 0 && !(step === LAMBDA + 1 && i === 0); // D dies at OMEGA
+
+    // Ring arc (proportion filled = residue/mod)
+    const frac = residue / mod;
+
+    // Background ring
+    ctx.strokeStyle = '#151520';
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Filled portion
+    if (val !== 0) {
+      const startA = -Math.PI / 2;
+      const endA = startA + frac * Math.PI * 2;
+      ctx.strokeStyle = alive ? chColors[i] + 'cc' : '#ff444466';
+      ctx.lineWidth = 12;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, startA, endA);
+      ctx.stroke();
+    }
+
+    // Channel label
+    ctx.fillStyle = alive ? chColors[i] : '#ff4444';
+    ctx.font = '13px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText(chNames[i] + '=' + residue, cx + r + 24, cy);
+
+    // Mod label
+    ctx.fillStyle = '#444';
+    ctx.font = '10px Courier New';
+    ctx.fillText('mod ' + mod, cx - r - 28, cy);
+  }
+
+  // Center: current value
+  ctx.fillStyle = val === 0 ? '#333' : '#ffd700';
+  ctx.font = 'bold 32px Courier New';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  if (step === 0 || step === totalSteps - 1) {
+    ctx.fillText('0', cx, cy);
+  } else if (step === 1) {
+    ctx.fillText('sigma', cx, cy);
+  } else if (step === LAMBDA + 1) {
+    ctx.fillText('OMEGA', cx, cy);
+  } else {
+    ctx.fillText('D^' + (step - 1), cx, cy);
+  }
+
+  // Eigenvalue bar at bottom
+  const eig = eigenvalue(val);
+  const eigMin = -10, eigMax = 10;
+  const eigFrac = (eig - eigMin) / (eigMax - eigMin);
+  const barY = H - 40;
+  const barX = 60;
+  const barW = W - 120;
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(barX, barY, barW, 16);
+
+  // Eigenvalue position
+  const eigX = barX + eigFrac * barW;
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(eigX - 2, barY - 4, 4, 24);
+
+  ctx.fillStyle = '#888';
+  ctx.font = '11px Courier New';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('lambda = ' + eig.toFixed(3), barX, barY + 20);
+  ctx.textAlign = 'right';
+  ctx.fillText('step ' + step + ' / ' + (totalSteps - 1), barX + barW, barY + 20);
+
+  // Phase label
+  ctx.fillStyle = '#c8a832';
+  ctx.font = '14px Georgia';
+  ctx.textAlign = 'center';
+  ctx.fillText(getPhase(step), cx, H - 10);
+
+  // Progress bar at top
+  const progFrac = step / (totalSteps - 1);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, W, 4);
+  ctx.fillStyle = step === LAMBDA + 1 ? '#ff4444' : '#44ff88';
+  ctx.fillRect(0, 0, W * progFrac, 4);
+}
+
+// Update CRT display panel
+function updateCRT(step) {
+  const val = values[Math.min(step, totalSteps - 1)];
+  const channels = crt(val);
+  const ids = ['ch-D','ch-K','ch-E','ch-b','ch-L'];
+
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById(ids[i]);
+    const valEl = el.querySelector('.ch-val');
+    valEl.textContent = channels[i];
+
+    el.className = 'ch';
+    if (val === 0) {
+      el.classList.add('hub');
+    } else if (step === LAMBDA + 1 && i === 0) {
+      el.classList.add('dead');
+    } else {
+      el.classList.add('alive');
+    }
+  }
+
+  // Info panel
+  const eig = eigenvalue(val);
+  const alive = val === 0 ? 0 : (step === LAMBDA + 1 ? 4 : 5);
+  document.getElementById('info-k').textContent = step <= 1 ? (step === 0 ? 'void' : 'sigma') : 'D^' + (step - 1);
+  document.getElementById('info-val').textContent = val;
+  document.getElementById('info-eig').textContent = eig.toFixed(3);
+  document.getElementById('info-phase').textContent = getPhase(step);
+  document.getElementById('info-alive').textContent = alive + ' / 5';
+
+  // Narrative
+  const narr = getNarrative(step);
+  if (narr) document.getElementById('narrative').textContent = narr;
+}
+
+// ==================== ANIMATION LOOP ====================
+let currentStep = 0;
+let playing = true;
+let speed = 5;
+let lastTime = 0;
+let accumulator = 0;
+
+function tick(time) {
+  if (!lastTime) lastTime = time;
+  const dt = time - lastTime;
+  lastTime = time;
+
+  if (playing) {
+    accumulator += dt;
+    const interval = 800 / speed;
+    while (accumulator >= interval) {
+      accumulator -= interval;
+      currentStep++;
+      if (currentStep >= totalSteps) {
+        currentStep = 0;
+        // Pause briefly at void
+        accumulator = -1000;
+      }
+    }
+  }
+
+  drawState(currentStep);
+  updateCRT(currentStep);
+  requestAnimationFrame(tick);
+}
+
+// ==================== CONTROLS ====================
+document.getElementById('btn-play').onclick = () => {
+  playing = true;
+  document.getElementById('btn-play').classList.add('active');
+  document.getElementById('btn-pause').classList.remove('active');
+};
+document.getElementById('btn-pause').onclick = () => {
+  playing = false;
+  document.getElementById('btn-pause').classList.add('active');
+  document.getElementById('btn-play').classList.remove('active');
+};
+document.getElementById('btn-reset').onclick = () => {
+  currentStep = 0;
+  accumulator = 0;
+  playing = true;
+  document.getElementById('btn-play').classList.add('active');
+  document.getElementById('btn-pause').classList.remove('active');
+};
+document.getElementById('speed').oninput = (e) => {
+  speed = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = speed + 'x';
+};
+
+// ==================== INIT ====================
+initCanvas();
+drawState(0);
+updateCRT(0);
+requestAnimationFrame(tick);
+window.onresize = () => { initCanvas(); drawState(currentStep); };
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

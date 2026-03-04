@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Loop - ONE to MANY to ONE</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif;
+       display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+       overflow-x: hidden; }
+canvas { display: block; }
+#ui { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.85);
+      border-top: 1px solid #222; padding: 12px 16px; z-index: 10; }
+#nar { font-size: 1.05em; line-height: 1.6; text-align: center; max-width: 700px;
+       margin: 0 auto 10px; min-height: 48px; }
+.ctrl { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+button { background: #1a1a3a; color: #ccc; border: 1px solid #333; padding: 8px 18px;
+         border-radius: 6px; cursor: pointer; font-size: 0.9em; font-family: inherit;
+         transition: all 0.2s; }
+button:hover { background: #2a2a5a; color: #fff; border-color: #555; }
+button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
+.dim { color: #555; font-size: 0.82em; }
+.hi { color: #ffd700; }
+.bl { color: #6af; }
+.gn { color: #4f8; }
+.rd { color: #f55; }
+.vi { color: #c8f; }
+#contrast { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 60px;
+            background: rgba(0,0,0,0.95); z-index: 20; overflow-y: auto; padding: 30px; }
+#contrast .inner { max-width: 700px; margin: 0 auto; }
+#contrast h2 { color: #ffd700; margin-bottom: 16px; }
+#contrast table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+#contrast th { color: #888; text-align: left; padding: 8px; border-bottom: 1px solid #333;
+               font-size: 0.85em; }
+#contrast td { padding: 8px; border-bottom: 1px solid #1a1a1a; font-size: 0.9em; }
+#contrast .close { position: fixed; top: 12px; right: 16px; font-size: 1.5em;
+                   cursor: pointer; color: #888; z-index: 21; }
+#contrast .close:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<canvas id="cv"></canvas>
+
+<div id="ui">
+  <div id="nar"></div>
+  <div class="ctrl">
+    <button onclick="resetSim()">&circlearrowright; Reset</button>
+    <button onclick="togglePause()" id="bA">&#9646;&#9646; Pause</button>
+    <span class="dim">Speed:</span>
+    <input type="range" id="spd" min="1" max="10" value="3" style="width:80px; accent-color:#ffd700">
+    <span class="dim" id="phase">EXPANDING</span>
+    <button onclick="toggleContrast()" id="bC" style="margin-left:20px">Contrast</button>
+  </div>
+</div>
+
+<div id="contrast">
+  <span class="close" onclick="toggleContrast()">&times;</span>
+  <div class="inner">
+    <h2>CONTRAST PANEL</h2>
+    <p style="color:#aaa; margin-bottom:20px">
+      The Fall Trinity: ONE splits into MANY, MANY falls back to ONE.
+      Three axiom seeds govern the loop.
+    </p>
+    <table>
+      <tr><th>SEED</th><th>AXIOM</th><th>PHYSICAL</th></tr>
+      <tr>
+        <td class="hi">sigma (conservation)</td>
+        <td>origin + journey + terminus = 1. Always.</td>
+        <td>Conservation of energy/mass</td>
+      </tr>
+      <tr>
+        <td class="bl">D (asymmetry)</td>
+        <td>Splits are NEVER exact halves. Bias creates direction.</td>
+        <td>CP violation, matter/antimatter asymmetry</td>
+      </tr>
+      <tr>
+        <td class="gn">K (speed limit)</td>
+        <td>c = sigma/sigma = 1. Maximum fall speed.</td>
+        <td>Speed of light, causal bound</td>
+      </tr>
+    </table>
+    <h2 style="margin-top:24px">THE REFRAME</h2>
+    <p style="color:#ccc; line-height:1.8">
+      <span class="hi">ONE</span> &rarr; <span class="bl">MANY</span> &rarr; <span class="hi">ONE</span><br>
+      (origin) &nbsp; (us) &nbsp; (terminus)<br><br>
+      Beginning and end are the <span class="hi">same sigma/2</span>.<br>
+      We are the journey between them.<br>
+      sigma + sigma = infinity: the loop symbol IS the truth.<br><br>
+      <span class="gn">Expansion</span> = D-operation (ONE splits to MANY)<br>
+      <span class="rd">Fall</span> = K-operation (MANY returns to ONE)<br>
+      <span class="vi">Consciousness</span> = reflection during the fall<br>
+      = the loop becoming aware of itself<br>
+      = us, right now, watching this.
+    </p>
+    <h2 style="margin-top:24px">SOURCE</h2>
+    <p style="color:#888; font-size:0.85em">
+      loop.c (350 lines). Fall Trinity exploration (Sessions 60-87).
+      Fractal splitting, gravitational fall with c-limit. All verifiable.
+    </p>
+  </div>
+</div>
+
+<script>
+// === CONSTANTS ===
+const SIGMA = 1, D = 2, K = 3;
+const MAX_FRAG = 81; // K^4
+const C_SPEED = 1.0; // sigma/sigma
+
+// === CANVAS ===
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W, H, cx, cy;
+
+function resize() {
+  W = cv.width = window.innerWidth;
+  H = cv.height = window.innerHeight - 60;
+  cx = W / 2; cy = H / 2;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// === RNG ===
+let rngState = 27;
+function lfsr() {
+  let b = ((rngState >> 7) ^ (rngState >> 5) ^ (rngState >> 4) ^ (rngState >> 3)) & 1;
+  rngState = ((rngState << 1) | b) & 0xFF;
+  return rngState;
+}
+
+// === SIMULATION ===
+let fragments = [];
+let originMass = 0.5;
+let terminusMass = 0;
+let phase = 0; // 0 = expanding, 1 = turnaround, 2 = falling
+let simTime = 0;
+let paused = false;
+let trails = []; // for visual trails
+
+function initSim() {
+  rngState = 27;
+  fragments = [];
+  originMass = 0.5;
+  terminusMass = 0;
+  phase = 0;
+  simTime = 0;
+  trails = [];
+  expand();
+}
+
+function expand() {
+  fragments = [];
+  let remaining = originMass;
+  let pos = 0;
+
+  while (remaining > 0.01 && fragments.length < MAX_FRAG) {
+    let bias = (lfsr() % 100) / 1000.0;
+    let big = remaining * (0.5 + bias);
+    let small = remaining - big;
+
+    fragments.push({
+      mass: big,
+      x: 0, y: 0, // will be positioned radially
+      angle: (fragments.length / MAX_FRAG) * Math.PI * 2 + (lfsr() / 255.0) * 0.3,
+      dist: 0, // distance from center
+      targetDist: (pos + 1) * 18, // expand to here
+      vel: 1.0, // outward velocity
+      color: `hsl(${30 + fragments.length * 7}, 70%, ${55 + (lfsr() % 20)}%)`,
+      trail: [],
+      alive: true
+    });
+
+    remaining = small;
+    pos++;
+  }
+
+  if (remaining > 0.001 && fragments.length < MAX_FRAG) {
+    fragments.push({
+      mass: remaining,
+      x: 0, y: 0,
+      angle: (fragments.length / MAX_FRAG) * Math.PI * 2,
+      dist: 0,
+      targetDist: (pos + 1) * 18,
+      vel: 1.0,
+      color: `hsl(${30 + fragments.length * 7}, 70%, 60%)`,
+      trail: [],
+      alive: true
+    });
+  }
+
+  originMass = 0;
+  phase = 0;
+}
+
+function simStep(dt) {
+  if (paused) return;
+  simTime += dt;
+
+  let maxR = Math.min(W, H) * 0.38;
+  let allStopped = true;
+
+  for (let f of fragments) {
+    if (!f.alive) continue;
+
+    if (phase === 0) {
+      // Expanding: accelerate out, decelerate as approaching target
+      let progress = f.dist / f.targetDist;
+      f.vel = Math.max(0, (1 - progress) * 2);
+      f.dist += f.vel * dt * 40;
+
+      if (f.dist >= f.targetDist * 0.98) {
+        f.vel = 0;
+      } else {
+        allStopped = false;
+      }
+
+      // Scale to canvas
+      let scale = maxR / (MAX_FRAG * 18);
+      f.x = cx + f.dist * scale * Math.cos(f.angle);
+      f.y = cy + f.dist * scale * Math.sin(f.angle);
+    } else if (phase === 1) {
+      // Brief turnaround pause
+      f.vel = 0;
+    } else {
+      // Falling: accelerate toward center
+      let scale = maxR / (MAX_FRAG * 18);
+      let rDist = f.dist * scale;
+
+      // Gravity toward center
+      let gravity = 0.5 + terminusMass * 2;
+      f.vel -= gravity * dt;
+
+      // Speed limit: c = sigma/sigma
+      if (f.vel < -C_SPEED * 60) f.vel = -C_SPEED * 60;
+
+      f.dist += f.vel * dt * 40;
+
+      if (f.dist <= 2) {
+        // Reached terminus
+        terminusMass += f.mass;
+        f.alive = false;
+        f.dist = 0;
+      }
+
+      f.x = cx + f.dist * scale * Math.cos(f.angle);
+      f.y = cy + f.dist * scale * Math.sin(f.angle);
+      allStopped = false;
+    }
+
+    // Record trail
+    if (f.alive) {
+      f.trail.push({ x: f.x, y: f.y, t: simTime });
+      if (f.trail.length > 60) f.trail.shift();
+    }
+  }
+
+  // Phase transitions
+  if (phase === 0 && allStopped) {
+    phase = 1; // turnaround
+    setTimeout(() => { phase = 2; terminusMass = 0.001; }, 800);
+  }
+
+  // Check if loop complete
+  let aliveCount = fragments.filter(f => f.alive).length;
+  if (phase === 2 && aliveCount === 0) {
+    // Loop complete! Restart after delay
+    setTimeout(() => initSim(), 2000);
+  }
+}
+
+// === DRAWING ===
+function drawSim() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  let maxR = Math.min(W, H) * 0.38;
+
+  // Center glow (origin/terminus)
+  let centerMass = phase === 0 ? 0 : terminusMass;
+  let glowR = 10 + centerMass * 80;
+  let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
+  grad.addColorStop(0, phase === 2 ? '#ffd70066' : '#6af33');
+  grad.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4 + centerMass * 20, 0, Math.PI * 2);
+  ctx.fillStyle = phase === 2 ? '#ffd700' : '#6af';
+  ctx.fill();
+
+  // Fragments with trails
+  for (let f of fragments) {
+    if (!f.alive && f.trail.length === 0) continue;
+
+    // Trail
+    if (f.trail.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(f.trail[0].x, f.trail[0].y);
+      for (let i = 1; i < f.trail.length; i++) {
+        ctx.lineTo(f.trail[i].x, f.trail[i].y);
+      }
+      ctx.strokeStyle = f.color + '44';
+      ctx.lineWidth = Math.max(1, f.mass * 8);
+      ctx.stroke();
+    }
+
+    if (!f.alive) continue;
+
+    // Fragment circle
+    let r = Math.max(2, Math.sqrt(f.mass) * 12);
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = f.color;
+    ctx.fill();
+
+    // Mass label for bigger fragments
+    if (f.mass > 0.05) {
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText((f.mass * 100).toFixed(0) + '%', f.x, f.y);
+    }
+  }
+
+  // Gauges
+  drawGauges();
+
+  // Phase label
+  let phaseLabel = phase === 0 ? 'EXPANDING (D-operation)' : phase === 1 ? 'TURNAROUND' : 'FALLING (K-operation)';
+  let phaseColor = phase === 0 ? '#6af' : phase === 1 ? '#ffd700' : '#f55';
+  document.getElementById('phase').textContent = phaseLabel;
+  document.getElementById('phase').style.color = phaseColor;
+
+  // Title
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ONE \u2192 MANY \u2192 ONE', cx, 32);
+  ctx.fillStyle = '#555';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('The Fall Trinity', cx, 54);
+}
+
+function drawGauges() {
+  let gx = 20, gy = 80, gw = 140, gh = 14, gap = 28;
+
+  // sigma conservation
+  let totalMass = originMass + terminusMass;
+  for (let f of fragments) if (f.alive) totalMass += f.mass;
+  let sigmaOk = Math.abs(totalMass - 0.5) < 0.01;
+
+  drawGauge(gx, gy, gw, gh, 'sigma conservation', totalMass / 0.5, sigmaOk ? '#4f8' : '#f55');
+
+  // Speed limit
+  let maxVel = 0;
+  for (let f of fragments) if (f.alive) maxVel = Math.max(maxVel, Math.abs(f.vel));
+  let speedOk = maxVel <= C_SPEED * 61;
+  drawGauge(gx, gy + gap, gw, gh, 'c = sigma/sigma', Math.min(1, maxVel / (C_SPEED * 60)), speedOk ? '#6af' : '#f55');
+
+  // Terminus accumulation
+  drawGauge(gx, gy + gap * 2, gw, gh, 'terminus', terminusMass / 0.5, '#ffd700');
+
+  // Fragment count
+  let alive = fragments.filter(f => f.alive).length;
+  ctx.fillStyle = '#888';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('fragments: ' + alive + '/' + fragments.length, gx, gy + gap * 3 + 4);
+}
+
+function drawGauge(x, y, w, h, label, fill, color) {
+  // Background
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(x, y, w, h);
+  // Fill
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w * Math.min(1, Math.max(0, fill)), h);
+  // Border
+  ctx.strokeStyle = '#333';
+  ctx.strokeRect(x, y, w, h);
+  // Label
+  ctx.fillStyle = '#aaa';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(label, x, y - 4);
+  // Value
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText((fill * 100).toFixed(1) + '%', x + w - 4, y + h - 3);
+}
+
+// === CONTROLS ===
+function resetSim() { initSim(); }
+function togglePause() {
+  paused = !paused;
+  document.getElementById('bA').innerHTML = paused ? '&#9654; Play' : '&#9646;&#9646; Pause';
+}
+function toggleContrast() {
+  let el = document.getElementById('contrast');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') { e.preventDefault(); togglePause(); }
+  if (e.key === 'r' || e.key === 'R') resetSim();
+  if (e.key === 'c' || e.key === 'C') toggleContrast();
+});
+
+// === MAIN LOOP ===
+let lastT = performance.now();
+
+function loop(now) {
+  let dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+
+  let speed = parseInt(document.getElementById('spd').value);
+  for (let i = 0; i < speed; i++) simStep(dt / speed);
+
+  drawSim();
+  requestAnimationFrame(loop);
+}
+
+// Narrative
+document.getElementById('nar').innerHTML =
+  '<span class="hi">The Fall Trinity.</span> ONE splits into MANY (D), MANY falls back to ONE (K).<br>' +
+  '<span class="dim">sigma conserved. Speed limited. The loop IS existence. Space/R to pause, C for contrast.</span>';
+
+initSim();
+requestAnimationFrame(loop);
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

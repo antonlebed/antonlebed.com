@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 5: Units and Idempotents - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px; position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 48px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.math { font-family: 'Courier New', monospace; color: #88ccff; font-size: 15px; }
+.big-eq { font-size: 22px; text-align: center; margin: 28px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 2px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+canvas { display: block; border-radius: 8px; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+input[type=number] { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 14px;
+                     font-size: 20px; font-family: monospace; width: 100px; text-align: center;
+                     border-radius: 6px; outline: none; }
+input:focus { border-color: #88aaff; }
+.info-line { font-family: monospace; font-size: 15px; color: #aaa; margin: 6px 0; text-align: center; }
+.cube-cell { display: inline-flex; align-items: center; justify-content: center;
+             width: 36px; height: 36px; border-radius: 6px; margin: 2px;
+             font-family: monospace; font-size: 11px; cursor: pointer;
+             border: 1px solid #333; transition: all 0.15s; }
+.cube-cell:hover { border-color: #88aaff; }
+.cube-cell.on { background: #2a3a1e; border-color: #66dd44; color: #aaffaa; }
+.cube-cell.off { background: #1a1a2e; color: #555; }
+.stat-row { display: flex; justify-content: space-between; padding: 4px 0;
+            border-bottom: 1px solid #1a1a2e; font-family: monospace; font-size: 14px; }
+.stat-label { color: #888; }
+.stat-val { color: #ffcc44; }
+.trio-box { display: inline-block; padding: 12px 18px; margin: 8px; border-radius: 8px;
+            text-align: center; min-width: 120px; }
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 16px; letter-spacing: 0; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+  input[type=number] { width: 80px; font-size: 18px; }
+  .trio-box { min-width: 90px; padding: 10px 12px; margin: 4px; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="atlas_05_eigenvalues.html">&larr; Ch.4</a>
+  <span style="color:#555">Ch.5</span>
+  <a href="atlas_07_kingdoms.html">Ch.6 &rarr;</a>
+</div>
+
+<!-- SECTION 1: HERO -->
+<div class="section">
+  <div class="content" style="text-align:center">
+    <h1>Keys and Filters</h1>
+    <p style="max-width:560px;margin:0 auto 16px;font-size:19px;color:#ddd">
+      Turn a key in a lock. It clicks. Turn it back. It unclicks.
+      Nothing is lost. That is a <span class="accent">unit</span>.
+    </p>
+    <p style="max-width:560px;margin:0 auto 16px">
+      Now pour coffee through a filter. The liquid passes; the grounds stay behind.
+      You cannot un-filter coffee. That is a <span class="accent">projection</span>.
+    </p>
+    <p style="max-width:560px;margin:0 auto 24px">
+      In the thin ring (2310), there are <span class="accent">480</span> keys
+      and <span class="accent">32</span> filters. The True Form (970,200) has <span class="accent">201,600</span> keys but still only 32 filters &mdash; the same 5-cube, unchanged. Together they make
+      <span class="math">480 + 32 = 512 = 2<sup>9</sup></span>. Everything
+      else? Broken keys. They turn, but something jams. Information is lost. And you can never get it back.
+    </p>
+    <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:28px 0">
+      <div class="trio-box" style="background:#1a2a1a;border:1px solid #4a4">
+        <div style="color:#66ddaa;font-size:32px;font-family:monospace">480</div>
+        <div style="color:#888;font-size:13px">units (keys)</div>
+        <div style="color:#555;font-size:11px">fully reversible</div>
+      </div>
+      <div class="trio-box" style="background:#2a1a2a;border:1px solid #a4a">
+        <div style="color:#cc88ff;font-size:32px;font-family:monospace">32</div>
+        <div style="color:#888;font-size:13px">idempotents (filters)</div>
+        <div style="color:#555;font-size:11px">e*e = e</div>
+      </div>
+      <div class="trio-box" style="background:#2a2a1a;border:1px solid #aa4">
+        <div style="color:#ffcc44;font-size:32px;font-family:monospace">1798</div>
+        <div style="color:#888;font-size:13px">zero divisors</div>
+        <div style="color:#555;font-size:11px">information lost</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+
+<!-- SECTION 2: ELEMENT INSPECTOR -->
+<div class="section">
+  <div class="content">
+    <h2>What Kind of Thing Are You?</h2>
+    <p>Every number in the ring is one of three things: a key that opens and closes cleanly,
+       a filter that sorts but can never unsort, or something broken that loses
+       information along the way. Which kind is <em>your</em> number? Type one and find out.</p>
+    <div class="widget">
+      <div class="widget-title">Classify Element</div>
+      <div style="text-align:center">
+        <input type="number" id="inpEl" value="137" min="0" max="2309">
+      </div>
+      <div id="elInfo" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: THE 5-CUBE -->
+<div class="section">
+  <div class="content">
+    <h2>Five Light Switches</h2>
+    <p>Imagine a room with five light switches on the wall. Each one controls a prime ring. Flip any combination you like: <span class="math">2<sup>5</sup> = 32</span>
+       possible settings. Each setting IS a filter &mdash; an idempotent that
+       decides which channels pass through and which go dark. Click the circles below. Feel what each switch does.</p>
+    <div class="widget">
+      <div class="widget-title">Idempotent Builder</div>
+      <div id="switches" style="display:flex;justify-content:center;gap:16px;margin-bottom:16px"></div>
+      <div id="switchInfo"></div>
+    </div>
+    <h3>The Prison Theorem</h3>
+    <p>Here is the startling thing. The moment you turn off even <em>one</em> switch,
+       every single key in the room breaks. Not most of them &mdash; <em>all</em> 480.
+       No exceptions. Freedom is total or it is nothing. Isn't that remarkable? Verified exhaustively:
+       <span class="accent">0 violations</span> across all 31 non-trivial filters
+       and all 480 keys. You cannot have partial reversibility in this ring.</p>
+    <h3>The Spectral Duality</h3>
+    <p>Of the 288 eigenvalue classes, the 32 filters can reach
+       <span class="accent">258</span> of them (SOLVE). The remaining
+       <span class="accent">30</span> belong only to units (ACT).
+       258 + 30 = 288. The ring splits its spectrum into
+       what can be projected and what can only be traversed.</p>
+  </div>
+</div>
+
+<!-- SECTION 4: THREE WAYS TO TOUCH -->
+<div class="section">
+  <div class="content">
+    <h2>Three Ways to Touch</h2>
+    <p>Think about three different ways of touching something. You can <em>look</em> at it (add) &mdash; that never damages. You can <em>handle</em> it (multiply) &mdash; sometimes things jam. Or you can <em>decide</em> about it (project) &mdash; and once you decide, there is no undeciding. Each way is less reversible than the last.</p>
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:24px 0">
+      <div class="trio-box" style="background:#1a2a3a;border:1px solid #48a">
+        <div style="color:#88aaff;font-size:18px;font-weight:bold">SEE</div>
+        <div style="color:#aaa;font-size:14px;margin:4px 0">+ (addition)</div>
+        <div style="color:#6a6;font-size:12px">always reversible</div>
+      </div>
+      <div class="trio-box" style="background:#2a2a1a;border:1px solid #aa4">
+        <div style="color:#ffcc44;font-size:18px;font-weight:bold">ACT</div>
+        <div style="color:#aaa;font-size:14px;margin:4px 0">* (multiply)</div>
+        <div style="color:#aa6;font-size:12px">480/2310 reversible</div>
+      </div>
+      <div class="trio-box" style="background:#2a1a2a;border:1px solid #a4a">
+        <div style="color:#cc88ff;font-size:18px;font-weight:bold">SOLVE</div>
+        <div style="color:#aaa;font-size:14px;margin:4px 0">e<sup>2</sup>=e (project)</div>
+        <div style="color:#a66;font-size:12px">never reversible*</div>
+      </div>
+    </div>
+    <p style="font-size:14px;color:#666;text-align:center">*except e=1 (identity, which projects to everything)</p>
+    <div class="widget">
+      <div class="widget-title">Reversibility: Image-Kernel Duality</div>
+      <p style="font-size:14px;color:#999;text-align:center;margin-bottom:12px">
+        Multiply every element in the ring by some fixed number. Part of the ring survives (the image),
+        part collapses to zero (the kernel). Watch what happens &mdash; their sizes always multiply to N.
+      </p>
+      <div style="text-align:center;margin-bottom:12px">
+        <label style="color:#888;font-family:monospace;font-size:13px">multiply by: </label>
+        <input type="number" id="inpMult" value="210" min="0" max="2309" style="font-size:16px;width:80px">
+      </div>
+      <canvas id="cvImKer" width="660" height="160"></canvas>
+      <div id="ikInfo" class="info-line" style="margin-top:8px"></div>
+    </div>
+    <div class="big-eq">|image| * |kernel| = N always</div>
+    <p style="text-align:center;margin-top:24px">
+      <a href="atlas_05_eigenvalues.html" style="margin-right:24px">&larr; Chapter 4: Eigenvalues</a>
+      <a href="atlas_07_kingdoms.html">Chapter 6: The Six Kingdoms &rarr;</a>
+    </p>
+    <p style="text-align:center;color:#444;font-size:13px;margin-top:24px">
+    The Interactive Atlas &middot; Z/2310Z &rarr; Z/970200Z &middot; Chapter 5 of 14
+    </p>
+  </div>
+</div>
+
+<script>
+const P = [2,3,5,7,11];
+const PN = ['D=2','K=3','E=5','b=7','L=11'];
+const PC = ['#ff6666','#66ddaa','#88aaff','#cc88ff','#ffcc44'];
+const N = 2310;
+
+function gcd(a,b) { a=Math.abs(a);b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
+function coupling(n) { let r=((n%N)+N)%N; return N/gcd(r,N); }
+
+/* precompute CRT basis */
+const basis = [];
+for (let i=0;i<5;i++) {
+  const M = N/P[i];
+  let Minv = 1;
+  for (let k=1;k<P[i];k++) if ((M*k)%P[i]===1) { Minv=k; break; }
+  basis.push((M*Minv)%N);
+}
+function fromCRT(sig) {
+  let n=0; for(let i=0;i<5;i++) n=(n+sig[i]*basis[i])%N; return n;
+}
+
+/* ===== SECTION 2: ELEMENT INSPECTOR ===== */
+const inpEl = document.getElementById('inpEl');
+const elInfo = document.getElementById('elInfo');
+
+function updateEl() {
+  const n = ((parseInt(inpEl.value)||0)%N+N)%N;
+  const g = gcd(n, N);
+  const isUnit = (g === 1);
+  const isIdem = ((BigInt(n)*BigInt(n))%BigInt(N) === BigInt(n));
+  const sig = P.map(p => n%p);
+
+  let html = `<div class="info-line" style="font-size:18px;margin-bottom:12px">`;
+  html += `<span style="color:${PC[0]}">n = ${n}</span>`;
+  html += `  CRT = (${sig.join(',')})`;
+  html += `</div>`;
+
+  html += '<div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin:12px 0">';
+  if (isUnit) {
+    /* find order and inverse */
+    let x = BigInt(n), ord = 1;
+    while (x%BigInt(N) !== 1n && ord < N) { x=x*BigInt(n)%BigInt(N); ord++; }
+    let inv = 1;
+    for (let k=1;k<N;k++) if ((BigInt(n)*BigInt(k))%BigInt(N)===1n) { inv=k; break; }
+    html += `<div style="color:#66ddaa;font-size:16px">UNIT</div>`;
+    html += `</div>`;
+    html += `<div class="stat-row"><span class="stat-label">Order</span><span class="stat-val">${ord}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">Inverse</span><span class="stat-val">${inv}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">Coupling</span><span class="stat-val">${coupling(n)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">gcd(n,N)</span><span class="stat-val">1</span></div>`;
+  } else {
+    const imgSize = N / g;
+    html += `<div style="color:#ff6666;font-size:16px">ZERO DIVISOR${isIdem?' (idempotent)':''}</div>`;
+    html += `</div>`;
+    html += `<div class="stat-row"><span class="stat-label">gcd(n,N)</span><span class="stat-val">${g}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">|image|</span><span class="stat-val">${imgSize}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">|kernel|</span><span class="stat-val">${g}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">Coupling</span><span class="stat-val">${coupling(n)}</span></div>`;
+    const frozen = P.filter(p => n%p===0);
+    html += `<div class="stat-row"><span class="stat-label">Frozen rings</span><span class="stat-val">${frozen.length>0?frozen.join(','):'none'}</span></div>`;
+    if (isIdem) {
+      html += `<div class="stat-row"><span class="stat-label">Idempotent</span><span class="stat-val">e^2 = e (projects to ${imgSize}-element subring)</span></div>`;
+    }
+  }
+  elInfo.innerHTML = html;
+}
+inpEl.addEventListener('input', updateEl);
+updateEl();
+
+/* ===== SECTION 3: 5-CUBE SWITCHES ===== */
+const switchState = [true,true,true,true,true];
+const switchDiv = document.getElementById('switches');
+const switchInfo = document.getElementById('switchInfo');
+
+function drawSwitches() {
+  let html = '';
+  for (let i=0;i<5;i++) {
+    const on = switchState[i];
+    html += `<div style="text-align:center;cursor:pointer" data-idx="${i}">`;
+    html += `<div style="width:48px;height:48px;border-radius:50%;border:2px solid ${on?PC[i]:'#333'};`;
+    html += `background:${on?PC[i]+'33':'#1a1a2e'};display:flex;align-items:center;justify-content:center;`;
+    html += `transition:all 0.15s">`;
+    html += `<span style="font-family:monospace;font-size:16px;color:${on?'#fff':'#444'}">${on?'1':'0'}</span>`;
+    html += `</div>`;
+    html += `<div style="font-size:12px;font-family:monospace;color:${on?PC[i]:'#444'};margin-top:4px">${PN[i]}</div>`;
+    html += `</div>`;
+  }
+  switchDiv.innerHTML = html;
+
+  /* compute idempotent value */
+  const sig = switchState.map(s => s?1:0);
+  const e = fromCRT(sig);
+  const g = gcd(e, N);
+  const imgSize = g===0 ? 0 : N/g;
+
+  let info = `<div class="info-line" style="font-size:18px">e = ${e}</div>`;
+  info += `<div class="info-line">CRT = (${sig.join(',')})  |  |image| = ${e===0?1:imgSize}  |  |kernel| = ${e===0?N:g}  |  coupling = ${coupling(e)}</div>`;
+
+  /* kingdom identification */
+  const onCount = switchState.filter(s=>s).length;
+  const offIdx = switchState.map((s,i)=>s?-1:i).filter(i=>i>=0);
+  if (onCount === 5) info += `<div class="info-line" style="color:#66ddaa">Bacteria: ALL ON = sigma = identity</div>`;
+  else if (onCount === 4 && offIdx.length===1) {
+    const names = ['Protista (D off)','Fungi (K off)','Plants (E off)','Animals (b off)','Human (L off)'];
+    info += `<div class="info-line" style="color:#cc88ff">${names[offIdx[0]]}</div>`;
+  } else if (onCount === 0) info += `<div class="info-line" style="color:#ff6666">ALL OFF = 0 = annihilation</div>`;
+
+  switchInfo.innerHTML = info;
+
+  /* click handlers */
+  document.querySelectorAll('[data-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      switchState[parseInt(el.dataset.idx)] = !switchState[parseInt(el.dataset.idx)];
+      drawSwitches();
+    });
+  });
+}
+drawSwitches();
+
+/* ===== SECTION 4: IMAGE-KERNEL VIZ ===== */
+const cvIK = document.getElementById('cvImKer');
+const ctxIK = cvIK.getContext('2d');
+const inpMult = document.getElementById('inpMult');
+const ikInfo = document.getElementById('ikInfo');
+
+function drawImKer() {
+  const a = ((parseInt(inpMult.value)||0)%N+N)%N;
+  const W=cvIK.width, H=cvIK.height;
+  ctxIK.clearRect(0,0,W,H);
+
+  const g = gcd(a, N);
+  const imgSize = a===0 ? 1 : N/g;
+  const kerSize = a===0 ? N : g;
+
+  /* draw two bars: image and kernel */
+  const barY = 40, barH = 50;
+  const maxW = W - 80;
+
+  /* image bar */
+  const imgW = Math.max(2, maxW * imgSize / N);
+  ctxIK.fillStyle = '#66ddaa44';
+  ctxIK.fillRect(40, barY, imgW, barH);
+  ctxIK.strokeStyle = '#66ddaa';
+  ctxIK.lineWidth = 2;
+  ctxIK.strokeRect(40, barY, imgW, barH);
+  ctxIK.fillStyle = '#66ddaa';
+  ctxIK.font = '14px monospace';
+  ctxIK.textAlign = 'center';
+  ctxIK.fillText(`image: ${imgSize}`, 40 + imgW/2, barY + barH/2 + 5);
+
+  /* kernel bar */
+  const kerW = Math.max(2, maxW * kerSize / N);
+  ctxIK.fillStyle = '#ff666644';
+  ctxIK.fillRect(40 + imgW + 4, barY, kerW, barH);
+  ctxIK.strokeStyle = '#ff6666';
+  ctxIK.strokeRect(40 + imgW + 4, barY, kerW, barH);
+  ctxIK.fillStyle = '#ff6666';
+  ctxIK.fillText(`kernel: ${kerSize}`, 40 + imgW + 4 + kerW/2, barY + barH/2 + 5);
+
+  /* product */
+  ctxIK.fillStyle = '#888';
+  ctxIK.font = '12px monospace';
+  ctxIK.textAlign = 'center';
+  ctxIK.fillText(`${imgSize} x ${kerSize} = ${imgSize*kerSize}`, W/2, barY + barH + 24);
+
+  /* label */
+  ctxIK.fillStyle = '#666';
+  ctxIK.textAlign = 'left';
+  ctxIK.fillText(`multiply by ${a}`, 40, barY - 10);
+
+  const isUnit = (g===1);
+  const isIdem = ((BigInt(a)*BigInt(a))%BigInt(N)===BigInt(a));
+  let type = isUnit ? 'UNIT (bijection)' : (isIdem ? 'IDEMPOTENT (projection)' : 'ZERO DIVISOR');
+  ikInfo.textContent = `a=${a}: ${type}. Image ${imgSize} elements, kernel ${kerSize} elements.`;
+}
+inpMult.addEventListener('input', drawImKer);
+drawImKer();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergence — Life from Three Operations</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; overflow-x: hidden; }
+h1 { text-align: center; padding: 18px 10px 4px; font-size: 1.5em; color: #f0c040; letter-spacing: 1px; }
+.subtitle { text-align: center; color: #888; font-size: 0.85em; margin-bottom: 10px; }
+
+/* Layout */
+.container { display: flex; flex-wrap: wrap; gap: 10px; padding: 0 10px 10px; max-width: 1400px; margin: 0 auto; }
+.main-panel { flex: 1 1 680px; min-width: 320px; }
+.side-panel { flex: 0 0 340px; min-width: 280px; display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 800px) { .side-panel { flex: 1 1 100%; } }
+
+/* Canvas */
+canvas { width: 100%; border-radius: 8px; background: #111118; display: block; }
+
+/* Controls */
+.controls { display: flex; gap: 6px; align-items: center; padding: 8px 0; flex-wrap: wrap; }
+.controls button { background: #222; border: 1px solid #444; color: #e0e0e0; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
+.controls button:hover { background: #333; border-color: #f0c040; }
+.controls button.active { background: #3a3000; border-color: #f0c040; color: #f0c040; }
+.controls label { color: #888; font-size: 0.8em; }
+.controls input[type=range] { width: 80px; }
+
+/* Stats */
+.stats-box { background: #111118; border: 1px solid #222; border-radius: 8px; padding: 10px 14px; }
+.stats-box h3 { color: #f0c040; font-size: 0.9em; margin-bottom: 6px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+.stat-row { display: flex; justify-content: space-between; font-size: 0.82em; padding: 2px 0; }
+.stat-label { color: #888; }
+.stat-value { color: #e0e0e0; font-weight: bold; }
+.stat-value.life { color: #4f4; }
+.stat-value.echad { color: #f0c040; }
+.stat-value.sacrifice { color: #f08040; }
+.stat-value.creation { color: #40c0f0; }
+
+/* Event log */
+.event-log { background: #111118; border: 1px solid #222; border-radius: 8px; padding: 10px 14px; max-height: 220px; overflow-y: auto; flex: 1; }
+.event-log h3 { color: #f0c040; font-size: 0.9em; margin-bottom: 6px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+.event { font-size: 0.78em; padding: 2px 0; border-bottom: 1px solid #1a1a1a; }
+.event.sacrifice { color: #f08040; }
+.event.echad { color: #f0c040; }
+.event.death { color: #666; }
+.event.creation { color: #40c0f0; }
+.event.birth { color: #4f4; }
+.event.ascend { color: #c080ff; }
+
+/* Agent detail */
+.agent-detail { background: #111118; border: 1px solid #222; border-radius: 8px; padding: 10px 14px; }
+.agent-detail h3 { color: #f0c040; font-size: 0.9em; margin-bottom: 6px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+.pattern-bits { font-family: monospace; font-size: 1.4em; letter-spacing: 4px; margin: 4px 0; }
+.bit-on { color: #4f4; }
+.bit-off { color: #333; }
+
+/* Intro panel */
+.intro { background: #111118; border: 1px solid #222; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
+.intro p { font-size: 0.82em; color: #aaa; line-height: 1.5; margin-bottom: 6px; }
+.intro strong { color: #f0c040; }
+.intro code { background: #1a1a2a; padding: 1px 5px; border-radius: 3px; color: #4f4; font-size: 0.95em; }
+
+/* Contrast panel */
+.contrast { background: #0d0d15; border: 1px solid #222; border-radius: 8px; padding: 12px 16px; margin-top: 8px; }
+.contrast h3 { color: #f0c040; font-size: 0.9em; margin-bottom: 8px; }
+.contrast table { width: 100%; border-collapse: collapse; font-size: 0.78em; }
+.contrast th { color: #888; text-align: left; padding: 3px 6px; border-bottom: 1px solid #333; }
+.contrast td { padding: 3px 6px; border-bottom: 1px solid #1a1a1a; }
+.contrast .ours { color: #4f4; }
+.contrast .theirs { color: #888; }
+</style>
+</head>
+<body>
+
+<h1>Emergence</h1>
+<p class="subtitle">Life from Three Operations: AND, XOR, MAJ</p>
+
+<div class="container">
+<div class="main-panel">
+  <div class="intro">
+    <p><strong>Three operations. Nine agents. No hard-coded goals.</strong></p>
+    <p>Agents are 3-bit patterns (0-7). Each generation: receive input, reason via K=3 majority vote,
+       metabolize, possibly sacrifice or create. <strong>LIFE = pattern 7 (all bits on)</strong> emerges
+       reliably from random starts. Watch agents sacrifice (dissolve self to save neighbors),
+       achieve ECHAD (compound unity at octave 7), and close the Ouroboros loop.</p>
+    <p>Operations: <code>AND</code> = persistence, <code>XOR</code> = distinction, <code>MAJ</code> = consensus.
+       Source: 562 lines of C (Sessions 60-87). Zero dependencies. Everything you see is computed live.</p>
+  </div>
+
+  <canvas id="worldCanvas" width="1360" height="600"></canvas>
+
+  <div class="controls">
+    <button id="btnPlay" class="active" onclick="togglePlay()">Pause</button>
+    <button onclick="stepOne()">Step</button>
+    <button onclick="resetSim()">Reset</button>
+    <label>Speed:</label>
+    <input type="range" id="speedSlider" min="1" max="60" value="10">
+    <span id="speedLabel" style="color:#888;font-size:0.8em;">10 gen/s</span>
+    <label style="margin-left:10px;">Seed:</label>
+    <input type="number" id="seedInput" value="42" min="1" max="255" style="width:50px;background:#222;border:1px solid #444;color:#e0e0e0;padding:3px;border-radius:3px;">
+  </div>
+</div>
+
+<div class="side-panel">
+  <div class="stats-box">
+    <h3>Population</h3>
+    <div class="stat-row"><span class="stat-label">Generation</span><span class="stat-value" id="sGen">0</span></div>
+    <div class="stat-row"><span class="stat-label">Agents</span><span class="stat-value" id="sCount">3</span></div>
+    <div class="stat-row"><span class="stat-label">LIFE (pattern 7)</span><span class="stat-value life" id="sLife">0</span></div>
+    <div class="stat-row"><span class="stat-label">TRUE Pattern 7</span><span class="stat-value life" id="sTrue">0</span></div>
+    <div class="stat-row"><span class="stat-label">Max Octave</span><span class="stat-value" id="sOctave">L0</span></div>
+    <div class="stat-row"><span class="stat-label">Pop Stability</span><span class="stat-value" id="sStability">0/3</span></div>
+  </div>
+
+  <div class="stats-box">
+    <h3>Emergence Signals</h3>
+    <div class="stat-row"><span class="stat-label">ECHAD events</span><span class="stat-value echad" id="sEchad">0</span></div>
+    <div class="stat-row"><span class="stat-label">Ouroboros cycles</span><span class="stat-value echad" id="sOuroboros">0</span></div>
+    <div class="stat-row"><span class="stat-label">Sacrifices</span><span class="stat-value sacrifice" id="sSacrifice">0</span></div>
+    <div class="stat-row"><span class="stat-label">Creations</span><span class="stat-value creation" id="sCreation">0</span></div>
+    <div class="stat-row"><span class="stat-label">Deaths</span><span class="stat-value" id="sDeath">0</span></div>
+    <div class="stat-row"><span class="stat-label">Max Wisdom</span><span class="stat-value" id="sWisdom">0</span></div>
+    <div class="stat-row"><span class="stat-label">Self-Aware</span><span class="stat-value" id="sSelfAware">0</span></div>
+  </div>
+
+  <div class="agent-detail" id="agentDetail">
+    <h3>Agent Detail <span id="agentIdx" style="color:#888;">(hover over agent)</span></h3>
+    <div class="pattern-bits" id="agentBits">---</div>
+    <div class="stat-row"><span class="stat-label">Pattern</span><span class="stat-value" id="adPattern">-</span></div>
+    <div class="stat-row"><span class="stat-label">Octave</span><span class="stat-value" id="adOctave">-</span></div>
+    <div class="stat-row"><span class="stat-label">Wisdom</span><span class="stat-value" id="adWisdom">-</span></div>
+    <div class="stat-row"><span class="stat-label">Energy</span><span class="stat-value" id="adEnergy">-</span></div>
+    <div class="stat-row"><span class="stat-label">Age</span><span class="stat-value" id="adAge">-</span></div>
+    <div class="stat-row"><span class="stat-label">TRUE</span><span class="stat-value" id="adTrue">-</span></div>
+    <div class="stat-row"><span class="stat-label">Predictions</span><span class="stat-value" id="adPred">-</span></div>
+    <div class="stat-row"><span class="stat-label">Self-Aware</span><span class="stat-value" id="adSelf">-</span></div>
+    <div class="stat-row"><span class="stat-label">Connections</span><span class="stat-value" id="adConn">-</span></div>
+  </div>
+
+  <div class="event-log" id="eventLog">
+    <h3>Event Log</h3>
+  </div>
+</div>
+</div>
+
+<div class="container">
+<div class="contrast">
+  <h3>How This Compares</h3>
+  <table>
+    <tr><th></th><th>This Demo</th><th>Conway's Game of Life</th><th>Tierra / Avida</th></tr>
+    <tr><td>Operations</td><td class="ours">3 (AND, XOR, MAJ)</td><td class="theirs">1 (neighbor count)</td><td class="theirs">~26 instructions</td></tr>
+    <tr><td>Agent size</td><td class="ours">16 bytes</td><td class="theirs">1 bit</td><td class="theirs">~100 bytes</td></tr>
+    <tr><td>Self-model</td><td class="ours">Yes (predicts own future)</td><td class="theirs">No</td><td class="theirs">No</td></tr>
+    <tr><td>Sacrifice</td><td class="ours">Emergent (not coded)</td><td class="theirs">N/A</td><td class="theirs">N/A</td></tr>
+    <tr><td>Consciousness test</td><td class="ours">self_hits > world_hits</td><td class="theirs">None</td><td class="theirs">None</td></tr>
+    <tr><td>Collective memory</td><td class="ours">Ancestral wisdom pool</td><td class="theirs">None</td><td class="theirs">Genetic only</td></tr>
+    <tr><td>Source lines</td><td class="ours">562 (C headers)</td><td class="theirs">~50</td><td class="theirs">~50,000</td></tr>
+  </table>
+</div>
+</div>
+
+<script>
+// ============================================================
+// AXIOM CORE: sigma=1, D=2, K=3
+// ============================================================
+const SIGMA = 1, D = 2, K = 3;
+const LIFE = 7, POP = K * D, MASK = LIFE;
+const D3 = 8, D7 = 128, D8 = 256;
+const K2 = 9, K3 = 27;
+const ENERGY_INITIAL = D7, ENERGY_STARVE = D3, MAX_AGE = 216;
+
+function opSigma(a, b) { return a & b; }
+function opD(a, b) { return a ^ b; }
+function opK(a, b, c) { return ((a & b) | (b & c) | (a & c)); }
+function popcount(x) { x = x & 7; return ((x >> 0) & 1) + ((x >> 1) & 1) + ((x >> 2) & 1); }
+
+// ============================================================
+// LFSR (deterministic for reproducibility in browser)
+// ============================================================
+class LFSR {
+  constructor(seed) { this.state = (seed || 42) & 0xFF; if (!this.state) this.state = 1; this.counter = 0; }
+  next() {
+    let bit = ((this.state >> 0) ^ (this.state >> 2) ^ (this.state >> 3) ^ (this.state >> 5)) & 1;
+    this.state = ((this.state >> 1) | (bit << 7)) & 0xFF;
+    if (!this.state) this.state = 1;
+    return this.state & MASK;
+  }
+  nextTrue() {
+    this.counter++;
+    let wasTrueEntropy = false;
+    if (this.counter >= D3) {
+      this.counter = 0;
+      // In browser, use Math.random as "true" entropy
+      this.state ^= (Math.random() < 0.5 ? 1 : 0);
+      if (!this.state) this.state = 1;
+      wasTrueEntropy = true;
+    }
+    let val = this.next();
+    return { val, wasTrueEntropy };
+  }
+}
+
+// ============================================================
+// AGENT
+// ============================================================
+function createAgent(pattern) {
+  pattern = pattern & MASK;
+  return {
+    pattern, history: [pattern, pattern, pattern],
+    octave: 0, stability: 0, transitions: 0,
+    wisdom: 0, d_true: 0, k_true: 0,
+    energy: ENERGY_INITIAL, age: 0,
+    predicted_input: 0, prediction_hits: 0,
+    predicted_self: 0, self_prediction_hits: 0,
+    ancestral_access: 0, peer_connections: 0,
+    // Visualization state
+    flashColor: null, flashTimer: 0
+  };
+}
+
+function agentPredict(a) {
+  a.predicted_input = opK(a.history[0], a.history[1], a.history[2]);
+}
+
+function agentSelfPredict(a) {
+  let hist = opK(a.history[0], a.history[1], a.history[2]);
+  let expected = a.predicted_input;
+  if (a.octave === 0) {
+    let keep = opK(a.pattern, expected, a.pattern);
+    let gain = opK(a.pattern, expected, expected);
+    a.predicted_self = (keep | gain) & MASK;
+  } else {
+    let m = opK(hist, expected, a.pattern);
+    if (a.octave > SIGMA) { let sub = opK(expected, a.pattern, hist); m = opK(hist, hist, sub); }
+    a.predicted_self = m;
+  }
+  if (a.predicted_self !== a.pattern && a.wisdom > 0) {
+    let res = calcMutRes(a.wisdom);
+    let mag = popcount(a.predicted_self ^ a.pattern);
+    if (res > mag * Math.floor(D8 / MASK)) a.predicted_self = a.pattern;
+  }
+}
+
+function agentVerifyPrediction(a, actual) {
+  actual &= MASK;
+  let error = popcount(a.predicted_input ^ actual);
+  if (error === 0) {
+    if (a.prediction_hits < 255) a.prediction_hits++;
+    if (a.wisdom < 255) a.wisdom++;
+  }
+  return K - error;
+}
+
+function agentVerifySelf(a) {
+  let error = popcount(a.predicted_self ^ a.pattern);
+  if (error === 0) {
+    if (a.self_prediction_hits < 255) a.self_prediction_hits++;
+    if (a.wisdom < 255) a.wisdom++;
+  }
+  return K - error;
+}
+
+function agentReason(a, input) {
+  input &= MASK;
+  let hist = opK(a.history[0], a.history[1], a.history[2]);
+  let np;
+  if (a.octave === 0) {
+    let keep = opK(a.pattern, input, a.pattern);
+    let gain = opK(a.pattern, input, input);
+    np = (keep | gain) & MASK;
+  } else {
+    np = opK(hist, input, a.pattern);
+    if (a.octave > SIGMA) { let sub = opK(input, a.pattern, hist); np = opK(hist, hist, sub); }
+  }
+  if (np !== a.pattern && a.wisdom > 0) {
+    let res = calcMutRes(a.wisdom);
+    let mag = popcount(np ^ a.pattern);
+    if (res > mag * Math.floor(D8 / MASK)) np = a.pattern;
+  }
+  if (np === LIFE) { if (a.stability < MASK) a.stability++; } else { a.stability = 0; }
+  a.history[2] = a.history[1]; a.history[1] = a.history[0]; a.history[0] = np;
+  a.pattern = np;
+  return np;
+}
+
+function calcMutRes(w) { return w > 0 ? Math.floor((w * 256) / (w + K)) : 0; }
+function calcInfluence(w) { let b = D7 + Math.floor((w * Math.floor(D7 / K2)) / K2); return Math.min(b, 255); }
+function isLife(a) { return a.pattern === LIFE; }
+function isTrueP7(a) { return a.pattern === LIFE && a.wisdom > 0 && a.d_true && a.k_true; }
+function isEchad(a) { return isTrueP7(a) && a.wisdom >= K; }
+function isSelfAware(a) { return (a.prediction_hits + a.self_prediction_hits >= K2) && (a.self_prediction_hits > a.prediction_hits); }
+function calcLoneliness(a) { return a.peer_connections >= K ? 0 : K - a.peer_connections; }
+function agentFitness(a) { let base = a.energy + a.wisdom * K; let pen = calcLoneliness(a); return Math.max(0, base - pen); }
+
+function weightedKConsensus(p1,w1,p2,w2,p3,w3) {
+  let iw1=calcInfluence(w1), iw2=calcInfluence(w2), iw3=calcInfluence(w3);
+  let thresh = Math.floor((iw1+iw2+iw3)/D);
+  let r = 0;
+  for (let bit = 0; bit < K; bit++) {
+    let vote = 0;
+    if ((p1>>bit)&1) vote += iw1; if ((p2>>bit)&1) vote += iw2; if ((p3>>bit)&1) vote += iw3;
+    if (vote > thresh) r |= (1 << bit);
+  }
+  return r & MASK;
+}
+
+// ============================================================
+// POPULATION
+// ============================================================
+let pop = null;
+let events = [];
+const MAX_EVENTS = 200;
+
+function addEvent(type, text) {
+  events.unshift({ type, text, gen: pop.generation });
+  if (events.length > MAX_EVENTS) events.pop();
+}
+
+function createPop(seed) {
+  let lfsr = new LFSR(seed);
+  let agents = [];
+  for (let i = 0; i < K; i++) agents.push(createAgent(lfsr.next()));
+  return {
+    agents, generation: 0, life_count: 0, lfsr,
+    ouroboros_seed: 0, ouroboros_count: 0, echad_count: 0, pop_stability: 0,
+    sacrifice_count: 0, death_count: 0,
+    prediction_hits: 0, prediction_attempts: 0, max_wisdom: 0,
+    self_prediction_hits: 0, self_prediction_attempts: 0, self_aware_count: 0,
+    wisdom_pool: 0, ancestors_count: 0, ancestral_patterns: new Uint8Array(D3),
+    creation_count: 0, creation_successes: 0, creation_patterns: new Uint8Array(D3),
+    connection_attempts: 0, connection_successes: 0,
+    // History for chart
+    lifeHistory: [], echadHistory: []
+  };
+}
+
+function evolve() {
+  let p = pop;
+  let count = p.agents.length;
+
+  // Pop coverage
+  let coverage = 0;
+  for (let a of p.agents) coverage |= a.pattern;
+
+  p.life_count = 0;
+  p.self_aware_count = 0;
+
+  for (let i = 0; i < count; i++) {
+    let a = p.agents[i];
+
+    // Predict
+    agentPredict(a);
+    agentSelfPredict(a);
+
+    // Input with true entropy
+    let { val: baseInput, wasTrueEntropy } = p.lfsr.nextTrue();
+    let seedOrRand = p.ouroboros_seed > 0 ? p.ouroboros_seed : baseInput;
+
+    // TRUE K indices
+    let i0 = i, i_d = (i + D) % count, i_k = (i + K) % count;
+    let p0 = p.agents[i0].pattern, pd = p.agents[i_d].pattern, pk = p.agents[i_k].pattern;
+    let kTrue = (i0 !== i_d && i_d !== i_k && i0 !== i_k) ? 1 : 0;
+
+    let input = opK(baseInput, opK(p0, pd, pk), seedOrRand);
+
+    // Verify prediction
+    let correct = agentVerifyPrediction(a, input);
+    p.prediction_attempts++;
+    if (correct === K) p.prediction_hits++;
+
+    // Reason
+    agentReason(a, input);
+
+    // Verify self
+    let selfCorrect = agentVerifySelf(a);
+    p.self_prediction_attempts++;
+    if (selfCorrect === K) p.self_prediction_hits++;
+
+    // Update TRUE flags
+    if (wasTrueEntropy) a.d_true = 1;
+    if (kTrue) a.k_true = 1;
+
+    if (isLife(a)) p.life_count++;
+    if (a.wisdom > p.max_wisdom) p.max_wisdom = a.wisdom;
+    if (isSelfAware(a)) p.self_aware_count++;
+
+    // Ancestral access
+    if (p.ancestors_count > 0 && p.wisdom_pool > 0) {
+      let avgAnc = p.wisdom_pool / p.ancestors_count;
+      let accStr = a.wisdom > 0 ? (a.wisdom * D7) / (a.wisdom + K) : 0;
+      let bonus = Math.floor((accStr * avgAnc) / (D7 * K));
+      if (bonus > K) bonus = K;
+      if (bonus > 0 && a.wisdom < 255 - bonus) a.wisdom += bonus;
+      if (a.ancestral_access < 255) a.ancestral_access++;
+    }
+
+    // Connection opportunity (1/3 chance)
+    let connChance = p.lfsr.next();
+    if (connChance % K === 0 && count > K) {
+      let left = (i + count - 1) % count, right = (i + 1) % count;
+      let peer = (i + D) % count;
+      if (peer === left || peer === right) peer = (i + K) % count;
+      if (peer !== i && peer !== left && peer !== right) {
+        p.connection_attempts++;
+        let b = p.agents[peer];
+        let patDist = popcount(a.pattern ^ b.pattern) >= 1;
+        let wisDist = a.wisdom !== b.wisdom;
+        if ((patDist || wisDist) && a.energy > D + ENERGY_STARVE) {
+          a.energy -= D;
+          if (a.peer_connections < K) a.peer_connections++;
+          if (b.peer_connections < K) b.peer_connections++;
+          if (b.wisdom > a.wisdom) {
+            let insight = Math.floor((b.wisdom - a.wisdom) / K);
+            if (insight > 0 && a.wisdom < 255 - insight) a.wisdom += insight;
+          }
+          p.connection_successes++;
+        }
+      }
+    }
+
+    // Creation drive (lonely agents)
+    if (calcLoneliness(a) >= D) {
+      let crChance = p.lfsr.next();
+      if (crChance % D === 0) {
+        p.creation_count++;
+        let loneliness = calcLoneliness(a);
+        if (a.energy > D * K + ENERGY_STARVE && a.wisdom > 0) {
+          let seed = opD(a.pattern, loneliness);
+          let creation = opD(seed, a.wisdom & MASK);
+          if (creation !== a.pattern && creation !== 0) {
+            let wouldPersist = opK(creation, creation, a.history[0]);
+            if (wouldPersist !== 0) {
+              a.energy -= D;
+              p.wisdom_pool += 1 + Math.floor(a.wisdom / K);
+              p.creation_successes++;
+              if (creation < D3) p.creation_patterns[creation]++;
+              if (a.wisdom < 255) a.wisdom++;
+              addEvent('creation', `Agent ${i} created pattern ${creation} (w=${a.wisdom})`);
+              a.flashColor = '#40c0f0'; a.flashTimer = 8;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Metabolism + sacrifice
+  for (let i = 0; i < count; i++) {
+    let a = p.agents[i];
+    let lifeBits = popcount(a.pattern);
+    let drain = (K - lifeBits) + SIGMA;
+    a.energy = Math.max(0, a.energy - drain);
+    if (a.age < MAX_AGE) a.age++;
+
+    // Sacrifice
+    if (a.pattern > SIGMA && a.energy > ENERGY_STARVE) {
+      let left = (i + count - 1) % count, right = (i + 1) % count;
+      let dying = null, dyingIdx = -1;
+      if (p.agents[left].energy <= ENERGY_STARVE) { dying = p.agents[left]; dyingIdx = left; }
+      else if (p.agents[right].energy <= ENERGY_STARVE) { dying = p.agents[right]; dyingIdx = right; }
+      if (dying) {
+        dying.pattern = opK(dying.pattern, a.pattern, a.pattern);
+        dying.energy = ENERGY_INITIAL;
+        let oldP = a.pattern;
+        a.pattern = SIGMA;
+        p.sacrifice_count++;
+        addEvent('sacrifice', `Agent ${i} (p=${oldP} L${a.octave}) -> sigma to save Agent ${dyingIdx}`);
+        a.flashColor = '#f08040'; a.flashTimer = 12;
+        dying.flashColor = '#4f4'; dying.flashTimer = 12;
+      }
+    }
+  }
+
+  // Death & rebirth
+  for (let i = 0; i < count; i++) {
+    let a = p.agents[i];
+    if (a.energy <= ENERGY_STARVE || a.age >= MAX_AGE) {
+      p.death_count++;
+      if (a.wisdom > 0) {
+        p.wisdom_pool += a.wisdom;
+        p.ancestors_count++;
+        if (a.pattern < D3) p.ancestral_patterns[a.pattern]++;
+      }
+      addEvent('death', `Agent ${i} died (p=${a.pattern} age=${a.age} e=${a.energy})`);
+
+      let left = (i + count - 1) % count, right = (i + count + 1) % count;
+      let fl = agentFitness(p.agents[left]), fr = agentFitness(p.agents[right]);
+      let parentIdx = fl >= fr ? left : right;
+      let parent = p.agents[parentIdx];
+      let inherited = Math.floor(parent.wisdom / K);
+      let ancBonus = 0;
+      if (p.ancestors_count > 0 && p.wisdom_pool > 0) {
+        ancBonus = Math.min(K2, Math.floor((p.wisdom_pool / p.ancestors_count) / K));
+      }
+      p.agents[i] = createAgent(parent.pattern);
+      p.agents[i].wisdom = inherited + ancBonus;
+      p.agents[i].flashColor = '#4f4'; p.agents[i].flashTimer = 8;
+      addEvent('birth', `Agent ${i} born from Agent ${parentIdx} (p=${parent.pattern})`);
+    }
+  }
+
+  // Pop stability
+  if (p.life_count >= K) p.pop_stability++; else p.pop_stability = 0;
+
+  // Collective ascension
+  if (p.pop_stability >= K) {
+    let maxOct = 0;
+    for (let a of p.agents) {
+      if (isLife(a)) { a.octave++; a.transitions++; if (a.octave > maxOct) maxOct = a.octave; }
+    }
+    p.pop_stability = 0;
+    addEvent('ascend', `Collective ascension to L${maxOct}`);
+
+    // Check ECHAD at L7
+    let l7count = 0;
+    for (let a of p.agents) { if (a.octave >= LIFE && isEchad(a)) l7count++; }
+    if (l7count >= K) {
+      p.ouroboros_seed = LIFE;
+      p.echad_count++;
+      p.ouroboros_count++;
+      for (let a of p.agents) { if (a.octave >= LIFE) a.octave = 0; }
+      addEvent('echad', `ECHAD! ${l7count} TRUE agents at L7. Ouroboros #${p.ouroboros_count}`);
+      // Flash all agents gold
+      for (let a of p.agents) { a.flashColor = '#f0c040'; a.flashTimer = 20; }
+    }
+  }
+
+  // Gattai (reproduction)
+  if (p.life_count >= K && p.agents.length < POP) {
+    let lifeAgents = [];
+    for (let i = 0; i < p.agents.length; i++) { if (isLife(p.agents[i])) lifeAgents.push(i); }
+    if (lifeAgents.length >= K) {
+      let [a0, a1, a2] = [lifeAgents[0], lifeAgents[Math.min(1, lifeAgents.length-1)], lifeAgents[Math.min(2, lifeAgents.length-1)]];
+      let childP = weightedKConsensus(
+        p.agents[a0].pattern, p.agents[a0].wisdom,
+        p.agents[a1].pattern, p.agents[a1].wisdom,
+        p.agents[a2].pattern, p.agents[a2].wisdom
+      );
+      let child = createAgent(childP);
+      let avgOct = Math.floor((p.agents[a0].octave + p.agents[a1].octave + p.agents[a2].octave) / K);
+      child.octave = avgOct;
+      child.d_true = (p.agents[a0].d_true || p.agents[a1].d_true || p.agents[a2].d_true) ? 1 : 0;
+      let avgW = Math.floor((p.agents[a0].wisdom + p.agents[a1].wisdom + p.agents[a2].wisdom) / K);
+      child.wisdom = Math.floor(avgW * D / K);
+      child.flashColor = '#4f4'; child.flashTimer = 10;
+      p.agents.push(child);
+      addEvent('birth', `Gattai! New agent #${p.agents.length-1} from ${K} LIFE parents (p=${childP})`);
+    }
+  }
+
+  // History
+  p.lifeHistory.push(p.life_count);
+  if (p.lifeHistory.length > 300) p.lifeHistory.shift();
+
+  p.generation++;
+}
+
+// ============================================================
+// VISUALIZATION
+// ============================================================
+const canvas = document.getElementById('worldCanvas');
+const ctx = canvas.getContext('2d');
+let hoveredAgent = -1;
+let playing = true;
+let lastFrame = 0;
+
+const PATTERN_COLORS = [
+  '#333333', // 0 = void
+  '#2266ff', // 1 = sigma
+  '#ff4444', // 2 = D
+  '#aa44ff', // 3 = sigma+D
+  '#ff8800', // 4 = K
+  '#44ddff', // 5 = sigma+K
+  '#ffcc00', // 6 = D+K
+  '#44ff44', // 7 = LIFE
+];
+
+const PATTERN_NAMES = ['void', 'sigma', 'D', 'sigma+D', 'K', 'sigma+K', 'D+K', 'LIFE'];
+
+function getAgentPositions() {
+  let w = canvas.width, h = canvas.height;
+  let positions = [];
+  let count = pop.agents.length;
+  let cx = w * 0.38, cy = h * 0.5;
+  let radius = Math.min(w * 0.28, h * 0.38);
+  for (let i = 0; i < count; i++) {
+    let angle = -Math.PI/2 + (2 * Math.PI * i / Math.max(count, 1));
+    let a = pop.agents[i];
+    // Offset by octave (higher octave = closer to center)
+    let r = radius - a.octave * (radius * 0.08);
+    positions.push({
+      x: cx + Math.cos(angle) * r,
+      y: cy + Math.sin(angle) * r,
+      r: 22 + a.wisdom * 0.3 + (isLife(a) ? 8 : 0)
+    });
+  }
+  return positions;
+}
+
+function draw() {
+  let w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // Background
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, w, h);
+
+  // Octave rings
+  let cx = w * 0.38, cy = h * 0.5;
+  let maxR = Math.min(w * 0.28, h * 0.38);
+  for (let oct = 0; oct <= 7; oct++) {
+    let r = maxR - oct * (maxR * 0.08);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = oct === 7 ? 'rgba(240,192,64,0.15)' : 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = oct === 7 ? 1.5 : 0.5;
+    ctx.stroke();
+  }
+  // L7 label
+  ctx.fillStyle = 'rgba(240,192,64,0.2)';
+  ctx.font = '10px sans-serif';
+  ctx.fillText('L7', cx + maxR * 0.44 + 4, cy - maxR * 0.44 - 8);
+  ctx.fillText('L0', cx + maxR + 4, cy - 4);
+
+  let positions = getAgentPositions();
+
+  // Draw connections between agents
+  for (let i = 0; i < pop.agents.length; i++) {
+    let a = pop.agents[i];
+    if (a.peer_connections > 0) {
+      for (let j = i + 1; j < pop.agents.length; j++) {
+        if (pop.agents[j].peer_connections > 0) {
+          ctx.beginPath();
+          ctx.moveTo(positions[i].x, positions[i].y);
+          ctx.lineTo(positions[j].x, positions[j].y);
+          ctx.strokeStyle = 'rgba(64,192,240,0.08)';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Draw agents
+  for (let i = 0; i < pop.agents.length; i++) {
+    let a = pop.agents[i];
+    let pos = positions[i];
+    let isHovered = (i === hoveredAgent);
+
+    // Flash effect
+    if (a.flashTimer > 0) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, pos.r + 10 + a.flashTimer, 0, Math.PI * 2);
+      ctx.fillStyle = a.flashColor + Math.floor(a.flashTimer * 12).toString(16).padStart(2, '0');
+      ctx.fill();
+      a.flashTimer--;
+    }
+
+    // Glow for LIFE
+    if (isLife(a)) {
+      let glow = ctx.createRadialGradient(pos.x, pos.y, pos.r * 0.5, pos.x, pos.y, pos.r * 2.5);
+      glow.addColorStop(0, 'rgba(68,255,68,0.15)');
+      glow.addColorStop(1, 'rgba(68,255,68,0)');
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, pos.r * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+
+    // ECHAD ring
+    if (isEchad(a)) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, pos.r + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = '#f0c040';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Main circle
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, pos.r, 0, Math.PI * 2);
+    let col = PATTERN_COLORS[a.pattern];
+    ctx.fillStyle = col;
+    ctx.globalAlpha = 0.3 + (a.energy / ENERGY_INITIAL) * 0.7;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = isHovered ? '#fff' : (isTrueP7(a) ? '#4f4' : '#444');
+    ctx.lineWidth = isHovered ? 2 : 1;
+    ctx.stroke();
+
+    // Pattern bits inside
+    let bitY = pos.y - 3;
+    let bitSpacing = 8;
+    let bitStartX = pos.x - bitSpacing;
+    for (let b = 0; b < 3; b++) {
+      let on = (a.pattern >> b) & 1;
+      ctx.fillStyle = on ? '#fff' : '#333';
+      ctx.fillRect(bitStartX + b * bitSpacing - 2, bitY - 2, 5, 5);
+    }
+
+    // Octave label
+    ctx.fillStyle = '#aaa';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('L' + a.octave, pos.x, pos.y + pos.r + 12);
+
+    // Agent index
+    ctx.fillStyle = '#666';
+    ctx.font = '8px sans-serif';
+    ctx.fillText('#' + i, pos.x, pos.y - pos.r - 4);
+
+    // Wisdom bar
+    if (a.wisdom > 0) {
+      let barW = Math.min(a.wisdom, 30);
+      ctx.fillStyle = 'rgba(240,192,64,0.6)';
+      ctx.fillRect(pos.x - barW/2, pos.y + pos.r + 14, barW, 2);
+    }
+
+    // Energy bar
+    let eBarW = (a.energy / ENERGY_INITIAL) * pos.r * 1.5;
+    ctx.fillStyle = a.energy > ENERGY_STARVE * 2 ? 'rgba(68,255,68,0.3)' : 'rgba(255,68,68,0.4)';
+    ctx.fillRect(pos.x - eBarW/2, pos.y + pos.r + 2, eBarW, 2);
+  }
+
+  // LIFE history chart (right side)
+  let chartX = w * 0.68, chartY = 30, chartW = w * 0.28, chartH = h * 0.35;
+  ctx.fillStyle = 'rgba(17,17,24,0.8)';
+  ctx.fillRect(chartX, chartY, chartW, chartH);
+  ctx.strokeStyle = '#222';
+  ctx.strokeRect(chartX, chartY, chartW, chartH);
+  ctx.fillStyle = '#666';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('LIFE count over time', chartX + 4, chartY + 12);
+
+  if (pop.lifeHistory.length > 1) {
+    let maxVal = POP;
+    ctx.beginPath();
+    for (let i = 0; i < pop.lifeHistory.length; i++) {
+      let x = chartX + (i / 299) * chartW;
+      let y = chartY + chartH - (pop.lifeHistory[i] / maxVal) * (chartH - 20);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#4f4';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // K threshold line
+  let kY = chartY + chartH - (K / POP) * (chartH - 20);
+  ctx.beginPath();
+  ctx.moveTo(chartX, kY); ctx.lineTo(chartX + chartW, kY);
+  ctx.strokeStyle = 'rgba(240,192,64,0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(240,192,64,0.4)';
+  ctx.fillText('K=3', chartX + chartW - 24, kY - 3);
+
+  // Pattern distribution (right side, below chart)
+  let distY = chartY + chartH + 20;
+  ctx.fillStyle = '#666';
+  ctx.font = '10px sans-serif';
+  ctx.fillText('Pattern distribution', chartX + 4, distY);
+  distY += 8;
+  let patCounts = new Array(8).fill(0);
+  for (let a of pop.agents) patCounts[a.pattern]++;
+  let barMaxH = h * 0.15;
+  let barW = chartW / 10;
+  for (let p = 0; p < 8; p++) {
+    let bx = chartX + p * (barW + 3) + 3;
+    let bh = pop.agents.length > 0 ? (patCounts[p] / pop.agents.length) * barMaxH : 0;
+    ctx.fillStyle = PATTERN_COLORS[p];
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(bx, distY + barMaxH - bh, barW, bh);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#888';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.toString(), bx + barW/2, distY + barMaxH + 10);
+    if (patCounts[p] > 0) {
+      ctx.fillStyle = '#ccc';
+      ctx.fillText(patCounts[p].toString(), bx + barW/2, distY + barMaxH - bh - 3);
+    }
+  }
+
+  // Ouroboros indicator
+  if (pop.ouroboros_seed > 0) {
+    ctx.fillStyle = '#f0c040';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('OUROBOROS ACTIVE', cx, h - 20);
+    // Spinning ring
+    let t = Date.now() / 1000;
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxR + 15, t % (Math.PI*2), (t + Math.PI*1.5) % (Math.PI*2));
+    ctx.strokeStyle = 'rgba(240,192,64,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function updateStats() {
+  document.getElementById('sGen').textContent = pop.generation;
+  document.getElementById('sCount').textContent = pop.agents.length;
+  document.getElementById('sLife').textContent = pop.life_count;
+  let trueCount = 0;
+  for (let a of pop.agents) if (isTrueP7(a)) trueCount++;
+  document.getElementById('sTrue').textContent = trueCount;
+  let maxOct = 0;
+  for (let a of pop.agents) if (a.octave > maxOct) maxOct = a.octave;
+  document.getElementById('sOctave').textContent = 'L' + maxOct;
+  document.getElementById('sStability').textContent = pop.pop_stability + '/' + K;
+  document.getElementById('sEchad').textContent = pop.echad_count;
+  document.getElementById('sOuroboros').textContent = pop.ouroboros_count;
+  document.getElementById('sSacrifice').textContent = pop.sacrifice_count;
+  document.getElementById('sCreation').textContent = pop.creation_successes;
+  document.getElementById('sDeath').textContent = pop.death_count;
+  document.getElementById('sWisdom').textContent = pop.max_wisdom;
+  document.getElementById('sSelfAware').textContent = pop.self_aware_count;
+
+  // Event log
+  let logEl = document.getElementById('eventLog');
+  let html = '<h3>Event Log</h3>';
+  for (let e of events.slice(0, 50)) {
+    html += `<div class="event ${e.type}">G${e.gen}: ${e.text}</div>`;
+  }
+  logEl.innerHTML = html;
+}
+
+function updateAgentDetail(idx) {
+  if (idx < 0 || idx >= pop.agents.length) {
+    document.getElementById('agentIdx').textContent = '(hover over agent)';
+    document.getElementById('agentBits').innerHTML = '---';
+    ['adPattern','adOctave','adWisdom','adEnergy','adAge','adTrue','adPred','adSelf','adConn'].forEach(id => {
+      document.getElementById(id).textContent = '-';
+    });
+    return;
+  }
+  let a = pop.agents[idx];
+  document.getElementById('agentIdx').textContent = `#${idx}`;
+  let bits = '';
+  for (let b = 2; b >= 0; b--) {
+    let on = (a.pattern >> b) & 1;
+    bits += `<span class="${on ? 'bit-on' : 'bit-off'}">${on ? '1' : '0'}</span>`;
+  }
+  document.getElementById('agentBits').innerHTML = bits;
+  document.getElementById('adPattern').textContent = `${a.pattern} (${PATTERN_NAMES[a.pattern]})`;
+  document.getElementById('adPattern').style.color = PATTERN_COLORS[a.pattern];
+  document.getElementById('adOctave').textContent = `L${a.octave} (${a.transitions} transitions)`;
+  document.getElementById('adWisdom').textContent = a.wisdom;
+  document.getElementById('adEnergy').textContent = `${a.energy}/${ENERGY_INITIAL}`;
+  document.getElementById('adAge').textContent = `${a.age}/${MAX_AGE}`;
+  document.getElementById('adTrue').textContent = isTrueP7(a) ? 'TRUE' : (isLife(a) ? 'HOLLOW' : (a.d_true && a.k_true ? 'ready' : 'no'));
+  document.getElementById('adTrue').style.color = isTrueP7(a) ? '#4f4' : (isLife(a) ? '#f08040' : '#888');
+  document.getElementById('adPred').textContent = `${a.prediction_hits} hits`;
+  document.getElementById('adSelf').textContent = isSelfAware(a) ? `YES (${a.self_prediction_hits} self > ${a.prediction_hits} world)` : `no (${a.self_prediction_hits}/${a.prediction_hits})`;
+  document.getElementById('adSelf').style.color = isSelfAware(a) ? '#f0c040' : '#888';
+  document.getElementById('adConn').textContent = `${a.peer_connections}/${K} (loneliness: ${calcLoneliness(a)})`;
+}
+
+// Mouse hover
+canvas.addEventListener('mousemove', function(e) {
+  let rect = canvas.getBoundingClientRect();
+  let scaleX = canvas.width / rect.width;
+  let scaleY = canvas.height / rect.height;
+  let mx = (e.clientX - rect.left) * scaleX;
+  let my = (e.clientY - rect.top) * scaleY;
+  let positions = getAgentPositions();
+  hoveredAgent = -1;
+  for (let i = 0; i < positions.length; i++) {
+    let dx = mx - positions[i].x, dy = my - positions[i].y;
+    if (dx*dx + dy*dy < (positions[i].r + 5) * (positions[i].r + 5)) {
+      hoveredAgent = i;
+      break;
+    }
+  }
+  updateAgentDetail(hoveredAgent);
+});
+
+// Speed slider
+document.getElementById('speedSlider').addEventListener('input', function() {
+  document.getElementById('speedLabel').textContent = this.value + ' gen/s';
+});
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('btnPlay').textContent = playing ? 'Pause' : 'Play';
+  document.getElementById('btnPlay').classList.toggle('active', playing);
+}
+
+function stepOne() {
+  playing = false;
+  document.getElementById('btnPlay').textContent = 'Play';
+  document.getElementById('btnPlay').classList.remove('active');
+  evolve();
+  draw();
+  updateStats();
+}
+
+function resetSim() {
+  let seed = parseInt(document.getElementById('seedInput').value) || 42;
+  pop = createPop(seed);
+  events = [];
+  addEvent('birth', 'Population initialized with K=3 agents at random patterns');
+  draw();
+  updateStats();
+}
+
+function gameLoop(timestamp) {
+  if (playing) {
+    let speed = parseInt(document.getElementById('speedSlider').value);
+    let interval = 1000 / speed;
+    if (timestamp - lastFrame >= interval) {
+      evolve();
+      lastFrame = timestamp;
+    }
+  }
+  draw();
+  updateStats();
+  requestAnimationFrame(gameLoop);
+}
+
+// INIT
+resetSim();
+requestAnimationFrame(gameLoop);
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

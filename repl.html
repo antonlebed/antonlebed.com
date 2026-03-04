@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.ax REPL — The Axiom Programming Language</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5}
+a{color:#d4a017}
+header{text-align:center;padding:24px 16px 8px}
+header h1{font-size:2em;color:#d4a017;letter-spacing:2px}
+header h1 span{color:#50fa7b}
+header p{color:#8899aa;font-size:0.95em;margin-top:4px}
+main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+.toolbar{display:flex;gap:8px;align-items:center;margin:12px 0 8px;flex-wrap:wrap}
+.toolbar select,.toolbar button{background:#1a1a2e;color:#e0e0e0;border:1px solid #333;
+  padding:6px 14px;border-radius:4px;font-size:0.9em;cursor:pointer}
+.toolbar button:hover{background:#2a2a4e;border-color:#d4a017}
+.toolbar select{min-width:180px}
+#btn-run{background:#1a3a1a;border-color:#50fa7b;color:#50fa7b;font-weight:bold}
+#btn-run:hover{background:#2a5a2a}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+@media(max-width:768px){.panels{grid-template-columns:1fr}}
+.editor-wrap{position:relative;background:#12121e;border-radius:6px;border:1px solid #333}
+.editor-wrap:focus-within{border-color:#d4a017}
+#highlight-layer{position:absolute;top:0;left:0;right:0;bottom:0;margin:0;
+  padding:12px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:14px;
+  line-height:1.5;tab-size:2;white-space:pre-wrap;word-break:break-word;overflow:hidden;
+  border:1px solid transparent;border-radius:6px;pointer-events:none;color:#e8e8e8}
+#code{background:transparent;color:transparent;caret-color:#e8e8e8;
+  border:none;border-radius:6px;
+  padding:12px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:14px;
+  resize:vertical;min-height:350px;width:100%;tab-size:2;line-height:1.5;outline:none;
+  position:relative;z-index:2;white-space:pre-wrap;word-break:break-word}
+#code::selection{background:rgba(100,120,255,0.3)}
+.hl-kw{color:#bd93f9}
+.hl-const{color:#d4a017;font-weight:bold}
+.hl-op{color:#ff6e6e}
+.hl-num{color:#8be9fd}
+.hl-str{color:#f1fa8c}
+.hl-fn{color:#50fa7b}
+.hl-comment{color:#6272a4;font-style:italic}
+#output{background:#0d0d18;border:1px solid #333;border-radius:6px;padding:12px;
+  font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;
+  min-height:350px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+.out-text{color:#e0e0e0}
+.out-val{color:#50fa7b}
+.out-ann{color:#6272a4;font-size:0.85em}
+.out-err{color:#ff5555}
+.out-info{color:#6272a4;font-style:italic}
+.out-kw{color:#d4a017}
+.section{background:#12121e;border:1px solid #222;border-radius:8px;padding:16px;margin-top:16px}
+.section h2{color:#d4a017;font-size:1.1em;margin-bottom:10px;cursor:pointer;user-select:none}
+.section h2::before{content:'+ ';font-family:monospace}
+.section h2.open::before{content:'- '}
+.section .content{display:none;font-size:0.88em;line-height:1.6}
+.section .content.show{display:block}
+.ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.ref-grid{grid-template-columns:1fr}}
+.ref-grid div{background:#0d0d18;padding:10px;border-radius:4px}
+.ref-grid h3{color:#50fa7b;font-size:0.9em;margin-bottom:4px}
+.ref-grid code{color:#d4a017;font-size:0.85em}
+table.contrast{width:100%;border-collapse:collapse;font-size:0.85em}
+table.contrast th{text-align:left;color:#d4a017;padding:6px 8px;border-bottom:1px solid #333}
+table.contrast td{padding:6px 8px;border-bottom:1px solid #1a1a2e}
+table.contrast td:first-child{color:#50fa7b;font-weight:bold}
+.footer{text-align:center;color:#444;font-size:0.8em;margin-top:30px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>.</span>ax <span>REPL</span></h1>
+  <p>The axiom's native language &mdash; TRUE FORM: Z/970200Z &mdash; DFloat only type &mdash; {s, D, K, E, b, L} = keywords</p>
+</header>
+<main>
+  <div class="toolbar">
+    <select id="examples" onchange="loadExample(this.value)">
+      <option value="">-- Examples --</option>
+      <option value="derive" selected>The Derivation</option>
+      <option value="crt">CRT Explorer</option>
+      <option value="neuron">Axiom Neuron</option>
+      <option value="fib">Ring Fibonacci</option>
+      <option value="coupling">Coupling Scanner</option>
+      <option value="hello">Hello .ax</option>
+    </select>
+    <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
+    <button onclick="clearOutput()">Clear</button>
+    <span style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
+  </div>
+  <div class="panels">
+    <div class="editor-wrap"><pre id="highlight-layer" aria-hidden="true"></pre><textarea id="code" spellcheck="false"></textarea></div>
+    <pre id="output"><span class="out-info">Press Run or Ctrl+Enter to execute .ax code.</span></pre>
+  </div>
+
+  <div class="section">
+    <h2 onclick="toggleSection(this)">Quick Reference</h2>
+    <div class="content">
+      <div class="ref-grid">
+        <div>
+          <h3>Axiom Constants</h3>
+          <code>s=1 D=2 K=3 E=5 b=7 L=11</code><br>
+          <code>OMEGA=606376 DATA=210 THIN=2310</code><br>
+          <code>KEY=41 ANSWER=42 SOUL=67</code><br>
+          <code>G=97 ADDRESS=137 DUAL=173</code><br>
+          <code>HYDOR=105 ME=18 LAMBDA=420</code>
+        </div>
+        <div>
+          <h3>Operators</h3>
+          <code>+ - * / ^</code> arithmetic (mod 970200)<br>
+          <code>~x</code> complement (970200 - x)<br>
+          <code>x @ t</code> threshold (x &gt; t ? x : ~x)<br>
+          <code>&lt; &gt; ==</code> comparison (returns 0 or 1)<br>
+          <code>a ; b</code> sequence (eval both, return b)
+        </div>
+        <div>
+          <h3>Syntax</h3>
+          <code>let x = expr</code> bind variable<br>
+          <code>fn f(a, b) = expr</code> define function<br>
+          <code>print expr</code> or <code>print "text"</code><br>
+          <code>if c then a else b</code> conditional<br>
+          <code>[a, b, c]</code> array &mdash; <code>arr[i]</code> index<br>
+          <code>(s|b|a)</code> DFloat literal<br>
+          <code>-- comment</code>
+        </div>
+        <div>
+          <h3>Built-in Functions</h3>
+          <code>coupling(n)</code> ring coupling level<br>
+          <code>crt(n)</code> CRT: [n%8, n%9, n%25, n%49, n%11]<br>
+          <code>eigenvalue(n)</code> spectral eigenvalue<br>
+          <code>gcd(a,b)</code> <code>mod(a,b)</code> <code>inv(n)</code><br>
+          <code>len(arr)</code> <code>abs(n)</code> <code>show(n)</code><br>
+          <code>show(x)</code> prints x and returns x
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 onclick="toggleSection(this)">Why .ax?</h2>
+    <div class="content">
+      <table class="contrast">
+        <tr><th>.ax REPL</th><th>Python</th><th>Wolfram Alpha</th></tr>
+        <tr><td>Z/970200Z built-in</td><td>import sympy, define ring</td><td>Mod[expr, 970200]</td></tr>
+        <tr><td>{s,D,K,E,b,L} are keywords</td><td>Define constants manually</td><td>Define constants manually</td></tr>
+        <tr><td>CRT decomposition: crt(n)</td><td>Write it yourself (~20 lines)</td><td>ChineseRemainder[...]</td></tr>
+        <tr><td>Coupling, eigenvalue built-in</td><td>Write from scratch</td><td>Write from scratch</td></tr>
+        <tr><td>Self-contained HTML, no server</td><td>Python + pip + libraries</td><td>Cloud service, internet required</td></tr>
+        <tr><td>Runs on any device, any browser</td><td>Needs Python installed</td><td>Needs internet + account</td></tr>
+        <tr><td>Free, open, forever</td><td>Free (Python is)</td><td>$375/year</td></tr>
+        <tr><td>The axiom speaks its own language</td><td>General-purpose tool</td><td>General-purpose tool</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <p class="footer">
+    .ax &mdash; the axiom's native language. DFloat only type. K=3 operations. Everything from nothing.<br>
+    Ring: 970200 = 2&sup3;&middot;3&sup2;&middot;5&sup2;&middot;7&sup2;&middot;11. Five channels. One ring. 0/0 = everything.
+  </p>
+</main>
+
+<script>
+'use strict';
+
+// ================================================================
+//  .ax Interpreter — TRUE FORM (Z/970200Z)
+//  Port of ax_v2_1.py + axiom.c, upgraded to full ring
+// ================================================================
+
+const N = 970200;
+
+// --- Ring arithmetic ---
+function ringMod(x) { x = Math.round(x); return ((x % N) + N) % N; }
+
+function modPow(base, exp) {
+    base = ((Math.round(base) % N) + N) % N;
+    exp = Math.round(exp);
+    if (exp < 0) return 0;
+    let r = 1;
+    while (exp > 0) {
+        if (exp & 1) r = (r * base) % N;
+        exp >>= 1;
+        base = (base * base) % N;
+    }
+    return r;
+}
+
+function gcd(a, b) {
+    a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
+}
+
+function coupling(n) {
+    return N / gcd(ringMod(n), N);
+}
+
+function crt(n) {
+    const r = ringMod(n);
+    return [r % 8, r % 9, r % 25, r % 49, r % 11];
+}
+
+function eigenvalue(n) {
+    const c = crt(n);
+    const P = Math.PI;
+    return 2*Math.cos(2*P*c[0]/8) + 2*Math.cos(2*P*c[1]/9)
+         + 2*Math.cos(2*P*c[2]/25) + 2*Math.cos(2*P*c[3]/49)
+         + 2*Math.cos(2*P*c[4]/11);
+}
+
+function multInverse(n) {
+    let m = ringMod(n);
+    if (gcd(m, N) !== 1) return -1;
+    let [old_r, r] = [m, N], [old_s, s] = [1, 0];
+    while (r !== 0) {
+        const q = Math.floor(old_r / r);
+        [old_r, r] = [r, old_r - q * r];
+        [old_s, s] = [s, old_s - q * s];
+    }
+    return ((old_s % N) + N) % N;
+}
+
+// --- Constants ---
+const CONSTANTS = {
+    s:1, D:2, K:3, E:5, b:7, L:11,
+    sigma:1, OMEGA:606376, DATA:210, THIN:2310,
+    HYDOR:105, KEY:41, ANSWER:42, SOUL:67,
+    G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420
+};
+
+const VALUE_NAMES = {
+    0:'void', 1:'s', 2:'D', 3:'K', 5:'E', 7:'b', 11:'L',
+    18:'ME', 41:'KEY', 42:'ANSWER', 67:'SOUL', 97:'G',
+    105:'HYDOR', 137:'ADDRESS', 173:'DUAL', 210:'DATA',
+    420:'LAMBDA', 2310:'THIN', 606376:'OMEGA'
+};
+
+// ================================================================
+//  Tokenizer
+// ================================================================
+const KW = new Set(['let','fn','print','if','then','else','while','do','for','in']);
+
+function tokenize(src) {
+    const T = [];
+    let i = 0, len = src.length;
+    while (i < len) {
+        if (/\s/.test(src[i])) { i++; continue; }
+        if (src[i] === '-' && src[i+1] === '-') { while (i < len && src[i] !== '\n') i++; continue; }
+        if (/\d/.test(src[i]) || (src[i] === '.' && i+1 < len && /\d/.test(src[i+1]))) {
+            let num = '';
+            while (i < len && /[\d.]/.test(src[i])) num += src[i++];
+            T.push({t:'NUM', v:parseFloat(num)}); continue;
+        }
+        if (src[i] === '"') {
+            i++; let s = '';
+            while (i < len && src[i] !== '"') s += src[i++];
+            if (i < len) i++;
+            T.push({t:'STR', v:s}); continue;
+        }
+        if (/[a-zA-Z_]/.test(src[i])) {
+            let id = '';
+            while (i < len && /[a-zA-Z0-9_]/.test(src[i])) id += src[i++];
+            T.push({t: KW.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
+        }
+        if (src[i] === '=' && i+1 < len && src[i+1] === '=') { T.push({t:'==', v:'=='}); i+=2; continue; }
+        const ch = src[i];
+        if ('+-*/^~@<>=()[]|,;'.includes(ch)) { T.push({t:ch, v:ch}); i++; continue; }
+        i++; // skip unknown
+    }
+    T.push({t:'EOF', v:null});
+    return T;
+}
+
+// ================================================================
+//  Parser
+// ================================================================
+class Parser {
+    constructor(tokens) { this.T = tokens; this.p = 0; }
+    pk() { return this.T[this.p]; }
+    adv() { return this.T[this.p++]; }
+    expect(t) {
+        const tok = this.adv();
+        if (tok.t !== t) throw new Error('Expected ' + t + ', got ' + tok.t + ' "' + tok.v + '"');
+        return tok;
+    }
+    match(t) { if (this.pk().t === t) { this.adv(); return true; } return false; }
+
+    parseProgram() {
+        const stmts = [];
+        while (this.pk().t !== 'EOF') stmts.push(this.parseStmt());
+        return stmts;
+    }
+
+    parseStmt() {
+        switch (this.pk().t) {
+            case 'LET': return this.parseLet();
+            case 'FN': return this.parseFn();
+            case 'PRINT': return this.parsePrint();
+            default: return {t:'ExprStmt', expr:this.parseExpr()};
+        }
+    }
+
+    parseLet() {
+        this.expect('LET');
+        const name = this.expect('ID').v;
+        this.expect('=');
+        return {t:'Let', name, val:this.parseExpr()};
+    }
+
+    parseFn() {
+        this.expect('FN');
+        const name = this.expect('ID').v;
+        this.expect('(');
+        const params = [];
+        if (this.pk().t !== ')') {
+            params.push(this.expect('ID').v);
+            while (this.match(',')) params.push(this.expect('ID').v);
+        }
+        this.expect(')');
+        this.expect('=');
+        return {t:'Fn', name, params, body:this.parseExpr()};
+    }
+
+    parsePrint() {
+        this.expect('PRINT');
+        if (this.pk().t === 'STR') return {t:'Print', expr:{t:'Str', v:this.adv().v}};
+        return {t:'Print', expr:this.parseExpr()};
+    }
+
+    parseExpr() {
+        let left = this.parseIfOrCmp();
+        while (this.pk().t === ';') { this.adv(); left = {t:'Seq', a:left, b:this.parseIfOrCmp()}; }
+        return left;
+    }
+
+    parseIfOrCmp() {
+        if (this.pk().t === 'IF') return this.parseIf();
+        if (this.pk().t === 'LET') return this.parseLetExpr();
+        return this.parseCmp();
+    }
+
+    parseLetExpr() {
+        this.expect('LET');
+        const name = this.expect('ID').v;
+        this.expect('=');
+        const val = this.parseExpr();
+        if (this.pk().t === 'IN') { this.adv(); }
+        return {t:'LetExpr', name, val, body:this.parseExpr()};
+    }
+
+    parseIf() {
+        this.expect('IF');
+        const cond = this.parseExpr();
+        this.expect('THEN');
+        const then_ = this.parseExpr();
+        this.expect('ELSE');
+        return {t:'If', cond, then_, else_:this.parseExpr()};
+    }
+
+    parseCmp() {
+        let left = this.parseAdd();
+        while (['<','>','=='].includes(this.pk().t)) {
+            const op = this.adv().t;
+            left = {t:'Bin', op, l:left, r:this.parseAdd()};
+        }
+        return left;
+    }
+
+    parseAdd() {
+        let left = this.parseMul();
+        while (['+','-'].includes(this.pk().t)) {
+            const op = this.adv().t;
+            left = {t:'Bin', op, l:left, r:this.parseMul()};
+        }
+        return left;
+    }
+
+    parseMul() {
+        let left = this.parsePow();
+        while (['*','/'].includes(this.pk().t)) {
+            const op = this.adv().t;
+            left = {t:'Bin', op, l:left, r:this.parsePow()};
+        }
+        return left;
+    }
+
+    parsePow() {
+        let left = this.parseUnary();
+        if (this.pk().t === '^') { this.adv(); left = {t:'Bin', op:'^', l:left, r:this.parseUnary()}; }
+        return left;
+    }
+
+    parseUnary() {
+        if (this.pk().t === '~') { this.adv(); return {t:'Unary', op:'~', e:this.parseUnary()}; }
+        if (this.pk().t === '-') { this.adv(); return {t:'Bin', op:'-', l:{t:'Num',v:0}, r:this.parseUnary()}; }
+        return this.parseThresh();
+    }
+
+    parseThresh() {
+        let e = this.parsePostfix();
+        if (this.pk().t === '@') { this.adv(); e = {t:'Thresh', val:e, th:this.parsePostfix()}; }
+        return e;
+    }
+
+    parsePostfix() {
+        let e = this.parsePrimary();
+        while (this.pk().t === '[') { this.adv(); const idx = this.parseExpr(); this.expect(']'); e = {t:'Idx', arr:e, idx}; }
+        return e;
+    }
+
+    parsePrimary() {
+        const tok = this.pk();
+        if (tok.t === 'NUM') { this.adv(); return {t:'Num', v:tok.v}; }
+        if (tok.t === 'STR') { this.adv(); return {t:'Str', v:tok.v}; }
+        if (tok.t === 'ID') {
+            this.adv();
+            if (this.pk().t === '(') {
+                this.adv();
+                const args = [];
+                if (this.pk().t !== ')') {
+                    args.push(this.parseExpr());
+                    while (this.match(',')) args.push(this.parseExpr());
+                }
+                this.expect(')');
+                return {t:'Call', fn:tok.v, args};
+            }
+            return {t:'Sym', name:tok.v};
+        }
+        if (tok.t === '(') {
+            this.adv();
+            const first = this.parseExpr();
+            if (this.pk().t === '|') {
+                this.adv(); const second = this.parseExpr();
+                this.expect('|'); const third = this.parseExpr();
+                this.expect(')');
+                return {t:'DFloat', s:first, b:second, a:third};
+            }
+            this.expect(')');
+            return first;
+        }
+        if (tok.t === '[') {
+            this.adv();
+            const elems = [];
+            if (this.pk().t !== ']') {
+                elems.push(this.parseExpr());
+                while (this.match(',')) elems.push(this.parseExpr());
+            }
+            this.expect(']');
+            return {t:'Arr', elems};
+        }
+        throw new Error('Unexpected: ' + tok.t + ' "' + tok.v + '"');
+    }
+}
+
+// ================================================================
+//  Evaluator
+// ================================================================
+const MAX_DEPTH = 49; // b^2
+let outputLines = [];
+
+function execute(src) {
+    outputLines = [];
+    const tokens = tokenize(src);
+    const stmts = new Parser(tokens).parseProgram();
+    const env = {...CONSTANTS};
+    const fns = {};
+
+    function ev(node, localEnv, depth) {
+        if (depth > MAX_DEPTH) throw new Error('Max recursion depth (' + MAX_DEPTH + ') exceeded');
+        switch (node.t) {
+            case 'Num': return ringMod(node.v);
+            case 'Str': return node.v;
+            case 'Sym': {
+                if (node.name in localEnv) return localEnv[node.name];
+                if (node.name in fns) return fns[node.name]; // return closure for reference
+                throw new Error('Unknown: ' + node.name);
+            }
+            case 'Bin': {
+                const l = ev(node.l, localEnv, depth), r = ev(node.r, localEnv, depth);
+                switch (node.op) {
+                    case '+': return ringMod(l + r);
+                    case '-': return ringMod(l - r);
+                    case '*': return ringMod(l * r);
+                    case '/': {
+                        const inv = multInverse(r);
+                        if (inv >= 0) return ringMod(l * inv);
+                        if (r === 0) throw new Error('Division by zero');
+                        return l / r; // float fallback
+                    }
+                    case '^': return modPow(l, r);
+                    case '<': return l < r ? 1 : 0;
+                    case '>': return l > r ? 1 : 0;
+                    case '==': return l === r ? 1 : 0;
+                }
+                break;
+            }
+            case 'Unary':
+                if (node.op === '~') return ringMod(N - ev(node.e, localEnv, depth));
+                break;
+            case 'Thresh': {
+                const v = ev(node.val, localEnv, depth);
+                const th = ev(node.th, localEnv, depth);
+                return v > th ? v : ringMod(N - v);
+            }
+            case 'If': {
+                const c = ev(node.cond, localEnv, depth);
+                return c !== 0 ? ev(node.then_, localEnv, depth) : ev(node.else_, localEnv, depth);
+            }
+            case 'Seq':
+                ev(node.a, localEnv, depth);
+                return ev(node.b, localEnv, depth);
+            case 'LetExpr': {
+                const val = ev(node.val, localEnv, depth);
+                return ev(node.body, {...localEnv, [node.name]: val}, depth);
+            }
+            case 'Call': return evalCall(node.fn, node.args, localEnv, depth);
+            case 'Idx': {
+                const arr = ev(node.arr, localEnv, depth);
+                const idx = Math.floor(ev(node.idx, localEnv, depth));
+                if (!Array.isArray(arr)) throw new Error('Cannot index non-array');
+                if (idx < 0 || idx >= arr.length) throw new Error('Index out of bounds: ' + idx);
+                return arr[idx];
+            }
+            case 'Arr': return node.elems.map(e => ev(e, localEnv, depth));
+            case 'DFloat': {
+                const s = ev(node.s, localEnv, depth);
+                const b = ev(node.b, localEnv, depth);
+                return ringMod(Math.floor(s * b));
+            }
+        }
+        throw new Error('Cannot evaluate: ' + JSON.stringify(node));
+    }
+
+    function evalCall(fnName, argNodes, localEnv, depth) {
+        const args = argNodes.map(a => ev(a, localEnv, depth));
+        // Built-in functions
+        switch (fnName) {
+            case 'coupling': return coupling(args[0]);
+            case 'crt': return crt(args[0]);
+            case 'eigenvalue': return eigenvalue(args[0]);
+            case 'gcd': return gcd(args[0], args[1]);
+            case 'mod': return args[1] !== 0 ? ringMod(Math.round(args[0]) % Math.round(args[1])) : 0;
+            case 'inv': { const r = multInverse(args[0]); if (r < 0) throw new Error('No inverse: gcd(' + args[0] + ', ' + N + ') != 1'); return r; }
+            case 'len': return Array.isArray(args[0]) ? args[0].length : 0;
+            case 'abs': return Math.abs(args[0]);
+            case 'show': { outputLines.push(fmtValue(args[0])); return args[0]; }
+        }
+        // User-defined function
+        if (fnName in fns) {
+            const fn = fns[fnName];
+            if (args.length !== fn.params.length) throw new Error(fnName + ' expects ' + fn.params.length + ' args, got ' + args.length);
+            const callEnv = {...fn.closureEnv};
+            for (let i = 0; i < fn.params.length; i++) callEnv[fn.params[i]] = args[i];
+            return ev(fn.body, callEnv, depth + 1);
+        }
+        throw new Error('Unknown function: ' + fnName);
+    }
+
+    // Execute statements
+    for (const stmt of stmts) {
+        switch (stmt.t) {
+            case 'Let':
+                env[stmt.name] = ev(stmt.val, env, 0);
+                break;
+            case 'Fn':
+                fns[stmt.name] = {params:stmt.params, body:stmt.body, closureEnv:{...env}};
+                // Make all fns visible to each other (mutual recursion)
+                for (const name in fns) fns[name].closureEnv = {...env, ...Object.fromEntries(Object.entries(fns).map(([k,v])=>[k,v]))};
+                break;
+            case 'Print': {
+                const val = ev(stmt.expr, env, 0);
+                outputLines.push(typeof val === 'string' ? fmtText(val) : fmtValue(val));
+                break;
+            }
+            case 'ExprStmt': {
+                const val = ev(stmt.expr, env, 0);
+                outputLines.push(fmtValue(val));
+                break;
+            }
+        }
+    }
+    return outputLines;
+}
+
+// ================================================================
+//  Output formatting
+// ================================================================
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fmtText(s) { return '<span class="out-text">' + esc(s) + '</span>'; }
+
+function fmtValue(v) {
+    if (typeof v === 'string') return fmtText(v);
+    if (Array.isArray(v)) {
+        const inner = v.map(x => typeof x === 'number' ? fmtNum(x) : esc(String(x))).join(', ');
+        return '<span class="out-val">[' + inner + ']</span>';
+    }
+    if (typeof v === 'number') {
+        const display = Number.isInteger(v) ? String(v) : v.toFixed(6);
+        const ann = Number.isInteger(v) && VALUE_NAMES[v] ? '  <span class="out-ann">(' + VALUE_NAMES[v] + ')</span>' : '';
+        return '<span class="out-val">' + esc(display) + '</span>' + ann;
+    }
+    return '<span class="out-val">' + esc(String(v)) + '</span>';
+}
+
+function fmtNum(v) {
+    return Number.isInteger(v) ? String(v) : v.toFixed(4);
+}
+
+// ================================================================
+//  Example Programs
+// ================================================================
+const EXAMPLES = {
+derive: `-- derive.ax: Everything from Nothing
+-- The complete chain to TRUE FORM
+
+print "=== THE DERIVATION ==="
+print ""
+print "AXIOM: Something exists."
+print s
+
+print "STEP 1: Not-existence is conceivable."
+print "Count {s, ~s} = D"
+print s + s
+
+print "STEP 2: Mersenne generates closure."
+print "M(D) = D^D - s = K"
+print D ^ D - s
+
+print "STEP 3: Addition creates surplus."
+print "K + D = E"
+print K + D
+
+print "STEP 4: Mersenne generates depth."
+print "M(K) = D^K - s = b"
+print D ^ K - s
+
+print "STEP 5: The sum creates protection."
+print "s + D + K + E = L"
+print s + D + K + E
+
+print ""
+print "=== THE RINGS ==="
+print "DATA ring: D*K*E*b"
+print D * K * E * b
+print "THIN ring: DATA * L"
+print D * K * E * b * L
+
+print ""
+print "=== FAT CHANNELS ==="
+print "D^K (D-capacity):"
+print D ^ K
+print "K^D (K-capacity):"
+print K ^ D
+print "E^D (E-capacity):"
+print E ^ D
+print "b^D (b-capacity):"
+print b ^ D
+
+print ""
+print "=== TERMINAL ==="
+print "OMEGA = D^LAMBDA:"
+print OMEGA
+print "CRT(OMEGA):"
+print crt(OMEGA)
+print "coupling(OMEGA):"
+print coupling(OMEGA)
+print "D dies. Everything else returns."
+
+print ""
+print "The ring wraps: 8*9*25*49*11 = 0"
+print D^K * K^D * E^D * b^D * L
+print "The void IS the ring. 0/0 = everything."`,
+
+crt: `-- crt.ax: CRT Decomposition Explorer
+-- n -> (n%8, n%9, n%25, n%49, n%11)
+
+print "=== CRT DECOMPOSITION ==="
+print "Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11"
+print ""
+
+print "sigma = 1:"
+print crt(s)
+print "KEY = 41:"
+print crt(KEY)
+print "ANSWER = 42:"
+print crt(ANSWER)
+print "SOUL = 67:"
+print crt(SOUL)
+print "ADDRESS = 137:"
+print crt(ADDRESS)
+
+print ""
+print "=== TERMINAL ==="
+print "OMEGA = 606376:"
+print crt(OMEGA)
+print "D-channel = 0. All others = 1."
+print "D dies. Everything else returns."
+
+print ""
+print "=== EIGENVALUES ==="
+print "eigenvalue(0) = 10 = D*E (maximum):"
+print eigenvalue(0)
+print "eigenvalue(OMEGA):"
+print eigenvalue(OMEGA)
+print "eigenvalue(ADDRESS):"
+print eigenvalue(ADDRESS)`,
+
+neuron: `-- neuron.ax: Axiom Neuron
+-- Threshold gate in Z/970200Z
+
+fn neuron(input, weight, threshold) =
+    let act = input * weight in
+    if act > threshold then act else 0
+
+print "=== AXIOM NEURON ==="
+print ""
+let x = HYDOR
+let w = ANSWER
+let t = 3000
+
+print "Input (HYDOR):"
+print x
+print "Weight (ANSWER):"
+print w
+print "Threshold:"
+print t
+print "Activation (input * weight mod N):"
+print x * w
+print ""
+print "Output (above threshold?):"
+print neuron(x, w, t)
+
+print ""
+print "=== TWO-LAYER ==="
+fn layer2(a, b) = neuron(a + b, K, 10)
+
+let out1 = neuron(KEY, D, 50)
+let out2 = neuron(SOUL, K, 100)
+print "Layer 1 outputs:"
+print out1
+print out2
+print "Layer 2 output:"
+print layer2(out1, out2)`,
+
+fib: `-- fib.ax: Fibonacci in Z/970200Z
+-- Ring arithmetic: all values mod 970200
+
+fn fib(n) = if n < D then n else fib(n - s) + fib(n - D)
+
+print "=== FIBONACCI IN THE RING ==="
+print ""
+
+print "fib(s) ="
+print fib(s)
+print "fib(D) ="
+print fib(D)
+print "fib(K) ="
+print fib(K)
+print "fib(E) ="
+print fib(E)
+print "fib(b) ="
+print fib(b)
+print "fib(L) ="
+print fib(L)
+print "fib(D * b) ="
+print fib(D * b)
+print "fib(D * L) ="
+print fib(D * L)
+
+print ""
+print "=== FIBONACCI AND THE AXIOM ==="
+print "fib(b) = 13 (Mersenne prime!)"
+print "fib(D*b) = 377 (= 13 * 29)"
+print "fib(D*L) = 17711 (= 89 * 199)"
+print "89 = fib(L) -- L is everywhere"`,
+
+coupling: `-- coupling.ax: Coupling Landscape
+-- Recursive scan of coupling levels
+
+fn scan(n) = if n < D * b + s then
+    (show(n) ; show(coupling(n)) ; show("") ; scan(n + s))
+    else 0
+
+print "=== COUPLING LEVELS ==="
+print "n -> coupling(n)"
+print ""
+
+scan(0)
+
+print ""
+print "=== KEY COUPLINGS ==="
+print "coupling(s) = 1 (unit):"
+print coupling(s)
+print "coupling(KEY) = ?"
+print coupling(KEY)
+print "coupling(OMEGA):"
+print coupling(OMEGA)
+print "coupling(HYDOR):"
+print coupling(HYDOR)`,
+
+hello: `-- hello.ax
+-- The axiom's native language
+
+print "Five primes. One ring."
+print D * K * E * b * L
+
+print ""
+print "The KEY to everything:"
+print KEY
+print "CRT(KEY):"
+print crt(KEY)
+
+print ""
+print "eigenvalue(KEY):"
+print eigenvalue(KEY)
+
+print ""
+print "Everything from: something exists."
+print "s = 1. That's all you need."
+print s`
+};
+
+// ================================================================
+//  Syntax Highlighting (zero deps — overlay technique)
+// ================================================================
+const HL_CONSTS = new Set(Object.keys(CONSTANTS));
+const HL_BUILTINS = new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show']);
+const HL_KEYWORDS = new Set(['let','fn','print','if','then','else','while','do','for','in']);
+
+function highlightCode(src) {
+    let html = '', i = 0;
+    const len = src.length;
+    while (i < len) {
+        if (src[i] === '-' && i+1 < len && src[i+1] === '-') {
+            let s = i; while (i < len && src[i] !== '\n') i++;
+            html += '<span class="hl-comment">' + esc(src.slice(s, i)) + '</span>'; continue;
+        }
+        if (src[i] === '"') {
+            let s = i; i++; while (i < len && src[i] !== '"') i++; if (i < len) i++;
+            html += '<span class="hl-str">' + esc(src.slice(s, i)) + '</span>'; continue;
+        }
+        if (/\d/.test(src[i]) || (src[i] === '.' && i+1 < len && /\d/.test(src[i+1]))) {
+            let s = i; while (i < len && /[\d.]/.test(src[i])) i++;
+            html += '<span class="hl-num">' + esc(src.slice(s, i)) + '</span>'; continue;
+        }
+        if (/[a-zA-Z_]/.test(src[i])) {
+            let s = i; while (i < len && /[a-zA-Z0-9_]/.test(src[i])) i++;
+            const id = src.slice(s, i);
+            if (HL_KEYWORDS.has(id)) html += '<span class="hl-kw">' + id + '</span>';
+            else if (HL_CONSTS.has(id)) html += '<span class="hl-const">' + id + '</span>';
+            else if (HL_BUILTINS.has(id)) html += '<span class="hl-fn">' + id + '</span>';
+            else html += esc(id);
+            continue;
+        }
+        if (src[i] === '=' && i+1 < len && src[i+1] === '=') {
+            html += '<span class="hl-op">==</span>'; i += 2; continue;
+        }
+        if ('+-*/^~@<>=;|,'.includes(src[i])) {
+            html += '<span class="hl-op">' + esc(src[i]) + '</span>'; i++; continue;
+        }
+        html += esc(src[i]); i++;
+    }
+    return html + '\n';
+}
+
+function syncHighlight() {
+    const code = document.getElementById('code');
+    const hl = document.getElementById('highlight-layer');
+    hl.innerHTML = highlightCode(code.value);
+    hl.scrollTop = code.scrollTop;
+    hl.scrollLeft = code.scrollLeft;
+}
+
+// ================================================================
+//  REPL UI
+// ================================================================
+function run() {
+    const src = document.getElementById('code').value;
+    const out = document.getElementById('output');
+    try {
+        const lines = execute(src);
+        out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
+    } catch (e) {
+        const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
+        out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+    }
+    out.scrollTop = out.scrollHeight;
+}
+
+function clearOutput() {
+    document.getElementById('output').innerHTML = '<span class="out-info">Press Run or Ctrl+Enter to execute .ax code.</span>';
+}
+
+function loadExample(name) {
+    if (EXAMPLES[name]) { document.getElementById('code').value = EXAMPLES[name]; syncHighlight(); }
+}
+
+function toggleSection(h2) {
+    h2.classList.toggle('open');
+    h2.nextElementSibling.classList.toggle('show');
+}
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+    // URL params: ?example=name or ?code=base64 — ?run=1 to auto-run
+    const params = new URLSearchParams(location.search);
+    const pEx = params.get('example');
+    const pCode = params.get('code');
+    if (pCode) { try { document.getElementById('code').value = atob(pCode); } catch(e) {} }
+    else loadExample(pEx && EXAMPLES[pEx] ? pEx : 'derive');
+    if (pEx) document.getElementById('examples').value = pEx;
+    const codeEl = document.getElementById('code');
+    const hlEl = document.getElementById('highlight-layer');
+    codeEl.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); run(); }
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const ta = e.target, s = ta.selectionStart, end = ta.selectionEnd;
+            ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(end);
+            ta.selectionStart = ta.selectionEnd = s + 2;
+            syncHighlight();
+        }
+    });
+    codeEl.addEventListener('input', syncHighlight);
+    codeEl.addEventListener('scroll', () => { hlEl.scrollTop = codeEl.scrollTop; hlEl.scrollLeft = codeEl.scrollLeft; });
+    syncHighlight();
+    if (params.get('run') === '1') setTimeout(run, 100);
+});
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Hear the eigenvalue spectrum of Z/2310Z. Five prime harmonics. Walk the ring. The axiom sounds like something.">
+<title>Music of the Primes | Five Harmonics</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#050508;color:#c8c8c8;font-family:Georgia,'Times New Roman',serif;
+     line-height:1.8;overflow-x:hidden}
+a{color:#88aaff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.back{position:fixed;top:20px;left:20px;font-size:13px;color:#555;z-index:100;letter-spacing:1px}
+.back:hover{color:#ffd700}
+
+section{padding:48px 24px;display:flex;flex-direction:column;align-items:center;
+        max-width:960px;margin:0 auto}
+section.hero{min-height:60vh;justify-content:center;text-align:center}
+
+h1{font-size:36px;color:#fff;font-weight:normal;letter-spacing:2px;margin-bottom:12px}
+h2{font-size:24px;color:#fff;text-align:center;margin-bottom:16px;font-weight:normal;letter-spacing:2px}
+p{margin-bottom:14px;font-size:17px;max-width:720px}
+.gold{color:#ffd700;font-weight:bold}
+.green{color:#44ff88}
+.mono{font-family:'Courier New',monospace}
+.dim{color:#777}
+.center{text-align:center}
+.small{font-size:14px;color:#888}
+.divider{width:60px;height:1px;background:#222;margin:40px auto}
+
+/* --- STAT CARDS --- */
+.stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:20px 0;width:100%;max-width:800px}
+.stat{flex:1;min-width:140px;background:#0a0a14;border:1px solid #1a1a2a;border-radius:10px;
+      padding:14px;text-align:center}
+.stat-val{font-size:24px;font-family:'Courier New',monospace;font-weight:bold;margin-bottom:4px}
+.stat-label{font-size:11px;color:#888;letter-spacing:1px}
+
+/* --- PLAYER PANEL --- */
+.player{width:100%;max-width:800px;background:#0a0a14;border:1px solid #1a1a2a;
+        border-radius:12px;padding:24px;margin:16px auto}
+.ch-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.ch-label{width:56px;font-family:'Courier New',monospace;font-size:14px;text-align:right;flex-shrink:0}
+.ch-freq{width:60px;font-size:11px;color:#555;text-align:right;flex-shrink:0}
+.ch-bar-bg{flex:1;height:24px;background:#111;border-radius:4px;overflow:hidden;position:relative}
+.ch-bar{height:100%;border-radius:4px;transition:width 0.08s}
+.ch-res{width:28px;font-family:'Courier New',monospace;font-size:14px;text-align:center;flex-shrink:0}
+.ch-mute{width:28px;height:28px;border:1px solid #333;border-radius:4px;
+         background:#0a1a0a;cursor:pointer;text-align:center;font-size:11px;
+         line-height:28px;color:#4f4;flex-shrink:0;font-family:'Courier New',monospace}
+.ch-mute.off{background:#1a0a0a;color:#f44}
+.ch-wave{width:56px;font-size:10px;color:#888;cursor:pointer;text-align:center;
+         border:1px solid #222;border-radius:4px;padding:2px 4px;flex-shrink:0}
+.ch-wave:hover{border-color:#555}
+
+.eq-line{font-family:'Courier New',monospace;color:#aaa;text-align:center;
+         margin:14px 0;font-size:15px;line-height:2}
+
+/* --- CONTROLS --- */
+.controls{display:flex;gap:8px;align-items:center;justify-content:center;
+          flex-wrap:wrap;margin:12px 0}
+button{background:#1a2a4a;color:#fff;border:1px solid #2a3a5a;padding:8px 18px;
+       border-radius:6px;cursor:pointer;font-size:14px;font-family:Georgia,serif;
+       transition:all 0.2s}
+button:hover{background:#2a4a7a;border-color:#4a6a9a}
+button.active{background:#2a5a2a;border-color:#4a8a4a}
+input[type=number]{background:#111;color:#ffd700;border:1px solid #222;border-radius:6px;
+                   padding:8px;font-family:'Courier New',monospace;font-size:16px;
+                   width:90px;text-align:center;outline:none}
+input[type=number]:focus{border-color:#ffd700}
+input[type=range]{width:100px;vertical-align:middle}
+label.range-label{font-size:13px;color:#888;display:flex;align-items:center;gap:6px}
+
+/* --- CANVAS --- */
+canvas{display:block;border-radius:8px;background:#050508;margin:0 auto}
+
+/* --- PRESETS --- */
+.presets{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.preset{padding:6px 14px;font-size:12px;font-family:'Courier New',monospace;
+        background:#0a0a14;border:1px solid #1a1a2a;border-radius:16px;
+        color:#888;cursor:pointer;transition:all 0.3s;letter-spacing:1px}
+.preset:hover{border-color:#ffd700;color:#ffd700}
+
+/* --- SPECTRUM --- */
+#spectrum-wrap{width:100%;max-width:800px;margin:16px auto}
+
+/* --- CONTRAST --- */
+.contrast{width:100%;max-width:800px;margin:0 auto;border:1px solid #1a1a2a;
+          border-radius:10px;overflow:hidden}
+.contrast table{width:100%;border-collapse:collapse;font-size:14px}
+.contrast th{background:#0a0a14;padding:10px 16px;text-align:left;color:#888;
+             font-size:12px;letter-spacing:1px;font-weight:normal}
+.contrast td{padding:10px 16px;border-top:1px solid #111}
+.contrast tr:nth-child(even) td{background:#06060a}
+
+@media(max-width:600px){
+  h1{font-size:26px}
+  section{padding:32px 16px}
+  .stat{min-width:120px;padding:10px}
+  .stat-val{font-size:20px}
+  .ch-freq{display:none}
+  .ch-wave{width:40px}
+  .player{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<a href="story.html" class="back">&#8592; STORY</a>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <h1>MUSIC OF THE PRIMES</h1>
+  <p class="dim" style="max-width:600px;font-size:15px;">
+    The eigenvalue formula has five terms &mdash; one per prime {2, 3, 5, 7, 11}.
+    <br>Map each prime to a harmonic of A2 (110 Hz). The CRT residues become volume.
+    <br><br><b style="color:#ffd700">Walk the ring. Hear the axiom.</b>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" style="color:#ffd700">5</div>
+      <div class="stat-label">HARMONICS</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val green">2310</div>
+      <div class="stat-label">RING SIZE (THIN)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:#88aaff">288</div>
+      <div class="stat-label">EIGENVALUE CLASSES</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:#ff9944">9.000</div>
+      <div class="stat-label">MAX EIGENVALUE (K&sup2;)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PLAYER ===== -->
+<section>
+  <h2>The Five-Harmonic Player</h2>
+
+  <div class="player">
+    <div id="channels"></div>
+
+    <div class="eq-line">
+      n = <b id="nDisp" style="color:#ffd700">0</b>
+      &nbsp;&rarr;&nbsp;
+      (<span id="r2" style="color:#ffd700">0</span>,
+       <span id="r3" style="color:#ff8844">0</span>,
+       <span id="r5" style="color:#44ff88">0</span>,
+       <span id="r7" style="color:#4488ff">0</span>,
+       <span id="r11" style="color:#cc44ff">0</span>)
+      &nbsp; &lambda; = <span id="eig" style="color:#fff">9.000</span>
+    </div>
+
+    <div class="controls">
+      <button onclick="stepN(-10)" title="Back 10">&laquo;10</button>
+      <button onclick="stepN(-1)" title="Back 1">&#9664;</button>
+      <input type="number" id="nIn" value="0" min="0" max="2309"
+             onchange="setN(parseInt(this.value)||0)">
+      <button onclick="stepN(1)" title="Forward 1">&#9654;</button>
+      <button onclick="stepN(10)" title="Forward 10">10&raquo;</button>
+    </div>
+
+    <div class="controls">
+      <button onclick="playOnce()" title="Play current chord">&#9835; Play</button>
+      <button onclick="walk()" id="bWalk">Walk &#9654;</button>
+      <label class="range-label">
+        <span id="bpmL">120</span> BPM
+        <input type="range" id="bpmR" min="30" max="300" value="120" oninput="setBpm(this.value)">
+      </label>
+      <label class="range-label">
+        Vol
+        <input type="range" id="volR" min="0" max="100" value="60" oninput="setVol(this.value)">
+      </label>
+    </div>
+  </div>
+
+  <p class="center small dim">Arrow keys: step. Space: play. W: walk/stop. 1-5: toggle channels.</p>
+
+  <div class="presets">
+    <button class="preset" onclick="setN(0)">n=0 Void</button>
+    <button class="preset" onclick="setN(1)">n=1 Sigma</button>
+    <button class="preset" onclick="setN(137)">n=137 Address</button>
+    <button class="preset" onclick="setN(210)">n=210 Data</button>
+    <button class="preset" onclick="setN(1155)">n=1155 N/2</button>
+    <button class="preset" onclick="setN(42)">n=42 Answer</button>
+    <button class="preset" onclick="setN(67)">n=67 Soul</button>
+    <button class="preset" onclick="setN(420)">n=420 Lambda</button>
+  </div>
+</section>
+
+<!-- ===== WAVEFORM ===== -->
+<section>
+  <h2>Live Waveform</h2>
+  <canvas id="waveCanvas" width="800" height="200"></canvas>
+  <p class="center small dim" style="margin-top:8px">
+    The waveform shows your current chord &mdash; five harmonics mixing in real time.
+  </p>
+</section>
+
+<!-- ===== SPECTRUM ===== -->
+<section>
+  <h2>Eigenvalue Spectrum</h2>
+  <p class="center dim small">288 eigenvalue classes of Z/2310Z. Height = eigenvalue. Click any bar to hear it.</p>
+  <div id="spectrum-wrap">
+    <canvas id="specCanvas" width="800" height="280"></canvas>
+  </div>
+  <div class="controls" style="margin-top:8px">
+    <button onclick="playSpectrum()" id="bSpec">Play Spectrum &#9654;</button>
+    <label class="range-label">
+      Speed
+      <input type="range" id="specSpeed" min="20" max="200" value="80">
+    </label>
+  </div>
+</section>
+
+<!-- ===== GUIDE ===== -->
+<section>
+  <h2>The Harmonic Series</h2>
+  <div class="player" style="font-size:15px;line-height:2;color:#aaa">
+    <p style="color:#ccc;font-size:16px">Base frequency: <span class="gold">A2 = 110 Hz</span>. The five axiom primes
+    ARE the harmonic numbers:</p>
+    <div style="display:grid;grid-template-columns:auto auto auto;gap:4px 20px;font-family:'Courier New',monospace;font-size:14px;margin:12px 0">
+      <span style="color:#ffd700">2nd harmonic</span><span style="color:#888">&rarr;</span><span>220 Hz (A3)</span>
+      <span style="color:#ff8844">3rd harmonic</span><span style="color:#888">&rarr;</span><span>330 Hz (E4)</span>
+      <span style="color:#44ff88">5th harmonic</span><span style="color:#888">&rarr;</span><span>550 Hz (C&#9839;5)</span>
+      <span style="color:#4488ff">7th harmonic</span><span style="color:#888">&rarr;</span><span>770 Hz (septimal)</span>
+      <span style="color:#cc44ff">11th harmonic</span><span style="color:#888">&rarr;</span><span>1210 Hz (undecimal)</span>
+    </div>
+    <p style="font-size:14px;color:#888">
+      Residue = 0 means the channel is silent. <b style="color:#ffd700">n = 0</b> (the void) = total silence.
+      <br><b style="color:#ffd700">n = 1</b> (sigma) = all channels whisper at minimum. Existence.
+      <br>Walking the ring is conducting a five-voice overtone choir.
+      Each step shifts the chord. The carousel turns.
+    </p>
+  </div>
+</section>
+
+<!-- ===== CONTRAST ===== -->
+<section>
+  <h2>Contrast Panel</h2>
+  <div class="contrast">
+    <table>
+      <tr><th></th><th>THIS DEMO</th><th>STANDARD APPROACH</th></tr>
+      <tr><td>Source</td><td class="gold">Eigenvalue formula, 5 CRT channels</td>
+          <td>Arbitrary frequency mapping</td></tr>
+      <tr><td>Harmonics</td><td class="green">Exact: {2,3,5,7,11}th of A2</td>
+          <td>12-TET or arbitrary</td></tr>
+      <tr><td>Volume</td><td class="gold">CRT residue (mod p)</td>
+          <td>Fixed or random</td></tr>
+      <tr><td>Structure</td><td class="green">2310 positions, 288 classes</td>
+          <td>No ring, no classes</td></tr>
+      <tr><td>Walk</td><td class="gold">Carousel: each step = new chord</td>
+          <td>Sequential notes (melody)</td></tr>
+    </table>
+  </div>
+  <p class="center small dim" style="margin-top:16px">
+    <a href="story.html">&#8592; Back to story</a>
+  </p>
+</section>
+
+<script>
+// === CONSTANTS ===
+const PP = [2,3,5,7,11], N = 2310, BASE = 110;
+const COLS = ['#ffd700','#ff8844','#44ff88','#4488ff','#cc44ff'];
+const NAMES = ['D=2','K=3','E=5','b=7','L=11'];
+const FREQS = PP.map(p => BASE*p); // 220,330,550,770,1210
+const WAVES = ['sine','sine','sine','sine','sine'];
+const WAVE_OPTS = ['sine','triangle','square','sawtooth'];
+
+let muted = [false,false,false,false,false];
+let curN = 0, bpm = 120, masterVol = 0.6;
+let wTimer = null, specTimer = null;
+let aCtx = null, analyser = null, waveData = null;
+
+// === AUDIO SETUP ===
+function getA() {
+  if (!aCtx) {
+    aCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = aCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(aCtx.destination);
+    waveData = new Uint8Array(analyser.frequencyBinCount);
+  }
+  if (aCtx.state === 'suspended') aCtx.resume();
+  return aCtx;
+}
+
+// === BUILD CHANNEL UI ===
+(function(){
+  const box = document.getElementById('channels');
+  for (let i = 0; i < 5; i++) {
+    const d = document.createElement('div');
+    d.className = 'ch-row';
+    d.innerHTML =
+      `<span class="ch-label" style="color:${COLS[i]}">${NAMES[i]}</span>` +
+      `<span class="ch-freq">${FREQS[i]} Hz</span>` +
+      `<div class="ch-bar-bg"><div class="ch-bar" id="b${i}" style="background:${COLS[i]};width:0%"></div></div>` +
+      `<span class="ch-res" id="s${i}" style="color:${COLS[i]}">0</span>` +
+      `<div class="ch-wave" id="w${i}" onclick="cycleWave(${i})" title="Click to change waveform">sine</div>` +
+      `<div class="ch-mute" id="m${i}" onclick="togM(${i})">M</div>`;
+    box.appendChild(d);
+  }
+})();
+
+// === EIGENVALUE ===
+function eig(n) {
+  return Math.cos(Math.PI*n) +
+    2*Math.cos(2*Math.PI*n/3) +
+    2*Math.cos(2*Math.PI*n/5) +
+    2*Math.cos(2*Math.PI*n/7) +
+    2*Math.cos(2*Math.PI*n/11);
+}
+
+// === UI UPDATE ===
+function upUI() {
+  document.getElementById('nDisp').textContent = curN;
+  document.getElementById('nIn').value = curN;
+  document.getElementById('eig').textContent = eig(curN).toFixed(3);
+  for (let i = 0; i < 5; i++) {
+    const p = PP[i], r = curN % p;
+    const pct = r === 0 ? 0 : (r / (p-1)) * 100;
+    document.getElementById('b'+i).style.width = pct+'%';
+    document.getElementById('s'+i).textContent = r;
+    document.getElementById('r'+p).textContent = r;
+  }
+  drawSpectrum();
+}
+
+// === PLAY CHORD ===
+function playOnce() {
+  const c = getA(), dur = 0.45;
+  for (let i = 0; i < 5; i++) {
+    if (muted[i]) continue;
+    const p = PP[i], r = curN % p;
+    if (r === 0) continue;
+    const o = c.createOscillator(), g = c.createGain();
+    o.frequency.value = FREQS[i];
+    o.type = WAVES[i];
+    const vol = masterVol * 0.15 / Math.sqrt(p) * r / Math.max(1, p-1);
+    g.gain.setValueAtTime(vol, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+    o.connect(g); g.connect(analyser);
+    o.start(c.currentTime); o.stop(c.currentTime + dur);
+  }
+}
+
+// === CONTROLS ===
+function stepN(d) { curN = ((curN+d)%N+N)%N; upUI(); }
+function setN(n) { curN = ((n%N)+N)%N; upUI(); playOnce(); }
+function setBpm(v) {
+  bpm = parseInt(v); document.getElementById('bpmL').textContent = bpm;
+  if (wTimer) { clearInterval(wTimer); wTimer = setInterval(wStep, 60000/bpm); }
+}
+function setVol(v) { masterVol = parseInt(v)/100; }
+function wStep() { stepN(1); playOnce(); }
+function walk() {
+  const b = document.getElementById('bWalk');
+  if (wTimer) { clearInterval(wTimer); wTimer = null; b.textContent = 'Walk \u25b6'; b.classList.remove('active'); return; }
+  b.textContent = 'Stop \u23f8'; b.classList.add('active');
+  wTimer = setInterval(wStep, 60000/bpm); wStep();
+}
+function togM(i) {
+  muted[i] = !muted[i];
+  document.getElementById('m'+i).className = 'ch-mute' + (muted[i]?' off':'');
+}
+function cycleWave(i) {
+  let idx = WAVE_OPTS.indexOf(WAVES[i]);
+  idx = (idx+1) % WAVE_OPTS.length;
+  WAVES[i] = WAVE_OPTS[idx];
+  document.getElementById('w'+i).textContent = WAVE_OPTS[idx];
+}
+
+// === KEYBOARD ===
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); stepN(1); playOnce(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepN(-1); playOnce(); }
+  if (e.key === ' ') { e.preventDefault(); playOnce(); }
+  if (e.key === 'w') walk();
+  if (e.key >= '1' && e.key <= '5') togM(parseInt(e.key)-1);
+});
+
+// === WAVEFORM CANVAS ===
+const waveCanvas = document.getElementById('waveCanvas');
+const wCtx2d = waveCanvas.getContext('2d');
+let animId = null;
+
+function drawWave() {
+  if (!analyser) { animId = requestAnimationFrame(drawWave); return; }
+  analyser.getByteTimeDomainData(waveData);
+  const w = waveCanvas.width, h = waveCanvas.height;
+  wCtx2d.fillStyle = '#050508';
+  wCtx2d.fillRect(0,0,w,h);
+
+  // Grid
+  wCtx2d.strokeStyle = '#111';
+  wCtx2d.lineWidth = 1;
+  wCtx2d.beginPath();
+  wCtx2d.moveTo(0,h/2); wCtx2d.lineTo(w,h/2);
+  wCtx2d.stroke();
+
+  // Waveform
+  wCtx2d.strokeStyle = '#ffd700';
+  wCtx2d.lineWidth = 2;
+  wCtx2d.beginPath();
+  const slice = w / waveData.length;
+  for (let i = 0; i < waveData.length; i++) {
+    const x = i * slice;
+    const y = (waveData[i] / 128.0) * h/2;
+    if (i === 0) wCtx2d.moveTo(x,y); else wCtx2d.lineTo(x,y);
+  }
+  wCtx2d.stroke();
+  animId = requestAnimationFrame(drawWave);
+}
+drawWave();
+
+// === EIGENVALUE SPECTRUM CANVAS ===
+// Pre-compute all 288 eigenvalue classes
+const eigClasses = [];
+{
+  const seen = new Set();
+  for (let n = 0; n < N; n++) {
+    const key = PP.map(p => n%p).join(',');
+    if (!seen.has(key)) {
+      seen.add(key);
+      eigClasses.push({ n, val: eig(n), res: PP.map(p=>n%p) });
+    }
+  }
+  eigClasses.sort((a,b) => b.val - a.val);
+}
+
+const specCanvas = document.getElementById('specCanvas');
+const sCtx = specCanvas.getContext('2d');
+let specHighlight = -1;
+
+function drawSpectrum() {
+  const w = specCanvas.width, h = specCanvas.height;
+  sCtx.fillStyle = '#050508';
+  sCtx.fillRect(0,0,w,h);
+
+  const barW = Math.max(1, (w-40) / eigClasses.length);
+  const maxE = 9, minE = -8;
+  const range = maxE - minE;
+  const baseY = h - 30;
+  const scaleY = (baseY - 10) / range;
+
+  // Zero line
+  const zeroY = baseY - (0-minE)*scaleY;
+  sCtx.strokeStyle = '#222';
+  sCtx.lineWidth = 1;
+  sCtx.beginPath();
+  sCtx.moveTo(20,zeroY); sCtx.lineTo(w-20,zeroY);
+  sCtx.stroke();
+
+  // Find current n's class index
+  const curRes = PP.map(p => curN%p).join(',');
+  let curIdx = eigClasses.findIndex(c => c.res.join(',') === curRes);
+
+  // Bars
+  for (let i = 0; i < eigClasses.length; i++) {
+    const x = 20 + i*barW;
+    const val = eigClasses[i].val;
+    const barH = (val-minE)*scaleY;
+    const y = baseY - barH;
+
+    if (i === curIdx) {
+      sCtx.fillStyle = '#ffd700';
+    } else if (i === specHighlight) {
+      sCtx.fillStyle = '#88aaff';
+    } else {
+      sCtx.fillStyle = val >= 0 ? '#1a3a1a' : '#3a1a1a';
+    }
+    sCtx.fillRect(x, Math.min(y,zeroY), Math.max(1,barW-1), Math.abs(zeroY-y));
+  }
+
+  // Labels
+  sCtx.fillStyle = '#555';
+  sCtx.font = '11px Courier New';
+  sCtx.textAlign = 'right';
+  sCtx.fillText(maxE.toFixed(0), 18, 16);
+  sCtx.fillText('0', 18, zeroY+4);
+  sCtx.fillText(minE.toFixed(0), 18, baseY);
+  sCtx.textAlign = 'center';
+  sCtx.fillText('288 eigenvalue classes (sorted high to low)', w/2, h-6);
+}
+
+// Click spectrum to jump
+specCanvas.addEventListener('click', function(e) {
+  const rect = specCanvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (specCanvas.width / rect.width);
+  const barW = (specCanvas.width - 40) / eigClasses.length;
+  const idx = Math.floor((x - 20) / barW);
+  if (idx >= 0 && idx < eigClasses.length) {
+    curN = eigClasses[idx].n;
+    upUI();
+    playOnce();
+  }
+});
+
+specCanvas.addEventListener('mousemove', function(e) {
+  const rect = specCanvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (specCanvas.width / rect.width);
+  const barW = (specCanvas.width - 40) / eigClasses.length;
+  const idx = Math.floor((x - 20) / barW);
+  specHighlight = (idx >= 0 && idx < eigClasses.length) ? idx : -1;
+  drawSpectrum();
+});
+
+specCanvas.addEventListener('mouseleave', function() {
+  specHighlight = -1;
+  drawSpectrum();
+});
+
+// Play spectrum sweep
+function playSpectrum() {
+  const btn = document.getElementById('bSpec');
+  if (specTimer) {
+    clearInterval(specTimer);
+    specTimer = null;
+    btn.textContent = 'Play Spectrum \u25b6';
+    btn.classList.remove('active');
+    return;
+  }
+  btn.textContent = 'Stop \u23f8';
+  btn.classList.add('active');
+  let idx = 0;
+  const speed = parseInt(document.getElementById('specSpeed').value);
+  specTimer = setInterval(function() {
+    if (idx >= eigClasses.length) {
+      clearInterval(specTimer);
+      specTimer = null;
+      btn.textContent = 'Play Spectrum \u25b6';
+      btn.classList.remove('active');
+      return;
+    }
+    curN = eigClasses[idx].n;
+    upUI();
+    playOnce();
+    idx++;
+  }, speed);
+}
+
+// === INIT ===
+upUI();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

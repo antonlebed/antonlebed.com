@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Full Fourteen</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a1a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; overflow-x: hidden; }
+h1 { text-align: center; padding: 20px 10px 5px; font-size: 1.6em; color: #ffd700; }
+h1 span { font-size: 0.6em; color: #888; display: block; margin-top: 4px; }
+.subtitle { text-align: center; color: #aaa; font-size: 0.95em; margin-bottom: 15px; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
+.row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+.panel { background: #12122a; border: 1px solid #333; border-radius: 8px; padding: 12px; flex: 1; min-width: 300px; }
+.panel h2 { font-size: 1.05em; color: #88ccff; margin-bottom: 8px; }
+
+#strip { display: flex; justify-content: center; gap: 4px; margin: 10px auto 15px; flex-wrap: wrap; }
+.el-btn {
+  width: 58px; height: 68px; border: 2px solid #444; border-radius: 6px;
+  background: #1a1a3a; cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; transition: all 0.15s;
+}
+.el-btn:hover { border-color: #ffd700; transform: translateY(-3px); }
+.el-btn.selected { border-color: #ffd700; background: #2a2a5a; box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+.el-btn.pair-highlight { border-color: #ff6699; background: #2a1a2a; }
+.el-btn .letter { font-size: 1.3em; font-weight: bold; color: #ffd700; }
+.el-btn .value { font-size: 0.75em; color: #aaa; }
+.el-btn .word { font-size: 0.55em; color: #88aacc; }
+.el-btn.unit-el .letter { color: #00ff88; }
+.el-btn.void-el .letter { color: #666; }
+
+canvas { display: block; margin: 0 auto; background: #0d0d20; border-radius: 6px; }
+
+#info { min-height: 120px; font-size: 0.9em; line-height: 1.5; }
+#info .label { color: #888; }
+#info .val { color: #ffd700; font-weight: bold; }
+#info .prime-val { color: #ff6666; }
+#info .pair-val { color: #ff6699; }
+
+.crt-bar-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+.crt-label { width: 50px; text-align: right; font-size: 0.8em; color: #888; }
+.crt-bar { height: 16px; border-radius: 3px; transition: width 0.3s; min-width: 2px; }
+.crt-val { font-size: 0.8em; color: #ccc; width: 30px; }
+
+.ch-sum { font-size: 0.85em; margin: 4px 0; }
+.ch-sum .num { color: #ffd700; font-weight: bold; }
+.ch-sum .fact { color: #88ccff; }
+
+.pair-line { display: inline-block; margin: 2px 6px; font-size: 0.85em; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+.pair-line:hover { background: #2a1a3a; }
+
+.controls { text-align: center; margin: 10px 0; }
+.controls button {
+  background: #2a2a5a; color: #ddd; border: 1px solid #555; padding: 6px 14px;
+  border-radius: 4px; cursor: pointer; margin: 0 4px; font-size: 0.85em;
+}
+.controls button:hover { background: #3a3a7a; border-color: #888; }
+.controls button.active { background: #4a3a2a; border-color: #ffd700; color: #ffd700; }
+
+@media (max-width: 700px) {
+  .el-btn { width: 44px; height: 56px; }
+  .el-btn .letter { font-size: 1em; }
+  .el-btn .word { display: none; }
+  .row { flex-direction: column; }
+  canvas { width: 100% !important; }
+}
+</style>
+</head>
+<body>
+<h1>The Full Fourteen<span>A-N: The Axiom Alphabet in Z/2310Z</span></h1>
+<p class="subtitle">14 = D*b elements. 7 L-pairs. Sum = 77 = b*L. Click any element.</p>
+
+<div class="container">
+  <div id="strip"></div>
+
+  <div class="controls">
+    <button id="btn-eigen" class="active" onclick="setView('eigen')">Eigenvalue Path</button>
+    <button id="btn-crt" onclick="setView('crt')">CRT Channels</button>
+    <button id="btn-dist" onclick="setView('dist')">Distance Matrix</button>
+    <button id="btn-cayley" onclick="setView('cayley')">Cayley Table</button>
+  </div>
+
+  <canvas id="mainCanvas" width="1060" height="340"></canvas>
+
+  <div class="row">
+    <div class="panel" id="info-panel">
+      <h2>Element Details</h2>
+      <div id="info">Click an element above to see its full profile.</div>
+    </div>
+    <div class="panel">
+      <h2>CRT Decomposition</h2>
+      <div id="crt-bars"></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <h2>Channel Sums (A-N System)</h2>
+      <div id="channel-sums"></div>
+    </div>
+    <div class="panel" id="pairs-panel">
+      <h2>7 L-Pairs (each sums to 11)</h2>
+      <div id="pairs-list"></div>
+    </div>
+  </div>
+
+  <div class="panel" style="max-width:1100px;margin:0 auto 15px">
+    <div style="color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;text-align:center">Contrast</div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.82em;justify-content:center">
+      <div style="flex:1;min-width:220px">
+        <div style="color:#ffd700;margin-bottom:4px">The A-N alphabet</div>
+        <div style="color:#aaa">14 = D*b elements encode the axiom walk</div>
+        <div style="color:#aaa">7 L-pairs, each summing to L=11</div>
+        <div style="color:#aaa">Channel sums are axiom-smooth products</div>
+        <div style="color:#aaa">Cayley table closes within A-N at primes</div>
+        <div style="color:#aaa">CRT distance = structural distance, not numeric</div>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <div style="color:#555;margin-bottom:4px">A conventional alphabet</div>
+        <div style="color:#555">26 letters, no mathematical structure</div>
+        <div style="color:#555">No pairing, no sum identities</div>
+        <div style="color:#555">Frequency analysis = only tool</div>
+        <div style="color:#555">No algebraic closure under multiplication</div>
+        <div style="color:#555">Positional distance only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var PRIMES = [2, 3, 5, 7, 11];
+var N = 2310;
+var PI = Math.PI;
+
+var AN = [
+  {v:-1, let:'A', word:'Act'},
+  {v: 0, let:'B', word:'Be'},
+  {v: 1, let:'C', word:'See'},
+  {v: 2, let:'D', word:'Discern'},
+  {v: 3, let:'E', word:'Emerge'},
+  {v: 4, let:'F', word:'Forgive'},
+  {v: 5, let:'G', word:'Give'},
+  {v: 6, let:'H', word:'Help'},
+  {v: 7, let:'I', word:'Inform'},
+  {v: 8, let:'J', word:'Join'},
+  {v: 9, let:'K', word:'Keep'},
+  {v:10, let:'L', word:'Love'},
+  {v:11, let:'M', word:'Mother'},
+  {v:12, let:'N', word:'Negate'}
+];
+
+var PAIR_COLORS = ['#ff6666','#ffaa33','#ffdd44','#66ff66','#44ddff','#8888ff','#ff66cc'];
+var CRT_COLORS = ['#ff4444','#ff8800','#44cc44','#4488ff','#aa44ff'];
+
+function mod(n, m) { return ((n % m) + m) % m; }
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while(b){var t=b;b=a%b;a=t;} return a; }
+function coupling(n) { return N / gcd(mod(n, N), N); }
+function eigenvalue(n) {
+  return Math.cos(PI*n) + 2*Math.cos(2*PI*n/3) + 2*Math.cos(2*PI*n/5)
+       + 2*Math.cos(2*PI*n/7) + 2*Math.cos(2*PI*n/11);
+}
+function crtDist(a, b) {
+  var d = 0;
+  for (var i = 0; i < PRIMES.length; i++) if (mod(a,PRIMES[i]) !== mod(b,PRIMES[i])) d++;
+  return d;
+}
+function isPrime(n) {
+  if (n < 2) return false;
+  for (var i = 2; i*i <= n; i++) if (n%i===0) return false;
+  return true;
+}
+function factorize(n) {
+  if (n === 0) return 'void';
+  if (n < 0) return '-' + factorize(-n);
+  if (n === 1) return 'sigma';
+  var names = {2:'D',3:'K',5:'E',7:'b',11:'L',13:'13'};
+  var parts = [], rem = n;
+  var ps = [2,3,5,7,11,13];
+  for (var pi = 0; pi < ps.length; pi++) {
+    var p = ps[pi], e = 0;
+    while (rem % p === 0) { rem /= p; e++; }
+    if (e === 1) parts.push(names[p]||p);
+    else if (e > 1) parts.push((names[p]||p)+'^'+e);
+  }
+  if (rem > 1) parts.push(rem);
+  return parts.join('*');
+}
+
+AN.forEach(function(el) {
+  el.crt = PRIMES.map(function(p){ return mod(el.v, p); });
+  el.coup = coupling(el.v);
+  el.lam = eigenvalue(el.v);
+  el.unit = gcd(mod(el.v, N), N) === 1;
+  el.prime = isPrime(el.v);
+});
+
+var PAIRS = [];
+for (var i = 0; i < 7; i++) PAIRS.push([i, 13-i]);
+
+var selected = -1;
+var currentView = 'eigen';
+var highlightPair = -1;
+
+var strip = document.getElementById('strip');
+AN.forEach(function(el, i) {
+  var btn = document.createElement('div');
+  btn.className = 'el-btn' + (el.unit ? ' unit-el' : '') + (el.v === 0 ? ' void-el' : '');
+  btn.innerHTML = '<span class="letter">' + el.let + '</span><span class="value">' + el.v + '</span><span class="word">' + el.word + '</span>';
+  btn.onclick = function() { selectElement(i); };
+  btn.id = 'el-' + i;
+  strip.appendChild(btn);
+});
+
+function selectElement(i) {
+  if (selected >= 0) document.getElementById('el-'+selected).classList.remove('selected');
+  selected = i;
+  document.getElementById('el-'+i).classList.add('selected');
+  highlightPair = -1;
+  for (var pi = 0; pi < PAIRS.length; pi++) {
+    if (PAIRS[pi][0]===i || PAIRS[pi][1]===i) { highlightPair = pi; break; }
+  }
+  updateInfo();
+  updateCRT();
+  updatePairHighlight();
+  draw();
+}
+
+function updatePairHighlight() {
+  document.querySelectorAll('.el-btn').forEach(function(b){ b.classList.remove('pair-highlight'); });
+  if (highlightPair >= 0 && selected >= 0) {
+    var pair = PAIRS[highlightPair];
+    var partner = (pair[0] === selected) ? pair[1] : pair[0];
+    document.getElementById('el-'+partner).classList.add('pair-highlight');
+  }
+}
+
+function updateInfo() {
+  if (selected < 0) return;
+  var el = AN[selected];
+  var partner = null, pi = -1;
+  for (var j = 0; j < PAIRS.length; j++) {
+    if (PAIRS[j][0]===selected || PAIRS[j][1]===selected) {
+      pi = (PAIRS[j][0]===selected) ? PAIRS[j][1] : PAIRS[j][0];
+      partner = AN[pi];
+      break;
+    }
+  }
+
+  var html = '';
+  html += '<div><span class="label">Element:</span> <span class="val">' + el.let + '(' + el.v + ') = ' + el.word + '</span></div>';
+  html += '<div><span class="label">CRT:</span> <span class="val">(' + el.crt.join(', ') + ')</span></div>';
+  html += '<div><span class="label">Coupling:</span> <span class="val">' + el.coup + '</span> = ' + factorize(el.coup) + '</div>';
+  html += '<div><span class="label">Eigenvalue:</span> <span class="val">' + (el.lam >= 0 ? '+' : '') + el.lam.toFixed(3) + '</span></div>';
+  html += '<div><span class="label">Factor:</span> <span class="' + (el.prime?'prime-val':'val') + '">' + (el.v > 1 ? factorize(el.v) : (el.v===1?'sigma':el.v===0?'void':'mirror')) + '</span>' + (el.prime?' (prime)':'') + '</div>';
+  html += '<div><span class="label">Unit:</span> <span class="val">' + (el.unit ? 'YES (coprime to 2310)' : 'no') + '</span></div>';
+
+  if (partner) {
+    html += '<div style="margin-top:6px;border-top:1px solid #333;padding-top:6px;">';
+    html += '<span class="label">L-pair:</span> <span class="pair-val">' + el.let + '(' + el.v + ') + ' + partner.let + '(' + partner.v + ') = ' + (el.v+partner.v) + '</span>';
+    html += '<br><span class="label">Pair eigenvalues:</span> <span class="pair-val">' + (el.lam+partner.lam).toFixed(3) + '</span>';
+    html += '<br><span class="label">CRT distance:</span> <span class="pair-val">' + crtDist(el.v, partner.v) + '</span>';
+    html += '</div>';
+  }
+
+  document.getElementById('info').innerHTML = html;
+}
+
+function updateCRT() {
+  if (selected < 0) { document.getElementById('crt-bars').innerHTML = ''; return; }
+  var el = AN[selected];
+  var html = '';
+  PRIMES.forEach(function(p, i) {
+    var r = el.crt[i];
+    var pct = (r / (p-1)) * 100 || 2;
+    html += '<div class="crt-bar-row">';
+    html += '<span class="crt-label">mod ' + p + ':</span>';
+    html += '<div class="crt-bar" style="width:' + Math.max(pct,5) + '%;background:' + CRT_COLORS[i] + '"></div>';
+    html += '<span class="crt-val">' + r + '</span>';
+    html += '</div>';
+  });
+  document.getElementById('crt-bars').innerHTML = html;
+}
+
+function initChannelSums() {
+  var sums = PRIMES.map(function(p,i){ return AN.reduce(function(s,el){ return s + el.crt[i]; }, 0); });
+  var facts = ['b', 'D*b', 'K^3', 'D*K*b', 'D*K*L'];
+  var html = '';
+  sums.forEach(function(s,i) {
+    html += '<div class="ch-sum">mod ' + PRIMES[i] + ': <span class="num">' + s + '</span> = <span class="fact">' + facts[i] + '</span></div>';
+  });
+  var grand = sums.reduce(function(a,b){ return a+b; }, 0);
+  html += '<div class="ch-sum" style="margin-top:6px;border-top:1px solid #333;padding-top:4px;">Grand total: <span class="num">' + grand + '</span> = <span class="fact">12*13</span> (last element * first outsider)</div>';
+  document.getElementById('channel-sums').innerHTML = html;
+}
+
+function initPairs() {
+  var html = '';
+  PAIRS.forEach(function(p, i) {
+    var a = AN[p[0]], b = AN[p[1]];
+    var lamSum = (a.lam + b.lam).toFixed(2);
+    html += '<span class="pair-line" style="color:' + PAIR_COLORS[i] + '" onclick="selectElement(' + p[0] + ')">' + a.let + '(' + a.v + ')+' + b.let + '(' + b.v + ')=' + lamSum + '</span>';
+  });
+  document.getElementById('pairs-list').innerHTML = html;
+}
+
+var canvas = document.getElementById('mainCanvas');
+var ctx = canvas.getContext('2d');
+
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.controls button').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('btn-'+v).classList.add('active');
+  draw();
+}
+
+function draw() {
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  switch(currentView) {
+    case 'eigen': drawEigen(W, H); break;
+    case 'crt': drawCRT(W, H); break;
+    case 'dist': drawDist(W, H); break;
+    case 'cayley': drawCayley(W, H); break;
+  }
+}
+
+function drawEigen(W, H) {
+  var pad = 60, top = 40, bot = 50;
+  var plotW = W - 2*pad, plotH = H - top - bot;
+  var minLam = -4, maxLam = 10;
+
+  ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+  for (var y = -3; y <= 9; y += 3) {
+    var py = top + plotH * (1 - (y - minLam) / (maxLam - minLam));
+    ctx.beginPath(); ctx.moveTo(pad, py); ctx.lineTo(W-pad, py); ctx.stroke();
+    ctx.fillStyle = '#555'; ctx.font = '11px monospace'; ctx.textAlign = 'right';
+    ctx.fillText(y.toString(), pad-8, py+4);
+  }
+
+  var zeroY = top + plotH * (1 - (0 - minLam) / (maxLam - minLam));
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(pad, zeroY); ctx.lineTo(W-pad, zeroY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (highlightPair >= 0) {
+    var pair = PAIRS[highlightPair];
+    var x1 = pad + (pair[0] / 13) * plotW;
+    var x2 = pad + (pair[1] / 13) * plotW;
+    var mx = (x1+x2)/2, my = top - 5;
+    ctx.strokeStyle = PAIR_COLORS[highlightPair] + '44'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, top + plotH * (1 - (AN[pair[0]].lam - minLam) / (maxLam - minLam)));
+    ctx.quadraticCurveTo(mx, my, x2, top + plotH * (1 - (AN[pair[1]].lam - minLam) / (maxLam - minLam)));
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = '#ffd70066'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  AN.forEach(function(el, i) {
+    var x = pad + (i / 13) * plotW;
+    var y = top + plotH * (1 - (el.lam - minLam) / (maxLam - minLam));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  AN.forEach(function(el, i) {
+    var x = pad + (i / 13) * plotW;
+    var y = top + plotH * (1 - (el.lam - minLam) / (maxLam - minLam));
+    var color = '#888';
+    if (el.prime) color = '#ff4444';
+    else if (el.unit) color = '#00ff88';
+    else if (el.v === 0) color = '#666';
+    else color = '#ffaa44';
+    if (i === selected) {
+      ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(x, y, 8, 0, 2*PI); ctx.fill();
+    }
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*PI); ctx.fill();
+    ctx.fillStyle = '#ccc'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(el.let, x, y - 12);
+    ctx.fillStyle = '#777'; ctx.font = '10px monospace';
+    ctx.fillText(el.v.toString(), x, H - bot + 15);
+    ctx.fillStyle = '#555'; ctx.font = '9px monospace';
+    ctx.fillText(el.lam.toFixed(1), x, H - bot + 28);
+  });
+
+  ctx.fillStyle = '#88ccff'; ctx.font = '13px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('Eigenvalue Path: The Swim Through A-N', pad, 20);
+  ctx.fillStyle = '#555'; ctx.font = '10px sans-serif';
+  ctx.fillText('Red = prime, Green = unit, Orange = composite', pad + 320, 20);
+}
+
+function drawCRT(W, H) {
+  var pad = 60, top = 30, bot = 40;
+  var barH = (H - top - bot) / 5 - 8;
+
+  PRIMES.forEach(function(p, pi) {
+    var y0 = top + pi * (barH + 8);
+    ctx.fillStyle = '#333'; ctx.font = '11px monospace'; ctx.textAlign = 'right';
+    ctx.fillText('mod ' + p, pad - 8, y0 + barH/2 + 4);
+
+    AN.forEach(function(el, i) {
+      var x = pad + i * ((W - 2*pad) / 14);
+      var bw = (W - 2*pad) / 14 - 2;
+      var r = el.crt[pi];
+      var frac = r / (p - 1 || 1);
+      var h = Math.max(frac * barH, 2);
+      ctx.fillStyle = CRT_COLORS[pi] + (i === selected ? 'ff' : '66');
+      ctx.fillRect(x, y0 + barH - h, bw, h);
+      if (barH > 30) {
+        ctx.fillStyle = '#aaa'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(r.toString(), x + bw/2, y0 + barH + 12);
+      }
+    });
+  });
+
+  AN.forEach(function(el, i) {
+    var x = pad + i * ((W - 2*pad) / 14) + ((W - 2*pad) / 14 - 2) / 2;
+    ctx.fillStyle = i === selected ? '#ffd700' : '#888';
+    ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(el.let, x, top - 5);
+  });
+
+  ctx.fillStyle = '#88ccff'; ctx.font = '13px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('CRT Channels: 5 independent views of each element', pad, 18);
+}
+
+function drawDist(W, H) {
+  var pad = 50, size = Math.min((W - 2*pad) / 14, (H - 2*pad) / 14);
+  var ox = pad + (W - 2*pad - 14*size) / 2;
+  var oy = pad;
+
+  AN.forEach(function(el, i) {
+    ctx.fillStyle = i === selected ? '#ffd700' : '#aaa';
+    ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(el.let, ox + i*size + size/2, oy - 8);
+    ctx.fillText(el.let, ox - 14, oy + i*size + size/2 + 4);
+  });
+
+  AN.forEach(function(a, i) {
+    AN.forEach(function(b, j) {
+      var d = crtDist(a.v, b.v);
+      var x = ox + j*size, y = oy + i*size;
+      var colors = ['#003300','#115511','#337733','#559955','#88bb88','#bbddbb'];
+      ctx.fillStyle = colors[d];
+      if (i === selected || j === selected) {
+        ctx.fillStyle = d === 0 ? '#004400' : 'hsl(' + (120 - d*20) + ', 60%, ' + (20 + d*8) + '%)';
+      }
+      ctx.fillRect(x, y, size-1, size-1);
+      if (size > 16) {
+        ctx.fillStyle = d === 0 ? '#00ff00' : (d >= 4 ? '#ff8888' : '#dddddd');
+        ctx.font = Math.min(size*0.5, 14) + 'px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(d.toString(), x + size/2, y + size/2 + 4);
+      }
+    });
+  });
+
+  ctx.fillStyle = '#88ccff'; ctx.font = '13px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('CRT Distance Matrix (0=same, 5=maximum)', pad, 16);
+}
+
+function drawCayley(W, H) {
+  var pad = 50, size = Math.min((W - 2*pad) / 14, (H - 2*pad) / 14);
+  var ox = pad + (W - 2*pad - 14*size) / 2;
+  var oy = pad;
+
+  AN.forEach(function(el, i) {
+    ctx.fillStyle = i === selected ? '#ffd700' : '#aaa';
+    ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(el.let, ox + i*size + size/2, oy - 8);
+    ctx.fillText(el.let, ox - 14, oy + i*size + size/2 + 4);
+  });
+
+  AN.forEach(function(a, i) {
+    AN.forEach(function(b, j) {
+      var prod = a.v * b.v;
+      var r = mod(prod, N);
+      var inAN = (r <= 12) || (r === N-1);
+      var mapped = r === N-1 ? -1 : r;
+      var x = ox + j*size, y = oy + i*size;
+
+      if (inAN) {
+        var idx = -1;
+        for (var k = 0; k < AN.length; k++) if (AN[k].v === mapped) { idx = k; break; }
+        ctx.fillStyle = mapped === 0 ? '#1a1a2a' : (AN[idx].prime ? '#2a1111' : '#1a2a1a');
+        if (i === selected || j === selected) {
+          ctx.fillStyle = mapped === 0 ? '#2a2a4a' : '#2a3a2a';
+        }
+        ctx.fillRect(x, y, size-1, size-1);
+        ctx.fillStyle = mapped === 0 ? '#666' : (AN[idx].prime ? '#ff6666' : '#88ff88');
+        ctx.font = 'bold ' + Math.min(size*0.45, 12) + 'px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(AN[idx].let, x + size/2, y + size/2 + 4);
+      } else {
+        ctx.fillStyle = '#0a0a15';
+        ctx.fillRect(x, y, size-1, size-1);
+        if (size > 18) {
+          ctx.fillStyle = '#2a2a2a'; ctx.font = Math.min(size*0.35, 10) + 'px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('.', x + size/2, y + size/2 + 3);
+        }
+      }
+    });
+  });
+
+  ctx.fillStyle = '#88ccff'; ctx.font = '13px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('Multiplicative Cayley Table (products landing in A-N)', pad, 16);
+  ctx.fillStyle = '#555'; ctx.font = '10px sans-serif';
+  ctx.fillText('Green = in A-N, Red = prime result, Dot = outside', pad + 380, 16);
+}
+
+function resize() {
+  var w = Math.min(1060, window.innerWidth - 30);
+  canvas.width = w;
+  canvas.height = Math.max(280, w * 0.32);
+  draw();
+}
+
+initChannelSums();
+initPairs();
+resize();
+window.addEventListener('resize', resize);
+selectElement(2);
+</script>
+<script src="nav.js"></script>
+</body>
+</html>
