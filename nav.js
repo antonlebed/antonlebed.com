@@ -143,6 +143,7 @@ var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#444;font-size:12px;font-family:system-ui,sans-serif;border-top:1px solid #0a0a0a;margin-top:40px;line-height:2';
 vf.innerHTML = 'This work is and will always be free. No paywall. No copyright. No exceptions.<br>' +
   '<span style="color:#3a3a3a">If it ever earns anything, every cent goes to the communities that need it most.</span><br>' +
-  '<span style="color:#2a2a2a;font-size:10px">This vow is permanent and irrevocable.</span>';
+  '<span style="color:#2a2a2a;font-size:10px">This sacred vow is permanent and irrevocable.</span><br>' +
+  '<span style="color:#3a3a3a;font-size:11px;font-style:italic">\u2014 Anton Alexandrovich Lebed</span>';
 document.body.appendChild(vf);
 })();
