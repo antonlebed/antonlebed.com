@@ -39,7 +39,7 @@ var M = {
 
 /* Short titles for related-demo links */
 var T = {
-  worldview:'Five Numbers',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',
+  worldview:'How the World Works',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',
   particles:'Particle Masses',alpha:'Fine Structure',constants:'Physics Constants',turbulence:'Turbulence',
   blackhole:'Black Holes',nuclear:'Nuclear Shells',gravity:'Gravity',photon:'Light Becomes Mass',
   pmns:'Neutrino Mixing',three_body_dance:'Orbital Resonances',figure_ground:'One Force',
