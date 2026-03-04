@@ -3,6 +3,12 @@
 // Injected via <script src="nav.js"></script> before </body>.
 (function() {
 'use strict';
+/* Favicon — inject on every page that loads nav.js */
+if (!document.querySelector('link[rel="icon"]')) {
+  var ico = document.createElement('link');
+  ico.rel = 'icon'; ico.type = 'image/png'; ico.href = 'favicon.png';
+  document.head.appendChild(ico);
+}
 var f = location.pathname.split('/').pop() || '';
 if (!f || f === 'index.html') return;
 
