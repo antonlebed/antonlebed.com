@@ -112,11 +112,28 @@ footer{padding:40px 24px;text-align:center;color:#333;font-size:13px;max-width:7
 
 @media(max-width:600px){
   h1{font-size:26px}
+  section{padding:40px 16px}
   .card-head{padding:12px 16px;flex-wrap:wrap}
   .card-symbol{min-width:40px;font-size:18px}
+  .card-mass{font-size:12px}
+  .card-detail{padding:0 16px 16px}
   #ladder{height:300px}
   .stats{gap:12px}
   .stat-num{font-size:22px}
+  .tab{padding:10px 14px;font-size:12px;min-height:44px;display:flex;align-items:center}
+  .contrast table{display:block;overflow-x:auto}
+}
+@media(max-width:480px){
+  h1{font-size:22px}
+  p{font-size:15px}
+  .card-name{font-size:15px}
+  .card-symbol{font-size:16px;min-width:32px}
+  .card-mass{font-size:11px}
+  .card-err{font-size:11px;padding:2px 6px}
+  .tab{padding:8px 10px;font-size:11px;min-height:44px}
+  #tabs{gap:6px}
+  .stat-num{font-size:18px}
+  .stat-label{font-size:10px}
 }
 </style>
 </head>
@@ -689,6 +706,27 @@ function renderLadder(){
     }
   };
   canvas.onmouseleave=()=>{tooltip.style.display='none'};
+
+  // Touch support for mobile
+  canvas.ontouchstart=function(e){
+    e.preventDefault();
+    const touch=e.touches[0];
+    const br=canvas.getBoundingClientRect();
+    const mx=touch.clientX-br.left, my=touch.clientY-br.top;
+    let hit=null, minD=40;
+    placed.forEach(p=>{
+      const d=Math.hypot(p.x-mx,p.y-my);
+      if(d<minD){minD=d;hit=p;}
+    });
+    if(hit){
+      const m=masses[hit.i];
+      tooltip.style.display='block';
+      tooltip.style.left=Math.min(hit.x+10,W-200)+'px';
+      tooltip.style.top=(hit.y-60)+'px';
+      tooltip.innerHTML=`<b style="color:#ffd700">${m.name}</b><br>${m.expr}<br>${m.m.toPrecision(4)} MeV<br><span style="color:${m.err<0.1?'#44ff88':'#ffdd44'}">${errLabel(m.err)}</span>`;
+    }
+  };
+  canvas.ontouchend=()=>{setTimeout(()=>{tooltip.style.display='none'},2000)};
 }
 
 // ==================== INIT ====================
