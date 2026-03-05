@@ -541,7 +541,7 @@ if ('ontouchstart' in window) {
 window.axLang = axLang;
 window.axLi = _li;
 
-if (isIndex) return; /* index.html has its own vow footer */
+if (isIndex || isWorld) return; /* index + worldview have their own vow footers */
 var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#777;font-size:12px;' +
   'font-family:system-ui,sans-serif;border-top:1px solid #1a1a2a;margin-top:40px;line-height:2';
