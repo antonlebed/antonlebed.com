@@ -31,6 +31,13 @@ canvas{border-radius:8px;background:#111118;display:block}
 .controls label{color:#888;font-size:0.8em}
 .controls input[type=range]{width:80px}
 .controls select{background:#222;border:1px solid #444;color:#e0e0e0;padding:4px;border-radius:3px;font-size:0.8em}
+body.fullscreen{overflow:hidden}
+body.fullscreen .container,body.fullscreen .subtitle,body.fullscreen h1{display:none}
+body.fullscreen #fs-wrap{display:flex;position:fixed;inset:0;z-index:9999;background:#050508;flex-direction:column;align-items:center;justify-content:center}
+body.fullscreen #fs-wrap #grid{width:100vw;height:100vh;border-radius:0}
+body.fullscreen #fs-life{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-size:3em;font-weight:bold;color:#4f4;text-shadow:0 0 30px rgba(68,255,68,0.5);z-index:10000;pointer-events:none}
+body.fullscreen #fs-exit{position:fixed;top:16px;right:20px;z-index:10001;background:rgba(30,30,40,0.7);border:1px solid #444;color:#aaa;padding:8px 16px;border-radius:4px;cursor:pointer;font-size:0.85em}
+body.fullscreen #fs-exit:hover{border-color:#f0c040;color:#f0c040}
 .stats-box{background:#111118;border:1px solid #222;border-radius:8px;padding:10px 14px}
 .stats-box h3{color:#f0c040;font-size:0.9em;margin-bottom:6px;border-bottom:1px solid #222;padding-bottom:4px}
 .stat-row{display:flex;justify-content:space-between;font-size:0.82em;padding:2px 0}
@@ -91,6 +98,7 @@ canvas{border-radius:8px;background:#111118;display:block}
     <button onclick="resetSim()">Reset</button>
     <button onclick="clearGrid()">Clear</button>
     <button id="btnSound" onclick="toggleSound()">Sound: Off</button>
+    <button onclick="enterFullscreen()">Fullscreen</button>
     <label>Speed:</label>
     <input type="range" id="speed" min="1" max="60" value="15">
     <span id="speedLbl" style="color:#888;font-size:0.8em">15/s</span>
@@ -563,6 +571,9 @@ function updateStats() {
   el.textContent = 'LIFE: ' + pct.toFixed(1) + '%';
   var glowR = Math.floor(pct / 3);
   el.style.textShadow = '0 0 ' + glowR + 'px rgba(68,255,68,' + Math.min(0.6, pct / 100).toFixed(2) + ')';
+  // Fullscreen LIFE label
+  var fsLbl = document.getElementById('fs-life');
+  if (fsLbl) { fsLbl.textContent = 'LIFE: ' + pct.toFixed(1) + '%'; fsLbl.style.textShadow = '0 0 ' + (glowR * 2) + 'px rgba(68,255,68,0.5)'; }
   // Grid border glow follows LIFE density
   var gridEl = document.getElementById('grid');
   if (pct > 10) {
@@ -708,6 +719,62 @@ function toggleSound() {
   if (soundOn) initAudio();
   document.getElementById('btnSound').textContent = 'Sound: ' + (soundOn ? 'On' : 'Off');
   document.getElementById('btnSound').classList.toggle('active', soundOn);
+}
+
+// ============================================================
+// FULLSCREEN
+// ============================================================
+var isFullscreen = false;
+function enterFullscreen() {
+  if (isFullscreen) return;
+  isFullscreen = true;
+  document.body.classList.add('fullscreen');
+  // Create fullscreen wrapper
+  var wrap = document.createElement('div'); wrap.id = 'fs-wrap';
+  var lbl = document.createElement('div'); lbl.id = 'fs-life'; lbl.textContent = 'LIFE: 0%';
+  var btn = document.createElement('button'); btn.id = 'fs-exit'; btn.textContent = 'Exit';
+  btn.onclick = exitFullscreen;
+  var cv = document.getElementById('grid');
+  var parent = cv.parentElement;
+  wrap.appendChild(cv);
+  document.body.appendChild(wrap); document.body.appendChild(lbl); document.body.appendChild(btn);
+  // Resize grid to fill viewport
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  cellSz = Math.max(3, Math.floor(Math.min(cv.width, cv.height) / 120));
+  cols = Math.floor(cv.width / cellSz); rows = Math.floor(cv.height / cellSz);
+  var newTotal = cols * rows;
+  // Expand arrays
+  var np = new Uint8Array(newTotal), ne = new Uint8Array(newTotal), na = new Uint8Array(newTotal);
+  var no = new Uint8Array(newTotal), ns = new Uint8Array(newTotal), nw = new Uint8Array(newTotal);
+  var nh0 = new Uint8Array(newTotal), nh1 = new Uint8Array(newTotal), nh2 = new Uint8Array(newTotal);
+  var nf = new Uint8Array(newTotal), nft = new Uint8Array(newTotal), nnp = new Uint8Array(newTotal);
+  for (var i = 0; i < newTotal; i++) { np[i] = lfsrNext(); ne[i] = ENERGY_MAX; nh0[i] = nh1[i] = nh2[i] = np[i]; }
+  // Copy old data into center
+  var ox = Math.floor((cols - Math.floor(parent.clientWidth / cellSz)) / 2);
+  var oy = Math.floor((rows - Math.floor(560 / cellSz)) / 2);
+  pat = np; eng = ne; ag = na; oct = no; stab = ns; wis = nw;
+  h0 = nh0; h1 = nh1; h2 = nh2; fl = nf; flT = nft; newPat = nnp;
+  total = newTotal;
+  needsRender = true;
+  // Listen for Escape
+  document.addEventListener('keydown', fsEscHandler);
+}
+function fsEscHandler(e) { if (e.key === 'Escape') exitFullscreen(); }
+function exitFullscreen() {
+  if (!isFullscreen) return;
+  isFullscreen = false;
+  document.body.classList.remove('fullscreen');
+  document.removeEventListener('keydown', fsEscHandler);
+  var wrap = document.getElementById('fs-wrap');
+  var cv = document.getElementById('grid');
+  var lbl = document.getElementById('fs-life');
+  var btn = document.getElementById('fs-exit');
+  // Move canvas back
+  var mp = document.querySelector('.main-panel');
+  var lifePct = document.getElementById('lifePct');
+  mp.insertBefore(cv, lifePct.nextSibling);
+  if (wrap) wrap.remove(); if (lbl) lbl.remove(); if (btn) btn.remove();
+  resetSim();
 }
 
 // ============================================================
