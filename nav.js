@@ -1,5 +1,6 @@
-// nav.js — universal navigation for antonlebed.com
+// nav.js — universal navigation + i18n for antonlebed.com
 // Top bar + category dropdown + mobile menu + related footer + vow footer.
+// i18n: EN/FR/RU language selector. localStorage persistence. All nav chrome translated.
 // Progressive enhancement: pages work without it. Zero dependencies.
 // <script src="nav.js"></script> before </body>.
 (function() {
@@ -244,10 +245,20 @@ s.textContent =
   '.sn-r:first-of-type{margin-left:auto}' +
   '.sn-r:hover{border-color:#1a4a1a;background:rgba(80,250,123,0.04);text-shadow:0 0 8px rgba(80,250,123,0.4)}' +
   '.sn-r.on{color:#fff !important;border-color:#50fa7b;background:rgba(80,250,123,0.06)}' +
+  '.sn-ld{position:relative;flex-shrink:0}' +
   '.sn-lang{padding:3px 8px;color:#888;font-size:11px;font-weight:600;letter-spacing:1px;' +
-  'flex-shrink:0;border:1px solid #222;border-radius:6px;margin:0 3px;background:none;' +
+  'border:1px solid #222;border-radius:6px;margin:0 3px;background:none;' +
   'font-family:system-ui,sans-serif;cursor:pointer;transition:color 0.2s,border-color 0.2s}' +
   '.sn-lang:hover{color:#ffd700;border-color:#444}' +
+  '.sn-lp{position:absolute;top:calc(100% + 4px);right:0;background:rgba(8,8,14,0.98);' +
+  'border:1px solid #222;border-radius:6px;display:none;min-width:110px;z-index:10000;' +
+  'backdrop-filter:blur(12px);padding:4px 0}' +
+  '.sn-ld.open .sn-lp{display:block}' +
+  '.sn-lp button{display:block;width:100%;padding:7px 14px;color:#888;font-size:12px;' +
+  'background:none;border:none;cursor:pointer;text-align:left;font-family:system-ui,sans-serif;' +
+  'transition:color 0.15s,background 0.15s;white-space:nowrap}' +
+  '.sn-lp button:hover{color:#ffd700;background:rgba(255,215,0,0.04)}' +
+  '.sn-lp button.cur{color:#ffd700}' +
   '.sn-h{display:none;font-size:22px;color:#888;padding:0 4px;margin-left:auto;' +
   'flex-shrink:0;line-height:1;background:none;border:none}' +
   '.sn-mn{display:none;align-items:center;color:#ccc;font-size:14px;background:none;' +
@@ -324,7 +335,7 @@ s.textContent =
   '.sn-r{display:none}' +
   '.sn-h{display:none}' +
   '.sn-mn{display:flex}' +
-  '.sn-lang{display:none!important}' +
+  '.sn-ld{display:none!important}' +
   '#sn{padding:0 10px;justify-content:center;height:44px}' +
   'body{padding-top:44px!important}' +
   '#sn-rel{padding:16px 14px 24px}#sn-rel .rl{gap:6px}' +
@@ -343,7 +354,12 @@ var h = '<div class="sn-l">' +
   '</div>' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
   '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
-  '<button class="sn-lang" id="sn-lang">' + ['EN','FR','RU'][_li] + '</button>';
+  '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' + ['EN','FR','RU'][_li] +
+  ' \u25BE</button><div class="sn-lp">' +
+  '<button data-lang="en"' + (_li===0?' class="cur"':'') + '>English</button>' +
+  '<button data-lang="fr"' + (_li===1?' class="cur"':'') + '>Fran\u00e7ais</button>' +
+  '<button data-lang="ru"' + (_li===2?' class="cur"':'') + '>\u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
+  '</div></div>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
 h += '<button class="sn-mn" id="sn-mn">' + tr('navLabel') + '<span class="mnar">\u25BE</span></button>';
 nav.innerHTML = h;
@@ -404,10 +420,17 @@ var mh = '<div class="sn-mh">' +
   '<a href="derive_ax.html">' + tr('fromNothing') + '</a>' +
   '<a class="rpl" href="repl.html">.ax REPL</a>' +
   '<a class="rpl" href="playground.html">.ax Playground</a>' +
-  '<button class="sn-lang" id="sn-mlang" style="display:block;margin:12px 0;padding:10px 0;' +
-  'font-size:15px;color:#ffd700;background:none;border:1px solid #222;border-radius:8px;' +
-  'width:100%;text-align:center;cursor:pointer;font-family:system-ui,sans-serif">' +
-  ['EN \u2192 FR','FR \u2192 RU','RU \u2192 EN'][_li] + '</button>' +
+  '<div style="display:flex;gap:8px;margin:12px 0">' +
+  '<button class="sn-mlb" data-lang="en" style="flex:1;padding:10px 0;font-size:14px;' +
+  'background:none;border:1px solid ' + (_li===0?'#ffd700':'#222') + ';border-radius:8px;' +
+  'color:' + (_li===0?'#ffd700':'#888') + ';cursor:pointer;font-family:system-ui,sans-serif">English</button>' +
+  '<button class="sn-mlb" data-lang="fr" style="flex:1;padding:10px 0;font-size:14px;' +
+  'background:none;border:1px solid ' + (_li===1?'#ffd700':'#222') + ';border-radius:8px;' +
+  'color:' + (_li===1?'#ffd700':'#888') + ';cursor:pointer;font-family:system-ui,sans-serif">Fran\u00e7ais</button>' +
+  '<button class="sn-mlb" data-lang="ru" style="flex:1;padding:10px 0;font-size:14px;' +
+  'background:none;border:1px solid ' + (_li===2?'#ffd700':'#222') + ';border-radius:8px;' +
+  'color:' + (_li===2?'#ffd700':'#888') + ';cursor:pointer;font-family:system-ui,sans-serif">\u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
+  '</div>' +
   '<div class="sn-ms" style="margin-top:8px">' + tr('atlas') + '</div>';
 var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
 for (var i = 0; i < mAtlasOrder.length; i++) {
@@ -446,16 +469,17 @@ for (var i = 0; i < mcs.length; i++) {
   });
 }
 
-/* ===== LANGUAGE SWITCHER ===== */
-function cycleLang(){
-  var next=['en','fr','ru'][(_li+1)%3];
-  try{localStorage.setItem('ax-lang',next)}catch(e){}
-  location.reload();
+/* ===== LANGUAGE SWITCHER (dropdown) ===== */
+function setLang(lang){try{localStorage.setItem('ax-lang',lang)}catch(e){}location.reload();}
+var ld=document.getElementById('sn-ld');
+if(ld){
+  ld.querySelector('.sn-lang').addEventListener('click',function(e){e.stopPropagation();ld.classList.toggle('open')});
+  var lps=ld.querySelectorAll('.sn-lp button');
+  for(var li=0;li<lps.length;li++)lps[li].addEventListener('click',function(){setLang(this.getAttribute('data-lang'))});
 }
-var langBtn=document.getElementById('sn-lang');
-if(langBtn)langBtn.addEventListener('click',cycleLang);
-var mlangBtn=document.getElementById('sn-mlang');
-if(mlangBtn)mlangBtn.addEventListener('click',cycleLang);
+document.addEventListener('click',function(e){if(ld&&!ld.contains(e.target))ld.classList.remove('open')});
+var mlbs=mob.querySelectorAll('.sn-mlb');
+for(var mi=0;mi<mlbs.length;mi++)mlbs[mi].addEventListener('click',function(){setLang(this.getAttribute('data-lang'))});
 
 /* ===== RELATED DEMOS FOOTER ===== */
 if (catKey && catKey !== 'tutorial') {
@@ -513,6 +537,10 @@ if ('ontouchstart' in window) {
     }, 3000);
   }, { passive: true });
 }
+
+/* Expose language for page-level translation scripts */
+window.axLang = axLang;
+window.axLi = _li;
 
 if (isIndex) return; /* index.html has its own vow footer */
 var vf = document.createElement('div');
