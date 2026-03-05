@@ -436,49 +436,83 @@ function drawEntropy() {
 // No separate floor/axis/box system. Just (x, y, w, h) with y+h as baseline.
 
 function drawIdentity() {
+  // ── Top-to-bottom layout with clear spacing ──
+  // y=20  header
+  // y=38  subheader
+  // y=62  agent labels
+  // y=82  big percentage
+  // y=94  (expect 33.3%)
+  // y=104 progress bar (6px)
+  // y=118 pref heatmap (8px)
+  // y=138 bars start
+  // y=138+bh  bar bottoms
+  // y=138+bh+14  path labels
+
   // Header
   ctx.fillStyle = '#888888';
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, 25);
+  ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, 20);
   ctx.fillStyle = '#555555';
   ctx.font = '11px monospace';
-  ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, 43);
+  ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, 38);
 
-  // 3 columns — same proportions as Race
+  // 3 columns
   var bw = Math.min(Math.floor(W / 4.2), 200);
-  var bh = Math.floor(H * 0.5);
   var colGap = Math.max(15, Math.round(W * 0.02));
   var totalW = bw * 3 + colGap * 2;
   var x0 = Math.round((W - totalW) / 2);
-  var barTop = 60;
+  var barTop = 138;
+  var bh = H - barTop - 30;  // fill remaining space, 30px bottom margin
+  if (bh < 80) bh = 80;
 
   for (var a = 0; a < 3; a++) {
     var colX = x0 + a * (bw + colGap);
     var midX = colX + bw / 2;
 
-    // Percentage above bars
+    // Compute alignment percentage
     var aligned = 0;
     for (var p = 0; p < PATHS; p++) {
       if (p % K === a) aligned += agents[a].counts[p];
     }
     var pct = agents[a].total > 0 ? aligned / agents[a].total : 0;
 
-    ctx.fillStyle = pct > 0.35 ? '#44ff88' : '#aaaaaa';
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText((pct * 100).toFixed(1) + '%', midX, barTop - 22);
-    ctx.fillStyle = '#555555';
-    ctx.font = '9px monospace';
-    ctx.fillText('(expect 33.3%)', midX, barTop - 10);
-
-    // ── Bars: EXACT same math as drawBarSet (Race) ──
-    // Label above
+    // Agent label
     ctx.fillStyle = COL_AGENT[a];
     ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Agent ' + a + ' (id=' + a + ')', midX, barTop - 45);
+    ctx.fillText('Agent ' + a + ' (id=' + a + ')', midX, 62);
 
+    // Big percentage
+    ctx.fillStyle = pct > 0.35 ? '#44ff88' : '#aaaaaa';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText((pct * 100).toFixed(1) + '%', midX, 82);
+    ctx.fillStyle = '#555555';
+    ctx.font = '9px monospace';
+    ctx.fillText('(expect 33.3%)', midX, 94);
+
+    // Progress bar
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(colX, 104, bw, 6);
+    ctx.fillStyle = '#333333';
+    ctx.fillRect(colX + Math.round(bw / 3), 104, 1, 6);
+    ctx.fillStyle = pct > 0.35 ? COL_AGENT[a] : '#666666';
+    ctx.fillRect(colX, 104, Math.min(bw, Math.round(bw * pct)), 6);
+
+    // Preference heatmap
+    var maxPr = 0.01;
+    for (var p = 0; p < PATHS; p++) {
+      if (agents[a].prefs[p] > maxPr) maxPr = agents[a].prefs[p];
+    }
+    var prefStep = Math.floor(bw / PATHS);
+    for (var p = 0; p < PATHS; p++) {
+      var hx = colX + p * prefStep + 1;
+      var v = Math.min(agents[a].prefs[p] / maxPr, 1.0);
+      ctx.fillStyle = hexToRgba(COL_AGENT[a], 0.15 + v * 0.85);
+      ctx.fillRect(hx, 118, prefStep - 2, 8);
+    }
+
+    // ── Bars: same math as Race's drawBarSet ──
     var barW = Math.floor(bw / PATHS) - 2;
     var maxC = 1;
     for (var p = 0; p < PATHS; p++) if (agents[a].counts[p] > maxC) maxC = agents[a].counts[p];
@@ -490,11 +524,9 @@ function drawIdentity() {
       var by = barTop + bh - pbh;
       var isMe = (p % K === a);
 
-      // Bar fill — identity paths in agent color, others grey
       ctx.fillStyle = isMe ? hexToRgba(COL_AGENT[a], 0.75) : hexToRgba(COL_PATH[p], 0.3);
       ctx.fillRect(bx, by, barW, pbh);
 
-      // Identity border highlight
       if (isMe && pbh > 0) {
         ctx.fillStyle = COL_AGENT[a];
         ctx.fillRect(bx, by, barW, 1);
@@ -507,33 +539,6 @@ function drawIdentity() {
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
       ctx.fillText('' + p, bx + barW / 2, barTop + bh + 14);
-    }
-
-    // Progress bar below labels
-    var progY = barTop + bh + 28;
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(colX, progY, bw, 6);
-    ctx.fillStyle = '#333333';
-    ctx.fillRect(colX + Math.round(bw / 3), progY, 1, 6);
-    ctx.fillStyle = pct > 0.35 ? COL_AGENT[a] : '#666666';
-    ctx.fillRect(colX, progY, Math.min(bw, Math.round(bw * pct)), 6);
-
-    // Preference heatmap below progress
-    var prefY = progY + 14;
-    ctx.fillStyle = '#555555';
-    ctx.font = '9px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Prefs:', midX, prefY);
-    var maxPr = 0.01;
-    for (var p = 0; p < PATHS; p++) {
-      if (agents[a].prefs[p] > maxPr) maxPr = agents[a].prefs[p];
-    }
-    var prefStep = Math.floor(bw / PATHS);
-    for (var p = 0; p < PATHS; p++) {
-      var hx = colX + p * prefStep + 1;
-      var v = Math.min(agents[a].prefs[p] / maxPr, 1.0);
-      ctx.fillStyle = hexToRgba(COL_AGENT[a], 0.15 + v * 0.85);
-      ctx.fillRect(hx, prefY + 4, prefStep - 2, 8);
     }
   }
 }
