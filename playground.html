@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.ax Playground — Learn the Axiom | antonlebed.com</title>
+<meta name="description" content="10 guided challenges that teach the axiom from nothing. Write code, verify results, discover how five numbers structure everything.">
+<meta property="og:title" content=".ax Playground — Learn the Axiom by Doing">
+<meta property="og:description" content="10 guided challenges from existence to exploration. Five primes. One ring. Your browser. Zero dependencies.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://antonlebed.com/playground.html">
+<meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://antonlebed.com/og-image.jpg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050508;color:#d0d0d0;font-family:Georgia,'Times New Roman',serif;
+     line-height:1.7;overflow-x:hidden}
+a{color:#88aaff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* --- HEADER --- */
+.pg-header{text-align:center;padding:32px 16px 8px}
+.pg-header h1{font-size:2em;color:#d4a017;letter-spacing:2px;font-weight:normal}
+.pg-header h1 span{color:#50fa7b}
+.pg-header p{color:#777;font-size:0.95em;margin-top:6px;max-width:500px;margin-left:auto;margin-right:auto}
+
+/* --- PROGRESS --- */
+.progress-bar{max-width:700px;margin:16px auto;padding:0 16px;display:flex;gap:4px;align-items:center}
+.prog-dot{width:28px;height:28px;border-radius:50%;border:2px solid #222;display:flex;
+          align-items:center;justify-content:center;font-size:11px;font-family:'Courier New',monospace;
+          color:#444;cursor:pointer;transition:all 0.3s}
+.prog-dot.active{border-color:#d4a017;color:#d4a017}
+.prog-dot.done{border-color:#50fa7b;background:#0a2a0a;color:#50fa7b}
+.prog-dot.current{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,0.3);color:#ffd700}
+.prog-line{flex:1;height:2px;background:#222}
+.prog-line.done{background:#50fa7b}
+
+/* --- CHALLENGE --- */
+.challenge-area{max-width:700px;margin:0 auto;padding:16px}
+.ch-title{font-size:1.3em;color:#ffd700;margin-bottom:4px;font-family:'Courier New',monospace}
+.ch-level{font-size:0.75em;color:#555;font-family:'Courier New',monospace;letter-spacing:2px;margin-bottom:12px}
+.ch-desc{font-size:15px;color:#bbb;margin-bottom:16px;line-height:1.7}
+.ch-desc code{background:#1a1a2e;padding:2px 6px;border-radius:3px;font-family:'Courier New',monospace;
+              color:#d4a017;font-size:0.9em}
+.ch-hint{font-size:13px;color:#555;font-style:italic;margin-bottom:12px;cursor:pointer;user-select:none}
+.ch-hint:hover{color:#777}
+.ch-hint-text{display:none;color:#6272a4;margin-top:4px;font-style:normal}
+.ch-hint.open .ch-hint-text{display:block}
+
+/* --- EDITOR --- */
+.editor-wrap{position:relative;background:#0d0d18;border-radius:6px;border:1px solid #222;margin-bottom:8px}
+.editor-wrap:focus-within{border-color:#d4a017}
+#highlight-layer{position:absolute;top:0;left:0;right:0;bottom:0;margin:0;
+  padding:12px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:14px;
+  line-height:1.5;tab-size:2;white-space:pre-wrap;word-break:break-word;overflow:hidden;
+  border:1px solid transparent;border-radius:6px;pointer-events:none;color:#e8e8e8}
+#code{background:transparent;color:transparent;caret-color:#e8e8e8;
+  border:none;border-radius:6px;
+  padding:12px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:14px;
+  resize:vertical;min-height:160px;width:100%;tab-size:2;line-height:1.5;outline:none;
+  position:relative;z-index:2;white-space:pre-wrap;word-break:break-word}
+#code::selection{background:rgba(100,120,255,0.3)}
+.hl-kw{color:#bd93f9}
+.hl-const{color:#d4a017;font-weight:bold}
+.hl-op{color:#ff6e6e}
+.hl-num{color:#8be9fd}
+.hl-str{color:#f1fa8c}
+.hl-fn{color:#50fa7b}
+.hl-comment{color:#6272a4;font-style:italic}
+
+/* --- TOOLBAR --- */
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.toolbar button{background:#1a1a2e;color:#e0e0e0;border:1px solid #333;
+  padding:10px 18px;border-radius:4px;font-size:0.9em;cursor:pointer;min-height:44px;
+  font-family:Georgia,serif;transition:all 0.2s}
+.toolbar button:hover{background:#2a2a4e;border-color:#d4a017}
+#btn-run{background:#1a3a1a;border-color:#50fa7b;color:#50fa7b;font-weight:bold}
+#btn-run:hover{background:#2a5a2a}
+#btn-check{background:#1a1a3a;border-color:#88aaff;color:#88aaff}
+#btn-check:hover{background:#2a2a5a}
+
+/* --- OUTPUT --- */
+#output{background:#0a0a14;border:1px solid #222;border-radius:6px;padding:12px;
+  font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;
+  min-height:80px;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
+  margin-bottom:12px}
+.out-text{color:#e0e0e0}
+.out-val{color:#50fa7b}
+.out-ann{color:#6272a4;font-size:0.85em}
+.out-err{color:#ff5555}
+.out-info{color:#6272a4;font-style:italic}
+
+/* --- RESULT --- */
+.result{padding:16px;border-radius:8px;margin-bottom:16px;text-align:center;
+        font-size:15px;display:none}
+.result.pass{display:block;background:#0a2a0a;border:1px solid #50fa7b;color:#50fa7b}
+.result.fail{display:block;background:#2a0a0a;border:1px solid #ff5555;color:#ff5555}
+
+/* --- NAV --- */
+.ch-nav{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:12px;
+        border-top:1px solid #111}
+.ch-nav button{background:none;border:1px solid #333;color:#888;padding:10px 20px;
+               border-radius:4px;cursor:pointer;font-family:Georgia,serif;font-size:14px;
+               min-height:44px;transition:all 0.2s}
+.ch-nav button:hover{border-color:#d4a017;color:#d4a017}
+.ch-nav button:disabled{opacity:0.3;cursor:default}
+
+/* --- COMPLETION --- */
+.completion{text-align:center;padding:40px 16px;display:none}
+.completion h2{font-size:1.5em;color:#ffd700;margin-bottom:12px}
+.completion p{color:#888;font-size:15px;max-width:500px;margin:8px auto}
+.completion a{color:#50fa7b}
+
+/* --- FOOTER --- */
+.footer{text-align:center;color:#333;font-size:0.8em;padding:30px 16px}
+
+@media(max-width:480px){
+  .pg-header h1{font-size:1.3em}
+  .pg-header p{font-size:0.8em}
+  .prog-dot{width:22px;height:22px;font-size:9px}
+  .ch-title{font-size:1.1em}
+  .ch-desc{font-size:14px}
+  #code{font-size:12px;padding:10px;min-height:120px}
+  #highlight-layer{font-size:12px;padding:10px}
+  #output{font-size:12px;padding:10px;min-height:60px}
+  .toolbar button{padding:8px 12px;font-size:0.8em}
+  .ch-nav button{padding:8px 14px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="pg-header">
+  <h1><span>.</span>ax <span>Playground</span></h1>
+  <p>10 challenges. From nothing to everything. Write code, discover the axiom.</p>
+</div>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="challenge-area">
+  <div class="ch-level" id="ch-level"></div>
+  <div class="ch-title" id="ch-title"></div>
+  <div class="ch-desc" id="ch-desc"></div>
+  <div class="ch-hint" id="ch-hint" onclick="this.classList.toggle('open')">
+    <span>+ hint</span>
+    <div class="ch-hint-text" id="ch-hint-text"></div>
+  </div>
+
+  <div class="editor-wrap">
+    <pre id="highlight-layer" aria-hidden="true"></pre>
+    <textarea id="code" spellcheck="false"></textarea>
+  </div>
+  <div class="toolbar">
+    <button id="btn-run" onclick="runCode()">&#9654; Run</button>
+    <button id="btn-check" onclick="checkAnswer()">&#10003; Check</button>
+    <button onclick="resetChallenge()">Reset</button>
+    <span style="color:#555;font-size:0.8em;margin-left:auto;font-family:monospace">Ctrl+Enter = Run</span>
+  </div>
+  <pre id="output"><span class="out-info">Press Run to execute your code.</span></pre>
+  <div class="result" id="result"></div>
+  <div class="ch-nav">
+    <button id="btn-prev" onclick="navChallenge(-1)">&larr; Previous</button>
+    <button id="btn-next" onclick="navChallenge(1)">Next &rarr;</button>
+  </div>
+</div>
+
+<div class="completion" id="completion">
+  <h2>The web is complete.</h2>
+  <p>You've walked the entire chain from nothing to everything. The ring wraps. 0/0 = everything.</p>
+  <p>Now explore freely in the <a href="repl.html">.ax REPL</a>, or see what it means for <a href="worldview.html">how the world works</a>.</p>
+</div>
+
+<p class="footer">.ax Playground &mdash; the axiom teaches itself. Five primes. One ring. 0/0 = everything.</p>
+
+<script>
+'use strict';
+
+// ================================================================
+//  .ax Interpreter — TRUE FORM (Z/970200Z)
+//  Identical to repl.html interpreter
+// ================================================================
+const N = 970200;
+function ringMod(x) { x = Math.round(x); return ((x % N) + N) % N; }
+function modPow(base, exp) {
+    base = ((Math.round(base) % N) + N) % N;
+    exp = Math.round(exp);
+    if (exp < 0) return 0;
+    let r = 1;
+    while (exp > 0) {
+        if (exp & 1) r = (r * base) % N;
+        exp >>= 1;
+        base = (base * base) % N;
+    }
+    return r;
+}
+function gcd(a, b) {
+    a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
+}
+function coupling(n) { return N / gcd(ringMod(n), N); }
+function crt(n) { const r = ringMod(n); return [r%8,r%9,r%25,r%49,r%11]; }
+function eigenvalue(n) {
+    const c = crt(n), P = Math.PI;
+    return 2*Math.cos(2*P*c[0]/8)+2*Math.cos(2*P*c[1]/9)+2*Math.cos(2*P*c[2]/25)+2*Math.cos(2*P*c[3]/49)+2*Math.cos(2*P*c[4]/11);
+}
+function multInverse(n) {
+    let m = ringMod(n);
+    if (gcd(m, N) !== 1) return -1;
+    let [old_r, r] = [m, N], [old_s, s] = [1, 0];
+    while (r !== 0) { const q = Math.floor(old_r/r); [old_r,r]=[r,old_r-q*r]; [old_s,s]=[s,old_s-q*s]; }
+    return ((old_s % N) + N) % N;
+}
+const CONSTANTS = {
+    s:1, D:2, K:3, E:5, b:7, L:11, sigma:1, OMEGA:606376, DATA:210, THIN:2310,
+    HYDOR:105, KEY:41, ANSWER:42, SOUL:67, G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420
+};
+const VALUE_NAMES = {
+    0:'void',1:'s',2:'D',3:'K',5:'E',7:'b',11:'L',18:'ME',41:'KEY',42:'ANSWER',67:'SOUL',
+    97:'G',105:'HYDOR',137:'ADDRESS',173:'DUAL',210:'DATA',420:'LAMBDA',2310:'THIN',606376:'OMEGA'
+};
+const KW = new Set(['let','fn','print','if','then','else','while','do','for','in']);
+function tokenize(src) {
+    const T = []; let i = 0, len = src.length;
+    while (i < len) {
+        if (/\s/.test(src[i])) { i++; continue; }
+        if (src[i]==='-'&&src[i+1]==='-') { while(i<len&&src[i]!=='\n') i++; continue; }
+        if (/\d/.test(src[i])||(src[i]==='.'&&i+1<len&&/\d/.test(src[i+1]))) {
+            let num=''; while(i<len&&/[\d.]/.test(src[i])) num+=src[i++]; T.push({t:'NUM',v:parseFloat(num)}); continue; }
+        if (src[i]==='"') { i++; let s=''; while(i<len&&src[i]!=='"') s+=src[i++]; if(i<len) i++; T.push({t:'STR',v:s}); continue; }
+        if (/[a-zA-Z_]/.test(src[i])) { let id=''; while(i<len&&/[a-zA-Z0-9_]/.test(src[i])) id+=src[i++]; T.push({t:KW.has(id)?id.toUpperCase():'ID',v:id}); continue; }
+        if (src[i]==='='&&i+1<len&&src[i+1]==='=') { T.push({t:'==',v:'=='}); i+=2; continue; }
+        const ch=src[i]; if ('+-*/^~@<>=()[]|,;'.includes(ch)) { T.push({t:ch,v:ch}); i++; continue; }
+        i++;
+    }
+    T.push({t:'EOF',v:null}); return T;
+}
+class Parser {
+    constructor(tokens){this.T=tokens;this.p=0}
+    pk(){return this.T[this.p]} adv(){return this.T[this.p++]}
+    expect(t){const tok=this.adv();if(tok.t!==t)throw new Error('Expected '+t+', got '+tok.t+' "'+tok.v+'"');return tok}
+    match(t){if(this.pk().t===t){this.adv();return true}return false}
+    parseProgram(){const s=[];while(this.pk().t!=='EOF')s.push(this.parseStmt());return s}
+    parseStmt(){switch(this.pk().t){case 'LET':return this.parseLet();case 'FN':return this.parseFn();case 'PRINT':return this.parsePrint();default:return{t:'ExprStmt',expr:this.parseExpr()}}}
+    parseLet(){this.expect('LET');const n=this.expect('ID').v;this.expect('=');return{t:'Let',name:n,val:this.parseExpr()}}
+    parseFn(){this.expect('FN');const n=this.expect('ID').v;this.expect('(');const p=[];if(this.pk().t!==')'){p.push(this.expect('ID').v);while(this.match(','))p.push(this.expect('ID').v)}this.expect(')');this.expect('=');return{t:'Fn',name:n,params:p,body:this.parseExpr()}}
+    parsePrint(){this.expect('PRINT');if(this.pk().t==='STR')return{t:'Print',expr:{t:'Str',v:this.adv().v}};return{t:'Print',expr:this.parseExpr()}}
+    parseExpr(){let l=this.parseIfOrCmp();while(this.pk().t===';'){this.adv();l={t:'Seq',a:l,b:this.parseIfOrCmp()}}return l}
+    parseIfOrCmp(){if(this.pk().t==='IF')return this.parseIf();if(this.pk().t==='LET')return this.parseLetExpr();return this.parseCmp()}
+    parseLetExpr(){this.expect('LET');const n=this.expect('ID').v;this.expect('=');const v=this.parseExpr();if(this.pk().t==='IN')this.adv();return{t:'LetExpr',name:n,val:v,body:this.parseExpr()}}
+    parseIf(){this.expect('IF');const c=this.parseExpr();this.expect('THEN');const t=this.parseExpr();this.expect('ELSE');return{t:'If',cond:c,then_:t,else_:this.parseExpr()}}
+    parseCmp(){let l=this.parseAdd();while(['<','>','=='].includes(this.pk().t)){const o=this.adv().t;l={t:'Bin',op:o,l,r:this.parseAdd()}}return l}
+    parseAdd(){let l=this.parseMul();while(['+','-'].includes(this.pk().t)){const o=this.adv().t;l={t:'Bin',op:o,l,r:this.parseMul()}}return l}
+    parseMul(){let l=this.parsePow();while(['*','/'].includes(this.pk().t)){const o=this.adv().t;l={t:'Bin',op:o,l,r:this.parsePow()}}return l}
+    parsePow(){let l=this.parseUnary();if(this.pk().t==='^'){this.adv();l={t:'Bin',op:'^',l,r:this.parseUnary()}}return l}
+    parseUnary(){if(this.pk().t==='~'){this.adv();return{t:'Unary',op:'~',e:this.parseUnary()}}if(this.pk().t==='-'){this.adv();return{t:'Bin',op:'-',l:{t:'Num',v:0},r:this.parseUnary()}}return this.parseThresh()}
+    parseThresh(){let e=this.parsePostfix();if(this.pk().t==='@'){this.adv();e={t:'Thresh',val:e,th:this.parsePostfix()}}return e}
+    parsePostfix(){let e=this.parsePrimary();while(this.pk().t==='['){this.adv();const i=this.parseExpr();this.expect(']');e={t:'Idx',arr:e,idx:i}}return e}
+    parsePrimary(){
+        const tok=this.pk();
+        if(tok.t==='NUM'){this.adv();return{t:'Num',v:tok.v}}
+        if(tok.t==='STR'){this.adv();return{t:'Str',v:tok.v}}
+        if(tok.t==='ID'){this.adv();if(this.pk().t==='('){this.adv();const a=[];if(this.pk().t!==')'){a.push(this.parseExpr());while(this.match(','))a.push(this.parseExpr())}this.expect(')');return{t:'Call',fn:tok.v,args:a}}return{t:'Sym',name:tok.v}}
+        if(tok.t==='('){this.adv();const f=this.parseExpr();if(this.pk().t==='|'){this.adv();const s=this.parseExpr();this.expect('|');const t=this.parseExpr();this.expect(')');return{t:'DFloat',s:f,b:s,a:t}}this.expect(')');return f}
+        if(tok.t==='['){this.adv();const e=[];if(this.pk().t!==']'){e.push(this.parseExpr());while(this.match(','))e.push(this.parseExpr())}this.expect(']');return{t:'Arr',elems:e}}
+        throw new Error('Unexpected: '+tok.t+' "'+tok.v+'"');
+    }
+}
+const MAX_DEPTH=49;
+let outputLines=[];
+function execute(src) {
+    outputLines=[];
+    const tokens=tokenize(src), stmts=new Parser(tokens).parseProgram(), env={...CONSTANTS}, fns={};
+    function ev(node,localEnv,depth) {
+        if(depth>MAX_DEPTH)throw new Error('Max recursion depth exceeded');
+        switch(node.t){
+            case 'Num':return ringMod(node.v);case 'Str':return node.v;
+            case 'Sym':{if(node.name in localEnv)return localEnv[node.name];if(node.name in fns)return fns[node.name];throw new Error('Unknown: '+node.name)}
+            case 'Bin':{const l=ev(node.l,localEnv,depth),r=ev(node.r,localEnv,depth);switch(node.op){
+                case '+':return ringMod(l+r);case '-':return ringMod(l-r);case '*':return ringMod(l*r);
+                case '/':{const inv=multInverse(r);if(inv>=0)return ringMod(l*inv);if(r===0)throw new Error('Division by zero');return l/r}
+                case '^':return modPow(l,r);case '<':return l<r?1:0;case '>':return l>r?1:0;case '==':return l===r?1:0}break}
+            case 'Unary':if(node.op==='~')return ringMod(N-ev(node.e,localEnv,depth));break;
+            case 'Thresh':{const v=ev(node.val,localEnv,depth),th=ev(node.th,localEnv,depth);return v>th?v:ringMod(N-v)}
+            case 'If':{const c=ev(node.cond,localEnv,depth);return c!==0?ev(node.then_,localEnv,depth):ev(node.else_,localEnv,depth)}
+            case 'Seq':ev(node.a,localEnv,depth);return ev(node.b,localEnv,depth);
+            case 'LetExpr':{const val=ev(node.val,localEnv,depth);return ev(node.body,{...localEnv,[node.name]:val},depth)}
+            case 'Call':return evalCall(node.fn,node.args,localEnv,depth);
+            case 'Idx':{const arr=ev(node.arr,localEnv,depth),idx=Math.floor(ev(node.idx,localEnv,depth));if(!Array.isArray(arr))throw new Error('Cannot index non-array');if(idx<0||idx>=arr.length)throw new Error('Index out of bounds');return arr[idx]}
+            case 'Arr':return node.elems.map(e=>ev(e,localEnv,depth));
+            case 'DFloat':{const s=ev(node.s,localEnv,depth),b=ev(node.b,localEnv,depth);return ringMod(Math.floor(s*b))}
+        }
+        throw new Error('Cannot evaluate: '+JSON.stringify(node));
+    }
+    function evalCall(fnName,argNodes,localEnv,depth){
+        const args=argNodes.map(a=>ev(a,localEnv,depth));
+        switch(fnName){
+            case 'coupling':return coupling(args[0]);case 'crt':return crt(args[0]);
+            case 'eigenvalue':return eigenvalue(args[0]);case 'gcd':return gcd(args[0],args[1]);
+            case 'mod':return args[1]!==0?ringMod(Math.round(args[0])%Math.round(args[1])):0;
+            case 'inv':{const r=multInverse(args[0]);if(r<0)throw new Error('No inverse');return r}
+            case 'len':return Array.isArray(args[0])?args[0].length:0;
+            case 'abs':return Math.abs(args[0]);case 'show':{outputLines.push(fmtValue(args[0]));return args[0]}
+        }
+        if(fnName in fns){const fn=fns[fnName];if(args.length!==fn.params.length)throw new Error(fnName+' expects '+fn.params.length+' args');
+            const callEnv={...fn.closureEnv};for(let i=0;i<fn.params.length;i++)callEnv[fn.params[i]]=args[i];return ev(fn.body,callEnv,depth+1)}
+        throw new Error('Unknown function: '+fnName);
+    }
+    for(const stmt of stmts){switch(stmt.t){
+        case 'Let':env[stmt.name]=ev(stmt.val,env,0);break;
+        case 'Fn':fns[stmt.name]={params:stmt.params,body:stmt.body,closureEnv:{...env}};for(const name in fns)fns[name].closureEnv={...env,...Object.fromEntries(Object.entries(fns).map(([k,v])=>[k,v]))};break;
+        case 'Print':{const val=ev(stmt.expr,env,0);outputLines.push(typeof val==='string'?fmtText(val):fmtValue(val));break}
+        case 'ExprStmt':{const val=ev(stmt.expr,env,0);outputLines.push(fmtValue(val));break}
+    }}
+    return outputLines;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtText(s){return'<span class="out-text">'+esc(s)+'</span>'}
+function fmtValue(v){
+    if(typeof v==='string')return fmtText(v);
+    if(Array.isArray(v)){const inner=v.map(x=>typeof x==='number'?String(Number.isInteger(x)?x:x.toFixed(4)):esc(String(x))).join(', ');return'<span class="out-val">['+inner+']</span>'}
+    if(typeof v==='number'){const d=Number.isInteger(v)?String(v):v.toFixed(6);const a=Number.isInteger(v)&&VALUE_NAMES[v]?'  <span class="out-ann">('+VALUE_NAMES[v]+')</span>':'';return'<span class="out-val">'+esc(d)+'</span>'+a}
+    return'<span class="out-val">'+esc(String(v))+'</span>';
+}
+
+// ================================================================
+//  Syntax Highlighting
+// ================================================================
+const HL_CONSTS=new Set(Object.keys(CONSTANTS));
+const HL_BUILTINS=new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show']);
+const HL_KEYWORDS=new Set(['let','fn','print','if','then','else','while','do','for','in']);
+function highlightCode(src){
+    let html='',i=0;const len=src.length;
+    while(i<len){
+        if(src[i]==='-'&&i+1<len&&src[i+1]==='-'){let s=i;while(i<len&&src[i]!=='\n')i++;html+='<span class="hl-comment">'+esc(src.slice(s,i))+'</span>';continue}
+        if(src[i]==='"'){let s=i;i++;while(i<len&&src[i]!=='"')i++;if(i<len)i++;html+='<span class="hl-str">'+esc(src.slice(s,i))+'</span>';continue}
+        if(/\d/.test(src[i])||(src[i]==='.'&&i+1<len&&/\d/.test(src[i+1]))){let s=i;while(i<len&&/[\d.]/.test(src[i]))i++;html+='<span class="hl-num">'+esc(src.slice(s,i))+'</span>';continue}
+        if(/[a-zA-Z_]/.test(src[i])){let s=i;while(i<len&&/[a-zA-Z0-9_]/.test(src[i]))i++;const id=src.slice(s,i);
+            if(HL_KEYWORDS.has(id))html+='<span class="hl-kw">'+id+'</span>';
+            else if(HL_CONSTS.has(id))html+='<span class="hl-const">'+id+'</span>';
+            else if(HL_BUILTINS.has(id))html+='<span class="hl-fn">'+id+'</span>';
+            else html+=esc(id);continue}
+        if(src[i]==='='&&i+1<len&&src[i+1]==='='){html+='<span class="hl-op">==</span>';i+=2;continue}
+        if('+-*/^~@<>=;|,'.includes(src[i])){html+='<span class="hl-op">'+esc(src[i])+'</span>';i++;continue}
+        html+=esc(src[i]);i++;
+    }
+    return html+'\n';
+}
+function syncHighlight(){
+    const code=document.getElementById('code'),hl=document.getElementById('highlight-layer');
+    hl.innerHTML=highlightCode(code.value);hl.scrollTop=code.scrollTop;hl.scrollLeft=code.scrollLeft;
+}
+
+// ================================================================
+//  Challenge Definitions
+// ================================================================
+const CHALLENGES = [
+{
+    title: 'Existence',
+    desc: 'Everything begins with one fact: <em>something exists</em>. In .ax, the ground state is <code>s</code> (sigma). It equals 1 — the identity, the preserver.<br><br>Type <code>s</code> and press Run.',
+    hint: 'Just type the letter s on its own. That\'s it.',
+    starter: '-- Type your answer below\n',
+    check: (out) => out.some(l => l.includes('>1<'))
+},
+{
+    title: 'Duality',
+    desc: 'Sigma sees itself. Existence observing existence creates <em>two</em> — duality. <code>D = 2</code>.<br><br>Compute <code>s + s</code>.',
+    hint: 'Addition in the ring: s + s. Or just type D.',
+    starter: '-- Observation creates duality\ns + s',
+    check: (out) => out.some(l => l.includes('>2<'))
+},
+{
+    title: 'The Chain',
+    desc: 'From D, the chain unfolds: <code>D + s = K = 3</code> (closure), <code>K + D = E = 5</code> (observer), <code>E + D = b = 7</code> (depth). The sum <code>s + D + K + E = L = 11</code> (protector).<br><br>Print all five primes: D, K, E, b, L.',
+    hint: 'Use print for each: print D, print K, etc. Or be creative.',
+    starter: '-- The five primes that structure everything\nprint D\nprint K\nprint E\nprint b\nprint L',
+    check: (out) => {
+        const nums = out.join(' ');
+        return nums.includes('>2<') && nums.includes('>3<') && nums.includes('>5<') && nums.includes('>7<') && nums.includes('>11<');
+    }
+},
+{
+    title: 'The Thin Ring',
+    desc: 'Multiply the five primes together: <code>D * K * E * b * L</code>. This is the <em>thin ring</em> — the pedagogical shadow of the true form.<br><br>What number do you get?',
+    hint: 'Just multiply: D * K * E * b * L',
+    starter: '-- Five primes, one product\nD * K * E * b * L',
+    check: (out) => out.some(l => l.includes('>2310<'))
+},
+{
+    title: 'Decomposition',
+    desc: 'The Chinese Remainder Theorem splits any number into 5 independent channels. The builtin <code>crt(n)</code> returns <code>[n%8, n%9, n%25, n%49, n%11]</code>.<br><br>Decompose the KEY: <code>crt(KEY)</code>. The KEY is 41 — the self-inverse element.',
+    hint: 'Type: crt(KEY)',
+    starter: '-- CRT: one number, five channels\ncrt(KEY)',
+    check: (out) => out.some(l => l.includes('[1, 5, 16, 41, 8]'))
+},
+{
+    title: 'The True Form',
+    desc: 'The true ring is <em>fat</em> — each channel gets its full capacity. <code>D^3 * K^2 * E^2 * b^2 * L = 970200</code>. But all arithmetic is mod 970200.<br><br>Compute <code>D^3 * K^2 * E^2 * b^2 * L</code>. What happens?',
+    hint: 'The ring wraps: 970200 mod 970200 = 0. The void IS the ring.',
+    starter: '-- The TRUE FORM\nprint "D^3 * K^2 * E^2 * b^2 * L ="\nD^3 * K^2 * E^2 * b^2 * L',
+    check: (out) => out.some(l => l.includes('>0<'))
+},
+{
+    title: 'The Terminal',
+    desc: 'OMEGA (606376) is the terminal — where the spider arrives. It\'s an <em>idempotent</em>: multiplying it by itself changes nothing.<br><br>Verify: <code>OMEGA * OMEGA == OMEGA</code>.',
+    hint: 'The == operator returns 1 (true) or 0 (false).',
+    starter: '-- The terminal is self-stabilizing\nprint "OMEGA * OMEGA ="\nprint OMEGA * OMEGA\nprint "Is it equal to OMEGA?"\nOMEGA * OMEGA == OMEGA',
+    check: (out) => {
+        const text = out.join(' ');
+        return text.includes('>606376<') && text.includes('>1<');
+    }
+},
+{
+    title: 'The Key Returns',
+    desc: 'KEY = 41 is self-inverse in the data ring (Z/210Z). That means <code>KEY * KEY mod 210 = 1</code>. The key, applied twice, returns you to the ground state.<br><br>Verify: <code>mod(KEY * KEY, DATA)</code>.',
+    hint: 'mod(a, b) computes a mod b. DATA = 210.',
+    starter: '-- The self-inverse key\nprint "KEY ="\nprint KEY\nprint "KEY^2 mod DATA ="\nmod(KEY * KEY, DATA)',
+    check: (out) => {
+        const text = out.join(' ');
+        return text.includes('>41<') && text.includes('>1<');
+    }
+},
+{
+    title: 'Error Correction',
+    desc: 'L = 11 is the protector. It detects errors because <code>gcd(DATA/p, L) = 1</code> for every data prime p in {D, K, E, b}. This means L can see any single-channel corruption.<br><br>Verify all four: <code>gcd(DATA/D, L)</code>, <code>gcd(DATA/K, L)</code>, <code>gcd(DATA/E, L)</code>, <code>gcd(DATA/b, L)</code>.',
+    hint: 'DATA/D = 105, DATA/K = 70, DATA/E = 42, DATA/b = 30. All coprime to L=11.',
+    starter: '-- L=11 protects ALL data channels\nprint "gcd(DATA/D, L) ="\nprint gcd(DATA/D, L)\nprint "gcd(DATA/K, L) ="\nprint gcd(DATA/K, L)\nprint "gcd(DATA/E, L) ="\nprint gcd(DATA/E, L)\nprint "gcd(DATA/b, L) ="\nprint gcd(DATA/b, L)',
+    check: (out) => {
+        const text = out.join(' ');
+        const ones = (text.match(/>1</g) || []).length;
+        return ones >= 4;
+    }
+},
+{
+    title: 'The Rose',
+    desc: 'You\'ve walked the chain from nothing to everything. The ring wraps. 0/0 = everything.<br><br>There are no rules here. Explore. Try <code>eigenvalue()</code>, <code>coupling()</code>, write functions, scan the ring. This is <em>your</em> .ax now.',
+    hint: 'Try: fn f(p) = p*p - p - s ... then f(K), f(E), f(b). Or scan couplings. Or build a neuron.',
+    starter: '-- The Rose: free exploration\n-- Try anything. The ring is yours.\n\n-- Some ideas:\n-- eigenvalue(0)     maximum eigenvalue\n-- eigenvalue(OMEGA) terminal eigenvalue\n-- coupling(SOUL)    how connected is 67?\n-- crt(ANSWER)       42 in five channels\n\neigenvalue(0)',
+    check: () => true
+}
+];
+
+// ================================================================
+//  Playground State
+// ================================================================
+let currentCh = 0;
+let completed = new Set();
+
+function renderProgress() {
+    const bar = document.getElementById('progress');
+    let html = '';
+    for (let i = 0; i < CHALLENGES.length; i++) {
+        if (i > 0) html += '<div class="prog-line' + (completed.has(i-1) ? ' done' : '') + '"></div>';
+        let cls = 'prog-dot';
+        if (completed.has(i)) cls += ' done';
+        if (i === currentCh) cls += ' current';
+        html += '<div class="' + cls + '" onclick="goTo(' + i + ')">' + (i+1) + '</div>';
+    }
+    bar.innerHTML = html;
+}
+
+function renderChallenge() {
+    const ch = CHALLENGES[currentCh];
+    document.getElementById('ch-level').textContent = 'CHALLENGE ' + (currentCh + 1) + ' OF ' + CHALLENGES.length;
+    document.getElementById('ch-title').textContent = ch.title;
+    document.getElementById('ch-desc').innerHTML = ch.desc;
+    document.getElementById('ch-hint-text').textContent = ch.hint;
+    document.getElementById('ch-hint').classList.remove('open');
+    document.getElementById('code').value = ch.starter;
+    document.getElementById('output').innerHTML = '<span class="out-info">Press Run to execute your code.</span>';
+    document.getElementById('result').className = 'result';
+    document.getElementById('result').textContent = '';
+    document.getElementById('btn-prev').disabled = currentCh === 0;
+    document.getElementById('btn-next').textContent = currentCh === CHALLENGES.length - 1 ? 'Finish' : 'Next \u2192';
+    syncHighlight();
+    renderProgress();
+    document.getElementById('completion').style.display = 'none';
+    document.querySelector('.challenge-area').style.display = 'block';
+}
+
+function goTo(i) {
+    currentCh = i;
+    renderChallenge();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function navChallenge(dir) {
+    if (dir === 1 && currentCh === CHALLENGES.length - 1 && completed.has(currentCh)) {
+        showCompletion(); return;
+    }
+    const next = currentCh + dir;
+    if (next >= 0 && next < CHALLENGES.length) { currentCh = next; renderChallenge(); }
+}
+
+function resetChallenge() {
+    const ch = CHALLENGES[currentCh];
+    document.getElementById('code').value = ch.starter;
+    document.getElementById('output').innerHTML = '<span class="out-info">Press Run to execute your code.</span>';
+    document.getElementById('result').className = 'result';
+    syncHighlight();
+}
+
+function runCode() {
+    const src = document.getElementById('code').value;
+    const out = document.getElementById('output');
+    try {
+        const lines = execute(src);
+        out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
+    } catch (e) {
+        const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
+        out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+    }
+    out.scrollTop = out.scrollHeight;
+}
+
+function checkAnswer() {
+    runCode();
+    const out = document.getElementById('output');
+    const lines = out.innerHTML.split('\n');
+    const ch = CHALLENGES[currentCh];
+    const res = document.getElementById('result');
+    if (ch.check(lines)) {
+        res.className = 'result pass';
+        res.textContent = currentCh === CHALLENGES.length - 1
+            ? 'The rose blooms. The web is yours. sigma/sigma = sigma.'
+            : 'Correct. The chain grows.';
+        completed.add(currentCh);
+        renderProgress();
+    } else {
+        res.className = 'result fail';
+        res.textContent = 'Not quite. Check your output and try again.';
+    }
+}
+
+function showCompletion() {
+    document.querySelector('.challenge-area').style.display = 'none';
+    document.getElementById('completion').style.display = 'block';
+    renderProgress();
+}
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+    const codeEl = document.getElementById('code');
+    const hlEl = document.getElementById('highlight-layer');
+    codeEl.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runCode(); }
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const ta = e.target, s = ta.selectionStart, end = ta.selectionEnd;
+            ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(end);
+            ta.selectionStart = ta.selectionEnd = s + 2;
+            syncHighlight();
+        }
+    });
+    codeEl.addEventListener('input', syncHighlight);
+    codeEl.addEventListener('scroll', () => { hlEl.scrollTop = codeEl.scrollTop; hlEl.scrollLeft = codeEl.scrollLeft; });
+    renderChallenge();
+});
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

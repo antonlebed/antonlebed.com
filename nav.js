@@ -24,7 +24,7 @@ var CATS = {
 
 /* File -> category */
 var M = {
-  worldview:'start',story:'start',derive_ax:'start',repl:'start',
+  worldview:'start',story:'start',derive_ax:'start',repl:'start',playground:'start',
   particles:'physics',alpha:'physics',constants:'physics',turbulence:'physics',
   blackhole:'physics',nuclear:'physics',gravity:'physics',photon:'physics',
   pmns:'physics',three_body_dance:'physics',figure_ground:'physics',
@@ -48,7 +48,7 @@ var M = {
 
 /* Short titles */
 var T = {
-  worldview:'How the World Works',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',
+  worldview:'How the World Works',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',playground:'.ax Playground',
   particles:'Particle Masses',alpha:'Fine Structure',constants:'Physics Constants',turbulence:'Turbulence',
   blackhole:'Black Holes',nuclear:'Nuclear Shells',gravity:'Gravity',photon:'Light Becomes Mass',
   pmns:'Neutrino Mixing',three_body_dance:'Orbital Resonances',figure_ground:'One Force',
