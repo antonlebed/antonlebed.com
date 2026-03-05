@@ -466,7 +466,7 @@ function drawEntropy() {
 function drawIdentity() {
   // Show identity alignment for each agent
   let colW = Math.min(W / 4, 220);
-  let barH = H * 0.45;
+  let barH = Math.min(H * 0.35, 300);
   let topY = 80;
 
   ctx.fillStyle = '#888';
@@ -500,27 +500,45 @@ function drawIdentity() {
     // Bar chart per path
     let bw = colW / PATHS - 1;
     let maxCount = Math.max(...agents[a].counts, 1);
+    let chartTop = topY + 40;
+    let chartBot = chartTop + barH;
+
+    // Baseline
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ox - colW/2, chartBot); ctx.lineTo(ox + colW/2, chartBot); ctx.stroke();
+
+    // Clip to chart area
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ox - colW/2 - 2, chartTop, colW + 4, barH + 1);
+    ctx.clip();
+
     for (let p = 0; p < PATHS; p++) {
       let bx = ox - colW / 2 + p * (colW / PATHS);
       let count = agents[a].counts[p];
-      let h = (count / maxCount) * barH * 0.85;
+      let h = Math.min((count / maxCount) * barH * 0.85, barH);
       let isAligned = (p % K === a);
 
       ctx.fillStyle = isAligned ? hexToRgba(COL.agents[a], 0.7) : 'rgba(100,100,100,0.3)';
-      ctx.fillRect(bx, topY + 40 + barH - h, bw, h);
+      ctx.fillRect(bx, chartBot - h, bw, h);
 
       if (isAligned) {
-        // Highlight border
         ctx.strokeStyle = COL.agents[a];
         ctx.lineWidth = 1;
-        ctx.strokeRect(bx, topY + 40 + barH - h, bw, h);
+        ctx.strokeRect(bx, chartBot - h, bw, h);
       }
+    }
+    ctx.restore();
 
-      // Path label
+    // Path labels (below baseline)
+    for (let p = 0; p < PATHS; p++) {
+      let bx = ox - colW / 2 + p * (colW / PATHS);
+      let isAligned = (p % K === a);
       ctx.fillStyle = isAligned ? COL.agents[a] : '#444';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(p, bx + bw / 2, topY + 40 + barH + 12);
+      ctx.fillText(p, bx + bw / 2, chartBot + 12);
     }
 
     // Alignment percentage
