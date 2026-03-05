@@ -77,6 +77,7 @@ var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
 var cat = catKey ? CATS[catKey] : null;
 var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl', isIndex = key === 'index';
+var isDerive = key === 'derive_ax', isPlay = key === 'playground';
 
 /* Build per-category demo lists */
 var catDemos = {}, catOrder = ['start','physics','bio','math','eng','mind','tutorial'];
@@ -94,9 +95,9 @@ s.textContent =
   'background:none;border:none;cursor:pointer;font-family:inherit;font-size:inherit}' +
   '#sn a:hover,#sn button:hover{color:#ffd700;text-decoration:none}' +
   '.sn-l{display:flex;align-items:center;flex:1;min-width:0}' +
-  '.sn-b{color:#ffd700 !important;font-size:15px;font-weight:600;padding:0 16px 0 4px;' +
-  'letter-spacing:1px;flex-shrink:0}' +
-  '.sn-b:hover{color:#fff !important}' +
+  '.sn-b{color:#ffd700 !important;font-size:15px;font-weight:600;padding:4px 14px;' +
+  'letter-spacing:1px;flex-shrink:0;border:1px solid #333;border-radius:4px;margin-right:8px}' +
+  '.sn-b:hover{color:#fff !important;border-color:#ffd700;background:rgba(255,215,0,0.06)}' +
   '.sn-k{padding:0 14px;color:#888;font-size:13px;height:48px;display:flex;' +
   'align-items:center;position:relative;flex-shrink:0}' +
   '.sn-k.on{color:#fff}' +
@@ -107,7 +108,9 @@ s.textContent =
   '.sn-x .ar{font-size:9px;margin-left:5px;transition:transform 0.2s;display:inline-block}' +
   '.sn-x.open .ar{transform:rotate(180deg)}' +
   '.sn-r{color:#50fa7b !important;font-family:monospace;font-weight:bold;font-size:13px;' +
-  'letter-spacing:1px;padding:0 4px 0 14px;margin-left:auto;flex-shrink:0}' +
+  'letter-spacing:1px;padding:0 4px 0 14px;flex-shrink:0}' +
+  '.sn-r:first-of-type{margin-left:auto}' +
+  '.sn-r.on{color:#fff !important}' +
   '.sn-r:hover{text-shadow:0 0 8px rgba(80,250,123,0.4)}' +
   '.sn-h{display:none;font-size:22px;color:#888;padding:0 4px;margin-left:auto;' +
   'flex-shrink:0;line-height:1}' +
@@ -180,9 +183,11 @@ var h = '<div class="sn-l">' +
   '<a class="sn-b" href="index.html">970200</a>' +
   '<a class="sn-k' + (isWorld ? ' on' : '') + '" href="worldview.html">How the World Works</a>' +
   '<a class="sn-k' + (isMath ? ' on' : '') + '" href="story.html">The Mathematics</a>' +
+  '<a class="sn-k' + (isDerive ? ' on' : '') + '" href="derive_ax.html">From Nothing</a>' +
   '<button class="sn-x" id="sn-xp">Explore <span class="ar">\u25BE</span></button>' +
-  '</div>';
-if (!isRepl) h += '<a class="sn-r" href="repl.html">.ax</a>';
+  '</div>' +
+  '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
+  '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
 nav.innerHTML = h;
 document.body.insertBefore(nav, document.body.firstChild);
@@ -193,7 +198,7 @@ dd.id = 'sn-dd';
 var dh = '<div class="sn-g">';
 for (var i = 0; i < catOrder.length; i++) {
   var ck = catOrder[i], ci = CATS[ck], demos = catDemos[ck];
-  if (!demos.length) continue;
+  if (!demos.length || ck === 'start') continue;
   dh += '<div class="sn-gc"><h5 style="color:' + ci[1] + '">' + ci[0] + '</h5>';
   for (var j = 0; j < demos.length; j++) {
     dh += '<a href="' + demos[j] + '.html"' + (demos[j] === key ? ' class="cur"' : '') + '>' + T[demos[j]] + '</a>';
@@ -229,10 +234,12 @@ var mh = '<div class="sn-mh">' +
   '<a href="index.html">Home</a>' +
   '<a href="worldview.html">How the World Works</a>' +
   '<a href="story.html">The Mathematics</a>' +
-  '<a class="rpl" href="repl.html">.ax REPL</a>';
+  '<a href="derive_ax.html">From Nothing</a>' +
+  '<a class="rpl" href="repl.html">.ax REPL</a>' +
+  '<a class="rpl" href="playground.html">.ax Playground</a>';
 for (var i = 0; i < catOrder.length; i++) {
   var ck = catOrder[i], ci = CATS[ck], demos = catDemos[ck];
-  if (!demos.length) continue;
+  if (!demos.length || ck === 'start') continue;
   mh += '<div class="sn-mc" data-c="' + ck + '" style="color:' + ci[1] + '">' +
     ci[0] + ' (' + demos.length + ') <span class="ma">\u25B8</span></div>' +
     '<div class="sn-md" data-c="' + ck + '">';
