@@ -1120,6 +1120,34 @@ function transpileToC(src) {
             ANSWER:'lambda(b^2)',SOUL:'perceiver',ADDRESS:'fine structure',LAMBDA:'Carmichael'};
         const CRT_FN = {coupling:'crt_coupling',eigenvalue:'crt_eigenvalue',
             mirror:'crt_mirror',kingdom:'crt_kingdom',gcd:'crt_gcd'};
+        let _tmpIdx = 0;
+        function tmpVar() { return '_t' + (_tmpIdx++); }
+        function iterBounds(iter) {
+            // range(n) -> {start:'0', end:ce(n)}, range(a,b) -> {start:ce(a), end:ce(b)}
+            if (iter.t === 'Call' && iter.fn === 'range') {
+                if (iter.args.length === 1) return {start:'0', end:ce(iter.args[0])};
+                if (iter.args.length === 2) return {start:ce(iter.args[0]), end:ce(iter.args[1])};
+            }
+            return null;
+        }
+        function forToC(node) {
+            const bounds = iterBounds(node.iter);
+            if (bounds) {
+                const v = node.varName;
+                const body = ce(node.body);
+                return 'for (uint32_t ' + v + ' = ' + bounds.start + '; ' + v + ' < ' + bounds.end + '; ' + v + '++) { printf("%u\\n", ' + body + '); }';
+            }
+            // Array literal iteration
+            if (node.iter.t === 'Arr') {
+                const arr = tmpVar();
+                const elems = node.iter.elems.map(ce).join(', ');
+                const n = node.iter.elems.length;
+                const v = node.varName;
+                const body = ce(node.body);
+                return '{ uint32_t ' + arr + '[] = {' + elems + '}; for (int _i = 0; _i < ' + n + '; _i++) { uint32_t ' + v + ' = ' + arr + '[_i]; printf("%u\\n", ' + body + '); } }';
+            }
+            return '/* for ' + node.varName + ' in <dynamic> do ... */';
+        }
         function ce(node) {
             switch (node.t) {
                 case 'Num': return String(Math.round(node.v));
@@ -1136,6 +1164,21 @@ function transpileToC(src) {
                 case 'Unary': return '(N - (' + ce(node.e) + ')) % N';
                 case 'Thresh': return '((' + ce(node.val) + ') > (' + ce(node.th) + ') ? (' + ce(node.val) + ') : (N - (' + ce(node.val) + ')) % N)';
                 case 'Call': {
+                    // sum(for x in range(n) do expr) -> accumulator loop
+                    if ((node.fn === 'sum' || node.fn === 'product') && node.args.length === 1 && node.args[0].t === 'For') {
+                        const f = node.args[0], acc = tmpVar();
+                        const init = node.fn === 'sum' ? '0' : '1';
+                        const op = node.fn === 'sum' ? '+=' : '*=';
+                        const body = ce(f.body);
+                        const bounds = iterBounds(f.iter);
+                        if (bounds) {
+                            return '({ uint32_t ' + acc + ' = ' + init + '; for (uint32_t ' + f.varName + ' = ' + bounds.start + '; ' + f.varName + ' < ' + bounds.end + '; ' + f.varName + '++) ' + acc + ' ' + op + ' ' + body + '; ' + acc + ' % N; })';
+                        }
+                        if (f.iter.t === 'Arr') {
+                            const arr = tmpVar(), elems = f.iter.elems.map(ce).join(', '), n = f.iter.elems.length;
+                            return '({ uint32_t ' + arr + '[] = {' + elems + '}; uint32_t ' + acc + ' = ' + init + '; for (int _i = 0; _i < ' + n + '; _i++) { uint32_t ' + f.varName + ' = ' + arr + '[_i]; ' + acc + ' ' + op + ' ' + body + '; } ' + acc + ' % N; })';
+                        }
+                    }
                     const args = node.args.map(ce);
                     if (node.fn === 'crt') return 'crt_decompose(' + args[0] + ', ch)';
                     if (node.fn === 'phi') return 'euler_phi(' + (args[0] || 'N') + ')';
@@ -1154,15 +1197,21 @@ function transpileToC(src) {
                 case 'If': return '(' + ce(node.cond) + ' ? ' + ce(node.then_) + ' : ' + ce(node.else_) + ')';
                 case 'Arr': return '{' + node.elems.map(ce).join(', ') + '}';
                 case 'Seq': return ce(node.a) + '; ' + ce(node.b);
-                case 'For': return '/* for ' + node.varName + ' in ... */';
-                case 'LetExpr': return '/* let ' + node.name + ' = ... in ... */';
+                case 'For': return forToC(node);
+                case 'LetExpr': {
+                    const inner = ce(node.body);
+                    return '({ ' + node.name + ' = ' + ce(node.val) + '; ' + inner + '; })';
                 default: return '/* ... */';
             }
         }
         function cs(stmt, indent) {
             const pad = '    '.repeat(indent || 1);
             switch (stmt.t) {
-                case 'Let': return pad + '<span class="c-type">uint32_t</span> ' + esc(stmt.name) + ' = ' + esc(ce(stmt.val)) + ';';
+                case 'Let': {
+                    if (stmt.val && stmt.val.t === 'For' && stmt.name === '_')
+                        return pad + esc(forToC(stmt.val));
+                    return pad + '<span class="c-type">uint32_t</span> ' + esc(stmt.name) + ' = ' + esc(ce(stmt.val)) + ';';
+                }
                 case 'Fn': {
                     const params = stmt.params.map(p => '<span class="c-type">uint32_t</span> ' + esc(p)).join(', ');
                     return '<span class="c-type">uint32_t</span> <span class="c-fn">' + esc(stmt.name) + '</span>(' + params + ') {\n' + pad + '<span class="c-kw">return</span> ' + esc(ce(stmt.body)) + ';\n}';
@@ -1179,7 +1228,7 @@ function transpileToC(src) {
                     if (stmt.expr.t === 'Call' && stmt.expr.fn === 'crt')
                         return pad + '<span class="c-type">uint32_t</span> ch[5];\n' + pad + esc(expr) + ';\n' + pad + '<span class="c-fn">printf</span>(<span class="c-str">"[%u, %u, %u, %u, %u]\\n"</span>, ch[0], ch[1], ch[2], ch[3], ch[4]);';
                     if (stmt.expr.t === 'For')
-                        return pad + '<span class="c-cmt">/* for loop — see .ax source */</span>';
+                        return pad + esc(forToC(stmt.expr));
                     return pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(expr) + ');';
                 }
                 default: return pad + '<span class="c-cmt">/* ' + esc(stmt.t) + ' */</span>';

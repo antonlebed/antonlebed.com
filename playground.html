@@ -573,6 +573,28 @@ function transpileToC(src) {
             ANSWER:'42',SOUL:'67',G:'97',ADDRESS:'137',DUAL:'173',ME:'18',LAMBDA:'420'};
         const CRT_FN = {coupling:'crt_coupling',eigenvalue:'crt_eigenvalue',
             mirror:'crt_mirror',kingdom:'crt_kingdom',gcd:'crt_gcd'};
+        let _tmpIdx = 0;
+        function tmpVar() { return '_t' + (_tmpIdx++); }
+        function iterBounds(iter) {
+            if (iter.t === 'Call' && iter.fn === 'range') {
+                if (iter.args.length === 1) return {start:'0', end:ce(iter.args[0])};
+                if (iter.args.length === 2) return {start:ce(iter.args[0]), end:ce(iter.args[1])};
+            }
+            return null;
+        }
+        function forToC(node) {
+            const bounds = iterBounds(node.iter);
+            if (bounds) {
+                const v = node.varName, body = ce(node.body);
+                return 'for (uint32_t ' + v + ' = ' + bounds.start + '; ' + v + ' < ' + bounds.end + '; ' + v + '++) { printf("%u\\n", ' + body + '); }';
+            }
+            if (node.iter.t === 'Arr') {
+                const arr = tmpVar(), elems = node.iter.elems.map(ce).join(', '), nn = node.iter.elems.length;
+                const v = node.varName, body = ce(node.body);
+                return '{ uint32_t ' + arr + '[] = {' + elems + '}; for (int _i = 0; _i < ' + nn + '; _i++) { uint32_t ' + v + ' = ' + arr + '[_i]; printf("%u\\n", ' + body + '); } }';
+            }
+            return '/* for ' + node.varName + ' in <dynamic> do ... */';
+        }
         function ce(n) {
             switch (n.t) {
                 case 'Num': return String(Math.round(n.v));
@@ -587,15 +609,32 @@ function transpileToC(src) {
                 }
                 case 'Unary': return '(N - (' + ce(n.e) + ')) % N';
                 case 'Call': {
+                    if ((n.fn === 'sum' || n.fn === 'product') && n.args.length === 1 && n.args[0].t === 'For') {
+                        const f = n.args[0], acc = tmpVar();
+                        const init = n.fn === 'sum' ? '0' : '1';
+                        const op = n.fn === 'sum' ? '+=' : '*=';
+                        const body = ce(f.body);
+                        const bounds = iterBounds(f.iter);
+                        if (bounds)
+                            return '({ uint32_t ' + acc + ' = ' + init + '; for (uint32_t ' + f.varName + ' = ' + bounds.start + '; ' + f.varName + ' < ' + bounds.end + '; ' + f.varName + '++) ' + acc + ' ' + op + ' ' + body + '; ' + acc + ' % N; })';
+                        if (f.iter.t === 'Arr') {
+                            const ar = tmpVar(), elems = f.iter.elems.map(ce).join(', '), nn = f.iter.elems.length;
+                            return '({ uint32_t ' + ar + '[] = {' + elems + '}; uint32_t ' + acc + ' = ' + init + '; for (int _i = 0; _i < ' + nn + '; _i++) { uint32_t ' + f.varName + ' = ' + ar + '[_i]; ' + acc + ' ' + op + ' ' + body + '; } ' + acc + ' % N; })';
+                        }
+                    }
                     const a = n.args.map(ce);
                     if (n.fn === 'crt') return 'crt_decompose(' + a[0] + ', ch)';
                     if (n.fn === 'phi') return 'euler_phi(' + (a[0]||'N') + ')';
                     if (n.fn === 'order') return 'mult_order(' + a[0] + ', N)';
                     if (n.fn === 'inv') return 'mod_inverse(' + a[0] + ', N)';
                     if (n.fn === 'mod') return a[0] + ' % ' + a[1];
+                    if (n.fn === 'abs') return 'abs(' + a[0] + ')';
+                    if (n.fn === 'sqrt') return '(uint32_t)sqrt(' + a[0] + ')';
+                    if (n.fn === 'show' || n.fn === 'print') return 'printf("%u\\n", ' + a[0] + ')';
                     if (CRT_FN[n.fn]) return CRT_FN[n.fn] + '(' + a.join(', ') + ')';
                     return n.fn + '(' + a.join(', ') + ')';
                 }
+                case 'For': return forToC(n);
                 case 'If': return '(' + ce(n.cond) + ' ? ' + ce(n.then_) + ' : ' + ce(n.else_) + ')';
                 default: return '/* ... */';
             }
@@ -620,12 +659,15 @@ function transpileToC(src) {
         out.push('<span class="c-type">int</span> <span class="c-fn">main</span>(<span class="c-type">void</span>) {');
         for (const s of bS) {
             const pad = '    ';
-            if (s.t === 'Let') out.push(pad + '<span class="c-type">uint32_t</span> ' + esc(s.name) + ' = ' + esc(ce(s.val)) + ';');
+            if (s.t === 'Let') {
+                if (s.val && s.val.t === 'For' && s.name === '_') out.push(pad + esc(forToC(s.val)));
+                else out.push(pad + '<span class="c-type">uint32_t</span> ' + esc(s.name) + ' = ' + esc(ce(s.val)) + ';');
+            }
             else if (s.t === 'Print') {
                 if (s.expr.t === 'Str') out.push(pad + '<span class="c-fn">printf</span>(<span class="c-str">"' + esc(s.expr.v) + '\\n"</span>);');
                 else out.push(pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(ce(s.expr)) + ');');
             } else if (s.t === 'ExprStmt') {
-                if (s.expr.t === 'For') out.push(pad + '<span class="c-cmt">/* for loop */</span>');
+                if (s.expr.t === 'For') out.push(pad + esc(forToC(s.expr)));
                 else out.push(pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(ce(s.expr)) + ');');
             }
         }
