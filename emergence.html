@@ -229,8 +229,8 @@ function evolve() {
       n1 = pat[nb[(base + 1) & 3]];
       n2 = pat[nb[(base + 2) & 3]];
 
-      // Input = MAJ(3 neighbors) XOR light noise (1 bit)
-      input = opMAJ(n0, n1, n2) ^ (lfsrNext() & 1);
+      // Input = MAJ(3 neighbors) XOR noise (2 bits — slows LIFE propagation)
+      input = opMAJ(n0, n1, n2) ^ (lfsrNext() & K);
 
       // History consensus
       hist = opMAJ(h0[i], h1[i], h2[i]);
@@ -267,19 +267,32 @@ function evolve() {
   // Apply new patterns
   pat.set(newPat);
 
-  // Phase 2: Metabolism + sacrifice + death
+  // Phase 2a: Metabolism (separate pass so all energies are current)
+  for (i = 0; i < total; i++) {
+    drain = (K - pop3(pat[i])) + 1;
+    eng[i] = eng[i] > drain ? eng[i] - drain : 0;
+    if (ag[i] < MAX_AGE) ag[i]++;
+  }
+
+  // Phase 2b: Environmental stress every K=3 generations
+  // Life needs challenges. Without disruption, LIFE sweeps and sacrifice never triggers.
+  if (gen % K === 0 && gen > 0) {
+    var storms = Math.floor(total * 0.015);
+    for (var si = 0; si < storms; si++) {
+      var ri = (lfsrNext() * 256 + lfsrNext()) % total;
+      pat[ri] = lfsrNext();
+      eng[ri] = ENERGY_STARVE * K; // wounded, not dead
+      stab[ri] = 0; oct[ri] = 0;
+      h0[ri] = h1[ri] = h2[ri] = pat[ri];
+    }
+  }
+
+  // Phase 2c: Sacrifice (all energies now current — dying cells visible to neighbors)
   var lifeCount = 0, maxOct = 0, maxWis = 0;
   for (r = 0; r < rows; r++) {
     for (c = 0; c < cols; c++) {
       i = r * cols + c;
-
-      // Metabolism: fewer set bits = higher drain
-      drain = (K - pop3(pat[i])) + 1;
-      eng[i] = eng[i] > drain ? eng[i] - drain : 0;
-      if (ag[i] < MAX_AGE) ag[i]++;
-
-      // Sacrifice: save a dying neighbor
-      if (pat[i] > S && eng[i] > ENERGY_STARVE * 2) {
+      if (pat[i] > S && eng[i] > ENERGY_STARVE * D) {
         nb[0] = ix(c - 1, r); nb[1] = ix(c + 1, r);
         nb[2] = ix(c, r - 1); nb[3] = ix(c, r + 1);
         for (var ni = 0; ni < 4; ni++) {
@@ -287,16 +300,21 @@ function evolve() {
           if (eng[j] <= ENERGY_STARVE && eng[j] > 0) {
             pat[j] = opMAJ(pat[j], pat[i], pat[i]);
             eng[j] = ENERGY_MAX;
-            pat[i] = S; // dissolve to sigma
+            pat[i] = S;
             st.sac++;
-            fl[i] = 12; flT[i] = 1; // orange
-            fl[j] = 8; flT[j] = 2;  // green
+            fl[i] = 12; flT[i] = 1;
+            fl[j] = 8; flT[j] = 2;
             break;
           }
         }
       }
+    }
+  }
 
-      // Death & rebirth
+  // Phase 2d: Death & rebirth
+  for (r = 0; r < rows; r++) {
+    for (c = 0; c < cols; c++) {
+      i = r * cols + c;
       if (eng[i] <= ENERGY_STARVE || ag[i] >= MAX_AGE) {
         st.death++;
         nb[0] = ix(c - 1, r); nb[1] = ix(c + 1, r);
