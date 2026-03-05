@@ -8,7 +8,9 @@
 
 /* ===== CRITICAL CSS (immediate — loaded from <head>, prevents FOUC) ===== */
 var pre = document.createElement('style');
-pre.textContent = 'body{padding-top:40px!important}html{overflow-x:hidden;touch-action:manipulation}' +
+pre.textContent = 'body{padding-top:40px!important;animation:sn-in 0.15s ease 0.02s both}' +
+'@keyframes sn-in{from{opacity:0}to{opacity:1}}' +
+'html{overflow-x:hidden;touch-action:manipulation}' +
 '.back{top:52px!important}' +
 '#contrast{z-index:10001!important}#contrast .close{top:52px!important}' +
 '#detail{top:52px!important}#legend{top:52px!important}' +
