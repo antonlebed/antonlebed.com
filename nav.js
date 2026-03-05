@@ -11,8 +11,7 @@ if (!document.querySelector('link[rel="icon"]')) {
   ico.rel = 'icon'; ico.type = 'image/png'; ico.href = 'favicon.png';
   document.head.appendChild(ico);
 }
-var f = location.pathname.split('/').pop() || '';
-if (!f) return;
+var f = location.pathname.split('/').pop() || 'index.html';
 
 /* ===== CATEGORIES ===== */
 var CATS = {
