@@ -134,6 +134,14 @@ s.textContent =
   'opacity:0;pointer-events:none;transform:translateY(-8px);' +
   'transition:opacity 0.2s,transform 0.2s}' +
   '#sn-dd.open{opacity:1;pointer-events:auto;transform:translateY(0);padding:24px 32px 32px}' +
+  '.sn-tr{max-width:1000px;margin:0 auto 16px;padding:0 0 14px;border-bottom:1px solid #1a1a2a}' +
+  '.sn-tr h5{font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600;' +
+  'margin:0 0 8px}' +
+  '.sn-tr .sn-tl{display:flex;flex-wrap:wrap;gap:4px 10px}' +
+  '.sn-tr a{padding:3px 0;color:#666;font-size:12px;transition:color 0.15s;' +
+  'text-decoration:none;white-space:nowrap}' +
+  '.sn-tr a:hover{color:#ddd}' +
+  '.sn-tr a.cur{color:#ffd700}' +
   '.sn-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px;' +
   'max-width:1000px;margin:0 auto}' +
   '.sn-gc h5{font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600;' +
@@ -208,10 +216,20 @@ document.body.insertBefore(nav, document.body.firstChild);
 /* ===== DROPDOWN ===== */
 var dd = document.createElement('div');
 dd.id = 'sn-dd';
-var dh = '<div class="sn-g">';
+var tutDemos = catDemos['tutorial'] || [];
+var dh = '';
+if (tutDemos.length) {
+  var ti = CATS['tutorial'];
+  dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">' + ti[0] + '</h5><div class="sn-tl">';
+  for (var j = 0; j < tutDemos.length; j++) {
+    dh += '<a href="' + tutDemos[j] + '.html"' + (tutDemos[j] === key ? ' class="cur"' : '') + '>' + T[tutDemos[j]] + '</a>';
+  }
+  dh += '</div></div>';
+}
+dh += '<div class="sn-g">';
 for (var i = 0; i < catOrder.length; i++) {
   var ck = catOrder[i], ci = CATS[ck], demos = catDemos[ck];
-  if (!demos.length || ck === 'start') continue;
+  if (!demos.length || ck === 'start' || ck === 'tutorial') continue;
   dh += '<div class="sn-gc"><h5 style="color:' + ci[1] + '">' + ci[0] + '</h5>';
   for (var j = 0; j < demos.length; j++) {
     dh += '<a href="' + demos[j] + '.html"' + (demos[j] === key ? ' class="cur"' : '') + '>' + T[demos[j]] + '</a>';
