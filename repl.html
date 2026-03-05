@@ -73,6 +73,17 @@ table.contrast{width:100%;border-collapse:collapse;font-size:0.85em}
 table.contrast th{text-align:left;color:#d4a017;padding:6px 8px;border-bottom:1px solid #333}
 table.contrast td{padding:6px 8px;border-bottom:1px solid #1a1a2e}
 table.contrast td:first-child{color:#50fa7b;font-weight:bold}
+#trace{background:#0d0d18;border:1px solid #333;border-radius:6px;padding:12px;
+  font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;
+  max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
+  color:#6272a4;display:none;margin-bottom:16px}
+#trace.has-content{display:block}
+#trace .tr-fn{color:#50fa7b}
+#trace .tr-step{color:#8899aa}
+#trace .tr-result{color:#d4a017}
+.trace-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.trace-header label{color:#6272a4;font-size:0.85em;cursor:pointer;user-select:none}
+.trace-header input{accent-color:#50fa7b}
 .footer{text-align:center;color:#444;font-size:0.8em;margin-top:30px}
 
 @media(max-width:480px){
@@ -119,6 +130,11 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     <div class="editor-wrap"><pre id="highlight-layer" aria-hidden="true"></pre><textarea id="code" spellcheck="false"></textarea></div>
     <pre id="output"><span class="out-info">Press Run or Ctrl+Enter to execute .ax code.</span></pre>
   </div>
+  <div class="trace-header">
+    <input type="checkbox" id="trace-toggle" checked>
+    <label for="trace-toggle">Show arithmetic trace (see the math under the hood)</label>
+  </div>
+  <pre id="trace"></pre>
 
   <div class="section">
     <h2 onclick="toggleSection(this)">Quick Reference</h2>
@@ -203,6 +219,13 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
 // ================================================================
 
 const N = 970200;
+let traceLines = [];
+const TRACE_LIMIT = 50; // max trace entries per run
+
+function addTrace(html) {
+    if (traceLines.length < TRACE_LIMIT) traceLines.push(html);
+    else if (traceLines.length === TRACE_LIMIT) traceLines.push('<span class="tr-step">... (trace limit reached, showing first ' + TRACE_LIMIT + ' calls)</span>');
+}
 
 // --- Ring arithmetic ---
 function ringMod(x) { x = Math.round(x); return ((x % N) + N) % N; }
@@ -610,12 +633,39 @@ function execute(src) {
         const args = argNodes.map(a => ev(a, localEnv, depth));
         // Built-in functions
         switch (fnName) {
-            case 'coupling': return coupling(args[0]);
-            case 'crt': return crt(args[0]);
-            case 'eigenvalue': return eigenvalue(args[0]);
-            case 'mirror': return mirror(args[0]);
-            case 'phi': return eulerPhi(args.length > 0 ? args[0] : N);
-            case 'order': return multOrder(args[0]);
+            case 'coupling': {
+                const n = args[0], r = ringMod(n), g = gcd(r, N), result = N / g;
+                addTrace('<span class="tr-fn">coupling</span>(' + n + '): <span class="tr-step">' + n + ' mod ' + N + ' = ' + r + ', gcd(' + r + ', ' + N + ') = ' + g + ', ' + N + ' / ' + g + '</span> = <span class="tr-result">' + result + '</span>');
+                return result;
+            }
+            case 'crt': {
+                const result = crt(args[0]), r = ringMod(args[0]);
+                addTrace('<span class="tr-fn">crt</span>(' + args[0] + '): <span class="tr-step">' + r + ' mod 8 = ' + result[0] + ', ' + r + ' mod 9 = ' + result[1] + ', ' + r + ' mod 25 = ' + result[2] + ', ' + r + ' mod 49 = ' + result[3] + ', ' + r + ' mod 11 = ' + result[4] + '</span> = <span class="tr-result">[' + result.join(', ') + ']</span>');
+                return result;
+            }
+            case 'eigenvalue': {
+                const c = crt(args[0]), P = Math.PI;
+                const terms = [2*Math.cos(2*P*c[0]/8), 2*Math.cos(2*P*c[1]/9), 2*Math.cos(2*P*c[2]/25), 2*Math.cos(2*P*c[3]/49), 2*Math.cos(2*P*c[4]/11)];
+                const result = terms.reduce((a,b) => a+b, 0);
+                addTrace('<span class="tr-fn">eigenvalue</span>(' + args[0] + '): <span class="tr-step">crt=[' + c.join(',') + '] -> 2cos(2pi*' + c[0] + '/8)=' + terms[0].toFixed(4) + ' + 2cos(2pi*' + c[1] + '/9)=' + terms[1].toFixed(4) + ' + 2cos(2pi*' + c[2] + '/25)=' + terms[2].toFixed(4) + ' + 2cos(2pi*' + c[3] + '/49)=' + terms[3].toFixed(4) + ' + 2cos(2pi*' + c[4] + '/11)=' + terms[4].toFixed(4) + '</span> = <span class="tr-result">' + result.toFixed(6) + '</span>');
+                return result;
+            }
+            case 'mirror': {
+                const result = mirror(args[0]);
+                addTrace('<span class="tr-fn">mirror</span>(' + args[0] + '): <span class="tr-step">' + N + ' - ' + ringMod(args[0]) + '</span> = <span class="tr-result">' + result + '</span>');
+                return result;
+            }
+            case 'phi': {
+                const input = args.length > 0 ? args[0] : N;
+                const result = eulerPhi(input);
+                addTrace('<span class="tr-fn">phi</span>(' + input + ') = <span class="tr-result">' + result + '</span>');
+                return result;
+            }
+            case 'order': {
+                const result = multOrder(args[0]);
+                addTrace('<span class="tr-fn">order</span>(' + args[0] + '): <span class="tr-step">gcd(' + ringMod(args[0]) + ', ' + N + ')=' + gcd(ringMod(args[0]), N) + (gcd(ringMod(args[0]), N) !== 1 ? ' (not a unit!)' : ', ' + ringMod(args[0]) + '^k mod ' + N + ' = 1 at k=' + result) + '</span> = <span class="tr-result">' + result + '</span>');
+                return result;
+            }
             case 'gcd': return gcd(args[0], args[1]);
             case 'mod': return args[1] !== 0 ? ringMod(Math.round(args[0]) % Math.round(args[1])) : 0;
             case 'inv': { const r = multInverse(args[0]); if (r < 0) throw new Error('No inverse: gcd(' + args[0] + ', ' + N + ') != 1'); return r; }
@@ -1035,6 +1085,8 @@ function syncHighlight() {
 function run() {
     const src = document.getElementById('code').value;
     const out = document.getElementById('output');
+    const trace = document.getElementById('trace');
+    traceLines = [];
     try {
         const lines = execute(src);
         out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
@@ -1043,10 +1095,21 @@ function run() {
         out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
     }
     out.scrollTop = out.scrollHeight;
+    // Show trace panel if enabled and has content
+    const showTrace = document.getElementById('trace-toggle').checked;
+    if (showTrace && traceLines.length > 0) {
+        trace.innerHTML = traceLines.join('\n');
+        trace.classList.add('has-content');
+    } else {
+        trace.innerHTML = '';
+        trace.classList.remove('has-content');
+    }
 }
 
 function clearOutput() {
     document.getElementById('output').innerHTML = '<span class="out-info">Press Run or Ctrl+Enter to execute .ax code.</span>';
+    document.getElementById('trace').innerHTML = '';
+    document.getElementById('trace').classList.remove('has-content');
 }
 
 function loadExample(name) {
