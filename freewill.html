@@ -432,89 +432,25 @@ function drawEntropy() {
 }
 
 // ── Drawing: Identity view ──
-// APPROACH: define REGIONS as {x,y,w,h} boxes, then draw INTO them.
-// Helper drawBarChart takes a box and data, draws bars from box bottom up.
-// All Y positions derived from region boundaries, never from offsets.
-
-function drawBarChart(box, counts, agentId, col) {
-  // box = {x, y, w, h} — the rectangle bars live inside
-  // ONE floor variable for perfect alignment
-  var floor = Math.floor(box.y + box.h);
-  var barStep = Math.floor(box.w / PATHS);
-  var barW = Math.max(5, barStep - 2);
-  var maxC = 1;
-  for (var p = 0; p < PATHS; p++) {
-    if (counts[p] > maxC) maxC = counts[p];
-  }
-
-  // Bars FIRST (so axis draws ON TOP)
-  for (var p = 0; p < PATHS; p++) {
-    var bx = box.x + p * barStep + 1;
-    var frac = counts[p] / maxC;
-    var hPx = Math.floor(frac * box.h * 0.4);
-    if (hPx > box.h) hPx = box.h;
-    var isMe = (p % K === agentId);
-
-    ctx.fillStyle = isMe ? hexToRgba(col, 0.75) : 'rgba(100,100,100,0.3)';
-    ctx.fillRect(bx, floor - hPx, barW, hPx);
-
-    if (isMe && hPx > 0) {
-      ctx.fillStyle = col;
-      ctx.fillRect(bx, floor - hPx, barW, 1);
-      ctx.fillRect(bx, floor - hPx, 1, hPx);
-      ctx.fillRect(bx + barW - 1, floor - hPx, 1, hPx);
-    }
-
-    // Path label directly under axis
-    ctx.fillStyle = isMe ? col : '#444444';
-    ctx.font = '9px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('' + p, bx + barW / 2, floor + 13);
-  }
-
-  // Axis line: top edge at floor = bar bottom edge. Bars sit ON this.
-  ctx.fillStyle = '#444444';
-  ctx.fillRect(box.x, floor, box.w, 2);
-}
+// Uses EXACT same coordinate math as drawBarSet (Race view).
+// No separate floor/axis/box system. Just (x, y, w, h) with y+h as baseline.
 
 function drawIdentity() {
-  // ── MASTER LAYOUT: divide canvas into vertical zones ──
-  // Zone 1: header text (y: 0 to 55)
-  // Zone 2: strange loop (y: 55 to 115)
-  // Zone 3: agent info — title + % + progress bar (y: 115 to 195)
-  // Zone 4: bar charts (y: 195 to H-80)
-  // Zone 5: path labels + preferences (y: H-80 to H-10)
-
-  var z1 = 10;                          // header top
-  var z2 = 65;                          // strange loop top (+10 from header)
-  var z3 = 165;                         // agent info top (after bigger loop)
-  var z4 = z3 - 18;                     // bar charts top (100px up from before)
-  var chartH = Math.min(Math.round(H * 0.35), 300); // fixed chart height
-  var chartFloor = Math.floor(z4 + chartH);         // exact pixel where axis + bar bottoms sit
-
-  if (chartH < 60) chartH = 60;       // minimum usable chart
-
-  var colW = Math.min(Math.round(W / 3.8), 220);
-  var colGap = Math.max(10, Math.round(W * 0.02));
-  var totalW = colW * 3 + colGap * 2;
-  var x0 = Math.round((W - totalW) / 2);
-
-  // ── Zone 1: Header ──
+  // Header
   ctx.fillStyle = '#888888';
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, z1 + 20);
+  ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, 25);
   ctx.fillStyle = '#555555';
   ctx.font = '11px monospace';
-  ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, z1 + 38);
+  ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, 43);
 
-  // ── Zone 2: Strange Loop (2x size, breathing room) ──
+  // Strange loop
   ctx.fillStyle = '#555555';
   ctx.font = '12px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('The Strange Loop:', cx, z2);
-  var sr = 36;
-  var sCenterY = z2 + 45;
+  ctx.fillText('The Strange Loop:', cx, 60);
+  var sr = 30;
+  var sCenterY = 98;
   var sLabels = ['Choice', 'Preference', 'Identity'];
   for (var i = 0; i < 3; i++) {
     var ang = -Math.PI / 2 + i * Math.PI * 2 / 3;
@@ -533,20 +469,19 @@ function drawIdentity() {
     ctx.stroke();
   }
 
-  // ── Zone 3 + 4 + 5: Per-agent columns ──
+  // 3 columns — same proportions as Race
+  var bw = Math.min(Math.floor(W / 4.2), 200);
+  var bh = Math.floor(H * 0.42);
+  var colGap = Math.max(15, Math.round(W * 0.02));
+  var totalW = bw * 3 + colGap * 2;
+  var x0 = Math.round((W - totalW) / 2);
+  var barTop = 140;  // below header + strange loop
+
   for (var a = 0; a < 3; a++) {
-    var colX = x0 + a * (colW + colGap);
-    var midX = colX + colW / 2;
+    var colX = x0 + a * (bw + colGap);
+    var midX = colX + bw / 2;
 
-    // Zone 3: Agent title + % + progress
-    ctx.fillStyle = COL_AGENT[a];
-    ctx.font = 'bold 13px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Agent ' + a, midX, z3 + 12);
-    ctx.fillStyle = '#666666';
-    ctx.font = '10px monospace';
-    ctx.fillText('identity = ' + a, midX, z3 + 25);
-
+    // Percentage above bars
     var aligned = 0;
     for (var p = 0; p < PATHS; p++) {
       if (p % K === a) aligned += agents[a].counts[p];
@@ -554,43 +489,82 @@ function drawIdentity() {
     var pct = agents[a].total > 0 ? aligned / agents[a].total : 0;
 
     ctx.fillStyle = pct > 0.35 ? '#44ff88' : '#aaaaaa';
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText((pct * 100).toFixed(1) + '%', midX, z3 + 50);
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText((pct * 100).toFixed(1) + '%', midX, barTop - 22);
     ctx.fillStyle = '#555555';
     ctx.font = '9px monospace';
-    ctx.fillText('(expected 33.3%)', midX, z3 + 63);
+    ctx.fillText('(expect 33.3%)', midX, barTop - 10);
 
-    // Progress bar
-    var progY = z3 + 70;
+    // ── Bars: EXACT same math as drawBarSet (Race) ──
+    // Label above
+    ctx.fillStyle = COL_AGENT[a];
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Agent ' + a + ' (id=' + a + ')', midX, barTop - 45);
+
+    var barW = Math.floor(bw / PATHS) - 2;
+    var maxC = 1;
+    for (var p = 0; p < PATHS; p++) if (agents[a].counts[p] > maxC) maxC = agents[a].counts[p];
+
+    for (var p = 0; p < PATHS; p++) {
+      var bx = colX + p * Math.floor(bw / PATHS) + 1;
+      var pbh = Math.round((agents[a].counts[p] / maxC) * bh * 0.85);
+      if (pbh > bh) pbh = bh;
+      var by = barTop + bh - pbh;
+      var isMe = (p % K === a);
+
+      // Bar fill — identity paths in agent color, others grey
+      ctx.fillStyle = isMe ? hexToRgba(COL_AGENT[a], 0.75) : hexToRgba(COL_PATH[p], 0.3);
+      ctx.fillRect(bx, by, barW, pbh);
+
+      // Identity border highlight
+      if (isMe && pbh > 0) {
+        ctx.fillStyle = COL_AGENT[a];
+        ctx.fillRect(bx, by, barW, 1);
+        ctx.fillRect(bx, by, 1, pbh);
+        ctx.fillRect(bx + barW - 1, by, 1, pbh);
+      }
+
+      // Path label below bars (same as Race: y + h + 14)
+      ctx.fillStyle = isMe ? COL_AGENT[a] : '#555555';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('' + p, bx + barW / 2, barTop + bh + 14);
+
+      // Percentage above bar
+      if (agents[a].total > 0) {
+        ctx.fillStyle = '#444444';
+        ctx.font = '9px monospace';
+        ctx.fillText(Math.round(agents[a].counts[p] / agents[a].total * 100) + '%', bx + barW / 2, by - 4);
+      }
+    }
+
+    // Progress bar below labels
+    var progY = barTop + bh + 28;
     ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(colX, progY, colW, 6);
+    ctx.fillRect(colX, progY, bw, 6);
     ctx.fillStyle = '#333333';
-    ctx.fillRect(colX + Math.round(colW / 3), progY, 1, 6);
+    ctx.fillRect(colX + Math.round(bw / 3), progY, 1, 6);
     ctx.fillStyle = pct > 0.35 ? COL_AGENT[a] : '#666666';
-    ctx.fillRect(colX, progY, Math.min(colW, Math.round(colW * pct)), 6);
+    ctx.fillRect(colX, progY, Math.min(bw, Math.round(bw * pct)), 6);
 
-    // Zone 4: Bar chart — pass a box region
-    drawBarChart(
-      { x: colX, y: z4, w: colW, h: chartH },
-      agents[a].counts, a, COL_AGENT[a]
-    );
-
-    // Zone 5: Preference heatmap below path labels
-    var barStep = Math.floor(colW / PATHS);
-    var barW = Math.max(5, barStep - 2);
+    // Preference heatmap below progress
+    var prefY = progY + 14;
     ctx.fillStyle = '#555555';
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Prefs:', midX, chartFloor + 26);
+    ctx.fillText('Prefs:', midX, prefY);
     var maxPr = 0.01;
     for (var p = 0; p < PATHS; p++) {
       if (agents[a].prefs[p] > maxPr) maxPr = agents[a].prefs[p];
     }
+    var prefStep = Math.floor(bw / PATHS);
     for (var p = 0; p < PATHS; p++) {
-      var hx = colX + p * barStep + 1;
+      var hx = colX + p * prefStep + 1;
       var v = Math.min(agents[a].prefs[p] / maxPr, 1.0);
       ctx.fillStyle = hexToRgba(COL_AGENT[a], 0.15 + v * 0.85);
-      ctx.fillRect(hx, chartFloor + 32, barW, 8);
+      ctx.fillRect(hx, prefY + 4, prefStep - 2, 8);
     }
   }
 }
