@@ -280,7 +280,10 @@ function renderProps(el, props, color){
     <div class="prop"><span class="k">Max eigenvalue</span><span class="v">${props.degree}</span></div>
     <div class="prop"><span class="k">CRT channels</span><span class="v">${props.channels}</span></div>
     <div class="prop"><span class="k">Idempotents</span><span class="v">${props.idemp}</span></div>
-    <div class="prop"><span class="k">Balance (phi/classes)</span><span class="v">${props.balance.toFixed(2)}</span></div>`;
+    <div class="prop"><span class="k">Balance (phi/classes)</span><span class="v">${props.balance.toFixed(2)}</span></div>
+    <div class="prop"><span class="k">Computation cost</span><span class="v ${props.N>1e6?'bad':props.N>1e4?'mid':'good'}">${props.N>1e6?'Huge':props.N>1e4?'Moderate':'Light'} (${fmtN(props.N)} ops)</span></div>
+    <div class="prop"><span class="k">Resolution</span><span class="v ${props.gap<0.01?'bad':props.gap<0.1?'mid':'good'}">${props.gap<0.01?'Crowded':'Fine'} (gap ${props.gap.toFixed(4)})</span></div>
+    <div class="prop"><span class="k">Redundancy</span><span class="v ${props.channels>5?'bad':''}">${props.channels>5?props.channels-5+' extra channel'+(props.channels>6?'s':''):'None'}</span></div>`;
 }
 
 function renderCompare(yours){
@@ -379,21 +382,27 @@ function generateInsight(yours){
   const ax=AXIOM_PROPS;
   let lines=[];
   if(yours.N===ax.N){
-    lines.push('You found it. This is Z/970,200Z \u2014 the TRUE FORM.');
+    lines.push('<strong style="color:var(--gold)">You found it.</strong> This is Z/970,200Z \u2014 the TRUE FORM. The minmax sweet spot.');
+  }else if(yours.N>ax.N){
+    // ABOVE the true ring — show the COST
+    lines.push('<strong style="color:var(--red)">Bigger is not better.</strong> This ring is larger than 970,200. Here\'s what you lose:');
+    if(yours.gap<ax.gap)lines.push('\u2022 <strong>Spectral gap shrinks</strong> from '+ax.gap.toFixed(4)+' to '+yours.gap.toFixed(4)+'. Eigenvalues crowd together \u2014 harder to distinguish elements.');
+    if(yours.N>ax.N*10)lines.push('\u2022 <strong>Computation explodes</strong>: '+fmtN(yours.N)+' elements vs '+fmtN(ax.N)+'. '+Math.round(yours.N/ax.N)+'x more work for operations in the ring.');
+    if(yours.channels>ax.channels)lines.push('\u2022 <strong>'+( yours.channels-ax.channels)+' extra channel'+(yours.channels-ax.channels>1?'s':'')+' add redundancy</strong>, not information. Physics matching barely improves (check below).');
+    if(yours.idemp>ax.idemp)lines.push('\u2022 <strong>'+yours.idemp+' idempotents</strong> (vs '+ax.idemp+'). More boundary elements = more structural overhead.');
+    lines.push('The axiom is not about MAXIMUM structure. It\'s about the <strong>minimum ring that captures all the physics</strong>. 970,200 is where adding more stops helping and starts hurting.');
   }else{
-    if(yours.channels<ax.channels)lines.push('Fewer channels means coarser CRT decomposition. Adding primes adds resolution.');
-    if(yours.channels>ax.channels)lines.push('More channels than the axiom. But do the extra primes buy you better physics fits? Check below.');
-    if(yours.gap>ax.gap*2)lines.push('Large spectral gap = good separation between eigenvalue classes, but fewer classes overall. Too coarse for physics.');
-    if(yours.gap<ax.gap*0.5)lines.push('Tiny spectral gap = eigenvalues crowd together. Harder to distinguish elements. Diminishing returns.');
+    // BELOW the true ring — show what's missing
+    if(yours.channels<ax.channels)lines.push('\u2022 <strong>Missing channels.</strong> '+yours.channels+' CRT channels vs '+ax.channels+'. Coarser decomposition means less structure to work with.');
+    if(yours.gap>ax.gap*2)lines.push('\u2022 <strong>Spectral gap too wide</strong> ('+yours.gap.toFixed(3)+' vs '+ax.gap.toFixed(4)+'). Fewer eigenvalue classes = too coarse for physics.');
     const hasPowers=yours.config.some(c=>c.e>1);
-    if(!hasPowers&&yours.channels>=5)lines.push('All exponents are 1 (thin ring). Powers add richness: 2^3=8 gives a full byte channel, 7^2=49 gives the fine spectral gap.');
-    if(yours.N<210)lines.push('Too small. Not enough structure for serious physics matching.');
-    if(yours.N>1e7)lines.push('Very large ring. Physics match likely no better than 970,200 \u2014 extra structure is redundant.');
-    if(yours.balance>100)lines.push('High balance: more units than eigenvalue classes. The data channel is information-rich.');
-    if(yours.balance<1)lines.push('Low balance: fewer units per eigenvalue class. Spectral structure dominates over algebraic.');
+    if(!hasPowers&&yours.channels>=4)lines.push('\u2022 <strong>No powers (thin ring).</strong> Powers add depth: 2^3=8 gives a full byte channel, 7^2=49 gives the fine spectral gap that captures particle physics.');
+    if(yours.N<210)lines.push('\u2022 <strong>Too small</strong> for physics. Need at least Z/210Z (data ring) for meaningful structure.');
+    if(yours.N>=210&&yours.N<2310)lines.push('\u2022 <strong>Missing L=11</strong> (transcendental channel). No error correction. No protection. The ring is naked.');
+    if(yours.balance<ax.balance*0.5)lines.push('\u2022 <strong>Low balance</strong> ('+yours.balance.toFixed(1)+' vs '+ax.balance.toFixed(1)+'). Not enough algebraic richness per eigenvalue class.');
   }
-  if(lines.length===0)lines.push('Explore! Try adding/removing primes. Watch how the properties change. The axiom claims 970,200 is a sweet spot \u2014 see if you can find one better.');
-  el.innerHTML=lines.map(l=>'<p>'+l+'</p>').join('');
+  if(lines.length<=1&&yours.N!==ax.N)lines.push('Try the presets to see how properties change as you add/remove primes and powers.');
+  el.innerHTML=lines.join('<br>');
 }
 
 function update(){
