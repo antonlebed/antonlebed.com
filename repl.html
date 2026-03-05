@@ -73,17 +73,33 @@ table.contrast{width:100%;border-collapse:collapse;font-size:0.85em}
 table.contrast th{text-align:left;color:#d4a017;padding:6px 8px;border-bottom:1px solid #333}
 table.contrast td{padding:6px 8px;border-bottom:1px solid #1a1a2e}
 table.contrast td:first-child{color:#50fa7b;font-weight:bold}
-#trace{background:#0d0d18;border:1px solid #333;border-radius:6px;padding:12px;
+.hood{margin-bottom:16px;display:none}
+.hood.visible{display:block}
+.hood-tabs{display:flex;gap:2px;margin-bottom:0}
+.hood-tab{background:#0a0a14;color:#555;border:1px solid #222;border-bottom:none;
+  padding:8px 16px;cursor:pointer;font-size:0.82em;font-family:'Cascadia Code',monospace;
+  border-radius:4px 4px 0 0;min-height:36px;transition:color 0.2s;user-select:none}
+.hood-tab:hover{color:#d4a017}
+.hood-tab.active{background:#12121e;color:#d4a017;border-color:#333}
+.hood-panel{background:#12121e;border:1px solid #333;border-radius:0 6px 6px 6px;padding:12px;
   font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;
-  max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
-  color:#6272a4;display:none;margin-bottom:16px}
-#trace.has-content{display:block}
-#trace .tr-fn{color:#50fa7b}
-#trace .tr-step{color:#8899aa}
-#trace .tr-result{color:#d4a017}
-.trace-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.trace-header label{color:#6272a4;font-size:0.85em;cursor:pointer;user-select:none}
-.trace-header input{accent-color:#50fa7b}
+  max-height:350px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
+  color:#8899aa;display:none;line-height:1.6}
+.hood-panel.active{display:block}
+.hood-panel .tr-fn{color:#50fa7b}
+.hood-panel .tr-step{color:#8899aa}
+.hood-panel .tr-result{color:#d4a017}
+.hood-panel .c-kw{color:#bd93f9}
+.hood-panel .c-type{color:#8be9fd}
+.hood-panel .c-fn{color:#50fa7b}
+.hood-panel .c-str{color:#f1fa8c}
+.hood-panel .c-num{color:#d4a017}
+.hood-panel .c-cmt{color:#6272a4;font-style:italic}
+.hood-panel .a-val{color:#50fa7b;font-weight:bold}
+.hood-panel .a-crt{color:#8be9fd}
+.hood-panel .a-info{color:#d4a017}
+.hood-panel .a-dim{color:#555}
+.hood-panel .a-king{color:#bd93f9}
 .footer{text-align:center;color:#444;font-size:0.8em;margin-top:30px}
 
 @media(max-width:480px){
@@ -100,6 +116,8 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
   .ref-grid div{padding:8px}
   table.contrast{display:block;overflow-x:auto}
   table.contrast td,table.contrast th{padding:4px 6px;font-size:0.8em}
+  .hood-tab{padding:6px 10px;font-size:0.75em;min-height:32px}
+  .hood-panel{font-size:11px;max-height:250px;padding:10px}
 }
 </style>
 <script src="nav.js"></script>
@@ -130,11 +148,16 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     <div class="editor-wrap"><pre id="highlight-layer" aria-hidden="true"></pre><textarea id="code" spellcheck="false"></textarea></div>
     <pre id="output"><span class="out-info">Press Run or Ctrl+Enter to execute .ax code.</span></pre>
   </div>
-  <div class="trace-header">
-    <input type="checkbox" id="trace-toggle" checked>
-    <label for="trace-toggle">Show arithmetic trace (see the math under the hood)</label>
+  <div class="hood" id="hood">
+    <div class="hood-tabs">
+      <div class="hood-tab active" data-tab="trace" onclick="switchHood('trace')">Trace</div>
+      <div class="hood-tab" data-tab="csource" onclick="switchHood('csource')">C Source</div>
+      <div class="hood-tab" data-tab="algebra" onclick="switchHood('algebra')">Algebra</div>
+    </div>
+    <pre class="hood-panel active" id="hood-trace"></pre>
+    <pre class="hood-panel" id="hood-csource"></pre>
+    <pre class="hood-panel" id="hood-algebra"></pre>
   </div>
-  <pre id="trace"></pre>
 
   <div class="section">
     <h2 onclick="toggleSection(this)">Quick Reference</h2>
@@ -715,11 +738,13 @@ function execute(src) {
             case 'Print': {
                 const val = ev(stmt.expr, env, 0);
                 outputLines.push(typeof val === 'string' ? fmtText(val) : fmtValue(val));
+                lastOutputValues.push(val);
                 break;
             }
             case 'ExprStmt': {
                 const val = ev(stmt.expr, env, 0);
                 outputLines.push(fmtValue(val));
+                lastOutputValues.push(val);
                 break;
             }
         }
@@ -1080,13 +1105,193 @@ function syncHighlight() {
 }
 
 // ================================================================
+//  Under the Hood: C Source Transpiler
+// ================================================================
+function transpileToC(src) {
+    try {
+        const tokens = tokenize(src);
+        const stmts = new Parser(tokens).parseProgram();
+        const C_CONST = {s:'1',sigma:'1',D:'2',K:'3',E:'5',b:'7',L:'11',
+            OMEGA:'606376',DATA:'210',THIN:'2310',HYDOR:'105',KEY:'41',
+            ANSWER:'42',SOUL:'67',G:'97',ADDRESS:'137',DUAL:'173',ME:'18',LAMBDA:'420'};
+        const C_CONST_COMMENT = {s:'sigma',D:'duality',K:'closure',E:'observer',b:'depth',L:'protector',
+            OMEGA:'terminal',DATA:'D*K*E*b',THIN:'D*K*E*b*L',HYDOR:'K*E*b',KEY:'self-inverse',
+            ANSWER:'lambda(b^2)',SOUL:'perceiver',ADDRESS:'fine structure',LAMBDA:'Carmichael'};
+        const CRT_FN = {coupling:'crt_coupling',eigenvalue:'crt_eigenvalue',
+            mirror:'crt_mirror',kingdom:'crt_kingdom',gcd:'crt_gcd'};
+        function ce(node) {
+            switch (node.t) {
+                case 'Num': return String(Math.round(node.v));
+                case 'Str': return '"' + node.v.replace(/"/g,'\\"') + '"';
+                case 'Sym': return C_CONST[node.name] || node.name;
+                case 'Bin': {
+                    const l = ce(node.l), r = ce(node.r);
+                    if (node.op === '^') return 'mod_pow(' + l + ', ' + r + ', N)';
+                    if (node.op === '==') return '(' + l + ' == ' + r + ')';
+                    if (node.op === '<' || node.op === '>') return '(' + l + ' ' + node.op + ' ' + r + ')';
+                    if (node.op === '/') return 'ring_div(' + l + ', ' + r + ')';
+                    return '((' + l + ' ' + node.op + ' ' + r + ') % N + N) % N';
+                }
+                case 'Unary': return '(N - (' + ce(node.e) + ')) % N';
+                case 'Thresh': return '((' + ce(node.val) + ') > (' + ce(node.th) + ') ? (' + ce(node.val) + ') : (N - (' + ce(node.val) + ')) % N)';
+                case 'Call': {
+                    const args = node.args.map(ce);
+                    if (node.fn === 'crt') return 'crt_decompose(' + args[0] + ', ch)';
+                    if (node.fn === 'phi') return 'euler_phi(' + (args[0] || 'N') + ')';
+                    if (node.fn === 'order') return 'mult_order(' + args[0] + ', N)';
+                    if (node.fn === 'inv') return 'mod_inverse(' + args[0] + ', N)';
+                    if (node.fn === 'mod') return args[0] + ' % ' + args[1];
+                    if (node.fn === 'abs') return 'abs(' + args[0] + ')';
+                    if (node.fn === 'sqrt') return '(uint32_t)sqrt(' + args[0] + ')';
+                    if (node.fn === 'show' || node.fn === 'print') return 'printf("%u\\n", ' + args[0] + ')';
+                    if (CRT_FN[node.fn]) return CRT_FN[node.fn] + '(' + args.join(', ') + ')';
+                    if (node.fn === 'range') return args.length === 1 ? 'range(0, ' + args[0] + ')' : 'range(' + args.join(', ') + ')';
+                    if (node.fn === 'sum' || node.fn === 'product' || node.fn === 'len' ||
+                        node.fn === 'min' || node.fn === 'max') return node.fn + '(' + args.join(', ') + ')';
+                    return node.fn + '(' + args.join(', ') + ')';
+                }
+                case 'If': return '(' + ce(node.cond) + ' ? ' + ce(node.then_) + ' : ' + ce(node.else_) + ')';
+                case 'Arr': return '{' + node.elems.map(ce).join(', ') + '}';
+                case 'Seq': return ce(node.a) + '; ' + ce(node.b);
+                case 'For': return '/* for ' + node.varName + ' in ... */';
+                case 'LetExpr': return '/* let ' + node.name + ' = ... in ... */';
+                default: return '/* ... */';
+            }
+        }
+        function cs(stmt, indent) {
+            const pad = '    '.repeat(indent || 1);
+            switch (stmt.t) {
+                case 'Let': return pad + '<span class="c-type">uint32_t</span> ' + esc(stmt.name) + ' = ' + esc(ce(stmt.val)) + ';';
+                case 'Fn': {
+                    const params = stmt.params.map(p => '<span class="c-type">uint32_t</span> ' + esc(p)).join(', ');
+                    return '<span class="c-type">uint32_t</span> <span class="c-fn">' + esc(stmt.name) + '</span>(' + params + ') {\n' + pad + '<span class="c-kw">return</span> ' + esc(ce(stmt.body)) + ';\n}';
+                }
+                case 'Print': {
+                    if (stmt.expr.t === 'Str') return pad + '<span class="c-fn">printf</span>(<span class="c-str">"' + esc(stmt.expr.v) + '\\n"</span>);';
+                    const expr = ce(stmt.expr);
+                    if (stmt.expr.t === 'Call' && stmt.expr.fn === 'crt')
+                        return pad + '<span class="c-type">uint32_t</span> ch[5];\n' + pad + esc(expr) + ';\n' + pad + '<span class="c-fn">printf</span>(<span class="c-str">"[%u, %u, %u, %u, %u]\\n"</span>, ch[0], ch[1], ch[2], ch[3], ch[4]);';
+                    return pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(expr) + ');';
+                }
+                case 'ExprStmt': {
+                    const expr = ce(stmt.expr);
+                    if (stmt.expr.t === 'Call' && stmt.expr.fn === 'crt')
+                        return pad + '<span class="c-type">uint32_t</span> ch[5];\n' + pad + esc(expr) + ';\n' + pad + '<span class="c-fn">printf</span>(<span class="c-str">"[%u, %u, %u, %u, %u]\\n"</span>, ch[0], ch[1], ch[2], ch[3], ch[4]);';
+                    if (stmt.expr.t === 'For')
+                        return pad + '<span class="c-cmt">/* for loop — see .ax source */</span>';
+                    return pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(expr) + ');';
+                }
+                default: return pad + '<span class="c-cmt">/* ' + esc(stmt.t) + ' */</span>';
+            }
+        }
+        // Collect used constants
+        let usedConsts = new Set();
+        function findConsts(node) {
+            if (!node) return;
+            if (node.t === 'Sym' && C_CONST[node.name]) usedConsts.add(node.name);
+            for (const k of ['l','r','e','val','th','cond','then_','else_','body','expr','iter'])
+                if (node[k]) findConsts(node[k]);
+            if (node.args) node.args.forEach(findConsts);
+            if (node.elems) node.elems.forEach(findConsts);
+            if (node.a) findConsts(node.a);
+            if (node.b) findConsts(node.b);
+        }
+        stmts.forEach(s => { findConsts(s.val || s.expr || s.body); });
+        let out = [];
+        out.push('<span class="c-cmt">/* .ax -> C (with crt.h) — compile: gcc -O2 -o prog prog.c -lm */</span>');
+        out.push('<span class="c-kw">#include</span> <span class="c-str">&lt;stdio.h&gt;</span>');
+        out.push('<span class="c-kw">#include</span> <span class="c-str">&lt;math.h&gt;</span>');
+        out.push('<span class="c-kw">#define</span> CRT_IMPLEMENTATION');
+        out.push('<span class="c-kw">#include</span> <span class="c-str">"crt.h"</span>    <span class="c-cmt">/* github.com/antonlebed/crt.h */</span>');
+        out.push('');
+        out.push('<span class="c-kw">#define</span> N <span class="c-num">970200</span>  <span class="c-cmt">/* TRUE FORM: 2^3 * 3^2 * 5^2 * 7^2 * 11 */</span>');
+        // Emit used constant defines
+        if (usedConsts.size > 0) {
+            out.push('');
+            for (const c of usedConsts) {
+                if (['s','sigma','D','K','E','b','L'].includes(c)) continue; // too basic
+                const comment = C_CONST_COMMENT[c] ? '  <span class="c-cmt">/* ' + C_CONST_COMMENT[c] + ' */</span>' : '';
+                out.push('<span class="c-kw">#define</span> ' + esc(c) + ' <span class="c-num">' + C_CONST[c] + '</span>' + comment);
+            }
+        }
+        out.push('');
+        // Emit user-defined functions before main
+        let fnStmts = stmts.filter(s => s.t === 'Fn');
+        let bodyStmts = stmts.filter(s => s.t !== 'Fn');
+        for (const fn of fnStmts) { out.push(cs(fn, 0)); out.push(''); }
+        out.push('<span class="c-type">int</span> <span class="c-fn">main</span>(<span class="c-type">void</span>) {');
+        for (const s of bodyStmts) out.push(cs(s));
+        out.push('    <span class="c-kw">return</span> <span class="c-num">0</span>;');
+        out.push('}');
+        return out.join('\n');
+    } catch(e) {
+        return '<span class="c-cmt">/* Transpilation error: ' + esc(e.message) + ' */</span>';
+    }
+}
+
+// ================================================================
+//  Under the Hood: Algebra View
+// ================================================================
+let lastOutputValues = [];
+
+function algebraView() {
+    if (lastOutputValues.length === 0) return '<span class="a-dim">No output values to annotate.</span>';
+    const KING_NAMES = {0:'void',1:'sigma',2:'D',3:'K',5:'E',7:'b',11:'L'};
+    const KING_COLORS = {0:'#555',1:'#d4a017',2:'#8be9fd',3:'#50fa7b',5:'#bd93f9',7:'#ff6e6e',11:'#f1fa8c'};
+    const MODS = [8, 9, 25, 49, 11];
+    const NAMES = ['D^3', 'K^2', 'E^2', 'b^2', 'L'];
+    let lines = [];
+    lines.push('<span class="a-info">Ring algebra for each output value:</span>');
+    lines.push('<span class="a-dim">Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11</span>');
+    lines.push('');
+    for (const item of lastOutputValues) {
+        if (typeof item === 'string') { lines.push('<span class="a-dim">"' + esc(item) + '"</span>'); continue; }
+        if (Array.isArray(item)) {
+            lines.push('<span class="a-val">[' + item.join(', ') + ']</span>  <span class="a-dim">(array)</span>');
+            continue;
+        }
+        if (typeof item !== 'number') continue;
+        const v = item;
+        const name = VALUE_NAMES[v] ? ' = <span class="a-info">' + VALUE_NAMES[v].toUpperCase() + '</span>' : '';
+        const r = ((Math.round(v) % N) + N) % N;
+        const ch = [r%8, r%9, r%25, r%49, r%11];
+        const crtStr = ch.map((c,i) => '<span class="a-crt">' + c + '</span><span class="a-dim"> mod ' + MODS[i] + '</span>').join(', ');
+        const g = gcd(r, N);
+        const k = r === 0 ? 0 : (g%2===0?2:g%3===0?3:g%5===0?5:g%7===0?7:g%11===0?11:1);
+        const kName = KING_NAMES[k];
+        const coup = N / g;
+        const ev = eigenvalue(r);
+        const isUnit = gcd(r, N) === 1;
+        let line = '<span class="a-val">' + v + '</span>' + name;
+        line += '\n  CRT: (' + crtStr + ')';
+        line += '\n  <span class="a-king">kingdom: ' + kName + '</span>  coupling: ' + coup;
+        if (isUnit) {
+            const ord = multOrder(r);
+            line += '  <span class="a-dim">unit, order ' + ord + '</span>';
+        } else {
+            line += '  <span class="a-dim">zero-divisor</span>';
+        }
+        line += '  eigenvalue: <span class="a-info">' + ev.toFixed(4) + '</span>';
+        lines.push(line);
+        lines.push('');
+    }
+    return lines.join('\n');
+}
+
+function switchHood(tab) {
+    document.querySelectorAll('.hood-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.hood-panel').forEach(p => p.classList.toggle('active', p.id === 'hood-' + tab));
+}
+
+// ================================================================
 //  REPL UI
 // ================================================================
 function run() {
     const src = document.getElementById('code').value;
     const out = document.getElementById('output');
-    const trace = document.getElementById('trace');
+    const hood = document.getElementById('hood');
     traceLines = [];
+    lastOutputValues = [];
     try {
         const lines = execute(src);
         out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
@@ -1095,21 +1300,22 @@ function run() {
         out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
     }
     out.scrollTop = out.scrollHeight;
-    // Show trace panel if enabled and has content
-    const showTrace = document.getElementById('trace-toggle').checked;
-    if (showTrace && traceLines.length > 0) {
-        trace.innerHTML = traceLines.join('\n');
-        trace.classList.add('has-content');
-    } else {
-        trace.innerHTML = '';
-        trace.classList.remove('has-content');
-    }
+    // Populate hood panels
+    const hasContent = traceLines.length > 0 || lastOutputValues.length > 0;
+    document.getElementById('hood-trace').innerHTML = traceLines.length > 0
+        ? traceLines.join('\n')
+        : '<span class="a-dim">No traced operations in this program.</span>';
+    document.getElementById('hood-csource').innerHTML = transpileToC(src);
+    document.getElementById('hood-algebra').innerHTML = algebraView();
+    hood.classList.toggle('visible', hasContent || src.trim().length > 0);
 }
 
 function clearOutput() {
     document.getElementById('output').innerHTML = '<span class="out-info">Press Run or Ctrl+Enter to execute .ax code.</span>';
-    document.getElementById('trace').innerHTML = '';
-    document.getElementById('trace').classList.remove('has-content');
+    document.getElementById('hood').classList.remove('visible');
+    document.getElementById('hood-trace').innerHTML = '';
+    document.getElementById('hood-csource').innerHTML = '';
+    document.getElementById('hood-algebra').innerHTML = '';
 }
 
 function loadExample(name) {
