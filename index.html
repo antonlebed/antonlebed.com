@@ -124,15 +124,15 @@ a:hover{text-decoration:underline}
             color:#d0d0d0;outline:none;transition:border-color 0.3s}
 #search-box:focus{border-color:#ffd700}
 #search-box::placeholder{color:#444}
-#filters{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+#filters{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:32px}
+.f-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 .fchip{padding:8px 18px;font-size:12px;font-family:'Courier New',monospace;
-       background:#0c0c16;border:none;color:#555;cursor:pointer;
-       transition:all 0.4s;letter-spacing:1px;position:relative;user-select:none;
-       clip-path:polygon(10% 0%,90% 0%,100% 50%,90% 100%,10% 100%,0% 50%)}
-.fchip:hover{background:#141420;color:#888}
-.fchip.on{background:radial-gradient(ellipse at center,rgba(255,215,0,0.15),#0c0c16 70%);
-          animation:stone-glow 3s ease-in-out infinite}
+       background:#0c0c16;border:1px solid #1a1a2a;border-radius:6px;color:#555;cursor:pointer;
+       transition:all 0.3s;letter-spacing:1px;position:relative;user-select:none}
+.fchip:hover{border-color:#333;background:#141420;color:#888}
+.fchip.on{border-color:currentColor}
 .fchip.snap{animation:stone-snap 0.6s ease}
+.fchip[data-c="all"]{padding:10px 36px;font-size:13px;letter-spacing:2px}
 .cat-sec{margin-bottom:32px}
 .cat-hdr{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:3px;
          font-family:'Courier New',monospace;margin-bottom:12px;padding-left:16px;
@@ -192,6 +192,7 @@ a:hover{text-decoration:underline}
   .circle-label{font-size:9px}
   #search-box{font-size:14px}
   .fchip{padding:6px 10px;font-size:11px}
+  .fchip[data-c="all"]{padding:8px 24px;font-size:12px}
 }
 @media(max-width:480px){
   .roger-line{font-size:18px}
@@ -460,9 +461,13 @@ var hubReady=false;
 function buildHub(){
   if(hubReady)return;hubReady=true;
   var fDiv=document.getElementById('filters');
-  var order=['physics','bio','math','eng','mind','tutorial'];
-  mkChip(fDiv,'ALL','all','#ffd700',true);
-  for(var i=0;i<order.length;i++) mkChip(fDiv,C[order[i]].n.toUpperCase(),order[i],C[order[i]].x,false);
+  var order=['tutorial','physics','bio','math','eng','mind'];
+  var allRow=document.createElement('div');allRow.className='f-row';
+  mkChip(allRow,'ALL','all','#ffd700',true);
+  fDiv.appendChild(allRow);
+  var catRow=document.createElement('div');catRow.className='f-row';
+  for(var i=0;i<order.length;i++) mkChip(catRow,C[order[i]].n.toUpperCase(),order[i],C[order[i]].x,false);
+  fDiv.appendChild(catRow);
   render('all','');
   document.getElementById('search-box').addEventListener('input',function(){
     var q=this.value.toLowerCase();
@@ -485,13 +490,13 @@ function buildHub(){
 function mkChip(par,label,cat,color,on){
   var s=document.createElement('span');s.className='fchip'+(on?' on':'');
   s.textContent=label;s.setAttribute('data-c',cat);
-  if(on){s.style.color=color;s.style.background='radial-gradient(ellipse at center,'+color+'1f,#0a0a14 70%)';}
+  if(on){s.style.color=color;s.style.background=color+'12';s.style.borderColor=color+'44';}
   s.addEventListener('click',function(){
     var all=document.querySelectorAll('.fchip');
-    for(var i=0;i<all.length;i++){all[i].classList.remove('on');all[i].style.color='';
-      all[i].style.background='#0a0a14';all[i].style.animation='';}
+    for(var i=0;i<all.length;i++){all[i].classList.remove('on');all[i].style.color='#555';
+      all[i].style.background='';all[i].style.borderColor='';}
     s.classList.add('on');s.style.color=color;
-    s.style.background='radial-gradient(ellipse at center,'+color+'1f,#0a0a14 70%)';
+    s.style.background=color+'12';s.style.borderColor=color+'44';
     /* snap: if ALL clicked, stones light up in sequence then fade */
     if(cat==='all'){
       for(var i=1;i<all.length;i++){(function(el,delay){
@@ -542,7 +547,7 @@ function render(cat,q){
     }
   }
   /* Group by category */
-  var order=['physics','bio','math','eng','mind','tutorial'];
+  var order=['tutorial','physics','bio','math','eng','mind'];
   var g={};for(var i=0;i<f.length;i++){var d=f[i];if(!g[d.c])g[d.c]=[];g[d.c].push(d);}
   for(var ci=0;ci<order.length;ci++){
     var k=order[ci];if(!g[k])continue;
