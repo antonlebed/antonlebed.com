@@ -106,6 +106,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="neuron">Axiom Neuron</option>
       <option value="fib">Ring Fibonacci</option>
       <option value="coupling">Coupling Scanner</option>
+      <option value="scanner">Ring Scanner (for loops)</option>
       <option value="hello">Hello .ax</option>
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
@@ -143,6 +144,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
           <code>fn f(a, b) = expr</code> define function<br>
           <code>print expr</code> or <code>print "text"</code><br>
           <code>if c then a else b</code> conditional<br>
+          <code>for x in arr do body</code> iteration<br>
           <code>[a, b, c]</code> array &mdash; <code>arr[i]</code> index<br>
           <code>(s|b|a)</code> DFloat literal<br>
           <code>-- comment</code>
@@ -154,7 +156,10 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
           <code>eigenvalue(n)</code> spectral eigenvalue<br>
           <code>gcd(a,b)</code> <code>mod(a,b)</code> <code>inv(n)</code><br>
           <code>len(arr)</code> <code>abs(n)</code> <code>show(n)</code><br>
-          <code>show(x)</code> prints x and returns x
+          <code>range(n)</code> or <code>range(a,b)</code> array<br>
+          <code>kingdom(n)</code> smallest prime of gcd<br>
+          <code>sum(arr)</code> <code>product(arr)</code><br>
+          <code>min(a,b)</code> <code>max(a,b)</code> <code>sqrt(n)</code>
         </div>
       </div>
     </div>
@@ -361,7 +366,17 @@ class Parser {
     parseIfOrCmp() {
         if (this.pk().t === 'IF') return this.parseIf();
         if (this.pk().t === 'LET') return this.parseLetExpr();
+        if (this.pk().t === 'FOR') return this.parseFor();
         return this.parseCmp();
+    }
+
+    parseFor() {
+        this.expect('FOR');
+        const varName = this.expect('ID').v;
+        this.expect('IN');
+        const iter = this.parseCmp();
+        this.expect('DO');
+        return {t:'For', varName, iter, body:this.parseExpr()};
     }
 
     parseLetExpr() {
@@ -547,6 +562,12 @@ function execute(src) {
                 return arr[idx];
             }
             case 'Arr': return node.elems.map(e => ev(e, localEnv, depth));
+            case 'For': {
+                const arr = ev(node.iter, localEnv, depth);
+                if (!Array.isArray(arr)) throw new Error('for..in requires an array');
+                if (arr.length > 10000) throw new Error('Iteration limit (max 10000)');
+                return arr.map(item => ev(node.body, {...localEnv, [node.varName]: item}, depth));
+            }
             case 'DFloat': {
                 const s = ev(node.s, localEnv, depth);
                 const b = ev(node.b, localEnv, depth);
@@ -569,6 +590,23 @@ function execute(src) {
             case 'len': return Array.isArray(args[0]) ? args[0].length : 0;
             case 'abs': return Math.abs(args[0]);
             case 'show': { outputLines.push(fmtValue(args[0])); return args[0]; }
+            case 'range': {
+                if (args.length === 1) { const n = Math.min(Math.max(0, Math.round(args[0])), 10000); return Array.from({length:n}, (_,i) => i); }
+                const a = Math.round(args[0]), b = Math.min(Math.round(args[1]), a + 10000);
+                return Array.from({length: Math.max(0, b - a)}, (_, i) => a + i);
+            }
+            case 'kingdom': {
+                const n = ringMod(args[0]); if (n === 0) return 0;
+                const g = gcd(n, N);
+                if (g % 2 === 0) return 2; if (g % 3 === 0) return 3;
+                if (g % 5 === 0) return 5; if (g % 7 === 0) return 7;
+                if (g % 11 === 0) return 11; return 1;
+            }
+            case 'sum': { if (!Array.isArray(args[0])) throw new Error('sum expects array'); let s=0; for (const x of args[0]) s=ringMod(s+(typeof x==='number'?x:0)); return s; }
+            case 'product': { if (!Array.isArray(args[0])) throw new Error('product expects array'); let p=1; for (const x of args[0]) p=ringMod(p*(typeof x==='number'?x:0)); return p; }
+            case 'min': return Math.min(args[0], args[1]);
+            case 'max': return Math.max(args[0], args[1]);
+            case 'sqrt': return Math.floor(Math.sqrt(Math.abs(args[0])));
         }
         // User-defined function
         if (fnName in fns) {
@@ -824,6 +862,32 @@ print coupling(OMEGA)
 print "coupling(HYDOR):"
 print coupling(HYDOR)`,
 
+scanner: `-- scanner.ax: Ring Scanner
+-- for loops + range = ring exploration
+
+print "=== DEPTH QUADRATIC ==="
+-- f(p) = p^2 - p - 1: prime for all odd axiom primes
+fn f(p) = p * p - p - s
+for p in [K, E, b, L] do
+    show(p) ; f(p)
+
+print ""
+print "=== SELF-INVERSES IN Z/210Z ==="
+-- Elements where n^2 = 1 (mod 210)
+let _ = for n in range(s, DATA) do
+    if mod(n * n, DATA) == s then show(n) else 0
+
+print ""
+print "=== phi(210) = SEES ==="
+-- Count units (coprime to 210)
+print sum(for n in range(DATA) do
+    if gcd(n, DATA) == s then s else 0)
+
+print ""
+print "=== EIGENVALUE LANDSCAPE ==="
+for n in [0, s, KEY, ANSWER, SOUL, HYDOR, ADDRESS, OMEGA] do
+    show(n) ; eigenvalue(n)`,
+
 hello: `-- hello.ax
 -- The axiom's native language
 
@@ -850,7 +914,7 @@ print s`
 //  Syntax Highlighting (zero deps — overlay technique)
 // ================================================================
 const HL_CONSTS = new Set(Object.keys(CONSTANTS));
-const HL_BUILTINS = new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show']);
+const HL_BUILTINS = new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show','range','kingdom','sum','product','min','max','sqrt']);
 const HL_KEYWORDS = new Set(['let','fn','print','if','then','else','while','do','for','in']);
 
 function highlightCode(src) {

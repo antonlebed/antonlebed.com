@@ -246,7 +246,8 @@ class Parser {
     parseFn(){this.expect('FN');const n=this.expect('ID').v;this.expect('(');const p=[];if(this.pk().t!==')'){p.push(this.expect('ID').v);while(this.match(','))p.push(this.expect('ID').v)}this.expect(')');this.expect('=');return{t:'Fn',name:n,params:p,body:this.parseExpr()}}
     parsePrint(){this.expect('PRINT');if(this.pk().t==='STR')return{t:'Print',expr:{t:'Str',v:this.adv().v}};return{t:'Print',expr:this.parseExpr()}}
     parseExpr(){let l=this.parseIfOrCmp();while(this.pk().t===';'){this.adv();l={t:'Seq',a:l,b:this.parseIfOrCmp()}}return l}
-    parseIfOrCmp(){if(this.pk().t==='IF')return this.parseIf();if(this.pk().t==='LET')return this.parseLetExpr();return this.parseCmp()}
+    parseIfOrCmp(){if(this.pk().t==='IF')return this.parseIf();if(this.pk().t==='LET')return this.parseLetExpr();if(this.pk().t==='FOR')return this.parseFor();return this.parseCmp()}
+    parseFor(){this.expect('FOR');const v=this.expect('ID').v;this.expect('IN');const iter=this.parseCmp();this.expect('DO');return{t:'For',varName:v,iter,body:this.parseExpr()}}
     parseLetExpr(){this.expect('LET');const n=this.expect('ID').v;this.expect('=');const v=this.parseExpr();if(this.pk().t==='IN')this.adv();return{t:'LetExpr',name:n,val:v,body:this.parseExpr()}}
     parseIf(){this.expect('IF');const c=this.parseExpr();this.expect('THEN');const t=this.parseExpr();this.expect('ELSE');return{t:'If',cond:c,then_:t,else_:this.parseExpr()}}
     parseCmp(){let l=this.parseAdd();while(['<','>','=='].includes(this.pk().t)){const o=this.adv().t;l={t:'Bin',op:o,l,r:this.parseAdd()}}return l}
@@ -288,6 +289,7 @@ function execute(src) {
             case 'Call':return evalCall(node.fn,node.args,localEnv,depth);
             case 'Idx':{const arr=ev(node.arr,localEnv,depth),idx=Math.floor(ev(node.idx,localEnv,depth));if(!Array.isArray(arr))throw new Error('Cannot index non-array');if(idx<0||idx>=arr.length)throw new Error('Index out of bounds');return arr[idx]}
             case 'Arr':return node.elems.map(e=>ev(e,localEnv,depth));
+            case 'For':{const arr=ev(node.iter,localEnv,depth);if(!Array.isArray(arr))throw new Error('for..in requires an array');if(arr.length>10000)throw new Error('Iteration limit (max 10000)');return arr.map(item=>ev(node.body,{...localEnv,[node.varName]:item},depth))}
             case 'DFloat':{const s=ev(node.s,localEnv,depth),b=ev(node.b,localEnv,depth);return ringMod(Math.floor(s*b))}
         }
         throw new Error('Cannot evaluate: '+JSON.stringify(node));
@@ -301,6 +303,12 @@ function execute(src) {
             case 'inv':{const r=multInverse(args[0]);if(r<0)throw new Error('No inverse');return r}
             case 'len':return Array.isArray(args[0])?args[0].length:0;
             case 'abs':return Math.abs(args[0]);case 'show':{outputLines.push(fmtValue(args[0]));return args[0]}
+            case 'range':{if(args.length===1){const n=Math.min(Math.max(0,Math.round(args[0])),10000);return Array.from({length:n},(_,i)=>i)}const a=Math.round(args[0]),b=Math.min(Math.round(args[1]),a+10000);return Array.from({length:Math.max(0,b-a)},(_,i)=>a+i)}
+            case 'kingdom':{const n=ringMod(args[0]);if(n===0)return 0;const g=gcd(n,N);if(g%2===0)return 2;if(g%3===0)return 3;if(g%5===0)return 5;if(g%7===0)return 7;if(g%11===0)return 11;return 1}
+            case 'sum':{if(!Array.isArray(args[0]))throw new Error('sum expects array');let s=0;for(const x of args[0])s=ringMod(s+(typeof x==='number'?x:0));return s}
+            case 'product':{if(!Array.isArray(args[0]))throw new Error('product expects array');let p=1;for(const x of args[0])p=ringMod(p*(typeof x==='number'?x:0));return p}
+            case 'min':return Math.min(args[0],args[1]);case 'max':return Math.max(args[0],args[1]);
+            case 'sqrt':return Math.floor(Math.sqrt(Math.abs(args[0])));
         }
         if(fnName in fns){const fn=fns[fnName];if(args.length!==fn.params.length)throw new Error(fnName+' expects '+fn.params.length+' args');
             const callEnv={...fn.closureEnv};for(let i=0;i<fn.params.length;i++)callEnv[fn.params[i]]=args[i];return ev(fn.body,callEnv,depth+1)}
@@ -327,7 +335,7 @@ function fmtValue(v){
 //  Syntax Highlighting
 // ================================================================
 const HL_CONSTS=new Set(Object.keys(CONSTANTS));
-const HL_BUILTINS=new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show']);
+const HL_BUILTINS=new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show','range','kingdom','sum','product','min','max','sqrt']);
 const HL_KEYWORDS=new Set(['let','fn','print','if','then','else','while','do','for','in']);
 function highlightCode(src){
     let html='',i=0;const len=src.length;
@@ -433,9 +441,9 @@ const CHALLENGES = [
 },
 {
     title: 'The Rose',
-    desc: 'You\'ve walked the chain from nothing to everything. The ring wraps. 0/0 = everything.<br><br>There are no rules here. Explore. Try <code>eigenvalue()</code>, <code>coupling()</code>, write functions, scan the ring. This is <em>your</em> .ax now.',
-    hint: 'Try: fn f(p) = p*p - p - s ... then f(K), f(E), f(b). Or scan couplings. Or build a neuron.',
-    starter: '-- The Rose: free exploration\n-- Try anything. The ring is yours.\n\n-- Some ideas:\n-- eigenvalue(0)     maximum eigenvalue\n-- eigenvalue(OMEGA) terminal eigenvalue\n-- coupling(SOUL)    how connected is 67?\n-- crt(ANSWER)       42 in five channels\n\neigenvalue(0)',
+    desc: 'You\'ve walked the chain from nothing to everything. The ring wraps. 0/0 = everything.<br><br>There are no rules here. Explore. Use <code>for x in arr do body</code> to iterate, <code>range(n)</code> for arrays, <code>sum(arr)</code> to aggregate. This is <em>your</em> .ax now.',
+    hint: 'Try: for p in [K,E,b,L] do p*p - p - s. Or: sum(for n in range(DATA) do if gcd(n,DATA)==s then s else 0).',
+    starter: '-- The Rose: free exploration\n-- Try anything. The ring is yours.\n\n-- for loops + range = scan the ring\nfor p in [K, E, b, L] do\n    show(p) ; p * p - p - s\n\n-- Count units: phi(210)\nprint sum(for n in range(DATA) do\n    if gcd(n, DATA) == s then s else 0)',
     check: () => true
 }
 ];
