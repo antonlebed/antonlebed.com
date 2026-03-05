@@ -108,6 +108,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="fib">Ring Fibonacci</option>
       <option value="coupling">Coupling Scanner</option>
       <option value="scanner">Ring Scanner (for loops)</option>
+      <option value="spectral">Spectral Explorer (new!)</option>
       <option value="hello">Hello .ax</option>
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
@@ -151,10 +152,13 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
           <code>-- comment</code>
         </div>
         <div>
-          <h3>Built-in Functions</h3>
+          <h3>Built-in Functions (19)</h3>
           <code>coupling(n)</code> ring coupling level<br>
           <code>crt(n)</code> CRT: [n%8, n%9, n%25, n%49, n%11]<br>
           <code>eigenvalue(n)</code> spectral eigenvalue<br>
+          <code>mirror(n)</code> N-n (ring symmetry)<br>
+          <code>phi(n)</code> Euler's totient<br>
+          <code>order(n)</code> multiplicative order mod N<br>
           <code>gcd(a,b)</code> <code>mod(a,b)</code> <code>inv(n)</code><br>
           <code>len(arr)</code> <code>abs(n)</code> <code>show(n)</code><br>
           <code>range(n)</code> or <code>range(a,b)</code> array<br>
@@ -237,6 +241,30 @@ function eigenvalue(n) {
     return 2*Math.cos(2*P*c[0]/8) + 2*Math.cos(2*P*c[1]/9)
          + 2*Math.cos(2*P*c[2]/25) + 2*Math.cos(2*P*c[3]/49)
          + 2*Math.cos(2*P*c[4]/11);
+}
+
+function mirror(n) { return ringMod(N - ringMod(n)); }
+
+function eulerPhi(n) {
+    n = Math.abs(Math.round(n));
+    if (n < 1) return 0;
+    let result = n;
+    for (let p = 2; p * p <= n; p++) {
+        if (n % p === 0) {
+            while (n % p === 0) n /= p;
+            result -= result / p;
+        }
+    }
+    if (n > 1) result -= result / n;
+    return Math.round(result);
+}
+
+function multOrder(n) {
+    const m = ringMod(n);
+    if (gcd(m, N) !== 1) return 0; // not a unit
+    let x = m, k = 1;
+    while (x !== 1 && k <= 420) { x = (x * m) % N; k++; }
+    return x === 1 ? k : 0;
 }
 
 function multInverse(n) {
@@ -585,6 +613,9 @@ function execute(src) {
             case 'coupling': return coupling(args[0]);
             case 'crt': return crt(args[0]);
             case 'eigenvalue': return eigenvalue(args[0]);
+            case 'mirror': return mirror(args[0]);
+            case 'phi': return eulerPhi(args.length > 0 ? args[0] : N);
+            case 'order': return multOrder(args[0]);
             case 'gcd': return gcd(args[0], args[1]);
             case 'mod': return args[1] !== 0 ? ringMod(Math.round(args[0]) % Math.round(args[1])) : 0;
             case 'inv': { const r = multInverse(args[0]); if (r < 0) throw new Error('No inverse: gcd(' + args[0] + ', ' + N + ') != 1'); return r; }
@@ -884,6 +915,47 @@ print "=== EIGENVALUE LANDSCAPE ==="
 for n in [0, s, KEY, ANSWER, SOUL, HYDOR, ADDRESS, OMEGA] do
     show(n) ; eigenvalue(n)`,
 
+spectral: `-- spectral.ax: Mirror, Phi, Order
+-- New builtins for ring exploration
+
+print "=== MIRROR SYMMETRY ==="
+-- mirror(n) = N - n
+for n in [s, D, K, E, b, L, KEY, ANSWER] do
+    show(n) ; mirror(n)
+
+print ""
+print "=== EULER'S TOTIENT ==="
+-- phi(n) = count of units in Z/nZ
+print "phi(DATA=210):"
+print phi(DATA)
+print "phi(THIN=2310):"
+print phi(THIN)
+print "phi(970200):"
+print phi(970200)
+print "phi(b^2=49):"
+print phi(b * b)
+
+print ""
+print "=== MULTIPLICATIVE ORDER ==="
+-- order(n) = smallest k where n^k = 1 (mod N)
+-- Only defined for units (gcd(n,N) = 1)
+for n in [s, KEY, SOUL, ADDRESS, DUAL] do
+    show(n) ; order(n)
+
+print ""
+print "=== SELF-INVERSES: order = 2 ==="
+-- KEY^2 = 1 (mod 210). What about mod 970200?
+print "KEY^2 mod N:"
+print KEY ^ D
+print "order(KEY):"
+print order(KEY)
+
+print ""
+print "=== MIRROR + EIGENVALUE ==="
+-- n and mirror(n) have the SAME eigenvalue
+for n in [s, KEY, SOUL, ADDRESS] do
+    show(n) ; eigenvalue(n) ; eigenvalue(mirror(n))`,
+
 hello: `-- hello.ax
 -- The axiom's native language
 
@@ -910,7 +982,7 @@ print s`
 //  Syntax Highlighting (zero deps — overlay technique)
 // ================================================================
 const HL_CONSTS = new Set(Object.keys(CONSTANTS));
-const HL_BUILTINS = new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show','range','kingdom','sum','product','min','max','sqrt']);
+const HL_BUILTINS = new Set(['coupling','crt','eigenvalue','mirror','phi','order','gcd','mod','inv','len','abs','show','range','kingdom','sum','product','min','max','sqrt']);
 const HL_KEYWORDS = new Set(['let','fn','print','if','then','else','while','do','for','in']);
 
 function highlightCode(src) {

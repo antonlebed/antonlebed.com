@@ -205,6 +205,16 @@ function eigenvalue(n) {
     const c = crt(n), P = Math.PI;
     return 2*Math.cos(2*P*c[0]/8)+2*Math.cos(2*P*c[1]/9)+2*Math.cos(2*P*c[2]/25)+2*Math.cos(2*P*c[3]/49)+2*Math.cos(2*P*c[4]/11);
 }
+function mirror(n) { return ringMod(N - ringMod(n)); }
+function eulerPhi(n) {
+    n=Math.abs(Math.round(n)); if(n<1)return 0; let result=n;
+    for(let p=2;p*p<=n;p++){if(n%p===0){while(n%p===0)n/=p;result-=result/p}}
+    if(n>1)result-=result/n; return Math.round(result);
+}
+function multOrder(n) {
+    const m=ringMod(n); if(gcd(m,N)!==1)return 0;
+    let x=m,k=1; while(x!==1&&k<=420){x=(x*m)%N;k++} return x===1?k:0;
+}
 function multInverse(n) {
     let m = ringMod(n);
     if (gcd(m, N) !== 1) return -1;
@@ -299,7 +309,9 @@ function execute(src) {
         const args=argNodes.map(a=>ev(a,localEnv,depth));
         switch(fnName){
             case 'coupling':return coupling(args[0]);case 'crt':return crt(args[0]);
-            case 'eigenvalue':return eigenvalue(args[0]);case 'gcd':return gcd(args[0],args[1]);
+            case 'eigenvalue':return eigenvalue(args[0]);case 'mirror':return mirror(args[0]);
+            case 'phi':return eulerPhi(args.length>0?args[0]:N);case 'order':return multOrder(args[0]);
+            case 'gcd':return gcd(args[0],args[1]);
             case 'mod':return args[1]!==0?ringMod(Math.round(args[0])%Math.round(args[1])):0;
             case 'inv':{const r=multInverse(args[0]);if(r<0)throw new Error('No inverse');return r}
             case 'len':return Array.isArray(args[0])?args[0].length:0;
@@ -336,7 +348,7 @@ function fmtValue(v){
 //  Syntax Highlighting
 // ================================================================
 const HL_CONSTS=new Set(Object.keys(CONSTANTS));
-const HL_BUILTINS=new Set(['coupling','crt','eigenvalue','gcd','mod','inv','len','abs','show','range','kingdom','sum','product','min','max','sqrt']);
+const HL_BUILTINS=new Set(['coupling','crt','eigenvalue','mirror','phi','order','gcd','mod','inv','len','abs','show','range','kingdom','sum','product','min','max','sqrt']);
 const HL_KEYWORDS=new Set(['let','fn','print','if','then','else','while','do','for','in']);
 function highlightCode(src){
     let html='',i=0;const len=src.length;
