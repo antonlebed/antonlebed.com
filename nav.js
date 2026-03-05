@@ -88,7 +88,9 @@ for (var dk in M) { if (T[dk]) catDemos[M[dk]].push(dk); }
 /* ===== STYLES ===== */
 var s = document.createElement('style');
 s.textContent =
-  'html{overflow-x:hidden}body{padding-top:0!important}' +
+  'html{overflow-x:hidden}' +
+  'body{padding-top:0!important;animation:sn-in 0.15s ease both}' +
+  '@keyframes sn-in{from{opacity:0}to{opacity:1}}' +
   /* Nav bar */
   '#sn{position:sticky;top:0;z-index:9999;background:rgba(5,5,8,0.97);' +
   'border-bottom:1px solid #1a1a22;height:48px;display:flex;align-items:center;' +
