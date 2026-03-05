@@ -55,28 +55,28 @@ var M = {
 /* Short titles */
 var T = {
   worldview:'How the World Works',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',playground:'.ax Playground',
-  particles:'Particle Masses',alpha:'Fine Structure',constants:'Physics Constants',turbulence:'Turbulence',
+  particles:'Particle Masses',alpha:'Fine Structure Constant',constants:'All Physics Constants',turbulence:'Turbulence & Metabolism',
   blackhole:'Black Holes',nuclear:'Nuclear Shells',gravity:'Gravity',photon:'Light Becomes Mass',
   pmns:'Neutrino Mixing',three_body_dance:'Orbital Resonances',figure_ground:'One Force',
   eternal_sun:'Why the Sun Lives',scale_bands:'Scale Bands',noxan:'Cold Thoughts',wavebox:'Standing Waves',
   sigma_dynamics:'How Rings Forget',loop:'Fall Trinity',
   dna:'DNA Codons',sleep:'Sleep Stages',heart:'The Heartbeat',death:'What Death Is',
-  human_shape:'Body Is a Ring',generations:'Three Families',septilix:'Seven Petals',
-  millennium:'Millennium Problems',hardest:'11 Unsolvables',goldbach:'Goldbach Pairs',
+  human_shape:'Your Body Is a Ring',generations:'Three Families',septilix:'Seven Petals',
+  millennium:'Millennium Problems',hardest:'11 Famous Unsolvables',goldbach:'Goldbach Pairs',
   coupling:'Coupling Landscape',ninedot:'9-Dot Puzzle',infinity:'Infinite from Finite',
   bootstrap:'Why Existence Exists',symbol:'Three Shapes',watercycle:'Water Cycle',genesis:'Genesis',
   clock24:'24-Hour Clock',rose:'Interactive Rose',gap_pairs:'K=3 Gap Gates',depth_quad:'Depth Quadratic',
   fourteen:'The Full Fourteen',
-  demo_classifier:'Classifier',ecc_live:'Live ECC',demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'Compression',
-  tokenizer:'Tokenizer',k_neural:'Ternary AI',demo_ecc:'ECC Classic',
+  demo_classifier:'Classifier',ecc_live:'Live Error Correction',demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'CRT Compression',
+  tokenizer:'CRT Tokenizer',k_neural:'Ternary AI',demo_ecc:'ECC Classic',
   emergence:'Emergence',conscious:'Consciousness',freewill:'Free Will',braid:'Braids',dimension:'Dimensions',
   ouroboros:'Ouroboros',lava_lamp:'HYDOR',sandpile:'Sandpile',music:'Music of Primes',
-  atlas_01_what_is_2310:'1. What Is 2310?',atlas_02_two_rings:'2. Two Rings',
-  atlas_03_crt:'3. CRT',atlas_04_carousel:'4. Carousel',atlas_05_eigenvalues:'5. Eigenvalues',
-  atlas_06_units:'6. Units',atlas_07_kingdoms:'7. Kingdoms',atlas_08_breakthroughs:'8. Breakthroughs',
-  atlas_09_demos:'9. Demos',atlas_10_millennium:'10. Millennium',atlas_11_net:"11. Indra's Net",
-  atlas_12_shadow_polynomial:'12. Shadow Poly',atlas_13_biological_braid:'13. Bio Braid',
-  atlas_14_solar_ladder:'14. Solar Ladder'
+  atlas_01_what_is_2310:'0. Five Primes',atlas_02_two_rings:'1. Three Rings',
+  atlas_03_crt:'2. Five Petals',atlas_04_carousel:'3. Carousel',atlas_05_eigenvalues:'4. Eigenvalues',
+  atlas_06_units:'5. Units',atlas_07_kingdoms:'6. Kingdoms',atlas_08_breakthroughs:'7. Breakthroughs',
+  atlas_09_demos:'8. Demos',atlas_10_millennium:'9. Millennium',atlas_11_net:"10. Indra's Net",
+  atlas_12_shadow_polynomial:'11. Shadow Polynomial',atlas_13_biological_braid:'12. Bio Braid',
+  atlas_14_solar_ladder:'13. Solar Ladder'
 };
 
 var key = f.replace('.html','');
