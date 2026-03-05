@@ -88,7 +88,7 @@ var T = {
   clock24:'24-Hour Clock',rose:'Interactive Rose',gap_pairs:'K=3 Gap Gates',depth_quad:'Depth Quadratic',
   fourteen:'The Full Fourteen',
   sm:'25/25 Standard Model',
-  oracle:'Try Any Number',challenge:'Beat Five Primes',
+  oracle:'Try Any Number',challenge:'Why This Ring?',
   demo_classifier:'Classifier',ecc_live:'Live Error Correction',demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'CRT Compression',
   tokenizer:'CRT Tokenizer',k_neural:'Ternary AI',demo_ecc:'ECC Classic',
   emergence:'Emergence',conscious:'Consciousness',freewill:'Free Will',braid:'Braids',dimension:'Dimensions',
