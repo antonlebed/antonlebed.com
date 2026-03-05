@@ -22,7 +22,7 @@ h1{text-align:center;padding:18px 10px 4px;font-size:1.5em;color:#f0c040;letter-
 .side-panel{flex:0 0 320px;min-width:280px;display:flex;flex-direction:column;gap:8px}
 @media(max-width:800px){.side-panel{flex:1 1 100%}}
 canvas{border-radius:8px;background:#111118;display:block}
-#grid{width:100%}
+#grid{width:100%;transition:box-shadow 0.5s}
 .life-pct{text-align:center;font-size:2.4em;font-weight:bold;color:#4f4;padding:4px 0;text-shadow:0 0 20px rgba(68,255,68,0.3)}
 .controls{display:flex;gap:6px;align-items:center;padding:8px 0;flex-wrap:wrap}
 .controls button{background:#222;border:1px solid #444;color:#e0e0e0;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:0.85em}
@@ -174,6 +174,9 @@ var pat, eng, ag, oct, stab, wis, h0, h1, h2, fl, flT, newPat;
 var gen = 0, playing = true, lastEv = 0, needsRender = true;
 var st = { life: 0, sac: 0, echad: 0, asc: 0, death: 0, maxOct: 0, maxWis: 0 };
 var lifeHist = [], events = [];
+var bloomCv = null, bloomCtx = null;
+var shockwaves = []; // {x, y, r, maxR, alpha, color}
+var particles = []; // {x, y, vx, vy, life, color}
 
 function ix(c, r) {
   return ((r % rows + rows) % rows) * cols + ((c % cols + cols) % cols);
@@ -359,6 +362,7 @@ function evolve() {
       maxOct = mo;
     }
     soundAscend(maxOct);
+    if (maxOct >= 4) addShockwave(null, null, '160,100,255');
     events.unshift({ gen: gen, text: 'Ascension to L' + maxOct + ' (' + stableLife + ' stable)', type: 'ascend' });
     if (events.length > 80) events.pop();
 
@@ -370,6 +374,8 @@ function evolve() {
     if (echadN >= K) {
       st.echad++;
       soundEchad();
+      addShockwave(null, null, '240,192,64');
+      addParticleBurst(null, null, 60, '240,192,64');
       for (i = 0; i < total; i++) {
         if (oct[i] >= LIFE) { oct[i] = 0; fl[i] = 20; flT[i] = 3; }
       }
@@ -420,12 +426,27 @@ function render() {
       cr = col[0]; cg = col[1]; cb = col[2];
       alpha = 0.25 + (eng[i] / ENERGY_MAX) * 0.75;
 
-      // Octave brightness for LIFE
+      // Octave color progression: green -> gold -> white
       if (pat[i] === LIFE) {
-        boost = 1 + oct[i] * 0.12;
-        cr = Math.min(255, (cr * boost) | 0);
-        cg = Math.min(255, (cg * boost) | 0);
-        cb = Math.min(255, (cb * boost) | 0);
+        var ot = oct[i] / 7; // 0..1
+        if (ot <= 0.5) {
+          var t2 = ot * 2;
+          cr = (68 + 172 * t2) | 0;   // 68 -> 240
+          cg = (255 - 55 * t2) | 0;   // 255 -> 200
+          cb = (68 - 4 * t2) | 0;     // 68 -> 64
+        } else {
+          var t2 = (ot - 0.5) * 2;
+          cr = (240 + 15 * t2) | 0;   // 240 -> 255
+          cg = (200 + 55 * t2) | 0;   // 200 -> 255
+          cb = (64 + 156 * t2) | 0;   // 64 -> 220
+        }
+        // Pulse at high octaves
+        if (oct[i] >= 5) {
+          var pulse = 0.85 + 0.15 * Math.sin(gen * 0.3 + i * 0.01);
+          cr = Math.min(255, (cr * pulse) | 0);
+          cg = Math.min(255, (cg * pulse) | 0);
+          cb = Math.min(255, (cb * pulse) | 0);
+        }
       }
 
       // Flash overlay
@@ -479,13 +500,78 @@ function renderChart() {
 }
 
 // ============================================================
+// BLOOM + EFFECTS
+// ============================================================
+function renderBloom() {
+  var cv = document.getElementById('grid');
+  if (!bloomCv) { bloomCv = document.createElement('canvas'); bloomCtx = bloomCv.getContext('2d'); }
+  bloomCv.width = cv.width; bloomCv.height = cv.height;
+  bloomCtx.clearRect(0, 0, bloomCv.width, bloomCv.height);
+  try { bloomCtx.filter = 'blur(6px)'; } catch(e) { return; }
+  bloomCtx.globalAlpha = 0.35;
+  bloomCtx.drawImage(cv, 0, 0);
+  bloomCtx.filter = 'none'; bloomCtx.globalAlpha = 1;
+  var ctx = cv.getContext('2d');
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.drawImage(bloomCv, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function addShockwave(cx, cy, color) {
+  var cv = document.getElementById('grid');
+  shockwaves.push({ x: cx != null ? cx : cv.width / 2, y: cy != null ? cy : cv.height / 2,
+    r: 0, maxR: Math.max(cv.width, cv.height) * 0.7, alpha: 0.6, color: color || '240,192,64' });
+}
+
+function addParticleBurst(cx, cy, n, color) {
+  var cv = document.getElementById('grid');
+  var px = cx != null ? cx : cv.width / 2, py = cy != null ? cy : cv.height / 2;
+  for (var i = 0; i < n; i++) {
+    var a = Math.random() * Math.PI * 2, sp = 1 + Math.random() * 3;
+    particles.push({ x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      life: 40 + Math.random() * 40, color: color || '240,192,64' });
+  }
+}
+
+function renderEffects() {
+  var cv = document.getElementById('grid'), ctx = cv.getContext('2d');
+  for (var i = shockwaves.length - 1; i >= 0; i--) {
+    var sw = shockwaves[i];
+    ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(' + sw.color + ',' + sw.alpha.toFixed(2) + ')';
+    ctx.lineWidth = 3; ctx.stroke();
+    sw.r += 4; sw.alpha *= 0.96;
+    if (sw.r > sw.maxR || sw.alpha < 0.02) shockwaves.splice(i, 1);
+  }
+  for (var i = particles.length - 1; i >= 0; i--) {
+    var p = particles[i], a = (p.life / 80).toFixed(2);
+    ctx.fillStyle = 'rgba(' + p.color + ',' + a + ')';
+    ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+    p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function renderAll() { render(); renderBloom(); renderEffects(); renderChart(); }
+
+// ============================================================
 // STATS + UI
 // ============================================================
 function updateStats() {
   var pct = total > 0 ? (st.life / total * 100) : 0;
   var el = document.getElementById('lifePct');
   el.textContent = 'LIFE: ' + pct.toFixed(1) + '%';
-  el.style.textShadow = '0 0 ' + Math.floor(pct / 3) + 'px rgba(68,255,68,' + Math.min(0.6, pct / 100).toFixed(2) + ')';
+  var glowR = Math.floor(pct / 3);
+  el.style.textShadow = '0 0 ' + glowR + 'px rgba(68,255,68,' + Math.min(0.6, pct / 100).toFixed(2) + ')';
+  // Grid border glow follows LIFE density
+  var gridEl = document.getElementById('grid');
+  if (pct > 10) {
+    var gr = pct > 50 ? Math.floor(200 + 55 * ((pct - 50) / 50)) : 68;
+    var gg = pct > 50 ? Math.floor(200 + 55 * ((pct - 50) / 50)) : 255;
+    var gb = pct > 50 ? Math.floor(40 + 24 * ((pct - 50) / 50)) : 68;
+    var gs = Math.floor(3 + pct / 5);
+    gridEl.style.boxShadow = '0 0 ' + gs + 'px rgba(' + gr + ',' + gg + ',' + gb + ',0.3)';
+  } else { gridEl.style.boxShadow = 'none'; }
 
   document.getElementById('sGen').textContent = gen;
   document.getElementById('sGrid').textContent = cols + '\u00d7' + rows + ' = ' + total;
@@ -517,14 +603,14 @@ function stepOne() {
   playing = false;
   document.getElementById('btnPlay').textContent = 'Play';
   document.getElementById('btnPlay').classList.remove('active');
-  evolve(); render(); renderChart(); updateStats();
+  evolve(); renderAll(); updateStats();
 }
 
 function resetSim() {
   var seed = parseInt(document.getElementById('seed').value) || 42;
   initGrid(seed);
   events.unshift({ gen: 0, text: 'Grid: ' + cols + '\u00d7' + rows + ' = ' + total + ' cells. Click to paint LIFE.', type: 'birth' });
-  render(); renderChart(); updateStats();
+  renderAll(); updateStats();
 }
 
 function clearGrid() {
@@ -535,7 +621,7 @@ function clearGrid() {
   gen = 0; st = { life: 0, sac: 0, echad: 0, asc: 0, death: 0, maxOct: 0, maxWis: 0 };
   lifeHist = [];
   events = [{ gen: 0, text: 'Grid cleared. Click to paint LIFE.', type: 'birth' }];
-  render(); renderChart(); updateStats();
+  renderAll(); updateStats();
 }
 
 // ============================================================
@@ -637,9 +723,9 @@ function gameLoop(ts) {
       lastEv = ts;
     }
   }
-  if (needsRender) {
-    render();
-    renderChart();
+  var hasEffects = shockwaves.length > 0 || particles.length > 0;
+  if (needsRender || hasEffects) {
+    renderAll();
     needsRender = false;
   }
   requestAnimationFrame(gameLoop);
