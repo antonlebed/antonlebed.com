@@ -114,7 +114,7 @@ button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
 <script>
 // === CONSTANTS ===
 const SIGMA = 1, D = 2, K = 3;
-const MAX_FRAG = 81; // K^4
+const MAX_FRAG = 40; // reasonable fragment limit
 const C_SPEED = 1.0; // sigma/sigma
 
 // === CANVAS ===
@@ -208,6 +208,8 @@ function simStep(dt) {
 
   let maxR = Math.min(W, H) * 0.38;
   let allStopped = true;
+  let maxTarget = 1;
+  for (let ff of fragments) if (ff.targetDist > maxTarget) maxTarget = ff.targetDist;
 
   for (let f of fragments) {
     if (!f.alive) continue;
@@ -224,8 +226,8 @@ function simStep(dt) {
         allStopped = false;
       }
 
-      // Scale to canvas
-      let scale = maxR / (MAX_FRAG * 18);
+      // Scale to canvas (based on actual max target, not MAX_FRAG)
+      let scale = maxR / (maxTarget * 1.1);
       f.x = cx + f.dist * scale * Math.cos(f.angle);
       f.y = cy + f.dist * scale * Math.sin(f.angle);
     } else if (phase === 1) {
@@ -233,7 +235,7 @@ function simStep(dt) {
       f.vel = 0;
     } else {
       // Falling: accelerate toward center
-      let scale = maxR / (MAX_FRAG * 18);
+      let scale = maxR / (maxTarget * 1.1);
       let rDist = f.dist * scale;
 
       // Gravity toward center
