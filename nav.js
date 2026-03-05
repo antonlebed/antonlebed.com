@@ -15,7 +15,14 @@ pre.textContent = 'body{padding-top:48px!important}html{overflow-x:hidden}' +
 '::-webkit-scrollbar{width:8px;height:8px}' +
 '::-webkit-scrollbar-track{background:transparent}' +
 '::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px}' +
-'::-webkit-scrollbar-thumb:hover{background:#444}';
+'::-webkit-scrollbar-thumb:hover{background:#444}' +
+/* Global accessibility: text readability on varied backgrounds */
+':root{--ax-text:#d0d0d0;--ax-dim:#999;--ax-muted:#777;--ax-subtle:#666}' +
+'.caption{color:var(--ax-dim)!important}' +
+'.dim{color:var(--ax-dim)!important}' +
+'.widget-title{color:var(--ax-dim)!important}' +
+/* Tooltip auto-fade class for mobile */
+'.ax-tooltip-fade{transition:opacity 0.5s!important}';
 document.head.appendChild(pre);
 
 /* ===== FAVICON ===== */
@@ -139,8 +146,8 @@ s.textContent =
   'border:1px solid #333;border-radius:6px;padding:8px 20px;cursor:pointer;' +
   'font-family:inherit;flex-direction:column;line-height:1;gap:2px}' +
   '.sn-mn:hover{color:#ffd700;border-color:#555;background:rgba(255,215,0,0.04)}' +
-  '.sn-mn .mnar{font-size:20px;color:#555;line-height:0.6}' +
-  '.sn-ms{text-align:center;padding:18px 0 8px;color:#555;font-size:10px;' +
+  '.sn-mn .mnar{font-size:20px;color:#888;line-height:0.6}' +
+  '.sn-ms{text-align:center;padding:18px 0 8px;color:#888;font-size:10px;' +
   'text-transform:uppercase;letter-spacing:3px;font-weight:600;font-family:system-ui,sans-serif}' +
   /* Dropdown */
   '#sn-dd{position:fixed;top:48px;left:0;right:0;background:rgba(8,8,14,0.98);' +
@@ -153,17 +160,17 @@ s.textContent =
   '.sn-tr h5{font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600;' +
   'margin:0 0 8px}' +
   '.sn-tr .sn-tl{display:flex;flex-wrap:wrap;gap:4px 10px}' +
-  '.sn-tr a{padding:3px 0;color:#666;font-size:12px;transition:color 0.15s;' +
+  '.sn-tr a{padding:3px 0;color:#999;font-size:12px;transition:color 0.15s;' +
   'text-decoration:none;white-space:nowrap}' +
-  '.sn-tr a:hover{color:#ddd}' +
+  '.sn-tr a:hover{color:#eee}' +
   '.sn-tr a.cur{color:#ffd700}' +
   '.sn-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px;' +
   'max-width:1000px;margin:0 auto}' +
   '.sn-gc h5{font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600;' +
   'margin:0 0 8px;padding:0 0 6px;border-bottom:1px solid #1a1a2a}' +
-  '.sn-gc a{display:block;padding:3px 0;color:#666;font-size:12px;transition:color 0.15s;' +
+  '.sn-gc a{display:block;padding:3px 0;color:#999;font-size:12px;transition:color 0.15s;' +
   'text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
-  '.sn-gc a:hover{color:#ddd}' +
+  '.sn-gc a:hover{color:#eee}' +
   '.sn-gc a.cur{color:#ffd700}' +
   /* Mobile overlay */
   '#sn-m{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,8,0.99);' +
@@ -185,21 +192,21 @@ s.textContent =
   '.sn-mc.open .ma{transform:rotate(90deg)}' +
   '.sn-md{display:none;padding:0 0 8px 16px}' +
   '.sn-md.open{display:block}' +
-  '.sn-md a{display:block;padding:10px 0;color:#777;font-size:15px;text-decoration:none;' +
+  '.sn-md a{display:block;padding:10px 0;color:#aaa;font-size:15px;text-decoration:none;' +
   'border-bottom:1px solid #0a0a0a}' +
   '.sn-md a:hover{color:#ffd700}' +
   /* Related demos footer */
   '#sn-rel{max-width:800px;margin:40px auto 0;padding:24px 24px 32px;' +
   'border-top:1px solid #151520;font-family:system-ui,sans-serif}' +
-  '#sn-rel h4{color:#555;font-size:11px;text-transform:uppercase;letter-spacing:2px;' +
+  '#sn-rel h4{color:#888;font-size:11px;text-transform:uppercase;letter-spacing:2px;' +
   'margin-bottom:14px;font-weight:600}' +
   '#sn-rel .rl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}' +
   '#sn-rel .rl a{display:inline-block;padding:7px 16px;border:1px solid #1a1a2a;' +
-  'border-radius:8px;color:#999;text-decoration:none;font-size:13px;' +
+  'border-radius:8px;color:#bbb;text-decoration:none;font-size:13px;' +
   'transition:all 0.25s;background:#08080e}' +
   '#sn-rel .rl a:hover{border-color:#333;color:#ddd;background:#0e0e18;' +
   'transform:translateY(-1px);box-shadow:0 3px 12px rgba(0,0,0,0.4)}' +
-  '#sn-rel .va{color:#444;font-size:11px;text-decoration:none;letter-spacing:1px;' +
+  '#sn-rel .va{color:#888;font-size:11px;text-decoration:none;letter-spacing:1px;' +
   'text-transform:uppercase;transition:color 0.2s}' +
   '#sn-rel .va:hover{color:#ffd700}' +
   '@media(max-width:700px){' +
@@ -347,14 +354,36 @@ if (catKey && catKey !== 'tutorial') {
 }
 
 /* ===== VOW FOOTER ===== */
+/* ===== GLOBAL TOOLTIP AUTO-DISMISS (mobile fix) ===== */
+/* On touch devices, tooltips shown on touchstart never get a mouseout to dismiss them.
+   This observer watches for any tooltip-like element becoming visible and auto-hides after 3s. */
+if ('ontouchstart' in window) {
+  var _axTipTimer = null;
+  document.addEventListener('touchstart', function() {
+    clearTimeout(_axTipTimer);
+    _axTipTimer = setTimeout(function() {
+      var tips = document.querySelectorAll('[id*="tooltip"],[id*="tip"],[id="grid-tooltip"]');
+      for (var i = 0; i < tips.length; i++) {
+        if (tips[i].style.display !== 'none' && tips[i].style.display !== '') {
+          tips[i].style.opacity = '0';
+          tips[i].style.transition = 'opacity 0.5s';
+          (function(el) {
+            setTimeout(function() { el.style.display = 'none'; el.style.opacity = '1'; }, 500);
+          })(tips[i]);
+        }
+      }
+    }, 3000);
+  }, { passive: true });
+}
+
 if (isIndex) return; /* index.html has its own vow footer */
 var vf = document.createElement('div');
-vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#444;font-size:12px;' +
-  'font-family:system-ui,sans-serif;border-top:1px solid #0a0a0a;margin-top:40px;line-height:2';
+vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#777;font-size:12px;' +
+  'font-family:system-ui,sans-serif;border-top:1px solid #1a1a2a;margin-top:40px;line-height:2';
 vf.innerHTML = 'This work is and will always be free. No paywall. No copyright. No exceptions.<br>' +
-  '<span style="color:#3a3a3a">If it ever earns anything, every cent goes to the communities that need it most.</span><br>' +
-  '<span style="color:#2a2a2a;font-size:10px">This sacred vow is permanent and irrevocable.</span><br>' +
-  '<span style="color:#3a3a3a;font-size:11px;font-style:italic">\u2014 Anton Alexandrovich Lebed</span>';
+  '<span style="color:#666">If it ever earns anything, every cent goes to the communities that need it most.</span><br>' +
+  '<span style="color:#555;font-size:10px">This sacred vow is permanent and irrevocable.</span><br>' +
+  '<span style="color:#666;font-size:11px;font-style:italic">\u2014 Anton Alexandrovich Lebed</span>';
 document.body.appendChild(vf);
 }
 if (document.body) init();
