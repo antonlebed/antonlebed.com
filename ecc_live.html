@@ -89,6 +89,23 @@ button:hover { background: #2a2a5a; color: #fff; border-color: #555; }
                    cursor: pointer; color: #888; z-index: 21; }
 #contrast .close:hover { color: #fff; }
 
+#img-sec { max-width: 900px; width: 100%; padding: 20px; margin-bottom: 80px; }
+#img-sec h2 { color: #ffd700; font-size: 1em; letter-spacing: 2px; text-align: center; margin-bottom: 6px; }
+#img-sec .isub { color: #888; font-size: 0.82em; text-align: center; margin-bottom: 12px; }
+#drop { border: 2px dashed #333; border-radius: 8px; padding: 30px; text-align: center;
+        cursor: pointer; color: #555; transition: all 0.3s; margin-bottom: 12px; }
+#drop.over { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.05); }
+#drop label { color: #ffd700; cursor: pointer; text-decoration: underline; }
+.cv-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+.cv-box { text-align: center; }
+.cv-box .cvlbl { font-size: 0.72em; color: #888; margin-bottom: 4px; }
+.cv-box canvas { border-radius: 4px; background: #0a0a14; }
+#cv-orig { border: 1px solid #333; }
+#cv-corr { border: 1px solid #ff4444; }
+#cv-heal { border: 1px solid #44ff88; }
+#img-ctrl { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+#img-stats { text-align: center; font-size: 0.85em; color: #888; margin-bottom: 8px; }
+
 @media(max-width:600px){
   #header h1 { font-size: 1em; }
   #msg { font-size: 1em; padding: 10px 12px; letter-spacing: 2px; }
@@ -108,6 +125,10 @@ button:hover { background: #2a2a5a; color: #fff; border-color: #555; }
   button { min-height: 44px; }
   #contrast { padding: 16px; }
   #contrast td, #contrast th { padding: 6px; font-size: 0.8em; }
+  #img-sec { padding: 12px; }
+  .cv-box canvas { max-width: 100%; height: auto; }
+  #img-ctrl button { min-height: 44px; }
+  #corr-slider { min-height: 44px; }
 }
 </style>
 </head>
@@ -131,6 +152,29 @@ button:hover { background: #2a2a5a; color: #fff; border-color: #555; }
   <div class="stat"><div class="num hi" id="sDet">0</div><div class="lbl">detected</div></div>
   <div class="stat"><div class="num gn" id="sHeal">0</div><div class="lbl">healed</div></div>
   <div class="stat"><div class="num rd" id="sI8">0</div><div class="lbl">INT8 caught</div></div>
+</div>
+
+<div id="img-sec">
+  <h2>PROTECT YOUR IMAGE</h2>
+  <div class="isub">Drop an image. Corrupt it. Watch L=11 heal every pixel.</div>
+  <div id="drop" onclick="document.getElementById('file-in').click()">
+    Drop image here or <label for="file-in">browse</label>
+    <input type="file" id="file-in" accept="image/*" style="display:none">
+  </div>
+  <div id="img-display" style="display:none">
+    <div class="cv-row">
+      <div class="cv-box"><div class="cvlbl">ORIGINAL</div><canvas id="cv-orig" width="200" height="200"></canvas></div>
+      <div class="cv-box"><div class="cvlbl">CORRUPTED</div><canvas id="cv-corr" width="200" height="200"></canvas></div>
+      <div class="cv-box"><div class="cvlbl">HEALED</div><canvas id="cv-heal" width="200" height="200"></canvas></div>
+    </div>
+    <div id="img-ctrl">
+      <label style="font-size:0.82em;color:#aaa;">Corrupt: <b id="corr-pct">30</b>%</label>
+      <input type="range" id="corr-slider" min="5" max="100" value="30" style="width:140px;accent-color:#ff4444;">
+      <button onclick="corruptImg()">Corrupt</button>
+      <button onclick="healImg()">Heal</button>
+    </div>
+    <div id="img-stats"></div>
+  </div>
 </div>
 
 <div id="ui">
@@ -410,6 +454,126 @@ function toggleContrast() {
   const cp = document.getElementById('contrast');
   cp.style.display = cp.style.display === 'none' ? 'block' : 'none';
 }
+
+/* ---- Image ECC ---- */
+let imgPixels = null, imgW = 0, imgH = 0;
+let imgCRT = [];
+
+function loadImg(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const maxS = 200;
+      let w = img.width, h = img.height;
+      const sc = Math.min(maxS/w, maxS/h, 1);
+      w = Math.round(w*sc); h = Math.round(h*sc);
+      imgW = w; imgH = h;
+
+      const cvO = document.getElementById('cv-orig');
+      cvO.width = w; cvO.height = h;
+      cvO.getContext('2d').drawImage(img, 0, 0, w, h);
+      imgPixels = cvO.getContext('2d').getImageData(0, 0, w, h);
+
+      imgCRT = [];
+      for (let i = 0; i < imgPixels.data.length; i += 4) {
+        for (let c = 0; c < 3; c++) {
+          const v = imgPixels.data[i+c] % DR;
+          imgCRT.push({orig: v, ch: crtEncode(v), corrupted: false, badCh: -1});
+        }
+      }
+
+      ['cv-corr','cv-heal'].forEach(function(id) {
+        const cv = document.getElementById(id);
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(cvO, 0, 0);
+      });
+
+      document.getElementById('img-display').style.display = 'block';
+      document.getElementById('img-stats').textContent =
+        w + 'x' + h + ' image = ' + imgCRT.length + ' bytes protected by L=11';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderImg(crtArr, canvasId) {
+  const cv = document.getElementById(canvasId);
+  const ctx = cv.getContext('2d');
+  const dat = ctx.createImageData(imgW, imgH);
+  let k = 0;
+  for (let i = 0; i < dat.data.length; i += 4) {
+    for (let c = 0; c < 3; c++) dat.data[i+c] = crtDecode(crtArr[k++].ch);
+    dat.data[i+3] = 255;
+  }
+  ctx.putImageData(dat, 0, 0);
+}
+
+function corruptImg() {
+  if (!imgPixels) return;
+  const pct = parseInt(document.getElementById('corr-slider').value);
+  const nC = Math.round(imgCRT.length * pct / 100);
+
+  for (let i = 0; i < imgCRT.length; i++) {
+    imgCRT[i].ch = crtEncode(imgCRT[i].orig);
+    imgCRT[i].corrupted = false; imgCRT[i].badCh = -1;
+  }
+
+  let idx = Array.from({length: imgCRT.length}, function(_, i) { return i; });
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    const t = idx[i]; idx[i] = idx[j]; idx[j] = t;
+  }
+
+  for (let k = 0; k < nC; k++) {
+    const i = idx[k], ch = Math.floor(Math.random() * 4);
+    const mod = PP[ch], old = imgCRT[i].ch[ch];
+    let nv; do { nv = Math.floor(Math.random() * mod); } while (nv === old);
+    imgCRT[i].ch[ch] = nv;
+    imgCRT[i].corrupted = true; imgCRT[i].badCh = ch;
+  }
+
+  renderImg(imgCRT, 'cv-corr');
+  document.getElementById('cv-heal').getContext('2d').clearRect(0, 0, imgW, imgH);
+  document.getElementById('img-stats').innerHTML =
+    '<span class="rd">' + nC + '</span> of ' + imgCRT.length +
+    ' bytes corrupted. L=11 <span class="hi">detected all</span>. Click <b>Heal</b>.';
+}
+
+function healImg() {
+  if (!imgPixels) return;
+  let det = 0, healed = 0;
+
+  for (let i = 0; i < imgCRT.length; i++) {
+    if (!imgCRT[i].corrupted) continue;
+    det++;
+    const r = eccCorrect(imgCRT[i].ch);
+    if (r && r.decoded === imgCRT[i].orig) { imgCRT[i].ch = r.fixed; healed++; }
+  }
+
+  renderImg(imgCRT, 'cv-heal');
+  document.getElementById('img-stats').innerHTML = det === 0
+    ? 'Nothing to heal. Corrupt the image first!'
+    : '<span class="gn">' + healed + '/' + det + ' bytes healed (' +
+      (100*healed/det).toFixed(1) + '%).</span> ' +
+      (healed === det ? '<b>PERFECT recovery. Every pixel restored.</b>' : '');
+}
+
+document.getElementById('file-in').addEventListener('change', function(e) {
+  if (e.target.files[0]) loadImg(e.target.files[0]);
+});
+
+const dropEl = document.getElementById('drop');
+dropEl.addEventListener('dragover', function(e) { e.preventDefault(); dropEl.classList.add('over'); });
+dropEl.addEventListener('dragleave', function() { dropEl.classList.remove('over'); });
+dropEl.addEventListener('drop', function(e) {
+  e.preventDefault(); dropEl.classList.remove('over');
+  if (e.dataTransfer.files[0]) loadImg(e.dataTransfer.files[0]);
+});
+document.getElementById('corr-slider').addEventListener('input', function() {
+  document.getElementById('corr-pct').textContent = this.value;
+});
 
 /* Input */
 document.getElementById('msg').addEventListener('input', function() { build(this.value); });
