@@ -8,6 +8,9 @@
 /* ===== CRITICAL CSS (immediate — loaded from <head>, prevents FOUC) ===== */
 var pre = document.createElement('style');
 pre.textContent = 'body{padding-top:48px!important}html{overflow-x:hidden}' +
+'.back{top:60px!important}' +
+'#contrast{z-index:10001!important}#contrast .close{top:60px!important}' +
+'#detail{top:60px!important}#legend{top:60px!important}' +
 '*{scrollbar-width:thin;scrollbar-color:#333 transparent}' +
 '::-webkit-scrollbar{width:8px;height:8px}' +
 '::-webkit-scrollbar-track{background:transparent}' +
