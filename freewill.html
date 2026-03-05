@@ -53,7 +53,9 @@ button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
 <canvas id="cv"></canvas>
 
 <div id="ui">
-  <div id="nar">K^D - D^K = <span class="hi">sigma</span>. One path MUST survive. But does it <span class="gn">matter</span>?</div>
+  <div id="nar">
+    K^D - D^K = <span class="hi">sigma</span>. One path MUST survive. But does it <span class="gn">matter</span>?
+  </div>
   <div class="ctrl">
     <button onclick="toggleRun()" id="bR" class="active">Running</button>
     <button onclick="resetAll()">Reset</button>
@@ -111,58 +113,72 @@ button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
 </div>
 
 <script>
-const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
-const nar = document.getElementById('nar');
+/* ============================================================
+   FULL REBUILD S459 — Free Will demo
+   K^D=9 paths up, D^K=8 paths down, difference = sigma = 1.
+   3 self-referential agents vs 1 random chooser.
+   3 views: Race (bar comparison), Entropy (time series), Identity (alignment).
+   ALL drawing uses explicit pixel coordinates. NO unbounded multipliers.
+   ALL colors 6-char hex. ALL bar heights capped to their chart region.
+   ============================================================ */
 
-let W, H, cx, cy;
+var cv = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+
+var W, H, cx, cy;
 function resize() {
   W = cv.width = innerWidth;
   H = cv.height = innerHeight - 60;
-  cx = W / 2; cy = H / 2 - 20;
+  cx = W / 2;
+  cy = H / 2 - 20;
 }
 resize();
 addEventListener('resize', resize);
 
-// Constants from axiom
-const K = 3, D = 2;
-const PATHS = K * K;  // 9 = K^D
-const DOWN = D * D * D;  // 8 = D^K
+// Axiom constants
+var K = 3, D = 2;
+var PATHS = K * K;   // 9 = K^D
+var DOWN = D * D * D; // 8 = D^K
 
-// Agent
-function makeAgent(id) {
-  return {
-    id: id,
-    history: [],
-    counts: new Array(PATHS).fill(0),
-    prefs: new Array(PATHS).fill(1.0),
-    total: 0
-  };
+// Colors — all 6-char hex
+var COL_RANDOM = '#888888';
+var COL_AGENT = ['#ffd700', '#6699ff', '#44ff88'];
+var COL_PATH = ['#ff5555','#ffaa44','#ffd700','#44ff88','#6699ff','#cc88ff','#ff88ff','#888888','#ffffff'];
+
+function hexToRgba(hex, alpha) {
+  var h = hex.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var r = parseInt(h.slice(0,2), 16);
+  var g = parseInt(h.slice(2,4), 16);
+  var b = parseInt(h.slice(4,6), 16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
 }
 
-// Random chooser
+// ── Agent model ──
+
+function makeAgent(id) {
+  return { id: id, history: [], counts: new Array(PATHS).fill(0),
+           prefs: new Array(PATHS).fill(1.0), total: 0 };
+}
+
 function randomChoice() { return Math.floor(Math.random() * PATHS); }
 
-// Self-referential choice
 function selfRefChoice(agent) {
-  let weights = new Array(PATHS);
-  let total = 0;
-  for (let p = 0; p < PATHS; p++) {
-    let w = agent.prefs[p];
-    // Identity resonance: prefer paths that match identity (mod K)
-    if (p % K === agent.id) w *= 1.5;
-    // History coherence
-    for (let h = Math.max(0, agent.history.length - K); h < agent.history.length; h++) {
-      if (agent.history[h] === p) w *= 1.1;
+  var weights = [];
+  var sum = 0;
+  for (var p = 0; p < PATHS; p++) {
+    var w = agent.prefs[p];
+    if (p % K === agent.id) w *= 1.5; // identity resonance
+    for (var h = Math.max(0, agent.history.length - K); h < agent.history.length; h++) {
+      if (agent.history[h] === p) w *= 1.1; // history coherence
     }
-    // Self-reference: prefer choices that strengthen preference (strange loop)
-    if (agent.prefs[p] * 1.05 > agent.prefs[p]) w *= 1.02;
+    w *= 1.02; // self-reference bias
     weights[p] = w;
-    total += w;
+    sum += w;
   }
-  let r = Math.random() * total;
-  let cum = 0;
-  for (let p = 0; p < PATHS; p++) {
+  var r = Math.random() * sum;
+  var cum = 0;
+  for (var p = 0; p < PATHS; p++) {
     cum += weights[p];
     if (r < cum) return p;
   }
@@ -174,36 +190,34 @@ function updateAgent(agent, choice) {
   if (agent.history.length > 200) agent.history.shift();
   agent.counts[choice]++;
   agent.total++;
-  // Preference shaping (choices shape future choices)
   agent.prefs[choice] *= 1.05;
-  // Normalize
-  let mx = Math.max(...agent.prefs);
-  if (mx > 10) for (let p = 0; p < PATHS; p++) agent.prefs[p] /= mx;
+  var mx = 0;
+  for (var p = 0; p < PATHS; p++) if (agent.prefs[p] > mx) mx = agent.prefs[p];
+  if (mx > 10) for (var p = 0; p < PATHS; p++) agent.prefs[p] /= mx;
 }
 
-function entropy(counts, total) {
+function calcEntropy(counts, total) {
   if (total === 0) return 0;
-  let H = 0;
-  for (let i = 0; i < counts.length; i++) {
+  var H = 0;
+  for (var i = 0; i < counts.length; i++) {
     if (counts[i] > 0) {
-      let p = counts[i] / total;
+      var p = counts[i] / total;
       H -= p * Math.log2(p);
     }
   }
   return H;
 }
 
-// State
-let agents = [makeAgent(0), makeAgent(1), makeAgent(2)];
-let randomCounts = new Array(PATHS).fill(0);
-let randomTotal = 0;
-let randomHistory = [];
-let running = true;
-let view = 0;  // 0=race, 1=entropy, 2=identity
-let t = 0;
+// ── State ──
 
-// Entropy history
-let entropyHist = { random: [], agents: [[], [], []] };
+var agents = [makeAgent(0), makeAgent(1), makeAgent(2)];
+var rndCounts = new Array(PATHS).fill(0);
+var rndTotal = 0;
+var rndHistory = [];
+var running = true;
+var view = 0;
+var tick = 0;
+var eHist = { rnd: [], ag: [[], [], []] };
 
 function toggleRun() {
   running = !running;
@@ -213,337 +227,283 @@ function toggleRun() {
 
 function resetAll() {
   agents = [makeAgent(0), makeAgent(1), makeAgent(2)];
-  randomCounts = new Array(PATHS).fill(0);
-  randomTotal = 0;
-  randomHistory = [];
-  entropyHist = { random: [], agents: [[], [], []] };
-  t = 0;
+  rndCounts = new Array(PATHS).fill(0);
+  rndTotal = 0;
+  rndHistory = [];
+  eHist = { rnd: [], ag: [[], [], []] };
+  tick = 0;
 }
 
 function setView(v) {
   view = v;
-  for (let i = 0; i < 3; i++) document.getElementById('v' + i).className = i === v ? 'active' : '';
-  let msgs = [
+  for (var i = 0; i < 3; i++) document.getElementById('v' + i).className = i === v ? 'active' : '';
+  var msgs = [
     'K^D - D^K = <span class="hi">sigma</span>. One path MUST survive. But does it <span class="gn">matter</span>?',
     '<span class="bl">Random</span>: maximum entropy (flat). <span class="gn">Self-referential</span>: lower entropy (patterns emerge).',
     '<span class="vi">Identity alignment</span>: self-referential agents prefer paths matching who they ARE.'
   ];
-  nar.innerHTML = msgs[v];
+  document.getElementById('nar').innerHTML = msgs[v];
 }
 
 function toggleContrast() {
-  let c = document.getElementById('contrast');
+  var c = document.getElementById('contrast');
   c.style.display = c.style.display === 'block' ? 'none' : 'block';
 }
 
-const COL = {
-  random: '#888', agents: ['#ffd700', '#6af', '#4f8'],
-  paths: ['#f55','#fa4','#ffd700','#4f8','#6af','#c8f','#f8f','#888','#fff']
-};
+// ── Simulation step ──
 
-function hexToRgba(hex, a) {
-  let h = hex.replace('#','');
-  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
-  let r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-function step() {
-  let speed = parseInt(document.getElementById('spd').value);
-  for (let s = 0; s < speed; s++) {
-    // Random chooser
-    let rc = randomChoice();
-    randomCounts[rc]++;
-    randomTotal++;
-    randomHistory.push(rc);
-    if (randomHistory.length > 200) randomHistory.shift();
-    // Self-referential agents
-    for (let a = 0; a < 3; a++) {
-      let choice = selfRefChoice(agents[a]);
+function simStep() {
+  var speed = parseInt(document.getElementById('spd').value);
+  for (var s = 0; s < speed; s++) {
+    var rc = randomChoice();
+    rndCounts[rc]++;
+    rndTotal++;
+    rndHistory.push(rc);
+    if (rndHistory.length > 200) rndHistory.shift();
+    for (var a = 0; a < 3; a++) {
+      var choice = selfRefChoice(agents[a]);
       updateAgent(agents[a], choice);
     }
   }
-  // Record entropy
-  if (t % 10 === 0) {
-    entropyHist.random.push(entropy(randomCounts, randomTotal));
-    for (let a = 0; a < 3; a++) {
-      entropyHist.agents[a].push(entropy(agents[a].counts, agents[a].total));
-    }
-    // Limit history
-    if (entropyHist.random.length > 300) {
-      entropyHist.random.shift();
-      for (let a = 0; a < 3; a++) entropyHist.agents[a].shift();
+  if (tick % 10 === 0) {
+    eHist.rnd.push(calcEntropy(rndCounts, rndTotal));
+    for (var a = 0; a < 3; a++) eHist.ag[a].push(calcEntropy(agents[a].counts, agents[a].total));
+    if (eHist.rnd.length > 300) {
+      eHist.rnd.shift();
+      for (var a = 0; a < 3; a++) eHist.ag[a].shift();
     }
   }
 }
 
-function drawRace() {
-  // Left: Random. Right: Agent 0. Show path distribution bars.
-  let bw = Math.min(W * 0.35, 280);
-  let bh = H * 0.5;
-  let gap = 60;
-  let maxH = Math.max(randomTotal, agents[0].total, 1);
+// ── Drawing: Race view ──
 
-  // Random distribution
-  let lx = cx - bw - gap / 2;
-  drawBars(lx, cy - bh / 2, bw, bh, randomCounts, randomTotal, COL.random, 'RANDOM');
-
-  // Agent 0 distribution
-  let rx = cx + gap / 2;
-  drawBars(rx, cy - bh / 2, bw, bh, agents[0].counts, agents[0].total, COL.agents[0], 'SELF-REFERENTIAL');
-
-  // Path labels
-  ctx.fillStyle = '#555';
-  ctx.font = '11px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('K^D = 9 paths', cx, cy + bh / 2 + 40);
-  ctx.fillText('K^D - D^K = 9 - 8 = sigma = 1', cx, cy + bh / 2 + 56);
-
-  // Entropy comparison
-  let hR = entropy(randomCounts, randomTotal);
-  let hS = entropy(agents[0].counts, agents[0].total);
-  let maxE = Math.log2(PATHS);
-  ctx.fillStyle = COL.random;
-  ctx.font = '13px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText(`H = ${hR.toFixed(2)} / ${maxE.toFixed(2)}`, lx + bw / 2, cy - bh / 2 - 30);
-  ctx.fillStyle = COL.agents[0];
-  ctx.fillText(`H = ${hS.toFixed(2)} / ${maxE.toFixed(2)}`, rx + bw / 2, cy - bh / 2 - 30);
-
-  // Total choices
-  ctx.fillStyle = '#444';
-  ctx.font = '11px monospace';
-  ctx.fillText(`${randomTotal} choices`, lx + bw / 2, cy - bh / 2 - 12);
-  ctx.fillText(`${agents[0].total} choices`, rx + bw / 2, cy - bh / 2 - 12);
-
-  // Recent history trail (bottom)
-  drawTrail(lx, cy + bh / 2 + 70, bw, 30, randomHistory, COL.random);
-  drawTrail(rx, cy + bh / 2 + 70, bw, 30, agents[0].history, COL.agents[0]);
-}
-
-function drawBars(x, y, w, h, counts, total, col, label) {
-  let barW = w / PATHS - 2;
-  let maxC = Math.max(...counts, 1);
+function drawBarSet(x, y, w, h, counts, total, col, label) {
+  var barW = Math.floor(w / PATHS) - 2;
+  var maxC = 1;
+  for (var i = 0; i < PATHS; i++) if (counts[i] > maxC) maxC = counts[i];
 
   ctx.fillStyle = col;
   ctx.font = 'bold 13px monospace';
   ctx.textAlign = 'center';
   ctx.fillText(label, x + w / 2, y - 45);
 
-  for (let p = 0; p < PATHS; p++) {
-    let bx = x + p * (w / PATHS) + 1;
-    let bh = (counts[p] / maxC) * h * 0.85;
-    let by = y + h - bh;
+  for (var p = 0; p < PATHS; p++) {
+    var bx = x + p * Math.floor(w / PATHS) + 1;
+    var bh = Math.round((counts[p] / maxC) * h * 0.85);
+    if (bh > h) bh = h;
+    var by = y + h - bh;
 
-    // Bar
-    ctx.fillStyle = hexToRgba(COL.paths[p], 0.6);
+    ctx.fillStyle = hexToRgba(COL_PATH[p], 0.6);
     ctx.fillRect(bx, by, barW, bh);
 
-    // Glow on top
-    let grd = ctx.createLinearGradient(bx, by, bx, by + 10);
-    grd.addColorStop(0, COL.paths[p]);
-    grd.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grd;
-    ctx.fillRect(bx, by, barW, Math.min(10, bh));
-
-    // Path number
-    ctx.fillStyle = '#555';
+    ctx.fillStyle = '#555555';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(p, bx + barW / 2, y + h + 14);
+    ctx.fillText('' + p, bx + barW / 2, y + h + 14);
 
-    // Percentage
     if (total > 0) {
-      ctx.fillStyle = '#444';
+      ctx.fillStyle = '#444444';
       ctx.font = '9px monospace';
       ctx.fillText(Math.round(counts[p] / total * 100) + '%', bx + barW / 2, by - 4);
     }
   }
-
-  // Target line (1/9 = 11.1%)
-  let targetH = h * 0.85 / PATHS * (total / maxC);
-  ctx.strokeStyle = '#333';
-  ctx.setLineDash([3, 3]);
-  ctx.beginPath();
-  ctx.moveTo(x, y + h - (1 / PATHS) * maxC / maxC * h * 0.85);
-  ctx.stroke();
-  ctx.setLineDash([]);
 }
 
 function drawTrail(x, y, w, h, history, col) {
   if (history.length < 2) return;
-  let dx = w / 200;
-  let start = Math.max(0, history.length - 200);
+  var dx = w / 200;
+  var start = Math.max(0, history.length - 200);
   ctx.strokeStyle = hexToRgba(col, 0.3);
   ctx.lineWidth = 1;
   ctx.beginPath();
-  for (let i = start; i < history.length; i++) {
-    let px = x + (i - start) * dx;
-    let py = y + (history[i] / (PATHS - 1)) * h;
-    if (i === start) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+  for (var i = start; i < history.length; i++) {
+    var px = x + (i - start) * dx;
+    var py = y + (history[i] / (PATHS - 1)) * h;
+    if (i === start) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
   ctx.stroke();
 }
 
-function drawEntropy() {
-  // Entropy over time for all 4 choosers
-  let maxE = Math.log2(PATHS);
-  let margin = 60;
-  let gw = W - margin * 2;
-  let gh = H * 0.55;
-  let gx = margin;
-  let gy = 60;
+function drawRace() {
+  var bw = Math.min(Math.floor(W * 0.35), 280);
+  var bh = Math.floor(H * 0.5);
+  var gap = 60;
 
-  // Grid
+  var lx = cx - bw - gap / 2;
+  var rx = cx + gap / 2;
+
+  drawBarSet(lx, cy - bh / 2, bw, bh, rndCounts, rndTotal, COL_RANDOM, 'RANDOM');
+  drawBarSet(rx, cy - bh / 2, bw, bh, agents[0].counts, agents[0].total, COL_AGENT[0], 'SELF-REFERENTIAL');
+
+  ctx.fillStyle = '#555555';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('K^D = 9 paths', cx, cy + bh / 2 + 40);
+  ctx.fillText('K^D - D^K = 9 - 8 = sigma = 1', cx, cy + bh / 2 + 56);
+
+  var hR = calcEntropy(rndCounts, rndTotal);
+  var hS = calcEntropy(agents[0].counts, agents[0].total);
+  var maxE = Math.log2(PATHS);
+  ctx.fillStyle = COL_RANDOM;
+  ctx.font = '13px monospace';
+  ctx.fillText('H = ' + hR.toFixed(2) + ' / ' + maxE.toFixed(2), lx + bw / 2, cy - bh / 2 - 30);
+  ctx.fillStyle = COL_AGENT[0];
+  ctx.fillText('H = ' + hS.toFixed(2) + ' / ' + maxE.toFixed(2), rx + bw / 2, cy - bh / 2 - 30);
+
+  ctx.fillStyle = '#444444';
+  ctx.font = '11px monospace';
+  ctx.fillText(rndTotal + ' choices', lx + bw / 2, cy - bh / 2 - 12);
+  ctx.fillText(agents[0].total + ' choices', rx + bw / 2, cy - bh / 2 - 12);
+
+  drawTrail(lx, cy + bh / 2 + 70, bw, 30, rndHistory, COL_RANDOM);
+  drawTrail(rx, cy + bh / 2 + 70, bw, 30, agents[0].history, COL_AGENT[0]);
+}
+
+// ── Drawing: Entropy view ──
+
+function drawEntropy() {
+  var maxE = Math.log2(PATHS);
+  var margin = 60;
+  var gw = W - margin * 2;
+  var gh = Math.floor(H * 0.55);
+  var gx = margin;
+  var gy = 60;
+
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    let y2 = gy + i * gh / 4;
+  for (var i = 0; i <= 4; i++) {
+    var y2 = gy + Math.round(i * gh / 4);
     ctx.beginPath(); ctx.moveTo(gx, y2); ctx.lineTo(gx + gw, y2); ctx.stroke();
-    ctx.fillStyle = '#333';
+    ctx.fillStyle = '#333333';
     ctx.font = '10px monospace';
     ctx.textAlign = 'right';
     ctx.fillText((maxE * (1 - i / 4)).toFixed(1), gx - 6, y2 + 4);
   }
 
-  // Axis labels
-  ctx.fillStyle = '#555';
+  ctx.fillStyle = '#555555';
   ctx.font = '12px monospace';
   ctx.textAlign = 'center';
   ctx.fillText('Entropy (bits) over time', cx, gy - 20);
-  ctx.fillText(`Max = log2(${PATHS}) = ${maxE.toFixed(2)} bits`, cx, gy - 6);
+  ctx.fillText('Max = log2(' + PATHS + ') = ' + maxE.toFixed(2) + ' bits', cx, gy - 6);
 
-  // Lines
   function drawLine(hist, col) {
     if (hist.length < 2) return;
-    let dx = gw / 300;
+    var dx = gw / 300;
     ctx.strokeStyle = col;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for (let i = 0; i < hist.length; i++) {
-      let px = gx + i * dx;
-      let py = gy + (1 - hist[i] / maxE) * gh;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+    for (var i = 0; i < hist.length; i++) {
+      var px = gx + i * dx;
+      var py = gy + (1 - hist[i] / maxE) * gh;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
     ctx.stroke();
   }
 
-  drawLine(entropyHist.random, COL.random);
-  for (let a = 0; a < 3; a++) drawLine(entropyHist.agents[a], COL.agents[a]);
+  drawLine(eHist.rnd, COL_RANDOM);
+  for (var a = 0; a < 3; a++) drawLine(eHist.ag[a], COL_AGENT[a]);
 
-  // Legend
-  let ly = gy + gh + 30;
-  let labels = ['Random', 'Agent 0 (sigma)', 'Agent 1 (D)', 'Agent 2 (K)'];
-  let cols = [COL.random, ...COL.agents];
-  for (let i = 0; i < 4; i++) {
-    let lx2 = cx - 200 + i * 110;
+  var ly = gy + gh + 30;
+  var labels = ['Random', 'Agent 0 (sigma)', 'Agent 1 (D)', 'Agent 2 (K)'];
+  var cols = [COL_RANDOM, COL_AGENT[0], COL_AGENT[1], COL_AGENT[2]];
+  for (var i = 0; i < 4; i++) {
+    var lx2 = cx - 200 + i * 110;
     ctx.fillStyle = cols[i];
     ctx.fillRect(lx2, ly, 12, 12);
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = '#aaaaaa';
     ctx.font = '11px monospace';
     ctx.textAlign = 'left';
     ctx.fillText(labels[i], lx2 + 16, ly + 10);
   }
 
-  // Current values
-  if (entropyHist.random.length > 0) {
-    let last = entropyHist.random.length - 1;
+  if (eHist.rnd.length > 0) {
+    var last = eHist.rnd.length - 1;
     ctx.font = '13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = COL.random;
-    ctx.fillText(`Random: ${entropyHist.random[last].toFixed(3)}`, cx - 150, ly + 40);
-    ctx.fillStyle = COL.agents[0];
-    let avgAgent = (entropyHist.agents[0][last] + entropyHist.agents[1][last] + entropyHist.agents[2][last]) / 3;
-    ctx.fillText(`Agents avg: ${avgAgent.toFixed(3)}`, cx + 150, ly + 40);
-    let diff = entropyHist.random[last] - avgAgent;
-    ctx.fillStyle = diff > 0 ? '#4f8' : '#f55';
-    ctx.fillText(`Gap: ${diff.toFixed(3)} bits`, cx, ly + 40);
+    ctx.fillStyle = COL_RANDOM;
+    ctx.fillText('Random: ' + eHist.rnd[last].toFixed(3), cx - 150, ly + 40);
+    ctx.fillStyle = COL_AGENT[0];
+    var avgA = (eHist.ag[0][last] + eHist.ag[1][last] + eHist.ag[2][last]) / 3;
+    ctx.fillText('Agents avg: ' + avgA.toFixed(3), cx + 150, ly + 40);
+    var diff = eHist.rnd[last] - avgA;
+    ctx.fillStyle = diff > 0 ? '#44ff88' : '#ff5555';
+    ctx.fillText('Gap: ' + diff.toFixed(3) + ' bits', cx, ly + 40);
   }
 }
 
+// ── Drawing: Identity view ──
+// DESIGN: 3 columns. Each has title, big % number, horizontal progress bar,
+// then a FIXED-HEIGHT bar chart drawn entirely via fillRect with pixel math.
+// NO clip needed because heights are computed as integer pixels capped to chartH.
+
 function drawIdentity() {
-  /* ============================================================
-     REBUILD S459: Identity view — 3 columns, horizontal bars.
-     Each agent: identity alignment % with clear progress bar.
-     Simple, clipped, normalized against maxCount. No * 5 anywhere.
-     ============================================================ */
+  // Fixed layout in pixels
+  var titleY = 40;
+  var chartH = Math.min(Math.round(H * 0.35), 280); // absolute max bar height
+  var colW = Math.min(Math.round(W / 3.8), 220);
+  var gap = Math.max(10, Math.round(W * 0.02));
+  var totalW = colW * 3 + gap * 2;
+  var x0 = Math.round((W - totalW) / 2);
 
   // Header
   ctx.fillStyle = '#888888';
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, 40);
+  ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, titleY);
   ctx.fillStyle = '#555555';
   ctx.font = '11px monospace';
-  ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, 58);
+  ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, titleY + 18);
 
-  // Layout: 3 columns side by side
-  let colW = Math.min(Math.floor(W / 3.5), 240);
-  let colGap = Math.min(30, Math.floor(W * 0.02));
-  let totalW = colW * 3 + colGap * 2;
-  let startX = Math.floor((W - totalW) / 2);
-  let topY = 80;
-
-  // Chart dimensions per column
-  let barAreaH = Math.min(Math.floor(H * 0.32), 260);
-  let barW = Math.max(8, Math.floor(colW / PATHS) - 2);
-  let barGap = Math.floor((colW - barW * PATHS) / (PATHS + 1));
-
-  for (let a = 0; a < 3; a++) {
-    let colX = startX + a * (colW + colGap);
-    let sCounts = snapCounts[a];
-    let sTotal = snapTotals[a];
+  for (var a = 0; a < 3; a++) {
+    var colX = x0 + a * (colW + gap);
+    var top = titleY + 40;
 
     // Agent title
-    ctx.fillStyle = COL.agents[a];
+    ctx.fillStyle = COL_AGENT[a];
     ctx.font = 'bold 14px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Agent ' + a, colX + colW / 2, topY);
+    ctx.fillText('Agent ' + a, colX + colW / 2, top);
     ctx.fillStyle = '#666666';
     ctx.font = '11px monospace';
-    ctx.fillText('identity = ' + a, colX + colW / 2, topY + 16);
+    ctx.fillText('identity = ' + a, colX + colW / 2, top + 16);
 
-    // Alignment percentage (big number)
-    let aligned = 0;
-    for (let p = 0; p < PATHS; p++) {
-      if (p % K === agents[a].id) aligned += sCounts[p];
+    // Alignment %
+    var aligned = 0;
+    for (var p = 0; p < PATHS; p++) {
+      if (p % K === a) aligned += agents[a].counts[p];
     }
-    let pct = sTotal > 0 ? aligned / sTotal : 0;
-    let expected = 1 / K;
+    var pct = agents[a].total > 0 ? aligned / agents[a].total : 0;
 
-    ctx.fillStyle = pct > expected + 0.02 ? '#44ff88' : '#aaaaaa';
+    ctx.fillStyle = pct > 0.35 ? '#44ff88' : '#aaaaaa';
     ctx.font = 'bold 22px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText((pct * 100).toFixed(1) + '%', colX + colW / 2, topY + 44);
+    ctx.fillText((pct * 100).toFixed(1) + '%', colX + colW / 2, top + 46);
     ctx.fillStyle = '#555555';
     ctx.font = '10px monospace';
-    ctx.fillText('(expected 33.3%)', colX + colW / 2, topY + 58);
+    ctx.fillText('(expected 33.3%)', colX + colW / 2, top + 60);
 
-    // Horizontal progress bar for alignment
-    let progY = topY + 66;
-    let progH = 10;
+    // Progress bar
+    var progY = top + 68;
     ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(colX, progY, colW, progH);
-    // Expected mark
+    ctx.fillRect(colX, progY, colW, 8);
     ctx.fillStyle = '#333333';
-    ctx.fillRect(colX + Math.floor(colW * expected), progY, 1, progH);
-    // Actual fill
-    let fillW = Math.min(colW, Math.floor(colW * pct));
-    ctx.fillStyle = pct > expected + 0.02 ? COL.agents[a] : '#666666';
-    ctx.fillRect(colX, progY, fillW, progH);
-    ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(colX, progY, colW, progH);
+    ctx.fillRect(colX + Math.round(colW / 3), progY, 1, 8); // 33.3% mark
+    var fillPx = Math.min(colW, Math.round(colW * pct));
+    ctx.fillStyle = pct > 0.35 ? COL_AGENT[a] : '#666666';
+    ctx.fillRect(colX, progY, fillPx, 8);
 
-    // Vertical bar chart per path
-    let chartTop = topY + 90;
-    let chartBot = chartTop + barAreaH;
-    let maxCount = 1;
-    for (let p = 0; p < PATHS; p++) {
-      if (sCounts[p] > maxCount) maxCount = sCounts[p];
+    // ── Bar chart ──
+    // chartTop = where bars can START (top of bar area)
+    // chartBot = where bars GROW FROM (baseline, bottom of bar area)
+    var chartTop = progY + 18;
+    var chartBot = chartTop + chartH;
+    var barW = Math.max(6, Math.floor(colW / PATHS) - 2);
+    var barStep = Math.floor(colW / PATHS);
+
+    // Find max count for normalization
+    var maxC = 1;
+    for (var p = 0; p < PATHS; p++) {
+      if (agents[a].counts[p] > maxC) maxC = agents[a].counts[p];
     }
 
     // Baseline
@@ -554,128 +514,99 @@ function drawIdentity() {
     ctx.lineTo(colX + colW, chartBot);
     ctx.stroke();
 
-    // CLIP: bars MUST stay inside chart area
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(colX - 1, chartTop, colW + 2, barAreaH + 1);
-    ctx.clip();
+    // Draw bars — height is INTEGER PIXELS, hard-capped to chartH
+    for (var p = 0; p < PATHS; p++) {
+      var bx = colX + p * barStep + 1;
+      // Pixel height: round, then cap. Cannot exceed chartH.
+      var hPx = Math.round((agents[a].counts[p] / maxC) * chartH * 0.85);
+      if (hPx > chartH) hPx = chartH;
+      if (hPx < 0) hPx = 0;
+      var isMe = (p % K === a);
 
-    // Bars — height is (count/maxCount) * barAreaH * 0.85, hard-capped
-    for (let p = 0; p < PATHS; p++) {
-      let bx = colX + barGap + p * (barW + barGap);
-      let count = sCounts[p];
-      let h = Math.round((count / maxCount) * barAreaH * 0.85);
-      if (h > barAreaH) h = barAreaH;
-      let isAligned = (p % K === a);
+      // Bar: grows UP from chartBot
+      var barTop = chartBot - hPx;
+      ctx.fillStyle = isMe ? hexToRgba(COL_AGENT[a], 0.7) : 'rgba(100,100,100,0.3)';
+      ctx.fillRect(bx, barTop, barW, hPx);
 
-      ctx.fillStyle = isAligned ? hexToRgba(COL.agents[a], 0.7) : 'rgba(100,100,100,0.3)';
-      ctx.fillRect(bx, chartBot - h, barW, h);
-
-      if (isAligned) {
-        ctx.strokeStyle = COL.agents[a];
+      if (isMe) {
+        ctx.strokeStyle = COL_AGENT[a];
         ctx.lineWidth = 1;
-        ctx.strokeRect(bx, chartBot - h, barW, h);
+        ctx.strokeRect(bx, barTop, barW, hPx);
       }
-    }
-    ctx.restore(); // end clip
 
-    // Path labels BELOW baseline (outside clip)
-    for (let p = 0; p < PATHS; p++) {
-      let bx = colX + barGap + p * (barW + barGap);
-      let isAligned = (p % K === a);
-      ctx.fillStyle = isAligned ? COL.agents[a] : '#444444';
+      // Path label below baseline
+      ctx.fillStyle = isMe ? COL_AGENT[a] : '#444444';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
       ctx.fillText('' + p, bx + barW / 2, chartBot + 12);
     }
 
-    // Preference heatmap below chart
-    let heatY = chartBot + 26;
+    // Preference heatmap below path labels
+    var heatY = chartBot + 24;
     ctx.fillStyle = '#555555';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('Preferences:', colX + colW / 2, heatY);
-    let maxPref = 0.01;
-    for (let p = 0; p < PATHS; p++) {
-      if (agents[a].prefs[p] > maxPref) maxPref = agents[a].prefs[p];
+    var maxPr = 0.01;
+    for (var p = 0; p < PATHS; p++) {
+      if (agents[a].prefs[p] > maxPr) maxPr = agents[a].prefs[p];
     }
-    for (let p = 0; p < PATHS; p++) {
-      let px2 = colX + barGap + p * (barW + barGap);
-      let v = Math.min(agents[a].prefs[p] / maxPref, 1);
-      ctx.fillStyle = hexToRgba(COL.agents[a], 0.15 + v * 0.85);
-      ctx.fillRect(px2, heatY + 6, barW, 10);
+    for (var p = 0; p < PATHS; p++) {
+      var hx = colX + p * barStep + 1;
+      var v = Math.min(agents[a].prefs[p] / maxPr, 1.0);
+      ctx.fillStyle = hexToRgba(COL_AGENT[a], 0.15 + v * 0.85);
+      ctx.fillRect(hx, heatY + 6, barW, 10);
     }
   }
 
-  // Strange loop diagram (centered well below columns + preferences)
-  let diagY = topY + 90 + barAreaH + 80;
-  if (diagY + 80 < H - 10) {
+  // Strange loop: only if room
+  var loopY = titleY + 40 + 68 + 18 + chartH + 60;
+  if (loopY + 70 < H) {
     ctx.fillStyle = '#666666';
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('The Strange Loop:', cx, diagY);
-
-    let r = 35;
-    let loopLabels = ['Choice', 'Preference', 'Identity'];
-    for (let i = 0; i < 3; i++) {
-      let angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
-      let lx2 = cx + Math.cos(angle) * r * 1.8;
-      let ly2 = diagY + 28 + Math.sin(angle) * r;
-      ctx.fillStyle = COL.agents[i];
+    ctx.fillText('The Strange Loop:', cx, loopY);
+    var r = 32;
+    var ll = ['Choice', 'Preference', 'Identity'];
+    for (var i = 0; i < 3; i++) {
+      var ang = -Math.PI / 2 + i * Math.PI * 2 / 3;
+      var lx = cx + Math.cos(ang) * r * 1.8;
+      var ly = loopY + 25 + Math.sin(ang) * r;
+      ctx.fillStyle = COL_AGENT[i];
       ctx.font = '11px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(loopLabels[i], lx2, ly2);
-
-      let next = (i + 1) % 3;
-      let na = -Math.PI / 2 + next * Math.PI * 2 / 3;
-      let nx2 = cx + Math.cos(na) * r * 1.3;
-      let ny2 = diagY + 28 + Math.sin(na) * r * 0.7;
-      let sx = cx + Math.cos(angle) * r * 1.3;
-      let sy = diagY + 28 + Math.sin(angle) * r * 0.7;
+      ctx.fillText(ll[i], lx, ly);
+      var ni = (i + 1) % 3;
+      var na = -Math.PI / 2 + ni * Math.PI * 2 / 3;
       ctx.strokeStyle = '#444444';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(nx2, ny2);
+      ctx.moveTo(cx + Math.cos(ang) * r * 1.2, loopY + 25 + Math.sin(ang) * r * 0.7);
+      ctx.lineTo(cx + Math.cos(na) * r * 1.2, loopY + 25 + Math.sin(na) * r * 0.7);
       ctx.stroke();
     }
   }
 }
 
-let snapCounts = [new Array(PATHS).fill(0), new Array(PATHS).fill(0), new Array(PATHS).fill(0)];
-let snapTotals = [0, 0, 0];
-let snapRandom = new Array(PATHS).fill(0);
-let snapRandomTotal = 0;
-
-function takeSnapshot() {
-  for (let a = 0; a < 3; a++) {
-    snapCounts[a] = agents[a].counts.slice();
-    snapTotals[a] = agents[a].total;
-  }
-  snapRandom = randomCounts.slice();
-  snapRandomTotal = randomTotal;
-}
+// ── Main loop ──
 
 function frame() {
-  t++;
-  ctx.clearRect(0, 0, W, H);
+  tick++;
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
 
-  if (running) step();
-  if (t % 20 === 0) takeSnapshot();
+  if (running) simStep();
 
-  switch (view) {
-    case 0: drawRace(); break;
-    case 1: drawEntropy(); break;
-    case 2: drawIdentity(); break;
-  }
+  if (view === 0) drawRace();
+  else if (view === 1) drawEntropy();
+  else drawIdentity();
 
-  // Always show K^D - D^K info
-  ctx.fillStyle = '#333';
+  // K^D - D^K corner info
+  ctx.fillStyle = '#333333';
   ctx.font = '11px monospace';
   ctx.textAlign = 'right';
-  ctx.fillText(`K^D = ${PATHS} paths up`, W - 20, 20);
-  ctx.fillText(`D^K = ${DOWN} paths down`, W - 20, 34);
-  ctx.fillText(`${PATHS} - ${DOWN} = sigma = 1`, W - 20, 48);
+  ctx.fillText('K^D = ' + PATHS + ' paths up', W - 20, 20);
+  ctx.fillText('D^K = ' + DOWN + ' paths down', W - 20, 34);
+  ctx.fillText(PATHS + ' - ' + DOWN + ' = sigma = 1', W - 20, 48);
 
   requestAnimationFrame(frame);
 }
