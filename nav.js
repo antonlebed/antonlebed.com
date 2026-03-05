@@ -207,7 +207,8 @@ s.textContent =
   '.sn-r{display:none}' +
   '.sn-h{display:none}' +
   '.sn-mn{display:flex}' +
-  '#sn{padding:0 10px;justify-content:center}' +
+  '#sn{padding:0 10px;justify-content:center;height:56px}' +
+  'body{padding-top:56px!important}' +
   '#sn-rel{padding:16px 14px 24px}#sn-rel .rl{gap:6px}' +
   '#sn-rel .rl a{padding:6px 12px;font-size:12px}}';
 document.head.appendChild(s);
