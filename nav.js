@@ -144,11 +144,11 @@ s.textContent =
   'flex-shrink:0;line-height:1;background:none;border:none}' +
   '.sn-mn{display:none;align-items:center;color:#ccc;font-size:14px;background:none;' +
   'border:1px solid #333;border-radius:6px;padding:8px 20px;cursor:pointer;' +
-  'font-family:system-ui,sans-serif;flex-direction:column;line-height:1;gap:2px}' +
+  'font-family:system-ui,sans-serif;flex-direction:row;line-height:1;gap:8px}' +
   '.sn-mn:hover{color:#eee;border-color:#555;background:rgba(255,255,255,0.03)}' +
   '.sn-mn:active{color:#eee}' +
-  '.sn-mn .mnar{font-size:20px;color:#888;line-height:0.6;display:inline-block;' +
-  'transform:scale(3,1.5);transform-origin:center center}' +
+  '.sn-mn .mnar{font-size:16px;color:#888;line-height:1;display:inline-block;' +
+  'transform:scale(2.5,1.2)}' +
   '.sn-ms{text-align:center;padding:18px 0 8px;color:#888;font-size:10px;' +
   'text-transform:uppercase;letter-spacing:3px;font-weight:600;font-family:system-ui,sans-serif}' +
   /* Dropdown */
