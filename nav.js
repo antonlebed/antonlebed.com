@@ -132,6 +132,13 @@ s.textContent =
   '.sn-r.on{color:#fff !important;border-color:#50fa7b;background:rgba(80,250,123,0.06)}' +
   '.sn-h{display:none;font-size:22px;color:#888;padding:0 4px;margin-left:auto;' +
   'flex-shrink:0;line-height:1;background:none;border:none}' +
+  '.sn-mn{display:none;align-items:center;color:#ccc;font-size:14px;background:none;' +
+  'border:1px solid #333;border-radius:6px;padding:8px 20px;cursor:pointer;' +
+  'font-family:inherit;flex-direction:column;line-height:1;gap:2px}' +
+  '.sn-mn:hover{color:#ffd700;border-color:#555;background:rgba(255,215,0,0.04)}' +
+  '.sn-mn .mnar{font-size:7px;color:#555;letter-spacing:1px}' +
+  '.sn-ms{text-align:center;padding:18px 0 8px;color:#555;font-size:10px;' +
+  'text-transform:uppercase;letter-spacing:3px;font-weight:600;font-family:system-ui,sans-serif}' +
   /* Dropdown */
   '#sn-dd{position:fixed;top:48px;left:0;right:0;background:rgba(8,8,14,0.98);' +
   'backdrop-filter:blur(16px);border-bottom:1px solid #1a1a2a;z-index:9998;' +
@@ -194,10 +201,11 @@ s.textContent =
   'text-transform:uppercase;transition:color 0.2s}' +
   '#sn-rel .va:hover{color:#ffd700}' +
   '@media(max-width:700px){' +
-  '.sn-k,.sn-x{display:none}' +
+  '.sn-l{display:none!important}' +
   '.sn-r{display:none}' +
-  '.sn-h{display:block}' +
-  '#sn{padding:0 10px}' +
+  '.sn-h{display:none}' +
+  '.sn-mn{display:flex}' +
+  '#sn{padding:0 10px;justify-content:center}' +
   '#sn-rel{padding:16px 14px 24px}#sn-rel .rl{gap:6px}' +
   '#sn-rel .rl a{padding:6px 12px;font-size:12px}}';
 document.head.appendChild(s);
@@ -215,6 +223,7 @@ var h = '<div class="sn-l">' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
   '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
+h += '<button class="sn-mn" id="sn-mn">Navigation<span class="mnar">\u25BE</span></button>';
 nav.innerHTML = h;
 document.body.insertBefore(nav, document.body.firstChild);
 
@@ -225,7 +234,7 @@ var tutDemos = catDemos['tutorial'] || [];
 var dh = '';
 if (tutDemos.length) {
   var ti = CATS['tutorial'];
-  dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">' + ti[0] + '</h5><div class="sn-tl">';
+  dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">Interactive Atlas</h5><div class="sn-tl">';
   for (var j = 0; j < tutDemos.length; j++) {
     dh += '<a href="' + tutDemos[j] + '.html"' + (tutDemos[j] === key ? ' class="cur"' : '') + '>' + T[tutDemos[j]] + '</a>';
   }
@@ -267,15 +276,18 @@ var mh = '<div class="sn-mh">' +
   '<a href="index.html" style="color:#ffd700;font-size:15px;font-weight:600;' +
   'text-decoration:none;letter-spacing:1px">970200</a>' +
   '<button class="sn-mx">\u2715</button></div><div class="sn-ml">' +
-  '<a href="index.html">Home</a>' +
+  '<div class="sn-ms">Main</div>' +
+  '<a href="index.html" style="color:#ffd700;font-weight:600">970200</a>' +
   '<a href="worldview.html">How the World Works</a>' +
   '<a href="story.html">The Mathematics</a>' +
   '<a href="derive_ax.html">From Nothing</a>' +
   '<a class="rpl" href="repl.html">.ax REPL</a>' +
-  '<a class="rpl" href="playground.html">.ax Playground</a>';
-for (var i = 0; i < catOrder.length; i++) {
-  var ck = catOrder[i], ci = CATS[ck], demos = catDemos[ck];
-  if (!demos.length || ck === 'start') continue;
+  '<a class="rpl" href="playground.html">.ax Playground</a>' +
+  '<div class="sn-ms" style="margin-top:8px">Interactive Atlas</div>';
+var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
+for (var i = 0; i < mAtlasOrder.length; i++) {
+  var ck = mAtlasOrder[i], ci = CATS[ck], demos = catDemos[ck];
+  if (!demos.length) continue;
   mh += '<div class="sn-mc" data-c="' + ck + '" style="color:' + ci[1] + '">' +
     ci[0] + ' (' + demos.length + ') <span class="ma">\u25B8</span></div>' +
     '<div class="sn-md" data-c="' + ck + '">';
@@ -289,6 +301,10 @@ mob.innerHTML = mh;
 document.body.appendChild(mob);
 
 document.getElementById('sn-bg').addEventListener('click', function() {
+  mob.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+document.getElementById('sn-mn').addEventListener('click', function() {
   mob.classList.add('open');
   document.body.style.overflow = 'hidden';
 });
