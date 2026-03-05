@@ -7,7 +7,7 @@
 
 /* ===== CRITICAL CSS (immediate — loaded from <head>, prevents FOUC) ===== */
 var pre = document.createElement('style');
-pre.textContent = 'body{padding-top:40px!important}html{overflow-x:hidden}' +
+pre.textContent = 'body{padding-top:40px!important}html{overflow-x:hidden;touch-action:manipulation}' +
 '.back{top:52px!important}' +
 '#contrast{z-index:10001!important}#contrast .close{top:52px!important}' +
 '#detail{top:52px!important}#legend{top:52px!important}' +
