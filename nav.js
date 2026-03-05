@@ -5,12 +5,19 @@
 (function() {
 'use strict';
 
+/* ===== CRITICAL CSS (immediate — loaded from <head>, prevents FOUC) ===== */
+var pre = document.createElement('style');
+pre.textContent = 'body{padding-top:48px!important}html{overflow-x:hidden}';
+document.head.appendChild(pre);
+
 /* ===== FAVICON ===== */
 if (!document.querySelector('link[rel="icon"]')) {
   var ico = document.createElement('link');
   ico.rel = 'icon'; ico.type = 'image/png'; ico.href = 'favicon.png';
   document.head.appendChild(ico);
 }
+/* ===== DOM SETUP (deferred until body exists) ===== */
+function init() {
 var f = location.pathname.split('/').pop() || 'index.html';
 
 /* ===== CATEGORIES ===== */
@@ -308,4 +315,7 @@ vf.innerHTML = 'This work is and will always be free. No paywall. No copyright. 
   '<span style="color:#2a2a2a;font-size:10px">This sacred vow is permanent and irrevocable.</span><br>' +
   '<span style="color:#3a3a3a;font-size:11px;font-style:italic">\u2014 Anton Alexandrovich Lebed</span>';
 document.body.appendChild(vf);
+}
+if (document.body) init();
+else document.addEventListener('DOMContentLoaded', init);
 })();
