@@ -68,6 +68,12 @@ input[type=range] { width: 100%; margin: 6px 0; accent-color: #88aaff; }
 .contrast td, .contrast th { padding: 6px 10px; border-bottom: 1px solid #222; text-align: left; font-size: 11px; }
 .contrast th { color: #ffd700; font-size: 10px; text-transform: uppercase; }
 
+#chart-wrap { margin: 16px 0; }
+#chart { border: 1px solid #1a1a2e; border-radius: 6px; background: #0e0e18; }
+.adv { text-align: center; font-size: 32px; color: #44ff88; margin: 12px 0;
+       font-weight: bold; letter-spacing: 2px; }
+.adv .inf { color: #ffd700; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 @media(max-width:480px){
   h1{font-size:1.1em}
   canvas{max-width:100%;height:auto}
@@ -101,6 +107,13 @@ input[type=range] { width: 100%; margin: 6px 0; accent-color: #88aaff; }
       <button class="btn" id="btn-reset" disabled>Reset</button>
       <span id="status" style="font-size:11px; color:#666;">Ready</span>
     </div>
+  </div>
+
+  <div id="chart-wrap">
+    <canvas id="chart" width="700" height="240"></canvas>
+  </div>
+  <div class="adv" id="advantage" style="display:none;">
+    ZERO-SHOT ADVANTAGE: <span id="adv-val"></span>
   </div>
 
   <div class="row">
@@ -163,6 +176,56 @@ input[type=range] { width: 100%; margin: 6px 0; accent-color: #88aaff; }
 const N = 2310, PRIMES = [2,3,5,7,11], NPRIMES = 5;
 const SUM_P = 28, DIM = 20, NOISE = 0.3, LR = 0.02, AUG = 2;
 const PRIME_NAME = ['D=2','K=3','E=5','b=7','L=11'];
+
+// ---- Chart ----
+let crtHist = [], stdHist = [], epochHist = [];
+
+function drawChart() {
+  let cv = document.getElementById('chart');
+  let ctx = cv.getContext('2d');
+  let W = cv.width, H = cv.height;
+  let pad = {l:50, r:85, t:15, b:30};
+  let pW = W-pad.l-pad.r, pH = H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0e0e18'; ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='#1a1a2e'; ctx.lineWidth=1;
+  for(let y=0;y<=4;y++){
+    let py=pad.t+pH*(1-y/4);
+    ctx.beginPath(); ctx.moveTo(pad.l,py); ctx.lineTo(pad.l+pW,py); ctx.stroke();
+    ctx.fillStyle='#555'; ctx.font='10px monospace'; ctx.textAlign='right';
+    ctx.fillText((y*25)+'%',pad.l-5,py+4);
+  }
+  ctx.fillStyle='#555'; ctx.font='10px monospace'; ctx.textAlign='center';
+  ctx.fillText('epoch',pad.l+pW/2,H-3);
+  if(epochHist.length<1) return;
+  let maxEp = Math.max(epochHist[epochHist.length-1],1);
+  function curve(hist,color){
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.beginPath();
+    for(let i=0;i<hist.length;i++){
+      let x=pad.l+(epochHist[i]/maxEp)*pW;
+      let y=pad.t+pH*(1-hist[i]/100);
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle=color;
+    for(let i=0;i<hist.length;i++){
+      let x=pad.l+(epochHist[i]/maxEp)*pW;
+      let y=pad.t+pH*(1-hist[i]/100);
+      ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    }
+  }
+  curve(crtHist,'#44ff88'); curve(stdHist,'#ff6644');
+  if(crtHist.length>0){
+    let lc=crtHist[crtHist.length-1], ls=stdHist[stdHist.length-1];
+    let ex=pad.l+pW+8;
+    ctx.font='bold 12px monospace'; ctx.textAlign='left';
+    ctx.fillStyle='#44ff88';
+    ctx.fillText('CRT '+lc.toFixed(1)+'%',ex,pad.t+pH*(1-Math.max(lc,5)/100)+4);
+    ctx.fillStyle='#ff6644';
+    ctx.fillText('STD '+ls.toFixed(1)+'%',ex,pad.t+pH*(1-Math.min(Math.max(ls,0),95)/100)+4);
+  }
+}
 
 // ---- RNG ----
 let rngS = BigInt(Date.now()) * 6364136223846793005n + 1n;
@@ -382,6 +445,9 @@ async function run() {
   document.getElementById('btn-reset').disabled = true;
   document.getElementById('log').innerHTML = '';
   document.getElementById('conclusion').style.display = 'none';
+  document.getElementById('advantage').style.display = 'none';
+  crtHist = []; stdHist = []; epochHist = [];
+  drawChart();
   document.getElementById('status').textContent = 'Initializing...';
 
   rngS = BigInt(Date.now()) * 6364136223846793005n + 1n;
@@ -405,7 +471,17 @@ async function run() {
     if (epoch % 5 === 0 || epoch === 1 || epoch === maxEpochs) {
       let ev = evaluate();
       updateUI(ev);
-      log(`Ep ${epoch}: CRT unseen=${(100*ev.cTeOk/ev.nTe).toFixed(1)}% STD unseen=${(100*ev.sTeOk/ev.nTe).toFixed(1)}%`);
+      let cPct = 100*ev.cTeOk/ev.nTe, sPct = 100*ev.sTeOk/ev.nTe;
+      epochHist.push(epoch); crtHist.push(cPct); stdHist.push(sPct);
+      drawChart();
+      let advEl = document.getElementById('advantage');
+      advEl.style.display = 'block';
+      if (ev.sTeOk === 0) {
+        document.getElementById('adv-val').innerHTML = '<span class="inf">INFINITE</span>';
+      } else {
+        document.getElementById('adv-val').textContent = (ev.cTeOk/ev.sTeOk).toFixed(0) + 'x';
+      }
+      log(`Ep ${epoch}: CRT unseen=${cPct.toFixed(1)}% STD unseen=${sPct.toFixed(1)}%`);
     }
     requestAnimationFrame(step);
   }
@@ -466,8 +542,11 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   document.getElementById('std-train-bar').style.width = '0%';
   document.getElementById('log').innerHTML = '';
   document.getElementById('conclusion').style.display = 'none';
+  document.getElementById('advantage').style.display = 'none';
   document.getElementById('channels').innerHTML = '';
   document.getElementById('status').textContent = 'Ready';
+  crtHist = []; stdHist = []; epochHist = [];
+  drawChart();
 });
 
 // Init channel display
@@ -479,6 +558,7 @@ for (let ch = 0; ch < NPRIMES; ch++) {
     <div class="ch-val">-</div></div>`;
 }
 document.getElementById('channels').innerHTML = initCH;
+drawChart();
 </script>
 <script src="nav.js"></script>
 </body>
