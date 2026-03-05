@@ -139,7 +139,7 @@ s.textContent =
   'border:1px solid #333;border-radius:6px;padding:8px 20px;cursor:pointer;' +
   'font-family:inherit;flex-direction:column;line-height:1;gap:2px}' +
   '.sn-mn:hover{color:#ffd700;border-color:#555;background:rgba(255,215,0,0.04)}' +
-  '.sn-mn .mnar{font-size:7px;color:#555;letter-spacing:1px}' +
+  '.sn-mn .mnar{font-size:20px;color:#555;line-height:0.6}' +
   '.sn-ms{text-align:center;padding:18px 0 8px;color:#555;font-size:10px;' +
   'text-transform:uppercase;letter-spacing:3px;font-weight:600;font-family:system-ui,sans-serif}' +
   /* Dropdown */
@@ -169,10 +169,9 @@ s.textContent =
   '#sn-m{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,8,0.99);' +
   'z-index:10000;display:none;flex-direction:column;overflow-y:auto}' +
   '#sn-m.open{display:flex}' +
-  '.sn-mh{display:flex;align-items:center;justify-content:space-between;padding:0 16px;' +
-  'height:48px;border-bottom:1px solid #1a1a2a;flex-shrink:0}' +
-  '.sn-mx{font-size:28px;color:#888;background:none;border:none;cursor:pointer;padding:4px 8px}' +
-  '.sn-mx:hover{color:#ffd700}' +
+  '.sn-mh{display:flex;align-items:center;justify-content:center;padding:0 16px;' +
+  'height:56px;border-bottom:1px solid #1a1a2a;flex-shrink:0}' +
+  '.sn-mh .sn-mn{display:flex}' +
   '.sn-ml{padding:12px 20px}' +
   '.sn-ml>a{display:block;padding:14px 0;color:#ccc;font-size:17px;border-bottom:1px solid #111;' +
   'text-decoration:none;font-family:system-ui,sans-serif}' +
@@ -276,9 +275,8 @@ document.addEventListener('click', function(e) {
 var mob = document.createElement('div');
 mob.id = 'sn-m';
 var mh = '<div class="sn-mh">' +
-  '<a href="index.html" style="color:#ffd700;font-size:15px;font-weight:600;' +
-  'text-decoration:none;letter-spacing:1px">970200</a>' +
-  '<button class="sn-mx">\u2715</button></div><div class="sn-ml">' +
+  '<button class="sn-mn" id="sn-mc">Navigation<span class="mnar" style="transform:rotate(180deg)">\u25BE</span></button>' +
+  '</div><div class="sn-ml">' +
   '<div class="sn-ms">Main</div>' +
   '<a href="index.html" style="color:#ffd700;font-weight:600">970200</a>' +
   '<a href="worldview.html">How the World Works</a>' +
@@ -311,7 +309,7 @@ document.getElementById('sn-mn').addEventListener('click', function() {
   mob.classList.add('open');
   document.body.style.overflow = 'hidden';
 });
-mob.querySelector('.sn-mx').addEventListener('click', function() {
+document.getElementById('sn-mc').addEventListener('click', function() {
   mob.classList.remove('open');
   document.body.style.overflow = '';
 });
