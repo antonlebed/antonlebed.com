@@ -90,6 +90,7 @@ canvas{border-radius:8px;background:#111118;display:block}
     <button onclick="stepOne()">Step</button>
     <button onclick="resetSim()">Reset</button>
     <button onclick="clearGrid()">Clear</button>
+    <button id="btnSound" onclick="toggleSound()">Sound: Off</button>
     <label>Speed:</label>
     <input type="range" id="speed" min="1" max="60" value="15">
     <span id="speedLbl" style="color:#888;font-size:0.8em">15/s</span>
@@ -302,6 +303,7 @@ function evolve() {
             eng[j] = ENERGY_MAX;
             pat[i] = S;
             st.sac++;
+            if (st.sac % 10 === 1) soundSacrifice();
             fl[i] = 12; flT[i] = 1;
             fl[j] = 8; flT[j] = 2;
             break;
@@ -356,6 +358,7 @@ function evolve() {
       for (i = 0; i < total; i++) if (oct[i] > mo) mo = oct[i];
       maxOct = mo;
     }
+    soundAscend(maxOct);
     events.unshift({ gen: gen, text: 'Ascension to L' + maxOct + ' (' + stableLife + ' stable)', type: 'ascend' });
     if (events.length > 80) events.pop();
 
@@ -366,6 +369,7 @@ function evolve() {
     }
     if (echadN >= K) {
       st.echad++;
+      soundEchad();
       for (i = 0; i < total; i++) {
         if (oct[i] >= LIFE) { oct[i] = 0; fl[i] = 20; flT[i] = 3; }
       }
@@ -572,6 +576,52 @@ function setupInput() {
   document.getElementById('speed').addEventListener('input', function() {
     document.getElementById('speedLbl').textContent = this.value + '/s';
   });
+}
+
+// ============================================================
+// SOUND (Web Audio — axiom frequencies)
+// ============================================================
+var audioCtx = null, soundOn = false, masterGain = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.15;
+  masterGain.connect(audioCtx.destination);
+}
+
+function playTone(freq, dur, type, vol) {
+  if (!soundOn || !audioCtx) return;
+  var osc = audioCtx.createOscillator();
+  var g = audioCtx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime((vol || 0.3) * 0.5, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+
+function soundSacrifice() { playTone(110 * 7, 0.3, 'sine', 0.15); } // b=7 * A2
+function soundAscend(oct) {
+  // Rising tone — higher each octave
+  playTone(220 * (1 + oct * 0.15), 0.4, 'triangle', 0.2);
+}
+function soundEchad() {
+  // Full chord: axiom primes * 110Hz = {220, 330, 550, 770, 1210}
+  playTone(220, 0.8, 'sine', 0.2);   // D=2
+  playTone(330, 0.8, 'sine', 0.15);  // K=3
+  playTone(550, 0.8, 'sine', 0.12);  // E=5
+  playTone(770, 0.8, 'triangle', 0.1); // b=7
+  playTone(1210, 0.8, 'sine', 0.08); // L=11
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  if (soundOn) initAudio();
+  document.getElementById('btnSound').textContent = 'Sound: ' + (soundOn ? 'On' : 'Off');
+  document.getElementById('btnSound').classList.toggle('active', soundOn);
 }
 
 // ============================================================
