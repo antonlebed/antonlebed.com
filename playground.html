@@ -152,6 +152,8 @@ a:hover{text-decoration:underline}
   #output{font-size:12px;padding:10px;min-height:60px}
   .toolbar button{padding:8px 12px;font-size:0.8em}
   .ch-nav button{padding:8px 14px;font-size:13px}
+  .hood-tab{padding:5px 10px;font-size:0.72em;min-height:28px}
+  .hood-panel{font-size:10px;max-height:200px;padding:8px}
 }
 </style>
 <script src="nav.js"></script>
@@ -188,6 +190,7 @@ a:hover{text-decoration:underline}
     <div class="hood-tabs">
       <div class="hood-tab active" data-tab="csource" onclick="switchHood('csource')">C Source</div>
       <div class="hood-tab" data-tab="algebra" onclick="switchHood('algebra')">Algebra</div>
+      <button class="hood-tab" onclick="copyCSrc()" id="btn-copy-c" style="margin-left:auto;color:#50fa7b;border-color:#333">Copy C</button>
     </div>
     <pre class="hood-panel active" id="hood-csource"></pre>
     <pre class="hood-panel" id="hood-algebra"></pre>
@@ -658,8 +661,19 @@ function algebraView() {
     return lines.join('\n');
 }
 function switchHood(tab) {
-    document.querySelectorAll('#hood .hood-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('#hood .hood-tab[data-tab]').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('#hood .hood-panel').forEach(p => p.classList.toggle('active', p.id === 'hood-' + tab));
+    document.getElementById('btn-copy-c').style.display = tab === 'csource' ? '' : 'none';
+}
+
+function copyCSrc() {
+    const el = document.getElementById('hood-csource');
+    const text = el.innerText || el.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('btn-copy-c');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy C'; }, 1500);
+    });
 }
 
 function runCode() {
