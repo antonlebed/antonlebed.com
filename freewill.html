@@ -554,11 +554,18 @@ function drawIdentity() {
     ctx.lineTo(colX + colW, chartBot);
     ctx.stroke();
 
-    // Bars — height is (count/maxCount) * barAreaH * 0.9, capped at barAreaH
+    // CLIP: bars MUST stay inside chart area
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(colX - 1, chartTop, colW + 2, barAreaH + 1);
+    ctx.clip();
+
+    // Bars — height is (count/maxCount) * barAreaH * 0.85, hard-capped
     for (let p = 0; p < PATHS; p++) {
       let bx = colX + barGap + p * (barW + barGap);
       let count = sCounts[p];
-      let h = Math.min(Math.floor((count / maxCount) * barAreaH * 0.9), barAreaH);
+      let h = Math.round((count / maxCount) * barAreaH * 0.85);
+      if (h > barAreaH) h = barAreaH;
       let isAligned = (p % K === a);
 
       ctx.fillStyle = isAligned ? hexToRgba(COL.agents[a], 0.7) : 'rgba(100,100,100,0.3)';
@@ -569,8 +576,13 @@ function drawIdentity() {
         ctx.lineWidth = 1;
         ctx.strokeRect(bx, chartBot - h, barW, h);
       }
+    }
+    ctx.restore(); // end clip
 
-      // Path number below
+    // Path labels BELOW baseline (outside clip)
+    for (let p = 0; p < PATHS; p++) {
+      let bx = colX + barGap + p * (barW + barGap);
+      let isAligned = (p % K === a);
       ctx.fillStyle = isAligned ? COL.agents[a] : '#444444';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
@@ -578,7 +590,7 @@ function drawIdentity() {
     }
 
     // Preference heatmap below chart
-    let heatY = chartBot + 24;
+    let heatY = chartBot + 26;
     ctx.fillStyle = '#555555';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
@@ -595,8 +607,8 @@ function drawIdentity() {
     }
   }
 
-  // Strange loop diagram (centered below columns)
-  let diagY = topY + 90 + barAreaH + 60;
+  // Strange loop diagram (centered well below columns + preferences)
+  let diagY = topY + 90 + barAreaH + 80;
   if (diagY + 80 < H - 10) {
     ctx.fillStyle = '#666666';
     ctx.font = '12px monospace';

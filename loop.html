@@ -243,28 +243,24 @@ function simStep(dt) {
     if (!f.alive) continue;
 
     if (phase === 0) {
-      // EXPAND: accelerate outward, decelerate near target
-      let progress = f.dist / f.targetDist;
-      let accel = (1 - progress) * 3;
-      f.vel += accel * dt;
-      f.vel *= 0.96; // drag
-      f.dist += f.vel * dt * 100;
-      if (f.dist >= f.targetDist) {
+      // EXPAND: lerp toward target (simple, reliable, no drag issues)
+      let gap = f.targetDist - f.dist;
+      let step = gap * 5 * dt + 20 * dt; // proportional + constant push
+      f.dist += step;
+      if (f.dist >= f.targetDist * 0.99) {
         f.dist = f.targetDist;
-        f.vel = 0;
       } else {
         allDone = false;
       }
     } else if (phase === 1) {
-      // PAUSE: gentle breathing
       f.vel = 0;
     } else {
       // FALL: gravity toward center, speed-limited
-      let gravity = 0.8 + terminusMass * 3;
+      let gravity = 1.5 + terminusMass * 4;
       f.vel += gravity * dt;
-      let maxV = 120; // c = speed limit
+      let maxV = 200; // c = speed limit
       if (f.vel > maxV) f.vel = maxV;
-      f.dist -= f.vel * dt * 60;
+      f.dist -= f.vel * dt * 80;
       if (f.dist <= 0) {
         f.dist = 0;
         f.alive = false;
@@ -444,7 +440,7 @@ function frame(now) {
   let dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
   let speed = parseInt(document.getElementById('spd').value);
-  for (let i = 0; i < speed; i++) simStep(dt / speed);
+  for (let i = 0; i < speed; i++) simStep(dt);
   drawSim();
   requestAnimationFrame(frame);
 }
