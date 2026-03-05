@@ -12,7 +12,7 @@ if (!document.querySelector('link[rel="icon"]')) {
   document.head.appendChild(ico);
 }
 var f = location.pathname.split('/').pop() || '';
-if (!f || f === 'index.html') return; /* Hub has its own nav */
+if (!f) return;
 
 /* ===== CATEGORIES ===== */
 var CATS = {
@@ -77,7 +77,7 @@ var key = f.replace('.html','');
 var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
 var cat = catKey ? CATS[catKey] : null;
-var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl';
+var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl', isIndex = key === 'index';
 
 /* Build per-category demo lists */
 var catDemos = {}, catOrder = ['start','physics','bio','math','eng','mind','tutorial'];
@@ -287,6 +287,7 @@ if (catKey && catKey !== 'tutorial') {
 }
 
 /* ===== VOW FOOTER ===== */
+if (isIndex) return; /* index.html has its own vow footer */
 var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#444;font-size:12px;' +
   'font-family:system-ui,sans-serif;border-top:1px solid #0a0a0a;margin-top:40px;line-height:2';
