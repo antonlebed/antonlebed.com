@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can You Beat Five Primes? | antonlebed.com</title>
+<meta name="description" content="Pick any 5 primes. Try to match 24 Standard Model parameters better than {2,3,5,7,11}. Interactive challenge with brute-force search.">
+<meta property="og:title" content="Can You Beat Five Primes?">
+<meta property="og:description" content="Pick any 5 primes. Try to match 24 Standard Model parameters. The axiom scores 0.12% mean error. Can you do better?">
+<meta property="og:type" content="website">
+<script src="nav.js"></script>
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --border:#1e1e2e;
+  --text:#e0e0e0; --dim:#888; --muted:#555;
+  --accent:#4fc3f7; --gold:#ffd54f; --green:#66bb6a; --red:#ef5350;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:1rem}
+
+.hero{text-align:center;padding:2.5rem 1rem 1.5rem}
+.hero h1{font-size:1.8rem;font-weight:300;margin-bottom:0.5rem}
+.hero h1 strong{font-weight:700;color:var(--gold)}
+.hero .sub{color:var(--dim);font-size:0.95rem;max-width:650px;margin:0 auto}
+
+.picker{display:flex;align-items:center;justify-content:center;gap:0.4rem;flex-wrap:wrap;margin:1.5rem 0 0.8rem}
+.picker input{width:58px;padding:0.45rem;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:1rem;font-family:'Courier New',monospace}
+.picker input:focus{border-color:var(--accent);outline:none}
+.picker .sep{color:var(--muted);font-size:1.2rem}
+.run-btn{padding:0.5rem 1.5rem;background:linear-gradient(135deg,rgba(79,195,247,0.2),rgba(255,213,79,0.15));border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:1rem;cursor:pointer;font-weight:600;transition:all 0.2s}
+.run-btn:hover{background:rgba(79,195,247,0.3);transform:scale(1.03)}
+
+.presets{display:flex;gap:0.4rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.preset{padding:0.25rem 0.7rem;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;font-size:0.8rem;font-family:'Courier New',monospace;transition:all 0.15s}
+.preset:hover{border-color:var(--accent);color:var(--text)}
+
+.err-msg{color:var(--red);text-align:center;margin:0.5rem 0;font-size:0.9rem}
+
+.score-banner{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;padding:1.2rem;margin:1rem 0;background:var(--surface);border-radius:12px;border:1px solid var(--border)}
+.score-side{text-align:center}
+.score-side .label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--dim);margin-bottom:0.3rem}
+.score-side .ptag{font-family:'Courier New',monospace;font-size:0.85rem;margin-bottom:0.5rem}
+.score-side .big{font-size:1.8rem;font-weight:700}
+.score-side .detail{font-size:0.8rem;color:var(--dim);margin-top:0.2rem}
+.score-vs{font-size:1.2rem;color:var(--muted);font-weight:700}
+.you .big{color:var(--accent)}.axiom .big{color:var(--gold)}
+
+.verdict{text-align:center;padding:0.8rem;margin:0.5rem 0;border-radius:8px;font-size:1.1rem;font-weight:600}
+.verdict.lose{background:rgba(255,213,79,0.1);border:1px solid rgba(255,213,79,0.2);color:var(--gold)}
+.verdict.win{background:rgba(102,187,106,0.1);border:1px solid rgba(102,187,106,0.2);color:var(--green)}
+
+.rtable{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.82rem}
+.rtable th{text-align:left;padding:0.4rem 0.5rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--dim);border-bottom:1px solid var(--border);white-space:nowrap}
+.rtable td{padding:0.4rem 0.5rem;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+.rtable tr.win-you td:nth-child(n+4):nth-child(-n+5){background:rgba(79,195,247,0.06)}
+.rtable tr.win-ax td:nth-child(n+6):nth-child(-n+7){background:rgba(255,213,79,0.06)}
+.rtable .mono{font-family:'Courier New',monospace;font-size:0.78rem}
+.rtable .you-col{color:var(--accent)}.rtable .ax-col{color:var(--gold)}
+.rtable .w-cell{font-weight:700;font-size:0.9rem;text-align:center}
+
+.canvas-wrap{margin:1.5rem 0;padding:1rem;background:var(--surface);border-radius:12px;border:1px solid var(--border)}
+.canvas-wrap h3{font-size:1rem;font-weight:400;margin-bottom:0.8rem}
+
+.hall{margin:1.5rem 0;padding:1rem;background:var(--surface);border-radius:12px;border:1px solid var(--border)}
+.hall h3{font-size:1rem;font-weight:400;margin-bottom:0.6rem}
+.hall-row{display:flex;justify-content:space-between;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.85rem}
+.hall-row .hp{font-family:'Courier New',monospace;color:var(--accent)}.hall-row .hr{color:var(--dim)}
+
+.method{margin:2rem 0;padding:1.5rem;background:var(--surface);border-radius:12px;border:1px solid var(--border)}
+.method h3{font-size:1rem;font-weight:400;margin-bottom:0.8rem}
+.method p{color:var(--dim);font-size:0.85rem;margin-bottom:0.5rem}
+.method strong{color:var(--text)}
+
+.cta{text-align:center;margin:2rem 0 1rem}
+.cta a{display:inline-block;padding:0.5rem 1.2rem;border-radius:8px;background:rgba(79,195,247,0.12);border:1px solid var(--accent);color:var(--accent);text-decoration:none;font-size:0.85rem;margin:0.2rem;transition:all 0.2s}
+.cta a:hover{background:rgba(79,195,247,0.25)}
+
+.contrast-toggle{position:fixed;bottom:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.7rem;color:var(--dim);cursor:pointer;font-size:0.75rem;z-index:100}
+body.high-contrast{--bg:#fff;--surface:#f5f5f5;--border:#ccc;--text:#111;--dim:#555;--muted:#888;--accent:#0277bd;--gold:#e65100;--green:#2e7d32;--red:#c62828}
+
+@media(max-width:768px){
+  .hero h1{font-size:1.3rem}
+  .picker input{width:50px;font-size:0.9rem}
+  .score-banner{grid-template-columns:1fr;gap:0.5rem}
+  .score-vs{display:none}
+  .rtable{font-size:0.72rem}
+  .rtable td,.rtable th{padding:0.3rem}
+  .rtable .hm{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>Can You Beat <strong>Five Primes</strong>?</h1>
+    <p class="sub">The axiom matches 24 measured Standard Model parameters from the ring Z/970200Z. Mean error: 0.12%. All under 1%. Pick any 5 primes and try to match them better.</p>
+  </div>
+
+  <div class="picker">
+    <span class="sep">{</span>
+    <input type="number" id="p0" value="2" min="2">
+    <span class="sep">,</span>
+    <input type="number" id="p1" value="3" min="2">
+    <span class="sep">,</span>
+    <input type="number" id="p2" value="5" min="2">
+    <span class="sep">,</span>
+    <input type="number" id="p3" value="7" min="2">
+    <span class="sep">,</span>
+    <input type="number" id="p4" value="11" min="2">
+    <span class="sep">}</span>
+    <button class="run-btn" onclick="runChallenge()">Challenge!</button>
+  </div>
+
+  <div class="presets">
+    <button class="preset" onclick="setP([2,3,5,7,13])">2,3,5,7,13</button>
+    <button class="preset" onclick="setP([2,3,7,11,13])">2,3,7,11,13</button>
+    <button class="preset" onclick="setP([3,5,7,11,13])">3,5,7,11,13</button>
+    <button class="preset" onclick="setP([2,5,7,11,13])">2,5,7,11,13</button>
+    <button class="preset" onclick="setP([2,3,5,11,13])">2,3,5,11,13</button>
+    <button class="preset" onclick="randomP()">Random 5</button>
+  </div>
+
+  <div id="errMsg" class="err-msg"></div>
+
+  <div id="scoreWrap" style="display:none">
+    <div class="score-banner" id="scoreBanner"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div id="tableWrap" style="display:none">
+    <table class="rtable">
+      <thead><tr>
+        <th>#</th><th>Parameter</th><th class="hm">Measured</th>
+        <th>Your Match</th><th>Your Err</th>
+        <th>Axiom</th><th>Axiom Err</th><th>W</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="canvas-wrap" id="canvasWrap" style="display:none">
+    <h3>Error Comparison (log scale, lower = better)</h3>
+    <canvas id="cmpCanvas" height="360"></canvas>
+  </div>
+
+  <div class="hall" id="hallWrap" style="display:none">
+    <h3>Hall of Attempts</h3>
+    <div id="hallList"></div>
+  </div>
+
+  <div class="method">
+    <h3>How It Works</h3>
+    <p><strong>Your search:</strong> For your 5 chosen primes, we generate all "smooth" numbers (products of powers of those primes) up to 100,000, with total exponent sum at most 12. For each of 24 measured SM parameters, we find the ratio a/b of two smooth numbers closest to the measured value.</p>
+    <p><strong>The axiom:</strong> The known expressions come from the algebraic structure of the ring Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11. They use not just {2,3,5,7,11} but also derived quantities (like 137, 97, 173) that emerge from the ring's coupling structure. This is the power of structure: five primes generate a ring, and the ring generates everything.</p>
+    <p><strong>Why {2,3,5,7,11}?</strong> They are the first five primes, maximizing smooth number density and match coverage. But density alone doesn't explain how 24 independent physics constants all find simple expressions. That requires structure.</p>
+  </div>
+
+  <div class="cta">
+    <a href="sm.html">All 25 Parameters</a>
+    <a href="oracle.html">Try Any Number</a>
+    <a href="repl.html">Compute in .ax</a>
+  </div>
+</div>
+
+<button class="contrast-toggle" onclick="document.body.classList.toggle('high-contrast')">Contrast</button>
+
+<script>
+// 24 measured SM parameters (excluding theta_QCD prediction)
+const SM = [
+  {id:1,  name:'1/alpha (EM)',           meas:137.0360, axExpr:'137+7/(2*97)',    axVal:137.0361, axErr:0.0001},
+  {id:2,  name:'sin\u00B2(\u03B8_W)',    meas:0.23122,  axExpr:'3/13',            axVal:0.23077,  axErr:0.20},
+  {id:3,  name:'\u03B1_s(M_Z)',          meas:0.1180,   axExpr:'100/847',         axVal:0.11806,  axErr:0.054},
+  {id:4,  name:'m_u (MeV)',              meas:2.16,     axExpr:'13/6',            axVal:2.1667,   axErr:0.30},
+  {id:5,  name:'m_d (MeV)',              meas:4.67,     axExpr:'14/3',            axVal:4.6667,   axErr:0.07},
+  {id:6,  name:'m_s (MeV)',              meas:93.4,     axExpr:'97\u22123\u22121/3', axVal:93.667, axErr:0.30},
+  {id:7,  name:'m_c (MeV)',              meas:1270,     axExpr:'10\u00D7127',     axVal:1270,     axErr:0.0},
+  {id:8,  name:'m_b (MeV)',              meas:4180,     axExpr:'97\u00D743',      axVal:4171,     axErr:0.20},
+  {id:9,  name:'m_t (GeV)',              meas:172.4,    axExpr:'173',             axVal:173.0,    axErr:0.30},
+  {id:10, name:'m_e (keV)',              meas:510.999,  axExpr:'2\u2079\u22121',  axVal:511.0,    axErr:0.0002},
+  {id:11, name:'m_\u03BC/m_e',           meas:206.768,  axExpr:'210\u22123',      axVal:207.0,    axErr:0.11},
+  {id:12, name:'m_\u03C4/m_e',           meas:3477.48,  axExpr:'25\u00D7137+52',  axVal:3477.0,   axErr:0.01},
+  {id:13, name:'m_H (GeV)',              meas:125.25,   axExpr:'5\u00B3',         axVal:125.0,    axErr:0.20},
+  {id:14, name:'v_H (GeV)',              meas:246.22,   axExpr:'6\u00D741',       axVal:246.0,    axErr:0.09},
+  {id:15, name:'\u03B8\u2081\u2082 CKM (deg)', meas:13.04, axExpr:'13',          axVal:13.0,     axErr:0.30},
+  {id:16, name:'|V_cb|',                 meas:0.0412,   axExpr:'1/24\u22121/1925', axVal:0.04115, axErr:0.13},
+  {id:17, name:'|V_ub|',                 meas:0.00369,  axExpr:'25/6776',         axVal:0.003689, axErr:0.014},
+  {id:18, name:'\u03B4_CKM (deg)',       meas:65.4,     axExpr:'4\u03C0/11',      axVal:65.45,    axErr:0.08},
+  {id:19, name:'sin\u00B2\u03B8\u2081\u2082 PMNS', meas:0.303, axExpr:'10/33',   axVal:0.30303,  axErr:0.01},
+  {id:20, name:'sin\u00B2\u03B8\u2082\u2083 PMNS', meas:0.572, axExpr:'4/7',     axVal:0.57143,  axErr:0.10},
+  {id:21, name:'sin\u00B2\u03B8\u2081\u2083 PMNS', meas:0.02220, axExpr:'1/45',  axVal:0.02222,  axErr:0.10},
+  {id:22, name:'\u03B4_CP PMNS (deg)',   meas:194.0,    axExpr:'4851/25',         axVal:194.04,   axErr:0.02},
+  {id:23, name:'\u0394m\u00B2\u2082\u2081 (10\u207B\u2075eV\u00B2)', meas:7.42, axExpr:'2\u00D737/10', axVal:7.40, axErr:0.30},
+  {id:24, name:'\u0394m\u00B2\u2083\u2081 (10\u207B\u00B3eV\u00B2)', meas:2.515, axExpr:'2510/1000', axVal:2.510, axErr:0.20},
+];
+
+function isPrime(n) {
+  if (n < 2) return false;
+  if (n < 4) return true;
+  if (n % 2 === 0 || n % 3 === 0) return false;
+  for (let i = 5; i * i <= n; i += 6)
+    if (n % i === 0 || n % (i + 2) === 0) return false;
+  return true;
+}
+
+// Generate all smooth numbers from given primes
+function genSmooth(P, maxV, maxC) {
+  const res = [];
+  const n = P.length;
+  const exps = new Array(n).fill(0);
+  function rec(i, val, comp) {
+    if (i === n) { res.push({v: val, e: exps.slice(), c: comp}); return; }
+    let pw = 1;
+    for (let e = 0; comp + e <= maxC && val * pw <= maxV; e++) {
+      exps[i] = e;
+      rec(i + 1, val * pw, comp + e);
+      pw *= P[i];
+    }
+    exps[i] = 0;
+  }
+  rec(0, 1, 0);
+  res.sort((a, b) => a.v - b.v);
+  return res;
+}
+
+// Find best smooth rational a/b matching target
+function bestMatch(S, target) {
+  const n = S.length;
+  const tgt = Math.abs(target);
+  let bestErr = Infinity, bestN = null, bestD = null;
+  for (let di = 0; di < n; di++) {
+    const dv = S[di].v;
+    const nt = tgt * dv;
+    // Binary search for closest smooth number to nt
+    let lo = 0, hi = n - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (S[mid].v < nt) lo = mid + 1; else hi = mid;
+    }
+    for (let j = Math.max(0, lo - 1); j <= Math.min(n - 1, lo + 1); j++) {
+      const ratio = S[j].v / dv;
+      const err = Math.abs(ratio - tgt) / tgt;
+      const comp = S[j].c + S[di].c;
+      if (err < bestErr - 1e-15 || (Math.abs(err - bestErr) < 1e-15 && comp < (bestN ? bestN.c + bestD.c : 999))) {
+        bestErr = err; bestN = S[j]; bestD = S[di];
+      }
+    }
+  }
+  return {err: bestErr, num: bestN, den: bestD, val: bestN ? bestN.v / bestD.v : NaN};
+}
+
+// Format smooth number as prime factorization
+function fmtSmooth(P, exps) {
+  const parts = [];
+  for (let i = 0; i < P.length; i++) {
+    if (exps[i] === 1) parts.push(P[i]);
+    else if (exps[i] > 1) parts.push(P[i] + '<sup>' + exps[i] + '</sup>');
+  }
+  return parts.length ? parts.join('\u00B7') : '1';
+}
+
+function fmtRatio(P, m) {
+  if (!m.num || !m.den) return '?';
+  const num = fmtSmooth(P, m.num.e);
+  const den = fmtSmooth(P, m.den.e);
+  if (den === '1') return num;
+  return num + '/' + den;
+}
+
+function fmtErr(e) {
+  if (e < 0.001) return '<0.001%';
+  if (e < 0.01) return e.toFixed(3) + '%';
+  if (e < 0.1) return e.toFixed(2) + '%';
+  return e.toFixed(1) + '%';
+}
+
+function fmtVal(v) {
+  if (Math.abs(v) < 0.001) return v.toExponential(2);
+  if (Math.abs(v) >= 1000) return v.toFixed(0);
+  if (Math.abs(v) >= 100) return v.toFixed(1);
+  if (Math.abs(v) >= 1) return v.toFixed(v < 10 ? 3 : 2);
+  return v.toPrecision(4);
+}
+
+function setP(arr) {
+  for (let i = 0; i < 5; i++) document.getElementById('p' + i).value = arr[i];
+  runChallenge();
+}
+
+function randomP() {
+  const primes = [];
+  for (let n = 2; primes.length < 100; n++) if (isPrime(n)) primes.push(n);
+  // Pick 5 distinct from first 50
+  const pool = primes.slice(0, 50);
+  const chosen = [];
+  while (chosen.length < 5) {
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    if (!chosen.includes(p)) chosen.push(p);
+  }
+  chosen.sort((a, b) => a - b);
+  setP(chosen);
+}
+
+function runChallenge() {
+  const errDiv = document.getElementById('errMsg');
+  errDiv.textContent = '';
+
+  // Read and validate primes
+  const P = [];
+  for (let i = 0; i < 5; i++) {
+    const v = parseInt(document.getElementById('p' + i).value);
+    if (isNaN(v) || !isPrime(v)) { errDiv.textContent = v + ' is not a prime number.'; return; }
+    if (P.includes(v)) { errDiv.textContent = 'Duplicate prime: ' + v; return; }
+    P.push(v);
+  }
+  P.sort((a, b) => a - b);
+
+  // Generate smooth numbers and find matches
+  const smooth = genSmooth(P, 100000, 12);
+  const results = SM.map(p => bestMatch(smooth, p.meas));
+
+  // Compute stats
+  const youErrs = results.map(r => r.err * 100);
+  const axErrs = SM.map(p => p.axErr);
+  const youMean = youErrs.reduce((s, e) => s + e, 0) / youErrs.length;
+  const axMean = axErrs.reduce((s, e) => s + e, 0) / axErrs.length;
+  const youUnder1 = youErrs.filter(e => e < 1).length;
+  const axUnder1 = axErrs.filter(e => e < 1).length;
+  const youWins = youErrs.filter((e, i) => e < axErrs[i] - 0.001).length;
+  const axWins = youErrs.filter((e, i) => e > axErrs[i] + 0.001).length;
+
+  // Render score banner
+  const banner = document.getElementById('scoreBanner');
+  const pTag = '{' + P.join(', ') + '}';
+  banner.innerHTML = `
+    <div class="score-side you">
+      <div class="label">Your Primes</div>
+      <div class="ptag">${pTag}</div>
+      <div class="big">${youMean.toFixed(2)}%</div>
+      <div class="detail">mean error &middot; ${youUnder1}/24 under 1% &middot; ${smooth.length} smooth numbers</div>
+    </div>
+    <div class="score-vs">vs</div>
+    <div class="score-side axiom">
+      <div class="label">The Axiom</div>
+      <div class="ptag">{2, 3, 5, 7, 11}</div>
+      <div class="big">${axMean.toFixed(2)}%</div>
+      <div class="detail">mean error &middot; ${axUnder1}/24 under 1% &middot; structural expressions</div>
+    </div>`;
+
+  // Verdict
+  const vDiv = document.getElementById('verdict');
+  const ratio = youMean / axMean;
+  if (youMean <= axMean + 0.005) {
+    vDiv.className = 'verdict win';
+    vDiv.textContent = youMean < axMean - 0.005
+      ? 'You beat the axiom! (This would be genuinely interesting. Tell us how.)'
+      : 'A tie! You matched the axiom\'s own primes.';
+  } else {
+    vDiv.className = 'verdict lose';
+    vDiv.textContent = 'The axiom wins by ' + ratio.toFixed(1) + 'x. Score: Axiom ' + axWins + ' \u2013 ' + youWins + ' You.';
+  }
+
+  // Render table
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  for (let i = 0; i < SM.length; i++) {
+    const p = SM[i], r = results[i];
+    const ye = r.err * 100, ae = p.axErr;
+    const win = ye < ae - 0.001 ? 'you' : ye > ae + 0.001 ? 'ax' : 'tie';
+    const cls = win === 'you' ? 'win-you' : win === 'ax' ? 'win-ax' : '';
+    const wSymbol = win === 'you' ? '<span style="color:var(--accent)">\u25C0</span>'
+                  : win === 'ax' ? '<span style="color:var(--gold)">\u25B6</span>'
+                  : '<span style="color:var(--muted)">=</span>';
+    const yeColor = ye < 0.1 ? 'var(--green)' : ye < 1 ? 'var(--accent)' : ye < 5 ? 'var(--gold)' : 'var(--red)';
+    const aeColor = ae < 0.1 ? 'var(--green)' : ae < 1 ? 'var(--accent)' : ae < 5 ? 'var(--gold)' : 'var(--red)';
+    const tr = document.createElement('tr');
+    tr.className = cls;
+    tr.innerHTML = `
+      <td style="color:var(--dim);font-size:0.75rem">${p.id}</td>
+      <td>${p.name}</td>
+      <td class="hm mono">${fmtVal(p.meas)}</td>
+      <td class="mono you-col" title="${fmtVal(r.val)}">${fmtRatio(P, r)}</td>
+      <td class="mono" style="color:${yeColor}">${fmtErr(ye)}</td>
+      <td class="mono ax-col">${p.axExpr}</td>
+      <td class="mono" style="color:${aeColor}">${fmtErr(ae)}</td>
+      <td class="w-cell">${wSymbol}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Show sections
+  document.getElementById('scoreWrap').style.display = 'block';
+  document.getElementById('tableWrap').style.display = 'block';
+  document.getElementById('canvasWrap').style.display = 'block';
+
+  // Draw comparison canvas
+  drawComparison(youErrs, axErrs, SM);
+
+  // Save to hall
+  saveAttempt(P, youMean, youUnder1, youWins, axWins);
+  renderHall();
+}
+
+function drawComparison(youErrs, axErrs, sm) {
+  const canvas = document.getElementById('cmpCanvas');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth;
+  canvas.width = W * dpr; canvas.height = 360 * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const H = 360;
+  const pad = {l: 30, r: 10, t: 20, b: 60};
+  const n = youErrs.length;
+  const bw = (W - pad.l - pad.r) / n;
+  const barW = bw * 0.35;
+
+  // Clear
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#12121a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Log scale: map error% to height. Range: 0.0001% to 50%
+  const logMin = Math.log10(0.0001), logMax = Math.log10(50);
+  const plotH = H - pad.t - pad.b;
+  function errToY(e) {
+    const le = Math.log10(Math.max(e, 0.0001));
+    return pad.t + plotH * (1 - (le - logMin) / (logMax - logMin));
+  }
+
+  // Grid lines
+  [0.001, 0.01, 0.1, 1, 10].forEach(v => {
+    const y = errToY(v);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#555'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(v + '%', pad.l - 4, y + 3);
+  });
+
+  // 1% threshold line
+  const y1 = errToY(1);
+  ctx.strokeStyle = 'rgba(255,213,79,0.25)'; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(pad.l, y1); ctx.lineTo(W - pad.r, y1); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ffd54f44'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('1% threshold', pad.l + 4, y1 - 4);
+
+  // Bars
+  for (let i = 0; i < n; i++) {
+    const x = pad.l + i * bw;
+    const baseY = errToY(0.0001);
+
+    // Your bar (blue)
+    const yYou = errToY(youErrs[i]);
+    ctx.fillStyle = 'rgba(79,195,247,0.7)';
+    ctx.fillRect(x + bw * 0.1, yYou, barW, baseY - yYou);
+
+    // Axiom bar (gold)
+    const yAx = errToY(axErrs[i]);
+    ctx.fillStyle = 'rgba(255,213,79,0.7)';
+    ctx.fillRect(x + bw * 0.1 + barW + 1, yAx, barW, baseY - yAx);
+  }
+
+  // X labels (rotated)
+  ctx.fillStyle = '#666'; ctx.font = '8px sans-serif'; ctx.textAlign = 'right';
+  for (let i = 0; i < n; i++) {
+    const x = pad.l + i * bw + bw / 2;
+    ctx.save();
+    ctx.translate(x, H - pad.b + 8);
+    ctx.rotate(-Math.PI / 3);
+    ctx.fillText(sm[i].name.substring(0, 12), 0, 0);
+    ctx.restore();
+  }
+
+  // Legend
+  ctx.fillStyle = 'rgba(79,195,247,0.7)'; ctx.fillRect(W - 140, pad.t, 10, 10);
+  ctx.fillStyle = '#aaa'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('Your primes', W - 126, pad.t + 9);
+  ctx.fillStyle = 'rgba(255,213,79,0.7)'; ctx.fillRect(W - 140, pad.t + 16, 10, 10);
+  ctx.fillStyle = '#aaa';
+  ctx.fillText('Axiom', W - 126, pad.t + 25);
+}
+
+// Hall of attempts (localStorage)
+function getHall() {
+  try { return JSON.parse(localStorage.getItem('challenge-hall') || '[]'); } catch { return []; }
+}
+function saveAttempt(P, mean, under1, youWins, axWins) {
+  const hall = getHall();
+  const key = P.join(',');
+  const existing = hall.findIndex(h => h.key === key);
+  const entry = {key, primes: P.slice(), mean: +mean.toFixed(3), under1, youWins, axWins, ts: Date.now()};
+  if (existing >= 0) hall[existing] = entry; else hall.push(entry);
+  hall.sort((a, b) => a.mean - b.mean);
+  if (hall.length > 20) hall.length = 20;
+  localStorage.setItem('challenge-hall', JSON.stringify(hall));
+}
+function renderHall() {
+  const hall = getHall();
+  if (!hall.length) return;
+  document.getElementById('hallWrap').style.display = 'block';
+  const list = document.getElementById('hallList');
+  list.innerHTML = '';
+  hall.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'hall-row';
+    div.innerHTML = `<span class="hp">{${h.primes.join(', ')}}</span>
+      <span class="hr">${h.mean.toFixed(2)}% mean &middot; ${h.under1}/24 under 1%</span>`;
+    list.appendChild(div);
+  });
+}
+
+// Auto-run with default primes on load
+renderHall();
+</script>
+
+</body>
+</html>
