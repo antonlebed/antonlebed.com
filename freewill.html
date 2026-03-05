@@ -438,8 +438,8 @@ function drawEntropy() {
 
 function drawBarChart(box, counts, agentId, col) {
   // box = {x, y, w, h} — the rectangle bars live inside
-  // Bars grow UP from box.y + box.h (bottom edge)
-  var baseline = box.y + box.h;
+  // ONE floor variable for perfect alignment
+  var floor = Math.floor(box.y + box.h);
   var barStep = Math.floor(box.w / PATHS);
   var barW = Math.max(5, barStep - 2);
   var maxC = 1;
@@ -447,37 +447,34 @@ function drawBarChart(box, counts, agentId, col) {
     if (counts[p] > maxC) maxC = counts[p];
   }
 
-  // Baseline stroke
-  ctx.strokeStyle = '#333333';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(box.x, baseline);
-  ctx.lineTo(box.x + box.w, baseline);
-  ctx.stroke();
-
-  // Bars
+  // Bars FIRST (so axis draws ON TOP)
   for (var p = 0; p < PATHS; p++) {
     var bx = box.x + p * barStep + 1;
     var frac = counts[p] / maxC;
-    var hPx = Math.round(frac * box.h * 0.4);
+    var hPx = Math.floor(frac * box.h * 0.4);
     if (hPx > box.h) hPx = box.h;
     var isMe = (p % K === agentId);
 
     ctx.fillStyle = isMe ? hexToRgba(col, 0.75) : 'rgba(100,100,100,0.3)';
-    ctx.fillRect(bx, baseline - hPx, barW, hPx);
+    ctx.fillRect(bx, floor - hPx, barW, hPx);
 
     if (isMe && hPx > 0) {
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(bx, baseline - hPx, barW, hPx);
+      ctx.fillStyle = col;
+      ctx.fillRect(bx, floor - hPx, barW, 1);
+      ctx.fillRect(bx, floor - hPx, 1, hPx);
+      ctx.fillRect(bx + barW - 1, floor - hPx, 1, hPx);
     }
 
-    // Path label directly under baseline
+    // Path label directly under axis
     ctx.fillStyle = isMe ? col : '#444444';
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('' + p, bx + barW / 2, baseline + 11);
+    ctx.fillText('' + p, bx + barW / 2, floor + 13);
   }
+
+  // Axis line: 2px fillRect at exact floor, drawn AFTER bars so it's on top
+  ctx.fillStyle = '#444444';
+  ctx.fillRect(box.x, floor, box.w, 2);
 }
 
 function drawIdentity() {
@@ -493,7 +490,7 @@ function drawIdentity() {
   var z3 = 165;                         // agent info top (after bigger loop)
   var z4 = z3 - 18;                     // bar charts top (100px up from before)
   var chartH = Math.min(Math.round(H * 0.35), 300); // fixed chart height
-  var chartBot = z4 + chartH + 40;     // bars end HERE — +40 so baseline sits lower
+  var chartFloor = Math.floor(z4 + chartH);         // exact pixel where axis + bar bottoms sit
 
   if (chartH < 60) chartH = 60;       // minimum usable chart
 
@@ -584,7 +581,7 @@ function drawIdentity() {
     ctx.fillStyle = '#555555';
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Prefs:', midX, chartBot + 26);
+    ctx.fillText('Prefs:', midX, chartFloor + 26);
     var maxPr = 0.01;
     for (var p = 0; p < PATHS; p++) {
       if (agents[a].prefs[p] > maxPr) maxPr = agents[a].prefs[p];
@@ -593,7 +590,7 @@ function drawIdentity() {
       var hx = colX + p * barStep + 1;
       var v = Math.min(agents[a].prefs[p] / maxPr, 1.0);
       ctx.fillStyle = hexToRgba(COL_AGENT[a], 0.15 + v * 0.85);
-      ctx.fillRect(hx, chartBot + 32, barW, 8);
+      ctx.fillRect(hx, chartFloor + 32, barW, 8);
     }
   }
 }
