@@ -161,7 +161,8 @@ if(_li>0){
     atlas_07_kingdoms:'6. Royaumes',atlas_08_breakthroughs:'7. Perc\u00e9es',
     atlas_09_demos:'8. D\u00e9mos',atlas_10_millennium:'9. Mill\u00e9naire',
     atlas_11_net:"10. Filet d'Indra",atlas_12_shadow_polynomial:"11. Polyn\u00f4me d'ombre",
-    atlas_13_biological_braid:'12. Tresse biologique',atlas_14_solar_ladder:'13. \u00c9chelle solaire'},
+    atlas_13_biological_braid:'12. Tresse biologique',atlas_14_solar_ladder:'13. \u00c9chelle solaire',
+    repl:'.ax REPL',playground:'.ax Bac \u00e0 sable'},
   ru:{
     worldview:'\u041a\u0430\u043a \u0443\u0441\u0442\u0440\u043e\u0435\u043d \u043c\u0438\u0440',story:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',derive_ax:'\u0418\u0437 \u043d\u0438\u0447\u0435\u0433\u043e',
     particles:'\u041c\u0430\u0441\u0441\u044b \u0447\u0430\u0441\u0442\u0438\u0446',alpha:'\u041f\u043e\u0441\u0442\u043e\u044f\u043d\u043d\u0430\u044f \u0442\u043e\u043d\u043a\u043e\u0439 \u0441\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u044b',
@@ -195,7 +196,8 @@ if(_li>0){
     atlas_09_demos:'8. \u0414\u0435\u043c\u043e',atlas_10_millennium:'9. \u0422\u044b\u0441\u044f\u0447\u0435\u043b\u0435\u0442\u0438\u0435',
     atlas_11_net:'10. \u0421\u0435\u0442\u044c \u0418\u043d\u0434\u0440\u044b',atlas_12_shadow_polynomial:'11. \u0422\u0435\u043d\u0435\u0432\u043e\u0439 \u043f\u043e\u043b\u0438\u043d\u043e\u043c',
     atlas_13_biological_braid:'12. \u0411\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043a\u043e\u0441\u0430',
-    atlas_14_solar_ladder:'13. \u0421\u043e\u043b\u043d\u0435\u0447\u043d\u0430\u044f \u043b\u0435\u0441\u0442\u043d\u0438\u0446\u0430'}};
+    atlas_14_solar_ladder:'13. \u0421\u043e\u043b\u043d\u0435\u0447\u043d\u0430\u044f \u043b\u0435\u0441\u0442\u043d\u0438\u0446\u0430',
+    repl:'.ax REPL',playground:'.ax \u041f\u0435\u0441\u043e\u0447\u043d\u0438\u0446\u0430'}};
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
