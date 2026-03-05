@@ -95,7 +95,7 @@ body.high-contrast{--bg:#fff;--surface:#f5f5f5;--border:#ccc;--text:#111;--dim:#
 <div class="container">
   <div class="hero">
     <h1>Can You Beat <strong>Five Primes</strong>?</h1>
-    <p class="sub">The axiom matches 24 measured Standard Model parameters from the ring Z/970200Z. Mean error: 0.12%. All under 1%. Pick any 5 primes and try to match them better.</p>
+    <p class="sub">Same algorithm, same limits, different primes. Pick any 5 primes and try to match 24 Standard Model parameters better than {2,3,5,7,11}. Fair fight.</p>
   </div>
 
   <div class="picker">
@@ -152,9 +152,8 @@ body.high-contrast{--bg:#fff;--surface:#f5f5f5;--border:#ccc;--text:#111;--dim:#
 
   <div class="method">
     <h3>How It Works</h3>
-    <p><strong>Your search:</strong> For your 5 chosen primes, we generate all "smooth" numbers (products of powers of those primes) up to 100,000, with total exponent sum at most 12. For each of 24 measured SM parameters, we find the ratio a/b of two smooth numbers closest to the measured value.</p>
-    <p><strong>The axiom:</strong> The known expressions come from the algebraic structure of the ring Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11. They use not just {2,3,5,7,11} but also derived quantities (like 137, 97, 173) that emerge from the ring's coupling structure. This is the power of structure: five primes generate a ring, and the ring generates everything.</p>
-    <p><strong>Why {2,3,5,7,11}?</strong> They are the first five primes, maximizing smooth number density and match coverage. But density alone doesn't explain how 24 independent physics constants all find simple expressions. That requires structure.</p>
+    <p><strong>Fair comparison:</strong> Both sides use the <em>exact same algorithm</em>. For each set of 5 primes, we generate all "smooth" numbers (products of prime powers) up to 100,000, with total exponent sum at most 12. For each of 24 measured SM parameters, we find the ratio a/b closest to the measured value. Same search, same limits, same scoring.</p>
+    <p><strong>Why {2,3,5,7,11} wins:</strong> They are the first five primes, which maximizes smooth number density. But density alone gives ~0.05% mean error for ANY set of 5 small primes. The axiom's deeper advantage is <em>structural</em>: these primes define the ring Z/970200Z, and 24 physics constants happen to have clean expressions in this ring. Hover any axiom cell to see the known structural expression.</p>
   </div>
 
   <div class="cta">
@@ -316,13 +315,17 @@ function runChallenge() {
   }
   P.sort((a, b) => a - b);
 
-  // Generate smooth numbers and find matches
+  // Generate smooth numbers and find matches — SAME algorithm for both
   const smooth = genSmooth(P, 100000, 12);
   const results = SM.map(p => bestMatch(smooth, p.meas));
 
-  // Compute stats
+  const AXIOM_P = [2, 3, 5, 7, 11];
+  const axSmooth = genSmooth(AXIOM_P, 100000, 12);
+  const axResults = SM.map(p => bestMatch(axSmooth, p.meas));
+
+  // Compute stats — fair comparison: same algorithm on both prime sets
   const youErrs = results.map(r => r.err * 100);
-  const axErrs = SM.map(p => p.axErr);
+  const axErrs = axResults.map(r => r.err * 100);
   const youMean = youErrs.reduce((s, e) => s + e, 0) / youErrs.length;
   const axMean = axErrs.reduce((s, e) => s + e, 0) / axErrs.length;
   const youUnder1 = youErrs.filter(e => e < 1).length;
@@ -345,7 +348,7 @@ function runChallenge() {
       <div class="label">The Axiom</div>
       <div class="ptag">{2, 3, 5, 7, 11}</div>
       <div class="big">${axMean.toFixed(2)}%</div>
-      <div class="detail">mean error &middot; ${axUnder1}/24 under 1% &middot; structural expressions</div>
+      <div class="detail">mean error &middot; ${axUnder1}/24 under 1% &middot; ${axSmooth.length} smooth numbers</div>
     </div>`;
 
   // Verdict
@@ -365,8 +368,8 @@ function runChallenge() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   for (let i = 0; i < SM.length; i++) {
-    const p = SM[i], r = results[i];
-    const ye = r.err * 100, ae = p.axErr;
+    const p = SM[i], r = results[i], ar = axResults[i];
+    const ye = r.err * 100, ae = ar.err * 100;
     const win = ye < ae - 0.001 ? 'you' : ye > ae + 0.001 ? 'ax' : 'tie';
     const cls = win === 'you' ? 'win-you' : win === 'ax' ? 'win-ax' : '';
     const wSymbol = win === 'you' ? '<span style="color:var(--accent)">\u25C0</span>'
@@ -382,7 +385,7 @@ function runChallenge() {
       <td class="hm mono">${fmtVal(p.meas)}</td>
       <td class="mono you-col" title="${fmtVal(r.val)}">${fmtRatio(P, r)}</td>
       <td class="mono" style="color:${yeColor}">${fmtErr(ye)}</td>
-      <td class="mono ax-col">${p.axExpr}</td>
+      <td class="mono ax-col" title="structural: ${p.axExpr}">${fmtRatio(AXIOM_P, ar)}</td>
       <td class="mono" style="color:${aeColor}">${fmtErr(ae)}</td>
       <td class="w-cell">${wSymbol}</td>`;
     tbody.appendChild(tr);
