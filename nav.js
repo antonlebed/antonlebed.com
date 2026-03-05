@@ -344,6 +344,15 @@ s.textContent =
   '#sn-rel .rl a{padding:6px 12px;font-size:12px}}';
 document.head.appendChild(s);
 
+/* ===== INLINE SVG FLAGS (cross-platform, zero deps) ===== */
+function _fl(l){
+  var w=20,h=14,r='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" style="display:inline-block;width:'+w+'px;height:'+h+'px;vertical-align:middle;border-radius:2px;border:1px solid rgba(255,255,255,0.15)">';
+  if(l==='fr')return r+'<rect fill="#002395" width="6.67" height="'+h+'"/><rect x="6.67" fill="#fff" width="6.66" height="'+h+'"/><rect x="13.33" fill="#ED2939" width="6.67" height="'+h+'"/></svg>';
+  if(l==='ru')return r+'<rect fill="#fff" width="'+w+'" height="4.67"/><rect y="4.67" fill="#0039A6" width="'+w+'" height="4.66"/><rect y="9.33" fill="#D52B1E" width="'+w+'" height="4.67"/></svg>';
+  /* EN: simplified Union Jack */
+  return r+'<rect fill="#012169" width="'+w+'" height="'+h+'"/><path d="M0 0L'+w+' '+h+'M'+w+' 0L0 '+h+'" stroke="#fff" stroke-width="2.5"/><path d="M0 0L'+w+' '+h+'M'+w+' 0L0 '+h+'" stroke="#C8102E" stroke-width="1"/><path d="M'+w/2+' 0v'+h+'M0 '+h/2+'h'+w+'" stroke="#fff" stroke-width="4"/><path d="M'+w/2+' 0v'+h+'M0 '+h/2+'h'+w+'" stroke="#C8102E" stroke-width="2.5"/></svg>';
+}
+
 /* ===== TOP NAV BAR ===== */
 var nav = document.createElement('nav');
 nav.id = 'sn';
@@ -357,11 +366,11 @@ var h = '<div class="sn-l">' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
   '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
   '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' +
-  ['\uD83C\uDDEC\uD83C\uDDE7','\uD83C\uDDEB\uD83C\uDDF7','\uD83C\uDDF7\uD83C\uDDFA'][_li] +
+  _fl(['en','fr','ru'][_li]) +
   ' \u25BE</button><div class="sn-lp">' +
-  '<button data-lang="en"' + (_li===0?' class="cur"':'') + '>\uD83C\uDDEC\uD83C\uDDE7 English</button>' +
-  '<button data-lang="fr"' + (_li===1?' class="cur"':'') + '>\uD83C\uDDEB\uD83C\uDDF7 Fran\u00e7ais</button>' +
-  '<button data-lang="ru"' + (_li===2?' class="cur"':'') + '>\uD83C\uDDF7\uD83C\uDDFA \u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
+  '<button data-lang="en"' + (_li===0?' class="cur"':'') + '>' + _fl('en') + ' English</button>' +
+  '<button data-lang="fr"' + (_li===1?' class="cur"':'') + '>' + _fl('fr') + ' Fran\u00e7ais</button>' +
+  '<button data-lang="ru"' + (_li===2?' class="cur"':'') + '>' + _fl('ru') + ' \u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
   '</div></div>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
 h += '<button class="sn-mn" id="sn-mn">' + tr('navLabel') + '<span class="mnar">\u25BE</span></button>';
