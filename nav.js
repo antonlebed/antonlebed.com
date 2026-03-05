@@ -546,10 +546,16 @@ var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#777;font-size:12px;' +
   'font-family:system-ui,sans-serif;border-top:1px solid #1a1a2a;margin-top:40px;line-height:2';
 var _vow = _i18n.vow;
+var _srcLabel=['Source code','Code source','\u0418\u0441\u0445\u043e\u0434\u043d\u044b\u0439 \u043a\u043e\u0434'];
+var _pdLabel=['Public domain (Unlicense)','Domaine public (Unlicense)','\u041e\u0431\u0449\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u0435 \u0434\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435 (Unlicense)'];
 vf.innerHTML = _vow[0][_li] + '<br>' +
   '<span style="color:#666">' + _vow[1][_li] + '</span><br>' +
   '<span style="color:#555;font-size:10px">' + _vow[2][_li] + '</span><br>' +
-  '<span style="color:#666;font-size:11px;font-style:italic">' + _vow[3][_li] + '</span>';
+  '<span style="color:#666;font-size:11px;font-style:italic">' + _vow[3][_li] + '</span>' +
+  '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #111">' +
+  '<a href="https://github.com/antonlebed/antonlebed.com" style="color:#555;font-size:11px;text-decoration:none;letter-spacing:0.5px" ' +
+  'onmouseover="this.style.color=\'#888\'" onmouseout="this.style.color=\'#555\'">' +
+  _srcLabel[_li] + ' \u00b7 ' + _pdLabel[_li] + '</a></div>';
 document.body.appendChild(vf);
 }
 if (document.body) init();
