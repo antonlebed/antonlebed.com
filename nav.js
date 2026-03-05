@@ -89,13 +89,11 @@ for (var dk in M) { if (T[dk]) catDemos[M[dk]].push(dk); }
 var s = document.createElement('style');
 s.textContent =
   'html{overflow-x:hidden}' +
-  'body{padding-top:0!important;animation:sn-in 0.15s ease both}' +
-  '@keyframes sn-in{from{opacity:0}to{opacity:1}}' +
-  /* Nav bar */
-  '#sn{position:sticky;top:0;z-index:9999;background:rgba(5,5,8,0.97);' +
+  'body{padding-top:48px!important}' +
+  /* Nav bar — fixed: no layout reflow, no FOUC */
+  '#sn{position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(5,5,8,0.97);' +
   'border-bottom:1px solid #1a1a22;height:48px;display:flex;align-items:center;' +
-  'font-family:system-ui,sans-serif;font-size:14px;backdrop-filter:blur(12px);padding:0 16px;' +
-  'width:100vw;margin-left:calc(-50vw + 50%);box-sizing:border-box}' +
+  'font-family:system-ui,sans-serif;font-size:14px;backdrop-filter:blur(12px);padding:0 16px}' +
   '#sn a,#sn button{color:#888;text-decoration:none;white-space:nowrap;' +
   'transition:color 0.2s,border-color 0.2s,background 0.2s;' +
   'cursor:pointer;font-family:inherit;font-size:inherit}' +
