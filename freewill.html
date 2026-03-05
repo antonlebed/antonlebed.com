@@ -464,133 +464,169 @@ function drawEntropy() {
 }
 
 function drawIdentity() {
-  // Show identity alignment for each agent
-  let colW = Math.min(W / 4, 220);
-  let barH = Math.min(H * 0.35, 300);
-  let topY = 80;
+  /* ============================================================
+     REBUILD S459: Identity view — 3 columns, horizontal bars.
+     Each agent: identity alignment % with clear progress bar.
+     Simple, clipped, normalized against maxCount. No * 5 anywhere.
+     ============================================================ */
 
-  ctx.fillStyle = '#888';
+  // Header
+  ctx.fillStyle = '#888888';
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
   ctx.fillText('Identity Alignment: paths matching agent.id (mod K)', cx, 40);
-  ctx.fillStyle = '#555';
+  ctx.fillStyle = '#555555';
   ctx.font = '11px monospace';
   ctx.fillText('Expected if random: 33.3% (3 of 9 paths match each identity)', cx, 58);
 
-  for (let a = 0; a < 3; a++) {
-    let ox = cx + (a - 1) * (colW + 20);
+  // Layout: 3 columns side by side
+  let colW = Math.min(Math.floor(W / 3.5), 240);
+  let colGap = Math.min(30, Math.floor(W * 0.02));
+  let totalW = colW * 3 + colGap * 2;
+  let startX = Math.floor((W - totalW) / 2);
+  let topY = 80;
 
-    // Count identity-aligned choices (from snapshot to avoid flicker)
+  // Chart dimensions per column
+  let barAreaH = Math.min(Math.floor(H * 0.32), 260);
+  let barW = Math.max(8, Math.floor(colW / PATHS) - 2);
+  let barGap = Math.floor((colW - barW * PATHS) / (PATHS + 1));
+
+  for (let a = 0; a < 3; a++) {
+    let colX = startX + a * (colW + colGap);
+    let sCounts = snapCounts[a];
+    let sTotal = snapTotals[a];
+
+    // Agent title
+    ctx.fillStyle = COL.agents[a];
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Agent ' + a, colX + colW / 2, topY);
+    ctx.fillStyle = '#666666';
+    ctx.font = '11px monospace';
+    ctx.fillText('identity = ' + a, colX + colW / 2, topY + 16);
+
+    // Alignment percentage (big number)
     let aligned = 0;
-    let sCounts = snapCounts[a], sTotal = snapTotals[a];
     for (let p = 0; p < PATHS; p++) {
       if (p % K === agents[a].id) aligned += sCounts[p];
     }
     let pct = sTotal > 0 ? aligned / sTotal : 0;
     let expected = 1 / K;
 
-    // Title
-    ctx.fillStyle = COL.agents[a];
-    ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = pct > expected + 0.02 ? '#44ff88' : '#aaaaaa';
+    ctx.font = 'bold 22px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`Agent ${a}`, ox, topY);
-    ctx.fillStyle = '#666';
-    ctx.font = '11px monospace';
-    ctx.fillText(`identity = ${a}`, ox, topY + 16);
+    ctx.fillText((pct * 100).toFixed(1) + '%', colX + colW / 2, topY + 44);
+    ctx.fillStyle = '#555555';
+    ctx.font = '10px monospace';
+    ctx.fillText('(expected 33.3%)', colX + colW / 2, topY + 58);
 
-    // Bar chart per path
-    let bw = colW / PATHS - 1;
-    let maxCount = Math.max(...sCounts, 1);
-    let chartTop = topY + 40;
-    let chartBot = chartTop + barH;
+    // Horizontal progress bar for alignment
+    let progY = topY + 66;
+    let progH = 10;
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(colX, progY, colW, progH);
+    // Expected mark
+    ctx.fillStyle = '#333333';
+    ctx.fillRect(colX + Math.floor(colW * expected), progY, 1, progH);
+    // Actual fill
+    let fillW = Math.min(colW, Math.floor(colW * pct));
+    ctx.fillStyle = pct > expected + 0.02 ? COL.agents[a] : '#666666';
+    ctx.fillRect(colX, progY, fillW, progH);
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(colX, progY, colW, progH);
+
+    // Vertical bar chart per path
+    let chartTop = topY + 90;
+    let chartBot = chartTop + barAreaH;
+    let maxCount = 1;
+    for (let p = 0; p < PATHS; p++) {
+      if (sCounts[p] > maxCount) maxCount = sCounts[p];
+    }
 
     // Baseline
-    ctx.strokeStyle = '#333';
+    ctx.strokeStyle = '#333333';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(ox - colW/2, chartBot); ctx.lineTo(ox + colW/2, chartBot); ctx.stroke();
-
-    // Clip to chart area
-    ctx.save();
     ctx.beginPath();
-    ctx.rect(ox - colW/2 - 2, chartTop, colW + 4, barH + 1);
-    ctx.clip();
+    ctx.moveTo(colX, chartBot);
+    ctx.lineTo(colX + colW, chartBot);
+    ctx.stroke();
 
+    // Bars — height is (count/maxCount) * barAreaH * 0.9, capped at barAreaH
     for (let p = 0; p < PATHS; p++) {
-      let bx = ox - colW / 2 + p * (colW / PATHS);
+      let bx = colX + barGap + p * (barW + barGap);
       let count = sCounts[p];
-      let h = Math.min((count / maxCount) * barH * 0.85, barH);
+      let h = Math.min(Math.floor((count / maxCount) * barAreaH * 0.9), barAreaH);
       let isAligned = (p % K === a);
 
       ctx.fillStyle = isAligned ? hexToRgba(COL.agents[a], 0.7) : 'rgba(100,100,100,0.3)';
-      ctx.fillRect(bx, chartBot - h, bw, h);
+      ctx.fillRect(bx, chartBot - h, barW, h);
 
       if (isAligned) {
         ctx.strokeStyle = COL.agents[a];
         ctx.lineWidth = 1;
-        ctx.strokeRect(bx, chartBot - h, bw, h);
+        ctx.strokeRect(bx, chartBot - h, barW, h);
       }
-    }
-    ctx.restore();
 
-    // Path labels (below baseline)
-    for (let p = 0; p < PATHS; p++) {
-      let bx = ox - colW / 2 + p * (colW / PATHS);
-      let isAligned = (p % K === a);
-      ctx.fillStyle = isAligned ? COL.agents[a] : '#444';
+      // Path number below
+      ctx.fillStyle = isAligned ? COL.agents[a] : '#444444';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(p, bx + bw / 2, chartBot + 12);
+      ctx.fillText('' + p, bx + barW / 2, chartBot + 12);
     }
 
-    // Alignment percentage
-    ctx.fillStyle = pct > expected + 0.03 ? '#4f8' : '#aaa';
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${(pct * 100).toFixed(1)}%`, ox, chartBot + 38);
-    ctx.fillStyle = '#555';
-    ctx.font = '10px monospace';
-    ctx.fillText(`(expected 33.3%)`, ox, chartBot + 52);
-
-    // Preference heatmap
-    let py = topY + 40 + barH + 70;
-    ctx.fillStyle = '#555';
+    // Preference heatmap below chart
+    let heatY = chartBot + 24;
+    ctx.fillStyle = '#555555';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Preferences:', ox, py);
+    ctx.fillText('Preferences:', colX + colW / 2, heatY);
+    let maxPref = 0.01;
     for (let p = 0; p < PATHS; p++) {
-      let px2 = ox - colW / 2 + p * (colW / PATHS);
-      let v = Math.min(agents[a].prefs[p] / 5, 1);
-      ctx.fillStyle = hexToRgba(COL.agents[a], v);
-      ctx.fillRect(px2, py + 6, bw, 12);
+      if (agents[a].prefs[p] > maxPref) maxPref = agents[a].prefs[p];
+    }
+    for (let p = 0; p < PATHS; p++) {
+      let px2 = colX + barGap + p * (barW + barGap);
+      let v = Math.min(agents[a].prefs[p] / maxPref, 1);
+      ctx.fillStyle = hexToRgba(COL.agents[a], 0.15 + v * 0.85);
+      ctx.fillRect(px2, heatY + 6, barW, 10);
     }
   }
 
-  // Strange loop diagram
-  let sly = topY + 40 + barH + 110;
-  ctx.fillStyle = '#666';
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('The Strange Loop:', cx, sly);
-  let r = 40;
-  let labels = ['Choice', 'Preference', 'Identity'];
-  for (let i = 0; i < 3; i++) {
-    let angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
-    let lx2 = cx + Math.cos(angle) * r * 1.8;
-    let ly2 = sly + 30 + Math.sin(angle) * r;
-    ctx.fillStyle = COL.agents[i];
-    ctx.font = '11px monospace';
-    ctx.fillText(labels[i], lx2, ly2);
+  // Strange loop diagram (centered below columns)
+  let diagY = topY + 90 + barAreaH + 60;
+  if (diagY + 80 < H - 10) {
+    ctx.fillStyle = '#666666';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('The Strange Loop:', cx, diagY);
 
-    // Arrow to next
-    let next = (i + 1) % 3;
-    let na = -Math.PI / 2 + next * Math.PI * 2 / 3;
-    let nx = cx + Math.cos(na) * r * 1.3;
-    let ny = sly + 30 + Math.sin(na) * r * 0.7;
-    let sx = cx + Math.cos(angle) * r * 1.3;
-    let sy = sly + 30 + Math.sin(angle) * r * 0.7;
-    ctx.strokeStyle = '#444';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(nx, ny); ctx.stroke();
+    let r = 35;
+    let loopLabels = ['Choice', 'Preference', 'Identity'];
+    for (let i = 0; i < 3; i++) {
+      let angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
+      let lx2 = cx + Math.cos(angle) * r * 1.8;
+      let ly2 = diagY + 28 + Math.sin(angle) * r;
+      ctx.fillStyle = COL.agents[i];
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(loopLabels[i], lx2, ly2);
+
+      let next = (i + 1) % 3;
+      let na = -Math.PI / 2 + next * Math.PI * 2 / 3;
+      let nx2 = cx + Math.cos(na) * r * 1.3;
+      let ny2 = diagY + 28 + Math.sin(na) * r * 0.7;
+      let sx = cx + Math.cos(angle) * r * 1.3;
+      let sy = diagY + 28 + Math.sin(angle) * r * 0.7;
+      ctx.strokeStyle = '#444444';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(nx2, ny2);
+      ctx.stroke();
+    }
   }
 }
 

@@ -53,7 +53,10 @@ button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
 <canvas id="cv"></canvas>
 
 <div id="ui">
-  <div id="nar"></div>
+  <div id="nar">
+    <span class="hi">The Fall Trinity.</span> ONE splits into MANY (D), MANY falls back to ONE (K).<br>
+    <span class="dim">sigma conserved. Speed limited. The loop IS existence. Space/R to pause, C for contrast.</span>
+  </div>
   <div class="ctrl">
     <button onclick="resetSim()">&circlearrowright; Reset</button>
     <button onclick="togglePause()" id="bA">&#9646;&#9646; Pause</button>
@@ -124,218 +127,304 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// === RNG ===
+/* ============================================================
+   REBUILD S459: The Fall Trinity — ONE -> MANY -> ONE
+
+   Design: Binary splitting with D=2 asymmetry.
+   Key fix: AREA-proportional sizing. radius = sqrt(mass) * baseR.
+   Smallest fragment guaranteed >= 8px radius.
+   Spread uses FULL canvas radius. All fragments visible.
+   ============================================================ */
+
+// Deterministic RNG (reproducible splits)
 let rngState = 27;
-function lfsr() {
-  let b = ((rngState >> 7) ^ (rngState >> 5) ^ (rngState >> 4) ^ (rngState >> 3)) & 1;
-  rngState = ((rngState << 1) | b) & 0xFF;
-  return rngState;
+function rng() {
+  rngState = (rngState * 1103515245 + 12345) & 0x7fffffff;
+  return (rngState >> 16) / 32768.0; // 0..1
 }
 
-// === State ===
-const MAX_FRAG = 81;
-const C_SPEED = 1.0;
-let fragments = [];
-let originMass = 0.5;
-let terminusMass = 0;
+// Phase: 0=expand, 1=pause, 2=fall
 let phase = 0;
-let simTime = 0;
 let paused = false;
+let fragments = [];
+let terminusMass = 0;
+let cycle = 0;
 
-// Fragment radius: sqrt scale, screen-relative, big minimum
-function fragR(mass) {
-  let base = Math.min(W, H) * 0.06;
-  return Math.max(base * 0.15, Math.sqrt(mass) * base);
+// Colors: warm spectrum, 6-char hex only
+const FCOLORS = [
+  '#ffd700', '#ff8c00', '#ff5533', '#ee44aa', '#cc66ff',
+  '#6699ff', '#44ddff', '#44ff88', '#88ff44', '#ccff00',
+  '#ffaa33', '#ff6655', '#dd55cc', '#aa77ff', '#5588ff',
+  '#33ccee', '#33ee77', '#77ee33', '#bbee00', '#ffcc22'
+];
+
+function fragColor(i) { return FCOLORS[i % FCOLORS.length]; }
+
+// Screen-relative base radius
+function baseR() { return Math.min(W, H) * 0.055; }
+
+// Fragment radius: area-proportional, minimum 8px
+function fragRadius(mass) {
+  return Math.max(8, Math.sqrt(mass) * baseR());
 }
+
+// Spread radius (how far fragments fly from center)
+function spreadR() { return Math.min(W, H) * 0.38; }
 
 function initSim() {
-  rngState = 27;
+  rngState = 27 + cycle;
   fragments = [];
-  originMass = 0.5;
   terminusMass = 0;
   phase = 0;
-  simTime = 0;
-  expand();
-}
 
-function expand() {
-  fragments = [];
-  let remaining = originMass;
-  let n = 0;
+  // Binary splitting: D=2 asymmetry
+  // Each split: big = remaining * (0.55 to 0.65), small = rest
+  // Stop when piece < 2% or we have enough fragments
+  let remaining = 1.0;
+  let pieces = [];
+  let queue = [remaining];
 
-  while (remaining > 0.01 && fragments.length < MAX_FRAG) {
-    let bias = (lfsr() % 100) / 1000.0;
-    let big = remaining * (0.5 + bias);
-    let small = remaining - big;
+  // BFS split: each piece splits once into big+small
+  // Depth-limited to keep fragment count manageable (D^depth)
+  let depth = 0;
+  let maxDepth = 5; // 2^5 = 32 max fragments
+
+  while (depth < maxDepth && queue.length < 24) {
+    let next = [];
+    for (let piece of queue) {
+      if (piece < 0.02 || next.length + queue.length > 30) {
+        next.push(piece);
+        continue;
+      }
+      let bias = 0.55 + rng() * 0.10; // D=2 asymmetry: never 50/50
+      let big = piece * bias;
+      let small = piece - big;
+      next.push(big);
+      if (small > 0.005) next.push(small);
+    }
+    queue = next;
+    depth++;
+  }
+
+  // Sort descending so biggest fragments get inner orbits
+  queue.sort((a, b) => b - a);
+
+  let n = queue.length;
+  let goldenAngle = Math.PI * (3 - Math.sqrt(5)); // sunflower spiral
+
+  for (let i = 0; i < n; i++) {
+    let mass = queue[i];
+    // Sunflower spiral placement for even visual distribution
+    let angle = i * goldenAngle + rng() * 0.3;
+    // Distance: sqrt distribution so area density is even
+    let normDist = 0.15 + 0.85 * Math.sqrt((i + 0.5) / n);
+    let targetDist = normDist * spreadR();
 
     fragments.push({
-      mass: big, x: cx, y: cy,
-      angle: (n / 20) * Math.PI * 2 + (lfsr() / 255.0) * 0.5,
+      mass: mass,
+      x: cx, y: cy,
+      angle: angle,
       dist: 0,
-      targetDist: 40 + n * 25,
-      vel: 1.0,
-      color: `hsl(${30 + n * 12}, 75%, ${60 - n * 1.5}%)`,
-      trail: [], alive: true
-    });
-    remaining = small;
-    n++;
-  }
-  if (remaining > 0.001 && fragments.length < MAX_FRAG) {
-    fragments.push({
-      mass: remaining, x: cx, y: cy,
-      angle: (n / 20) * Math.PI * 2,
-      dist: 0, targetDist: 40 + n * 25, vel: 1.0,
-      color: `hsl(${30 + n * 12}, 75%, 50%)`,
-      trail: [], alive: true
+      targetDist: targetDist,
+      vel: 0,
+      color: fragColor(i),
+      trail: [],
+      alive: true
     });
   }
-  originMass = 0;
-  phase = 0;
 }
 
 function simStep(dt) {
   if (paused) return;
-  simTime += dt;
 
-  let maxR = Math.min(W, H) * 0.4;
-  let maxTarget = 1;
-  for (let f of fragments) if (f.targetDist > maxTarget) maxTarget = f.targetDist;
-  let scale = maxR / maxTarget;
-  let allStopped = true;
+  let allDone = true;
 
   for (let f of fragments) {
     if (!f.alive) continue;
 
     if (phase === 0) {
+      // EXPAND: accelerate outward, decelerate near target
       let progress = f.dist / f.targetDist;
-      f.vel = Math.max(0, (1 - progress) * 2);
-      f.dist += f.vel * dt * 40;
-      if (f.dist >= f.targetDist * 0.98) f.vel = 0;
-      else allStopped = false;
+      let accel = (1 - progress) * 3;
+      f.vel += accel * dt;
+      f.vel *= 0.96; // drag
+      f.dist += f.vel * dt * 100;
+      if (f.dist >= f.targetDist) {
+        f.dist = f.targetDist;
+        f.vel = 0;
+      } else {
+        allDone = false;
+      }
     } else if (phase === 1) {
+      // PAUSE: gentle breathing
       f.vel = 0;
     } else {
-      let gravity = 0.5 + terminusMass * 2;
-      f.vel -= gravity * dt;
-      if (f.vel < -C_SPEED * 60) f.vel = -C_SPEED * 60;
-      f.dist += f.vel * dt * 40;
-      if (f.dist <= 2) {
-        terminusMass += f.mass; f.alive = false; f.dist = 0;
+      // FALL: gravity toward center, speed-limited
+      let gravity = 0.8 + terminusMass * 3;
+      f.vel += gravity * dt;
+      let maxV = 120; // c = speed limit
+      if (f.vel > maxV) f.vel = maxV;
+      f.dist -= f.vel * dt * 60;
+      if (f.dist <= 0) {
+        f.dist = 0;
+        f.alive = false;
+        terminusMass += f.mass;
       }
-      allStopped = false;
+      allDone = false;
     }
 
-    f.x = cx + f.dist * scale * Math.cos(f.angle);
-    f.y = cy + f.dist * scale * Math.sin(f.angle);
+    // Position from polar
+    f.x = cx + f.dist * Math.cos(f.angle);
+    f.y = cy + f.dist * Math.sin(f.angle);
 
+    // Trail
     if (f.alive) {
       f.trail.push({ x: f.x, y: f.y });
-      if (f.trail.length > 40) f.trail.shift();
+      if (f.trail.length > 30) f.trail.shift();
     }
   }
 
-  if (phase === 0 && allStopped) {
+  // Phase transitions
+  if (phase === 0 && allDone) {
     phase = 1;
-    setTimeout(() => { phase = 2; terminusMass = 0.001; }, 800);
+    setTimeout(function() { phase = 2; terminusMass = 0.001; }, 1200);
   }
-  if (phase === 2 && fragments.filter(f => f.alive).length === 0) {
-    setTimeout(() => initSim(), 2000);
+  if (phase === 2 && fragments.every(function(f) { return !f.alive; })) {
+    setTimeout(function() { cycle++; initSim(); }, 1500);
   }
+}
+
+function hexToRgba(hex, a) {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  let r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return 'rgba('+r+','+g+','+b+','+a+')';
 }
 
 function drawSim() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
 
+  // Title
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ONE \u2192 MANY \u2192 ONE', cx, 32);
+  ctx.fillStyle = '#555';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('The Fall Trinity', cx, 52);
+
   // Center glow
-  let cMass = phase === 0 ? 0 : terminusMass;
-  let glowR = 15 + cMass * 100;
+  let cMass = phase >= 2 ? terminusMass : 0;
+  let glowR = 20 + cMass * 120;
   let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-  grad.addColorStop(0, phase === 2 ? 'rgba(255,215,0,0.4)' : 'rgba(100,170,255,0.25)');
+  let cCol = phase === 2 ? 'rgba(255,215,0,' : 'rgba(100,170,255,';
+  grad.addColorStop(0, cCol + '0.5)');
+  grad.addColorStop(0.5, cCol + '0.15)');
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, Math.PI * 2); ctx.fill();
-
-  // Center dot
-  let cR = 5 + cMass * 30;
-  ctx.beginPath(); ctx.arc(cx, cy, cR, 0, Math.PI * 2);
-  ctx.fillStyle = phase === 2 ? '#ffd700' : '#6af';
+  ctx.beginPath();
+  ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
   ctx.fill();
 
-  // Fragments
+  // Center dot
+  let cR = 6 + cMass * 40;
+  ctx.beginPath();
+  ctx.arc(cx, cy, cR, 0, Math.PI * 2);
+  ctx.fillStyle = phase === 2 ? '#ffd700' : '#6699ff';
+  ctx.fill();
+  if (cR > 10) {
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold ' + Math.max(10, Math.round(cR * 0.5)) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(cMass * 100) + '%', cx, cy);
+  }
+
+  // Fragments: draw trails then circles (back to front)
   for (let f of fragments) {
-    if (!f.alive && f.trail.length === 0) continue;
+    if (f.trail.length < 2) continue;
+    ctx.beginPath();
+    ctx.moveTo(f.trail[0].x, f.trail[0].y);
+    for (let i = 1; i < f.trail.length; i++) ctx.lineTo(f.trail[i].x, f.trail[i].y);
+    ctx.strokeStyle = hexToRgba(f.color, 0.2);
+    ctx.lineWidth = Math.max(1, fragRadius(f.mass) * 0.25);
+    ctx.stroke();
+  }
 
-    // Trail
-    if (f.trail.length > 1) {
-      ctx.beginPath();
-      ctx.moveTo(f.trail[0].x, f.trail[0].y);
-      for (let i = 1; i < f.trail.length; i++) ctx.lineTo(f.trail[i].x, f.trail[i].y);
-      ctx.strokeStyle = f.color.replace(')', ',0.25)').replace('hsl(', 'hsla(');
-      ctx.lineWidth = Math.max(1, fragR(f.mass) * 0.3);
-      ctx.stroke();
-    }
-
+  for (let f of fragments) {
     if (!f.alive) continue;
-
-    let r = fragR(f.mass);
+    let r = fragRadius(f.mass);
 
     // Glow
-    let fg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r * 2);
-    fg.addColorStop(0, f.color.replace(')', ',0.5)').replace('hsl(', 'hsla('));
+    let fg = ctx.createRadialGradient(f.x, f.y, r * 0.3, f.x, f.y, r * 2.5);
+    fg.addColorStop(0, hexToRgba(f.color, 0.5));
     fg.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = fg;
-    ctx.beginPath(); ctx.arc(f.x, f.y, r * 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r * 2.5, 0, Math.PI * 2);
+    ctx.fill();
 
     // Circle
-    ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
     ctx.fillStyle = f.color;
     ctx.fill();
 
-    // Mass label
-    if (f.mass > 0.02 && r > 10) {
+    // Mass label on big enough fragments
+    if (r > 14 && f.mass > 0.015) {
       ctx.fillStyle = '#000';
-      ctx.font = `bold ${Math.max(10, Math.round(r * 0.6))}px sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold ' + Math.max(9, Math.round(r * 0.55)) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText(Math.round(f.mass * 100) + '%', f.x, f.y);
     }
   }
 
-  // Gauges
-  let gx = 20, gy = 80, gw = 140, gh = 14, gap = 28;
-  let totalMass = originMass + terminusMass;
+  // Gauges (top-left)
+  let gx = 20, gy = 80, gw = 150, gh = 14, gap = 28;
+  let totalMass = terminusMass;
   for (let f of fragments) if (f.alive) totalMass += f.mass;
-  drawGauge(gx, gy, gw, gh, 'sigma conservation', totalMass / 0.5, '#4f8');
+  drawGauge(gx, gy, gw, gh, 'sigma conservation', totalMass, '#44ff88');
   let maxVel = 0;
-  for (let f of fragments) if (f.alive) maxVel = Math.max(maxVel, Math.abs(f.vel));
-  drawGauge(gx, gy+gap, gw, gh, 'c = sigma/sigma', Math.min(1, maxVel / (C_SPEED*60)), '#6af');
-  drawGauge(gx, gy+gap*2, gw, gh, 'terminus', terminusMass / 0.5, '#ffd700');
-  let alive = fragments.filter(f => f.alive).length;
-  ctx.fillStyle = '#888'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
-  ctx.fillText('fragments: ' + alive + '/' + fragments.length, gx, gy + gap*3 + 4);
+  for (let f of fragments) if (f.alive && f.vel > maxVel) maxVel = f.vel;
+  drawGauge(gx, gy + gap, gw, gh, 'speed / c', Math.min(1, maxVel / 120), '#6699ff');
+  drawGauge(gx, gy + gap * 2, gw, gh, 'terminus', terminusMass, '#ffd700');
+  let alive = 0;
+  for (let f of fragments) if (f.alive) alive++;
+  ctx.fillStyle = '#888';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('fragments: ' + alive + ' / ' + fragments.length, gx, gy + gap * 3 + 4);
 
-  let labels = ['EXPANDING (D-operation)','TURNAROUND','FALLING (K-operation)'];
-  let cols = ['#6af','#ffd700','#f55'];
-  document.getElementById('phase').textContent = labels[Math.min(phase,2)];
-  document.getElementById('phase').style.color = cols[Math.min(phase,2)];
-
-  ctx.fillStyle = '#ffd700'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('ONE \u2192 MANY \u2192 ONE', cx, 32);
-  ctx.fillStyle = '#555'; ctx.font = '13px sans-serif';
-  ctx.fillText('The Fall Trinity', cx, 54);
+  // Phase indicator
+  let labels = ['EXPANDING (D-operation)', 'TURNAROUND', 'FALLING (K-operation)'];
+  let cols = ['#6699ff', '#ffd700', '#ff5533'];
+  let p = Math.min(phase, 2);
+  document.getElementById('phase').textContent = labels[p];
+  document.getElementById('phase').style.color = cols[p];
 }
 
 function drawGauge(x, y, w, h, label, fill, color) {
-  ctx.fillStyle = '#1a1a1a'; ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = color; ctx.fillRect(x, y, w * Math.min(1, Math.max(0, fill)), h);
-  ctx.strokeStyle = '#333'; ctx.strokeRect(x, y, w, h);
-  ctx.fillStyle = '#aaa'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#111111';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w * Math.min(1, Math.max(0, fill)), h);
+  ctx.strokeStyle = '#333333';
+  ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = '#aaaaaa';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
   ctx.fillText(label, x, y - 4);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'right';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'right';
   ctx.fillText((fill * 100).toFixed(1) + '%', x + w - 4, y + h - 3);
 }
 
-function resetSim() { initSim(); }
+function resetSim() { cycle = 0; initSim(); }
 function togglePause() {
   paused = !paused;
   document.getElementById('bA').innerHTML = paused ? '&#9654; Play' : '&#9646;&#9646; Pause';
@@ -344,7 +433,7 @@ function toggleContrast() {
   let el = document.getElementById('contrast');
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', function(e) {
   if (e.key === ' ') { e.preventDefault(); togglePause(); }
   if (e.key === 'r' || e.key === 'R') resetSim();
   if (e.key === 'c' || e.key === 'C') toggleContrast();
@@ -359,10 +448,6 @@ function frame(now) {
   drawSim();
   requestAnimationFrame(frame);
 }
-
-document.getElementById('nar').innerHTML =
-  '<span class="hi">The Fall Trinity.</span> ONE splits into MANY (D), MANY falls back to ONE (K).<br>' +
-  '<span class="dim">sigma conserved. Speed limited. The loop IS existence. Space/R to pause, C for contrast.</span>';
 
 initSim();
 requestAnimationFrame(frame);
