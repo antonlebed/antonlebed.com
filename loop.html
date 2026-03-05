@@ -112,12 +112,6 @@ button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
 </div>
 
 <script>
-// === CONSTANTS ===
-const SIGMA = 1, D = 2, K = 3;
-const MAX_FRAG = 40; // reasonable fragment limit
-const C_SPEED = 1.0; // sigma/sigma
-
-// === CANVAS ===
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 let W, H, cx, cy;
@@ -138,14 +132,21 @@ function lfsr() {
   return rngState;
 }
 
-// === SIMULATION ===
+// === State ===
+const MAX_FRAG = 81;
+const C_SPEED = 1.0;
 let fragments = [];
 let originMass = 0.5;
 let terminusMass = 0;
-let phase = 0; // 0 = expanding, 1 = turnaround, 2 = falling
+let phase = 0;
 let simTime = 0;
 let paused = false;
-let trails = []; // for visual trails
+
+// Fragment radius: sqrt scale, screen-relative, big minimum
+function fragR(mass) {
+  let base = Math.min(W, H) * 0.06;
+  return Math.max(base * 0.15, Math.sqrt(mass) * base);
+}
 
 function initSim() {
   rngState = 27;
@@ -154,14 +155,13 @@ function initSim() {
   terminusMass = 0;
   phase = 0;
   simTime = 0;
-  trails = [];
   expand();
 }
 
 function expand() {
   fragments = [];
   let remaining = originMass;
-  let pos = 0;
+  let n = 0;
 
   while (remaining > 0.01 && fragments.length < MAX_FRAG) {
     let bias = (lfsr() % 100) / 1000.0;
@@ -169,35 +169,26 @@ function expand() {
     let small = remaining - big;
 
     fragments.push({
-      mass: big,
-      x: 0, y: 0, // will be positioned radially
-      angle: (fragments.length / MAX_FRAG) * Math.PI * 2 + (lfsr() / 255.0) * 0.3,
-      dist: 0, // distance from center
-      targetDist: (pos + 1) * 18, // expand to here
-      vel: 1.0, // outward velocity
-      color: `hsl(${30 + fragments.length * 7}, 70%, ${55 + (lfsr() % 20)}%)`,
-      trail: [],
-      alive: true
+      mass: big, x: cx, y: cy,
+      angle: (n / 20) * Math.PI * 2 + (lfsr() / 255.0) * 0.5,
+      dist: 0,
+      targetDist: 40 + n * 25,
+      vel: 1.0,
+      color: `hsl(${30 + n * 12}, 75%, ${60 - n * 1.5}%)`,
+      trail: [], alive: true
     });
-
     remaining = small;
-    pos++;
+    n++;
   }
-
   if (remaining > 0.001 && fragments.length < MAX_FRAG) {
     fragments.push({
-      mass: remaining,
-      x: 0, y: 0,
-      angle: (fragments.length / MAX_FRAG) * Math.PI * 2,
-      dist: 0,
-      targetDist: (pos + 1) * 18,
-      vel: 1.0,
-      color: `hsl(${30 + fragments.length * 7}, 70%, 60%)`,
-      trail: [],
-      alive: true
+      mass: remaining, x: cx, y: cy,
+      angle: (n / 20) * Math.PI * 2,
+      dist: 0, targetDist: 40 + n * 25, vel: 1.0,
+      color: `hsl(${30 + n * 12}, 75%, 50%)`,
+      trail: [], alive: true
     });
   }
-
   originMass = 0;
   phase = 0;
 }
@@ -206,105 +197,72 @@ function simStep(dt) {
   if (paused) return;
   simTime += dt;
 
-  let maxR = Math.min(W, H) * 0.38;
-  let allStopped = true;
+  let maxR = Math.min(W, H) * 0.4;
   let maxTarget = 1;
-  for (let ff of fragments) if (ff.targetDist > maxTarget) maxTarget = ff.targetDist;
+  for (let f of fragments) if (f.targetDist > maxTarget) maxTarget = f.targetDist;
+  let scale = maxR / maxTarget;
+  let allStopped = true;
 
   for (let f of fragments) {
     if (!f.alive) continue;
 
     if (phase === 0) {
-      // Expanding: accelerate out, decelerate as approaching target
       let progress = f.dist / f.targetDist;
       f.vel = Math.max(0, (1 - progress) * 2);
       f.dist += f.vel * dt * 40;
-
-      if (f.dist >= f.targetDist * 0.98) {
-        f.vel = 0;
-      } else {
-        allStopped = false;
-      }
-
-      // Scale to canvas (based on actual max target, not MAX_FRAG)
-      let scale = maxR / (maxTarget * 1.1);
-      f.x = cx + f.dist * scale * Math.cos(f.angle);
-      f.y = cy + f.dist * scale * Math.sin(f.angle);
+      if (f.dist >= f.targetDist * 0.98) f.vel = 0;
+      else allStopped = false;
     } else if (phase === 1) {
-      // Brief turnaround pause
       f.vel = 0;
     } else {
-      // Falling: accelerate toward center
-      let scale = maxR / (maxTarget * 1.1);
-      let rDist = f.dist * scale;
-
-      // Gravity toward center
       let gravity = 0.5 + terminusMass * 2;
       f.vel -= gravity * dt;
-
-      // Speed limit: c = sigma/sigma
       if (f.vel < -C_SPEED * 60) f.vel = -C_SPEED * 60;
-
       f.dist += f.vel * dt * 40;
-
       if (f.dist <= 2) {
-        // Reached terminus
-        terminusMass += f.mass;
-        f.alive = false;
-        f.dist = 0;
+        terminusMass += f.mass; f.alive = false; f.dist = 0;
       }
-
-      f.x = cx + f.dist * scale * Math.cos(f.angle);
-      f.y = cy + f.dist * scale * Math.sin(f.angle);
       allStopped = false;
     }
 
-    // Record trail
+    f.x = cx + f.dist * scale * Math.cos(f.angle);
+    f.y = cy + f.dist * scale * Math.sin(f.angle);
+
     if (f.alive) {
-      f.trail.push({ x: f.x, y: f.y, t: simTime });
-      if (f.trail.length > 60) f.trail.shift();
+      f.trail.push({ x: f.x, y: f.y });
+      if (f.trail.length > 40) f.trail.shift();
     }
   }
 
-  // Phase transitions
   if (phase === 0 && allStopped) {
-    phase = 1; // turnaround
+    phase = 1;
     setTimeout(() => { phase = 2; terminusMass = 0.001; }, 800);
   }
-
-  // Check if loop complete
-  let aliveCount = fragments.filter(f => f.alive).length;
-  if (phase === 2 && aliveCount === 0) {
-    // Loop complete! Restart after delay
+  if (phase === 2 && fragments.filter(f => f.alive).length === 0) {
     setTimeout(() => initSim(), 2000);
   }
 }
 
-// === DRAWING ===
 function drawSim() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
 
-  let maxR = Math.min(W, H) * 0.38;
-
-  // Center glow (origin/terminus)
-  let centerMass = phase === 0 ? 0 : terminusMass;
-  let glowR = 10 + centerMass * 80;
+  // Center glow
+  let cMass = phase === 0 ? 0 : terminusMass;
+  let glowR = 15 + cMass * 100;
   let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-  grad.addColorStop(0, phase === 2 ? '#ffd70066' : '#66aaff33');
-  grad.addColorStop(1, 'transparent');
-  ctx.beginPath();
-  ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+  grad.addColorStop(0, phase === 2 ? 'rgba(255,215,0,0.4)' : 'rgba(100,170,255,0.25)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, Math.PI * 2); ctx.fill();
 
   // Center dot
-  ctx.beginPath();
-  ctx.arc(cx, cy, 4 + centerMass * 20, 0, Math.PI * 2);
+  let cR = 5 + cMass * 30;
+  ctx.beginPath(); ctx.arc(cx, cy, cR, 0, Math.PI * 2);
   ctx.fillStyle = phase === 2 ? '#ffd700' : '#6af';
   ctx.fill();
 
-  // Fragments with trails
+  // Fragments
   for (let f of fragments) {
     if (!f.alive && f.trail.length === 0) continue;
 
@@ -312,102 +270,71 @@ function drawSim() {
     if (f.trail.length > 1) {
       ctx.beginPath();
       ctx.moveTo(f.trail[0].x, f.trail[0].y);
-      for (let i = 1; i < f.trail.length; i++) {
-        ctx.lineTo(f.trail[i].x, f.trail[i].y);
-      }
-      ctx.strokeStyle = f.color + '44';
-      ctx.lineWidth = Math.max(1, f.mass * 8);
+      for (let i = 1; i < f.trail.length; i++) ctx.lineTo(f.trail[i].x, f.trail[i].y);
+      ctx.strokeStyle = f.color.replace(')', ',0.25)').replace('hsl(', 'hsla(');
+      ctx.lineWidth = Math.max(1, fragR(f.mass) * 0.3);
       ctx.stroke();
     }
 
     if (!f.alive) continue;
 
-    // Fragment circle
-    let r = Math.max(12, f.mass * 200);
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
+    let r = fragR(f.mass);
+
+    // Glow
+    let fg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r * 2);
+    fg.addColorStop(0, f.color.replace(')', ',0.5)').replace('hsl(', 'hsla('));
+    fg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = fg;
+    ctx.beginPath(); ctx.arc(f.x, f.y, r * 2, 0, Math.PI * 2); ctx.fill();
+
+    // Circle
+    ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
     ctx.fillStyle = f.color;
     ctx.fill();
 
-    // Mass label for bigger fragments
-    if (f.mass > 0.02) {
+    // Mass label
+    if (f.mass > 0.02 && r > 10) {
       ctx.fillStyle = '#000';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText((f.mass * 100).toFixed(0) + '%', f.x, f.y);
+      ctx.font = `bold ${Math.max(10, Math.round(r * 0.6))}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round(f.mass * 100) + '%', f.x, f.y);
     }
   }
 
   // Gauges
-  drawGauges();
+  let gx = 20, gy = 80, gw = 140, gh = 14, gap = 28;
+  let totalMass = originMass + terminusMass;
+  for (let f of fragments) if (f.alive) totalMass += f.mass;
+  drawGauge(gx, gy, gw, gh, 'sigma conservation', totalMass / 0.5, '#4f8');
+  let maxVel = 0;
+  for (let f of fragments) if (f.alive) maxVel = Math.max(maxVel, Math.abs(f.vel));
+  drawGauge(gx, gy+gap, gw, gh, 'c = sigma/sigma', Math.min(1, maxVel / (C_SPEED*60)), '#6af');
+  drawGauge(gx, gy+gap*2, gw, gh, 'terminus', terminusMass / 0.5, '#ffd700');
+  let alive = fragments.filter(f => f.alive).length;
+  ctx.fillStyle = '#888'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('fragments: ' + alive + '/' + fragments.length, gx, gy + gap*3 + 4);
 
-  // Phase label
-  let phaseLabel = phase === 0 ? 'EXPANDING (D-operation)' : phase === 1 ? 'TURNAROUND' : 'FALLING (K-operation)';
-  let phaseColor = phase === 0 ? '#6af' : phase === 1 ? '#ffd700' : '#f55';
-  document.getElementById('phase').textContent = phaseLabel;
-  document.getElementById('phase').style.color = phaseColor;
+  let labels = ['EXPANDING (D-operation)','TURNAROUND','FALLING (K-operation)'];
+  let cols = ['#6af','#ffd700','#f55'];
+  document.getElementById('phase').textContent = labels[Math.min(phase,2)];
+  document.getElementById('phase').style.color = cols[Math.min(phase,2)];
 
-  // Title
-  ctx.fillStyle = '#ffd700';
-  ctx.font = 'bold 20px sans-serif';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd700'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('ONE \u2192 MANY \u2192 ONE', cx, 32);
-  ctx.fillStyle = '#555';
-  ctx.font = '13px sans-serif';
+  ctx.fillStyle = '#555'; ctx.font = '13px sans-serif';
   ctx.fillText('The Fall Trinity', cx, 54);
 }
 
-function drawGauges() {
-  let gx = 20, gy = 80, gw = 140, gh = 14, gap = 28;
-
-  // sigma conservation
-  let totalMass = originMass + terminusMass;
-  for (let f of fragments) if (f.alive) totalMass += f.mass;
-  let sigmaOk = Math.abs(totalMass - 0.5) < 0.01;
-
-  drawGauge(gx, gy, gw, gh, 'sigma conservation', totalMass / 0.5, sigmaOk ? '#4f8' : '#f55');
-
-  // Speed limit
-  let maxVel = 0;
-  for (let f of fragments) if (f.alive) maxVel = Math.max(maxVel, Math.abs(f.vel));
-  let speedOk = maxVel <= C_SPEED * 61;
-  drawGauge(gx, gy + gap, gw, gh, 'c = sigma/sigma', Math.min(1, maxVel / (C_SPEED * 60)), speedOk ? '#6af' : '#f55');
-
-  // Terminus accumulation
-  drawGauge(gx, gy + gap * 2, gw, gh, 'terminus', terminusMass / 0.5, '#ffd700');
-
-  // Fragment count
-  let alive = fragments.filter(f => f.alive).length;
-  ctx.fillStyle = '#888';
-  ctx.font = '12px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('fragments: ' + alive + '/' + fragments.length, gx, gy + gap * 3 + 4);
-}
-
 function drawGauge(x, y, w, h, label, fill, color) {
-  // Background
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(x, y, w, h);
-  // Fill
-  ctx.fillStyle = color;
-  ctx.fillRect(x, y, w * Math.min(1, Math.max(0, fill)), h);
-  // Border
-  ctx.strokeStyle = '#333';
-  ctx.strokeRect(x, y, w, h);
-  // Label
-  ctx.fillStyle = '#aaa';
-  ctx.font = '11px sans-serif';
-  ctx.textAlign = 'left';
+  ctx.fillStyle = '#1a1a1a'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = color; ctx.fillRect(x, y, w * Math.min(1, Math.max(0, fill)), h);
+  ctx.strokeStyle = '#333'; ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = '#aaa'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
   ctx.fillText(label, x, y - 4);
-  // Value
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 10px sans-serif';
-  ctx.textAlign = 'right';
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'right';
   ctx.fillText((fill * 100).toFixed(1) + '%', x + w - 4, y + h - 3);
 }
 
-// === CONTROLS ===
 function resetSim() { initSim(); }
 function togglePause() {
   paused = !paused;
@@ -417,35 +344,28 @@ function toggleContrast() {
   let el = document.getElementById('contrast');
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
-
-// Keyboard
 document.addEventListener('keydown', e => {
   if (e.key === ' ') { e.preventDefault(); togglePause(); }
   if (e.key === 'r' || e.key === 'R') resetSim();
   if (e.key === 'c' || e.key === 'C') toggleContrast();
 });
 
-// === MAIN LOOP ===
 let lastT = performance.now();
-
-function loop(now) {
+function frame(now) {
   let dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
-
   let speed = parseInt(document.getElementById('spd').value);
   for (let i = 0; i < speed; i++) simStep(dt / speed);
-
   drawSim();
-  requestAnimationFrame(loop);
+  requestAnimationFrame(frame);
 }
 
-// Narrative
 document.getElementById('nar').innerHTML =
   '<span class="hi">The Fall Trinity.</span> ONE splits into MANY (D), MANY falls back to ONE (K).<br>' +
   '<span class="dim">sigma conserved. Speed limited. The loop IS existence. Space/R to pause, C for contrast.</span>';
 
 initSim();
-requestAnimationFrame(loop);
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>

@@ -480,12 +480,13 @@ function drawIdentity() {
   for (let a = 0; a < 3; a++) {
     let ox = cx + (a - 1) * (colW + 20);
 
-    // Count identity-aligned choices
+    // Count identity-aligned choices (from snapshot to avoid flicker)
     let aligned = 0;
+    let sCounts = snapCounts[a], sTotal = snapTotals[a];
     for (let p = 0; p < PATHS; p++) {
-      if (p % K === agents[a].id) aligned += agents[a].counts[p];
+      if (p % K === agents[a].id) aligned += sCounts[p];
     }
-    let pct = agents[a].total > 0 ? aligned / agents[a].total : 0;
+    let pct = sTotal > 0 ? aligned / sTotal : 0;
     let expected = 1 / K;
 
     // Title
@@ -499,7 +500,7 @@ function drawIdentity() {
 
     // Bar chart per path
     let bw = colW / PATHS - 1;
-    let maxCount = Math.max(...agents[a].counts, 1);
+    let maxCount = Math.max(...sCounts, 1);
     let chartTop = topY + 40;
     let chartBot = chartTop + barH;
 
@@ -516,7 +517,7 @@ function drawIdentity() {
 
     for (let p = 0; p < PATHS; p++) {
       let bx = ox - colW / 2 + p * (colW / PATHS);
-      let count = agents[a].counts[p];
+      let count = sCounts[p];
       let h = Math.min((count / maxCount) * barH * 0.85, barH);
       let isAligned = (p % K === a);
 
@@ -545,10 +546,10 @@ function drawIdentity() {
     ctx.fillStyle = pct > expected + 0.03 ? '#4f8' : '#aaa';
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`${(pct * 100).toFixed(1)}%`, ox, topY + 40 + barH + 38);
+    ctx.fillText(`${(pct * 100).toFixed(1)}%`, ox, chartBot + 38);
     ctx.fillStyle = '#555';
     ctx.font = '10px monospace';
-    ctx.fillText(`(expected 33.3%)`, ox, topY + 40 + barH + 52);
+    ctx.fillText(`(expected 33.3%)`, ox, chartBot + 52);
 
     // Preference heatmap
     let py = topY + 40 + barH + 70;
@@ -593,11 +594,26 @@ function drawIdentity() {
   }
 }
 
+let snapCounts = [new Array(PATHS).fill(0), new Array(PATHS).fill(0), new Array(PATHS).fill(0)];
+let snapTotals = [0, 0, 0];
+let snapRandom = new Array(PATHS).fill(0);
+let snapRandomTotal = 0;
+
+function takeSnapshot() {
+  for (let a = 0; a < 3; a++) {
+    snapCounts[a] = agents[a].counts.slice();
+    snapTotals[a] = agents[a].total;
+  }
+  snapRandom = randomCounts.slice();
+  snapRandomTotal = randomTotal;
+}
+
 function frame() {
   t++;
   ctx.clearRect(0, 0, W, H);
 
   if (running) step();
+  if (t % 20 === 0) takeSnapshot();
 
   switch (view) {
     case 0: drawRace(); break;
