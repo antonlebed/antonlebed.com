@@ -335,7 +335,7 @@ s.textContent =
   '.sn-r{display:none}' +
   '.sn-h{display:none}' +
   '.sn-mn{display:flex}' +
-  '.sn-ld{display:none!important}' +
+  '.sn-ld{position:absolute!important;right:10px!important}' +
   '#sn{padding:0 10px;justify-content:center;height:44px}' +
   'body{padding-top:44px!important}' +
   '#sn-rel{padding:16px 14px 24px}#sn-rel .rl{gap:6px}' +
@@ -354,11 +354,12 @@ var h = '<div class="sn-l">' +
   '</div>' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
   '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
-  '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' + ['EN','FR','RU'][_li] +
+  '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' +
+  ['\uD83C\uDDEC\uD83C\uDDE7','\uD83C\uDDEB\uD83C\uDDF7','\uD83C\uDDF7\uD83C\uDDFA'][_li] +
   ' \u25BE</button><div class="sn-lp">' +
-  '<button data-lang="en"' + (_li===0?' class="cur"':'') + '>English</button>' +
-  '<button data-lang="fr"' + (_li===1?' class="cur"':'') + '>Fran\u00e7ais</button>' +
-  '<button data-lang="ru"' + (_li===2?' class="cur"':'') + '>\u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
+  '<button data-lang="en"' + (_li===0?' class="cur"':'') + '>\uD83C\uDDEC\uD83C\uDDE7 English</button>' +
+  '<button data-lang="fr"' + (_li===1?' class="cur"':'') + '>\uD83C\uDDEB\uD83C\uDDF7 Fran\u00e7ais</button>' +
+  '<button data-lang="ru"' + (_li===2?' class="cur"':'') + '>\uD83C\uDDF7\uD83C\uDDFA \u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
   '</div></div>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
 h += '<button class="sn-mn" id="sn-mn">' + tr('navLabel') + '<span class="mnar">\u25BE</span></button>';
@@ -420,17 +421,6 @@ var mh = '<div class="sn-mh">' +
   '<a href="derive_ax.html">' + tr('fromNothing') + '</a>' +
   '<a class="rpl" href="repl.html">.ax REPL</a>' +
   '<a class="rpl" href="playground.html">.ax Playground</a>' +
-  '<div style="display:flex;gap:8px;margin:12px 0">' +
-  '<button class="sn-mlb" data-lang="en" style="flex:1;padding:10px 0;font-size:14px;' +
-  'background:none;border:1px solid ' + (_li===0?'#ffd700':'#222') + ';border-radius:8px;' +
-  'color:' + (_li===0?'#ffd700':'#888') + ';cursor:pointer;font-family:system-ui,sans-serif">English</button>' +
-  '<button class="sn-mlb" data-lang="fr" style="flex:1;padding:10px 0;font-size:14px;' +
-  'background:none;border:1px solid ' + (_li===1?'#ffd700':'#222') + ';border-radius:8px;' +
-  'color:' + (_li===1?'#ffd700':'#888') + ';cursor:pointer;font-family:system-ui,sans-serif">Fran\u00e7ais</button>' +
-  '<button class="sn-mlb" data-lang="ru" style="flex:1;padding:10px 0;font-size:14px;' +
-  'background:none;border:1px solid ' + (_li===2?'#ffd700':'#222') + ';border-radius:8px;' +
-  'color:' + (_li===2?'#ffd700':'#888') + ';cursor:pointer;font-family:system-ui,sans-serif">\u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
-  '</div>' +
   '<div class="sn-ms" style="margin-top:8px">' + tr('atlas') + '</div>';
 var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
 for (var i = 0; i < mAtlasOrder.length; i++) {
@@ -478,8 +468,6 @@ if(ld){
   for(var li=0;li<lps.length;li++)lps[li].addEventListener('click',function(){setLang(this.getAttribute('data-lang'))});
 }
 document.addEventListener('click',function(e){if(ld&&!ld.contains(e.target))ld.classList.remove('open')});
-var mlbs=mob.querySelectorAll('.sn-mlb');
-for(var mi=0;mi<mlbs.length;mi++)mlbs[mi].addEventListener('click',function(){setLang(this.getAttribute('data-lang'))});
 
 /* ===== RELATED DEMOS FOOTER ===== */
 if (catKey && catKey !== 'tutorial') {
