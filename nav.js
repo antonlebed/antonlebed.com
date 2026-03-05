@@ -94,6 +94,110 @@ var T = {
   atlas_14_solar_ladder:'13. Solar Ladder'
 };
 
+/* ===== i18n (EN/FR/RU) ===== */
+var axLang=(function(){try{var l=localStorage.getItem('ax-lang');if(l==='fr'||l==='ru')return l}catch(e){}return'en'})();
+if(axLang!=='en')document.documentElement.lang=axLang;
+var _i18n={
+  nav:{howWorld:['How the World Works','Comment fonctionne le monde','\u041a\u0430\u043a \u0443\u0441\u0442\u0440\u043e\u0435\u043d \u043c\u0438\u0440'],
+    theMath:['The Mathematics','Les math\u00e9matiques','\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430'],
+    fromNothing:['From Nothing','\u00c0 partir de rien','\u0418\u0437 \u043d\u0438\u0447\u0435\u0433\u043e'],
+    explore:['Explore','Explorer','\u041e\u0431\u0437\u043e\u0440'],
+    navLabel:['Navigation','Navigation','\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f'],
+    main:['Main','Principal','\u0413\u043b\u0430\u0432\u043d\u0430\u044f'],
+    atlas:['Interactive Atlas','Atlas interactif','\u0418\u043d\u0442\u0435\u0440\u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0439 \u0430\u0442\u043b\u0430\u0441'],
+    moreIn:['Explore more in','Voir plus dans','\u0415\u0449\u0451 \u0432 \u0440\u0430\u0437\u0434\u0435\u043b\u0435'],
+    allCat:['All','Tout','\u0412\u0441\u0435']},
+  vow:[
+    ['This work is and will always be free. No paywall. No copyright. No exceptions.',
+     'Ce travail est et sera toujours gratuit. Pas de mur payant. Pas de copyright. Sans exception.',
+     '\u042d\u0442\u0430 \u0440\u0430\u0431\u043e\u0442\u0430 \u0431\u044b\u043b\u0430 \u0438 \u0432\u0441\u0435\u0433\u0434\u0430 \u0431\u0443\u0434\u0435\u0442 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e\u0439. \u041d\u0438\u043a\u0430\u043a\u0438\u0445 \u043f\u043b\u0430\u0442\u043d\u044b\u0445 \u0441\u0442\u0435\u043d. \u041d\u0438\u043a\u0430\u043a\u0438\u0445 \u0430\u0432\u0442\u043e\u0440\u0441\u043a\u0438\u0445 \u043f\u0440\u0430\u0432. \u0411\u0435\u0437 \u0438\u0441\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0439.'],
+    ['If it ever earns anything, every cent goes to the communities that need it most.',
+     "S'il rapporte quoi que ce soit, chaque centime ira aux communaut\u00e9s qui en ont le plus besoin.",
+     '\u0415\u0441\u043b\u0438 \u043e\u043d\u0430 \u043a\u043e\u0433\u0434\u0430-\u043d\u0438\u0431\u0443\u0434\u044c \u043f\u0440\u0438\u043d\u0435\u0441\u0451\u0442 \u0434\u043e\u0445\u043e\u0434, \u043a\u0430\u0436\u0434\u0430\u044f \u043a\u043e\u043f\u0435\u0439\u043a\u0430 \u043f\u043e\u0439\u0434\u0451\u0442 \u0442\u0435\u043c, \u043a\u043e\u043c\u0443 \u043e\u043d\u0430 \u043d\u0443\u0436\u043d\u0435\u0435 \u0432\u0441\u0435\u0433\u043e.'],
+    ['This sacred vow is permanent and irrevocable.',
+     'Ce v\u0153u sacr\u00e9 est permanent et irr\u00e9vocable.',
+     '\u042d\u0442\u043e\u0442 \u0441\u0432\u044f\u0449\u0435\u043d\u043d\u044b\u0439 \u043e\u0431\u0435\u0442 \u043f\u043e\u0441\u0442\u043e\u044f\u043d\u0435\u043d \u0438 \u043d\u0435\u043e\u0431\u0440\u0430\u0442\u0438\u043c.'],
+    ['\u2014 Anton Alexandrovich Lebed','\u2014 Anton Alexandrovitch Lebed',
+     '\u2014 \u0410\u043d\u0442\u043e\u043d \u0410\u043b\u0435\u043a\u0441\u0430\u043d\u0434\u0440\u043e\u0432\u0438\u0447 \u041b\u0435\u0431\u0435\u0434\u044c']]
+};
+var _li=axLang==='fr'?1:axLang==='ru'?2:0;
+function tr(k){var v=_i18n.nav[k];return v?v[_li]:k}
+
+/* Override category names and demo titles for current language */
+if(_li>0){
+  var _catTr={fr:{start:'Commencer ici',physics:'Physique',bio:'Biologie',math:'Math\u00e9matiques',eng:'Ing\u00e9nierie',mind:'Esprit',tutorial:'Tutoriel'},
+    ru:{start:'\u041d\u0430\u0447\u0430\u043b\u043e',physics:'\u0424\u0438\u0437\u0438\u043a\u0430',bio:'\u0411\u0438\u043e\u043b\u043e\u0433\u0438\u044f',math:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',eng:'\u0418\u043d\u0436\u0435\u043d\u0435\u0440\u0438\u044f',mind:'\u0420\u0430\u0437\u0443\u043c',tutorial:'\u0423\u0447\u0435\u0431\u043d\u0438\u043a'}};
+  var _ct=_catTr[axLang];if(_ct)for(var _c in _ct)if(CATS[_c])CATS[_c][0]=_ct[_c];
+  var _titles={fr:{
+    worldview:'Comment fonctionne le monde',story:'Les math\u00e9matiques',derive_ax:'\u00c0 partir de rien',
+    particles:'Masses des particules',alpha:'Constante de structure fine',
+    constants:'Constantes physiques',turbulence:'Turbulence et m\u00e9tabolisme',
+    blackhole:'Trous noirs',nuclear:'Couches nucl\u00e9aires',gravity:'Gravit\u00e9',
+    photon:'La lumi\u00e8re devient masse',pmns:'M\u00e9lange des neutrinos',
+    three_body_dance:'R\u00e9sonances orbitales',figure_ground:'Une seule force',
+    eternal_sun:'Pourquoi le Soleil vit',scale_bands:"Bandes d'\u00e9chelle",
+    noxan:'Pens\u00e9es froides',wavebox:'Ondes stationnaires',
+    sigma_dynamics:'Comment les anneaux oublient',loop:'Trinit\u00e9 de la chute',
+    dna:'Codons ADN',sleep:'Phases du sommeil',heart:'Le battement du c\u0153ur',
+    death:"Ce qu'est la mort",human_shape:'Votre corps est un anneau',
+    generations:'Trois familles',septilix:'Sept p\u00e9tales',
+    millennium:'Probl\u00e8mes du mill\u00e9naire',hardest:'11 irr\u00e9solus c\u00e9l\u00e8bres',
+    goldbach:'Paires de Goldbach',coupling:'Paysage de couplage',
+    ninedot:'Puzzle des 9 points',infinity:"L'infini du fini",
+    bootstrap:"Pourquoi l'existence existe",symbol:'Trois formes',
+    watercycle:"Cycle de l'eau",genesis:'Gen\u00e8se',clock24:'Horloge 24h',
+    rose:'Rose interactive',gap_pairs:'Portes K=3',
+    depth_quad:'Quadratique de profondeur',fourteen:'Les quatorze',
+    demo_classifier:'Classifieur',ecc_live:"Correction d'erreurs",
+    demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'Compression CRT',
+    tokenizer:'Tokeniseur CRT',k_neural:'IA ternaire',demo_ecc:'ECC classique',
+    emergence:'\u00c9mergence',conscious:'Conscience',freewill:'Libre arbitre',
+    braid:'Tresses',dimension:'Dimensions',ouroboros:'Ouroboros',
+    lava_lamp:'HYDOR',sandpile:'Tas de sable',music:'Musique des premiers',
+    atlas_01_what_is_2310:'0. Cinq premiers',atlas_02_two_rings:'1. Trois anneaux',
+    atlas_03_crt:'2. Cinq p\u00e9tales',atlas_04_carousel:'3. Carrousel',
+    atlas_05_eigenvalues:'4. Valeurs propres',atlas_06_units:'5. Unit\u00e9s',
+    atlas_07_kingdoms:'6. Royaumes',atlas_08_breakthroughs:'7. Perc\u00e9es',
+    atlas_09_demos:'8. D\u00e9mos',atlas_10_millennium:'9. Mill\u00e9naire',
+    atlas_11_net:"10. Filet d'Indra",atlas_12_shadow_polynomial:"11. Polyn\u00f4me d'ombre",
+    atlas_13_biological_braid:'12. Tresse biologique',atlas_14_solar_ladder:'13. \u00c9chelle solaire'},
+  ru:{
+    worldview:'\u041a\u0430\u043a \u0443\u0441\u0442\u0440\u043e\u0435\u043d \u043c\u0438\u0440',story:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',derive_ax:'\u0418\u0437 \u043d\u0438\u0447\u0435\u0433\u043e',
+    particles:'\u041c\u0430\u0441\u0441\u044b \u0447\u0430\u0441\u0442\u0438\u0446',alpha:'\u041f\u043e\u0441\u0442\u043e\u044f\u043d\u043d\u0430\u044f \u0442\u043e\u043d\u043a\u043e\u0439 \u0441\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u044b',
+    constants:'\u0424\u0438\u0437\u0438\u0447\u0435\u0441\u043a\u0438\u0435 \u043a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u044b',turbulence:'\u0422\u0443\u0440\u0431\u0443\u043b\u0435\u043d\u0442\u043d\u043e\u0441\u0442\u044c \u0438 \u043c\u0435\u0442\u0430\u0431\u043e\u043b\u0438\u0437\u043c',
+    blackhole:'\u0427\u0451\u0440\u043d\u044b\u0435 \u0434\u044b\u0440\u044b',nuclear:'\u042f\u0434\u0435\u0440\u043d\u044b\u0435 \u043e\u0431\u043e\u043b\u043e\u0447\u043a\u0438',gravity:'\u0413\u0440\u0430\u0432\u0438\u0442\u0430\u0446\u0438\u044f',
+    photon:'\u0421\u0432\u0435\u0442 \u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0441\u044f \u043c\u0430\u0441\u0441\u043e\u0439',pmns:'\u0421\u043c\u0435\u0448\u0438\u0432\u0430\u043d\u0438\u0435 \u043d\u0435\u0439\u0442\u0440\u0438\u043d\u043e',
+    three_body_dance:'\u041e\u0440\u0431\u0438\u0442\u0430\u043b\u044c\u043d\u044b\u0435 \u0440\u0435\u0437\u043e\u043d\u0430\u043d\u0441\u044b',figure_ground:'\u041e\u0434\u043d\u0430 \u0441\u0438\u043b\u0430',
+    eternal_sun:'\u041f\u043e\u0447\u0435\u043c\u0443 \u0421\u043e\u043b\u043d\u0446\u0435 \u0436\u0438\u0432\u0451\u0442',scale_bands:'\u041c\u0430\u0441\u0448\u0442\u0430\u0431\u043d\u044b\u0435 \u043f\u043e\u043b\u043e\u0441\u044b',
+    noxan:'\u0425\u043e\u043b\u043e\u0434\u043d\u044b\u0435 \u043c\u044b\u0441\u043b\u0438',wavebox:'\u0421\u0442\u043e\u044f\u0447\u0438\u0435 \u0432\u043e\u043b\u043d\u044b',
+    sigma_dynamics:'\u041a\u0430\u043a \u043a\u043e\u043b\u044c\u0446\u0430 \u0437\u0430\u0431\u044b\u0432\u0430\u044e\u0442',loop:'\u0422\u0440\u043e\u0438\u0446\u0430 \u043f\u0430\u0434\u0435\u043d\u0438\u044f',
+    dna:'\u041a\u043e\u0434\u043e\u043d\u044b \u0414\u041d\u041a',sleep:'\u0424\u0430\u0437\u044b \u0441\u043d\u0430',heart:'\u0411\u0438\u0435\u043d\u0438\u0435 \u0441\u0435\u0440\u0434\u0446\u0430',
+    death:'\u0427\u0442\u043e \u0442\u0430\u043a\u043e\u0435 \u0441\u043c\u0435\u0440\u0442\u044c',human_shape:'\u0412\u0430\u0448\u0435 \u0442\u0435\u043b\u043e \u2014 \u043a\u043e\u043b\u044c\u0446\u043e',
+    generations:'\u0422\u0440\u0438 \u0441\u0435\u043c\u0435\u0439\u0441\u0442\u0432\u0430',septilix:'\u0421\u0435\u043c\u044c \u043b\u0435\u043f\u0435\u0441\u0442\u043a\u043e\u0432',
+    millennium:'\u0417\u0430\u0434\u0430\u0447\u0438 \u0442\u044b\u0441\u044f\u0447\u0435\u043b\u0435\u0442\u0438\u044f',hardest:'11 \u043d\u0435\u0440\u0435\u0448\u0451\u043d\u043d\u044b\u0445 \u0437\u0430\u0434\u0430\u0447',
+    goldbach:'\u041f\u0430\u0440\u044b \u0413\u043e\u043b\u044c\u0434\u0431\u0430\u0445\u0430',coupling:'\u041b\u0430\u043d\u0434\u0448\u0430\u0444\u0442 \u0441\u0432\u044f\u0437\u0438',
+    ninedot:'\u0413\u043e\u043b\u043e\u0432\u043e\u043b\u043e\u043c\u043a\u0430 9 \u0442\u043e\u0447\u0435\u043a',infinity:'\u0411\u0435\u0441\u043a\u043e\u043d\u0435\u0447\u043d\u043e\u0435 \u0438\u0437 \u043a\u043e\u043d\u0435\u0447\u043d\u043e\u0433\u043e',
+    bootstrap:'\u041f\u043e\u0447\u0435\u043c\u0443 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u043e\u0432\u0430\u043d\u0438\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442',symbol:'\u0422\u0440\u0438 \u0444\u043e\u0440\u043c\u044b',
+    watercycle:'\u041a\u0440\u0443\u0433\u043e\u0432\u043e\u0440\u043e\u0442 \u0432\u043e\u0434\u044b',genesis:'\u0413\u0435\u043d\u0435\u0437\u0438\u0441',clock24:'24-\u0447\u0430\u0441\u043e\u0432\u044b\u0435 \u0447\u0430\u0441\u044b',
+    rose:'\u0418\u043d\u0442\u0435\u0440\u0430\u043a\u0442\u0438\u0432\u043d\u0430\u044f \u0440\u043e\u0437\u0430',gap_pairs:'\u0412\u043e\u0440\u043e\u0442\u0430 K=3',
+    depth_quad:'\u041a\u0432\u0430\u0434\u0440\u0430\u0442\u0438\u043a\u0430 \u0433\u043b\u0443\u0431\u0438\u043d\u044b',fourteen:'\u0412\u0441\u0435 \u0447\u0435\u0442\u044b\u0440\u043d\u0430\u0434\u0446\u0430\u0442\u044c',
+    demo_classifier:'\u041a\u043b\u0430\u0441\u0441\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440',ecc_live:'\u041a\u043e\u0440\u0440\u0435\u043a\u0446\u0438\u044f \u043e\u0448\u0438\u0431\u043e\u043a',
+    demo_ofdm_vs_wifi:'OFDM \u043f\u0440\u043e\u0442\u0438\u0432 WiFi',compression:'CRT-\u0441\u0436\u0430\u0442\u0438\u0435',
+    tokenizer:'CRT-\u0442\u043e\u043a\u0435\u043d\u0438\u0437\u0430\u0442\u043e\u0440',k_neural:'\u0422\u0435\u0440\u043d\u0430\u0440\u043d\u044b\u0439 \u0418\u0418',demo_ecc:'ECC (\u043a\u043b\u0430\u0441\u0441\u0438\u0447\u0435\u0441\u043a\u0438\u0439)',
+    emergence:'\u042d\u043c\u0435\u0440\u0434\u0436\u0435\u043d\u0442\u043d\u043e\u0441\u0442\u044c',conscious:'\u0421\u043e\u0437\u043d\u0430\u043d\u0438\u0435',freewill:'\u0421\u0432\u043e\u0431\u043e\u0434\u0430 \u0432\u043e\u043b\u0438',
+    braid:'\u041a\u043e\u0441\u044b',dimension:'\u0418\u0437\u043c\u0435\u0440\u0435\u043d\u0438\u044f',ouroboros:'\u0423\u0440\u043e\u0431\u043e\u0440\u043e\u0441',
+    lava_lamp:'HYDOR',sandpile:'\u041f\u0435\u0441\u043e\u0447\u043d\u0430\u044f \u043a\u0443\u0447\u0430',music:'\u041c\u0443\u0437\u044b\u043a\u0430 \u043f\u0440\u043e\u0441\u0442\u044b\u0445 \u0447\u0438\u0441\u0435\u043b',
+    atlas_01_what_is_2310:'0. \u041f\u044f\u0442\u044c \u043f\u0440\u043e\u0441\u0442\u044b\u0445',atlas_02_two_rings:'1. \u0422\u0440\u0438 \u043a\u043e\u043b\u044c\u0446\u0430',
+    atlas_03_crt:'2. \u041f\u044f\u0442\u044c \u043b\u0435\u043f\u0435\u0441\u0442\u043a\u043e\u0432',atlas_04_carousel:'3. \u041a\u0430\u0440\u0443\u0441\u0435\u043b\u044c',
+    atlas_05_eigenvalues:'4. \u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f',atlas_06_units:'5. \u0415\u0434\u0438\u043d\u0438\u0446\u044b',
+    atlas_07_kingdoms:'6. \u041a\u043e\u0440\u043e\u043b\u0435\u0432\u0441\u0442\u0432\u0430',atlas_08_breakthroughs:'7. \u041f\u0440\u043e\u0440\u044b\u0432\u044b',
+    atlas_09_demos:'8. \u0414\u0435\u043c\u043e',atlas_10_millennium:'9. \u0422\u044b\u0441\u044f\u0447\u0435\u043b\u0435\u0442\u0438\u0435',
+    atlas_11_net:'10. \u0421\u0435\u0442\u044c \u0418\u043d\u0434\u0440\u044b',atlas_12_shadow_polynomial:'11. \u0422\u0435\u043d\u0435\u0432\u043e\u0439 \u043f\u043e\u043b\u0438\u043d\u043e\u043c',
+    atlas_13_biological_braid:'12. \u0411\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043a\u043e\u0441\u0430',
+    atlas_14_solar_ladder:'13. \u0421\u043e\u043b\u043d\u0435\u0447\u043d\u0430\u044f \u043b\u0435\u0441\u0442\u043d\u0438\u0446\u0430'}};
+  var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
+}
+
 var key = f.replace('.html','');
 var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
@@ -140,6 +244,10 @@ s.textContent =
   '.sn-r:first-of-type{margin-left:auto}' +
   '.sn-r:hover{border-color:#1a4a1a;background:rgba(80,250,123,0.04);text-shadow:0 0 8px rgba(80,250,123,0.4)}' +
   '.sn-r.on{color:#fff !important;border-color:#50fa7b;background:rgba(80,250,123,0.06)}' +
+  '.sn-lang{padding:3px 8px;color:#888;font-size:11px;font-weight:600;letter-spacing:1px;' +
+  'flex-shrink:0;border:1px solid #222;border-radius:6px;margin:0 3px;background:none;' +
+  'font-family:system-ui,sans-serif;cursor:pointer;transition:color 0.2s,border-color 0.2s}' +
+  '.sn-lang:hover{color:#ffd700;border-color:#444}' +
   '.sn-h{display:none;font-size:22px;color:#888;padding:0 4px;margin-left:auto;' +
   'flex-shrink:0;line-height:1;background:none;border:none}' +
   '.sn-mn{display:none;align-items:center;color:#ccc;font-size:14px;background:none;' +
@@ -216,6 +324,7 @@ s.textContent =
   '.sn-r{display:none}' +
   '.sn-h{display:none}' +
   '.sn-mn{display:flex}' +
+  '.sn-lang{display:none!important}' +
   '#sn{padding:0 10px;justify-content:center;height:44px}' +
   'body{padding-top:44px!important}' +
   '#sn-rel{padding:16px 14px 24px}#sn-rel .rl{gap:6px}' +
@@ -227,15 +336,16 @@ var nav = document.createElement('nav');
 nav.id = 'sn';
 var h = '<div class="sn-l">' +
   '<a class="sn-b" href="index.html">970200</a>' +
-  '<a class="sn-k' + (isWorld ? ' on' : '') + '" href="worldview.html">How the World Works</a>' +
-  '<a class="sn-k' + (isMath ? ' on' : '') + '" href="story.html">The Mathematics</a>' +
-  '<a class="sn-k' + (isDerive ? ' on' : '') + '" href="derive_ax.html">From Nothing</a>' +
-  '<button class="sn-x' + (isExplore ? ' on' : '') + '" id="sn-xp">Explore <span class="ar">\u25BE</span></button>' +
+  '<a class="sn-k' + (isWorld ? ' on' : '') + '" href="worldview.html">' + tr('howWorld') + '</a>' +
+  '<a class="sn-k' + (isMath ? ' on' : '') + '" href="story.html">' + tr('theMath') + '</a>' +
+  '<a class="sn-k' + (isDerive ? ' on' : '') + '" href="derive_ax.html">' + tr('fromNothing') + '</a>' +
+  '<button class="sn-x' + (isExplore ? ' on' : '') + '" id="sn-xp">' + tr('explore') + ' <span class="ar">\u25BE</span></button>' +
   '</div>' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
-  '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>';
+  '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
+  '<button class="sn-lang" id="sn-lang">' + ['EN','FR','RU'][_li] + '</button>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
-h += '<button class="sn-mn" id="sn-mn">Navigation<span class="mnar">\u25BE</span></button>';
+h += '<button class="sn-mn" id="sn-mn">' + tr('navLabel') + '<span class="mnar">\u25BE</span></button>';
 nav.innerHTML = h;
 document.body.insertBefore(nav, document.body.firstChild);
 
@@ -246,7 +356,7 @@ var tutDemos = catDemos['tutorial'] || [];
 var dh = '';
 if (tutDemos.length) {
   var ti = CATS['tutorial'];
-  dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">Interactive Atlas</h5><div class="sn-tl">';
+  dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">' + tr('atlas') + '</h5><div class="sn-tl">';
   for (var j = 0; j < tutDemos.length; j++) {
     dh += '<a href="' + tutDemos[j] + '.html"' + (tutDemos[j] === key ? ' class="cur"' : '') + '>' + T[tutDemos[j]] + '</a>';
   }
@@ -285,16 +395,20 @@ document.addEventListener('click', function(e) {
 var mob = document.createElement('div');
 mob.id = 'sn-m';
 var mh = '<div class="sn-mh">' +
-  '<button class="sn-mn" id="sn-mc">Navigation<span class="mnar">\u25B4</span></button>' +
+  '<button class="sn-mn" id="sn-mc">' + tr('navLabel') + '<span class="mnar">\u25B4</span></button>' +
   '</div><div class="sn-ml">' +
-  '<div class="sn-ms">Main</div>' +
+  '<div class="sn-ms">' + tr('main') + '</div>' +
   '<a href="index.html" style="color:#ffd700;font-weight:600">970200</a>' +
-  '<a href="worldview.html">How the World Works</a>' +
-  '<a href="story.html">The Mathematics</a>' +
-  '<a href="derive_ax.html">From Nothing</a>' +
+  '<a href="worldview.html">' + tr('howWorld') + '</a>' +
+  '<a href="story.html">' + tr('theMath') + '</a>' +
+  '<a href="derive_ax.html">' + tr('fromNothing') + '</a>' +
   '<a class="rpl" href="repl.html">.ax REPL</a>' +
   '<a class="rpl" href="playground.html">.ax Playground</a>' +
-  '<div class="sn-ms" style="margin-top:8px">Interactive Atlas</div>';
+  '<button class="sn-lang" id="sn-mlang" style="display:block;margin:12px 0;padding:10px 0;' +
+  'font-size:15px;color:#ffd700;background:none;border:1px solid #222;border-radius:8px;' +
+  'width:100%;text-align:center;cursor:pointer;font-family:system-ui,sans-serif">' +
+  ['EN \u2192 FR','FR \u2192 RU','RU \u2192 EN'][_li] + '</button>' +
+  '<div class="sn-ms" style="margin-top:8px">' + tr('atlas') + '</div>';
 var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
 for (var i = 0; i < mAtlasOrder.length; i++) {
   var ck = mAtlasOrder[i], ci = CATS[ck], demos = catDemos[ck];
@@ -332,6 +446,17 @@ for (var i = 0; i < mcs.length; i++) {
   });
 }
 
+/* ===== LANGUAGE SWITCHER ===== */
+function cycleLang(){
+  var next=['en','fr','ru'][(_li+1)%3];
+  try{localStorage.setItem('ax-lang',next)}catch(e){}
+  location.reload();
+}
+var langBtn=document.getElementById('sn-lang');
+if(langBtn)langBtn.addEventListener('click',cycleLang);
+var mlangBtn=document.getElementById('sn-mlang');
+if(mlangBtn)mlangBtn.addEventListener('click',cycleLang);
+
 /* ===== RELATED DEMOS FOOTER ===== */
 if (catKey && catKey !== 'tutorial') {
   var catLink = 'index.html#' + catKey;
@@ -345,11 +470,11 @@ if (catKey && catKey !== 'tutorial') {
   if (picks.length) {
     var rel = document.createElement('div');
     rel.id = 'sn-rel';
-    var rh = '<h4>Explore more in ' + cat[0] + '</h4><div class="rl">';
+    var rh = '<h4>' + tr('moreIn') + ' ' + cat[0] + '</h4><div class="rl">';
     for (var i = 0; i < picks.length; i++) {
       rh += '<a href="' + picks[i] + '.html" style="border-left:2px solid ' + cat[1] + '44">' + T[picks[i]] + '</a>';
     }
-    rh += '</div><a class="va" href="' + catLink + '">All ' + cat[0] + ' \u2192</a>';
+    rh += '</div><a class="va" href="' + catLink + '">' + tr('allCat') + ' ' + cat[0] + ' \u2192</a>';
     rel.innerHTML = rh;
     document.body.appendChild(rel);
   }
@@ -393,10 +518,11 @@ if (isIndex) return; /* index.html has its own vow footer */
 var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#777;font-size:12px;' +
   'font-family:system-ui,sans-serif;border-top:1px solid #1a1a2a;margin-top:40px;line-height:2';
-vf.innerHTML = 'This work is and will always be free. No paywall. No copyright. No exceptions.<br>' +
-  '<span style="color:#666">If it ever earns anything, every cent goes to the communities that need it most.</span><br>' +
-  '<span style="color:#555;font-size:10px">This sacred vow is permanent and irrevocable.</span><br>' +
-  '<span style="color:#666;font-size:11px;font-style:italic">\u2014 Anton Alexandrovich Lebed</span>';
+var _vow = _i18n.vow;
+vf.innerHTML = _vow[0][_li] + '<br>' +
+  '<span style="color:#666">' + _vow[1][_li] + '</span><br>' +
+  '<span style="color:#555;font-size:10px">' + _vow[2][_li] + '</span><br>' +
+  '<span style="color:#666;font-size:11px;font-style:italic">' + _vow[3][_li] + '</span>';
 document.body.appendChild(vf);
 }
 if (document.body) init();
