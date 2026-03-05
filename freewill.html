@@ -168,11 +168,10 @@ function selfRefChoice(agent) {
   var sum = 0;
   for (var p = 0; p < PATHS; p++) {
     var w = agent.prefs[p];
-    if (p % K === agent.id) w *= 1.5; // identity resonance
+    if (p % K === agent.id) w *= 2.5; // strong identity resonance
     for (var h = Math.max(0, agent.history.length - K); h < agent.history.length; h++) {
       if (agent.history[h] === p) w *= 1.1; // history coherence
     }
-    w *= 1.02; // self-reference bias
     weights[p] = w;
     sum += w;
   }
@@ -190,10 +189,11 @@ function updateAgent(agent, choice) {
   if (agent.history.length > 200) agent.history.shift();
   agent.counts[choice]++;
   agent.total++;
-  agent.prefs[choice] *= 1.05;
-  var mx = 0;
-  for (var p = 0; p < PATHS; p++) if (agent.prefs[p] > mx) mx = agent.prefs[p];
-  if (mx > 10) for (var p = 0; p < PATHS; p++) agent.prefs[p] /= mx;
+  // Additive boost + exponential decay toward 1.0 — prevents lock-in
+  agent.prefs[choice] += 0.3;
+  for (var p = 0; p < PATHS; p++) {
+    agent.prefs[p] = 1.0 + (agent.prefs[p] - 1.0) * 0.995;
+  }
 }
 
 function calcEntropy(counts, total) {
@@ -472,7 +472,7 @@ function drawBarChart(box, counts, agentId, col) {
     ctx.fillText('' + p, bx + barW / 2, floor + 13);
   }
 
-  // Axis line: 2px fillRect at exact floor, drawn AFTER bars so it's on top
+  // Axis line: top edge at floor = bar bottom edge. Bars sit ON this.
   ctx.fillStyle = '#444444';
   ctx.fillRect(box.x, floor, box.w, 2);
 }
