@@ -285,7 +285,7 @@ document.addEventListener('click', function(e) {
 var mob = document.createElement('div');
 mob.id = 'sn-m';
 var mh = '<div class="sn-mh">' +
-  '<button class="sn-mn" id="sn-mc">Navigation<span class="mnar" style="transform:scale(3,1.5) rotate(180deg);transform-origin:center center">\u25BE</span></button>' +
+  '<button class="sn-mn" id="sn-mc">Navigation<span class="mnar">\u25B4</span></button>' +
   '</div><div class="sn-ml">' +
   '<div class="sn-ms">Main</div>' +
   '<a href="index.html" style="color:#ffd700;font-weight:600">970200</a>' +
