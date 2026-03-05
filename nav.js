@@ -78,6 +78,7 @@ if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
 var cat = catKey ? CATS[catKey] : null;
 var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl', isIndex = key === 'index';
 var isDerive = key === 'derive_ax', isPlay = key === 'playground';
+var isExplore = catKey && catKey !== 'start';
 
 /* Build per-category demo lists */
 var catDemos = {}, catOrder = ['start','physics','bio','math','eng','mind','tutorial'];
@@ -87,33 +88,38 @@ for (var dk in M) { if (T[dk]) catDemos[M[dk]].push(dk); }
 /* ===== STYLES ===== */
 var s = document.createElement('style');
 s.textContent =
+  'html{overflow-x:hidden}' +
   /* Nav bar */
   '#sn{position:sticky;top:0;z-index:9999;background:rgba(5,5,8,0.97);' +
   'border-bottom:1px solid #1a1a22;height:48px;display:flex;align-items:center;' +
-  'font-family:system-ui,sans-serif;font-size:14px;backdrop-filter:blur(12px);padding:0 16px}' +
-  '#sn a,#sn button{color:#888;text-decoration:none;white-space:nowrap;transition:color 0.2s;' +
-  'background:none;border:none;cursor:pointer;font-family:inherit;font-size:inherit}' +
-  '#sn a:hover,#sn button:hover{color:#ffd700;text-decoration:none}' +
+  'font-family:system-ui,sans-serif;font-size:14px;backdrop-filter:blur(12px);padding:0 16px;' +
+  'width:100vw;margin-left:calc(-50vw + 50%);box-sizing:border-box}' +
+  '#sn a,#sn button{color:#888;text-decoration:none;white-space:nowrap;' +
+  'transition:color 0.2s,border-color 0.2s,background 0.2s;' +
+  'cursor:pointer;font-family:inherit;font-size:inherit}' +
+  '#sn a:hover,#sn button:hover{text-decoration:none}' +
   '.sn-l{display:flex;align-items:center;flex:1;min-width:0}' +
   '.sn-b{color:#ffd700 !important;font-size:15px;font-weight:600;padding:4px 14px;' +
   'letter-spacing:1px;flex-shrink:0;border:1px solid #333;border-radius:4px;margin-right:8px}' +
   '.sn-b:hover{color:#fff !important;border-color:#ffd700;background:rgba(255,215,0,0.06)}' +
-  '.sn-k{padding:0 14px;color:#888;font-size:13px;height:48px;display:flex;' +
-  'align-items:center;position:relative;flex-shrink:0}' +
-  '.sn-k.on{color:#fff}' +
-  '.sn-k.on::after{content:"";position:absolute;bottom:0;left:14px;right:14px;' +
-  'height:2px;background:#ffd700;border-radius:1px}' +
-  '.sn-x{padding:0 14px;color:#888;font-size:13px;height:48px;display:flex;' +
-  'align-items:center;flex-shrink:0}' +
+  '.sn-k{padding:6px 14px;color:#888;font-size:13px;display:flex;' +
+  'align-items:center;flex-shrink:0;border:1px solid transparent;border-radius:6px;margin:0 2px}' +
+  '.sn-k:hover{border-color:#333;background:rgba(255,215,0,0.04)}' +
+  '.sn-k.on{color:#fff;border-color:#ffd700;background:rgba(255,215,0,0.06)}' +
+  '.sn-x{padding:6px 14px;color:#888;font-size:13px;display:flex;' +
+  'align-items:center;flex-shrink:0;border:1px solid transparent;border-radius:6px;margin:0 2px}' +
+  '.sn-x:hover{border-color:#333;background:rgba(255,215,0,0.04)}' +
+  '.sn-x.on{color:#fff;border-color:#ffd700;background:rgba(255,215,0,0.06)}' +
+  '.sn-x.open{color:#ffd700;border-color:#444;background:rgba(255,215,0,0.04)}' +
   '.sn-x .ar{font-size:9px;margin-left:5px;transition:transform 0.2s;display:inline-block}' +
   '.sn-x.open .ar{transform:rotate(180deg)}' +
   '.sn-r{color:#50fa7b !important;font-family:monospace;font-weight:bold;font-size:13px;' +
-  'letter-spacing:1px;padding:0 4px 0 14px;flex-shrink:0}' +
+  'letter-spacing:1px;padding:6px 12px;flex-shrink:0;border:1px solid transparent;border-radius:6px;margin:0 2px}' +
   '.sn-r:first-of-type{margin-left:auto}' +
-  '.sn-r.on{color:#fff !important}' +
-  '.sn-r:hover{text-shadow:0 0 8px rgba(80,250,123,0.4)}' +
+  '.sn-r:hover{border-color:#1a4a1a;background:rgba(80,250,123,0.04);text-shadow:0 0 8px rgba(80,250,123,0.4)}' +
+  '.sn-r.on{color:#fff !important;border-color:#50fa7b;background:rgba(80,250,123,0.06)}' +
   '.sn-h{display:none;font-size:22px;color:#888;padding:0 4px;margin-left:auto;' +
-  'flex-shrink:0;line-height:1}' +
+  'flex-shrink:0;line-height:1;background:none;border:none}' +
   /* Dropdown */
   '#sn-dd{position:fixed;top:48px;left:0;right:0;background:rgba(8,8,14,0.98);' +
   'backdrop-filter:blur(16px);border-bottom:1px solid #1a1a2a;z-index:9998;' +
@@ -184,7 +190,7 @@ var h = '<div class="sn-l">' +
   '<a class="sn-k' + (isWorld ? ' on' : '') + '" href="worldview.html">How the World Works</a>' +
   '<a class="sn-k' + (isMath ? ' on' : '') + '" href="story.html">The Mathematics</a>' +
   '<a class="sn-k' + (isDerive ? ' on' : '') + '" href="derive_ax.html">From Nothing</a>' +
-  '<button class="sn-x" id="sn-xp">Explore <span class="ar">\u25BE</span></button>' +
+  '<button class="sn-x' + (isExplore ? ' on' : '') + '" id="sn-xp">Explore <span class="ar">\u25BE</span></button>' +
   '</div>' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
   '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>';
