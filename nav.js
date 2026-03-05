@@ -7,7 +7,12 @@
 
 /* ===== CRITICAL CSS (immediate — loaded from <head>, prevents FOUC) ===== */
 var pre = document.createElement('style');
-pre.textContent = 'body{padding-top:48px!important}html{overflow-x:hidden}';
+pre.textContent = 'body{padding-top:48px!important}html{overflow-x:hidden}' +
+'*{scrollbar-width:thin;scrollbar-color:#333 transparent}' +
+'::-webkit-scrollbar{width:8px;height:8px}' +
+'::-webkit-scrollbar-track{background:transparent}' +
+'::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px}' +
+'::-webkit-scrollbar-thumb:hover{background:#444}';
 document.head.appendChild(pre);
 
 /* ===== FAVICON ===== */
