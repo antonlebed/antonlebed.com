@@ -146,7 +146,7 @@ s.textContent =
   'border:1px solid #333;border-radius:6px;padding:8px 20px;cursor:pointer;' +
   'font-family:inherit;flex-direction:column;line-height:1;gap:2px}' +
   '.sn-mn:hover{color:#ffd700;border-color:#555;background:rgba(255,215,0,0.04)}' +
-  '.sn-mn .mnar{font-size:20px;color:#888;line-height:0.6;display:inline-block;transform:scale(4,2);margin-left:16px}' +
+  '.sn-mn .mnar{font-size:20px;color:#888;line-height:0.6;display:inline-block;transform:scale(3,1.5)}' +
   '.sn-ms{text-align:center;padding:18px 0 8px;color:#888;font-size:10px;' +
   'text-transform:uppercase;letter-spacing:3px;font-weight:600;font-family:system-ui,sans-serif}' +
   /* Dropdown */
@@ -283,7 +283,7 @@ document.addEventListener('click', function(e) {
 var mob = document.createElement('div');
 mob.id = 'sn-m';
 var mh = '<div class="sn-mh">' +
-  '<button class="sn-mn" id="sn-mc">Navigation<span class="mnar" style="transform:scale(4,2) rotate(180deg)">\u25BE</span></button>' +
+  '<button class="sn-mn" id="sn-mc">Navigation<span class="mnar" style="transform:scale(3,1.5) rotate(180deg)">\u25BE</span></button>' +
   '</div><div class="sn-ml">' +
   '<div class="sn-ms">Main</div>' +
   '<a href="index.html" style="color:#ffd700;font-weight:600">970200</a>' +
