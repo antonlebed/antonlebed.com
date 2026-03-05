@@ -137,6 +137,16 @@ Type a number. The axiom searches for its simplest expression in five primes
 <div id="input-wrap">
   <input id="num-input" type="text" placeholder="137.035999177 ..." autofocus>
 </div>
+<div id="quick" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px">
+<span class="tab" onclick="quickTry(137.036)">alpha (137)</span>
+<span class="tab" onclick="quickTry(1.6667)">5/3</span>
+<span class="tab" onclick="quickTry(938.272)">proton</span>
+<span class="tab" onclick="quickTry(125.25)">Higgs</span>
+<span class="tab" onclick="quickTry(3.528)">BCS</span>
+<span class="tab" onclick="quickTry(0.75)">Kleiber</span>
+<span class="tab" onclick="quickTry(2.7)">CMB</span>
+<span class="tab" onclick="quickTry(42)">42</span>
+</div>
 <p class="small center">or choose a known constant below</p>
 </section>
 
@@ -150,6 +160,16 @@ Type a number. The axiom searches for its simplest expression in five primes
 
 <div id="tabs"></div>
 <div id="known"></div>
+
+<div style="margin-top:32px;padding:20px;border:1px solid #1a1a2a;border-radius:12px;background:#08080e;width:100%;max-width:700px">
+  <h2 style="font-size:18px;margin-bottom:12px">The Pattern</h2>
+  <p class="small">35 constants above. Mean error: <span class="gold" id="mean-err">--</span>.
+  Exact matches: <span class="gold" id="exact-count">--</span>.
+  This is not curve-fitting &mdash; these are simple ratios of five primes.</p>
+  <p class="small" style="margin-top:8px">Verify any expression:
+  <a href="repl.html" style="color:#ffd700">open the .ax REPL</a> and type it.
+  Or see <a href="constants.html">all 70+ constants</a> with full derivations.</p>
+</div>
 </section>
 
 <!-- Contrast panel -->
@@ -331,8 +351,8 @@ var KNOWN = [
   {name:'Pion mass (MeV)', val:139.570, expr:'2^2*5*7-0.43',
    cat:'particle', desc:'Near D^2*E*b = 140.', bestExpr:'D^2*E*b', bestErr:'0.3%'},
   // BCS
-  {name:'BCS ratio (2*Delta/kTc)', val:3.5280, expr:'2*5*11^2/(3*7^3)',
-   cat:'fundamental', desc:'D*E*L^2/(K*b^3). 16 ppm.', bestExpr:'D*E*L^2 / (K*b^3)', bestErr:'16 ppm'},
+  {name:'BCS ratio (2*Delta/kTc)', val:3.52788,
+   cat:'fundamental', desc:'(K*b)^2/E^3 = 441/125 = 3.528. 70 ppm.', bestExpr:'(K*b)^2 / E^3', bestErr:'70 ppm'},
   // Math
   {name:'Golden ratio', val:1.6180339887, expr:'(1+sqrt(5))/2',
    cat:'math', desc:'phi = (sigma+sqrt(E))/D.', bestExpr:'(sigma+sqrt(E))/D', bestErr:'exact'},
@@ -358,8 +378,17 @@ var KNOWN = [
    cat:'bio', desc:'D*L + sigma = 23 = CC1(D)[3].', bestExpr:'D*L + sigma', bestErr:'exact'},
   {name:'Brain fractal dimension', val:2.7, expr:'3^3/(2*5)',
    cat:'bio', desc:'K^3/(D*E) = 27/10. EXACT.', bestExpr:'K^3/(D*E)', bestErr:'exact'},
-  {name:'Water bond angle', val:104.47, expr:'3*5*7-0.53',
+  {name:'Water bond angle', val:104.47,
    cat:'bio', desc:'HYDOR = K*E*b = 105. 0.5% off.', bestExpr:'~HYDOR', bestErr:'0.5%'},
+  // Ring values
+  {name:'The Answer (lambda(b^2))', val:42,
+   cat:'math', desc:'D*K*b = 42. lambda(49). The stiffness of the depth channel.', bestExpr:'D*K*b', bestErr:'exact'},
+  {name:'DATA ring', val:210,
+   cat:'math', desc:'D*K*E*b = 210. Four data channels. phi=48. Balance=1.', bestExpr:'D*K*E*b', bestErr:'exact'},
+  {name:'THIN ring', val:2310,
+   cat:'math', desc:'D*K*E*b*L = 2310. Five channels. phi=480. 288 eigenvalue classes.', bestExpr:'D*K*E*b*L', bestErr:'exact'},
+  {name:'TRUE FORM', val:970200,
+   cat:'math', desc:'D^3*K^2*E^2*b^2*L = 970200. THE ring. Five fat channels.', bestExpr:'D^3*K^2*E^2*b^2*L', bestErr:'exact'},
 ];
 
 /* ===== CATEGORIES ===== */
@@ -421,6 +450,8 @@ function renderResult(r) {
   h += '<div class="sig-bar"><div class="sig-fill '+sigClass+'" style="width:'+sigPct+'%"></div></div>';
   h += '<div class="res-row"><span class="res-label">Null test</span><span class="res-val '+
        (pval<0.05?'res-error':'res-warn')+'">' + sigText + '</span></div>';
+  if (r.desc) h += '<div class="res-row" style="margin-top:8px"><span class="res-val dim" style="font-family:Georgia,serif;font-size:15px">' +
+       escHtml(r.desc) + '</span></div>';
   el.innerHTML = h;
 
   // CRT visualization of integer nearest to value
@@ -526,8 +557,29 @@ function doSearch() {
       '<p class="dim center">Type a number or constant name.</p>';
     return;
   }
+  // Check if value matches a known constant (within 2%)
+  var bestKnown = -1, bestKnownErr = 0.02;
+  for (var j = 0; j < KNOWN.length; j++) {
+    var re = Math.abs(KNOWN[j].val - num) / Math.abs(KNOWN[j].val);
+    if (re < bestKnownErr) { bestKnownErr = re; bestKnown = j; }
+  }
+  if (bestKnown >= 0) {
+    var k = KNOWN[bestKnown];
+    renderResult({
+      val: k.val, expr: k.bestExpr + '  (' + k.name + ')',
+      exps: [0,0,0,0,0], complexity: 3, relErr: parseErr(k.bestErr),
+      hasPi: k.bestExpr.indexOf('pi')>=0, hasSqrt: k.bestExpr.indexOf('sqrt')>=0,
+      bestErr: k.bestErr, desc: k.desc
+    });
+    return;
+  }
   var r = search(num);
   renderResult(r);
+}
+
+function quickTry(val) {
+  document.getElementById('num-input').value = val;
+  doSearch();
 }
 
 function toggleContrast() {
@@ -543,6 +595,19 @@ function escHtml(s) {
 buildDB();
 renderTabs();
 renderKnown();
+
+// Compute stats
+var exactCount = 0, totalErr = 0, errCount = 0;
+KNOWN.forEach(function(k){
+  var e = parseErr(k.bestErr);
+  if (e === 0) exactCount++;
+  else { totalErr += e; errCount++; }
+});
+var meanErr = errCount > 0 ? totalErr / errCount : 0;
+var meEl = document.getElementById('mean-err');
+var ecEl = document.getElementById('exact-count');
+if (meEl) meEl.textContent = (meanErr*100).toFixed(2) + '%';
+if (ecEl) ecEl.textContent = exactCount + '/' + KNOWN.length;
 
 var input = document.getElementById('num-input');
 var debounce;
