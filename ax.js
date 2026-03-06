@@ -422,8 +422,58 @@ BUILTINS.order = function(args, ctx) {
     return result;
 };
 
+// --- Lattice dynamics builtins (S494) ---
+BUILTINS.omega_of = function(args, ctx) {
+    // omega_of(m) = D^420 mod m. OMEGA for any ring size m.
+    const m = Math.abs(Math.round(args[0]));
+    if (m < 2) return 0;
+    let result = 1, base = 2 % m, exp = 420;
+    while (exp > 0) { if (exp & 1) result = (result * base) % m; base = (base * base) % m; exp >>= 1; }
+    ctx.trace('<span class="tr-fn">omega_of</span>(' + m + '): <span class="tr-step">D^420 mod ' + m + '</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.delta_of = function(args, ctx) {
+    // delta_of(m) = (1 - omega) mod m. The D-ghost for ring m.
+    const m = Math.abs(Math.round(args[0]));
+    if (m < 2) return 0;
+    let omega = 1, base = 2 % m, exp = 420;
+    while (exp > 0) { if (exp & 1) omega = (omega * base) % m; base = (base * base) % m; exp >>= 1; }
+    const result = ((1 - omega) % m + m) % m;
+    ctx.trace('<span class="tr-fn">delta_of</span>(' + m + '): <span class="tr-step">sigma - omega = 1 - ' + omega + ' mod ' + m + '</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.d_orbit = function(args, ctx) {
+    // d_orbit(x) = array of D-multiplication orbit: x, 2x, 4x, ... until cycle.
+    const x = ringMod(args[0]);
+    const orbit = [x];
+    let cur = (2 * x) % N;
+    let maxSteps = 500;
+    while (cur !== x && maxSteps-- > 0) { orbit.push(cur); cur = (2 * cur) % N; }
+    ctx.trace('<span class="tr-fn">d_orbit</span>(' + args[0] + '): <span class="tr-step">length=' + orbit.length + '</span> = <span class="tr-result">[' + (orbit.length <= 10 ? orbit.join(',') : orbit.slice(0,5).join(',') + ',...,' + orbit.slice(-2).join(',')) + ']</span>');
+    return orbit;
+};
+
+BUILTINS.water_cycle = function(args, ctx) {
+    // water_cycle(m) = checks all 4 laws for ring Z/mZ. Returns [o_idem, d_idem, orth, sum_s].
+    const m = Math.abs(Math.round(args.length > 0 ? args[0] : N));
+    if (m < 2) return [0, 0, 0, 0];
+    let omega = 1, base = 2 % m, exp = 420;
+    while (exp > 0) { if (exp & 1) omega = (omega * base) % m; base = (base * base) % m; exp >>= 1; }
+    const delta = ((1 - omega) % m + m) % m;
+    const oi = (omega * omega % m === omega) ? 1 : 0;
+    const di = (delta * delta % m === delta) ? 1 : 0;
+    const or_ = (omega * delta % m === 0) ? 1 : 0;
+    const ss = ((omega + delta) % m === 1) ? 1 : 0;
+    const result = [oi, di, or_, ss];
+    ctx.trace('<span class="tr-fn">water_cycle</span>(' + m + '): <span class="tr-step">O=' + omega + ', d=' + delta + '</span> = <span class="tr-result">[' + result.join(',') + '] (' + (oi+di+or_+ss) + '/4 laws)</span>');
+    return result;
+};
+
 // --- Math builtins (no trace) ---
 BUILTINS.gcd = (args) => gcd(args[0], args[1]);
+BUILTINS.lcm = (args) => { const a = Math.abs(Math.round(args[0])), b = Math.abs(Math.round(args[1])); return a === 0 || b === 0 ? 0 : (a / gcd(a, b)) * b; };
 BUILTINS.mod = (args) => args[1] !== 0 ? ringMod(Math.round(args[0]) % Math.round(args[1])) : 0;
 BUILTINS.inv = (args) => { const r = multInverse(args[0]); if (r < 0) throw new Error('No inverse: gcd(' + args[0] + ', ' + N + ') != 1'); return r; };
 BUILTINS.abs = (args) => Math.abs(args[0]);
