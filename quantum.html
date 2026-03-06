@@ -421,9 +421,11 @@ function drawEnergyLevels() {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
-  const Ry = 13.6, pad = {t:25,b:25,l:65,r:135};
+  const Ry = 13.6, pad = {t:30,b:25,l:65,r:135};
   const pH = H-pad.t-pad.b, pW = W-pad.l-pad.r;
-  const yOf = n => pad.t + pH*(1-1/(n*n));
+  // Linear spacing (like textbooks) — n=1 at bottom, n=7 near top, ionization at very top
+  const ionGap = 18; // pixels above n=7 for the ionization line
+  const yOf = n => pad.t + ionGap + (pH-ionGap)*(7-n)/6;
   const levels = [
     {n:1,lbl:'D',c:2},{n:2,lbl:'D^3=8',c:8},{n:3,lbl:'ME=18',c:18},
     {n:4,lbl:'D^5=32',c:32},{n:5,lbl:'D*E^2=50',c:50},
@@ -431,12 +433,13 @@ function drawEnergyLevels() {
   ];
   const cols = ['#4fc3f7','#ff7043','#ffd54f','#66bb6a','#ab47bc','#26c6da','#ef5350'];
 
-  // Ionization limit
-  ctx.strokeStyle='#333'; ctx.setLineDash([4,4]); ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l+pW,pad.t); ctx.stroke();
+  // Ionization limit (at very top, above n=7)
+  const ionY = pad.t + 2;
+  ctx.strokeStyle='#555'; ctx.setLineDash([4,4]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,ionY); ctx.lineTo(pad.l+pW,ionY); ctx.stroke();
   ctx.setLineDash([]); ctx.fillStyle='#555'; ctx.font='11px monospace';
-  ctx.textAlign='right'; ctx.fillText('n=\u221E',pad.l-8,pad.t+4);
-  ctx.textAlign='left'; ctx.fillText('0 eV (ionized)',pad.l+pW+8,pad.t+4);
+  ctx.textAlign='right'; ctx.fillText('n=\u221E',pad.l-8,ionY+4);
+  ctx.textAlign='left'; ctx.fillText('0 eV (ionized)',pad.l+pW+8,ionY+4);
 
   levels.forEach((lev,i) => {
     const y = yOf(lev.n), sel = selectedShell===lev.n;
@@ -474,8 +477,9 @@ function drawEnergyLevels() {
 document.getElementById('energyCanvas').addEventListener('click', function(e) {
   const rect=this.getBoundingClientRect();
   const y=(e.clientY-rect.top)*(this.height/rect.height);
-  const pH=this.height-50, yOf=n=>25+pH*(1-1/(n*n));
-  let closest=0, minD=20;
+  const pH=this.height-55, ionGap=18;
+  const yOf=n=>30+ionGap+(pH-ionGap)*(7-n)/6;
+  let closest=0, minD=25;
   [1,2,3,4,5,6,7].forEach(n=>{const d=Math.abs(y-yOf(n));if(d<minD){minD=d;closest=n;}});
   selectedShell = selectedShell===closest?0:closest;
   drawEnergyLevels();
