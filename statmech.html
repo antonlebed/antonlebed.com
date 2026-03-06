@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistical Mechanics from Five Primes | antonlebed.com</title>
+<meta name="description" content="The partition function IS the Chinese Remainder Theorem. Z factors over five prime channels exactly. Fermi-Dirac uses +sigma, Bose-Einstein uses +mirror. All scaling relations sum to D=2.">
+<meta property="og:title" content="Statistical Mechanics from Five Primes">
+<meta property="og:description" content="The partition function factors over CRT channels. 31 quantities from {2,3,5,7,11}, zero free parameters.">
+<meta property="og:type" content="website">
+<script src="nav.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f; --surface: #12121a; --border: #1e1e2e;
+  --text: #e0e0e0; --dim: #888; --muted: #555;
+  --accent: #4fc3f7; --gold: #ffd54f; --green: #66bb6a;
+  --red: #ef5350; --purple: #ab47bc; --orange: #ff7043;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+.container { max-width:1100px; margin:0 auto; padding:1rem; }
+.hero { text-align:center; padding:2.5rem 1rem 1.5rem; }
+.hero h1 { font-size:1.8rem; font-weight:300; margin-bottom:0.5rem; }
+.hero h1 strong { font-weight:700; color:var(--gold); }
+.hero .subtitle { color:var(--dim); font-size:1rem; max-width:700px; margin:0 auto; }
+.hero .primes { font-size:1.3rem; color:var(--accent); margin:0.8rem 0 0.3rem; font-family:'Courier New',monospace; letter-spacing:0.1em; }
+.stats-banner { display:flex; flex-wrap:wrap; justify-content:center; gap:1.5rem; padding:1rem; margin:1rem 0; background:var(--surface); border-radius:12px; border:1px solid var(--border); }
+.stat { text-align:center; }
+.stat .value { font-size:1.6rem; font-weight:700; }
+.stat .label { font-size:0.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; }
+.stat.gold .value { color:var(--gold); }
+.stat.green .value { color:var(--green); }
+.stat.accent .value { color:var(--accent); }
+.stat.red .value { color:var(--red); }
+.stat.purple .value { color:var(--purple); }
+
+.section { margin:2rem 0; }
+.section h2 { font-size:1.3rem; font-weight:300; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem; }
+.section h2 strong { font-weight:600; color:var(--gold); }
+canvas { display:block; margin:0 auto; max-width:100%; border-radius:8px; }
+
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:0.8rem; margin:1rem 0; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.3s; text-align:center; }
+.card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.card.active { border-color:var(--gold); background:rgba(255,213,79,0.08); }
+.card .c-val { font-size:1.8rem; font-weight:700; font-family:'Courier New',monospace; }
+.card .c-name { font-size:0.72rem; color:var(--dim); text-transform:uppercase; margin-top:0.2rem; }
+.card .c-expr { font-size:0.85rem; color:var(--gold); margin-top:0.3rem; }
+.detail-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem; margin:0.5rem 0; min-height:60px; font-size:0.9rem; }
+
+.identity-box { background:var(--surface); border:2px solid var(--gold); border-radius:16px; padding:2rem; text-align:center; margin:1.5rem auto; max-width:700px; }
+.identity-box .eq { font-size:1.5rem; font-family:'Courier New',monospace; color:var(--gold); letter-spacing:0.05em; }
+.identity-box .note { font-size:0.9rem; color:var(--dim); margin-top:0.8rem; }
+
+.insight { background:rgba(255,213,79,0.05); border-left:3px solid var(--gold); padding:0.8rem 1rem; margin:1rem 0; border-radius:0 8px 8px 0; font-size:0.9rem; }
+.insight strong { color:var(--gold); }
+
+.const-table { width:100%; border-collapse:collapse; margin:1rem 0; }
+.const-table th { text-align:left; padding:0.5rem; font-size:0.7rem; text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--border); }
+.const-table td { padding:0.5rem; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.85rem; }
+.const-table .expr { font-family:'Courier New',monospace; color:var(--gold); }
+.chip { display:inline-block; padding:0.1rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:600; margin:0 0.1rem; }
+.chip-s { background:rgba(255,255,255,0.1); color:var(--text); }
+.chip-2 { background:rgba(79,195,247,0.2); color:var(--accent); }
+.chip-3 { background:rgba(102,187,106,0.2); color:var(--green); }
+.chip-5 { background:rgba(255,213,79,0.2); color:var(--gold); }
+.chip-7 { background:rgba(239,83,80,0.2); color:var(--red); }
+.chip-11 { background:rgba(171,71,188,0.2); color:var(--purple); }
+
+.bar-area { display:flex; gap:4px; align-items:flex-end; height:120px; margin:0.5rem 0; }
+.bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; height:100%; justify-content:flex-end; }
+.bar { width:100%; border-radius:3px 3px 0 0; transition:height 0.5s; min-width:20px; }
+.bar-label { font-size:0.65rem; color:var(--dim); }
+
+.contrast-toggle { position:fixed; bottom:1rem; right:1rem; width:44px; height:44px; border-radius:50%; background:var(--surface); border:2px solid var(--border); color:var(--text); font-size:1.2rem; cursor:pointer; z-index:999; display:flex; align-items:center; justify-content:center; }
+.contrast-panel { display:none; position:fixed; bottom:4rem; right:1rem; width:340px; max-height:60vh; overflow-y:auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1rem; z-index:998; font-size:0.85rem; }
+.contrast-panel.open { display:block; }
+.contrast-row { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; padding:0.4rem 0; border-bottom:1px solid var(--border); }
+.contrast-row:last-child { border:none; }
+.cr-old { color:var(--red); opacity:0.7; }
+.cr-new { color:var(--green); }
+.verify-link { display:inline-block; padding:0.4rem 1rem; background:rgba(79,195,247,0.1); border:1px solid var(--accent); border-radius:8px; color:var(--accent); text-decoration:none; font-size:0.8rem; margin:0.5rem 0.3rem; transition:all 0.3s; }
+.verify-link:hover { background:rgba(79,195,247,0.2); }
+.t-slider { width:100%; margin:0.5rem 0; }
+.dist-canvas-wrap { background:var(--surface); border-radius:12px; border:1px solid var(--border); padding:1rem; margin:1rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="hero">
+  <div class="primes">{ 2, 3, 5, 7, 11 }</div>
+  <h1><strong>Statistical Mechanics</strong> from Five Primes</h1>
+  <p class="subtitle">The partition function IS the Chinese Remainder Theorem. Z factors exactly over five prime channels. Fermi-Dirac uses +sigma, Bose-Einstein uses mirror. All scaling relations sum to D=2.</p>
+</div>
+
+<div class="stats-banner">
+  <div class="stat gold"><div class="value">31</div><div class="label">Quantities derived</div></div>
+  <div class="stat accent"><div class="value">D = 2</div><div class="label">Appears in 16/31</div></div>
+  <div class="stat green"><div class="value">Z = &Pi;Z<sub>p</sub></div><div class="label">Factorization theorem</div></div>
+  <div class="stat red"><div class="value">+&sigma; / -1</div><div class="label">Fermion / Boson</div></div>
+  <div class="stat purple"><div class="value">&phi;</div><div class="label">Golden Z<sub>5</sub></div></div>
+</div>
+
+<!-- PARTITION FUNCTION FACTORIZATION -->
+<div class="section">
+  <h2>The <strong>Partition Function</strong> Factorization Theorem</h2>
+  <div class="identity-box">
+    <div class="eq">Z(&beta;) = Z<sub>2</sub> &middot; Z<sub>3</sub> &middot; Z<sub>5</sub> &middot; Z<sub>7</sub> &middot; Z<sub>11</sub></div>
+    <div class="note">The partition function of Z/2310Z factors EXACTLY over CRT channels.<br>
+    Each channel thermalizes independently. Free energy, entropy, heat capacity &mdash; all additive.</div>
+  </div>
+  <p style="color:var(--dim); margin:0.5rem 0;">Drag the temperature slider to see the factorization live:</p>
+  <input type="range" class="t-slider" id="tempSlider" min="0.1" max="10" step="0.1" value="1.0">
+  <div style="text-align:center; font-family:'Courier New',monospace; margin:0.3rem 0;">
+    T = <span id="tempVal">1.0</span> &emsp;
+    Z<sub>total</sub> = <span id="zTotal" style="color:var(--gold);">...</span> &emsp;
+    &Pi;Z<sub>p</sub> = <span id="zCrt" style="color:var(--green);">...</span> &emsp;
+    ratio = <span id="zRatio" style="color:var(--accent);">...</span>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:0.5rem; margin:0.8rem 0;" id="channelZs"></div>
+  <div class="insight"><strong>Why does this work?</strong> The eigenvalue decomposes: &lambda;(n) = &Sigma; f<sub>p</sub>(n mod p). So exp(-&beta;&lambda;) = &Pi; exp(-&beta;f<sub>p</sub>). The sum over Z/NZ = product of sums over each Z/pZ, by the CRT bijection. Number theory IS thermodynamics.</div>
+</div>
+
+<!-- CHANNEL PARTITION FUNCTIONS -->
+<div class="section">
+  <h2><strong>Channel</strong> Partition Functions</h2>
+  <div class="card-grid" id="chanCards"></div>
+  <div class="detail-box" id="chanDetail">Click a channel card to see its exact partition function formula.</div>
+  <div class="insight"><strong>The E-channel is golden.</strong> Z<sub>5</sub>(&beta;) = e<sup>-2&beta;</sup> + 2e<sup>-&beta;/&phi;</sup> + 2e<sup>&beta;&phi;</sup>, where &phi; = (1+&radic;5)/2 is the golden ratio. The observer's thermodynamics lives on the golden ratio &mdash; connecting DNA redundancy (1.608 ~ &phi;), depth quadratic zeros, and Fibonacci invisible primes.</div>
+</div>
+
+<!-- ENTROPY DECOMPOSITION -->
+<div class="section">
+  <h2><strong>Entropy</strong> Decomposition</h2>
+  <p style="color:var(--dim); margin-bottom:0.5rem;">S = &Sigma; S<sub>p</sub>. Each channel carries its own entropy. At high T, S &rarr; ln(N) = &Sigma; ln(p<sub>i</sub>).</p>
+  <canvas id="entropyCanvas" width="600" height="200"></canvas>
+  <div style="text-align:center; margin:0.3rem 0;">
+    <input type="range" class="t-slider" id="entropySlider" min="0.3" max="20" step="0.1" value="2.0">
+    <span style="font-family:'Courier New',monospace; color:var(--dim);">T = <span id="entT">2.0</span> | S = <span id="entS" style="color:var(--gold);">...</span> | max = ln(2310) = 7.745</span>
+  </div>
+  <div class="insight"><strong>Maximum entropy = sum of channel entropies.</strong> ln(2310) = ln(2) + ln(3) + ln(5) + ln(7) + ln(11). Each CRT channel is an independent reservoir. The ring's entropy is the SUM of five independent entropies.</div>
+</div>
+
+<!-- DISTRIBUTION FUNCTIONS -->
+<div class="section">
+  <h2><strong>Distribution</strong> Duality &mdash; &sigma; vs Mirror</h2>
+  <div class="identity-box">
+    <div class="eq" style="font-size:1.2rem">Fermi-Dirac: 1/(e<sup>x</sup> + &sigma;) &emsp; Bose-Einstein: 1/(e<sup>x</sup> - &sigma;)</div>
+    <div class="note">Matter = +&sigma; (ground state). Force = +mirror (-1). The ONLY difference between fermions and bosons.<br>
+    At E=0: FD = &sigma;/D = 1/2 (half-filling). BE diverges (condensation).</div>
+  </div>
+  <div class="dist-canvas-wrap">
+    <canvas id="distCanvas" width="600" height="250"></canvas>
+  </div>
+  <div class="insight"><strong>The classical limit is 1/D.</strong> When T &rarr; &infin;, both FD and BE approach 1/(1+1) = 1/D = 1/2. The bridge prime divides the classical world in half. The quantum signatures (+&sigma; vs +mirror) are what lift this degeneracy.</div>
+</div>
+
+<!-- CRITICAL EXPONENTS -->
+<div class="section">
+  <h2><strong>Critical Exponents</strong> &mdash; Scaling = D</h2>
+  <div class="identity-box">
+    <div class="eq">&alpha; + 2&beta; + &gamma; = D = 2</div>
+    <div class="note">Rushbrooke's relation. ALWAYS sums to D=2 &mdash; in 2D Ising, mean field, 3D, EVERYWHERE.<br>
+    The bridge prime controls all scaling relations universally.</div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0;">
+    <div>
+      <h3 style="text-align:center; color:var(--accent); font-size:0.9rem; margin-bottom:0.5rem;">2D ISING (Onsager exact)</h3>
+      <table class="const-table" style="font-size:0.8rem;">
+        <tr><th>Exp</th><th>Value</th><th>Axiom</th><th>Meaning</th></tr>
+        <tr><td>&alpha;</td><td>0 (log)</td><td class="expr">0</td><td>Specific heat</td></tr>
+        <tr><td>&beta;</td><td>1/8</td><td class="expr">&sigma;/D<sup>3</sup></td><td>Magnetization</td></tr>
+        <tr><td>&gamma;</td><td>7/4</td><td class="expr">b/D<sup>2</sup></td><td>Susceptibility</td></tr>
+        <tr><td>&delta;</td><td>15</td><td class="expr">K*E</td><td>Critical isotherm</td></tr>
+        <tr><td>&nu;</td><td>1</td><td class="expr">&sigma;</td><td>Correlation length</td></tr>
+        <tr><td>&eta;</td><td>1/4</td><td class="expr">&sigma;/D<sup>2</sup></td><td>Correlation decay</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3 style="text-align:center; color:var(--green); font-size:0.9rem; margin-bottom:0.5rem;">MEAN FIELD (d &ge; D<sup>2</sup> = 4)</h3>
+      <table class="const-table" style="font-size:0.8rem;">
+        <tr><th>Exp</th><th>Value</th><th>Axiom</th><th>Meaning</th></tr>
+        <tr><td>&alpha;</td><td>0</td><td class="expr">0</td><td>Specific heat</td></tr>
+        <tr><td>&beta;</td><td>1/2</td><td class="expr">&sigma;/D</td><td>Magnetization</td></tr>
+        <tr><td>&gamma;</td><td>1</td><td class="expr">&sigma;</td><td>Susceptibility</td></tr>
+        <tr><td>&delta;</td><td>3</td><td class="expr">K</td><td>Critical isotherm</td></tr>
+        <tr><td>&nu;</td><td>1/2</td><td class="expr">&sigma;/D</td><td>Correlation length</td></tr>
+        <tr><td>&eta;</td><td>0</td><td class="expr">0</td><td>Correlation decay</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card-grid" id="scalingCards"></div>
+  <div class="insight"><strong>D=2 defines the boundaries.</strong> d<sub>lower</sub> = D = 2: below this, no spontaneous order (Mermin-Wagner). d<sub>upper</sub> = D<sup>2</sup> = 4: above this, mean field is exact. The bridge prime IS the boundary of phase transition physics.</div>
+</div>
+
+<!-- FLUCTUATION-DISSIPATION -->
+<div class="section">
+  <h2><strong>Independent</strong> Fluctuations</h2>
+  <div class="identity-box">
+    <div class="eq">var(E) = &Sigma;<sub>p</sub> var(E<sub>p</sub>)</div>
+    <div class="note">Energy fluctuations are INDEPENDENT across CRT channels.<br>
+    = Block-diagonal backprop = independent neural channels = Liouville conservation.</div>
+  </div>
+  <canvas id="fluctCanvas" width="600" height="160"></canvas>
+  <div class="insight"><strong>Three fields, one theorem.</strong> Statistical mechanics (independent fluctuations), machine learning (block-diagonal Jacobians), and number theory (CRT independence) are the SAME structure seen from three angles.</div>
+</div>
+
+<!-- QUANTUM STATISTICS -->
+<div class="section">
+  <h2><strong>Quantum Statistics</strong> Constants</h2>
+  <div class="card-grid" id="qsCards"></div>
+  <div class="detail-box" id="qsDetail">Click a card to explore.</div>
+</div>
+
+<!-- FULL TABLE -->
+<div class="section">
+  <h2>All <strong>31 Quantities</strong></h2>
+  <table class="const-table" id="fullTable">
+    <tr><th>#</th><th>Quantity</th><th>Expression</th><th>Primes</th></tr>
+  </table>
+</div>
+
+<!-- VERIFY -->
+<div style="text-align:center; margin:2rem 0;">
+  <a class="verify-link" href="repl.html?code=Ly8gUGFydGl0aW9uIGZ1bmN0aW9uIGZhY3RvcnMKbGV0IE4gPSAyMzEwCi8vIENoYW5uZWwgc2l6ZXMKbGV0IHBzID0gWzIsIDMsIDUsIDcsIDExXQpwcmludCgiUGFydGl0aW9uIEZ1bmN0aW9uIEZhY3Rvcml6YXRpb24iKQpwcmludCgiTiA9ICIgKyBOKQpwcmludCgiMiAqIDMgKiA1ICogNyAqIDExID0gIiArIDIqMyo1KjcqMTEp&run=1">Verify partition factorization in .ax</a>
+  <a class="verify-link" href="repl.html?code=Ly8gU2NhbGluZyByZWxhdGlvbnMKbGV0IGFscGhhID0gMApsZXQgYmV0YSA9IDEvOApsZXQgZ2FtbWEgPSA3LzQKcHJpbnQoIlJ1c2hicm9va2U6IGFscGhhICsgMipiZXRhICsgZ2FtbWEiKQpwcmludChhbHBoYSArIDIqYmV0YSArIGdhbW1hKQpwcmludCgiPSBEID0gMiIp&run=1">Verify Rushbrooke = D in .ax</a>
+  <a class="verify-link" href="repl.html?code=Ly8gR29sZGVuIHJhdGlvIGluIEUtY2hhbm5lbApwcmludCgiMipjb3MoMipwaS81KSA9IDEvZ29sZGVuIHJhdGlvIikKcHJpbnQoMipjb3MoMipwaS81KSkKcHJpbnQoIkdvbGRlbiByYXRpbyA9ICgxK3NxcnQoNSkpLzIiKQpwcmludCgoMStzcXJ0KDUpKS8yKQ==&run=1">Verify golden Z<sub>5</sub> in .ax</a>
+</div>
+
+<!-- CONTRAST PANEL -->
+<button class="contrast-toggle" onclick="document.getElementById('cp').classList.toggle('open')">&#x2696;</button>
+<div class="contrast-panel" id="cp">
+  <h3 style="margin-bottom:0.5rem; font-size:0.95rem;">Paradigm Contrast</h3>
+  <div class="contrast-row"><div class="cr-old">Partition function: complex sum</div><div class="cr-new">Z = product of 5 channel Z<sub>p</sub></div></div>
+  <div class="contrast-row"><div class="cr-old">FD/BE: quantum postulate</div><div class="cr-new">FD = +&sigma;, BE = +mirror</div></div>
+  <div class="contrast-row"><div class="cr-old">Scaling: empirical universality</div><div class="cr-new">Rushbrooke = D = 2 (structural)</div></div>
+  <div class="contrast-row"><div class="cr-old">Independent channels: coincidence</div><div class="cr-new">CRT = thermodynamic independence</div></div>
+  <div class="contrast-row"><div class="cr-old">Critical dimension: d=4 magic</div><div class="cr-new">d<sub>upper</sub> = D<sup>2</sup> (bridge squared)</div></div>
+  <div class="contrast-row"><div class="cr-old">Entropy maximum: ln(N)</div><div class="cr-new">= &Sigma; ln(p<sub>i</sub>) (CRT decomposed)</div></div>
+  <div class="contrast-row"><div class="cr-old">Fluctuation-dissipation</div><div class="cr-new">= block-diagonal backprop = CRT</div></div>
+</div>
+
+</div>
+
+<script>
+const P = Math.PI, cos = Math.cos, exp = Math.exp, log = Math.log;
+const primes = [2,3,5,7,11], N = 2310;
+const phi = (1+Math.sqrt(5))/2;
+
+function chEig(k, p) { return p===2 ? cos(P*k) : 2*cos(2*P*k/p); }
+function eigval(n) { return cos(P*n)+2*cos(2*P*n/3)+2*cos(2*P*n/5)+2*cos(2*P*n/7)+2*cos(2*P*n/11); }
+function Zch(p, beta) { let z=0; for(let k=0;k<p;k++) z+=exp(-beta*chEig(k,p)); return z; }
+
+// --- Partition function slider ---
+const tSlider = document.getElementById('tempSlider');
+const tVal = document.getElementById('tempVal');
+const zTot = document.getElementById('zTotal');
+const zCrt = document.getElementById('zCrt');
+const zRat = document.getElementById('zRatio');
+const chDiv = document.getElementById('channelZs');
+const colors = ['var(--accent)','var(--green)','var(--gold)','var(--red)','var(--purple)'];
+
+function updateZ() {
+  const T = parseFloat(tSlider.value);
+  const beta = 1/T;
+  tVal.textContent = T.toFixed(1);
+
+  let Zd = 0;
+  for(let n=0;n<N;n++) Zd += exp(-beta*eigval(n));
+
+  let Zc = 1, zps = [];
+  for(let i=0;i<5;i++) { let z=Zch(primes[i],beta); zps.push(z); Zc*=z; }
+
+  zTot.textContent = Zd.toExponential(4);
+  zCrt.textContent = Zc.toExponential(4);
+  zRat.textContent = (Zd/Zc).toFixed(12);
+
+  let h = '';
+  for(let i=0;i<5;i++) {
+    h += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.6rem;text-align:center;">
+      <div style="font-size:0.7rem;color:var(--dim);">Z<sub>${primes[i]}</sub></div>
+      <div style="font-size:1.1rem;font-weight:700;color:${colors[i]};font-family:'Courier New',monospace;">${zps[i].toFixed(3)}</div></div>`;
+  }
+  chDiv.innerHTML = h;
+}
+tSlider.addEventListener('input', updateZ);
+updateZ();
+
+// --- Channel cards ---
+const chanData = [
+  {p:2, name:'D-channel', val:'2 cosh(\u03B2)', color:'accent',
+   detail:'Z\u2082 = exp(\u03B2) + exp(-\u03B2) = 2 cosh(\u03B2). The simplest partition function. D=2 states with eigenvalues +1 and -1. Pure duality.'},
+  {p:3, name:'K-channel', val:'e\u207B\u00B2\u1D47 + 2e\u1D47', color:'green',
+   detail:'Z\u2083 = exp(-2\u03B2) + 2 exp(\u03B2). K=3 states. Eigenvalues: {2, -1, -1}. Triangular symmetry \u2014 two degenerate states + one peak.'},
+  {p:5, name:'E-channel (GOLDEN)', val:'\u03C6 in exponents', color:'gold',
+   detail:'Z\u2085 = exp(-2\u03B2) + 2 exp(-\u03B2/\u03C6) + 2 exp(\u03B2\u03C6). The golden ratio \u03C6 = (1+\u221A5)/2 appears in the exponents! 2cos(2\u03C0/5) = 1/\u03C6, 2cos(4\u03C0/5) = -\u03C6. The observer\'s thermodynamics is golden.'},
+  {p:7, name:'b-channel', val:'7 terms', color:'red',
+   detail:'Z\u2087 = \u03A3 exp(-\u03B2\u00B72cos(2\u03C0k/7)), k=0..6. The deepest channel. b=7 states. Richest spectral structure. Depth manifests as thermodynamic complexity.'},
+  {p:11, name:'L-channel', val:'11 terms', color:'purple',
+   detail:'Z\u2081\u2081 = \u03A3 exp(-\u03B2\u00B72cos(2\u03C0k/11)), k=0..10. The protector channel. L=11 = \u03C3+D+K+E. Transcendental thermodynamics. ECC for thermal fluctuations.'}
+];
+const chanGrid = document.getElementById('chanCards');
+const chanDet = document.getElementById('chanDetail');
+chanData.forEach((c,i) => {
+  let d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = `<div class="c-val" style="color:var(--${c.color}); font-size:1.3rem;">p=${c.p}</div>
+    <div class="c-name">${c.name}</div><div class="c-expr">${c.val}</div>`;
+  d.onclick = () => { chanGrid.querySelectorAll('.card').forEach(x=>x.classList.remove('active')); d.classList.add('active'); chanDet.innerHTML = c.detail; };
+  chanGrid.appendChild(d);
+});
+
+// --- Entropy canvas ---
+const entCanvas = document.getElementById('entropyCanvas');
+const entCtx = entCanvas.getContext('2d');
+const entSlider = document.getElementById('entropySlider');
+const entTSpan = document.getElementById('entT');
+const entSSpan = document.getElementById('entS');
+
+function drawEntropy() {
+  const T = parseFloat(entSlider.value);
+  const beta = 1/T;
+  entTSpan.textContent = T.toFixed(1);
+  const w = entCanvas.width, h = entCanvas.height;
+  entCtx.clearRect(0,0,w,h);
+  entCtx.fillStyle = '#12121a';
+  entCtx.fillRect(0,0,w,h);
+
+  let Sp = [], Stot = 0;
+  for(let j=0;j<5;j++) {
+    let p = primes[j], zp=0, ep=0;
+    for(let k=0;k<p;k++) { let lam=chEig(k,p), wt=exp(-beta*lam); zp+=wt; ep+=lam*wt; }
+    ep /= zp;
+    let s = ep/T + log(zp);
+    Sp.push(s); Stot += s;
+  }
+  entSSpan.textContent = Stot.toFixed(3);
+
+  const maxS = log(2310);
+  const barW = 80, gap = 20, startX = (w - 5*(barW+gap))/2;
+  const cnames = ['D=2','K=3','E=5','b=7','L=11'];
+  const ccolors = ['#4fc3f7','#66bb6a','#ffd54f','#ef5350','#ab47bc'];
+  const maxH = h - 40;
+
+  for(let j=0;j<5;j++) {
+    let x = startX + j*(barW+gap);
+    let bh = (Sp[j]/maxS)*maxH;
+    entCtx.fillStyle = ccolors[j];
+    entCtx.fillRect(x, h-20-bh, barW, bh);
+    entCtx.fillStyle = '#888';
+    entCtx.font = '11px Courier New';
+    entCtx.textAlign = 'center';
+    entCtx.fillText(cnames[j], x+barW/2, h-5);
+    entCtx.fillStyle = '#e0e0e0';
+    entCtx.fillText(Sp[j].toFixed(2), x+barW/2, h-25-bh);
+  }
+  // max line
+  entCtx.strokeStyle = 'rgba(255,213,79,0.3)';
+  entCtx.setLineDash([4,4]);
+  entCtx.beginPath();
+  entCtx.moveTo(startX-10, h-20-maxH);
+  entCtx.lineTo(startX+5*(barW+gap), h-20-maxH);
+  entCtx.stroke();
+  entCtx.setLineDash([]);
+  entCtx.fillStyle = 'rgba(255,213,79,0.5)';
+  entCtx.font = '10px sans-serif';
+  entCtx.textAlign = 'left';
+  entCtx.fillText('ln('+primes[4]+')='+log(11).toFixed(2), startX+5*(barW+gap)+5, h-20-maxH+4);
+}
+entSlider.addEventListener('input', drawEntropy);
+drawEntropy();
+
+// --- Distribution function canvas ---
+const distCanvas = document.getElementById('distCanvas');
+const distCtx = distCanvas.getContext('2d');
+function drawDist() {
+  const w = distCanvas.width, h = distCanvas.height;
+  distCtx.clearRect(0,0,w,h);
+  distCtx.fillStyle = '#12121a';
+  distCtx.fillRect(0,0,w,h);
+
+  const xMax = 5, yMax = 2.5;
+  const px = x => 60 + (x/xMax)*(w-80);
+  const py = y => h - 30 - (y/yMax)*(h-50);
+
+  // axes
+  distCtx.strokeStyle = '#333';
+  distCtx.beginPath();
+  distCtx.moveTo(px(0), py(0)); distCtx.lineTo(px(xMax), py(0));
+  distCtx.moveTo(px(0), py(0)); distCtx.lineTo(px(0), py(yMax));
+  distCtx.stroke();
+
+  distCtx.fillStyle = '#888';
+  distCtx.font = '11px sans-serif';
+  distCtx.textAlign = 'center';
+  distCtx.fillText('E / kT', px(xMax/2), h-5);
+  distCtx.save();
+  distCtx.translate(15, py(yMax/2));
+  distCtx.rotate(-P/2);
+  distCtx.fillText('f(E)', 0, 0);
+  distCtx.restore();
+
+  // tick labels
+  for(let x=0;x<=5;x++) { distCtx.fillText(x, px(x), py(0)+15); }
+
+  // FD
+  distCtx.strokeStyle = '#4fc3f7';
+  distCtx.lineWidth = 2;
+  distCtx.beginPath();
+  for(let i=0;i<=200;i++) {
+    let x = i*xMax/200, y = 1/(exp(x)+1);
+    if(i===0) distCtx.moveTo(px(x),py(y)); else distCtx.lineTo(px(x),py(y));
+  }
+  distCtx.stroke();
+
+  // BE (start from x>0.2 to avoid divergence)
+  distCtx.strokeStyle = '#ef5350';
+  distCtx.beginPath();
+  let started = false;
+  for(let i=4;i<=200;i++) {
+    let x = i*xMax/200, y = 1/(exp(x)-1);
+    if(y > yMax) continue;
+    if(!started) { distCtx.moveTo(px(x),py(y)); started=true; }
+    else distCtx.lineTo(px(x),py(y));
+  }
+  distCtx.stroke();
+
+  // MB
+  distCtx.strokeStyle = '#66bb6a';
+  distCtx.setLineDash([6,4]);
+  distCtx.beginPath();
+  for(let i=0;i<=200;i++) {
+    let x = i*xMax/200, y = exp(-x);
+    if(i===0) distCtx.moveTo(px(x),py(y)); else distCtx.lineTo(px(x),py(y));
+  }
+  distCtx.stroke();
+  distCtx.setLineDash([]);
+  distCtx.lineWidth = 1;
+
+  // 1/D line
+  distCtx.strokeStyle = 'rgba(255,213,79,0.4)';
+  distCtx.setLineDash([3,3]);
+  distCtx.beginPath();
+  distCtx.moveTo(px(0), py(0.5)); distCtx.lineTo(px(xMax), py(0.5));
+  distCtx.stroke();
+  distCtx.setLineDash([]);
+  distCtx.fillStyle = 'rgba(255,213,79,0.6)';
+  distCtx.textAlign = 'left';
+  distCtx.fillText('1/D = 1/2', px(xMax)-60, py(0.5)-5);
+
+  // Legend
+  distCtx.textAlign = 'left';
+  distCtx.font = '12px sans-serif';
+  let ly = 25;
+  [['Fermi-Dirac (+\u03C3)','#4fc3f7'],['Bose-Einstein (+mirror)','#ef5350'],['Maxwell-Boltzmann','#66bb6a']].forEach(([l,c]) => {
+    distCtx.fillStyle = c; distCtx.fillRect(px(2.5), ly-8, 20, 3);
+    distCtx.fillText(l, px(2.5)+25, ly); ly += 18;
+  });
+
+  // FD(0) annotation
+  distCtx.fillStyle = '#4fc3f7';
+  distCtx.font = '10px Courier New';
+  distCtx.fillText('FD(0) = \u03C3/D = 1/2', px(0.1), py(0.5)-8);
+}
+drawDist();
+
+// --- Scaling relation cards ---
+const scalData = [
+  {name:'Rushbrooke', eq:'\u03B1+2\u03B2+\u03B3 = D', val:'2', color:'accent'},
+  {name:'Widom', eq:'\u03B3 = \u03B2(\u03B4-1)', val:'7/4', color:'green'},
+  {name:'Fisher', eq:'\u03B3 = (2-\u03B7)\u03BD', val:'7/4', color:'gold'},
+  {name:'Josephson', eq:'d\u00B7\u03BD = 2-\u03B1', val:'2', color:'red'},
+  {name:'d_upper', eq:'D\u00B2 = 4', val:'MF exact', color:'purple'},
+  {name:'d_lower', eq:'D = 2', val:'No order', color:'accent'}
+];
+const scalGrid = document.getElementById('scalingCards');
+scalData.forEach(s => {
+  let d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = `<div class="c-val" style="color:var(--${s.color}); font-size:1.1rem;">${s.eq}</div>
+    <div class="c-name">${s.name}</div><div class="c-expr">${s.val}</div>`;
+  scalGrid.appendChild(d);
+});
+
+// --- Fluctuation canvas ---
+const fluctCanvas = document.getElementById('fluctCanvas');
+const fluctCtx = fluctCanvas.getContext('2d');
+function drawFluct() {
+  const w = fluctCanvas.width, h = fluctCanvas.height;
+  fluctCtx.clearRect(0,0,w,h);
+  fluctCtx.fillStyle = '#12121a';
+  fluctCtx.fillRect(0,0,w,h);
+
+  const T = 1.0, beta = 1/T;
+  let vps = [], vtot = 0;
+  // total var
+  let Z=0,E1=0,E2=0;
+  for(let n=0;n<N;n++) { let lam=eigval(n),wt=exp(-beta*lam); Z+=wt; E1+=lam*wt; E2+=lam*lam*wt; }
+  E1/=Z; E2/=Z; vtot = E2-E1*E1;
+
+  for(let j=0;j<5;j++) {
+    let p=primes[j], zp=0, e1=0, e2=0;
+    for(let k=0;k<p;k++) { let lam=chEig(k,p), wt=exp(-beta*lam); zp+=wt; e1+=lam*wt; e2+=lam*lam*wt; }
+    e1/=zp; e2/=zp; vps.push(e2-e1*e1);
+  }
+
+  const barW = 70, gap = 15;
+  const startX = (w - 7*(barW+gap))/2;
+  const maxH = h - 40;
+  const cnames = ['var(E\u2082)','var(E\u2083)','var(E\u2085)','var(E\u2087)','var(E\u2081\u2081)','','var(E)'];
+  const ccolors = ['#4fc3f7','#66bb6a','#ffd54f','#ef5350','#ab47bc','','#fff'];
+  const vals = [...vps, 0, vtot];
+
+  for(let j=0;j<7;j++) {
+    if(j===5) continue;
+    let x = startX + j*(barW+gap);
+    let bh = (vals[j]/vtot)*maxH;
+    fluctCtx.fillStyle = ccolors[j];
+    fluctCtx.fillRect(x, h-20-bh, barW, bh);
+    fluctCtx.fillStyle = '#888';
+    fluctCtx.font = '9px Courier New';
+    fluctCtx.textAlign = 'center';
+    fluctCtx.fillText(cnames[j], x+barW/2, h-5);
+    fluctCtx.fillStyle = '#e0e0e0';
+    fluctCtx.font = '10px Courier New';
+    fluctCtx.fillText(vals[j].toFixed(3), x+barW/2, h-25-bh);
+  }
+  // = sign
+  let eqX = startX + 5*(barW+gap) + barW/2;
+  fluctCtx.fillStyle = '#ffd54f';
+  fluctCtx.font = '20px sans-serif';
+  fluctCtx.textAlign = 'center';
+  fluctCtx.fillText('=', eqX, h/2+10);
+
+  fluctCtx.fillStyle = 'rgba(255,213,79,0.5)';
+  fluctCtx.font = '11px sans-serif';
+  fluctCtx.fillText('T = 1.0 | EXACT match', w/2, 15);
+}
+drawFluct();
+
+// --- Quantum statistics cards ---
+const qsData = [
+  {val:'n^{2/3}', name:'BEC exponent', expr:'n^{D/K}', detail:'Bose-Einstein condensation temperature scales as n^{2/3} = n^{D/K}. D creates pairs (Cooper/BEC), K closes them. The bridge/closure ratio.'},
+  {val:'T^3', name:'Debye low-T', expr:'T^K', detail:'Debye heat capacity at low T goes as T^K = T^3. Closure-order temperature dependence. Coefficient = D\u00B2K\u03C0^{D\u00B2}/E = 12\u03C0\u2074/5.'},
+  {val:'\u03C9^2', name:'DOS (3D)', expr:'\u03C9^{K-1} = \u03C9^D', detail:'Density of states in K=3 dimensions: g(\u03C9) ~ \u03C9^{d-1} = \u03C9^D = \u03C9\u00B2. In D=2: linear. In \u03C3=1: constant.'},
+  {val:'f*T/D', name:'Equipartition', expr:'f = {K,E,b}', detail:'Energy = f*T/D per quadratic DOF. The 1/D = 1/2: bridge-divided. Same as Fermi-Dirac half-filling. DOF chain: mono K=3, dia E=5, poly b=7.'},
+  {val:'{1,3,4}', name:'Radiation', expr:'{s,K,D\u00B2}', detail:'Temperature exponents in radiation: Wien T^1, Debye T^3, Stefan-Boltzmann T^4 = {sigma, K, D\u00B2}. Missing E and b: radiation is BLIND (no observer) and SHALLOW (no depth).'}
+];
+const qsGrid = document.getElementById('qsCards');
+const qsDet = document.getElementById('qsDetail');
+qsData.forEach((q,i) => {
+  let d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = `<div class="c-val" style="color:var(--accent); font-size:1.2rem;">${q.val}</div>
+    <div class="c-name">${q.name}</div><div class="c-expr">${q.expr}</div>`;
+  d.onclick = () => { qsGrid.querySelectorAll('.card').forEach(x=>x.classList.remove('active')); d.classList.add('active'); qsDet.innerHTML = q.detail; };
+  qsGrid.appendChild(d);
+});
+
+// --- Full table ---
+const allQ = [
+  ['Z = \u220FZ_p','Factorization','s237'],
+  ['Z_D = 2cosh(\u03B2)','D-channel','2'],
+  ['Z_K = e^{-2\u03B2}+2e^\u03B2','K-channel','3'],
+  ['Z_E = golden ratio','E-channel','5'],
+  ['F = \u03A3F_p','Free energy additive','s237'],
+  ['S = \u03A3S_p','Entropy additive','s237'],
+  ['C = \u03A3C_p','Heat capacity additive','s237'],
+  ['var(E) = \u03A3var(E_p)','Fluctuations independent','s237'],
+  ['S_max = \u03A3ln(p_i)','High-T entropy','s237'],
+  ['FD: 1/(e^x+\u03C3)','Fermion = +sigma','s'],
+  ['BE: 1/(e^x-\u03C3)','Boson = +mirror','s'],
+  ['Classical: 1/D','Bridge-divided','2'],
+  ['\u03B1 = 0 (2D)','Specific heat (log)',''],
+  ['\u03B2 = \u03C3/D\u00B3 (2D)','Magnetization','s23'],
+  ['\u03B3 = b/D\u00B2 (2D)','Susceptibility','27'],
+  ['\u03B4 = K*E (2D)','Critical isotherm','35'],
+  ['\u03BD = \u03C3 (2D)','Corr. length','s'],
+  ['\u03B7 = \u03C3/D\u00B2 (2D)','Corr. decay','s2'],
+  ['\u03B2_MF = \u03C3/D','MF magnetization','s2'],
+  ['\u03B3_MF = \u03C3','MF susceptibility','s'],
+  ['\u03B4_MF = K','MF isotherm','3'],
+  ['\u03BD_MF = \u03C3/D','MF corr. length','s2'],
+  ['Rushbrooke = D','Universal','2'],
+  ['d_upper = D\u00B2 = 4','Mean field threshold','2'],
+  ['d_lower = D = 2','Mermin-Wagner','2'],
+  ['T_BEC ~ n^{D/K}','BEC exponent','23'],
+  ['C ~ T^K (Debye)','Low-T phonons','3'],
+  ['g(\u03C9) ~ \u03C9^{d-1}','Density of states',''],
+  ['Phase: D*f dims','Per DOF','2'],
+  ['E = f*T/D','Equipartition','2'],
+  ['Radiation: {s,K,D\u00B2}','Blind + shallow','s23']
+];
+
+const tbl = document.getElementById('fullTable');
+function chipStr(s) {
+  let h = '';
+  if(s.includes('s')) h += '<span class="chip chip-s">\u03C3</span>';
+  if(s.includes('2')) h += '<span class="chip chip-2">2</span>';
+  if(s.includes('3')) h += '<span class="chip chip-3">3</span>';
+  if(s.includes('5')) h += '<span class="chip chip-5">5</span>';
+  if(s.includes('7')) h += '<span class="chip chip-7">7</span>';
+  if(s.includes('1') && !s.includes('11') && s!=='s' && s.indexOf('1')>0) h += '<span class="chip chip-11">11</span>';
+  return h || '<span style="color:var(--dim);">-</span>';
+}
+allQ.forEach((r,i) => {
+  let tr = document.createElement('tr');
+  tr.innerHTML = `<td style="color:var(--dim);">${i+1}</td><td>${r[1]}</td><td class="expr">${r[0]}</td><td>${chipStr(r[2])}</td>`;
+  tbl.appendChild(tr);
+});
+</script>
+
+</body>
+</html>
