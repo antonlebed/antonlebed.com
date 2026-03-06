@@ -650,14 +650,20 @@ function run(src) {
                     for (const name in fns) fns[name].closureEnv = {...env, ...Object.fromEntries(Object.entries(fns).map(([k,v])=>[k,v]))};
                     break;
                 case 'Print': {
+                    const outBefore = outputLines.length;
                     const val = ev(stmt.expr, env, 0);
-                    outputLines.push(typeof val === 'string' ? fmtText(val) : fmtValue(val));
+                    if (outputLines.length === outBefore) {
+                        outputLines.push(typeof val === 'string' ? fmtText(val) : fmtValue(val));
+                    }
                     values.push(val);
                     break;
                 }
                 case 'ExprStmt': {
+                    const outBefore = outputLines.length;
                     const val = ev(stmt.expr, env, 0);
-                    outputLines.push(fmtValue(val));
+                    if (outputLines.length === outBefore) {
+                        outputLines.push(fmtValue(val));
+                    }
                     values.push(val);
                     break;
                 }
