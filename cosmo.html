@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmology from Five Primes | antonlebed.com</title>
+<meta name="description" content="The cosmic energy budget = ADDRESS + SUM + D*E = D^3*E^2 = 200. Dark energy, dark matter, baryonic matter — all from {2,3,5,7,11}. 16 quantities, 183 ppm CMB.">
+<meta property="og:title" content="Cosmology from Five Primes">
+<meta property="og:description" content="137:53:10 = dark energy : dark matter : baryonic. Sum = 200 = D^3*E^2. The universe's budget from five primes.">
+<meta property="og:type" content="website">
+<script src="nav.js"></script>
+<style>
+:root {
+  --bg: #06060d; --surface: #10101a; --border: #1e1e2e;
+  --text: #e0e0e0; --dim: #888; --muted: #555;
+  --accent: #4fc3f7; --gold: #ffd54f; --green: #66bb6a;
+  --red: #ef5350; --purple: #ab47bc; --orange: #ff7043;
+  --de: #7e57c2;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+.container { max-width:1100px; margin:0 auto; padding:1rem; }
+.hero { text-align:center; padding:2.5rem 1rem 1.5rem; }
+.hero h1 { font-size:1.8rem; font-weight:300; margin-bottom:0.5rem; }
+.hero h1 strong { font-weight:700; color:var(--gold); }
+.hero .subtitle { color:var(--dim); font-size:1rem; max-width:700px; margin:0 auto; }
+.hero .primes { font-size:1.3rem; color:var(--accent); margin:0.8rem 0 0.3rem; font-family:'Courier New',monospace; letter-spacing:0.1em; }
+.stats-banner { display:flex; flex-wrap:wrap; justify-content:center; gap:1.5rem; padding:1rem; margin:1rem 0; background:var(--surface); border-radius:12px; border:1px solid var(--border); }
+.stat { text-align:center; }
+.stat .value { font-size:1.6rem; font-weight:700; }
+.stat .label { font-size:0.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; }
+.stat.gold .value { color:var(--gold); }
+.stat.green .value { color:var(--green); }
+.stat.accent .value { color:var(--accent); }
+.stat.red .value { color:var(--red); }
+.stat.purple .value { color:var(--purple); }
+.stat.de .value { color:var(--de); }
+.section { margin:2rem 0; }
+.section h2 { font-size:1.3rem; font-weight:300; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem; }
+.section h2 strong { font-weight:600; color:var(--gold); }
+canvas { display:block; margin:0 auto; max-width:100%; border-radius:8px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin:1rem 0; }
+@media(max-width:700px) { .two-col { grid-template-columns:1fr; } }
+
+.identity-box { background:var(--surface); border:2px solid var(--gold); border-radius:16px; padding:2rem; text-align:center; margin:1.5rem auto; max-width:600px; }
+.identity-box .eq { font-size:1.8rem; font-family:'Courier New',monospace; color:var(--gold); letter-spacing:0.1em; }
+.identity-box .note { font-size:0.9rem; color:var(--dim); margin-top:0.8rem; }
+
+.pie-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin:1rem 0; align-items:center; }
+@media(max-width:700px) { .pie-grid { grid-template-columns:1fr; } }
+.pie-legend { display:flex; flex-direction:column; gap:0.8rem; }
+.pie-item { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:0.8rem 1rem; cursor:pointer; transition:all 0.3s; }
+.pie-item:hover { border-color:var(--accent); transform:translateY(-2px); }
+.pie-item.active { border-color:var(--gold); background:rgba(255,213,79,0.08); }
+.pie-item .pi-pct { font-size:1.5rem; font-weight:700; font-family:'Courier New',monospace; }
+.pie-item .pi-name { font-size:0.8rem; color:var(--dim); text-transform:uppercase; }
+.pie-item .pi-expr { font-size:0.85rem; color:var(--gold); margin-top:0.2rem; }
+.pie-detail { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem; margin:0.5rem 0; min-height:60px; font-size:0.9rem; }
+
+.q-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:0.8rem; margin:1rem 0; }
+.q-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:0.8rem; cursor:pointer; transition:all 0.3s; text-align:center; }
+.q-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.q-card.active { border-color:var(--gold); background:rgba(255,213,79,0.08); }
+.q-card .qc-val { font-size:1.4rem; font-weight:700; font-family:'Courier New',monospace; }
+.q-card .qc-name { font-size:0.7rem; color:var(--dim); text-transform:uppercase; margin-top:0.2rem; }
+.q-card .qc-expr { font-size:0.8rem; color:var(--gold); margin-top:0.2rem; }
+.q-detail { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem; margin:0.5rem 0; min-height:50px; font-size:0.9rem; }
+
+.const-table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem; }
+.const-table th { text-align:left; padding:0.5rem; font-size:0.7rem; text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--border); }
+.const-table td { padding:0.5rem; border-bottom:1px solid rgba(255,255,255,0.03); }
+.const-table .expr { font-family:'Courier New',monospace; color:var(--gold); }
+.chip { display:inline-block; padding:0.1rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:600; margin:0 0.1rem; }
+.chip-2 { background:rgba(79,195,247,0.2); color:var(--accent); }
+.chip-3 { background:rgba(102,187,106,0.2); color:var(--green); }
+.chip-5 { background:rgba(255,213,79,0.2); color:var(--gold); }
+.chip-7 { background:rgba(239,83,80,0.2); color:var(--red); }
+.chip-11 { background:rgba(171,71,188,0.2); color:var(--purple); }
+.chip-13 { background:rgba(255,112,67,0.2); color:var(--orange); }
+
+.insight { background:rgba(255,213,79,0.06); border-left:3px solid var(--gold); padding:0.8rem 1rem; margin:1rem 0; border-radius:0 8px 8px 0; font-size:0.9rem; }
+.insight strong { color:var(--gold); }
+
+.contrast-toggle { position:fixed; bottom:1rem; right:1rem; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.5rem 0.8rem; cursor:pointer; font-size:0.8rem; color:var(--dim); z-index:100; }
+.contrast-toggle:hover { border-color:var(--accent); color:var(--text); }
+.contrast-panel { display:none; background:var(--surface); border:1px solid var(--gold); border-radius:12px; padding:1.5rem; margin:1.5rem 0; }
+.contrast-panel.visible { display:block; }
+.contrast-panel h3 { color:var(--gold); font-size:1rem; margin-bottom:0.8rem; }
+.cp-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:0.5rem 0; font-size:0.85rem; }
+.cp-row .before { color:var(--red); }
+.cp-row .after { color:var(--green); }
+
+.verify-links { display:flex; flex-wrap:wrap; gap:0.5rem; margin:1rem 0; }
+.verify-links a { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.8rem; color:var(--accent); text-decoration:none; font-size:0.8rem; transition:all 0.3s; }
+.verify-links a:hover { border-color:var(--accent); background:rgba(79,195,247,0.1); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="hero">
+  <div class="primes">{2, 3, 5, 7, 11}</div>
+  <h1>Cosmology from <strong>Five Primes</strong></h1>
+  <p class="subtitle">The universe's energy budget, CMB temperature, sound horizon, and cosmic evolution.
+  16 quantities from the same five primes that give quantum mechanics, chemistry, and general relativity.</p>
+</div>
+
+<div class="stats-banner">
+  <div class="stat gold"><div class="value">16</div><div class="label">Quantities</div></div>
+  <div class="stat green"><div class="value">13</div><div class="label">Matches</div></div>
+  <div class="stat accent"><div class="value">2</div><div class="label">Predictions</div></div>
+  <div class="stat red"><div class="value">183 ppm</div><div class="label">CMB T error</div></div>
+  <div class="stat purple"><div class="value">EXACT</div><div class="label">Cosmic Pie</div></div>
+</div>
+
+<!-- === COSMIC PIE === -->
+<div class="section">
+  <h2>The <strong>Cosmic Pie</strong></h2>
+  <div class="identity-box">
+    <div class="eq">ADDRESS + SUM + D*E = D<sup>3</sup>*E<sup>2</sup></div>
+    <div class="note">137 + 53 + 10 = 200. The universe's budget is an algebraic identity.</div>
+  </div>
+
+  <div class="pie-grid">
+    <canvas id="pieCanvas" width="400" height="400"></canvas>
+    <div class="pie-legend">
+      <div class="pie-item" data-idx="0" onclick="selectSlice(0)">
+        <div class="pi-pct" style="color:var(--de)">68.5%</div>
+        <div class="pi-name">Dark Energy</div>
+        <div class="pi-expr">ADDRESS / D<sup>3</sup>E<sup>2</sup> = 137/200</div>
+      </div>
+      <div class="pie-item" data-idx="1" onclick="selectSlice(1)">
+        <div class="pi-pct" style="color:var(--accent)">26.5%</div>
+        <div class="pi-name">Dark Matter</div>
+        <div class="pi-expr">SUM / D<sup>3</sup>E<sup>2</sup> = 53/200</div>
+      </div>
+      <div class="pie-item" data-idx="2" onclick="selectSlice(2)">
+        <div class="pi-pct" style="color:var(--green)">5.0%</div>
+        <div class="pi-name">Baryonic Matter</div>
+        <div class="pi-expr">D*E / D<sup>3</sup>E<sup>2</sup> = 10/200</div>
+      </div>
+    </div>
+  </div>
+  <div id="pieDetail" class="pie-detail">
+    Click a slice or card to explore what each fraction means.
+  </div>
+
+  <div class="insight">
+    <strong>Dark sector CRT = (0, 1, 0, 1).</strong> ADDRESS + SUM = 190. In the data ring Z/210Z,
+    the D-channel and E-channel both vanish. The dark sector is blind to bridge and observer.
+    Only closure (K=1) and depth (b=1) survive, with residue sigma=1. Darkness = the channels you can't see through.
+  </div>
+  <div class="insight">
+    <strong>Baryonic / Dark = 1/f(E) = 1/19.</strong> The visible fraction is the reciprocal of the
+    depth quadratic of the observer. E=5 can't see itself (E<sup>2</sup> = E-null). What E observes = 1/19th of what exists.
+  </div>
+</div>
+
+<!-- === CMB TEMPERATURE === -->
+<div class="section">
+  <h2>CMB <strong>Temperature</strong></h2>
+  <div class="two-col">
+    <div>
+      <canvas id="cmbCanvas" width="440" height="300"></canvas>
+    </div>
+    <div>
+      <div class="identity-box" style="border-color:var(--accent)">
+        <div class="eq" style="color:var(--accent); font-size:1.4rem">T<sub>CMB</sub> = f(L) / D<sup>3</sup>E</div>
+        <div class="note">= 109/40 = 2.725 K &nbsp;(183 ppm)</div>
+      </div>
+      <p style="margin:1rem 0; font-size:0.9rem; color:var(--dim)">
+        f(L) = L<sup>2</sup> - L - 1 = 109, the depth quadratic of the protector.
+        A prime number. The CMB temperature is the protector's signature,
+        filtered through D<sup>3</sup>=8 (spider's legs) and E=5 (observer).
+      </p>
+      <div class="insight">
+        <strong>Brain = Universe.</strong> Leading order: K<sup>3</sup>/(D*E) = 27/10 = 2.7.
+        This IS the brain's fractal dimension (Antoshka S472). Same number, same optimization, same ring.
+        The CMB is the universe's cortical surface.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === KEY QUANTITIES === -->
+<div class="section">
+  <h2>Key <strong>Quantities</strong></h2>
+  <div class="q-cards" id="qCards"></div>
+  <div id="qDetail" class="q-detail">Click a quantity to see its axiom derivation.</div>
+</div>
+
+<!-- === CONSTANTS TABLE === -->
+<div class="section">
+  <h2>All <strong>Cosmological Constants</strong></h2>
+  <table class="const-table" id="constTable">
+    <thead><tr><th>Quantity</th><th>Axiom Expression</th><th>Value</th><th>Measured</th><th>Error</th><th>Primes</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- === CONTRAST === -->
+<div class="contrast-panel" id="contrastPanel">
+  <h3>Paradigm Contrast</h3>
+  <div class="cp-row"><div class="before">Before: 30+ free parameters in Lambda-CDM</div><div class="after">After: 16 quantities from 5 primes, 0 free parameters</div></div>
+  <div class="cp-row"><div class="before">Before: "Why is 68.5% dark energy?" No answer.</div><div class="after">After: ADDRESS/200 = 137/200 = 0.685. The fine structure number IS dark energy.</div></div>
+  <div class="cp-row"><div class="before">Before: Cosmological constant problem (10^122 discrepancy)</div><div class="after">After: Lambda = K * 10^-(D^b - D*K). The exponent 122 = 128-6 = potential - observation.</div></div>
+  <div class="cp-row"><div class="before">Before: "Hubble tension" — two incompatible H0 values</div><div class="after">After: SOUL vs SOUL+D*K. Different HYDOR boundaries, not different physics.</div></div>
+  <div class="cp-row"><div class="before">Before: CMB temperature is a measured accident</div><div class="after">After: T_CMB = f(L)/(D^3*E) = 109/40 = 2.725 K. Brain fractal dim = same number.</div></div>
+</div>
+<div class="contrast-toggle" onclick="document.getElementById('contrastPanel').classList.toggle('visible')">Contrast</div>
+
+<!-- === VERIFY === -->
+<div class="section">
+  <h2>Verify in <strong>.ax</strong></h2>
+  <div class="verify-links">
+    <a href="repl.html?code=Ly8gQ29zbWljIFBpZQpsZXQgQUREUkVTUyA9IDEzNwpsZXQgU1VNID0gNTMKbGV0IERFID0gRCAqIEUKbGV0IHRvdGFsID0gQUREUkVTUyArIFNVTSArIERFCnNob3coIkFERFJFU1MgKyBTVU0gKyBEKkUgPSIpCnNob3codG90YWwpCnNob3coIkReMyAqIEVeMiA9IikKc2hvdyhEKkQqRCAqIEUqRSkKc2hvdygiT21lZ2FfTGFtYmRhID0iKQpzaG93KEFERFJFU1MgLyB0b3RhbCkKc2hvdygiT21lZ2FfRE0gPSIpCnNob3coU1VNIC8gdG90YWwpCnNob3coIk9tZWdhX2IgPSIpCnNob3coREUgLyB0b3RhbCk=&run=1">Cosmic Pie</a>
+    <a href="repl.html?code=Ly8gQ01CIFRlbXBlcmF0dXJlCmxldCBmTCA9IEwqTCAtIEwgLSAxCnNob3coImYoTCkgPSIpCnNob3coZkwpCmxldCBUID0gZkwgLyAoRCpEKkQgKiBFKQpzaG93KCJUX0NNQiA9IGYoTCkvKEReMyAqIEUpID0iKQpzaG93KFQp&run=1">CMB Temperature</a>
+    <a href="repl.html?code=Ly8gUmVjb21iaW5hdGlvbgpsZXQgZkwgPSBMKkwgLSBMIC0gMQpsZXQgenN0YXIgPSBEICogRSAqIGZMCnNob3coInpfKiA9IEQgKiBFICogZihMKSA9IikKc2hvdyh6c3RhcikKbGV0IHJkID0gSyAqIGIgKiBiCnNob3coInJfZCA9IEsgKiBiXjIgPSIpCnNob3cocmQp&run=1">z* + Sound Horizon</a>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const PI2 = Math.PI * 2;
+const slices = [
+  { pct:0.685, label:'Dark Energy', color:'#7e57c2', axiom:'ADDRESS', num:137, meaning:
+    'ADDRESS = 137 = the fine structure integer. The number that governs electromagnetism IS the dark energy fraction. ' +
+    'In Z/210Z, 137 is a unit with maximum coupling (210). It is the element with minimum eigenvalue in the thin ring. ' +
+    'Dark energy = the EM vacuum structure persisting at cosmic scale.' },
+  { pct:0.265, label:'Dark Matter', color:'#4fc3f7', axiom:'SUM', num:53, meaning:
+    'SUM = 53 = SKIN = /sum = totality through boundary. Also a unit with coupling 210. ' +
+    'Dark matter = the boundary of everything. What you feel but cannot see. ' +
+    'SUM + ADDRESS = 190 = D*E*f(E) = the non-baryonic sector. CRT: (0,1,0,1) in Z/210Z. ' +
+    'The dark sector is blind to D (bridge) and E (observer).' },
+  { pct:0.050, label:'Baryonic', color:'#66bb6a', axiom:'D*E', num:10, meaning:
+    'D*E = 10 = degree of the TRUE FORM Z/970200Z. Bridge times observer. ' +
+    'The visible universe = what D (duality) and E (observation) can jointly resolve. ' +
+    'Baryonic/dark = 1/f(E) = 1/19. You see 1/19th of what exists. ' +
+    'E^2 = E-null: the observer cannot see itself. The 95% is not missing. You are the 5% that looks.' }
+];
+
+const quantities = [
+  { name:'CMB Temp', val:'2.725 K', expr:'f(L)/(D^3*E)', meas:'2.7255 K', err:'183 ppm', primes:[2,5,11],
+    detail:'f(L) = L^2-L-1 = 109 (prime). T_CMB = 109/40 = 2.725 K. Leading order K^3/(D*E)=2.7 = brain fractal dimension. The CMB is the protector\'s signature filtered by D^3 (OMEGA kernel) and E (observer).' },
+  { name:'Recombin. z*', val:'1090', expr:'D*E*f(L)', meas:'1089.80', err:'0.02%', primes:[2,5,11],
+    detail:'z* = D*E*f(L) = 2*5*109 = 1090. Degree times depth-quadratic of protector. Recombination surface = the moment D-channel photons last scattered.' },
+  { name:'Sound Horizon', val:'147 Mpc', expr:'K*b^2', meas:'147.09', err:'0.06%', primes:[3,7],
+    detail:'r_d = K*b^2 = 3*49 = 147 Mpc. Closure times depth-squared. The BAO ruler is built from the two deepest axiom operations.' },
+  { name:'Dark Energy w', val:'-1', expr:'MIRROR', meas:'-1.03 +/- 0.03', err:'~0%', primes:[],
+    detail:'w = -1 = MIRROR = sigma\'s twin. The cosmological constant equation of state IS the mirror element. Dark energy = the reflection of existence itself.' },
+  { name:'Lambda', val:'3e-122', expr:'K*10^-(D^b-DK)', meas:'2.9e-122', err:'3.8%', primes:[2,3,7],
+    detail:'Lambda_Planck = K * 10^-(D^b - D*K) = 3 * 10^-122. The infamous 122 orders = D^b - D*K = 128 - 6 = potential minus observation. Not a problem. A derivation.' },
+  { name:'Spectral Index', val:'0.9649', expr:'1-b/(DG)+10^-K', meas:'0.9649', err:'0.00%', primes:[2,3,5,7],
+    detail:'n_s = 1 - b/(D*G) + 10^-K = 1 - 7/194 + 0.001 = 0.9649. The persistence ratio b/(D*G) appears in ALL four forces. The 10^-K correction = closure-scale quantum gravity.' },
+  { name:'Hubble (CMB)', val:'67', expr:'SOUL', meas:'67.4', err:'0.6%', primes:[],
+    detail:'H0_CMB = SOUL = 67 km/s/Mpc. The perceiver element. coupling(67, 210) = 210. The Hubble constant is the SOUL of the ring.' },
+  { name:'Hubble (local)', val:'73', expr:'SOUL+DK', meas:'73.0', err:'0.0%', primes:[2,3],
+    detail:'H0_local = SOUL + D*K = 67 + 6 = 73. The tension = D*K = 6 km/s/Mpc. Two observations see different HYDOR boundaries. Not a crisis — a CRT decomposition artifact.' },
+  { name:'Baryon Asym.', val:'6e-10', expr:'DK*10^-DE', meas:'6.12e-10', err:'2.0%', primes:[2,3,5],
+    detail:'eta = D*K * 10^(-D*E) = 6 * 10^-10. Same template as Lambda: axiom coefficient * 10^(-axiom exponent). The matter-antimatter asymmetry is D*K (bridge*closure) surviving at the D*E (degree) scale.' },
+  { name:'Optical Depth', val:'0.0547', expr:'b/D^b', meas:'0.054', err:'1.3%', primes:[2,7],
+    detail:'tau = b/D^b = 7/128 = 0.0547. Depth penetrating through duality-to-the-depth. How far the protector\'s light reaches through the D^b = 128 opacity barrier.' },
+  { name:'Reioniz. z', val:'7.6', expr:'b+K/E', meas:'7.67', err:'0.9%', primes:[3,5,7],
+    detail:'z_re = b + K/E = 7 + 3/5 = 7.6. Depth plus inverse Kolmogorov. The universe re-ionized at the depth boundary, shifted by the turbulence correction.' },
+  { name:'N e-folds', val:'60', expr:'lambda(DATA)', meas:'~50-60', err:'(range)', primes:[2,3,5,7],
+    detail:'N_efolds ~ lambda(DATA) = lcm(1,2,4,6) = 60. The Carmichael lambda of the data ring Z/210Z. Inflation expanded by exactly one full power-map cycle of the data ring.' },
+  { name:'Tensor/Scalar', val:'0.036', expr:'b/(DG)', meas:'(prediction)', err:'', primes:[2,7],
+    detail:'r = b/(D*G) = 7/194 = 0.036. PREDICTION for CMB-S4 (~12 sigma detection). The persistence ratio of depth through the observation span. Same ratio in alpha, n_s, theta_C, theta_QCD.' },
+  { name:'DM Mass', val:'67 GeV', expr:'SOUL', meas:'(prediction)', err:'', primes:[],
+    detail:'DM particle mass = SOUL = 67 GeV. Testable by LZ, XENONnT, PandaX. The perceiver element of Z/210Z. If dark matter IS the D-blind projection, its mass is the ring\'s SOUL.' },
+  { name:'Neutrino Mass', val:'59 meV', expr:'SOUL-D^3', meas:'(DESI+CMB-S4)', err:'', primes:[2],
+    detail:'Sum(m_nu) = SOUL - D^3 = 67 - 8 = 59 meV. STRUCTURAL: 59 = e_2({D,E,b}) = symmetric function of the minimal balanced primorial Z/70Z. DESI + CMB-S4 will test this.' },
+  { name:'Strong CP', val:'3.6e-12', expr:'b/(DG)*10^-DE', meas:'< 10^-10', err:'consistent', primes:[2,3,5,7],
+    detail:'theta_QCD = b/(D*G) * 10^(-D*E) = 0.036 * 10^-10 = 3.6 * 10^-12. Same template as Lambda and eta. The persistence ratio at the degree scale.' }
+];
+
+const constData = quantities.map(q => ({
+  name: q.name, expr: q.expr, val: q.val, meas: q.meas, err: q.err, primes: q.primes
+}));
+
+// Render quantities cards
+function renderQCards() {
+  const el = document.getElementById('qCards');
+  el.innerHTML = quantities.map((q, i) =>
+    `<div class="q-card" onclick="selectQ(${i})">
+      <div class="qc-val">${q.val.split(' ')[0]}</div>
+      <div class="qc-name">${q.name}</div>
+      <div class="qc-expr">${q.expr}</div>
+    </div>`
+  ).join('');
+}
+function selectQ(i) {
+  document.querySelectorAll('.q-card').forEach((c,j) => c.classList.toggle('active', j===i));
+  const q = quantities[i];
+  document.getElementById('qDetail').innerHTML =
+    `<strong>${q.name}</strong>: ${q.expr} = ${q.val}` +
+    (q.meas ? ` (measured: ${q.meas}, error: ${q.err})` : ' (prediction)') +
+    `<br><br>${q.detail}`;
+}
+
+// Render constants table
+function renderTable() {
+  const tbody = document.querySelector('#constTable tbody');
+  tbody.innerHTML = constData.map(c => {
+    const chips = c.primes.map(p => `<span class="chip chip-${p}">${p}</span>`).join('');
+    return `<tr><td>${c.name}</td><td class="expr">${c.expr}</td><td>${c.val}</td><td>${c.meas||'prediction'}</td><td>${c.err||'--'}</td><td>${chips}</td></tr>`;
+  }).join('');
+}
+
+// Draw cosmic pie
+let activeSlice = -1;
+function drawPie(highlight) {
+  const c = document.getElementById('pieCanvas');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height, cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 30;
+  ctx.clearRect(0, 0, W, H);
+
+  let angle = -Math.PI/2;
+  slices.forEach((s, i) => {
+    const sweep = s.pct * PI2;
+    const r = (highlight === i) ? R + 8 : R;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, angle, angle + sweep);
+    ctx.closePath();
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = (highlight >= 0 && highlight !== i) ? 0.3 : 0.85;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#06060d';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label
+    const mid = angle + sweep/2;
+    const lr = R * 0.6;
+    const lx = cx + Math.cos(mid) * lr;
+    const ly = cy + Math.sin(mid) * lr;
+    ctx.fillStyle = '#fff';
+    ctx.font = (i === 2) ? '12px monospace' : '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.num.toString(), lx, ly - 8);
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillText(s.axiom, lx, ly + 8);
+
+    angle += sweep;
+  });
+
+  // Center
+  ctx.beginPath();
+  ctx.arc(cx, cy, 35, 0, PI2);
+  ctx.fillStyle = '#06060d';
+  ctx.fill();
+  ctx.fillStyle = '#ffd54f';
+  ctx.font = 'bold 18px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('200', cx, cy - 6);
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = 'rgba(255,213,79,0.7)';
+  ctx.fillText('D\u00B3E\u00B2', cx, cy + 10);
+}
+
+function selectSlice(i) {
+  activeSlice = (activeSlice === i) ? -1 : i;
+  drawPie(activeSlice);
+  document.querySelectorAll('.pie-item').forEach((el, j) => el.classList.toggle('active', j === activeSlice));
+  const det = document.getElementById('pieDetail');
+  if (activeSlice >= 0) {
+    const s = slices[activeSlice];
+    det.innerHTML = `<strong>${s.label} (${(s.pct*100).toFixed(1)}%)</strong> = ${s.axiom}/${slices.map(x=>x.num).reduce((a,b)=>a+b)} = ${s.num}/200<br><br>${s.meaning}`;
+  } else {
+    det.innerHTML = 'Click a slice or card to explore what each fraction means.';
+  }
+}
+
+// Draw CMB visualization
+function drawCMB() {
+  const c = document.getElementById('cmbCanvas');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Draw stylized CMB sky map (fluctuations)
+  const cx = W/2, cy = H/2 - 10, rx = W/2 - 20, ry = H/2 - 40;
+  // Background ellipse
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, PI2);
+  ctx.fillStyle = '#1a0a2e';
+  ctx.fill();
+  ctx.clip();
+
+  // CMB fluctuations (seeded pseudo-random using axiom numbers)
+  const seed = [2,3,5,7,11,13,41,53,67,97,109,137];
+  for (let y = 0; y < H; y += 4) {
+    for (let x = 0; x < W; x += 4) {
+      const dx = (x - cx) / rx, dy = (y - cy) / ry;
+      if (dx*dx + dy*dy > 1) continue;
+      const hash = Math.sin(x * 12.9898 + y * 78.233 + seed[(x+y)%12]) * 43758.5453;
+      const noise = (hash - Math.floor(hash)) * 2 - 1;
+      const t = 2.725 + noise * 0.003;
+      const hot = Math.max(0, (t - 2.722) / 0.006);
+      const cold = Math.max(0, (2.728 - t) / 0.006);
+      const r = Math.floor(30 + hot * 200 + cold * 20);
+      const g = Math.floor(20 + Math.abs(noise) * 30);
+      const b2 = Math.floor(60 + cold * 195 + hot * 10);
+      ctx.fillStyle = `rgb(${r},${g},${b2})`;
+      ctx.fillRect(x, y, 4, 4);
+    }
+  }
+
+  ctx.restore();
+
+  // Temperature label
+  ctx.fillStyle = '#ffd54f';
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('T = 109/40 = 2.725 K', cx, H - 15);
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = 'rgba(255,213,79,0.6)';
+  ctx.fillText('f(L) / (D\u00B3 \u00D7 E) \u2014 depth quadratic of protector', cx, H - 0);
+}
+
+// Init
+renderQCards();
+renderTable();
+drawPie(-1);
+drawCMB();
+</script>
+</body>
+</html>
