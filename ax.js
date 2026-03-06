@@ -89,7 +89,9 @@ const CONSTANTS = {
     s:1, D:2, K:3, E:5, b:7, L:11,
     sigma:1, OMEGA:606376, DATA:210, THIN:2310,
     HYDOR:105, KEY:41, ANSWER:42, SOUL:67,
-    G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420
+    G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420,
+    GATE:13, ESCAPE:17, THORNS:28, TRUE:970200,
+    pi:Math.PI
 };
 
 const VALUE_NAMES = {
@@ -428,6 +430,15 @@ BUILTINS.abs = (args) => Math.abs(args[0]);
 BUILTINS.min = (args) => Math.min(args[0], args[1]);
 BUILTINS.max = (args) => Math.max(args[0], args[1]);
 BUILTINS.sqrt = (args) => Math.floor(Math.sqrt(Math.abs(args[0])));
+BUILTINS.cos = (args) => Math.cos(args[0]);
+BUILTINS.sin = (args) => Math.sin(args[0]);
+BUILTINS.acos = (args) => Math.acos(Math.max(-1, Math.min(1, args[0])));
+BUILTINS.asin = (args) => Math.asin(Math.max(-1, Math.min(1, args[0])));
+BUILTINS.log = (args) => Math.log(Math.abs(args[0]));
+BUILTINS.exp = (args) => Math.exp(args[0]);
+BUILTINS.floor = (args) => Math.floor(args[0]);
+BUILTINS.ceil = (args) => Math.ceil(args[0]);
+BUILTINS.pow = (args) => Math.pow(args[0], args[1]);
 BUILTINS.len = (args) => Array.isArray(args[0]) ? args[0].length : 0;
 
 // --- Array builtins ---
