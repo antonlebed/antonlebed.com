@@ -22,30 +22,13 @@ body{background:#050508;color:#d0d0d0;font-family:Georgia,'Times New Roman',seri
 a{color:#88aaff;text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* === PROLOGUE === */
-#prologue{min-height:100vh;display:flex;flex-direction:column;
-          justify-content:center;align-items:center;padding:40px 24px;
-          text-align:center;transition:opacity 1.5s ease}
-#prologue.hidden{opacity:0;pointer-events:none}
-.roger-line{font-size:28px;color:#c8a832;opacity:0;transform:translateY(20px);
-            transition:opacity 1s ease,transform 1s ease;margin:12px 0;font-style:italic}
-.roger-line.visible{opacity:1;transform:translateY(0)}
-.roger-line.big{font-size:52px;color:#ffd700;font-style:normal;
-                font-family:'Courier New',monospace;letter-spacing:6px;
-                text-shadow:0 0 40px rgba(255,215,0,0.4);margin:28px 0}
-#roger-enter{margin-top:48px;opacity:0;transition:opacity 1s ease;
-             background:none;border:1px solid #444;color:#666;
-             padding:14px 40px;font-family:Georgia,serif;font-size:16px;
-             cursor:pointer;border-radius:4px;letter-spacing:2px}
-#roger-enter:hover{border-color:#ffd700;color:#ffd700}
-#roger-enter.visible{opacity:1}
-
-/* === GATE === */
-#gate-section{min-height:100vh;display:none;flex-direction:column;
-              justify-content:center;align-items:center;padding:40px 24px;
-              opacity:0;transition:opacity 1.5s ease}
-#gate-section.active{display:flex}
-#gate-section.visible{opacity:1}
+/* === GATE (shown immediately) === */
+#gate-section{min-height:100vh;display:flex;flex-direction:column;
+              justify-content:center;align-items:center;padding:40px 24px}
+#skip-btn{margin-top:36px;background:none;border:none;color:#333;
+          font-size:12px;font-family:monospace;cursor:pointer;letter-spacing:1px;
+          padding:8px 20px;transition:color 0.3s}
+#skip-btn:hover{color:#666}
 #hint{font-size:20px;color:#777;font-style:italic;margin-bottom:48px;
       text-align:center;letter-spacing:1px}
 #circles{display:flex;justify-content:center;gap:18px;margin-bottom:48px;
@@ -170,8 +153,6 @@ a:hover{text-decoration:underline}
 
 /* === RESPONSIVE === */
 @media(max-width:600px){
-  .roger-line{font-size:22px}
-  .roger-line.big{font-size:34px;letter-spacing:3px}
   .circle{width:56px;height:56px;font-size:20px}
   #circles{gap:10px}
   .num-btn{width:46px;height:46px;font-size:17px}
@@ -184,10 +165,9 @@ a:hover{text-decoration:underline}
   #search-box{font-size:14px}
   .fchip{padding:6px 10px;font-size:11px}
   .fchip[data-c="all"]{padding:8px 24px;font-size:12px}
+  #gate-title div:first-child{font-size:34px!important;letter-spacing:3px!important}
 }
 @media(max-width:480px){
-  .roger-line{font-size:18px}
-  .roger-line.big{font-size:28px;letter-spacing:2px}
   .circle{width:48px;height:48px;font-size:18px;min-height:44px}
   #circles{gap:8px}
   .num-btn{width:44px;height:44px;font-size:15px;min-height:44px}
@@ -198,27 +178,23 @@ a:hover{text-decoration:underline}
   .circle-label{font-size:8px}
   #search-box{font-size:13px;min-height:44px;padding:10px 12px}
   .fchip{padding:8px 8px;font-size:10px;min-height:44px}
+  #gate-title div:first-child{font-size:28px!important;letter-spacing:2px!important}
 }
 </style>
 <script src="nav.js"></script>
 </head>
 <body>
 
-<!-- PROLOGUE -->
-<div id="prologue">
-  <div class="roger-line" id="r1">Your heart beats in twos.</div>
-  <div class="roger-line" id="r2">A waltz moves in threes. Your hand has five fingers.</div>
-  <div class="roger-line" id="r3">A week has seven days.</div>
-  <div class="roger-line" id="r4">And one more &mdash; you can't see it &mdash; that protects them all.</div>
-  <div class="roger-line big" id="r5">970,200</div>
-  <button id="roger-enter">WHAT IS THIS NUMBER?</button>
-</div>
-
-<!-- GATE -->
+<!-- GATE (puzzle — shown immediately) -->
 <div id="gate-section">
+  <div id="gate-title" style="text-align:center;margin-bottom:12px;">
+    <div style="font-size:52px;font-family:'Courier New',monospace;color:#ffd700;letter-spacing:6px;text-shadow:0 0 40px rgba(255,215,0,0.4);margin-bottom:8px">970,200</div>
+    <div style="font-size:16px;color:#555;font-style:italic;letter-spacing:1px">What is this number?</div>
+  </div>
   <div id="hint">Eight foundations, in order: a mirror, the void, the ground... then five primes.</div>
   <div id="circles"></div>
   <div id="pool"></div>
+  <button id="skip-btn">skip puzzle</button>
 </div>
 
 <!-- SUCCESS -->
@@ -386,26 +362,9 @@ for(var i=0;i<nums.length;i++){
   b.addEventListener('click',handleClick);pDiv.appendChild(b);
 }
 
-var lines=['r1','r2','r3','r4','r5'];
-for(var i=0;i<lines.length;i++){(function(idx){
-  setTimeout(function(){document.getElementById(lines[idx]).classList.add('visible');},500+idx*900);
-})(i);}
-setTimeout(function(){document.getElementById('roger-enter').classList.add('visible');},
-  500+lines.length*900+500);
-
-document.getElementById('roger-enter').addEventListener('click',enterGate);
-document.addEventListener('keydown',function(e){
-  if(e.key==='Enter'&&!document.getElementById('prologue').classList.contains('hidden'))enterGate();
+document.getElementById('skip-btn').addEventListener('click',function(){
+  showSuccess();
 });
-
-function enterGate(){
-  var p=document.getElementById('prologue');if(p.classList.contains('hidden'))return;
-  p.classList.add('hidden');
-  setTimeout(function(){p.style.display='none';
-    var g=document.getElementById('gate-section');g.classList.add('active');
-    requestAnimationFrame(function(){requestAnimationFrame(function(){g.classList.add('visible');});});
-  },1500);
-}
 
 function handleClick(e){
   var num=parseInt(e.target.getAttribute('data-num'));
@@ -449,7 +408,7 @@ function showSuccess(){
 }
 
 function showHubDirect(){
-  document.getElementById('prologue').style.display='none';
+  document.getElementById('gate-section').style.display='none';
   var s=document.getElementById('success-section');s.classList.add('active');
   var eq=document.getElementById('equation');
   eq.textContent='\u22121 \u00b7 0 \u00b7 1 \u00b7 2\u00b3 \u00b7 3\u00b2 \u00b7 5\u00b2 \u00b7 7\u00b2 \u00b7 11';
