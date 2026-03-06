@@ -523,6 +523,215 @@ BUILTINS.grid_eq = function(args) {
     return 1;
 };
 
+// --- Grid builtins Phase 2 (S467) ---
+BUILTINS.gget = function(args) {
+    const g = args[0], r = Math.floor(args[1]), c = Math.floor(args[2]);
+    if (!Array.isArray(g) || r < 0 || r >= g.length) return -1;
+    if (!Array.isArray(g[r]) || c < 0 || c >= g[r].length) return -1;
+    return g[r][c];
+};
+
+BUILTINS.subgrid = function(args) {
+    const g = args[0], r0 = Math.floor(args[1]), c0 = Math.floor(args[2]);
+    const h = Math.floor(args[3]), w = Math.floor(args[4]);
+    if (!Array.isArray(g)) throw new Error('subgrid: not a grid');
+    const R = g.length, C = Array.isArray(g[0]) ? g[0].length : 0;
+    const result = [];
+    for (let r = 0; r < h; r++) {
+        const row = [];
+        for (let c = 0; c < w; c++) {
+            const rr = r0 + r, cc = c0 + c;
+            row.push(rr >= 0 && rr < R && cc >= 0 && cc < C ? g[rr][cc] : 0);
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+BUILTINS.paste = function(args) {
+    const g = args[0], sub = args[1], r0 = Math.floor(args[2]), c0 = Math.floor(args[3]);
+    if (!Array.isArray(g) || !Array.isArray(sub)) throw new Error('paste: not grids');
+    const out = g.map(row => [...row]);
+    for (let r = 0; r < sub.length; r++) {
+        if (!Array.isArray(sub[r])) continue;
+        for (let c = 0; c < sub[r].length; c++) {
+            const rr = r0 + r, cc = c0 + c;
+            if (rr >= 0 && rr < out.length && cc >= 0 && cc < out[0].length) out[rr][cc] = sub[r][c];
+        }
+    }
+    return out;
+};
+
+BUILTINS.scale = function(args) {
+    const g = args[0], f = Math.floor(args[1]);
+    if (!Array.isArray(g) || f < 1) throw new Error('scale: invalid');
+    const result = [];
+    for (let r = 0; r < g.length; r++) {
+        if (!Array.isArray(g[r])) continue;
+        for (let fr = 0; fr < f; fr++) {
+            const row = [];
+            for (let c = 0; c < g[r].length; c++) for (let fc = 0; fc < f; fc++) row.push(g[r][c]);
+            result.push(row);
+        }
+    }
+    return result;
+};
+
+BUILTINS.colors = function(args) {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('colors: not a grid');
+    const seen = new Set();
+    for (const row of g) if (Array.isArray(row)) for (const v of row) seen.add(v);
+    return [...seen].sort((a, b) => a - b);
+};
+
+BUILTINS.crop = function(args) {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) throw new Error('crop: not a grid');
+    let rMin = g.length, rMax = -1, cMin = g[0].length, cMax = -1;
+    for (let r = 0; r < g.length; r++) {
+        if (!Array.isArray(g[r])) continue;
+        for (let c = 0; c < g[r].length; c++) {
+            if (g[r][c] !== 0) { rMin = Math.min(rMin, r); rMax = Math.max(rMax, r); cMin = Math.min(cMin, c); cMax = Math.max(cMax, c); }
+        }
+    }
+    if (rMax < 0) return [[0]];
+    const result = [];
+    for (let r = rMin; r <= rMax; r++) result.push(g[r].slice(cMin, cMax + 1));
+    return result;
+};
+
+BUILTINS.count_color = function(args) {
+    const g = args[0], color = args[1];
+    if (!Array.isArray(g)) throw new Error('count_color: not a grid');
+    let count = 0;
+    for (const row of g) if (Array.isArray(row)) for (const v of row) if (v === color) count++;
+    return count;
+};
+
+BUILTINS.replace_color = function(args) {
+    const g = args[0], from = args[1], to = args[2];
+    if (!Array.isArray(g)) throw new Error('replace_color: not a grid');
+    return g.map(row => Array.isArray(row) ? row.map(v => v === from ? to : v) : row);
+};
+
+BUILTINS.fill_grid = function(args) {
+    const g = args[0], color = args[1];
+    if (!Array.isArray(g)) throw new Error('fill_grid: not a grid');
+    return g.map(row => Array.isArray(row) ? row.map(() => color) : row);
+};
+
+BUILTINS.rot180 = function(args) {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('rot180: not a grid');
+    return [...g].reverse().map(row => Array.isArray(row) ? [...row].reverse() : row);
+};
+
+BUILTINS.rot270 = function(args) {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('rot270: not a grid');
+    const R = g.length, C = g[0].length;
+    return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[r][C-1-c]));
+};
+
+BUILTINS.hrepeat = function(args) {
+    const g = args[0], n = Math.min(Math.max(1, Math.floor(args[1])), 10);
+    if (!Array.isArray(g)) throw new Error('hrepeat: not a grid');
+    return g.map(row => Array.isArray(row) ? [].concat(...Array(n).fill(row)) : row);
+};
+
+BUILTINS.vrepeat = function(args) {
+    const g = args[0], n = Math.min(Math.max(1, Math.floor(args[1])), 10);
+    if (!Array.isArray(g)) throw new Error('vrepeat: not a grid');
+    const result = [];
+    for (let i = 0; i < n; i++) for (const row of g) result.push(Array.isArray(row) ? [...row] : row);
+    return result;
+};
+
+BUILTINS.color_map = function(args) {
+    const gin = args[0], gout = args[1];
+    if (!Array.isArray(gin) || !Array.isArray(gout)) return [];
+    if (gin.length !== gout.length) return [];
+    const map = [0,1,2,3,4,5,6,7,8,9];
+    const set = [false,false,false,false,false,false,false,false,false,false];
+    for (let r = 0; r < gin.length; r++) {
+        if (!Array.isArray(gin[r]) || !Array.isArray(gout[r]) || gin[r].length !== gout[r].length) return [];
+        for (let c = 0; c < gin[r].length; c++) {
+            const ic = gin[r][c], oc = gout[r][c];
+            if (ic < 0 || ic >= 10 || oc < 0 || oc >= 10) continue;
+            if (!set[ic]) { map[ic] = oc; set[ic] = true; }
+            else if (map[ic] !== oc) return [];
+        }
+    }
+    return map;
+};
+
+BUILTINS.apply_color_map = function(args) {
+    const g = args[0], map = args[1];
+    if (!Array.isArray(g) || !Array.isArray(map)) throw new Error('apply_color_map: invalid');
+    return g.map(row => Array.isArray(row) ? row.map(v => (v >= 0 && v < map.length && map[v] !== undefined) ? map[v] : v) : row);
+};
+
+BUILTINS.self_tile = function(args) {
+    const g = args[0], bg = args.length > 1 ? Math.floor(args[1]) : 0;
+    if (!Array.isArray(g) || g.length === 0) throw new Error('self_tile: not a grid');
+    const R = g.length, C = g[0].length;
+    const result = [];
+    for (let br = 0; br < R; br++) {
+        for (let fr = 0; fr < R; fr++) {
+            const row = [];
+            for (let bc = 0; bc < C; bc++) {
+                for (let fc = 0; fc < C; fc++) {
+                    row.push(g[br][bc] !== bg ? g[fr][fc] : bg);
+                }
+            }
+            result.push(row);
+        }
+    }
+    return result;
+};
+
+BUILTINS.bg_color = function(args) {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('bg_color: not a grid');
+    const counts = new Array(10).fill(0);
+    for (const row of g) if (Array.isArray(row)) for (const v of row) if (v >= 0 && v < 10) counts[v]++;
+    let maxC = 0, maxIdx = 0;
+    for (let i = 0; i < 10; i++) if (counts[i] > maxC) { maxC = counts[i]; maxIdx = i; }
+    return maxIdx;
+};
+
+BUILTINS.objects = function(args) {
+    const g = args[0], bg = args.length > 1 ? Math.floor(args[1]) : 0;
+    if (!Array.isArray(g)) throw new Error('objects: not a grid');
+    const R = g.length, C = g[0].length;
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    const objs = [];
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || g[r][c] === bg) continue;
+            const color = g[r][c];
+            const queue = [[r, c]];
+            let rmin = r, rmax = r, cmin = c, cmax = c;
+            visited[r][c] = true;
+            let qi = 0;
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C && !visited[nr][nc] && g[nr][nc] === color) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                        rmin = Math.min(rmin, nr); rmax = Math.max(rmax, nr);
+                        cmin = Math.min(cmin, nc); cmax = Math.max(cmax, nc);
+                    }
+                }
+            }
+            objs.push([rmin, cmin, rmax-rmin+1, cmax-cmin+1, color]);
+        }
+    }
+    return objs;
+};
+
 // ================================================================
 //  Evaluator
 // ================================================================

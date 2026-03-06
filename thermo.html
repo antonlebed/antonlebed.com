@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thermodynamics from Five Primes | antonlebed.com</title>
+<meta name="description" content="Heat capacity, entropy, phase transitions, Planck radiation — all from {2,3,5,7,11}. The axiom chain IS the DOF hierarchy.">
+<meta property="og:title" content="Thermodynamics from Five Primes">
+<meta property="og:description" content="Kolmogorov 5/3 = monoatomic gas ratio. Entropy decomposes over CRT channels. Phase transition exponents are axiom ratios.">
+<meta property="og:type" content="website">
+<script src="nav.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f; --surface: #12121a; --border: #1e1e2e;
+  --text: #e0e0e0; --dim: #888; --muted: #555;
+  --accent: #4fc3f7; --gold: #ffd54f; --green: #66bb6a;
+  --red: #ef5350; --purple: #ab47bc; --orange: #ff7043;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+.container { max-width:1100px; margin:0 auto; padding:1rem; }
+
+.hero { text-align:center; padding:2.5rem 1rem 1.5rem; }
+.hero h1 { font-size:1.8rem; font-weight:300; margin-bottom:0.5rem; }
+.hero h1 strong { font-weight:700; color:var(--gold); }
+.hero .subtitle { color:var(--dim); font-size:1rem; max-width:650px; margin:0 auto; }
+.hero .primes { font-size:1.3rem; color:var(--accent); margin:0.8rem 0 0.3rem; font-family:'Courier New',monospace; letter-spacing:0.1em; }
+
+.stats-banner { display:flex; flex-wrap:wrap; justify-content:center; gap:1.5rem; padding:1rem; margin:1rem 0; background:var(--surface); border-radius:12px; border:1px solid var(--border); }
+.stat { text-align:center; }
+.stat .value { font-size:1.6rem; font-weight:700; }
+.stat .label { font-size:0.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; }
+.stat.gold .value { color:var(--gold); }
+.stat.green .value { color:var(--green); }
+.stat.accent .value { color:var(--accent); }
+.stat.orange .value { color:var(--orange); }
+
+.section { margin:2rem 0; }
+.section h2 { font-size:1.3rem; font-weight:300; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem; }
+.section h2 strong { font-weight:600; color:var(--gold); }
+
+.dof-chain { display:flex; align-items:center; justify-content:center; gap:0; margin:1.5rem 0; flex-wrap:wrap; }
+.dof-node { width:120px; text-align:center; padding:1rem 0.5rem; border-radius:12px; border:2px solid var(--border); background:var(--surface); cursor:pointer; transition:all 0.3s; position:relative; }
+.dof-node:hover, .dof-node.active { border-color:var(--accent); background:rgba(79,195,247,0.08); }
+.dof-node .dof-prime { font-size:1.8rem; font-weight:700; }
+.dof-node .dof-label { font-size:0.7rem; color:var(--dim); text-transform:uppercase; }
+.dof-node .dof-gamma { font-size:0.85rem; color:var(--gold); margin-top:0.2rem; }
+.dof-arrow { font-size:1.5rem; color:var(--muted); padding:0 0.3rem; }
+.dof-detail { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin:1rem 0; min-height:120px; }
+
+.gas-table { width:100%; border-collapse:collapse; margin:1rem 0; }
+.gas-table th { text-align:left; padding:0.5rem 0.6rem; font-size:0.7rem; text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--border); }
+.gas-table td { padding:0.5rem 0.6rem; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.85rem; }
+.gas-table .mono { color:var(--accent); }
+.gas-table .di { color:var(--green); }
+.gas-table .poly { color:var(--orange); }
+.gas-table .exact { color:var(--green); font-weight:600; }
+.gas-table .expr { font-family:'Courier New',monospace; color:var(--gold); }
+
+canvas { display:block; margin:0 auto; max-width:100%; }
+
+.entropy-bars { display:flex; gap:4px; align-items:flex-end; height:200px; margin:1rem auto; max-width:500px; }
+.entropy-bar { flex:1; border-radius:4px 4px 0 0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; cursor:pointer; transition:opacity 0.3s; position:relative; }
+.entropy-bar:hover { opacity:0.85; }
+.entropy-bar .bar-fill { width:100%; border-radius:4px 4px 0 0; transition:height 0.5s; }
+.entropy-bar .bar-label { font-size:0.7rem; color:var(--dim); margin-top:0.3rem; text-align:center; }
+.entropy-bar .bar-value { font-size:0.75rem; color:var(--text); position:absolute; top:-20px; }
+
+.ising-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:0.8rem; margin:1rem 0; }
+.ising-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.8rem; text-align:center; cursor:pointer; transition:border-color 0.3s; }
+.ising-card:hover { border-color:var(--accent); }
+.ising-card .exp-name { font-size:0.7rem; color:var(--dim); text-transform:uppercase; }
+.ising-card .exp-value { font-size:1.3rem; font-weight:700; margin:0.2rem 0; }
+.ising-card .exp-axiom { font-family:'Courier New',monospace; color:var(--gold); font-size:0.8rem; }
+.ising-card .exp-meaning { font-size:0.7rem; color:var(--dim); margin-top:0.2rem; }
+
+.power-table { width:100%; border-collapse:collapse; margin:1rem 0; }
+.power-table th { text-align:left; padding:0.4rem 0.6rem; font-size:0.7rem; text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--border); }
+.power-table td { padding:0.4rem 0.6rem; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.85rem; }
+.power-table .axiom-expr { font-family:'Courier New',monospace; color:var(--gold); }
+
+.insight-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin:1.5rem 0; }
+.insight-box h3 { font-size:1rem; font-weight:300; margin-bottom:0.5rem; color:var(--gold); }
+.insight-box p { font-size:0.9rem; color:var(--dim); }
+
+.verify-link { display:inline-block; padding:0.2rem 0.6rem; border-radius:16px; border:1px solid var(--accent); color:var(--accent); text-decoration:none; font-size:0.75rem; transition:all 0.2s; }
+.verify-link:hover { background:rgba(79,195,247,0.15); }
+
+.contrast-toggle { position:fixed; bottom:1rem; right:1rem; padding:0.4rem 0.8rem; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--dim); cursor:pointer; font-size:0.75rem; z-index:100; }
+.contrast-toggle:hover { border-color:var(--accent); color:var(--text); }
+
+.contrast-panel { display:none; background:linear-gradient(135deg, rgba(255,213,79,0.03), rgba(79,195,247,0.03)); border:1px solid var(--border); border-radius:12px; padding:1.2rem; margin:1rem 0; }
+.contrast-panel.open { display:block; }
+.contrast-panel h3 { font-size:0.9rem; color:var(--gold); margin-bottom:0.5rem; }
+.contrast-row { display:grid; grid-template-columns:1fr auto 1fr; gap:0.5rem; align-items:center; padding:0.3rem 0; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.03); }
+.contrast-row .old { color:var(--red); text-align:right; }
+.contrast-row .arrow { color:var(--muted); }
+.contrast-row .new { color:var(--green); }
+
+.cta-box { text-align:center; margin:2rem 0; padding:1.5rem; background:var(--surface); border-radius:12px; border:1px solid var(--border); }
+.cta-box a { display:inline-block; padding:0.5rem 1.5rem; border-radius:24px; text-decoration:none; font-size:0.9rem; margin:0.3rem; transition:all 0.2s; }
+.cta-box .primary { background:var(--accent); color:#000; }
+.cta-box .primary:hover { opacity:0.9; }
+.cta-box .secondary { border:1px solid var(--border); color:var(--text); }
+.cta-box .secondary:hover { border-color:var(--accent); }
+
+@media(max-width:600px) {
+  .hero h1 { font-size:1.3rem; }
+  .dof-chain { gap:0.2rem; }
+  .dof-node { width:90px; padding:0.6rem 0.3rem; }
+  .dof-arrow { font-size:1rem; }
+  .contrast-row { grid-template-columns:1fr; gap:0.2rem; text-align:center; }
+  .contrast-row .old, .contrast-row .new { text-align:center; }
+  .detail-content { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="hero">
+  <h1>Thermodynamics from <strong>Five Primes</strong></h1>
+  <div class="primes">{2, 3, 5, 7, 11}</div>
+  <div class="subtitle">
+    Heat capacity, entropy, phase transitions, black-body radiation.
+    The axiom chain <em>is</em> the degrees-of-freedom hierarchy.
+  </div>
+</div>
+
+<div class="stats-banner">
+  <div class="stat gold"><div class="value">5/3</div><div class="label">Kolmogorov = monoatomic gas</div></div>
+  <div class="stat accent"><div class="value">48,750</div><div class="label">eigenvalue classes (entropy)</div></div>
+  <div class="stat green"><div class="value">5/5</div><div class="label">Ising exponents = axiom</div></div>
+  <div class="stat orange"><div class="value">K&rarr;E&rarr;b</div><div class="label">DOF chain 3&rarr;5&rarr;7</div></div>
+</div>
+
+<!-- 1. DOF CHAIN -->
+<div class="section">
+  <h2>The Degrees of Freedom are the <strong>Axiom Chain</strong></h2>
+  <p style="color:var(--dim);font-size:0.9rem;margin-bottom:1rem;">
+    A molecule in 3D space gains degrees of freedom in steps of D=2.
+    Translation (K=3) &rarr; rotation (+D=2 &rarr; E=5) &rarr; vibration (+D=2 &rarr; b=7).
+    Click each node.
+  </p>
+  <div class="dof-chain">
+    <div class="dof-node active" onclick="showDof(0)">
+      <div class="dof-prime" style="color:var(--accent)">K=3</div>
+      <div class="dof-label">Monoatomic</div>
+      <div class="dof-gamma">&gamma; = 5/3</div>
+    </div>
+    <div class="dof-arrow">+D&rarr;</div>
+    <div class="dof-node" onclick="showDof(1)">
+      <div class="dof-prime" style="color:var(--green)">E=5</div>
+      <div class="dof-label">Diatomic</div>
+      <div class="dof-gamma">&gamma; = 7/5</div>
+    </div>
+    <div class="dof-arrow">+D&rarr;</div>
+    <div class="dof-node" onclick="showDof(2)">
+      <div class="dof-prime" style="color:var(--orange)">b=7</div>
+      <div class="dof-label">Polyatomic</div>
+      <div class="dof-gamma">&gamma; = 9/7</div>
+    </div>
+  </div>
+  <div class="dof-detail" id="dofDetail"></div>
+</div>
+
+<!-- 2. GAS TABLE -->
+<div class="section">
+  <h2><strong>Measured</strong> Heat Capacity Ratios</h2>
+  <table class="gas-table">
+    <thead><tr><th>Gas</th><th>Type</th><th>&gamma; measured</th><th>Axiom</th><th>&gamma; axiom</th><th>Error</th></tr></thead>
+    <tbody id="gasTable"></tbody>
+  </table>
+</div>
+
+<!-- 3. ENTROPY DECOMPOSITION -->
+<div class="section">
+  <h2>Entropy = ln(<strong>Eigenvalue Classes</strong>)</h2>
+  <p style="color:var(--dim);font-size:0.9rem;margin-bottom:0.5rem;">
+    The ring Z/970200Z has 48,750 distinct eigenvalue classes.
+    Entropy decomposes additively over the five CRT channels.
+    48,750 = 2 &times; 3 &times; 5<sup>4</sup> &times; 13. The shadow-chain stopper 13 appears in the entropy.
+  </p>
+  <div style="text-align:center;margin:0.5rem 0;">
+    <span style="font-family:'Courier New',monospace;color:var(--accent);font-size:0.9rem;">
+      S = k<sub>B</sub> &sum; ln(classes<sub>i</sub>)
+    </span>
+  </div>
+  <div class="entropy-bars" id="entropyBars"></div>
+  <div id="entropyInfo" style="text-align:center;color:var(--dim);font-size:0.85rem;min-height:2rem;"></div>
+</div>
+
+<!-- 4. ISING EXPONENTS -->
+<div class="section">
+  <h2>Ising 2D: <strong>Every Exponent</strong> is an Axiom Ratio</h2>
+  <p style="color:var(--dim);font-size:0.9rem;margin-bottom:0.5rem;">
+    Onsager's exact solutions for the 2D Ising model. All five critical exponents
+    factor over {1, 2, 3, 5, 7}. Only &gamma; = 7/4 requires b=7 (depth).
+  </p>
+  <div class="ising-grid" id="isingGrid"></div>
+</div>
+
+<!-- 5. POWER-LAW TABLE -->
+<div class="section">
+  <h2>Thermodynamic <strong>Power Laws</strong></h2>
+  <table class="power-table">
+    <thead><tr><th>Law</th><th>Exponent</th><th>Axiom</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Stefan-Boltzmann</td><td>T<sup>4</sup></td><td class="axiom-expr">T<sup>D&sup2;</sup></td><td style="color:var(--dim)">D&sup2;=4 spatial DOF each contribute T</td></tr>
+      <tr><td>Debye (low T)</td><td>T<sup>3</sup></td><td class="axiom-expr">T<sup>K</sup></td><td style="color:var(--dim)">K=3 dimensions of phonon modes</td></tr>
+      <tr><td>Wien displacement</td><td>T<sup>1</sup></td><td class="axiom-expr">T<sup>&sigma;</sup></td><td style="color:var(--dim)">Linear shift of peak frequency</td></tr>
+      <tr><td>Fick diffusion</td><td>t<sup>1/2</sup></td><td class="axiom-expr">t<sup>&sigma;/D</sup></td><td style="color:var(--dim)">Random walk in duality</td></tr>
+      <tr><td>Dulong-Petit</td><td>C<sub>v</sub>=3R</td><td class="axiom-expr">C<sub>v</sub>=K*R</td><td style="color:var(--dim)">Closure = classical limit per atom</td></tr>
+      <tr><td>Equipartition</td><td>U=fkT/2</td><td class="axiom-expr">U=f*kT/D</td><td style="color:var(--dim)">D=2 divides energy per DOF</td></tr>
+      <tr><td>Kolmogorov</td><td>k<sup>-5/3</sup></td><td class="axiom-expr">k<sup>-E/K</sup></td><td style="color:var(--dim)">= monoatomic &gamma;. Same K=3 modes.</td></tr>
+      <tr><td>Planck prefactor</td><td>2h&nu;<sup>3</sup>/c<sup>2</sup></td><td class="axiom-expr">D*h*&nu;<sup>K</sup>/c<sup>D</sup></td><td style="color:var(--dim)">D polarizations, K mode density, D light</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- PLANCK CANVAS -->
+<div class="section">
+  <h2><strong>Planck Spectrum</strong> &mdash; D*h*&nu;<sup>K</sup>/c<sup>D</sup> &times; 1/(e<sup>x</sup>&minus;&sigma;)</h2>
+  <p style="color:var(--dim);font-size:0.85rem;margin-bottom:0.5rem;">
+    Click or drag to change temperature. The curve shifts as T<sup>&sigma;</sup> (Wien) and total power grows as T<sup>D&sup2;</sup> (Stefan-Boltzmann).
+  </p>
+  <canvas id="planckCanvas" width="700" height="280"></canvas>
+  <div id="planckInfo" style="text-align:center;color:var(--dim);font-size:0.85rem;margin-top:0.3rem;"></div>
+</div>
+
+<!-- INSIGHTS -->
+<div class="insight-box">
+  <h3>Why Kolmogorov = Monoatomic Gas</h3>
+  <p>Both turbulence and noble gases have <strong>K=3 independent modes</strong>.
+  A monoatomic gas has 3 translational degrees of freedom &rarr; &gamma; = (K+D)/K = E/K = 5/3.
+  Turbulent energy cascades through 3D wavenumber space &rarr; E(k) ~ k<sup>-E/K</sup>.
+  The ratio 5/3 is not a coincidence. It is the <em>same theorem</em>.</p>
+</div>
+
+<div class="insight-box">
+  <h3>The GATE in Entropy</h3>
+  <p>The E<sup>2</sup>=25 channel has floor(25/2)+1 = <strong>13 = GATE</strong> distinct eigenvalue levels.
+  13 is where the Cunningham chain stops (shadow(13)=6=composite).
+  The same boundary that stops the axiom's self-generation appears as a factor in the
+  ring's total entropy: 48,750 = 2 &times; 3 &times; 5<sup>4</sup> &times; 13.</p>
+</div>
+
+<div class="insight-box">
+  <h3>D<sup>3</sup> and K<sup>2</sup>: Entropy Twins</h3>
+  <p>The D<sup>3</sup>=8 and K<sup>2</sup>=9 channels both produce exactly <strong>5 eigenvalue classes</strong>
+  (floor(8/2)+1 = floor(9/2)+1 = 5). Despite having different sizes and different algebraic structures,
+  they carry identical entropy: ln(5) = 1.609. Duality cubed = closure squared, informationally.</p>
+</div>
+
+<!-- CONTRAST -->
+<div class="contrast-panel" id="contrastPanel">
+  <h3>Paradigm Contrast</h3>
+  <div class="contrast-row"><div class="old">DOF are arbitrary integers</div><div class="arrow">&rarr;</div><div class="new">DOF follow the axiom chain K&rarr;E&rarr;b</div></div>
+  <div class="contrast-row"><div class="old">Kolmogorov 5/3 comes from dimensional analysis</div><div class="arrow">&rarr;</div><div class="new">5/3 = E/K = monoatomic gas ratio (same theorem)</div></div>
+  <div class="contrast-row"><div class="old">Entropy is a vague concept</div><div class="arrow">&rarr;</div><div class="new">Entropy = ln(eigenvalue classes), additive over CRT</div></div>
+  <div class="contrast-row"><div class="old">Ising exponents are "critical phenomena"</div><div class="arrow">&rarr;</div><div class="new">Every Ising-2D exponent is an axiom ratio</div></div>
+  <div class="contrast-row"><div class="old">Phase transitions need renormalization group</div><div class="arrow">&rarr;</div><div class="new">Exponent boundary = shadow chain boundary (13)</div></div>
+</div>
+<button class="contrast-toggle" onclick="document.getElementById('contrastPanel').classList.toggle('open')">Contrast</button>
+
+<!-- CTA -->
+<div class="cta-box">
+  <p style="color:var(--dim);margin-bottom:0.5rem;">Verify the numbers. Explore the ring.</p>
+  <a href="repl.html?code=Ly8gSGVhdCBjYXBhY2l0eSByYXRpb3MKbGV0IGYxID0gSyAgICAgLy8gbW9ub2F0b21pYyBET0YKbGV0IGYyID0gRSAgICAgLy8gZGlhdG9taWMgRE9GCmxldCBmMyA9IGIgICAgIC8vIHBvbHlhdG9taWMgRE9GCnNob3coKGYxICsgRCkgLyBmMSkgIC8vIEUvSyA9IDUvMyA9IEtvbG1vZ29yb3YKc2hvdygoZjIgKyBEKSAvIGYyKSAgLy8gYi9FID0gNy81CnNob3coKGYzICsgRCkgLyBmMykgIC8vIEteMi9iID0gOS83&run=1" class="primary verify-link" style="font-size:0.85rem;padding:0.4rem 1.2rem;">Verify in .ax</a>
+  <a href="constants.html" class="secondary">All Constants</a>
+  <a href="quantum.html" class="secondary">Quantum Mechanics</a>
+  <a href="superconductor.html" class="secondary">Superconductivity</a>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// DOF chain data
+const dofData = [
+  {
+    title: 'K = 3: Monoatomic Gas',
+    detail: `<strong>3 translational degrees of freedom.</strong> The minimum to close a triangle in 3D space.
+    <br><br>Heat capacity: C<sub>v</sub> = K*R/D = 3R/2.
+    <br>Ratio: &gamma; = C<sub>p</sub>/C<sub>v</sub> = (K+D)/K = <strong style="color:var(--gold)">E/K = 5/3 = 1.6667</strong>
+    <br><br>This is EXACTLY the Kolmogorov exponent for turbulent energy spectra.
+    Both come from K=3 independent modes &mdash; spatial dimensions for gas, wavenumber dimensions for turbulence.
+    <br><br>Examples: He, Ne, Ar, Kr, Xe (noble gases). All measure &gamma; = 1.6667 exactly.`,
+    color: 'var(--accent)'
+  },
+  {
+    title: 'E = 5: Diatomic Gas',
+    detail: `<strong>5 = K + D degrees of freedom.</strong> Add D=2 rotational DOF to the K=3 translational.
+    <br><br>Heat capacity: C<sub>v</sub> = E*R/D = 5R/2.
+    <br>Ratio: &gamma; = (E+D)/E = <strong style="color:var(--gold)">b/E = 7/5 = 1.400</strong>
+    <br><br>The observer (E=5) can see the molecule from D=2 independent axes of rotation.
+    E<sup>2</sup>=E (self-blind): rotation around the molecular axis contributes nothing (quantum freeze-out).
+    <br><br>Examples: H<sub>2</sub>, N<sub>2</sub>, O<sub>2</sub>, CO. All measure &gamma; &asymp; 1.40.`,
+    color: 'var(--green)'
+  },
+  {
+    title: 'b = 7: Polyatomic (Fully Excited)',
+    detail: `<strong>7 = E + D degrees of freedom.</strong> Add D=2 vibrational DOF to the E=5 diatomic.
+    <br><br>Heat capacity: C<sub>v</sub> = b*R/D = 7R/2.
+    <br>Ratio: &gamma; = (b+D)/b = <strong style="color:var(--gold)">K<sup>2</sup>/b = 9/7 = 1.2857</strong>
+    <br><br>Depth (b=7) is the vibrational mode &mdash; atoms stretch and compress. This is the deepest
+    thermal excitation before the molecule breaks. b = K<sup>2</sup> &minus; D: depth is just below the stop.
+    <br><br>At K<sup>2</sup>=9 DOF the chain would stop (K<sup>2</sup>=STOP). The molecule dissociates before reaching it.
+    <br><br>Real polyatomics (CO<sub>2</sub>, CH<sub>4</sub>, H<sub>2</sub>O): &gamma; &asymp; 1.29&ndash;1.33. Multiple vibrational modes.`,
+    color: 'var(--orange)'
+  }
+];
+
+function showDof(i) {
+  document.querySelectorAll('.dof-node').forEach((n,j) => n.classList.toggle('active', j===i));
+  const d = dofData[i];
+  document.getElementById('dofDetail').innerHTML = `<h3 style="color:${d.color};margin-bottom:0.5rem;">${d.title}</h3><p style="font-size:0.85rem;line-height:1.7;">${d.detail}</p>`;
+}
+showDof(0);
+
+// Gas table
+const gases = [
+  ['He','Monoatomic',1.6667,'E/K',5/3,'mono'],
+  ['Ne','Monoatomic',1.6667,'E/K',5/3,'mono'],
+  ['Ar','Monoatomic',1.6667,'E/K',5/3,'mono'],
+  ['H\u2082','Diatomic',1.4000,'b/E',7/5,'di'],
+  ['N\u2082','Diatomic',1.4000,'b/E',7/5,'di'],
+  ['O\u2082','Diatomic',1.3984,'b/E',7/5,'di'],
+  ['CO\u2082','Polyatomic',1.2889,'K\u00B2/b',9/7,'poly'],
+  ['H\u2082O','Polyatomic',1.3300,'K\u00B2/b',9/7,'poly'],
+  ['CH\u2084','Polyatomic',1.3100,'K\u00B2/b',9/7,'poly'],
+];
+
+const gtb = document.getElementById('gasTable');
+gases.forEach(g => {
+  const err = Math.abs(g[4]-g[2])/g[2];
+  const errStr = err < 0.001 ? '<span class="exact">EXACT</span>' : (100*err).toFixed(1)+'%';
+  gtb.innerHTML += `<tr>
+    <td class="${g[5]}">${g[0]}</td><td style="color:var(--dim)">${g[1]}</td>
+    <td>${g[2].toFixed(4)}</td><td class="expr">${g[3]}</td>
+    <td>${g[4].toFixed(4)}</td><td>${errStr}</td>
+  </tr>`;
+});
+
+// Entropy bars
+const channels = [
+  {name:'D\u00B3=8', q:8, color:'var(--accent)'},
+  {name:'K\u00B2=9', q:9, color:'var(--green)'},
+  {name:'E\u00B2=25', q:25, color:'var(--gold)'},
+  {name:'b\u00B2=49', q:49, color:'var(--orange)'},
+  {name:'L=11', q:11, color:'var(--purple)'},
+];
+const eb = document.getElementById('entropyBars');
+const totalEnt = channels.reduce((s,c) => s + Math.log(Math.floor(c.q/2)+1), 0);
+channels.forEach(c => {
+  const cl = Math.floor(c.q/2)+1;
+  const ent = Math.log(cl);
+  const pct = ent/totalEnt;
+  const h = Math.round(pct * 180);
+  eb.innerHTML += `<div class="entropy-bar" onmouseenter="showEntropy(${c.q})" onmouseleave="clearEntropy()">
+    <div class="bar-value">${(100*pct).toFixed(1)}%</div>
+    <div class="bar-fill" style="height:${h}px;background:${c.color}"></div>
+    <div class="bar-label">${c.name}<br>${cl} classes</div>
+  </div>`;
+});
+
+function showEntropy(q) {
+  const cl = Math.floor(q/2)+1;
+  const ent = Math.log(cl);
+  let note = '';
+  if (cl === 13) note = ' = GATE (shadow chain stopper!)';
+  if (cl === 5 && q === 8) note = ' = E (entropy twin of K\u00B2)';
+  if (cl === 5 && q === 9) note = ' = E (entropy twin of D\u00B3)';
+  document.getElementById('entropyInfo').innerHTML =
+    `Channel q=${q}: ${cl} distinct eigenvalues, ln(${cl}) = ${ent.toFixed(4)} nats${note}`;
+}
+function clearEntropy() { document.getElementById('entropyInfo').innerHTML = ''; }
+
+// Ising grid
+const ising = [
+  {name:'\u03B1 (specific heat)', val:'0 (log)', axiom:'0', meaning:'Log divergence'},
+  {name:'\u03B2 (magnetization)', val:'1/8', axiom:'\u03C3/D\u00B3', meaning:'Identity over 8 legs'},
+  {name:'\u03B3 (susceptibility)', val:'7/4', axiom:'b/D\u00B2', meaning:'Depth over duality squared'},
+  {name:'\u03B4 (isotherm)', val:'15', axiom:'K\u00D7E', meaning:'Closure times observer'},
+  {name:'\u03B7 (correlation)', val:'1/4', axiom:'\u03C3/D\u00B2', meaning:'Identity over duality squared'},
+  {name:'\u03BD (corr. length)', val:'1', axiom:'\u03C3', meaning:'Identity = correlation length'},
+];
+const ig = document.getElementById('isingGrid');
+ising.forEach(e => {
+  ig.innerHTML += `<div class="ising-card">
+    <div class="exp-name">${e.name}</div>
+    <div class="exp-value">${e.val}</div>
+    <div class="exp-axiom">${e.axiom}</div>
+    <div class="exp-meaning">${e.meaning}</div>
+  </div>`;
+});
+
+// Planck spectrum
+const canvas = document.getElementById('planckCanvas');
+const ctx = canvas.getContext('2d');
+let Tscale = 0.6; // 0..1 maps to ~2000K..8000K
+
+function planck(nu, T) {
+  const h = 6.626e-34, kB = 1.381e-23, c = 3e8;
+  const x = h*nu/(kB*T);
+  if (x > 500) return 0;
+  return (2*h*nu*nu*nu/(c*c)) / (Math.exp(x)-1);
+}
+
+function drawPlanck() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const temps = [3000, 4000, 5000, 6000, 7000];
+  const activeT = 2000 + Tscale * 6000;
+  const colors = ['#ef5350','#ff7043','#ffd54f','#66bb6a','#4fc3f7'];
+
+  // axes
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(50,H-30); ctx.lineTo(W-10,H-30); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(50,H-30); ctx.lineTo(50,10); ctx.stroke();
+  ctx.fillStyle = '#666'; ctx.font = '11px monospace';
+  ctx.fillText('Frequency (THz)', W/2-40, H-5);
+  ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Spectral radiance', -40, 0); ctx.restore();
+
+  const nuMax = 2e15;
+  const maxB = planck(1.03e14 * activeT/1000, activeT) * 1.3;
+
+  // draw background curves
+  temps.forEach((T,i) => {
+    ctx.strokeStyle = colors[i]; ctx.globalAlpha = 0.25; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let px = 0; px < W-60; px++) {
+      const nu = (px/(W-60)) * nuMax;
+      const B = planck(nu, T);
+      const x = 50 + px, y = H-30 - (B/maxB)*(H-50);
+      px === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x, Math.max(10,y));
+    }
+    ctx.stroke();
+    ctx.fillStyle = colors[i]; ctx.fillText(T+'K', W-60, 20+i*14);
+  });
+
+  // active curve
+  ctx.globalAlpha = 1; ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  let peakNu = 0, peakB = 0;
+  for (let px = 0; px < W-60; px++) {
+    const nu = (px/(W-60)) * nuMax;
+    const B = planck(nu, activeT);
+    if (B > peakB) { peakB = B; peakNu = nu; }
+    const x = 50 + px, y = H-30 - (B/maxB)*(H-50);
+    px === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x, Math.max(10,y));
+  }
+  ctx.stroke();
+
+  // peak marker
+  const peakX = 50 + (peakNu/nuMax)*(W-60);
+  const peakY = H-30 - (peakB/maxB)*(H-50);
+  ctx.beginPath(); ctx.arc(peakX, peakY, 4, 0, 2*Math.PI);
+  ctx.fillStyle = '#ffd54f'; ctx.fill();
+
+  // T label
+  ctx.fillStyle = '#ffd54f'; ctx.font = 'bold 13px monospace';
+  ctx.fillText(`T = ${Math.round(activeT)}K`, peakX+8, peakY-8);
+
+  // power annotation
+  const power = 5.67e-8 * Math.pow(activeT,4);
+  document.getElementById('planckInfo').innerHTML =
+    `T = ${Math.round(activeT)}K | Peak at ${(peakNu/1e12).toFixed(0)} THz | ` +
+    `Total power ~ T<sup>D&sup2;</sup> = ${(power/1e6).toFixed(1)} MW/m&sup2;`;
+}
+
+canvas.addEventListener('mousemove', e => {
+  if (e.buttons || e.type === 'click') {
+    const rect = canvas.getBoundingClientRect();
+    Tscale = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    drawPlanck();
+  }
+});
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  Tscale = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  drawPlanck();
+});
+drawPlanck();
+</script>
+</body>
+</html>
