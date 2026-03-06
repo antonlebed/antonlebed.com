@@ -38,6 +38,16 @@ if (!document.querySelector('link[rel="icon"]')) {
 function init() {
 var f = location.pathname.split('/').pop() || 'index.html';
 
+/* ===== GATE: first-time visitors see the puzzle ===== */
+if (f !== 'index.html' && f !== '') {
+  try {
+    if (localStorage.getItem('rose-gate-passed') !== 'true') {
+      location.href = 'index.html?return=' + encodeURIComponent(f);
+      return;
+    }
+  } catch(e) {}
+}
+
 /* ===== CATEGORIES ===== */
 var CATS = {
   start:['Start Here','#ffd700'], physics:['Physics','#4488ff'],
