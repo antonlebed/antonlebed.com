@@ -493,6 +493,46 @@ BUILTINS.water_cycle = function(args, ctx) {
     return result;
 };
 
+// --- Gate configuration builtins (S501) ---
+BUILTINS.idempotent = function(args, ctx) {
+    // idempotent(mask) = the CRT idempotent for channel bitmask.
+    // mask bits: 0=first channel, 1=second, etc.
+    // In TRUE FORM (5 channels): mask 0..31. In GATE FORM (6 channels): mask 0..63.
+    const mask = Math.abs(Math.round(args[0]));
+    const mods = factorPrimePowers(N);
+    const k = mods.length;
+    if (mask >= (1 << k)) return 0;
+    let result = 0;
+    for (let i = 0; i < k; i++) {
+        if (!((mask >> i) & 1)) continue;
+        // CRT basis element: 1 in channel i, 0 in others
+        const Mi = N / mods[i];
+        // Find inverse of Mi mod mods[i]
+        let inv = 0;
+        for (let t = 0; t < mods[i]; t++) {
+            if ((Mi % mods[i]) * t % mods[i] === 1) { inv = t; break; }
+        }
+        result = (result + (Mi % N) * inv) % N;
+    }
+    const ch = [];
+    for (let i = 0; i < k; i++) if ((mask >> i) & 1) ch.push(mods[i]);
+    ctx.trace('<span class="tr-fn">idempotent</span>(' + mask + '): <span class="tr-step">channels [' + ch.join(',') + ']</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.body_proj = function(args, ctx) {
+    // body_proj(n) = project n onto body channels (all except last = skin).
+    // In GATE FORM: projects onto D^3*K^2*E^2*b^2*L (= TRUE FORM subring).
+    const n = Math.round(args[0]);
+    const mods = factorPrimePowers(N);
+    const k = mods.length;
+    const bodyMask = (1 << (k - 1)) - 1; // all channels except last
+    const bodyN = mods.slice(0, k - 1).reduce((a, b) => a * b, 1);
+    const result = ((n % bodyN) + bodyN) % bodyN;
+    ctx.trace('<span class="tr-fn">body_proj</span>(' + n + '): <span class="tr-step">project to body (N=' + bodyN + ')</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
 // --- Multi-ring builtins (S497) ---
 BUILTINS.ring_crt = function(args, ctx) {
     const n = Math.round(args[0]);
