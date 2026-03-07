@@ -6,7 +6,29 @@
 const AX = (function() {
 'use strict';
 
-const N = 970200;
+let N = 970200;
+let CRT_MODS = [8, 9, 25, 49, 11];
+
+function factorPrimePowers(n) {
+    n = Math.abs(Math.round(n));
+    const factors = [];
+    for (let p = 2; p * p <= n; p++) {
+        if (n % p === 0) {
+            let pk = 1;
+            while (n % p === 0) { pk *= p; n /= p; }
+            factors.push(pk);
+        }
+    }
+    if (n > 1) factors.push(n);
+    return factors;
+}
+
+function setRing(newN) {
+    newN = Math.abs(Math.round(newN));
+    if (newN < 2) newN = 2;
+    N = newN;
+    CRT_MODS = factorPrimePowers(N);
+}
 
 // ================================================================
 //  Ring Arithmetic
@@ -36,14 +58,12 @@ function coupling(n) { return N / gcd(ringMod(n), N); }
 
 function crt(n) {
     const r = ringMod(n);
-    return [r % 8, r % 9, r % 25, r % 49, r % 11];
+    return CRT_MODS.map(m => r % m);
 }
 
 function eigenvalue(n) {
     const c = crt(n), P = Math.PI;
-    return 2*Math.cos(2*P*c[0]/8) + 2*Math.cos(2*P*c[1]/9)
-         + 2*Math.cos(2*P*c[2]/25) + 2*Math.cos(2*P*c[3]/49)
-         + 2*Math.cos(2*P*c[4]/11);
+    return c.reduce((sum, ci, i) => sum + 2*Math.cos(2*P*ci/CRT_MODS[i]), 0);
 }
 
 function mirror(n) { return ringMod(N - ringMod(n)); }
@@ -91,6 +111,7 @@ const CONSTANTS = {
     HYDOR:105, KEY:41, ANSWER:42, SOUL:67,
     G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420,
     GATE:13, ESCAPE:17, THORNS:28, TRUE:970200,
+    GATE_FORM:12612600,
     pi:Math.PI
 };
 
@@ -98,7 +119,8 @@ const VALUE_NAMES = {
     0:'void', 1:'s', 2:'D', 3:'K', 5:'E', 7:'b', 11:'L',
     18:'ME', 41:'KEY', 42:'ANSWER', 67:'SOUL', 97:'G',
     105:'HYDOR', 137:'ADDRESS', 173:'DUAL', 210:'DATA',
-    420:'LAMBDA', 2310:'THIN', 606376:'OMEGA'
+    420:'LAMBDA', 2310:'THIN', 606376:'OMEGA',
+    970200:'TRUE', 12612600:'GATE_FORM'
 };
 
 // ================================================================
@@ -391,14 +413,14 @@ BUILTINS.coupling = function(args, ctx) {
 
 BUILTINS.crt = function(args, ctx) {
     const result = crt(args[0]), r = ringMod(args[0]);
-    ctx.trace('<span class="tr-fn">crt</span>(' + args[0] + '): <span class="tr-step">' + r + ' mod 8 = ' + result[0] + ', ' + r + ' mod 9 = ' + result[1] + ', ' + r + ' mod 25 = ' + result[2] + ', ' + r + ' mod 49 = ' + result[3] + ', ' + r + ' mod 11 = ' + result[4] + '</span> = <span class="tr-result">[' + result.join(', ') + ']</span>');
+    const parts = result.map((v, i) => r + ' mod ' + CRT_MODS[i] + ' = ' + v).join(', ');
+    ctx.trace('<span class="tr-fn">crt</span>(' + args[0] + '): <span class="tr-step">' + parts + '</span> = <span class="tr-result">[' + result.join(', ') + ']</span>');
     return result;
 };
 
 BUILTINS.eigenvalue = function(args, ctx) {
     const c = crt(args[0]), P = Math.PI;
-    const terms = [2*Math.cos(2*P*c[0]/8), 2*Math.cos(2*P*c[1]/9), 2*Math.cos(2*P*c[2]/25), 2*Math.cos(2*P*c[3]/49), 2*Math.cos(2*P*c[4]/11)];
-    const result = terms.reduce((a,b) => a+b, 0);
+    const result = c.reduce((sum, ci, i) => sum + 2*Math.cos(2*P*ci/CRT_MODS[i]), 0);
     ctx.trace('<span class="tr-fn">eigenvalue</span>(' + args[0] + '): <span class="tr-step">crt=[' + c.join(',') + ']</span> = <span class="tr-result">' + result.toFixed(6) + '</span>');
     return result;
 };
@@ -468,6 +490,64 @@ BUILTINS.water_cycle = function(args, ctx) {
     const ss = ((omega + delta) % m === 1) ? 1 : 0;
     const result = [oi, di, or_, ss];
     ctx.trace('<span class="tr-fn">water_cycle</span>(' + m + '): <span class="tr-step">O=' + omega + ', d=' + delta + '</span> = <span class="tr-result">[' + result.join(',') + '] (' + (oi+di+or_+ss) + '/4 laws)</span>');
+    return result;
+};
+
+// --- Multi-ring builtins (S497) ---
+BUILTINS.ring_crt = function(args, ctx) {
+    const n = Math.round(args[0]);
+    const m = Math.abs(Math.round(args[1]));
+    if (m < 2) return [0];
+    const mods = factorPrimePowers(m);
+    const r = ((n % m) + m) % m;
+    const result = mods.map(mod => r % mod);
+    ctx.trace('<span class="tr-fn">ring_crt</span>(' + n + ', ' + m + '): <span class="tr-step">mods=[' + mods.join(',') + ']</span> = <span class="tr-result">[' + result.join(', ') + ']</span>');
+    return result;
+};
+
+BUILTINS.ring_coupling = function(args, ctx) {
+    const n = Math.round(args[0]);
+    const m = Math.abs(Math.round(args[1]));
+    if (m < 1) return 0;
+    const r = ((n % m) + m) % m;
+    const g = gcd(r, m);
+    const result = m / g;
+    ctx.trace('<span class="tr-fn">ring_coupling</span>(' + n + ', ' + m + '): <span class="tr-step">gcd(' + r + ', ' + m + ')=' + g + '</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.project = function(args, ctx) {
+    const n = Math.round(args[0]);
+    const n1 = Math.abs(Math.round(args[1]));
+    const n2 = Math.abs(Math.round(args[2]));
+    if (n1 < 1 || n2 < 1) return 0;
+    const r = ((n % n1) + n1) % n1;
+    const result = r % n2;
+    ctx.trace('<span class="tr-fn">project</span>(' + n + ', ' + n1 + ' -> ' + n2 + '): <span class="tr-step">' + r + ' mod ' + n2 + '</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.ring_size = function(args, ctx) {
+    ctx.trace('<span class="tr-fn">ring_size</span>(): <span class="tr-result">' + N + '</span>');
+    return N;
+};
+
+BUILTINS.set_ring = function(args, ctx) {
+    const newN = Math.abs(Math.round(args[0]));
+    setRing(newN);
+    ctx.trace('<span class="tr-fn">set_ring</span>(' + newN + '): <span class="tr-step">Z/' + N + 'Z, CRT mods=[' + CRT_MODS.join(',') + ']</span>');
+    return N;
+};
+
+BUILTINS.ring_eigenvalue = function(args, ctx) {
+    const n = Math.round(args[0]);
+    const m = Math.abs(Math.round(args[1]));
+    if (m < 2) return 0;
+    const mods = factorPrimePowers(m);
+    const r = ((n % m) + m) % m;
+    const P = Math.PI;
+    const result = mods.reduce((sum, mod) => sum + 2*Math.cos(2*P*(r % mod)/mod), 0);
+    ctx.trace('<span class="tr-fn">ring_eigenvalue</span>(' + n + ', ' + m + ') = <span class="tr-result">' + result.toFixed(6) + '</span>');
     return result;
 };
 
@@ -950,8 +1030,13 @@ function run(src) {
 //  Public API
 // ================================================================
 return {
-    N, CONSTANTS, VALUE_NAMES, KEYWORDS, BUILTINS, GRID_COLORS,
+    get N() { return N; },
+    get CRT_MODS() { return CRT_MODS.slice(); },
+    CONSTANTS, VALUE_NAMES, KEYWORDS, BUILTINS, GRID_COLORS,
     BUILTIN_NAMES: new Set(Object.keys(BUILTINS)),
+
+    // Ring configuration (S497)
+    setRing, factorPrimePowers,
 
     // Ring math (exposed for pages that need direct access)
     ringMod, gcd, crt, coupling, eigenvalue, mirror,
