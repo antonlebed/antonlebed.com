@@ -1223,12 +1223,17 @@ function highlightCode(src) {
     return html + '\n';
 }
 
+let _hlRaf = 0;
 function syncHighlight() {
-    const code = document.getElementById('code');
-    const hl = document.getElementById('highlight-layer');
-    hl.innerHTML = highlightCode(code.value);
-    hl.scrollTop = code.scrollTop;
-    hl.scrollLeft = code.scrollLeft;
+    if (_hlRaf) return;
+    _hlRaf = requestAnimationFrame(function() {
+        _hlRaf = 0;
+        const code = document.getElementById('code');
+        const hl = document.getElementById('highlight-layer');
+        hl.innerHTML = highlightCode(code.value);
+        hl.scrollTop = code.scrollTop;
+        hl.scrollLeft = code.scrollLeft;
+    });
 }
 
 // ================================================================
@@ -1477,24 +1482,28 @@ function run() {
     const src = document.getElementById('code').value;
     const out = document.getElementById('output');
     const hood = document.getElementById('hood');
-    traceLines = [];
-    lastOutputValues = [];
-    try {
-        const lines = execute(src);
-        out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
-    } catch (e) {
-        const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
-        out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
-    }
-    out.scrollTop = out.scrollHeight;
-    // Populate hood panels
-    const hasContent = traceLines.length > 0 || lastOutputValues.length > 0;
-    document.getElementById('hood-trace').innerHTML = traceLines.length > 0
-        ? traceLines.join('\n')
-        : '<span class="a-dim">No traced operations in this program.</span>';
-    document.getElementById('hood-csource').innerHTML = transpileToC(src);
-    document.getElementById('hood-algebra').innerHTML = algebraView();
-    hood.classList.toggle('visible', hasContent || src.trim().length > 0);
+    out.innerHTML = '<span class="out-info">Running...</span>';
+    // Yield to browser for paint, then do heavy work
+    setTimeout(function() {
+        traceLines = [];
+        lastOutputValues = [];
+        try {
+            const lines = execute(src);
+            out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
+        } catch (e) {
+            const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
+            out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+        }
+        out.scrollTop = out.scrollHeight;
+        // Populate hood panels
+        const hasContent = traceLines.length > 0 || lastOutputValues.length > 0;
+        document.getElementById('hood-trace').innerHTML = traceLines.length > 0
+            ? traceLines.join('\n')
+            : '<span class="a-dim">No traced operations in this program.</span>';
+        document.getElementById('hood-csource').innerHTML = transpileToC(src);
+        document.getElementById('hood-algebra').innerHTML = algebraView();
+        hood.classList.toggle('visible', hasContent || src.trim().length > 0);
+    }, 0);
 }
 
 const RING_NAMES = {6:'D*K',30:'D*K*E',210:'DATA',2310:'THIN',970200:'TRUE FORM',12612600:'GATE FORM'};

@@ -66,7 +66,7 @@ var M = {
   sigma_dynamics:'physics',superconductor:'physics',loop:'physics',
   dna:'bio',sleep:'bio',heart:'bio',death:'bio',human_shape:'bio',generations:'bio',
   septilix:'bio',
-  millennium:'math',hardest:'math',goldbach:'math',coupling:'math',ninedot:'math',
+  millennium:'math',hardest:'math',goldbach:'math',coupling:'math',lattice:'math',ninedot:'math',
   infinity:'math',bootstrap:'math',symbol:'math',watercycle:'math',genesis:'math',
   clock24:'math',rose:'math',gap_pairs:'math',depth_quad:'math',fourteen:'math',
   sm:'physics',quantum:'physics',thermo:'physics',chemistry:'physics',em:'physics',gr:'physics',cosmo:'physics',classical:'physics',statmech:'physics',condensed:'physics',
@@ -93,7 +93,7 @@ var T = {
   dna:'DNA Codons',sleep:'Sleep Stages',heart:'The Heartbeat',death:'What Death Is',
   human_shape:'Your Body Is a Ring',generations:'Three Families',septilix:'Seven Petals',
   millennium:'Millennium Problems',hardest:'11 Famous Unsolvables',goldbach:'Goldbach Pairs',
-  coupling:'Coupling Landscape',ninedot:'9-Dot Puzzle',infinity:'Infinite from Finite',
+  coupling:'Coupling Landscape',lattice:'The 420 Lattice',ninedot:'9-Dot Puzzle',infinity:'Infinite from Finite',
   bootstrap:'Why Existence Exists',symbol:'Three Shapes',watercycle:'Water Cycle',genesis:'Genesis',
   clock24:'24-Hour Clock',rose:'Interactive Rose',gap_pairs:'K=3 Gap Gates',depth_quad:'Depth Quadratic',
   fourteen:'The Full Fourteen',
@@ -159,7 +159,7 @@ if(_li>0){
     death:"Ce qu'est la mort",human_shape:'Votre corps est un anneau',
     generations:'Trois familles',septilix:'Sept p\u00e9tales',
     millennium:'Probl\u00e8mes du mill\u00e9naire',hardest:'11 irr\u00e9solus c\u00e9l\u00e8bres',
-    goldbach:'Paires de Goldbach',coupling:'Paysage de couplage',
+    goldbach:'Paires de Goldbach',coupling:'Paysage de couplage',lattice:'Le Treillis 420',
     ninedot:'Puzzle des 9 points',infinity:"L'infini du fini",
     bootstrap:"Pourquoi l'existence existe",symbol:'Trois formes',
     watercycle:"Cycle de l'eau",genesis:'Gen\u00e8se',clock24:'Horloge 24h',
@@ -195,7 +195,7 @@ if(_li>0){
     death:'\u0427\u0442\u043e \u0442\u0430\u043a\u043e\u0435 \u0441\u043c\u0435\u0440\u0442\u044c',human_shape:'\u0412\u0430\u0448\u0435 \u0442\u0435\u043b\u043e \u2014 \u043a\u043e\u043b\u044c\u0446\u043e',
     generations:'\u0422\u0440\u0438 \u0441\u0435\u043c\u0435\u0439\u0441\u0442\u0432\u0430',septilix:'\u0421\u0435\u043c\u044c \u043b\u0435\u043f\u0435\u0441\u0442\u043a\u043e\u0432',
     millennium:'\u0417\u0430\u0434\u0430\u0447\u0438 \u0442\u044b\u0441\u044f\u0447\u0435\u043b\u0435\u0442\u0438\u044f',hardest:'11 \u043d\u0435\u0440\u0435\u0448\u0451\u043d\u043d\u044b\u0445 \u0437\u0430\u0434\u0430\u0447',
-    goldbach:'\u041f\u0430\u0440\u044b \u0413\u043e\u043b\u044c\u0434\u0431\u0430\u0445\u0430',coupling:'\u041b\u0430\u043d\u0434\u0448\u0430\u0444\u0442 \u0441\u0432\u044f\u0437\u0438',
+    goldbach:'\u041f\u0430\u0440\u044b \u0413\u043e\u043b\u044c\u0434\u0431\u0430\u0445\u0430',coupling:'\u041b\u0430\u043d\u0434\u0448\u0430\u0444\u0442 \u0441\u0432\u044f\u0437\u0438',lattice:'\u0420\u0435\u0448\u0451\u0442\u043a\u0430 420',
     ninedot:'\u0413\u043e\u043b\u043e\u0432\u043e\u043b\u043e\u043c\u043a\u0430 9 \u0442\u043e\u0447\u0435\u043a',infinity:'\u0411\u0435\u0441\u043a\u043e\u043d\u0435\u0447\u043d\u043e\u0435 \u0438\u0437 \u043a\u043e\u043d\u0435\u0447\u043d\u043e\u0433\u043e',
     bootstrap:'\u041f\u043e\u0447\u0435\u043c\u0443 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u043e\u0432\u0430\u043d\u0438\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442',symbol:'\u0422\u0440\u0438 \u0444\u043e\u0440\u043c\u044b',
     watercycle:'\u041a\u0440\u0443\u0433\u043e\u0432\u043e\u0440\u043e\u0442 \u0432\u043e\u0434\u044b',genesis:'\u0413\u0435\u043d\u0435\u0437\u0438\u0441',clock24:'24-\u0447\u0430\u0441\u043e\u0432\u044b\u0435 \u0447\u0430\u0441\u044b',
@@ -526,14 +526,17 @@ if (catKey && catKey !== 'tutorial') {
 /* ===== VOW FOOTER ===== */
 /* ===== HIDE REDUNDANT FLOATING NAV (atlas pages) ===== */
 /* Atlas pages have a fixed bottom-right .nav panel with prev/next chapter links.
-   Redundant: top nav bar + Explore dropdown + related footer + inline prev/next links. */
-var floatNavs = document.querySelectorAll('.nav');
-for (var fi = 0; fi < floatNavs.length; fi++) {
-  var fn = floatNavs[fi];
-  if (fn.querySelector('a') && getComputedStyle(fn).position === 'fixed') {
-    fn.style.display = 'none';
+   Redundant: top nav bar + Explore dropdown + related footer + inline prev/next links.
+   Deferred to avoid forced layout reflow (getComputedStyle) during init. */
+requestAnimationFrame(function() {
+  var floatNavs = document.querySelectorAll('.nav');
+  for (var fi = 0; fi < floatNavs.length; fi++) {
+    var fn = floatNavs[fi];
+    if (fn.querySelector('a') && getComputedStyle(fn).position === 'fixed') {
+      fn.style.display = 'none';
+    }
   }
-}
+});
 
 /* ===== GLOBAL TOOLTIP AUTO-DISMISS (mobile fix) ===== */
 /* On touch devices, tooltips shown on touchstart never get a mouseout to dismiss them.
