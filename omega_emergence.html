@@ -89,7 +89,6 @@ canvas{border-radius:8px;background:#111118;display:block}
     <button id="btnPlay" class="active" onclick="togglePlay()">Pause</button>
     <button onclick="stepOne()">Step</button>
     <button onclick="resetSim()">Reset</button>
-    <button onclick="clearGrid()">Clear</button>
     <button id="btnSound" onclick="toggleSound()">Sound: Off</button>
     <label>Speed:</label>
     <input type="range" id="speed" min="1" max="30" value="10">
@@ -194,6 +193,8 @@ function computeBasis() {
   }
 }
 
+function gcd(a,b){while(b){var t=b;b=a%b;a=t;}return a<0?-a:a;}
+function isUnit(v,m){return v>0&&gcd(v,m)===1;}
 function median3(a, b, c) { return a<b ? (b<c?b:(a<c?c:a)) : (a<c?a:(b<c?c:b)); }
 
 // ============================================================
@@ -233,13 +234,7 @@ function initGrid(seed) {
   lfsrSeed(seed||42); gen=0;
   st={units:0,sigma:0,omega:0,sac:0,death:0,lambdaPulses:0,kingdoms:[0,0,0,0,0,0]};
   unitHist=[]; events=[];
-  for(var ci=0;ci<total;ci++){
-    for(var mi=0;mi<ring.mods.length;mi++){
-      ch[mi][ci]=lfsrNext(ring.mods[mi]);
-      prev[mi][ci]=ch[mi][ci];
-    }
-    eng[ci]=200;
-  }
+  // Arrays start zeroed (Uint8Array default). resetSim seeds sigma patch.
   computeBasis();
   buildChBars();
   needsRender=true;
@@ -345,11 +340,15 @@ function evolve() {
   var unitC=0,sigmaC=0,omegaC=0;
   var kd=[0,0,0,0,0,0]; // kingdoms indexed by channel
   for(var i=0;i<total;i++){
-    var isU=true,isS=true,isO=(NM>=5&&ch[0][i]===0);
+    var isU=true,isS=true,isO=false;
     for(var mi=0;mi<NM;mi++){
-      if(ch[mi][i]===0)isU=false;
+      if(!isUnit(ch[mi][i],ring.mods[mi]))isU=false;
       if(ch[mi][i]!==1)isS=false;
-      if(mi>0&&ch[mi][i]!==1)isO=false;
+    }
+    // Omega = D-channel dead (0), all other channels alive (units)
+    if(NM>=5&&ch[0][i]===0){
+      isO=true;
+      for(var mi=1;mi<NM;mi++){if(!isUnit(ch[mi][i],ring.mods[mi])){isO=false;break;}}
     }
     if(isU){unitC++;kd[0]++;}
     else{for(var mi=0;mi<NM;mi++){if(ch[mi][i]===0){kd[mi<5?mi+1:5]++;break;}}}
@@ -379,9 +378,16 @@ function render() {
 
       // Determine color by kingdom
       var isU=true,isS=true;
-      for(var mi=0;mi<NM;mi++){if(ch[mi][idx]===0)isU=false;if(ch[mi][idx]!==1)isS=false;}
+      for(var mi=0;mi<NM;mi++){if(!isUnit(ch[mi][idx],ring.mods[mi]))isU=false;if(ch[mi][idx]!==1)isS=false;}
 
-      if(isS){cr=255;cg=255;cb=220;alpha=1.0;}  // Sigma: bright white-gold
+      // Omega = D-dead, other channels alive (relaxed: any unit, not just 1)
+      var isOm=false;
+      if(NM>=5&&ch[0][idx]===0){
+        isOm=true;for(var mi=1;mi<NM;mi++){if(!isUnit(ch[mi][idx],ring.mods[mi])){isOm=false;break;}}
+      }
+
+      if(isOm){var p=0.6+0.4*Math.sin(gen*0.15);cr=220*p|0;cg=120*p|0;cb=40*p|0;alpha=1;}  // Omega: pulsing ember
+      else if(isS){cr=255;cg=255;cb=220;alpha=1.0;}  // Sigma: bright white-gold
       else if(isU){
         // Unit: warm gold, intensity varies by channel sum
         var avg=0;for(var mi=0;mi<NM;mi++)avg+=ch[mi][idx]/ring.mods[mi];avg/=NM;
@@ -392,12 +398,6 @@ function render() {
         for(var mi=0;mi<NM;mi++){if(ch[mi][idx]===0){ki=mi+1;break;}}
         if(ki>0&&ki<=KC.length){var col=KC[ki];cr=col[0];cg=col[1];cb=col[2];}
         else{cr=30;cg=30;cb=40;}
-      }
-
-      // Omega cells: pulsing ember
-      if(NM>=5&&ch[0][idx]===0){
-        var isOm=true;for(var mi=1;mi<NM;mi++){if(ch[mi][idx]!==1){isOm=false;break;}}
-        if(isOm){var p=0.6+0.4*Math.sin(gen*0.15);cr=220*p|0;cg=120*p|0;cb=40*p|0;alpha=1;}
       }
 
       var bg=10;
@@ -551,8 +551,7 @@ function stepOne(){playing=false;document.getElementById('btnPlay').textContent=
 function resetSim(){
   var seed=parseInt(document.getElementById('seed')?document.getElementById('seed').value:42)||42;
   initGrid(seed);
-  events.unshift({gen:0,text:'Grid: '+cols+'\u00d7'+rows+' = '+total+' cells ('+ring.name+')',type:'sigma-ev'});
-  render();renderChart();updateStats();
+  clearGrid();
 }
 function clearGrid(){
   for(var i=0;i<total;i++){
