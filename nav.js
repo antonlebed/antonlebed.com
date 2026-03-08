@@ -2,15 +2,16 @@
 // Top bar + category dropdown + mobile menu + related footer + vow footer.
 // i18n: EN/FR/RU language selector. localStorage persistence. All nav chrome translated.
 // Progressive enhancement: pages work without it. Zero dependencies.
-// <script src="nav.js"></script> before </body>.
+// <link rel="stylesheet" href="nav-critical.css"> + <script src="nav.js" defer></script>
+// nav-critical.css has body{padding-top:40px} + html{overflow-x:hidden} (prevents CLS).
+// nav.js deferred: non-render-blocking, executes after DOM parsing.
 (function() {
 'use strict';
 
-/* ===== CRITICAL CSS (immediate — loaded from <head>, prevents FOUC) ===== */
+/* ===== SUPPLEMENTAL CSS (layout-stable rules injected after DOM parse) ===== */
 var pre = document.createElement('style');
-pre.textContent = 'body{padding-top:40px!important;animation:sn-in 0.15s ease 0.02s both}' +
+pre.textContent = 'body{animation:sn-in 0.15s ease 0.02s both}' +
 '@keyframes sn-in{from{opacity:0}to{opacity:1}}' +
-'html{overflow-x:hidden;touch-action:manipulation}' +
 '.back{top:52px!important}' +
 '#contrast{z-index:10001!important}#contrast .close{top:52px!important}' +
 '#detail{top:52px!important}#legend{top:52px!important}' +
