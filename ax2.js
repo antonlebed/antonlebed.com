@@ -678,6 +678,803 @@ BUILTINS.strFind = (args) => {
 BUILTINS.show = null;  // handled in evaluator
 
 // ================================================================
+//  Grid builtins (ARC-AGI — S600)
+// ================================================================
+// Grids = nested arrays of CRT values. Cells are 0-9 integers (CRT-encoded).
+// Operations that rearrange cells are type-agnostic.
+// Operations that compare cells use toInt() since ARC colors are small.
+
+BUILTINS.grid = (args) => {
+    const rows = Math.min(Math.max(1, toInt(args[0])), 30);
+    const cols = Math.min(Math.max(1, toInt(args[1])), 30);
+    const val = args.length > 2 ? args[2] : fromInt(0);
+    return Array.from({length: rows}, () => Array.from({length: cols}, () => val));
+};
+
+BUILTINS.gget = (args) => {
+    const g = args[0], r = toInt(args[1]), c = toInt(args[2]);
+    if (!Array.isArray(g) || r < 0 || r >= g.length) return fromInt(-1);
+    if (!Array.isArray(g[r]) || c < 0 || c >= g[r].length) return fromInt(-1);
+    return g[r][c];
+};
+
+BUILTINS.gset = (args) => {
+    const g = args[0], r = toInt(args[1]), c = toInt(args[2]), v = args[3];
+    if (!Array.isArray(g) || !Array.isArray(g[0])) throw new Error('gset: not a grid');
+    if (r < 0 || r >= g.length || c < 0 || c >= g[0].length) throw new Error('gset: out of bounds');
+    const out = g.map(row => [...row]);
+    out[r][c] = v;
+    return out;
+};
+
+BUILTINS.rows = (args) => {
+    const g = args[0];
+    return fromInt(Array.isArray(g) ? g.length : 0);
+};
+
+BUILTINS.cols = (args) => {
+    const g = args[0];
+    return fromInt(Array.isArray(g) && g.length > 0 && Array.isArray(g[0]) ? g[0].length : 0);
+};
+
+BUILTINS.hflip = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('hflip: not a grid');
+    return g.map(row => Array.isArray(row) ? [...row].reverse() : row);
+};
+
+BUILTINS.vflip = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('vflip: not a grid');
+    return [...g].reverse().map(row => Array.isArray(row) ? [...row] : row);
+};
+
+BUILTINS.rot90 = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('rot90: not a grid');
+    const R = g.length, C = g[0].length;
+    return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[R-1-r][c]));
+};
+
+BUILTINS.rot180 = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('rot180: not a grid');
+    return [...g].reverse().map(row => Array.isArray(row) ? [...row].reverse() : row);
+};
+
+BUILTINS.rot270 = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('rot270: not a grid');
+    const R = g.length, C = g[0].length;
+    return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[r][C-1-c]));
+};
+
+BUILTINS.transpose = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('transpose: not a grid');
+    const R = g.length, C = g[0].length;
+    return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[r][c]));
+};
+
+BUILTINS.grid_eq = (args) => {
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return fromInt(0);
+    for (let i = 0; i < a.length; i++) {
+        if (!Array.isArray(a[i]) || !Array.isArray(b[i]) || a[i].length !== b[i].length) return fromInt(0);
+        for (let j = 0; j < a[i].length; j++) {
+            const av = ArrayBuffer.isView(a[i][j]) ? toInt(a[i][j]) : a[i][j];
+            const bv = ArrayBuffer.isView(b[i][j]) ? toInt(b[i][j]) : b[i][j];
+            if (av !== bv) return fromInt(0);
+        }
+    }
+    return fromInt(1);
+};
+
+BUILTINS.crop = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) throw new Error('crop: not a grid');
+    let rMin = g.length, rMax = -1, cMin = g[0].length, cMax = -1;
+    for (let r = 0; r < g.length; r++) {
+        if (!Array.isArray(g[r])) continue;
+        for (let c = 0; c < g[r].length; c++) {
+            const v = ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+            if (v !== 0) { rMin = Math.min(rMin, r); rMax = Math.max(rMax, r); cMin = Math.min(cMin, c); cMax = Math.max(cMax, c); }
+        }
+    }
+    if (rMax < 0) return [[fromInt(0)]];
+    const result = [];
+    for (let r = rMin; r <= rMax; r++) result.push(g[r].slice(cMin, cMax + 1));
+    return result;
+};
+
+BUILTINS.scale = (args) => {
+    const g = args[0], f = toInt(args[1]);
+    if (!Array.isArray(g) || f < 1) throw new Error('scale: invalid');
+    const result = [];
+    for (let r = 0; r < g.length; r++) {
+        if (!Array.isArray(g[r])) continue;
+        for (let fr = 0; fr < f; fr++) {
+            const row = [];
+            for (let c = 0; c < g[r].length; c++) for (let fc = 0; fc < f; fc++) row.push(g[r][c]);
+            result.push(row);
+        }
+    }
+    return result;
+};
+
+BUILTINS.subgrid = (args) => {
+    const g = args[0], r0 = toInt(args[1]), c0 = toInt(args[2]);
+    const h = toInt(args[3]), w = toInt(args[4]);
+    if (!Array.isArray(g)) throw new Error('subgrid: not a grid');
+    const R = g.length, C = Array.isArray(g[0]) ? g[0].length : 0;
+    const result = [];
+    for (let r = 0; r < h; r++) {
+        const row = [];
+        for (let c = 0; c < w; c++) {
+            const rr = r0 + r, cc = c0 + c;
+            row.push(rr >= 0 && rr < R && cc >= 0 && cc < C ? g[rr][cc] : fromInt(0));
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+BUILTINS.paste = (args) => {
+    const g = args[0], sub = args[1], r0 = toInt(args[2]), c0 = toInt(args[3]);
+    if (!Array.isArray(g) || !Array.isArray(sub)) throw new Error('paste: not grids');
+    const out = g.map(row => [...row]);
+    for (let r = 0; r < sub.length; r++) {
+        if (!Array.isArray(sub[r])) continue;
+        for (let c = 0; c < sub[r].length; c++) {
+            const rr = r0 + r, cc = c0 + c;
+            if (rr >= 0 && rr < out.length && cc >= 0 && cc < out[0].length) out[rr][cc] = sub[r][c];
+        }
+    }
+    return out;
+};
+
+BUILTINS.colors = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('colors: not a grid');
+    const seen = new Set();
+    for (const row of g) if (Array.isArray(row)) for (const v of row) {
+        seen.add(ArrayBuffer.isView(v) ? toInt(v) : v);
+    }
+    return [...seen].sort((a, b) => a - b).map(v => fromInt(v));
+};
+
+BUILTINS.count_color = (args) => {
+    const g = args[0], color = toInt(args[1]);
+    if (!Array.isArray(g)) throw new Error('count_color: not a grid');
+    let count = 0;
+    for (const row of g) if (Array.isArray(row)) for (const v of row) {
+        if ((ArrayBuffer.isView(v) ? toInt(v) : v) === color) count++;
+    }
+    return fromInt(count);
+};
+
+BUILTINS.replace_color = (args) => {
+    const g = args[0], from = toInt(args[1]), to = args[2];
+    if (!Array.isArray(g)) throw new Error('replace_color: not a grid');
+    return g.map(row => Array.isArray(row) ? row.map(v =>
+        (ArrayBuffer.isView(v) ? toInt(v) : v) === from ? to : v
+    ) : row);
+};
+
+BUILTINS.fill_grid = (args) => {
+    const g = args[0], color = args[1];
+    if (!Array.isArray(g)) throw new Error('fill_grid: not a grid');
+    return g.map(row => Array.isArray(row) ? row.map(() => color) : row);
+};
+
+BUILTINS.bg_color = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('bg_color: not a grid');
+    const counts = new Array(10).fill(0);
+    for (const row of g) if (Array.isArray(row)) for (const v of row) {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        if (n >= 0 && n < 10) counts[n]++;
+    }
+    let maxC = 0, maxIdx = 0;
+    for (let i = 0; i < 10; i++) if (counts[i] > maxC) { maxC = counts[i]; maxIdx = i; }
+    return fromInt(maxIdx);
+};
+
+BUILTINS.objects = (args) => {
+    const g = args[0], bg = args.length > 1 ? toInt(args[1]) : 0;
+    if (!Array.isArray(g)) throw new Error('objects: not a grid');
+    const R = g.length, C = g[0].length;
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    const cellVal = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const objs = [];
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || cellVal(r, c) === bg) continue;
+            const color = cellVal(r, c);
+            const queue = [[r, c]];
+            let rmin = r, rmax = r, cmin = c, cmax = c;
+            visited[r][c] = true;
+            let qi = 0;
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C && !visited[nr][nc] && cellVal(nr, nc) === color) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                        rmin = Math.min(rmin, nr); rmax = Math.max(rmax, nr);
+                        cmin = Math.min(cmin, nc); cmax = Math.max(cmax, nc);
+                    }
+                }
+            }
+            objs.push([fromInt(rmin), fromInt(cmin), fromInt(rmax-rmin+1), fromInt(cmax-cmin+1), fromInt(color)]);
+        }
+    }
+    return objs;
+};
+
+BUILTINS.hrepeat = (args) => {
+    const g = args[0], n = Math.min(Math.max(1, toInt(args[1])), 10);
+    if (!Array.isArray(g)) throw new Error('hrepeat: not a grid');
+    return g.map(row => Array.isArray(row) ? [].concat(...Array(n).fill(row)) : row);
+};
+
+BUILTINS.vrepeat = (args) => {
+    const g = args[0], n = Math.min(Math.max(1, toInt(args[1])), 10);
+    if (!Array.isArray(g)) throw new Error('vrepeat: not a grid');
+    const result = [];
+    for (let i = 0; i < n; i++) for (const row of g) result.push(Array.isArray(row) ? [...row] : row);
+    return result;
+};
+
+BUILTINS.color_map = (args) => {
+    const gin = args[0], gout = args[1];
+    if (!Array.isArray(gin) || !Array.isArray(gout) || gin.length !== gout.length) return [];
+    const map = [0,1,2,3,4,5,6,7,8,9].map(v => fromInt(v));
+    const set = new Array(10).fill(false);
+    for (let r = 0; r < gin.length; r++) {
+        if (!Array.isArray(gin[r]) || !Array.isArray(gout[r]) || gin[r].length !== gout[r].length) return [];
+        for (let c = 0; c < gin[r].length; c++) {
+            const ic = ArrayBuffer.isView(gin[r][c]) ? toInt(gin[r][c]) : gin[r][c];
+            const oc = ArrayBuffer.isView(gout[r][c]) ? toInt(gout[r][c]) : gout[r][c];
+            if (ic < 0 || ic >= 10 || oc < 0 || oc >= 10) continue;
+            if (!set[ic]) { map[ic] = fromInt(oc); set[ic] = true; }
+            else if (toInt(map[ic]) !== oc) return [];
+        }
+    }
+    return map;
+};
+
+BUILTINS.apply_color_map = (args) => {
+    const g = args[0], map = args[1];
+    if (!Array.isArray(g) || !Array.isArray(map)) throw new Error('apply_color_map: invalid');
+    return g.map(row => Array.isArray(row) ? row.map(v => {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        return (n >= 0 && n < map.length) ? map[n] : v;
+    }) : row);
+};
+
+BUILTINS.self_tile = (args) => {
+    const g = args[0], bg = args.length > 1 ? toInt(args[1]) : 0;
+    if (!Array.isArray(g) || g.length === 0) throw new Error('self_tile: not a grid');
+    const R = g.length, C = g[0].length;
+    const bgVal = fromInt(bg);
+    const result = [];
+    for (let br = 0; br < R; br++) {
+        for (let fr = 0; fr < R; fr++) {
+            const row = [];
+            for (let bc = 0; bc < C; bc++) {
+                const brVal = ArrayBuffer.isView(g[br][bc]) ? toInt(g[br][bc]) : g[br][bc];
+                for (let fc = 0; fc < C; fc++) {
+                    row.push(brVal !== bg ? g[fr][fc] : bgVal);
+                }
+            }
+            result.push(row);
+        }
+    }
+    return result;
+};
+
+// flood_fill(g) — fill enclosed bg regions with surrounding non-bg color
+// An enclosed region is a connected component of bg cells NOT touching any edge
+BUILTINS.flood_fill = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) throw new Error('flood_fill: not a grid');
+    const R = g.length, C = g[0].length;
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    // Find connected components of bg cells
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    const out = g.map(row => [...row]);
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || val(r, c) !== bg) continue;
+            // BFS to find this bg component
+            const queue = [[r, c]]; visited[r][c] = true;
+            let qi = 0, touchesEdge = false;
+            const adjacentColors = new Map();
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                if (cr === 0 || cr === R-1 || cc === 0 || cc === C-1) touchesEdge = true;
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr < 0 || nr >= R || nc < 0 || nc >= C) continue;
+                    if (val(nr, nc) !== bg) {
+                        const nv = val(nr, nc);
+                        adjacentColors.set(nv, (adjacentColors.get(nv) || 0) + 1);
+                    } else if (!visited[nr][nc]) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                    }
+                }
+            }
+            // Fill enclosed regions (not touching edge) with most common adjacent color
+            if (!touchesEdge && adjacentColors.size > 0) {
+                let fillColor = 0, maxCount = 0;
+                for (const [color, count] of adjacentColors) if (count > maxCount) { maxCount = count; fillColor = color; }
+                for (const [fr, fc] of queue) out[fr][fc] = fromInt(fillColor);
+            }
+        }
+    }
+    return out;
+};
+
+// extract_obj(g, idx, [bg]) — extract the idx-th connected component as its own cropped grid
+BUILTINS.extract_obj = (args) => {
+    const g = args[0], idx = toInt(args[1]), bg = args.length > 2 ? toInt(args[2]) : 0;
+    if (!Array.isArray(g)) throw new Error('extract_obj: not a grid');
+    const R = g.length, C = g[0].length;
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    const cellVal = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    let objIdx = 0;
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || cellVal(r, c) === bg) continue;
+            const queue = [[r, c]]; visited[r][c] = true;
+            let qi = 0, rmin = r, rmax = r, cmin = c, cmax = c;
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C && !visited[nr][nc] && cellVal(nr, nc) !== bg) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                        rmin = Math.min(rmin, nr); rmax = Math.max(rmax, nr);
+                        cmin = Math.min(cmin, nc); cmax = Math.max(cmax, nc);
+                    }
+                }
+            }
+            if (objIdx === idx) {
+                // Extract this object
+                const h = rmax - rmin + 1, w = cmax - cmin + 1;
+                const cells = new Set(queue.map(([r,c]) => r*C+c));
+                const result = [];
+                for (let rr = 0; rr < h; rr++) {
+                    const row = [];
+                    for (let cc = 0; cc < w; cc++) {
+                        const ar = rmin + rr, ac = cmin + cc;
+                        row.push(cells.has(ar*C+ac) ? g[ar][ac] : fromInt(bg));
+                    }
+                    result.push(row);
+                }
+                return result;
+            }
+            objIdx++;
+        }
+    }
+    return []; // idx out of range
+};
+
+// num_objects(g, [bg]) — count number of connected components
+BUILTINS.num_objects = (args) => {
+    const g = args[0], bg = args.length > 1 ? toInt(args[1]) : 0;
+    if (!Array.isArray(g)) return fromInt(0);
+    const R = g.length, C = g[0].length;
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    const cellVal = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    let count = 0;
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || cellVal(r, c) === bg) continue;
+            const queue = [[r, c]]; visited[r][c] = true; let qi = 0;
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C && !visited[nr][nc] && cellVal(nr, nc) !== bg) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                    }
+                }
+            }
+            count++;
+        }
+    }
+    return fromInt(count);
+};
+
+// split_h(g) — split grid horizontally at a single non-bg-color row separator
+BUILTINS.split_h = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('split_h: not a grid');
+    const R = g.length, C = g[0].length;
+    const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const bg = toInt(BUILTINS.bg_color([g]));
+    for (let r = 1; r < R - 1; r++) {
+        const v0 = val(r, 0);
+        if (v0 === bg) continue;  // skip bg-colored rows
+        let allSame = true;
+        for (let c = 1; c < C; c++) if (val(r, c) !== v0) { allSame = false; break; }
+        if (allSame) {
+            const top = g.slice(0, r);
+            const bottom = g.slice(r + 1);
+            if (top.length > 0 && bottom.length > 0) return [top, bottom];
+        }
+    }
+    return [];
+};
+
+// split_v(g) — split grid vertically at a single non-bg-color column separator
+BUILTINS.split_v = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('split_v: not a grid');
+    const R = g.length, C = g[0].length;
+    const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const bg = toInt(BUILTINS.bg_color([g]));
+    for (let c = 1; c < C - 1; c++) {
+        const v0 = val(0, c);
+        if (v0 === bg) continue;  // skip bg-colored columns
+        let allSame = true;
+        for (let r = 1; r < R; r++) if (val(r, c) !== v0) { allSame = false; break; }
+        if (allSame) {
+            const left = g.map(row => row.slice(0, c));
+            const right = g.map(row => row.slice(c + 1));
+            if (left[0].length > 0 && right[0].length > 0) return [left, right];
+        }
+    }
+    return [];
+};
+
+// grid_and(a, b) — cell-wise: output[r][c] = a if a==b, else 0
+BUILTINS.grid_and = (args) => {
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('grid_and: not grids');
+    const R = Math.min(a.length, b.length), C = Math.min(a[0].length, b[0].length);
+    return Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => {
+        const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+        const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+        return av === bv ? a[r][c] : fromInt(0);
+    }));
+};
+
+// grid_xor(a, b, [mark_color]) — cell-wise: output[r][c] = mark_color where a!=b, else 0
+BUILTINS.grid_xor = (args) => {
+    const a = args[0], b = args[1], mark = args.length > 2 ? toInt(args[2]) : 1;
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('grid_xor: not grids');
+    const R = Math.min(a.length, b.length), C = Math.min(a[0].length, b[0].length);
+    return Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => {
+        const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+        const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+        return av !== bv ? fromInt(mark) : fromInt(0);
+    }));
+};
+
+// grid_or(a, b) — cell-wise: a if a!=0, else b
+BUILTINS.grid_or = (args) => {
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('grid_or: not grids');
+    const R = Math.min(a.length, b.length), C = Math.min(a[0].length, b[0].length);
+    return Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => {
+        const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+        return av !== 0 ? a[r][c] : b[r][c];
+    }));
+};
+
+// solve_flood_fill(train_inputs, train_outputs, test_inputs)
+// Identifies enclosed bg regions, learns the fill color from training output
+BUILTINS.solve_flood_fill = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    // First try: plain flood_fill matches directly
+    let direct = true;
+    for (let i = 0; i < ti.length; i++) {
+        const pred = BUILTINS.flood_fill([ti[i]]);
+        if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) { direct = false; break; }
+    }
+    if (direct) return te.map(t => BUILTINS.flood_fill([t]));
+    // Second try: flood_fill identifies enclosed cells, learn fill color from output
+    // Find enclosed cells in training input, check what color they become in output
+    let fillColor = -1;
+    for (let i = 0; i < ti.length; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+        const g = ti[i], R = g.length, C = g[0].length;
+        const bg = (() => { const c = new Array(10).fill(0); for (const row of g) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+        const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+        const visited = Array.from({length: R}, () => new Array(C).fill(false));
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                if (visited[r][c] || val(r, c) !== bg) continue;
+                const queue = [[r, c]]; visited[r][c] = true; let qi = 0, touchesEdge = false;
+                while (qi < queue.length) {
+                    const [cr, cc] = queue[qi++];
+                    if (cr === 0 || cr === R-1 || cc === 0 || cc === C-1) touchesEdge = true;
+                    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                        const nr = cr+dr, nc = cc+dc;
+                        if (nr >= 0 && nr < R && nc >= 0 && nc < C && val(nr, nc) === bg && !visited[nr][nc]) {
+                            visited[nr][nc] = true; queue.push([nr, nc]);
+                        }
+                    }
+                }
+                if (!touchesEdge) {
+                    // These cells are enclosed — check their color in output
+                    for (const [fr, fc] of queue) {
+                        const ov = ArrayBuffer.isView(to[i][fr][fc]) ? toInt(to[i][fr][fc]) : to[i][fr][fc];
+                        if (ov !== bg) {
+                            if (fillColor === -1) fillColor = ov;
+                            else if (fillColor !== ov) return []; // inconsistent
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (fillColor === -1) return [];
+    // Verify: filling enclosed cells with fillColor produces correct output
+    const fillEnclosed = (g) => {
+        const R = g.length, C = g[0].length;
+        const bg = (() => { const c = new Array(10).fill(0); for (const row of g) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+        const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+        const out = g.map(row => [...row]);
+        const visited = Array.from({length: R}, () => new Array(C).fill(false));
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                if (visited[r][c] || val(r, c) !== bg) continue;
+                const queue = [[r, c]]; visited[r][c] = true; let qi = 0, touchesEdge = false;
+                while (qi < queue.length) {
+                    const [cr, cc] = queue[qi++];
+                    if (cr === 0 || cr === R-1 || cc === 0 || cc === C-1) touchesEdge = true;
+                    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                        const nr = cr+dr, nc = cc+dc;
+                        if (nr >= 0 && nr < R && nc >= 0 && nc < C && val(nr, nc) === bg && !visited[nr][nc]) {
+                            visited[nr][nc] = true; queue.push([nr, nc]);
+                        }
+                    }
+                }
+                if (!touchesEdge) {
+                    for (const [fr, fc] of queue) out[fr][fc] = fromInt(fillColor);
+                }
+            }
+        }
+        return out;
+    };
+    for (let i = 0; i < ti.length; i++) {
+        const pred = fillEnclosed(ti[i]);
+        if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) return [];
+    }
+    return te.map(t => fillEnclosed(t));
+};
+
+// solve_split_xor(ti, to, te) — split grid by separator, compare halves
+BUILTINS.solve_split_xor = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const splits = ['h', 'v'];
+    // Operations: and, or, xor, both_nonzero (mark where both!=0), diff_a (mark where a!=0 && b==0), diff_b
+    const doSplit = (g, dir) => dir === 'h' ? BUILTINS.split_h([g]) : BUILTINS.split_v([g]);
+
+    for (const dir of splits) {
+        // Check all training splits work
+        let allSplit = true;
+        const splitParts = [];
+        for (let i = 0; i < ti.length; i++) {
+            const parts = doSplit(ti[i], dir);
+            if (!Array.isArray(parts) || parts.length !== 2) { allSplit = false; break; }
+            const [a, b] = parts;
+            if (a.length !== b.length || a[0].length !== b[0].length) { allSplit = false; break; }
+            if (a.length !== to[i].length || a[0].length !== to[i][0].length) { allSplit = false; break; }
+            splitParts.push([a, b]);
+        }
+        if (!allSplit) continue;
+
+        // Try each operation with each mark color
+        const ops = [
+            // both_nonzero: mark where both halves have non-zero
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return (av !== 0 && bv !== 0) ? fromInt(mc) : fromInt(0);
+            })),
+            // xor: mark where exactly one is non-zero
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return ((av !== 0) !== (bv !== 0)) ? fromInt(mc) : fromInt(0);
+            })),
+            // diff_b: mark where b!=0 AND a==0 (unique to right/bottom)
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return (bv !== 0 && av === 0) ? fromInt(mc) : fromInt(0);
+            })),
+            // diff_a: mark where a!=0 AND b==0 (unique to left/top)
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return (av !== 0 && bv === 0) ? fromInt(mc) : fromInt(0);
+            })),
+            // or: overlay (a if non-zero, else b)
+            (a, b, mc) => BUILTINS.grid_or([a, b]),
+            // and: keep only matching non-zero cells
+            (a, b, mc) => BUILTINS.grid_and([a, b]),
+        ];
+
+        for (const opFn of ops) {
+            for (let mc = 1; mc <= 9; mc++) {
+                let allMatch = true;
+                for (let i = 0; i < splitParts.length; i++) {
+                    const pred = opFn(splitParts[i][0], splitParts[i][1], mc);
+                    if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) { allMatch = false; break; }
+                }
+                if (allMatch) {
+                    return te.map(t => {
+                        const parts = doSplit(t, dir);
+                        if (!Array.isArray(parts) || parts.length !== 2) return t;
+                        return opFn(parts[0], parts[1], mc);
+                    });
+                }
+            }
+        }
+    }
+    return [];
+};
+
+// solve_extract_obj(ti, to, te) — try extracting each object and see if it matches output
+BUILTINS.solve_extract_obj = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    // Try strategies: largest, smallest, specific index, most common color
+    const strategies = ['largest', 'smallest'];
+    for (const strat of strategies) {
+        let allMatch = true;
+        for (let i = 0; i < ti.length; i++) {
+            const objs = BUILTINS.objects([ti[i]]);
+            if (objs.length === 0) { allMatch = false; break; }
+            // Find target object by strategy
+            let bestIdx = 0, bestSize = 0;
+            for (let j = 0; j < objs.length; j++) {
+                const h = toInt(objs[j][2]), w = toInt(objs[j][3]);
+                const size = h * w;
+                if (strat === 'largest' && size > bestSize) { bestSize = size; bestIdx = j; }
+                if (strat === 'smallest' && (bestSize === 0 || size < bestSize)) { bestSize = size; bestIdx = j; }
+            }
+            const ext = BUILTINS.extract_obj([ti[i], fromInt(bestIdx)]);
+            if (!Array.isArray(ext) || ext.length === 0) { allMatch = false; break; }
+            if (toInt(BUILTINS.grid_eq([ext, to[i]])) !== 1) { allMatch = false; break; }
+        }
+        if (allMatch) {
+            return te.map(t => {
+                const objs = BUILTINS.objects([t]);
+                if (objs.length === 0) return t;
+                let bestIdx = 0, bestSize = 0;
+                for (let j = 0; j < objs.length; j++) {
+                    const h = toInt(objs[j][2]), w = toInt(objs[j][3]);
+                    const size = h * w;
+                    if (strat === 'largest' && size > bestSize) { bestSize = size; bestIdx = j; }
+                    if (strat === 'smallest' && (bestSize === 0 || size < bestSize)) { bestSize = size; bestIdx = j; }
+                }
+                return BUILTINS.extract_obj([t, fromInt(bestIdx)]);
+            });
+        }
+    }
+    return [];
+};
+
+// solve_color_map(train_inputs, train_outputs, test_inputs) — per-cell color mapping
+// Returns predictions or [] if mapping inconsistent
+BUILTINS.solve_color_map = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    // Check all same size
+    for (let i = 0; i < n; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    // Build color -> color map from all training pairs
+    const map = new Array(10).fill(-1);
+    for (let i = 0; i < n; i++) {
+        const R = ti[i].length, C = ti[i][0].length;
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const iv = ArrayBuffer.isView(ti[i][r][c]) ? toInt(ti[i][r][c]) : ti[i][r][c];
+                const ov = ArrayBuffer.isView(to[i][r][c]) ? toInt(to[i][r][c]) : to[i][r][c];
+                if (iv < 0 || iv >= 10 || ov < 0 || ov >= 10) continue;
+                if (map[iv] === -1) map[iv] = ov;
+                else if (map[iv] !== ov) return []; // inconsistent
+            }
+        }
+    }
+    // Apply to test inputs
+    return te.map(t => t.map(row => row.map(v => {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        return fromInt(n >= 0 && n < 10 && map[n] >= 0 ? map[n] : n);
+    })));
+};
+
+// solve_neighborhood(train_inputs, train_outputs, test_inputs) — 3x3 pattern learning
+// Returns predictions for test inputs, or [] if pattern inconsistent
+BUILTINS.solve_neighborhood = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    // Check all same size
+    for (let i = 0; i < n; i++) {
+        if (ti[i].length !== to[i].length) return [];
+        if (ti[i][0].length !== to[i][0].length) return [];
+    }
+    // Build pattern table: 3x3 neighborhood string -> output value
+    const patternMap = new Map();
+    const getVal = (g, r, c) => {
+        if (r < 0 || r >= g.length || c < 0 || c >= g[0].length) return -1;
+        return ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    };
+    const getPattern = (g, r, c) => {
+        // 3x3 neighborhood: relative pattern (bg=0, same-as-center=1, other=2+val)
+        const center = getVal(g, r, c);
+        const parts = [];
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                const v = getVal(g, r+dr, c+dc);
+                if (v === -1) parts.push('x');
+                else if (v === center) parts.push('s');
+                else parts.push(String(v));
+            }
+        }
+        return parts.join(',') + '|' + center;
+    };
+    // Learn patterns from training
+    for (let i = 0; i < n; i++) {
+        const R = ti[i].length, C = ti[i][0].length;
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const pat = getPattern(ti[i], r, c);
+                const out = getVal(to[i], r, c);
+                if (patternMap.has(pat)) {
+                    if (patternMap.get(pat) !== out) return []; // inconsistent
+                } else {
+                    patternMap.set(pat, out);
+                }
+            }
+        }
+    }
+    // Apply to test inputs
+    const results = [];
+    for (const t of te) {
+        const R = t.length, C = t[0].length;
+        const out = Array.from({length: R}, () => Array.from({length: C}, () => fromInt(0)));
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const pat = getPattern(t, r, c);
+                if (patternMap.has(pat)) {
+                    out[r][c] = fromInt(patternMap.get(pat));
+                } else {
+                    // Unknown pattern — try just using input value (identity fallback)
+                    out[r][c] = t[r][c];
+                }
+            }
+        }
+        results.push(out);
+    }
+    return results;
+};
+
+BUILTINS.show_grid = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g)) throw new Error('show_grid: not a grid');
+    const lines = [];
+    for (const row of g) {
+        if (!Array.isArray(row)) continue;
+        lines.push(row.map(v => ArrayBuffer.isView(v) ? toInt(v) : v).join(''));
+    }
+    return lines.join('\n');
+};
+
+// ================================================================
 //  Evaluator
 // ================================================================
 const MAX_DEPTH = 49;  // b^2
@@ -913,6 +1710,10 @@ function run(src, opts) {
                     if (ArrayBuffer.isView(v)) {
                         const n = toInt(v);
                         output.push({n, ch: Array.from(v), ecc: n % 11 === v[4]});
+                    } else if (Array.isArray(v) && v.length > 0 && Array.isArray(v[0])) {
+                        // Grid (2D array) — format as visual grid
+                        const lines = v.map(row => row.map(c => ArrayBuffer.isView(c) ? toInt(c) : c).join(''));
+                        output.push({str: lines.join('\n')});
                     } else if (Array.isArray(v)) {
                         output.push({arr: v.map(x => ArrayBuffer.isView(x) ? toInt(x) : x)});
                     } else {
@@ -932,7 +1733,7 @@ function run(src, opts) {
 //  Public API
 // ================================================================
 return {
-    N, MODS, CH, CH_NAMES, BASIS, DECALITY,
+    N, MODS, CH, CH_NAMES, BASIS, DECALITY, BUILTINS,
     fromInt, toInt, fromChannels,
     add, sub, mul, neg, eq, modpow,
     coupling, eigenvalue, gcd,
