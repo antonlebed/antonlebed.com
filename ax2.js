@@ -1096,16 +1096,23 @@ BUILTINS.split_h = (args) => {
     const R = g.length, C = g[0].length;
     const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
     const bg = toInt(BUILTINS.bg_color([g]));
+    // Find all candidate separator rows, pick the one closest to middle (equal halves)
+    const mid = R / 2;
+    let bestR = -1, bestDist = Infinity;
     for (let r = 1; r < R - 1; r++) {
         const v0 = val(r, 0);
-        if (v0 === bg) continue;  // skip bg-colored rows
+        if (v0 === bg) continue;
         let allSame = true;
         for (let c = 1; c < C; c++) if (val(r, c) !== v0) { allSame = false; break; }
         if (allSame) {
-            const top = g.slice(0, r);
-            const bottom = g.slice(r + 1);
-            if (top.length > 0 && bottom.length > 0) return [top, bottom];
+            const dist = Math.abs(r - mid);
+            if (dist < bestDist) { bestDist = dist; bestR = r; }
         }
+    }
+    if (bestR >= 0) {
+        const top = g.slice(0, bestR);
+        const bottom = g.slice(bestR + 1);
+        if (top.length > 0 && bottom.length > 0) return [top, bottom];
     }
     return [];
 };
@@ -1117,16 +1124,22 @@ BUILTINS.split_v = (args) => {
     const R = g.length, C = g[0].length;
     const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
     const bg = toInt(BUILTINS.bg_color([g]));
+    const mid = C / 2;
+    let bestC = -1, bestDist = Infinity;
     for (let c = 1; c < C - 1; c++) {
         const v0 = val(0, c);
-        if (v0 === bg) continue;  // skip bg-colored columns
+        if (v0 === bg) continue;
         let allSame = true;
         for (let r = 1; r < R; r++) if (val(r, c) !== v0) { allSame = false; break; }
         if (allSame) {
-            const left = g.map(row => row.slice(0, c));
-            const right = g.map(row => row.slice(c + 1));
-            if (left[0].length > 0 && right[0].length > 0) return [left, right];
+            const dist = Math.abs(c - mid);
+            if (dist < bestDist) { bestDist = dist; bestC = c; }
         }
+    }
+    if (bestC >= 0) {
+        const left = g.map(row => row.slice(0, bestC));
+        const right = g.map(row => row.slice(bestC + 1));
+        if (left[0].length > 0 && right[0].length > 0) return [left, right];
     }
     return [];
 };
@@ -1164,6 +1177,405 @@ BUILTINS.grid_or = (args) => {
         const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
         return av !== 0 ? a[r][c] : b[r][c];
     }));
+};
+
+// hconcat(a, b) — concatenate two grids horizontally
+BUILTINS.hconcat = (args) => {
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('hconcat: not grids');
+    const R = Math.max(a.length, b.length);
+    return Array.from({length: R}, (_, r) => {
+        const aRow = r < a.length && Array.isArray(a[r]) ? a[r] : [];
+        const bRow = r < b.length && Array.isArray(b[r]) ? b[r] : [];
+        return [...aRow, ...bRow];
+    });
+};
+
+// vconcat(a, b) — concatenate two grids vertically
+BUILTINS.vconcat = (args) => {
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('vconcat: not grids');
+    return [...a.map(r => [...r]), ...b.map(r => [...r])];
+};
+
+// solve_mirror(ti, to, te) — try mirror-concatenation compositions
+// Attempts: hconcat with hflip, vconcat with vflip, 4-way mirror, etc.
+BUILTINS.solve_mirror = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    // Define mirror compositions to try
+    const compositions = [
+        // hconcat(g, hflip(g)) — mirror right
+        g => BUILTINS.hconcat([g, BUILTINS.hflip([g])]),
+        // hconcat(hflip(g), g) — mirror left
+        g => BUILTINS.hconcat([BUILTINS.hflip([g]), g]),
+        // vconcat(g, vflip(g)) — mirror down
+        g => BUILTINS.vconcat([g, BUILTINS.vflip([g])]),
+        // vconcat(vflip(g), g) — mirror up
+        g => BUILTINS.vconcat([BUILTINS.vflip([g]), g]),
+        // 4-way: vconcat(hconcat(g, hflip(g)), hconcat(vflip(g), rot180(g)))
+        g => {
+            const top = BUILTINS.hconcat([g, BUILTINS.hflip([g])]);
+            const bot = BUILTINS.hconcat([BUILTINS.vflip([g]), BUILTINS.rot180([g])]);
+            return BUILTINS.vconcat([top, bot]);
+        },
+        // 4-way rotational: [g, rot90(g); rot270(g), rot180(g)]
+        g => {
+            const top = BUILTINS.hconcat([g, BUILTINS.rot90([g])]);
+            const bot = BUILTINS.hconcat([BUILTINS.rot270([g]), BUILTINS.rot180([g])]);
+            return BUILTINS.vconcat([top, bot]);
+        },
+        // hconcat(g, g) — tile right
+        g => BUILTINS.hconcat([g, g]),
+        // vconcat(g, g) — tile down
+        g => BUILTINS.vconcat([g, g]),
+        // hconcat(g, rot90(g)) — rotate concat
+        g => BUILTINS.hconcat([g, BUILTINS.rot90([g])]),
+        // vconcat(g, rot90(g)) — rotate concat vertical
+        g => BUILTINS.vconcat([g, BUILTINS.rot90([g])]),
+        // hconcat(g, vflip(g)) — mirror vertical then concat
+        g => BUILTINS.hconcat([g, BUILTINS.vflip([g])]),
+        // vconcat(g, hflip(g)) — mirror horizontal then concat
+        g => BUILTINS.vconcat([g, BUILTINS.hflip([g])]),
+    ];
+    for (const comp of compositions) {
+        let allMatch = true;
+        for (let i = 0; i < n; i++) {
+            try {
+                const pred = comp(ti[i]);
+                if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) { allMatch = false; break; }
+            } catch(e) { allMatch = false; break; }
+        }
+        if (allMatch) {
+            // Try with color map on top
+            return te.map(t => {
+                try {
+                    const base = comp(t);
+                    // Try color mapping from first pair
+                    const refBase = comp(ti[0]);
+                    if (refBase.length === to[0].length && refBase[0].length === to[0][0].length) {
+                        const cmap = BUILTINS.color_map([refBase, to[0]]);
+                        if (Array.isArray(cmap) && cmap.length > 0) return BUILTINS.apply_color_map([base, cmap]);
+                    }
+                    return base;
+                } catch(e) { return t; }
+            });
+        }
+        // Also try with color map per training pair
+        let allMatchCM = true;
+        let cmapGlobal = null;
+        for (let i = 0; i < n; i++) {
+            try {
+                const pred = comp(ti[i]);
+                if (pred.length !== to[i].length || pred[0].length !== to[i][0].length) { allMatchCM = false; break; }
+                const cmap = BUILTINS.color_map([pred, to[i]]);
+                if (!Array.isArray(cmap) || cmap.length === 0) { allMatchCM = false; break; }
+                const mapped = BUILTINS.apply_color_map([pred, cmap]);
+                if (toInt(BUILTINS.grid_eq([mapped, to[i]])) !== 1) { allMatchCM = false; break; }
+                if (!cmapGlobal) cmapGlobal = cmap;
+            } catch(e) { allMatchCM = false; break; }
+        }
+        if (allMatchCM && cmapGlobal) {
+            return te.map(t => {
+                try {
+                    return BUILTINS.apply_color_map([comp(t), cmapGlobal]);
+                } catch(e) { return t; }
+            });
+        }
+    }
+    return [];
+};
+
+// solve_recolor(ti, to, te) — detect marker pixel, recolor main shape
+BUILTINS.solve_recolor = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    const getVal = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    // Strategy: find a single isolated pixel (marker), recolor the main shape to marker color
+    // The main shape = largest connected component. Marker = smallest or isolated.
+    for (let i = 0; i < n; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    // For each training pair, find colors in input and output, detect the swap
+    // Pattern: shape_color -> marker_color, marker_color -> 0, bg stays
+    const findRecolorMap = (inp, out) => {
+        const R = inp.length, C = inp[0].length;
+        const bg = toInt(BUILTINS.bg_color([inp]));
+        // Collect all color->color mappings
+        const map = {};
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const iv = getVal(inp, r, c), ov = getVal(out, r, c);
+                const key = iv.toString();
+                if (map[key] === undefined) map[key] = ov;
+                else if (map[key] !== ov) return null; // inconsistent
+            }
+        }
+        return map;
+    };
+    // Check if all pairs have consistent recolor map
+    let globalMap = null;
+    for (let i = 0; i < n; i++) {
+        const m = findRecolorMap(ti[i], to[i]);
+        if (!m) return [];
+        if (!globalMap) globalMap = m;
+    }
+    if (!globalMap) return [];
+    // Apply
+    return te.map(t => t.map(row => row.map(v => {
+        const nv = ArrayBuffer.isView(v) ? toInt(v) : v;
+        const mapped = globalMap[nv.toString()];
+        return mapped !== undefined ? fromInt(mapped) : v;
+    })));
+};
+
+// solve_fill_interior(ti, to, te) — fill interior of shapes with a specific color
+BUILTINS.solve_fill_interior = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    const getVal = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    for (let i = 0; i < n; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    // For each training pair: find cells that changed and what they changed to
+    // Interior = bg cells surrounded by non-bg cells (flood fill from edges finds exterior)
+    const findInterior = (g) => {
+        const R = g.length, C = g[0].length;
+        const bg = toInt(BUILTINS.bg_color([g]));
+        const exterior = Array.from({length: R}, () => Array(C).fill(false));
+        // BFS from all bg cells on edges
+        const queue = [];
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                if ((r === 0 || r === R-1 || c === 0 || c === C-1) && getVal(g, r, c) === bg) {
+                    exterior[r][c] = true;
+                    queue.push([r, c]);
+                }
+            }
+        }
+        while (queue.length > 0) {
+            const [cr, cc] = queue.shift();
+            for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                const nr = cr+dr, nc = cc+dc;
+                if (nr >= 0 && nr < R && nc >= 0 && nc < C && !exterior[nr][nc] && getVal(g, nr, nc) === bg) {
+                    exterior[nr][nc] = true;
+                    queue.push([nr, nc]);
+                }
+            }
+        }
+        // Interior = bg cells that are NOT exterior
+        const interior = [];
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                if (getVal(g, r, c) === bg && !exterior[r][c]) interior.push([r, c]);
+            }
+        }
+        return interior;
+    };
+    // Detect fill color from first training pair
+    const interior0 = findInterior(ti[0]);
+    if (interior0.length === 0) return [];
+    // What color did interior cells become?
+    const fillColor = getVal(to[0], interior0[0][0], interior0[0][1]);
+    // Verify all interior cells got same color and all other cells unchanged
+    let allMatch = true;
+    for (let i = 0; i < n; i++) {
+        const R = ti[i].length, C = ti[i][0].length;
+        const interior = findInterior(ti[i]);
+        const interiorSet = new Set(interior.map(([r,c]) => r*C+c));
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const iv = getVal(ti[i], r, c), ov = getVal(to[i], r, c);
+                if (interiorSet.has(r*C+c)) {
+                    if (ov !== fillColor) { allMatch = false; break; }
+                } else {
+                    if (iv !== ov) { allMatch = false; break; }
+                }
+            }
+            if (!allMatch) break;
+        }
+        if (!allMatch) break;
+    }
+    if (!allMatch) return [];
+    // Apply: fill interior of test inputs
+    return te.map(t => {
+        const R = t.length, C = t[0].length;
+        const out = t.map(row => [...row]);
+        const interior = findInterior(t);
+        for (const [r, c] of interior) out[r][c] = fromInt(fillColor);
+        return out;
+    });
+};
+
+// solve_symmetry(ti, to, te) — fix broken symmetry in input
+BUILTINS.solve_symmetry = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    const getVal = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    for (let i = 0; i < n; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    // Try different symmetry types
+    const symmetries = [
+        // horizontal (left-right mirror)
+        (g, r, c, R, C) => ({ mr: r, mc: C - 1 - c }),
+        // vertical (top-bottom mirror)
+        (g, r, c, R, C) => ({ mr: R - 1 - r, mc: c }),
+        // both (180 rotation)
+        (g, r, c, R, C) => ({ mr: R - 1 - r, mc: C - 1 - c }),
+        // diagonal (transpose)
+        (g, r, c, R, C) => R === C ? { mr: c, mc: r } : null,
+    ];
+    for (const sym of symmetries) {
+        let allMatch = true;
+        for (let i = 0; i < n; i++) {
+            const g = ti[i], o = to[i];
+            const R = g.length, C = g[0].length;
+            const bg = 0;
+            // Apply symmetry fix: for each bg cell, replace with its mirror partner
+            const fixed = g.map(row => [...row]);
+            for (let r = 0; r < R; r++) {
+                for (let c = 0; c < C; c++) {
+                    const s = sym(g, r, c, R, C);
+                    if (!s) { allMatch = false; break; }
+                    const v = getVal(g, r, c);
+                    const mv = getVal(g, s.mr, s.mc);
+                    // If one side has content and the other is bg, fill bg with content
+                    if (v === bg && mv !== bg) fixed[r][c] = g[s.mr][s.mc];
+                }
+                if (!allMatch) break;
+            }
+            if (!allMatch) break;
+            if (toInt(BUILTINS.grid_eq([fixed, o])) !== 1) { allMatch = false; break; }
+        }
+        if (allMatch) {
+            return te.map(t => {
+                const R = t.length, C = t[0].length;
+                const fixed = t.map(row => [...row]);
+                for (let r = 0; r < R; r++) {
+                    for (let c = 0; c < C; c++) {
+                        const s = sym(t, r, c, R, C);
+                        if (!s) continue;
+                        const v = getVal(t, r, c);
+                        const mv = getVal(t, s.mr, s.mc);
+                        if (v === 0 && mv !== 0) fixed[r][c] = t[s.mr][s.mc];
+                    }
+                }
+                return fixed;
+            });
+        }
+    }
+    return [];
+};
+
+// solve_tile_pattern(ti, to, te) — detect small pattern and tile it
+BUILTINS.solve_tile_pattern = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const n = ti.length;
+    const getVal = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    for (let i = 0; i < n; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    // Try tiling with different period sizes
+    const tryTile = (g, o, pr, pc) => {
+        const R = g.length, C = g[0].length;
+        if (pr > R || pc > C) return false;
+        // Build tile from output (first pr x pc cells)
+        const tile = [];
+        for (let r = 0; r < pr; r++) {
+            tile.push([]);
+            for (let c = 0; c < pc; c++) {
+                tile[r].push(getVal(o, r, c));
+            }
+        }
+        // Verify tile covers entire output
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                if (getVal(o, r, c) !== tile[r % pr][c % pc]) return false;
+            }
+        }
+        // Verify input is tile with some cells zeroed
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const iv = getVal(g, r, c);
+                if (iv !== 0 && iv !== tile[r % pr][c % pc]) return false;
+            }
+        }
+        return true;
+    };
+    // Find tile size from output periodicity (tiles can wrap, no divisibility needed)
+    const findTileSize = (o) => {
+        const R = o.length, C = o[0].length;
+        for (let pr = 1; pr <= Math.floor(R/2); pr++) {
+            for (let pc = 1; pc <= Math.floor(C/2); pc++) {
+                let ok = true;
+                for (let r = 0; r < R && ok; r++) {
+                    for (let c = 0; c < C && ok; c++) {
+                        if (getVal(o, r, c) !== getVal(o, r % pr, c % pc)) ok = false;
+                    }
+                }
+                if (ok) return [pr, pc];
+            }
+        }
+        return null;
+    };
+    // Find tile size that works for ALL training pairs
+    const ts0 = findTileSize(to[0]);
+    if (!ts0) return [];
+    let [pr, pc] = ts0;
+    // Verify: each training output has same period AND input consistent
+    for (let i = 0; i < n; i++) {
+        const R = to[i].length, C = to[i][0].length;
+        // Check output periodicity
+        let ok = true;
+        for (let r = 0; r < R && ok; r++) {
+            for (let c = 0; c < C && ok; c++) {
+                if (getVal(to[i], r, c) !== getVal(to[i], r % pr, c % pc)) ok = false;
+            }
+        }
+        if (!ok) {
+            // Try finding period for this pair's output
+            const ts = findTileSize(to[i]);
+            if (!ts) return [];
+            // Periods must share a common period
+            pr = Math.max(pr, ts[0]); pc = Math.max(pc, ts[1]);
+        }
+        // Verify input: non-zero cells match tile from output
+        const tile = Array.from({length: pr}, (_, r) => Array.from({length: pc}, (_, c) => getVal(to[i], r % to[i].length, c % to[i][0].length)));
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const iv = getVal(ti[i], r, c);
+                if (iv !== 0 && iv !== tile[r % pr][c % pc]) return [];
+            }
+        }
+    }
+    // Apply: build tile from each test input's non-zero cells, then tile
+    const predictions = [];
+    for (let ti2 = 0; ti2 < te.length; ti2++) {
+        const t = te[ti2];
+        const R = t.length, C = t[0].length;
+        const tile = Array.from({length: pr}, () => Array(pc).fill(-1));
+        // Collect non-zero cells
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const v = getVal(t, r, c);
+                if (v !== 0) {
+                    const tr = r % pr, tc = c % pc;
+                    if (tile[tr][tc] === -1) tile[tr][tc] = v;
+                    else if (tile[tr][tc] !== v) return []; // conflict
+                }
+            }
+        }
+        // Check completeness — all tile cells filled?
+        for (let r = 0; r < pr; r++) for (let c = 0; c < pc; c++) if (tile[r][c] === -1) return [];
+        predictions.push(Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => fromInt(tile[r % pr][c % pc]))));
+    }
+    return predictions;
 };
 
 // solve_flood_fill(train_inputs, train_outputs, test_inputs)
@@ -1254,9 +1666,22 @@ BUILTINS.solve_flood_fill = (args) => {
 BUILTINS.solve_split_xor = (args) => {
     const ti = args[0], to = args[1], te = args[2];
     if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
-    const splits = ['h', 'v'];
-    // Operations: and, or, xor, both_nonzero (mark where both!=0), diff_a (mark where a!=0 && b==0), diff_b
-    const doSplit = (g, dir) => dir === 'h' ? BUILTINS.split_h([g]) : BUILTINS.split_v([g]);
+    const splits = ['h', 'v', 'h_nosep', 'v_nosep'];
+    // Operations: and, or, xor, both_nonzero, nor, diff_a, diff_b
+    const doSplit = (g, dir) => {
+        if (dir === 'h') return BUILTINS.split_h([g]);
+        if (dir === 'v') return BUILTINS.split_v([g]);
+        // No-separator: split exactly in half
+        if (dir === 'h_nosep') {
+            const R = g.length;
+            if (R % 2 !== 0 || R < 2) return [];
+            return [g.slice(0, R/2), g.slice(R/2)];
+        }
+        // v_nosep
+        const C = g[0].length;
+        if (C % 2 !== 0 || C < 2) return [];
+        return [g.map(r => r.slice(0, C/2)), g.map(r => r.slice(C/2))];
+    };
 
     for (const dir of splits) {
         // Check all training splits work
@@ -1298,6 +1723,18 @@ BUILTINS.solve_split_xor = (args) => {
                 const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
                 return (av !== 0 && bv === 0) ? fromInt(mc) : fromInt(0);
             })),
+            // nor: mark where BOTH halves are zero
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return (av === 0 && bv === 0) ? fromInt(mc) : fromInt(0);
+            })),
+            // or_mark: mark with mc where EITHER half is non-zero
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return (av !== 0 || bv !== 0) ? fromInt(mc) : fromInt(0);
+            })),
             // or: overlay (a if non-zero, else b)
             (a, b, mc) => BUILTINS.grid_or([a, b]),
             // and: keep only matching non-zero cells
@@ -1324,25 +1761,293 @@ BUILTINS.solve_split_xor = (args) => {
     return [];
 };
 
+// solve_dot_stamp(ti, to, te) — learn stamp pattern around each colored dot
+// For same-size tasks where isolated dots get expanded to cross/diamond/line patterns
+BUILTINS.solve_dot_stamp = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    // Must be same size
+    for (let i = 0; i < ti.length; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    const val = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const bg = toInt(BUILTINS.bg_color([ti[0]]));
+
+    // Find all non-bg colors in input, require dots to be isolated (no same-color neighbors)
+    const inColors = new Set();
+    for (const g of ti) for (let r = 0; r < g.length; r++) for (let c = 0; c < g[0].length; c++) {
+        const v = val(g, r, c);
+        if (v !== bg) inColors.add(v);
+    }
+    if (inColors.size === 0 || inColors.size > 9) return [];
+    // Check that non-bg cells are isolated dots (no adjacent non-bg cells of same color)
+    for (const g of ti) {
+        const R = g.length, C = g[0].length;
+        for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+            const v = val(g, r, c);
+            if (v === bg) continue;
+            // Check 4-neighbors for same color
+            const nbs = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+            for (const [nr, nc] of nbs) {
+                if (nr >= 0 && nr < R && nc >= 0 && nc < C && val(g, nr, nc) !== bg) return [];
+            }
+        }
+    }
+
+    // For each input color, learn its OWN stamp (offsets + output colors)
+    // MAX_RADIUS: only learn stamps within this distance (avoid position-dependent patterns)
+    const MAX_RADIUS = 3;
+    const stamps = {}; // color -> [[dr, dc, outColor], ...]
+    let anyStamp = false;
+    for (const col of inColors) {
+        let stampOffsets = null;
+        let consistent = true;
+        let dotsSeenTotal = 0;
+        for (let i = 0; i < ti.length && consistent; i++) {
+            const R = ti[i].length, C = ti[i][0].length;
+            const dots = [];
+            for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                if (val(ti[i], r, c) === col) dots.push([r, c]);
+            }
+            if (dots.length === 0) continue;
+            dotsSeenTotal += dots.length;
+            for (const [dr0, dc0] of dots) {
+                const localStamp = [];
+                for (let dr = -MAX_RADIUS; dr <= MAX_RADIUS; dr++) {
+                    for (let dc = -MAX_RADIUS; dc <= MAX_RADIUS; dc++) {
+                        if (dr === 0 && dc === 0) continue; // handle dot itself separately
+                        const r = dr0 + dr, c = dc0 + dc;
+                        if (r < 0 || r >= R || c < 0 || c >= C) continue;
+                        const ov = val(to[i], r, c);
+                        const iv = val(ti[i], r, c);
+                        if (ov !== iv && ov !== bg) {
+                            localStamp.push([dr, dc, ov]);
+                        }
+                    }
+                }
+                // Include the dot itself
+                const dotOut = val(to[i], dr0, dc0);
+                localStamp.push([0, 0, dotOut]);
+
+                if (stampOffsets === null) {
+                    stampOffsets = localStamp;
+                } else {
+                    if (localStamp.length !== stampOffsets.length) { consistent = false; break; }
+                    const sA = localStamp.sort((a,b) => a[0]-b[0]||a[1]-b[1]).map(x=>x.join(','));
+                    const sB = stampOffsets.sort((a,b) => a[0]-b[0]||a[1]-b[1]).map(x=>x.join(','));
+                    for (let j = 0; j < sA.length; j++) if (sA[j] !== sB[j]) { consistent = false; break; }
+                }
+            }
+        }
+        if (!consistent || !stampOffsets || stampOffsets.length === 0) continue; // skip this color
+        if (dotsSeenTotal < 2) continue;
+        stamps[col] = stampOffsets;
+        anyStamp = true;
+    }
+    if (!anyStamp) return [];
+
+    // Verify: apply stamps to all training inputs and check match
+    const applyStamps = (gin) => {
+        const R = gin.length, C = gin[0].length;
+        const result = Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => fromInt(val(gin, r, c))));
+        // Apply stamps for colors that have them
+        for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+            const v = val(gin, r, c);
+            if (v !== bg && stamps[v]) {
+                for (const [dr, dc, oc] of stamps[v]) {
+                    const nr = r + dr, nc = c + dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C) {
+                        result[nr][nc] = fromInt(oc);
+                    }
+                }
+            }
+        }
+        return result;
+    };
+
+    // Verify on training
+    for (let i = 0; i < ti.length; i++) {
+        const pred = applyStamps(ti[i]);
+        if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) return [];
+    }
+
+    return te.map(t => applyStamps(t));
+};
+
+// solve_line_draw(ti, to, te) — draw lines from colored dots to edges or between dots
+BUILTINS.solve_line_draw = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    // Must be same size
+    for (let i = 0; i < ti.length; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    const val = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const bg = toInt(BUILTINS.bg_color([ti[0]]));
+
+    // Strategy: for each non-bg dot, try extending lines in 4 directions (R, D, L, U)
+    // Learn which direction(s) each color extends
+    // Directions: 0=right, 1=down, 2=left, 3=up
+    const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+    const dirNames = ['R','D','L','U'];
+
+    // For each input color, determine which directions it draws lines
+    const inColors = new Set();
+    for (const g of ti) for (let r = 0; r < g.length; r++) for (let c = 0; c < g[0].length; c++) {
+        const v = val(g, r, c); if (v !== bg) inColors.add(v);
+    }
+    if (inColors.size === 0 || inColors.size > 9) return [];
+
+    // Direction patterns to try (R, D, L, U)
+    const patterns = [
+        [true,false,false,false],  // right only
+        [false,true,false,false],  // down only
+        [false,false,true,false],  // left only
+        [false,false,false,true],  // up only
+        [true,true,false,false],   // right+down
+        [true,false,false,true],   // right+up
+        [false,true,true,false],   // down+left
+        [false,false,true,true],   // left+up
+        [true,true,true,true],     // cross (all 4)
+        [true,false,true,false],   // horizontal (left+right)
+        [false,true,false,true],   // vertical (up+down)
+    ];
+
+    // Also try "draw to next dot" — connect dots of same color
+    // First: try uniform pattern (all colors same direction)
+    for (const pat of patterns) {
+        const applyPat = (gin) => {
+            const R = gin.length, C = gin[0].length;
+            const result = Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => fromInt(val(gin, r, c))));
+            for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                const v = val(gin, r, c);
+                if (v !== bg) {
+                    for (let d = 0; d < 4; d++) {
+                        if (!pat[d]) continue;
+                        let nr = r + dirs[d][0], nc = c + dirs[d][1];
+                        while (nr >= 0 && nr < R && nc >= 0 && nc < C) {
+                            if (val(gin, nr, nc) === bg) result[nr][nc] = fromInt(v);
+                            nr += dirs[d][0]; nc += dirs[d][1];
+                        }
+                    }
+                }
+            }
+            return result;
+        };
+
+        let allMatch = true;
+        for (let i = 0; i < ti.length; i++) {
+            const pred = applyPat(ti[i]);
+            if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) { allMatch = false; break; }
+        }
+        if (allMatch) return te.map(t => applyPat(t));
+    }
+
+    // Try L-shape: right to edge then down to edge (and variants)
+    const lShapes = [
+        [[0,1],[1,0]],  // right then down
+        [[0,1],[-1,0]], // right then up
+        [[0,-1],[1,0]], // left then down
+        [[0,-1],[-1,0]],// left then up
+    ];
+    for (const [d1, d2] of lShapes) {
+        const applyL = (gin) => {
+            const R = gin.length, C = gin[0].length;
+            const result = Array.from({length: R}, (_, r) => Array.from({length: C}, (_, c) => fromInt(val(gin, r, c))));
+            for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                const v = val(gin, r, c);
+                if (v !== bg) {
+                    // Extend in direction d1 to edge
+                    let nr = r + d1[0], nc = c + d1[1];
+                    let lastR = r, lastC = c;
+                    while (nr >= 0 && nr < R && nc >= 0 && nc < C) {
+                        if (val(gin, nr, nc) === bg) result[nr][nc] = fromInt(v);
+                        lastR = nr; lastC = nc;
+                        nr += d1[0]; nc += d1[1];
+                    }
+                    // Then extend in direction d2 from the corner
+                    nr = lastR + d2[0]; nc = lastC + d2[1];
+                    while (nr >= 0 && nr < R && nc >= 0 && nc < C) {
+                        if (val(gin, nr, nc) === bg) result[nr][nc] = fromInt(v);
+                        nr += d2[0]; nc += d2[1];
+                    }
+                }
+            }
+            return result;
+        };
+        let allMatch = true;
+        for (let i = 0; i < ti.length; i++) {
+            const pred = applyL(ti[i]);
+            if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) { allMatch = false; break; }
+        }
+        if (allMatch) return te.map(t => applyL(t));
+    }
+
+    return [];
+};
+
+// solve_color_swap(ti, to, te) — swap specific color pairs
+BUILTINS.solve_color_swap = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    // Must be same size
+    for (let i = 0; i < ti.length; i++) {
+        if (ti[i].length !== to[i].length || ti[i][0].length !== to[i][0].length) return [];
+    }
+    const val = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    // Learn color mapping from first training pair
+    const cmap = new Map(); // input color -> output color
+    const R = ti[0].length, C = ti[0][0].length;
+    for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+        const iv = val(ti[0], r, c), ov = val(to[0], r, c);
+        if (cmap.has(iv)) { if (cmap.get(iv) !== ov) return []; }
+        else cmap.set(iv, ov);
+    }
+    // Must have at least one swap (not identity)
+    let hasSwap = false;
+    for (const [k, v] of cmap) if (k !== v) { hasSwap = true; break; }
+    if (!hasSwap) return [];
+    // Verify on all training pairs
+    for (let i = 1; i < ti.length; i++) {
+        const Ri = ti[i].length, Ci = ti[i][0].length;
+        for (let r = 0; r < Ri; r++) for (let c = 0; c < Ci; c++) {
+            const iv = val(ti[i], r, c), ov = val(to[i], r, c);
+            const expected = cmap.has(iv) ? cmap.get(iv) : iv;
+            if (expected !== ov) return [];
+        }
+    }
+    // Apply to test
+    return te.map(t => {
+        return Array.from({length: t.length}, (_, r) => Array.from({length: t[0].length}, (_, c) => {
+            const v = val(t, r, c);
+            return fromInt(cmap.has(v) ? cmap.get(v) : v);
+        }));
+    });
+};
+
 // solve_extract_obj(ti, to, te) — try extracting each object and see if it matches output
 BUILTINS.solve_extract_obj = (args) => {
     const ti = args[0], to = args[1], te = args[2];
     if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
-    // Try strategies: largest, smallest, specific index, most common color
-    const strategies = ['largest', 'smallest'];
+    const strategies = ['largest', 'smallest', 'most_cells', 'second_largest'];
     for (const strat of strategies) {
         let allMatch = true;
         for (let i = 0; i < ti.length; i++) {
             const objs = BUILTINS.objects([ti[i]]);
             if (objs.length === 0) { allMatch = false; break; }
-            // Find target object by strategy
-            let bestIdx = 0, bestSize = 0;
+            let bestIdx = 0, bestSize = 0, secondIdx = -1, secondSize = 0;
             for (let j = 0; j < objs.length; j++) {
                 const h = toInt(objs[j][2]), w = toInt(objs[j][3]);
                 const size = h * w;
-                if (strat === 'largest' && size > bestSize) { bestSize = size; bestIdx = j; }
+                if (strat === 'largest' && size > bestSize) { secondSize = bestSize; secondIdx = bestIdx; bestSize = size; bestIdx = j; }
                 if (strat === 'smallest' && (bestSize === 0 || size < bestSize)) { bestSize = size; bestIdx = j; }
+                if (strat === 'most_cells' && size > bestSize) { bestSize = size; bestIdx = j; }
+                if (strat === 'second_largest') {
+                    if (size > bestSize) { secondSize = bestSize; secondIdx = bestIdx; bestSize = size; bestIdx = j; }
+                    else if (size > secondSize) { secondSize = size; secondIdx = j; }
+                }
             }
+            if (strat === 'second_largest') bestIdx = secondIdx >= 0 ? secondIdx : 0;
             const ext = BUILTINS.extract_obj([ti[i], fromInt(bestIdx)]);
             if (!Array.isArray(ext) || ext.length === 0) { allMatch = false; break; }
             if (toInt(BUILTINS.grid_eq([ext, to[i]])) !== 1) { allMatch = false; break; }
@@ -1351,14 +2056,425 @@ BUILTINS.solve_extract_obj = (args) => {
             return te.map(t => {
                 const objs = BUILTINS.objects([t]);
                 if (objs.length === 0) return t;
-                let bestIdx = 0, bestSize = 0;
+                let bestIdx = 0, bestSize = 0, secondIdx = -1, secondSize = 0;
                 for (let j = 0; j < objs.length; j++) {
                     const h = toInt(objs[j][2]), w = toInt(objs[j][3]);
                     const size = h * w;
-                    if (strat === 'largest' && size > bestSize) { bestSize = size; bestIdx = j; }
+                    if (strat === 'largest' && size > bestSize) { secondSize = bestSize; secondIdx = bestIdx; bestSize = size; bestIdx = j; }
                     if (strat === 'smallest' && (bestSize === 0 || size < bestSize)) { bestSize = size; bestIdx = j; }
+                    if (strat === 'most_cells' && size > bestSize) { bestSize = size; bestIdx = j; }
+                    if (strat === 'second_largest') {
+                        if (size > bestSize) { secondSize = bestSize; secondIdx = bestIdx; bestSize = size; bestIdx = j; }
+                        else if (size > secondSize) { secondSize = size; secondIdx = j; }
+                    }
                 }
+                if (strat === 'second_largest') bestIdx = secondIdx >= 0 ? secondIdx : 0;
                 return BUILTINS.extract_obj([t, fromInt(bestIdx)]);
+            });
+        }
+    }
+    return [];
+};
+
+// solve_extract_color(ti, to, te) — extract bbox of rarest/most-common non-bg color
+BUILTINS.solve_extract_color = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const val = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const strategies = ['rarest', 'most_common'];
+    for (const strat of strategies) {
+        let allMatch = true;
+        for (let i = 0; i < ti.length; i++) {
+            const g = ti[i], R = g.length, C = g[0].length;
+            const oR = to[i].length, oC = to[i][0].length;
+            const bg = toInt(BUILTINS.bg_color([g]));
+            // Count non-bg color frequencies
+            const freq = {};
+            for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                const v = val(g, r, c);
+                if (v !== bg) freq[v] = (freq[v] || 0) + 1;
+            }
+            const colors = Object.keys(freq).map(Number);
+            if (colors.length < 2) { allMatch = false; break; }
+            const target = strat === 'rarest'
+                ? colors.reduce((a, b) => freq[a] <= freq[b] ? a : b)
+                : colors.reduce((a, b) => freq[a] >= freq[b] ? a : b);
+            // Bbox of target color cells
+            let rmin = R, rmax = -1, cmin = C, cmax = -1;
+            for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                if (val(g, r, c) === target) {
+                    rmin = Math.min(rmin, r); rmax = Math.max(rmax, r);
+                    cmin = Math.min(cmin, c); cmax = Math.max(cmax, c);
+                }
+            }
+            if (rmax < 0) { allMatch = false; break; }
+            const h = rmax - rmin + 1, w = cmax - cmin + 1;
+            if (h !== oR || w !== oC) { allMatch = false; break; }
+            // Extract with bg fill
+            const cropped = Array.from({length: h}, (_, r) =>
+                Array.from({length: w}, (_, c) => g[rmin + r][cmin + c]));
+            if (toInt(BUILTINS.grid_eq([cropped, to[i]])) !== 1) { allMatch = false; break; }
+        }
+        if (allMatch) {
+            return te.map(t => {
+                const R = t.length, C = t[0].length;
+                const bg = toInt(BUILTINS.bg_color([t]));
+                const freq = {};
+                for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                    const v = val(t, r, c);
+                    if (v !== bg) freq[v] = (freq[v] || 0) + 1;
+                }
+                const colors = Object.keys(freq).map(Number);
+                if (colors.length === 0) return t;
+                const target = strat === 'rarest'
+                    ? colors.reduce((a, b) => freq[a] <= freq[b] ? a : b)
+                    : colors.reduce((a, b) => freq[a] >= freq[b] ? a : b);
+                let rmin = R, rmax = -1, cmin = C, cmax = -1;
+                for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+                    if (val(t, r, c) === target) {
+                        rmin = Math.min(rmin, r); rmax = Math.max(rmax, r);
+                        cmin = Math.min(cmin, c); cmax = Math.max(cmax, c);
+                    }
+                }
+                if (rmax < 0) return t;
+                return Array.from({length: rmax - rmin + 1}, (_, r) =>
+                    Array.from({length: cmax - cmin + 1}, (_, c) => t[rmin + r][cmin + c]));
+            });
+        }
+    }
+    return [];
+};
+
+// solve_detect_tile(ti, to, te) — find minimal repeating tile unit in input
+BUILTINS.solve_detect_tile = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const val = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    // For each training pair, check if input is a tiled version of output
+    for (let i = 0; i < ti.length; i++) {
+        const g = ti[i], R = g.length, C = g[0].length;
+        const oR = to[i].length, oC = to[i][0].length;
+        if (oR > R || oC > C) return [];
+        if (R % oR !== 0 || C % oC !== 0) return [];
+        // Check tiling
+        for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+            if (val(g, r, c) !== val(to[i], r % oR, c % oC)) return [];
+        }
+    }
+    // All match! Find tile for each test input
+    return te.map(t => {
+        const R = t.length, C = t[0].length;
+        // Find minimal tile: try all divisors
+        for (let th = 1; th <= R; th++) {
+            if (R % th !== 0) continue;
+            for (let tw = 1; tw <= C; tw++) {
+                if (C % tw !== 0) continue;
+                if (th === R && tw === C) continue;
+                let match = true;
+                for (let r = 0; r < R && match; r++)
+                    for (let c = 0; c < C && match; c++)
+                        if (val(t, r, c) !== val(t, r % th, c % tw)) match = false;
+                if (match) {
+                    return Array.from({length: th}, (_, r) =>
+                        Array.from({length: tw}, (_, c) => t[r][c]));
+                }
+            }
+        }
+        return t;  // fallback
+    });
+};
+
+// solve_grid_cells(ti, to, te) — split by grid lines, combine sub-grids
+BUILTINS.solve_grid_cells = (args) => {
+    const ti = args[0], to = args[1], te = args[2];
+    if (!Array.isArray(ti) || !Array.isArray(to) || !Array.isArray(te)) return [];
+    const val = (g, r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+
+    // Find grid lines (full rows/cols of uniform non-bg color)
+    const findGridLines = (g) => {
+        const R = g.length, C = g[0].length;
+        const bg = toInt(BUILTINS.bg_color([g]));
+        const hLines = [], vLines = [];
+        for (let r = 0; r < R; r++) {
+            const v0 = val(g, r, 0);
+            if (v0 === bg) continue;
+            let allSame = true;
+            for (let c = 1; c < C; c++) if (val(g, r, c) !== v0) { allSame = false; break; }
+            if (allSame) hLines.push(r);
+        }
+        for (let c = 0; c < C; c++) {
+            const v0 = val(g, 0, c);
+            if (v0 === bg) continue;
+            let allSame = true;
+            for (let r = 1; r < R; r++) if (val(g, r, c) !== v0) { allSame = false; break; }
+            if (allSame) vLines.push(c);
+        }
+        return { hLines, vLines };
+    };
+
+    // Extract sub-grids between grid lines
+    const extractCells = (g, hLines, vLines) => {
+        const R = g.length, C = g[0].length;
+        const rows = [-1, ...hLines, R];
+        const cols = [-1, ...vLines, C];
+        const cells = [];
+        for (let ri = 0; ri < rows.length - 1; ri++) {
+            const cellRow = [];
+            for (let ci = 0; ci < cols.length - 1; ci++) {
+                const r1 = rows[ri] + 1, r2 = rows[ri + 1];
+                const c1 = cols[ci] + 1, c2 = cols[ci + 1];
+                if (r1 >= r2 || c1 >= c2) continue;
+                const sub = Array.from({length: r2 - r1}, (_, r) =>
+                    Array.from({length: c2 - c1}, (_, c) => g[r1 + r][c1 + c]));
+                cellRow.push(sub);
+            }
+            if (cellRow.length > 0) cells.push(cellRow);
+        }
+        return cells;
+    };
+
+    // Strategy 1: OR of all sub-grids
+    const tryOverlay = (cells, oR, oC) => {
+        if (cells.length === 0) return null;
+        const flat = [];
+        for (const row of cells) for (const cell of row) flat.push(cell);
+        if (flat.length < 2) return null;
+        const h = flat[0].length, w = flat[0][0].length;
+        if (h !== oR || w !== oC) return null;
+        for (const cell of flat) if (cell.length !== h || cell[0].length !== w) return null;
+        const result = Array.from({length: h}, (_, r) =>
+            Array.from({length: w}, (_, c) => fromInt(0)));
+        for (const cell of flat) {
+            for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+                const v = val(cell, r, c);
+                if (v !== 0) result[r][c] = cell[r][c];
+            }
+        }
+        return result;
+    };
+
+    // Strategy 2: XOR of sub-grids
+    const tryXor = (cells, oR, oC) => {
+        if (cells.length === 0) return null;
+        const flat = [];
+        for (const row of cells) for (const cell of row) flat.push(cell);
+        if (flat.length !== 2) return null;
+        const h = flat[0].length, w = flat[0][0].length;
+        if (h !== oR || w !== oC) return null;
+        for (const cell of flat) if (cell.length !== h || cell[0].length !== w) return null;
+        return Array.from({length: h}, (_, r) =>
+            Array.from({length: w}, (_, c) => {
+                const a = val(flat[0], r, c), b = val(flat[1], r, c);
+                return a !== b ? fromInt(a !== 0 ? a : b) : fromInt(0);
+            }));
+    };
+
+    // Strategy 3: AND of sub-grids
+    const tryAnd = (cells, oR, oC) => {
+        if (cells.length === 0) return null;
+        const flat = [];
+        for (const row of cells) for (const cell of row) flat.push(cell);
+        if (flat.length < 2) return null;
+        const h = flat[0].length, w = flat[0][0].length;
+        if (h !== oR || w !== oC) return null;
+        for (const cell of flat) if (cell.length !== h || cell[0].length !== w) return null;
+        return Array.from({length: h}, (_, r) =>
+            Array.from({length: w}, (_, c) => {
+                const v0 = val(flat[0], r, c);
+                let allSame = true;
+                for (let k = 1; k < flat.length; k++) if (val(flat[k], r, c) !== v0) { allSame = false; break; }
+                return allSame ? flat[0][r][c] : fromInt(0);
+            }));
+    };
+
+    // Strategy 4: find the "different" sub-grid (most non-bg cells, or unique content)
+    const tryUnique = (cells, oR, oC) => {
+        if (cells.length === 0) return null;
+        const flat = [];
+        for (const row of cells) for (const cell of row) flat.push(cell);
+        if (flat.length < 2) return null;
+        const h = flat[0].length, w = flat[0][0].length;
+        if (h !== oR || w !== oC) return null;
+        for (const cell of flat) if (cell.length !== h || cell[0].length !== w) return null;
+        // Count non-bg cells in each sub-grid
+        let maxDiff = -1, bestCell = null;
+        const bg = toInt(BUILTINS.bg_color([flat[0]]));
+        for (const cell of flat) {
+            let diff = 0;
+            for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+                const v = ArrayBuffer.isView(cell[r][c]) ? toInt(cell[r][c]) : cell[r][c];
+                if (v !== bg) diff++;
+            }
+            if (diff > maxDiff) { maxDiff = diff; bestCell = cell; }
+        }
+        return bestCell;
+    };
+
+    // Strategy 5: find the sub-grid with a unique marker (cell different from bg AND from uniform fill)
+    const tryMarker = (cells, oR, oC) => {
+        if (cells.length === 0) return null;
+        const flat = [];
+        for (const row of cells) for (const cell of row) flat.push(cell);
+        if (flat.length < 2) return null;
+        const h = flat[0].length, w = flat[0][0].length;
+        if (h !== oR || w !== oC) return null;
+        for (const cell of flat) if (cell.length !== h || cell[0].length !== w) return null;
+        // Find cells with a unique element (not all same)
+        for (const cell of flat) {
+            const cellBg = toInt(BUILTINS.bg_color([cell]));
+            let hasUnique = false;
+            for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+                const v = ArrayBuffer.isView(cell[r][c]) ? toInt(cell[r][c]) : cell[r][c];
+                if (v !== cellBg) hasUnique = true;
+            }
+            if (hasUnique) {
+                // Check if other cells DON'T have this unique marker
+                let othersClean = true;
+                for (const other of flat) {
+                    if (other === cell) continue;
+                    const otherBg = toInt(BUILTINS.bg_color([other]));
+                    for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+                        const v = ArrayBuffer.isView(other[r][c]) ? toInt(other[r][c]) : other[r][c];
+                        if (v !== otherBg) othersClean = false;
+                    }
+                }
+                if (othersClean) return cell;
+            }
+        }
+        return null;
+    };
+
+    // Strategy 6: summarize each sub-grid to 1 cell (presence of non-bg marker)
+    // Output is NxM where N*M = number of sub-grids, each cell = 1 if marker present, 0 otherwise
+    const tryPresence = (cells, oR, oC, trainOutput) => {
+        if (cells.length === 0) return null;
+        if (cells.length !== oR) return null;
+        for (const row of cells) if (row.length !== oC) return null;
+        const result = Array.from({length: oR}, (_, ri) =>
+            Array.from({length: oC}, (_, ci) => {
+                const cell = cells[ri][ci];
+                const cellBg = toInt(BUILTINS.bg_color([cell]));
+                let hasMarker = false;
+                for (let r = 0; r < cell.length; r++) for (let c = 0; c < cell[0].length; c++) {
+                    const v = ArrayBuffer.isView(cell[r][c]) ? toInt(cell[r][c]) : cell[r][c];
+                    if (v !== cellBg) hasMarker = true;
+                }
+                return hasMarker;
+            }));
+        // Determine what color to use for true/false from training output
+        if (!trainOutput) return null;
+        // Find which colors map to true/false
+        let trueColor = -1, falseColor = -1;
+        for (let r = 0; r < oR; r++) for (let c = 0; c < oC; c++) {
+            const ov = ArrayBuffer.isView(trainOutput[r][c]) ? toInt(trainOutput[r][c]) : trainOutput[r][c];
+            if (result[r][c]) { if (trueColor === -1) trueColor = ov; else if (trueColor !== ov) return null; }
+            else { if (falseColor === -1) falseColor = ov; else if (falseColor !== ov) return null; }
+        }
+        if (trueColor === -1 || falseColor === -1) return null;
+        return { result, trueColor, falseColor };
+    };
+
+    // Strategy 7: count non-bg cells in each sub-grid
+    const tryCount = (cells, oR, oC, trainOutput) => {
+        if (cells.length === 0) return null;
+        if (cells.length !== oR) return null;
+        for (const row of cells) if (row.length !== oC) return null;
+        const counts = Array.from({length: oR}, (_, ri) =>
+            Array.from({length: oC}, (_, ci) => {
+                const cell = cells[ri][ci];
+                const cellBg = toInt(BUILTINS.bg_color([cell]));
+                let count = 0;
+                for (let r = 0; r < cell.length; r++) for (let c = 0; c < cell[0].length; c++) {
+                    const v = ArrayBuffer.isView(cell[r][c]) ? toInt(cell[r][c]) : cell[r][c];
+                    if (v !== cellBg) count++;
+                }
+                return count;
+            }));
+        // Check if output encodes counts directly
+        if (!trainOutput) return null;
+        for (let r = 0; r < oR; r++) for (let c = 0; c < oC; c++) {
+            const ov = ArrayBuffer.isView(trainOutput[r][c]) ? toInt(trainOutput[r][c]) : trainOutput[r][c];
+            if (ov !== counts[r][c]) return null;
+        }
+        return counts;
+    };
+
+    // Try each strategy
+    const tryStrategies = ['presence', 'count', 'unique', 'marker', 'or', 'xor', 'and'];
+    let presenceColors = null;  // saved from training for presence strategy
+    for (const strat of tryStrategies) {
+        let allMatch = true;
+        presenceColors = null;
+        for (let i = 0; i < ti.length; i++) {
+            const { hLines, vLines } = findGridLines(ti[i]);
+            if (hLines.length === 0 && vLines.length === 0) { allMatch = false; break; }
+            const cells = extractCells(ti[i], hLines, vLines);
+            const oR = to[i].length, oC = to[i][0].length;
+            let result = null;
+            if (strat === 'presence') {
+                const p = tryPresence(cells, oR, oC, to[i]);
+                if (!p) { allMatch = false; break; }
+                presenceColors = { trueColor: p.trueColor, falseColor: p.falseColor };
+                // Verify by constructing output
+                const pred = Array.from({length: oR}, (_, r) =>
+                    Array.from({length: oC}, (_, c) => fromInt(p.result[r][c] ? p.trueColor : p.falseColor)));
+                if (toInt(BUILTINS.grid_eq([pred, to[i]])) !== 1) { allMatch = false; break; }
+            } else if (strat === 'count') {
+                const counts = tryCount(cells, oR, oC, to[i]);
+                if (!counts) { allMatch = false; break; }
+            } else {
+                if (strat === 'or') result = tryOverlay(cells, oR, oC);
+                else if (strat === 'xor') result = tryXor(cells, oR, oC);
+                else if (strat === 'and') result = tryAnd(cells, oR, oC);
+                else if (strat === 'unique') result = tryUnique(cells, oR, oC);
+                else result = tryMarker(cells, oR, oC);
+                if (!result || toInt(BUILTINS.grid_eq([result, to[i]])) !== 1) { allMatch = false; break; }
+            }
+        }
+        if (allMatch) {
+            return te.map(t => {
+                const { hLines, vLines } = findGridLines(t);
+                const cells = extractCells(t, hLines, vLines);
+                if (strat === 'presence' && presenceColors) {
+                    const nR = cells.length, nC = cells[0] ? cells[0].length : 0;
+                    return Array.from({length: nR}, (_, ri) =>
+                        Array.from({length: nC}, (_, ci) => {
+                            const cell = cells[ri][ci];
+                            const cellBg = toInt(BUILTINS.bg_color([cell]));
+                            let has = false;
+                            for (let r = 0; r < cell.length; r++) for (let c = 0; c < cell[0].length; c++) {
+                                const v = ArrayBuffer.isView(cell[r][c]) ? toInt(cell[r][c]) : cell[r][c];
+                                if (v !== cellBg) has = true;
+                            }
+                            return fromInt(has ? presenceColors.trueColor : presenceColors.falseColor);
+                        }));
+                }
+                if (strat === 'count') {
+                    const nR = cells.length, nC = cells[0] ? cells[0].length : 0;
+                    return Array.from({length: nR}, (_, ri) =>
+                        Array.from({length: nC}, (_, ci) => {
+                            const cell = cells[ri][ci];
+                            const cellBg = toInt(BUILTINS.bg_color([cell]));
+                            let count = 0;
+                            for (let r = 0; r < cell.length; r++) for (let c = 0; c < cell[0].length; c++) {
+                                const v = ArrayBuffer.isView(cell[r][c]) ? toInt(cell[r][c]) : cell[r][c];
+                                if (v !== cellBg) count++;
+                            }
+                            return fromInt(count);
+                        }));
+                }
+                // Infer output size from first sub-grid cell
+                const flat = [];
+                for (const row of cells) for (const cell of row) flat.push(cell);
+                if (flat.length === 0) return t;
+                const oR = flat[0].length, oC = flat[0][0].length;
+                let result = null;
+                if (strat === 'or') result = tryOverlay(cells, oR, oC);
+                else if (strat === 'xor') result = tryXor(cells, oR, oC);
+                else if (strat === 'and') result = tryAnd(cells, oR, oC);
+                else if (strat === 'unique') result = tryUnique(cells, oR, oC);
+                else result = tryMarker(cells, oR, oC);
+                return result || t;
             });
         }
     }
