@@ -3228,7 +3228,8 @@ function run(src, opts) {
                     if (node.op === '!=') return fromInt(l !== r ? 1 : 0);
                 }
                 // Float-CRT mixed: promote CRT to float (float is contagious)
-                if ((lf && !rf && ArrayBuffer.isView(r)) || (!lf && rf && ArrayBuffer.isView(l))) {
+                // EXCEPT for ^: CRT^int must use modpow, not Math.pow (S644 fix)
+                if (((lf && !rf && ArrayBuffer.isView(r)) || (!lf && rf && ArrayBuffer.isView(l))) && node.op !== '^') {
                     const lv = lf ? l : toInt(l);
                     const rv = rf ? r : toInt(r);
                     if (node.op === '+') return lv + rv;
