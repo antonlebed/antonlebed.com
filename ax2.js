@@ -683,9 +683,138 @@ BUILTINS.strFind = (args) => {
 BUILTINS.show = null;  // handled in evaluator
 
 // ================================================================
+//  Phase F: Float math builtins (S625 — temporary JS Math.* bridge)
+//  Returns raw JS numbers (typeof === 'number'). Binary ops propagate floats.
+//  The PYTHON KILLER: once .ax has floats, CRT diffusion training moves to .ax.
+//  Step 2 (future): .ax-native float via Taylor series in CRT arithmetic.
+// ================================================================
+BUILTINS.toFloat = (args) => {
+    const v = args[0];
+    if (typeof v === 'number') return v;
+    if (ArrayBuffer.isView(v)) return toInt(v);
+    if (Array.isArray(v)) return v.length;
+    return 0;
+};
+BUILTINS.exp_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.exp(x);
+};
+BUILTINS.log_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return x > 0 ? Math.log(x) : -Infinity;
+};
+BUILTINS.log2_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return x > 0 ? Math.log2(x) : -Infinity;
+};
+BUILTINS.log10_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return x > 0 ? Math.log10(x) : -Infinity;
+};
+BUILTINS.pow_f = (args) => {
+    const base = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    const exp = typeof args[1] === 'number' ? args[1] : toInt(args[1]);
+    return Math.pow(base, exp);
+};
+BUILTINS.sqrt_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.sqrt(x);
+};
+BUILTINS.sin_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.sin(x);
+};
+BUILTINS.cos_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.cos(x);
+};
+BUILTINS.tan_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.tan(x);
+};
+BUILTINS.abs_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.abs(x);
+};
+BUILTINS.floor_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return fromInt(Math.floor(x));
+};
+BUILTINS.ceil_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return fromInt(Math.ceil(x));
+};
+BUILTINS.round_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return fromInt(Math.round(x));
+};
+BUILTINS.tanh_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return Math.tanh(x);
+};
+BUILTINS.sigmoid_f = (args) => {
+    const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]);
+    return 1.0 / (1.0 + Math.exp(-x));
+};
+BUILTINS.softmax = (args) => {
+    if (!Array.isArray(args[0])) throw new Error('softmax: expected array');
+    const arr = args[0].map(v => typeof v === 'number' ? v : toInt(v));
+    const maxVal = Math.max(...arr);
+    const exps = arr.map(x => Math.exp(x - maxVal));
+    const sum = exps.reduce((a, b) => a + b, 0);
+    return exps.map(e => e / sum);
+};
+BUILTINS.matmul = (args) => {
+    // matmul(A, B) — matrix multiply. A[m][k] * B[k][n] -> C[m][n].
+    // Values can be floats or CRT (converted to float for multiplication).
+    const A = args[0], B = args[1];
+    if (!Array.isArray(A) || !Array.isArray(B)) throw new Error('matmul: expected arrays');
+    if (!Array.isArray(A[0]) || !Array.isArray(B[0])) throw new Error('matmul: expected 2D arrays');
+    const m = A.length, k = A[0].length, n = B[0].length;
+    if (B.length !== k) throw new Error('matmul: dimension mismatch (' + k + ' vs ' + B.length + ')');
+    const C = [];
+    for (let i = 0; i < m; i++) {
+        const row = [];
+        for (let j = 0; j < n; j++) {
+            let s = 0;
+            for (let p = 0; p < k; p++) {
+                const a = typeof A[i][p] === 'number' ? A[i][p] : toInt(A[i][p]);
+                const b = typeof B[p][j] === 'number' ? B[p][j] : toInt(B[p][j]);
+                s += a * b;
+            }
+            row.push(s);
+        }
+        C.push(row);
+    }
+    return C;
+};
+BUILTINS.dot = (args) => {
+    // dot(a, b) — dot product of two arrays. Returns float.
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('dot: expected arrays');
+    let s = 0;
+    const len = Math.min(a.length, b.length);
+    for (let i = 0; i < len; i++) {
+        const av = typeof a[i] === 'number' ? a[i] : toInt(a[i]);
+        const bv = typeof b[i] === 'number' ? b[i] : toInt(b[i]);
+        s += av * bv;
+    }
+    return s;
+};
+BUILTINS.sum_f = (args) => {
+    // sum_f(arr) — sum of float array. Returns float.
+    if (!Array.isArray(args[0])) return 0;
+    return args[0].reduce((s, v) => s + (typeof v === 'number' ? v : toInt(v)), 0);
+};
+// Float constants (can't use E or PI — E=5 in Decality, PI not a keyword)
+BUILTINS.PI_f = (args) => Math.PI;
+BUILTINS.E_f = (args) => Math.E;
+BUILTINS.INF_f = (args) => Infinity;
+
+// ================================================================
 //  Diffusion ops moved to .ax stdlib (diffusion.ax, S618).
 //  decompose, reconstruct, cross, corrupt = pure .ax.
-//  anneal kept in JS (needs Math.pow — no .ax equivalent yet).
+//  anneal kept in JS (needs Math.pow — Phase F float builtins will replace).
 // ================================================================
 BUILTINS.anneal = (args) => {
     const t = toInt(args[0]), max_t = Math.max(1, toInt(args[1]));
@@ -3036,7 +3165,41 @@ function run(src, opts) {
             case 'Bin': {
                 let l = ev(node.l, local, depth);
                 let r = ev(node.r, local, depth);
-                // Coerce raw JS numbers to CRT (fixes toInt(x)==0, toInt(a)+toInt(b))
+                // Phase F (S625): Float propagation — when both are JS numbers, do float arithmetic
+                const lf = typeof l === 'number', rf = typeof r === 'number';
+                if (lf && rf && typeof l !== 'string' && typeof r !== 'string') {
+                    // Float-float binary ops: +, -, *, /, %, ^, comparisons
+                    if (node.op === '+') return l + r;
+                    if (node.op === '-') return l - r;
+                    if (node.op === '*') return l * r;
+                    if (node.op === '/') { if (r === 0) throw new Error('Division by zero'); return l / r; }
+                    if (node.op === '%') return r !== 0 ? l % r : 0;
+                    if (node.op === '^') return Math.pow(l, r);
+                    if (node.op === '<') return fromInt(l < r ? 1 : 0);
+                    if (node.op === '>') return fromInt(l > r ? 1 : 0);
+                    if (node.op === '<=') return fromInt(l <= r ? 1 : 0);
+                    if (node.op === '>=') return fromInt(l >= r ? 1 : 0);
+                    if (node.op === '==') return fromInt(l === r ? 1 : 0);
+                    if (node.op === '!=') return fromInt(l !== r ? 1 : 0);
+                }
+                // Float-CRT mixed: promote CRT to float (float is contagious)
+                if ((lf && !rf && ArrayBuffer.isView(r)) || (!lf && rf && ArrayBuffer.isView(l))) {
+                    const lv = lf ? l : toInt(l);
+                    const rv = rf ? r : toInt(r);
+                    if (node.op === '+') return lv + rv;
+                    if (node.op === '-') return lv - rv;
+                    if (node.op === '*') return lv * rv;
+                    if (node.op === '/') { if (rv === 0) throw new Error('Division by zero'); return lv / rv; }
+                    if (node.op === '%') return rv !== 0 ? lv % rv : 0;
+                    if (node.op === '^') return Math.pow(lv, rv);
+                    if (node.op === '<') return fromInt(lv < rv ? 1 : 0);
+                    if (node.op === '>') return fromInt(lv > rv ? 1 : 0);
+                    if (node.op === '<=') return fromInt(lv <= rv ? 1 : 0);
+                    if (node.op === '>=') return fromInt(lv >= rv ? 1 : 0);
+                    if (node.op === '==') return fromInt(lv === rv ? 1 : 0);
+                    if (node.op === '!=') return fromInt(lv !== rv ? 1 : 0);
+                }
+                // Coerce raw JS integers to CRT (backward compat: toInt(x)==0, S624)
                 if (typeof l === 'number' && typeof r !== 'string') l = fromInt(l);
                 if (typeof r === 'number' && typeof l !== 'string') r = fromInt(r);
                 // String concatenation (+ on strings)
@@ -3132,6 +3295,9 @@ function run(src, opts) {
                     if (ArrayBuffer.isView(v)) {
                         const n = toInt(v);
                         output.push({n, ch: Array.from(v), ecc: n % 11 === v[4]});
+                    } else if (typeof v === 'number') {
+                        // Phase F (S625): float display
+                        output.push({float: v});
                     } else if (Array.isArray(v)) {
                         output.push({arr: v.map(x => ArrayBuffer.isView(x) ? toInt(x) : x)});
                     } else {
@@ -3248,6 +3414,8 @@ function run(src, opts) {
                     if (ArrayBuffer.isView(v)) {
                         const n = toInt(v);
                         output.push({n, ch: Array.from(v), ecc: n % 11 === v[4]});
+                    } else if (typeof v === 'number') {
+                        output.push({float: v});
                     } else if (Array.isArray(v) && v.length > 0 && Array.isArray(v[0])) {
                         // Grid (2D array) — format as visual grid
                         const lines = v.map(row => row.map(c => ArrayBuffer.isView(c) ? toInt(c) : c).join(''));
