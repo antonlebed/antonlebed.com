@@ -329,7 +329,13 @@ class Parser {
         else if (this.pk().t === 'MUT') left = this.parseSetExpr();
         else if (this.pk().t === 'SHOW') { this.adv(); left = {t:'Call', fn:'show', args:[this.parsePipe()]}; }
         else left = this.parsePipe();
-        while (this.pk().t === ';') { this.adv(); left = {t:'Seq', a:left, b:this.parseExpr()}; }
+        while (this.pk().t === ';') {
+            // Stop before FN: fn is statement-only, never valid inside a sequence.
+            // This prevents fn bodies from consuming the next fn definition.
+            const next = this.T[this.p + 1];
+            if (next && next.t === 'FN') break;
+            this.adv(); left = {t:'Seq', a:left, b:this.parseExpr()};
+        }
         return left;
     }
 
@@ -350,10 +356,10 @@ class Parser {
                         while (this.match(',')) args.push(this.parseExpr());
                     }
                     this.expect(')');
-                    left = {t:'Pipe', fn:name, args};
+                    left = {t:'Pipe', fn:name, args, line:tok.line};
                 } else {
                     // |> fn => fn(left)
-                    left = {t:'Pipe', fn:name, args:[{t:'_pipe_val_', val:left}]};
+                    left = {t:'Pipe', fn:name, args:[{t:'_pipe_val_', val:left}], line:tok.line};
                 }
             } else {
                 throw new Error('Line ' + (this.pk().line||'?') + ': expected function name after |>');
@@ -468,7 +474,7 @@ class Parser {
             if (this.pk().t === '.') {
                 this.adv();
                 const ch = this.expect('ID').v;
-                e = {t:'ChAccess', e, ch};  // Channel access: expr.D, expr.K, etc.
+                e = {t:'ChAccess', e, ch, line:this.T[this.p-1].line};  // Channel access: expr.D, expr.K, etc.
             } else if (this.pk().t === '[') {
                 this.adv(); const idx = this.parseExpr(); this.expect(']');
                 e = {t:'Idx', arr:e, idx};
@@ -503,9 +509,9 @@ class Parser {
                     while (this.match(',')) args.push(this.parseExpr());
                 }
                 this.expect(')');
-                return {t:'Call', fn:tok.v, args};
+                return {t:'Call', fn:tok.v, args, line:tok.line};
             }
-            return {t:'Sym', name:tok.v};
+            return {t:'Sym', name:tok.v, line:tok.line};
         }
         if (tok.t === '(') { this.adv(); const e = this.parseExpr(); this.expect(')'); return e; }
         if (tok.t === '[') {
@@ -3191,7 +3197,7 @@ function run(src, opts) {
             case 'Sym': {
                 if (node.name in local) return local[node.name];
                 if (node.name in fns) return fns[node.name];
-                throw new Error('Unknown: ' + node.name);
+                throw new Error('Line ' + (node.line||'?') + ': Unknown: ' + node.name);
             }
             case 'Bin': {
                 let l = ev(node.l, local, depth);
@@ -3296,7 +3302,7 @@ function run(src, opts) {
             case 'ChAccess': {
                 const val = ev(node.e, local, depth);
                 if (node.ch in CH) return fromInt(val[CH[node.ch]]);
-                throw new Error('Unknown channel: ' + node.ch + ' (use D, K, E, b, L)');
+                throw new Error('Line ' + (node.line||'?') + ': Unknown channel: ' + node.ch + ' (use D, K, E, b, L)');
             }
             case 'If': {
                 const c = ev(node.cond, local, depth);
@@ -3352,7 +3358,7 @@ function run(src, opts) {
                     return ev(fn.body, callEnv, depth + 1);
                 }
                 if (BUILTINS[node.fn]) return BUILTINS[node.fn](args);
-                throw new Error('Unknown function: ' + node.fn);
+                throw new Error('Line ' + (node.line||'?') + ': Unknown function: ' + node.fn);
             }
             case 'Idx': {
                 const arr = ev(node.arr, local, depth);
@@ -3389,7 +3395,7 @@ function run(src, opts) {
                     return ev(fn.body, callEnv, depth + 1);
                 }
                 if (BUILTINS[node.fn]) return BUILTINS[node.fn](args);
-                throw new Error('Unknown function in pipeline: ' + node.fn);
+                throw new Error('Line ' + (node.line||'?') + ': Unknown function in pipeline: ' + node.fn);
             }
             case 'While': {
                 // while cond do body — imperative loop. Returns last body value.

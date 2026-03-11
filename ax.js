@@ -175,14 +175,15 @@ const KEYWORDS = new Set(['let','fn','print','if','then','else','while','do','fo
 
 function tokenize(src) {
     const T = [];
-    let i = 0, len = src.length;
+    let i = 0, len = src.length, line = 1;
+    const pk = (tok) => { tok.line = line; T.push(tok); };
     while (i < len) {
-        if (/\s/.test(src[i])) { i++; continue; }
+        if (/\s/.test(src[i])) { if (src[i] === '\n') line++; i++; continue; }
         if (src[i] === '-' && src[i+1] === '-') { while (i < len && src[i] !== '\n') i++; continue; }
         if (/\d/.test(src[i]) || (src[i] === '.' && i+1 < len && /\d/.test(src[i+1]))) {
             let num = '';
             while (i < len && /[\d.]/.test(src[i])) num += src[i++];
-            T.push({t:'NUM', v:parseFloat(num)}); continue;
+            pk({t:'NUM', v:parseFloat(num)}); continue;
         }
         if (src[i] === '"') {
             i++; let s = '', parts = [], hasInterp = false;
@@ -195,27 +196,32 @@ function tokenize(src) {
                     while (i < len && depth > 0) {
                         if (src[i] === '{') depth++;
                         else if (src[i] === '}') { depth--; if (depth === 0) { i++; break; } }
+                        if (src[i] === '\n') line++;
                         expr += src[i++];
                     }
                     parts.push({k:'e', v:expr});
-                } else { s += src[i++]; }
+                } else {
+                    if (src[i] === '\n') line++;
+                    s += src[i++];
+                }
             }
             if (i < len) i++;
-            if (!hasInterp) { T.push({t:'STR', v:s}); }
-            else { if (s) parts.push({k:'s', v:s}); T.push({t:'TEMPLATE', parts}); }
+            if (!hasInterp) { pk({t:'STR', v:s}); }
+            else { if (s) parts.push({k:'s', v:s}); pk({t:'TEMPLATE', parts}); }
             continue;
         }
         if (/[a-zA-Z_]/.test(src[i])) {
             let id = '';
             while (i < len && /[a-zA-Z0-9_]/.test(src[i])) id += src[i++];
-            T.push({t: KEYWORDS.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
+            pk({t: KEYWORDS.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
         }
-        if (src[i] === '=' && i+1 < len && src[i+1] === '=') { T.push({t:'==', v:'=='}); i+=2; continue; }
+        if (src[i] === '=' && i+1 < len && src[i+1] === '=') { pk({t:'==', v:'=='}); i+=2; continue; }
+        if (src[i] === '/' && src[i+1] === '*') { i += 2; while (i < len - 1 && !(src[i] === '*' && src[i+1] === '/')) { if (src[i] === '\n') line++; i++; } i += 2; continue; }
         const ch = src[i];
-        if ('+-*/^~@<>=()[]|,;'.includes(ch)) { T.push({t:ch, v:ch}); i++; continue; }
+        if ('+-*/^~@<>=()[]|,;'.includes(ch)) { pk({t:ch, v:ch}); i++; continue; }
         i++;
     }
-    T.push({t:'EOF', v:null});
+    pk({t:'EOF', v:null});
     return T;
 }
 
@@ -235,7 +241,11 @@ class Parser {
 
     parseProgram() {
         const stmts = [];
-        while (this.pk().t !== 'EOF') stmts.push(this.parseStmt());
+        while (this.pk().t !== 'EOF') {
+            while (this.pk().t === ';') this.adv();  // skip statement separators
+            if (this.pk().t === 'EOF') break;
+            stmts.push(this.parseStmt());
+        }
         return stmts;
     }
 
@@ -277,7 +287,12 @@ class Parser {
 
     parseExpr() {
         let left = this.parseIfOrCmp();
-        while (this.pk().t === ';') { this.adv(); left = {t:'Seq', a:left, b:this.parseIfOrCmp()}; }
+        while (this.pk().t === ';') {
+            // Stop before FN: fn is statement-only, never valid inside a sequence.
+            const next = this.T[this.p + 1];
+            if (next && next.t === 'FN') break;
+            this.adv(); left = {t:'Seq', a:left, b:this.parseIfOrCmp()};
+        }
         return left;
     }
 
@@ -392,9 +407,9 @@ class Parser {
                     while (this.match(',')) args.push(this.parseExpr());
                 }
                 this.expect(')');
-                return {t:'Call', fn:tok.v, args};
+                return {t:'Call', fn:tok.v, args, line:tok.line};
             }
-            return {t:'Sym', name:tok.v};
+            return {t:'Sym', name:tok.v, line:tok.line};
         }
         if (tok.t === '(') {
             this.adv();
@@ -1039,7 +1054,7 @@ function run(src) {
             case 'Sym': {
                 if (node.name in localEnv) return localEnv[node.name];
                 if (node.name in fns) return fns[node.name];
-                throw new Error('Unknown: ' + node.name);
+                throw new Error('Line ' + (node.line||'?') + ': Unknown: ' + node.name);
             }
             case 'Bin': {
                 const l = ev(node.l, localEnv, depth), r = ev(node.r, localEnv, depth);
@@ -1103,7 +1118,7 @@ function run(src) {
                 const val = ev(node.val, localEnv, depth);
                 return ev(node.body, {...localEnv, [node.name]: val}, depth);
             }
-            case 'Call': return evalCall(node.fn, node.args, localEnv, depth);
+            case 'Call': return evalCall(node.fn, node.args, localEnv, depth, node.line);
             case 'Idx': {
                 const arr = ev(node.arr, localEnv, depth);
                 const idx = Math.floor(ev(node.idx, localEnv, depth));
@@ -1127,19 +1142,19 @@ function run(src) {
         throw new Error('Cannot evaluate: ' + JSON.stringify(node));
     }
 
-    function evalCall(fnName, argNodes, localEnv, depth) {
+    function evalCall(fnName, argNodes, localEnv, depth, line) {
         const args = argNodes.map(a => ev(a, localEnv, depth));
         // Check builtins
         if (BUILTINS[fnName]) return BUILTINS[fnName](args, ctx);
         // User-defined function
         if (fnName in fns) {
             const fn = fns[fnName];
-            if (args.length !== fn.params.length) throw new Error(fnName + ' expects ' + fn.params.length + ' args, got ' + args.length);
+            if (args.length !== fn.params.length) throw new Error('Line ' + (line||'?') + ': ' + fnName + ' expects ' + fn.params.length + ' args, got ' + args.length);
             const callEnv = {...fn.closureEnv};
             for (let i = 0; i < fn.params.length; i++) callEnv[fn.params[i]] = args[i];
             return ev(fn.body, callEnv, depth + 1);
         }
-        throw new Error('Unknown function: ' + fnName);
+        throw new Error('Line ' + (line||'?') + ': Unknown function: ' + fnName);
     }
 
     // Execute statements
