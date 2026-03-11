@@ -147,8 +147,9 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="coupling">Coupling Scanner</option>
       <option value="scanner">Ring Scanner (for loops)</option>
       <option value="spectral">Spectral Explorer</option>
-      <option value="grids">Grid Operations (new!)</option>
-      <option value="multiring">Multi-Ring (new!)</option>
+      <option value="grids">Grid Operations</option>
+      <option value="multiring">Multi-Ring</option>
+      <option value="floats">Float Math (new!)</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -755,6 +756,48 @@ function execute(src) {
             case 'pow': return Math.pow(args[0], args[1]);
             case 'floor': return Math.floor(args[0]);
             case 'ceil': return Math.ceil(args[0]);
+            // Phase F float builtins (S626 — parity with ax2.js)
+            case 'toFloat': return typeof args[0] === 'number' ? args[0] + 0.0 : 0;
+            case 'exp_f': return Math.exp(args[0]);
+            case 'log_f': return args[0] > 0 ? Math.log(args[0]) : -Infinity;
+            case 'log2_f': return args[0] > 0 ? Math.log2(args[0]) : -Infinity;
+            case 'log10_f': return args[0] > 0 ? Math.log10(args[0]) : -Infinity;
+            case 'pow_f': return Math.pow(args[0], args[1]);
+            case 'sqrt_f': return Math.sqrt(args[0]);
+            case 'sin_f': return Math.sin(args[0]);
+            case 'cos_f': return Math.cos(args[0]);
+            case 'tan_f': return Math.tan(args[0]);
+            case 'abs_f': return Math.abs(args[0]);
+            case 'floor_f': return Math.floor(args[0]);
+            case 'ceil_f': return Math.ceil(args[0]);
+            case 'round_f': return Math.round(args[0]);
+            case 'tanh_f': return Math.tanh(args[0]);
+            case 'sigmoid_f': return 1.0 / (1.0 + Math.exp(-args[0]));
+            case 'softmax': {
+                if (!Array.isArray(args[0])) throw new Error('softmax: expected array');
+                const mx = Math.max(...args[0]), exps = args[0].map(x => Math.exp(x - mx));
+                const s = exps.reduce((a, b) => a + b, 0);
+                return exps.map(e => e / s);
+            }
+            case 'matmul': {
+                const A = args[0], B = args[1];
+                if (!Array.isArray(A) || !Array.isArray(B)) throw new Error('matmul: expected arrays');
+                const m = A.length, k = A[0].length, n = B[0].length;
+                if (B.length !== k) throw new Error('matmul: dimension mismatch');
+                const C = [];
+                for (let i = 0; i < m; i++) { const row = []; for (let j = 0; j < n; j++) { let s = 0; for (let p = 0; p < k; p++) s += A[i][p] * B[p][j]; row.push(s); } C.push(row); }
+                return C;
+            }
+            case 'dot': {
+                const a = args[0], b = args[1];
+                if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('dot: expected arrays');
+                let s = 0; for (let i = 0; i < Math.min(a.length, b.length); i++) s += a[i] * b[i];
+                return s;
+            }
+            case 'sum_f': return Array.isArray(args[0]) ? args[0].reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0) : 0;
+            case 'PI_f': return Math.PI;
+            case 'E_f': return Math.E;
+            case 'INF_f': return Infinity;
         }
         // User-defined function
         if (fnName in fns) {
@@ -1182,7 +1225,44 @@ show_grid(transpose(g2))
 print ""
 print "=== GRID EQUALITY ==="
 print grid_eq(g2, g2)
-print grid_eq(g2, hflip(g2))`
+print grid_eq(g2, hflip(g2))`,
+floats: `-- floats.ax: Float Math (Phase F)
+-- Eigenvalue formula, spectral gap, constants
+
+print "=== EIGENVALUE FORMULA ==="
+print "lam(n) = sum of cos terms over 5 channels"
+
+let pi = PI_f()
+let n = 137
+print "n = 137 (ADDRESS = fine structure)"
+let lam = cos_f(pi * toFloat(n)) + cos_f(toFloat(2) * pi * toFloat(n) / toFloat(3)) * toFloat(2) + cos_f(toFloat(2) * pi * toFloat(n) / toFloat(5)) * toFloat(2) + cos_f(toFloat(2) * pi * toFloat(n) / toFloat(7)) * toFloat(2) + cos_f(toFloat(2) * pi * toFloat(n) / toFloat(11)) * toFloat(2)
+print "lam(137) ="
+print lam
+
+print ""
+print "=== SPECTRAL GAP ==="
+let gap = toFloat(4) * sin_f(pi / toFloat(11)) * sin_f(pi / toFloat(11))
+print "Thin ring gap = 4*sin^2(pi/11) ="
+print gap
+
+print ""
+print "=== HOLOGRAPHIC CONSTANT ==="
+let holo = sqrt_f(toFloat(1)) + sqrt_f(toFloat(2)) + sqrt_f(toFloat(3)) + sqrt_f(toFloat(5)) + sqrt_f(toFloat(7)) + sqrt_f(toFloat(11))
+print "HOLO = sqrt(1)+sqrt(2)+sqrt(3)+sqrt(5)+sqrt(7)+sqrt(11) ="
+print holo
+
+print ""
+print "=== SOFTMAX ==="
+let probs = softmax([toFloat(1), toFloat(2), toFloat(3), toFloat(5), toFloat(7)])
+print "softmax([1,2,3,5,7]) ="
+print probs
+
+print ""
+print "=== SIGMOID ==="
+print "sigmoid(0) ="
+print sigmoid_f(toFloat(0))
+print "sigmoid(2) ="
+print sigmoid_f(toFloat(2))`
 };
 
 // ================================================================

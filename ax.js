@@ -185,10 +185,25 @@ function tokenize(src) {
             T.push({t:'NUM', v:parseFloat(num)}); continue;
         }
         if (src[i] === '"') {
-            i++; let s = '';
-            while (i < len && src[i] !== '"') s += src[i++];
+            i++; let s = '', parts = [], hasInterp = false;
+            while (i < len && src[i] !== '"') {
+                if (src[i] === '$' && i + 1 < len && src[i+1] === '{') {
+                    hasInterp = true;
+                    if (s) parts.push({k:'s', v:s});
+                    s = ''; i += 2;
+                    let depth = 1, expr = '';
+                    while (i < len && depth > 0) {
+                        if (src[i] === '{') depth++;
+                        else if (src[i] === '}') { depth--; if (depth === 0) { i++; break; } }
+                        expr += src[i++];
+                    }
+                    parts.push({k:'e', v:expr});
+                } else { s += src[i++]; }
+            }
             if (i < len) i++;
-            T.push({t:'STR', v:s}); continue;
+            if (!hasInterp) { T.push({t:'STR', v:s}); }
+            else { if (s) parts.push({k:'s', v:s}); T.push({t:'TEMPLATE', parts}); }
+            continue;
         }
         if (/[a-zA-Z_]/.test(src[i])) {
             let id = '';
@@ -355,6 +370,18 @@ class Parser {
         const tok = this.pk();
         if (tok.t === 'NUM') { this.adv(); return {t:'Num', v:tok.v}; }
         if (tok.t === 'STR') { this.adv(); return {t:'Str', v:tok.v}; }
+        if (tok.t === 'TEMPLATE') {
+            this.adv();
+            let node = null;
+            for (const part of tok.parts) {
+                let pNode;
+                if (part.k === 's') { pNode = {t:'Str', v:part.v}; }
+                else { const sub = new Parser(tokenize(part.v)); pNode = sub.parseExpr(); }
+                if (!node) node = pNode;
+                else node = {t:'Bin', op:'+', l:node, r:pNode};
+            }
+            return node || {t:'Str', v:''};
+        }
         if (tok.t === 'ID') {
             this.adv();
             if (this.pk().t === '(') {
@@ -610,6 +637,70 @@ BUILTINS.floor = (args) => Math.floor(args[0]);
 BUILTINS.ceil = (args) => Math.ceil(args[0]);
 BUILTINS.pow = (args) => Math.pow(args[0], args[1]);
 BUILTINS.len = (args) => Array.isArray(args[0]) ? args[0].length : 0;
+
+// --- Phase F: Float math builtins (S626 — parity with ax2.js) ---
+// Returns raw JS floats. Binary ops propagate: non-integer + anything = float arithmetic.
+BUILTINS.toFloat = (args) => {
+    const v = args[0];
+    if (typeof v === 'number') return v + 0.0; // ensure float semantics
+    if (Array.isArray(v)) return v.length;
+    return 0;
+};
+BUILTINS.exp_f = (args) => Math.exp(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.log_f = (args) => { const x = typeof args[0] === 'number' ? args[0] : 0; return x > 0 ? Math.log(x) : -Infinity; };
+BUILTINS.log2_f = (args) => { const x = typeof args[0] === 'number' ? args[0] : 0; return x > 0 ? Math.log2(x) : -Infinity; };
+BUILTINS.log10_f = (args) => { const x = typeof args[0] === 'number' ? args[0] : 0; return x > 0 ? Math.log10(x) : -Infinity; };
+BUILTINS.pow_f = (args) => Math.pow(typeof args[0] === 'number' ? args[0] : 0, typeof args[1] === 'number' ? args[1] : 0);
+BUILTINS.sqrt_f = (args) => Math.sqrt(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.sin_f = (args) => Math.sin(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.cos_f = (args) => Math.cos(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.tan_f = (args) => Math.tan(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.abs_f = (args) => Math.abs(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.floor_f = (args) => Math.floor(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.ceil_f = (args) => Math.ceil(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.round_f = (args) => Math.round(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.tanh_f = (args) => Math.tanh(typeof args[0] === 'number' ? args[0] : 0);
+BUILTINS.sigmoid_f = (args) => { const x = typeof args[0] === 'number' ? args[0] : 0; return 1.0 / (1.0 + Math.exp(-x)); };
+BUILTINS.softmax = (args) => {
+    if (!Array.isArray(args[0])) throw new Error('softmax: expected array');
+    const arr = args[0].map(v => typeof v === 'number' ? v : 0);
+    const mx = Math.max(...arr);
+    const exps = arr.map(x => Math.exp(x - mx));
+    const s = exps.reduce((a, b) => a + b, 0);
+    return exps.map(e => e / s);
+};
+BUILTINS.matmul = (args) => {
+    const A = args[0], B = args[1];
+    if (!Array.isArray(A) || !Array.isArray(B)) throw new Error('matmul: expected arrays');
+    if (!Array.isArray(A[0]) || !Array.isArray(B[0])) throw new Error('matmul: expected 2D arrays');
+    const m = A.length, k = A[0].length, n = B[0].length;
+    if (B.length !== k) throw new Error('matmul: dimension mismatch');
+    const C = [];
+    for (let i = 0; i < m; i++) {
+        const row = [];
+        for (let j = 0; j < n; j++) {
+            let s = 0;
+            for (let p = 0; p < k; p++) s += (typeof A[i][p] === 'number' ? A[i][p] : 0) * (typeof B[p][j] === 'number' ? B[p][j] : 0);
+            row.push(s);
+        }
+        C.push(row);
+    }
+    return C;
+};
+BUILTINS.dot = (args) => {
+    const a = args[0], b = args[1];
+    if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('dot: expected arrays');
+    let s = 0;
+    for (let i = 0; i < Math.min(a.length, b.length); i++) s += (typeof a[i] === 'number' ? a[i] : 0) * (typeof b[i] === 'number' ? b[i] : 0);
+    return s;
+};
+BUILTINS.sum_f = (args) => {
+    if (!Array.isArray(args[0])) return 0;
+    return args[0].reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0);
+};
+BUILTINS.PI_f = () => Math.PI;
+BUILTINS.E_f = () => Math.E;
+BUILTINS.INF_f = () => Infinity;
 
 // --- Array builtins ---
 BUILTINS.range = function(args) {
@@ -952,6 +1043,30 @@ function run(src) {
             }
             case 'Bin': {
                 const l = ev(node.l, localEnv, depth), r = ev(node.r, localEnv, depth);
+                // String concatenation: "str" + anything = string
+                if (node.op === '+' && (typeof l === 'string' || typeof r === 'string')) {
+                    const ls = typeof l === 'string' ? l : (Number.isInteger(l) ? String(l) : (typeof l === 'number' ? l.toFixed(6) : String(l)));
+                    const rs = typeof r === 'string' ? r : (Number.isInteger(r) ? String(r) : (typeof r === 'number' ? r.toFixed(6) : String(r)));
+                    return ls + rs;
+                }
+                // Phase F (S626): Float propagation — if either operand is non-integer, do float arithmetic
+                if ((typeof l === 'number' && !Number.isInteger(l)) || (typeof r === 'number' && !Number.isInteger(r))) {
+                    const lv = typeof l === 'number' ? l : 0, rv = typeof r === 'number' ? r : 0;
+                    switch (node.op) {
+                        case '+': return lv + rv;
+                        case '-': return lv - rv;
+                        case '*': return lv * rv;
+                        case '/': if (rv === 0) throw new Error('Division by zero'); return lv / rv;
+                        case '%': return rv !== 0 ? lv % rv : 0;
+                        case '^': return Math.pow(lv, rv);
+                        case '<': return lv < rv ? 1 : 0;
+                        case '>': return lv > rv ? 1 : 0;
+                        case '==': return Math.abs(lv - rv) < 1e-10 ? 1 : 0;
+                        case '!=': return Math.abs(lv - rv) >= 1e-10 ? 1 : 0;
+                        case '<=': return lv <= rv ? 1 : 0;
+                        case '>=': return lv >= rv ? 1 : 0;
+                    }
+                }
                 switch (node.op) {
                     case '+': return ringMod(l + r);
                     case '-': return ringMod(l - r);

@@ -200,10 +200,29 @@ function tokenize(src) {
             pk({t:'NUM', v:parseFloat(num)}); continue;
         }
         if (src[i] === '"') {
-            i++; let s = '';
-            while (i < src.length && src[i] !== '"') { if (src[i] === '\n') line++; s += src[i++]; }
+            i++; let s = '', parts = [], hasInterp = false;
+            while (i < src.length && src[i] !== '"') {
+                if (src[i] === '$' && i + 1 < src.length && src[i+1] === '{') {
+                    hasInterp = true;
+                    if (s) parts.push({k:'s', v:s});
+                    s = ''; i += 2;
+                    let depth = 1, expr = '';
+                    while (i < src.length && depth > 0) {
+                        if (src[i] === '{') depth++;
+                        else if (src[i] === '}') { depth--; if (depth === 0) { i++; break; } }
+                        if (src[i] === '\n') line++;
+                        expr += src[i++];
+                    }
+                    parts.push({k:'e', v:expr});
+                } else {
+                    if (src[i] === '\n') line++;
+                    s += src[i++];
+                }
+            }
             if (i < src.length) i++;
-            pk({t:'STR', v:s}); continue;
+            if (!hasInterp) { pk({t:'STR', v:s}); }
+            else { if (s) parts.push({k:'s', v:s}); pk({t:'TEMPLATE', parts}); }
+            continue;
         }
         if (/[a-zA-Z_]/.test(src[i])) {
             let id = '';
@@ -462,6 +481,18 @@ class Parser {
         const tok = this.pk();
         if (tok.t === 'NUM') { this.adv(); return {t:'Num', v:tok.v}; }
         if (tok.t === 'STR') { this.adv(); return {t:'Str', v:tok.v}; }
+        if (tok.t === 'TEMPLATE') {
+            this.adv();
+            let node = null;
+            for (const part of tok.parts) {
+                let pNode;
+                if (part.k === 's') { pNode = {t:'Str', v:part.v}; }
+                else { const sub = new Parser(tokenize(part.v)); pNode = sub.parseExpr(); }
+                if (!node) node = pNode;
+                else node = {t:'Bin', op:'+', l:node, r:pNode};
+            }
+            return node || {t:'Str', v:''};
+        }
         if (tok.t === 'ID') {
             this.adv();
             if (this.pk().t === '(') {
