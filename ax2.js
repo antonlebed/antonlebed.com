@@ -188,38 +188,40 @@ const KEYWORDS = new Set(['let','fn','show','if','then','else','for','in','do','
 
 function tokenize(src) {
     const T = [];
-    let i = 0;
+    let i = 0, line = 1;
+    const pk = (tok) => { tok.line = line; T.push(tok); };
     while (i < src.length) {
-        if (/\s/.test(src[i])) { i++; continue; }
+        if (/\s/.test(src[i])) { if (src[i] === '\n') line++; i++; continue; }
         if (src[i] === '-' && src[i+1] === '-') { while (i < src.length && src[i] !== '\n') i++; continue; }
+        if (src[i] === '/' && src[i+1] === '*') { i += 2; while (i < src.length - 1 && !(src[i] === '*' && src[i+1] === '/')) { if (src[i] === '\n') line++; i++; } i += 2; continue; }
         if (/\d/.test(src[i])) {
             let num = '';
             while (i < src.length && /[\d.]/.test(src[i])) num += src[i++];
-            T.push({t:'NUM', v:parseFloat(num)}); continue;
+            pk({t:'NUM', v:parseFloat(num)}); continue;
         }
         if (src[i] === '"') {
             i++; let s = '';
-            while (i < src.length && src[i] !== '"') s += src[i++];
+            while (i < src.length && src[i] !== '"') { if (src[i] === '\n') line++; s += src[i++]; }
             if (i < src.length) i++;
-            T.push({t:'STR', v:s}); continue;
+            pk({t:'STR', v:s}); continue;
         }
         if (/[a-zA-Z_]/.test(src[i])) {
             let id = '';
             while (i < src.length && /[a-zA-Z0-9_]/.test(src[i])) id += src[i++];
-            T.push({t: KEYWORDS.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
+            pk({t: KEYWORDS.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
         }
-        if (src[i] === '=' && src[i+1] === '=') { T.push({t:'=='}); i+=2; continue; }
-        if (src[i] === '=' && src[i+1] === '>') { T.push({t:'=>'}); i+=2; continue; }
-        if (src[i] === '!' && src[i+1] === '=') { T.push({t:'!='}); i+=2; continue; }
-        if (src[i] === '|' && src[i+1] === '>') { T.push({t:'|>'}); i+=2; continue; }
-        if (src[i] === '<' && src[i+1] === '=') { T.push({t:'<='}); i+=2; continue; }
-        if (src[i] === '>' && src[i+1] === '=') { T.push({t:'>='}); i+=2; continue; }
-        if (src[i] === '.') { T.push({t:'.'}); i++; continue; }
+        if (src[i] === '=' && src[i+1] === '=') { pk({t:'=='}); i+=2; continue; }
+        if (src[i] === '=' && src[i+1] === '>') { pk({t:'=>'}); i+=2; continue; }
+        if (src[i] === '!' && src[i+1] === '=') { pk({t:'!='}); i+=2; continue; }
+        if (src[i] === '|' && src[i+1] === '>') { pk({t:'|>'}); i+=2; continue; }
+        if (src[i] === '<' && src[i+1] === '=') { pk({t:'<='}); i+=2; continue; }
+        if (src[i] === '>' && src[i+1] === '=') { pk({t:'>='}); i+=2; continue; }
+        if (src[i] === '.') { pk({t:'.'}); i++; continue; }
         const ch = src[i];
-        if ('+-*/^%<>=()[]|,;'.includes(ch)) { T.push({t:ch}); i++; continue; }
+        if ('+-*/^%<>=()[]|,;'.includes(ch)) { pk({t:ch}); i++; continue; }
         i++;
     }
-    T.push({t:'EOF'});
+    pk({t:'EOF'});
     return T;
 }
 
@@ -232,7 +234,7 @@ class Parser {
     adv() { return this.T[this.p++]; }
     expect(t) {
         const tok = this.adv();
-        if (tok.t !== t) throw new Error('Expected ' + t + ', got ' + tok.t);
+        if (tok.t !== t) throw new Error('Line ' + (tok.line||'?') + ': expected ' + t + ', got ' + tok.t + (tok.v !== undefined ? ' (' + tok.v + ')' : ''));
         return tok;
     }
     match(t) { if (this.pk().t === t) { this.adv(); return true; } return false; }
@@ -335,7 +337,7 @@ class Parser {
                     left = {t:'Pipe', fn:name, args:[{t:'_pipe_val_', val:left}]};
                 }
             } else {
-                throw new Error('Expected function name after |>');
+                throw new Error('Line ' + (this.pk().line||'?') + ': expected function name after |>');
             }
         }
         return left;
@@ -343,12 +345,13 @@ class Parser {
 
     parseIf() {
         this.expect('IF'); const cond = this.parseExpr();
-        this.expect('THEN'); const then_ = this.parseExpr();
-        this.expect('ELSE');
-        // else_ uses parseExprNoSeq: THEN/ELSE terminate cond/then_ naturally,
-        // but else_ has no keyword terminator, so ';' after else would be greedy.
-        // With parseExprNoSeq, 'if a then b else c; d' -> d is AFTER the if, not in else.
-        return {t:'If', cond, then_, else_:this.parseExprNoSeq()};
+        this.expect('THEN'); const then_ = this.parseExprNoSeq();
+        // else is optional: bare `if cond then expr` returns void when false
+        if (this.pk().t === 'ELSE') {
+            this.adv();
+            return {t:'If', cond, then_, else_:this.parseExprNoSeq()};
+        }
+        return {t:'If', cond, then_, else_:{t:'Num', v:0}};
     }
 
     parseSetExpr() {
@@ -369,13 +372,15 @@ class Parser {
     parseFor() {
         this.expect('FOR'); const v = this.expect('ID').v;
         this.expect('IN'); const iter = this.parseCmp();
-        this.expect('DO');
+        // `do` keyword optional: `for i in range(n) (body)` infers do
+        if (this.pk().t === 'DO') this.adv();
         return {t:'For', v, iter, body:this.parseExprNoSeq()};
     }
 
     parseWhile() {
         this.expect('WHILE'); const cond = this.parseCmp();
-        this.expect('DO');
+        // `do` keyword optional: `while cond (body)` infers do
+        if (this.pk().t === 'DO') this.adv();
         return {t:'While', cond, body:this.parseExprNoSeq()};
     }
 
@@ -482,7 +487,7 @@ class Parser {
             this.expect(']');
             return {t:'Arr', elems};
         }
-        throw new Error('Unexpected: ' + tok.t);
+        throw new Error('Line ' + (tok.line||'?') + ': unexpected ' + tok.t + (tok.v !== undefined ? ' (' + tok.v + ')' : ''));
     }
 }
 
@@ -3029,8 +3034,11 @@ function run(src, opts) {
                 throw new Error('Unknown: ' + node.name);
             }
             case 'Bin': {
-                const l = ev(node.l, local, depth);
-                const r = ev(node.r, local, depth);
+                let l = ev(node.l, local, depth);
+                let r = ev(node.r, local, depth);
+                // Coerce raw JS numbers to CRT (fixes toInt(x)==0, toInt(a)+toInt(b))
+                if (typeof l === 'number' && typeof r !== 'string') l = fromInt(l);
+                if (typeof r === 'number' && typeof l !== 'string') r = fromInt(r);
                 // String concatenation (+ on strings)
                 if (typeof l === 'string' || typeof r === 'string') {
                     if (node.op === '+') {
