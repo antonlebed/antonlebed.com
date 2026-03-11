@@ -182,7 +182,11 @@ function tokenize(src) {
         if (src[i] === '-' && src[i+1] === '-') { while (i < len && src[i] !== '\n') i++; continue; }
         if (/\d/.test(src[i]) || (src[i] === '.' && i+1 < len && /\d/.test(src[i+1]))) {
             let num = '';
-            while (i < len && /[\d.]/.test(src[i])) num += src[i++];
+            while (i < len && /[\d.]/.test(src[i])) {
+                // Don't consume '.' if followed by a channel name (D,K,E,b,L)
+                if (src[i] === '.' && /[DKEbL]/.test(src[i+1]) && !/[\da-zA-Z_]/.test(src[i+2]||'')) break;
+                num += src[i++];
+            }
             pk({t:'NUM', v:parseFloat(num)}); continue;
         }
         if (src[i] === '"') {
@@ -316,8 +320,11 @@ class Parser {
         this.expect('LET');
         const name = this.expect('ID').v;
         this.expect('=');
-        const val = this.parseExpr();
-        if (this.pk().t === 'IN') { this.adv(); }
+        const val = this.parseIfOrCmp();  // Not parseExpr: stops before ; so let scope works inside (...)
+        // Accept 'in' or ';' as body separator; ';' fixes let inside (...) blocks
+        if (this.pk().t === 'IN' || this.pk().t === ';') { this.adv(); }
+        const pk = this.pk().t;
+        if (pk === ')' || pk === 'EOF' || pk === ']') return {t:'LetExpr', name, val, body:{t:'Var', name}};
         return {t:'LetExpr', name, val, body:this.parseExpr()};
     }
 

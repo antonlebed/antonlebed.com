@@ -196,7 +196,11 @@ function tokenize(src) {
         if (src[i] === '/' && src[i+1] === '*') { i += 2; while (i < src.length - 1 && !(src[i] === '*' && src[i+1] === '/')) { if (src[i] === '\n') line++; i++; } i += 2; continue; }
         if (/\d/.test(src[i])) {
             let num = '';
-            while (i < src.length && /[\d.]/.test(src[i])) num += src[i++];
+            while (i < src.length && /[\d.]/.test(src[i])) {
+                // Don't consume '.' if followed by a channel name (D,K,E,b,L)
+                if (src[i] === '.' && /[DKEbL]/.test(src[i+1]) && !/[\da-zA-Z_]/.test(src[i+2]||'')) break;
+                num += src[i++];
+            }
             pk({t:'NUM', v:parseFloat(num)}); continue;
         }
         if (src[i] === '"') {
@@ -389,8 +393,12 @@ class Parser {
 
     parseLetExpr() {
         this.expect('LET'); const name = this.expect('ID').v;
-        this.expect('='); const val = this.parseExpr();
-        if (this.pk().t === 'IN') this.adv();
+        this.expect('='); const val = this.parseExprNoSeq();
+        // Accept 'in' or ';' as body separator; ';' fixes let inside (...) blocks
+        if (this.pk().t === 'IN' || this.pk().t === ';') this.adv();
+        // If no valid body start, return val via the name binding
+        const pk = this.pk().t;
+        if (pk === ')' || pk === 'EOF' || pk === ']') return {t:'LetExpr', name, val, body:{t:'Var', name}};
         return {t:'LetExpr', name, val, body:this.parseExpr()};
     }
 
