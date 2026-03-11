@@ -678,6 +678,70 @@ BUILTINS.strFind = (args) => {
 BUILTINS.show = null;  // handled in evaluator
 
 // ================================================================
+//  Diffusion builtins (CRT diffusion v0.1-v0.8a — closing the strange loop)
+//  Every pattern discovered in Python training -> .ax builtin (Rule 9, S618)
+// ================================================================
+
+// decompose(n) — byte to 5 CRT residues [n%8, n%9, n%25, n%49, n%11]
+// The fundamental operation: D opens, each channel sees its own truth.
+BUILTINS.decompose = (args) => {
+    const n = ((toInt(args[0]) % N) + N) % N;
+    return MODS.map(p => fromInt(n % p));
+};
+
+// reconstruct(arr) — 5 CRT residues back to integer. Inverse of decompose.
+// K closes what D opened. The channels reunite into one number.
+BUILTINS.reconstruct = (args) => {
+    const arr = args[0];
+    if (!Array.isArray(arr) || arr.length < 5) return fromInt(0);
+    return fromChannels(
+        ((toInt(arr[0]) % MODS[0]) + MODS[0]) % MODS[0],
+        ((toInt(arr[1]) % MODS[1]) + MODS[1]) % MODS[1],
+        ((toInt(arr[2]) % MODS[2]) + MODS[2]) % MODS[2],
+        ((toInt(arr[3]) % MODS[3]) + MODS[3]) % MODS[3],
+        ((toInt(arr[4]) % MODS[4]) + MODS[4]) % MODS[4]
+    );
+};
+
+// cross(direct, mirrored) — cross-consistency metric (13 = GATE).
+// For each channel: direct + mirror should = 0 (mod p). Returns agreement count 0-5.
+// Dual Bloom (S615): two views, shared skin. This measures how well they agree.
+BUILTINS.cross = (args) => {
+    const d = args[0], m = args[1];
+    let agree = 0;
+    for (let i = 0; i < 5; i++) {
+        if ((d[i] + m[i]) % MODS[i] === 0) agree++;
+    }
+    return fromInt(agree);
+};
+
+// anneal(t, max_t, weight) — coupling-ordered temperature for channel.
+// Discovered S613: channels cool at different rates based on coupling.
+// High coupling (slow-moving) channels cool first. base^weight.
+// t/max_t = progress (0->1). weight = coupling weight (1,2,3,5,7).
+BUILTINS.anneal = (args) => {
+    const t = toInt(args[0]), max_t = Math.max(1, toInt(args[1]));
+    const weight = toInt(args[2]);
+    const progress = t / max_t;  // 0 -> 1
+    const base = 1.0 - progress;  // 1 -> 0
+    const temp = Math.pow(Math.max(base, 0.001), weight);
+    return fromInt(Math.round(temp * 1000));  // fixed-point: 1000 = temp 1.0
+};
+
+// corrupt(val, temp, channel_prime) — add noise to one CRT channel.
+// Core of diffusion: noise IS the void (0/0). Denoising IS precipitation.
+// temp in fixed-point (1000 = full noise). Returns corrupted residue.
+BUILTINS.corrupt = (args) => {
+    const val = toInt(args[0]);
+    const temp = toInt(args[1]) / 1000;  // fixed-point back to float
+    const p = toInt(args[2]);
+    if (Math.random() < temp) {
+        return fromInt(Math.floor(Math.random() * p));  // random residue
+    }
+    return fromInt(val % p);
+};
+
+// ================================================================
 //  Grid builtins (ARC-AGI — S600)
 // ================================================================
 // Grids = nested arrays of CRT values. Cells are 0-9 integers (CRT-encoded).
