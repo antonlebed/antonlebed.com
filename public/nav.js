@@ -244,6 +244,10 @@ var catDemos = {}, catOrder = ['start','physics','bio','math','eng','mind','tuto
 for (var ci = 0; ci < catOrder.length; ci++) catDemos[catOrder[ci]] = [];
 for (var dk in M) { if (T[dk]) catDemos[M[dk]].push(dk); }
 
+/* ===== SINGLE-SOURCE NAV DATA (Wave 11 — shared with index.html hub) ===== */
+window.axNav={CATS:CATS,M:M,T:T,REM:REM,remSeen:remSeen,isRem:isRem,catDemos:catDemos,catOrder:catOrder,markSeen:function(f){remSeen[f]=1;try{localStorage.setItem('rem-seen',JSON.stringify(remSeen));}catch(e){}}};
+if(window._axBuildHub)window._axBuildHub();
+
 /* ===== STYLES ===== */
 var s = document.createElement('style');
 s.textContent =
