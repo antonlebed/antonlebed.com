@@ -222,6 +222,15 @@ if(_li>0){
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
+/* Remastered pages (Waves 1-9, single source shared with index.html) */
+var REM = {sm:1,quantum:1,thermo:1,chemistry:1,em:1,gr:1,cosmo:1,classical:1,
+  statmech:1,condensed:1,optics:1,acoustics:1,particles:1,alpha:1,constants:1,
+  millennium:1,d_chain:1,partitions:1,modular_forms:1,
+  atlas_10_millennium:1,atlas_12_shadow_polynomial:1};
+var remSeen={};
+try{remSeen=JSON.parse(localStorage.getItem('rem-seen')||'{}');}catch(e){}
+function isRem(k){return REM[k]&&!remSeen[k+'.html'];}
+
 var key = f.replace('.html','');
 var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
@@ -316,6 +325,11 @@ s.textContent =
   'text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
   '.sn-gc a:hover{color:#eee}' +
   '.sn-gc a.cur{color:#ffd700}' +
+  '.sn-gc a.rem,.sn-tr a.rem,.sn-md a.rem{position:relative}' +
+  '.sn-gc a.rem::after,.sn-tr a.rem::after,.sn-md a.rem::after{content:"";display:inline-block;' +
+  'width:5px;height:5px;border-radius:50%;background:#ffd700;margin-left:5px;vertical-align:middle;' +
+  'animation:sn-rem 3s ease-in-out infinite;flex-shrink:0}' +
+  '@keyframes sn-rem{0%,100%{opacity:0.4}50%{opacity:1}}' +
   /* Mobile overlay */
   '#sn-m{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,8,0.99);' +
   'z-index:10000;display:none;flex-direction:column;overflow-y:auto}' +
@@ -407,7 +421,8 @@ if (tutDemos.length) {
   var ti = CATS['tutorial'];
   dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">' + tr('atlas') + '</h5><div class="sn-tl">';
   for (var j = 0; j < tutDemos.length; j++) {
-    dh += '<a href="' + tutDemos[j] + '.html"' + (tutDemos[j] === key ? ' class="cur"' : '') + '>' + T[tutDemos[j]] + '</a>';
+    var _tc = (tutDemos[j] === key ? 'cur' : '') + (isRem(tutDemos[j]) ? ' rem' : '');
+    dh += '<a href="' + tutDemos[j] + '.html"' + (_tc ? ' class="' + _tc.trim() + '"' : '') + '>' + T[tutDemos[j]] + '</a>';
   }
   dh += '</div></div>';
 }
@@ -417,7 +432,8 @@ for (var i = 0; i < catOrder.length; i++) {
   if (!demos.length || ck === 'start' || ck === 'tutorial') continue;
   dh += '<div class="sn-gc"><h5 style="color:' + ci[1] + '">' + ci[0] + '</h5>';
   for (var j = 0; j < demos.length; j++) {
-    dh += '<a href="' + demos[j] + '.html"' + (demos[j] === key ? ' class="cur"' : '') + '>' + T[demos[j]] + '</a>';
+    var _dc = (demos[j] === key ? 'cur' : '') + (isRem(demos[j]) ? ' rem' : '');
+    dh += '<a href="' + demos[j] + '.html"' + (_dc ? ' class="' + _dc.trim() + '"' : '') + '>' + T[demos[j]] + '</a>';
   }
   dh += '</div>';
 }
@@ -458,11 +474,13 @@ var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
 for (var i = 0; i < mAtlasOrder.length; i++) {
   var ck = mAtlasOrder[i], ci = CATS[ck], demos = catDemos[ck];
   if (!demos.length) continue;
+  var _rc=0;for(var ri=0;ri<demos.length;ri++){if(isRem(demos[ri]))_rc++;}
+  var _rl=_rc?' <span style="color:#ffd700;font-size:9px;font-weight:normal">\u2022'+_rc+' new</span>':'';
   mh += '<div class="sn-mc" data-c="' + ck + '" style="color:' + ci[1] + '">' +
-    ci[0] + ' (' + demos.length + ') <span class="ma">\u25B8</span></div>' +
+    ci[0] + ' (' + demos.length + ')' + _rl + ' <span class="ma">\u25B8</span></div>' +
     '<div class="sn-md" data-c="' + ck + '">';
   for (var j = 0; j < demos.length; j++) {
-    mh += '<a href="' + demos[j] + '.html">' + T[demos[j]] + '</a>';
+    mh += '<a href="' + demos[j] + '.html"' + (isRem(demos[j]) ? ' class="rem"' : '') + '>' + T[demos[j]] + '</a>';
   }
   mh += '</div>';
 }
