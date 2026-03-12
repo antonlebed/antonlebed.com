@@ -3186,7 +3186,7 @@ BUILTINS.show_grid = (args) => {
 // ================================================================
 //  Evaluator
 // ================================================================
-const MAX_DEPTH = 49;  // b^2
+const MAX_DEPTH = 500;  // raised for self-compilation (axc.ax compiles axc.ax, S653)
 
 function run(src, opts) {
     const output = [];
