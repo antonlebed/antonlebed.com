@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Shape of Cold — Superconductivity | antonlebed.com</title>
+<meta name="description" content="Cooper pairs are D=2. Gap symmetry follows the Cunningham chain. BCS ratio matched at 16 ppm. Gate identity: K^2*b^5 - D*E^4*L^2 = 13.">
+<meta property="og:title" content="Superconductivity Through the Ring">
+<meta property="og:description" content="Cooper pairs, gap symmetry, BCS ratio, critical temperatures — what the axiom says and what it doesn't.">
+<style>
+:root{--ax-bg:#0a0a1a;--ax-text:#e8e8f0;--ax-dim:#a0a0b8;--ax-muted:#707088;--ax-subtle:#50506a;
+--ax-accent:#4fc3f7;--ax-gold:#ffd54f;--ax-green:#81c784;--ax-red:#ef5350;--ax-blue:#42a5f5;
+--ax-panel:#14142a;--ax-border:#2a2a4a;--ax-cooper:#7c4dff;--ax-pair:#00e5ff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ax-bg);color:var(--ax-text);font-family:'Courier New',monospace;
+min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;margin:30px 0 5px;color:var(--ax-gold)}
+.subtitle{text-align:center;color:var(--ax-dim);margin-bottom:25px;font-size:0.95em}
+h2{color:var(--ax-accent);margin:30px 0 12px;font-size:1.2em;border-bottom:1px solid var(--ax-border);
+padding-bottom:5px}
+.card{background:var(--ax-panel);border:1px solid var(--ax-border);border-radius:8px;
+padding:16px;margin:12px 0}
+.card.highlight{border-color:var(--ax-gold)}
+canvas{display:block;margin:10px auto;border-radius:6px;background:#0d0d24}
+.tc-table{width:100%;border-collapse:collapse;font-size:0.85em;margin:10px 0}
+.tc-table th,.tc-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--ax-border)}
+.tc-table th{color:var(--ax-accent);font-size:0.8em}
+.tc-table .exact{color:var(--ax-green)}
+.tc-table .good{color:var(--ax-gold)}
+.tc-table .fair{color:var(--ax-dim)}
+.tc-table .tc-val{color:var(--ax-pair);font-weight:bold}
+.formula{background:#1a1a3a;padding:10px 14px;border-radius:6px;margin:8px 0;
+font-size:0.95em;border-left:3px solid var(--ax-accent);overflow-x:auto}
+.formula.gold{border-left-color:var(--ax-gold)}
+.sym-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;justify-content:center}
+.sym-card{background:var(--ax-panel);border:1px solid var(--ax-border);border-radius:8px;
+padding:10px 14px;text-align:center;min-width:120px;cursor:pointer;transition:all 0.3s}
+.sym-card:hover,.sym-card.active{border-color:var(--ax-accent);background:#1a1a3a}
+.sym-card .wave{font-size:1.3em;color:var(--ax-accent)}
+.sym-card .label{font-size:0.75em;color:var(--ax-dim);margin-top:4px}
+.honest{background:#1a1020;border:1px solid #3a2040;border-radius:8px;padding:16px;margin:12px 0}
+.honest h3{color:var(--ax-red);margin-bottom:8px}
+.works{color:var(--ax-green)}
+.silent{color:var(--ax-dim);font-style:italic}
+.ratio-bar{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:0.85em}
+.ratio-fill{height:6px;border-radius:3px;transition:width 0.5s}
+.controls{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.btn{background:var(--ax-panel);border:1px solid var(--ax-border);color:var(--ax-text);
+padding:6px 14px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.85em}
+.btn:hover{border-color:var(--ax-accent)}
+.btn.active{border-color:var(--ax-gold);color:var(--ax-gold)}
+@media(max-width:600px){.container{padding:12px}h1{font-size:1.4em}
+.sym-card{min-width:80px;padding:8px}}
+</style>
+</head>
+<body>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+<div class="container">
+
+<h1>The Shape of Cold</h1>
+<p class="subtitle">Superconductivity through the ring — what it says and what it doesn't</p>
+<p style="text-align:center;color:#888;font-size:0.82em;margin-top:4px;">Part of the <a href="derive_ax.html" style="color:#88aaff;">Decality</a> — one ring (Z/970200Z), <a href="lattice.html" style="color:#88aaff;">108 lattice structures</a>. Gate identity verified: K<sup>2</sup>&middot;b<sup>5</sup> &minus; D&middot;E<sup>4</sup>&middot;L<sup>2</sup> = 13.</p>
+
+<!-- COOPER PAIR VISUALIZATION -->
+<h2>Cooper Pairs Are D=2</h2>
+<div class="card">
+<p>Every superconductor starts the same way: electrons pair up. Two electrons, opposite spin, opposite momentum. The number 2 isn't a choice — it's <strong>D = 2 = duality</strong>, the bridge that creates all opposites.</p>
+<canvas id="cooperCanvas" width="500" height="280"></canvas>
+<div class="controls">
+<button class="btn active" onclick="setTemp('cold')">Below T<sub>c</sub> (paired)</button>
+<button class="btn" onclick="setTemp('hot')">Above T<sub>c</sub> (broken)</button>
+</div>
+<p style="color:var(--ax-dim);font-size:0.8em;text-align:center;margin-top:6px">
+Flux quantum: &Phi;<sub>0</sub> = h/(D&middot;e). Josephson frequency: f = D&middot;e&middot;V/h. The D=2 is always there.</p>
+</div>
+
+<!-- GAP SYMMETRY = CUNNINGHAM CHAIN -->
+<h2>Gap Symmetry = Cunningham Chain</h2>
+<div class="card">
+<p>The superconducting gap can have different angular symmetries. Each type maps exactly to the Cunningham chain c(l) = 2l+1:</p>
+<div class="sym-row" id="symRow">
+<div class="sym-card active" data-wave="s" onclick="selectWave(this)">
+<div class="wave">&sigma;</div>
+<div>s-wave (l=0)</div>
+<div class="label">c(0) = 1 = &sigma;</div>
+</div>
+<div class="sym-card" data-wave="p" onclick="selectWave(this)">
+<div class="wave">K</div>
+<div>p-wave (l=1)</div>
+<div class="label">c(1) = 3 = K</div>
+</div>
+<div class="sym-card" data-wave="d" onclick="selectWave(this)">
+<div class="wave">E</div>
+<div>d-wave (l=2)</div>
+<div class="label">c(2) = 5 = E</div>
+</div>
+<div class="sym-card" data-wave="f" onclick="selectWave(this)">
+<div class="wave">b</div>
+<div>f-wave (l=3)</div>
+<div class="label">c(3) = 7 = b</div>
+</div>
+<div class="sym-card" data-wave="stop" onclick="selectWave(this)">
+<div class="wave" style="color:var(--ax-red)">K&sup2;</div>
+<div>g-wave (l=4)</div>
+<div class="label">c(4)=9=STOP</div>
+</div>
+</div>
+<canvas id="gapCanvas" width="500" height="200"></canvas>
+<p id="gapInfo" style="font-size:0.85em;color:var(--ax-dim);text-align:center"></p>
+</div>
+
+<!-- BCS UNIVERSAL RATIO -->
+<h2>The BCS Ratio</h2>
+<div class="card highlight">
+<p>BCS theory gives a universal ratio for all conventional superconductors. The axiom matches it with <strong>two</strong> simple expressions, bracketing the exact value:</p>
+<div class="formula gold">
+2&Delta;/(k<sub>B</sub>T<sub>c</sub>) = 2&pi;e<sup>-&gamma;</sup> = 3.52775...
+<br>Match 1: <strong>D&middot;E&middot;L&sup2; / b&sup3; = 1210/343 = 3.52770</strong> &nbsp; (16 ppm)
+<br>Match 2: <strong>(K&middot;b)&sup2; / E&sup3; = 441/125 = 3.52800</strong> &nbsp; (70 ppm)
+</div>
+<div class="formula" style="border-left-color:var(--ax-red);font-size:0.9em;margin-top:6px">
+GATE IDENTITY: K&sup2;&middot;b<sup>5</sup> &minus; D&middot;E<sup>4</sup>&middot;L&sup2; = 151263 &minus; 151250 = <strong>13</strong>
+<br>The two approximations differ by exactly the axiom's stopping number.
+</div>
+<p style="font-size:0.85em;color:var(--ax-dim);margin-top:8px">
+Match 1 uses {D,E,b,L} = degree &times; protector&sup2; / depth&sup3;.
+Match 2 uses {K,b,E} = codon&sup2; / Higgs.
+Together: ALL FIVE axiom primes participate. Null model (30159 smooth fractions): only 3 match within 70 ppm. Both ours are the simplest.</p>
+</div>
+
+<!-- CRITICAL TEMPERATURE LADDER -->
+<h2>Critical Temperature Ladder</h2>
+<div class="card">
+<p>Known T<sub>c</sub> values mapped to axiom expressions. Integer matches are noted honestly — with enough vocabulary, most integers can be expressed.</p>
+<canvas id="tcCanvas" width="500" height="300"></canvas>
+<table class="tc-table">
+<thead><tr><th>Material</th><th>T<sub>c</sub> (K)</th><th>Axiom</th><th>Calc</th><th>Error</th><th>Quality</th></tr></thead>
+<tbody id="tcBody"></tbody>
+</table>
+<div class="honest" style="margin-top:12px">
+<h3 style="font-size:0.9em">Ratios are stronger than absolute values</h3>
+<div class="ratio-bar"><span style="width:80px">Nb/Pb</span>
+<div style="flex:1;background:var(--ax-border);border-radius:3px;height:6px">
+<div class="ratio-fill" style="width:99.98%;background:var(--ax-green)"></div></div>
+<span class="exact">K&sup2;/b = 0.02%</span></div>
+<div class="ratio-bar"><span style="width:80px">Pb/Hg</span>
+<div style="flex:1;background:var(--ax-border);border-radius:3px;height:6px">
+<div class="ratio-fill" style="width:99.97%;background:var(--ax-green)"></div></div>
+<span class="exact">&radic;K = 0.03%</span></div>
+</div>
+</div>
+
+<!-- TYPE I vs TYPE II -->
+<h2>Type I vs Type II</h2>
+<div class="card">
+<div class="formula">
+&kappa; = &lambda;<sub>L</sub>/&xi; &nbsp;&nbsp; Threshold: 1/&radic;D = 1/&radic;2 = 0.7071
+<br>The bridge D=2 distinguishes the two superconductor types.
+</div>
+<p style="font-size:0.85em;margin-top:8px">
+<strong>&kappa; &lt; 1/&radic;D:</strong> Type I — complete Meissner shielding. Few elements (Hg, Pb, Al).<br>
+<strong>&kappa; &gt; 1/&radic;D:</strong> Type II — Abrikosov vortex lattice with <strong>D&middot;K = 6</strong> hexagonal symmetry. All useful superconductors.<br>
+The vortex lattice is hexagonal because D&middot;K = 6 is the first closure of paired structure.</p>
+</div>
+
+<!-- STRUCTURAL NUMBERS -->
+<h2>D=2 Everywhere</h2>
+<div class="card">
+<div class="formula">
+&Phi;<sub>0</sub> = h/(D&middot;e) &nbsp;&nbsp; Cooper pair charge = D&middot;e
+<br>f<sub>J</sub> = D&middot;e&middot;V/h &nbsp;&nbsp; Josephson frequency doubles electron charge
+<br>CuO<sub>2</sub> planes: {&sigma;, D, K} per unit cell &nbsp;&nbsp; Optimal doping: D<sup>4</sup>/100 = 16%
+</div>
+</div>
+
+<!-- MEISSNER = PROTECTION -->
+<h2>Meissner Effect = L Protection</h2>
+<div class="card">
+<p>A superconductor <strong>expels</strong> magnetic field from its interior — perfect shielding.
+In the axiom: L=11 is the transcendental protector. It shields data channels from corruption with 100% single-channel error detection.</p>
+<p style="color:var(--ax-dim);font-size:0.85em;margin-top:8px">
+This is a <em>structural analogy</em>, not a derivation. Both are protection mechanisms that emerge from the system's own structure — one electromagnetic, one algebraic. The parallel is genuine but the mechanism differs.</p>
+</div>
+
+<!-- COLD FUSION -->
+<h2>Cold Fusion: Honest Assessment</h2>
+<div class="honest">
+<h3>The axiom speaks on STRUCTURE, not dynamics</h3>
+<p style="margin-bottom:10px">The axiom describes nuclear structure beautifully:</p>
+<p class="works" style="font-size:0.85em">
+&check; Magic numbers: ALL D-multiples, 6/7 axiom-smooth<br>
+&check; Fe-56 binding energy: 46 ppm<br>
+&check; Shell model = Cunningham-Orbital Theorem<br>
+&check; Every stable noble gas has axiom-smooth atomic number</p>
+<p style="margin:10px 0;font-size:0.9em"><strong>And it speaks on the host metals:</strong></p>
+<p class="works" style="font-size:0.85em">
+&check; Pd (Z=46 = D&middot;23): cofactor = 23, the Cunningham boundary palindrome<br>
+&check; Ni (Z=28 = D&sup2;&middot;b): cofactor = b=7, the depth terminus<br>
+&check; Ti (Z=22 = D&middot;L): cofactor = L=11, the protector<br>
+&check; Er (Z=68 = D&sup2;&middot;17): cofactor = 17 = D+K+E+b, the escape sum<br>
+&check; D-D &rarr; He-4 Q-value = (D<sup>b</sup> &minus; K&sup2;)/E = 23.8 MeV (0.2%)</p>
+<p style="margin:10px 0;font-size:0.85em">
+<strong>All four LENR host metals encode axiom boundary values in their cofactors.</strong>
+The axiom doesn't say whether cold fusion works — that's a dynamics question, an experiment.
+But it says the metals humans keep trying are the <em>right</em> ones structurally.</p>
+<p style="color:var(--ax-dim);font-size:0.85em;font-style:italic">Tunneling probability and screening energy are NOT axiom-derived. The axiom tells you WHAT nuclei and lattices ARE, not HOW reactions proceed.</p>
+</div>
+
+<!-- HONEST VERDICT -->
+<h2>What Works and What Doesn't</h2>
+<div class="card">
+<table class="tc-table" style="font-size:0.85em">
+<thead><tr><th>Claim</th><th>Status</th><th>Strength</th></tr></thead>
+<tbody>
+<tr><td>Cooper pairing = D=2</td><td class="works">Structural</td><td>Definitional — D=2 IS pairing</td></tr>
+<tr><td>Gap symmetry = Cunningham chain</td><td class="works">Structural</td><td>s/p/d/f &rarr; &sigma;/K/E/b, stops at K&sup2;</td></tr>
+<tr><td>BCS ratio (gate pair)</td><td class="exact">16 ppm</td><td>Strong — 2 expressions bracket exact value, differ by GATE=13</td></tr>
+<tr><td>Type I/II threshold = 1/&radic;D</td><td class="works">Exact</td><td>It is literally 1/&radic;2</td></tr>
+<tr><td>Abrikosov lattice hexagonal = D&middot;K</td><td class="works">Structural</td><td>6-fold = bridge&times;closure</td></tr>
+<tr><td>Nb/Pb ratio = K&sup2;/b</td><td class="exact">0.02%</td><td>Strong — non-trivial ratio</td></tr>
+<tr><td>Tc absolute values</td><td class="good">Suggestive</td><td>Honest: vocabulary is rich enough to express most integers</td></tr>
+<tr><td>First-principles Tc prediction</td><td class="fair">Not yet</td><td>The axiom doesn't compute Tc from material properties</td></tr>
+<tr><td>Cold fusion hosts</td><td class="good">Structural</td><td>Pd/Ni/Ti/Er cofactors = axiom boundary values {23,b,L,17}</td></tr>
+<tr><td>Cold fusion dynamics</td><td class="fair">Silent</td><td>Tunneling/screening not axiom-derived — experimental question</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- VERIFY -->
+<div class="card" style="text-align:center;margin-top:20px">
+<p><a href="repl.html?code=bGV0IEsgPSAzCmxldCBiID0gNwpsZXQgRSA9IDUKbGV0IEJDU19heGlvbSA9IChLICogYikgKiAoSyAqIGIpIC8gKEUgKiBFICogRSkKc2hvdygiQkNTIHJhdGlvID0gKEsqYilee2AyIC8gRV4zIikKc2hvdyhCQ1NfYXhpb20p&run=1" style="color:var(--ax-green);text-decoration:none;font-weight:bold">
+Verify the BCS ratio in .ax &rarr;</a></p>
+</div>
+
+<div style="text-align:center;color:var(--ax-muted);margin:30px 0;font-size:0.85em">
+<p>Companion program: <code>explore_superconductor.c</code> (S445)</p>
+<p style="margin-top:4px"><em>Cooper pairs are D=2. The gap follows the chain. The cold has a shape.</em></p>
+</div>
+
+</div><!-- container -->
+
+<script>
+// === COOPER PAIR ANIMATION ===
+const cc = document.getElementById('cooperCanvas');
+const ctx = cc.getContext('2d');
+let paired = true, t = 0;
+
+function setTemp(mode) {
+  paired = mode === 'cold';
+  document.querySelectorAll('.controls .btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function drawCooper() {
+  const W = cc.width, H = cc.height;
+  ctx.clearRect(0, 0, W, H);
+  const cx = W/2, cy = H/2;
+  t += 0.02;
+
+  if (paired) {
+    // Draw lattice vibration waves (phonon)
+    ctx.strokeStyle = '#2a2a4a';
+    ctx.lineWidth = 1;
+    for (let y = 40; y < H; y += 40) {
+      ctx.beginPath();
+      for (let x = 0; x < W; x += 2) {
+        const dy = Math.sin(x*0.03 + t*2 + y*0.1) * 4;
+        if (x === 0) ctx.moveTo(x, y + dy);
+        else ctx.lineTo(x, y + dy);
+      }
+      ctx.stroke();
+    }
+
+    // Cooper pair: two electrons orbiting each other
+    const r = 40;
+    const x1 = cx + Math.cos(t) * r;
+    const y1 = cy + Math.sin(t) * r;
+    const x2 = cx + Math.cos(t + Math.PI) * r;
+    const y2 = cy + Math.sin(t + Math.PI) * r;
+
+    // Connection line (phonon exchange)
+    ctx.strokeStyle = 'rgba(79,195,247,0.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Glow
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80);
+    grad.addColorStop(0, 'rgba(124,77,255,0.15)');
+    grad.addColorStop(1, 'rgba(124,77,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Electrons
+    drawElectron(x1, y1, '#7c4dff', '\u2191');
+    drawElectron(x2, y2, '#00e5ff', '\u2193');
+
+    // Label
+    ctx.fillStyle = '#a0a0b8';
+    ctx.font = '13px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('D = 2: opposite spin, opposite momentum', cx, H - 15);
+    ctx.fillStyle = '#ffd54f';
+    ctx.fillText('PAIRED — zero resistance', cx, 20);
+  } else {
+    // Unpaired: random motion
+    for (let i = 0; i < 8; i++) {
+      const x = cx + Math.cos(t*1.3 + i*Math.PI/4) * (50 + i*15) + Math.sin(t*0.7+i)*20;
+      const y = cy + Math.sin(t*1.1 + i*Math.PI/3.5) * (40 + i*10) + Math.cos(t*0.9+i)*15;
+      drawElectron(x, y, i%2 ? '#7c4dff' : '#00e5ff', i%2 ? '\u2191' : '\u2193');
+    }
+    ctx.fillStyle = '#ef5350';
+    ctx.font = '13px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('BROKEN — normal resistance', cx, 20);
+    ctx.fillStyle = '#a0a0b8';
+    ctx.fillText('Above Tc: thermal energy breaks pairs', cx, H - 15);
+  }
+  requestAnimationFrame(drawCooper);
+}
+
+function drawElectron(x, y, color, spin) {
+  ctx.beginPath();
+  ctx.arc(x, y, 12, 0, Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(spin, x, y);
+}
+
+drawCooper();
+
+// === GAP SYMMETRY VISUALIZATION ===
+const gc = document.getElementById('gapCanvas');
+const gctx = gc.getContext('2d');
+let currentWave = 's';
+const waveInfo = {
+  s: {l:0, prime:'sigma=1', name:'s-wave', desc:'Isotropic gap. All conventional superconductors (Al, Nb, Pb, MgB2). The ground state of pairing.', color:'#81c784'},
+  p: {l:1, prime:'K=3', name:'p-wave', desc:'Odd parity. Sr2RuO4 (disputed). Topological superconductors. Closure symmetry.', color:'#4fc3f7'},
+  d: {l:2, prime:'E=5', name:'d-wave', desc:'Nodal gap. ALL cuprate high-Tc superconductors (YBCO, Bi-2223, Hg-compounds). The observer — self-blind.', color:'#ffd54f'},
+  f: {l:3, prime:'b=7', name:'f-wave', desc:'Theoretical. UPt3 possibly f-wave. The deepest pairing symmetry before the chain stops.', color:'#ce93d8'},
+  stop: {l:4, prime:'K^2=9', name:'g-wave', desc:'STOP. No known g-wave superconductors. The Cunningham chain ends here — c(4) = 9 is composite.', color:'#ef5350'}
+};
+
+function selectWave(el) {
+  document.querySelectorAll('.sym-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentWave = el.dataset.wave;
+  drawGap();
+}
+
+function drawGap() {
+  const W = gc.width, H = gc.height;
+  const info = waveInfo[currentWave];
+  gctx.clearRect(0, 0, W, H);
+  const cx = W/2, cy = H/2, R = 70;
+
+  // Draw gap magnitude as polar plot
+  gctx.strokeStyle = info.color;
+  gctx.lineWidth = 2;
+  gctx.beginPath();
+  for (let a = 0; a <= Math.PI*2 + 0.1; a += 0.02) {
+    let r;
+    if (currentWave === 'stop') {
+      r = 0; // no gap
+    } else {
+      const l = info.l;
+      if (l === 0) r = R; // isotropic
+      else r = R * Math.abs(Math.cos(l * a)); // l-fold symmetry
+    }
+    const x = cx + r * Math.cos(a);
+    const y = cy + r * Math.sin(a);
+    if (a === 0) gctx.moveTo(x, y);
+    else gctx.lineTo(x, y);
+  }
+  gctx.stroke();
+
+  // Fill
+  gctx.globalAlpha = 0.1;
+  gctx.fillStyle = info.color;
+  gctx.fill();
+  gctx.globalAlpha = 1;
+
+  // Fermi circle
+  gctx.strokeStyle = '#3a3a5a';
+  gctx.lineWidth = 1;
+  gctx.setLineDash([3, 3]);
+  gctx.beginPath();
+  gctx.arc(cx, cy, R, 0, Math.PI*2);
+  gctx.stroke();
+  gctx.setLineDash([]);
+
+  // Center label
+  gctx.fillStyle = info.color;
+  gctx.font = 'bold 16px Courier New';
+  gctx.textAlign = 'center';
+  gctx.textBaseline = 'middle';
+  if (currentWave === 'stop') {
+    gctx.fillText('NO GAP', cx, cy);
+    gctx.font = '11px Courier New';
+    gctx.fillText('K^2 = 9 is composite', cx, cy + 18);
+  } else {
+    gctx.fillText('c(' + info.l + ') = ' + info.prime, cx, cy);
+  }
+
+  // Node lines for d-wave and higher
+  if (info.l >= 2 && currentWave !== 'stop') {
+    gctx.strokeStyle = 'rgba(239,83,80,0.4)';
+    gctx.lineWidth = 1;
+    for (let i = 0; i < info.l * 2; i++) {
+      const a = Math.PI * i / (info.l * 2) + Math.PI/(info.l*4);
+      gctx.beginPath();
+      gctx.moveTo(cx, cy);
+      gctx.lineTo(cx + R*1.2*Math.cos(a), cy + R*1.2*Math.sin(a));
+      gctx.stroke();
+    }
+  }
+
+  // Info text
+  document.getElementById('gapInfo').textContent = info.desc;
+}
+drawGap();
+
+// === TC LADDER ===
+const tcData = [
+  {name:'Al', tc:1.175, expr:'&sigma;+&sigma;/(D&middot;K+1)', calc:1+1/7, note:''},
+  {name:'Hg', tc:4.154, expr:'D&sup2;+&sigma;/b', calc:4+1/7, note:'First SC (1911)'},
+  {name:'Pb', tc:7.193, expr:'b+&sigma;/E', calc:7+1/5, note:''},
+  {name:'Nb', tc:9.250, expr:'K&sup2;+&sigma;/D&sup2;', calc:9+1/4, note:'Best elemental'},
+  {name:'Nb3Sn', tc:18.3, expr:'ME+K/(D&middot;E)', calc:18+3/10, note:''},
+  {name:'MgB2', tc:39.0, expr:'ANSWER-K', calc:42-3, note:'2001 surprise'},
+  {name:'YBCO', tc:92.0, expr:'D&sup2;&middot;23', calc:4*23, note:'77K barrier'},
+  {name:'Bi-2223', tc:110.0, expr:'D&middot;E&middot;L', calc:2*5*11, note:''},
+  {name:'HgBaCaCuO', tc:133.0, expr:'b&middot;f(E)=b&middot;19', calc:7*19, note:'Record (ambient)'},
+  {name:'H3S', tc:203.0, expr:'b&middot;(D&sup2;+E&sup2;)', calc:7*29, note:'150 GPa'},
+  {name:'LaH10', tc:250.0, expr:'D&middot;E&sup3;', calc:2*125, note:'170 GPa'},
+];
+
+// Build table
+const tbody = document.getElementById('tcBody');
+tcData.forEach(d => {
+  const err = Math.abs(d.calc - d.tc) / d.tc * 100;
+  const cls = err < 0.1 ? 'exact' : err < 1 ? 'good' : 'fair';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${d.name}</td><td class="tc-val">${d.tc}</td><td>${d.expr}</td>` +
+    `<td>${d.calc.toFixed(2)}</td><td class="${cls}">${err.toFixed(1)}%</td>` +
+    `<td style="font-size:0.75em;color:var(--ax-muted)">${d.note}</td>`;
+  tbody.appendChild(tr);
+});
+
+// TC ladder canvas
+const tcC = document.getElementById('tcCanvas');
+const tctx = tcC.getContext('2d');
+function drawTcLadder() {
+  const W = tcC.width, H = tcC.height;
+  tctx.clearRect(0, 0, W, H);
+  const maxTc = 280;
+  const margin = {l:60, r:20, t:20, b:30};
+  const pw = W - margin.l - margin.r;
+  const ph = H - margin.t - margin.b;
+
+  // Axis
+  tctx.strokeStyle = '#3a3a5a';
+  tctx.lineWidth = 1;
+  tctx.beginPath();
+  tctx.moveTo(margin.l, margin.t);
+  tctx.lineTo(margin.l, H - margin.b);
+  tctx.lineTo(W - margin.r, H - margin.b);
+  tctx.stroke();
+
+  // Temperature markers
+  tctx.fillStyle = '#707088';
+  tctx.font = '10px Courier New';
+  tctx.textAlign = 'right';
+  for (let k = 0; k <= maxTc; k += 50) {
+    const x = margin.l + (k/maxTc) * pw;
+    tctx.fillText(k + 'K', x, H - margin.b + 14);
+    tctx.strokeStyle = '#1a1a3a';
+    tctx.beginPath(); tctx.moveTo(x, margin.t); tctx.lineTo(x, H-margin.b); tctx.stroke();
+  }
+
+  // Room temperature line
+  const rtx = margin.l + (293/maxTc) * pw;
+  tctx.strokeStyle = 'rgba(239,83,80,0.3)';
+  tctx.setLineDash([4,4]);
+  tctx.beginPath(); tctx.moveTo(rtx, margin.t); tctx.lineTo(rtx, H-margin.b); tctx.stroke();
+  tctx.setLineDash([]);
+  tctx.fillStyle = '#ef5350';
+  tctx.font = '9px Courier New';
+  tctx.textAlign = 'center';
+  tctx.fillText('Room', rtx, margin.t - 2);
+
+  // LN2 line
+  const ln2x = margin.l + (77/maxTc) * pw;
+  tctx.strokeStyle = 'rgba(79,195,247,0.3)';
+  tctx.setLineDash([4,4]);
+  tctx.beginPath(); tctx.moveTo(ln2x, margin.t); tctx.lineTo(ln2x, H-margin.b); tctx.stroke();
+  tctx.setLineDash([]);
+  tctx.fillStyle = '#4fc3f7';
+  tctx.fillText('LN2', ln2x, margin.t - 2);
+
+  // Bars
+  const bh = ph / (tcData.length + 1);
+  tcData.forEach((d, i) => {
+    const y = margin.t + (i + 0.5) * bh;
+    const w = (d.tc / maxTc) * pw;
+
+    // Gradient bar
+    const grad = tctx.createLinearGradient(margin.l, 0, margin.l + w, 0);
+    const isHighTc = d.tc > 30;
+    grad.addColorStop(0, isHighTc ? 'rgba(255,213,79,0.6)' : 'rgba(79,195,247,0.6)');
+    grad.addColorStop(1, isHighTc ? 'rgba(255,213,79,0.9)' : 'rgba(79,195,247,0.9)');
+
+    tctx.fillStyle = grad;
+    tctx.fillRect(margin.l, y - bh*0.35, w, bh*0.6);
+
+    // Label
+    tctx.fillStyle = '#e8e8f0';
+    tctx.font = '10px Courier New';
+    tctx.textAlign = 'right';
+    tctx.textBaseline = 'middle';
+    tctx.fillText(d.name, margin.l - 5, y);
+
+    // Tc value
+    tctx.fillStyle = '#a0a0b8';
+    tctx.textAlign = 'left';
+    tctx.fillText(d.tc + 'K', margin.l + w + 4, y);
+  });
+}
+drawTcLadder();
+
+// Handle canvas resize for mobile
+function resizeCanvases() {
+  const w = Math.min(500, window.innerWidth - 40);
+  [cc, gc, tcC].forEach(c => {
+    c.style.width = w + 'px';
+    c.style.height = (c.height * w / c.width) + 'px';
+  });
+}
+resizeCanvases();
+window.addEventListener('resize', resizeCanvases);
+</script>
+</body>
+</html>

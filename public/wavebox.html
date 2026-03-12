@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="How continuous becomes discrete: standing waves in a D times K times E times b box. Mode selector, 2D wave slice, 210-node CRT grid.">
+<title>Wave Box | antonlebed.com</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a12;color:#e0e0e0;font-family:'Georgia',serif;overflow-x:hidden;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#88ccff;margin:20px 0 5px}
+.subtitle{text-align:center;color:#7799bb;font-size:1.1em;margin-bottom:20px}
+.insight{background:#111a28;border-left:3px solid #4488cc;padding:12px 16px;margin:16px 0;
+  font-style:italic;color:#aaccee;border-radius:0 6px 6px 0}
+
+/* Canvas area */
+.viz-area{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:20px 0}
+canvas{background:#080812;border:1px solid #223;border-radius:8px}
+
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;
+  margin:16px 0;padding:12px;background:#0d0d18;border-radius:8px}
+.controls label{color:#8899bb;font-size:0.9em}
+.controls select,.controls input[type=range]{background:#1a1a2e;color:#ccc;border:1px solid #334;
+  border-radius:4px;padding:4px 8px}
+button{background:#1a3355;color:#88ccff;border:1px solid #335;border-radius:6px;
+  padding:8px 16px;cursor:pointer;font-size:0.95em;transition:all 0.2s}
+button:hover{background:#254470;border-color:#558}
+button.active{background:#2a5588;border-color:#6af}
+
+/* Info panel */
+.info{background:#0f1420;border:1px solid #223;border-radius:8px;padding:16px;margin:16px 0}
+.info h3{color:#88ccff;margin-bottom:8px;font-size:1.1em}
+.stat{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1a2e}
+.stat-label{color:#7799bb}.stat-value{color:#aaddff;font-family:monospace}
+
+/* Node grid */
+.node-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:2px;
+  margin:12px 0;max-height:200px;overflow-y:auto;padding:4px;background:#080812;border-radius:6px}
+.node-cell{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:0.6em;border-radius:3px;cursor:pointer;transition:all 0.15s;font-family:monospace}
+.node-cell:hover{transform:scale(1.3);z-index:2}
+
+/* Contrast panel */
+.contrast{background:#111420;border:1px solid #2a2a40;border-radius:8px;padding:16px;margin:20px 0}
+.contrast h3{color:#ffaa44;margin-bottom:12px}
+.contrast-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
+.contrast-col{padding:10px;border-radius:6px}
+.contrast-col.old{background:#1a0a0a;border:1px solid #442222}
+.contrast-col.new{background:#0a1a0a;border:1px solid #224422}
+.contrast-col h4{font-size:0.9em;margin-bottom:6px}
+.contrast-col.old h4{color:#ff6666}
+.contrast-col.new h4{color:#66ff88}
+.contrast-col p{font-size:0.85em;color:#aaa;line-height:1.5}
+
+/* Energy level diagram */
+.energy-levels{position:relative;height:300px;background:#080812;border:1px solid #223;
+  border-radius:8px;margin:16px 0;overflow:hidden}
+
+a{color:#88ccff}
+.back{display:block;text-align:center;margin:20px 0;font-size:0.9em}
+
+@media(max-width:480px){
+  h1{font-size:1.2em}
+  .container{padding:8px}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  select{min-height:44px}
+  .contrast td,.contrast th{padding:4px 6px;font-size:0.8em}
+  p{font-size:0.85em}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+<div class="container">
+<h1>The Wave Box</h1>
+<p class="subtitle">How Continuous Becomes Discrete</p>
+
+<p class="insight">
+A continuous wave fills a box with prime dimensions D&times;K&times;E&times;b = 2&times;3&times;5&times;7.
+Where it must vanish — the nodes — are exactly the 210 elements of Z/210Z.
+Discreteness isn't imposed. It <em>precipitates</em> from continuity meeting prime boundaries.
+</p>
+
+<!-- Main visualization -->
+<div class="viz-area">
+<canvas id="waveCanvas" width="560" height="400"></canvas>
+<canvas id="energyCanvas" width="300" height="400"></canvas>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+<label>Mode: </label>
+<select id="modeSelect">
+<option value="1,1,1,1">Ground (1,1,1,1)</option>
+<option value="2,1,1,1">D-excited (2,1,1,1)</option>
+<option value="1,3,1,1">K-excited (1,3,1,1)</option>
+<option value="1,1,5,1">E-excited (1,1,5,1)</option>
+<option value="1,1,1,7">b-excited (1,1,1,7)</option>
+<option value="2,3,5,7" selected>Primordial (2,3,5,7)</option>
+<option value="2,3,5,1">Data partial (2,3,5,1)</option>
+<option value="4,9,5,7">True form channels (4,9,5,7)</option>
+</select>
+
+<label>Slice: </label>
+<select id="sliceSelect">
+<option value="de" selected>D&times;K face</option>
+<option value="eb">E&times;b face</option>
+<option value="db">D&times;b face</option>
+<option value="ke">K&times;E face</option>
+</select>
+
+<label>Phase: </label>
+<input type="range" id="phaseSlider" min="0" max="100" value="0" style="width:100px">
+
+<button id="animBtn" onclick="toggleAnim()">Animate</button>
+<button onclick="showAllNodes()">Show 210 Nodes</button>
+</div>
+
+<!-- Info panel -->
+<div class="info" id="infoPanel">
+<h3>Mode Analysis</h3>
+<div class="stat"><span class="stat-label">Mode (n1,n2,n3,n4)</span><span class="stat-value" id="modeInfo">—</span></div>
+<div class="stat"><span class="stat-label">Energy E = sum(ni/Li)^2</span><span class="stat-value" id="energyInfo">—</span></div>
+<div class="stat"><span class="stat-label">Interior nodes</span><span class="stat-value" id="nodeCount">—</span></div>
+<div class="stat"><span class="stat-label">Node structure</span><span class="stat-value" id="nodeStructure">—</span></div>
+<div class="stat"><span class="stat-label">CRT ring</span><span class="stat-value" id="crtRing">—</span></div>
+</div>
+
+<!-- Node grid -->
+<div id="nodeGridSection" style="display:none">
+<h3 style="color:#88ccff;margin:12px 0 8px">All 210 Nodes — Z/210Z via CRT</h3>
+<p style="color:#7799bb;font-size:0.85em;margin-bottom:8px">Each cell = one ring element. Color = coupling class. Click for CRT decomposition.</p>
+<div class="node-grid" id="nodeGrid"></div>
+<div id="nodeDetail" style="margin-top:8px;color:#aaddff;font-family:monospace;font-size:0.85em"></div>
+</div>
+
+<!-- Energy level diagram info -->
+<div class="info">
+<h3>Energy Levels — Why These Primes?</h3>
+<p style="color:#99aabb;font-size:0.9em;line-height:1.6">
+The energy of mode (n1,n2,n3,n4) in a box with sides L1&times;L2&times;L3&times;L4 is:<br>
+<span style="color:#aaddff;font-family:monospace">E = (n1/L1)^2 + (n2/L2)^2 + (n3/L3)^2 + (n4/L4)^2</span><br><br>
+The <strong>primordial mode</strong> (2,3,5,7) has E = 1+1+1+1 = <strong>4 = D^2</strong>.
+Each channel contributes exactly 1. Perfect democracy.<br><br>
+Ground state (1,1,1,1): E = 1/4 + 1/9 + 1/25 + 1/49 = <strong>0.4215</strong>.
+The gap between ground and primordial = 3.579 = the cost of discretization.
+</p>
+</div>
+
+<!-- Contrast panel -->
+<div class="contrast">
+<h3>Paradigm Contrast</h3>
+<div class="contrast-row">
+<div class="contrast-col old">
+<h4>Standard Quantization</h4>
+<p>Discreteness is <em>postulated</em>. Planck's constant h is an unexplained input.
+Quantum mechanics says "nature is discrete" but doesn't explain why.
+The transition from classical to quantum is a mystery — the "measurement problem."</p>
+</div>
+<div class="contrast-col new">
+<h4>Axiom: Discreteness Precipitates</h4>
+<p>Start with continuous waves. Put them in a box with prime dimensions.
+The nodes — where the wave MUST vanish — form exactly Z/2&times;Z/3&times;Z/5&times;Z/7.
+Discreteness isn't assumed. It's the inevitable consequence of continuity
+meeting prime boundaries. 210 elements from pure geometry.</p>
+</div>
+</div>
+<div class="contrast-row">
+<div class="contrast-col old">
+<h4>Arbitrary Dimensions</h4>
+<p>Why 3+1 spacetime dimensions? No standard answer. String theory needs 10 or 11.
+The number of dimensions is a free parameter that must be tuned.</p>
+</div>
+<div class="contrast-col new">
+<h4>4 Primes = 4 Dimensions</h4>
+<p>The box has 4 sides because there are 4 inner axiom primes: {D,K,E,b} = {2,3,5,7}.
+Each prime = one independent direction. L=11 is the protector, not a dimension.
+The number of spatial-like degrees of freedom = the number of axiom primes before the guard.</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+const D=2,K=3,E=5,B=7,L=11,N=210;
+const primes=[D,K,E,B];
+const names=['D','K','E','b'];
+const colors={D:'#ff4444',K:'#44ff44',E:'#4488ff',b:'#ffaa00',L:'#cc44ff'};
+
+// CRT idempotents for Z/210Z
+const idems=[105,70,126,120]; // CRT basis: e_D=105,e_K=70,e_E=126,e_b=120
+
+function gcd(a,b){while(b){let t=b;b=a%b;a=t;}return a<0?-a:a;}
+function coupling(n){let r=((n%N)+N)%N;return N/gcd(r,N);}
+function crt(n){
+  let r=((n%N)+N)%N;
+  return[r%D,r%K,r%E,r%B];
+}
+function fromCRT(d,k,e,b){
+  return((105*d+70*k+126*e+120*b)%N+N)%N;
+}
+// Eigenvalue for thin ring
+function eigenvalue(n){
+  let r=((n%2310)+2310)%2310;
+  return Math.cos(Math.PI*r)+2*Math.cos(2*Math.PI*r/3)+2*Math.cos(2*Math.PI*r/5)
+    +2*Math.cos(2*Math.PI*r/7)+2*Math.cos(2*Math.PI*r/11);
+}
+
+// Coupling color
+function couplingColor(c){
+  if(c===1)return'#ffffff';
+  if(c===2)return'#ff4444';
+  if(c===3)return'#44ff44';
+  if(c===5)return'#4488ff';
+  if(c===6)return'#ff8844';
+  if(c===7)return'#ffaa00';
+  if(c===10)return'#8844ff';
+  if(c===14)return'#ff44aa';
+  if(c===15)return'#44ffaa';
+  if(c===21)return'#aaff44';
+  if(c===30)return'#ff88cc';
+  if(c===35)return'#88ccff';
+  if(c===42)return'#ccff88';
+  if(c===70)return'#ffcc88';
+  if(c===105)return'#cc88ff';
+  if(c===210)return'#ff2222';
+  return'#666666';
+}
+
+const waveCanvas=document.getElementById('waveCanvas');
+const wCtx=waveCanvas.getContext('2d');
+const eCanvas=document.getElementById('energyCanvas');
+const eCtx=eCanvas.getContext('2d');
+
+let mode=[2,3,5,7], phase=0, animating=false, animId=null;
+
+function getMode(){
+  let v=document.getElementById('modeSelect').value.split(',').map(Number);
+  return v;
+}
+function getSlice(){return document.getElementById('sliceSelect').value;}
+
+function waveValue2D(n1,n2,L1,L2,x,y,ph){
+  return Math.sin(n1*Math.PI*x/L1+ph)*Math.sin(n2*Math.PI*y/L2+ph*0.7);
+}
+
+function drawWave(){
+  let m=getMode();
+  mode=m;
+  let slice=getSlice();
+  let w=waveCanvas.width,h=waveCanvas.height;
+  wCtx.fillStyle='#080812';
+  wCtx.fillRect(0,0,w,h);
+
+  // Determine which two dimensions to show
+  let dim1,dim2,n1,n2,L1,L2,name1,name2,fixedDims=[];
+  if(slice==='de'){dim1=0;dim2=1;} // D x K
+  else if(slice==='eb'){dim1=2;dim2=3;} // E x b
+  else if(slice==='db'){dim1=0;dim2=3;} // D x b
+  else{dim1=1;dim2=2;} // K x E
+
+  n1=m[dim1];n2=m[dim2];
+  L1=primes[dim1];L2=primes[dim2];
+  name1=names[dim1];name2=names[dim2];
+
+  // Draw wave intensity
+  let pad=50,pw=w-2*pad,ph2=h-2*pad;
+  let res=2; // pixel step
+  for(let px=0;px<pw;px+=res){
+    for(let py=0;py<ph2;py+=res){
+      let x=px/pw*L1;
+      let y=py/ph2*L2;
+      let val=waveValue2D(n1,n2,L1,L2,x,y,phase);
+      let intensity=Math.abs(val);
+      let r,g,b;
+      if(val>0){r=Math.floor(40+intensity*180);g=Math.floor(60+intensity*140);b=Math.floor(200+intensity*55);}
+      else{r=Math.floor(200+intensity*55);g=Math.floor(40+intensity*80);b=Math.floor(60+intensity*80);}
+      wCtx.fillStyle=`rgb(${r},${g},${b})`;
+      wCtx.fillRect(pad+px,pad+py,res,res);
+    }
+  }
+
+  // Draw node lines where wave = 0
+  wCtx.strokeStyle='rgba(255,255,255,0.3)';
+  wCtx.lineWidth=1;
+  // Vertical node lines (dim1)
+  for(let i=0;i<=n1;i++){
+    let x=pad+(i/n1)*pw;
+    wCtx.beginPath();wCtx.moveTo(x,pad);wCtx.lineTo(x,pad+ph2);wCtx.stroke();
+  }
+  // Horizontal node lines (dim2)
+  for(let j=0;j<=n2;j++){
+    let y=pad+(j/n2)*ph2;
+    wCtx.beginPath();wCtx.moveTo(pad,y);wCtx.lineTo(pad+pw,y);wCtx.stroke();
+  }
+
+  // Draw interior node points
+  wCtx.fillStyle='#ffffff';
+  let nodeCount=0;
+  for(let i=0;i<n1;i++){
+    for(let j=0;j<n2;j++){
+      let x=pad+(i/n1)*pw;
+      let y=pad+(j/n2)*ph2;
+      // Color by CRT value
+      let crtArr=[0,0,0,0];
+      crtArr[dim1]=i%primes[dim1];
+      crtArr[dim2]=j%primes[dim2];
+      let v=fromCRT(crtArr[0],crtArr[1],crtArr[2],crtArr[3]);
+      let cc=coupling(v);
+      wCtx.fillStyle=couplingColor(cc);
+      wCtx.beginPath();
+      wCtx.arc(x,y,5,0,2*Math.PI);
+      wCtx.fill();
+      wCtx.strokeStyle='#fff';wCtx.lineWidth=0.5;wCtx.stroke();
+      nodeCount++;
+    }
+  }
+
+  // Labels
+  wCtx.fillStyle='#88ccff';wCtx.font='14px Georgia';
+  wCtx.textAlign='center';
+  wCtx.fillText(name1+'='+L1+' (mode n='+n1+')',w/2,h-10);
+  wCtx.save();wCtx.translate(15,h/2);wCtx.rotate(-Math.PI/2);
+  wCtx.fillText(name2+'='+L2+' (mode n='+n2+')',0,0);
+  wCtx.restore();
+
+  // Title
+  wCtx.fillStyle='#aaddff';wCtx.font='bold 14px Georgia';
+  wCtx.textAlign='center';
+  wCtx.fillText('Standing Wave: '+name1+' x '+name2+' face',w/2,20);
+  wCtx.fillStyle='#7799bb';wCtx.font='12px Georgia';
+  wCtx.fillText('Blue=positive, Red=negative, White dots=nodes (wave=0)',w/2,38);
+
+  // Update info
+  let energy=0;
+  for(let i=0;i<4;i++)energy+=(m[i]*m[i])/(primes[i]*primes[i]);
+  let totalNodes=m[0]*m[1]*m[2]*m[3];
+  document.getElementById('modeInfo').textContent='('+m.join(',')+')';
+  document.getElementById('energyInfo').textContent=energy.toFixed(4);
+  document.getElementById('nodeCount').textContent=totalNodes+' interior';
+  document.getElementById('nodeStructure').textContent='Z/'+m[0]+' x Z/'+m[1]+' x Z/'+m[2]+' x Z/'+m[3];
+  let ringSize=m[0]*m[1]*m[2]*m[3];
+  document.getElementById('crtRing').textContent='Z/'+ringSize+'Z'+(ringSize===210?' = DATA RING':'');
+}
+
+function drawEnergyLevels(){
+  let w=eCanvas.width,h=eCanvas.height;
+  eCtx.fillStyle='#080812';
+  eCtx.fillRect(0,0,w,h);
+
+  // Compute energies for various modes
+  let modes=[
+    {n:[1,1,1,1],label:'Ground'},
+    {n:[2,1,1,1],label:'D-excited'},
+    {n:[1,3,1,1],label:'K-excited'},
+    {n:[1,1,5,1],label:'E-excited'},
+    {n:[1,1,1,7],label:'b-excited'},
+    {n:[2,3,1,1],label:'D*K pair'},
+    {n:[1,1,5,7],label:'E*b pair'},
+    {n:[2,3,5,7],label:'PRIMORDIAL'},
+  ];
+
+  let energies=modes.map(m=>{
+    let e=0;
+    for(let i=0;i<4;i++)e+=(m.n[i]*m.n[i])/(primes[i]*primes[i]);
+    return{...m,energy:e};
+  });
+
+  let maxE=5;
+  let pad=40,barW=w-2*pad,barH=h-2*pad;
+
+  // Background gradient
+  let grad=eCtx.createLinearGradient(0,pad,0,pad+barH);
+  grad.addColorStop(0,'rgba(255,100,100,0.05)');
+  grad.addColorStop(1,'rgba(100,100,255,0.05)');
+  eCtx.fillStyle=grad;
+  eCtx.fillRect(pad,pad,barW,barH);
+
+  // Draw energy levels
+  energies.forEach((m,i)=>{
+    let y=pad+barH-(m.energy/maxE)*barH;
+    let isPrimordial=m.label==='PRIMORDIAL';
+    let isGround=m.label==='Ground';
+
+    eCtx.strokeStyle=isPrimordial?'#ffaa00':isGround?'#44ff44':'#4488cc';
+    eCtx.lineWidth=isPrimordial?3:isGround?2:1.5;
+    eCtx.beginPath();
+    eCtx.moveTo(pad+10,y);
+    eCtx.lineTo(pad+barW-10,y);
+    eCtx.stroke();
+
+    eCtx.fillStyle=isPrimordial?'#ffcc44':isGround?'#66ff66':'#88aacc';
+    eCtx.font=(isPrimordial?'bold ':'')+' 10px monospace';
+    eCtx.textAlign='left';
+    eCtx.fillText(m.label+' E='+m.energy.toFixed(3),pad+14,y-4);
+    eCtx.textAlign='right';
+    eCtx.fillText('('+m.n.join(',')+')',pad+barW-14,y-4);
+  });
+
+  // Highlight current mode
+  let cur=getMode();
+  let curE=0;
+  for(let i=0;i<4;i++)curE+=(cur[i]*cur[i])/(primes[i]*primes[i]);
+  if(curE<=maxE){
+    let y=pad+barH-(curE/maxE)*barH;
+    eCtx.strokeStyle='rgba(255,255,255,0.6)';
+    eCtx.lineWidth=1;
+    eCtx.setLineDash([4,4]);
+    eCtx.beginPath();eCtx.moveTo(pad,y);eCtx.lineTo(pad+barW,y);eCtx.stroke();
+    eCtx.setLineDash([]);
+    eCtx.fillStyle='#ffffff';eCtx.font='bold 11px Georgia';eCtx.textAlign='center';
+    eCtx.fillText('CURRENT',pad+barW/2,y+14);
+  }
+
+  // Y axis label
+  eCtx.fillStyle='#88ccff';eCtx.font='13px Georgia';eCtx.textAlign='center';
+  eCtx.fillText('Energy Levels',w/2,20);
+  eCtx.save();eCtx.translate(12,h/2);eCtx.rotate(-Math.PI/2);
+  eCtx.font='11px Georgia';eCtx.fillText('E = sum(ni/Li)^2',0,0);
+  eCtx.restore();
+
+  // Axis ticks
+  eCtx.fillStyle='#556';eCtx.font='9px monospace';eCtx.textAlign='right';
+  for(let e=0;e<=maxE;e++){
+    let y=pad+barH-(e/maxE)*barH;
+    eCtx.fillText(e.toFixed(0),pad-4,y+3);
+  }
+}
+
+function showAllNodes(){
+  let sec=document.getElementById('nodeGridSection');
+  sec.style.display=sec.style.display==='none'?'block':'none';
+  if(sec.style.display==='block')buildNodeGrid();
+}
+
+function buildNodeGrid(){
+  let grid=document.getElementById('nodeGrid');
+  grid.innerHTML='';
+  for(let n=0;n<N;n++){
+    let c=coupling(n);
+    let el=document.createElement('div');
+    el.className='node-cell';
+    el.style.background=couplingColor(c)+'33';
+    el.style.color=couplingColor(c);
+    el.style.border='1px solid '+couplingColor(c)+'55';
+    el.textContent=n;
+    el.onclick=()=>{
+      let cr=crt(n);
+      let ev=eigenvalue(n);
+      document.getElementById('nodeDetail').innerHTML=
+        '<strong>'+n+'</strong> = CRT('+cr.join(',')+') | coupling='+c+
+        ' | eigenvalue='+ev.toFixed(3)+' | class='+names.filter((_,i)=>cr[i]===0).join('+')+'-null';
+    };
+    grid.appendChild(el);
+  }
+}
+
+function toggleAnim(){
+  animating=!animating;
+  document.getElementById('animBtn').textContent=animating?'Stop':'Animate';
+  if(animating)animate();
+  else if(animId)cancelAnimationFrame(animId);
+}
+
+function animate(){
+  if(!animating)return;
+  phase+=0.03;
+  document.getElementById('phaseSlider').value=((phase%(2*Math.PI))/(2*Math.PI)*100)|0;
+  drawWave();
+  drawEnergyLevels();
+  animId=requestAnimationFrame(animate);
+}
+
+// Event listeners
+document.getElementById('modeSelect').onchange=()=>{drawWave();drawEnergyLevels();};
+document.getElementById('sliceSelect').onchange=()=>{drawWave();};
+document.getElementById('phaseSlider').oninput=(e)=>{
+  phase=e.target.value/100*2*Math.PI;
+  drawWave();
+};
+
+// Initial draw
+drawWave();
+drawEnergyLevels();
+</script>
+</body>
+</html>

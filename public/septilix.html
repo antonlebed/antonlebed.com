@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Seven sigma petals: b=7 fractal flower with 6 modes. Flower, fractal, helix, glyph, eigenvalues, anatomy. Mouse-responsive depth.">
+<title>The Septilix | antonlebed.com</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a12;
+  color: #e0ddd4;
+  font-family: 'Georgia', serif;
+  overflow-x: hidden;
+}
+.hero {
+  text-align: center;
+  padding: 40px 20px 20px;
+}
+.hero h1 {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  background: linear-gradient(135deg, #ff6b6b, #ffa500, #4ecdc4, #6b5bff, #c471ed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+.hero p {
+  font-size: 1.1rem;
+  color: #8a8a9a;
+  font-style: italic;
+  max-width: 700px;
+  margin: 0 auto;
+}
+canvas {
+  display: block;
+  margin: 20px auto;
+  cursor: crosshair;
+}
+.controls {
+  text-align: center;
+  padding: 10px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.controls button {
+  background: #1a1a2e;
+  color: #e0ddd4;
+  border: 1px solid #333;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.controls button:hover { background: #2a2a4e; border-color: #666; }
+.controls button.active { background: #3a2a5e; border-color: #c471ed; color: #fff; }
+.info {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 20px 20px;
+  line-height: 1.7;
+}
+.info h2 {
+  color: #c471ed;
+  margin: 20px 0 10px;
+  font-size: 1.3rem;
+}
+.info .finding {
+  background: #1a1a2e;
+  border-left: 3px solid #ffa500;
+  padding: 12px 16px;
+  margin: 10px 0;
+  border-radius: 0 6px 6px 0;
+}
+.info .finding strong { color: #ffa500; }
+.info code {
+  background: #1a1a2e;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  color: #4ecdc4;
+}
+.glyph-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 0.85rem;
+}
+.glyph-table th, .glyph-table td {
+  padding: 4px 8px;
+  border: 1px solid #333;
+  text-align: center;
+}
+.glyph-table th { background: #1a1a2e; color: #c471ed; }
+.glyph-table .special { color: #ffa500; font-weight: bold; }
+.contrast-panel {
+  max-width: 800px;
+  margin: 0 auto 30px;
+  padding: 16px 20px;
+  background: #12122a;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+@media(max-width:480px){
+  .hero h1{font-size:1.3em}
+  .hero p{font-size:0.85em}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  select{min-height:44px}
+  .info-panel{padding:10px}
+  .contrast-panel{padding:10px 12px}
+  .glyph-table td,.glyph-table th{padding:4px;font-size:0.8em}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<div class="hero">
+  <h1>The Septilix</h1>
+  <p>Have you ever looked at a flower and counted its petals? Nature chooses
+  certain numbers again and again. Here: seven sigma glyphs braided into one bloom.
+  b=7 petals, each walking from darkness(-1) through void(0) to light(11).</p>
+</div>
+
+<canvas id="canvas" width="800" height="800"></canvas>
+
+<div class="controls">
+  <button id="btnFlower" class="active" onclick="setMode('flower')">Flower</button>
+  <button id="btnFractal" onclick="setMode('fractal')">Fractal</button>
+  <button id="btnHelix" onclick="setMode('helix')">Helix</button>
+  <button id="btnGlyph" onclick="setMode('glyph')">Sigma Glyph</button>
+  <button id="btnEigen" onclick="setMode('eigen')">Eigenvalues</button>
+  <button id="btnAnatomy" onclick="setMode('anatomy')">Anatomy</button>
+</div>
+
+<div class="info" id="info-panel"></div>
+
+<div class="contrast-panel">
+  <div style="color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;text-align:center">Contrast</div>
+  <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.82em;justify-content:center">
+    <div style="flex:1;min-width:220px">
+      <div style="color:#ffd700;margin-bottom:4px">The Septilix (b=7)</div>
+      <div style="color:#aaa">b=7 petals: each a complete sigma walk</div>
+      <div style="color:#aaa">Fractal: b^4=2401 ~ N=2310. Overflow = b*13</div>
+      <div style="color:#aaa">DNA has D=2 strands, collagen K=3. This has b=7</div>
+      <div style="color:#aaa">Only b-generator crosses between petals</div>
+      <div style="color:#aaa">Each petal IS a flower at the next scale</div>
+    </div>
+    <div style="flex:1;min-width:220px">
+      <div style="color:#555;margin-bottom:4px">Conventional flower models</div>
+      <div style="color:#555">Petal count = Fibonacci (descriptive, not derived)</div>
+      <div style="color:#555">No fractal self-similarity from number theory</div>
+      <div style="color:#555">No connection to biopolymer strand counts</div>
+      <div style="color:#555">No algebraic reason for petal crossing</div>
+      <div style="color:#555">Phyllotaxis = golden angle (one number, not a ring)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var C = document.getElementById('canvas');
+var ctx = C.getContext('2d');
+var W = C.width, H = C.height;
+var cx = W/2, cy = H/2;
+
+var N = 2310;
+var primes = [2,3,5,7,11];
+var PI = Math.PI;
+
+var petalColors = [
+  '#ff0000', '#ff8800', '#ffff00', '#00cc00',
+  '#0088ff', '#4400ff', '#cc00ff'
+];
+
+function posToLetter(p) {
+  if (p < -1 || p > 24) return '?';
+  return String.fromCharCode(65 + p + 1);
+}
+
+function eigenvalue(n) {
+  n = ((n % N) + N) % N;
+  return Math.cos(PI*n) + 2*Math.cos(2*PI*n/3) + 2*Math.cos(2*PI*n/5)
+       + 2*Math.cos(2*PI*n/7) + 2*Math.cos(2*PI*n/11);
+}
+
+function isPrime(n) {
+  if (n < 2) return false;
+  if (n < 4) return true;
+  if (n%2===0 || n%3===0) return false;
+  for (var i=5; i*i<=n; i+=6)
+    if (n%i===0 || n%(i+2)===0) return false;
+  return true;
+}
+
+var mode = 'flower';
+var time = 0;
+var mouseX = cx, mouseY = cy;
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.controls button').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('btn' + m.charAt(0).toUpperCase() + m.slice(1)).classList.add('active');
+  updateInfo();
+}
+
+C.addEventListener('mousemove', function(e) {
+  var r = C.getBoundingClientRect();
+  mouseX = (e.clientX - r.left) * W / r.width;
+  mouseY = (e.clientY - r.top) * H / r.height;
+});
+
+function drawFlower(t) {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, W, H);
+
+  var baseR = 250;
+  var petalLen = 13;
+
+  for (var p = 0; p < 7; p++) {
+    var angle0 = (p / 7) * 2 * PI - PI/2 + t * 0.1;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle0);
+
+    ctx.beginPath();
+    var pts = [];
+    for (var i = 0; i <= petalLen * 4; i++) {
+      var frac = i / (petalLen * 4);
+      var pos = -1 + frac * 12;
+      var posInt = Math.round(pos);
+      var lam = eigenvalue(posInt);
+      var r2 = frac * baseR;
+      var lateralAmp = 30 + 20 * Math.sin(t * 0.5 + p);
+      var lateral = (lam / 9) * lateralAmp;
+      pts.push({x: r2, y: lateral, lam: lam, pos: posInt});
+    }
+
+    ctx.strokeStyle = petalColors[p];
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    for (var i = pts.length - 1; i >= 0; i--) ctx.lineTo(pts[i].x, -pts[i].y * 0.3);
+    ctx.closePath();
+    ctx.fillStyle = petalColors[p] + '18';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    for (var pos = -1; pos <= 11; pos++) {
+      var frac2 = (pos + 1) / 12;
+      var r3 = frac2 * baseR;
+      var lam2 = eigenvalue(pos);
+      var lat2 = (lam2 / 9) * 30;
+
+      if (isPrime(pos) || pos === 0 || pos === -1 || pos === 11) {
+        ctx.beginPath();
+        ctx.arc(r3, lat2, pos === 0 ? 6 : 4, 0, 2*PI);
+        if (pos === 0) ctx.fillStyle = '#fff';
+        else if (pos === -1) ctx.fillStyle = '#888';
+        else if (isPrime(pos)) ctx.fillStyle = '#ff0';
+        else ctx.fillStyle = petalColors[p];
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(posToLetter(pos), r3, lat2 - 8);
+      }
+
+      if (pos > 1 && !isPrime(pos) && pos < 11) {
+        var tx2 = frac2 * baseR;
+        var ty2 = (lam2 / 9) * 30;
+        ctx.strokeStyle = '#663300';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(tx2, ty2 - 8);
+        ctx.lineTo(tx2 + 3, ty2);
+        ctx.lineTo(tx2, ty2 + 8);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, 2*PI);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px Georgia';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('0', cx, cy);
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#8a8a9a';
+  ctx.font = '12px Georgia';
+  ctx.fillText('b=7 petals. Each one: a sigma walk from darkness(-1) to light(11).', cx, H - 20);
+}
+
+function drawHelix(t) {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, W, H);
+
+  var amp = 120;
+
+  for (var p = 0; p < 7; p++) {
+    var phase = (p / 7) * 2 * PI;
+    ctx.beginPath();
+    ctx.strokeStyle = petalColors[p];
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.8;
+
+    for (var i = 0; i <= 200; i++) {
+      var frac = i / 200;
+      var x = 100 + frac * (W - 200);
+      var pos = -1 + frac * 12;
+      var posInt = Math.round(pos);
+      var lam = eigenvalue(posInt);
+      var y = cy + amp * Math.sin(frac * 4 * PI + phase + t * 0.3) * (1 + lam/18);
+      var z = Math.cos(frac * 4 * PI + phase + t * 0.3);
+      ctx.globalAlpha = 0.3 + 0.5 * (z + 1) / 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    for (var pos = -1; pos <= 11; pos++) {
+      var frac2 = (pos + 1) / 12;
+      var x2 = 100 + frac2 * (W - 200);
+      var y2 = cy + amp * Math.sin(frac2 * 4 * PI + phase + t * 0.3);
+      if (isPrime(pos) || pos === 0) {
+        ctx.beginPath();
+        ctx.arc(x2, y2, 3, 0, 2*PI);
+        ctx.fillStyle = pos === 0 ? '#fff' : (isPrime(pos) ? '#ff0' : petalColors[p]);
+        ctx.fill();
+      }
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#666';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  for (var pos = -1; pos <= 11; pos++) {
+    var frac = (pos + 1) / 12;
+    var x = 100 + frac * (W - 200);
+    ctx.fillText(posToLetter(pos) + '(' + pos + ')', x, H - 30);
+  }
+
+  ctx.fillStyle = '#8a8a9a';
+  ctx.font = '12px Georgia';
+  ctx.fillText('Seven sigma strands braided. DNA has D=2. Collagen has K=3. This has b=7.', cx, 30);
+}
+
+function drawGlyph(t) {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, W, H);
+
+  var scale = 180;
+  var gcx = cx, gcy = cy;
+
+  var positions = [];
+  for (var pos = -1; pos <= 11; pos++) {
+    var x, y;
+    if (pos === -1) {
+      x = gcx + scale * 0.9;
+      y = gcy - scale * 0.3;
+    } else if (pos === 0) {
+      x = gcx + scale * 0.8;
+      y = gcy;
+    } else {
+      var angle = -(pos - 0.5) / 11 * 2 * PI;
+      var r = scale * 0.7;
+      x = gcx + r * Math.cos(angle);
+      y = gcy + r * Math.sin(angle);
+    }
+    positions.push({pos:pos, x:x, y:y, letter:posToLetter(pos), lam:eigenvalue(pos)});
+  }
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#c471ed';
+  ctx.lineWidth = 3;
+  ctx.moveTo(positions[0].x, positions[0].y);
+  for (var i = 1; i < positions.length; i++) {
+    var prev = positions[i-1];
+    var curr = positions[i];
+    var cpx = (prev.x + curr.x) / 2;
+    var cpy = (prev.y + curr.y) / 2;
+    ctx.quadraticCurveTo(prev.x, prev.y, cpx, cpy);
+  }
+  var last = positions[positions.length - 1];
+  ctx.quadraticCurveTo(last.x, last.y, gcx + scale * 1.1, gcy - scale * 0.5);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#c471ed44';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(gcx + scale * 1.1, gcy - scale * 0.5);
+  ctx.quadraticCurveTo(gcx + scale * 1.3, gcy - scale * 0.1, gcx + scale * 1.2, gcy + scale * 0.1);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (var i = 0; i < positions.length; i++) {
+    var p = positions[i];
+    var isP = isPrime(p.pos);
+    var r = isP ? 8 : (p.pos === 0 ? 10 : (p.pos === -1 ? 7 : 5));
+
+    if (isP || p.pos === 0) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r + 6, 0, 2*PI);
+      ctx.fillStyle = p.pos === 0 ? 'rgba(255,255,255,0.15)' :
+                     p.pos === 2 ? 'rgba(255,0,0,0.15)' :
+                     p.pos === 3 ? 'rgba(255,136,0,0.15)' :
+                     p.pos === 5 ? 'rgba(0,204,0,0.15)' :
+                     p.pos === 7 ? 'rgba(0,136,255,0.15)' :
+                     p.pos === 11 ? 'rgba(204,0,255,0.15)' : 'rgba(255,255,0,0.15)';
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, 2*PI);
+    if (p.pos === -1) ctx.fillStyle = '#888';
+    else if (p.pos === 0) ctx.fillStyle = '#fff';
+    else if (p.pos === 2) ctx.fillStyle = '#ff0000';
+    else if (p.pos === 3) ctx.fillStyle = '#ff8800';
+    else if (p.pos === 5) ctx.fillStyle = '#00cc00';
+    else if (p.pos === 7) ctx.fillStyle = '#0088ff';
+    else if (p.pos === 11) ctx.fillStyle = '#cc00ff';
+    else if (isP) ctx.fillStyle = '#ffff00';
+    else ctx.fillStyle = '#555';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    var labelR = r + 18;
+    var angle2 = Math.atan2(p.y - gcy, p.x - gcx);
+    var lx = p.x + labelR * Math.cos(angle2);
+    var ly = p.y + labelR * Math.sin(angle2);
+    ctx.fillText(p.letter + '(' + p.pos + ')', lx, ly);
+    ctx.fillStyle = '#8a8a9a';
+    ctx.font = '10px monospace';
+    ctx.fillText(p.lam.toFixed(1), lx, ly + 14);
+  }
+  ctx.textBaseline = 'alphabetic';
+
+  var pulse = Math.sin(t * 2) * 0.3 + 0.7;
+  ctx.beginPath();
+  ctx.arc(positions[1].x, positions[1].y, 15 * pulse, 0, 2*PI);
+  ctx.strokeStyle = 'rgba(255,255,255,' + (0.3 * pulse) + ')';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = '#c471ed';
+  ctx.font = '14px Georgia';
+  ctx.textAlign = 'center';
+  ctx.fillText('The sigma glyph IS the axiom walk', cx, 40);
+  ctx.fillStyle = '#8a8a9a';
+  ctx.font = '11px Georgia';
+  ctx.fillText('Tail = Alpha(-1). Circle = Being(0) through Love(10). Exit = Mother(11).', cx, 60);
+  ctx.fillText('The tail of one sigma becomes the beginning of the next.', cx, 76);
+}
+
+function drawEigen(t) {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, W, H);
+
+  var margin = 80;
+  var plotW = W - 2 * margin;
+  var plotH = H - 2 * margin;
+  var minPos = -1, maxPos = 24;
+  var range = maxPos - minPos;
+
+  ctx.strokeStyle = '#1a1a2e'; ctx.lineWidth = 1;
+  for (var lam = -8; lam <= 10; lam += 2) {
+    var y = cy - (lam / 10) * (plotH / 2);
+    ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(W - margin, y); ctx.stroke();
+    ctx.fillStyle = '#444'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+    ctx.fillText(lam.toString(), margin - 5, y + 4);
+  }
+
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(margin, cy); ctx.lineTo(W - margin, cy); ctx.stroke();
+
+  ctx.beginPath(); ctx.strokeStyle = '#c471ed'; ctx.lineWidth = 2;
+  for (var i = 0; i <= 200; i++) {
+    var pos = minPos + (i / 200) * range;
+    var posInt = Math.round(pos);
+    var lam2 = eigenvalue(posInt);
+    var x = margin + ((pos - minPos) / range) * plotW;
+    var y = cy - (lam2 / 10) * (plotH / 2);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  for (var pos = minPos; pos <= maxPos; pos++) {
+    var lam2 = eigenvalue(pos);
+    var x = margin + ((pos - minPos) / range) * plotW;
+    var y = cy - (lam2 / 10) * (plotH / 2);
+    var isP = isPrime(pos > 0 ? pos : 0);
+
+    ctx.beginPath();
+    ctx.arc(x, y, isP ? 6 : (pos === 0 ? 7 : 3), 0, 2*PI);
+    if (pos === 0) ctx.fillStyle = '#fff';
+    else if (pos === -1) ctx.fillStyle = '#888';
+    else if (pos === 2) ctx.fillStyle = '#ff0000';
+    else if (pos === 3) ctx.fillStyle = '#ff8800';
+    else if (pos === 5) ctx.fillStyle = '#00cc00';
+    else if (pos === 7) ctx.fillStyle = '#0088ff';
+    else if (pos === 11) ctx.fillStyle = '#cc00ff';
+    else if (isP) ctx.fillStyle = '#ffff00';
+    else ctx.fillStyle = '#555';
+    ctx.fill();
+
+    ctx.fillStyle = isP || pos <= 0 ? '#fff' : '#666';
+    ctx.font = (isP || pos <= 0) ? 'bold 11px monospace' : '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(posToLetter(pos), x, y - 12);
+  }
+
+  var x1 = margin + (((-1) - minPos) / range) * plotW;
+  var x2 = margin + ((11 - minPos) / range) * plotW;
+  ctx.fillStyle = 'rgba(196, 113, 237, 0.05)';
+  ctx.fillRect(x1, margin, x2 - x1, plotH);
+  ctx.strokeStyle = '#c471ed44'; ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.strokeRect(x1, margin, x2 - x1, plotH);
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#c471ed'; ctx.font = '13px Georgia'; ctx.textAlign = 'center';
+  ctx.fillText('Every letter has a pitch. Primes are deep notes. The void sings loudest.', cx, 30);
+  ctx.fillStyle = '#8a8a9a'; ctx.font = '11px Georgia';
+  ctx.fillText('Purple region = one sigma glyph (A to M). Colored dots = primes. White = void.', cx, H - 15);
+}
+
+function drawFractal(t) {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, W, H);
+
+  function drawFlowerLevel(fcx, fcy, radius, level, maxLevel, baseAngle) {
+    if (level > maxLevel || radius < 3) return;
+
+    ctx.beginPath();
+    ctx.arc(fcx, fcy, Math.max(2, radius * 0.08), 0, 2*PI);
+    ctx.fillStyle = level === 0 ? '#fff' : 'rgba(255,255,255,0.3)';
+    ctx.fill();
+
+    for (var p = 0; p < 7; p++) {
+      var angle = baseAngle + (p / 7) * 2 * PI + t * (0.1 / (level + 1));
+      var tipX = fcx + radius * Math.cos(angle);
+      var tipY = fcy + radius * Math.sin(angle);
+
+      ctx.beginPath();
+      var petalW = radius * 0.3;
+      var perpAngle = angle + PI/2;
+      var midX = fcx + radius * 0.5 * Math.cos(angle);
+      var midY = fcy + radius * 0.5 * Math.sin(angle);
+      var cp1x = midX + petalW * Math.cos(perpAngle);
+      var cp1y = midY + petalW * Math.sin(perpAngle);
+      var cp2x = midX - petalW * Math.cos(perpAngle);
+      var cp2y = midY - petalW * Math.sin(perpAngle);
+
+      ctx.moveTo(fcx, fcy);
+      ctx.quadraticCurveTo(cp1x, cp1y, tipX, tipY);
+      ctx.quadraticCurveTo(cp2x, cp2y, fcx, fcy);
+
+      var alpha = Math.max(0.08, 0.6 / (level + 1));
+      ctx.fillStyle = petalColors[p] + Math.round(alpha * 255).toString(16).padStart(2,'0');
+      ctx.fill();
+      ctx.strokeStyle = petalColors[p] + '88';
+      ctx.lineWidth = Math.max(0.5, 2 - level * 0.5);
+      ctx.stroke();
+
+      if (radius > 20) {
+        var primePos = [2, 3, 5, 7, 11];
+        for (var pp = 0; pp < primePos.length; pp++) {
+          var frac = (primePos[pp] + 1) / 12;
+          var px = fcx + radius * frac * Math.cos(angle);
+          var py = fcy + radius * frac * Math.sin(angle);
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(1, 3 - level), 0, 2*PI);
+          ctx.fillStyle = '#ffff0088';
+          ctx.fill();
+        }
+      }
+
+      if (level < maxLevel) {
+        drawFlowerLevel(tipX, tipY, radius * 0.35, level + 1, maxLevel, angle);
+      }
+    }
+  }
+
+  var dx = mouseX - cx, dy = mouseY - cy;
+  var dist = Math.sqrt(dx*dx + dy*dy);
+  var maxLevel = dist < 100 ? 3 : (dist < 250 ? 2 : 1);
+
+  drawFlowerLevel(cx, cy, 280, 0, maxLevel, -PI/2);
+
+  ctx.fillStyle = '#c471ed'; ctx.font = '14px Georgia'; ctx.textAlign = 'center';
+  ctx.fillText('Each petal IS a flower. Move toward center to see deeper.', cx, 30);
+  ctx.fillStyle = '#8a8a9a'; ctx.font = '11px Georgia';
+  ctx.fillText('Level 0: 1 flower. Level 1: 7 petals. Level 2: 49=b^2. Level 3: 343=b^3.', cx, 50);
+
+  ctx.fillStyle = '#ffa500'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Fractal depth: ' + maxLevel + ' (b^' + maxLevel + '=' + Math.pow(7,maxLevel) + ')', 20, H - 20);
+}
+
+function drawAnatomy(t) {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = '#c471ed'; ctx.font = '14px Georgia'; ctx.textAlign = 'center';
+  ctx.fillText('Septilix Anatomy', cx, 30);
+
+  var flowerCx = cx;
+  var flowerCy = cy - 60;
+  var flowerR = 180;
+
+  for (var p = 0; p < 7; p++) {
+    var angle = (p / 7) * 2 * PI - PI/2 + t * 0.05;
+    var tipX = flowerCx + flowerR * Math.cos(angle);
+    var tipY = flowerCy + flowerR * Math.sin(angle);
+
+    ctx.beginPath();
+    var pw = flowerR * 0.25;
+    var pa = angle + PI/2;
+    var mx2 = flowerCx + flowerR*0.5*Math.cos(angle);
+    var my2 = flowerCy + flowerR*0.5*Math.sin(angle);
+    ctx.moveTo(flowerCx, flowerCy);
+    ctx.quadraticCurveTo(mx2+pw*Math.cos(pa), my2+pw*Math.sin(pa), tipX, tipY);
+    ctx.quadraticCurveTo(mx2-pw*Math.cos(pa), my2-pw*Math.sin(pa), flowerCx, flowerCy);
+    ctx.fillStyle = petalColors[p] + '44';
+    ctx.fill();
+    ctx.strokeStyle = petalColors[p];
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    var lx = flowerCx + (flowerR+20)*Math.cos(angle);
+    var ly = flowerCy + (flowerR+20)*Math.sin(angle);
+    ctx.fillStyle = petalColors[p]; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('P'+p, lx, ly+4);
+  }
+
+  ctx.beginPath();
+  ctx.arc(flowerCx, flowerCy, 8, 0, 2*PI);
+  ctx.fillStyle = '#000'; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('0', flowerCx, flowerCy+4);
+
+  ctx.strokeStyle = '#4a7a3a'; ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(flowerCx, flowerCy + flowerR - 20);
+  ctx.quadraticCurveTo(flowerCx - 10, flowerCy + flowerR + 60, flowerCx, flowerCy + flowerR + 120);
+  ctx.stroke();
+
+  for (var i = 0; i < 6; i++) {
+    var ly2 = flowerCy + flowerR + 20 + i * 18;
+    var side = i % 2 === 0 ? 1 : -1;
+    ctx.beginPath();
+    ctx.ellipse(flowerCx + side*18, ly2, 12, 5, side*0.3, 0, 2*PI);
+    ctx.fillStyle = '#2a5a2a44'; ctx.fill();
+    ctx.strokeStyle = '#4a7a3a'; ctx.lineWidth = 1; ctx.stroke();
+  }
+  ctx.fillStyle = '#4a7a3a'; ctx.font = '10px monospace';
+  ctx.fillText('6 leaves = b-1', flowerCx + 50, flowerCy + flowerR + 70);
+}
+
+function animate() {
+  time += 0.016;
+  if (mode === 'flower') drawFlower(time);
+  else if (mode === 'fractal') drawFractal(time);
+  else if (mode === 'helix') drawHelix(time);
+  else if (mode === 'glyph') drawGlyph(time);
+  else if (mode === 'eigen') drawEigen(time);
+  else if (mode === 'anatomy') drawAnatomy(time);
+  requestAnimationFrame(animate);
+}
+
+function updateInfo() {
+  var panel = document.getElementById('info-panel');
+  if (mode === 'flower') {
+    panel.innerHTML =
+      '<h2>Seven Petals</h2>' +
+      '<p>The <em>tsvetik-semitsvetik</em> — the seven-petaled flower from a Russian fairy tale. ' +
+      'A girl gets seven wishes. Wastes six on herself. The seventh heals a boy. Why seven?</p>' +
+      '<div class="finding"><strong>b=7 cosets.</strong> Divide Z/2310Z by remainder mod 7: seven groups of 330. ' +
+      'Each group is a petal. The 5 CRT channels become 7 petals refracted through depth: b/E = 7/5 = 1.4.</div>' +
+      '<div class="finding"><strong>Each petal IS a sigma.</strong> The lowercase sigma encodes the axiom walk ' +
+      'from A(-1) through B(0) to M(11). Seven of them, circles joined at 0=void, braided together.</div>' +
+      '<div class="finding"><strong>Thorns and leaves.</strong> Composites (4, 6, 8, 9) are rosehip thorns. ' +
+      'Pass-through fraction: (b-1)/b = 6/7.</div>';
+  } else if (mode === 'helix') {
+    panel.innerHTML =
+      '<h2>Septuple Helix</h2>' +
+      '<p>DNA twists D=2 strands. Collagen braids K=3. What would b=7 look like? You\'re looking at it.</p>' +
+      '<div class="finding"><strong>Eigenvalue modulation.</strong> Each strand is a sigma walk. The eigenvalue ' +
+      'at each position bends the strand: primes pull deep (negative), composites push outward (thorns).</div>' +
+      '<div class="finding"><strong>Not a tower — a rose.</strong> The configuration 970200^970200 blooms ' +
+      'radially. Each petal unfolds its own rose at every scale.</div>';
+  } else if (mode === 'glyph') {
+    panel.innerHTML =
+      '<h2>The Sigma Glyph</h2>' +
+      '<p>Trace a sigma in the air. A tail descending, then a circle. You\'ve just drawn the axiom walk.</p>' +
+      '<div class="finding"><strong>Tail = Alpha(-1).</strong> The descending stroke is the pre-axiom. ' +
+      'lambda(-1) = lambda(+1) = 1.548. Mirror and ground: same voice, opposite pole.</div>' +
+      '<div class="finding"><strong>Circle = the walk.</strong> B(0)=void through D(2), K(3), E(5), b(7) to ' +
+      'L(10)=love, M(11)=mother. The circle bends toward 0 because lambda(0)=9 is the peak.</div>' +
+      '<div class="finding"><strong>Chaining.</strong> The tail of one sigma begins the next. ' +
+      'M(11) exits exactly where A(-1) descends. Seven chains braided = the septilix.</div>';
+  } else if (mode === 'eigen') {
+    panel.innerHTML =
+      '<h2>Eigenvalue Landscape</h2>' +
+      '<p>Every position has a pitch — its eigenvalue. Play them in order and you hear the axiom\'s melody.</p>' +
+      '<div class="finding"><strong>B(0) = +9.000 = K^2.</strong> The void is maximum coherence. ' +
+      'Nothing vibrates louder than nothing. The peak of the entire spectrum.</div>' +
+      '<div class="finding"><strong>S(17) = -7.339 = deepest.</strong> Position 17, the 7th prime, reaches ' +
+      'the absolute minimum. In the true form Z/970200Z, the minimum lives at ADDRESS=137.</div>' +
+      '<div class="finding"><strong>L(11) = -1.184 = silence.</strong> The transcendental has the same eigenvalue ' +
+      'as position 4. Light costs exactly what silence does.</div>';
+  } else if (mode === 'fractal') {
+    panel.innerHTML =
+      '<h2>Fractal Flower</h2>' +
+      '<p>Move your mouse toward the center. Watch depth increase. Each petal <em>is</em> a flower.</p>' +
+      '<div class="finding"><strong>b^4 - N = 91.</strong> Four levels of 7-fold branching: ' +
+      '7, 49, 343, 2401. The ring has 2310. Overflow: 91 = b * 13 = b * Fibonacci(7). ' +
+      'The fractal <em>almost</em> fills the ring. The leftover = leaves.</div>' +
+      '<div class="finding"><strong>Self-similar at every scale.</strong> The configuration ' +
+      '970200^970200^... (970200 times). Not a tower. A rose — radial, blooming from sigma.</div>';
+  } else if (mode === 'anatomy') {
+    panel.innerHTML =
+      '<h2>Flower Anatomy</h2>' +
+      '<p>Every part of a real flower has a name. So does every part of the septilix — and every name is a number.</p>' +
+      '<div class="finding"><strong>Only depth crosses petals.</strong> Generators for D, K, E ' +
+      '(steps 105, 70, 42) all have step mod 7 = 0: intra-petal only. ' +
+      'The b-generator (step 30, 30 mod 7 = 2) crosses between petals. To see another petal, you must go through suffering.</div>' +
+      '<div class="finding"><strong>Stem = 330 = D*K*E*L.</strong> Multiples of 7. Contains all primes except b.</div>' +
+      '<div class="finding"><strong>Leaves = 1980.</strong> N*(b-1)/b. Thorns = 28 = D^2*b. Seeds = 49 = b^2. Root = 0 = void.</div>';
+  }
+}
+
+updateInfo();
+animate();
+</script>
+</body>
+</html>

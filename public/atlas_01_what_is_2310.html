@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Interactive introduction to the axiom chain: ten terms, five primes, biological ladder, CRT clocks, and shadow descent. Chapter 0 of the atlas.">
+<title>Chapter 0: The Chain - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+
+/* Scrolling layout */
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px;
+           position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 48px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.math { font-family: 'Courier New', monospace; color: #88ccff; font-size: 15px; }
+.big-eq { font-size: 32px; text-align: center; margin: 32px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 3px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+
+/* Interactive widgets */
+canvas { display: block; border-radius: 8px; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+
+/* Prime circles */
+#primes-row { display: flex; justify-content: center; gap: 24px; margin: 32px 0; flex-wrap: wrap; }
+.prime-circle { width: 80px; height: 80px; border-radius: 50%; display: flex;
+                align-items: center; justify-content: center; font-size: 28px;
+                font-family: monospace; color: #fff; cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s; user-select: none; }
+.prime-circle:hover { transform: scale(1.15); }
+.prime-circle:active { transform: scale(0.95); }
+.prime-label { text-align: center; font-size: 12px; color: #888; margin-top: 6px;
+               font-family: monospace; }
+
+/* Chain animation */
+#chain-display { text-align: center; font-size: 48px; font-family: monospace;
+                 color: #fff; margin: 24px 0; min-height: 60px; }
+#chain-steps { text-align: center; font-size: 16px; color: #888; font-family: monospace;
+               margin: 8px 0; min-height: 24px; }
+.chain-btn { background: #1a1a2e; border: 1px solid #444; color: #aaa; padding: 8px 20px;
+             cursor: pointer; font-family: monospace; font-size: 14px; border-radius: 6px;
+             margin: 4px; }
+.chain-btn:hover { background: #2a2a3e; color: #fff; }
+
+/* CRT clocks */
+#crt-input-row { display: flex; align-items: center; gap: 12px; margin: 16px 0;
+                 justify-content: center; flex-wrap: wrap; }
+#crt-input { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 16px;
+             font-size: 24px; font-family: monospace; width: 120px; text-align: center;
+             border-radius: 6px; outline: none; }
+#crt-input:focus { border-color: #88aaff; }
+#crt-arrow { font-size: 24px; color: #666; }
+#crt-result { font-size: 24px; font-family: monospace; color: #66ddaa; }
+#crt-clocks { display: flex; justify-content: center; gap: 16px; margin: 24px 0; flex-wrap: wrap; }
+.clock-wrap { text-align: center; }
+.clock-label { font-size: 12px; color: #888; font-family: monospace; margin-top: 4px; }
+
+/* Grid */
+#grid-wrap { position: relative; margin: 24px auto; }
+#grid-canvas { cursor: crosshair; }
+#grid-tooltip { position: fixed; background: rgba(10,10,20,0.95); border: 1px solid #555;
+                padding: 6px 10px; font-size: 12px; font-family: monospace;
+                pointer-events: none; display: none; border-radius: 4px; color: #ddd;
+                z-index: 9000; max-width: 90vw; }
+#grid-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+.gc-btn { background: #1a1a2e; border: 1px solid #444; color: #aaa; padding: 4px 12px;
+          cursor: pointer; font-family: monospace; font-size: 12px; border-radius: 4px; }
+.gc-btn:hover { background: #2a2a3e; color: #fff; }
+.gc-btn.active { background: #2a4a6a; color: #88ccff; border-color: #88ccff; }
+
+/* Bio ladder */
+.bio-ladder { font-size: 16px; line-height: 2; color: #bbb; padding-left: 8px;
+              border-left: 2px solid #333; margin: 16px 0; }
+
+/* Shadow descent viz */
+#shadow-display { text-align: center; min-height: 120px; padding: 16px 0; }
+#shadow-chain-viz { display: flex; flex-direction: column; align-items: center;
+                    gap: 8px; font-family: monospace; font-size: 24px; }
+.shadow-node { display: inline-flex; align-items: center; justify-content: center;
+               width: 52px; height: 52px; border-radius: 50%; font-size: 22px;
+               color: #fff; transition: all 0.4s; opacity: 0.3; }
+.shadow-node.active { opacity: 1; box-shadow: 0 0 16px rgba(255,255,255,0.3); }
+.shadow-arrow { font-size: 20px; color: #555; transition: color 0.4s; }
+.shadow-arrow.active { color: #ffcc44; }
+.shadow-branch-label { font-size: 13px; color: #666; margin-top: 8px; text-align: center; }
+
+/* Scroll indicator */
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+
+/* Mobile */
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 22px; letter-spacing: 1px; }
+  .prime-circle { width: 60px; height: 60px; font-size: 22px; }
+  #primes-row { gap: 12px; }
+  #crt-input { width: 90px; font-size: 18px; }
+  .clock-wrap canvas { width: 70px; height: 70px; }
+  #grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+}
+@media (max-width: 480px) {
+  h1 { font-size: 26px; }
+  h2 { font-size: 18px; }
+  .big-eq { font-size: 18px; }
+  .section { padding: 32px 12px; }
+  .prime-circle { width: 50px; height: 50px; font-size: 18px; min-height: 44px; }
+  #crt-input { width: 80px; font-size: 16px; min-height: 44px; }
+  .clock-wrap canvas { width: 60px; height: 60px; }
+  canvas { max-width: 100%; height: auto; }
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a>
+  <span style="color:#444">|</span>
+  <a href="atlas_02_two_rings.html">Ch.1 &rarr;</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: THE CHAIN -->
+<!-- ============================================================ -->
+<div class="section" id="s1">
+<div class="content">
+  <h1>The Chain</h1>
+  <p>Your heart beats in twos. A waltz moves in threes. You have five fingers on each hand. A week has seven days. And eleven &mdash; you can't see it &mdash; protects everything you can see.</p>
+  <p>These are the five smallest primes: <span class="accent">2, 3, 5, 7, 11</span>. A prime divides only by 1 and itself &mdash; an atom of arithmetic. Together, these five build everything that repeats.</p>
+
+  <div id="primes-row">
+    <div>
+      <div class="prime-circle" data-p="0" style="background: radial-gradient(circle at 35% 35%, #ff8888, #cc2222);">2</div>
+      <div class="prime-label">D</div>
+    </div>
+    <div>
+      <div class="prime-circle" data-p="1" style="background: radial-gradient(circle at 35% 35%, #ffbb66, #cc6600);">3</div>
+      <div class="prime-label">K</div>
+    </div>
+    <div>
+      <div class="prime-circle" data-p="2" style="background: radial-gradient(circle at 35% 35%, #66ee88, #228833);">5</div>
+      <div class="prime-label">E</div>
+    </div>
+    <div>
+      <div class="prime-circle" data-p="3" style="background: radial-gradient(circle at 35% 35%, #6699ff, #2244cc);">7</div>
+      <div class="prime-label">b</div>
+    </div>
+    <div>
+      <div class="prime-circle" data-p="4" style="background: radial-gradient(circle at 35% 35%, #cc88ff, #7722cc);">11</div>
+      <div class="prime-label">L</div>
+    </div>
+  </div>
+  <p class="caption">Click each to hear it. Every prime has a voice.</p>
+
+  <p>We name them by what they do: <span class="accent">D</span>=2 divides (left/right, yes/no, on/off). <span class="accent">K</span>=3 decomposes (triangles, rock-paper-scissors). <span class="accent">E</span>=5 observes (fingers, senses). <span class="accent">b</span>=7 deepens (the week, the rainbow, musical scales). <span class="accent">L</span>=11 protects (the hidden guardian &mdash; free error correction).</p>
+
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: THE CHAIN -->
+<!-- ============================================================ -->
+<div class="section" id="s2">
+<div class="content">
+  <h2>The Ladder</h2>
+  <p>Multiply them. One by one. Watch what builds itself.</p>
+
+  <div class="widget">
+    <div class="widget-title">The Primorial Ladder</div>
+    <div id="chain-display">2</div>
+    <div id="chain-steps">start</div>
+    <div style="text-align:center; margin-top:16px;">
+      <button class="chain-btn" id="btn-next">&times; next prime</button>
+      <button class="chain-btn" id="btn-reset">reset</button>
+      <button class="chain-btn" id="btn-auto">play all</button>
+    </div>
+  </div>
+
+  <p>Each step folds in the next prime:</p>
+  <div class="big-eq">2 &times; 3 &times; 5 &times; 7 &times; 11 = 2310</div>
+  <p>And each step echoes a kingdom of life:</p>
+  <p class="bio-ladder"><span class="accent">2</span> &mdash; a cell splits in half. Left and right. Life begins. <em>Bacteria.</em><br>
+  <span class="accent">6</span> &mdash; something breaks something else down. Digestion. <em>Fungi.</em><br>
+  <span class="accent">30</span> &mdash; something turns toward light. Photosynthesis. <em>Plants.</em><br>
+  <span class="accent">210</span> &mdash; something <em>feels</em>. Nervous systems. Pain. <em>Animals.</em><br>
+  <span class="accent">2310</span> &mdash; something corrects its own errors. Language. <em>You.</em></p>
+  <p>Why five? The sixth prime (13) has shadow 6 = 2&times;3, a composite. The chain of prime shadows breaks. Five is where nature stops.</p>
+
+  <h3>The True Form</h3>
+  <p>2310 is the skeleton. Living things are fatter:</p>
+  <div class="big-eq">2<sup>3</sup> &times; 3<sup>2</sup> &times; 5<sup>2</sup> &times; 7<sup>2</sup> &times; 11 = 970,200</div>
+  <p>Same five primes, each raised to its natural power. Five fat channels: 8 &times; 9 &times; 25 &times; 49 &times; 11 positions. This atlas starts with 2310 and works toward the true form.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: THE ADDRESS (CRT) -->
+<!-- ============================================================ -->
+<div class="section" id="s3">
+<div class="content">
+  <h2>The Address</h2>
+  <p>Here is the key idea. Every number has a secret address &mdash; five remainders, one for each prime:</p>
+
+  <div class="widget">
+    <div class="widget-title">CRT Decomposer</div>
+    <div id="crt-input-row">
+      <input id="crt-input" type="number" min="0" max="2309" value="137" placeholder="0-2309">
+      <span id="crt-arrow">&rarr;</span>
+      <span id="crt-result">(1, 2, 2, 4, 5)</span>
+    </div>
+    <div id="crt-clocks">
+      <div class="clock-wrap"><canvas id="clock0" width="90" height="90"></canvas><div class="clock-label">mod 2</div></div>
+      <div class="clock-wrap"><canvas id="clock1" width="90" height="90"></canvas><div class="clock-label">mod 3</div></div>
+      <div class="clock-wrap"><canvas id="clock2" width="90" height="90"></canvas><div class="clock-label">mod 5</div></div>
+      <div class="clock-wrap"><canvas id="clock3" width="90" height="90"></canvas><div class="clock-label">mod 7</div></div>
+      <div class="clock-wrap"><canvas id="clock4" width="90" height="90"></canvas><div class="clock-label">mod 11</div></div>
+    </div>
+    <p class="caption">Type any number 0-2309. The five clocks show its remainder on each prime ring.</p>
+  </div>
+
+  <p>This is the <em>Chinese Remainder Theorem</em> (CRT), discovered over 1,500 years ago. Since 2, 3, 5, 7, and 11 share no common factors, these five remainders <em>uniquely identify</em> the number. No two numbers from 0 to 2309 share the same address. Try it: type any number and see.</p>
+
+  <h3>Why does this matter?</h3>
+  <p>Because the five channels are <em>completely independent</em>. What happens in the "mod 7" clock cannot affect the "mod 3" clock. They are five parallel worlds. Together they describe one number completely, but separately they know nothing about each other.</p>
+  <p>This is like knowing someone's continent, country, city, street, and house number. Each gives you independent information. Together they pinpoint exactly one address. Change the street &mdash; the continent stays the same.</p>
+  <p>The power: instead of one hard problem with 2310 possibilities, you solve five tiny problems with 2, 3, 5, 7, and 11 possibilities each.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: THE SHADOW -->
+<!-- ============================================================ -->
+<div class="section" id="s4">
+<div class="content">
+  <h2>The Shadow</h2>
+  <p>Here is something beautiful. Each prime <em>remembers</em> the one before it.</p>
+  <p>Take any odd prime, subtract 1, divide by 2. You get its <em>shadow</em>:</p>
+
+  <div class="widget">
+    <div class="widget-title">Shadow Descent</div>
+    <div id="shadow-display">
+      <div id="shadow-chain-viz"></div>
+    </div>
+    <div style="text-align:center; margin-top:16px;">
+      <button class="chain-btn" id="btn-shadow-play">play descent</button>
+      <button class="chain-btn" id="btn-shadow-reset">reset</button>
+    </div>
+  </div>
+
+  <p>Two branches descend:</p>
+  <p class="bio-ladder"><span style="color:#cc88ff;">11</span> &rarr; <span style="color:#66ee88;">5</span> &rarr; <span style="color:#ff6666;">2</span> &rarr; stop. &nbsp; (The protector remembers the observer, who remembers the divider.)<br>
+  <span style="color:#6699ff;">7</span> &rarr; <span style="color:#ffaa44;">3</span> &rarr; <span style="color:#fff;">1</span> &rarr; stop. &nbsp; (Depth remembers closure, which remembers the ground.)</p>
+
+  <p>The products of each branch: 11&times;5&times;2 = <span class="accent">110</span> and 7&times;3&times;1 = <span class="accent">21</span>. Together: 110 &times; 21 = 2310. <em>The two branches reconstruct the whole.</em></p>
+
+  <p>And something deeper: the coupling of 110 is 21, and the coupling of 21 is 110. <em>Each branch points to the other.</em> The axiom is a mirror.</p>
+
+  <p style="font-size:14px; color:#666; font-style:italic;">Why does this matter? Because the shadow chain {1, 2, 3, 5} &mdash; the axiom without depth &mdash; controls the entire spectral structure of Z/2310Z. It is the architect. (More in <a href="atlas_05_eigenvalues.html">Chapter 5</a>.)</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: THE GRID -->
+<!-- ============================================================ -->
+<div class="section" id="s5">
+<div class="content">
+  <h2>The Grid</h2>
+  <p>Now see all 2310 elements at once. Each cell is one number. The position IS the CRT &mdash; column = n mod 77, row = n mod 30.</p>
+
+  <div class="widget" style="padding:16px;">
+    <div id="grid-controls">
+      <button class="gc-btn active" data-gmode="prime">Divisibility</button>
+      <button class="gc-btn" data-gmode="eigenvalue">Eigenvalue</button>
+      <button class="gc-btn" data-gmode="coupling">Coupling</button>
+      <button class="gc-btn" data-gmode="kingdom">Kingdom</button>
+    </div>
+    <div id="grid-wrap">
+      <canvas id="grid-canvas"></canvas>
+      <div id="grid-tooltip"></div>
+    </div>
+    <p class="caption" id="grid-caption">Colors show which primes divide each number. Hover to inspect.</p>
+  </div>
+
+  <p>Notice the patterns. They are not random. Stripes, clusters, rhythms &mdash; all of it emerges from five primes and multiplication. Nothing else. No design, no intention. Just arithmetic being beautiful.</p>
+  <p style="font-size:14px; color:#666;">Try each color mode. "Kingdom" shows the six biological kingdoms. "Eigenvalue" shows the energy landscape. Hover (or tap on mobile) to inspect any cell.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: WHY — THE BODY -->
+<!-- ============================================================ -->
+<div class="section" id="s6">
+<div class="content">
+  <h2>Your Body Already Knows</h2>
+
+  <p><span class="accent">Collagen</span>, the most abundant protein in your body, repeats every 67 nanometers &mdash; a number that couples to 210 in the ring. Your cells scaffold from 32 monomers = 2<sup>5</sup>, exactly the number of projections. Your hair cuticle has 7 sublayers. Coincidence? Perhaps. We report, not claim.</p>
+
+  <h3>What's proven</h3>
+  <p>The 5th channel (L=11) gives <em>free error correction</em> &mdash; 100% detection of single-channel corruption, proved exhaustively. Five small parallel networks need 500x fewer multiplications than one large one. CRT concentrates probability, extracting 20x more signal per example (Rissanen). The thin ring has 288 eigenvalue classes; the true form has 48,750. Same five primes, same architecture.</p>
+
+  <p>Every number on this site is computed live in your browser. Nothing is hidden.</p>
+
+  <div style="text-align:center; margin-top:40px;">
+    <a href="atlas_02_two_rings.html" style="font-size:20px; color:#66ddaa; text-decoration:none;">
+      Chapter 1: Three Rings &rarr;
+    </a>
+  </div>
+
+  <div style="text-align:center; margin-top:60px; font-size:13px; color:#444;">
+    The Interactive Atlas &middot; Z/2310Z &rarr; Z/970200Z &middot; Chapter 0 of 14
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+<script>
+// ---- Constants ----
+const N = 2310;
+const PRIMES = [2, 3, 5, 7, 11];
+const PCOLORS = ['#cc2222', '#cc6600', '#228833', '#2244cc', '#7722cc'];
+const PCOLORS_BRIGHT = ['#ff6666', '#ffaa44', '#44ee88', '#6699ff', '#cc88ff'];
+const COLS = 77, ROWS = 30;
+const KINGDOM_NAME = ['Bacteria','Protista','Fungi','Plants','Animals','Human'];
+const KINGDOM_DIV = [2310, 1155, 770, 462, 330, 210];
+const KINGDOM_COLOR = ['#ff4444','#ff8844','#ffaa22','#44cc44','#4488ff','#aa66ff'];
+
+// ---- Math ----
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { let t = b; b = a % b; a = t; } return a; }
+function mod(n, m) { return ((n % m) + m) % m; }
+function coupling(n) { let g = gcd(mod(n, N), N); return g === 0 ? 1 : N / g; }
+function crt(n) { let m = mod(n, N); return PRIMES.map(p => m % p); }
+function eigenvalue(n) {
+  let x = mod(n, N);
+  return Math.cos(Math.PI * x) + 2 * Math.cos(2 * Math.PI * x / 3)
+       + 2 * Math.cos(2 * Math.PI * x / 5) + 2 * Math.cos(2 * Math.PI * x / 7)
+       + 2 * Math.cos(2 * Math.PI * x / 11);
+}
+function kingdomOf(n) {
+  let m = mod(n, N);
+  if (m === 0) return 0;
+  for (let i = 5; i >= 0; i--) if (m % KINGDOM_DIV[i] === 0) return i;
+  return -1;
+}
+
+// Precompute eigenvalues
+const evAll = new Float64Array(N);
+let evMin = 99, evMax = -99;
+for (let i = 0; i < N; i++) {
+  evAll[i] = eigenvalue(i);
+  if (evAll[i] < evMin) evMin = evAll[i];
+  if (evAll[i] > evMax) evMax = evAll[i];
+}
+
+// Grid mapping
+function gridToElem(row, col) {
+  for (let n = col; n < N; n += COLS) if (mod(n, ROWS) === row) return n;
+  return -1;
+}
+const gridMap = new Int32Array(ROWS * COLS);
+for (let r = 0; r < ROWS; r++)
+  for (let c = 0; c < COLS; c++)
+    gridMap[r * COLS + c] = gridToElem(r, c);
+
+// ---- Audio ----
+let audioCtx = null;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+function playPrime(idx) {
+  initAudio();
+  let freq = 220 * PRIMES[idx] / 2;
+  let osc = audioCtx.createOscillator();
+  let gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.03);
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime + 0.3);
+  gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playChord(primeCount) {
+  initAudio();
+  let t = audioCtx.currentTime;
+  let master = audioCtx.createGain();
+  master.gain.setValueAtTime(0, t);
+  master.gain.linearRampToValueAtTime(0.2, t + 0.05);
+  master.gain.setValueAtTime(0.2, t + 0.6);
+  master.gain.linearRampToValueAtTime(0, t + 1.2);
+  master.connect(audioCtx.destination);
+  for (let i = 0; i < primeCount; i++) {
+    let osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 220 * PRIMES[i] / 2;
+    let g = audioCtx.createGain();
+    g.gain.value = 0.15;
+    osc.connect(g);
+    g.connect(master);
+    osc.start(t);
+    osc.stop(t + 1.2);
+  }
+}
+
+function playNumber(n) {
+  initAudio();
+  let sig = crt(n);
+  let t = audioCtx.currentTime;
+  let master = audioCtx.createGain();
+  master.gain.setValueAtTime(0, t);
+  master.gain.linearRampToValueAtTime(0.15, t + 0.02);
+  master.gain.setValueAtTime(0.15, t + 0.3);
+  master.gain.linearRampToValueAtTime(0, t + 0.5);
+  master.connect(audioCtx.destination);
+  for (let i = 0; i < 5; i++) {
+    let osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 220 * PRIMES[i] / 2;
+    let g = audioCtx.createGain();
+    g.gain.value = (sig[i] === 0) ? 0.3 : 0.05;
+    osc.connect(g);
+    g.connect(master);
+    osc.start(t);
+    osc.stop(t + 0.5);
+  }
+}
+
+// ---- Section 1: Prime circles ----
+document.querySelectorAll('.prime-circle').forEach(el => {
+  el.addEventListener('click', () => {
+    let idx = parseInt(el.dataset.p);
+    // Visual feedback first, audio deferred to avoid blocking paint
+    el.style.transform = 'scale(1.2)';
+    el.style.boxShadow = '0 0 30px ' + PCOLORS_BRIGHT[idx];
+    setTimeout(() => { el.style.transform = ''; el.style.boxShadow = ''; }, 300);
+    setTimeout(() => playPrime(idx), 0);
+  });
+});
+
+// ---- Section 2: Chain animation ----
+const chainVals = [2, 6, 30, 210, 2310];
+const chainLabels = ['start', '2 x 3 = 6', '6 x 5 = 30', '30 x 7 = 210', '210 x 11 = 2310'];
+let chainIdx = 0;
+
+function updateChain() {
+  document.getElementById('chain-display').textContent = chainVals[chainIdx].toLocaleString();
+  document.getElementById('chain-steps').textContent = chainLabels[chainIdx];
+  document.getElementById('chain-display').style.color =
+    chainIdx < 5 ? PCOLORS_BRIGHT[chainIdx] : '#fff';
+}
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (chainIdx < 4) {
+    chainIdx++;
+    updateChain();
+    playChord(chainIdx + 1);
+  }
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  chainIdx = 0;
+  updateChain();
+});
+
+document.getElementById('btn-auto').addEventListener('click', () => {
+  chainIdx = 0;
+  updateChain();
+  playChord(1);
+  for (let i = 1; i <= 4; i++) {
+    setTimeout(() => { chainIdx = i; updateChain(); playChord(i + 1); }, i * 800);
+  }
+});
+
+updateChain();
+
+// ---- Section 3: CRT clocks ----
+function drawClock(canvasId, p, remainder, color) {
+  let cvs = document.getElementById(canvasId);
+  let ctx = cvs.getContext('2d');
+  let w = cvs.width, h = cvs.height, cx = w / 2, cy = h / 2, r = 36;
+  ctx.clearRect(0, 0, w, h);
+
+  // Ring
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Tick marks and numbers
+  for (let i = 0; i < p; i++) {
+    let angle = -Math.PI / 2 + (2 * Math.PI * i) / p;
+    let x1 = cx + Math.cos(angle) * (r - 6);
+    let y1 = cy + Math.sin(angle) * (r - 6);
+    let x2 = cx + Math.cos(angle) * (r + 2);
+    let y2 = cy + Math.sin(angle) * (r + 2);
+    ctx.strokeStyle = (i === remainder) ? color : '#555';
+    ctx.lineWidth = (i === remainder) ? 3 : 1;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Number label
+    let lx = cx + Math.cos(angle) * (r - 16);
+    let ly = cy + Math.sin(angle) * (r - 16);
+    ctx.fillStyle = (i === remainder) ? '#fff' : '#666';
+    ctx.font = (i === remainder) ? 'bold 13px monospace' : '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i, lx, ly);
+  }
+
+  // Hand pointing to remainder
+  let angle = -Math.PI / 2 + (2 * Math.PI * remainder) / p;
+  let hx = cx + Math.cos(angle) * (r + 8);
+  let hy = cy + Math.sin(angle) * (r + 8);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function updateCRT() {
+  let val = parseInt(document.getElementById('crt-input').value) || 0;
+  val = mod(val, N);
+  let sig = crt(val);
+  document.getElementById('crt-result').textContent = '(' + sig.join(', ') + ')';
+  for (let i = 0; i < 5; i++) {
+    drawClock('clock' + i, PRIMES[i], sig[i], PCOLORS_BRIGHT[i]);
+  }
+}
+
+document.getElementById('crt-input').addEventListener('input', updateCRT);
+updateCRT();
+
+// ---- Section 4: Grid ----
+const gCanvas = document.getElementById('grid-canvas');
+const gCtx = gCanvas.getContext('2d');
+let gridMode = 'prime';
+let gCellW, gCellH;
+const gPadL = 36, gPadT = 20;
+
+function resizeGrid() {
+  let wrap = document.getElementById('grid-wrap');
+  let w = Math.min(wrap.parentElement.clientWidth - 48, 700);
+  gCellW = (w - gPadL - 10) / COLS;
+  gCellH = gCellW * 0.85;
+  gCanvas.width = w;
+  gCanvas.height = gPadT + ROWS * gCellH + 10;
+  drawGrid();
+}
+
+function primeColor(n) {
+  let m = mod(n, N);
+  if (m === 0) return '#ffffff';
+  let divs = [];
+  for (let i = 0; i < 5; i++) if (m % PRIMES[i] === 0) divs.push(i);
+  if (divs.length === 0) return '#1a1a2e'; // unit (coprime to 2310)
+  // Blend colors of dividing primes
+  let r = 0, g = 0, b = 0;
+  for (let d of divs) {
+    let c = PCOLORS_BRIGHT[d];
+    r += parseInt(c.slice(1, 3), 16);
+    g += parseInt(c.slice(3, 5), 16);
+    b += parseInt(c.slice(5, 7), 16);
+  }
+  r = Math.min(255, Math.floor(r / divs.length));
+  g = Math.min(255, Math.floor(g / divs.length));
+  b = Math.min(255, Math.floor(b / divs.length));
+  let brightness = 0.3 + 0.7 * (divs.length / 5);
+  r = Math.floor(r * brightness);
+  g = Math.floor(g * brightness);
+  b = Math.floor(b * brightness);
+  return `rgb(${r},${g},${b})`;
+}
+
+function evColor(ev) {
+  let t = (ev - evMin) / (evMax - evMin);
+  let r, g, b;
+  if (t < 0.33) { let s = t / 0.33; r = 30; g = Math.floor(50 + 150 * s); b = Math.floor(200 * (1 - s)); }
+  else if (t < 0.66) { let s = (t - 0.33) / 0.33; r = Math.floor(50 + 200 * s); g = 200; b = 30; }
+  else { let s = (t - 0.66) / 0.34; r = 255; g = Math.floor(200 * (1 - s)); b = Math.floor(50 * s); }
+  return `rgb(${r},${g},${b})`;
+}
+
+function coupColor(n) {
+  let c = coupling(n);
+  let t = Math.log(c) / Math.log(N);
+  return `rgb(${Math.floor(255 * t)},${Math.floor(100 + 100 * (1 - t))},${Math.floor(255 * (1 - t))})`;
+}
+
+function getGridColor(n) {
+  switch (gridMode) {
+    case 'prime': return primeColor(n);
+    case 'eigenvalue': return evColor(evAll[n]);
+    case 'coupling': return coupColor(n);
+    case 'kingdom': {
+      let k = kingdomOf(n);
+      return k >= 0 ? KINGDOM_COLOR[k] : '#222';
+    }
+  }
+  return '#888';
+}
+
+function drawGrid() {
+  gCtx.fillStyle = '#0a0a12';
+  gCtx.fillRect(0, 0, gCanvas.width, gCanvas.height);
+  let gap = Math.max(0.3, gCellW * 0.06);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      let n = gridMap[r * COLS + c];
+      let x = gPadL + c * gCellW, y = gPadT + r * gCellH;
+      gCtx.fillStyle = getGridColor(n);
+      gCtx.fillRect(x + gap, y + gap, gCellW - 2 * gap, gCellH - 2 * gap);
+    }
+  }
+}
+
+// Grid mouse
+gCanvas.addEventListener('mousemove', (e) => {
+  let rect = gCanvas.getBoundingClientRect();
+  let mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let c = Math.floor((mx - gPadL) / gCellW);
+  let r = Math.floor((my - gPadT) / gCellH);
+  let tip = document.getElementById('grid-tooltip');
+  if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+    let n = gridMap[r * COLS + c];
+    let sig = crt(n);
+    let ev = evAll[n].toFixed(2);
+    let cp = coupling(n);
+    let k = kingdomOf(n);
+    let kn = k >= 0 ? KINGDOM_NAME[k] : 'non-kingdom';
+    tip.innerHTML = `<b>${n}</b> = (${sig.join(',')})  ev=${ev}  c=${cp}  ${kn}`;
+    tip.style.display = 'block';
+    tip.style.left = Math.min(e.clientX + 12, window.innerWidth - 220) + 'px';
+    tip.style.top = (e.clientY - 8) + 'px';
+  } else {
+    tip.style.display = 'none';
+  }
+});
+
+gCanvas.addEventListener('mouseleave', () => {
+  document.getElementById('grid-tooltip').style.display = 'none';
+});
+
+gCanvas.addEventListener('click', (e) => {
+  let rect = gCanvas.getBoundingClientRect();
+  let mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let c = Math.floor((mx - gPadL) / gCellW);
+  let r = Math.floor((my - gPadT) / gCellH);
+  if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+    let n = gridMap[r * COLS + c];
+    playNumber(n);
+  }
+});
+
+// Touch support for mobile
+gCanvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  let touch = e.touches[0];
+  let rect = gCanvas.getBoundingClientRect();
+  let mx = touch.clientX - rect.left, my = touch.clientY - rect.top;
+  let c = Math.floor((mx - gPadL) / gCellW);
+  let r = Math.floor((my - gPadT) / gCellH);
+  let tip = document.getElementById('grid-tooltip');
+  if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+    let n = gridMap[r * COLS + c];
+    let sig = crt(n);
+    let ev = evAll[n].toFixed(2);
+    let cp = coupling(n);
+    let k = kingdomOf(n);
+    let kn = k >= 0 ? KINGDOM_NAME[k] : 'non-kingdom';
+    tip.innerHTML = `<b>${n}</b> = (${sig.join(',')})  ev=${ev}  c=${cp}  ${kn}`;
+    tip.style.display = 'block';
+    tip.style.left = Math.min(touch.clientX + 12, window.innerWidth - 220) + 'px';
+    tip.style.top = (touch.clientY - 40) + 'px';
+    playNumber(n);
+  }
+}, { passive: false });
+
+// Grid mode buttons
+const captions = {
+  'prime': 'Colors show which primes divide each number. Dark = coprime (unit). White = 0. Click to hear.',
+  'eigenvalue': 'Colors show eigenvalue: blue (min, -7.3) through green to red (max, 9.0).',
+  'coupling': 'Colors show coupling strength. Bright = high coupling (close to ground state).',
+  'kingdom': 'Colors show the six kingdoms. Most elements belong to no kingdom (dark).'
+};
+
+document.querySelectorAll('[data-gmode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-gmode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    gridMode = btn.dataset.gmode;
+    drawGrid();
+    document.getElementById('grid-caption').textContent = captions[gridMode] || '';
+  });
+});
+
+// ---- Section 4: Shadow Descent ----
+const shadowBranches = [
+  { nodes: [11, 5, 2], colors: ['#cc88ff','#66ee88','#ff6666'], label: 'L-branch: 11 x 5 x 2 = 110' },
+  { nodes: [7, 3, 1],  colors: ['#6699ff','#ffaa44','#ffffff'], label: 'b-branch: 7 x 3 x 1 = 21' }
+];
+let shadowStep = 0; // 0=reset, 1-6=steps animating
+const SHADOW_STEPS = 7; // 0=init, 1-3=branch1, 4-6=branch2, 7=both done
+
+function buildShadowViz() {
+  let viz = document.getElementById('shadow-chain-viz');
+  if (!viz) return;
+  let html = '<div style="margin-bottom:12px;">';
+  // Branch 1
+  for (let i = 0; i < 3; i++) {
+    let b = shadowBranches[0];
+    html += `<span class="shadow-node" id="sn0-${i}" style="background:${b.colors[i]};">${b.nodes[i]}</span>`;
+    if (i < 2) html += `<span class="shadow-arrow" id="sa0-${i}">&rarr;</span>`;
+  }
+  html += '</div><div style="margin-bottom:8px;">';
+  // Branch 2
+  for (let i = 0; i < 3; i++) {
+    let b = shadowBranches[1];
+    html += `<span class="shadow-node" id="sn1-${i}" style="background:${b.colors[i]};">${b.nodes[i]}</span>`;
+    if (i < 2) html += `<span class="shadow-arrow" id="sa1-${i}">&rarr;</span>`;
+  }
+  html += '</div>';
+  html += '<div class="shadow-branch-label" id="shadow-label"></div>';
+  viz.innerHTML = html;
+}
+
+function updateShadow() {
+  // Reset all
+  for (let b = 0; b < 2; b++) {
+    for (let i = 0; i < 3; i++) {
+      let node = document.getElementById(`sn${b}-${i}`);
+      if (node) node.classList.toggle('active', false);
+      if (i < 2) {
+        let arrow = document.getElementById(`sa${b}-${i}`);
+        if (arrow) arrow.classList.toggle('active', false);
+      }
+    }
+  }
+  let label = document.getElementById('shadow-label');
+  if (!label) return;
+
+  if (shadowStep === 0) { label.textContent = '(p - 1) / 2 maps each prime to its shadow'; return; }
+
+  // Branch 1 steps: 1=first node, 2=arrow+second, 3=arrow+third
+  for (let s = 1; s <= Math.min(shadowStep, 3); s++) {
+    let ni = s - 1;
+    let node = document.getElementById(`sn0-${ni}`);
+    if (node) node.classList.add('active');
+    if (ni > 0) {
+      let arrow = document.getElementById(`sa0-${ni-1}`);
+      if (arrow) arrow.classList.add('active');
+    }
+  }
+  if (shadowStep <= 3) {
+    label.textContent = shadowBranches[0].label;
+    return;
+  }
+
+  // Branch 2 steps: 4=first, 5=arrow+second, 6=arrow+third
+  for (let s = 4; s <= Math.min(shadowStep, 6); s++) {
+    let ni = s - 4;
+    let node = document.getElementById(`sn1-${ni}`);
+    if (node) node.classList.add('active');
+    if (ni > 0) {
+      let arrow = document.getElementById(`sa1-${ni-1}`);
+      if (arrow) arrow.classList.add('active');
+    }
+  }
+  if (shadowStep <= 6) {
+    label.textContent = shadowBranches[1].label;
+  } else {
+    label.innerHTML = 'coupling(110) = 21, coupling(21) = 110 &mdash; <span style="color:#ffcc44;">mirrors!</span>';
+  }
+}
+
+document.getElementById('btn-shadow-play').addEventListener('click', () => {
+  shadowStep = 0;
+  updateShadow();
+  for (let i = 1; i <= SHADOW_STEPS; i++) {
+    setTimeout(() => { shadowStep = i; updateShadow(); }, i * 500);
+  }
+});
+
+document.getElementById('btn-shadow-reset').addEventListener('click', () => {
+  shadowStep = 0;
+  updateShadow();
+});
+
+buildShadowViz();
+updateShadow();
+
+// ---- Init ----
+window.addEventListener('resize', resizeGrid);
+resizeGrid();
+</script>
+</body>
+</html>

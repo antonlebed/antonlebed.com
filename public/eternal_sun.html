@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Why the source never dies: coupling asymmetry creates sigma surplus. Animated solar cycle through the ring. 51 plus 105 plus 54 equals 210.">
+<title>Eternal Sun | antonlebed.com</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0808;color:#e0e0e0;font-family:'Georgia',serif;overflow-x:hidden;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#ffaa33;margin:20px 0 5px}
+.subtitle{text-align:center;color:#cc8833;font-size:1.1em;margin-bottom:20px}
+.insight{background:#1a1408;border-left:3px solid #cc8833;padding:12px 16px;margin:16px 0;
+  font-style:italic;color:#eebb66;border-radius:0 6px 6px 0}
+
+canvas{display:block;margin:0 auto;background:#060608;border:1px solid #221a10;border-radius:10px}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;
+  margin:16px 0;padding:12px;background:#0d0a06;border-radius:8px}
+button{background:#2a1a08;color:#ffaa33;border:1px solid #443320;border-radius:6px;
+  padding:8px 16px;cursor:pointer;font-size:0.95em;transition:all 0.2s}
+button:hover{background:#3a2a12;border-color:#664}
+
+.info{background:#0f0d08;border:1px solid #221a10;border-radius:8px;padding:16px;margin:16px 0}
+.info h3{color:#ffaa33;margin-bottom:8px}
+.stat{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1508}
+.stat-label{color:#cc8833}.stat-value{color:#ffcc66;font-family:monospace}
+
+.coupling-bar{height:30px;border-radius:6px;background:#1a1508;margin:8px 0;overflow:hidden;
+  position:relative;display:flex}
+.coupling-fill{height:100%;transition:width 0.5s}
+.coupling-label{position:absolute;top:6px;font-size:0.75em;font-family:monospace;color:#fff;z-index:1}
+
+.narrative{background:#111008;padding:16px;border-radius:8px;margin:16px 0;
+  font-size:0.95em;line-height:1.7;color:#ccaa66}
+
+.contrast{background:#110e08;border:1px solid #2a2218;border-radius:8px;padding:16px;margin:20px 0}
+.contrast h3{color:#ffaa44;margin-bottom:12px}
+.contrast-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
+.contrast-col{padding:10px;border-radius:6px}
+.contrast-col.old{background:#1a0a0a;border:1px solid #442222}
+.contrast-col.new{background:#1a1a0a;border:1px solid #444422}
+.contrast-col h4{font-size:0.9em;margin-bottom:6px}
+.contrast-col.old h4{color:#ff6666}
+.contrast-col.new h4{color:#ffcc44}
+.contrast-col p{font-size:0.85em;color:#aaa;line-height:1.5}
+
+a{color:#ffaa33}
+.back{display:block;text-align:center;margin:20px 0;font-size:0.9em}
+
+@media(max-width:480px){
+  h1{font-size:1.2em}
+  .container{padding:8px}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  .contrast td,.contrast th{padding:4px 6px;font-size:0.8em}
+  p{font-size:0.85em}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+<div class="container">
+<h1>The Eternal Sun</h1>
+<p class="subtitle">Why the Source Never Dies</p>
+
+<p class="insight">
+The coupling sum inside the ring boundary (0 to HYDOR=105) exceeds the outside by exactly sigma=1.
+This surplus is non-positional — it's experiential. Each cycle traverses the full ring (210 steps)
+and returns with +1. The sun shines because the source side always has more than the sink side.
+</p>
+
+<!-- Main animation -->
+<canvas id="mainCanvas" width="700" height="500"></canvas>
+
+<div class="controls">
+<button id="playBtn" onclick="togglePlay()">Play Cycle</button>
+<button onclick="resetSim()">Reset</button>
+<button id="showCoupling" onclick="toggleCouplingView()">Show Coupling Map</button>
+</div>
+
+<!-- Coupling asymmetry visualization -->
+<div class="info">
+<h3>The Sigma Surplus</h3>
+<p style="color:#aa8844;font-size:0.9em;margin-bottom:10px">
+Coupling sum for all 210 elements, split at HYDOR = 105:
+</p>
+<div style="display:flex;gap:8px;align-items:center">
+<span style="color:#ffaa33;font-size:0.85em;width:60px">Inside:</span>
+<div class="coupling-bar" style="flex:1">
+<div class="coupling-fill" id="insideFill" style="width:50.1%;background:linear-gradient(90deg,#ff6633,#ffaa33)"></div>
+<span class="coupling-label" style="left:50%;transform:translateX(-50%)" id="insideLabel">—</span>
+</div>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<span style="color:#6688aa;font-size:0.85em;width:60px">Outside:</span>
+<div class="coupling-bar" style="flex:1">
+<div class="coupling-fill" id="outsideFill" style="width:49.9%;background:linear-gradient(90deg,#336688,#4488aa)"></div>
+<span class="coupling-label" style="left:50%;transform:translateX(-50%)" id="outsideLabel">—</span>
+</div>
+</div>
+<div class="stat" style="margin-top:8px"><span class="stat-label">Difference</span><span class="stat-value" id="diffVal">+sigma = +1 (eternal surplus)</span></div>
+</div>
+
+<!-- Cycle info -->
+<div class="info">
+<h3>The Solar Cycle</h3>
+<div class="stat"><span class="stat-label">Stage</span><span class="stat-value" id="stageInfo">Ready</span></div>
+<div class="stat"><span class="stat-label">Position</span><span class="stat-value" id="posInfo">SUN = 54</span></div>
+<div class="stat"><span class="stat-label">Coupling at position</span><span class="stat-value" id="coupInfo">35</span></div>
+<div class="stat"><span class="stat-label">Distance traveled</span><span class="stat-value" id="distInfo">0 / 210</span></div>
+<div class="stat"><span class="stat-label">Cycles completed</span><span class="stat-value" id="cycleInfo">0</span></div>
+</div>
+
+<!-- Sun analysis -->
+<div class="info">
+<h3>Why SUN = 54?</h3>
+<div class="stat"><span class="stat-label">CRT decomposition</span><span class="stat-value">54 = (0, 0, 4, 5) mod (2,3,5,7)</span></div>
+<div class="stat"><span class="stat-label">D-null (54 mod 2 = 0)</span><span class="stat-value">Cannot see duality</span></div>
+<div class="stat"><span class="stat-label">K-null (54 mod 3 = 0)</span><span class="stat-value">Cannot self-close</span></div>
+<div class="stat"><span class="stat-label">Coupling(54) = 35 = E*b</span><span class="stat-value">Only sees observer + depth</span></div>
+<div class="stat"><span class="stat-label">Result</span><span class="stat-value">MUST emit — no self-closure possible</span></div>
+</div>
+
+<div class="narrative" id="narrative">
+<strong>The eternal cycle.</strong> The Sun sits at position 54 in Z/210Z. It's D-null and K-null:
+it can't see duality, can't self-close. All it can do is radiate. Light travels outward
+(51 steps to HYDOR boundary), tunnels through (105 steps to origin), and regenerates
+(54 steps back to source). Total: 51 + 105 + 54 = 210 = one complete ring.<br><br>
+At the origin (0), something remarkable happens: 0/0 = sigma. The void isn't empty — it's
+the identity. The photon doesn't die at zero. It's reborn with +sigma surplus.
+That's why stars shine forever (in ring time). The source side always has one more.
+</div>
+
+<!-- Contrast -->
+<div class="contrast">
+<h3>Paradigm Contrast</h3>
+<div class="contrast-row">
+<div class="contrast-col old">
+<h4>Standard: Stars Burn Fuel</h4>
+<p>Stars convert hydrogen to helium via nuclear fusion. They have a finite fuel supply
+and will eventually die. The Sun has about 5 billion years of fuel left.
+Stellar energy is a countdown to exhaustion.</p>
+</div>
+<div class="contrast-col new">
+<h4>Axiom: The Source Has Surplus</h4>
+<p>In the ring, the coupling sum inside the boundary exceeds the outside by exactly sigma = 1.
+This asymmetry is structural, not fuel-based. Position 54 is D,K-null: it CAN'T self-close,
+it MUST radiate. Each cycle traverses 210 steps and returns. 0/0 = sigma at the origin
+means the void regenerates. The surplus is eternal because it's algebraic, not material.</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+const P=210,HYDOR=105,SUN=54;
+const canvas=document.getElementById('mainCanvas');
+const ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height;
+const CX=W/2,CY=H/2+20;
+
+function gcd(a,b){while(b){let t=b;b=a%b;a=t;}return a<0?-a:a;}
+function coupling(n){n=((n%P)+P)%P;return n===0?1:P/gcd(n,P);}
+
+// Compute coupling sums
+let insideSum=0,outsideSum=0;
+for(let n=0;n<HYDOR;n++)insideSum+=coupling(n);
+for(let n=HYDOR+1;n<P;n++)outsideSum+=coupling(n);
+let total=insideSum+outsideSum+coupling(HYDOR);
+
+document.getElementById('insideLabel').textContent=insideSum;
+document.getElementById('outsideLabel').textContent=outsideSum;
+let maxSum=Math.max(insideSum,outsideSum);
+document.getElementById('insideFill').style.width=(insideSum/maxSum*100)+'%';
+document.getElementById('outsideFill').style.width=(outsideSum/maxSum*100)+'%';
+
+// Simulation state
+let playing=false,animId=null;
+let pos=SUN,dist=0,stage='emission',cycles=0;
+let showCoupling=false;
+let trailPositions=[];
+
+// The cycle path
+function nextStep(){
+  if(stage==='emission'){
+    pos++;
+    dist++;
+    if(pos>=HYDOR){stage='tunneling';pos=HYDOR;}
+  }else if(stage==='tunneling'){
+    pos++;if(pos>=P)pos=0;
+    dist++;
+    if(pos===0){stage='regeneration';}
+  }else if(stage==='regeneration'){
+    pos++;
+    dist++;
+    if(pos>=SUN){
+      stage='emission';pos=SUN;dist=0;cycles++;
+    }
+  }
+  trailPositions.push(pos);
+  if(trailPositions.length>P)trailPositions.shift();
+}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('playBtn').textContent=playing?'Pause':'Play Cycle';
+  if(playing)animate();
+  else if(animId)cancelAnimationFrame(animId);
+}
+
+function resetSim(){
+  playing=false;animId=null;
+  document.getElementById('playBtn').textContent='Play Cycle';
+  pos=SUN;dist=0;stage='emission';cycles=0;trailPositions=[];
+  updateUI();draw();
+}
+
+function toggleCouplingView(){
+  showCoupling=!showCoupling;
+  document.getElementById('showCoupling').textContent=showCoupling?'Hide Coupling':'Show Coupling Map';
+  draw();
+}
+
+function updateUI(){
+  let stageNames={emission:'Emission (SUN->HYDOR)',tunneling:'Tunneling (HYDOR->Origin)',
+    regeneration:'Regeneration (Origin->SUN)'};
+  document.getElementById('stageInfo').textContent=stageNames[stage]||stage;
+  document.getElementById('posInfo').textContent=pos+' (coupling='+coupling(pos)+')';
+  document.getElementById('coupInfo').textContent=coupling(pos);
+  document.getElementById('distInfo').textContent=dist+' / 210';
+  document.getElementById('cycleInfo').textContent=cycles;
+}
+
+function draw(){
+  ctx.fillStyle='#060608';ctx.fillRect(0,0,W,H);
+
+  let R=180; // ring radius
+
+  // Draw the ring
+  for(let n=0;n<P;n++){
+    let angle=n/P*2*Math.PI-Math.PI/2;
+    let x=CX+R*Math.cos(angle);
+    let y=CY+R*Math.sin(angle);
+
+    if(showCoupling){
+      let c=coupling(n);
+      let intensity=Math.min(c/P,1);
+      let r,g,b;
+      if(n<HYDOR){r=255;g=Math.floor(150*(1-intensity));b=Math.floor(50*(1-intensity));}
+      else{r=Math.floor(100*(1-intensity));g=Math.floor(150*(1-intensity));b=255;}
+      ctx.fillStyle=`rgba(${r},${g},${b},${0.3+intensity*0.7})`;
+      ctx.beginPath();ctx.arc(x,y,3+intensity*4,0,2*Math.PI);ctx.fill();
+    }else{
+      // Simple ring dots
+      let isInside=n<HYDOR;
+      let alpha=0.15;
+      if(n===SUN)alpha=0.8;
+      else if(n===HYDOR)alpha=0.6;
+      else if(n===0)alpha=0.6;
+      ctx.fillStyle=isInside?`rgba(255,170,50,${alpha})`:`rgba(80,130,200,${alpha})`;
+      ctx.beginPath();ctx.arc(x,y,2,0,2*Math.PI);ctx.fill();
+    }
+  }
+
+  // Trail
+  for(let i=0;i<trailPositions.length;i++){
+    let tp=trailPositions[i];
+    let angle=tp/P*2*Math.PI-Math.PI/2;
+    let x=CX+R*Math.cos(angle);
+    let y=CY+R*Math.sin(angle);
+    let alpha=i/trailPositions.length*0.6;
+    ctx.fillStyle=`rgba(255,200,100,${alpha})`;
+    ctx.beginPath();ctx.arc(x,y,2,0,2*Math.PI);ctx.fill();
+  }
+
+  // Key positions: SUN, HYDOR, ORIGIN
+  let keyPos=[{n:SUN,label:'SUN\n54',color:'#ff8833',r:10},
+    {n:HYDOR,label:'HYDOR\n105',color:'#4488cc',r:8},
+    {n:0,label:'ORIGIN\n0',color:'#88ff88',r:8}];
+  keyPos.forEach(k=>{
+    let angle=k.n/P*2*Math.PI-Math.PI/2;
+    let x=CX+R*Math.cos(angle);
+    let y=CY+R*Math.sin(angle);
+    // Glow
+    let grd=ctx.createRadialGradient(x,y,0,x,y,k.r*2);
+    grd.addColorStop(0,k.color+'88');grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd;ctx.beginPath();ctx.arc(x,y,k.r*2,0,2*Math.PI);ctx.fill();
+    // Dot
+    ctx.fillStyle=k.color;ctx.beginPath();ctx.arc(x,y,k.r,0,2*Math.PI);ctx.fill();
+    // Label
+    let lines=k.label.split('\n');
+    ctx.fillStyle=k.color;ctx.font='bold 11px monospace';ctx.textAlign='center';
+    let lx=x+Math.cos(angle)*25;
+    let ly=y+Math.sin(angle)*25;
+    lines.forEach((l,i)=>ctx.fillText(l,lx,ly+i*13));
+  });
+
+  // Current photon
+  let angle=pos/P*2*Math.PI-Math.PI/2;
+  let px=CX+R*Math.cos(angle);
+  let py=CY+R*Math.sin(angle);
+  // Photon glow
+  let pColor=stage==='emission'?'#ffcc33':stage==='tunneling'?'#33aaff':'#33ff88';
+  let pgrd=ctx.createRadialGradient(px,py,0,px,py,20);
+  pgrd.addColorStop(0,pColor);pgrd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=pgrd;ctx.beginPath();ctx.arc(px,py,20,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fill();
+
+  // Stage arcs
+  // Emission: SUN to HYDOR
+  ctx.strokeStyle='rgba(255,136,50,0.2)';ctx.lineWidth=8;
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,SUN/P*2*Math.PI-Math.PI/2,HYDOR/P*2*Math.PI-Math.PI/2);
+  ctx.stroke();
+  // Tunneling: HYDOR to ORIGIN (wraps)
+  ctx.strokeStyle='rgba(50,136,255,0.15)';
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,HYDOR/P*2*Math.PI-Math.PI/2,2*Math.PI-Math.PI/2);
+  ctx.stroke();
+  // Regeneration: ORIGIN to SUN
+  ctx.strokeStyle='rgba(50,255,100,0.15)';
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,-Math.PI/2,SUN/P*2*Math.PI-Math.PI/2);
+  ctx.stroke();
+
+  // Boundary line
+  ctx.strokeStyle='rgba(100,160,255,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,6]);
+  ctx.beginPath();ctx.moveTo(CX,CY);
+  let bAngle=HYDOR/P*2*Math.PI-Math.PI/2;
+  ctx.lineTo(CX+R*1.2*Math.cos(bAngle),CY+R*1.2*Math.sin(bAngle));ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Center info
+  ctx.fillStyle='#554';ctx.font='11px Georgia';ctx.textAlign='center';
+  ctx.fillText('Z/210Z',CX,CY-15);
+  ctx.fillStyle='#887';ctx.font='10px monospace';
+  ctx.fillText('Inside: +sigma surplus',CX,CY+2);
+  ctx.fillText('0/0 = sigma (regeneration)',CX,CY+16);
+
+  // Title
+  ctx.fillStyle='#ffaa33';ctx.font='bold 14px Georgia';ctx.textAlign='center';
+  ctx.fillText('The Eternal Cycle: SUN(54) -> HYDOR(105) -> ORIGIN(0) -> SUN(54)',W/2,20);
+
+  // Stage distances
+  ctx.fillStyle='rgba(255,136,50,0.6)';ctx.font='10px monospace';ctx.textAlign='center';
+  let midEmit=(SUN+HYDOR)/2;
+  let mea=midEmit/P*2*Math.PI-Math.PI/2;
+  ctx.fillText('51 steps',CX+(R+20)*Math.cos(mea),CY+(R+20)*Math.sin(mea));
+
+  ctx.fillStyle='rgba(50,136,255,0.5)';
+  ctx.fillText('105 steps',CX+(R+20)*Math.cos(Math.PI*0.6),CY+(R+20)*Math.sin(Math.PI*0.6));
+
+  ctx.fillStyle='rgba(50,255,100,0.5)';
+  let midReg=SUN/2;
+  let mra=midReg/P*2*Math.PI-Math.PI/2;
+  ctx.fillText('54 steps',CX+(R+20)*Math.cos(mra),CY+(R+20)*Math.sin(mra));
+}
+
+let stepTimer=0;
+function animate(){
+  if(!playing)return;
+  stepTimer++;
+  if(stepTimer%3===0)nextStep(); // slow down a bit
+  updateUI();draw();
+  animId=requestAnimationFrame(animate);
+}
+
+// Init
+updateUI();draw();
+</script>
+</body>
+</html>

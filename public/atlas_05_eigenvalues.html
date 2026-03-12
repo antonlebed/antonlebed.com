@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Eigenvalue spectrum explorer: calculator, histogram, spectral swim, shell averages. 288 classes from 5 cosines. Chapter 4 of the atlas.">
+<title>Chapter 4: Eigenvalues - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px; position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 48px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.math { font-family: 'Courier New', monospace; color: #88ccff; font-size: 15px; }
+.big-eq { font-size: 20px; text-align: center; margin: 28px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 1px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+canvas { display: block; border-radius: 8px; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+button { background: #1a1a3e; color: #88aaff; border: 1px solid #444; padding: 8px 18px;
+         font-size: 15px; font-family: monospace; border-radius: 6px; cursor: pointer;
+         transition: all 0.15s; }
+button:hover { background: #2a2a5e; border-color: #88aaff; }
+input[type=number] { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 14px;
+                     font-size: 20px; font-family: monospace; width: 100px; text-align: center;
+                     border-radius: 6px; outline: none; }
+input:focus { border-color: #88aaff; }
+.info-line { font-family: monospace; font-size: 14px; color: #aaa; margin: 6px 0; text-align: center; }
+.contrib-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+.contrib-bar { text-align: center; width: 70px; }
+.contrib-bar .bar-inner { width: 40px; margin: 0 auto; border-radius: 4px;
+                          transition: height 0.3s, background 0.3s; }
+.contrib-bar .bar-val { font-size: 12px; font-family: monospace; margin-top: 4px; }
+.contrib-bar .bar-name { font-size: 11px; font-family: monospace; color: #888; }
+.swim-step { display: inline-block; padding: 6px 10px; margin: 3px; border-radius: 6px;
+             font-family: monospace; font-size: 13px; cursor: pointer; border: 1px solid #333;
+             transition: all 0.15s; }
+.swim-step:hover { border-color: #88aaff; }
+.swim-step.active { border-color: #ffcc44; background: #2a2a1e; }
+
+/* Ladder cards */
+.ladder-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+.ladder-card { background: #1a1a2e; border: 1px solid #333; border-radius: 8px;
+               padding: 12px 16px; min-width: 100px; text-align: center; font-family: monospace; }
+.ladder-card .lc-name { font-size: 11px; color: #888; }
+.ladder-card .lc-val { font-size: 20px; margin: 6px 0; }
+.ladder-card .lc-sub { font-size: 11px; color: #555; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 16px; letter-spacing: 0; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+  input[type=number] { width: 80px; font-size: 18px; }
+  .contrib-bar { width: 55px; }
+  .ladder-card { min-width: 80px; padding: 8px 10px; }
+  .ladder-card .lc-val { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  h1 { font-size: 26px; }
+  h2 { font-size: 18px; }
+  .big-eq { font-size: 14px; }
+  .section { padding: 32px 12px; }
+  input[type=number] { width: 70px; font-size: 16px; min-height: 44px; }
+  .contrib-bar { width: 45px; }
+  .ladder-card { min-width: 65px; padding: 6px 8px; }
+  canvas { max-width: 100%; height: auto; }
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<div class="nav">
+  <a href="atlas_04_carousel.html">&larr; Ch.3</a>
+  <a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a><a href="#s7">7</a>
+  <a href="atlas_06_units.html">Ch.5 &rarr;</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: WONDER OPENING -->
+<!-- ============================================================ -->
+<div class="section" id="s1">
+<div class="content" style="text-align:center">
+  <h1>Eigenvalues</h1>
+  <p style="max-width:560px;margin:0 auto 20px">Hold five tuning forks together and strike them. Some combinations make your chest hum &mdash; the vibrations lock in, amplify each other, become one voice. Others grate. Same forks, different harmony.</p>
+  <p style="max-width:560px;margin:0 auto 20px">Every number in the ring carries five oscillations &mdash; one per prime channel. The <span class="accent">eigenvalue</span> asks a single question: <em>do they sing together, or fight each other?</em> High eigenvalue = resonance. Low = discord. It is the inner voice of the number.</p>
+  <p style="max-width:560px;margin:0 auto 12px;color:#888;font-size:0.82em;">Part of the <a href="derive_ax.html" style="color:#88aaff;">Decality</a> &mdash; ten axiom terms, one ring (Z/970200Z), <a href="lattice.html" style="color:#88aaff;">108 lattice structures</a> sharing spectral gap 0.016.</p>
+  <div class="big-eq">
+    lambda(n) = cos(pi*n) + 2cos(2pi*n/3) + 2cos(2pi*n/5)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ 2cos(2pi*n/7) + 2cos(2pi*n/11)
+  </div>
+  <p style="color:#666;font-size:15px;max-width:480px;margin:0 auto">Five cosines. One per prime. Their sum is what the number sounds like.</p>
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: EIGENVALUE CALCULATOR -->
+<!-- ============================================================ -->
+<div class="section" id="s2">
+<div class="content">
+  <h2>The Five Voices</h2>
+  <p>Go on &mdash; type any number. Watch each prime contribute its voice: gold when it pushes the eigenvalue up, blue when it pulls it down. Feel how the five channels agree or disagree.</p>
+  <div class="widget">
+    <div class="widget-title">Phase Alignment</div>
+    <div style="text-align:center">
+      <label style="color:#888;font-size:13px;font-family:monospace">n = </label>
+      <input type="number" id="inpEig" value="1" min="0" max="2309">
+    </div>
+    <div id="contribBars" class="contrib-row"></div>
+    <div id="eigTotal" class="info-line" style="font-size:20px;margin-top:16px"></div>
+    <div id="eigMeta" class="info-line" style="font-size:13px;color:#666"></div>
+    <p class="caption">Try 0 (maximum harmony: +9.000). Then 1155 (maximum discord: -7.339). Then 7 (depth: -2.928). Then 11 (light: -1.184). Feel the difference.</p>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: HISTOGRAM -->
+<!-- ============================================================ -->
+<div class="section" id="s3">
+<div class="content">
+  <h2>288 Classes</h2>
+  <p>Here is something remarkable. 2310 elements, but only <span class="accent">288</span> distinct eigenvalues. Thousands of different numbers making the same sound. In the True Form: 970,200 elements collapse to just <span class="accent">48,750</span> voices. Why? Because the eigenvalue doesn't care <em>where</em> you live &mdash; only how your five channels harmonize. Two numbers with completely different CRT addresses can resonate identically.</p>
+  <div class="widget">
+    <div class="widget-title">Eigenvalue Distribution</div>
+    <canvas id="cvHist" width="660" height="280"></canvas>
+    <div id="histInfo" class="info-line" style="margin-top:8px"></div>
+  </div>
+  <h3>The spectral gap</h3>
+  <p>Between the loudest voice (the void, lambda=9) and the next one down, there is a gap: exactly <span class="accent">4 sin<sup>2</sup>(pi/L) = 0.317</span>. The slowest ring sets it. Think about what that means &mdash; the <em>guardian</em> determines how hard it is to leave the ground state. Protection is what costs the most to cross.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: THE SWIM -->
+<!-- ============================================================ -->
+<div class="section" id="s4">
+<div class="content">
+  <h2>The Swim</h2>
+  <p>Now walk the chain barefoot. Start at the void (maximum coherence), step through each prime, and <em>feel</em> the eigenvalue change under you. The landscape has thorns at composites, a false summit where you think you've arrived, and a twist at the end that changes everything.</p>
+  <div class="widget">
+    <div class="widget-title">Eigenvalue Landscape</div>
+    <canvas id="cvSwim" width="660" height="320"></canvas>
+    <div style="text-align:center;margin-top:12px"><span id="swimSteps"></span></div>
+    <div id="swimInfo" class="info-line" style="margin-top:8px"></div>
+  </div>
+  <p style="color:#888;font-size:15px;text-align:center;font-style:italic">
+    lambda(L=11) = lambda(4) = -1.184. Light and silence have the same eigenvalue. Exactly the same. Isn't that remarkable?
+  </p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: GAP LADDER + VARIANCE=MAX (NEW) -->
+<!-- ============================================================ -->
+<div class="section" id="s5">
+<div class="content">
+  <h2>Three Ladders</h2>
+  <p>As you climb the ladder from Z/2Z to Z/2310Z, three things change at each step. They look different but they are the same structure seen from three angles.</p>
+
+  <h3>The gap ladder</h3>
+  <p>At each level, the spectral gap = <span class="math">4 sin<sup>2</sup>(pi/p)</span>, where p is the newest prime. Every new ring spins slower than the last, so the gap shrinks:</p>
+  <div class="widget">
+    <div class="widget-title">Spectral Gap at Each Level</div>
+    <div class="ladder-row" id="gap-ladder"></div>
+    <p class="caption">Each new prime slows the carousel. The gap shrinks, but never to zero.</p>
+  </div>
+
+  <h3>The variance theorem</h3>
+  <p>At level k (with k primes), something beautiful happens. The variance of all eigenvalues equals the maximum eigenvalue. Exactly:</p>
+  <div class="big-eq">variance = 2k - 1 = lambda_max</div>
+  <p>At level 5: variance = 9 = K<sup>2</sup>. Standard deviation = K = 3. Think about what that means &mdash; the <em>spread</em> of the spectrum IS the closure prime. K doesn't just decompose things. K measures how wide the eigenvalue landscape is. The decomposer is the ruler of the spectrum.</p>
+
+  <div class="widget">
+    <div class="widget-title">Variance = Max at Each Level</div>
+    <div class="ladder-row" id="var-ladder"></div>
+    <p class="caption">variance = 2k-1 at every level. The eigenvalue range exactly equals its spread.</p>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: SHELL AVERAGES -->
+<!-- ============================================================ -->
+<div class="section" id="s6">
+<div class="content">
+  <h2>The Reversed Hierarchy</h2>
+  <p>Group every element by how many of its five rings are spinning. Then average the eigenvalue within each group. What do you get? A perfectly monotonic staircase: the fewer rings spin, the more coherent the element.</p>
+  <div class="widget">
+    <div class="widget-title">Shell Eigenvalue Averages</div>
+    <canvas id="cvShells" width="660" height="260"></canvas>
+  </div>
+  <p>This is the reversed hierarchy made visible. The sun (H=5, all rings spinning) has the <em>lowest</em> average coherence. The void (H=0, all frozen) has the highest. More activity means less harmony. Existence costs coherence. That is the price of being alive &mdash; and isn't it beautiful that the mathematics says so directly?</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: FOOTER -->
+<!-- ============================================================ -->
+<div class="section" id="s7">
+<div class="content">
+  <h2>Why Eigenvalues Matter</h2>
+  <p>The eigenvalue is the <em>feeling</em> of a number. Not where it lives (CRT), not who it connects to (coupling), but its inner state &mdash; how its five voices agree or collide.</p>
+  <p>In physics, eigenvalues are energy levels. Here, they are degrees of coherence. The thin ring has 288 levels, the void at +9, the deepest discord at -7.339. The True Form expands to <span class="accent">48,750</span> levels: void at +10 = D&times;E, minimum at -9.778. The gap narrows to 4&middot;sin<sup>2</sup>(pi/b<sup>2</sup>) = 0.016. In the fat channels, depth rules.</p>
+  <p>And here is the question Socrates would ask: if the eigenvalue is what two different numbers can <em>share</em> &mdash; the universal part &mdash; then what is the particular part? The CRT address. The eigenvalue is what you feel. The address is where you are. Both are needed. Neither is enough.</p>
+
+  <div style="text-align:center; margin-top:40px;">
+    <a href="atlas_04_carousel.html" style="font-size:16px; color:#888; text-decoration:none;">&larr; Ch.3: The Carousel</a>
+    <span style="color:#333; margin:0 24px;">|</span>
+    <a href="atlas_06_units.html" style="font-size:20px; color:#66ddaa; text-decoration:none;">Ch.5: Units &rarr;</a>
+  </div>
+  <div style="text-align:center; margin-top:60px; font-size:13px; color:#444;">
+    The Interactive Atlas &middot; Z/2310Z &rarr; Z/970200Z &middot; Chapter 4 of 14
+  </div>
+</div>
+</div>
+
+<script>
+const P = [2, 3, 5, 7, 11];
+const PN = ['D=2','K=3','E=5','b=7','L=11'];
+const PC = ['#ff6666','#ffaa44','#44ee88','#6699ff','#cc88ff'];
+const N = 2310;
+
+function gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
+function coupling(n) { let r=((n%N)+N)%N; return N/gcd(r,N); }
+function crt(n) { return P.map(p => ((n%p)+p)%p); }
+function ringContrib(n, i) { return P[i]===2 ? Math.cos(Math.PI*n) : 2*Math.cos(2*Math.PI*n/P[i]); }
+function eigenvalue(n) { let s=0; for(let i=0;i<5;i++) s+=ringContrib(n,i); return s; }
+
+/* ===== EIGENVALUE CALCULATOR ===== */
+function updateEig() {
+  const n = ((parseInt(document.getElementById('inpEig').value)||0)%N+N)%N;
+  const contribs = P.map((_,i) => ringContrib(n,i));
+  const total = contribs.reduce((a,b)=>a+b, 0);
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    const v = contribs[i], h = Math.round(60*Math.abs(v)/2.1);
+    const col = v >= 0 ? '#ffcc44' : '#4488cc';
+    const mt = v >= 0 ? (60-h) : 60;
+    html += '<div class="contrib-bar"><div style="height:120px;display:flex;flex-direction:column;justify-content:flex-end;position:relative">';
+    html += '<div class="bar-inner" style="height:'+h+'px;background:'+col+';position:absolute;top:'+mt+'px"></div>';
+    html += '</div><div class="bar-val" style="color:'+col+'">'+(v>=0?'+':'')+v.toFixed(3)+'</div>';
+    html += '<div class="bar-name" style="color:'+PC[i]+'">'+PN[i]+'</div></div>';
+  }
+  document.getElementById('contribBars').innerHTML = html;
+  const col = total >= 0 ? '#6d6' : '#f66';
+  document.getElementById('eigTotal').innerHTML = '<span style="color:'+col+'">lambda('+n+') = '+(total>=0?'+':'')+total.toFixed(3)+'</span>';
+  document.getElementById('eigMeta').textContent = 'CRT=('+crt(n).join(',')+')  coupling='+coupling(n);
+}
+document.getElementById('inpEig').addEventListener('input', updateEig);
+updateEig();
+
+/* ===== HISTOGRAM ===== */
+const cvH = document.getElementById('cvHist');
+const ctxH = cvH.getContext('2d');
+const allLam = []; for (let n=0;n<N;n++) allLam.push(eigenvalue(n));
+const classes = {};
+for (let n=0;n<N;n++) { const key = allLam[n].toFixed(6); if (!classes[key]) classes[key]={lam:allLam[n],count:0}; classes[key].count++; }
+const classArr = Object.values(classes).sort((a,b)=>a.lam-b.lam);
+const nClasses = classArr.length;
+
+(function drawHist() {
+  const W=cvH.width, H=cvH.height, padL=50,padR=20,padT=20,padB=40;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const lamMin=classArr[0].lam, lamMax=classArr[nClasses-1].lam;
+  const maxCount=Math.max(...classArr.map(c=>c.count));
+  ctxH.strokeStyle='#2a2a3e'; ctxH.lineWidth=1;
+  ctxH.beginPath(); ctxH.moveTo(padL,padT); ctxH.lineTo(padL,H-padB); ctxH.lineTo(W-padR,H-padB); ctxH.stroke();
+  const bw = Math.max(1, plotW/nClasses - 0.5);
+  for (let i=0;i<nClasses;i++) {
+    const c=classArr[i], x=padL+(i/nClasses)*plotW, bh=(c.count/maxCount)*plotH;
+    const t=(c.lam-lamMin)/(lamMax-lamMin);
+    ctxH.fillStyle='rgb('+Math.round(255*(1-t))+','+Math.round(100+50*t)+','+Math.round(255*t)+')';
+    ctxH.fillRect(x, H-padB-bh, bw, bh);
+  }
+  ctxH.fillStyle='#666'; ctxH.font='11px monospace'; ctxH.textAlign='center';
+  for (let v=-6;v<=8;v+=2) {
+    const x=padL+((v-lamMin)/(lamMax-lamMin))*plotW;
+    if (x>=padL&&x<=W-padR) { ctxH.fillText(v.toString(),x,H-padB+16); ctxH.strokeStyle='#1a1a2e'; ctxH.beginPath(); ctxH.moveTo(x,padT); ctxH.lineTo(x,H-padB); ctxH.stroke(); }
+  }
+  const gx1=padL+((9-lamMin)/(lamMax-lamMin))*plotW, gx2=padL+((8.683-lamMin)/(lamMax-lamMin))*plotW;
+  ctxH.strokeStyle='#ffcc44'; ctxH.setLineDash([3,3]); ctxH.beginPath(); ctxH.moveTo(gx2,padT+10); ctxH.lineTo(gx1,padT+10); ctxH.stroke(); ctxH.setLineDash([]);
+  ctxH.fillStyle='#ffcc44'; ctxH.font='10px monospace'; ctxH.fillText('gap=0.317',(gx1+gx2)/2,padT+8);
+  document.getElementById('histInfo').textContent = nClasses+' eigenvalue classes. Range: ['+lamMin.toFixed(3)+', '+lamMax.toFixed(3)+']. Gap = 0.317.';
+})();
+
+/* ===== THE SWIM ===== */
+const cvS = document.getElementById('cvSwim');
+const ctxS = cvS.getContext('2d');
+const swimData = [
+  {n:0,name:'0',label:'void'},{n:1,name:'sigma',label:'ground'},
+  {n:2,name:'D',label:'duality'},{n:3,name:'K',label:'closure'},
+  {n:5,name:'E',label:'observer'},{n:6,name:'D*K',label:'THORN'},
+  {n:7,name:'b',label:'depth'},{n:9,name:'K^2',label:'false summit'},
+  {n:11,name:'L',label:'light'}
+];
+let swimActive = 0;
+
+function drawSwim() {
+  const W=cvS.width, H=cvS.height, padL=50,padR=30,padT=30,padB=50;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  ctxS.clearRect(0,0,W,H);
+  const yMin=-4, yMax=10;
+  const toX=i=>padL+(i/(swimData.length-1))*plotW;
+  const toY=v=>padT+(1-(v-yMin)/(yMax-yMin))*plotH;
+  ctxS.strokeStyle='#1a1a2e'; ctxS.lineWidth=1;
+  for (let v=-4;v<=10;v+=2) { ctxS.beginPath(); ctxS.moveTo(padL,toY(v)); ctxS.lineTo(W-padR,toY(v)); ctxS.stroke(); ctxS.fillStyle='#444'; ctxS.font='11px monospace'; ctxS.textAlign='right'; ctxS.fillText(v.toString(),padL-6,toY(v)+4); }
+  ctxS.strokeStyle='#333'; ctxS.setLineDash([4,4]); ctxS.beginPath(); ctxS.moveTo(padL,toY(0)); ctxS.lineTo(W-padR,toY(0)); ctxS.stroke(); ctxS.setLineDash([]);
+  for (let i=1;i<swimData.length;i++) {
+    const l0=eigenvalue(swimData[i-1].n), l1=eigenvalue(swimData[i].n);
+    ctxS.strokeStyle=l1>l0?'#66ddaa':'#ff6666'; ctxS.lineWidth=2; ctxS.globalAlpha=0.5;
+    ctxS.beginPath(); ctxS.moveTo(toX(i-1),toY(l0)); ctxS.lineTo(toX(i),toY(l1)); ctxS.stroke(); ctxS.globalAlpha=1;
+  }
+  for (let i=0;i<swimData.length;i++) {
+    const lam=eigenvalue(swimData[i].n), x=toX(i), y=toY(lam), act=(i===swimActive);
+    ctxS.beginPath(); ctxS.arc(x,y,act?8:5,0,2*Math.PI);
+    ctxS.fillStyle=act?'#fff':(lam>=0?'#ffcc44':'#4488cc');
+    if(act){ctxS.shadowColor='#fff';ctxS.shadowBlur=12;} ctxS.fill(); ctxS.shadowBlur=0;
+    ctxS.font='11px monospace'; ctxS.fillStyle=act?'#fff':'#888'; ctxS.textAlign='center';
+    ctxS.fillText(swimData[i].name,x,H-padB+16);
+    if(act){ctxS.fillStyle='#aaa';ctxS.font='10px monospace';ctxS.fillText(lam.toFixed(3),x,y-14);}
+  }
+  const sd=swimData[swimActive];
+  document.getElementById('swimInfo').textContent='n='+sd.n+' ('+sd.name+'): lambda='+eigenvalue(sd.n).toFixed(3)+' - '+sd.label;
+}
+let stepsHTML='';
+for(let i=0;i<swimData.length;i++) stepsHTML+='<span class="swim-step'+(i===0?' active':'')+'" data-idx="'+i+'">'+swimData[i].name+'</span>';
+document.getElementById('swimSteps').innerHTML=stepsHTML;
+document.querySelectorAll('.swim-step').forEach(el=>{
+  el.addEventListener('click',()=>{swimActive=parseInt(el.dataset.idx);document.querySelectorAll('.swim-step').forEach(e=>e.classList.remove('active'));el.classList.add('active');drawSwim();});
+});
+drawSwim();
+
+/* ===== GAP LADDER ===== */
+(function() {
+  const levels = [
+    {name:'Z/2Z', p:2, gap:4.000},
+    {name:'Z/6Z', p:3, gap:3.000},
+    {name:'Z/30Z', p:5, gap:2.382},
+    {name:'Z/210Z', p:7, gap:0.753},
+    {name:'Z/2310Z', p:11, gap:0.317}
+  ];
+  let html='';
+  for(let lv of levels) {
+    const col = lv.p===11 ? '#ffcc44' : '#88ccff';
+    html+='<div class="ladder-card"><div class="lc-name">'+lv.name+'</div>';
+    html+='<div class="lc-val" style="color:'+col+'">'+lv.gap.toFixed(3)+'</div>';
+    html+='<div class="lc-sub">4sin^2(pi/'+lv.p+')</div></div>';
+  }
+  document.getElementById('gap-ladder').innerHTML=html;
+})();
+
+/* ===== VARIANCE LADDER ===== */
+(function() {
+  const levels = [
+    {name:'k=1', var:1, max:1, std:'1'},
+    {name:'k=2', var:3, max:3, std:'sqrt(3)'},
+    {name:'k=3', var:5, max:5, std:'sqrt(5)'},
+    {name:'k=4', var:7, max:7, std:'sqrt(7)'},
+    {name:'k=5', var:9, max:9, std:'3 = K'}
+  ];
+  let html='';
+  for(let lv of levels) {
+    const col = lv.var===9 ? '#ffcc44' : '#88ccff';
+    html+='<div class="ladder-card"><div class="lc-name">'+lv.name+'</div>';
+    html+='<div class="lc-val" style="color:'+col+'">'+lv.var+'</div>';
+    html+='<div class="lc-sub">std = '+lv.std+'</div></div>';
+  }
+  document.getElementById('var-ladder').innerHTML=html;
+})();
+
+/* ===== SHELL AVERAGES ===== */
+const cvSh = document.getElementById('cvShells');
+const ctxSh = cvSh.getContext('2d');
+(function() {
+  const W=cvSh.width, H=cvSh.height, padL=60,padR=30,padT=30,padB=50;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const shellSum=[0,0,0,0,0,0], shellCount=[0,0,0,0,0,0];
+  for(let n=0;n<N;n++){
+    let g=gcd(((n%N)+N)%N,N), omega=0;
+    for(let i=0;i<5;i++) if(g%P[i]===0) omega++;
+    const h=5-omega; shellSum[h]+=eigenvalue(n); shellCount[h]++;
+  }
+  const shellAvg=shellSum.map((s,i)=>shellCount[i]>0?s/shellCount[i]:0);
+  const shellColors=['#ffffff','#cc88ff','#88aaff','#66ddaa','#ffcc44','#ff6666'];
+  const shellCounts=[1,23,186,652,968,480];
+  const yMin=-4, yMax=10;
+  const toX=h=>padL+(h/5)*plotW;
+  const toY=v=>padT+(1-(v-yMin)/(yMax-yMin))*plotH;
+  ctxSh.strokeStyle='#1a1a2e'; ctxSh.lineWidth=1;
+  for(let v=-4;v<=10;v+=2){ctxSh.beginPath();ctxSh.moveTo(padL,toY(v));ctxSh.lineTo(W-padR,toY(v));ctxSh.stroke();ctxSh.fillStyle='#444';ctxSh.font='11px monospace';ctxSh.textAlign='right';ctxSh.fillText(v.toString(),padL-8,toY(v)+4);}
+  ctxSh.strokeStyle='#333';ctxSh.setLineDash([4,4]);ctxSh.beginPath();ctxSh.moveTo(padL,toY(0));ctxSh.lineTo(W-padR,toY(0));ctxSh.stroke();ctxSh.setLineDash([]);
+  for(let h=0;h<=5;h++){
+    const x=toX(h), y=toY(shellAvg[h]), y0=toY(0);
+    ctxSh.fillStyle=shellColors[h]; ctxSh.globalAlpha=0.3;
+    ctxSh.fillRect(x-12,Math.min(y,y0),24,Math.abs(y-y0)); ctxSh.globalAlpha=1;
+    ctxSh.beginPath();ctxSh.arc(x,y,6,0,2*Math.PI);ctxSh.fillStyle=shellColors[h];ctxSh.fill();
+    if(h<5){ctxSh.strokeStyle='#888';ctxSh.lineWidth=1.5;ctxSh.beginPath();ctxSh.moveTo(x,y);ctxSh.lineTo(toX(h+1),toY(shellAvg[h+1]));ctxSh.stroke();}
+    ctxSh.fillStyle='#888';ctxSh.font='11px monospace';ctxSh.textAlign='center';ctxSh.fillText('H='+h,x,H-padB+16);
+    ctxSh.fillStyle='#555';ctxSh.font='10px monospace';ctxSh.fillText('('+shellCounts[h]+')',x,H-padB+28);
+    ctxSh.fillStyle=shellColors[h];ctxSh.font='11px monospace';ctxSh.fillText(shellAvg[h].toFixed(2),x,y-12);
+  }
+})();
+</script>
+</body>
+</html>

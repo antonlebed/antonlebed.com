@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why This Ring? | antonlebed.com</title>
+<meta name="description" content="Build your own ring from primes and powers. Explore the landscape of all possible rings. Discover why Z/970200Z is special.">
+<meta property="og:title" content="Why This Ring?">
+<meta property="og:description" content="Build a ring from any primes. See its structure. Compare it to the axiom's Z/970200Z. Discover why these primes, these powers.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;--text:#e0e0e0;--dim:#888;--muted:#555;--accent:#4fc3f7;--gold:#ffd54f;--green:#66bb6a;--red:#ef5350}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;min-height:100vh}
+.container{max-width:1000px;margin:0 auto;padding:1rem}
+.hero{text-align:center;padding:2rem 1rem 1rem}
+.hero h1{font-size:1.8rem;font-weight:300;margin-bottom:0.5rem}
+.hero h1 strong{font-weight:700;color:var(--gold)}
+.hero .sub{color:var(--dim);font-size:0.95rem;max-width:600px;margin:0 auto}
+
+.builder{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin:1.5rem 0}
+.builder h2{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--dim);margin-bottom:0.8rem}
+.prime-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+.prime-row{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.02);border:1px solid transparent;transition:all 0.15s}
+.prime-row.on{border-color:var(--accent);background:rgba(79,195,247,0.06)}
+.prime-row label{display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.9rem;flex:1}
+.prime-row input[type=checkbox]{accent-color:var(--accent)}
+.prime-row select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:1px 2px;font-size:0.8rem;font-family:'Courier New',monospace;width:38px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.8rem}
+.preset{padding:4px 10px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;font-size:0.78rem;font-family:'Courier New',monospace;transition:all 0.15s}
+.preset:hover{border-color:var(--accent);color:var(--text)}
+.preset.active{border-color:var(--gold);color:var(--gold);background:rgba(255,213,79,0.08)}
+
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem}
+.card h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--dim);margin-bottom:0.6rem}
+.card.yours{border-color:rgba(79,195,247,0.3)}
+.card.axiom{border-color:rgba(255,213,79,0.3)}
+.card .ring-name{font-family:'Courier New',monospace;font-size:1.1rem;margin-bottom:0.5rem}
+.card .ring-name .yours-col{color:var(--accent)}.card .ring-name .axiom-col{color:var(--gold)}
+.prop{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.85rem}
+.prop .k{color:var(--dim)}.prop .v{font-family:'Courier New',monospace}
+.prop .v.good{color:var(--green)}.prop .v.mid{color:var(--accent)}.prop .v.bad{color:var(--red)}
+
+.compare{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:1rem 0}
+.compare h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--dim);margin-bottom:0.8rem}
+.bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:0.82rem}
+.bar-row .bar-label{width:110px;text-align:right;color:var(--dim);font-size:0.75rem}
+.bar-row .bar-wrap{flex:1;height:16px;background:rgba(255,255,255,0.03);border-radius:3px;position:relative;overflow:hidden}
+.bar-row .bar-fill{height:100%;border-radius:3px;transition:width 0.4s}
+.bar-row .bar-val{width:80px;font-family:'Courier New',monospace;font-size:0.8rem}
+
+.sm-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:1rem 0}
+.sm-section h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--dim);margin-bottom:0.4rem}
+.sm-result{display:flex;align-items:center;gap:1rem;margin:0.5rem 0}
+.sm-result .big{font-size:1.5rem;font-weight:700;font-family:'Courier New',monospace}
+.sm-result .detail{font-size:0.82rem;color:var(--dim)}
+
+canvas{display:block;width:100%;margin-top:0.8rem}
+
+.insight{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin:1rem 0}
+.insight h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--dim);margin-bottom:0.5rem}
+.insight p{color:var(--dim);font-size:0.85rem;margin-bottom:0.4rem}
+.insight strong{color:var(--text)}
+
+.cta{text-align:center;margin:2rem 0 1rem}
+.cta a{display:inline-block;padding:0.5rem 1.2rem;border-radius:8px;background:rgba(79,195,247,0.12);border:1px solid var(--accent);color:var(--accent);text-decoration:none;font-size:0.85rem;margin:0.2rem;transition:all 0.2s}
+.cta a:hover{background:rgba(79,195,247,0.25)}
+
+.contrast-toggle{position:fixed;bottom:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.7rem;color:var(--dim);cursor:pointer;font-size:0.75rem;z-index:100}
+body.high-contrast{--bg:#fff;--surface:#f5f5f5;--border:#ccc;--text:#111;--dim:#555;--muted:#888;--accent:#0277bd;--gold:#e65100;--green:#2e7d32;--red:#c62828}
+
+@media(max-width:768px){
+  .hero h1{font-size:1.3rem}
+  .cards{grid-template-columns:1fr}
+  .prime-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>Why <strong>This</strong> Ring?</h1>
+    <p class="sub">Build your own ring from primes and powers. See its structure. Discover why 970,200 stands out.</p>
+  </div>
+
+  <div class="builder">
+    <h2>Build Your Ring</h2>
+    <div class="prime-grid" id="primeGrid"></div>
+    <div class="presets" id="presetRow"></div>
+  </div>
+
+  <div class="cards">
+    <div class="card yours" id="cardYours"><h3>Your Ring</h3><div id="propsYours"></div></div>
+    <div class="card axiom" id="cardAxiom"><h3>The Axiom's Ring</h3><div id="propsAxiom"></div></div>
+  </div>
+
+  <div class="compare" id="compareSection">
+    <h3>Side by Side</h3>
+    <div id="compareBars"></div>
+  </div>
+
+  <div class="sm-section" id="smSection">
+    <h3>Physics Match (24 Standard Model constants, brute-force smooth ratios)</h3>
+    <div style="display:flex;gap:2rem;flex-wrap:wrap">
+      <div class="sm-result"><div class="big" id="smYou" style="color:var(--accent)">--</div><div class="detail">Your mean error</div></div>
+      <div class="sm-result"><div class="big" id="smAx" style="color:var(--gold)">--</div><div class="detail">Axiom mean error</div></div>
+      <div class="sm-result"><div class="big" id="smVerdict" style="color:var(--dim)">--</div><div class="detail" id="smNote"></div></div>
+    </div>
+    <canvas id="smCanvas" height="200"></canvas>
+  </div>
+
+  <div class="insight" id="insightBox">
+    <h3>What This Means</h3>
+    <p id="insightText"></p>
+  </div>
+
+  <div class="cta">
+    <a href="sm.html">All 25 Parameters</a>
+    <a href="oracle.html">Try Any Number</a>
+    <a href="repl.html">Compute in .ax</a>
+  </div>
+</div>
+<button class="contrast-toggle" onclick="document.body.classList.toggle('high-contrast')">Contrast</button>
+
+<script>
+// --- Primes and ring math ---
+function isPrime(n){if(n<2)return false;if(n<4)return true;if(n%2===0||n%3===0)return false;for(let i=5;i*i<=n;i+=6)if(n%i===0||n%(i+2)===0)return false;return true}
+
+const AVAILABLE_PRIMES = [2,3,5,7,11,13,17,19,23];
+const AXIOM_CONFIG = [{p:2,e:3},{p:3,e:2},{p:5,e:2},{p:7,e:2},{p:11,e:1}];
+const AXIOM_N = 970200;
+
+const PRESETS = [
+  {name:'Z/6Z', label:'6 (baby)', config:[{p:2,e:1},{p:3,e:1}]},
+  {name:'Z/30Z', label:'30', config:[{p:2,e:1},{p:3,e:1},{p:5,e:1}]},
+  {name:'Z/210Z', label:'210 (data)', config:[{p:2,e:1},{p:3,e:1},{p:5,e:1},{p:7,e:1}]},
+  {name:'Z/2310Z', label:'2310 (thin)', config:[{p:2,e:1},{p:3,e:1},{p:5,e:1},{p:7,e:1},{p:11,e:1}]},
+  {name:'Z/970200Z', label:'970200 (TRUE)', config:[{p:2,e:3},{p:3,e:2},{p:5,e:2},{p:7,e:2},{p:11,e:1}]},
+  {name:'Z/12612600Z', label:'12612600 (GATE)', config:[{p:2,e:3},{p:3,e:2},{p:5,e:2},{p:7,e:2},{p:11,e:1},{p:13,e:1}]},
+  {name:'Z/30030Z', label:'30030 (thin+13)', config:[{p:2,e:1},{p:3,e:1},{p:5,e:1},{p:7,e:1},{p:11,e:1},{p:13,e:1}]},
+  {name:'Z/510510Z', label:'510510 (+13+17)', config:[{p:2,e:1},{p:3,e:1},{p:5,e:1},{p:7,e:1},{p:11,e:1},{p:13,e:1},{p:17,e:1}]},
+];
+
+function ringProps(config) {
+  if (config.length === 0) return null;
+  let N = 1, phi = 1, classes = 1, maxPE = 1, channels = config.length, idemp = 1 << config.length;
+  let parts = [];
+  let primes = [];
+  for (const {p, e} of config) {
+    const pe = Math.pow(p, e);
+    N *= pe;
+    phi *= pe - Math.pow(p, e - 1);
+    classes *= Math.floor(pe / 2) + 1;
+    if (pe > maxPE) maxPE = pe;
+    parts.push(e > 1 ? p + '^' + e : '' + p);
+    primes.push(p);
+  }
+  const gap = 4 * Math.pow(Math.sin(Math.PI / maxPE), 2);
+  const degree = 2 * channels - (config.some(c => c.p === 2 && c.e === 1) ? 1 : 0);
+  const balance = phi / classes;
+  return {N, phi, classes, gap, degree, channels, idemp, balance, maxPE, parts, primes, config};
+}
+
+const AXIOM_PROPS = ringProps(AXIOM_CONFIG);
+
+// --- SM matching ---
+const SM=[
+  {name:'1/alpha',m:137.036},{name:'sin^2 theta_W',m:0.23122},{name:'alpha_s',m:0.118},
+  {name:'m_u',m:2.16},{name:'m_d',m:4.67},{name:'m_s',m:93.4},{name:'m_c',m:1270},
+  {name:'m_b',m:4180},{name:'m_t',m:172400},{name:'m_e',m:510.999},{name:'mu/e',m:206.768},
+  {name:'tau/e',m:3477.48},{name:'m_H',m:125250},{name:'v_H',m:246220},
+  {name:'theta12 CKM',m:13.04},{name:'V_cb',m:0.0412},{name:'V_ub',m:0.00369},
+  {name:'delta CKM',m:65.4},{name:'s12 PMNS',m:0.303},{name:'s23 PMNS',m:0.572},
+  {name:'s13 PMNS',m:0.0222},{name:'delta PMNS',m:194},{name:'dm21',m:7.42},{name:'dm31',m:2.515}
+];
+
+function genSmooth(P,maxV,maxC){
+  const res=[],n=P.length,exps=new Array(n).fill(0);
+  function rec(i,val,comp){
+    if(i===n){res.push(val);return}
+    let pw=1;for(let e=0;comp+e<=maxC&&val*pw<=maxV;e++){exps[i]=e;rec(i+1,val*pw,comp+e);pw*=P[i]}
+    exps[i]=0;
+  }
+  rec(0,1,0);res.sort((a,b)=>a-b);return res;
+}
+
+function matchSM(primes){
+  const S=genSmooth(primes,100000,12);
+  const n=S.length;
+  let errs=[];
+  for(const {m}of SM){
+    let best=Infinity;
+    for(let di=0;di<n;di++){
+      const dv=S[di],nt=m*dv;
+      let lo=0,hi=n-1;
+      while(lo<hi){const mid=(lo+hi)>>1;S[mid]<nt?lo=mid+1:hi=mid}
+      for(let j=Math.max(0,lo-1);j<=Math.min(n-1,lo+1);j++){
+        const err=Math.abs(S[j]/dv-m)/m;
+        if(err<best)best=err;
+      }
+    }
+    errs.push(best*100);
+  }
+  return{mean:errs.reduce((a,b)=>a+b,0)/errs.length, under1:errs.filter(e=>e<1).length, errs, smooth:n};
+}
+
+// Pre-compute axiom SM match
+const AXIOM_SM = matchSM(AXIOM_PROPS.primes);
+
+// --- UI ---
+function buildPrimeGrid(){
+  const grid=document.getElementById('primeGrid');
+  grid.innerHTML='';
+  for(const p of AVAILABLE_PRIMES){
+    const ax=AXIOM_CONFIG.find(c=>c.p===p);
+    const div=document.createElement('div');
+    div.className='prime-row'+(ax?' on':'');
+    div.id='pr-'+p;
+    div.innerHTML=`<label><input type="checkbox" data-p="${p}" ${ax?'checked':''}> ${p}</label>
+      <select data-p="${p}">${[1,2,3,4].map(e=>`<option value="${e}" ${ax&&ax.e===e?'selected':''}>${p}<sup>${e}</sup>=${Math.pow(p,e)}</option>`).join('')}</select>`;
+    div.querySelector('input').addEventListener('change',update);
+    div.querySelector('select').addEventListener('change',update);
+    grid.appendChild(div);
+  }
+}
+
+function buildPresets(){
+  const row=document.getElementById('presetRow');
+  row.innerHTML='';
+  PRESETS.forEach((pr,i)=>{
+    const btn=document.createElement('button');
+    btn.className='preset';
+    btn.textContent=pr.label;
+    btn.title=pr.name;
+    btn.onclick=()=>applyPreset(pr.config);
+    row.appendChild(btn);
+  });
+}
+
+function applyPreset(config){
+  for(const p of AVAILABLE_PRIMES){
+    const cb=document.querySelector(`input[data-p="${p}"]`);
+    const sel=document.querySelector(`select[data-p="${p}"]`);
+    const c=config.find(x=>x.p===p);
+    cb.checked=!!c;
+    if(c)sel.value=c.e;else sel.value=1;
+    document.getElementById('pr-'+p).className='prime-row'+(c?' on':'');
+  }
+  update();
+}
+
+function getConfig(){
+  const config=[];
+  for(const p of AVAILABLE_PRIMES){
+    const cb=document.querySelector(`input[data-p="${p}"]`);
+    const sel=document.querySelector(`select[data-p="${p}"]`);
+    if(cb.checked){
+      config.push({p,e:parseInt(sel.value)});
+      document.getElementById('pr-'+p).className='prime-row on';
+    }else{
+      document.getElementById('pr-'+p).className='prime-row';
+    }
+  }
+  return config;
+}
+
+function fmtN(n){return n.toLocaleString()}
+
+function renderProps(el, props, color){
+  if(!props){el.innerHTML='<div style="color:var(--dim);padding:1rem">Select at least one prime.</div>';return}
+  const factStr = 'Z/' + fmtN(props.N) + 'Z = ' + props.parts.map(p=>'Z/'+p+'Z').join(' x ');
+  el.innerHTML=`
+    <div class="ring-name"><span style="color:${color}">Z/${fmtN(props.N)}Z</span></div>
+    <div style="font-size:0.78rem;color:var(--dim);margin-bottom:0.5rem;font-family:'Courier New',monospace">${factStr}</div>
+    <div class="prop"><span class="k">N (elements)</span><span class="v">${fmtN(props.N)}</span></div>
+    <div class="prop"><span class="k">phi (units)</span><span class="v">${fmtN(props.phi)}</span></div>
+    <div class="prop"><span class="k">Eigenvalue classes</span><span class="v">${fmtN(props.classes)}</span></div>
+    <div class="prop"><span class="k">Spectral gap</span><span class="v">${props.gap.toFixed(4)}</span></div>
+    <div class="prop"><span class="k">Max eigenvalue</span><span class="v">${props.degree}</span></div>
+    <div class="prop"><span class="k">CRT channels</span><span class="v">${props.channels}</span></div>
+    <div class="prop"><span class="k">Idempotents</span><span class="v">${props.idemp}</span></div>
+    <div class="prop"><span class="k">Balance (phi/classes)</span><span class="v">${props.balance.toFixed(2)}</span></div>
+    <div class="prop"><span class="k">Computation cost</span><span class="v ${props.N>1e6?'bad':props.N>1e4?'mid':'good'}">${props.N>1e6?'Huge':props.N>1e4?'Moderate':'Light'} (${fmtN(props.N)} ops)</span></div>
+    <div class="prop"><span class="k">Resolution</span><span class="v ${props.gap<0.01?'bad':props.gap<0.1?'mid':'good'}">${props.gap<0.01?'Crowded':'Fine'} (gap ${props.gap.toFixed(4)})</span></div>
+    <div class="prop"><span class="k">Redundancy</span><span class="v ${props.channels>5?'bad':''}">${props.channels>5?props.channels-5+' extra channel'+(props.channels>6?'s':''):'None'}</span></div>`;
+}
+
+function renderCompare(yours){
+  const el=document.getElementById('compareBars');
+  if(!yours){el.innerHTML='';return}
+  const ax=AXIOM_PROPS;
+  const metrics=[
+    {label:'Elements (N)',you:yours.N,ax:ax.N,log:true},
+    {label:'Units (phi)',you:yours.phi,ax:ax.phi,log:true},
+    {label:'Eigenvalue classes',you:yours.classes,ax:ax.classes,log:true},
+    {label:'Spectral gap',you:yours.gap,ax:ax.gap,log:false,inv:true},
+    {label:'CRT channels',you:yours.channels,ax:ax.channels,log:false},
+    {label:'Idempotents',you:yours.idemp,ax:ax.idemp,log:false},
+    {label:'Balance',you:yours.balance,ax:ax.balance,log:false},
+  ];
+  let html='';
+  for(const m of metrics){
+    const maxVal=Math.max(m.you,m.ax,0.001);
+    const yPct=m.log?Math.log(1+m.you)/Math.log(1+maxVal)*100:m.you/maxVal*100;
+    const aPct=m.log?Math.log(1+m.ax)/Math.log(1+maxVal)*100:m.ax/maxVal*100;
+    const yFmt=m.you>=1000?fmtN(Math.round(m.you)):m.you>=1?m.you.toFixed(2):m.you.toFixed(4);
+    const aFmt=m.ax>=1000?fmtN(Math.round(m.ax)):m.ax>=1?m.ax.toFixed(2):m.ax.toFixed(4);
+    html+=`<div class="bar-row">
+      <div class="bar-label">${m.label}</div>
+      <div class="bar-wrap">
+        <div class="bar-fill" style="width:${yPct}%;background:var(--accent);opacity:0.7"></div>
+      </div>
+      <div class="bar-val" style="color:var(--accent)">${yFmt}</div>
+      <div class="bar-wrap">
+        <div class="bar-fill" style="width:${aPct}%;background:var(--gold);opacity:0.7"></div>
+      </div>
+      <div class="bar-val" style="color:var(--gold)">${aFmt}</div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+function renderSM(yours){
+  if(!yours){
+    document.getElementById('smYou').textContent='--';
+    document.getElementById('smVerdict').textContent='--';
+    document.getElementById('smNote').textContent='';
+    return;
+  }
+  const ySM=matchSM(yours.primes);
+  document.getElementById('smYou').textContent=ySM.mean.toFixed(2)+'%';
+  document.getElementById('smAx').textContent=AXIOM_SM.mean.toFixed(2)+'%';
+
+  const ratio=ySM.mean/AXIOM_SM.mean;
+  if(ratio>1.5){
+    document.getElementById('smVerdict').textContent=ratio.toFixed(1)+'x worse';
+    document.getElementById('smVerdict').style.color='var(--red)';
+    document.getElementById('smNote').textContent='Missing key primes hurts physics matching.';
+  }else if(ratio>1.05){
+    document.getElementById('smVerdict').textContent=ratio.toFixed(1)+'x worse';
+    document.getElementById('smVerdict').style.color='var(--gold)';
+    document.getElementById('smNote').textContent='Close but not quite.';
+  }else if(ratio>0.95){
+    document.getElementById('smVerdict').textContent='Tie';
+    document.getElementById('smVerdict').style.color='var(--green)';
+    document.getElementById('smNote').textContent='Any small primes match well by brute-force. The axiom\'s advantage is structural, not numerical.';
+  }else{
+    document.getElementById('smVerdict').textContent='You win';
+    document.getElementById('smVerdict').style.color='var(--green)';
+    document.getElementById('smNote').textContent='Brute-force with different primes can find marginally closer fits. The axiom\'s claim is structural.';
+  }
+  drawSMChart(ySM.errs, AXIOM_SM.errs);
+}
+
+function drawSMChart(yErrs,aErrs){
+  const canvas=document.getElementById('smCanvas');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth;
+  canvas.width=W*dpr;canvas.height=200*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const H=200,pad={l:4,r:4,t:10,b:20};
+  const n=yErrs.length,bw=(W-pad.l-pad.r)/n,barW=bw*0.35;
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#12121a';
+  ctx.fillRect(0,0,W,H);
+  const logMin=Math.log10(0.001),logMax=Math.log10(10);
+  const plotH=H-pad.t-pad.b;
+  function y(e){return pad.t+plotH*(1-(Math.log10(Math.max(e,0.001))-logMin)/(logMax-logMin))}
+  // 1% line
+  ctx.strokeStyle='rgba(255,213,79,0.2)';ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pad.l,y(1));ctx.lineTo(W-pad.r,y(1));ctx.stroke();ctx.setLineDash([]);
+  for(let i=0;i<n;i++){
+    const x=pad.l+i*bw,base=y(0.001);
+    ctx.fillStyle='rgba(79,195,247,0.6)';ctx.fillRect(x+2,y(yErrs[i]),barW,base-y(yErrs[i]));
+    ctx.fillStyle='rgba(255,213,79,0.6)';ctx.fillRect(x+2+barW+1,y(aErrs[i]),barW,base-y(aErrs[i]));
+  }
+}
+
+function generateInsight(yours){
+  const el=document.getElementById('insightText');
+  if(!yours){el.textContent='Select primes to see analysis.';return}
+  const ax=AXIOM_PROPS;
+  let lines=[];
+  if(yours.N===ax.N){
+    lines.push('<strong style="color:var(--gold)">You found it.</strong> This is Z/970,200Z \u2014 the TRUE FORM. The minmax sweet spot.');
+  }else if(yours.N===12612600){
+    lines.push('<strong style="color:var(--gold)">The GATE FORM.</strong> Z/12,612,600Z = TRUE \u00d7 13. The organism: body (970,200) + skin (13).');
+    lines.push('\u2022 lambda = 420, <strong>unchanged</strong> from TRUE FORM. Gap = 0.016, <strong>unchanged</strong>.');
+    lines.push('\u2022 13 is the LAST prime compatible with lambda(420). 17 = ESCAPE: it breaks the period.');
+    lines.push('\u2022 L=11 + 13 dual ECC: <strong>100% detection, 100% correction</strong> for all channels.');
+    lines.push('\u2022 This is the Decality: {-1, 0, 1, 2, 3, 5, 7, 11, 13, OMEGA}. Count = 10 = D\u00d7E. Sum = 41 = KEY.');
+  }else if(yours.N>ax.N){
+    // ABOVE the true ring — show the COST
+    lines.push('<strong style="color:var(--red)">Bigger is not better.</strong> This ring is larger than 970,200. Here\'s what you lose:');
+    if(yours.gap<ax.gap)lines.push('\u2022 <strong>Spectral gap shrinks</strong> from '+ax.gap.toFixed(4)+' to '+yours.gap.toFixed(4)+'. Eigenvalues crowd together \u2014 harder to distinguish elements.');
+    if(yours.N>ax.N*10)lines.push('\u2022 <strong>Computation explodes</strong>: '+fmtN(yours.N)+' elements vs '+fmtN(ax.N)+'. '+Math.round(yours.N/ax.N)+'x more work for operations in the ring.');
+    if(yours.channels>ax.channels)lines.push('\u2022 <strong>'+( yours.channels-ax.channels)+' extra channel'+(yours.channels-ax.channels>1?'s':'')+' add redundancy</strong>, not information. Physics matching barely improves (check below).');
+    if(yours.idemp>ax.idemp)lines.push('\u2022 <strong>'+yours.idemp+' idempotents</strong> (vs '+ax.idemp+'). More boundary elements = more structural overhead.');
+    lines.push('The axiom is not about MAXIMUM structure. It\'s about the <strong>minimum ring that captures all the physics</strong>. 970,200 is where adding more stops helping and starts hurting.');
+  }else{
+    // BELOW the true ring — show what's missing
+    if(yours.channels<ax.channels)lines.push('\u2022 <strong>Missing channels.</strong> '+yours.channels+' CRT channels vs '+ax.channels+'. Coarser decomposition means less structure to work with.');
+    if(yours.gap>ax.gap*2)lines.push('\u2022 <strong>Spectral gap too wide</strong> ('+yours.gap.toFixed(3)+' vs '+ax.gap.toFixed(4)+'). Fewer eigenvalue classes = too coarse for physics.');
+    const hasPowers=yours.config.some(c=>c.e>1);
+    if(!hasPowers&&yours.channels>=4)lines.push('\u2022 <strong>No powers (thin ring).</strong> Powers add depth: 2^3=8 gives a full byte channel, 7^2=49 gives the fine spectral gap that captures particle physics.');
+    if(yours.N<210)lines.push('\u2022 <strong>Too small</strong> for physics. Need at least Z/210Z (data ring) for meaningful structure.');
+    if(yours.N>=210&&yours.N<2310)lines.push('\u2022 <strong>Missing L=11</strong> (transcendental channel). No error correction. No protection. The ring is naked.');
+    if(yours.balance<ax.balance*0.5)lines.push('\u2022 <strong>Low balance</strong> ('+yours.balance.toFixed(1)+' vs '+ax.balance.toFixed(1)+'). Not enough algebraic richness per eigenvalue class.');
+  }
+  if(lines.length<=1&&yours.N!==ax.N)lines.push('Try the presets to see how properties change as you add/remove primes and powers.');
+  el.innerHTML=lines.join('<br>');
+}
+
+function update(){
+  const config=getConfig();
+  const yours=config.length?ringProps(config):null;
+  renderProps(document.getElementById('propsYours'),yours,'var(--accent)');
+  renderProps(document.getElementById('propsAxiom'),AXIOM_PROPS,'var(--gold)');
+  renderCompare(yours);
+  renderSM(yours);
+  generateInsight(yours);
+  // Highlight matching preset
+  document.querySelectorAll('.preset').forEach((btn,i)=>{
+    const pr=PRESETS[i];
+    const match=yours&&yours.N===ringProps(pr.config).N;
+    btn.className='preset'+(match?' active':'');
+  });
+}
+
+buildPrimeGrid();
+buildPresets();
+update();
+</script>
+</body>
+</html>

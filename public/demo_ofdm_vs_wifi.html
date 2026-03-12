@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRT-OFDM vs WiFi | antonlebed.com</title>
+<meta name="description" content="Side-by-side: CRT-OFDM achieves 3.08x spectral efficiency over 802.11a WiFi. Same noise, same channel — more data.">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a1a; color:#e0e0ff; font-family:monospace; padding:10px; }
+h1 { text-align:center; font-size:1.3em; margin-bottom:8px; color:#ffd700; }
+h2 { font-size:1em; color:#88aaff; margin:8px 0 4px; }
+.row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.panel { background:#121230; border:1px solid #334; border-radius:8px; padding:10px; flex:1; min-width:300px; max-width:500px; }
+canvas { display:block; margin:4px auto; background:#080818; border-radius:4px; }
+.controls { text-align:center; margin:6px 0; }
+label { font-size:0.85em; }
+input[type=range] { width:180px; vertical-align:middle; }
+.btn { background:#223; border:1px solid #556; color:#aaf; padding:4px 10px; border-radius:4px; cursor:pointer; font-family:monospace; margin:2px; }
+.btn.active { background:#442; border-color:#aa6; color:#ffa; }
+.btn:hover { background:#334; }
+.stats { font-size:0.8em; line-height:1.5; padding:4px; }
+.good { color:#4f4; } .bad { color:#f44; } .warn { color:#fa4; }
+.det { color:#4af; }
+.summary { background:#0a0a2a; border:1px solid #334; border-radius:8px; padding:10px; margin:8px auto; max-width:700px; font-size:0.85em; line-height:1.6; }
+.contrast { background:#0d0d18; border:1px solid #444; border-radius:8px; padding:16px; margin:16px auto; max-width:700px; }
+.contrast h3 { color:#ffd700; font-size:13px; margin-bottom:10px; }
+.contrast table { width:100%; border-collapse:collapse; }
+.contrast td, .contrast th { padding:6px 10px; border-bottom:1px solid #222; text-align:left; font-size:11px; }
+.contrast th { color:#ffd700; font-size:10px; text-transform:uppercase; }
+
+@media(max-width:480px){
+  h1{font-size:1.1em}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  .contrast td,.contrast th{padding:4px 6px;font-size:10px}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+<h1>CRT-OFDM vs 802.11a: Head-to-Head</h1>
+
+<div class="controls">
+  <label>Es/N0: <span id="snrVal">10</span> dB</label>
+  <input type="range" id="snr" min="0" max="20" value="10" step="1">
+  &nbsp;
+  <label>Symbols: <span id="nsymVal">500</span></label>
+  <input type="range" id="nsym" min="100" max="2000" value="500" step="100">
+  &nbsp;
+  <button class="btn" onclick="runTest()">Run Test</button>
+</div>
+
+<div class="controls">
+  Fade CRT channel:
+  <button class="btn" id="f0" onclick="toggleFade(0)">mod 2</button>
+  <button class="btn" id="f1" onclick="toggleFade(1)">mod 3</button>
+  <button class="btn" id="f2" onclick="toggleFade(2)">mod 5</button>
+  <button class="btn" id="f3" onclick="toggleFade(3)">mod 7</button>
+  <button class="btn" id="f4" onclick="toggleFade(4)">mod 11</button>
+  <button class="btn" onclick="clearFades()">Clear</button>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>CRT-OFDM Constellations</h2>
+    <canvas id="crtCanvas" width="460" height="200"></canvas>
+    <div class="stats" id="crtStats">Run a test to see results.</div>
+  </div>
+  <div class="panel">
+    <h2>802.11a BPSK (Conv K=7, r=1/2)</h2>
+    <canvas id="wifiCanvas" width="460" height="200"></canvas>
+    <div class="stats" id="wifiStats">Run a test to see results.</div>
+  </div>
+</div>
+
+<div class="summary" id="comparison"></div>
+
+<div class="contrast">
+  <h3>Paradigm Contrast</h3>
+  <table>
+  <tr><th>Aspect</th><th>802.11a (WiFi)</th><th>CRT-OFDM</th></tr>
+  <tr><td>Bits per subcarrier</td><td style="color:#ff6644;">0.50 (BPSK rate 1/2)</td><td style="color:#44ff88;">1.54 (5-channel PSK over Z/210Z)</td></tr>
+  <tr><td>Spectral efficiency</td><td>Baseline</td><td style="color:#44ff88;">3.08x higher</td></tr>
+  <tr><td>Error detection</td><td style="color:#ff6644;">None — Viterbi always outputs bits, CRC-32 adds overhead</td><td style="color:#44ff88;">Built-in — invalid CRT values (>210) flag errors for free</td></tr>
+  <tr><td>Channel fading</td><td>Entire signal degrades uniformly</td><td>Individual channels fade independently — 4 survive if 1 dies</td></tr>
+  <tr><td>Paradigm</td><td style="color:#888;">Add redundancy to fight noise</td><td style="color:#ffd700;">Structure IS the code — arithmetic provides detection</td></tr>
+  </table>
+  <p style="font-size:10px;color:#555;margin-top:10px;">
+    Source: demo_ofdm_vs_wifi.c, true_ofdm.c (fat channels: 420x capacity). Z/210Z = Z/2 x Z/3 x Z/5 x Z/7.
+  </p>
+</div>
+
+<script>
+const P = [2,3,5,7,11], NPRIM = 2310, NDATA = 210;
+const CRT_M = [1155,770,462,330,210], CRT_MI = [1,2,3,1,1];
+const CG0 = 91, CG1 = 121, CST = 64, ZTAIL = 6;
+let faded = [false,false,false,false,false];
+
+/* RNG */
+let seed = 42;
+function ru() { seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+function rn() { return Math.sqrt(-2*Math.log(ru()+1e-30))*Math.cos(2*Math.PI*ru()); }
+
+/* CRT */
+function crtRecon(r) {
+  let x = 0;
+  for(let i=0;i<5;i++) x += r[i]*CRT_M[i]*CRT_MI[i];
+  return ((x%NPRIM)+NPRIM)%NPRIM;
+}
+
+/* CRT detect-only */
+function crtDetect(d, snr, fadeCh) {
+  let res = P.map(p => d%p), dem = new Array(5);
+  let sig = 1/Math.sqrt(2*snr);
+  for(let i=0;i<5;i++) {
+    let ang = 2*Math.PI*res[i]/P[i], re = Math.cos(ang), im = Math.sin(ang);
+    if(fadeCh[i]) { re = rn(); im = rn(); }
+    else { re += sig*rn(); im += sig*rn(); }
+    let best=0, bd=1e30;
+    for(let k=0;k<P[i];k++) {
+      let a2 = 2*Math.PI*k/P[i], dx=re-Math.cos(a2), dy=im-Math.sin(a2);
+      let dist=dx*dx+dy*dy;
+      if(dist<bd){bd=dist;best=k;}
+    }
+    dem[i] = best;
+  }
+  let val = crtRecon(dem);
+  return {val, dem, res, detected: val>=NDATA, correct: val===d};
+}
+
+/* CRT soft ECC */
+function crtSoft(d, snr, fadeCh) {
+  let res = P.map(p => d%p), dem = new Array(5), rel = new Array(5);
+  let sig = 1/Math.sqrt(2*snr);
+  for(let i=0;i<5;i++) {
+    let ang = 2*Math.PI*res[i]/P[i], re = Math.cos(ang), im = Math.sin(ang);
+    if(fadeCh[i]) { re = rn(); im = rn(); }
+    else { re += sig*rn(); im += sig*rn(); }
+    let best=0, bd=1e30;
+    for(let k=0;k<P[i];k++) {
+      let a2 = 2*Math.PI*k/P[i], dx=re-Math.cos(a2), dy=im-Math.sin(a2);
+      let dist=dx*dx+dy*dy;
+      if(dist<bd){bd=dist;best=k;}
+    }
+    dem[i] = best; rel[i] = bd;
+  }
+  let val = crtRecon(dem);
+  if(val < NDATA) return {val, correct: val===d, corrected:false};
+  /* Soft correction */
+  let ord = [0,1,2,3,4].sort((a,b) => rel[b]-rel[a]);
+  for(let t=0;t<5;t++) {
+    let ch=ord[t], orig=dem[ch];
+    for(let v=0;v<P[ch];v++) {
+      if(v===orig) continue;
+      let test = dem.slice(); test[ch]=v;
+      let c = crtRecon(test);
+      if(c < NDATA) return {val:c, correct: c===d, corrected:true};
+    }
+  }
+  return {val:-1, correct:false, corrected:false};
+}
+
+/* Conv code tables */
+function popc(x) { let c=0; while(x){c+=x&1;x>>=1;} return c; }
+let to0=[], to1=[], tnx=[];
+for(let s=0;s<CST;s++) { to0[s]=[]; to1[s]=[]; tnx[s]=[];
+  for(let b=0;b<2;b++) {
+    let f=(s<<1)|b;
+    to0[s][b]=popc(f&CG0)&1; to1[s][b]=popc(f&CG1)&1;
+    tnx[s][b]=((s&0x1F)<<1)|b;
+  }
+}
+
+function convEnc(d) {
+  let n=d.length, c=new Array(2*(n+ZTAIL)), s=0;
+  for(let i=0;i<n+ZTAIL;i++) {
+    let b=i<n?d[i]:0;
+    c[2*i]=to0[s][b]; c[2*i+1]=to1[s][b]; s=tnx[s][b];
+  }
+  return c;
+}
+
+function viterbi(hard, n) {
+  let nsym=n+ZTAIL, pm=new Int32Array(CST).fill(999999), pn=new Int32Array(CST);
+  let pred=new Int32Array(nsym*CST);
+  pm[0]=0;
+  for(let i=0;i<nsym;i++) {
+    let r0=hard[2*i], r1=hard[2*i+1];
+    pn.fill(999999);
+    for(let s=0;s<CST;s++) {
+      if(pm[s]>=999999) continue;
+      for(let b=0;b<2;b++) {
+        let bm=(to0[s][b]!=r0)+(to1[s][b]!=r1);
+        let ns=tnx[s][b], tot=pm[s]+bm;
+        if(tot<pn[ns]){pn[ns]=tot;pred[i*CST+ns]=s;}
+      }
+    }
+    let tmp=pm; pm=pn; pn=tmp;
+  }
+  let st=0;
+  if(pm[0]>=999999) for(let s=1;s<CST;s++) if(pm[s]<pm[st]) st=s;
+  let all=new Array(nsym);
+  for(let i=nsym-1;i>=0;i--){all[i]=st&1;st=pred[i*CST+st];}
+  return all.slice(0,n);
+}
+
+function wifiTest(nb, snr, fadePct) {
+  let sig=1/Math.sqrt(2*snr);
+  let data=Array.from({length:nb},()=>ru()>0.5?1:0);
+  let coded=convEnc(data);
+  let nc=coded.length, fd=Math.floor(nc*fadePct/100);
+  let hard=new Array(nc);
+  for(let i=0;i<nc;i++) {
+    let y = i<fd ? rn() : (data.length>0?(coded[i]?1:-1):0)+sig*rn();
+    hard[i] = y>0?1:0;
+  }
+  let dec=viterbi(hard, nb);
+  let err=0;
+  for(let i=0;i<nb;i++) if(dec[i]!==data[i]) err++;
+  return {err, total:nb};
+}
+
+/* Drawing */
+function drawCRT(ctx, results) {
+  ctx.clearRect(0,0,460,200);
+  let labels = ['mod 2','mod 3','mod 5','mod 7','mod 11'];
+  let colors = ['#ff4444','#44ff44','#4488ff','#ffaa00','#ff44ff'];
+  for(let i=0;i<5;i++) {
+    let cx = 46 + i*92, cy = 100, r = 38;
+    ctx.strokeStyle = faded[i] ? '#660000' : colors[i];
+    ctx.lineWidth = faded[i] ? 2 : 1;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+    /* Draw constellation points */
+    for(let k=0;k<P[i];k++) {
+      let ang = 2*Math.PI*k/P[i], px=cx+r*Math.cos(ang), py=cy-r*Math.sin(ang);
+      ctx.fillStyle = '#555';
+      ctx.fillRect(px-2,py-2,4,4);
+    }
+    /* Draw received points */
+    if(results) {
+      for(let j=0;j<Math.min(results.length,50);j++) {
+        let dem = results[j].dem[i], res = results[j].res[i];
+        let ang = 2*Math.PI*dem/P[i], px=cx+r*Math.cos(ang), py=cy-r*Math.sin(ang);
+        ctx.fillStyle = dem===res ? '#4f4' : '#f44';
+        ctx.fillRect(px-1,py-1,3,3);
+      }
+    }
+    ctx.fillStyle = faded[i] ? '#ff4444' : '#888';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[i], cx, 18);
+    if(faded[i]) ctx.fillText('FADED', cx, 190);
+  }
+}
+
+function drawWifi(ctx, snr) {
+  ctx.clearRect(0,0,460,200);
+  let cx=230, cy=100;
+  /* BPSK constellation: just two points */
+  ctx.strokeStyle='#4488ff'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx-150,cy); ctx.lineTo(cx+150,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-80); ctx.lineTo(cx,cy+80); ctx.stroke();
+
+  let sig=1/Math.sqrt(2*Math.max(snr,0.1));
+  /* Draw noisy received points */
+  for(let i=0;i<100;i++) {
+    let bit=ru()>0.5?1:0, x=bit?1:-1;
+    let rx = x+sig*rn(), ry = sig*rn();
+    let px = cx+rx*100, py = cy-ry*100;
+    let correct = (rx>0)===(bit===1);
+    ctx.fillStyle = correct ? '#4488ff' : '#ff4444';
+    ctx.fillRect(px-1,py-1,3,3);
+  }
+  /* Constellation points */
+  ctx.fillStyle='#fff';
+  ctx.fillRect(cx-100-3,cy-3,6,6);
+  ctx.fillRect(cx+100-3,cy-3,6,6);
+  ctx.font='10px monospace'; ctx.textAlign='center';
+  ctx.fillText('-1 (bit 0)', cx-100, cy+20);
+  ctx.fillText('+1 (bit 1)', cx+100, cy+20);
+  ctx.fillText('BPSK Constellation', cx, 18);
+}
+
+function toggleFade(ch) {
+  faded[ch] = !faded[ch];
+  document.getElementById('f'+ch).className = 'btn' + (faded[ch]?' active':'');
+}
+function clearFades() {
+  for(let i=0;i<5;i++) { faded[i]=false; document.getElementById('f'+i).className='btn'; }
+}
+
+document.getElementById('snr').oninput = function() {
+  document.getElementById('snrVal').textContent = this.value;
+};
+document.getElementById('nsym').oninput = function() {
+  document.getElementById('nsymVal').textContent = this.value;
+};
+
+function runTest() {
+  let snrDb = +document.getElementById('snr').value;
+  let ns = +document.getElementById('nsym').value;
+  let snr = Math.pow(10, snrDb/10);
+  seed = 42 + snrDb;
+
+  /* CRT detect-only test */
+  let crtResults = [];
+  let cErr=0, cDet=0, cSil=0;
+  for(let t=0;t<ns;t++) {
+    let d = Math.floor(ru()*NDATA)%NDATA;
+    let r = crtDetect(d, snr, faded);
+    crtResults.push(r);
+    if(!r.correct) { cErr++; if(r.detected) cDet++; else cSil++; }
+  }
+
+  /* CRT soft test */
+  seed = 1337 + snrDb;
+  let csErr=0, csWrong=0;
+  for(let t=0;t<ns;t++) {
+    let d = Math.floor(ru()*NDATA)%NDATA;
+    let r = crtSoft(d, snr, faded);
+    if(!r.correct) { csErr++; if(r.val>=0) csWrong++; }
+  }
+
+  /* WiFi test */
+  seed = 2310 + snrDb;
+  let fadePct = 0;
+  for(let i=0;i<5;i++) if(faded[i]) fadePct += 20;
+  let w = wifiTest(ns, snr, fadePct);
+
+  /* Draw */
+  let cctx = document.getElementById('crtCanvas').getContext('2d');
+  let wctx = document.getElementById('wifiCanvas').getContext('2d');
+  drawCRT(cctx, crtResults);
+  seed = 9999;
+  drawWifi(wctx, snr);
+
+  /* Stats */
+  let detRate = cErr>0 ? (100*cDet/cErr).toFixed(1) : '100.0';
+  document.getElementById('crtStats').innerHTML =
+    `<b>Detect-only mode:</b><br>` +
+    `Total SER: <span class="${cErr/ns>0.1?'bad':'warn'}">${(cErr/ns).toFixed(4)}</span> ` +
+    `(${cErr}/${ns})<br>` +
+    `Detected: <span class="det">${(cDet/ns).toFixed(4)}</span> = ${detRate}% of errors<br>` +
+    `Silent: <span class="${cSil>0?'bad':'good'}">${(cSil/ns).toFixed(4)}</span> ` +
+    `(${cSil} wrong values that LOOK valid)<br><br>` +
+    `<b>Soft-ECC mode:</b><br>` +
+    `SER: <span class="${csErr/ns>0.1?'bad':'warn'}">${(csErr/ns).toFixed(4)}</span> ` +
+    `Wrong fixes: ${(csWrong/ns).toFixed(4)}<br>` +
+    `Data: 7.71 bits/symbol (1.54 bits/sc)`;
+
+  document.getElementById('wifiStats').innerHTML =
+    `<b>Conv code K=7, rate 1/2:</b><br>` +
+    `BER: <span class="${w.err/w.total>0.01?'bad':'good'}">${(w.err/w.total).toFixed(6)}</span> ` +
+    `(${w.err}/${w.total})<br>` +
+    `ALL errors are <span class="bad">SILENT</span> (Viterbi always outputs bits)<br>` +
+    `No detection without CRC-32 (32 extra bits/frame)<br><br>` +
+    `${fadePct>0?`<span class="warn">${fadePct}% subcarriers jammed</span><br>`:''}` +
+    `Data: 0.50 bits/subcarrier (3.08x less than CRT)`;
+
+  /* Comparison */
+  let comp = `<b>At Es/N0 = ${snrDb} dB` +
+    (fadePct>0?`, ${fadePct}% faded`:'') + `:</b><br>`;
+  if(cErr===0 && w.err===0) {
+    comp += `Both systems: <span class="good">zero errors</span>. Clean channel.`;
+  } else {
+    comp += `CRT detect-only: ${detRate}% detection rate, ` +
+      `${(100*cSil/ns).toFixed(2)}% silent errors<br>`;
+    comp += `CRT throughput: <b>3.08x more data</b> per subcarrier than BPSK r=1/2<br>`;
+    if(w.err>0) {
+      comp += `WiFi: ${w.err} bit errors, ALL silent (no detection mechanism)<br>`;
+    } else {
+      comp += `WiFi: 0 errors at this SNR (conv coding strong, but carries 3x less data)<br>`;
+    }
+    comp += `<br><span class="det">CRT's advantage: KNOWS when it's wrong. WiFi doesn't.</span>`;
+  }
+  document.getElementById('comparison').innerHTML = comp;
+}
+
+/* Auto-run on load */
+runTest();
+</script>
+</body>
+</html>

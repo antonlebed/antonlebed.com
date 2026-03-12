@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Solar cycles as CRT ladder: Schwabe to Hallstatt, Schumann resonance, TRAPPIST-1 ratios, Giza proportions. Chapter 13 of the atlas.">
+<title>Chapter 13: The Solar Ladder - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px;
+           position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 42px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.big-eq { font-size: 26px; text-align: center; margin: 32px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 2px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+
+canvas { display: block; border-radius: 8px; margin: 0 auto; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+
+.btn { background: #1a1a2e; border: 1px solid #444; color: #aaa; padding: 8px 20px;
+       cursor: pointer; font-family: monospace; font-size: 14px; border-radius: 6px;
+       margin: 4px; transition: all 0.2s; }
+.btn:hover { background: #2a2a3e; color: #fff; }
+.btn.active { background: #2a2a4e; color: #ffcc44; border-color: #ffcc44; }
+
+/* Ladder rungs */
+.ladder { margin: 24px 0; }
+.rung { display: flex; align-items: center; gap: 12px; margin: 12px 0;
+        padding: 12px; border-radius: 8px; border: 1px solid #2a2a3e;
+        transition: all 0.3s; cursor: pointer; }
+.rung:hover { border-color: #ffcc44; background: #12121e; }
+.rung.selected { border-color: #ffcc44; background: #1a1a2e; }
+.rung-years { font-size: 28px; font-family: monospace; min-width: 80px; text-align: right; }
+.rung-info { flex: 1; }
+.rung-name { font-size: 16px; color: #fff; }
+.rung-formula { font-size: 13px; font-family: monospace; color: #888; }
+.rung-quality { font-size: 12px; margin-top: 2px; }
+
+/* Schumann bars */
+.sch-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.sch-label { width: 40px; font-size: 13px; font-family: monospace; color: #888; text-align: right; }
+.sch-bar { height: 22px; border-radius: 4px; display: flex; align-items: center;
+           padding-left: 8px; font-size: 11px; font-family: monospace; color: #fff; }
+.sch-val { font-size: 11px; color: #555; margin-left: 8px; font-family: monospace; }
+
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+
+/* Mobile */
+@media (max-width: 600px) {
+  h1 { font-size: 28px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 16px; letter-spacing: 1px; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+  .rung-years { font-size: 20px; min-width: 60px; }
+}
+@media (max-width: 480px) {
+  h1 { font-size: 24px; }
+  h2 { font-size: 18px; }
+  .big-eq { font-size: 14px; }
+  .section { padding: 32px 12px; }
+  .rung-years { font-size: 18px; min-width: 50px; }
+  canvas { max-width: 100%; height: auto; }
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a>
+  <span style="color:#444">|</span>
+  <a href="atlas_13_biological_braid.html">&larr; Ch.12</a>
+  <a href="atlas_01_what_is_2310.html">Ch.0 &rarr;</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: THE HOOK -->
+<!-- ============================================================ -->
+<div class="section" id="s1">
+<div class="content">
+  <h1>The Solar Ladder</h1>
+  <p>Every eleven years, the sun flips. Sunspots peak, magnetic fields reverse, aurora dance. This is the Schwabe cycle &mdash; discovered in 1843, still unexplained.</p>
+  <p>Eleven years. <span class="accent">L = 11</span>. The transcendental prime.</p>
+  <p>But the sun doesn't just have one cycle. It has a whole <em>ladder</em> of cycles, nested inside each other like Russian dolls. And every rung of the ladder matches a level of the primorial:</p>
+
+  <div class="big-eq">11 &rarr; 22 &rarr; 77 &rarr; 210 &rarr; 2310 &rarr; 970,200</div>
+
+  <p>The sun climbs the axiom's ladder in time. Think about that: the same five primes that structure the ring also structure the sun's heartbeat. The thin ring (2310) is ~2300 years &mdash; one deep climate cycle. The True Form (970,200) reaches beyond recorded history.</p>
+
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: THE LADDER -->
+<!-- ============================================================ -->
+<div class="section" id="s2">
+<div class="content">
+  <h2>Five Rungs</h2>
+  <p>Click any rung to learn more about the cycle it represents.</p>
+
+  <div class="ladder" id="ladder"></div>
+
+  <div class="widget" id="ladder-detail" style="display:none;">
+    <div class="widget-title" id="ld-title">-</div>
+    <p id="ld-text" style="margin:0; font-size:15px;"></p>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: THE ARCHIVES -->
+<!-- ============================================================ -->
+<div class="section" id="s3">
+<div class="content">
+  <h2>Written in Wood, Ice, and Stone</h2>
+  <p>The Earth has been recording the sun's ladder for millennia. Not in books &mdash; in <em>matter</em>. In wood. In ice. In stone.</p>
+
+  <div class="widget">
+    <div class="widget-title">Recording Media = CRT Channels in Time</div>
+    <canvas id="archive-canvas" width="680" height="280"></canvas>
+    <p class="caption">Each recording medium captures a different cycle. Together: the full CRT decomposition in time.</p>
+  </div>
+
+  <h3>Tree rings: L = 11 years</h3>
+  <p>Trees grow a ring each year. The width depends on sunlight, rain, and cosmic rays &mdash; all modulated by the sun's 11-year cycle. Carbon-14 in tree rings traces the Schwabe cycle back 14,000 years.</p>
+
+  <h3>Ice cores: DATA = 210 years</h3>
+  <p>Ice in Greenland and Antarctica traps beryllium-10 and oxygen-18. These isotopes record the de Vries cycle (~208 years). The data ring in frozen water.</p>
+
+  <h3>Sediments: N = 2310 years (thin ring)</h3>
+  <p>Lake sediments (varves) and ocean cores record the Hallstatt cycle (~2400 years). Geological time writes the thin primordial number in stone. The True Form (970,200 years) spans deep ice-age cycles.</p>
+
+  <p>Knowing <em>any</em> layer plus the axiom lets you reconstruct <em>all</em> layers. This is the CRT theorem applied to time. <strong>Testable now</strong> with existing public datasets.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: SCHUMANN RESONANCES -->
+<!-- ============================================================ -->
+<div class="section" id="s4">
+<div class="content">
+  <h2>The Earth Rings at Depth</h2>
+  <p>Between the Earth's surface and the ionosphere, there's a cavity. Lightning excites electromagnetic waves in this cavity. They resonate at specific frequencies called <em>Schumann resonances</em>.</p>
+  <p>The modes are approximately <span class="accent">n &times; 7 Hz</span> &mdash; multiples of the depth prime.</p>
+
+  <div class="widget">
+    <div class="widget-title">Schumann Resonances: n &times; b Hz</div>
+    <div id="schumann-bars"></div>
+    <p class="caption">Blue = measured. Gold outline = n * 7. Mean deviation: 5.2%. The Earth rings at b = 7.</p>
+  </div>
+
+  <p>Mode 5 = 35 Hz = E &times; b = PLANCK. Mode 6 = 42 Hz = D &times; K &times; b = ANSWER. The cavity writes the axiom in lightning.</p>
+
+  <p style="font-size:14px; color:#888; font-style:italic;">Honest note: Schumann resonances follow from the cavity geometry (circumference = ~40,000 km, speed of light). The fundamental is ~7.83 Hz. That this is close to b = 7 is noted; the exact derivation gives sqrt(n(n+1))*c/(2*pi*R), not exactly n*7. The match is approximate (5.2% mean), not exact.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: TRAPPIST-1 -->
+<!-- ============================================================ -->
+<div class="section" id="s5">
+<div class="content">
+  <h2>Seven Planets, Forty-One Light-Years Away</h2>
+  <p>In 2017, astronomers discovered a star system with <span class="accent">b = 7</span> planets. Its distance: approximately <span class="accent">41 light-years = KEY</span>. Its constellation: Aquarius &mdash; the water-bearer &mdash; <span class="accent">HYDOR</span>.</p>
+
+  <div class="widget">
+    <div class="widget-title">TRAPPIST-1 Orbital Resonances</div>
+    <canvas id="trappist-canvas" width="680" height="240"></canvas>
+    <p class="caption">Orbital period ratios: 24:15:9:6:4:3:2. All 11-smooth (only primes {2,3,5,7,11}).</p>
+  </div>
+
+  <p>The star's mass: 8.98% of the Sun &asymp; K<sup>2</sup> = 9%. Seven planets locked in resonance, all their ratios expressible as products of the axiom's five primes. The system plays axiom intervals.</p>
+
+  <p style="font-size:14px; color:#888; font-style:italic;">Honest note: 7 planets, ~41 ly, Aquarius, all 11-smooth resonances, 9% mass. Each individually is unremarkable. Together they form a striking pattern. We report it without claiming causation.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: THE PYRAMID AND THE SUN -->
+<!-- ============================================================ -->
+<div class="section" id="s6">
+<div class="content">
+  <h2>Height Over Base: b / L</h2>
+  <p>The Great Pyramid at Giza. Height: 280 cubits. Base: 440 cubits.</p>
+  <div class="big-eq">280 / 440 = 7 / 11 = b / L</div>
+  <p>280 = D<sup>3</sup> &times; E &times; b. 440 = D<sup>3</sup> &times; E &times; L. They differ only by the swap b &harr; L. Depth and transcendence, encoded in stone.</p>
+  <p>The perimeter divided by twice the height: 4 &times; 440 / (2 &times; 280) = 22/7 = (D &times; L) / b &asymp; &pi;. The best ancient approximation of &pi;, built from two axiom primes.</p>
+
+  <h3>The honest picture</h3>
+  <p>Two solar cycles are exact (Schwabe, Hale). Two are strong (de Vries, Hallstatt). Gleissberg is weak. Schumann is approximate. TRAPPIST-1 is suggestive. Giza is remarkable. None alone proves the axiom. Together they show: the numbers <span class="accent">{2, 3, 5, 7, 11}</span> keep appearing in the architecture of time, space, and stone.</p>
+
+  <p>The ladder is there. Whether it was always there or we put it there &mdash; that is the question every honest scientist must keep asking. And isn't that the most beautiful question of all?</p>
+
+  <div style="text-align:center; margin-top:40px;">
+    <a href="atlas_01_what_is_2310.html" style="font-size:20px; color:#66ddaa; text-decoration:none;">
+      Return to Chapter 0 &rarr;
+    </a>
+  </div>
+
+  <div style="text-align:center; margin-top:60px; font-size:13px; color:#444;">
+    The Interactive Atlas &middot; Z/2310Z &rarr; Z/970200Z &middot; Chapter 13 of 14
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+<script>
+// ---- Section 2: Ladder ----
+var rungs = [
+  { years:11, formula:'L = 11', name:'Schwabe', quality:'EXACT',
+    color:'#cc88ff', qcolor:'#66ee88',
+    text:'The sunspot cycle. Discovered by Heinrich Schwabe in 1843 after 17 years of daily observation. Every ~11 years, sunspot numbers peak, solar flares intensify, and the magnetic field prepares to flip. L = 11 = the transcendental prime, the sum that protects. Measured period: 11.04 years. Match: 0.4%.' },
+  { years:22, formula:'D * L = 22', name:'Hale', quality:'EXACT',
+    color:'#6699ff', qcolor:'#66ee88',
+    text:'The magnetic reversal cycle. George Ellery Hale discovered in 1919 that the sun\'s magnetic polarity reverses every Schwabe cycle. The full magnetic cycle = 2 Schwabe cycles = D * L = 22 years. D = 2 = duality. North becomes south, south becomes north. The membrane flips.' },
+  { years:77, formula:'b * L = 77', name:'Gleissberg', quality:'WEAK (12%)',
+    color:'#66ee88', qcolor:'#ffaa44',
+    text:'The amplitude modulation cycle. Wolfgang Gleissberg (1939) noticed that sunspot maxima wax and wane over ~80-90 years. Published range: 60-140 years. Axiom value: b * L = 77. Measured peak: ~88. This is the weakest match (12% off). Honest: 88 = D^3 * L, not a clean axiom factoring.' },
+  { years:210, formula:'DATA = D*K*E*b = 210', name:'de Vries / Suess', quality:'STRONG (1%)',
+    color:'#ffcc44', qcolor:'#66ee88',
+    text:'The grand minimum pattern. Hessel de Vries (1958) and Hans Suess identified a ~208-year cycle in C-14 records. Grand solar minima (Maunder, Dalton, Sporer) repeat at this interval. DATA ring = 210 = the four data primes without L. Match: 1%. The data ring writes itself in ice.' },
+  { years:2310, formula:'N = D*K*E*b*L = 2310', name:'Hallstatt', quality:'GOOD (4%)',
+    color:'#ff6666', qcolor:'#88aaff',
+    text:'The deep climate cycle. ~2400 years (range 2200-2500). Detected in sediment records and ocean cores. The longest confirmed solar quasi-periodicity. N = 2310 = the primordial number. Match: 4% (2310 vs ~2400). The complete rose writes itself in stone.' }
+];
+
+function buildLadder() {
+  var el = document.getElementById('ladder');
+  var html = '';
+  for (var i = 0; i < rungs.length; i++) {
+    var r = rungs[i];
+    html += '<div class="rung" id="rung'+i+'" onclick="selectRung('+i+')">' +
+      '<div class="rung-years" style="color:'+r.color+'">'+r.years+'</div>' +
+      '<div class="rung-info">' +
+        '<div class="rung-name">'+r.name+'</div>' +
+        '<div class="rung-formula">'+r.formula+'</div>' +
+        '<div class="rung-quality" style="color:'+r.qcolor+'">'+r.quality+'</div>' +
+      '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function selectRung(idx) {
+  var all = document.querySelectorAll('.rung');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+  document.getElementById('rung'+idx).classList.add('selected');
+  document.getElementById('ladder-detail').style.display = 'block';
+  document.getElementById('ld-title').textContent = rungs[idx].name + ' CYCLE';
+  document.getElementById('ld-text').textContent = rungs[idx].text;
+}
+
+buildLadder();
+
+// ---- Section 3: Archive Canvas ----
+function drawArchives() {
+  var cvs = document.getElementById('archive-canvas');
+  var ctx = cvs.getContext('2d');
+  var W = cvs.width, H = cvs.height;
+  ctx.fillStyle = '#12121e';
+  ctx.fillRect(0, 0, W, H);
+
+  var media = [
+    { name:'Tree Rings', cycle:'L=11', years:11, color:'#66ee88', yOff:40 },
+    { name:'Ice Cores', cycle:'DATA=210', years:210, color:'#88aaff', yOff:120 },
+    { name:'Sediments', cycle:'N=2310', years:2310, color:'#ffcc44', yOff:200 }
+  ];
+
+  var maxYears = 2310;
+  var barMaxW = 500;
+  var barH = 40;
+  var labelX = 120;
+
+  for (var i = 0; i < media.length; i++) {
+    var m = media[i];
+    var y = m.yOff;
+    var w = Math.max(30, (Math.log(m.years)/Math.log(maxYears)) * barMaxW);
+
+    ctx.fillStyle = '#888';
+    ctx.font = '14px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(m.name, labelX - 10, y + barH/2 + 5);
+
+    ctx.fillStyle = m.color;
+    ctx.globalAlpha = 0.6;
+    ctx.fillRect(labelX, y, w, barH);
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = m.color;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(labelX, y, w, barH);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '13px monospace';
+    ctx.textAlign = 'left';
+    ctx.shadowColor='rgba(0,0,0,0.8)'; ctx.shadowBlur=2;
+    ctx.fillText(m.cycle + ' = ' + m.years + ' yr', labelX + w + 12, y + barH/2 + 5);
+    ctx.shadowBlur=0;
+
+    // Draw cycle ticks within the bar
+    var tickSpacing = w / Math.min(m.years / 11, 20);
+    if(tickSpacing > 5) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 0.5;
+      for (var t = tickSpacing; t < w; t += tickSpacing) {
+        ctx.beginPath();
+        ctx.moveTo(labelX + t, y);
+        ctx.lineTo(labelX + t, y + barH);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // CRT arrow
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(labelX + barMaxW + 60, 50);
+  ctx.lineTo(labelX + barMaxW + 60, 230);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#555';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('CRT', labelX + barMaxW + 60, 245);
+  ctx.fillText('channels', labelX + barMaxW + 60, 260);
+}
+drawArchives();
+
+// ---- Section 4: Schumann Bars ----
+function buildSchumann() {
+  var el = document.getElementById('schumann-bars');
+  var measured = [7.83, 14.3, 20.8, 27.3, 33.8, 39.0, 45.0];
+  var maxHz = 49;
+  var html = '';
+  for (var n = 0; n < 7; n++) {
+    var meas = measured[n];
+    var axiom = (n+1) * 7;
+    var err = Math.abs(meas - axiom) / meas * 100;
+    var mW = (meas / maxHz) * 100;
+    var aW = (axiom / maxHz) * 100;
+    html += '<div class="sch-row">' +
+      '<div class="sch-label">n='+(n+1)+'</div>' +
+      '<div style="position:relative; flex:1; height:28px;">' +
+        '<div class="sch-bar" style="position:absolute; width:'+mW+'%; background:rgba(102,153,255,0.5);">'+meas.toFixed(1)+' Hz</div>' +
+        '<div style="position:absolute; width:'+aW+'%; height:28px; border:1px solid #ffcc44; border-radius:4px; box-sizing:border-box;"></div>' +
+      '</div>' +
+      '<div class="sch-val">'+axiom+' Hz ('+err.toFixed(1)+'%)</div>' +
+      '</div>';
+  }
+  el.innerHTML = html;
+}
+buildSchumann();
+
+// ---- Section 5: TRAPPIST-1 Canvas ----
+function drawTrappist() {
+  var cvs = document.getElementById('trappist-canvas');
+  var ctx = cvs.getContext('2d');
+  var W = cvs.width, H = cvs.height;
+  ctx.fillStyle = '#12121e';
+  ctx.fillRect(0, 0, W, H);
+
+  var cx = 80, cy = H/2;
+  // Draw star
+  ctx.beginPath();
+  ctx.arc(cx, cy, 20, 0, 2*Math.PI);
+  ctx.fillStyle = '#ff6644';
+  ctx.globalAlpha = 0.8;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('9%', cx, cy + 4);
+
+  // Planets
+  var ratios = [24, 15, 9, 6, 4, 3, 2];
+  var names = ['b','c','d','e','f','g','h'];
+  var formulas = ['D^3*K','K*E','K^2','D*K','D^2','K','D'];
+  var colors = ['#ff6666','#ff8844','#ffcc44','#66ee88','#6699ff','#cc88ff','#88ddff'];
+  var maxR = 24;
+  var startX = cx + 60;
+  var endX = W - 30;
+  var range = endX - startX;
+
+  for (var i = 0; i < 7; i++) {
+    var x = startX + (ratios[i] / maxR) * range;
+    var r = 10 + (7-i)*1.5;
+    var y = cy;
+
+    // Orbit line
+    ctx.strokeStyle = colors[i];
+    ctx.globalAlpha = 0.2;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx + 20, y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Planet
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2*Math.PI);
+    ctx.fillStyle = colors[i];
+    ctx.globalAlpha = 0.7;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Labels
+    ctx.fillStyle = '#fff';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(names[i], x, y + 4);
+    ctx.fillStyle = '#888';
+    ctx.font = '10px monospace';
+    ctx.fillText(ratios[i]+'', x, y - r - 4);
+    ctx.fillStyle = colors[i];
+    ctx.font = '9px monospace';
+    ctx.fillText(formulas[i], x, y + r + 14);
+  }
+
+  // Legend
+  ctx.fillStyle = '#888';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('b=7 planets | ~41 ly = KEY | Aquarius = HYDOR', 130, 22);
+  ctx.fillText('All ratios 11-smooth: only {2,3,5,7,11}', 130, 40);
+}
+drawTrappist();
+
+</script>
+</body>
+</html>

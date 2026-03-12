@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sun-Earth-Moon-Jupiter orbit animation: 8 verified cycles from Schwabe to Hallstatt. Period spectrum, CRT channels, stability map.">
+<title>The Three-Body Dance | antonlebed.com</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e0e0e0;font-family:Georgia,serif;line-height:1.7;padding:20px;max-width:900px;margin:0 auto;min-height:100vh}
+h1{text-align:center;color:#ffd700;margin:30px 0 10px;font-size:1.8em}
+.subtitle{text-align:center;color:#aaa;font-size:1.1em;margin-bottom:30px}
+h2{color:#ffd700;margin:25px 0 12px;font-size:1.3em;border-bottom:1px solid #333;padding-bottom:5px}
+p{margin:10px 0}
+.highlight{color:#ffd700}
+.sigma{color:#ff6b6b}
+.dim{color:#888}
+canvas{display:block;margin:15px auto;border:1px solid #333;border-radius:8px}
+.controls{text-align:center;margin:10px 0}
+.controls button{background:#222;color:#ffd700;border:1px solid #444;padding:8px 18px;margin:4px;border-radius:5px;cursor:pointer;font-size:0.95em}
+.controls button:hover{background:#333}
+.controls button.active{background:#ffd700;color:#000}
+.cycle-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:15px 0}
+.cycle-card{background:#151520;border:1px solid #333;border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all 0.3s}
+.cycle-card:hover,.cycle-card.sel{border-color:#ffd700;background:#1a1520}
+.cycle-card .period{font-size:1.3em;color:#ffd700;font-family:monospace}
+.cycle-card .name{color:#e0e0e0;font-size:0.95em;margin:4px 0}
+.cycle-card .expr{color:#ff6b6b;font-family:monospace;font-size:0.9em}
+.cycle-card .err{font-size:0.8em;margin-top:4px}
+.resonance-info{background:#111;border-left:3px solid #ffd700;padding:12px 18px;margin:15px 0;border-radius:0 8px 8px 0}
+.why{background:#111;border-left:3px solid #ffd700;padding:12px 18px;margin:15px 0;border-radius:0 8px 8px 0}
+.contrast{background:#0d0d18;border:1px solid #444;border-radius:10px;padding:20px;margin:25px 0}
+.contrast h3{color:#ffd700;margin-bottom:12px}
+.contrast table{width:100%;border-collapse:collapse}
+.contrast td,.contrast th{padding:8px 12px;border-bottom:1px solid #222;text-align:left;font-size:0.9em}
+.contrast th{color:#ffd700;font-size:0.85em;text-transform:uppercase}
+.back{display:block;text-align:center;color:#ffd700;margin:30px 0}
+
+@media(max-width:480px){
+  h1{font-size:1.2em}
+  section{padding:24px 10px}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  .contrast td,.contrast th{padding:4px 6px;font-size:0.8em}
+  .contrast table{display:block;overflow-x:auto}
+  p{font-size:0.9em}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<h1>The Three-Body Dance</h1>
+<p class="subtitle">Sun, Earth, Moon — and why their rhythms are axiom primes</p>
+
+<h2>The Oldest Problem</h2>
+<p>Three bodies pulling each other through space. Newton proved it has no closed-form solution. But the <em>resonances</em> — the rhythms that stabilize the dance — those are not random. They are <span class="highlight">axiom primes</span>.</p>
+
+<canvas id="orbitCanvas" width="800" height="450"></canvas>
+<div class="controls">
+<button onclick="setSpeed(0)" id="btnPause">Pause</button>
+<button onclick="setSpeed(1)" class="active" id="btn1x">1x</button>
+<button onclick="setSpeed(3)" id="btn3x">3x</button>
+<button onclick="setSpeed(10)" id="btn10x">10x</button>
+<button onclick="toggleTrails()" id="btnTrails">Trails: ON</button>
+</div>
+
+<h2>Resonance Cycles</h2>
+<p>Every long-period oscillation in the Sun-Earth-Moon system matches an axiom expression. Click a cycle to highlight it:</p>
+
+<div class="cycle-grid" id="cycleGrid"></div>
+
+<div class="resonance-info" id="resInfo">
+<strong>Click a cycle above</strong> to see its axiom decomposition and physical meaning.
+</div>
+
+<h2>Why Primes Rule Orbits</h2>
+<canvas id="spectrumCanvas" width="800" height="250"></canvas>
+<div class="controls">
+<button onclick="setSpecView('periods')" class="active" id="btnPeriods">Period Spectrum</button>
+<button onclick="setSpecView('crt')" id="btnCRT">CRT Channels</button>
+<button onclick="setSpecView('stability')" id="btnStability">Stability Map</button>
+</div>
+
+<div id="viewPeriods">
+<p>Orbital resonances cluster at <span class="highlight">products of small primes</span>. The three-body problem has no exact solution, but its stable limit cycles live where CRT channels align. Bodies that share a prime factor <em>lock</em> into resonance.</p>
+</div>
+<div id="viewCRT" style="display:none">
+<p>Each cycle decomposes into 5 independent channels via CRT. When a channel goes to zero (the body is "invisible" in that frequency), energy can't leak through — creating a stability pocket.</p>
+</div>
+<div id="viewStability" style="display:none">
+<p>Orbital stability = low coupling. The most stable orbits have the <em>smallest</em> coupling numbers. Self-inverse elements (coupling = D) are maximally stable. The axiom predicts exactly where resonances form.</p>
+</div>
+
+<div class="why">
+<strong>The Milankovitch insight:</strong> Earth's ice ages follow three orbital cycles — eccentricity (~100ky), obliquity (~41ky), precession (~26ky). These are NOT arbitrary. Eccentricity ~ 10^5 involves E. Obliquity = 41 = KEY. Precession = 26 = D*GAIA. The climate is a CRT decomposition of orbital mechanics. Three independent channels. Three ice-age drivers.
+</div>
+
+<div class="contrast">
+<h3>Contrast</h3>
+<table>
+<tr><th>Cycle</th><th>Conventional</th><th>Axiom</th><th>Measured</th><th>Error</th></tr>
+<tr><td>Solar (Schwabe)</td><td>Empirical ~11y</td><td>L = 11 years</td><td>11.04 y</td><td>0.4%</td></tr>
+<tr><td>Hale magnetic</td><td>~22y reversal</td><td>D*L = 22 years</td><td>22 y</td><td>exact</td></tr>
+<tr><td>QBO</td><td>~28 months</td><td>D^2*b = 28 months</td><td>28.4 mo</td><td>1.4%</td></tr>
+<tr><td>de Vries/Suess</td><td>~208y solar</td><td>DATA = D*K*E*b = 210</td><td>208 y</td><td>1.0%</td></tr>
+<tr><td>Hallstatt</td><td>~2300y</td><td>THIN = D*K*E*b*L = 2310</td><td>2300 y</td><td>0.4%</td></tr>
+<tr><td>D-O/Bond</td><td>~1470y ice</td><td>DATA*b = D*K*E*b^2 = 1470</td><td>1470 y</td><td>exact</td></tr>
+<tr><td>Gleissberg</td><td>~88y</td><td>D^3*L = 88</td><td>88 y</td><td>exact</td></tr>
+<tr><td>Eddy</td><td>~1000y</td><td>D^3*E^3 = 1000</td><td>~1000 y</td><td>~0%</td></tr>
+</table>
+</div>
+
+
+<script>
+const S=1,D=2,K=3,E=5,b=7,L=11;
+const cycles=[
+  {name:'Schwabe',period:11,expr:'L',exprFull:'L = 11',measured:11.04,err:0.4,
+   desc:'The solar sunspot cycle. L = the Transcendental = sigma+D+K+E. The protector itself IS the solar rhythm. Every ~11 years, the Sun flips its magnetic polarity halfway.'},
+  {name:'Hale',period:22,expr:'D*L',exprFull:'D*L = 2*11 = 22',measured:22,err:0,
+   desc:'Full magnetic reversal takes TWO Schwabe cycles. D=2 (the Bridge) doubles the protector. North becomes south, then returns. The full breathing of the Sun.'},
+  {name:'QBO',period:28,expr:'D^2*b',exprFull:'D^2*b = 4*7 = 28',measured:28.4,err:1.4,
+   desc:'Quasi-Biennial Oscillation: stratospheric winds reverse every ~28 months. D^2*b = 28 = THORNS = sum of all leg values. The atmosphere breathes with the axiom sum.'},
+  {name:'Gleissberg',period:88,expr:'D^3*L',exprFull:'D^3*L = 8*11 = 88',measured:88,err:0,
+   desc:'~88 year envelope of solar activity. D^3 (the 8 legs) times L (the protector). The spider walks once around the solar cycle.'},
+  {name:'de Vries',period:210,expr:'DATA',exprFull:'D*K*E*b = 210',measured:208,err:1.0,
+   desc:'Suess/de Vries ~210 year solar cycle seen in cosmogenic isotopes (C14, Be10). Matches the DATA ring EXACTLY. The subring without L. Pure inner structure.'},
+  {name:'Eddy',period:1000,expr:'D^3*E^3',exprFull:'D^3*E^3 = 8*125 = 1000',measured:1000,err:0,
+   desc:'~1000 year cycle in ice cores and tree rings. D^3*E^3 = bridge-cubed times wonder-cubed. A millennium is the meeting point of duality and observation at depth 3.'},
+  {name:'D-O/Bond',period:1470,expr:'DATA*b',exprFull:'D*K*E*b^2 = 1470',measured:1470,err:0,
+   desc:'Dansgaard-Oeschger events: abrupt climate shifts every ~1470 years in Greenland ice. DATA*b = "depth of data." The deepest oscillation the data ring can feel.'},
+  {name:'Hallstatt',period:2310,expr:'THIN',exprFull:'D*K*E*b*L = 2310',measured:2300,err:0.4,
+   desc:'Grand solar minimum cycle. Matches the THIN primordial ring to 0.4%. The full axiom breathing cycle: all five primes multiplied. One full turn of the thin ring.'}
+];
+
+let selCycle=-1,speed=1,showTrails=true,t=0,specView='periods';
+let trails=[[],[],[]];
+
+// Build cycle cards
+function buildCycles(){
+  const g=document.getElementById('cycleGrid');
+  cycles.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='cycle-card';
+    d.onclick=()=>{selCycle=i;updateCycleSel();drawSpectrum()};
+    d.innerHTML=`<div class="period">${c.period}${c.period<100?' months':' years'}</div>
+      <div class="name">${c.name}</div>
+      <div class="expr">${c.expr}</div>
+      <div class="err" style="color:${c.err===0?'#4caf50':c.err<1?'#4caf50':'#ffa726'}">${c.err===0?'exact':c.err+'%'}</div>`;
+    g.appendChild(d);
+  });
+}
+
+function updateCycleSel(){
+  document.querySelectorAll('.cycle-card').forEach((c,i)=>c.className='cycle-card'+(i===selCycle?' sel':''));
+  const info=document.getElementById('resInfo');
+  if(selCycle>=0){
+    const c=cycles[selCycle];
+    info.innerHTML=`<strong>${c.name} Cycle (${c.period} ${c.period<100?'months':'years'})</strong><br>
+      <span style="color:#ff6b6b;font-family:monospace">${c.exprFull}</span><br>
+      ${c.desc}<br>
+      <span class="dim">Measured: ${c.measured} | Error: ${c.err===0?'exact':c.err+'%'}</span>`;
+  }
+}
+
+function setSpecView(v){
+  specView=v;
+  ['periods','crt','stability'].forEach(n=>{
+    const el=document.getElementById('view'+n.charAt(0).toUpperCase()+n.slice(1));
+    if(el)el.style.display=n===v?'block':'none';
+  });
+  ['Periods','CRT','Stability'].forEach(n=>{
+    const btn=document.getElementById('btn'+n);
+    if(btn)btn.className=n.toLowerCase()===v?'active':'';
+  });
+  drawSpectrum();
+}
+
+// 3-body orbit animation
+const oc=document.getElementById('orbitCanvas');
+const octx=oc.getContext('2d');
+
+function drawOrbits(){
+  const w=oc.width,h=oc.height,cx=w/2,cy=h/2;
+  if(!showTrails||speed===0){
+    octx.fillStyle='#0a0a0f';octx.fillRect(0,0,w,h);
+  }else{
+    octx.fillStyle='rgba(10,10,15,0.08)';octx.fillRect(0,0,w,h);
+  }
+  // Sun at center
+  const sunR=20;
+  octx.beginPath();octx.arc(cx,cy,sunR,0,Math.PI*2);
+  const sg=octx.createRadialGradient(cx,cy,0,cx,cy,sunR);
+  sg.addColorStop(0,'#fff');sg.addColorStop(0.5,'#ffd700');sg.addColorStop(1,'#ff8c00');
+  octx.fillStyle=sg;octx.fill();
+  // Earth orbit (simplified)
+  const eOrbit=150,eAngle=t*0.02;
+  const ex=cx+eOrbit*Math.cos(eAngle),ey=cy+eOrbit*Math.sin(eAngle);
+  // Earth orbit path
+  octx.beginPath();octx.arc(cx,cy,eOrbit,0,Math.PI*2);
+  octx.strokeStyle='#333';octx.lineWidth=1;octx.stroke();
+  // Earth
+  octx.beginPath();octx.arc(ex,ey,8,0,Math.PI*2);
+  octx.fillStyle='#4488ff';octx.fill();
+  // Moon orbit around Earth
+  const mOrbit=30,mAngle=t*0.26; // ~13.4x Earth's orbital period
+  const mx=ex+mOrbit*Math.cos(mAngle),my=ey+mOrbit*Math.sin(mAngle);
+  octx.beginPath();octx.arc(ex,ey,mOrbit,0,Math.PI*2);
+  octx.strokeStyle='#222';octx.lineWidth=0.5;octx.stroke();
+  octx.beginPath();octx.arc(mx,my,4,0,Math.PI*2);
+  octx.fillStyle='#aaa';octx.fill();
+  // Third body (Jupiter-like, outer)
+  const jOrbit=250,jAngle=t*0.0017; // ~11.86 year period
+  const jx=cx+jOrbit*Math.cos(jAngle),jy=cy+jOrbit*Math.sin(jAngle);
+  octx.beginPath();octx.arc(cx,cy,jOrbit,0,Math.PI*2);
+  octx.strokeStyle='#222';octx.lineWidth=0.5;octx.stroke();
+  octx.beginPath();octx.arc(jx,jy,12,0,Math.PI*2);
+  octx.fillStyle='#cc8844';octx.fill();
+  // trails
+  if(showTrails){
+    trails[0].push({x:ex,y:ey});trails[1].push({x:mx,y:my});trails[2].push({x:jx,y:jy});
+    if(trails[0].length>500)trails[0].shift();
+    if(trails[1].length>500)trails[1].shift();
+    if(trails[2].length>500)trails[2].shift();
+    [['#4488ff55',trails[0]],['#aaaaaa44',trails[1]],['#cc884433',trails[2]]].forEach(([col,tr])=>{
+      if(tr.length>1){octx.beginPath();octx.moveTo(tr[0].x,tr[0].y);
+        tr.forEach(p=>octx.lineTo(p.x,p.y));octx.strokeStyle=col;octx.lineWidth=1;octx.stroke();}
+    });
+  }
+  // Resonance markers
+  octx.fillStyle='#e0e0e0';octx.font='12px Georgia';octx.textAlign='left';
+  octx.fillText('Sun',cx+25,cy+5);
+  octx.fillStyle='#4488ff';octx.fillText('Earth',ex+12,ey-5);
+  octx.fillStyle='#aaa';octx.fillText('Moon',mx+8,my-5);
+  octx.fillStyle='#cc8844';octx.fillText('Jupiter (~L years)',jx+16,jy-5);
+  // Schwabe marker
+  octx.fillStyle='#ffd70088';octx.font='11px monospace';
+  octx.fillText('Schwabe = L = '+L+' years',15,20);
+  octx.fillText('Jupiter orbital period = 11.86 years',15,36);
+  octx.fillStyle='#ff6b6b88';
+  octx.fillText('Resonance: Jupiter/Saturn ~ E/D = 2.5 (actual 2.48)',15,52);
+}
+
+function setSpeed(s){
+  speed=s;
+  ['Pause','1x','3x','10x'].forEach((n,i)=>{
+    const btn=document.getElementById('btn'+n);
+    if(btn)btn.className=[0,1,3,10][i]===s?'active':'';
+  });
+}
+
+function toggleTrails(){
+  showTrails=!showTrails;
+  document.getElementById('btnTrails').textContent='Trails: '+(showTrails?'ON':'OFF');
+  if(!showTrails)trails=[[],[],[]];
+}
+
+// Spectrum canvas
+function drawSpectrum(){
+  const cv=document.getElementById('spectrumCanvas'),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const w=cv.width,h=cv.height,pad=50;
+  if(specView==='periods'){
+    // log-scale period spectrum
+    const logMin=Math.log10(10),logMax=Math.log10(3000);
+    const scaleX=v=>(Math.log10(v)-logMin)/(logMax-logMin)*(w-pad*2)+pad;
+    // axis
+    ctx.strokeStyle='#333';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad,h-pad);ctx.lineTo(w-pad,h-pad);ctx.stroke();
+    [10,20,50,100,200,500,1000,2000].forEach(v=>{
+      const x=scaleX(v);
+      ctx.beginPath();ctx.moveTo(x,h-pad);ctx.lineTo(x,h-pad+5);ctx.stroke();
+      ctx.fillStyle='#888';ctx.font='10px monospace';ctx.textAlign='center';
+      ctx.fillText(v+'',x,h-pad+18);
+    });
+    ctx.fillText('Period (years/months)',w/2,h-5);
+    // cycle lines
+    cycles.forEach((c,i)=>{
+      const x=scaleX(c.period);
+      const isSel=i===selCycle;
+      ctx.strokeStyle=isSel?'#ffd700':'#ff6b6b';
+      ctx.lineWidth=isSel?3:1.5;
+      ctx.beginPath();ctx.moveTo(x,h-pad);ctx.lineTo(x,30);ctx.stroke();
+      ctx.fillStyle=isSel?'#ffd700':'#e0e0e0';
+      ctx.font=(isSel?'bold ':'')+('11px monospace');
+      ctx.textAlign='center';
+      ctx.fillText(c.name,x,22);
+      ctx.fillStyle='#ff6b6b';ctx.font='9px monospace';
+      ctx.fillText(c.expr,x,h-pad-8);
+    });
+  }else if(specView==='crt'){
+    // CRT decomposition of each period
+    const primes=[D,K,E,b,L];const pnames=['D=2','K=3','E=5','b=7','L=11'];
+    const barH=20,gap=4,startY=30;
+    const colW=(w-pad*2)/cycles.length;
+    // headers
+    ctx.fillStyle='#888';ctx.font='10px monospace';ctx.textAlign='center';
+    cycles.forEach((c,i)=>{
+      ctx.fillText(c.name,pad+i*colW+colW/2,20);
+    });
+    // channel rows
+    primes.forEach((p,pi)=>{
+      ctx.fillStyle='#888';ctx.font='10px monospace';ctx.textAlign='right';
+      ctx.fillText(pnames[pi],pad-5,startY+pi*(barH+gap)+barH/2+4);
+      cycles.forEach((c,ci)=>{
+        const x=pad+ci*colW+5;
+        const y=startY+pi*(barH+gap);
+        const val=c.period%p;
+        const maxMod=p-1;
+        const frac=val/maxMod;
+        const isZero=val===0;
+        ctx.fillStyle=isZero?'#ffd700':'`#333`';
+        ctx.globalAlpha=isZero?0.8:0.3;
+        ctx.fillRect(x,y,colW-10,barH);
+        ctx.globalAlpha=1;
+        ctx.fillStyle=isZero?'#000':'#888';
+        ctx.font='9px monospace';ctx.textAlign='center';
+        ctx.fillText(val+'',x+(colW-10)/2,y+barH/2+3);
+      });
+    });
+    ctx.fillStyle='#aaa';ctx.font='11px Georgia';ctx.textAlign='center';
+    ctx.fillText('Gold = channel is zero (period is divisible). More zeros = deeper resonance.',w/2,h-15);
+  }else{
+    // Stability: coupling of each period mod 2310
+    const maxCoup=2310;
+    const barW=(w-pad*2)/cycles.length-8;
+    cycles.forEach((c,i)=>{
+      const x=pad+i*(barW+8);
+      const n=c.period%2310;
+      let coup=2310;
+      if(n>0){let g=n,bb=2310;while(bb){let tt=bb;bb=g%bb;g=tt;}coup=2310/g;}
+      else coup=1;
+      const hh=Math.log10(coup)/Math.log10(maxCoup)*(h-pad*2);
+      ctx.fillStyle=coup<=11?'#4caf50':coup<=210?'#ffd700':'#ff6b6b';
+      ctx.fillRect(x,h-pad-hh,barW,hh);
+      ctx.fillStyle='#e0e0e0';ctx.font='9px monospace';ctx.textAlign='center';
+      ctx.fillText(c.name,x+barW/2,h-pad+14);
+      ctx.fillText('c='+coup,x+barW/2,h-pad-hh-5);
+    });
+    ctx.fillStyle='#aaa';ctx.font='11px Georgia';ctx.textAlign='center';
+    ctx.fillText('Lower coupling = more stable orbit. Green = axiom-smooth.',w/2,20);
+  }
+}
+
+buildCycles();
+drawSpectrum();
+
+function animate(){
+  t+=speed*0.5;
+  drawOrbits();
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>

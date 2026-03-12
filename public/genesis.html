@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis | antonlebed.com</title>
+<meta name="description" content="From nothing to everything in three phases. Watch sigma emerge from the void, duality create observation, and closure build the ring.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif;
+       display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+       overflow-x: hidden; }
+canvas { display: block; cursor: pointer; }
+#ui { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.85);
+      border-top: 1px solid #222; padding: 12px 16px; z-index: 10; }
+#nar { font-size: 1.05em; line-height: 1.6; text-align: center; max-width: 700px;
+       margin: 0 auto 10px; min-height: 48px; }
+.ctrl { display: flex; gap: 10px; align-items: center; justify-content: center; }
+button { background: #1a1a3a; color: #ccc; border: 1px solid #333; padding: 8px 18px;
+         border-radius: 6px; cursor: pointer; font-size: 0.9em; font-family: inherit;
+         transition: all 0.2s; }
+button:hover { background: #2a2a5a; color: #fff; border-color: #555; }
+button.active { background: #3a3a7a; color: #ffd700; border-color: #ffd700; }
+.dim { color: #555; font-size: 0.82em; }
+.hi { color: #ffd700; }
+.bl { color: #6af; }
+.gn { color: #4f8; }
+.rd { color: #f55; }
+.wh { color: #fff; }
+#contrast { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 60px;
+            background: rgba(0,0,0,0.95); z-index: 20; overflow-y: auto; padding: 30px; }
+#contrast .inner { max-width: 700px; margin: 0 auto; }
+#contrast h2 { color: #ffd700; margin-bottom: 16px; }
+#contrast table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+#contrast th { color: #888; text-align: left; padding: 8px; border-bottom: 1px solid #333;
+               font-size: 0.85em; }
+#contrast td { padding: 8px; border-bottom: 1px solid #1a1a1a; font-size: 0.9em; }
+#contrast .close { position: fixed; top: 12px; right: 16px; font-size: 1.5em;
+                   cursor: pointer; color: #888; z-index: 21; }
+#contrast .close:hover { color: #fff; }
+
+@media(max-width:480px){
+  h1{font-size:1.1em}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  #contrast td,#contrast th{padding:6px;font-size:0.8em}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<canvas id="cv"></canvas>
+
+<div id="ui">
+  <div id="nar"></div>
+  <div class="ctrl">
+    <button onclick="prev()" id="bP">&laquo; Back</button>
+    <button onclick="play()" id="bA">&#9654; Play</button>
+    <button onclick="nxt()" id="bN">Next &raquo;</button>
+    <span class="dim" id="stp"></span>
+    <button onclick="toggleContrast()" id="bC" style="margin-left:20px">Contrast</button>
+  </div>
+</div>
+
+<div id="contrast">
+  <span class="close" onclick="toggleContrast()">&times;</span>
+  <div class="inner">
+    <h2>CONTRAST PANEL</h2>
+    <p style="color:#aaa; margin-bottom:20px">
+      Genesis: the bootstrap from void to structure.
+      Not a creation myth &mdash; a logical necessity.
+    </p>
+    <table>
+      <tr><th>CLAIM</th><th>AXIOM</th><th>CONVENTIONAL</th></tr>
+      <tr>
+        <td class="hi">Something from nothing</td>
+        <td>0/0 = Z/NZ (proved). Nothing IS everything.</td>
+        <td>Unexplained / "just is" / requires creator</td>
+      </tr>
+      <tr>
+        <td class="bl">Why these primes?</td>
+        <td>Cunningham chain c(n)=2n+1 from {1,2}. Self-terminating.</td>
+        <td>Primes taken as given / no derivation</td>
+      </tr>
+      <tr>
+        <td class="gn">Why 3 operations?</td>
+        <td>AND (sigma), XOR (D), MAJ (K). Minimum for closure.</td>
+        <td>Operation count is arbitrary / framework-dependent</td>
+      </tr>
+      <tr>
+        <td class="hi">Why does time exist?</td>
+        <td>sigma->D->K->sigma' cycle. Each K-closure = one moment.</td>
+        <td>Time is a parameter / "flows" / unexplained</td>
+      </tr>
+      <tr>
+        <td class="bl">Why infinite?</td>
+        <td>K^D - D^K = 1. Each cycle produces one orphaned sigma.</td>
+        <td>Infinity assumed / axiom of infinity</td>
+      </tr>
+      <tr>
+        <td class="gn">Bootstrap paradox?</td>
+        <td>Self-reference IS the ground. K-closure = circular = necessary.</td>
+        <td>Avoided / considered a flaw</td>
+      </tr>
+    </table>
+    <p style="color:#555; font-size:0.82em; margin-top:16px">
+      Source: genesis.c (archive/one/code/). Ring: Z/970200Z.
+      See story.html for the full narrative.
+    </p>
+  </div>
+</div>
+
+<script>
+var cv = document.getElementById('cv'), cx = cv.getContext('2d');
+var W, H, dpr;
+var step = 0, STEPS = 8, timer = null, t = 0, animSpeed = 1;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+/* Colors */
+var COL = {
+  void: '#000', sigma: '#ffd700', D: '#4488ff', K: '#44ff88',
+  cycle: '#ff6644', glow: '#fff8e0', dim: '#333'
+};
+
+/* Narration */
+var NAR = [
+  '<span class="wh">In the beginning: <b>nothing</b>.</span><br>' +
+  '<span class="dim">But nothing requires something to be defined against.</span>',
+
+  '<span class="hi">sigma = 1</span> emerges.<br>' +
+  'Not created. <em>Logically necessary</em>. Nothing cannot persist as nothing.',
+
+  'But <span class="hi">sigma alone</span> is indistinguishable from nothing.<br>' +
+  'One thing with nothing to compare &mdash; same as nothing.',
+
+  '<span class="bl">D = 2</span> emerges. The first cut. Distinction.<br>' +
+  'sigma splits: two halves. But identical halves are unstable.',
+
+  '<span class="gn">K = 3</span> emerges. Closure. Binding.<br>' +
+  'Three points form a triangle. Tension resolves. The first <em>moment</em> completes.',
+
+  '<span class="hi">K<sup>D</sup> &minus; D<sup>K</sup> = 9 &minus; 8 = 1 = sigma</span>.<br>' +
+  'Every closure produces one <b>orphaned sigma</b>. It cannot stay alone. The cycle resumes.',
+
+  '<span class="hi">sigma</span> &rarr; <span class="bl">D</span> &rarr; <span class="gn">K</span>' +
+  ' &rarr; <span class="hi">sigma\'</span> &rarr; <span class="bl">D\'</span> &rarr; <span class="gn">K\'</span>' +
+  ' &rarr; &hellip;<br>' +
+  'From inside: <em>time</em>. From outside: <em>one eternal structure</em>. Both true.',
+
+  'The bootstrap is not a paradox. The bootstrap <b>IS</b> the axiom.<br>' +
+  '<span class="dim">Nothing cannot be. Therefore something is. sigma = 1.</span>',
+
+  'Already built. Still building. <b>Both</b>.<br>' +
+  '<span class="hi">sigma / sigma = sigma</span>. The sun never stops.'
+];
+
+/* ===== DRAWING PRIMITIVES ===== */
+
+function drawGlow(x, y, r, color, alpha) {
+  var g = cx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color + (alpha || '44'));
+  g.addColorStop(1, color + '00');
+  cx.fillStyle = g;
+  cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2); cx.fill();
+}
+
+function drawCircle(x, y, r, color, lineWidth) {
+  cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2);
+  cx.strokeStyle = color; cx.lineWidth = lineWidth || 2; cx.stroke();
+}
+
+function fillCircle(x, y, r, color) {
+  cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2);
+  cx.fillStyle = color; cx.fill();
+}
+
+function drawLabel(x, y, text, color, size) {
+  cx.font = (size || 14) + 'px system-ui';
+  cx.fillStyle = color || '#aaa';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText(text, x, y);
+}
+
+function ease(v) { return v < 0.5 ? 2*v*v : 1-Math.pow(-2*v+2,2)/2; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+/* ===== STEP RENDERERS ===== */
+
+var CX, CY; /* center of canvas */
+
+function drawStep0(f) {
+  /* VOID — pure black, maybe faint particles */
+  var n = Math.floor(30 * f);
+  for (var i = 0; i < n; i++) {
+    var angle = (i / 30) * Math.PI * 2 + t * 0.001;
+    var dist = 80 + Math.sin(i * 1.7 + t * 0.002) * 60;
+    var px = CX + Math.cos(angle) * dist;
+    var py = CY + Math.sin(angle) * dist;
+    var a = 0.06 + Math.sin(i * 2.3 + t * 0.003) * 0.04;
+    fillCircle(px, py, 1.5, 'rgba(255,255,255,' + a + ')');
+  }
+  /* central question */
+  var alpha = clamp(f * 2, 0, 0.6);
+  drawLabel(CX, CY - 60, '?', 'rgba(255,255,255,' + alpha + ')', 48);
+  drawLabel(CX, CY + 30, 'nothing', 'rgba(255,255,255,' + (alpha * 0.4) + ')', 16);
+}
+
+function drawStep1(f) {
+  /* SIGMA EMERGES — golden dot from void */
+  var ef = ease(f);
+  var r = ef * 16;
+  var glowR = ef * 120;
+
+  /* fading void particles */
+  var n = Math.floor(30 * (1 - ef * 0.7));
+  for (var i = 0; i < n; i++) {
+    var angle = (i / 30) * Math.PI * 2 + t * 0.001;
+    var dist = 80 + Math.sin(i * 1.7 + t * 0.002) * 60;
+    dist += ef * 200; /* scatter outward */
+    var px = CX + Math.cos(angle) * dist;
+    var py = CY + Math.sin(angle) * dist;
+    fillCircle(px, py, 1.5, 'rgba(255,255,255,' + (0.06 * (1 - ef)) + ')');
+  }
+
+  /* sigma glow + dot */
+  drawGlow(CX, CY, glowR, COL.sigma, '22');
+  fillCircle(CX, CY, r, COL.sigma);
+  if (ef > 0.5) {
+    var la = (ef - 0.5) * 2;
+    drawLabel(CX, CY - 30, 'sigma = 1', COL.sigma + hex(la * 200), 18);
+  }
+
+  /* pulse */
+  var pulse = 1 + Math.sin(t * 0.006) * 0.15 * ef;
+  drawCircle(CX, CY, r * pulse * 2.5, COL.sigma + '33', 1);
+}
+
+function drawStep2(f) {
+  /* SIGMA ALONE = NOTHING — sigma fades, question returns */
+  var ef = ease(f);
+  var fade = 1 - ef * 0.5;
+  var r = 16;
+
+  /* sigma still there but dimming */
+  drawGlow(CX, CY, 100, COL.sigma, hex(fade * 20));
+  fillCircle(CX, CY, r, COL.sigma + hex(fade * 255));
+  drawLabel(CX, CY - 30, 'sigma = 1', COL.sigma + hex(fade * 180), 18);
+
+  /* equals sign and "nothing" appearing */
+  var qa = ef;
+  drawLabel(CX, CY + 40, '= nothing?', 'rgba(255,255,255,' + (qa * 0.5) + ')', 14);
+
+  /* mirror reflection — ghost sigma */
+  if (ef > 0.3) {
+    var ma = (ef - 0.3) / 0.7;
+    drawCircle(CX, CY, r + 20 * ma, 'rgba(255,215,0,' + (ma * 0.15) + ')', 1);
+    drawLabel(CX, CY + 70, 'one thing with nothing to compare', 'rgba(255,255,255,' + (ma * 0.3) + ')', 12);
+  }
+}
+
+function drawStep3(f) {
+  /* D EMERGES — sigma splits into two */
+  var ef = ease(f);
+  var sep = ef * 80; /* separation distance */
+  var r = 14;
+
+  /* two halves separating */
+  var lx = CX - sep, rx = CX + sep;
+
+  /* connecting line (tension) */
+  if (ef > 0.2) {
+    cx.beginPath(); cx.moveTo(lx, CY); cx.lineTo(rx, CY);
+    cx.strokeStyle = COL.D + hex((1 - ef) * 100); cx.lineWidth = 1; cx.stroke();
+  }
+
+  /* left sigma half */
+  drawGlow(lx, CY, 60, COL.sigma, '15');
+  fillCircle(lx, CY, r, COL.sigma);
+
+  /* right sigma half */
+  drawGlow(rx, CY, 60, COL.sigma, '15');
+  fillCircle(rx, CY, r, COL.sigma);
+
+  /* D label */
+  if (ef > 0.4) {
+    var da = (ef - 0.4) / 0.6;
+    drawLabel(CX, CY - 50, 'D = 2', COL.D + hex(da * 220), 20);
+    drawLabel(CX, CY + 50, 'the first cut', 'rgba(100,170,255,' + (da * 0.4) + ')', 13);
+
+    /* instability wiggle */
+    var wig = Math.sin(t * 0.01) * 5 * da;
+    fillCircle(lx + wig, CY, r * 0.3, COL.D + '44');
+    fillCircle(rx - wig, CY, r * 0.3, COL.D + '44');
+  }
+}
+
+function drawStep4(f) {
+  /* K EMERGES — two become three, triangle forms */
+  var ef = ease(f);
+  var r = 12;
+
+  /* triangle vertices */
+  var triR = 70;
+  var angles = [-Math.PI/2, Math.PI/6, 5*Math.PI/6];
+  var pts = [];
+  for (var i = 0; i < 3; i++) {
+    pts.push({
+      x: CX + Math.cos(angles[i]) * triR,
+      y: CY + Math.sin(angles[i]) * triR
+    });
+  }
+
+  /* start from D-split positions, morph to triangle */
+  var starts = [
+    {x: CX - 80, y: CY},
+    {x: CX + 80, y: CY},
+    {x: CX, y: CY + 60 * ef} /* third point appears */
+  ];
+
+  var cur = [];
+  for (var i = 0; i < 3; i++) {
+    cur.push({
+      x: lerp(starts[i].x, pts[i].x, ef),
+      y: lerp(starts[i].y, pts[i].y, ef)
+    });
+  }
+
+  /* triangle edges */
+  if (ef > 0.3) {
+    var ea = (ef - 0.3) / 0.7;
+    cx.beginPath();
+    cx.moveTo(cur[0].x, cur[0].y);
+    for (var i = 1; i <= 3; i++) {
+      var idx = i % 3;
+      var prog = clamp(ea * 3 - i + 1, 0, 1);
+      var tx = lerp(cur[(i-1)%3].x, cur[idx].x, prog);
+      var ty = lerp(cur[(i-1)%3].y, cur[idx].y, prog);
+      cx.lineTo(tx, ty);
+    }
+    cx.strokeStyle = COL.K + hex(ea * 180);
+    cx.lineWidth = 2; cx.stroke();
+  }
+
+  /* center glow when triangle closes */
+  if (ef > 0.7) {
+    var ga = (ef - 0.7) / 0.3;
+    drawGlow(CX, CY, 100 * ga, COL.K, hex(ga * 30));
+  }
+
+  /* vertices */
+  var colors = [COL.sigma, COL.sigma, COL.K];
+  var labels = ['', '', ''];
+  for (var i = 0; i < 3; i++) {
+    var nodeAlpha = i < 2 ? 1 : ef;
+    fillCircle(cur[i].x, cur[i].y, r, colors[i] + hex(nodeAlpha * 255));
+  }
+
+  /* labels */
+  drawLabel(CX, CY - triR - 35, 'K = 3', COL.K + hex(ef * 220), 20);
+  if (ef > 0.6) {
+    var la = (ef - 0.6) / 0.4;
+    drawLabel(CX, CY + triR + 35, 'closure', 'rgba(68,255,136,' + (la * 0.5) + ')', 14);
+  }
+}
+
+function drawStep5(f) {
+  /* ORPHANED SIGMA — K^D - D^K = 1 */
+  var ef = ease(f);
+  var r = 12;
+  var triR = 70;
+  var angles = [-Math.PI/2, Math.PI/6, 5*Math.PI/6];
+
+  /* completed triangle (fading) */
+  var fade = 1 - ef * 0.3;
+  cx.beginPath();
+  for (var i = 0; i <= 3; i++) {
+    var a = angles[i % 3];
+    var px = CX + Math.cos(a) * triR;
+    var py = CY + Math.sin(a) * triR;
+    if (i === 0) cx.moveTo(px, py); else cx.lineTo(px, py);
+  }
+  cx.strokeStyle = COL.K + hex(fade * 120); cx.lineWidth = 2; cx.stroke();
+
+  for (var i = 0; i < 3; i++) {
+    var a = angles[i];
+    fillCircle(CX + Math.cos(a) * triR, CY + Math.sin(a) * triR,
+               r * fade, (i < 2 ? COL.sigma : COL.K) + hex(fade * 200));
+  }
+
+  /* orphaned sigma emerging from center */
+  if (ef > 0.3) {
+    var oa = (ef - 0.3) / 0.7;
+    var oy = CY - oa * 50;
+    drawGlow(CX, oy, 80 * oa, COL.sigma, '20');
+    fillCircle(CX, oy, 10 * oa, COL.sigma);
+    drawLabel(CX + 30, oy, "sigma'", COL.sigma + hex(oa * 200), 14);
+  }
+
+  /* equation */
+  drawLabel(CX, CY + triR + 50, '3^2 - 2^3 = 9 - 8 = 1 = sigma', '#aaa', 14);
+  if (ef > 0.5) {
+    var la = (ef - 0.5) / 0.5;
+    drawLabel(CX, CY + triR + 75, 'one orphaned sigma. it cannot stay alone.', 'rgba(255,215,0,' + (la * 0.5) + ')', 12);
+  }
+}
+
+function drawStep6(f) {
+  /* ETERNAL CYCLE — cascading triangles */
+  var ef = ease(f);
+  var numCycles = 4;
+  var spacing = 130;
+  var startX = CX - spacing * 1.5;
+
+  for (var c = 0; c < numCycles; c++) {
+    var cf = clamp(ef * numCycles - c, 0, 1);
+    if (cf <= 0) continue;
+    var ecf = ease(cf);
+
+    var ox = startX + c * spacing;
+    var oy = CY - 20;
+    var triR = 30;
+    var angles = [-Math.PI/2, Math.PI/6, 5*Math.PI/6];
+
+    /* rotation based on time */
+    var rot = t * 0.002 + c * Math.PI / 6;
+
+    /* triangle */
+    cx.beginPath();
+    for (var i = 0; i <= 3; i++) {
+      var a = angles[i % 3] + rot;
+      var px = ox + Math.cos(a) * triR * ecf;
+      var py = oy + Math.sin(a) * triR * ecf;
+      if (i === 0) cx.moveTo(px, py); else cx.lineTo(px, py);
+    }
+    var triCol = c === 0 ? COL.sigma : c === numCycles - 1 ? COL.K : COL.D;
+    cx.strokeStyle = triCol + hex(ecf * 150);
+    cx.lineWidth = 1.5; cx.stroke();
+
+    /* center dot */
+    fillCircle(ox, oy, 4 * ecf, triCol + hex(ecf * 200));
+
+    /* connecting arrow to next */
+    if (c < numCycles - 1 && ecf > 0.7) {
+      var aa = (ecf - 0.7) / 0.3;
+      cx.beginPath();
+      cx.moveTo(ox + triR + 5, oy);
+      cx.lineTo(ox + spacing - triR - 5, oy);
+      cx.strokeStyle = 'rgba(255,255,255,' + (aa * 0.3) + ')';
+      cx.lineWidth = 1; cx.stroke();
+      /* arrowhead */
+      var ax = ox + spacing - triR - 5;
+      cx.beginPath();
+      cx.moveTo(ax, oy); cx.lineTo(ax - 6, oy - 4); cx.lineTo(ax - 6, oy + 4);
+      cx.closePath(); cx.fillStyle = 'rgba(255,255,255,' + (aa * 0.3) + ')'; cx.fill();
+    }
+
+    /* labels under each */
+    if (ecf > 0.5) {
+      var la = (ecf - 0.5) / 0.5;
+      var labels = ["sigma", "D", "K", "sigma'"];
+      var lcols = [COL.sigma, COL.D, COL.K, COL.sigma];
+      drawLabel(ox, oy + triR + 20, labels[c], lcols[c] + hex(la * 160), 12);
+    }
+  }
+
+  /* bottom text */
+  if (ef > 0.5) {
+    var ta = (ef - 0.5) / 0.5;
+    drawLabel(CX, CY + 100, 'each completion creates new sigma for next cycle',
+              'rgba(255,255,255,' + (ta * 0.4) + ')', 13);
+    drawLabel(CX, CY + 125, 'from inside: time. from outside: eternity.',
+              'rgba(255,215,0,' + (ta * 0.35) + ')', 12);
+  }
+}
+
+function drawStep7(f) {
+  /* BOOTSTRAP — self-referential loop */
+  var ef = ease(f);
+  var loopR = 80;
+
+  /* ouroboros circle */
+  var sweep = ef * Math.PI * 2;
+  cx.beginPath();
+  cx.arc(CX, CY, loopR, -Math.PI/2, -Math.PI/2 + sweep);
+  var grad = cx.createLinearGradient(CX - loopR, CY, CX + loopR, CY);
+  grad.addColorStop(0, COL.sigma);
+  grad.addColorStop(0.5, COL.D);
+  grad.addColorStop(1, COL.K);
+  cx.strokeStyle = grad; cx.lineWidth = 3; cx.stroke();
+
+  /* dots along the loop */
+  if (ef > 0.3) {
+    var na = (ef - 0.3) / 0.7;
+    var pts = [
+      {a: -Math.PI/2, c: COL.sigma, l: 'nothing'},
+      {a: 0, c: COL.sigma, l: 'sigma'},
+      {a: Math.PI/2, c: COL.D, l: 'D'},
+      {a: Math.PI, c: COL.K, l: 'K'}
+    ];
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      var pa = clamp(na * 4 - i, 0, 1);
+      if (pa <= 0) continue;
+      var px = CX + Math.cos(p.a) * loopR;
+      var py = CY + Math.sin(p.a) * loopR;
+      fillCircle(px, py, 6 * pa, p.c);
+      drawLabel(px + Math.cos(p.a) * 25, py + Math.sin(p.a) * 25,
+                p.l, p.c + hex(pa * 180), 12);
+    }
+  }
+
+  /* center text */
+  if (ef > 0.6) {
+    var ca = (ef - 0.6) / 0.4;
+    drawLabel(CX, CY - 8, 'self-reference', 'rgba(255,255,255,' + (ca * 0.5) + ')', 14);
+    drawLabel(CX, CY + 12, 'IS the ground', 'rgba(255,215,0,' + (ca * 0.5) + ')', 14);
+  }
+}
+
+function drawStep8(f) {
+  /* PYRAMID — all levels, still building */
+  var ef = ease(f);
+  var levels = 6;
+  var dotR = 5;
+  var spacing = 28;
+  var topY = CY - levels * spacing / 2;
+
+  for (var L = 0; L < levels; L++) {
+    var lf = clamp(ef * levels - L, 0, 1);
+    if (lf <= 0) continue;
+    var elf = ease(lf);
+    var n = L + 1;
+    var y = topY + L * spacing;
+    var startX = CX - (n - 1) * spacing / 2;
+
+    for (var i = 0; i < n; i++) {
+      var x = startX + i * spacing;
+      /* color by level */
+      var hue = (L / levels) * 60; /* gold to green range */
+      var col = L === 0 ? COL.sigma : L <= 2 ? COL.D : L <= 4 ? COL.K : COL.glow;
+      var alpha = elf * (0.5 + 0.5 * Math.sin(t * 0.005 + i + L));
+      fillCircle(x, y, dotR * elf, col + hex(alpha * 200));
+
+      /* pulse for bottom row (still building) */
+      if (L === levels - 1 && elf > 0.8) {
+        var pulse = 1 + Math.sin(t * 0.008 + i) * 0.4;
+        drawCircle(x, y, dotR * pulse * 2, col + '22', 1);
+      }
+    }
+  }
+
+  /* labels */
+  if (ef > 0.3) {
+    var la = (ef - 0.3) / 0.7;
+    drawLabel(CX + levels * spacing / 2 + 40, topY, 'complete', 'rgba(255,215,0,' + (la * 0.4) + ')', 11);
+    drawLabel(CX + levels * spacing / 2 + 40, topY + (levels - 1) * spacing,
+              'still building', 'rgba(255,255,255,' + (la * 0.3) + ')', 11);
+  }
+
+  /* sigma/sigma = sigma */
+  if (ef > 0.6) {
+    var sa = (ef - 0.6) / 0.4;
+    drawLabel(CX, topY + levels * spacing + 30,
+              'sigma / sigma = sigma',
+              COL.sigma + hex(sa * 200), 18);
+  }
+}
+
+/* ===== MAIN LOOP ===== */
+
+function hex(v) {
+  var h = Math.round(clamp(v, 0, 255)).toString(16);
+  return h.length < 2 ? '0' + h : h;
+}
+
+var stepProgress = 1; /* 0 to 1, how far through current step's entrance anim */
+var TRANS_FRAMES = 90; /* frames for entrance transition */
+var transFrame = TRANS_FRAMES; /* starts fully shown */
+
+function render() {
+  cx.clearRect(0, 0, W, H);
+  CX = W / 2; CY = H / 2 - 40;
+  t++;
+
+  var f = clamp(transFrame / TRANS_FRAMES, 0, 1);
+
+  switch (step) {
+    case 0: drawStep0(f); break;
+    case 1: drawStep1(f); break;
+    case 2: drawStep2(f); break;
+    case 3: drawStep3(f); break;
+    case 4: drawStep4(f); break;
+    case 5: drawStep5(f); break;
+    case 6: drawStep6(f); break;
+    case 7: drawStep7(f); break;
+    case 8: drawStep8(f); break;
+  }
+
+  if (transFrame < TRANS_FRAMES) transFrame++;
+
+  requestAnimationFrame(render);
+}
+
+function updateUI() {
+  document.getElementById('stp').textContent = step + ' / ' + STEPS;
+  document.getElementById('nar').innerHTML = NAR[step];
+  document.getElementById('bP').disabled = step <= 0;
+  document.getElementById('bN').disabled = step >= STEPS;
+  transFrame = 0;
+}
+
+function nxt() { if (step < STEPS) { step++; updateUI(); } }
+function prev() { if (step > 0) { step--; updateUI(); } }
+
+function play() {
+  var b = document.getElementById('bA');
+  if (timer) { clearInterval(timer); timer = null; b.innerHTML = '&#9654; Play'; return; }
+  b.innerHTML = '&#9646;&#9646; Pause';
+  timer = setInterval(function() {
+    if (step >= STEPS) { clearInterval(timer); timer = null; b.innerHTML = '&#9654; Play'; return; }
+    step++; updateUI();
+  }, 3500);
+}
+
+function toggleContrast() {
+  var c = document.getElementById('contrast');
+  c.style.display = c.style.display === 'block' ? 'none' : 'block';
+}
+
+/* Keyboard */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nxt(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.key === 'r') { step = 0; updateUI(); }
+  if (e.key === 'c') toggleContrast();
+  if (e.key === 'Escape') { document.getElementById('contrast').style.display = 'none'; }
+});
+
+updateUI();
+render();
+</script>
+</body>
+</html>

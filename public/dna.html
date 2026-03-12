@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The genetic code IS the Chinese Remainder Theorem. 64 codons, 21 amino acids, Z/21 = Z/3 x Z/7. Type any DNA. Watch it translate.">
+<title>DNA Codon Explorer | antonlebed.com</title>
+<meta property="og:title" content="The Genetic Code IS the Chinese Remainder Theorem">
+<meta property="og:description" content="64 codons, 21 amino acids, Z/21 = Z/3 x Z/7. Type any DNA sequence. Watch it translate through prime channels.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://antonlebed.com/dna.html">
+<meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://antonlebed.com/og-image.jpg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#050508;color:#c8c8c8;font-family:Georgia,'Times New Roman',serif;
+     line-height:1.8;overflow-x:hidden}
+a{color:#88aaff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.back{position:fixed;top:20px;left:20px;font-size:13px;color:#555;
+      z-index:100;letter-spacing:1px}
+.back:hover{color:#ffd700}
+.shift-verify{font-size:12px;color:#50fa7b;margin-left:12px;font-family:'Courier New',monospace;
+              text-decoration:none;opacity:0.7;transition:opacity 0.2s;display:inline-block;margin-top:8px}
+.shift-verify:hover{opacity:1;text-decoration:none}
+
+section{padding:48px 24px;display:flex;flex-direction:column;
+        align-items:center;max-width:960px;margin:0 auto}
+section.hero{min-height:60vh;justify-content:center;text-align:center}
+
+h1{font-size:36px;color:#fff;font-weight:normal;letter-spacing:2px;margin-bottom:12px}
+h2{font-size:24px;color:#fff;text-align:center;margin-bottom:16px;
+   font-weight:normal;letter-spacing:2px}
+h3{font-size:18px;color:#88aaff;margin-bottom:12px;font-weight:normal}
+p{margin-bottom:14px;font-size:17px;max-width:720px}
+.gold{color:#ffd700;font-weight:bold}
+.green{color:#44ff88}
+.mono{font-family:'Courier New',monospace}
+.dim{color:#777}
+.center{text-align:center}
+.small{font-size:14px;color:#888}
+.divider{width:60px;height:1px;background:#222;margin:40px auto}
+
+/* --- STAT CARDS --- */
+.stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:20px 0;width:100%;max-width:800px}
+.stat{flex:1;min-width:160px;background:#0a0a14;border:1px solid #1a1a2a;border-radius:10px;
+      padding:16px;text-align:center}
+.stat-val{font-size:28px;font-family:'Courier New',monospace;font-weight:bold;margin-bottom:4px}
+.stat-label{font-size:12px;color:#888;letter-spacing:1px}
+
+/* --- DNA INPUT --- */
+#dna-wrap{width:100%;max-width:800px;margin:0 auto}
+#dna-input{width:100%;padding:14px 20px;font-size:18px;font-family:'Courier New',monospace;
+           background:#0a0a14;border:1px solid #1a1a2a;border-radius:10px;
+           color:#fff;outline:none;transition:border 0.3s;letter-spacing:3px;
+           min-height:80px;resize:vertical}
+#dna-input:focus{border-color:#44ff88}
+#dna-input::placeholder{color:#333;letter-spacing:1px}
+.input-hint{font-size:12px;color:#555;margin-top:6px;text-align:right}
+
+/* --- EXAMPLE BUTTONS --- */
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;justify-content:center}
+.ex-btn{padding:6px 14px;font-size:12px;font-family:'Courier New',monospace;
+        background:#0a0a14;border:1px solid #1a1a2a;border-radius:16px;
+        color:#888;cursor:pointer;transition:all 0.3s;letter-spacing:1px}
+.ex-btn:hover{border-color:#44ff88;color:#44ff88}
+
+/* --- TRANSLATION DISPLAY --- */
+#translation{width:100%;max-width:800px;margin:16px auto;min-height:60px}
+.codon-strip{display:flex;flex-wrap:wrap;gap:2px;margin:8px 0}
+.codon-unit{display:flex;flex-direction:column;align-items:center;padding:4px 6px;
+            border-radius:6px;border:1px solid #1a1a2a;background:#08080e;
+            transition:all 0.2s;cursor:pointer;min-width:56px}
+.codon-unit:hover{border-color:#555;background:#10101e}
+.codon-unit.start{border-color:#44ff88;background:#0a1a0a}
+.codon-unit.stop{border-color:#ff4444;background:#1a0a0a}
+.codon-unit.partial{border-color:#333;background:#06060a;opacity:0.5}
+.cu-bases{font-family:'Courier New',monospace;font-size:14px;color:#aaa;letter-spacing:2px}
+.cu-aa{font-size:20px;font-weight:bold;margin:2px 0}
+.cu-name{font-size:9px;color:#888;letter-spacing:1px}
+.cu-crt{font-size:10px;font-family:'Courier New',monospace;color:#666;margin-top:2px}
+
+/* --- PROTEIN SUMMARY --- */
+#protein-chain{width:100%;max-width:800px;margin:8px auto;font-family:'Courier New',monospace;
+               font-size:16px;letter-spacing:2px;line-height:2;word-break:break-all;
+               min-height:30px;color:#ffd700}
+
+/* --- CODON TABLE --- */
+#codon-table-wrap{width:100%;max-width:800px;margin:0 auto;overflow-x:auto}
+.ctable{width:100%;border-collapse:separate;border-spacing:2px;font-size:12px;
+        font-family:'Courier New',monospace}
+.ctable td,.ctable th{padding:6px 4px;text-align:center;border-radius:4px}
+.ctable th{color:#888;font-weight:normal;font-size:11px}
+.ctable td{cursor:pointer;border:1px solid transparent;transition:all 0.15s}
+.ctable td:hover{border-color:#fff;transform:scale(1.05);z-index:1}
+.ctable td.stop-cell{background:#1a0808 !important;color:#ff4444}
+.ctable td.start-cell{border:1px solid #44ff88}
+
+/* --- WOBBLE BARS --- */
+.wobble-bar{display:flex;align-items:center;gap:8px;margin:4px 0}
+.wb-label{width:100px;font-size:13px;text-align:right}
+.wb-track{flex:1;height:20px;background:#0a0a14;border:1px solid #1a1a2a;border-radius:4px;overflow:hidden}
+.wb-fill{height:100%;border-radius:4px;transition:width 0.6s}
+.wb-pct{width:50px;font-size:13px;font-family:'Courier New',monospace;text-align:right}
+
+/* --- CRT DETAIL --- */
+.crt-detail{background:#0a0a14;border:1px solid #1a1a2a;border-radius:10px;
+            padding:20px;margin:12px 0;width:100%;max-width:800px}
+.crt-row{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.crt-chip{padding:6px 12px;border-radius:6px;font-family:'Courier New',monospace;
+          font-size:14px;font-weight:bold}
+
+/* --- AA MAP --- */
+#aa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+         gap:6px;width:100%;max-width:800px;margin:0 auto}
+.aa-card{background:#08080e;border:1px solid #1a1a2a;border-radius:8px;
+         padding:10px;text-align:center;cursor:pointer;transition:all 0.2s}
+.aa-card:hover{border-color:#888}
+.aa-letter{font-size:24px;font-weight:bold;font-family:'Courier New',monospace}
+.aa-info{font-size:10px;color:#888;margin-top:2px}
+
+/* --- CONTRAST --- */
+.contrast{width:100%;max-width:800px;margin:0 auto;border:1px solid #1a1a2a;
+          border-radius:10px;overflow:hidden}
+.contrast table{width:100%;border-collapse:collapse;font-size:14px}
+.contrast th{background:#0a0a14;padding:10px 16px;text-align:left;color:#888;
+             font-size:12px;letter-spacing:1px;font-weight:normal}
+.contrast td{padding:10px 16px;border-top:1px solid #111}
+.contrast tr:nth-child(even) td{background:#06060a}
+
+@media(max-width:600px){
+  h1{font-size:26px}
+  h2{font-size:20px}
+  section{padding:32px 16px}
+  .stat{min-width:140px}
+  .stat-val{font-size:22px}
+  #dna-input{font-size:14px;letter-spacing:1px}
+  .codon-unit{min-width:48px;padding:3px 4px}
+  .cu-bases{font-size:12px}
+  .cu-aa{font-size:16px}
+  .ctable{font-size:10px}
+  .ctable td,.ctable th{padding:4px 2px}
+}
+@media(max-width:480px){
+  h1{font-size:22px}
+  h2{font-size:18px}
+  section{padding:24px 10px}
+  .stat{min-width:120px;padding:10px}
+  .stat-val{font-size:18px}
+  #dna-input{font-size:12px;padding:10px 8px;min-height:44px}
+  .codon-unit{min-width:40px;padding:2px 3px}
+  .cu-bases{font-size:10px}
+  .cu-aa{font-size:14px}
+  .ctable{display:block;overflow-x:auto}
+  .contrast{padding:12px}
+  .contrast td,.contrast th{padding:6px 8px;font-size:12px}
+  .contrast table{display:block;overflow-x:auto}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <h1>THE GENETIC CODE IS CRT</h1>
+  <p class="dim" style="max-width:600px;font-size:15px;">
+    64 codons. 20 amino acids + 1 stop signal = <span class="gold">21</span>.
+    <br>21 = 3 &times; 7. Two axiom primes. The Chinese Remainder Theorem
+    decomposes every amino acid into two independent channels.
+    <br><br>Type any DNA sequence. Watch it translate.
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" style="color:#88aaff">Z/3 &times; Z/7</div>
+      <div class="stat-label">CRT STRUCTURE</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val green">1.608 bits</div>
+      <div class="stat-label">REDUNDANCY (99.4% of &phi;)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:#ff9944">66.7%</div>
+      <div class="stat-label">WOBBLE ECC (POS 3)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:#cc88ff">{1,2,3,4,6}</div>
+      <div class="stat-label">DEGENERACIES = div(&phi;(21))</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIVE TRANSLATOR ===== -->
+<section>
+  <h2>Live Translator</h2>
+  <p class="center dim small">Type or paste a DNA sequence (A, T, G, C). RNA (U) accepted too. Non-bases ignored.</p>
+
+  <div class="examples">
+    <button class="ex-btn" onclick="loadExample('insulin')">Insulin (first 30)</button>
+    <button class="ex-btn" onclick="loadExample('hemoglobin')">Hemoglobin &beta;</button>
+    <button class="ex-btn" onclick="loadExample('gfp')">GFP (jellyfish)</button>
+    <button class="ex-btn" onclick="loadExample('random')">Random 60bp</button>
+  </div>
+
+  <div id="dna-wrap">
+    <textarea id="dna-input" rows="3" placeholder="ATGGCTCTGTGGATGCGCCTCCTGCCC..." spellcheck="false"></textarea>
+    <div class="input-hint"><span id="bp-count">0</span> bases &middot; <span id="codon-count">0</span> codons</div>
+  </div>
+
+  <div id="translation"></div>
+
+  <div style="margin:8px 0;text-align:center">
+    <span class="small dim">Protein chain:</span>
+  </div>
+  <div id="protein-chain"></div>
+</section>
+
+<!-- ===== CODON TABLE ===== -->
+<section>
+  <h2>The 64 Codons</h2>
+  <p class="center dim small">Standard genetic code. <span style="color:#44ff88">Green border</span> = start (ATG).
+    <span style="color:#ff4444">Red</span> = stop. Click any cell.</p>
+  <div id="codon-table-wrap"></div>
+</section>
+
+<!-- ===== CRT DETAIL ===== -->
+<section>
+  <h2>CRT Decomposition</h2>
+  <p class="center dim small">Click any codon above or in the translator. Every amino acid decomposes into Z/3 &times; Z/7.</p>
+  <div class="crt-detail" id="crt-detail">
+    <div class="center dim">Select a codon to see its CRT decomposition.</div>
+  </div>
+</section>
+
+<!-- ===== WOBBLE ECC ===== -->
+<section>
+  <h2>Wobble: Nature's Error Correction</h2>
+  <p class="center dim small">Mutations at the 3rd position of a codon are tolerated 2/3 of the time.
+    This is error correction built into the genetic code itself.</p>
+  <div style="width:100%;max-width:600px" id="wobble-wrap"></div>
+</section>
+
+<!-- ===== AMINO ACID MAP ===== -->
+<section>
+  <h2>21 Amino Acids in Z/3 &times; Z/7</h2>
+  <p class="center dim small">Each amino acid has a unique address in the ring. Click to inspect.</p>
+  <div id="aa-grid"></div>
+</section>
+
+<!-- ===== CONTRAST ===== -->
+<section>
+  <h2>Contrast Panel</h2>
+  <div class="contrast">
+    <table>
+      <tr><th></th><th>THIS DEMO</th><th>STANDARD VIEW</th></tr>
+      <tr><td>Structure</td><td class="gold">21 = 3 &times; 7, CRT decomposition</td>
+          <td>64 codons grouped by first base</td></tr>
+      <tr><td>Redundancy</td><td class="green">1.608 bits = 99.4% of &phi;</td>
+          <td>"Degenerate" (no quantification)</td></tr>
+      <tr><td>Error correction</td><td class="gold">66.7% wobble ECC, position-specific</td>
+          <td>"Wobble base pairing" (descriptive)</td></tr>
+      <tr><td>Degeneracy pattern</td><td class="green">{1,2,3,4,6} = divisors of &phi;(21)=12</td>
+          <td>Listed per amino acid, no structure</td></tr>
+      <tr><td>Framework</td><td class="gold">CRT channels: mod 3 (K) + mod 7 (b)</td>
+          <td>No algebraic framework</td></tr>
+    </table>
+  </div>
+  <p class="center small dim" style="margin-top:16px">
+    Source: Standard genetic code (NCBI). CRT analysis: axiom framework.
+    <br><a href="repl.html?example=crt" style="color:#d4a017">Try in .ax REPL &rarr;</a>
+    <a class="shift-verify" href="repl.html?code=LS0gRE5BOiBUaGUgZ2VuZXRpYyBjb2RlIElTIENSVApwcmludCAiMjEgYW1pbm8gYWNpZHMgPSBLICogYjoiCnByaW50IEsgKiBiCnByaW50ICIiCnByaW50ICJaLzIxID0gWi8zIHggWi83IgpwcmludCAiSz0zIGNoYW5uZWw6IGNsb3N1cmUgKGNvZG9uIHBvc2l0aW9uKSIKcHJpbnQgImI9NyBjaGFubmVsOiBkZXB0aCAoYW1pbm8gYWNpZCBwcm9wZXJ0eSkiCnByaW50ICIiCnByaW50ICJwaGkoMjEpID0gKEstcykqKGItcykgPSIKcHJpbnQgKEsgLSBzKSAqIChiIC0gcykKcHJpbnQgIkRlZ2VuZXJhY3kgY291bnRzIGRpdmlkZSBwaGkoMjEpLiIKcHJpbnQgIiIKcHJpbnQgIjY0IGNvZG9ucyA9IEReKEQqSykgPSIKcHJpbnQgRCBeIChEICogSykKcHJpbnQgIiIKcHJpbnQgIlJlZHVuZGFuY3kgPSAxLjYwOCBiaXRzIgpwcmludCAiOTkuNCUgb2YgZ29sZGVuIHJhdGlvIHBoaS4i&run=1">verify in .ax</a>
+  </p>
+</section>
+
+<script>
+// === GENETIC CODE DATA ===
+const BASES_RNA = 'UCAG';
+const AA3 = ['Ala','Cys','Asp','Glu','Phe','Gly','His','Ile','Lys','Leu',
+  'Met','Asn','Pro','Gln','Arg','Ser','Thr','Val','Trp','Tyr','Stop'];
+const AA1 = 'ACDEFGHIKLMNPQRSTVWY*';
+
+// Standard genetic code: index = b1*16 + b2*4 + b3 (RNA order: U=0,C=1,A=2,G=3)
+const CODON_AA = [
+  5,5,9,9, 15,15,15,15, 19,19,20,20, 1,1,20,18,  // Ux
+  9,9,9,9, 12,12,12,12, 6,6,13,13, 14,14,14,14,  // Cx
+  7,7,7,10, 16,16,16,16, 11,11,8,8, 15,15,14,14,  // Ax
+  17,17,17,17, 0,0,0,0, 2,2,3,3, 5,5,5,5          // Gx
+];
+
+// Hydrophobicity (Kyte-Doolittle)
+const HYDRO = [1.8,2.5,-3.5,-3.5,2.8,-0.4,-3.2,4.5,-3.9,3.8,
+  1.9,-3.5,-1.6,-3.5,-4.5,-0.8,-0.7,4.2,-0.9,-1.3,0.0];
+
+// Colors by hydrophobicity
+function aaColor(idx) {
+  if (idx === 20) return '#ff4444'; // stop
+  const h = HYDRO[idx];
+  const t = Math.max(0, Math.min(1, (h + 5) / 10));
+  const r = Math.floor(40 + 180*t);
+  const g = Math.floor(100 + 80*(1-Math.abs(t-0.5)*2));
+  const b = Math.floor(50 + 180*(1-t));
+  return `rgb(${r},${g},${b})`;
+}
+
+function gcd(a,b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
+function coupling21(n) { const g = gcd(((n%21)+21)%21, 21); return g===0?1:21/g; }
+
+// Degeneracy count
+const degen = new Array(21).fill(0);
+for (let c = 0; c < 64; c++) degen[CODON_AA[c]]++;
+
+// DNA base to RNA index: A->2, T/U->0, G->3, C->1
+function baseToIdx(ch) {
+  ch = ch.toUpperCase();
+  if (ch==='U'||ch==='T') return 0;
+  if (ch==='C') return 1;
+  if (ch==='A') return 2;
+  if (ch==='G') return 3;
+  return -1;
+}
+function idxToRNA(i) { return BASES_RNA[i]; }
+function idxToDNA(i) { return 'TCAG'[i]; }
+
+// Codon string (RNA) from 3 indices
+function codonStr(b1,b2,b3) { return BASES_RNA[b1]+BASES_RNA[b2]+BASES_RNA[b3]; }
+
+// === EXAMPLE SEQUENCES ===
+const EXAMPLES = {
+  insulin: 'ATGGCCCTGTGGATGCGCCTCCTGCCCCTGCTGGCGCTGCTGGCCCTCTGGGGACCTGAC',
+  hemoglobin: 'ATGGTGCATCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAAC',
+  gfp: 'ATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGT',
+  random: null
+};
+
+function loadExample(name) {
+  if (name === 'random') {
+    let seq = '';
+    const bases = 'ATGC';
+    seq += 'ATG'; // start with start codon
+    for (let i = 0; i < 57; i++) seq += bases[Math.floor(Math.random()*4)];
+    document.getElementById('dna-input').value = seq;
+  } else {
+    document.getElementById('dna-input').value = EXAMPLES[name];
+  }
+  translate();
+}
+
+// === LIVE TRANSLATOR ===
+function translate() {
+  const raw = document.getElementById('dna-input').value;
+  const indices = [];
+  for (let i = 0; i < raw.length; i++) {
+    const idx = baseToIdx(raw[i]);
+    if (idx >= 0) indices.push(idx);
+  }
+
+  document.getElementById('bp-count').textContent = indices.length;
+  document.getElementById('codon-count').textContent = Math.floor(indices.length/3);
+
+  const transDiv = document.getElementById('translation');
+  const protDiv = document.getElementById('protein-chain');
+
+  if (indices.length === 0) {
+    transDiv.innerHTML = '<div class="center dim small">Type a DNA sequence above...</div>';
+    protDiv.textContent = '';
+    return;
+  }
+
+  let html = '<div class="codon-strip">';
+  let protein = '';
+  const fullCodons = Math.floor(indices.length / 3);
+  const remainder = indices.length % 3;
+
+  for (let i = 0; i < fullCodons; i++) {
+    const b1 = indices[i*3], b2 = indices[i*3+1], b3 = indices[i*3+2];
+    const ci = b1*16 + b2*4 + b3;
+    const aa = CODON_AA[ci];
+    const bases = codonStr(b1,b2,b3);
+    const isStart = (ci === 2*16+0*4+3); // AUG = index 35
+    const isStop = (aa === 20);
+
+    let cls = 'codon-unit';
+    if (isStart) cls += ' start';
+    if (isStop) cls += ' stop';
+
+    const color = aaColor(aa);
+    protein += AA1[aa];
+
+    html += `<div class="${cls}" onclick="showCRT(${aa},'${bases}')">
+      <div class="cu-bases">${bases}</div>
+      <div class="cu-aa" style="color:${color}">${AA1[aa]}</div>
+      <div class="cu-name">${AA3[aa]}</div>
+      <div class="cu-crt">(${aa%3},${aa%7})</div>
+    </div>`;
+  }
+
+  // Partial codon at end
+  if (remainder > 0) {
+    let partBases = '';
+    for (let j = fullCodons*3; j < indices.length; j++) partBases += idxToRNA(indices[j]);
+    html += `<div class="codon-unit partial">
+      <div class="cu-bases">${partBases}${'?'.repeat(3-remainder)}</div>
+      <div class="cu-aa" style="color:#333">?</div>
+      <div class="cu-name">incomplete</div>
+    </div>`;
+  }
+
+  html += '</div>';
+  transDiv.innerHTML = html;
+  protDiv.textContent = protein;
+}
+
+document.getElementById('dna-input').addEventListener('input', translate);
+
+// === CRT DETAIL ===
+function showCRT(aaIdx, codonBases) {
+  const d = document.getElementById('crt-detail');
+  if (aaIdx < 0 || aaIdx > 20) return;
+
+  const mod3 = aaIdx % 3;
+  const mod7 = aaIdx % 7;
+  const c = coupling21(aaIdx);
+
+  // Find all codons for this AA
+  const allCodons = [];
+  for (let i = 0; i < 64; i++) {
+    if (CODON_AA[i] === aaIdx) {
+      const b1=Math.floor(i/16), b2=Math.floor(i/4)%4, b3=i%4;
+      allCodons.push(BASES_RNA[b1]+BASES_RNA[b2]+BASES_RNA[b3]);
+    }
+  }
+
+  // Wobble survival for this specific codon (if given)
+  let wobbleNote = '';
+  if (codonBases && codonBases.length === 3) {
+    const cb1 = BASES_RNA.indexOf(codonBases[0]);
+    const cb2 = BASES_RNA.indexOf(codonBases[1]);
+    const cb3 = BASES_RNA.indexOf(codonBases[2]);
+    let survive = 0;
+    for (let m = 0; m < 4; m++) {
+      if (m !== cb3 && CODON_AA[cb1*16+cb2*4+m] === aaIdx) survive++;
+    }
+    wobbleNote = `Wobble (pos 3): ${survive}/3 mutations survive = ${Math.round(100*survive/3)}% ECC`;
+  }
+
+  d.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+      <div style="font-size:48px;font-weight:bold;color:${aaColor(aaIdx)};font-family:'Courier New',monospace">
+        ${AA1[aaIdx]}
+      </div>
+      <div>
+        <div style="font-size:18px;color:#fff">${AA3[aaIdx]}${aaIdx===20?' (STOP)':''}</div>
+        <div style="font-size:13px;color:#888">Codon: <span class="mono">${codonBases||'---'}</span>
+          &middot; Index: ${aaIdx} &middot; Degeneracy: ${degen[aaIdx]}</div>
+        <div style="font-size:12px;color:#888">Hydrophobicity: ${HYDRO[aaIdx].toFixed(1)} (Kyte-Doolittle)</div>
+      </div>
+    </div>
+
+    <div class="crt-row">
+      <span style="color:#888;font-size:14px">CRT:</span>
+      <span class="mono" style="font-size:15px;color:#fff">${aaIdx}</span>
+      <span style="color:#555">&rarr;</span>
+      <span class="crt-chip" style="background:#331800;color:#ff9944">${aaIdx} mod 3 = ${mod3}</span>
+      <span style="color:#555;font-size:20px">&times;</span>
+      <span class="crt-chip" style="background:#001833;color:#4488ff">${aaIdx} mod 7 = ${mod7}</span>
+    </div>
+
+    <div class="crt-row">
+      <span style="color:#888;font-size:14px">Coupling:</span>
+      <span class="mono" style="color:#ffd700;font-size:15px">${c}</span>
+      <span style="color:#555;font-size:12px">= 21 / gcd(${aaIdx}, 21)</span>
+    </div>
+
+    <div style="margin-top:10px;font-size:13px;color:#aaa">
+      All codons: <span class="mono">${allCodons.join(', ')}</span>
+    </div>
+    ${wobbleNote ? `<div style="margin-top:6px;font-size:13px;color:#44ff88">${wobbleNote}</div>` : ''}
+
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #1a1a2a;font-size:12px;color:#666">
+      Z/21 = Z/3 &times; Z/7. Channel K (mod 3) classifies by closure. Channel b (mod 7) classifies by depth.
+      Together they uniquely identify every amino acid in the ring.
+    </div>
+  `;
+}
+
+// === CODON TABLE ===
+function buildCodonTable() {
+  const wrap = document.getElementById('codon-table-wrap');
+  // Standard table: rows = first base, columns = second base, sub-columns = third base
+  let html = '<table class="ctable"><tr><th></th>';
+  for (let b2 = 0; b2 < 4; b2++) {
+    html += `<th colspan="4" style="color:#88aaff">${BASES_RNA[b2]}</th>`;
+  }
+  html += '<th></th></tr>';
+
+  for (let b1 = 0; b1 < 4; b1++) {
+    // 4 sub-rows per first base (one per third base)
+    for (let b3 = 0; b3 < 4; b3++) {
+      html += '<tr>';
+      if (b3 === 0) html += `<th rowspan="4" style="color:#88aaff;font-size:14px">${BASES_RNA[b1]}</th>`;
+      for (let b2 = 0; b2 < 4; b2++) {
+        const ci = b1*16 + b2*4 + b3;
+        const aa = CODON_AA[ci];
+        const bases = codonStr(b1,b2,b3);
+        const isStart = (ci === 2*16+0*4+3);
+        const isStop = (aa === 20);
+        let cls = isStop ? 'stop-cell' : '';
+        if (isStart) cls += ' start-cell';
+        html += `<td class="${cls}" style="background:${aaColor(aa)}22;color:${aaColor(aa)}"
+                     onclick="showCRT(${aa},'${bases}')">
+          <div style="font-size:10px;color:#777">${bases}</div>
+          <div style="font-size:14px;font-weight:bold">${AA1[aa]}</div>
+          <div style="font-size:9px">${AA3[aa]}</div>
+        </td>`;
+      }
+      if (b3 === 0) html += `<th rowspan="4" style="font-size:10px;color:#555">${BASES_RNA.split('').join('<br>')}</th>`;
+      html += '</tr>';
+    }
+  }
+  html += '</table>';
+  wrap.innerHTML = html;
+}
+
+// === WOBBLE BARS ===
+function buildWobble() {
+  const survive = [0,0,0], total = [0,0,0];
+  for (let c = 0; c < 64; c++) {
+    const b = [Math.floor(c/16), Math.floor(c/4)%4, c%4];
+    const aa = CODON_AA[c];
+    for (let pos = 0; pos < 3; pos++) {
+      for (let m = 0; m < 4; m++) {
+        if (m === b[pos]) continue;
+        const bc = b.slice(); bc[pos] = m;
+        total[pos]++;
+        if (CODON_AA[bc[0]*16+bc[1]*4+bc[2]] === aa) survive[pos]++;
+      }
+    }
+  }
+
+  const names = ['Position 1', 'Position 2', 'Position 3 (wobble)'];
+  const colors = ['#ff6666', '#ffaa22', '#44ff88'];
+  let html = '';
+  for (let p = 0; p < 3; p++) {
+    const pct = (100*survive[p]/total[p]).toFixed(1);
+    html += `<div class="wobble-bar">
+      <div class="wb-label" style="color:${colors[p]}">${names[p]}</div>
+      <div class="wb-track"><div class="wb-fill" style="width:${pct}%;background:${colors[p]}"></div></div>
+      <div class="wb-pct" style="color:${colors[p]}">${pct}%</div>
+    </div>`;
+  }
+  html += `<p class="small dim" style="margin-top:8px">
+    Position 3 tolerates 2 out of 3 mutations &mdash; the genetic code has built-in error correction.
+    This is nature's L channel: protection through redundancy in the ring.
+  </p>`;
+  document.getElementById('wobble-wrap').innerHTML = html;
+}
+
+// === AA GRID ===
+function buildAAGrid() {
+  let html = '';
+  for (let a = 0; a < 21; a++) {
+    const col = aaColor(a);
+    html += `<div class="aa-card" onclick="showCRT(${a},'')">
+      <div class="aa-letter" style="color:${col}">${AA1[a]}</div>
+      <div style="font-size:12px;color:#aaa">${AA3[a]}</div>
+      <div class="aa-info">
+        <span style="color:#ff9944">%3=${a%3}</span>
+        <span style="color:#4488ff">%7=${a%7}</span>
+        <span style="color:#888">d=${degen[a]}</span>
+      </div>
+    </div>`;
+  }
+  document.getElementById('aa-grid').innerHTML = html;
+}
+
+// === INIT ===
+buildCodonTable();
+buildWobble();
+buildAAGrid();
+
+// Start with a hint in the translator
+document.getElementById('translation').innerHTML =
+  '<div class="center dim small">Type a DNA sequence above, or click an example.</div>';
+</script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Nuclear magic numbers from the axiom. The shell model IS the ring. Interactive periodic table, binding energy, axiom walk.">
+<title>Nuclear Shells | antonlebed.com</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#050508;color:#c8c8c8;font-family:Georgia,'Times New Roman',serif;
+     line-height:1.8;overflow-x:hidden}
+a{color:#88aaff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.back{position:fixed;top:20px;left:20px;font-size:13px;color:#555;
+      z-index:100;letter-spacing:1px}
+.back:hover{color:#ffd700}
+
+section{padding:60px 24px;display:flex;flex-direction:column;
+        align-items:center;max-width:960px;margin:0 auto}
+section.hero{min-height:70vh;justify-content:center;text-align:center}
+
+h1{font-size:42px;color:#fff;font-weight:normal;letter-spacing:2px;margin-bottom:16px}
+h2{font-size:28px;color:#fff;text-align:center;margin-bottom:24px;
+   font-weight:normal;letter-spacing:2px}
+h3{font-size:20px;color:#c8a832;margin:24px 0 12px;font-weight:normal}
+p{margin-bottom:18px;font-size:17px;max-width:720px}
+.gold{color:#ffd700;font-weight:bold}
+.mono{font-family:'Courier New',monospace}
+.dim{color:#777}
+.center{text-align:center}
+.small{font-size:14px;color:#888}
+.divider{width:60px;height:1px;background:#222;margin:40px auto}
+
+/* --- MAGIC NUMBERS --- */
+#magic-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:24px 0}
+.magic-card{background:#08080e;border:1px solid #1a1a2a;border-radius:12px;
+            padding:16px 12px;text-align:center;min-width:90px;transition:all 0.3s;cursor:pointer}
+.magic-card:hover{border-color:#ffd700;transform:translateY(-4px)}
+.magic-card.active{border-color:#ffd700;background:#0c0c18}
+.magic-num{font-size:28px;color:#ffd700;font-family:'Courier New',monospace;font-weight:bold}
+.magic-factor{font-size:12px;color:#888;font-family:'Courier New',monospace;margin-top:4px}
+.magic-ratio{font-size:11px;color:#555;margin-top:2px}
+
+/* --- AXIOM WALK --- */
+#walk{display:flex;align-items:center;gap:0;justify-content:center;flex-wrap:wrap;margin:24px 0}
+.walk-num{font-size:22px;color:#fff;font-family:'Courier New',monospace;
+          background:#08080e;border:1px solid #1a1a2a;border-radius:8px;padding:8px 14px}
+.walk-arrow{font-size:16px;color:#333;padding:0 4px;font-family:'Courier New',monospace}
+.walk-ratio{font-size:11px;color:#c8a832;text-align:center;display:block}
+
+/* --- PERIODIC TABLE --- */
+#ptable-wrap{width:100%;max-width:900px;margin:24px 0;overflow-x:auto}
+#ptable{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;min-width:600px}
+.elem{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      border-radius:4px;cursor:pointer;transition:all 0.2s;font-family:'Courier New',monospace;
+      position:relative;border:1px solid transparent}
+.elem:hover{transform:scale(1.3);z-index:10;border-color:#fff}
+.elem-z{font-size:8px;color:rgba(255,255,255,0.5)}
+.elem-sym{font-size:11px;font-weight:bold;color:#fff}
+.elem.magic{box-shadow:0 0 6px rgba(255,215,0,0.4)}
+.elem.fe{box-shadow:0 0 8px rgba(255,64,64,0.6)}
+
+/* --- INFO PANEL --- */
+#info{width:100%;max-width:700px;background:#08080e;border:1px solid #1a1a2a;
+      border-radius:12px;padding:24px;margin:24px 0;min-height:120px;
+      font-family:'Courier New',monospace;font-size:14px;transition:all 0.3s}
+#info .label{color:#555;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+#info .value{color:#ffd700;font-size:18px;margin:4px 0 12px}
+
+/* --- BINDING ENERGY --- */
+#binding-wrap{width:100%;max-width:700px;margin:24px 0;text-align:center}
+#binding-bar{height:32px;background:#111;border-radius:16px;overflow:hidden;
+             position:relative;margin:12px 0}
+#binding-fill{height:100%;border-radius:16px;background:linear-gradient(90deg,#4488ff,#ffd700)}
+#binding-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+               font-family:'Courier New',monospace;font-size:13px;color:#fff;font-weight:bold;
+               text-shadow:0 0 4px #000}
+
+/* --- CONTRAST --- */
+.contrast{width:100%;border-collapse:collapse;font-size:13px;max-width:700px}
+.contrast th{text-align:left;color:#555;font-weight:normal;padding:6px 8px;
+             text-transform:uppercase;letter-spacing:1px;font-size:11px;
+             border-bottom:1px solid #1a1a2a}
+.contrast td{padding:8px;color:#aaa;border-bottom:1px solid #0a0a14;vertical-align:top}
+.contrast .us{color:#ffd700}
+.contrast .them{color:#88aaff}
+
+/* --- SHELL DIAGRAM --- */
+#shells{width:100%;max-width:700px;margin:24px 0}
+.shell-row{display:flex;align-items:center;gap:12px;padding:8px 0;
+           border-bottom:1px solid #0a0a14}
+.shell-n{width:24px;color:#555;font-family:'Courier New',monospace;font-size:13px;text-align:right}
+.shell-bar{flex:1;height:20px;background:#111;border-radius:4px;overflow:hidden;position:relative}
+.shell-fill{height:100%;border-radius:4px}
+.shell-label{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+             font-family:'Courier New',monospace;font-size:11px;color:#fff}
+.shell-magic{font-family:'Courier New',monospace;font-size:12px;color:#ffd700;
+             min-width:40px;text-align:right}
+.shell-factor{font-family:'Courier New',monospace;font-size:11px;color:#555;min-width:80px}
+
+footer{text-align:center;padding:40px 24px;font-size:13px;color:#333}
+
+@media(max-width:600px){
+  h1{font-size:28px}
+  .magic-card{min-width:70px;padding:10px 8px}
+  .magic-num{font-size:22px}
+}
+@media(max-width:480px){
+  h1{font-size:22px}
+  section{padding:24px 10px}
+  .magic-card{min-width:60px;padding:8px 6px}
+  .magic-num{font-size:18px}
+  canvas{max-width:100%;height:auto}
+  button{min-height:44px}
+  .contrast td,.contrast th{padding:4px 6px;font-size:12px}
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+
+<section class="hero">
+  <h1>Nuclear Shells</h1>
+  <p class="dim" style="font-size:15px;max-width:600px;margin:0 auto 12px">
+    Why are some nuclei magically stable? Because the shell model IS the axiom.
+  </p>
+  <p class="dim" style="font-size:15px;max-width:600px;margin:0 auto 32px">
+    Seven magic numbers. All multiples of 2. Six of seven built from {2, 3, 5, 7} alone.
+    The exception &mdash; 82 = 2 &times; 41 &mdash; marks the last stable element (lead).
+  </p>
+
+  <h3>The Magic Numbers</h3>
+  <div id="magic-row"></div>
+
+  <h3>The Axiom Walk</h3>
+  <p class="small center">Each magic number divided by the previous = an axiom ratio. Always.</p>
+  <div id="walk"></div>
+</section>
+
+<section>
+  <h2>Shell Structure</h2>
+  <p class="small center">Harmonic oscillator shells. Occupancy per shell = the axiom's Cunningham map at work.</p>
+  <div id="shells"></div>
+
+  <div class="divider"></div>
+
+  <h2>Iron-56: The Most Stable Nucleus</h2>
+  <p class="center" style="font-size:15px">
+    Binding energy per nucleon:<br>
+    <span class="mono gold">B/A = K^2 - 1/E - 1/(G+D) = 9 - 0.2 - 1/99 = 8.7899 MeV</span><br>
+    <span class="dim">Measured: 8.7903 MeV. Error: 46 ppm.</span>
+  </p>
+  <div id="binding-wrap">
+    <div id="binding-bar">
+      <div id="binding-fill" style="width:97.7%"></div>
+      <div id="binding-label">8.7899 vs 8.7903 MeV (46 ppm)</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Periodic Table</h2>
+  <p class="small center">Click any element. Color = axiom smoothness (gold = all prime factors in {2,3,5,7,11}, blue = outsider prime). Magic-Z elements glow.</p>
+  <div id="ptable-wrap">
+    <div id="ptable"></div>
+  </div>
+  <div id="info">
+    <div class="label">Click an element above</div>
+    <div class="value" style="color:#555">---</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Why This Matters</h3>
+  <table class="contrast">
+    <tr>
+      <th></th>
+      <th>Axiom Derivation</th>
+      <th>Standard Shell Model</th>
+    </tr>
+    <tr>
+      <td style="color:#555">Magic numbers</td>
+      <td class="us">All D-multiples: {D, D^3, D^2*E, D^2*b, D*E^2, D*41, D*K^2*b}</td>
+      <td class="them">Fitted from experiment (Mayer/Jensen 1949)</td>
+    </tr>
+    <tr>
+      <td style="color:#555">Ratios</td>
+      <td class="us">D^2, E/D, b/E &mdash; exact axiom primes</td>
+      <td class="them">No structural pattern recognized</td>
+    </tr>
+    <tr>
+      <td style="color:#555">Fe-56 binding</td>
+      <td class="us">K^2 - 1/E - 1/(G+D) = 8.7899 MeV (46 ppm)</td>
+      <td class="them">Semi-empirical mass formula (~0.5% error)</td>
+    </tr>
+    <tr>
+      <td style="color:#555">Smoothness</td>
+      <td class="us">6/7 axiom-smooth (86%). Exception = stability boundary.</td>
+      <td class="them">No algebraic characterization</td>
+    </tr>
+    <tr>
+      <td style="color:#555">Shell gaps</td>
+      <td class="us">6/6 axiom-smooth: {D*K, D^2*K, D^3, D*L, D^5, D^2*L}</td>
+      <td class="them">Fitted spin-orbit potential parameters</td>
+    </tr>
+    <tr>
+      <td style="color:#555">Foundation</td>
+      <td class="us">Five primes, CRT, zero free parameters</td>
+      <td class="them">15+ adjustable parameters</td>
+    </tr>
+  </table>
+</section>
+
+
+<script>
+// Axiom primes
+const D=2, K=3, E=5, b=7, L=11, G=97, KEY=41;
+
+// Magic numbers
+const MAGIC = [
+  {n:2,   factor:'D',        expr:'2'},
+  {n:8,   factor:'D^3',      expr:'2^3'},
+  {n:20,  factor:'D^2*E',    expr:'2^2 * 5'},
+  {n:28,  factor:'D^2*b',    expr:'2^2 * 7'},
+  {n:50,  factor:'D*E^2',    expr:'2 * 5^2'},
+  {n:82,  factor:'D*KEY',    expr:'2 * 41'},
+  {n:126, factor:'D*K^2*b',  expr:'2 * 3^2 * 7'}
+];
+
+// Consecutive ratios
+const RATIOS = [
+  {from:2,to:8,   ratio:'8/2 = D^2 = 4'},
+  {from:8,to:20,  ratio:'20/8 = E/D = 2.5'},
+  {from:20,to:28, ratio:'28/20 = b/E = 1.4'},
+  {from:28,to:50, ratio:'50/28 = E^2/(D*b) = 25/14'},
+  {from:50,to:82, ratio:'82/50 = KEY/E^2 = 41/25'},
+  {from:82,to:126,ratio:'126/82 = K^2*b/(KEY) = 63/41'}
+];
+
+// Shell structure (HO shells)
+const SHELLS = [
+  {n:0, occ:2,   cum:2,   magic:true, factor:'D',     gap:''},
+  {n:1, occ:6,   cum:8,   magic:true, factor:'D*K',   gap:'D*K = 6'},
+  {n:2, occ:12,  cum:20,  magic:true, factor:'D^2*K', gap:'D^2*K = 12'},
+  {n:3, occ:8,   cum:28,  magic:true, factor:'D^3',   gap:'D^3 = 8'},
+  {n:3, occ:22,  cum:50,  magic:true, factor:'D*L',   gap:'D*L = 22'},
+  {n:4, occ:32,  cum:82,  magic:true, factor:'D^5',   gap:'D^5 = 32'},
+  {n:5, occ:44,  cum:126, magic:true, factor:'D^2*L', gap:'D^2*L = 44'}
+];
+
+// Build magic number row
+const magicRow = document.getElementById('magic-row');
+MAGIC.forEach((m, i) => {
+  const card = document.createElement('div');
+  card.className = 'magic-card';
+  card.innerHTML = '<div class="magic-num">' + m.n + '</div>' +
+    '<div class="magic-factor">' + m.factor + '</div>' +
+    '<div class="magic-ratio">' + m.expr + '</div>';
+  card.onclick = () => {
+    document.querySelectorAll('.magic-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    showMagicInfo(m, i);
+  };
+  magicRow.appendChild(card);
+});
+
+// Build axiom walk
+const walkDiv = document.getElementById('walk');
+let walkHtml = '';
+MAGIC.forEach((m, i) => {
+  walkHtml += '<div class="walk-num">' + m.n + '</div>';
+  if (i < MAGIC.length - 1) {
+    const r = RATIOS[i];
+    walkHtml += '<div class="walk-arrow">&rarr;<span class="walk-ratio">' +
+      r.ratio.split('=')[1].trim() + '</span></div>';
+  }
+});
+walkDiv.innerHTML = walkHtml;
+
+// Build shell diagram
+const shellsDiv = document.getElementById('shells');
+const maxOcc = 44;
+SHELLS.forEach(s => {
+  const pct = (s.occ / maxOcc) * 100;
+  const colors = ['#ff4040','#ff9900','#33dd55','#4488ff','#aa44ff','#ff6688','#ffd700'];
+  const color = colors[SHELLS.indexOf(s) % colors.length];
+  const row = document.createElement('div');
+  row.className = 'shell-row';
+  row.innerHTML =
+    '<div class="shell-n">n=' + s.n + '</div>' +
+    '<div class="shell-bar"><div class="shell-fill" style="width:' + pct + '%;background:' + color + '"></div>' +
+      '<div class="shell-label">' + s.occ + '</div></div>' +
+    '<div class="shell-magic">' + (s.magic ? s.cum : '') + '</div>' +
+    '<div class="shell-factor">' + s.factor + '</div>';
+  shellsDiv.appendChild(row);
+});
+
+function showMagicInfo(m, i) {
+  const info = document.getElementById('info');
+  let html = '<div class="label">Magic Number</div><div class="value">' + m.n + ' = ' + m.factor + '</div>';
+  html += '<div style="color:#888;font-size:13px">' + m.n + ' = ' + m.expr + '</div>';
+  if (m.n === 82) {
+    html += '<div style="color:#ff6644;margin-top:8px;font-size:13px">The sole non-smooth magic number. ' +
+      'KEY = 41 is the depth quadratic: b^2 - b + 1 = 43, or (2b)^2 - (2b-1)^2 + ... ' +
+      'It marks Z = 82 (lead) as the last stable element.</div>';
+  }
+  if (i > 0) {
+    const r = RATIOS[i-1];
+    html += '<div style="color:#555;margin-top:8px;font-size:13px">Ratio from previous: ' + r.ratio + '</div>';
+  }
+  if (m.n === 28) {
+    html += '<div style="color:#c8a832;margin-top:8px;font-size:13px">28 = the second perfect number = sum of axiom legs (sigma+D+K+E+b+L) = THORNS.</div>';
+  }
+  info.innerHTML = html;
+}
+
+// Periodic table
+function isSmooth(n) {
+  if (n <= 1) return true;
+  let x = n;
+  [2,3,5,7,11].forEach(p => { while (x % p === 0) x /= p; });
+  return x === 1;
+}
+
+function factorize(n) {
+  if (n <= 1) return '1';
+  const factors = [];
+  let x = n;
+  [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47].forEach(p => {
+    let count = 0;
+    while (x % p === 0) { x /= p; count++; }
+    if (count > 0) factors.push(count > 1 ? p + '^' + count : '' + p);
+  });
+  if (x > 1) factors.push('' + x);
+  return factors.join(' * ');
+}
+
+// Element data: [Z, symbol, row, col]
+const ELEMENTS = [
+  [1,'H',1,1],[2,'He',1,18],
+  [3,'Li',2,1],[4,'Be',2,2],[5,'B',2,13],[6,'C',2,14],[7,'N',2,15],[8,'O',2,16],[9,'F',2,17],[10,'Ne',2,18],
+  [11,'Na',3,1],[12,'Mg',3,2],[13,'Al',3,13],[14,'Si',3,14],[15,'P',3,15],[16,'S',3,16],[17,'Cl',3,17],[18,'Ar',3,18],
+  [19,'K',4,1],[20,'Ca',4,2],[21,'Sc',4,3],[22,'Ti',4,4],[23,'V',4,5],[24,'Cr',4,6],[25,'Mn',4,7],[26,'Fe',4,8],
+  [27,'Co',4,9],[28,'Ni',4,10],[29,'Cu',4,11],[30,'Zn',4,12],[31,'Ga',4,13],[32,'Ge',4,14],[33,'As',4,15],
+  [34,'Se',4,16],[35,'Br',4,17],[36,'Kr',4,18],
+  [37,'Rb',5,1],[38,'Sr',5,2],[39,'Y',5,3],[40,'Zr',5,4],[41,'Nb',5,5],[42,'Mo',5,6],[43,'Tc',5,7],[44,'Ru',5,8],
+  [45,'Rh',5,9],[46,'Pd',5,10],[47,'Ag',5,11],[48,'Cd',5,12],[49,'In',5,13],[50,'Sn',5,14],[51,'Sb',5,15],
+  [52,'Te',5,16],[53,'I',5,17],[54,'Xe',5,18],
+  [55,'Cs',6,1],[56,'Ba',6,2],[57,'La',6,3],[72,'Hf',6,4],[73,'Ta',6,5],[74,'W',6,6],[75,'Re',6,7],[76,'Os',6,8],
+  [77,'Ir',6,9],[78,'Pt',6,10],[79,'Au',6,11],[80,'Hg',6,12],[81,'Tl',6,13],[82,'Pb',6,14],[83,'Bi',6,15],
+  [84,'Po',6,16],[85,'At',6,17],[86,'Rn',6,18],
+  [87,'Fr',7,1],[88,'Ra',7,2],[89,'Ac',7,3],[104,'Rf',7,4],[105,'Db',7,5],[106,'Sg',7,6],[107,'Bh',7,7],
+  [108,'Hs',7,8],[109,'Mt',7,9],[110,'Ds',7,10],[111,'Rg',7,11],[112,'Cn',7,12],[113,'Nh',7,13],[114,'Fl',7,14],
+  [115,'Mc',7,15],[116,'Lv',7,16],[117,'Ts',7,17],[118,'Og',7,18],
+  // Lanthanides row 9
+  [58,'Ce',9,4],[59,'Pr',9,5],[60,'Nd',9,6],[61,'Pm',9,7],[62,'Sm',9,8],[63,'Eu',9,9],[64,'Gd',9,10],
+  [65,'Tb',9,11],[66,'Dy',9,12],[67,'Ho',9,13],[68,'Er',9,14],[69,'Tm',9,15],[70,'Yb',9,16],[71,'Lu',9,17],
+  // Actinides row 10
+  [90,'Th',10,4],[91,'Pa',10,5],[92,'U',10,6],[93,'Np',10,7],[94,'Pu',10,8],[95,'Am',10,9],[96,'Cm',10,10],
+  [97,'Bk',10,11],[98,'Cf',10,12],[99,'Es',10,13],[100,'Fm',10,14],[101,'Md',10,15],[102,'No',10,16],[103,'Lr',10,17]
+];
+
+const MAGIC_Z = new Set([2,8,20,28,50,82,126]);
+
+const ptable = document.getElementById('ptable');
+// Create 10x18 grid
+const cells = {};
+ELEMENTS.forEach(([z, sym, row, col]) => {
+  cells[row + '-' + col] = {z, sym};
+});
+
+for (let r = 1; r <= 10; r++) {
+  for (let c = 1; c <= 18; c++) {
+    const el = document.createElement('div');
+    const data = cells[r + '-' + c];
+    if (!data) {
+      el.className = 'elem';
+      el.style.visibility = 'hidden';
+      // spacer for lanthanide/actinide gap
+      if (r === 8) { el.style.display = 'none'; }
+    } else {
+      const z = data.z;
+      const smooth = isSmooth(z);
+      const isMagic = MAGIC_Z.has(z);
+      const isFe = z === 26;
+      el.className = 'elem' + (isMagic ? ' magic' : '') + (isFe ? ' fe' : '');
+      const hue = smooth ? 45 : 220; // gold vs blue
+      const sat = smooth ? '80%' : '60%';
+      const light = Math.max(15, 35 - Math.floor(z / 5)) + '%';
+      el.style.background = 'hsl(' + hue + ',' + sat + ',' + light + ')';
+      el.innerHTML = '<div class="elem-z">' + z + '</div><div class="elem-sym">' + data.sym + '</div>';
+      el.onclick = () => showElementInfo(z, data.sym);
+    }
+    ptable.appendChild(el);
+  }
+}
+
+function showElementInfo(z, sym) {
+  const info = document.getElementById('info');
+  const smooth = isSmooth(z);
+  const factors = factorize(z);
+  const isMagic = MAGIC_Z.has(z);
+
+  let html = '<div class="label">Element Z = ' + z + '</div>';
+  html += '<div class="value">' + sym + ' &mdash; ' + z + ' = ' + factors + '</div>';
+
+  if (smooth) {
+    html += '<div style="color:#ffd700;font-size:13px">Axiom-smooth: all prime factors in {2, 3, 5, 7, 11}.</div>';
+  } else {
+    html += '<div style="color:#88aaff;font-size:13px">Contains outsider prime(s). Not axiom-smooth.</div>';
+  }
+
+  if (isMagic) {
+    const m = MAGIC.find(x => x.n === z);
+    html += '<div style="color:#ffd700;margin-top:8px;font-size:13px">MAGIC NUMBER: ' + z + ' = ' + m.factor +
+      '. Nuclei with Z or N = ' + z + ' protons/neutrons are exceptionally stable.</div>';
+  }
+
+  if (z === 26) {
+    html += '<div style="color:#ff6644;margin-top:8px;font-size:13px">IRON-56: most stable nucleus. ' +
+      'Z = 26 = 2 * 13 (D * GATE). B/A = K^2 - 1/E - 1/(G+D) = 8.7899 MeV/nucleon (46 ppm).</div>';
+  }
+
+  if (z === 82) {
+    html += '<div style="color:#ff6644;margin-top:8px;font-size:13px">LEAD-208: doubly magic (Z=82, N=126). ' +
+      'Last stable element. 82 = 2 * 41 (D * KEY). The boundary where the axiom gates close.</div>';
+  }
+
+  if (z === 50) {
+    html += '<div style="color:#c8a832;margin-top:8px;font-size:13px">TIN: most stable isotopes (10). ' +
+      '50 = 2 * 25 = D * E^2. Wonder squared, paired by duality.</div>';
+  }
+
+  // Cosmic abundance note for top elements
+  const abundant = {1:'Most abundant element',2:'2nd most abundant',8:'3rd most abundant (by mass in crust)',
+    6:'4th most abundant (in universe)',26:'Peak of binding curve',14:'2nd in crust'};
+  if (abundant[z]) {
+    html += '<div style="color:#555;margin-top:8px;font-size:12px">' + abundant[z] + '.</div>';
+  }
+
+  info.innerHTML = html;
+}
+</script>
+</body>
+</html>

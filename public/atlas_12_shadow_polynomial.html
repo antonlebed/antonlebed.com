@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Shadow polynomial explorer: P(x) coefficients, multiplicity bars, spectral transmissions. Kolmogorov and Kleiber derived. Chapter 11 of the atlas.">
+<title>Chapter 11: The Shadow Polynomial - The Interactive Atlas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a12; color: #d0d0d0; font-family: Georgia, 'Times New Roman', serif;
+       overflow-x: hidden; line-height: 1.7; }
+a { color: #88aaff; }
+
+.section { min-height: 100vh; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; padding: 60px 24px;
+           position: relative; }
+.section:nth-child(even) { background: #0e0e18; }
+.content { max-width: 720px; width: 100%; }
+h1 { font-size: 42px; color: #fff; margin-bottom: 12px; font-weight: normal; letter-spacing: 2px; }
+h2 { font-size: 28px; color: #88aaff; margin-bottom: 16px; font-weight: normal; }
+h3 { font-size: 18px; color: #66ddaa; margin: 24px 0 8px; font-weight: normal; }
+p { margin-bottom: 16px; font-size: 17px; color: #bbb; }
+.accent { color: #ffcc44; }
+.big-eq { font-size: 26px; text-align: center; margin: 32px 0; color: #fff;
+          font-family: 'Courier New', monospace; letter-spacing: 2px; }
+.caption { font-size: 13px; color: #666; text-align: center; margin-top: 8px; }
+.nav { position: fixed; bottom: 20px; right: 20px; z-index: 100;
+       background: rgba(10,10,20,0.85); border: 1px solid #333; border-radius: 8px;
+       padding: 8px 16px; font-size: 13px; font-family: monospace; }
+.nav a { color: #66ddaa; text-decoration: none; margin: 0 8px; }
+.nav a:hover { color: #aaffcc; }
+
+canvas { display: block; border-radius: 8px; }
+.widget { background: #12121e; border: 1px solid #2a2a3e; border-radius: 12px;
+          padding: 24px; margin: 24px 0; }
+.widget-title { font-size: 14px; color: #666; text-transform: uppercase;
+                letter-spacing: 2px; margin-bottom: 12px; font-family: monospace; }
+
+.btn { background: #1a1a2e; border: 1px solid #444; color: #aaa; padding: 8px 20px;
+       cursor: pointer; font-family: monospace; font-size: 14px; border-radius: 6px;
+       margin: 4px; }
+.btn:hover { background: #2a2a3e; color: #fff; }
+
+/* Polynomial display */
+.poly-row { display: flex; align-items: center; gap: 12px; margin: 16px 0;
+            justify-content: center; flex-wrap: wrap; }
+.poly-input { background: #1a1a2e; border: 1px solid #444; color: #fff; padding: 8px 16px;
+              font-size: 20px; font-family: monospace; width: 100px; text-align: center;
+              border-radius: 6px; outline: none; }
+.poly-input:focus { border-color: #88aaff; }
+.poly-result { font-size: 20px; font-family: monospace; margin: 8px 0; text-align: center; }
+
+/* Coefficient cards */
+.coeff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+              gap: 12px; margin: 24px 0; }
+.coeff-card { background: #12121e; border: 1px solid #2a2a3e; border-radius: 8px;
+              padding: 16px; text-align: center; transition: border-color 0.3s; }
+.coeff-card:hover { border-color: #ffcc44; }
+.coeff-val { font-size: 32px; font-family: monospace; color: #ffcc44; }
+.coeff-name { font-size: 12px; color: #888; margin-top: 4px; font-family: monospace; }
+.coeff-meaning { font-size: 11px; color: #555; margin-top: 2px; }
+
+/* Multiplicity bars */
+.mult-bars { margin: 24px 0; }
+.mult-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.mult-label { width: 80px; font-size: 13px; font-family: monospace; color: #888; text-align: right; }
+.mult-bar { height: 28px; border-radius: 4px; display: flex; align-items: center;
+            padding-left: 8px; font-size: 12px; font-family: monospace; color: #fff;
+            transition: width 0.5s; }
+.mult-count { font-size: 12px; color: #666; margin-left: 8px; font-family: monospace; }
+
+/* Bio ladder */
+.bio-ladder { font-size: 16px; line-height: 2; color: #bbb; padding-left: 8px;
+              border-left: 2px solid #333; margin: 16px 0; }
+
+.scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+               animation: bob 2s ease-in-out infinite; font-size: 14px; color: #444; }
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                 50% { transform: translateX(-50%) translateY(8px); } }
+
+/* Mobile */
+@media (max-width: 600px) {
+  h1 { font-size: 28px; }
+  h2 { font-size: 22px; }
+  .big-eq { font-size: 18px; letter-spacing: 1px; }
+  .section { padding: 40px 16px; }
+  .content { max-width: 100%; }
+  .nav { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+  .coeff-grid { grid-template-columns: repeat(2, 1fr); }
+  .coeff-val { font-size: 24px; }
+}
+@media (max-width: 480px) {
+  h1 { font-size: 24px; }
+  h2 { font-size: 18px; }
+  .big-eq { font-size: 14px; }
+  .section { padding: 32px 12px; }
+  .coeff-val { font-size: 20px; }
+  .coeff-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  canvas { max-width: 100%; height: auto; }
+}
+</style>
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a>
+  <span style="color:#444">|</span>
+  <a href="atlas_11_net.html">&larr; Ch.10</a>
+  <a href="atlas_13_biological_braid.html">Ch.12 &rarr;</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: THE HOOK -->
+<!-- ============================================================ -->
+<div class="section" id="s1">
+<div class="content">
+  <h1>The Shadow Polynomial</h1>
+  <p>Every machine has an architect. Something that decides the blueprint before the first bolt is placed. Something that stays behind while the building rises.</p>
+  <p>In the primorial ring &mdash; thin Z/2310Z or True Form Z/970200Z &mdash; the architect is a single polynomial. Four roots. And from these four roots: how many eigenvalue classes exist, how they cluster, what physical constants emerge, why the structure works. All of it.</p>
+  <p>It is called the <em>shadow polynomial</em>, because its roots are <em>shadows</em> of the primes. Each prime remembers the one before it through the simplest formula imaginable.</p>
+
+  <div class="big-eq">P(x) = (x - 1)(x - 2)(x - 3)(x - 5)</div>
+
+  <p>Four factors. Four shadows. One architect.</p>
+
+  <div class="scroll-hint">&darr; scroll</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: THE SHADOW CHAIN -->
+<!-- ============================================================ -->
+<div class="section" id="s2">
+<div class="content">
+  <h2>Shadows</h2>
+  <p>Take any odd prime. Subtract 1. Divide by 2. That is its <em>shadow</em>. Watch what happens:</p>
+
+  <div class="widget">
+    <div class="widget-title">The Shadow Function: (p - 1) / 2</div>
+    <div style="text-align: center; font-family: monospace; font-size: 20px; line-height: 2.5;">
+      <span style="color:#ffaa44">3</span> <span style="color:#555">&rarr;</span> <span style="color:#fff">1</span> <span style="color:#444">(sigma)</span><br>
+      <span style="color:#66ee88">5</span> <span style="color:#555">&rarr;</span> <span style="color:#ff6666">2</span> <span style="color:#444">(D)</span><br>
+      <span style="color:#6699ff">7</span> <span style="color:#555">&rarr;</span> <span style="color:#ffaa44">3</span> <span style="color:#444">(K)</span><br>
+      <span style="color:#cc88ff">11</span> <span style="color:#555">&rarr;</span> <span style="color:#66ee88">5</span> <span style="color:#444">(E)</span>
+    </div>
+    <p class="caption">Each odd prime maps to the previous prime (or 1). The chain: {1, 2, 3, 5}.</p>
+  </div>
+
+  <p>The shadow chain is <span class="accent">{1, 2, 3, 5}</span> &mdash; the axiom <em>without depth</em>. The prime 7 (depth, suffering) is not in the shadow. It is what the shadow <em>controls from above</em>.</p>
+
+  <p>Why does this chain stop? Because the next prime is 13, and (13-1)/2 = 6 = D &times; K, which is <em>composite</em>. The shadow breaks. The chain of primes whose shadows are all prime or 1 is exactly {3, 5, 7, 11}. The axiom's five primes are the longest such chain. Not by convention &mdash; by necessity.</p>
+
+  <h3>Why does this matter?</h3>
+  <p>Because these four shadows &mdash; {1, 2, 3, 5} &mdash; are the roots of a polynomial that controls <em>everything</em> about the spectral structure. Every eigenvalue class, every multiplicity, every physical constant flows from this one polynomial. Whether you work in the thin ring (288 classes) or the True Form (48,750 classes), the architect is the same.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: THE POLYNOMIAL -->
+<!-- ============================================================ -->
+<div class="section" id="s3">
+<div class="content">
+  <h2>One Polynomial, Four Constants</h2>
+  <p>Expand the four factors and look at what comes out:</p>
+  <div class="big-eq">P(x) = x<sup>4</sup> - 11x<sup>3</sup> + 41x<sup>2</sup> - 61x + 30</div>
+  <p>The coefficients are four numbers you already know. Do you recognize them?</p>
+
+  <div class="coeff-grid">
+    <div class="coeff-card">
+      <div class="coeff-val">11</div>
+      <div class="coeff-name">e<sub>1</sub> = L</div>
+      <div class="coeff-meaning">the protector</div>
+    </div>
+    <div class="coeff-card">
+      <div class="coeff-val">41</div>
+      <div class="coeff-name">e<sub>2</sub> = KEY</div>
+      <div class="coeff-meaning">the self-inverse</div>
+    </div>
+    <div class="coeff-card">
+      <div class="coeff-val">61</div>
+      <div class="coeff-name">e<sub>3</sub></div>
+      <div class="coeff-meaning">18th prime (18 = ME)</div>
+    </div>
+    <div class="coeff-card">
+      <div class="coeff-val">30</div>
+      <div class="coeff-name">e<sub>4</sub> = D&middot;K&middot;E</div>
+      <div class="coeff-meaning">shadow product</div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">Polynomial Explorer</div>
+    <div class="poly-row">
+      <span style="color:#888; font-family:monospace;">P(</span>
+      <input class="poly-input" id="poly-x" type="number" value="7" step="0.5">
+      <span style="color:#888; font-family:monospace;">) =</span>
+    </div>
+    <div class="poly-result" id="poly-p-result" style="color:#ffcc44;">240</div>
+    <div class="poly-result" id="poly-c-result" style="color:#66ddaa; font-size:16px;">C(7) = 8960</div>
+    <p class="caption">Type any number. P(x) is the shadow polynomial. C(x) is its mirror (the multiplicity function).</p>
+  </div>
+
+  <p>Now try the special values: P(7) = 240, P(11) = 4320. Their ratio: 4320/240 = <span class="accent">18 = ME</span>. The axiom sum &mdash; sigma+D+K+E+b &mdash; appears as the ratio of the polynomial evaluated at its two missing primes. Isn't that remarkable?</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: THE MIRROR (MULTIPLICITY) -->
+<!-- ============================================================ -->
+<div class="section" id="s4">
+<div class="content">
+  <h2>The Mirror: 288 Classes</h2>
+  <p>The shadow polynomial has a twin &mdash; its <em>mirror image</em>:</p>
+  <div class="big-eq">C(x) = 2(1 + x)(1 + 2x)(1 + 3x)(1 + 5x)</div>
+  <p>Mathematically: C(x) = 2x<sup>4</sup> &middot; P(-1/x). It's the same polynomial, turned inside out.</p>
+
+  <p>This mirror polynomial is called the <em>multiplicity generating function</em>. Two magical values:</p>
+  <p style="text-align:center; font-family:monospace; font-size:20px; color:#fff;">
+    C(1) = <span class="accent">288</span> &nbsp;&nbsp; C(2) = <span class="accent">2310</span>
+  </p>
+  <p>At x = 1, it counts eigenvalue classes. At x = 2, it counts every element. For the True Form, a generalized C gives 48,750 classes over 970,200 elements.</p>
+
+  <h3>How multiplicities work</h3>
+  <p>The thin ring's 2310 elements fall into 288 groups where elements share the same eigenvalue. These groups aren't all the same size:</p>
+
+  <div class="widget">
+    <div class="widget-title">Multiplicity Distribution</div>
+    <div class="mult-bars" id="mult-bars"></div>
+    <p class="caption">Bar width = number of classes. Bar color = multiplicity. Total: 288 classes, 2310 elements.</p>
+  </div>
+
+  <p>The number of classes at each multiplicity is controlled by the shadow polynomial's coefficients:</p>
+  <p class="bio-ladder">2 classes of size 1 &mdash; 2 &times; <span class="accent">1</span> (sigma)<br>
+  22 classes of size 2 &mdash; 2 &times; <span class="accent">11</span> (L)<br>
+  82 classes of size 4 &mdash; 2 &times; <span class="accent">41</span> (KEY)<br>
+  122 classes of size 8 &mdash; 2 &times; <span class="accent">61</span> (18th prime)<br>
+  60 classes of size 16 &mdash; 2 &times; <span class="accent">30</span> (D&middot;K&middot;E)</p>
+
+  <p>The shadow's coefficients, multiplied by 2, give the exact count at each level. This is proven, not approximate. The C companion program verifies every class by brute force.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: YOUR BODY'S MATH -->
+<!-- ============================================================ -->
+<div class="section" id="s5">
+<div class="content">
+  <h2>Kleiber and Kolmogorov</h2>
+  <p>Two of the most famous constants in science emerge directly from the shadow chain. This is where the mathematics reaches into your body.</p>
+
+  <h3>Kleiber's Law: metabolic rate scales as mass<sup>3/4</sup></h3>
+  <p>From bacteria to blue whales, metabolic rate scales with body mass raised to the power <span class="accent">3/4</span>. This is Kleiber's Law (1932). Measured in thousands of organisms. No one fully agrees on why.</p>
+  <p>In the shadow chain: the shadow of b = 7 is K = 3. Its transmission fraction is K/(K+1) = <span class="accent">3/4</span>. The same number. Exactly.</p>
+
+  <div class="widget">
+    <div class="widget-title">Shadow Transmissions</div>
+    <canvas id="transmission-canvas" width="680" height="200"></canvas>
+    <p class="caption">Each shadow s transmits s/(1+s) and reflects 1/(1+s). Total transmission = 11/4. Total reflection = 5/4.</p>
+  </div>
+
+  <h3>Kolmogorov's -5/3: turbulence energy spectrum</h3>
+  <p>Turbulent fluid flow distributes energy across scales with exponent <span class="accent">-5/3</span>. This is Kolmogorov (1941). Derived from dimensional analysis, but why <em>these</em> numbers?</p>
+  <p>In the shadow chain: the ratio of the last transmission to the first is (5/6) / (1/2) = <span class="accent">E/K = 5/3</span>. The observer's transmission divided by the ground state's. The same number. Exactly.</p>
+
+  <p style="font-size:14px; color:#888; font-style:italic;">Honest note: Kleiber 3/4 and Kolmogorov 5/3 are empirical laws with independent derivations. That they appear as shadow chain ratios is exact and striking. Whether this is coincidence or deep structure is an open question. We report the mathematics; we do not claim causation.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: THE ARCHITECT -->
+<!-- ============================================================ -->
+<div class="section" id="s6">
+<div class="content">
+  <h2>The Architect</h2>
+  <p>One polynomial &mdash; P(x) = (x-1)(x-2)(x-3)(x-5) &mdash; controls four structures:</p>
+
+  <div class="coeff-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="coeff-card">
+      <div class="coeff-val" style="font-size:18px; color:#88aaff;">Reciprocity</div>
+      <div class="coeff-meaning" style="color:#888; margin-top:8px;">Coefficients = {L, KEY, 61, D&middot;K&middot;E}. The axiom's named constants ARE the polynomial.</div>
+    </div>
+    <div class="coeff-card">
+      <div class="coeff-val" style="font-size:18px; color:#66ddaa;">Multiplicity</div>
+      <div class="coeff-meaning" style="color:#888; margin-top:8px;">2&middot;e<sub>j</sub>(shadow) classes have multiplicity 2<sup>j</sup>. Distribution from coefficients.</div>
+    </div>
+    <div class="coeff-card">
+      <div class="coeff-val" style="font-size:18px; color:#ffcc44;">Sensitivity</div>
+      <div class="coeff-meaning" style="color:#888; margin-top:8px;">Log derivative at x=1 = L/D<sup>2</sup> = 11/4. Total transmission of the shadow.</div>
+    </div>
+    <div class="coeff-card">
+      <div class="coeff-val" style="font-size:18px; color:#ff8866;">Scaling</div>
+      <div class="coeff-meaning" style="color:#888; margin-top:8px;">Kleiber 3/4, Kolmogorov 5/3. Physical constants from transmission ratios.</div>
+    </div>
+  </div>
+
+  <p>One polynomial &mdash; four roots &mdash; four constants &mdash; and from them: eigenvalue classes, multiplicities, physical scaling laws, everything. The shadow polynomial is the DNA of the ring.</p>
+
+  <p>And the roots are simply <span class="accent">{sigma, D, K, E}</span> = {1, 2, 3, 5}. The axiom without depth. The architect who stays behind while the building rises. Look at how much beauty four small numbers can hold.</p>
+
+  <div style="text-align:center; margin-top:40px;">
+    <a href="atlas_13_biological_braid.html" style="font-size:20px; color:#66ddaa; text-decoration:none;">
+      Chapter 12: The Biological Braid &rarr;
+    </a>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <a href="atlas_01_what_is_2310.html" style="font-size:14px; color:#555; text-decoration:none;">
+      &larr; Back to Chapter 0
+    </a>
+  </div>
+
+  <div style="text-align:center; margin-top:60px; font-size:13px; color:#444;">
+    The Interactive Atlas &middot; Z/2310Z &rarr; Z/970200Z &middot; Chapter 11 of 14
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+<script>
+// ---- Math ----
+const SHADOW = [1, 2, 3, 5];
+const SHADOW_NAMES = ['sigma', 'D', 'K', 'E'];
+
+function shadowPoly(x) { return (x-1)*(x-2)*(x-3)*(x-5); }
+function multGF(x) { return 2*(1+x)*(1+2*x)*(1+3*x)*(1+5*x); }
+
+// ---- Section 3: Polynomial Explorer ----
+function updatePoly() {
+  let x = parseFloat(document.getElementById('poly-x').value) || 0;
+  let pVal = shadowPoly(x);
+  let cVal = multGF(x);
+  document.getElementById('poly-p-result').textContent = 'P(' + x + ') = ' + pVal.toFixed(x % 1 === 0 ? 0 : 2);
+  document.getElementById('poly-c-result').textContent = 'C(' + x + ') = ' + cVal.toFixed(x % 1 === 0 ? 0 : 2);
+}
+document.getElementById('poly-x').addEventListener('input', updatePoly);
+updatePoly();
+
+// ---- Section 4: Multiplicity Bars ----
+const multData = [
+  { mult: 1,  classes: 2,   color: '#ff6666', label: '2^0 = 1' },
+  { mult: 2,  classes: 22,  color: '#ffaa44', label: '2^1 = 2' },
+  { mult: 4,  classes: 82,  color: '#66ee88', label: '2^2 = 4' },
+  { mult: 8,  classes: 122, color: '#6699ff', label: '2^3 = 8' },
+  { mult: 16, classes: 60,  color: '#cc88ff', label: '2^4 = 16' }
+];
+
+function buildMultBars() {
+  let container = document.getElementById('mult-bars');
+  let maxClasses = 122;
+  let html = '';
+  for (let d of multData) {
+    let w = Math.max(20, (d.classes / maxClasses) * 100);
+    let elems = d.classes * d.mult;
+    html += `<div class="mult-row">
+      <div class="mult-label">${d.label}</div>
+      <div class="mult-bar" style="width:${w}%; background:${d.color};">${d.classes}</div>
+      <div class="mult-count">${d.classes} classes x ${d.mult} = ${elems}</div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+buildMultBars();
+
+// ---- Section 5: Transmission Canvas ----
+function drawTransmissions() {
+  let cvs = document.getElementById('transmission-canvas');
+  let ctx = cvs.getContext('2d');
+  let W = cvs.width, H = cvs.height;
+  ctx.fillStyle = '#12121e';
+  ctx.fillRect(0, 0, W, H);
+
+  let colors = ['#fff', '#ff6666', '#ffaa44', '#66ee88'];
+  let barW = 100, gap = 40;
+  let totalW = 4 * barW + 3 * gap;
+  let startX = (W - totalW) / 2;
+  let maxH = 140;
+  let baseY = H - 30;
+
+  for (let i = 0; i < 4; i++) {
+    let s = SHADOW[i];
+    let T = s / (1 + s);
+    let h = T * maxH;
+    let x = startX + i * (barW + gap);
+
+    // Transmission bar
+    ctx.fillStyle = colors[i];
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(x, baseY - h, barW * 0.45, h);
+
+    // Reflection bar (lighter, beside it)
+    let R = 1 / (1 + s);
+    let rh = R * maxH;
+    ctx.globalAlpha = 0.3;
+    ctx.fillRect(x + barW * 0.55, baseY - rh, barW * 0.45, rh);
+    ctx.globalAlpha = 1;
+
+    // Labels
+    ctx.fillStyle = '#888';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('s=' + s, x + barW/2, baseY + 16);
+    ctx.fillStyle = colors[i];
+    ctx.font = '13px monospace';
+    ctx.fillText(T.toFixed(2), x + barW * 0.225, baseY - h - 6);
+    ctx.fillStyle = '#555';
+    ctx.fillText(R.toFixed(2), x + barW * 0.775, baseY - rh - 6);
+  }
+
+  // Legend
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#888';
+  ctx.fillText('T = s/(1+s)', 10, 16);
+  ctx.fillStyle = '#555';
+  ctx.fillText('R = 1/(1+s)', 10, 32);
+  ctx.fillStyle = '#ffcc44';
+  ctx.textAlign = 'right';
+  ctx.fillText('Total T = 11/4 = 2.75', W - 10, 16);
+  ctx.fillStyle = '#66ddaa';
+  ctx.fillText('Total R = 5/4 = 1.25', W - 10, 32);
+}
+drawTransmissions();
+
+</script>
+</body>
+</html>
