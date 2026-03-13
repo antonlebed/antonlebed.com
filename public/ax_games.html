@@ -16,6 +16,7 @@ h3{color:var(--acc2);font-size:1.1em;margin:20px 0 10px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:15px;margin:15px 0}
 .highlight{background:#1a1a2e;border-left:3px solid var(--acc);padding:10px 15px;margin:15px 0}
 canvas{display:block;margin:10px auto;border:1px solid var(--border);border-radius:8px;background:#000;width:600px;height:400px;image-rendering:pixelated}
+canvas:focus{outline:2px solid var(--acc);outline-offset:2px}
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
 .controls button{background:var(--acc);color:#000;border:none;padding:8px 18px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:bold;font-size:0.95em}
 .controls button:hover{background:#e5c04b}
@@ -174,141 +175,88 @@ raw_mode(1)
 set_ring(2310)
 
 fn tick(frame) = (
-  if frame == 0 then svar("pos", 1) else 0;
-  let pos = gvar("pos");
-
-  /* Input: left/right move, hold to scan */
+  let _init = if frame == 0 then svar("pos", 1) else 0
   let step = if keyPressed("ArrowRight") then 1
              else if keyPressed("ArrowLeft") then -1
-             else 0;
-  let newPos = pos + step;
-  let newPos2 = if newPos < 0 then 2309
-                else if newPos >= 2310 then 0
-                else newPos;
-  svar("pos", newPos2);
+             else 0
+  let pos = gvar("pos") + step
+  let p = if pos < 0 then 2309 else if pos >= 2310 then 0 else pos
+  let _sv = svar("pos", p)
 
-  /* Redraw every 3 frames */
   if frame % 3 == 0 then (
-    canvas_clear(0);
-    let ev = eigenvalue(newPos2);
-    let k = kingdom(newPos2);
-    let c = coupling(newPos2);
-
-    canvas_text(10, 25, "n = " + newPos2, 16, 8);
-    canvas_text(10, 50, "kingdom = " + k, 14, k);
-    canvas_text(10, 75, "coupling = " + c, 14, 8);
-
-    /* Eigenvalue bar */
-    let barH = abs_f(ev) / 10 * 150;
-    let barY = if ev > 0 then 250 - barH else 250;
-    let barColor = if ev > 0 then 3 else 2;
-    canvas_rect(250, barY, 100, barH, barColor);
-    canvas_text(250, 245, "eigenvalue", 12, 8);
-
-    /* CRT decomposition */
-    let cr = crt(newPos2);
-    canvas_text(420, 25, "CRT:", 14, 8);
-    canvas_text(420, 50, "mod 2 = " + cr[0], 12, 1);
-    canvas_text(420, 70, "mod 3 = " + cr[1], 12, 1);
-    canvas_text(420, 90, "mod 5 = " + cr[2], 12, 1);
-    canvas_text(420, 110, "mod 7 = " + cr[3], 12, 1);
-    canvas_text(420, 130, "mod 11 = " + cr[4], 12, 1);
-
-    /* Beep eigenvalue pitch */
-    if step != 0 then beep(300 + ev * 40, 60, 0.15) else 0;
-
+    let _cl = canvas_clear(0)
+    let ev = eigenvalue(p)
+    let k = kingdom(p)
+    let c = coupling(p)
+    let _t1 = canvas_text(10, 25, "n = " + p, 16, 8)
+    let _t2 = canvas_text(10, 50, "kingdom = " + k, 14, k)
+    let _t3 = canvas_text(10, 75, "coupling = " + c, 14, 8)
+    let barH = abs_f(ev) / 10 * 150
+    let barY = if ev > 0 then 250 - barH else 250
+    let barColor = if ev > 0 then 3 else 2
+    let _r1 = canvas_rect(250, barY, 100, barH, barColor)
+    let _t4 = canvas_text(250, 245, "eigenvalue", 12, 8)
+    let cr = crt(p)
+    let _c1 = canvas_text(420, 25, "CRT:", 14, 8)
+    let _c2 = canvas_text(420, 50, "mod 2 = " + cr[0], 12, 1)
+    let _c3 = canvas_text(420, 70, "mod 3 = " + cr[1], 12, 1)
+    let _c4 = canvas_text(420, 90, "mod 5 = " + cr[2], 12, 1)
+    let _c5 = canvas_text(420, 110, "mod 7 = " + cr[3], 12, 1)
+    let _c6 = canvas_text(420, 130, "mod 11 = " + cr[4], 12, 1)
+    let _bp = if step != 0 then beep(300 + ev * 40, 60, 0.15) else 0
     canvas_text(10, 380, "Arrow keys to walk the ring", 12, 5)
   ) else 0
 )`;
 
-DEMOS.pong = `/* Pong — two paddles, one ball, axiom scoring */
-/* Arrow keys = right paddle. Ball bounces. Beep on hit. */
+DEMOS.pong = `/* Pong — two paddles, one ball. Arrow keys. */
+/* Pure let-chain: NO semicolons between lets. */
 
 raw_mode(1)
-let W = 600
-let H = 400
-let padH = 60
-let padW = 10
+
+fn init() = (
+  svar("bx", 300); svar("by", 200);
+  svar("vx", 4); svar("vy", 3);
+  svar("pL", 170); svar("pR", 170);
+  svar("sL", 0); svar("sR", 0)
+)
+
+fn update() = (
+  let _pR = svar("pR", if keyPressed("ArrowUp") then (if gvar("pR") - 6 < 0 then 0 else gvar("pR") - 6) else if keyPressed("ArrowDown") then (if gvar("pR") + 6 > 340 then 340 else gvar("pR") + 6) else gvar("pR"))
+  let _pL = svar("pL", if gvar("by") > gvar("pL") + 35 then (if gvar("pL") + 3 > 340 then 340 else gvar("pL") + 3) else if gvar("by") < gvar("pL") + 25 then (if gvar("pL") - 3 < 0 then 0 else gvar("pL") - 3) else gvar("pL"))
+  let nx = gvar("bx") + gvar("vx")
+  let ny = gvar("by") + gvar("vy")
+  let nvy = if ny <= 0 then abs_f(gvar("vy")) else if ny >= 400 then 0 - abs_f(gvar("vy")) else gvar("vy")
+  let ny2 = if ny <= 0 then 1 else if ny >= 400 then 399 else ny
+  let hitL = if nx <= 25 then (if ny2 >= gvar("pL") then (if ny2 <= gvar("pL") + 60 then 1 else 0) else 0) else 0
+  let hitR = if nx >= 575 then (if ny2 >= gvar("pR") then (if ny2 <= gvar("pR") + 60 then 1 else 0) else 0) else 0
+  let nvx = if hitL == 1 then abs_f(gvar("vx")) else if hitR == 1 then 0 - abs_f(gvar("vx")) else gvar("vx")
+  let scored = if nx <= 0 then 2 else if nx >= 600 then 1 else 0
+  let fx = if scored > 0 then 300 else nx
+  let fy = if scored > 0 then 200 else ny2
+  let _bx = svar("bx", fx)
+  let _by = svar("by", fy)
+  let _vx = svar("vx", if scored > 0 then 4 else nvx)
+  let _vy = svar("vy", nvy)
+  let _s1 = if scored == 2 then svar("sR", gvar("sR") + 1) else 0
+  let _s2 = if scored == 1 then svar("sL", gvar("sL") + 1) else 0
+  if hitL == 1 then beep(440, 50, 0.2) else if hitR == 1 then beep(550, 50, 0.2) else if scored > 0 then beep(220, 150, 0.3) else 0
+)
+
+fn draw() = (
+  let _0 = canvas_clear(0)
+  let _1 = canvas_line(300, 0, 300, 400, 5, 1)
+  let _2 = canvas_rect(10, gvar("pL"), 10, 60, 1)
+  let _3 = canvas_rect(580, gvar("pR"), 10, 60, 2)
+  let _4 = canvas_circle(gvar("bx"), gvar("by"), 6, 8)
+  let _5 = canvas_text(220, 30, "" + gvar("sL"), 24, 1)
+  let _6 = canvas_text(340, 30, "" + gvar("sR"), 24, 2)
+  canvas_text(200, 385, "Arrow Up/Down to play", 12, 5)
+)
 
 fn tick(frame) = (
-  if frame == 0 then (
-    svar("bx", 300); svar("by", 200);
-    svar("bvx", 4); svar("bvy", 3);
-    svar("padL", 170); svar("padR", 170);
-    svar("sL", 0); svar("sR", 0)
-  ) else 0;
-
-  let bx = gvar("bx"); let by = gvar("by");
-  let bvx = gvar("bvx"); let bvy = gvar("bvy");
-  let padL = gvar("padL"); let padR = gvar("padR");
-
-  /* Right paddle: arrow keys */
-  let newPadR = if keyPressed("ArrowUp") then (
-    if padR - 6 < 0 then 0 else padR - 6
-  ) else if keyPressed("ArrowDown") then (
-    if padR + 6 > H - padH then H - padH else padR + 6
-  ) else padR;
-  svar("padR", newPadR);
-
-  /* Left paddle: AI follows ball */
-  let target = by - padH / 2;
-  let newPadL = if target > padL + 5 then (
-    if padL + 3 > H - padH then H - padH else padL + 3
-  ) else if target < padL - 5 then (
-    if padL - 3 < 0 then 0 else padL - 3
-  ) else padL;
-  svar("padL", newPadL);
-
-  /* Move ball */
-  let nbx = bx + bvx;
-  let nby = by + bvy;
-
-  /* Top/bottom bounce */
-  let newBvy = if nby <= 0 then abs_f(bvy)
-               else if nby >= H then 0 - abs_f(bvy)
-               else bvy;
-  let nby2 = if nby <= 0 then 1 else if nby >= H then H - 1 else nby;
-
-  /* Paddle hits */
-  let hitL = if nbx <= padW + 15 then (
-    if nby2 >= newPadL then (if nby2 <= newPadL + padH then 1 else 0) else 0
-  ) else 0;
-  let hitR = if nbx >= W - padW - 15 then (
-    if nby2 >= newPadR then (if nby2 <= newPadR + padH then 1 else 0) else 0
-  ) else 0;
-
-  let newBvx = if hitL == 1 then abs_f(bvx)
-               else if hitR == 1 then 0 - abs_f(bvx)
-               else bvx;
-
-  /* Scoring */
-  let scored = if nbx <= 0 then 2
-               else if nbx >= W then 1
-               else 0;
-
-  let fbx = if scored > 0 then 300 else nbx;
-  let fby = if scored > 0 then 200 else nby2;
-  svar("bx", fbx); svar("by", fby);
-  svar("bvx", if scored > 0 then 4 else newBvx);
-  svar("bvy", newBvy);
-  if scored == 2 then svar("sR", gvar("sR") + 1) else 0;
-  if scored == 1 then svar("sL", gvar("sL") + 1) else 0;
-
-  /* Sound */
-  if hitL == 1 then beep(440, 50, 0.2)
-  else if hitR == 1 then beep(550, 50, 0.2)
-  else if scored > 0 then beep(220, 150, 0.3)
-  else 0;
-
-  /* Draw */
-  canvas_clear(0);
-  canvas_line(300, 0, 300, 400, 5, 1);
-  canvas_rect(10, newPadL, padW, padH, 1);
-  canvas_rect(W - padW - 10, newPadR, padW, padH, 2);
-  canvas_circle(fbx, fby, 6, 8);
-  canvas_text(220, 30, "" + gvar("sL"), 24, 1);
-  canvas_text(340, 30, "" + gvar("sR"), 24, 2);
-  canvas_text(200, 385, "Arrow Up/Down to play", 12, 5)
+  let _i = if frame == 0 then init() else 0
+  let _u = update()
+  draw()
 )`;
 
 DEMOS.kingdom = `/* Kingdom Map — color every element by kingdom */
@@ -375,9 +323,12 @@ function runGame() {
         const keys = {};
         document.addEventListener('keydown', function(e) {
             keys[e.code] = true;
-            if (e.code.startsWith('Arrow')) e.preventDefault();
-        });
-        document.addEventListener('keyup', function(e) { keys[e.code] = false; });
+            if (gameRunning && (e.code.startsWith('Arrow') || e.code === 'Space')) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true); // capture phase — before nav.js
+        document.addEventListener('keyup', function(e) { keys[e.code] = false; }, true);
         let mx = 0, my = 0, mc = false;
         canvas.addEventListener('mousemove', function(e) {
             const r = canvas.getBoundingClientRect();
@@ -401,6 +352,7 @@ function runGame() {
 
     // Clear persistent state and start fresh
     AX.clearState();
+    canvas.focus(); // grab keyboard focus from nav
     output.textContent = '';
     gameFrame = 0;
     gameRunning = true;
