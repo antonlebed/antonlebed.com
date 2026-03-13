@@ -230,7 +230,7 @@ fn init(frame) = (
   svar("vx", 2 * dirx); svar("vy", 1.5 * diry);
   svar("pL", 170); svar("pR", 170);
   svar("sL", 0); svar("sR", 0);
-  svar("spd", 1); svar("age", 0); svar("diff", 5)
+  svar("spd", 1); svar("age", 0); svar("diff", 5); svar("pv", 0)
 )
 
 fn update(frame) = (
@@ -242,9 +242,15 @@ fn update(frame) = (
   let _ag = svar("age", age)
   let accel = 1 + age / 600
   let spd = gvar("spd")
-  /* Paddles */
-  let padSpd = 6 * spd
-  let _pR = svar("pR", if keyPressed("ArrowUp") then (if gvar("pR") - padSpd < 0 then 0 else gvar("pR") - padSpd) else if keyPressed("ArrowDown") then (if gvar("pR") + padSpd > 340 then 340 else gvar("pR") + padSpd) else gvar("pR"))
+  /* Paddle: momentum — accelerate on key, decelerate on release */
+  let pv = gvar("pv")
+  let maxSpd = 3 * spd
+  let npv = if keyPressed("ArrowUp") then (if pv - 0.4 > 0 - maxSpd then pv - 0.4 else 0 - maxSpd)
+            else if keyPressed("ArrowDown") then (if pv + 0.4 < maxSpd then pv + 0.4 else maxSpd)
+            else pv * 0.85
+  let _pv = svar("pv", npv)
+  let newPR = gvar("pR") + npv
+  let _pR = svar("pR", if newPR < 0 then 0 else if newPR > 340 then 340 else newPR)
   /* Difficulty: 1-9 keys, 0=10. Controls AI speed + reaction zone */
   let diff = gvar("diff")
   let _d1 = if keyPressed("Digit1") then svar("diff", 1) else 0
@@ -259,7 +265,7 @@ fn update(frame) = (
   let _d0 = if keyPressed("Digit0") then svar("diff", 10) else 0
   let diff2 = gvar("diff")
   /* AI: higher diff = faster + tighter tracking */
-  let aiSpd = (1 + diff2 * 0.3) * spd * accel
+  let aiSpd = (0.5 + diff2 * 0.2) * spd * accel
   let aiZone = 40 - diff2 * 3
   let _pL = svar("pL", if gvar("by") > gvar("pL") + 30 + aiZone then (if gvar("pL") + aiSpd > 340 then 340 else gvar("pL") + aiSpd) else if gvar("by") < gvar("pL") + 30 - aiZone then (if gvar("pL") - aiSpd < 0 then 0 else gvar("pL") - aiSpd) else gvar("pL"))
   /* Ball: base velocity in gvar, multiply by accel+spd for movement */
