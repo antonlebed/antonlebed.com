@@ -8,6 +8,7 @@ const AX = (function() {
 
 let N = 970200;
 let CRT_MODS = [8, 9, 25, 49, 11];
+let _rawMode = false; // raw_mode(1): regular arithmetic. raw_mode(0): ring arithmetic (default).
 
 function factorPrimePowers(n) {
     n = Math.abs(Math.round(n));
@@ -1179,6 +1180,11 @@ BUILTINS.now_ms = function() {
 //  State persists across AX.run calls until clearState().
 // ================================================================
 const _gameState = {};
+BUILTINS.raw_mode = function(args) {
+    _rawMode = !!args[0];
+    return args[0];
+};
+
 BUILTINS.gvar = function(args) {
     const name = String(args[0]);
     return (name in _gameState) ? _gameState[name] : 0;
@@ -1219,7 +1225,7 @@ function run(src) {
     function ev(node, localEnv, depth) {
         if (depth > MAX_DEPTH) throw new Error('Max recursion depth (' + MAX_DEPTH + ') exceeded');
         switch (node.t) {
-            case 'Num': return ringMod(node.v);
+            case 'Num': return (_rawMode || !Number.isInteger(node.v)) ? node.v : ringMod(node.v);
             case 'Str': return node.v;
             case 'Sym': {
                 if (node.name in localEnv) return localEnv[node.name];
@@ -1234,8 +1240,8 @@ function run(src) {
                     const rs = typeof r === 'string' ? r : (Number.isInteger(r) ? String(r) : (typeof r === 'number' ? r.toFixed(6) : String(r)));
                     return ls + rs;
                 }
-                // Phase F (S626): Float propagation — if either operand is non-integer, do float arithmetic
-                if ((typeof l === 'number' && !Number.isInteger(l)) || (typeof r === 'number' && !Number.isInteger(r))) {
+                // Raw mode OR float propagation: regular JS arithmetic
+                if (_rawMode || (typeof l === 'number' && !Number.isInteger(l)) || (typeof r === 'number' && !Number.isInteger(r))) {
                     const lv = typeof l === 'number' ? l : 0, rv = typeof r === 'number' ? r : 0;
                     switch (node.op) {
                         case '+': return lv + rv;
@@ -1270,7 +1276,10 @@ function run(src) {
                 break;
             }
             case 'Unary':
-                if (node.op === '~') return ringMod(N - ev(node.e, localEnv, depth));
+                if (node.op === '~') {
+                    const uv = ev(node.e, localEnv, depth);
+                    return _rawMode ? -uv : ringMod(N - uv);
+                }
                 break;
             case 'Thresh': {
                 const v = ev(node.val, localEnv, depth);
@@ -1386,7 +1395,7 @@ return {
     tokenize, parse, Parser, run,
 
     // Game state
-    clearState: function() { for (const k in _gameState) delete _gameState[k]; },
+    clearState: function() { for (const k in _gameState) delete _gameState[k]; _rawMode = false; },
 
     // Formatting
     esc, fmtValue, fmtGrid, fmtNum, fmtText

@@ -98,8 +98,9 @@ just learned to see.
 <div class="builtin-card"><code>now_ms()</code> — milliseconds since page load</div>
 </div>
 
-<h3>State (2)</h3>
+<h3>State (3)</h3>
 <div class="builtin-ref">
+<div class="builtin-card"><code>raw_mode(1)</code> — switch to regular arithmetic (negatives, floats, division all work)</div>
 <div class="builtin-card"><code>gvar("name")</code> — read persistent variable (survives across frames)</div>
 <div class="builtin-card"><code>svar("name", value)</code> — write persistent variable, returns value</div>
 </div>
@@ -133,24 +134,23 @@ const DEMOS = {};
 DEMOS.rose = `/* Rose Draw — the axiom paints itself */
 /* 2310 elements, one per frame. Color = kingdom. Sound = eigenvalue. */
 
+raw_mode(1)
 set_ring(2310)
 let W = 600
 let H = 400
 let cx = W / 2
 let cy = H / 2
 let R = 150
-let drawn = 0
 let ring = 2310
+let pi2 = PI_f() * 2
 
 fn drawElement(n) = (
-  let c = crt(n);
-  let angle = toFloat(n) * 6.2832 / toFloat(ring);
-  let r = R * (toFloat(coupling(n)) / toFloat(ring));
-  let x = cx + r * cos_f(angle);
-  let y = cy + r * sin_f(angle);
+  let angle = n * pi2 / ring;
+  let dist = R * coupling(n) / ring;
+  let x = cx + dist * cos_f(angle);
+  let y = cy + dist * sin_f(angle);
   let k = kingdom(n);
-  let sz = 2;
-  canvas_circle(x, y, sz, k)
+  canvas_circle(x, y, 2, k)
 )
 
 fn tick(frame) = (
@@ -169,21 +169,19 @@ fn tick(frame) = (
 
 DEMOS.eigenvalue = `/* Eigenvalue Walk — explore the ring with arrow keys */
 /* Move through Z/2310Z. See eigenvalues. Hear coupling. */
-/* Uses gvar/svar for state persistence across frames. */
 
+raw_mode(1)
 set_ring(2310)
-let W = 600
-let H = 400
 
 fn tick(frame) = (
-  let pos = gvar("pos");
   if frame == 0 then svar("pos", 1) else 0;
-  let pos2 = gvar("pos");
+  let pos = gvar("pos");
 
-  /* Input: left/right arrows move position */
-  let newPos = if keyPressed("ArrowRight") then pos2 + 1
-               else if keyPressed("ArrowLeft") then pos2 - 1
-               else pos2;
+  /* Input: left/right move, hold to scan */
+  let step = if keyPressed("ArrowRight") then 1
+             else if keyPressed("ArrowLeft") then -1
+             else 0;
+  let newPos = pos + step;
   let newPos2 = if newPos < 0 then 2309
                 else if newPos >= 2310 then 0
                 else newPos;
@@ -216,24 +214,26 @@ fn tick(frame) = (
     canvas_text(420, 110, "mod 7 = " + cr[3], 12, 1);
     canvas_text(420, 130, "mod 11 = " + cr[4], 12, 1);
 
+    /* Beep eigenvalue pitch */
+    if step != 0 then beep(300 + ev * 40, 60, 0.15) else 0;
+
     canvas_text(10, 380, "Arrow keys to walk the ring", 12, 5)
   ) else 0
 )`;
 
 DEMOS.pong = `/* Pong — two paddles, one ball, axiom scoring */
 /* Arrow keys = right paddle. Ball bounces. Beep on hit. */
-/* Uses gvar/svar for persistent state across frames. */
 
+raw_mode(1)
 let W = 600
 let H = 400
 let padH = 60
 let padW = 10
 
 fn tick(frame) = (
-  /* Initialize state on first frame */
   if frame == 0 then (
     svar("bx", 300); svar("by", 200);
-    svar("bvx", 3); svar("bvy", 2);
+    svar("bvx", 4); svar("bvy", 3);
     svar("padL", 170); svar("padR", 170);
     svar("sL", 0); svar("sR", 0)
   ) else 0;
@@ -242,29 +242,30 @@ fn tick(frame) = (
   let bvx = gvar("bvx"); let bvy = gvar("bvy");
   let padL = gvar("padL"); let padR = gvar("padR");
 
-  /* Move right paddle with arrow keys */
+  /* Right paddle: arrow keys */
   let newPadR = if keyPressed("ArrowUp") then (
-    if padR - 5 < 0 then 0 else padR - 5
+    if padR - 6 < 0 then 0 else padR - 6
   ) else if keyPressed("ArrowDown") then (
-    if padR + 5 > H - padH then H - padH else padR + 5
+    if padR + 6 > H - padH then H - padH else padR + 6
   ) else padR;
   svar("padR", newPadR);
 
-  /* Simple AI for left paddle */
-  let newPadL = if by > padL + padH / 2 + 5 then (
+  /* Left paddle: AI follows ball */
+  let target = by - padH / 2;
+  let newPadL = if target > padL + 5 then (
     if padL + 3 > H - padH then H - padH else padL + 3
-  ) else if by < padL + padH / 2 - 5 then (
+  ) else if target < padL - 5 then (
     if padL - 3 < 0 then 0 else padL - 3
   ) else padL;
   svar("padL", newPadL);
 
-  /* Update ball */
+  /* Move ball */
   let nbx = bx + bvx;
   let nby = by + bvy;
 
   /* Top/bottom bounce */
-  let newBvy = if nby <= 0 then abs(bvy)
-               else if nby >= H then 0 - abs(bvy)
+  let newBvy = if nby <= 0 then abs_f(bvy)
+               else if nby >= H then 0 - abs_f(bvy)
                else bvy;
   let nby2 = if nby <= 0 then 1 else if nby >= H then H - 1 else nby;
 
@@ -276,27 +277,27 @@ fn tick(frame) = (
     if nby2 >= newPadR then (if nby2 <= newPadR + padH then 1 else 0) else 0
   ) else 0;
 
-  let newBvx = if hitL == 1 then abs(bvx)
-               else if hitR == 1 then 0 - abs(bvx)
+  let newBvx = if hitL == 1 then abs_f(bvx)
+               else if hitR == 1 then 0 - abs_f(bvx)
                else bvx;
 
-  /* Score detection */
+  /* Scoring */
   let scored = if nbx <= 0 then 2
                else if nbx >= W then 1
                else 0;
 
-  /* Update state */
   let fbx = if scored > 0 then 300 else nbx;
   let fby = if scored > 0 then 200 else nby2;
   svar("bx", fbx); svar("by", fby);
-  svar("bvx", newBvx); svar("bvy", newBvy);
+  svar("bvx", if scored > 0 then 4 else newBvx);
+  svar("bvy", newBvy);
   if scored == 2 then svar("sR", gvar("sR") + 1) else 0;
   if scored == 1 then svar("sL", gvar("sL") + 1) else 0;
 
-  /* Beep */
+  /* Sound */
   if hitL == 1 then beep(440, 50, 0.2)
   else if hitR == 1 then beep(550, 50, 0.2)
-  else if scored > 0 then beep(220, 200, 0.3)
+  else if scored > 0 then beep(220, 150, 0.3)
   else 0;
 
   /* Draw */
@@ -307,16 +308,14 @@ fn tick(frame) = (
   canvas_circle(fbx, fby, 6, 8);
   canvas_text(220, 30, "" + gvar("sL"), 24, 1);
   canvas_text(340, 30, "" + gvar("sR"), 24, 2);
-  canvas_text(230, 385, "Arrow Up/Down", 12, 5)
+  canvas_text(200, 385, "Arrow Up/Down to play", 12, 5)
 )`;
 
 DEMOS.kingdom = `/* Kingdom Map — color every element by kingdom */
 /* The ring as a grid. Each cell = one element. Color = kingdom. */
 
+raw_mode(1)
 set_ring(2310)
-let W = 600
-let H = 400
-let ring = 2310
 let cols = 77
 let cellW = 7
 let cellH = 5
@@ -326,11 +325,9 @@ fn tick(frame) = (
     canvas_clear(0);
     canvas_text(10, 15, "Kingdom Map: Z/2310Z", 14, 8);
 
-    /* Draw all elements as colored cells */
-    let n = 0;
-    let stop = if ring < 2310 then ring else 2310;
-    for i in range(stop) do (
-      let row = i / cols;
+    /* Draw all 2310 elements as colored cells */
+    for i in range(2310) do (
+      let row = floor(i / cols);
       let col = i % cols;
       let x = col * cellW + 20;
       let y = row * cellH + 30;
