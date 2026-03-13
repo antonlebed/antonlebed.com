@@ -543,6 +543,11 @@ const BUILTINS = {};
 BUILTINS.coupling = (args) => coupling(args[0]);
 BUILTINS.crt = (args) => Array.from(args[0]);  // CRT is just reading the tuple
 BUILTINS.eigenvalue = (args) => eigenvalue(args[0]);
+BUILTINS.shadow_poly = (args) => {
+    // P(x) = (x-1)(x-2)(x-3)(x-5) — the spectral architect
+    const one = fromInt(1), two = fromInt(2), three = fromInt(3), five = fromInt(5);
+    return mul(mul(sub(args[0], one), sub(args[0], two)), mul(sub(args[0], three), sub(args[0], five)));
+};
 BUILTINS.mirror = (args) => neg(args[0]);
 BUILTINS.gcd = (args) => fromInt(gcd(toInt(args[0]), toInt(args[1])));
 BUILTINS.toInt = (args) => toInt(args[0]);  // explicit reconstruction

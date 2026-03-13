@@ -474,6 +474,13 @@ BUILTINS.eigenvalue = function(args, ctx) {
     return result;
 };
 
+BUILTINS.shadow_poly = function(args, ctx) {
+    const n = args[0];
+    const result = (n - 1) * (n - 2) * (n - 3) * (n - 5);
+    ctx.trace('<span class="tr-fn">shadow_poly</span>(' + n + '): <span class="tr-step">(' + n + '-1)(' + n + '-2)(' + n + '-3)(' + n + '-5)</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
 BUILTINS.mirror = function(args, ctx) {
     const result = mirror(args[0]);
     ctx.trace('<span class="tr-fn">mirror</span>(' + args[0] + '): <span class="tr-step">' + N + ' - ' + ringMod(args[0]) + '</span> = <span class="tr-result">' + result + '</span>');
