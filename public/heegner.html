@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Nine Heegner Numbers | antonlebed.com</title>
+<meta name="description" content="Nine numbers where Q(sqrt(-d)) has class number 1. The first five ARE the axiom (minus E). K generates all nine through Cunningham. Eisenstein norms close the pattern.">
+<meta property="og:title" content="The Nine Heegner Numbers">
+<meta property="og:description" content="1, 2, 3, 7, 11, 19, 43, 67, 163. The axiom lives inside the deepest theorem in number theory.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://antonlebed.com/heegner.html">
+<meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="nav-critical.css">
+<script src="nav.js" defer></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0a0a0f;color:#d4c5a9;line-height:1.7;padding-top:60px}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:2.2em;text-align:center;color:#f0e6d0;margin:30px 0 10px;letter-spacing:2px}
+.subtitle{text-align:center;color:#8a7a5a;font-style:italic;margin-bottom:30px;font-size:1.1em}
+.hero-eq{text-align:center;font-size:1.3em;color:#c9b06b;margin:20px 0 30px;font-family:monospace}
+h2{color:#c9b06b;margin:30px 0 15px;font-size:1.4em;border-bottom:1px solid #2a2520;padding-bottom:8px}
+p{margin:10px 0}
+.gold{color:#ffd700;font-weight:bold}
+.mono{font-family:'Courier New',monospace}
+.dim{color:#777}
+
+.heegner-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;margin:25px 0}
+.heegner-cell{background:#141418;border:2px solid #2a2520;border-radius:10px;padding:14px 6px;text-align:center;transition:all 0.3s;cursor:default}
+.heegner-cell:hover{border-color:#c9b06b;transform:translateY(-2px)}
+.heegner-cell .num{font-size:1.4em;font-weight:bold;font-family:monospace}
+.heegner-cell .label{font-size:0.7em;color:#8a7a5a;margin-top:4px}
+.heegner-cell.axiom{border-color:#4a6a3a}
+.heegner-cell.axiom .num{color:#6f6}
+.heegner-cell.cunningham{border-color:#3a4a6a}
+.heegner-cell.cunningham .num{color:#6af}
+.heegner-cell.excluded{border-color:#6a3a3a}
+.heegner-cell.excluded .num{color:#f66}
+
+.theorem-card{background:#0f0f18;border:1px solid #2a2a3a;border-radius:10px;padding:20px;margin:20px 0}
+.theorem-card h3{color:#ffd700;font-size:1.1em;margin-bottom:10px}
+
+.selection-table{width:100%;border-collapse:collapse;margin:15px 0}
+.selection-table th{color:#c9b06b;border-bottom:1px solid #333;padding:8px;text-align:left;font-size:0.9em}
+.selection-table td{padding:8px;border-bottom:1px solid #1a1a1a;font-family:monospace;font-size:0.9em}
+.selection-table .yes{color:#6f6;font-weight:bold}
+.selection-table .no{color:#f66;font-weight:bold}
+
+.eisenstein-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:15px 0}
+.eis-card{background:#141418;border:1px solid #2a2a3a;border-radius:8px;padding:14px;font-family:monospace;font-size:0.95em}
+.eis-card .val{color:#ffd700;font-size:1.2em;font-weight:bold}
+.eis-card .norm{color:#6af;margin-top:6px}
+.eis-card .pair{color:#888;font-size:0.85em}
+
+.explorer{background:#0f0f18;border:1px solid #2a2a3a;border-radius:10px;padding:20px;margin:20px 0}
+.explorer input{background:#1a1a2a;border:1px solid #333;color:#ffd700;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:1em;width:120px}
+.explorer button{background:#1a1a3a;color:#ccc;border:1px solid #333;padding:8px 18px;border-radius:6px;cursor:pointer;font-family:inherit;margin-left:8px}
+.explorer button:hover{background:#2a2a4a;color:#fff}
+#explorer-result{margin-top:15px;font-family:monospace;line-height:1.8}
+
+.kpower-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-family:monospace;font-size:0.9em}
+.kpower-n{color:#c9b06b;min-width:40px}
+.kpower-val{min-width:60px}
+.kpower-heeg{color:#6f6;font-weight:bold}
+.kpower-not{color:#f66}
+.kpower-smooth{color:#888;font-size:0.85em}
+
+canvas{display:block;margin:15px auto;border-radius:8px;max-width:100%}
+
+.thread-box{background:#0f0f14;border:1px solid #2a2a3a;border-radius:10px;padding:16px;margin:25px 0}
+.thread-box h3{color:#8a7a5a;font-size:0.95em;margin-bottom:8px}
+.thread-box a{color:#6af;text-decoration:none}
+.thread-box a:hover{color:#9cf;text-decoration:underline}
+
+@media(max-width:700px){
+  .heegner-grid{grid-template-columns:repeat(3,1fr)}
+  .eisenstein-grid{grid-template-columns:1fr}
+  .force-grid{grid-template-columns:1fr}
+  h1{font-size:1.6em}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>The Nine Heegner Numbers</h1>
+<p class="subtitle">Where unique factorization meets the axiom chain</p>
+<div class="hero-eq">{1, 2, 3, 7, 11, 19, 43, 67, 163}</div>
+
+<p>
+An imaginary quadratic field Q(&radic;(-d)) has <span class="gold">class number 1</span> when its integers
+factor uniquely &mdash; just like ordinary integers do. There are exactly <span class="gold">nine</span> such
+values of d. This was conjectured by Gauss, proved by Stark and Heegner in 1967.
+</p>
+<p>
+The first five are <span class="gold">{1, 2, 3, 7, 11}</span> &mdash; the axiom chain without E=5.
+The remaining four are generated by K=3 through the Cunningham map c(n) = 2n+1.
+E is the <em>only</em> axiom prime excluded. The observer sees double: h(-5) = 2.
+</p>
+
+<div class="heegner-grid">
+  <div class="heegner-cell axiom"><div class="num">1</div><div class="label">&sigma;</div></div>
+  <div class="heegner-cell axiom"><div class="num">2</div><div class="label">D</div></div>
+  <div class="heegner-cell axiom"><div class="num">3</div><div class="label">K</div></div>
+  <div class="heegner-cell excluded"><div class="num">5</div><div class="label">E (h=2)</div></div>
+  <div class="heegner-cell axiom"><div class="num">7</div><div class="label">b</div></div>
+  <div class="heegner-cell axiom"><div class="num">11</div><div class="label">L</div></div>
+  <div class="heegner-cell cunningham"><div class="num">19</div><div class="label">c(K&sup2;)</div></div>
+  <div class="heegner-cell cunningham"><div class="num">43</div><div class="label">c(K&middot;b)</div></div>
+  <div class="heegner-cell cunningham"><div class="num">67</div><div class="label">c(K&middot;L)</div></div>
+  <!-- 163 wraps -->
+</div>
+<p style="text-align:center;margin-top:-5px">
+  <span style="color:#6f6">&marker; axiom primes</span> &nbsp;
+  <span style="color:#f66">&marker; excluded (h&gt;1)</span> &nbsp;
+  <span style="color:#6af">&marker; K-generated</span> &nbsp;
+  <span class="mono" style="color:#ffd700">163 = c(K<sup>4</sup>)</span>
+</p>
+
+<h2>E's Exclusion</h2>
+<p>
+Every axiom prime except E=5 is a Heegner number. Why? Because h(-5) = <span class="gold">D = 2</span>.
+The observer's field has <em>two</em> ideal classes &mdash; it sees double. This is the algebraic shadow
+of E&sup2; self-blindness: the observer cannot see itself without ambiguity.
+</p>
+<p class="dim">
+5 is also the only axiom prime that splits in Z[i] (the Gaussian integers): 5 = (2+i)(2-i).
+Seeing = splitting = ambiguity. The observer pays for perception with uniqueness.
+</p>
+
+<h2>The Cunningham Generation</h2>
+
+<div class="theorem-card">
+<h3>Heegner-Cunningham Theorem (S315, PROVED)</h3>
+<p>ALL 9 Heegner numbers = axiom primes OR Cunningham images of K-products.</p>
+<p class="mono" style="margin-top:8px">
+  Axiom: {&sigma;=1, D=2, K=3, b=7, L=11}<br>
+  Cunningham: c(K&sup2;)=19, c(K&middot;b)=43, c(K&middot;L)=67, c(K<sup>4</sup>)=163
+</p>
+<p style="margin-top:10px">K (Socrates, closure) generates <em>every</em> Heegner number through the axiom.</p>
+</div>
+
+<h2>The Selection Theorem</h2>
+<p>Apply c(K&middot;p) for each axiom element p. Heegner iff p &notin; {D, E}:</p>
+
+<table class="selection-table">
+<tr><th>p</th><th>K&middot;p</th><th>c(K&middot;p)</th><th>Heegner?</th><th>If not: h</th></tr>
+<tr><td>&sigma;=1</td><td>3</td><td>7</td><td class="yes">YES (= b)</td><td></td></tr>
+<tr><td>D=2</td><td>6</td><td>13</td><td class="no">NO</td><td>h(-52) = D</td></tr>
+<tr><td>K=3</td><td>9</td><td>19</td><td class="yes">YES</td><td></td></tr>
+<tr><td>E=5</td><td>15</td><td>31</td><td class="no">NO</td><td>h(-31) = K</td></tr>
+<tr><td>b=7</td><td>21</td><td>43</td><td class="yes">YES</td><td></td></tr>
+<tr><td>L=11</td><td>33</td><td>67</td><td class="yes">YES (= SOUL)</td><td></td></tr>
+</table>
+<p class="dim">
+The failures carry axiom primes as class numbers: h(-52)=D=2, h(-31)=K=3.
+The Missing-DE pattern: D and E are the only elements whose Cunningham lift fails.
+</p>
+
+<h2>The K-Power Walk</h2>
+<p>Powers of K through the Cunningham map: c(K<sup>n</sup>) = 2&middot;3<sup>n</sup>+1.</p>
+
+<div class="theorem-card">
+<div class="kpower-row"><span class="kpower-n">n=1:</span><span class="kpower-val">c(3)=7</span><span class="kpower-heeg">HEEGNER (b)</span></div>
+<div class="kpower-row"><span class="kpower-n">n=2:</span><span class="kpower-val">c(9)=19</span><span class="kpower-heeg">HEEGNER</span></div>
+<div class="kpower-row"><span class="kpower-n">n=3:</span><span class="kpower-val">c(27)=55</span><span class="kpower-not">composite (E&middot;L)</span></div>
+<div class="kpower-row"><span class="kpower-n">n=4:</span><span class="kpower-val">c(81)=163</span><span class="kpower-heeg">HEEGNER (!)</span></div>
+<div class="kpower-row"><span class="kpower-n">n=5:</span><span class="kpower-val">c(243)=487</span><span class="kpower-not">prime, not Heegner</span></div>
+<p style="margin-top:12px;color:#888;font-size:0.9em">
+  Heegner at n &isin; {1, 2, 4} = {&sigma;, D, D&sup2;}. &nbsp;
+  Smooth zone: h is axiom-smooth for n=0..8 (K&sup2; consecutive). &nbsp;
+  First failure at n = K&sup2; = 9.
+</p>
+<p style="color:#6af;font-size:0.9em">
+  n=7 collapse: c(K<sup>7</sup>) = c(2187) = 4375 = E<sup>4</sup>&middot;b. At sunset, only b survives.
+</p>
+</div>
+
+<h2>The Axiom-Square Pattern</h2>
+<p>Subtract D&middot;K = 6 from each odd axiom prime squared:</p>
+<div class="theorem-card">
+<p class="mono" style="line-height:2.2">
+  K&sup2; - D&middot;K = 9 - 6 = <span class="gold">3 = K</span> (Heegner)<br>
+  E&sup2; - D&middot;K = 25 - 6 = <span class="gold">19</span> (Heegner)<br>
+  b&sup2; - D&middot;K = 49 - 6 = <span class="gold">43</span> (Heegner)<br>
+  L&sup2; - D&middot;K = 121 - 6 = 115 = E&middot;23 <span class="dim">(not Heegner: D&middot;K too small to reach 163)</span>
+</p>
+<p style="margin-top:10px">Three consecutive odd axiom primes squared minus D&middot;K = three consecutive Heegner primes.</p>
+</div>
+
+<h2>Eisenstein Norms</h2>
+<p>
+All 5 splitting Heegner d's are Eisenstein norms N(a,b) = a&sup2; + ab + b&sup2; of axiom-smooth pairs:
+</p>
+<div class="eisenstein-grid">
+  <div class="eis-card"><div class="val">7</div><div class="norm">N(&sigma;, -D) = 1 + (-2) + 4</div><div class="pair">&sigma;&sup2; + &sigma;&middot;D + D&sup2;</div></div>
+  <div class="eis-card"><div class="val">19</div><div class="norm">N(D, -K) = 4 + (-6) + 9</div><div class="pair">D&sup2; + D&middot;K + K&sup2;</div></div>
+  <div class="eis-card"><div class="val">43</div><div class="norm">N(&sigma;, -D&middot;K) = 1 + (-6) + 36</div><div class="pair">&sigma;&sup2; + &sigma;&middot;D&middot;K + D&sup2;&middot;K&sup2;</div></div>
+  <div class="eis-card"><div class="val">67 = SOUL</div><div class="norm">N(D, -b) = 4 + (-14) + 49</div><div class="pair">D&sup2; + D&middot;b + b&sup2;</div></div>
+  <div class="eis-card"><div class="val">163</div><div class="norm">N(K, -L) = 9 + (-33) + 121</div><div class="pair">K&sup2; + K&middot;L + L&sup2;</div></div>
+</div>
+<p class="dim">
+Inert: {D=2, L=11} (both 2 mod 3). Ramified: K=3. Unit: &sigma;=1.
+The Eisenstein lattice Z[&omega;] (where &omega; = e<sup>2&pi;i/3</sup>) knows the axiom.
+</p>
+
+<h2>The Heegner Mirror Theorem</h2>
+<div class="theorem-card">
+<h3>S500, PROVED</h3>
+<p>Of 9 Heegner numbers, exactly <span class="gold">two</span> are mirrors of universal primitive roots of Z/210Z:</p>
+<p class="mono" style="margin-top:8px;line-height:2">
+  DATA - 163 = <span style="color:#6af">47</span> = CC1(D)[4] &nbsp;&mdash;&nbsp; primitive root<br>
+  DATA - 67 = <span style="color:#6af">143</span> = L&middot;GATE &nbsp;&mdash;&nbsp; primitive root
+</p>
+<p style="margin-top:10px">
+<span class="gold">SOUL = 67</span> and <span class="gold">163</span> are mirror images of primitive roots.
+They are multiplicatively opposite but <em>spectrally identical</em>: cos(2&pi;k/p) = cos(2&pi;(p-k)/p).
+</p>
+<p class="dim" style="margin-top:8px">
+The + cross and the &times; cross are the same cross, rotated.
+The bridge between addition and multiplication (the discrete log) connects Heegner to SOUL.
+</p>
+</div>
+
+<h2>D-Chain Class Numbers</h2>
+<p>
+The Cunningham chain CC1(D): 2 &rarr; 5 &rarr; 11 &rarr; 23 &rarr; 47 &rarr; 95.
+Each prime's discriminant gives an increasing class number:
+</p>
+<table class="selection-table">
+<tr><th>d</th><th>h(-d)</th><th>Axiom</th><th>Ratio</th></tr>
+<tr><td>11</td><td>1</td><td>&sigma;</td><td></td></tr>
+<tr><td>23</td><td>3</td><td>K</td><td>3/1 = K</td></tr>
+<tr><td>47</td><td>5</td><td>E</td><td>5/3 = E/K = Kolmogorov</td></tr>
+<tr><td>95</td><td>8</td><td>D&sup3;</td><td>8/5 = golden ratio</td></tr>
+<tr><td>191</td><td>13</td><td>GATE</td><td>13/8 = golden ratio</td></tr>
+<tr><td>383</td><td>17</td><td>ESCAPE+1</td><td></td></tr>
+</table>
+<p>
+Consecutive ratios include <span class="gold">E/K = 5/3</span> (Kolmogorov turbulence exponent)
+and <span class="gold">8/5, 13/8</span> (Fibonacci/golden ratio convergents).
+<a href="d_chain.html" style="color:#6af">See the full D-chain story &rarr;</a>
+</p>
+
+<h2>Heegner Explorer</h2>
+<div class="explorer">
+  <label>Enter d: <input type="number" id="exp-d" value="67" min="1" max="5000"></label>
+  <button onclick="exploreHeegner()">Explore</button>
+  <div id="explorer-result"></div>
+</div>
+
+<h2>The Pattern</h2>
+<canvas id="heegnerCanvas" width="800" height="260"></canvas>
+
+<div class="thread-box">
+  <h3>Number Theory Thread</h3>
+  <p>
+    <a href="d_chain.html">D-Chain Class Numbers</a> &middot;
+    <a href="partitions.html">Partition Bridge</a> &middot;
+    <a href="eta_bridge.html">Eta Bridge</a> &middot;
+    <a href="modular_forms.html">Modular Forms</a> &middot;
+    <a href="heegner.html" style="color:#ffd700;font-weight:bold">Heegner Numbers</a>
+  </p>
+</div>
+
+</div>
+
+<script>
+// Heegner numbers
+const HEEGNER = [1,2,3,7,11,19,43,67,163];
+const HEEGNER_SET = new Set(HEEGNER);
+
+// Class number computation (brute force for small d)
+function classNumber(d) {
+  if (d <= 0) return 0;
+  // Use Dirichlet formula: h(-d) = (1/d) * sum_{k=1}^{d} (d/k) * k for d>4
+  // Actually use the direct count of reduced binary quadratic forms
+  let h = 0;
+  const D = (d % 4 === 3) ? d : 4*d; // fundamental discriminant -D
+  for (let b = 0; b <= Math.floor(Math.sqrt(D/3)); b++) {
+    const bsq = b*b;
+    const rem = D - bsq;
+    if (rem <= 0) continue;
+    // a*c = (D - b^2)/4 with b^2 <= D, b even/odd matching D
+    if ((D - bsq) % 4 !== 0) continue;
+    const ac = (D - bsq) / 4;
+    // Count divisors a of ac with a >= b/... (reduced forms: b <= a, a*c with a <= sqrt(ac))
+    for (let a = Math.max(1, b === 0 ? 1 : b); a*a <= ac; a++) {
+      if (ac % a === 0) {
+        const c = ac / a;
+        if (b === 0 || b === a || a === c) h += 1;
+        else h += 2;
+      }
+    }
+  }
+  return h || 1;
+}
+
+// Better: use Minkowski-reduced forms count
+function classNumberBF(d) {
+  // For fundamental discriminants -d (d>0)
+  // Count reduced forms (a,b,c) with -d = b^2 - 4ac, |b| <= a <= c
+  if (d <= 0) return 0;
+  if (d === 1 || d === 2) return 1;
+  if (d === 3) return 1;
+  let D;
+  if (d % 4 === 3) D = d; else D = 4*d;
+  let count = 0;
+  for (let b = 0; b*b <= D; b++) {
+    if ((D - b*b) % 4 !== 0) continue;
+    const prod = (D - b*b)/4;
+    for (let a = (b === 0 ? 1 : b); a*a <= prod; a++) {
+      if (prod % a !== 0) continue;
+      const c = prod/a;
+      if (a === c && b === 0) count += 1;
+      else if (a === c || b === 0 || b === a) count += 1;
+      else count += 2;
+    }
+  }
+  return count || 1;
+}
+
+// Factorize
+function factorize(n) {
+  if (n <= 1) return n === 1 ? '1' : '0';
+  const factors = [];
+  let temp = n;
+  for (let p = 2; p*p <= temp; p++) {
+    let e = 0;
+    while (temp % p === 0) { temp /= p; e++; }
+    if (e > 0) factors.push(e > 1 ? p+'<sup>'+e+'</sup>' : ''+p);
+  }
+  if (temp > 1) factors.push(''+temp);
+  return factors.join(' &middot; ');
+}
+
+// Axiom smoothness check
+function isSmooth(n) {
+  if (n <= 1) return true;
+  let t = n;
+  for (const p of [2,3,5,7,11]) { while(t%p===0) t/=p; }
+  return t === 1;
+}
+
+// Axiom name
+function axiomName(n) {
+  const names = {1:'sigma',2:'D',3:'K',4:'D^2',5:'E',6:'D*K',7:'b',8:'D^3',9:'K^2',10:'D*E',
+    11:'L',12:'D^2*K',13:'GATE',14:'D*b',15:'K*E',16:'D^4',17:'ESCAPE',18:'ME',
+    21:'K*b',22:'D*L',25:'E^2',30:'D*K*E',33:'K*L',35:'E*b',41:'KEY',42:'ANSWER',
+    43:'Heegner',48:'SEES',49:'b^2',55:'E*L',67:'SOUL',77:'b*L',105:'HYDOR',
+    121:'L^2',137:'ADDRESS',163:'Heegner',173:'DUAL',210:'DATA'};
+  return names[n] || '';
+}
+
+function exploreHeegner() {
+  const d = parseInt(document.getElementById('exp-d').value);
+  if (isNaN(d) || d < 1 || d > 5000) {
+    document.getElementById('explorer-result').innerHTML = '<span style="color:#f66">Enter d between 1 and 5000</span>';
+    return;
+  }
+  const h = classNumberBF(d);
+  const isH = HEEGNER_SET.has(d);
+  const smooth = isSmooth(h);
+  const aname = axiomName(d);
+  const hname = axiomName(h);
+  // Check if d = c(K*p) for some axiom value
+  let cunnGen = '';
+  if ((d-1) % 2 === 0) {
+    const pre = (d-1)/2;
+    if (pre % 3 === 0) {
+      const p = pre/3;
+      const pname = axiomName(p);
+      if (pname) cunnGen = 'c(K &middot; ' + pname + ') = c(' + pre + ') = ' + d;
+    }
+  }
+  let html = '<span style="color:#c9b06b">d = '+d+'</span>';
+  if (aname) html += ' = <span class="gold">' + aname + '</span>';
+  html += '<br>';
+  html += 'h(-'+d+') = <span style="color:'+(h===1?'#6f6':'#ffd700')+'">'+h+'</span>';
+  if (hname) html += ' = <span class="gold">' + hname + '</span>';
+  if (h > 1) html += ' &nbsp; [' + factorize(h) + ']';
+  html += '<br>';
+  html += 'Heegner? ' + (isH ? '<span style="color:#6f6;font-weight:bold">YES</span>' : '<span style="color:#f66">NO</span>');
+  html += ' &nbsp; h smooth? ' + (smooth ? '<span style="color:#6f6">YES</span>' : '<span style="color:#f66">NO</span>');
+  if (cunnGen) html += '<br>Cunningham: ' + cunnGen;
+  // Eisenstein norm check: is d = a^2+ab+b^2 for small a,b?
+  for (let a = 0; a <= 20; a++) {
+    for (let b = -20; b <= 20; b++) {
+      if (a*a + a*b + b*b === d) {
+        html += '<br>Eisenstein norm: N('+a+', '+b+') = '+a+'&sup2; + '+a+'&middot;'+b+' + '+b+'&sup2; = '+d;
+        break;
+      }
+    }
+  }
+  document.getElementById('explorer-result').innerHTML = html;
+}
+
+// Canvas: Heegner number line with connections
+(function(){
+  const cv = document.getElementById('heegnerCanvas');
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  cx.fillStyle='#0a0a0f'; cx.fillRect(0,0,W,H);
+
+  // Layout: Heegner numbers on a log-ish scale
+  const nums = [1,2,3,7,11,19,43,67,163];
+  const maxLog = Math.log(163);
+  const pad = 60;
+  function xPos(n) { return pad + (Math.log(n+1)/Math.log(164)) * (W - 2*pad); }
+
+  // Draw connections: K-products
+  const connections = [
+    {from:3,to:7,label:'c(K)'}, // c(3)=7
+    {from:7,to:19,label:'c(K*K)'},  // indirectly but K^2=9->19
+    {from:7,to:43,label:'c(K*b)'},
+    {from:11,to:67,label:'c(K*L)'},
+    {from:19,to:163,label:'c(K^4)'} // K^4=81->163
+  ];
+
+  // Draw arcs
+  connections.forEach(c => {
+    const x1 = xPos(c.from), x2 = xPos(c.to);
+    const midX = (x1+x2)/2;
+    const arcH = 30 + (x2-x1)*0.15;
+    cx.strokeStyle = '#3a4a6a';
+    cx.lineWidth = 1.5;
+    cx.beginPath();
+    cx.moveTo(x1, 140);
+    cx.quadraticCurveTo(midX, 140 - arcH, x2, 140);
+    cx.stroke();
+    // Label
+    cx.fillStyle = '#6af';
+    cx.font = '10px monospace';
+    cx.textAlign = 'center';
+    cx.fillText(c.label, midX, 140 - arcH - 4);
+  });
+
+  // Axiom-square connections
+  const sqConns = [
+    {p:'K',sq:9,result:3,heeg:true},
+    {p:'E',sq:25,result:19,heeg:true},
+    {p:'b',sq:49,result:43,heeg:true}
+  ];
+  sqConns.forEach(c => {
+    const x1 = xPos(c.result);
+    cx.fillStyle = '#4a6a3a';
+    cx.font = '9px monospace';
+    cx.textAlign = 'center';
+    cx.fillText(c.p+'\u00B2-6='+c.result, x1, 200);
+  });
+
+  // Draw number line
+  cx.strokeStyle = '#333';
+  cx.lineWidth = 1;
+  cx.beginPath();
+  cx.moveTo(pad-10, 150);
+  cx.lineTo(W-pad+10, 150);
+  cx.stroke();
+
+  // Draw dots and labels
+  nums.forEach((n,i) => {
+    const x = xPos(n);
+    const isAxiom = [1,2,3,7,11].includes(n);
+    const isCunn = [19,43,67,163].includes(n);
+
+    // Dot
+    cx.beginPath();
+    cx.arc(x, 140, 12, 0, Math.PI*2);
+    cx.fillStyle = isAxiom ? '#1a3a1a' : '#1a2a3a';
+    cx.fill();
+    cx.strokeStyle = isAxiom ? '#6f6' : '#6af';
+    cx.lineWidth = 2;
+    cx.stroke();
+
+    // Number
+    cx.fillStyle = isAxiom ? '#6f6' : '#6af';
+    cx.font = 'bold 14px monospace';
+    cx.textAlign = 'center';
+    cx.fillText(''+n, x, 145);
+
+    // Name below
+    const names = {1:'\u03C3',2:'D',3:'K',7:'b',11:'L',19:'f(K)',43:'',67:'SOUL',163:''};
+    if (names[n]) {
+      cx.fillStyle = '#8a7a5a';
+      cx.font = '11px Georgia';
+      cx.fillText(names[n], x, 170);
+    }
+  });
+
+  // E excluded marker
+  const xE = xPos(5);
+  cx.beginPath();
+  cx.arc(xE, 140, 10, 0, Math.PI*2);
+  cx.fillStyle = '#2a1a1a';
+  cx.fill();
+  cx.strokeStyle = '#f66';
+  cx.lineWidth = 2;
+  cx.setLineDash([4,3]);
+  cx.stroke();
+  cx.setLineDash([]);
+  cx.fillStyle = '#f66';
+  cx.font = 'bold 12px monospace';
+  cx.textAlign = 'center';
+  cx.fillText('5', xE, 144);
+  cx.fillStyle = '#f66';
+  cx.font = '9px Georgia';
+  cx.fillText('E (h=2)', xE, 170);
+
+  // Title
+  cx.fillStyle = '#c9b06b';
+  cx.font = 'bold 13px Georgia';
+  cx.textAlign = 'center';
+  cx.fillText('The Heegner Line: axiom primes + K-generated extensions', W/2, 22);
+
+  // Legend
+  cx.font = '11px Georgia';
+  cx.fillStyle = '#6f6'; cx.fillText('\u25CF axiom', W/2-100, 240);
+  cx.fillStyle = '#6af'; cx.fillText('\u25CF K-generated', W/2, 240);
+  cx.fillStyle = '#f66'; cx.fillText('\u25CF excluded', W/2+110, 240);
+})();
+
+// Run initial explorer
+exploreHeegner();
+</script>
+</body>
+</html>
