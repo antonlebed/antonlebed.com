@@ -98,6 +98,12 @@ just learned to see.
 <div class="builtin-card"><code>now_ms()</code> — milliseconds since page load</div>
 </div>
 
+<h3>State (2)</h3>
+<div class="builtin-ref">
+<div class="builtin-card"><code>gvar("name")</code> — read persistent variable (survives across frames)</div>
+<div class="builtin-card"><code>svar("name", value)</code> — write persistent variable, returns value</div>
+</div>
+
 <div class="contrast">
 <h3>What others see vs. what the axiom shows</h3>
 <p><em>Standard view:</em> Game engines need thousands of lines of C++, shaders, asset pipelines.</p>
@@ -127,6 +133,7 @@ const DEMOS = {};
 DEMOS.rose = `/* Rose Draw — the axiom paints itself */
 /* 2310 elements, one per frame. Color = kingdom. Sound = eigenvalue. */
 
+set_ring(2310)
 let W = 600
 let H = 400
 let cx = W / 2
@@ -162,141 +169,131 @@ fn tick(frame) = (
 
 DEMOS.eigenvalue = `/* Eigenvalue Walk — explore the ring with arrow keys */
 /* Move through Z/2310Z. See eigenvalues. Hear coupling. */
+/* Uses gvar/svar for state persistence across frames. */
 
+set_ring(2310)
 let W = 600
 let H = 400
-let pos = 1
-let ring = 2310
-
-fn drawBar(x, val, maxVal, w, color) = (
-  let h = abs_f(val) / maxVal * 180;
-  let y = 200;
-  if val > 0 then
-    canvas_rect(x, y - h, w, h, color)
-  else
-    canvas_rect(x, y, w, h, color)
-)
 
 fn tick(frame) = (
+  let pos = gvar("pos");
+  if frame == 0 then svar("pos", 1) else 0;
+  let pos2 = gvar("pos");
+
   /* Input: left/right arrows move position */
-  if keyPressed("ArrowRight") then (
-    let p = pos + 1;
-    if p >= ring then 0 else p
-  ) else if keyPressed("ArrowLeft") then (
-    let p = pos - 1;
-    if p < 0 then ring - 1 else p
-  ) else pos;
-
-  let newPos = if keyPressed("ArrowRight") then pos + 1
-               else if keyPressed("ArrowLeft") then pos - 1
-               else pos;
-  let newPos2 = if newPos < 0 then ring - 1
-                else if newPos >= ring then 0
+  let newPos = if keyPressed("ArrowRight") then pos2 + 1
+               else if keyPressed("ArrowLeft") then pos2 - 1
+               else pos2;
+  let newPos2 = if newPos < 0 then 2309
+                else if newPos >= 2310 then 0
                 else newPos;
+  svar("pos", newPos2);
 
-  /* Only redraw every few frames to avoid flicker */
+  /* Redraw every 3 frames */
   if frame % 3 == 0 then (
     canvas_clear(0);
-
-    /* Draw eigenvalue bar for current position */
     let ev = eigenvalue(newPos2);
     let k = kingdom(newPos2);
     let c = coupling(newPos2);
 
-    /* Info text */
     canvas_text(10, 25, "n = " + newPos2, 16, 8);
     canvas_text(10, 50, "kingdom = " + k, 14, k);
     canvas_text(10, 75, "coupling = " + c, 14, 8);
 
-    /* Draw eigenvalue as big centered bar */
+    /* Eigenvalue bar */
     let barH = abs_f(ev) / 10 * 150;
     let barY = if ev > 0 then 250 - barH else 250;
     let barColor = if ev > 0 then 3 else 2;
     canvas_rect(250, barY, 100, barH, barColor);
     canvas_text(250, 245, "eigenvalue", 12, 8);
 
-    /* Draw CRT decomposition */
+    /* CRT decomposition */
     let cr = crt(newPos2);
     canvas_text(420, 25, "CRT:", 14, 8);
-    canvas_text(420, 50, "mod 8 = " + cr[0], 12, 1);
-    canvas_text(420, 70, "mod 9 = " + cr[1], 12, 1);
-    canvas_text(420, 90, "mod 25 = " + cr[2], 12, 1);
-    canvas_text(420, 110, "mod 49 = " + cr[3], 12, 1);
+    canvas_text(420, 50, "mod 2 = " + cr[0], 12, 1);
+    canvas_text(420, 70, "mod 3 = " + cr[1], 12, 1);
+    canvas_text(420, 90, "mod 5 = " + cr[2], 12, 1);
+    canvas_text(420, 110, "mod 7 = " + cr[3], 12, 1);
     canvas_text(420, 130, "mod 11 = " + cr[4], 12, 1);
 
-    /* Arrow key hint */
     canvas_text(10, 380, "Arrow keys to walk the ring", 12, 5)
   ) else 0
 )`;
 
 DEMOS.pong = `/* Pong — two paddles, one ball, axiom scoring */
 /* Arrow keys = right paddle. Ball bounces. Beep on hit. */
+/* Uses gvar/svar for persistent state across frames. */
 
 let W = 600
 let H = 400
-let bx = 300
-let by = 200
-let bvx = 3
-let bvy = 2
-let padL = 170
-let padR = 170
 let padH = 60
 let padW = 10
-let scoreL = 0
-let scoreR = 0
-
-fn clamp(v, lo, hi) = if v < lo then lo else if v > hi then hi else v
 
 fn tick(frame) = (
+  /* Initialize state on first frame */
+  if frame == 0 then (
+    svar("bx", 300); svar("by", 200);
+    svar("bvx", 3); svar("bvy", 2);
+    svar("padL", 170); svar("padR", 170);
+    svar("sL", 0); svar("sR", 0)
+  ) else 0;
+
+  let bx = gvar("bx"); let by = gvar("by");
+  let bvx = gvar("bvx"); let bvy = gvar("bvy");
+  let padL = gvar("padL"); let padR = gvar("padR");
+
   /* Move right paddle with arrow keys */
-  if keyPressed("ArrowUp") then (
-    let p = padR - 5;
-    if p < 0 then 0 else p
+  let newPadR = if keyPressed("ArrowUp") then (
+    if padR - 5 < 0 then 0 else padR - 5
   ) else if keyPressed("ArrowDown") then (
-    let p = padR + 5;
-    if p > H - padH then H - padH else p
+    if padR + 5 > H - padH then H - padH else padR + 5
   ) else padR;
+  svar("padR", newPadR);
 
   /* Simple AI for left paddle */
-  let aiTarget = by - padH / 2;
-  let aiDelta = if aiTarget > padL + 5 then 3
-                else if aiTarget < padL - 5 then 0 - 3
-                else 0;
+  let newPadL = if by > padL + padH / 2 + 5 then (
+    if padL + 3 > H - padH then H - padH else padL + 3
+  ) else if by < padL + padH / 2 - 5 then (
+    if padL - 3 < 0 then 0 else padL - 3
+  ) else padL;
+  svar("padL", newPadL);
 
   /* Update ball */
   let nbx = bx + bvx;
   let nby = by + bvy;
 
   /* Top/bottom bounce */
-  let nvy = if nby <= 0 then abs(bvy)
-            else if nby >= H then 0 - abs(bvy)
-            else bvy;
+  let newBvy = if nby <= 0 then abs(bvy)
+               else if nby >= H then 0 - abs(bvy)
+               else bvy;
   let nby2 = if nby <= 0 then 1 else if nby >= H then H - 1 else nby;
 
-  /* Left paddle hit */
+  /* Paddle hits */
   let hitL = if nbx <= padW + 15 then (
-    if nby2 >= padL then (if nby2 <= padL + padH then 1 else 0) else 0
+    if nby2 >= newPadL then (if nby2 <= newPadL + padH then 1 else 0) else 0
   ) else 0;
-
-  /* Right paddle hit */
   let hitR = if nbx >= W - padW - 15 then (
-    if nby2 >= padR then (if nby2 <= padR + padH then 1 else 0) else 0
+    if nby2 >= newPadR then (if nby2 <= newPadR + padH then 1 else 0) else 0
   ) else 0;
 
-  let nvx = if hitL == 1 then abs(bvx)
-            else if hitR == 1 then 0 - abs(bvx)
-            else bvx;
+  let newBvx = if hitL == 1 then abs(bvx)
+               else if hitR == 1 then 0 - abs(bvx)
+               else bvx;
 
-  /* Score */
+  /* Score detection */
   let scored = if nbx <= 0 then 2
                else if nbx >= W then 1
                else 0;
 
-  /* Reset ball on score */
+  /* Update state */
   let fbx = if scored > 0 then 300 else nbx;
   let fby = if scored > 0 then 200 else nby2;
+  svar("bx", fbx); svar("by", fby);
+  svar("bvx", newBvx); svar("bvy", newBvy);
+  if scored == 2 then svar("sR", gvar("sR") + 1) else 0;
+  if scored == 1 then svar("sL", gvar("sL") + 1) else 0;
 
-  /* Beep on hit or score */
+  /* Beep */
   if hitL == 1 then beep(440, 50, 0.2)
   else if hitR == 1 then beep(550, 50, 0.2)
   else if scored > 0 then beep(220, 200, 0.3)
@@ -304,22 +301,19 @@ fn tick(frame) = (
 
   /* Draw */
   canvas_clear(0);
-  /* Center line */
   canvas_line(300, 0, 300, 400, 5, 1);
-  /* Paddles */
-  canvas_rect(10, padL, padW, padH, 1);
-  canvas_rect(W - padW - 10, padR, padW, padH, 2);
-  /* Ball */
+  canvas_rect(10, newPadL, padW, padH, 1);
+  canvas_rect(W - padW - 10, newPadR, padW, padH, 2);
   canvas_circle(fbx, fby, 6, 8);
-  /* Score */
-  canvas_text(220, 30, "" + scoreL, 24, 1);
-  canvas_text(340, 30, "" + scoreR, 24, 2);
+  canvas_text(220, 30, "" + gvar("sL"), 24, 1);
+  canvas_text(340, 30, "" + gvar("sR"), 24, 2);
   canvas_text(230, 385, "Arrow Up/Down", 12, 5)
 )`;
 
 DEMOS.kingdom = `/* Kingdom Map — color every element by kingdom */
 /* The ring as a grid. Each cell = one element. Color = kingdom. */
 
+set_ring(2310)
 let W = 600
 let H = 400
 let ring = 2310
@@ -403,7 +397,8 @@ function runGame() {
         AX.BUILTINS.mouseClick = function() { const c = mc ? 1 : 0; mc = false; return c; };
     }
 
-    // Parse once, extract functions and top-level
+    // Clear persistent state and start fresh
+    AX.clearState();
     output.textContent = '';
     gameFrame = 0;
     gameRunning = true;

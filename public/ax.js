@@ -1174,6 +1174,22 @@ BUILTINS.now_ms = function() {
 };
 
 // ================================================================
+//  Persistent game state (Phase D4 — S701)
+//  gvar("name") reads, svar("name", value) writes.
+//  State persists across AX.run calls until clearState().
+// ================================================================
+const _gameState = {};
+BUILTINS.gvar = function(args) {
+    const name = String(args[0]);
+    return (name in _gameState) ? _gameState[name] : 0;
+};
+BUILTINS.svar = function(args) {
+    const name = String(args[0]);
+    _gameState[name] = args[1];
+    return args[1];
+};
+
+// ================================================================
 //  Evaluator
 // ================================================================
 const MAX_DEPTH = 49; // b^2
@@ -1368,6 +1384,9 @@ return {
 
     // Language
     tokenize, parse, Parser, run,
+
+    // Game state
+    clearState: function() { for (const k in _gameState) delete _gameState[k]; },
 
     // Formatting
     esc, fmtValue, fmtGrid, fmtNum, fmtText
