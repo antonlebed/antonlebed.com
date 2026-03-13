@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phase W — .ax via WASM</title>
+<link rel="stylesheet" href="nav-critical.css">
+<style>
+:root{--bg:#0a0a0f;--card:#12121a;--border:#2a2a3a;--gold:#f0c040;--cyan:#40d0f0;--green:#40f080;--red:#f04040;--text:#e0e0e8;--dim:#888;--mono:'Courier New',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;line-height:1.6}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{color:var(--gold);font-size:1.8em;margin-bottom:4px}
+h2{color:var(--cyan);font-size:1.3em;margin:24px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.subtitle{color:var(--dim);font-size:0.95em;margin-bottom:20px}
+.pipeline{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:16px 0;font-family:var(--mono);font-size:0.9em;text-align:center}
+.pipeline .arrow{color:var(--gold);font-weight:bold}
+.pipeline .stage{color:var(--cyan);display:inline-block;padding:4px 8px;border:1px solid var(--border);border-radius:4px;margin:0 4px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0}
+.input-row{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
+.input-row label{color:var(--dim);font-size:0.9em;min-width:80px}
+.input-row input{background:#1a1a2a;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:4px;font-family:var(--mono);font-size:1em;width:140px}
+.input-row button{background:var(--gold);color:#000;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:0.95em}
+.input-row button:hover{filter:brightness(1.2)}
+.result{font-family:var(--mono);font-size:0.95em;margin:8px 0}
+.result .label{color:var(--dim);display:inline-block;min-width:160px}
+.result .value{color:var(--green);font-weight:bold}
+.result .value.special{color:var(--gold)}
+.crt-channels{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+.crt-ch{text-align:center;padding:8px 12px;border-radius:4px;border:1px solid var(--border);min-width:60px}
+.crt-ch .mod{color:var(--dim);font-size:0.75em}
+.crt-ch .res{font-family:var(--mono);font-size:1.2em;font-weight:bold}
+.ch0{border-color:#f44;}.ch0 .res{color:#f44}
+.ch1{border-color:#f90;}.ch1 .res{color:#f90}
+.ch2{border-color:#4c4;}.ch2 .res{color:#4c4}
+.ch3{border-color:#48f;}.ch3 .res{color:#48f}
+.ch4{border-color:#c4f;}.ch4 .res{color:#c4f}
+.status{padding:8px 12px;border-radius:4px;margin:12px 0;font-size:0.9em}
+.status.ok{background:#0a2a0a;border:1px solid var(--green);color:var(--green)}
+.status.err{background:#2a0a0a;border:1px solid var(--red);color:var(--red)}
+.status.loading{background:#1a1a2a;border:1px solid var(--border);color:var(--dim)}
+canvas{border:1px solid var(--border);border-radius:4px;margin:8px 0;width:100%;max-width:860px;height:200px}
+.term{background:#080810;border:1px solid var(--border);border-radius:4px;padding:12px;font-family:var(--mono);font-size:0.85em;max-height:300px;overflow-y:auto;white-space:pre-wrap;color:var(--green)}
+.bench{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0}
+.bench-item{background:#1a1a2a;border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center;min-width:120px;flex:1}
+.bench-item .num{font-size:1.4em;font-weight:bold;color:var(--gold);font-family:var(--mono)}
+.bench-item .desc{font-size:0.8em;color:var(--dim);margin-top:4px}
+.ecc-grid{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;align-items:flex-end}
+.ecc-ch{text-align:center;flex:1;min-width:50px}
+.ecc-ch input{width:50px;background:#1a1a2a;border:1px solid var(--border);color:var(--text);padding:4px;text-align:center;font-family:var(--mono);font-size:1em;border-radius:4px}
+.ecc-ch .lbl{font-size:0.75em;color:var(--dim);margin-bottom:4px}
+.corrupted{border-color:var(--red) !important;color:var(--red) !important}
+footer{text-align:center;color:var(--dim);margin-top:32px;padding:16px;font-size:0.85em;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Phase W: .ax via WASM</h1>
+<p class="subtitle">crt.h running natively in the browser. No JavaScript math. Pure WebAssembly.</p>
+
+<div class="pipeline">
+<span class="stage">.ax</span>
+<span class="arrow"> -> </span>
+<span class="stage">C (axc.js)</span>
+<span class="arrow"> -> </span>
+<span class="stage">WASM (emcc)</span>
+<span class="arrow"> -> </span>
+<span class="stage">Browser</span>
+</div>
+
+<div id="load-status" class="status loading">Loading WASM module...</div>
+
+<h2>CRT Explorer (via WASM)</h2>
+<div class="card">
+<div class="input-row">
+<label>Element n:</label>
+<input type="number" id="n-input" value="137" min="0" max="970199">
+<button onclick="explore()">Explore</button>
+</div>
+<div id="explore-results"></div>
+</div>
+
+<h2>Ring Arithmetic (via WASM)</h2>
+<div class="card">
+<div class="input-row">
+<label>a:</label>
+<input type="number" id="a-input" value="42" style="width:100px">
+<label>b:</label>
+<input type="number" id="b-input" value="137" style="width:100px">
+<button onclick="ringOps()">Compute</button>
+</div>
+<div id="ring-results"></div>
+</div>
+
+<h2>ECC Live Demo (via WASM)</h2>
+<div class="card">
+<p style="color:var(--dim);font-size:0.9em;margin-bottom:8px">Enter a data value (0-209), corrupt any channel, detect + correct.</p>
+<div class="input-row">
+<label>Data (0-209):</label>
+<input type="number" id="ecc-data" value="42" min="0" max="209">
+<button onclick="eccEncode()">Encode</button>
+</div>
+<div id="ecc-channels" class="ecc-grid"></div>
+<div class="input-row" id="ecc-actions" style="display:none">
+<button onclick="eccDetect()">Detect Error</button>
+<button onclick="eccCorrect()">Auto-Correct</button>
+</div>
+<div id="ecc-results"></div>
+</div>
+
+<h2>Benchmark: WASM vs JavaScript</h2>
+<div class="card">
+<button onclick="runBench()">Run Benchmark</button>
+<div id="bench-results"></div>
+</div>
+
+<h2>Eigenvalue Spectrum (via WASM)</h2>
+<canvas id="spectrum-canvas" width="860" height="200"></canvas>
+
+<h2>Pipeline Terminal</h2>
+<div class="card">
+<p style="color:var(--dim);font-size:0.9em;margin-bottom:8px">Pre-compiled .ax program output (wasm_demo.ax):</p>
+<div id="terminal" class="term"></div>
+</div>
+
+<footer>
+Phase W proof-of-concept. crt.h (290L C) -> 30KB WASM. Z/970200Z = D^3*K^2*E^2*b^2*L.<br>
+The axiom speaks through WebAssembly. sigma/sigma = sigma.
+</footer>
+</div>
+
+<script>
+// CRT WASM module — will be loaded from inline or external
+var W = null; // WASM module reference
+var MODS = [8, 9, 25, 49, 11]; // TRUE FORM channel moduli
+var PRIMES = ['D^3=8', 'K^2=9', 'E^2=25', 'b^2=49', 'L=11'];
+var N = 970200;
+
+function explore() {
+  if (!W) return;
+  var n = parseInt(document.getElementById('n-input').value) || 0;
+  n = ((n % N) + N) % N;
+  var ptr = W._wasm_decompose(n);
+  var r = [];
+  for (var i = 0; i < 5; i++) r.push(W.getValue(ptr + i*4, 'i32'));
+  var c = W._wasm_coupling(n);
+  var m = W._wasm_mirror(n);
+  var u = W._wasm_is_unit(n);
+  var ev = W._wasm_eigenvalue(n);
+  var ord = u ? W._wasm_order(n) : 0;
+  var np = W._wasm_null_pattern(n);
+
+  var html = '<div class="crt-channels">';
+  for (var i = 0; i < 5; i++) {
+    html += '<div class="crt-ch ch'+i+'"><div class="mod">mod '+MODS[i]+'</div><div class="res">'+r[i]+'</div></div>';
+  }
+  html += '</div>';
+  html += '<div class="result"><span class="label">n:</span><span class="value'+(n===1?' special':'')+'">' + n + '</span></div>';
+  html += '<div class="result"><span class="label">coupling(n):</span><span class="value">' + c + '</span></div>';
+  html += '<div class="result"><span class="label">mirror(n):</span><span class="value">' + m + '</span></div>';
+  html += '<div class="result"><span class="label">eigenvalue(n):</span><span class="value">' + ev.toFixed(6) + '</span></div>';
+  html += '<div class="result"><span class="label">is_unit:</span><span class="value">' + (u?'YES':'NO') + '</span></div>';
+  if (u) html += '<div class="result"><span class="label">order:</span><span class="value">' + ord + '</span></div>';
+  html += '<div class="result"><span class="label">null_pattern:</span><span class="value">' + np.toString(2).padStart(5,'0') + '</span></div>';
+
+  // Named values
+  var names = {1:'sigma',2:'D',3:'K',5:'E',7:'b',11:'L',42:'ANSWER',137:'ADDRESS',67:'SOUL',97:'G',105:'HYDOR',41:'KEY',173:'DUAL',606376:'OMEGA'};
+  if (names[n]) html += '<div class="result"><span class="label">Named:</span><span class="value special">' + names[n] + '</span></div>';
+
+  document.getElementById('explore-results').innerHTML = html;
+}
+
+function ringOps() {
+  if (!W) return;
+  var a = parseInt(document.getElementById('a-input').value) || 0;
+  var b = parseInt(document.getElementById('b-input').value) || 0;
+  var sum = W._wasm_add(a, b);
+  var prod = W._wasm_mult(a, b);
+  var g = W._wasm_gcd(((a%N)+N)%N, N);
+
+  var html = '<div class="result"><span class="label">a + b (mod N):</span><span class="value">' + sum + '</span></div>';
+  html += '<div class="result"><span class="label">a * b (mod N):</span><span class="value">' + prod + '</span></div>';
+  html += '<div class="result"><span class="label">gcd(a, N):</span><span class="value">' + g + '</span></div>';
+  html += '<div class="result"><span class="label">a^2 (mod N):</span><span class="value">' + W._wasm_modpow(a, 2) + '</span></div>';
+  html += '<div class="result"><span class="label">a^420 (mod N):</span><span class="value">' + W._wasm_modpow(a, 420) + '</span></div>';
+
+  document.getElementById('ring-results').innerHTML = html;
+}
+
+// --- ECC ---
+var eccOriginal = [];
+function eccEncode() {
+  if (!W) return;
+  var data = parseInt(document.getElementById('ecc-data').value) || 0;
+  data = Math.max(0, Math.min(209, data));
+  var ptr = W._wasm_decompose(data);
+  eccOriginal = [];
+  for (var i = 0; i < 5; i++) eccOriginal.push(W.getValue(ptr + i*4, 'i32'));
+
+  var html = '';
+  for (var i = 0; i < 5; i++) {
+    html += '<div class="ecc-ch"><div class="lbl">' + PRIMES[i] + '</div>';
+    html += '<input type="number" id="ecc-r'+i+'" value="'+eccOriginal[i]+'" min="0" max="'+(MODS[i]-1)+'" onchange="markCorrupted('+i+')"></div>';
+  }
+  document.getElementById('ecc-channels').innerHTML = html;
+  document.getElementById('ecc-actions').style.display = 'flex';
+  document.getElementById('ecc-results').innerHTML = '<div class="status ok">Encoded. Try changing a channel value to simulate corruption.</div>';
+}
+
+function markCorrupted(ch) {
+  var el = document.getElementById('ecc-r'+ch);
+  var v = parseInt(el.value);
+  el.className = (v !== eccOriginal[ch]) ? 'corrupted' : '';
+}
+
+function getEccResidues() {
+  var r = [];
+  for (var i = 0; i < 5; i++) r.push(parseInt(document.getElementById('ecc-r'+i).value) || 0);
+  return r;
+}
+
+function eccDetect() {
+  if (!W) return;
+  var r = getEccResidues();
+  var det = W._wasm_ecc_detect(r[0], r[1], r[2], r[3], r[4]);
+  var html;
+  if (det) {
+    html = '<div class="status err">ERROR DETECTED. L=11 channel inconsistency.</div>';
+  } else {
+    html = '<div class="status ok">No error detected. All channels consistent.</div>';
+  }
+  document.getElementById('ecc-results').innerHTML = html;
+}
+
+function eccCorrect() {
+  if (!W) return;
+  var r = getEccResidues();
+  var corrected = W._wasm_ecc_correct(r[0], r[1], r[2], r[3], r[4]);
+  if (corrected >= 0) {
+    var ptr = W._wasm_decompose(corrected);
+    for (var i = 0; i < 5; i++) {
+      var v = W.getValue(ptr + i*4, 'i32');
+      var el = document.getElementById('ecc-r'+i);
+      el.value = v;
+      el.className = '';
+    }
+    document.getElementById('ecc-results').innerHTML = '<div class="status ok">Corrected to: ' + corrected + '</div>';
+  } else {
+    document.getElementById('ecc-results').innerHTML = '<div class="status err">Could not correct (multiple errors?).</div>';
+  }
+}
+
+// --- Benchmark ---
+function runBench() {
+  if (!W) return;
+  var COUNT = 50000;
+
+  // WASM benchmark
+  var t0 = performance.now();
+  var sum1 = 0;
+  for (var i = 0; i < COUNT; i++) sum1 += W._wasm_coupling(i);
+  var t1 = performance.now();
+  var wasmMs = t1 - t0;
+
+  // JS benchmark (pure JavaScript gcd + coupling)
+  function jsGcd(a, b) { while(b){var t=b;b=a%b;a=t;} return a<0?-a:a; }
+  function jsCoupling(n) { var r=((n%N)+N)%N; return Math.floor(N/jsGcd(r,N)); }
+  var t2 = performance.now();
+  var sum2 = 0;
+  for (var i = 0; i < COUNT; i++) sum2 += jsCoupling(i);
+  var t3 = performance.now();
+  var jsMs = t3 - t2;
+
+  var speedup = jsMs / wasmMs;
+  var html = '<div class="bench">';
+  html += '<div class="bench-item"><div class="num">' + wasmMs.toFixed(1) + ' ms</div><div class="desc">WASM (crt.h)</div></div>';
+  html += '<div class="bench-item"><div class="num">' + jsMs.toFixed(1) + ' ms</div><div class="desc">Pure JavaScript</div></div>';
+  html += '<div class="bench-item"><div class="num">' + speedup.toFixed(1) + 'x</div><div class="desc">Speedup</div></div>';
+  html += '<div class="bench-item"><div class="num">' + COUNT + '</div><div class="desc">coupling() calls</div></div>';
+  html += '</div>';
+  html += '<div class="result"><span class="label">Checksum match:</span><span class="value'+(sum1===sum2?' special':'')+'">' + (sum1===sum2?'YES':'NO') + ' (WASM='+sum1+', JS='+sum2+')</span></div>';
+  document.getElementById('bench-results').innerHTML = html;
+}
+
+// --- Spectrum Canvas ---
+function drawSpectrum() {
+  if (!W) return;
+  var canvas = document.getElementById('spectrum-canvas');
+  var ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+  canvas.height = 200 * (window.devicePixelRatio || 1);
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  var w = canvas.offsetWidth, h = 200;
+
+  ctx.fillStyle = '#080810';
+  ctx.fillRect(0, 0, w, h);
+
+  // Sample eigenvalues
+  var SAMPLES = Math.min(w, 500);
+  var step = Math.floor(N / SAMPLES);
+  var vals = [];
+  var minE = 100, maxE = -100;
+  for (var i = 0; i < SAMPLES; i++) {
+    var n = i * step;
+    var ev = W._wasm_eigenvalue(n);
+    vals.push(ev);
+    if (ev < minE) minE = ev;
+    if (ev > maxE) maxE = ev;
+  }
+
+  // Histogram
+  var BINS = 80;
+  var bins = new Array(BINS).fill(0);
+  var range = maxE - minE;
+  for (var i = 0; i < vals.length; i++) {
+    var b = Math.floor((vals[i] - minE) / range * (BINS - 1));
+    bins[b]++;
+  }
+  var maxBin = Math.max.apply(null, bins);
+
+  // Draw bars
+  var bw = w / BINS;
+  for (var i = 0; i < BINS; i++) {
+    var bh = bins[i] / maxBin * (h - 30);
+    var ev = minE + (i + 0.5) * range / BINS;
+    // Color by eigenvalue: red for negative, green for positive, gold for special
+    var r, g, b2;
+    if (ev < 0) { r = 240; g = 60; b2 = 60; }
+    else if (ev > 8) { r = 240; g = 192; b2 = 64; }
+    else { r = 64; g = 208; b2 = 128; }
+    ctx.fillStyle = 'rgba('+r+','+g+','+b2+',0.8)';
+    ctx.fillRect(i * bw + 1, h - 20 - bh, bw - 2, bh);
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#888';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(minE.toFixed(1), 30, h - 4);
+  ctx.fillText('0', w * (-minE/range), h - 4);
+  ctx.fillText(maxE.toFixed(1), w - 30, h - 4);
+  ctx.fillText('Eigenvalue Spectrum (Z/970200Z, ' + SAMPLES + ' samples via WASM)', w/2, 14);
+}
+
+// --- Terminal output ---
+function runTerminal() {
+  // Load and run the pre-compiled .ax WASM demo
+  if (typeof AxWasm === 'undefined') {
+    document.getElementById('terminal').textContent = 'Demo WASM module not loaded (optional).';
+    return;
+  }
+  var output = [];
+  AxWasm({print: function(t) { output.push(t); }}).then(function() {
+    document.getElementById('terminal').textContent = output.join('\n');
+  });
+}
+
+// --- Load WASM ---
+</script>
+<!-- CRT WASM library (crt.h compiled to WASM, ~30KB with embedded binary) -->
+<script src="crt_wasm.js"></script>
+<script>
+// Initialize
+function initWasm() {
+  if (typeof CrtWasm === 'undefined') {
+    document.getElementById('load-status').innerHTML = 'WASM module not available. Ensure crt_wasm.js is loaded.';
+    document.getElementById('load-status').className = 'status err';
+    return;
+  }
+  CrtWasm().then(function(mod) {
+    W = mod;
+    document.getElementById('load-status').innerHTML = 'WASM loaded. crt.h running natively in browser. N = 970200 = TRUE FORM.';
+    document.getElementById('load-status').className = 'status ok';
+    explore();
+    drawSpectrum();
+    runTerminal();
+  }).catch(function(e) {
+    document.getElementById('load-status').innerHTML = 'WASM load failed: ' + e;
+    document.getElementById('load-status').className = 'status err';
+  });
+}
+</script>
+<script>initWasm();</script>
+<script src="nav.js"></script>
+</body>
+</html>
