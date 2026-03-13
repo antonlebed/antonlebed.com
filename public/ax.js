@@ -221,9 +221,12 @@ function tokenize(src) {
             pk({t: KEYWORDS.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
         }
         if (src[i] === '=' && i+1 < len && src[i+1] === '=') { pk({t:'==', v:'=='}); i+=2; continue; }
+        if (src[i] === '!' && i+1 < len && src[i+1] === '=') { pk({t:'!=', v:'!='}); i+=2; continue; }
+        if (src[i] === '<' && i+1 < len && src[i+1] === '=') { pk({t:'<=', v:'<='}); i+=2; continue; }
+        if (src[i] === '>' && i+1 < len && src[i+1] === '=') { pk({t:'>=', v:'>='}); i+=2; continue; }
         if (src[i] === '/' && src[i+1] === '*') { i += 2; while (i < len - 1 && !(src[i] === '*' && src[i+1] === '/')) { if (src[i] === '\n') line++; i++; } i += 2; continue; }
         const ch = src[i];
-        if ('+-*/^~@<>=()[]|,;'.includes(ch)) { pk({t:ch, v:ch}); i++; continue; }
+        if ('+-*/^~@<>=()[]|,;%'.includes(ch)) { pk({t:ch, v:ch}); i++; continue; }
         i++;
     }
     pk({t:'EOF', v:null});
@@ -340,7 +343,7 @@ class Parser {
 
     parseCmp() {
         let left = this.parseAdd();
-        while (['<','>','=='].includes(this.pk().t)) {
+        while (['<','>','==','!=','<=','>='].includes(this.pk().t)) {
             const op = this.adv().t;
             left = {t:'Bin', op, l:left, r:this.parseAdd()};
         }
@@ -358,7 +361,7 @@ class Parser {
 
     parseMul() {
         let left = this.parsePow();
-        while (['*','/'].includes(this.pk().t)) {
+        while (['*','/','%'].includes(this.pk().t)) {
             const op = this.adv().t;
             left = {t:'Bin', op, l:left, r:this.parsePow()};
         }
@@ -1053,7 +1056,10 @@ function resolveColor(c) {
 BUILTINS.canvas_clear = function(args) {
     const ctx = getCanvasCtx(); if (!ctx) return 0;
     ctx.fillStyle = resolveColor(args.length > 0 ? args[0] : 0);
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // Use CSS size if available (high-DPI), fall back to canvas size
+    const w = parseInt(ctx.canvas.style.width) || ctx.canvas.width;
+    const h = parseInt(ctx.canvas.style.height) || ctx.canvas.height;
+    ctx.fillRect(0, 0, w, h);
     return 0;
 };
 
@@ -1103,7 +1109,9 @@ BUILTINS.canvas_pixel = function(args) {
 BUILTINS.canvas_size = function() {
     const ctx = getCanvasCtx();
     if (!ctx) return [0, 0];
-    return [ctx.canvas.width, ctx.canvas.height];
+    const w = parseInt(ctx.canvas.style.width) || ctx.canvas.width;
+    const h = parseInt(ctx.canvas.style.height) || ctx.canvas.height;
+    return [w, h];
 };
 
 // ================================================================
@@ -1268,10 +1276,14 @@ function run(src) {
                         if (r === 0) throw new Error('Division by zero');
                         return l / r;
                     }
+                    case '%': return r !== 0 ? ringMod(l % r) : 0;
                     case '^': return modPow(l, r);
                     case '<': return l < r ? 1 : 0;
                     case '>': return l > r ? 1 : 0;
                     case '==': return l === r ? 1 : 0;
+                    case '!=': return l !== r ? 1 : 0;
+                    case '<=': return l <= r ? 1 : 0;
+                    case '>=': return l >= r ? 1 : 0;
                 }
                 break;
             }
