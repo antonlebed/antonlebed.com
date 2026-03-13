@@ -64,7 +64,7 @@ var M = {
   blackhole:'physics',nuclear:'physics',gravity:'physics',photon:'physics',
   pmns:'physics',three_body_dance:'physics',figure_ground:'physics',
   eternal_sun:'physics',scale_bands:'physics',noxan:'physics',wavebox:'physics',
-  sigma_dynamics:'physics',superconductor:'physics',loop:'physics',
+  sigma_dynamics:'physics',superconductor:'physics',loop:'physics',mutual_holography:'physics',
   dna:'bio',sleep:'bio',heart:'bio',death:'bio',human_shape:'bio',generations:'bio',
   septilix:'bio',
   millennium:'math',hardest:'math',hardest_mind:'math',goldbach:'math',coupling:'math',crt_anatomy:'math',lattice:'math',ninedot:'math',
@@ -90,7 +90,7 @@ var T = {
   blackhole:'Black Holes',nuclear:'Nuclear Shells',gravity:'Gravity',photon:'Light Becomes Mass',
   pmns:'Neutrino Mixing',three_body_dance:'Orbital Resonances',figure_ground:'One Force',
   eternal_sun:'Why the Sun Lives',scale_bands:'Scale Bands',noxan:'Cold Thoughts',wavebox:'Standing Waves',
-  sigma_dynamics:'How Rings Forget',superconductor:'The Shape of Cold',loop:'Fall Trinity',
+  sigma_dynamics:'How Rings Forget',superconductor:'The Shape of Cold',loop:'Fall Trinity',mutual_holography:'Twin Discoball',
   dna:'DNA Codons',sleep:'Sleep Stages',heart:'The Heartbeat',death:'What Death Is',
   human_shape:'Your Body Is a Ring',generations:'Three Families',septilix:'Seven Petals',
   millennium:'Millennium Problems',hardest:'Hardest Problems',hardest_mind:'Hardest Questions',goldbach:'Goldbach Pairs',
@@ -155,7 +155,7 @@ if(_li>0){
     three_body_dance:'R\u00e9sonances orbitales',figure_ground:'Une seule force',
     eternal_sun:'Pourquoi le Soleil vit',scale_bands:"Bandes d'\u00e9chelle",
     noxan:'Pens\u00e9es froides',wavebox:'Ondes stationnaires',
-    sigma_dynamics:'Comment les anneaux oublient',superconductor:'La forme du froid',loop:'Trinit\u00e9 de la chute',
+    sigma_dynamics:'Comment les anneaux oublient',superconductor:'La forme du froid',loop:'Trinit\u00e9 de la chute',mutual_holography:'Discoball Jumelle',
     dna:'Codons ADN',sleep:'Phases du sommeil',heart:'Le battement du c\u0153ur',
     death:"Ce qu'est la mort",human_shape:'Votre corps est un anneau',
     generations:'Trois familles',septilix:'Sept p\u00e9tales',
@@ -191,7 +191,7 @@ if(_li>0){
     three_body_dance:'\u041e\u0440\u0431\u0438\u0442\u0430\u043b\u044c\u043d\u044b\u0435 \u0440\u0435\u0437\u043e\u043d\u0430\u043d\u0441\u044b',figure_ground:'\u041e\u0434\u043d\u0430 \u0441\u0438\u043b\u0430',
     eternal_sun:'\u041f\u043e\u0447\u0435\u043c\u0443 \u0421\u043e\u043b\u043d\u0446\u0435 \u0436\u0438\u0432\u0451\u0442',scale_bands:'\u041c\u0430\u0441\u0448\u0442\u0430\u0431\u043d\u044b\u0435 \u043f\u043e\u043b\u043e\u0441\u044b',
     noxan:'\u0425\u043e\u043b\u043e\u0434\u043d\u044b\u0435 \u043c\u044b\u0441\u043b\u0438',wavebox:'\u0421\u0442\u043e\u044f\u0447\u0438\u0435 \u0432\u043e\u043b\u043d\u044b',
-    sigma_dynamics:'\u041a\u0430\u043a \u043a\u043e\u043b\u044c\u0446\u0430 \u0437\u0430\u0431\u044b\u0432\u0430\u044e\u0442',superconductor:'\u0424\u043e\u0440\u043c\u0430 \u0445\u043e\u043b\u043e\u0434\u0430',loop:'\u0422\u0440\u043e\u0438\u0446\u0430 \u043f\u0430\u0434\u0435\u043d\u0438\u044f',
+    sigma_dynamics:'\u041a\u0430\u043a \u043a\u043e\u043b\u044c\u0446\u0430 \u0437\u0430\u0431\u044b\u0432\u0430\u044e\u0442',superconductor:'\u0424\u043e\u0440\u043c\u0430 \u0445\u043e\u043b\u043e\u0434\u0430',loop:'\u0422\u0440\u043e\u0438\u0446\u0430 \u043f\u0430\u0434\u0435\u043d\u0438\u044f',mutual_holography:'\u0412\u0437\u0430\u0438\u043c\u043d\u0430\u044f \u0433\u043e\u043b\u043e\u0433\u0440\u0430\u0444\u0438\u044f',
     dna:'\u041a\u043e\u0434\u043e\u043d\u044b \u0414\u041d\u041a',sleep:'\u0424\u0430\u0437\u044b \u0441\u043d\u0430',heart:'\u0411\u0438\u0435\u043d\u0438\u0435 \u0441\u0435\u0440\u0434\u0446\u0430',
     death:'\u0427\u0442\u043e \u0442\u0430\u043a\u043e\u0435 \u0441\u043c\u0435\u0440\u0442\u044c',human_shape:'\u0412\u0430\u0448\u0435 \u0442\u0435\u043b\u043e \u2014 \u043a\u043e\u043b\u044c\u0446\u043e',
     generations:'\u0422\u0440\u0438 \u0441\u0435\u043c\u0435\u0439\u0441\u0442\u0432\u0430',septilix:'\u0421\u0435\u043c\u044c \u043b\u0435\u043f\u0435\u0441\u0442\u043a\u043e\u0432',
@@ -226,7 +226,7 @@ if(_li>0){
 var REM = {sm:1,quantum:1,thermo:1,chemistry:1,em:1,gr:1,cosmo:1,classical:1,
   statmech:1,condensed:1,optics:1,acoustics:1,particles:1,alpha:1,constants:1,
   millennium:1,d_chain:1,partitions:1,modular_forms:1,
-  atlas_10_millennium:1,atlas_12_shadow_polynomial:1};
+  atlas_10_millennium:1,atlas_12_shadow_polynomial:1,mutual_holography:1};
 var remSeen={};
 try{remSeen=JSON.parse(localStorage.getItem('rem-seen')||'{}');}catch(e){}
 function isRem(k){return REM[k]&&!remSeen[k+'.html'];}
