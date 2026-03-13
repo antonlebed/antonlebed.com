@@ -548,6 +548,20 @@ BUILTINS.shadow_poly = (args) => {
     const one = fromInt(1), two = fromInt(2), three = fromInt(3), five = fromInt(5);
     return mul(mul(sub(args[0], one), sub(args[0], two)), mul(sub(args[0], three), sub(args[0], five)));
 };
+BUILTINS.factorize = (args) => {
+    // factorize(n) -> flat array [p1, e1, p2, e2, ...] (works on plain integers)
+    let n = toInt(args[0]);
+    if (n < 0) n = -n;
+    if (n <= 1) return [];
+    const factors = [];
+    for (let p = 2; p * p <= n; p++) {
+        let e = 0;
+        while (n % p === 0) { n = Math.floor(n / p); e++; }
+        if (e > 0) { factors.push(fromInt(p)); factors.push(fromInt(e)); }
+    }
+    if (n > 1) { factors.push(fromInt(n)); factors.push(fromInt(1)); }
+    return factors;
+};
 BUILTINS.mirror = (args) => neg(args[0]);
 BUILTINS.gcd = (args) => fromInt(gcd(toInt(args[0]), toInt(args[1])));
 BUILTINS.toInt = (args) => toInt(args[0]);  // explicit reconstruction

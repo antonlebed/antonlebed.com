@@ -485,6 +485,26 @@ BUILTINS.shadow_poly = function(args, ctx) {
     return result;
 };
 
+BUILTINS.factorize = function(args, ctx) {
+    // factorize(n) -> flat array [p1, e1, p2, e2, ...]
+    var n = args[0];
+    if (n < 0) n = -n;
+    if (n <= 1) { ctx.trace('<span class="tr-fn">factorize</span>(' + args[0] + ') = <span class="tr-result">[]</span>'); return []; }
+    var factors = [];
+    for (var p = 2; p * p <= n; p++) {
+        var e = 0;
+        while (n % p === 0) { n /= p; e++; }
+        if (e > 0) { factors.push(p); factors.push(e); }
+    }
+    if (n > 1) { factors.push(n); factors.push(1); }
+    var display = [];
+    for (var i = 0; i < factors.length; i += 2) {
+        display.push(factors[i] + (factors[i+1] > 1 ? '^' + factors[i+1] : ''));
+    }
+    ctx.trace('<span class="tr-fn">factorize</span>(' + args[0] + ') = <span class="tr-result">' + display.join(' * ') + '</span>');
+    return factors;
+};
+
 BUILTINS.mirror = function(args, ctx) {
     const result = mirror(args[0]);
     ctx.trace('<span class="tr-fn">mirror</span>(' + args[0] + '): <span class="tr-step">' + N + ' - ' + ringMod(args[0]) + '</span> = <span class="tr-result">' + result + '</span>');
