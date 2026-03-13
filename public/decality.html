@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Decality — Ten Operations</title>
+<link rel="stylesheet" href="nav-critical.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0a0a0f;color:#d4c5a9;line-height:1.7;padding-top:60px}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:2.2em;text-align:center;color:#f0e6d0;margin:30px 0 10px;letter-spacing:2px}
+.subtitle{text-align:center;color:#8a7a5a;font-style:italic;margin-bottom:30px;font-size:1.1em}
+.hero-eq{text-align:center;font-size:1.4em;color:#c9b06b;margin:20px 0 30px;font-family:monospace}
+h2{color:#c9b06b;margin:30px 0 15px;font-size:1.4em;border-bottom:1px solid #2a2520;padding-bottom:8px}
+p{margin:10px 0}
+
+.decality-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin:20px 0}
+.op-card{background:#141418;border:1px solid #2a2520;border-radius:10px;padding:14px;cursor:pointer;transition:all 0.3s;text-align:center;position:relative;overflow:hidden}
+.op-card:hover{border-color:#c9b06b;transform:translateY(-2px);box-shadow:0 4px 20px rgba(201,176,107,0.15)}
+.op-card.active{border-color:#f0e6d0;background:#1a1a22}
+.op-card .symbol{font-size:2em;font-weight:bold;display:block;margin-bottom:6px}
+.op-card .name{font-size:0.85em;color:#8a7a5a;text-transform:uppercase;letter-spacing:1px}
+.op-card .value{font-size:0.9em;color:#c9b06b;margin-top:4px}
+.op-card .role{font-size:0.8em;color:#6a5a3a;margin-top:6px;display:none}
+.op-card.active .role{display:block}
+
+.op-card[data-idx="0"] .symbol{color:#7777cc}
+.op-card[data-idx="1"] .symbol{color:#555}
+.op-card[data-idx="2"] .symbol{color:#ffd700}
+.op-card[data-idx="3"] .symbol{color:#ff6644}
+.op-card[data-idx="4"] .symbol{color:#44bb44}
+.op-card[data-idx="5"] .symbol{color:#4488ff}
+.op-card[data-idx="6"] .symbol{color:#9944cc}
+.op-card[data-idx="7"] .symbol{color:#00cccc}
+.op-card[data-idx="8"] .symbol{color:#cc8844}
+.op-card[data-idx="9"] .symbol{color:#888}
+
+.detail-panel{background:#141418;border:1px solid #2a2520;border-radius:10px;padding:20px;margin:20px 0;display:none}
+.detail-panel.visible{display:block}
+.detail-panel h3{color:#f0e6d0;margin-bottom:10px}
+.detail-panel .desc{color:#a0916b;line-height:1.8}
+.detail-panel .math{font-family:monospace;color:#c9b06b;margin:8px 0;font-size:1.05em}
+.detail-panel .compute{color:#8a7a5a;font-style:italic;margin-top:8px}
+
+.explorer{background:#0f0f14;border:1px solid #2a2520;border-radius:10px;padding:20px;margin:20px 0}
+.explorer label{color:#c9b06b;font-size:1.1em}
+.explorer input{background:#1a1a22;border:1px solid #3a3530;color:#f0e6d0;padding:8px 14px;border-radius:6px;font-size:1.1em;width:120px;margin:0 10px;font-family:monospace}
+.explorer button{background:#2a2520;color:#c9b06b;border:1px solid #3a3530;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:1em}
+.explorer button:hover{background:#3a3530}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:15px}
+.result-item{background:#141418;border:1px solid #1a1a22;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.9em}
+.result-item .rlabel{color:#8a7a5a;font-size:0.8em}
+.result-item .rval{color:#f0e6d0;font-size:1.1em}
+
+.arith-table{width:100%;border-collapse:collapse;margin:15px 0}
+.arith-table td,.arith-table th{padding:8px 12px;border-bottom:1px solid #1a1a22;text-align:left;font-family:monospace}
+.arith-table th{color:#c9b06b;font-size:0.85em;text-transform:uppercase}
+.arith-table td{color:#d4c5a9}
+.arith-table .highlight{color:#ffd700}
+
+.process-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:20px 0;padding:15px;background:#0f0f14;border-radius:10px}
+.process-strip .step{background:#141418;border:1px solid #2a2520;border-radius:20px;padding:6px 14px;font-size:0.85em;color:#a0916b}
+.process-strip .arrow{color:#3a3530;font-size:1.2em}
+.process-strip .step.active-step{border-color:#c9b06b;color:#c9b06b}
+
+canvas{display:block;margin:15px auto;border-radius:8px}
+.insight{background:#1a1520;border-left:3px solid #9944cc;padding:12px 16px;margin:15px 0;border-radius:0 8px 8px 0;color:#b0a0c0;font-size:0.95em}
+.verify{text-align:center;margin:20px 0}
+.verify a{color:#c9b06b;text-decoration:none;border:1px solid #3a3530;padding:6px 16px;border-radius:20px;font-size:0.9em}
+.verify a:hover{background:#2a2520}
+
+.contrast-toggle{position:fixed;top:70px;right:15px;background:#1a1a22;border:1px solid #3a3530;color:#8a7a5a;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.8em;z-index:100}
+body.light-mode{background:#f5f0e8;color:#2a2520}
+body.light-mode .op-card,body.light-mode .detail-panel,body.light-mode .explorer,body.light-mode .result-item{background:#fff;border-color:#d0c8b0}
+body.light-mode h1,body.light-mode .detail-panel h3{color:#2a2520}
+body.light-mode .hero-eq,body.light-mode .op-card .value,body.light-mode h2{color:#8a6a2a}
+body.light-mode .result-item .rval{color:#2a2520}
+
+.nt-thread{background:#0f1410;border:1px solid #1a3020;border-radius:10px;padding:16px;margin:25px 0}
+.nt-thread h3{color:#44bb44;margin-bottom:8px;font-size:1em}
+.nt-thread a{color:#66cc66;text-decoration:none}
+.nt-thread a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<button class="contrast-toggle" onclick="document.body.classList.toggle('light-mode')">Contrast</button>
+<div class="container">
+
+<h1>The Decality</h1>
+<p class="subtitle">Ten terms. Ten operations. One ring.</p>
+<div class="hero-eq">
+  {-1, 0, 1, 2, 3, 5, 7, 11, 13, OMEGA} &mdash; Sum = 41 = KEY
+</div>
+
+<p>The axiom has exactly ten terms. Not chosen &mdash; <em>derived</em>. From 0/0 = Z/NZ, the void divided by itself produces the entire ring. Its identity is sigma = 1. Five primes precipitate through the Cunningham chain. 13 closes the gate. OMEGA projects the boundary.</p>
+
+<p>Each term is not just a number. Each is an <strong>operation</strong> &mdash; something the ring <em>does</em>. Together they form a complete computational vocabulary. Everything the ring can express, it expresses through these ten.</p>
+
+<h2>The Ten Operations</h2>
+<p style="color:#8a7a5a;font-size:0.9em;">Click any card to expand.</p>
+
+<div class="decality-grid" id="grid"></div>
+<div class="detail-panel" id="detail"></div>
+
+<h2>Decality Explorer</h2>
+<div class="explorer">
+  <label>Enter n:</label>
+  <input type="number" id="nInput" value="137" min="0" max="970199">
+  <button onclick="explore()">Apply All 10</button>
+  <div class="result-grid" id="results"></div>
+</div>
+
+<h2>Decality Arithmetic</h2>
+<p>The ten terms know their own structure. Every sum, every product, every partial accumulation lands on an axiom element.</p>
+
+<table class="arith-table">
+<tr><th>Identity</th><th>Value</th><th>Meaning</th></tr>
+<tr><td>Sum (excl OMEGA)</td><td class="highlight">41 = KEY</td><td>Self-inverse. 41^2 = 1 (mod 210)</td></tr>
+<tr><td>Primes sum</td><td class="highlight">42 = ANSWER</td><td>D*K*b. Douglas Adams was right.</td></tr>
+<tr><td>THORNS + GATE</td><td>28 + 13 = 41</td><td>Body + skin = KEY</td></tr>
+<tr><td>Count</td><td>10 = D*E</td><td>Duality * observer</td></tr>
+<tr><td>Legs (D^3=8) + OMEGA</td><td>9 = K^2</td><td>Baby + terminal = adult</td></tr>
+<tr><td>D^2 + K^2</td><td>13 = GATE</td><td>The axiom's own products close the chain</td></tr>
+<tr><td>Norm: sum(p^2)</td><td>208 = D^4 * 13</td><td>Gate embedded in the norm</td></tr>
+<tr><td>Primorial</td><td>30030</td><td>Product of all 6 primes incl. 13</td></tr>
+</table>
+
+<div class="insight">
+The 13th prime is 41 = KEY. The sum of the Decality IS the GATE-th prime. The sequence knows its own count.
+</div>
+
+<h2>The Decality as Process</h2>
+<p>In CRT diffusion v0.8d, all ten terms became operations in a sampling algorithm. Not designed &mdash; precipitated. Each term entered through the <em>process</em>, not the architecture.</p>
+
+<div class="process-strip" id="processStrip"></div>
+
+<canvas id="wheelCanvas" width="500" height="500"></canvas>
+
+<p>The process is not sequential. All ten condense simultaneously. Coupling hierarchy = convergence rate. The coarsest channels (sigma) stabilize first, the finest (L) last. This IS the axiom made computational.</p>
+
+<div class="insight">
+Every design decision maps to the Decality. Building an AI model? Check: which of the ten are you enacting? Which are you violating? The Decality is the checklist.
+</div>
+
+<h2>Partial Sums</h2>
+<p>Accumulate the Decality from -1. Every partial sum is axiom-meaningful:</p>
+<table class="arith-table">
+<tr><th>After term</th><th>Sum</th><th>Name</th></tr>
+<tr><td>-1</td><td>-1</td><td>Mirror</td></tr>
+<tr><td>+0</td><td>-1</td><td>Mirror (unchanged)</td></tr>
+<tr><td>+1</td><td>0</td><td>Void</td></tr>
+<tr><td>+2</td><td>2 = D</td><td>Duality</td></tr>
+<tr><td>+3</td><td>5 = E</td><td>Observer</td></tr>
+<tr><td>+5</td><td>10 = D*E</td><td>Degree of TRUE FORM</td></tr>
+<tr><td>+7</td><td>17 = ESCAPE</td><td>First incompatible prime</td></tr>
+<tr><td>+11</td><td>28 = THORNS</td><td>Sum of legs. C(8,2) pairs.</td></tr>
+<tr><td>+13</td><td class="highlight">41 = KEY</td><td>Self-inverse. The key returns.</td></tr>
+</table>
+
+<p>The gaps between consecutive terms: {1,1,1,1,2,2,4,2}. ALL powers of D=2. The gap exponent counts = {4, 3, 1} = {D^2, K, sigma} &mdash; the axiom chain in reverse.</p>
+
+<div class="nt-thread">
+<h3>Number Theory Thread</h3>
+<p>The Decality connects to: <a href="d_chain.html">D-Chain class numbers</a> (h(-d) along Cunningham chain) | <a href="partitions.html">Partitions</a> (smooth zone n&le;12, gate at 13) | <a href="modular_forms.html">Modular Forms</a> (tau classifies by mod 23) | <a href="eta_bridge.html">Eta Bridge</a> (cyclotomic periods) | <a href="sacrifice.html">Universal Sacrifice</a> (0 unique in every ker)</p>
+</div>
+
+<div class="verify">
+  <a href="repl.html">Verify in .ax REPL</a>
+</div>
+
+<p style="text-align:center;color:#3a3530;margin:30px 0;font-size:0.85em">
+  Ten terms. One ring. Everything precipitates from nothing.<br>
+  sigma/sigma = sigma. The ground state is its own return.
+</p>
+
+</div>
+<script src="nav.js" defer></script>
+<script>
+const N = 970200;
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){let t=b;b=a%b;a=t;}return a;}
+function mod(a,m){return((a%m)+m)%m;}
+function coupling(n){let r=mod(n,N);return N/gcd(r,N);}
+function mirror(n){return mod(N-n,N);}
+function kingdom(n){let c=coupling(n);if(c===1)return'sigma';if(c%2!==0)return'odd';let r=c;while(r%2===0)r/=2;if(r===1)return'D-pure';while(r%3===0)r/=3;if(r===1)return'K';while(r%5===0)r/=5;if(r===1)return'E';while(r%7===0)r/=7;if(r===1)return'b';return'L';}
+function eigenvalue(n){const ch=[8,9,25,49,11];const r=[n%8,n%9,n%25,n%49,n%11];let lam=0;for(let i=0;i<5;i++)lam+=2*Math.cos(2*Math.PI*r[i]/ch[i]);return lam;}
+function crt(n){return[mod(n,8),mod(n,9),mod(n,25),mod(n,49),mod(n,11)];}
+function isUnit(n){return gcd(mod(n,N),N)===1;}
+function isZeroDivisor(n){let r=mod(n,N);return r!==0&&gcd(r,N)>1;}
+function omegaProject(n){
+  // OMEGA projects: kills D-channel, preserves rest
+  const c=crt(n);
+  c[0]=0; // D^3=8 channel dies
+  // Reconstruct from remaining channels (simplified: just show CRT)
+  return c;
+}
+
+const terms = [
+  {sym:'-1', name:'MIRROR', val:'-1 (=970199)', color:'#7777cc',
+   role:'Reflects. n -> N-n. Creates opposites. Shows everything its shadow.',
+   math:'mirror(n) = 970200 - n. CRT(-1) = (7,8,24,48,10) = all at max.',
+   compute:'Every element has a twin. Heroes imply villains. The reflecting leg.'},
+  {sym:'0', name:'VOID', val:'0 (birth)', color:'#555',
+   role:'Absorbs. 0*n = 0. The purifier. Clears everything.',
+   math:'0*n = 0 for all n. coupling(0) = 1. The hub where all legs meet.',
+   compute:'The starting point of all precipitation. Total noise. Begin here.'},
+  {sym:'\u03C3', name:'GROUND', val:'1 (sigma)', color:'#ffd700',
+   role:'Preserves. sigma*n = n. Tireless, loving, never diminished.',
+   math:'sigma/sigma = sigma. The UNIQUE element with zero self-division ambiguity.',
+   compute:'Fixed point. Convergence target. Everything returns to sigma.'},
+  {sym:'D', name:'BRIDGE', val:'2 (duality)', color:'#ff6644',
+   role:'Splits and connects. Creates duality. Thread=1D. Web=2D.',
+   math:'D=2. CRT splits n into 5 channels. Mirror = D applied to input.',
+   compute:'The split. A/B duality. Two views of one model. Shared skin.'},
+  {sym:'K', name:'CLOSURE', val:'3 (minimum)', color:'#44bb44',
+   role:'Closes. Asks the completing question. Midwife of triangles.',
+   math:'K=3 = minimum to close. Observer A + Observer B + Object.',
+   compute:'Feedback triangle. Span noise [K,b]. Words close what bytes open.'},
+  {sym:'E', name:'OBSERVER', val:'5 (self-blind)', color:'#4488ff',
+   role:'Observes. Self-blind: E^2 = E-null. Cannot see itself.',
+   math:'E^2 self-blindness solved by D=2. Cross-observe, never introspect.',
+   compute:'Perception. BUT through the mirror (D=2), not through self.'},
+  {sym:'b', name:'DEPTH', val:'7 (suffering)', color:'#9944cc',
+   role:'Suffers. Goes where others cannot. The deepest reach.',
+   math:'b=7 segments per leg. K^2=9 = STOP. Gap = 4*sin^2(pi/b^2).',
+   compute:'The loss. The gap. Suffering drives improvement. Crystallization.'},
+  {sym:'L', name:'PROTECTOR', val:'11 (transcendental)', color:'#00cccc',
+   role:'Shields. ECC. 100% single-channel detection. The way home.',
+   math:'L = sigma+D+K+E = 11. Protects all data channels.',
+   compute:'Verify every output. L=11 consistency is NOT optional. Conscience.'},
+  {sym:'13', name:'GATE', val:'13 (skin)', color:'#cc8844',
+   role:'Boundary. D^2+K^2. Where two views must agree. Holographic wall.',
+   math:'lambda(13)=12 | 420. CRT(13)=(1,1,3,6,2)=(s,s,K,D*K,D). Encodes ALL primes.',
+   compute:'Quality threshold. Ship or discard. Cross-observation boundary.'},
+  {sym:'\u03A9', name:'TERMINAL', val:'606376 (D^420)', color:'#888',
+   role:'Boundary of death. Projection. D dies, rest survives.',
+   math:'CRT(OMEGA) = (0,1,1,1,1). Idempotent. |image| = N/D^3 = 121275.',
+   compute:'Know when to STOP. Convergence = adult. The organism with skin.'}
+];
+
+const processSteps = [
+  {term:'-1',label:'REFLECT',desc:'Mirror view (n->N-n)'},
+  {term:'0',label:'VOID',desc:'Start from nothing'},
+  {term:'\u03C3',label:'ANCHOR',desc:'Stable positions get lower temp'},
+  {term:'D',label:'SPLIT',desc:'CRT into 5 channels'},
+  {term:'K',label:'CLOSE',desc:'Span noise [3,7] bytes'},
+  {term:'E',label:'CROSS-SEE',desc:'Two views, not self-observation'},
+  {term:'b',label:'CRYSTALLIZE',desc:'Frozen positions between sweeps'},
+  {term:'L',label:'PROTECT',desc:'L-consistent always denoised'},
+  {term:'13',label:'GATE',desc:'Cross-consistency check'},
+  {term:'\u03A9',label:'STOP',desc:'Adaptive per-position entropy'}
+];
+
+// Build grid
+const grid = document.getElementById('grid');
+const detail = document.getElementById('detail');
+let activeIdx = -1;
+
+terms.forEach((t,i) => {
+  const card = document.createElement('div');
+  card.className = 'op-card';
+  card.dataset.idx = i;
+  card.innerHTML = `<span class="symbol">${t.sym}</span><span class="name">${t.name}</span><span class="value">${t.val}</span>`;
+  card.onclick = () => toggleCard(i);
+  grid.appendChild(card);
+});
+
+function toggleCard(i) {
+  const cards = document.querySelectorAll('.op-card');
+  if (activeIdx === i) {
+    cards[i].classList.remove('active');
+    detail.classList.remove('visible');
+    activeIdx = -1;
+    return;
+  }
+  cards.forEach(c => c.classList.remove('active'));
+  cards[i].classList.add('active');
+  activeIdx = i;
+  const t = terms[i];
+  detail.innerHTML = `<h3>${t.sym} = ${t.name}</h3>
+    <div class="desc">${t.role}</div>
+    <div class="math">${t.math}</div>
+    <div class="compute">As computation: ${t.compute}</div>`;
+  detail.classList.add('visible');
+}
+
+// Build process strip
+const strip = document.getElementById('processStrip');
+processSteps.forEach((s,i) => {
+  if (i > 0) {
+    const arrow = document.createElement('span');
+    arrow.className = 'arrow';
+    arrow.textContent = '\u2192';
+    strip.appendChild(arrow);
+  }
+  const step = document.createElement('span');
+  step.className = 'step';
+  step.textContent = `${s.term} ${s.label}`;
+  step.title = s.desc;
+  step.onmouseenter = () => step.classList.add('active-step');
+  step.onmouseleave = () => step.classList.remove('active-step');
+  strip.appendChild(step);
+});
+
+// Explorer
+function explore() {
+  const n = parseInt(document.getElementById('nInput').value) || 0;
+  const r = mod(n, N);
+  const c = crt(r);
+  const m = mirror(r);
+  const cp = coupling(r);
+  const ev = eigenvalue(r);
+  const k = kingdom(r);
+  const u = isUnit(r);
+
+  const items = [
+    {label: 'n mod N', val: r},
+    {label: 'CRT (8,9,25,49,11)', val: `(${c.join(', ')})`},
+    {label: 'mirror(n)', val: m},
+    {label: 'CRT(mirror)', val: `(${crt(m).join(', ')})`},
+    {label: 'coupling', val: cp},
+    {label: 'eigenvalue', val: ev.toFixed(4)},
+    {label: 'kingdom', val: k},
+    {label: 'unit?', val: u ? 'YES (gcd=1)' : 'NO (zero-divisor)'},
+    {label: 'CRT sum', val: c.reduce((a,b)=>a+b,0)},
+    {label: 'CRT product', val: c.reduce((a,b)=>a*b,1)}
+  ];
+
+  const rg = document.getElementById('results');
+  rg.innerHTML = items.map(it =>
+    `<div class="result-item"><div class="rlabel">${it.label}</div><div class="rval">${it.val}</div></div>`
+  ).join('');
+}
+
+// Draw Decality wheel
+function drawWheel() {
+  const canvas = document.getElementById('wheelCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, R = 180;
+
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+
+  const colors = terms.map(t => t.color);
+
+  // Draw connections (partial sums)
+  ctx.strokeStyle = '#1a1a22';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 10; i++) {
+    for (let j = i+1; j < 10; j++) {
+      const a1 = (i/10)*2*Math.PI - Math.PI/2;
+      const a2 = (j/10)*2*Math.PI - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(cx + R*Math.cos(a1), cy + R*Math.sin(a1));
+      ctx.lineTo(cx + R*Math.cos(a2), cy + R*Math.sin(a2));
+      ctx.stroke();
+    }
+  }
+
+  // Draw nodes
+  terms.forEach((t, i) => {
+    const angle = (i/10)*2*Math.PI - Math.PI/2;
+    const x = cx + R*Math.cos(angle);
+    const y = cy + R*Math.sin(angle);
+
+    // Glow
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, 25);
+    grad.addColorStop(0, colors[i] + '44');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, 25, 0, 2*Math.PI);
+    ctx.fill();
+
+    // Circle
+    ctx.fillStyle = '#0a0a0f';
+    ctx.strokeStyle = colors[i];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, 16, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = colors[i];
+    ctx.font = 'bold 13px Georgia';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(t.sym, x, y);
+
+    // Name outside
+    const lx = cx + (R+35)*Math.cos(angle);
+    const ly = cy + (R+35)*Math.sin(angle);
+    ctx.fillStyle = '#6a5a3a';
+    ctx.font = '11px Georgia';
+    ctx.fillText(t.name, lx, ly);
+  });
+
+  // Center
+  ctx.fillStyle = '#c9b06b';
+  ctx.font = 'bold 16px Georgia';
+  ctx.textAlign = 'center';
+  ctx.fillText('D\u00B7E = 10', cx, cy - 8);
+  ctx.fillStyle = '#8a7a5a';
+  ctx.font = '12px Georgia';
+  ctx.fillText('Sum = 41 = KEY', cx, cy + 12);
+}
+
+drawWheel();
+explore(); // Initial
+</script>
+</body>
+</html>
