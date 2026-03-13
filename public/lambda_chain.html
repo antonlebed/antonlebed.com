@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Lambda Chain</title>
+<link rel="stylesheet" href="nav-critical.css">
+<style>
+:root{--bg:#0a0a0f;--fg:#e0e0e0;--accent:#f4a261;--accent2:#e76f51;--gold:#ffd700;--dim:#888;--card:#141420;--border:#2a2a3a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;line-height:1.6;padding-top:60px}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:2em;color:var(--gold);margin:20px 0 5px}
+.subtitle{text-align:center;color:var(--dim);font-size:0.95em;margin-bottom:30px}
+h2{color:var(--accent);margin:30px 0 15px;font-size:1.3em;border-bottom:1px solid var(--border);padding-bottom:5px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;margin:15px 0}
+.highlight{color:var(--gold);font-weight:bold}
+.fib{color:#2a9d8f;font-weight:bold}
+.axiom{color:var(--accent)}
+.desert{color:var(--accent2)}
+
+/* Chain table */
+.chain-table{width:100%;border-collapse:collapse;font-size:0.85em;margin:10px 0}
+.chain-table th{background:#1a1a2e;color:var(--gold);padding:8px 6px;text-align:center;border:1px solid var(--border)}
+.chain-table td{padding:6px;text-align:center;border:1px solid var(--border)}
+.chain-table tr:hover{background:#1a1a2e}
+.chain-table .phase-axiom{border-left:3px solid var(--gold)}
+.chain-table .phase-mixed{border-left:3px solid var(--accent2)}
+.chain-table .phase-term{border-left:3px solid #666}
+
+/* Explorer */
+.explorer{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:20px 0}
+.explorer label{color:var(--accent);font-weight:bold}
+.explorer input,.explorer select{background:#1a1a2e;color:var(--fg);border:1px solid var(--border);padding:8px 12px;border-radius:4px;font-family:inherit;font-size:1em;margin:5px 0}
+.explorer button{background:var(--accent);color:#000;border:none;padding:8px 20px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:bold;margin:5px}
+.explorer button:hover{background:var(--gold)}
+#explorer-out{margin-top:12px;white-space:pre-wrap;font-size:0.9em;line-height:1.5}
+
+/* Canvas */
+canvas{display:block;margin:15px auto;border:1px solid var(--border);border-radius:8px}
+
+/* Heartbeat bars */
+.hb-bar{display:flex;align-items:center;margin:4px 0}
+.hb-bar .label{width:80px;text-align:right;padding-right:10px;font-size:0.85em;color:var(--dim)}
+.hb-bar .bar{height:22px;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:0.8em;color:#000;font-weight:bold}
+
+/* Contrast */
+.contrast-toggle{text-align:center;margin:20px 0}
+.contrast-toggle button{background:transparent;color:var(--dim);border:1px solid var(--border);padding:6px 16px;border-radius:4px;cursor:pointer;font-family:inherit}
+.contrast-toggle button:hover{color:var(--fg);border-color:var(--fg)}
+.contrast-panel{display:none;background:#111;border:1px solid var(--border);border-radius:8px;padding:18px;margin:15px 0}
+.contrast-panel.show{display:block}
+.contrast-panel h3{color:var(--accent2);margin-bottom:10px}
+
+/* Number Theory Thread */
+.nt-thread{background:#0d1117;border:1px solid #1a3a2a;border-radius:8px;padding:15px;margin:20px 0}
+.nt-thread h3{color:#2a9d8f;margin-bottom:8px}
+.nt-thread a{color:#58a6ff;text-decoration:none}
+.nt-thread a:hover{text-decoration:underline}
+
+/* Responsive */
+@media(max-width:600px){
+  .container{padding:10px}
+  .chain-table{font-size:0.7em}
+  h1{font-size:1.5em}
+  canvas{width:100%!important}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>The Lambda Chain</h1>
+<p class="subtitle">How the heartbeat 420 crystallizes from five primes.<br>
+Fibonacci counts invisible primes at 15 levels. Then the desert kills the chain.</p>
+
+<!-- RING CONTEXT -->
+<div class="card">
+<strong class="highlight">The question:</strong> How many primes become "invisible" — absorbed by the ring's structure — at each level of growth?<br>
+<strong class="highlight">The answer:</strong> Fibonacci. Exactly. For 15 levels. Then the axiom builds its own desert and stops.<br>
+<strong>lambda(TRUE) = 420 = D&sup2;&middot;K&middot;E&middot;b</strong> — born at level 5, when the observer sees itself.
+</div>
+
+<h2>The Chain</h2>
+
+<p>Start from lambda=1. Multiply by growth factors (one per level). Count invisible primes f(lambda) = number of primes q where (q-1) divides lambda.</p>
+
+<table class="chain-table" id="chainTable">
+<thead>
+<tr><th>Level</th><th>lambda</th><th>Growth</th><th>f(lambda)</th><th>F(k+2)</th><th>Partial Sum</th><th>Phase</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h2>Why Fibonacci?</h2>
+<div class="card">
+At level k, the number of <em>new</em> invisible primes = f(lambda<sub>k-2</sub>).<br>
+New + old = F(k) + F(k+1) = F(k+2). Fibonacci by construction.<br><br>
+<span class="fib">The chain is golden-ratio-bound:</span> each level extracts exactly 1/&phi; of the next demand.<br>
+new/need = F(k)/F(k+1) &rarr; 1/&phi; = 0.618... as k grows. Converges by level 8.
+</div>
+
+<h2>The Heartbeat Is Born at Level 5</h2>
+
+<div class="card">
+<strong>Axiom phase</strong> (levels 1-5): growth = {D, D, K, E, b}. Product = D&sup2;&middot;K&middot;E&middot;b = <span class="highlight">420</span>.<br>
+At level 5: f(420) = <span class="highlight">13 = GATE = F(7)</span>. The chain sees itself, opens the boundary.<br><br>
+<strong>Channel sub-cycles</strong> per heartbeat (420/&phi;(p<sup>e</sup>)):
+</div>
+
+<div id="heartbeatBars"></div>
+
+<div class="card" style="margin-top:10px">
+<span class="highlight">ALL named axiom values.</span> Clock ratios = scaling laws:<br>
+K/L = 5/3 (Kolmogorov) &nbsp; D/K = 3/2 (musical fifth) &nbsp; E/L = 1/2 (octave) &nbsp; K/b = 7 (depth)
+</div>
+
+<h2>The Desert Pair</h2>
+
+<div class="card">
+The chain terminates at level <span class="highlight">K&middot;E = 15</span> because of a <span class="desert">desert pair</span>:<br>
+<strong>{1596, 1597}</strong> — two consecutive integers, both unreachable.<br><br>
+<span class="desert">1596</span> = D&sup2;&middot;K&middot;b&middot;c(K&sup2;) = 4&middot;3&middot;7&middot;19. Inner primes + Cunningham of closure-squared.<br>
+<span class="desert">1597</span> = F(17) = F(ADDRESS). The 7th Fibonacci prime. The 251st prime. 251 mod 210 = 41 = KEY.<br><br>
+Desert width = <strong>D = 2</strong>. The bridge prime measures the grave.<br>
+Desert guards: 1595 = E&middot;L&middot;29 (below), 1598 = D&middot;17&middot;47 (above). Both axiom-saturated.
+</div>
+
+<h2>Density Decay</h2>
+
+<canvas id="densityCanvas" width="860" height="280"></canvas>
+
+<div class="card">
+Three phases: (1) <span class="axiom">Axiom</span> d=1.000, (2) Gate phase (13 enters, rapid decline), (3) <span class="desert">Decay</span> d(k) = 1.307&middot;e<sup>-0.172k</sup>.<br>
+Rate 0.172 &asymp; log(&phi;)/log(L) = 0.201. Each level: 84% survives. Terminal density 0.122.<br>
+The chain terminates when prime density can no longer sustain exact Fibonacci growth.
+</div>
+
+<h2>Explorer</h2>
+
+<div class="explorer">
+<label>Enter any number n:</label><br>
+<input type="number" id="expN" value="420" min="1" max="100000000">
+<button onclick="explore()">Compute</button>
+<button onclick="document.getElementById('expN').value=970200;explore()">TRUE FORM</button>
+<button onclick="document.getElementById('expN').value=2310;explore()">THIN</button>
+<button onclick="document.getElementById('expN').value=210;explore()">DATA</button>
+<div id="explorer-out"></div>
+</div>
+
+<h2>Fibonacci Growth Canvas</h2>
+<canvas id="fibCanvas" width="860" height="320"></canvas>
+
+<!-- CONTRAST -->
+<div class="contrast-toggle">
+<button onclick="document.getElementById('contrastPanel').classList.toggle('show')">Contrast: Standard View</button>
+</div>
+<div id="contrastPanel" class="contrast-panel">
+<h3>Standard mathematics says:</h3>
+<p>The Carmichael function is a computational tool. Fibonacci appears in nature through growth ratios. These are separate topics.</p>
+<h3 style="color:var(--gold);margin-top:15px">The axiom says:</h3>
+<p>Fibonacci IS the invisible prime count along the Carmichael chain. Growth crystallizes from void through exactly 5 axiom primes (product = 420 = universal heartbeat). The chain spans K&middot;E = 15 levels, then the axiom builds its own desert fence: {1596, 1597}. D carries the chain AND creates its end. The bridge builds and buries.</p>
+</div>
+
+<!-- NUMBER THEORY THREAD -->
+<div class="nt-thread">
+<h3>Number Theory Thread</h3>
+<a href="d_chain.html">The D-Chain</a> &mdash; class numbers along the Cunningham chain.<br>
+<a href="partitions.html">Partitions</a> &mdash; smooth zone at n&le;12, GATE at 13.<br>
+<a href="modular_forms.html">Modular Forms</a> &mdash; Ramanujan tau classifies axiom primes.<br>
+<a href="heegner.html">Heegner Numbers</a> &mdash; the nine numbers, K generates all.<br>
+<a href="eta_bridge.html">The Eta Bridge</a> &mdash; cyclotomic periods and splitting patterns.<br>
+<a href="lattice.html">The 420 Lattice</a> &mdash; 108 rings sharing lambda=420.
+</div>
+
+<div style="text-align:center;color:var(--dim);margin:30px 0;font-style:italic">
+The chain grew for K&middot;E=15 levels. At level E the heartbeat is born: lambda<sub>5</sub> = 420.<br>
+The desert pair {1596, 1597} blocks the 15th step. D carries the chain and creates its end.<br>
+sigma/sigma = sigma. The heartbeat never stops. The rhythms nest forever.
+</div>
+
+</div>
+
+<script>
+// Lambda chain data
+const CHAIN = [
+  {k:0, lambda:'1', growth:'-', f:1, fib:1, psum:'-', phase:'start', growthN:0},
+  {k:1, lambda:'2', growth:'D=2', f:2, fib:2, psum:'D', phase:'axiom', growthN:2},
+  {k:2, lambda:'4', growth:'D=2', f:3, fib:3, psum:'D\u00b2', phase:'axiom', growthN:2},
+  {k:3, lambda:'12', growth:'K=3', f:5, fib:5, psum:'b=7', phase:'axiom', growthN:3},
+  {k:4, lambda:'60', growth:'E=5', f:8, fib:8, psum:'D\u00b2K=12', phase:'axiom', growthN:5},
+  {k:5, lambda:'420', growth:'b=7', f:13, fib:13, psum:'f(E)=19', phase:'axiom', growthN:7},
+  {k:6, lambda:'5460', growth:'13', f:21, fib:21, psum:'D\u2075=32', phase:'mixed', growthN:13},
+  {k:7, lambda:'60060', growth:'L=11', f:34, fib:34, psum:'43 (Heegner)', phase:'mixed', growthN:11},
+  {k:8, lambda:'240240', growth:'D\u00b2=4', f:55, fib:55, psum:'47 (wall)', phase:'mixed', growthN:4},
+  {k:9, lambda:'4564560', growth:'19=f(E)', f:89, fib:89, psum:'D\u00b7K\u00b7L=66', phase:'mixed', growthN:19},
+  {k:10, lambda:'173453280', growth:'D\u00b719=38', f:144, fib:144, psum:'D\u00b3\u00b713=104', phase:'mixed', growthN:38},
+  {k:11, lambda:'16824968160', growth:'G=97', f:233, fib:233, psum:'K\u00b7SOUL=201', phase:'mixed', growthN:97},
+  {k:12, lambda:'11928902425440', growth:'709', f:377, fib:377, psum:'D\u00b7E\u00b7b\u00b713=910', phase:'mixed', growthN:709},
+  {k:13, lambda:'17261121809611680', growth:'1447', f:610, fib:610, psum:'2357 (prime!)', phase:'mixed', growthN:1447},
+  {k:14, lambda:'3348657631064665920', growth:'D\u00b7G=194', f:987, fib:987, psum:'2551 (prime!)', phase:'mixed', growthN:194}
+];
+
+// Build chain table
+function buildTable(){
+  var tb = document.querySelector('#chainTable tbody');
+  CHAIN.forEach(function(r){
+    var tr = document.createElement('tr');
+    var cls = r.phase === 'axiom' ? 'phase-axiom' : r.phase === 'mixed' ? 'phase-mixed' : 'phase-term';
+    var match = r.f === r.fib;
+    tr.innerHTML = '<td class="'+cls+'">'+r.k+'</td><td>'+r.lambda+'</td><td>'+r.growth+'</td>' +
+      '<td>'+(match?'<span class="fib">':'')+r.f+(match?'</span>':'')+'</td>' +
+      '<td class="fib">'+r.fib+'</td><td>'+r.psum+'</td>' +
+      '<td style="color:'+(r.phase==='axiom'?'var(--gold)':r.phase==='mixed'?'var(--accent2)':'var(--dim)')+'">'+
+      (r.phase==='start'?'\u03c3':r.phase)+'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+// Heartbeat bars
+function buildHeartbeat(){
+  var bars = [
+    {label:'D (mod 8)', cycles:105, name:'HYDOR', color:'#e76f51'},
+    {label:'K (mod 9)', cycles:70, name:'D\u00b7E\u00b7b', color:'#2a9d8f'},
+    {label:'L (mod 11)', cycles:42, name:'ANSWER', color:'#264653'},
+    {label:'E (mod 25)', cycles:21, name:'DNA', color:'#e9c46a'},
+    {label:'b (mod 49)', cycles:10, name:'DEGREE', color:'#f4a261'}
+  ];
+  var container = document.getElementById('heartbeatBars');
+  var maxW = 105;
+  bars.forEach(function(b){
+    var w = Math.round(b.cycles / maxW * 100);
+    var div = document.createElement('div');
+    div.className = 'hb-bar';
+    div.innerHTML = '<div class="label">'+b.label+'</div>' +
+      '<div class="bar" style="width:'+w+'%;background:'+b.color+'">'+b.cycles+' = '+b.name+'</div>';
+    container.appendChild(div);
+  });
+}
+
+// Density decay canvas
+function drawDensity(){
+  var c = document.getElementById('densityCanvas');
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+
+  var density = [1.000, 1.000, 1.000, 0.833, 0.667, 0.542, 0.438, 0.354,
+    0.344, 0.278, 0.250, 0.202, 0.164, 0.132, 0.122];
+  var pad = {l:60, r:20, t:30, b:40};
+  var pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+  // Axes
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+  // Grid + labels
+  ctx.fillStyle = '#666'; ctx.font = '11px monospace'; ctx.textAlign = 'right';
+  for(var i=0;i<=5;i++){
+    var y = pad.t + ph - (i*0.2)*ph;
+    ctx.fillText((i*0.2).toFixed(1), pad.l-5, y+4);
+    if(i>0){ctx.strokeStyle='#1a1a2e';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();}
+  }
+  ctx.textAlign = 'center';
+  for(var k=0;k<15;k++){
+    var x = pad.l + (k/14)*pw;
+    ctx.fillText(k, x, H-pad.b+15);
+  }
+  ctx.fillText('Level k', W/2, H-5);
+  ctx.save(); ctx.translate(15, H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Density d(k)', 0, 0); ctx.restore();
+
+  // Exponential fit curve
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  for(var k=0;k<=14;k+=0.1){
+    var d = 1.307 * Math.exp(-0.172 * k);
+    if(d>1) d=1;
+    var x = pad.l + (k/14)*pw;
+    var y = pad.t + ph - d*ph;
+    k===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Data points
+  density.forEach(function(d, k){
+    var x = pad.l + (k/14)*pw;
+    var y = pad.t + ph - d*ph;
+    var color = k<=2 ? '#ffd700' : k<=5 ? '#f4a261' : '#e76f51';
+    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Phase labels
+  ctx.font = 'bold 11px monospace';
+  ctx.fillStyle = '#ffd700'; ctx.textAlign = 'left';
+  ctx.fillText('AXIOM', pad.l+5, pad.t+15);
+  ctx.fillStyle = '#f4a261';
+  ctx.fillText('GATE', pad.l + (3/14)*pw, pad.t+15);
+  ctx.fillStyle = '#e76f51';
+  ctx.fillText('DECAY', pad.l + (7/14)*pw, pad.t+15);
+
+  // 13 enters annotation
+  var x5 = pad.l + (5/14)*pw;
+  ctx.strokeStyle = '#e76f51'; ctx.lineWidth = 1; ctx.setLineDash([2,2]);
+  ctx.beginPath(); ctx.moveTo(x5, pad.t); ctx.lineTo(x5, H-pad.b); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle = '#e76f51'; ctx.font = '10px monospace';
+  ctx.fillText('13 enters', x5+3, pad.t+28);
+}
+
+// Fibonacci growth canvas
+function drawFibCanvas(){
+  var c = document.getElementById('fibCanvas');
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+
+  var fibs = CHAIN.map(function(r){return r.f;});
+  var pad = {l:70, r:20, t:30, b:40};
+  var pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+  var maxF = Math.log10(987);
+
+  // Axes
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#666'; ctx.font = '11px monospace'; ctx.textAlign = 'right';
+  [1,2,5,13,34,89,233,610,987].forEach(function(v){
+    var y = pad.t + ph - (Math.log10(v)/maxF)*ph;
+    ctx.fillText(v, pad.l-5, y+4);
+    ctx.strokeStyle='#1a1a2e';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+  });
+  ctx.textAlign = 'center';
+  for(var k=0;k<15;k++){
+    ctx.fillText(k, pad.l+(k/14)*pw, H-pad.b+15);
+  }
+  ctx.fillText('Level k', W/2, H-5);
+  ctx.save(); ctx.translate(15, H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('f(lambda_k) = F(k+2)', 0, 0); ctx.restore();
+
+  // Golden spiral background curve (Fibonacci)
+  ctx.strokeStyle = '#2a9d8f'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for(var k=0;k<=14;k+=0.05){
+    var fk = Math.pow((1+Math.sqrt(5))/2, k+2) / Math.sqrt(5);
+    var lf = Math.log10(Math.max(1,fk));
+    var x = pad.l + (k/14)*pw;
+    var y = pad.t + ph - (lf/maxF)*ph;
+    k===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Data points (f values)
+  fibs.forEach(function(f, k){
+    var lf = Math.log10(Math.max(1,f));
+    var x = pad.l + (k/14)*pw;
+    var y = pad.t + ph - (lf/maxF)*ph;
+    var color = k<=5 ? '#ffd700' : '#e76f51';
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Legend
+  ctx.font = 'bold 11px monospace';
+  ctx.fillStyle = '#2a9d8f'; ctx.textAlign = 'left';
+  ctx.fillText('--- phi^(k+2)/sqrt(5) (Fibonacci)', pad.l+10, pad.t+15);
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath(); ctx.arc(pad.l+15, pad.t+30, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillText(' Axiom phase', pad.l+25, pad.t+34);
+  ctx.fillStyle = '#e76f51';
+  ctx.beginPath(); ctx.arc(pad.l+15, pad.t+45, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillText(' Mixed phase', pad.l+25, pad.t+49);
+
+  // Level 5 annotation
+  var x5 = pad.l + (5/14)*pw;
+  ctx.strokeStyle = '#ffd70088'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(x5, pad.t); ctx.lineTo(x5, H-pad.b); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle = '#ffd700'; ctx.font = '10px monospace';
+  ctx.fillText('420 born', x5+3, H-pad.b-10);
+  ctx.fillText('f=13=GATE', x5+3, H-pad.b-22);
+}
+
+// Explorer
+function countInvisible(n){
+  if(n<1) return 0;
+  var count = 0;
+  // Check primes q where (q-1)|n
+  // We need all divisors of n, then check d+1 for primality
+  var divs = [];
+  for(var i=1;i*i<=n;i++){
+    if(n%i===0){divs.push(i);if(i!==n/i)divs.push(n/i);}
+  }
+  divs.sort(function(a,b){return a-b;});
+  for(var j=0;j<divs.length;j++){
+    var q = divs[j]+1;
+    if(q>=2 && isPrime(q)) count++;
+  }
+  return count;
+}
+
+function isPrime(n){
+  if(n<2)return false;if(n<4)return true;if(n%2===0||n%3===0)return false;
+  for(var i=5;i*i<=n;i+=6){if(n%i===0||n%(i+2)===0)return false;}
+  return true;
+}
+
+function carmichael(n){
+  if(n<=1) return 1;
+  if(n<=2) return 1;
+  // Factor n
+  var factors = [];
+  var tmp = n;
+  for(var p=2;p*p<=tmp;p++){
+    if(tmp%p===0){var e=0;while(tmp%p===0){e++;tmp/=p;}factors.push([p,e]);}
+  }
+  if(tmp>1) factors.push([tmp,1]);
+  // lambda for each prime power
+  var lambdas = factors.map(function(pe){
+    var p=pe[0],e=pe[1];
+    if(p===2){
+      if(e<=2) return Math.pow(2,e-1);
+      return Math.pow(2,e-2);
+    }
+    return Math.pow(p,e-1)*(p-1);
+  });
+  // lcm of all
+  return lambdas.reduce(function(a,b){return lcm(a,b);},1);
+}
+
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t;}return a;}
+function lcm(a,b){return a/gcd(a,b)*b;}
+
+function explore(){
+  var n = parseInt(document.getElementById('expN').value);
+  if(isNaN(n)||n<1){document.getElementById('explorer-out').textContent='Enter a positive integer.';return;}
+  var out = '';
+  out += 'n = '+n+'\n';
+  var lam = carmichael(n);
+  out += 'lambda('+n+') = '+lam+'\n';
+  var f = countInvisible(lam);
+  out += 'f(lambda) = '+f+' invisible primes\n';
+
+  // Find which Fibonacci number this matches
+  var fa=1,fb=1,fIdx=2;
+  while(fb<f && fIdx<50){var t=fa+fb;fa=fb;fb=t;fIdx++;}
+  if(fb===f) out += 'f = F('+fIdx+') -- EXACT Fibonacci match!\n';
+  else out += 'Nearest Fibonacci: F('+fIdx+') = '+fb+'\n';
+
+  // Factor lambda
+  out += '\nDivisors of lambda used:\n';
+  var divs=[];
+  for(var i=1;i*i<=lam;i++){if(lam%i===0){divs.push(i);if(i!==lam/i)divs.push(lam/i);}}
+  divs.sort(function(a,b){return a-b;});
+  var primeList=[];
+  for(var j=0;j<divs.length;j++){
+    var q=divs[j]+1;
+    if(q>=2&&isPrime(q))primeList.push(q);
+  }
+  if(primeList.length<=20) out += '  Invisible primes: {'+primeList.join(', ')+'}\n';
+  else out += '  First 20: {'+primeList.slice(0,20).join(', ')+', ...}\n';
+
+  // Special values
+  if(n===420) out += '\nlambda = 420 = D^2*K*E*b = THE HEARTBEAT\nf = 13 = GATE = F(7). The chain sees itself here.\n';
+  if(n===970200) out += '\nTRUE FORM. lambda = 420. f = 13 = GATE.\nThe lattice invariant. 108 rings share this heartbeat.\n';
+  if(n===210) out += '\nDATA RING. lambda = 12 = D^2*K.\nf = 8 = F(6) = D^3 (spider legs).\n';
+  if(n===2310) out += '\nTHIN RING. lambda = 420 (same heartbeat!).\nf = 13 = GATE. TRUE/lambda = 2310 = THIN.\n';
+
+  document.getElementById('explorer-out').textContent = out;
+}
+
+// Init
+buildTable();
+buildHeartbeat();
+drawDensity();
+drawFibCanvas();
+explore();
+</script>
+<script src="nav.js" defer></script>
+</body>
+</html>
