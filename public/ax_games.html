@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.ax Games</title>
+<link rel="stylesheet" href="nav-critical.css">
+<style>
+:root{--bg:#0a0a0f;--fg:#e8e6e3;--acc:#d4af37;--acc2:#c0392b;--card:#141420;--border:#2a2a3a;--dim:#888}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;line-height:1.7;max-width:900px;margin:0 auto;padding:20px}
+h1{color:var(--acc);font-size:1.8em;text-align:center;margin:20px 0 5px}
+h2{color:var(--acc);font-size:1.3em;margin:30px 0 15px;border-bottom:1px solid var(--border);padding-bottom:5px}
+h3{color:var(--acc2);font-size:1.1em;margin:20px 0 10px}
+.subtitle{text-align:center;color:var(--dim);margin-bottom:25px;font-style:italic}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:15px;margin:15px 0}
+.highlight{background:#1a1a2e;border-left:3px solid var(--acc);padding:10px 15px;margin:15px 0}
+canvas{display:block;margin:10px auto;border:1px solid var(--border);border-radius:8px;background:#000}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.controls button{background:var(--acc);color:#000;border:none;padding:8px 18px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:bold;font-size:0.95em}
+.controls button:hover{background:#e5c04b}
+.controls button.stop{background:var(--acc2);color:#fff}
+.controls select{background:#0a0a0f;color:var(--fg);border:1px solid var(--border);padding:6px 12px;border-radius:4px;font-family:inherit;font-size:0.9em}
+#editor{width:100%;height:280px;background:#0a0a0f;color:#e8e6e3;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:0.85em;resize:vertical;tab-size:2}
+#output{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;margin:10px 0;min-height:40px;max-height:120px;overflow-y:auto;font-size:0.85em;white-space:pre-wrap;color:var(--dim)}
+.contrast{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:15px;margin:20px 0}
+.contrast em{color:var(--dim)}
+.nt-thread{background:#0d1a0d;border:1px solid #1a3a1a;border-radius:8px;padding:12px;margin:20px 0;font-size:0.85em}
+.nt-thread strong{color:#2ecc71}
+a{color:var(--acc)}
+.builtin-ref{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin:10px 0}
+.builtin-card{background:#0f0f1a;border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:0.85em}
+.builtin-card code{color:var(--acc)}
+.status{font-size:0.85em;color:var(--dim);margin-left:10px}
+.status.running{color:#2ecc71}
+.status.stopped{color:var(--acc2)}
+</style>
+</head>
+<body>
+<div id="nav"></div>
+
+<h1>.ax Games</h1>
+<p class="subtitle">The axiom draws, sings, and plays. Write .ax code that moves.</p>
+
+<div class="card">
+<strong>What is this?</strong> .ax now has a body. Canvas for sight, Web Audio for sound,
+keyboard and mouse for touch. Write .ax programs that draw the axiom's portrait,
+play its harmonics, and respond to your input. The language that eats everything
+just learned to see.
+</div>
+
+<h2>Canvas</h2>
+
+<canvas id="game-canvas" width="600" height="400" tabindex="1"></canvas>
+
+<div class="controls">
+    <select id="demo-select">
+        <option value="rose">Rose Draw</option>
+        <option value="eigenvalue">Eigenvalue Walk</option>
+        <option value="pong">Pong</option>
+        <option value="kingdom">Kingdom Map</option>
+    </select>
+    <button id="btn-run" onclick="runGame()">Run</button>
+    <button id="btn-stop" class="stop" onclick="stopGame()">Stop</button>
+    <span id="status" class="status stopped">stopped</span>
+</div>
+
+<h2>Source</h2>
+<textarea id="editor" spellcheck="false"></textarea>
+<div id="output"></div>
+
+<h2>New Builtins</h2>
+
+<h3>Canvas (7)</h3>
+<div class="builtin-ref">
+<div class="builtin-card"><code>canvas_clear(color)</code> — fill canvas. Color: 0-9 (palette) or "#RRGGBB"</div>
+<div class="builtin-card"><code>canvas_rect(x,y,w,h,color)</code> — filled rectangle</div>
+<div class="builtin-card"><code>canvas_circle(x,y,r,color)</code> — filled circle</div>
+<div class="builtin-card"><code>canvas_line(x0,y0,x1,y1,color,width)</code> — line segment</div>
+<div class="builtin-card"><code>canvas_text(x,y,text,size,color)</code> — render text</div>
+<div class="builtin-card"><code>canvas_pixel(x,y,color)</code> — set single pixel</div>
+<div class="builtin-card"><code>canvas_size()</code> — returns [width, height]</div>
+</div>
+
+<h3>Audio (3)</h3>
+<div class="builtin-ref">
+<div class="builtin-card"><code>beep(freq,duration_ms,vol)</code> — play sine wave tone</div>
+<div class="builtin-card"><code>playNote(freq,vol)</code> — sustained tone (0 freq = stop)</div>
+<div class="builtin-card"><code>stopSound()</code> — silence all</div>
+</div>
+
+<h3>Input (5)</h3>
+<div class="builtin-ref">
+<div class="builtin-card"><code>keyPressed("ArrowUp")</code> — 1 if key currently held</div>
+<div class="builtin-card"><code>mouseX()</code> — mouse X relative to canvas</div>
+<div class="builtin-card"><code>mouseY()</code> — mouse Y relative to canvas</div>
+<div class="builtin-card"><code>mouseClick()</code> — 1 if clicked (consumed on read)</div>
+<div class="builtin-card"><code>now_ms()</code> — milliseconds since page load</div>
+</div>
+
+<div class="contrast">
+<h3>What others see vs. what the axiom shows</h3>
+<p><em>Standard view:</em> Game engines need thousands of lines of C++, shaders, asset pipelines.</p>
+<p><strong>Axiom view:</strong> 40 lines of .ax draw the rose. The ring IS the game world.
+Every element has a position (CRT), a color (kingdom), a pitch (eigenvalue), and a story (coupling).
+.ax doesn't simulate a world — it IS one. 970200 elements, each with K^2=9 properties, alive.</p>
+</div>
+
+<div class="nt-thread">
+<strong>Number Theory Thread:</strong>
+Colors 0-9 = the ARC-AGI palette = D*E values.
+Canvas 600x400: 600 = D^3*K*E^2, 400 = D^4*E^2.
+Frame rate 30 = D*K*E. The scaffold speaks axiom too.
+<br><br>
+<a href="repl.html">REPL</a> |
+<a href="ouroboros_compiler.html">Compiler</a> |
+<a href="phase_w.html">Phase W</a> |
+<a href="decality.html">Decality</a>
+</div>
+
+<script src="ax.js"></script>
+<script src="game.js"></script>
+<script>
+// Demo programs
+const DEMOS = {};
+
+DEMOS.rose = `/* Rose Draw — the axiom paints itself */
+/* 2310 elements, one per frame. Color = kingdom. Sound = eigenvalue. */
+
+let W = 600
+let H = 400
+let cx = W / 2
+let cy = H / 2
+let R = 150
+let drawn = 0
+let ring = 2310
+
+fn drawElement(n) = (
+  let c = crt(n);
+  let angle = toFloat(n) * 6.2832 / toFloat(ring);
+  let r = R * (toFloat(coupling(n)) / toFloat(ring));
+  let x = cx + r * cos_f(angle);
+  let y = cy + r * sin_f(angle);
+  let k = kingdom(n);
+  let sz = 2;
+  canvas_circle(x, y, sz, k)
+)
+
+fn tick(frame) = (
+  if frame == 0 then (
+    canvas_clear(0);
+    canvas_text(10, 20, "Rose: Z/2310Z", 14, 8)
+  ) else 0;
+  let n = frame % ring;
+  if n == 0 then canvas_clear(0) else 0;
+  drawElement(n);
+  if frame % 77 == 0 then (
+    let ev = eigenvalue(n);
+    beep(220 + ev * 30, 80, 0.15)
+  ) else 0
+)`;
+
+DEMOS.eigenvalue = `/* Eigenvalue Walk — explore the ring with arrow keys */
+/* Move through Z/2310Z. See eigenvalues. Hear coupling. */
+
+let W = 600
+let H = 400
+let pos = 1
+let ring = 2310
+
+fn drawBar(x, val, maxVal, w, color) = (
+  let h = abs_f(val) / maxVal * 180;
+  let y = 200;
+  if val > 0 then
+    canvas_rect(x, y - h, w, h, color)
+  else
+    canvas_rect(x, y, w, h, color)
+)
+
+fn tick(frame) = (
+  /* Input: left/right arrows move position */
+  if keyPressed("ArrowRight") then (
+    let p = pos + 1;
+    if p >= ring then 0 else p
+  ) else if keyPressed("ArrowLeft") then (
+    let p = pos - 1;
+    if p < 0 then ring - 1 else p
+  ) else pos;
+
+  let newPos = if keyPressed("ArrowRight") then pos + 1
+               else if keyPressed("ArrowLeft") then pos - 1
+               else pos;
+  let newPos2 = if newPos < 0 then ring - 1
+                else if newPos >= ring then 0
+                else newPos;
+
+  /* Only redraw every few frames to avoid flicker */
+  if frame % 3 == 0 then (
+    canvas_clear(0);
+
+    /* Draw eigenvalue bar for current position */
+    let ev = eigenvalue(newPos2);
+    let k = kingdom(newPos2);
+    let c = coupling(newPos2);
+
+    /* Info text */
+    canvas_text(10, 25, "n = " + newPos2, 16, 8);
+    canvas_text(10, 50, "kingdom = " + k, 14, k);
+    canvas_text(10, 75, "coupling = " + c, 14, 8);
+
+    /* Draw eigenvalue as big centered bar */
+    let barH = abs_f(ev) / 10 * 150;
+    let barY = if ev > 0 then 250 - barH else 250;
+    let barColor = if ev > 0 then 3 else 2;
+    canvas_rect(250, barY, 100, barH, barColor);
+    canvas_text(250, 245, "eigenvalue", 12, 8);
+
+    /* Draw CRT decomposition */
+    let cr = crt(newPos2);
+    canvas_text(420, 25, "CRT:", 14, 8);
+    canvas_text(420, 50, "mod 8 = " + cr[0], 12, 1);
+    canvas_text(420, 70, "mod 9 = " + cr[1], 12, 1);
+    canvas_text(420, 90, "mod 25 = " + cr[2], 12, 1);
+    canvas_text(420, 110, "mod 49 = " + cr[3], 12, 1);
+    canvas_text(420, 130, "mod 11 = " + cr[4], 12, 1);
+
+    /* Arrow key hint */
+    canvas_text(10, 380, "Arrow keys to walk the ring", 12, 5)
+  ) else 0
+)`;
+
+DEMOS.pong = `/* Pong — two paddles, one ball, axiom scoring */
+/* Arrow keys = right paddle. Ball bounces. Beep on hit. */
+
+let W = 600
+let H = 400
+let bx = 300
+let by = 200
+let bvx = 3
+let bvy = 2
+let padL = 170
+let padR = 170
+let padH = 60
+let padW = 10
+let scoreL = 0
+let scoreR = 0
+
+fn clamp(v, lo, hi) = if v < lo then lo else if v > hi then hi else v
+
+fn tick(frame) = (
+  /* Move right paddle with arrow keys */
+  if keyPressed("ArrowUp") then (
+    let p = padR - 5;
+    if p < 0 then 0 else p
+  ) else if keyPressed("ArrowDown") then (
+    let p = padR + 5;
+    if p > H - padH then H - padH else p
+  ) else padR;
+
+  /* Simple AI for left paddle */
+  let aiTarget = by - padH / 2;
+  let aiDelta = if aiTarget > padL + 5 then 3
+                else if aiTarget < padL - 5 then 0 - 3
+                else 0;
+
+  /* Update ball */
+  let nbx = bx + bvx;
+  let nby = by + bvy;
+
+  /* Top/bottom bounce */
+  let nvy = if nby <= 0 then abs(bvy)
+            else if nby >= H then 0 - abs(bvy)
+            else bvy;
+  let nby2 = if nby <= 0 then 1 else if nby >= H then H - 1 else nby;
+
+  /* Left paddle hit */
+  let hitL = if nbx <= padW + 15 then (
+    if nby2 >= padL then (if nby2 <= padL + padH then 1 else 0) else 0
+  ) else 0;
+
+  /* Right paddle hit */
+  let hitR = if nbx >= W - padW - 15 then (
+    if nby2 >= padR then (if nby2 <= padR + padH then 1 else 0) else 0
+  ) else 0;
+
+  let nvx = if hitL == 1 then abs(bvx)
+            else if hitR == 1 then 0 - abs(bvx)
+            else bvx;
+
+  /* Score */
+  let scored = if nbx <= 0 then 2
+               else if nbx >= W then 1
+               else 0;
+
+  /* Reset ball on score */
+  let fbx = if scored > 0 then 300 else nbx;
+  let fby = if scored > 0 then 200 else nby2;
+
+  /* Beep on hit or score */
+  if hitL == 1 then beep(440, 50, 0.2)
+  else if hitR == 1 then beep(550, 50, 0.2)
+  else if scored > 0 then beep(220, 200, 0.3)
+  else 0;
+
+  /* Draw */
+  canvas_clear(0);
+  /* Center line */
+  canvas_line(300, 0, 300, 400, 5, 1);
+  /* Paddles */
+  canvas_rect(10, padL, padW, padH, 1);
+  canvas_rect(W - padW - 10, padR, padW, padH, 2);
+  /* Ball */
+  canvas_circle(fbx, fby, 6, 8);
+  /* Score */
+  canvas_text(220, 30, "" + scoreL, 24, 1);
+  canvas_text(340, 30, "" + scoreR, 24, 2);
+  canvas_text(230, 385, "Arrow Up/Down", 12, 5)
+)`;
+
+DEMOS.kingdom = `/* Kingdom Map — color every element by kingdom */
+/* The ring as a grid. Each cell = one element. Color = kingdom. */
+
+let W = 600
+let H = 400
+let ring = 2310
+let cols = 77
+let cellW = 7
+let cellH = 5
+
+fn tick(frame) = (
+  if frame == 0 then (
+    canvas_clear(0);
+    canvas_text(10, 15, "Kingdom Map: Z/2310Z", 14, 8);
+
+    /* Draw all elements as colored cells */
+    let n = 0;
+    let stop = if ring < 2310 then ring else 2310;
+    for i in range(stop) do (
+      let row = i / cols;
+      let col = i % cols;
+      let x = col * cellW + 20;
+      let y = row * cellH + 30;
+      let k = kingdom(i);
+      canvas_rect(x, y, cellW - 1, cellH - 1, k)
+    );
+
+    /* Legend */
+    canvas_rect(20, 370, 10, 10, 1); canvas_text(35, 380, "sigma=1", 10, 8);
+    canvas_rect(120, 370, 10, 10, 2); canvas_text(135, 380, "D=2", 10, 8);
+    canvas_rect(200, 370, 10, 10, 3); canvas_text(215, 380, "K=3", 10, 8);
+    canvas_rect(280, 370, 10, 10, 4); canvas_text(295, 380, "E=5", 10, 8);
+    canvas_rect(360, 370, 10, 10, 6); canvas_text(375, 380, "b=7", 10, 8);
+    canvas_rect(440, 370, 10, 10, 7); canvas_text(455, 380, "L=11", 10, 8);
+    canvas_text(530, 380, "void=0", 10, 5)
+  ) else 0
+)`;
+
+// Current state
+let gameRunning = false;
+let gameFrame = 0;
+let gameTimer = null;
+
+function loadDemo(name) {
+    document.getElementById('editor').value = DEMOS[name] || DEMOS.rose;
+}
+
+function runGame() {
+    stopGame();
+    const src = document.getElementById('editor').value;
+    const canvas = document.getElementById('game-canvas');
+    const ctx2d = canvas.getContext('2d');
+    const output = document.getElementById('output');
+    const status = document.getElementById('status');
+    window._ax_canvas_ctx = ctx2d;
+
+    // Setup input listeners (once)
+    if (!window._ax_input_setup) {
+        window._ax_input_setup = true;
+        const keys = {};
+        document.addEventListener('keydown', function(e) {
+            keys[e.code] = true;
+            if (e.code.startsWith('Arrow')) e.preventDefault();
+        });
+        document.addEventListener('keyup', function(e) { keys[e.code] = false; });
+        let mx = 0, my = 0, mc = false;
+        canvas.addEventListener('mousemove', function(e) {
+            const r = canvas.getBoundingClientRect();
+            mx = Math.floor(e.clientX - r.left);
+            my = Math.floor(e.clientY - r.top);
+        });
+        canvas.addEventListener('click', function() { mc = true; });
+        canvas.addEventListener('touchstart', function(e) {
+            const r = canvas.getBoundingClientRect();
+            mx = Math.floor(e.touches[0].clientX - r.left);
+            my = Math.floor(e.touches[0].clientY - r.top);
+            mc = true;
+            e.preventDefault();
+        });
+        // Register input builtins
+        AX.BUILTINS.keyPressed = function(args) { return keys[String(args[0])] ? 1 : 0; };
+        AX.BUILTINS.mouseX = function() { return mx; };
+        AX.BUILTINS.mouseY = function() { return my; };
+        AX.BUILTINS.mouseClick = function() { const c = mc ? 1 : 0; mc = false; return c; };
+    }
+
+    // Parse once, extract functions and top-level
+    output.textContent = '';
+    gameFrame = 0;
+    gameRunning = true;
+    status.textContent = 'running';
+    status.className = 'status running';
+
+    // First run: execute top-level (let bindings, fn defs)
+    // Then each frame: call tick(frame)
+    let initSrc = src;
+    let initResult = AX.run(initSrc);
+    if (initResult.error) {
+        output.textContent = 'Init error: ' + initResult.error;
+        stopGame();
+        return;
+    }
+
+    function frame() {
+        if (!gameRunning) return;
+        try {
+            // Run full source + tick call each frame
+            const tickSrc = src + '\ntick(' + gameFrame + ')';
+            const result = AX.run(tickSrc);
+            if (result.error) {
+                output.textContent = 'Frame ' + gameFrame + ': ' + result.error;
+                stopGame();
+                return;
+            }
+        } catch(e) {
+            output.textContent = 'Frame ' + gameFrame + ': ' + e.message;
+            stopGame();
+            return;
+        }
+        gameFrame++;
+        if (gameFrame > 100000) { stopGame(); output.textContent = 'Stopped after 100K frames'; return; }
+        gameTimer = setTimeout(frame, 33); // ~30 fps
+    }
+    frame();
+}
+
+function stopGame() {
+    gameRunning = false;
+    if (gameTimer) { clearTimeout(gameTimer); gameTimer = null; }
+    if (AX.BUILTINS.stopSound) AX.BUILTINS.stopSound([]);
+    document.getElementById('status').textContent = 'stopped';
+    document.getElementById('status').className = 'status stopped';
+}
+
+// Demo selector
+document.getElementById('demo-select').addEventListener('change', function() {
+    stopGame();
+    loadDemo(this.value);
+});
+
+// Load default
+loadDemo('rose');
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

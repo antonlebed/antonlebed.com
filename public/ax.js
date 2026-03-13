@@ -1034,6 +1034,146 @@ BUILTINS.objects = function(args) {
 };
 
 // ================================================================
+//  Canvas builtins (Phase D1 — S701)
+//  Hosting page sets window._ax_canvas_ctx = canvas.getContext('2d')
+// ================================================================
+function getCanvasCtx() {
+    if (typeof window !== 'undefined' && window._ax_canvas_ctx) return window._ax_canvas_ctx;
+    return null;
+}
+
+function resolveColor(c) {
+    if (typeof c === 'string') return c;
+    if (typeof c === 'number' && c >= 0 && c < 10) return GRID_COLORS[c];
+    if (typeof c === 'number') return '#' + (Math.abs(Math.round(c)) % 0xFFFFFF).toString(16).padStart(6, '0');
+    return '#e8e6e3';
+}
+
+BUILTINS.canvas_clear = function(args) {
+    const ctx = getCanvasCtx(); if (!ctx) return 0;
+    ctx.fillStyle = resolveColor(args.length > 0 ? args[0] : 0);
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    return 0;
+};
+
+BUILTINS.canvas_line = function(args) {
+    const ctx = getCanvasCtx(); if (!ctx) return 0;
+    ctx.strokeStyle = resolveColor(args.length > 4 ? args[4] : 8);
+    ctx.lineWidth = args.length > 5 ? Math.max(1, args[5]) : 1;
+    ctx.beginPath();
+    ctx.moveTo(args[0], args[1]);
+    ctx.lineTo(args[2], args[3]);
+    ctx.stroke();
+    return 0;
+};
+
+BUILTINS.canvas_rect = function(args) {
+    const ctx = getCanvasCtx(); if (!ctx) return 0;
+    ctx.fillStyle = resolveColor(args.length > 4 ? args[4] : 8);
+    ctx.fillRect(args[0], args[1], args[2], args[3]);
+    return 0;
+};
+
+BUILTINS.canvas_circle = function(args) {
+    const ctx = getCanvasCtx(); if (!ctx) return 0;
+    ctx.fillStyle = resolveColor(args.length > 3 ? args[3] : 8);
+    ctx.beginPath();
+    ctx.arc(args[0], args[1], Math.abs(args[2]), 0, 2 * Math.PI);
+    ctx.fill();
+    return 0;
+};
+
+BUILTINS.canvas_text = function(args) {
+    const ctx = getCanvasCtx(); if (!ctx) return 0;
+    const size = args.length > 3 ? Math.max(8, args[3]) : 14;
+    ctx.fillStyle = resolveColor(args.length > 4 ? args[4] : 8);
+    ctx.font = size + 'px monospace';
+    ctx.fillText(String(args[2]), args[0], args[1]);
+    return 0;
+};
+
+BUILTINS.canvas_pixel = function(args) {
+    const ctx = getCanvasCtx(); if (!ctx) return 0;
+    ctx.fillStyle = resolveColor(args.length > 2 ? args[2] : 8);
+    ctx.fillRect(args[0], args[1], 1, 1);
+    return 0;
+};
+
+BUILTINS.canvas_size = function() {
+    const ctx = getCanvasCtx();
+    if (!ctx) return [0, 0];
+    return [ctx.canvas.width, ctx.canvas.height];
+};
+
+// ================================================================
+//  Audio builtins (Phase D2 — S701)
+//  Uses Web Audio API. Creates AudioContext on first use.
+// ================================================================
+function getAudioCtx() {
+    if (typeof window === 'undefined') return null;
+    if (!window._ax_audio_ctx) {
+        try { window._ax_audio_ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch(e) { return null; }
+    }
+    return window._ax_audio_ctx;
+}
+
+BUILTINS.beep = function(args) {
+    const actx = getAudioCtx(); if (!actx) return 0;
+    const freq = args.length > 0 ? Math.max(20, Math.min(20000, args[0])) : 440;
+    const dur = args.length > 1 ? Math.max(10, Math.min(5000, args[1])) / 1000 : 0.2;
+    const vol = args.length > 2 ? Math.max(0, Math.min(1, args[2])) : 0.3;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.value = vol;
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start(actx.currentTime);
+    osc.stop(actx.currentTime + dur);
+    return 0;
+};
+
+BUILTINS.playNote = function(args) {
+    const actx = getAudioCtx(); if (!actx) return 0;
+    const freq = args.length > 0 ? args[0] : 440;
+    const vol = args.length > 1 ? Math.max(0, Math.min(1, args[1])) : 0.3;
+    // Stop previous sustained note if any
+    if (window._ax_sustained_osc) {
+        try { window._ax_sustained_osc.stop(); } catch(e) {}
+        window._ax_sustained_osc = null;
+    }
+    if (freq <= 0 || vol <= 0) return 0;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.frequency.value = Math.max(20, Math.min(20000, freq));
+    osc.type = 'sine';
+    gain.gain.value = vol;
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start();
+    window._ax_sustained_osc = osc;
+    return 0;
+};
+
+BUILTINS.stopSound = function() {
+    if (typeof window !== 'undefined' && window._ax_sustained_osc) {
+        try { window._ax_sustained_osc.stop(); } catch(e) {}
+        window._ax_sustained_osc = null;
+    }
+    return 0;
+};
+
+// ================================================================
+//  Timer builtin (Phase D3 — S701)
+// ================================================================
+BUILTINS.now_ms = function() {
+    if (typeof performance !== 'undefined') return Math.floor(performance.now());
+    return Date.now();
+};
+
+// ================================================================
 //  Evaluator
 // ================================================================
 const MAX_DEPTH = 49; // b^2
