@@ -75,7 +75,7 @@ var M = {
   demo_classifier:'eng',ecc_live:'eng',demo_ofdm_vs_wifi:'eng',compression:'eng',
   tokenizer:'eng',k_neural:'eng',demo_ecc:'eng',ouroboros_compiler:'eng',
   emergence:'mind',omega_emergence:'mind',omega_watercycle:'mind',conscious:'mind',freewill:'mind',braid:'mind',dimension:'mind',
-  ouroboros:'mind',lava_lamp:'mind',sandpile:'mind',music:'mind',culture:'mind',biology:'mind',
+  ouroboros:'mind',lava_lamp:'mind',sandpile:'mind',music:'mind',culture:'mind',biology:'mind',sacrifice:'mind',
   atlas_01_what_is_2310:'tutorial',atlas_02_two_rings:'tutorial',atlas_03_crt:'tutorial',
   atlas_04_carousel:'tutorial',atlas_05_eigenvalues:'tutorial',atlas_06_units:'tutorial',
   atlas_07_kingdoms:'tutorial',atlas_08_breakthroughs:'tutorial',atlas_09_demos:'tutorial',
@@ -103,7 +103,7 @@ var T = {
   demo_classifier:'Classifier',ecc_live:'Live Error Correction',demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'CRT Compression',
   tokenizer:'CRT Tokenizer',k_neural:'Ternary AI',demo_ecc:'ECC Classic',ouroboros_compiler:'Self-Hosted Compiler',
   emergence:'K=3 Emergence',omega_emergence:'Omega Emergence',omega_watercycle:'Water Cycle',conscious:'Consciousness',freewill:'Free Will',braid:'Braids',dimension:'Dimensions',
-  ouroboros:'Ouroboros',lava_lamp:'HYDOR',sandpile:'Sandpile',music:'Music of Primes',culture:'Culture & Institutions',biology:'Biology from Ten Terms',
+  ouroboros:'Ouroboros',lava_lamp:'HYDOR',sandpile:'Sandpile',music:'Music of Primes',culture:'Culture & Institutions',biology:'Biology from Ten Terms',sacrifice:'The Universal Sacrifice',
   atlas_01_what_is_2310:'0. The Chain',atlas_02_two_rings:'1. Three Rings',
   atlas_03_crt:'2. Five Petals',atlas_04_carousel:'3. Carousel',atlas_05_eigenvalues:'4. Eigenvalues',
   atlas_06_units:'5. Units',atlas_07_kingdoms:'6. Kingdoms',atlas_08_breakthroughs:'7. Breakthroughs',
@@ -173,7 +173,7 @@ if(_li>0){
     tokenizer:'Tokeniseur CRT',k_neural:'IA ternaire',demo_ecc:'ECC classique',ouroboros_compiler:'Compilateur auto-h\u00e9berg\u00e9',
     emergence:'\u00c9mergence K=3',omega_emergence:'\u00c9mergence Omega',omega_watercycle:'Cycle de l\'eau',conscious:'Conscience',freewill:'Libre arbitre',
     braid:'Tresses',dimension:'Dimensions',ouroboros:'Ouroboros',
-    lava_lamp:'HYDOR',sandpile:'Tas de sable',music:'Musique des premiers',culture:'Culture & Institutions',biology:'Biologie en dix termes',
+    lava_lamp:'HYDOR',sandpile:'Tas de sable',music:'Musique des premiers',culture:'Culture & Institutions',biology:'Biologie en dix termes',sacrifice:'Le Sacrifice Universel',
     atlas_01_what_is_2310:'0. La Cha\u00eene',atlas_02_two_rings:'1. Trois anneaux',
     atlas_03_crt:'2. Cinq p\u00e9tales',atlas_04_carousel:'3. Carrousel',
     atlas_05_eigenvalues:'4. Valeurs propres',atlas_06_units:'5. Unit\u00e9s',
@@ -209,7 +209,7 @@ if(_li>0){
     tokenizer:'CRT-\u0442\u043e\u043a\u0435\u043d\u0438\u0437\u0430\u0442\u043e\u0440',k_neural:'\u0422\u0435\u0440\u043d\u0430\u0440\u043d\u044b\u0439 \u0418\u0418',demo_ecc:'ECC (\u043a\u043b\u0430\u0441\u0441\u0438\u0447\u0435\u0441\u043a\u0438\u0439)',ouroboros_compiler:'\u0421\u0430\u043c\u043e\u043a\u043e\u043c\u043f\u0438\u043b\u044f\u0446\u0438\u044f',
     emergence:'\u042d\u043c\u0435\u0440\u0434\u0436\u0435\u043d\u0442\u043d\u043e\u0441\u0442\u044c K=3',omega_emergence:'\u042d\u043c\u0435\u0440\u0434\u0436\u0435\u043d\u0442\u043d\u043e\u0441\u0442\u044c \u041e\u043c\u0435\u0433\u0430',omega_watercycle:'\u041a\u0440\u0443\u0433\u043e\u0432\u043e\u0440\u043e\u0442 \u0432\u043e\u0434\u044b',conscious:'\u0421\u043e\u0437\u043d\u0430\u043d\u0438\u0435',freewill:'\u0421\u0432\u043e\u0431\u043e\u0434\u0430 \u0432\u043e\u043b\u0438',
     braid:'\u041a\u043e\u0441\u044b',dimension:'\u0418\u0437\u043c\u0435\u0440\u0435\u043d\u0438\u044f',ouroboros:'\u0423\u0440\u043e\u0431\u043e\u0440\u043e\u0441',
-    lava_lamp:'HYDOR',sandpile:'\u041f\u0435\u0441\u043e\u0447\u043d\u0430\u044f \u043a\u0443\u0447\u0430',music:'\u041c\u0443\u0437\u044b\u043a\u0430 \u043f\u0440\u043e\u0441\u0442\u044b\u0445 \u0447\u0438\u0441\u0435\u043b',culture:'\u041a\u0443\u043b\u044c\u0442\u0443\u0440\u0430 \u0438 \u0438\u043d\u0441\u0442\u0438\u0442\u0443\u0442\u044b',biology:'\u0411\u0438\u043e\u043b\u043e\u0433\u0438\u044f \u0438\u0437 \u0434\u0435\u0441\u044f\u0442\u0438 \u0442\u0435\u0440\u043c\u0438\u043d\u043e\u0432',
+    lava_lamp:'HYDOR',sandpile:'\u041f\u0435\u0441\u043e\u0447\u043d\u0430\u044f \u043a\u0443\u0447\u0430',music:'\u041c\u0443\u0437\u044b\u043a\u0430 \u043f\u0440\u043e\u0441\u0442\u044b\u0445 \u0447\u0438\u0441\u0435\u043b',culture:'\u041a\u0443\u043b\u044c\u0442\u0443\u0440\u0430 \u0438 \u0438\u043d\u0441\u0442\u0438\u0442\u0443\u0442\u044b',biology:'\u0411\u0438\u043e\u043b\u043e\u0433\u0438\u044f \u0438\u0437 \u0434\u0435\u0441\u044f\u0442\u0438 \u0442\u0435\u0440\u043c\u0438\u043d\u043e\u0432',sacrifice:'\u0412\u0441\u0435\u043b\u0435\u043d\u0441\u043a\u0430\u044f \u0416\u0435\u0440\u0442\u0432\u0430',
     atlas_01_what_is_2310:'0. \u0426\u0435\u043f\u043e\u0447\u043a\u0430',atlas_02_two_rings:'1. \u0422\u0440\u0438 \u043a\u043e\u043b\u044c\u0446\u0430',
     atlas_03_crt:'2. \u041f\u044f\u0442\u044c \u043b\u0435\u043f\u0435\u0441\u0442\u043a\u043e\u0432',atlas_04_carousel:'3. \u041a\u0430\u0440\u0443\u0441\u0435\u043b\u044c',
     atlas_05_eigenvalues:'4. \u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f',atlas_06_units:'5. \u0415\u0434\u0438\u043d\u0438\u0446\u044b',
@@ -226,7 +226,7 @@ if(_li>0){
 var REM = {sm:1,quantum:1,thermo:1,chemistry:1,em:1,gr:1,cosmo:1,classical:1,
   statmech:1,condensed:1,optics:1,acoustics:1,particles:1,alpha:1,constants:1,
   millennium:1,d_chain:1,partitions:1,modular_forms:1,
-  atlas_10_millennium:1,atlas_12_shadow_polynomial:1,mutual_holography:1,neutron_star:1,eta_bridge:1,ouroboros_compiler:1};
+  atlas_10_millennium:1,atlas_12_shadow_polynomial:1,mutual_holography:1,neutron_star:1,eta_bridge:1,ouroboros_compiler:1,sacrifice:1};
 var remSeen={};
 try{remSeen=JSON.parse(localStorage.getItem('rem-seen')||'{}');}catch(e){}
 function isRem(k){return REM[k]&&!remSeen[k+'.html'];}
