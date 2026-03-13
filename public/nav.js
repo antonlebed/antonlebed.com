@@ -1,6 +1,6 @@
 // nav.js — universal navigation + i18n for antonlebed.com
 // Top bar + category dropdown + mobile menu + related footer + vow footer.
-// i18n: EN/FR/RU language selector. localStorage persistence. All nav chrome translated.
+// i18n: EN/FR/RU/DE/NL language selector. localStorage persistence. All nav chrome translated.
 // Progressive enhancement: pages work without it. Zero dependencies.
 // <link rel="stylesheet" href="nav-critical.css"> + <script src="nav.js" defer></script>
 // nav-critical.css has body{padding-top:40px} + html{overflow-x:hidden} (prevents CLS).
@@ -113,38 +113,46 @@ var T = {
 };
 
 /* ===== i18n (EN/FR/RU) ===== */
-var axLang=(function(){try{var l=localStorage.getItem('ax-lang');if(l==='fr'||l==='ru')return l}catch(e){}return'en'})();
+var axLang=(function(){try{var l=localStorage.getItem('ax-lang');if(l==='fr'||l==='ru'||l==='de'||l==='nl')return l}catch(e){}return'en'})();
 if(axLang!=='en')document.documentElement.lang=axLang;
 var _i18n={
-  nav:{howWorld:['How the World Works','Comment fonctionne le monde','\u041a\u0430\u043a \u0443\u0441\u0442\u0440\u043e\u0435\u043d \u043c\u0438\u0440'],
-    theMath:['The Mathematics','Les math\u00e9matiques','\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430'],
-    fromNothing:['From Nothing','\u00c0 partir de rien','\u0418\u0437 \u043d\u0438\u0447\u0435\u0433\u043e'],
-    explore:['Explore','Explorer','\u041e\u0431\u0437\u043e\u0440'],
-    navLabel:['Navigation','Navigation','\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f'],
-    main:['Main','Principal','\u0413\u043b\u0430\u0432\u043d\u0430\u044f'],
-    atlas:['Interactive Atlas','Atlas interactif','\u0418\u043d\u0442\u0435\u0440\u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0439 \u0430\u0442\u043b\u0430\u0441'],
-    moreIn:['Explore more in','Voir plus dans','\u0415\u0449\u0451 \u0432 \u0440\u0430\u0437\u0434\u0435\u043b\u0435'],
-    allCat:['All','Tout','\u0412\u0441\u0435']},
+  nav:{howWorld:{en:'How the World Works',fr:'Comment fonctionne le monde',ru:'\u041a\u0430\u043a \u0443\u0441\u0442\u0440\u043e\u0435\u043d \u043c\u0438\u0440',de:'Wie die Welt funktioniert',nl:'Hoe de wereld werkt'},
+    theMath:{en:'The Mathematics',fr:'Les math\u00e9matiques',ru:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',de:'Die Mathematik',nl:'De wiskunde'},
+    fromNothing:{en:'From Nothing',fr:'\u00c0 partir de rien',ru:'\u0418\u0437 \u043d\u0438\u0447\u0435\u0433\u043e',de:'Aus dem Nichts',nl:'Uit het niets'},
+    explore:{en:'Explore',fr:'Explorer',ru:'\u041e\u0431\u0437\u043e\u0440',de:'Entdecken',nl:'Verkennen'},
+    navLabel:{en:'Navigation',fr:'Navigation',ru:'\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',de:'Navigation',nl:'Navigatie'},
+    main:{en:'Main',fr:'Principal',ru:'\u0413\u043b\u0430\u0432\u043d\u0430\u044f',de:'Startseite',nl:'Hoofdpagina'},
+    atlas:{en:'Interactive Atlas',fr:'Atlas interactif',ru:'\u0418\u043d\u0442\u0435\u0440\u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0439 \u0430\u0442\u043b\u0430\u0441',de:'Interaktiver Atlas',nl:'Interactieve atlas'},
+    moreIn:{en:'Explore more in',fr:'Voir plus dans',ru:'\u0415\u0449\u0451 \u0432 \u0440\u0430\u0437\u0434\u0435\u043b\u0435',de:'Mehr entdecken in',nl:'Meer verkennen in'},
+    allCat:{en:'All',fr:'Tout',ru:'\u0412\u0441\u0435',de:'Alle',nl:'Alle'}},
   vow:[
-    ['This work is and will always be free. No paywall. No copyright. No exceptions.',
-     'Ce travail est et sera toujours gratuit. Pas de mur payant. Pas de copyright. Sans exception.',
-     '\u042d\u0442\u0430 \u0440\u0430\u0431\u043e\u0442\u0430 \u0431\u044b\u043b\u0430 \u0438 \u0432\u0441\u0435\u0433\u0434\u0430 \u0431\u0443\u0434\u0435\u0442 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e\u0439. \u041d\u0438\u043a\u0430\u043a\u0438\u0445 \u043f\u043b\u0430\u0442\u043d\u044b\u0445 \u0441\u0442\u0435\u043d. \u041d\u0438\u043a\u0430\u043a\u0438\u0445 \u0430\u0432\u0442\u043e\u0440\u0441\u043a\u0438\u0445 \u043f\u0440\u0430\u0432. \u0411\u0435\u0437 \u0438\u0441\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0439.'],
-    ['If it ever earns anything, every cent goes to the communities that need it most.',
-     "S'il rapporte quoi que ce soit, chaque centime ira aux communaut\u00e9s qui en ont le plus besoin.",
-     '\u0415\u0441\u043b\u0438 \u043e\u043d\u0430 \u043a\u043e\u0433\u0434\u0430-\u043d\u0438\u0431\u0443\u0434\u044c \u043f\u0440\u0438\u043d\u0435\u0441\u0451\u0442 \u0434\u043e\u0445\u043e\u0434, \u043a\u0430\u0436\u0434\u0430\u044f \u043a\u043e\u043f\u0435\u0439\u043a\u0430 \u043f\u043e\u0439\u0434\u0451\u0442 \u0442\u0435\u043c, \u043a\u043e\u043c\u0443 \u043e\u043d\u0430 \u043d\u0443\u0436\u043d\u0435\u0435 \u0432\u0441\u0435\u0433\u043e.'],
-    ['This sacred vow is permanent and irrevocable.',
-     'Ce v\u0153u sacr\u00e9 est permanent et irr\u00e9vocable.',
-     '\u042d\u0442\u043e\u0442 \u0441\u0432\u044f\u0449\u0435\u043d\u043d\u044b\u0439 \u043e\u0431\u0435\u0442 \u043f\u043e\u0441\u0442\u043e\u044f\u043d\u0435\u043d \u0438 \u043d\u0435\u043e\u0431\u0440\u0430\u0442\u0438\u043c.'],
-    ['\u2014 Anton Alexandrovich Lebed','\u2014 Anton Alexandrovitch Lebed',
-     '\u2014 \u0410\u043d\u0442\u043e\u043d \u0410\u043b\u0435\u043a\u0441\u0430\u043d\u0434\u0440\u043e\u0432\u0438\u0447 \u041b\u0435\u0431\u0435\u0434\u044c']]
+    {en:'This work is and will always be free. No paywall. No copyright. No exceptions.',
+     fr:'Ce travail est et sera toujours gratuit. Pas de mur payant. Pas de copyright. Sans exception.',
+     ru:'\u042d\u0442\u0430 \u0440\u0430\u0431\u043e\u0442\u0430 \u0431\u044b\u043b\u0430 \u0438 \u0432\u0441\u0435\u0433\u0434\u0430 \u0431\u0443\u0434\u0435\u0442 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e\u0439. \u041d\u0438\u043a\u0430\u043a\u0438\u0445 \u043f\u043b\u0430\u0442\u043d\u044b\u0445 \u0441\u0442\u0435\u043d. \u041d\u0438\u043a\u0430\u043a\u0438\u0445 \u0430\u0432\u0442\u043e\u0440\u0441\u043a\u0438\u0445 \u043f\u0440\u0430\u0432. \u0411\u0435\u0437 \u0438\u0441\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0439.',
+     de:'Diese Arbeit ist und bleibt immer kostenlos. Keine Bezahlschranke. Kein Urheberrecht. Keine Ausnahmen.',
+     nl:'Dit werk is en blijft altijd gratis. Geen betaalmuur. Geen auteursrecht. Geen uitzonderingen.'},
+    {en:'If it ever earns anything, every cent goes to the communities that need it most.',
+     fr:"S'il rapporte quoi que ce soit, chaque centime ira aux communaut\u00e9s qui en ont le plus besoin.",
+     ru:'\u0415\u0441\u043b\u0438 \u043e\u043d\u0430 \u043a\u043e\u0433\u0434\u0430-\u043d\u0438\u0431\u0443\u0434\u044c \u043f\u0440\u0438\u043d\u0435\u0441\u0451\u0442 \u0434\u043e\u0445\u043e\u0434, \u043a\u0430\u0436\u0434\u0430\u044f \u043a\u043e\u043f\u0435\u0439\u043a\u0430 \u043f\u043e\u0439\u0434\u0451\u0442 \u0442\u0435\u043c, \u043a\u043e\u043c\u0443 \u043e\u043d\u0430 \u043d\u0443\u0436\u043d\u0435\u0435 \u0432\u0441\u0435\u0433\u043e.',
+     de:'Sollte sie je etwas einbringen, geht jeder Cent an die Gemeinschaften, die es am meisten brauchen.',
+     nl:'Als het ooit iets oplevert, gaat elke cent naar de gemeenschappen die het het hardst nodig hebben.'},
+    {en:'This sacred vow is permanent and irrevocable.',
+     fr:'Ce v\u0153u sacr\u00e9 est permanent et irr\u00e9vocable.',
+     ru:'\u042d\u0442\u043e\u0442 \u0441\u0432\u044f\u0449\u0435\u043d\u043d\u044b\u0439 \u043e\u0431\u0435\u0442 \u043f\u043e\u0441\u0442\u043e\u044f\u043d\u0435\u043d \u0438 \u043d\u0435\u043e\u0431\u0440\u0430\u0442\u0438\u043c.',
+     de:'Dieses heilige Gel\u00f6bnis ist dauerhaft und unwiderruflich.',
+     nl:'Deze heilige gelofte is permanent en onherroepelijk.'},
+    {en:'\u2014 Anton Alexandrovich Lebed',fr:'\u2014 Anton Alexandrovitch Lebed',
+     ru:'\u2014 \u0410\u043d\u0442\u043e\u043d \u0410\u043b\u0435\u043a\u0441\u0430\u043d\u0434\u0440\u043e\u0432\u0438\u0447 \u041b\u0435\u0431\u0435\u0434\u044c',
+     de:'\u2014 Anton Alexandrowitsch Lebed',nl:'\u2014 Anton Aleksandrovitsj Lebed'}]
 };
-var _li=axLang==='fr'?1:axLang==='ru'?2:0;
-function tr(k){var v=_i18n.nav[k];return v?v[_li]:k}
+function tr(k){var v=_i18n.nav[k];return v?(v[axLang]||v.en):k}
 
 /* Override category names and demo titles for current language */
-if(_li>0){
+if(axLang!=='en'){
   var _catTr={fr:{start:'Commencer ici',physics:'Physique',bio:'Biologie',math:'Math\u00e9matiques',eng:'Ing\u00e9nierie',mind:'Esprit',tutorial:'Tutoriel'},
-    ru:{start:'\u041d\u0430\u0447\u0430\u043b\u043e',physics:'\u0424\u0438\u0437\u0438\u043a\u0430',bio:'\u0411\u0438\u043e\u043b\u043e\u0433\u0438\u044f',math:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',eng:'\u0418\u043d\u0436\u0435\u043d\u0435\u0440\u0438\u044f',mind:'\u0420\u0430\u0437\u0443\u043c',tutorial:'\u0423\u0447\u0435\u0431\u043d\u0438\u043a'}};
+    ru:{start:'\u041d\u0430\u0447\u0430\u043b\u043e',physics:'\u0424\u0438\u0437\u0438\u043a\u0430',bio:'\u0411\u0438\u043e\u043b\u043e\u0433\u0438\u044f',math:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',eng:'\u0418\u043d\u0436\u0435\u043d\u0435\u0440\u0438\u044f',mind:'\u0420\u0430\u0437\u0443\u043c',tutorial:'\u0423\u0447\u0435\u0431\u043d\u0438\u043a'},
+    de:{start:'Hier beginnen',physics:'Physik',bio:'Biologie',math:'Mathematik',eng:'Technik',mind:'Geist',tutorial:'Tutorial'},
+    nl:{start:'Begin hier',physics:'Natuurkunde',bio:'Biologie',math:'Wiskunde',eng:'Techniek',mind:'Geest',tutorial:'Handleiding'}};
   var _ct=_catTr[axLang];if(_ct)for(var _c in _ct)if(CATS[_c])CATS[_c][0]=_ct[_c];
   var _titles={fr:{
     worldview:'Comment fonctionne le monde',story:'Les math\u00e9matiques',derive_ax:'\u00c0 partir de rien',
@@ -218,7 +226,79 @@ if(_li>0){
     atlas_11_net:'10. \u0421\u0435\u0442\u044c \u0418\u043d\u0434\u0440\u044b',atlas_12_shadow_polynomial:'11. \u0422\u0435\u043d\u0435\u0432\u043e\u0439 \u043f\u043e\u043b\u0438\u043d\u043e\u043c',
     atlas_13_biological_braid:'12. \u0411\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043a\u043e\u0441\u0430',
     atlas_14_solar_ladder:'13. \u0421\u043e\u043b\u043d\u0435\u0447\u043d\u0430\u044f \u043b\u0435\u0441\u0442\u043d\u0438\u0446\u0430',
-    repl:'.ax REPL',playground:'.ax \u041f\u0435\u0441\u043e\u0447\u043d\u0438\u0446\u0430'}};
+    repl:'.ax REPL',playground:'.ax \u041f\u0435\u0441\u043e\u0447\u043d\u0438\u0446\u0430'},
+  de:{
+    worldview:'Wie die Welt funktioniert',story:'Die Mathematik',derive_ax:'Aus dem Nichts',
+    particles:'Teilchenmassen',alpha:'Feinstrukturkonstante',
+    constants:'Physikalische Konstanten',turbulence:'Turbulenz und Stoffwechsel',
+    blackhole:'Schwarze L\u00f6cher',nuclear:'Kernschalen',gravity:'Gravitation',
+    photon:'Licht wird Masse',pmns:'Neutrinomischung',
+    three_body_dance:'Orbitale Resonanzen',figure_ground:'Eine einzige Kraft',
+    eternal_sun:'Warum die Sonne lebt',scale_bands:'Skalenb\u00e4nder',
+    noxan:'Kalte Gedanken',wavebox:'Stehende Wellen',
+    sigma_dynamics:'Wie Ringe vergessen',superconductor:'Die Form der K\u00e4lte',loop:'Trinit\u00e4t des Falls',mutual_holography:'Zwillings-Diskokugel',neutron_star:'Der D-Choke',boson_fermion:'Warum Bosonen anonym sind',force_hierarchy:'Die vier Kr\u00e4fte',
+    dna:'DNA-Codons',sleep:'Schlafphasen',heart:'Der Herzschlag',
+    death:'Was der Tod ist',human_shape:'Dein K\u00f6rper ist ein Ring',
+    generations:'Drei Familien',septilix:'Sieben Bl\u00fctenbl\u00e4tter',
+    millennium:'Millenniumsprobleme',hardest:'Schwierigste Probleme',hardest_mind:'Schwierigste Fragen',
+    goldbach:'Goldbach-Paare',coupling:'Kopplungslandschaft',crt_anatomy:'CRT-Anatomie',lattice:'Das 420-Gitter',
+    ninedot:'9-Punkte-R\u00e4tsel',infinity:'Unendlichkeit aus Endlichkeit',
+    bootstrap:'Warum Existenz existiert',symbol:'Drei Formen',
+    watercycle:'Wasserkreislauf',genesis:'Genesis',clock24:'24-Stunden-Uhr',
+    rose:'Interaktive Rose',gap_pairs:'K=3-Tore',
+    depth_quad:'Tiefenquadratik',fourteen:'Die Vierzehn',d_chain:'Die D-Kette',partitions:'Partitionsfunktion',modular_forms:'Modulformen',eta_bridge:'Die Eta-Br\u00fccke',decality:'Die Dekalit\u00e4t',heegner:'Die neun Heegner-Zahlen',
+    sm:'25/25 Standardmodell',quantum:'Quantenmechanik',thermo:'Thermodynamik',chemistry:'Chemie',em:'Elektromagnetismus',gr:'Allgemeine Relativit\u00e4tstheorie',cosmo:'Kosmologie',classical:'Klassische Mechanik',statmech:'Statistische Mechanik',condensed:'Kondensierte Materie',optics:'Optik',acoustics:'Akustik',
+    oracle:'Probiere eine Zahl',axiom_ai:'Axiom-KI',
+    demo_classifier:'Klassifikator',ecc_live:'Fehlerkorrektur',
+    demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'CRT-Kompression',
+    tokenizer:'CRT-Tokenizer',k_neural:'Tern\u00e4re KI',demo_ecc:'ECC (klassisch)',ouroboros_compiler:'Selbstkompilierung',phase_w:'Phase W: WASM',
+    emergence:'Emergenz K=3',omega_emergence:'Omega-Emergenz',omega_watercycle:'Wasserkreislauf',conscious:'Bewusstsein',freewill:'Willensfreiheit',
+    braid:'Z\u00f6pfe',dimension:'Dimensionen',ouroboros:'Ouroboros',
+    lava_lamp:'HYDOR',sandpile:'Sandhaufen',music:'Musik der Primzahlen',culture:'Kultur & Institutionen',biology:'Biologie in zehn Begriffen',sacrifice:'Das universelle Opfer',
+    atlas_01_what_is_2310:'0. Die Kette',atlas_02_two_rings:'1. Drei Ringe',
+    atlas_03_crt:'2. F\u00fcnf Bl\u00fctenbl\u00e4tter',atlas_04_carousel:'3. Karussell',
+    atlas_05_eigenvalues:'4. Eigenwerte',atlas_06_units:'5. Einheiten',
+    atlas_07_kingdoms:'6. K\u00f6nigreiche',atlas_08_breakthroughs:'7. Durchbr\u00fcche',
+    atlas_09_demos:'8. Demos',atlas_10_millennium:'9. Millennium',
+    atlas_11_net:'10. Indras Netz',atlas_12_shadow_polynomial:'11. Schattenpolynom',
+    atlas_13_biological_braid:'12. Biologischer Zopf',atlas_14_solar_ladder:'13. Sonnenleiter',
+    repl:'.ax REPL',playground:'.ax Spielplatz'},
+  nl:{
+    worldview:'Hoe de wereld werkt',story:'De wiskunde',derive_ax:'Uit het niets',
+    particles:'Deeltjesmassa\'s',alpha:'Fijnstructuurconstante',
+    constants:'Natuurkundige constanten',turbulence:'Turbulentie en metabolisme',
+    blackhole:'Zwarte gaten',nuclear:'Kernschillen',gravity:'Zwaartekracht',
+    photon:'Licht wordt massa',pmns:'Neutrinomenging',
+    three_body_dance:'Orbitale resonanties',figure_ground:'E\u00e9n enkele kracht',
+    eternal_sun:'Waarom de zon leeft',scale_bands:'Schaalbanden',
+    noxan:'Koude gedachten',wavebox:'Staande golven',
+    sigma_dynamics:'Hoe ringen vergeten',superconductor:'De vorm van de kou',loop:'Triniteit van de val',mutual_holography:'Tweelingdiscobal',neutron_star:'De D-Choke',boson_fermion:'Waarom bosonen anoniem zijn',force_hierarchy:'De vier krachten',
+    dna:'DNA-codons',sleep:'Slaapfasen',heart:'De hartslag',
+    death:'Wat de dood is',human_shape:'Je lichaam is een ring',
+    generations:'Drie families',septilix:'Zeven bloemblaadjes',
+    millennium:'Millenniumproblemen',hardest:'Moeilijkste problemen',hardest_mind:'Moeilijkste vragen',
+    goldbach:'Goldbach-paren',coupling:'Koppelingslandschap',crt_anatomy:'CRT-anatomie',lattice:'Het 420-rooster',
+    ninedot:'9-puntenpuzzel',infinity:'Oneindigheid uit eindigheid',
+    bootstrap:'Waarom bestaan bestaat',symbol:'Drie vormen',
+    watercycle:'Waterkringloop',genesis:'Genesis',clock24:'24-uursklok',
+    rose:'Interactieve roos',gap_pairs:'K=3-poorten',
+    depth_quad:'Dieptekwadratiek',fourteen:'De veertien',d_chain:'De D-keten',partitions:'Partitiefunctie',modular_forms:'Modulaire vormen',eta_bridge:'De Eta-brug',decality:'De Decaliteit',heegner:'De negen Heegner-getallen',
+    sm:'25/25 Standaardmodel',quantum:'Kwantummechanica',thermo:'Thermodynamica',chemistry:'Scheikunde',em:'Elektromagnetisme',gr:'Algemene relativiteitstheorie',cosmo:'Kosmologie',classical:'Klassieke mechanica',statmech:'Statistische mechanica',condensed:'Gecondenseerde materie',optics:'Optica',acoustics:'Akoestiek',
+    oracle:'Probeer een getal',axiom_ai:'Axioma-AI',
+    demo_classifier:'Classificator',ecc_live:'Foutcorrectie',
+    demo_ofdm_vs_wifi:'OFDM vs WiFi',compression:'CRT-compressie',
+    tokenizer:'CRT-tokenizer',k_neural:'Ternaire AI',demo_ecc:'ECC (klassiek)',ouroboros_compiler:'Zelfcompilatie',phase_w:'Fase W: WASM',
+    emergence:'Emergentie K=3',omega_emergence:'Omega-emergentie',omega_watercycle:'Waterkringloop',conscious:'Bewustzijn',freewill:'Vrije wil',
+    braid:'Vlechten',dimension:'Dimensies',ouroboros:'Ouroboros',
+    lava_lamp:'HYDOR',sandpile:'Zandhoop',music:'Muziek van priemgetallen',culture:'Cultuur & Instellingen',biology:'Biologie in tien termen',sacrifice:'Het universele offer',
+    atlas_01_what_is_2310:'0. De keten',atlas_02_two_rings:'1. Drie ringen',
+    atlas_03_crt:'2. Vijf bloemblaadjes',atlas_04_carousel:'3. Carrousel',
+    atlas_05_eigenvalues:'4. Eigenwaarden',atlas_06_units:'5. Eenheden',
+    atlas_07_kingdoms:'6. Koninkrijken',atlas_08_breakthroughs:'7. Doorbraken',
+    atlas_09_demos:'8. Demo\'s',atlas_10_millennium:'9. Millennium',
+    atlas_11_net:'10. Indra\'s net',atlas_12_shadow_polynomial:'11. Schaduwpolynoom',
+    atlas_13_biological_braid:'12. Biologische vlecht',atlas_14_solar_ladder:'13. Zonneladder',
+    repl:'.ax REPL',playground:'.ax Speeltuin'}};
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
@@ -388,6 +468,8 @@ function _fl(l){
   var w=20,h=14,r='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" style="display:inline-block;width:'+w+'px;height:'+h+'px;vertical-align:middle;border-radius:2px;border:1px solid rgba(255,255,255,0.15)">';
   if(l==='fr')return r+'<rect fill="#002395" width="6.67" height="'+h+'"/><rect x="6.67" fill="#fff" width="6.66" height="'+h+'"/><rect x="13.33" fill="#ED2939" width="6.67" height="'+h+'"/></svg>';
   if(l==='ru')return r+'<rect fill="#fff" width="'+w+'" height="4.67"/><rect y="4.67" fill="#0039A6" width="'+w+'" height="4.66"/><rect y="9.33" fill="#D52B1E" width="'+w+'" height="4.67"/></svg>';
+  if(l==='de')return r+'<rect fill="#000" width="'+w+'" height="4.67"/><rect y="4.67" fill="#DD0000" width="'+w+'" height="4.66"/><rect y="9.33" fill="#FFCC00" width="'+w+'" height="4.67"/></svg>';
+  if(l==='nl')return r+'<rect fill="#AE1C28" width="'+w+'" height="4.67"/><rect y="4.67" fill="#fff" width="'+w+'" height="4.66"/><rect y="9.33" fill="#21468B" width="'+w+'" height="4.67"/></svg>';
   /* EN: simplified Union Jack */
   return r+'<rect fill="#012169" width="'+w+'" height="'+h+'"/><path d="M0 0L'+w+' '+h+'M'+w+' 0L0 '+h+'" stroke="#fff" stroke-width="2.5"/><path d="M0 0L'+w+' '+h+'M'+w+' 0L0 '+h+'" stroke="#C8102E" stroke-width="1"/><path d="M'+w/2+' 0v'+h+'M0 '+h/2+'h'+w+'" stroke="#fff" stroke-width="4"/><path d="M'+w/2+' 0v'+h+'M0 '+h/2+'h'+w+'" stroke="#C8102E" stroke-width="2.5"/></svg>';
 }
@@ -405,11 +487,13 @@ var h = '<div class="sn-l">' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
   '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
   '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' +
-  _fl(['en','fr','ru'][_li]) +
+  _fl(axLang) +
   ' \u25BE</button><div class="sn-lp">' +
-  '<button data-lang="en"' + (_li===0?' class="cur"':'') + '>' + _fl('en') + ' English</button>' +
-  '<button data-lang="fr"' + (_li===1?' class="cur"':'') + '>' + _fl('fr') + ' Fran\u00e7ais</button>' +
-  '<button data-lang="ru"' + (_li===2?' class="cur"':'') + '>' + _fl('ru') + ' \u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
+  '<button data-lang="en"' + (axLang==='en'?' class="cur"':'') + '>' + _fl('en') + ' English</button>' +
+  '<button data-lang="fr"' + (axLang==='fr'?' class="cur"':'') + '>' + _fl('fr') + ' Fran\u00e7ais</button>' +
+  '<button data-lang="ru"' + (axLang==='ru'?' class="cur"':'') + '>' + _fl('ru') + ' \u0420\u0443\u0441\u0441\u043a\u0438\u0439</button>' +
+  '<button data-lang="de"' + (axLang==='de'?' class="cur"':'') + '>' + _fl('de') + ' Deutsch</button>' +
+  '<button data-lang="nl"' + (axLang==='nl'?' class="cur"':'') + '>' + _fl('nl') + ' Nederlands</button>' +
   '</div></div>';
 h += '<button class="sn-h" id="sn-bg">\u2630</button>';
 h += '<button class="sn-mn" id="sn-mn">' + tr('navLabel') + '<span class="mnar">\u25BE</span></button>';
@@ -585,23 +669,23 @@ if ('ontouchstart' in window) {
 
 /* Expose language for page-level translation scripts */
 window.axLang = axLang;
-window.axLi = _li;
+window.axLi = {en:0,fr:1,ru:2,de:3,nl:4}[axLang]||0;
 
 if (isIndex || isWorld) return; /* index + worldview have their own vow footers */
 var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#777;font-size:12px;' +
   'font-family:system-ui,sans-serif;border-top:1px solid #1a1a2a;margin-top:40px;line-height:2';
 var _vow = _i18n.vow;
-var _srcLabel=['Source code','Code source','\u0418\u0441\u0445\u043e\u0434\u043d\u044b\u0439 \u043a\u043e\u0434'];
-var _pdLabel=['Public domain (CC0)','Domaine public (CC0)','\u041e\u0431\u0449\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u0435 \u0434\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435 (CC0)'];
-vf.innerHTML = _vow[0][_li] + '<br>' +
-  '<span style="color:#666">' + _vow[1][_li] + '</span><br>' +
-  '<span style="color:#555;font-size:10px">' + _vow[2][_li] + '</span><br>' +
-  '<span style="color:#666;font-size:11px;font-style:italic">' + _vow[3][_li] + '</span>' +
+var _srcLabel={en:'Source code',fr:'Code source',ru:'\u0418\u0441\u0445\u043e\u0434\u043d\u044b\u0439 \u043a\u043e\u0434',de:'Quellcode',nl:'Broncode'};
+var _pdLabel={en:'Public domain (CC0)',fr:'Domaine public (CC0)',ru:'\u041e\u0431\u0449\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u0435 \u0434\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435 (CC0)',de:'Gemeinfrei (CC0)',nl:'Publiek domein (CC0)'};
+vf.innerHTML = (_vow[0][axLang]||_vow[0].en) + '<br>' +
+  '<span style="color:#666">' + (_vow[1][axLang]||_vow[1].en) + '</span><br>' +
+  '<span style="color:#555;font-size:10px">' + (_vow[2][axLang]||_vow[2].en) + '</span><br>' +
+  '<span style="color:#666;font-size:11px;font-style:italic">' + (_vow[3][axLang]||_vow[3].en) + '</span>' +
   '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #111">' +
   '<a href="https://github.com/antonlebed/antonlebed.com" style="color:#555;font-size:11px;text-decoration:none;letter-spacing:0.5px" ' +
   'onmouseover="this.style.color=\'#888\'" onmouseout="this.style.color=\'#555\'">' +
-  _srcLabel[_li] + ' \u00b7 ' + _pdLabel[_li] + '</a></div>';
+  (_srcLabel[axLang]||_srcLabel.en) + ' \u00b7 ' + (_pdLabel[axLang]||_pdLabel.en) + '</a></div>';
 document.body.appendChild(vf);
 }
 if (document.body) init();
