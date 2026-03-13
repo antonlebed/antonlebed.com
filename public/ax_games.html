@@ -230,7 +230,7 @@ fn init(frame) = (
   svar("vx", 4 * dirx); svar("vy", 3 * diry);
   svar("pL", 170); svar("pR", 170);
   svar("sL", 0); svar("sR", 0);
-  svar("spd", 1); svar("age", 0)
+  svar("spd", 1); svar("age", 0); svar("diff", 5)
 )
 
 fn update(frame) = (
@@ -245,8 +245,23 @@ fn update(frame) = (
   /* Paddles */
   let padSpd = 6 * spd
   let _pR = svar("pR", if keyPressed("ArrowUp") then (if gvar("pR") - padSpd < 0 then 0 else gvar("pR") - padSpd) else if keyPressed("ArrowDown") then (if gvar("pR") + padSpd > 340 then 340 else gvar("pR") + padSpd) else gvar("pR"))
-  let aiSpd = 3 * spd * accel
-  let _pL = svar("pL", if gvar("by") > gvar("pL") + 35 then (if gvar("pL") + aiSpd > 340 then 340 else gvar("pL") + aiSpd) else if gvar("by") < gvar("pL") + 25 then (if gvar("pL") - aiSpd < 0 then 0 else gvar("pL") - aiSpd) else gvar("pL"))
+  /* Difficulty: 1-9 keys, 0=10. Controls AI speed + reaction zone */
+  let diff = gvar("diff")
+  let _d1 = if keyPressed("Digit1") then svar("diff", 1) else 0
+  let _d2 = if keyPressed("Digit2") then svar("diff", 2) else 0
+  let _d3 = if keyPressed("Digit3") then svar("diff", 3) else 0
+  let _d4 = if keyPressed("Digit4") then svar("diff", 4) else 0
+  let _d5 = if keyPressed("Digit5") then svar("diff", 5) else 0
+  let _d6 = if keyPressed("Digit6") then svar("diff", 6) else 0
+  let _d7 = if keyPressed("Digit7") then svar("diff", 7) else 0
+  let _d8 = if keyPressed("Digit8") then svar("diff", 8) else 0
+  let _d9 = if keyPressed("Digit9") then svar("diff", 9) else 0
+  let _d0 = if keyPressed("Digit0") then svar("diff", 10) else 0
+  let diff2 = gvar("diff")
+  /* AI: higher diff = faster + tighter tracking */
+  let aiSpd = (1 + diff2 * 0.3) * spd * accel
+  let aiZone = 40 - diff2 * 3
+  let _pL = svar("pL", if gvar("by") > gvar("pL") + 30 + aiZone then (if gvar("pL") + aiSpd > 340 then 340 else gvar("pL") + aiSpd) else if gvar("by") < gvar("pL") + 30 - aiZone then (if gvar("pL") - aiSpd < 0 then 0 else gvar("pL") - aiSpd) else gvar("pL"))
   /* Ball: base velocity in gvar, multiply by accel+spd for movement */
   let bvx = gvar("vx")
   let bvy = gvar("vy")
@@ -287,8 +302,9 @@ fn draw() = (
   let _4 = canvas_circle(gvar("bx"), gvar("by"), 6, 8)
   let _5 = canvas_text(220, 30, "" + gvar("sL"), 24, 1)
   let _6 = canvas_text(340, 30, "" + gvar("sR"), 24, 2)
-  let _7 = canvas_text(10, 385, "Up/Down: paddle  Left/Right: speed", 12, 5)
-  canvas_text(480, 385, "spd: " + floor(gvar("spd") * 100) / 100, 12, 4)
+  let _7 = canvas_text(10, 385, "Up/Down:paddle L/R:speed 1-0:AI", 11, 5)
+  let _8 = canvas_text(430, 385, "spd:" + floor(gvar("spd") * 100) / 100, 11, 4)
+  canvas_text(530, 385, "AI:" + gvar("diff"), 11, 2)
 )
 
 fn tick(frame) = (
@@ -390,17 +406,16 @@ function runGame() {
 
     // Clear persistent state and start fresh
     AX.clearState();
-    canvas.focus(); // grab keyboard focus from nav
+    canvas.focus();
     output.textContent = '';
     gameFrame = 0;
     gameRunning = true;
     status.textContent = 'running';
     status.className = 'status running';
 
-    // First run: execute top-level (let bindings, fn defs)
-    // Then each frame: call tick(frame)
-    let initSrc = src;
-    let initResult = AX.run(initSrc);
+    // Persistent session: parse source ONCE, then call tick(N) per frame
+    const session = AX.createSession();
+    const initResult = session.exec(src);
     if (initResult.error) {
         output.textContent = 'Init error: ' + initResult.error;
         stopGame();
@@ -409,30 +424,21 @@ function runGame() {
 
     function frame() {
         if (!gameRunning) return;
-        try {
-            // Run full source + tick call each frame
-            const tickSrc = src + '\ntick(' + gameFrame + ')';
-            const result = AX.run(tickSrc);
-            if (result.error) {
-                output.textContent = 'Frame ' + gameFrame + ': ' + result.error;
-                stopGame();
-                return;
-            }
-        } catch(e) {
-            output.textContent = 'Frame ' + gameFrame + ': ' + e.message;
+        const result = session.exec('tick(' + gameFrame + ')');
+        if (result.error) {
+            output.textContent = 'Frame ' + gameFrame + ': ' + result.error;
             stopGame();
             return;
         }
         gameFrame++;
-        if (gameFrame > 100000) { stopGame(); output.textContent = 'Stopped after 100K frames'; return; }
-        gameTimer = setTimeout(frame, 33); // ~30 fps
+        gameTimer = requestAnimationFrame(frame); // smooth 60fps
     }
-    frame();
+    gameTimer = requestAnimationFrame(frame);
 }
 
 function stopGame() {
     gameRunning = false;
-    if (gameTimer) { clearTimeout(gameTimer); gameTimer = null; }
+    if (gameTimer) { cancelAnimationFrame(gameTimer); gameTimer = null; }
     if (AX.BUILTINS.stopSound) AX.BUILTINS.stopSound([]);
     document.getElementById('status').textContent = 'stopped';
     document.getElementById('status').className = 'status stopped';

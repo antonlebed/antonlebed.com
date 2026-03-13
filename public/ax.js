@@ -1388,6 +1388,109 @@ function run(src) {
 }
 
 // ================================================================
+//  Persistent Session (Phase D — S701, for game loops)
+//  Parse once, call tick(N) without re-parsing the whole source.
+// ================================================================
+function createSession() {
+    const env = {...CONSTANTS};
+    const fns = {};
+
+    const ctx = {
+        trace: function() {},
+        output: function() {}
+    };
+
+    function ev(node, localEnv, depth) {
+        if (depth > MAX_DEPTH) throw new Error('Max depth');
+        switch (node.t) {
+            case 'Num': return (_rawMode || !Number.isInteger(node.v)) ? node.v : ringMod(node.v);
+            case 'Str': return node.v;
+            case 'Sym': {
+                if (node.name in localEnv) return localEnv[node.name];
+                if (node.name in fns) return fns[node.name];
+                if (node.name in env) return env[node.name];
+                throw new Error('Unknown: ' + node.name);
+            }
+            case 'Bin': {
+                const l = ev(node.l, localEnv, depth), r = ev(node.r, localEnv, depth);
+                if (node.op === '+' && (typeof l === 'string' || typeof r === 'string')) {
+                    const ls = typeof l === 'string' ? l : (Number.isInteger(l) ? String(l) : (typeof l === 'number' ? l.toFixed(6) : String(l)));
+                    const rs = typeof r === 'string' ? r : (Number.isInteger(r) ? String(r) : (typeof r === 'number' ? r.toFixed(6) : String(r)));
+                    return ls + rs;
+                }
+                if (_rawMode || (typeof l === 'number' && !Number.isInteger(l)) || (typeof r === 'number' && !Number.isInteger(r))) {
+                    const lv = typeof l === 'number' ? l : 0, rv = typeof r === 'number' ? r : 0;
+                    switch (node.op) {
+                        case '+': return lv + rv; case '-': return lv - rv;
+                        case '*': return lv * rv; case '%': return rv !== 0 ? lv % rv : 0;
+                        case '/': if (rv === 0) throw new Error('Division by zero'); return lv / rv;
+                        case '^': return Math.pow(lv, rv);
+                        case '<': return lv < rv ? 1 : 0; case '>': return lv > rv ? 1 : 0;
+                        case '==': return Math.abs(lv - rv) < 1e-10 ? 1 : 0;
+                        case '!=': return Math.abs(lv - rv) >= 1e-10 ? 1 : 0;
+                        case '<=': return lv <= rv ? 1 : 0; case '>=': return lv >= rv ? 1 : 0;
+                    }
+                }
+                switch (node.op) {
+                    case '+': return ringMod(l + r); case '-': return ringMod(l - r);
+                    case '*': return ringMod(l * r); case '%': return r !== 0 ? ringMod(l % r) : 0;
+                    case '/': { const inv = multInverse(r); if (inv >= 0) return ringMod(l * inv); if (r === 0) throw new Error('Division by zero'); return l / r; }
+                    case '^': return modPow(l, r);
+                    case '<': return l < r ? 1 : 0; case '>': return l > r ? 1 : 0;
+                    case '==': return l === r ? 1 : 0; case '!=': return l !== r ? 1 : 0;
+                    case '<=': return l <= r ? 1 : 0; case '>=': return l >= r ? 1 : 0;
+                }
+                break;
+            }
+            case 'Unary': if (node.op === '~') { const uv = ev(node.e, localEnv, depth); return _rawMode ? -uv : ringMod(N - uv); } break;
+            case 'Thresh': { const v = ev(node.val, localEnv, depth), th = ev(node.th, localEnv, depth); return v > th ? v : ringMod(N - v); }
+            case 'If': return ev(node.cond, localEnv, depth) !== 0 ? ev(node.then_, localEnv, depth) : ev(node.else_, localEnv, depth);
+            case 'Seq': ev(node.a, localEnv, depth); return ev(node.b, localEnv, depth);
+            case 'LetExpr': return ev(node.body, {...localEnv, [node.name]: ev(node.val, localEnv, depth)}, depth);
+            case 'Call': {
+                const args = node.args.map(a => ev(a, localEnv, depth));
+                if (BUILTINS[node.fn]) return BUILTINS[node.fn](args, ctx);
+                if (node.fn in fns) {
+                    const fn = fns[node.fn];
+                    const callEnv = {...fn.closureEnv};
+                    for (let i = 0; i < fn.params.length; i++) callEnv[fn.params[i]] = args[i];
+                    return ev(fn.body, callEnv, depth + 1);
+                }
+                throw new Error('Unknown function: ' + node.fn);
+            }
+            case 'Idx': { const arr = ev(node.arr, localEnv, depth), idx = Math.floor(ev(node.idx, localEnv, depth)); if (!Array.isArray(arr)) throw new Error('Not array'); return arr[idx]; }
+            case 'Arr': return node.elems.map(e => ev(e, localEnv, depth));
+            case 'For': { const arr = ev(node.iter, localEnv, depth); if (!Array.isArray(arr)) throw new Error('for needs array'); return arr.map(item => ev(node.body, {...localEnv, [node.varName]: item}, depth)); }
+            case 'DFloat': return ringMod(Math.floor(ev(node.s, localEnv, depth) * ev(node.b, localEnv, depth)));
+        }
+        throw new Error('Cannot eval: ' + node.t);
+    }
+
+    return {
+        exec: function(src) {
+            try {
+                const stmts = new Parser(tokenize(src)).parseProgram();
+                let lastVal = 0;
+                for (const stmt of stmts) {
+                    switch (stmt.t) {
+                        case 'Let': env[stmt.name] = ev(stmt.val, env, 0); break;
+                        case 'Fn':
+                            fns[stmt.name] = {params:stmt.params, body:stmt.body, closureEnv:{...env}};
+                            for (const name in fns) fns[name].closureEnv = {...env, ...Object.fromEntries(Object.entries(fns).map(([k,v])=>[k,v]))};
+                            break;
+                        case 'Print': lastVal = ev(stmt.expr, env, 0); break;
+                        case 'ExprStmt': lastVal = ev(stmt.expr, env, 0); break;
+                    }
+                }
+                return { error: null, value: lastVal };
+            } catch(e) {
+                return { error: e.message, value: 0 };
+            }
+        }
+    };
+}
+
+// ================================================================
 //  Public API
 // ================================================================
 return {
@@ -1404,7 +1507,7 @@ return {
     eulerPhi, multOrder, multInverse, modPow,
 
     // Language
-    tokenize, parse, Parser, run,
+    tokenize, parse, Parser, run, createSession,
 
     // Game state
     clearState: function() { for (const k in _gameState) delete _gameState[k]; _rawMode = false; },
