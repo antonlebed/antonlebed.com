@@ -680,6 +680,7 @@ fn check_levelup() = (
     svar("c1", pool[rand(len(pool))]);
     svar("c2", pool[rand(len(pool))]);
     svar("c3", pool[rand(len(pool))]);
+    svar("lud", 15);
     svar("state", 2)
   ) else 0
 )
@@ -770,10 +771,14 @@ fn draw_levelup() = (
   canvas_text(260, 215, "2: " + wep_name(c2), 12, 0);
   canvas_rect(380, 190, 100, 40, wep_color(c3));
   canvas_text(390, 215, "3: " + wep_name(c3), 12, 0);
-  if keyPressed("Digit1") == 1 then (add_weapon(c1); svar("state", 1))
-  else if keyPressed("Digit2") == 1 then (add_weapon(c2); svar("state", 1))
-  else if keyPressed("Digit3") == 1 then (add_weapon(c3); svar("state", 1))
-  else 0
+  let lud = gvar("lud")
+  if lud > 0 then svar("lud", lud - 1)
+  else (
+    if keyPressed("Digit1") == 1 then (add_weapon(c1); svar("state", 1); svar("lud", 15))
+    else if keyPressed("Digit2") == 1 then (add_weapon(c2); svar("state", 1); svar("lud", 15))
+    else if keyPressed("Digit3") == 1 then (add_weapon(c3); svar("state", 1); svar("lud", 15))
+    else 0
+  )
 )
 
 fn tick(frame) = (
@@ -785,7 +790,7 @@ fn tick(frame) = (
     canvas_text(195, 210, "Arrow keys to move", 12, 5);
     canvas_text(195, 230, "Weapons fire automatically", 12, 5);
     canvas_text(210, 280, "Press SPACE", 16, 3);
-    if keyPressed("Space") == 1 then (init(); 0) else 0
+    if keyPressed("Space") == 1 then (if gvar("sdb") <= 0 then (init(); svar("sdb", 20); 0) else 0) else svar("sdb", gvar("sdb") - 1)
   )
   else if st == 1 then (
     move_player();
@@ -812,7 +817,7 @@ fn tick(frame) = (
     canvas_text(190, 200, "Survived " + floor(gvar("time")) + "s", 16, 8);
     canvas_text(190, 225, "Kills: " + gvar("kills"), 14, 5);
     canvas_text(200, 260, "Press SPACE to restart", 12, 3);
-    if keyPressed("Space") == 1 then svar("state", 0) else 0
+    if keyPressed("Space") == 1 then (if gvar("sdb") <= 0 then (svar("state", 0); svar("sdb", 20)) else 0) else svar("sdb", gvar("sdb") - 1)
   )
 )`;
 
