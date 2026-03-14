@@ -129,6 +129,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
 </style>
 <script src="ax.js"></script>
 <script src="crt_wasm.js"></script>
+<script src="ax_wasm_eval.js"></script>
 <link rel="stylesheet" href="nav-critical.css">
 <script src="nav.js" defer></script>
 </head>
@@ -153,6 +154,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="floats">Float Math</option>
       <option value="golden">Golden Ratio</option>
       <option value="wasm_bench">WASM Benchmark</option>
+      <option value="wasm_eval">WASM Eval Test</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -165,6 +167,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
     <button onclick="clearOutput()">Clear</button>
+    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#6272a4;border:1px solid #333;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Phase W v0.3: toggle between JS interpreter and WASM-compiled .ax evaluator">eval: JS</button>
     <span id="wasm-status" style="color:#555;font-size:0.75em;padding:4px 8px;border-radius:3px;border:1px solid #333" title="Phase W v0.2: native-speed ring arithmetic via WebAssembly">WASM: loading...</span>
     <span id="ring-info" style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
   </div>
@@ -885,6 +888,60 @@ function execute(src) {
 }
 
 // ================================================================
+//  Phase W v0.3: WASM-compiled .ax evaluator (S746)
+//  The .ax interpreter (tokenizer+parser+evaluator) compiled to WASM.
+//  JS calls wasm_run(source) — all show output captured via Module.print.
+// ================================================================
+var _axWasmEval = null;
+var _useWasmEval = false;
+
+function initWasmEval() {
+    if (typeof AxWasmEval === 'undefined') return;
+    AxWasmEval({
+        print: function() {},  // placeholder, overridden per call
+        printErr: function() {}
+    }).then(function(mod) {
+        _axWasmEval = mod;
+        var btn = document.getElementById('btn-eval-mode');
+        btn.style.color = '#50fa7b';
+        btn.style.borderColor = '#50fa7b';
+        btn.title = 'Phase W v0.3: WASM eval ready. Click to toggle.';
+    }).catch(function() {});
+}
+
+function toggleEvalMode() {
+    if (!_axWasmEval) return;
+    _useWasmEval = !_useWasmEval;
+    var btn = document.getElementById('btn-eval-mode');
+    if (_useWasmEval) {
+        btn.textContent = 'eval: WASM';
+        btn.style.background = '#1a3a1a';
+        btn.style.color = '#50fa7b';
+        btn.style.borderColor = '#50fa7b';
+    } else {
+        btn.textContent = 'eval: JS';
+        btn.style.background = '#1a1a2e';
+        btn.style.color = '#50fa7b';
+        btn.style.borderColor = '#50fa7b';
+    }
+}
+
+function executeWasm(src) {
+    var output = [];
+    _axWasmEval.print = function(text) { output.push(text); };
+    var t0 = performance.now();
+    var ptr = _axWasmEval.allocateUTF8(src);
+    _axWasmEval._wasm_run(ptr);
+    _axWasmEval._free(ptr);
+    var elapsed = performance.now() - t0;
+    outputLines = output;
+    traceLines = [];
+    lastOutputValues = [];
+    lastProfile = { tokenize_ms: '0.0', parse_ms: '0.0', eval_ms: elapsed.toFixed(1), total_ms: elapsed.toFixed(1), wasm: true };
+    return output;
+}
+
+// ================================================================
 //  Example Programs
 // ================================================================
 const EXAMPLES = {
@@ -1354,7 +1411,36 @@ print ""
 print "If eval time (below) >> ring op time:"
 print "  JS interpreter = bottleneck -> Phase W v0.3"
 print "If ring ops dominate: WASM approach is right."
-raw_mode(0)`
+raw_mode(0)`,
+
+wasm_eval: `-- wasm_eval.ax: Phase W v0.3 Test
+-- Toggle "eval: WASM" button, then run this.
+-- Compare timing with "eval: JS" mode.
+
+print "=== Phase W v0.3: .ax Interpreter in WASM ==="
+print ""
+
+-- Basic math
+let x = 7 * 6
+print "7 * 6 ="
+print x
+
+-- Function
+fn fib(n) = if n < 2 then n else fib(n - 1) + fib(n - 2)
+print "fib(10) ="
+print fib(10)
+
+-- Loop + accumulator
+let total = 0
+for i in 10 do
+  mut total = total + i * i
+print "sum of squares 0..9 ="
+print total
+
+-- Strings
+print "sigma/sigma = sigma"
+print ""
+print "Toggle eval:JS / eval:WASM and compare timing below."`
 };
 
 // ================================================================
@@ -1665,7 +1751,7 @@ function run() {
         traceLines = [];
         lastOutputValues = [];
         try {
-            const lines = execute(src);
+            const lines = (_useWasmEval && _axWasmEval) ? executeWasm(src) : execute(src);
             var profileLine = '';
             if (lastProfile) {
                 var p = lastProfile;
@@ -1746,6 +1832,8 @@ function initWasm() {
 document.addEventListener('DOMContentLoaded', () => {
     // Phase W v0.2: load WASM for native-speed ring ops
     initWasm();
+    // Phase W v0.3: load WASM-compiled .ax evaluator
+    initWasmEval();
     // URL params: ?example=name or ?code=base64 — ?run=1 to auto-run
     const params = new URLSearchParams(location.search);
     const pEx = params.get('example');
