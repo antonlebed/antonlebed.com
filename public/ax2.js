@@ -735,7 +735,7 @@ BUILTINS.push = (args) => {
 };
 BUILTINS.set = function(args) {
     // set(array, index, value) — mutates array[index] in place, returns value
-    if (Array.isArray(args[0])) { args[0][toInt(args[1])] = args[2]; }
+    if (Array.isArray(args[0])) { const i = toInt(args[1]); if (i >= 0 && i < args[0].length) args[0][i] = args[2]; }
     return args[2];
 };
 BUILTINS.first = (args) => {
