@@ -379,8 +379,6 @@ fn dist(x1,y1,x2,y2) = (
 
 fn clamp(v,lo,hi) = if v < lo then lo else if v > hi then hi else v
 
-fn set_a(arr,idx,val) = for i in range(len(arr)) do (if i == idx then val else arr[i])
-
 fn init() = (
   svar("px", 300); svar("py", 200);
   svar("hp", 10); svar("mhp", 10);
@@ -414,8 +412,7 @@ fn find_slot(arr) = (
 )
 
 fn spawn_one() = (
-  let eh = gvar("eh")
-  let slot = find_slot(eh)
+  let slot = find_slot(gvar("eh"))
   if slot >= 0 then (
     let w = gvar("wave")
     let r = rand(100)
@@ -427,11 +424,10 @@ fn spawn_one() = (
     let side = rand(4)
     let sx = if side == 0 then rand(W) else if side == 1 then rand(W) else if side == 2 then 0 else W
     let sy = if side == 0 then 0 else if side == 1 then H else rand(H)
-    let health = tp + w
-    svar("ex", set_a(gvar("ex"), slot, sx));
-    svar("ey", set_a(gvar("ey"), slot, sy));
-    svar("eh", set_a(eh, slot, health));
-    svar("et", set_a(gvar("et"), slot, tp))
+    set(gvar("ex"), slot, sx);
+    set(gvar("ey"), slot, sy);
+    set(gvar("eh"), slot, tp + w);
+    set(gvar("et"), slot, tp)
   ) else 0
 )
 
@@ -462,27 +458,20 @@ fn move_enemies() = (
   let et = gvar("et")
   let px = gvar("px")
   let py = gvar("py")
-  let nex = for i in range(ME) do (
+  for i in range(ME) do (
     if eh[i] > 0 then (
       let spd = if et[i] == 2 then 1.4 else if et[i] == 3 then 1.1 else if et[i] == 5 then 0.9 else if et[i] == 7 then 0.7 else 0.5
       let d = dist(ex[i], ey[i], px, py)
-      if d > 1 then ex[i] + (px - ex[i]) / d * spd else ex[i]
+      if d > 1 then (
+        set(ex, i, ex[i] + (px - ex[i]) / d * spd);
+        set(ey, i, ey[i] + (py - ey[i]) / d * spd)
+      ) else 0
     ) else 0
   )
-  let ney = for i in range(ME) do (
-    if eh[i] > 0 then (
-      let spd = if et[i] == 2 then 1.4 else if et[i] == 3 then 1.1 else if et[i] == 5 then 0.9 else if et[i] == 7 then 0.7 else 0.5
-      let d = dist(ex[i], ey[i], px, py)
-      if d > 1 then ey[i] + (py - ey[i]) / d * spd else ey[i]
-    ) else 0
-  )
-  svar("ex", nex);
-  svar("ey", ney)
 )
 
 fn fire_sigma(px, py) = (
-  let bl = gvar("bl")
-  let slot = find_slot(bl)
+  let slot = find_slot(gvar("bl"))
   if slot >= 0 then (
     let ne = gvar("eh")
     let nex = gvar("ex")
@@ -499,15 +488,13 @@ fn fire_sigma(px, py) = (
     if bi >= 0 then (
       let d2 = gvar("_bd")
       if d2 > 1 then (if d2 < 300 then (
-        let vx = (nex[bi] - px) / d2 * 5
-        let vy = (ney[bi] - py) / d2 * 5
-        svar("bx", set_a(gvar("bx"), slot, px));
-        svar("by", set_a(gvar("by"), slot, py));
-        svar("bvx", set_a(gvar("bvx"), slot, vx));
-        svar("bvy", set_a(gvar("bvy"), slot, vy));
-        svar("bl", set_a(bl, slot, 60));
-        svar("bd", set_a(gvar("bd"), slot, 2));
-        svar("bt", set_a(gvar("bt"), slot, 1));
+        set(gvar("bx"), slot, px);
+        set(gvar("by"), slot, py);
+        set(gvar("bvx"), slot, (nex[bi] - px) / d2 * 5);
+        set(gvar("bvy"), slot, (ney[bi] - py) / d2 * 5);
+        set(gvar("bl"), slot, 60);
+        set(gvar("bd"), slot, 2);
+        set(gvar("bt"), slot, 1);
         beep(600, 30, 0.05)
       ) else 0) else 0
     ) else 0
@@ -515,61 +502,50 @@ fn fire_sigma(px, py) = (
 )
 
 fn fire_bridge(px, py) = (
-  let bl = gvar("bl")
-  let s1 = find_slot(bl)
+  let s1 = find_slot(gvar("bl"))
   if s1 >= 0 then (
     let a = rand(628) / 100
-    let vx1 = cos_f(a) * 4
-    let vy1 = sin_f(a) * 4
-    let vx2 = cos_f(a + 3.14) * 4
-    let vy2 = sin_f(a + 3.14) * 4
-    svar("bx", set_a(gvar("bx"), s1, px)); svar("by", set_a(gvar("by"), s1, py));
-    svar("bvx", set_a(gvar("bvx"), s1, vx1)); svar("bvy", set_a(gvar("bvy"), s1, vy1));
-    svar("bl", set_a(gvar("bl"), s1, 50)); svar("bd", set_a(gvar("bd"), s1, 2));
-    svar("bt", set_a(gvar("bt"), s1, 2));
-    let bl2 = gvar("bl")
-    let s2 = find_slot(bl2)
+    set(gvar("bx"), s1, px); set(gvar("by"), s1, py);
+    set(gvar("bvx"), s1, cos_f(a) * 4); set(gvar("bvy"), s1, sin_f(a) * 4);
+    set(gvar("bl"), s1, 50); set(gvar("bd"), s1, 2);
+    set(gvar("bt"), s1, 2);
+    let s2 = find_slot(gvar("bl"))
     if s2 >= 0 then (
-      svar("bx", set_a(gvar("bx"), s2, px)); svar("by", set_a(gvar("by"), s2, py));
-      svar("bvx", set_a(gvar("bvx"), s2, vx2)); svar("bvy", set_a(gvar("bvy"), s2, vy2));
-      svar("bl", set_a(gvar("bl"), s2, 50)); svar("bd", set_a(gvar("bd"), s2, 2));
-      svar("bt", set_a(gvar("bt"), s2, 2))
+      set(gvar("bx"), s2, px); set(gvar("by"), s2, py);
+      set(gvar("bvx"), s2, cos_f(a + 3.14) * 4); set(gvar("bvy"), s2, sin_f(a + 3.14) * 4);
+      set(gvar("bl"), s2, 50); set(gvar("bd"), s2, 2);
+      set(gvar("bt"), s2, 2)
     ) else 0;
     beep(400, 30, 0.04)
   ) else 0
 )
 
 fn fire_depth(px, py) = (
-  let bl = gvar("bl")
-  let slot = find_slot(bl)
+  let slot = find_slot(gvar("bl"))
   if slot >= 0 then (
     let a = rand(628) / 100
-    svar("bx", set_a(gvar("bx"), slot, px)); svar("by", set_a(gvar("by"), slot, py));
-    svar("bvx", set_a(gvar("bvx"), slot, cos_f(a)*3.5));
-    svar("bvy", set_a(gvar("bvy"), slot, sin_f(a)*3.5));
-    svar("bl", set_a(gvar("bl"), slot, 120));
-    svar("bd", set_a(gvar("bd"), slot, 1));
-    svar("bt", set_a(gvar("bt"), slot, 7));
+    set(gvar("bx"), slot, px); set(gvar("by"), slot, py);
+    set(gvar("bvx"), slot, cos_f(a)*3.5);
+    set(gvar("bvy"), slot, sin_f(a)*3.5);
+    set(gvar("bl"), slot, 120);
+    set(gvar("bd"), slot, 1);
+    set(gvar("bt"), slot, 7);
     beep(200, 40, 0.06)
   ) else 0
 )
 
 fn fire_closure(px, py) = (
-  let bl = gvar("bl")
-  let ne = gvar("eh")
-  let nex = gvar("ex")
-  let ney = gvar("ey")
   for d in range(3) do (
     let slot = find_slot(gvar("bl"))
     if slot >= 0 then (
       let a = d * 2.094 + gvar("time") * 2
-      svar("bx", set_a(gvar("bx"), slot, px));
-      svar("by", set_a(gvar("by"), slot, py));
-      svar("bvx", set_a(gvar("bvx"), slot, cos_f(a)*4));
-      svar("bvy", set_a(gvar("bvy"), slot, sin_f(a)*4));
-      svar("bl", set_a(gvar("bl"), slot, 40));
-      svar("bd", set_a(gvar("bd"), slot, 3));
-      svar("bt", set_a(gvar("bt"), slot, 3))
+      set(gvar("bx"), slot, px);
+      set(gvar("by"), slot, py);
+      set(gvar("bvx"), slot, cos_f(a)*4);
+      set(gvar("bvy"), slot, sin_f(a)*4);
+      set(gvar("bl"), slot, 40);
+      set(gvar("bd"), slot, 3);
+      set(gvar("bt"), slot, 3)
     ) else 0
   );
   beep(500, 25, 0.04)
@@ -580,7 +556,7 @@ fn fire_weapons(frame) = (
   let py = gvar("py")
   let wep = gvar("wep")
   let wcd = gvar("wcd")
-  let ncd = for i in range(len(wep)) do (
+  for i in range(len(wep)) do (
     let cd = wcd[i] - 1
     if cd <= 0 then (
       let w = wep[i]
@@ -590,10 +566,9 @@ fn fire_weapons(frame) = (
       else if w == 3 then fire_closure(px,py)
       else if w == 7 then fire_depth(px,py)
       else 0;
-      rate
-    ) else cd
+      set(wcd, i, rate)
+    ) else set(wcd, i, cd)
   )
-  svar("wcd", ncd)
 )
 
 fn move_bullets() = (
@@ -602,43 +577,48 @@ fn move_bullets() = (
   let bvx = gvar("bvx")
   let bvy = gvar("bvy")
   let bl = gvar("bl")
-  let nbx = for i in range(MB) do (if bl[i] > 0 then bx[i] + bvx[i] else 0)
-  let nby = for i in range(MB) do (if bl[i] > 0 then by[i] + bvy[i] else 0)
-  let nbl = for i in range(MB) do (
+  for i in range(MB) do (
     if bl[i] > 0 then (
-      let nx = nbx[i]
-      let ny = nby[i]
-      if nx < 0 - 20 then 0 else if nx > W + 20 then 0 else if ny < 0 - 20 then 0 else if ny > H + 20 then 0
-      else bl[i] - 1
+      let nx = bx[i] + bvx[i]
+      let ny = by[i] + bvy[i]
+      set(bx, i, nx);
+      set(by, i, ny);
+      if nx < 0 - 20 then set(bl, i, 0)
+      else if nx > W + 20 then set(bl, i, 0)
+      else if ny < 0 - 20 then set(bl, i, 0)
+      else if ny > H + 20 then set(bl, i, 0)
+      else set(bl, i, bl[i] - 1)
     ) else 0
   )
-  svar("bx", nbx); svar("by", nby); svar("bl", nbl)
 )
 
 fn collide() = (
   let ex = gvar("ex")
   let ey = gvar("ey")
   let et = gvar("et")
+  let bl = gvar("bl")
+  let eh = gvar("eh")
   for b in range(MB) do (
-    if gvar("bl")[b] > 0 then (
+    if bl[b] > 0 then (
       let bxb = gvar("bx")[b]
       let byb = gvar("by")[b]
       let dmg = gvar("bd")[b]
       let btype = gvar("bt")[b]
       for e in range(ME) do (
-        let cureh = gvar("eh")[e]
-        if cureh > 0 then (
-          let sz = if et[e] == 2 then 64 else if et[e] == 3 then 100 else if et[e] == 5 then 144 else if et[e] == 7 then 196 else 256
-          let dx = bxb - ex[e]
-          let dy = byb - ey[e]
-          if dx*dx + dy*dy < sz then (
-            let nh = cureh - dmg
-            svar("eh", set_a(gvar("eh"), e, if nh < 0 then 0 else nh));
-            if btype != 7 then svar("bl", set_a(gvar("bl"), b, 0)) else 0;
-            if nh <= 0 then (
-              svar("kills", gvar("kills") + 1);
-              svar("xp", gvar("xp") + et[e]);
-              beep(300, 40, 0.08)
+        if bl[b] > 0 then (
+          if eh[e] > 0 then (
+            let sz = if et[e] == 2 then 64 else if et[e] == 3 then 100 else if et[e] == 5 then 144 else if et[e] == 7 then 196 else 256
+            let dx = bxb - ex[e]
+            let dy = byb - ey[e]
+            if dx*dx + dy*dy < sz then (
+              let nh = eh[e] - dmg
+              set(eh, e, if nh < 0 then 0 else nh);
+              if btype != 7 then set(bl, b, 0) else 0;
+              if nh <= 0 then (
+                svar("kills", gvar("kills") + 1);
+                svar("xp", gvar("xp") + et[e]);
+                beep(300, 40, 0.08)
+              ) else 0
             ) else 0
           ) else 0
         ) else 0

@@ -733,6 +733,11 @@ BUILTINS.push = (args) => {
     if (!Array.isArray(args[0])) throw new Error('push: expected array');
     return [...args[0], args[1]];
 };
+BUILTINS.set = function(args) {
+    // set(array, index, value) — mutates array[index] in place, returns value
+    if (Array.isArray(args[0])) { args[0][toInt(args[1])] = args[2]; }
+    return args[2];
+};
 BUILTINS.first = (args) => {
     if (!Array.isArray(args[0])) return fromInt(0);
     for (const item of args[0]) {
