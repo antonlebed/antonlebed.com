@@ -154,7 +154,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="floats">Float Math</option>
       <option value="golden">Golden Ratio</option>
       <option value="wasm_bench">WASM Benchmark</option>
-      <option value="wasm_eval">WASM Eval Test</option>
+      <option value="wasm_eval">WASM Session</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -167,7 +167,8 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
     <button onclick="clearOutput()">Clear</button>
-    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#6272a4;border:1px solid #333;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Phase W v0.3: toggle between JS interpreter and WASM-compiled .ax evaluator">eval: JS</button>
+    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#6272a4;border:1px solid #333;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Phase W v0.3: toggle between JS interpreter and WASM-compiled .ax evaluator. WASM mode has session persistence.">eval: JS</button>
+    <button id="btn-wasm-reset" onclick="resetWasmSession()" style="display:none;background:#1a1a2e;color:#ff5555;border:1px solid #333;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Reset WASM session: clears all definitions and variables">reset</button>
     <span id="wasm-status" style="color:#555;font-size:0.75em;padding:4px 8px;border-radius:3px;border:1px solid #333" title="Phase W v0.2: native-speed ring arithmetic via WebAssembly">WASM: loading...</span>
     <span id="ring-info" style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
   </div>
@@ -913,17 +914,28 @@ function toggleEvalMode() {
     if (!_axWasmEval) return;
     _useWasmEval = !_useWasmEval;
     var btn = document.getElementById('btn-eval-mode');
+    var resetBtn = document.getElementById('btn-wasm-reset');
     if (_useWasmEval) {
         btn.textContent = 'eval: WASM';
         btn.style.background = '#1a3a1a';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
+        resetBtn.style.display = 'inline-block';
     } else {
         btn.textContent = 'eval: JS';
         btn.style.background = '#1a1a2e';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
+        resetBtn.style.display = 'none';
     }
+}
+
+function resetWasmSession() {
+    if (!_axWasmEval) return;
+    _axWasmEval._wasm_reset();
+    outputLines = ['Session reset. All definitions cleared.'];
+    traceLines = [];
+    renderOutput();
 }
 
 function executeWasm(src) {
@@ -1413,20 +1425,24 @@ print "  JS interpreter = bottleneck -> Phase W v0.3"
 print "If ring ops dominate: WASM approach is right."
 raw_mode(0)`,
 
-wasm_eval: `-- wasm_eval.ax: Phase W v0.3 Test
+wasm_eval: `-- wasm_eval.ax: Phase W v0.4 Test
 -- Toggle "eval: WASM" button, then run this.
--- Compare timing with "eval: JS" mode.
+-- SESSION PERSISTENCE: definitions carry over between runs!
+-- Run this, then run "show double(100)" in a new eval.
 
-print "=== Phase W v0.3: .ax Interpreter in WASM ==="
+print "=== Phase W v0.4: WASM + Session Persistence ==="
 print ""
 
--- Basic math
+/* Block comments now work too */
 let x = 7 * 6
 print "7 * 6 ="
 print x
 
--- Function
+-- Define a function (persists across evals!)
+fn double(n) = n * 2
 fn fib(n) = if n < 2 then n else fib(n - 1) + fib(n - 2)
+print "double(21) ="
+print double(21)
 print "fib(10) ="
 print fib(10)
 
@@ -1437,10 +1453,9 @@ for i in 10 do
 print "sum of squares 0..9 ="
 print total
 
--- Strings
-print "sigma/sigma = sigma"
 print ""
-print "Toggle eval:JS / eval:WASM and compare timing below."`
+print "Now try: show double(100)"
+print "Session persists! Use [reset] to clear."`
 };
 
 // ================================================================
