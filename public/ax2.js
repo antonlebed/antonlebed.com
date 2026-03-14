@@ -572,6 +572,21 @@ BUILTINS.golden_roots = (args) => {
     if (inv2 < 0) { return [fromInt((1 + s) % q), fromInt((1 + q - s) % q)]; }
     return [fromInt(((1 + s) * inv2) % q), fromInt(((1 + q - s) * inv2) % q)];
 };
+BUILTINS.golden_norm = (args) => {
+    // Q(a,b) = a^2 + 3ab + b^2 (golden norm form, disc=5=E)
+    const a = toInt(args[0]), b = toInt(args[1]);
+    return fromInt(a*a + 3*a*b + b*b);
+};
+BUILTINS.eisenstein_norm = (args) => {
+    // E_3(a,b) = a^2 - ab + b^2 (Eisenstein norm, disc=-3=-K)
+    const a = toInt(args[0]), b = toInt(args[1]);
+    return fromInt(a*a - a*b + b*b);
+};
+BUILTINS.gaussian_norm = (args) => {
+    // G(a,b) = a^2 + b^2 (Gaussian norm, disc=-4=-D^2)
+    const a = toInt(args[0]), b = toInt(args[1]);
+    return fromInt(a*a + b*b);
+};
 BUILTINS.factorize = (args) => {
     // factorize(n) -> flat array [p1, e1, p2, e2, ...] (works on plain integers)
     let n = toInt(args[0]);
