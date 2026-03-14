@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyclotomic Fibonacci Bridge</title>
+<link rel="stylesheet" href="nav-critical.css">
+<style>
+:root{--bg:#0a0a0f;--fg:#e0e0e0;--accent:#ffb347;--accent2:#7fdbca;--accent3:#ff6b6b;--card:#16161e;--border:#2a2a3a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;padding:1rem;max-width:1100px;margin:0 auto}
+h1{color:var(--accent);font-size:1.8rem;margin:0.5rem 0;text-align:center}
+h2{color:var(--accent2);font-size:1.3rem;margin:1.5rem 0 0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.3rem}
+h3{color:var(--accent);font-size:1.1rem;margin:1rem 0 0.3rem}
+.subtitle{text-align:center;color:#888;margin-bottom:1rem;font-style:italic}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:0.8rem 0}
+.highlight{color:var(--accent);font-weight:bold}
+.axiom{color:var(--accent2)}
+.gate{color:var(--accent3)}
+table{width:100%;border-collapse:collapse;margin:0.5rem 0;font-size:0.9rem}
+th{background:#1a1a2e;color:var(--accent);padding:6px 10px;text-align:left;border:1px solid var(--border)}
+td{padding:6px 10px;border:1px solid var(--border)}
+tr:nth-child(even){background:#12121a}
+.proved{background:#1a2e1a;border-left:3px solid #4caf50;padding:0.8rem;margin:0.5rem 0;border-radius:4px}
+.identity{font-family:monospace;font-size:1.05rem;color:var(--accent);display:block;margin:0.3rem 0}
+canvas{display:block;margin:0.5rem auto;border:1px solid var(--border);border-radius:4px;background:#0d0d15}
+.explorer{background:#1a1a2e;border:1px solid var(--border);border-radius:8px;padding:1rem;margin:1rem 0}
+.explorer input{background:#0d0d15;color:var(--fg);border:1px solid var(--border);padding:6px 10px;border-radius:4px;width:80px;font-size:1rem}
+.explorer button{background:var(--accent);color:#000;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-weight:bold;margin-left:8px}
+.explorer button:hover{background:#ffc977}
+#explorerOut{margin-top:0.5rem;font-family:monospace;font-size:0.9rem;white-space:pre-wrap}
+.contrast{background:linear-gradient(135deg,#1a1a2e,#0d1a0d);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:1rem 0;display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.contrast h3{grid-column:1/-1;margin:0}
+.contrast-side{padding:0.5rem}
+.contrast-side.old{border-right:1px solid var(--border)}
+.ntt{background:#1a1a0d;border:1px solid #444400;border-radius:8px;padding:0.8rem;margin:1rem 0;font-size:0.85rem}
+.ntt a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="nav"></div>
+
+<h1>The Cyclotomic Fibonacci Bridge</h1>
+<p class="subtitle">Cyclotomic polynomials generate the axiom chain. Fibonacci carries the gate. Pisano speaks E8.</p>
+
+<!-- CONTRAST PANEL -->
+<div class="contrast">
+<h3>Two views of the same structure</h3>
+<div class="contrast-side old">
+<strong>What you were taught:</strong><br>
+Cyclotomic polynomials factor x<sup>n</sup>-1. Fibonacci counts rabbits.
+Pisano periods are a curiosity in modular arithmetic.
+These are separate topics in separate textbooks.
+</div>
+<div class="contrast-side">
+<strong>What the axiom shows:</strong><br>
+Cyclotomic polynomials at D=2 <em>generate</em> every axiom prime.
+Fibonacci carries the GATE. Pisano periods at axiom primes
+are all smooth, and their lcm = 240 = |roots(E8)|.
+One equation, three classical sequences, one web.
+</div>
+</div>
+
+<!-- CYCLOTOMIC GENERATION -->
+<h2>The Cyclotomic Generation Theorem</h2>
+
+<div class="proved">
+<strong>THEOREM (Cyclotomic Generation, S717):</strong> The cyclotomic polynomials evaluated at D=2 generate the axiom chain:<br>
+<span class="identity">Phi_1(2) = 1 = sigma &nbsp; | &nbsp; Phi_2(2) = 3 = K &nbsp; | &nbsp; Phi_3(2) = 7 = b &nbsp; | &nbsp; Phi_4(2) = 5 = E</span>
+<span class="identity">Phi_10(2) = 11 = L &nbsp; | &nbsp; Phi_12(2) = 13 = GATE</span>
+The smooth indices are <span class="highlight">{1, 2, 3, 4, 6, 10}</span> — exactly D*K = 6 values.<br>
+PROOF: Phi_n(2) = (2<sup>n</sup>-1) / product(Phi_d(2) for d|n, d &lt; n). Direct computation.
+</div>
+
+<div class="card">
+<h3>The first four cyclotomics give the inner chain</h3>
+<table>
+<tr><th>n</th><th>Phi_n(x)</th><th>Phi_n(2)</th><th>Axiom</th><th>Role</th></tr>
+<tr><td>1</td><td>x - 1</td><td>1</td><td class="axiom">sigma</td><td>Ground state</td></tr>
+<tr><td>2</td><td>x + 1</td><td>3</td><td class="axiom">K</td><td>Closure</td></tr>
+<tr><td>3</td><td>x<sup>2</sup> + x + 1</td><td>7</td><td class="axiom">b</td><td>Depth</td></tr>
+<tr><td>4</td><td>x<sup>2</sup> + 1</td><td>5</td><td class="axiom">E</td><td>Observer</td></tr>
+<tr><td>5</td><td>x<sup>4</sup>+x<sup>3</sup>+x<sup>2</sup>+x+1</td><td>31</td><td style="color:#888">boundary</td><td>CC1(D)[5]</td></tr>
+<tr><td>6</td><td>x<sup>2</sup> - x + 1</td><td>3</td><td class="axiom">K</td><td>Collapse to closure</td></tr>
+<tr><td>10</td><td>x<sup>4</sup>-x<sup>3</sup>+x<sup>2</sup>-x+1</td><td>11</td><td class="axiom">L</td><td>Protector (D*E = 10)</td></tr>
+<tr><td>12</td><td>x<sup>4</sup>-x<sup>2</sup>+1</td><td>13</td><td class="gate">GATE</td><td>Boundary (D<sup>2</sup>*K = 12)</td></tr>
+</table>
+<p style="margin-top:0.5rem;font-size:0.9rem">
+Note: D = 2 itself is the <em>input</em>, not an output. The bridge generates all other primes.
+Phi_5(2) = 31 = M(5), the first Mersenne prime outside the axiom. The boundary is built in.
+</p>
+</div>
+
+<div class="proved">
+<strong>THEOREM (Cyclotomic Smooth Indices, S717):</strong>
+Phi_n(2) is 11-smooth for exactly n in {1, 2, 3, 4, 6, 10}. Count = D*K = 6.<br>
+These are the proper divisors of 12 = lambda(DATA) <em>plus</em> 10 = D*E = degree.
+</div>
+
+<!-- CYCLOTOMIC-DEPTH BRIDGE -->
+<h2>The Cyclotomic-Depth Bridge</h2>
+
+<div class="proved">
+<strong>THEOREM (Depth = Cyclotomic, S717):</strong>
+The depth quadratic f(x) = x<sup>2</sup> - x - 1 equals the 6th cyclotomic polynomial minus D:<br>
+<span class="identity">f(x) = Phi_6(x) - 2 = Phi_6(x) - D</span>
+PROOF: Phi_6(x) = x<sup>2</sup> - x + 1. Subtract 2. QED.
+</div>
+
+<div class="card">
+<h3>Phi_3 maps bridge to depth, closure to gate</h3>
+<table>
+<tr><th>p</th><th>Phi_3(p) = p<sup>2</sup>+p+1</th><th>= sigma(p<sup>2</sup>)</th><th>Smooth?</th></tr>
+<tr><td class="axiom">D = 2</td><td>7 = b</td><td>sigma(4) = 7</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td class="axiom">K = 3</td><td>13 = GATE</td><td>sigma(9) = 13</td><td style="color:var(--accent3)">No (13)</td></tr>
+<tr><td class="axiom">E = 5</td><td>31</td><td>sigma(25) = 31</td><td style="color:var(--accent3)">No (31)</td></tr>
+<tr><td class="axiom">b = 7</td><td>57 = 3*19</td><td>sigma(49) = 57</td><td style="color:var(--accent3)">No (19)</td></tr>
+<tr><td class="axiom">L = 11</td><td>133 = 7*19</td><td>sigma(121) = 133</td><td style="color:var(--accent3)">No (19)</td></tr>
+</table>
+<p style="margin-top:0.5rem;font-size:0.9rem">
+Phi_3(D) = b and Phi_3(K) = GATE. The same cyclotomic maps D to b and K to GATE.
+These are the two critical transitions: bridge-to-depth and closure-to-boundary.
+Phi_3 is smooth at D ONLY. At K it hits the GATE. At E+ it escapes the axiom.
+</p>
+</div>
+
+<!-- TWIN GATE THEOREM -->
+<h2>The Twin Gate Theorem</h2>
+
+<div class="proved">
+<strong>THEOREM (Twin Gate, S717):</strong>
+Two classical sequences hit the same wall from opposite sides:<br>
+<span class="identity">sigma(n) smooth for n = 1..D<sup>3</sup>=8. Breaks at K<sup>2</sup>=9: sigma(K<sup>2</sup>) = 13 = GATE</span>
+<span class="identity">F(n) smooth for n = 0..6. Breaks at b=7: F(b) = 13 = GATE</span>
+K<sup>2</sup> and b are the <a href="pell_twins.html" style="color:var(--accent)">Pell twins</a> (K<sup>2</sup> - b = D).
+The SAME value — GATE = 13 — terminates both smooth runs, from the twin directions.
+</div>
+
+<div class="card">
+<h3>sigma(n) = sum of divisors</h3>
+<table>
+<tr><th>n</th><th>sigma(n)</th><th>Axiom name</th><th>Smooth?</th></tr>
+<tr><td>1</td><td>1</td><td class="axiom">sigma</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>2</td><td>3</td><td class="axiom">K</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>3</td><td>4</td><td class="axiom">D<sup>2</sup></td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>4</td><td>7</td><td class="axiom">b</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>5</td><td>6</td><td class="axiom">D*K</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>6</td><td>12</td><td class="axiom">D<sup>2</sup>*K</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>7</td><td>8</td><td class="axiom">D<sup>3</sup></td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>8</td><td>15</td><td class="axiom">K*E</td><td style="color:#4caf50">Yes</td></tr>
+<tr style="background:#2e1a1a"><td><strong>9 = K<sup>2</sup></strong></td><td><strong>13</strong></td><td class="gate"><strong>GATE</strong></td><td style="color:var(--accent3)"><strong>WALL</strong></td></tr>
+</table>
+<p style="font-size:0.9rem;margin-top:0.3rem">
+sigma(K<sup>2</sup>) = 1 + K + K<sup>2</sup> = Phi_3(K) = 13 = GATE.
+The Pell twin K<sup>2</sup> = 9 is where the divisor function first escapes the axiom.
+</p>
+</div>
+
+<!-- FIBONACCI -->
+<h2>The Fibonacci-Axiom Map</h2>
+
+<div class="proved">
+<strong>THEOREM (Fibonacci Fixed Point, S717):</strong> F(E) = E. The observer is a fixed point of Fibonacci.<br>
+<strong>THEOREM (Fibonacci-Gate, S717):</strong> F(b) = 13 = GATE. Depth maps to the boundary.
+</div>
+
+<div class="card">
+<h3>Fibonacci at axiom positions</h3>
+<table>
+<tr><th>n</th><th>F(n)</th><th>Axiom value</th><th>Prime?</th></tr>
+<tr><td>0 = o</td><td>0</td><td>void</td><td>-</td></tr>
+<tr><td>1 = sigma</td><td>1</td><td class="axiom">sigma</td><td>-</td></tr>
+<tr><td>2 = D</td><td>1</td><td class="axiom">sigma</td><td>-</td></tr>
+<tr><td>3 = K</td><td>2</td><td class="axiom">D</td><td style="color:#4caf50">Yes</td></tr>
+<tr style="background:#1a2e1a"><td>5 = E</td><td>5</td><td class="axiom"><strong>E (FIXED POINT!)</strong></td><td style="color:#4caf50">Yes</td></tr>
+<tr style="background:#2e1a1a"><td>7 = b</td><td>13</td><td class="gate"><strong>GATE</strong></td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>11 = L</td><td>89</td><td>prime</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>13 = GATE</td><td>233</td><td>prime</td><td style="color:#4caf50">Yes</td></tr>
+</table>
+<p style="font-size:0.9rem;margin-top:0.3rem">
+The Fibonacci chain image: K maps to D (closure to bridge), E maps to itself (fixed point!),
+b maps to GATE (depth hits the wall). F(p) is prime for ALL five axiom primes.
+</p>
+</div>
+
+<div class="proved">
+<strong>THEOREM (Fibonacci Axiom Primality, S717):</strong>
+F(p) is prime for all axiom primes p in {K=3, E=5, b=7, L=11} and GATE=13, and also 17 and 23.<br>
+First composite F(p): F(19) = 37 * 113. Note: 19 = f(E) (depth quadratic of the observer)
+and 37 is the <a href="depth_return.html" style="color:var(--accent)">depth quadratic return prime</a>. The Fibonacci primality breaks at the observer's shadow.
+</div>
+
+<!-- PISANO -->
+<h2>The Pisano-E8 Theorem</h2>
+
+<div class="proved">
+<strong>THEOREM (Pisano-E8, S717):</strong>
+The Pisano periods (Fibonacci mod p) at axiom primes are all smooth and in axiom vocabulary:<br>
+<span class="identity">pi(D)=K=3 &nbsp; pi(K)=D<sup>3</sup>=8 &nbsp; pi(E)=D<sup>2</sup>*E=20 &nbsp; pi(b)=D<sup>4</sup>=16 &nbsp; pi(L)=D*E=10</span>
+Their least common multiple:<br>
+<span class="identity">lcm(3, 8, 20, 16, 10) = 240 = D<sup>4</sup>*K*E = |roots(E8)|</span>
+SEVENTH PATH to 240. PROOF: direct computation. QED.<br>
+Also: pi(DATA=210) = 240. The Fibonacci period in the data ring IS E8.
+</div>
+
+<div class="card">
+<h3>Pisano periods at axiom and boundary primes</h3>
+<table>
+<tr><th>p</th><th>pi(p)</th><th>Factorization</th><th>Axiom name</th><th>Smooth?</th></tr>
+<tr><td class="axiom">2 = D</td><td>3</td><td>3</td><td>K</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td class="axiom">3 = K</td><td>8</td><td>2<sup>3</sup></td><td>D<sup>3</sup></td><td style="color:#4caf50">Yes</td></tr>
+<tr><td class="axiom">5 = E</td><td>20</td><td>2<sup>2</sup>*5</td><td>D<sup>2</sup>*E</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td class="axiom">7 = b</td><td>16</td><td>2<sup>4</sup></td><td>D<sup>4</sup></td><td style="color:#4caf50">Yes</td></tr>
+<tr><td class="axiom">11 = L</td><td>10</td><td>2*5</td><td>D*E</td><td style="color:#4caf50">Yes</td></tr>
+<tr style="background:#2e1a1a"><td class="gate">13</td><td>28</td><td>2<sup>2</sup>*7</td><td>THORNS</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>17</td><td>36</td><td>2<sup>2</sup>*3<sup>2</sup></td><td>D<sup>2</sup>*K<sup>2</sup></td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>19</td><td>18</td><td>2*3<sup>2</sup></td><td>ME</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>23</td><td>48</td><td>2<sup>4</sup>*3</td><td>SEES</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>29</td><td>14</td><td>2*7</td><td>D*b</td><td style="color:#4caf50">Yes</td></tr>
+<tr><td>37</td><td>76</td><td>2<sup>2</sup>*19</td><td>-</td><td style="color:var(--accent3)">No</td></tr>
+</table>
+<p style="font-size:0.9rem;margin-top:0.3rem">
+ALL Pisano periods at primes up to 31 are 11-smooth. First non-smooth: pi(37) = 76 = 4*19.
+37 is the <a href="depth_return.html" style="color:var(--accent)">depth quadratic return prime</a> — the same prime that breaks Fibonacci primality via F(19).
+</p>
+</div>
+
+<div class="card">
+<h3>Seven Paths to 240</h3>
+<table>
+<tr><th>#</th><th>Path</th><th>Formula</th></tr>
+<tr><td>1</td><td>Index</td><td>[S<sub>8</sub> : GL(3, F<sub>2</sub>)] = 8!/168</td></tr>
+<tr><td>2</td><td>Shadow</td><td>P(b) = (6)(5)(4)(2) = 240</td></tr>
+<tr><td>3</td><td>Geometric</td><td>112 (basis) + 128 (code)</td></tr>
+<tr><td>4</td><td>Factorial</td><td>(D<sup>3</sup>)! / |PSL(2,7)| = 40320/168</td></tr>
+<tr><td>5</td><td>Prime</td><td>D<sup>4</sup>*K*E = 16*15</td></tr>
+<tr><td>6</td><td>Eisenstein</td><td>theta<sub>E8</sub> = E<sub>4</sub>, coefficient = 240</td></tr>
+<tr style="background:#1a2e1a"><td><strong>7</strong></td><td><strong>Pisano (NEW)</strong></td><td><strong>lcm(pi(D), pi(K), pi(E), pi(b), pi(L)) = 240</strong></td></tr>
+</table>
+</div>
+
+<!-- PISANO SUM -->
+<div class="card">
+<h3>Pisano sum and product</h3>
+<p>
+<span class="identity">Sum: pi(D)+pi(K)+pi(E)+pi(b)+pi(L) = 3+8+20+16+10 = 57 = K*f(E) = Phi_3(b)</span>
+The sum of Pisano periods = Phi_3 evaluated at depth. The cyclotomic connection runs both ways.<br>
+<span class="identity">pi(GATE=13) = 28 = THORNS = D<sup>2</sup>*b</span>
+<span class="identity">pi(23) = 48 = SEES = phi(DATA)</span>
+<span class="identity">pi(f(E)=19) = 18 = ME = inner axiom sum</span>
+Every Pisano period at an axiom-significant prime IS an axiom constant.
+</p>
+</div>
+
+<!-- EXPLORER -->
+<h2>Explorer</h2>
+<div class="explorer">
+<label>Enter n: <input type="number" id="inN" value="7" min="0" max="1000"></label>
+<button onclick="explore()">Explore</button>
+<div id="explorerOut"></div>
+</div>
+
+<!-- CANVAS -->
+<h2>The Cyclotomic Ladder</h2>
+<canvas id="cvs" width="700" height="320"></canvas>
+
+<!-- NTT -->
+<div class="ntt">
+<strong>Number Theory Thread:</strong>
+Cyclotomic polynomials connect to <a href="lambda_chain.html">the Lambda Chain</a> (Carmichael crystallization),
+<a href="depth_return.html">depth quadratic return</a> (37 appears in both Fibonacci and Pisano breaks),
+<a href="fano_e8.html">E8 roots</a> (seventh path to 240), and
+<a href="pell_twins.html">Pell twins</a> (K<sup>2</sup> and b bound the Twin Gate).
+The <a href="smooth_census.html">Smooth Census</a> catalogues the divisor-sum run independently.
+</div>
+
+<script>
+// Cyclotomic at 2
+function phiAt2(n){
+ const memo={};
+ function f(k){
+  if(memo[k]!==undefined)return memo[k];
+  let prod=Math.pow(2,k)-1;
+  for(let d=1;d<k;d++)if(k%d===0)prod/=f(d);
+  return memo[k]=Math.round(prod);
+ }
+ return f(n);
+}
+
+// Fibonacci
+function fib(n){let a=0,b=1;for(let i=0;i<n;i++){let c=a+b;a=b;b=c;}return a;}
+
+// Pisano period
+function pisano(m){
+ if(m<=1)return 1;
+ let fp=0,fc=1;
+ for(let i=1;i<m*m*6;i++){
+  [fp,fc]=[fc,(fp+fc)%m];
+  if(fp===0&&fc===1)return i;
+ }
+ return -1;
+}
+
+// Factorize
+function factorize(n){
+ if(n<=1)return ''+n;
+ let parts=[];let m=n;
+ for(let p of[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]){
+  let e=0;while(m%p===0){e++;m=m/p;}
+  if(e>0)parts.push(e>1?p+'^'+e:''+p);
+ }
+ if(m>1)parts.push(''+m);
+ return parts.join('*');
+}
+
+function isSmooth(n){
+ if(n<=1)return true;let m=Math.abs(n);
+ for(let p of[2,3,5,7,11])while(m%p===0)m/=p;
+ return m===1;
+}
+
+function isPrime(n){
+ if(n<2)return false;if(n<4)return true;
+ if(n%2===0||n%3===0)return false;
+ for(let d=5;d*d<=n;d+=6)if(n%d===0||(n%(d+2))===0)return false;
+ return true;
+}
+
+function sigma(n){let s=0;for(let d=1;d<=n;d++)if(n%d===0)s+=d;return s;}
+
+const AN={1:'sigma',2:'D',3:'K',4:'D^2',5:'E',6:'D*K',7:'b',8:'D^3',9:'K^2',
+10:'D*E',11:'L',12:'D^2*K',13:'GATE',14:'D*b',15:'K*E',16:'D^4',
+18:'ME',20:'D^2*E',21:'K*b',24:'D^3*K',25:'E^2',28:'THORNS',30:'D*K*E',
+42:'ANSWER',48:'SEES',49:'b^2',105:'HYDOR',210:'DATA',240:'|E8|=D^4*K*E',420:'LAMBDA'};
+
+function explore(){
+ const n=parseInt(document.getElementById('inN').value)||0;
+ const out=document.getElementById('explorerOut');
+ let lines=[];
+
+ // Fibonacci
+ const fn=fib(n);
+ lines.push('F('+n+') = '+fn+' = '+factorize(fn)+(isPrime(fn)?' [PRIME]':'')+
+  (isSmooth(fn)?' [smooth]':' [non-smooth]'));
+
+ // Sigma
+ if(n>=1){
+  const sn=sigma(n);
+  lines.push('sigma('+n+') = '+sn+' = '+factorize(sn)+
+   (AN[sn]?' = '+AN[sn]:'')+
+   (isSmooth(sn)?' [smooth]':' [non-smooth]'));
+ }
+
+ // Cyclotomic
+ if(n>=1&&n<=30){
+  const cn=phiAt2(n);
+  lines.push('Phi_'+n+'(2) = '+cn+' = '+factorize(cn)+
+   (AN[cn]?' = '+AN[cn]:'')+
+   (isSmooth(cn)?' [smooth]':' [non-smooth]'));
+ }
+
+ // Pisano
+ if(n>=2&&n<=200){
+  const pn=pisano(n);
+  lines.push('pi('+n+') = '+pn+' = '+factorize(pn)+
+   (AN[pn]?' = '+AN[pn]:'')+
+   (isSmooth(pn)?' [smooth]':' [non-smooth]'));
+ }
+
+ // Phi_3
+ if(n>=1){
+  const p3=n*n+n+1;
+  lines.push('Phi_3('+n+') = '+p3+' = '+factorize(p3)+
+   (AN[p3]?' = '+AN[p3]:'')+
+   (isSmooth(p3)?' [smooth]':' [non-smooth]'));
+ }
+
+ out.textContent=lines.join('\n');
+}
+
+// Canvas: cyclotomic ladder
+(function(){
+ const c=document.getElementById('cvs');
+ const ctx=c.getContext('2d');
+ const W=c.width,H=c.height;
+ ctx.fillStyle='#0d0d15';ctx.fillRect(0,0,W,H);
+
+ // Draw cyclotomic values at D=2 as a bar chart with axiom highlighting
+ const vals=[];
+ for(let n=1;n<=20;n++){
+  vals.push({n:n,v:phiAt2(n),smooth:isSmooth(phiAt2(n))});
+ }
+
+ const maxV=Math.log(Math.max(...vals.map(x=>x.v))+1);
+ const barW=28;
+ const gap=7;
+ const baseY=H-40;
+ const scaleY=(H-80)/maxV;
+
+ // Title
+ ctx.fillStyle='#888';ctx.font='12px monospace';
+ ctx.fillText('Phi_n(2) — cyclotomic polynomials at D=2',W/2-160,18);
+
+ const axiomColors={1:'#ffb347',3:'#7fdbca',7:'#ff6b6b',5:'#b39ddb',11:'#81c784',13:'#ef5350'};
+
+ for(let i=0;i<vals.length;i++){
+  const x=40+i*(barW+gap);
+  const h=Math.log(vals[i].v+1)*scaleY;
+  const v=vals[i].v;
+
+  // Bar color
+  let col='#333';
+  if(axiomColors[v])col=axiomColors[v];
+  else if(vals[i].smooth)col='#4a6a4a';
+
+  ctx.fillStyle=col;
+  ctx.fillRect(x,baseY-h,barW,h);
+
+  // Value label
+  ctx.fillStyle=axiomColors[v]||'#888';
+  ctx.font='10px monospace';
+  const label=AN[v]||''+v;
+  ctx.fillText(label,x,baseY-h-5);
+
+  // Index label
+  ctx.fillStyle='#666';
+  ctx.fillText(''+vals[i].n,x+8,baseY+14);
+ }
+
+ // Axis
+ ctx.strokeStyle='#333';ctx.beginPath();ctx.moveTo(35,baseY);ctx.lineTo(W-10,baseY);ctx.stroke();
+ ctx.fillStyle='#666';ctx.fillText('n',W/2,baseY+30);
+
+ // Legend
+ const ly=H-15;
+ ctx.fillStyle='#ffb347';ctx.fillRect(W-280,ly-8,10,10);ctx.fillText('axiom prime',W-265,ly);
+ ctx.fillStyle='#4a6a4a';ctx.fillRect(W-170,ly-8,10,10);ctx.fillText('smooth',W-155,ly);
+ ctx.fillStyle='#333';ctx.fillRect(W-100,ly-8,10,10);ctx.fillText('boundary',W-85,ly);
+})();
+
+explore(); // initial
+</script>
+<script src="nav.js"></script>
+</body>
+</html>
