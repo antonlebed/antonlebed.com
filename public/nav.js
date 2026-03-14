@@ -306,7 +306,7 @@ if(axLang!=='en'){
 var REM = {sm:1,quantum:1,thermo:1,chemistry:1,em:1,gr:1,cosmo:1,classical:1,
   statmech:1,condensed:1,optics:1,acoustics:1,particles:1,alpha:1,constants:1,
   millennium:1,d_chain:1,partitions:1,modular_forms:1,depth_quad:1,
-  atlas_10_millennium:1,atlas_12_shadow_polynomial:1,mutual_holography:1,neutron_star:1,eta_bridge:1,ouroboros_compiler:1,sacrifice:1,decality:1,boson_fermion:1,force_hierarchy:1,heegner:1,phase_w:1,lambda_chain:1,arcsine_cumulant:1,cunningham:1,monster_moonshine:1,lie_algebra:1,bernoulli:1,k_squared_stop:1,pell_twins:1,universal_boundary:1,depth_return:1,scale_relativity:1,figurate_bridge:1,eigenvalue_swim:1,mirror:1,equator:1,mirror_cost:1,shadow_eval:1,stormer_pairs:1,fano_e8:1,ax_games:1,smooth_census:1};
+  atlas_10_millennium:1,atlas_12_shadow_polynomial:1,mutual_holography:1,neutron_star:1,eta_bridge:1,ouroboros_compiler:1,sacrifice:1,decality:1,boson_fermion:1,force_hierarchy:1,heegner:1,phase_w:1,lambda_chain:1,arcsine_cumulant:1,cunningham:1,monster_moonshine:1,lie_algebra:1,bernoulli:1,k_squared_stop:1,pell_twins:1,universal_boundary:1,depth_return:1,scale_relativity:1,figurate_bridge:1,eigenvalue_swim:1,mirror:1,equator:1,mirror_cost:1,shadow_eval:1,stormer_pairs:1,fano_e8:1,ax_games:1,smooth_census:1,cyclotomic_fibonacci:1};
 var remSeen={};
 try{remSeen=JSON.parse(localStorage.getItem('rem-seen')||'{}');}catch(e){}
 function isRem(k){return REM[k]&&!remSeen[k+'.html'];}
