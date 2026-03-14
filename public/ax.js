@@ -505,6 +505,19 @@ BUILTINS.factorize = function(args, ctx) {
     return factors;
 };
 
+BUILTINS.sigma3 = function(args, ctx) {
+    // sigma3(n) = sum of cubes of divisors of n
+    var n = args[0];
+    if (n < 0) n = -n;
+    if (n === 0) { ctx.trace('<span class="tr-fn">sigma3</span>(0) = <span class="tr-result">0</span>'); return 0; }
+    var s = 0;
+    for (var d = 1; d <= n; d++) {
+        if (n % d === 0) s += d * d * d;
+    }
+    ctx.trace('<span class="tr-fn">sigma3</span>(' + args[0] + ') = <span class="tr-result">' + s + '</span>');
+    return s;
+};
+
 BUILTINS.mirror = function(args, ctx) {
     const result = mirror(args[0]);
     ctx.trace('<span class="tr-fn">mirror</span>(' + args[0] + '): <span class="tr-step">' + N + ' - ' + ringMod(args[0]) + '</span> = <span class="tr-result">' + result + '</span>');

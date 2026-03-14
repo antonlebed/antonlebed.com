@@ -562,6 +562,16 @@ BUILTINS.factorize = (args) => {
     if (n > 1) { factors.push(fromInt(n)); factors.push(fromInt(1)); }
     return factors;
 };
+BUILTINS.sigma3 = (args) => {
+    let n = toInt(args[0]);
+    if (n < 0) n = -n;
+    if (n === 0) return fromInt(0);
+    let s = 0;
+    for (let d = 1; d <= n; d++) {
+        if (n % d === 0) s += d * d * d;
+    }
+    return fromInt(s);
+};
 BUILTINS.mirror = (args) => neg(args[0]);
 BUILTINS.gcd = (args) => fromInt(gcd(toInt(args[0]), toInt(args[1])));
 BUILTINS.toInt = (args) => toInt(args[0]);  // explicit reconstruction
