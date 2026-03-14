@@ -9,6 +9,8 @@ const AX = (function() {
 let N = 970200;
 let CRT_MODS = [8, 9, 25, 49, 11];
 let _rawMode = false; // raw_mode(1): regular arithmetic. raw_mode(0): ring arithmetic (default).
+let _wasm = null; // Phase W v0.2: WASM module for native-speed ring ops (S739)
+const TRUE_N = 970200; // WASM only works for TRUE FORM
 
 function factorPrimePowers(n) {
     n = Math.abs(Math.round(n));
@@ -37,6 +39,7 @@ function setRing(newN) {
 function ringMod(x) { x = Math.round(x); return ((x % N) + N) % N; }
 
 function modPow(base, exp) {
+    if (_wasm && N === TRUE_N) return _wasm._wasm_modpow(Math.round(base), Math.round(exp));
     base = ((Math.round(base) % N) + N) % N;
     exp = Math.round(exp);
     if (exp < 0) return 0;
@@ -50,24 +53,38 @@ function modPow(base, exp) {
 }
 
 function gcd(a, b) {
+    if (_wasm && N === TRUE_N) return _wasm._wasm_gcd(Math.abs(Math.round(a)), Math.abs(Math.round(b)));
     a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
     while (b) { [a, b] = [b, a % b]; }
     return a;
 }
 
-function coupling(n) { return N / gcd(ringMod(n), N); }
+function coupling(n) {
+    if (_wasm && N === TRUE_N) return _wasm._wasm_coupling(ringMod(n));
+    return N / gcd(ringMod(n), N);
+}
 
 function crt(n) {
+    if (_wasm && N === TRUE_N) {
+        const ptr = _wasm._wasm_decompose(ringMod(n));
+        const r = [];
+        for (let i = 0; i < 5; i++) r.push(_wasm.getValue(ptr + i*4, 'i32'));
+        return r;
+    }
     const r = ringMod(n);
     return CRT_MODS.map(m => r % m);
 }
 
 function eigenvalue(n) {
+    if (_wasm && N === TRUE_N) return _wasm._wasm_eigenvalue(ringMod(n));
     const c = crt(n), P = Math.PI;
     return c.reduce((sum, ci, i) => sum + 2*Math.cos(2*P*ci/CRT_MODS[i]), 0);
 }
 
-function mirror(n) { return ringMod(N - ringMod(n)); }
+function mirror(n) {
+    if (_wasm && N === TRUE_N) return _wasm._wasm_mirror(ringMod(n));
+    return ringMod(N - ringMod(n));
+}
 
 function eulerPhi(n) {
     n = Math.abs(Math.round(n));
@@ -84,6 +101,7 @@ function eulerPhi(n) {
 }
 
 function multOrder(n) {
+    if (_wasm && N === TRUE_N) return _wasm._wasm_order(ringMod(n));
     const m = ringMod(n);
     if (gcd(m, N) !== 1) return 0;
     let x = m, k = 1;
@@ -730,6 +748,45 @@ BUILTINS.gcd = (args) => gcd(args[0], args[1]);
 BUILTINS.lcm = (args) => { const a = Math.abs(Math.round(args[0])), b = Math.abs(Math.round(args[1])); return a === 0 || b === 0 ? 0 : (a / gcd(a, b)) * b; };
 BUILTINS.mod = (args) => args[1] !== 0 ? ringMod(Math.round(args[0]) % Math.round(args[1])) : 0;
 BUILTINS.inv = (args) => { const r = multInverse(args[0]); if (r < 0) throw new Error('No inverse: gcd(' + args[0] + ', ' + N + ') != 1'); return r; };
+BUILTINS.is_unit = (args) => { if (_wasm && N === TRUE_N) return _wasm._wasm_is_unit(ringMod(args[0])); return gcd(ringMod(args[0]), N) === 1 ? 1 : 0; };
+BUILTINS.ecc_detect = function(args, ctx) {
+    const c = crt(args[0]);
+    if (_wasm && N === TRUE_N) {
+        const d = _wasm._wasm_ecc_detect(c[0], c[1], c[2], c[3], c[4]);
+        ctx.trace('<span class="tr-fn">ecc_detect</span>(' + args[0] + '): CRT=[' + c.join(',') + '] <span class="tr-result">' + (d ? 'CORRUPTED' : 'CLEAN') + '</span>');
+        return d;
+    }
+    // JS fallback: reconstruct data ring value from 4 data channels, check mod 11
+    const dw = [11025, 78400, 59976, 27000]; // CRT weights for Z/88200Z
+    let data = 0;
+    for (let i = 0; i < 4; i++) data += dw[i] * c[i];
+    data = ((data % 88200) + 88200) % 88200;
+    const expected = data % 11;
+    const d = c[4] !== expected ? 1 : 0;
+    ctx.trace('<span class="tr-fn">ecc_detect</span>(' + args[0] + '): L-check ' + c[4] + ' vs ' + expected + ' <span class="tr-result">' + (d ? 'CORRUPTED' : 'CLEAN') + '</span>');
+    return d;
+};
+BUILTINS.ecc_correct = function(args, ctx) {
+    const c = crt(args[0]);
+    if (_wasm && N === TRUE_N) {
+        const corrected = _wasm._wasm_ecc_correct(c[0], c[1], c[2], c[3], c[4]);
+        ctx.trace('<span class="tr-fn">ecc_correct</span>(' + args[0] + '): <span class="tr-result">' + corrected + '</span>');
+        return corrected;
+    }
+    // JS fallback: L-fix (recompute L channel from data channels)
+    const dw = [11025, 78400, 59976, 27000];
+    let data = 0;
+    for (let i = 0; i < 4; i++) data += dw[i] * c[i];
+    data = ((data % 88200) + 88200) % 88200;
+    c[4] = data % 11;
+    // Reconstruct from corrected CRT (weights from crt.h)
+    const w = [363825, 431200, 853776, 732600, 529200];
+    let n = 0;
+    for (let i = 0; i < 5; i++) n += w[i] * c[i];
+    const result = ((n % N) + N) % N;
+    ctx.trace('<span class="tr-fn">ecc_correct</span>(' + args[0] + '): L-fix <span class="tr-result">' + result + '</span>');
+    return result;
+};
 BUILTINS.abs = (args) => Math.abs(args[0]);
 BUILTINS.min = (args) => Math.min(args[0], args[1]);
 BUILTINS.max = (args) => Math.max(args[0], args[1]);
@@ -1573,6 +1630,10 @@ return {
     get CRT_MODS() { return CRT_MODS.slice(); },
     CONSTANTS, VALUE_NAMES, KEYWORDS, BUILTINS, GRID_COLORS,
     BUILTIN_NAMES: new Set(Object.keys(BUILTINS)),
+
+    // WASM acceleration (Phase W v0.2 — S739)
+    setWasm: function(mod) { _wasm = mod; },
+    get wasmActive() { return _wasm !== null && N === TRUE_N; },
 
     // Ring configuration (S497)
     setRing, factorPrimePowers,
