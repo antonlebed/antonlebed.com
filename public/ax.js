@@ -744,6 +744,7 @@ BUILTINS.floor = (args) => Math.floor(args[0]);
 BUILTINS.ceil = (args) => Math.ceil(args[0]);
 BUILTINS.pow = (args) => Math.pow(args[0], args[1]);
 BUILTINS.len = (args) => Array.isArray(args[0]) ? args[0].length : 0;
+BUILTINS.rand = (args) => Math.floor(Math.random() * (args.length > 0 && args[0] > 0 ? args[0] : 2));
 
 // --- Phase F: Float math builtins (S626 — parity with ax2.js) ---
 // Returns raw JS floats. Binary ops propagate: non-integer + anything = float arithmetic.
