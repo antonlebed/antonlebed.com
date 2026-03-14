@@ -367,7 +367,7 @@ raw_mode(1)
 let W = 600
 let H = 400
 let ME = 30
-let MB = 30
+let MB = 50
 let SPD = 2.5
 let DMG_CD = 20
 
@@ -466,14 +466,14 @@ fn move_enemies() = (
     if eh[i] > 0 then (
       let spd = if et[i] == 2 then 1.4 else if et[i] == 3 then 1.1 else if et[i] == 5 then 0.9 else if et[i] == 7 then 0.7 else 0.5
       let d = dist(ex[i], ey[i], px, py)
-      if d > 2 then ex[i] + (px - ex[i]) / d * spd else ex[i]
+      if d > 1 then ex[i] + (px - ex[i]) / d * spd else ex[i]
     ) else 0
   )
   let ney = for i in range(ME) do (
     if eh[i] > 0 then (
       let spd = if et[i] == 2 then 1.4 else if et[i] == 3 then 1.1 else if et[i] == 5 then 0.9 else if et[i] == 7 then 0.7 else 0.5
       let d = dist(ex[i], ey[i], px, py)
-      if d > 2 then ey[i] + (py - ey[i]) / d * spd else ey[i]
+      if d > 1 then ey[i] + (py - ey[i]) / d * spd else ey[i]
     ) else 0
   )
   svar("ex", nex);
@@ -498,7 +498,7 @@ fn fire_sigma(px, py) = (
     let bi = gvar("_bi")
     if bi >= 0 then (
       let d2 = gvar("_bd")
-      if d2 < 300 then (
+      if d2 > 1 then (if d2 < 300 then (
         let vx = (nex[bi] - px) / d2 * 5
         let vy = (ney[bi] - py) / d2 * 5
         svar("bx", set_a(gvar("bx"), slot, px));
@@ -509,7 +509,7 @@ fn fire_sigma(px, py) = (
         svar("bd", set_a(gvar("bd"), slot, 2));
         svar("bt", set_a(gvar("bt"), slot, 1));
         beep(600, 30, 0.05)
-      ) else 0
+      ) else 0) else 0
     ) else 0
   ) else 0
 )
@@ -652,15 +652,19 @@ fn damage_player() = (
   let py = gvar("py")
   let icd = gvar("icd")
   if icd > 0 then svar("icd", icd - 1) else (
+    svar("_hit", 0);
     let ex = gvar("ex")
     let ey = gvar("ey")
     let eh = gvar("eh")
     for i in range(ME) do (
-      if eh[i] > 0 then (
-        if dist(ex[i], ey[i], px, py) < 15 then (
-          svar("hp", gvar("hp") - 1);
-          svar("icd", DMG_CD);
-          beep(150, 80, 0.15)
+      if gvar("_hit") == 0 then (
+        if eh[i] > 0 then (
+          if dist(ex[i], ey[i], px, py) < 15 then (
+            svar("hp", gvar("hp") - 1);
+            svar("icd", DMG_CD);
+            svar("_hit", 1);
+            beep(150, 80, 0.15)
+          ) else 0
         ) else 0
       ) else 0
     );
