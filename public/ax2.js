@@ -548,6 +548,30 @@ BUILTINS.shadow_poly = (args) => {
     const one = fromInt(1), two = fromInt(2), three = fromInt(3), five = fromInt(5);
     return mul(mul(sub(args[0], one), sub(args[0], two)), mul(sub(args[0], three), sub(args[0], five)));
 };
+BUILTINS.depth_quad = (args) => {
+    // f(n) = n^2 - n - 1 (the depth quadratic)
+    return sub(sub(mul(args[0], args[0]), args[0]), fromInt(1));
+};
+BUILTINS.is_smooth = (args) => {
+    // is_smooth(n) -> 1 if n is 11-smooth (all prime factors <= 11), else 0
+    let n = Math.abs(toInt(args[0]));
+    if (n <= 1) return fromInt(1);
+    const primes = [2, 3, 5, 7, 11];
+    for (const p of primes) { while (n % p === 0) n = Math.floor(n / p); }
+    return fromInt(n === 1 ? 1 : 0);
+};
+BUILTINS.golden_roots = (args) => {
+    // golden_roots(q) -> [r1, r2] roots of f(n)=n^2-n-1 mod q
+    const q = toInt(args[0]);
+    if (q <= 1) return [fromInt(0), fromInt(0)];
+    let s = -1;
+    for (let i = 0; i < q; i++) { if ((i * i) % q === ((5 % q) + q) % q) { s = i; break; } }
+    if (s < 0) return [fromInt(-1), fromInt(-1)]; // 5 is QNR mod q
+    let inv2 = -1;
+    for (let j = 0; j < q; j++) { if ((2 * j) % q === 1) { inv2 = j; break; } }
+    if (inv2 < 0) { return [fromInt((1 + s) % q), fromInt((1 + q - s) % q)]; }
+    return [fromInt(((1 + s) * inv2) % q), fromInt(((1 + q - s) * inv2) % q)];
+};
 BUILTINS.factorize = (args) => {
     // factorize(n) -> flat array [p1, e1, p2, e2, ...] (works on plain integers)
     let n = toInt(args[0]);

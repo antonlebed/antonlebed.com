@@ -485,6 +485,47 @@ BUILTINS.shadow_poly = function(args, ctx) {
     return result;
 };
 
+BUILTINS.depth_quad = function(args, ctx) {
+    // f(n) = n^2 - n - 1 (the depth quadratic)
+    const n = args[0];
+    const result = n * n - n - 1;
+    ctx.trace('<span class="tr-fn">depth_quad</span>(' + n + '): <span class="tr-step">' + n + '^2-' + n + '-1</span> = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.is_smooth = function(args, ctx) {
+    // is_smooth(n) -> 1 if n is 11-smooth (all prime factors <= 11), else 0
+    var n = Math.abs(Math.round(args[0]));
+    if (n <= 1) { ctx.trace('<span class="tr-fn">is_smooth</span>(' + args[0] + ') = <span class="tr-result">1</span>'); return 1; }
+    var primes = [2, 3, 5, 7, 11];
+    for (var i = 0; i < primes.length; i++) { while (n % primes[i] === 0) n /= primes[i]; }
+    var result = (n === 1) ? 1 : 0;
+    ctx.trace('<span class="tr-fn">is_smooth</span>(' + args[0] + ') = <span class="tr-result">' + result + '</span>');
+    return result;
+};
+
+BUILTINS.golden_roots = function(args, ctx) {
+    // golden_roots(q) -> [r1, r2] roots of f(n)=n^2-n-1 mod q (if disc=5 is QR)
+    var q = Math.round(args[0]);
+    if (q <= 1) return [0, 0];
+    // find sqrt(5) mod q by brute force (small q)
+    var s = -1;
+    for (var i = 0; i < q; i++) { if ((i * i) % q === 5 % q) { s = i; break; } }
+    if (s < 0) { ctx.trace('<span class="tr-fn">golden_roots</span>(' + q + '): <span class="tr-step">5 is QNR</span>'); return [-1, -1]; }
+    // roots = (1 +/- sqrt(5)) / 2 mod q
+    var inv2 = -1;
+    for (var j = 0; j < q; j++) { if ((2 * j) % q === 1) { inv2 = j; break; } }
+    if (inv2 < 0) { // q even
+        var r1 = (1 + s) % q; var r2 = (1 + q - s) % q;
+        ctx.trace('<span class="tr-fn">golden_roots</span>(' + q + ') = <span class="tr-result">[' + r1 + ',' + r2 + ']</span>');
+        return [r1, r2];
+    }
+    var r1 = ((1 + s) * inv2) % q;
+    var r2 = ((1 + q - s) * inv2) % q;
+    ctx.trace('<span class="tr-fn">golden_roots</span>(' + q + ') = <span class="tr-result">[' + r1 + ',' + r2 + ']</span>');
+    return [r1, r2];
+};
+
 BUILTINS.factorize = function(args, ctx) {
     // factorize(n) -> flat array [p1, e1, p2, e2, ...]
     var n = args[0];
