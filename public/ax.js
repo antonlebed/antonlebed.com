@@ -1345,6 +1345,7 @@ function run(src) {
     const values = [];
     const traces = [];
     const TRACE_LIMIT = 50;
+    const _now = typeof performance !== 'undefined' ? function() { return performance.now(); } : Date.now;
 
     const ctx = {
         trace: function(html) {
@@ -1357,8 +1358,11 @@ function run(src) {
         }
     };
 
+    const t0 = _now();
     const tokens = tokenize(src);
+    const t1 = _now();
     const stmts = new Parser(tokens).parseProgram();
+    const t2 = _now();
     const env = {...CONSTANTS};
     const fns = {};
 
@@ -1516,7 +1520,15 @@ function run(src) {
         error = e.message;
     }
 
-    return { lines: outputLines, values, traces, error };
+    const t3 = _now();
+    const profile = {
+        tokenize_ms: +(t1 - t0).toFixed(2),
+        parse_ms: +(t2 - t1).toFixed(2),
+        eval_ms: +(t3 - t2).toFixed(2),
+        total_ms: +(t3 - t0).toFixed(2),
+        wasm: _wasm !== null && N === TRUE_N
+    };
+    return { lines: outputLines, values, traces, error, profile };
 }
 
 // ================================================================

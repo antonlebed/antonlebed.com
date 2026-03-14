@@ -873,11 +873,13 @@ function fmtNum(v) {
 //  Overrides execute() to use AX.run(). Old interpreter code above
 //  is kept for transpiler/algebra view compatibility.
 // ================================================================
+var lastProfile = null;
 function execute(src) {
     const result = AX.run(src);
     outputLines = result.lines;
     traceLines = result.traces;
     lastOutputValues = result.values;
+    lastProfile = result.profile || null;
     if (result.error) throw new Error(result.error);
     return result.lines;
 }
@@ -1308,29 +1310,51 @@ print "phi mod f(K)=5 -> K. phi mod f(E)=19 -> E."
 print "phi mod f(b)=41 -> b. phi mod f(L)=109 -> L."
 print "The golden ratio BECOMES each axiom prime"`,
 
-wasm_bench: `-- wasm_bench.ax: WASM Acceleration Benchmark
--- When WASM is active, ring ops run at native speed
--- Check the WASM indicator in the toolbar
+wasm_bench: `-- wasm_bench.ax: Bottleneck Profiler
+-- Check timing breakdown below output
+-- Ring ops: WASM-accelerated when "WASM: active"
+-- Profile line shows tokenize | parse | eval split
 
-print "=== COUPLING SCAN (1000 elements) ==="
-for n in 1000 do
+print "=== RING OPS: coupling (2000) ==="
+raw_mode(1)
+let t0 = now_ms()
+raw_mode(0)
+for n in 2000 do
   coupling(n)
+raw_mode(1)
+let t1 = now_ms()
+raw_mode(0)
 
-print "=== EIGENVALUE SCAN (500 elements) ==="
-for n in 500 do
+print "=== RING OPS: eigenvalue (1000) ==="
+for n in 1000 do
   eigenvalue(n)
+raw_mode(1)
+let t2 = now_ms()
+raw_mode(0)
 
-print "=== ORDER SCAN (100 units) ==="
-for n in 100 do
+print "=== RING OPS: order (200 units) ==="
+for n in 200 do
   order(n * D + s)
+raw_mode(1)
+let t3 = now_ms()
 
-print "=== CRT + ECC (200 elements) ==="
-for n in 200 do (
-  let c = crt(n * b)
-  ecc_detect(n * b)
-)
+print "=== PURE COMPUTE: loop (10000) ==="
+mut acc = 0
+for n in 10000 do
+  mut acc = acc + n * n
+let t4 = now_ms()
 
-print "Done. With WASM: native speed. Without: JavaScript."`
+print "--- TIMING (ms) ---"
+print "coupling 2000:   ${t1 - t0}"
+print "eigenvalue 1000: ${t2 - t1}"
+print "order 200:       ${t3 - t2}"
+print "pure compute 10K:${t4 - t3}"
+print "total ring ops:  ${t3 - t0}"
+print ""
+print "If eval time (below) >> ring op time:"
+print "  JS interpreter = bottleneck -> Phase W v0.3"
+print "If ring ops dominate: WASM approach is right."
+raw_mode(0)`
 };
 
 // ================================================================
@@ -1642,7 +1666,12 @@ function run() {
         lastOutputValues = [];
         try {
             const lines = execute(src);
-            out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>';
+            var profileLine = '';
+            if (lastProfile) {
+                var p = lastProfile;
+                profileLine = '\n<span class="out-info">-- tokenize: ' + p.tokenize_ms + 'ms | parse: ' + p.parse_ms + 'ms | eval: ' + p.eval_ms + 'ms | total: ' + p.total_ms + 'ms' + (p.wasm ? ' | WASM' : '') + ' --</span>';
+            }
+            out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>' + profileLine;
         } catch (e) {
             const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
             out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
