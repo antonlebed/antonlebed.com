@@ -149,11 +149,11 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="coupling">Coupling Scanner</option>
       <option value="scanner">Ring Scanner (for loops)</option>
       <option value="spectral">Spectral Explorer</option>
-      <option value="grids">Grid Operations</option>
-      <option value="multiring">Multi-Ring</option>
-      <option value="floats">Float Math</option>
+      <option value="grids">Grid Operations (JS)</option>
+      <option value="multiring">Multi-Ring (JS)</option>
+      <option value="floats">Float Math (JS)</option>
       <option value="golden">Golden Ratio</option>
-      <option value="wasm_bench">WASM Benchmark</option>
+      <option value="wasm_bench">WASM Benchmark (JS)</option>
       <option value="wasm_eval">WASM Session</option>
       <option value="hello">Hello .ax</option>
     </select>
@@ -167,7 +167,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
     <button onclick="clearOutput()">Clear</button>
-    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#6272a4;border:1px solid #333;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Phase W v0.3: toggle between JS interpreter and WASM-compiled .ax evaluator. WASM mode has session persistence.">eval: JS</button>
+    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#6272a4;border:1px solid #333;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Phase Z: WASM eval loading...">eval: loading</button>
     <button id="btn-wasm-reset" onclick="resetWasmSession()" style="display:none;background:#1a1a2e;color:#ff5555;border:1px solid #333;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Reset WASM session: clears all definitions and variables">reset</button>
     <span id="wasm-status" style="color:#555;font-size:0.75em;padding:4px 8px;border-radius:3px;border:1px solid #333" title="Phase W v0.2: native-speed ring arithmetic via WebAssembly">WASM: loading...</span>
     <span id="ring-info" style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
@@ -896,6 +896,9 @@ function execute(src) {
 var _axWasmEval = null;
 var _useWasmEval = false;
 
+// Phase Z Wave 1: examples that require JS eval (missing WASM builtins)
+var JS_ONLY_EXAMPLES = { grids: 1, floats: 1, multiring: 1, wasm_bench: 1 };
+
 function initWasmEval() {
     if (typeof AxWasmEval === 'undefined') return;
     AxWasmEval({
@@ -903,16 +906,25 @@ function initWasmEval() {
         printErr: function() {}
     }).then(function(mod) {
         _axWasmEval = mod;
-        var btn = document.getElementById('btn-eval-mode');
-        btn.style.color = '#50fa7b';
-        btn.style.borderColor = '#50fa7b';
-        btn.title = 'Phase W v0.3: WASM eval ready. Click to toggle.';
+        // Phase Z: WASM eval is now the DEFAULT
+        // Check if current example is JS-only; if so, stay in JS
+        var curExample = document.getElementById('examples').value;
+        if (!JS_ONLY_EXAMPLES[curExample]) {
+            setEvalMode(true);
+        } else {
+            // Still update button to show WASM is available
+            var btn = document.getElementById('btn-eval-mode');
+            btn.style.color = '#50fa7b';
+            btn.style.borderColor = '#50fa7b';
+            btn.title = 'JS eval (this example needs JS). Click to switch to WASM.';
+        }
     }).catch(function() {});
 }
 
-function toggleEvalMode() {
-    if (!_axWasmEval) return;
-    _useWasmEval = !_useWasmEval;
+// Programmatically set eval mode (true=WASM, false=JS)
+function setEvalMode(useWasm) {
+    if (useWasm && !_axWasmEval) return;
+    _useWasmEval = useWasm;
     var btn = document.getElementById('btn-eval-mode');
     var resetBtn = document.getElementById('btn-wasm-reset');
     if (_useWasmEval) {
@@ -920,14 +932,21 @@ function toggleEvalMode() {
         btn.style.background = '#1a3a1a';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
+        btn.title = 'Phase Z: WASM eval (default). Click to switch to JS.';
         resetBtn.style.display = 'inline-block';
     } else {
         btn.textContent = 'eval: JS';
         btn.style.background = '#1a1a2e';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
+        btn.title = 'JS eval mode. Click to switch to WASM.';
         resetBtn.style.display = 'none';
     }
+}
+
+function toggleEvalMode() {
+    if (!_axWasmEval) return;
+    setEvalMode(!_useWasmEval);
 }
 
 function resetWasmSession() {
@@ -1425,9 +1444,9 @@ print "  JS interpreter = bottleneck -> Phase W v0.3"
 print "If ring ops dominate: WASM approach is right."
 raw_mode(0)`,
 
-wasm_eval: `-- wasm_eval.ax: Phase W v0.7 Test
--- Toggle "eval: WASM" button, then run this.
--- SESSION PERSISTENCE: definitions carry over between runs!
+wasm_eval: `-- wasm_eval.ax: WASM Session Persistence
+-- In WASM mode (default): definitions carry over between runs!
+-- Try running, then type "show fib(20)" and run again.
 
 print "=== Phase W v0.7: WASM + String Interpolation ==="
 print ""
@@ -1817,7 +1836,18 @@ function clearOutput() {
 }
 
 function loadExample(name) {
-    if (EXAMPLES[name]) { document.getElementById('code').value = EXAMPLES[name]; syncHighlight(); }
+    if (EXAMPLES[name]) {
+        document.getElementById('code').value = EXAMPLES[name];
+        syncHighlight();
+        // Phase Z: auto-switch eval mode based on example compatibility
+        if (_axWasmEval) {
+            if (JS_ONLY_EXAMPLES[name]) {
+                setEvalMode(false);
+            } else {
+                setEvalMode(true);
+            }
+        }
+    }
 }
 
 function toggleSection(h2) {
