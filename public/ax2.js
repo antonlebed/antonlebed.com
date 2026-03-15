@@ -3273,7 +3273,7 @@ function run(src, opts) {
     function ev(node, local, depth) {
         if (depth > MAX_DEPTH) throw new Error('Max depth (' + MAX_DEPTH + ')');
         switch (node.t) {
-            case 'Num': return fromInt(node.v);
+            case 'Num': return Number.isInteger(node.v) ? fromInt(node.v) : node.v;
             case 'Str': return node.v;
             case 'Sym': {
                 if (node.name in local) return local[node.name];
