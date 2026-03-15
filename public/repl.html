@@ -153,7 +153,6 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="grids">Grid Operations</option>
       <option value="multiring">Multi-Ring</option>
       <option value="floats">Float Math</option>
-      <option value="golden">Golden Ratio</option>
       <option value="wasm_bench">WASM Benchmark</option>
       <option value="relations">Relations</option>
       <option value="wasm_eval">Session Persistence</option>
@@ -166,6 +165,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="crt_geometry">CRT Geometry</option>
       <option value="shadow_poly">Shadow Polynomial</option>
       <option value="golden">Golden Ratio</option>
+      <option value="partial_sums">Partial Sums</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -1363,45 +1363,6 @@ print sigmoid_f(toFloat(0))
 print "sigmoid(2) ="
 print sigmoid_f(toFloat(2))`,
 
-golden: `-- golden.ax: Golden Ratio in the Ring
--- depth_quad, is_smooth, golden_roots builtins
-
-print "=== DEPTH QUADRATIC f(p) = p^2 - p - 1 ==="
-print "f(K=3) = E ="
-print depth_quad(3)
-print "f(E=5) = 19 ="
-print depth_quad(5)
-print "f(b=7) = KEY ="
-print depth_quad(7)
-print "f(L=11) = 109 ="
-print depth_quad(11)
-print "f(GATE=13) = E*31 ="
-print depth_quad(13)
-
-print ""
-print "=== 11-SMOOTH TEST ==="
-print "is_smooth(210) = 1 (DATA ring)"
-print is_smooth(210)
-print "is_smooth(2401) = 1 (b^4)"
-print is_smooth(2401)
-print "is_smooth(13) = 0 (GATE)"
-print is_smooth(13)
-
-print ""
-print "=== GOLDEN ROOTS mod f(p) ==="
-print "Roots of x^2-x-1 mod 19: {E, E*K}"
-print golden_roots(19)
-print "Roots mod 41: {b, b*E}"
-print golden_roots(41)
-print "Roots mod 109: {L, L*K^2}"
-print golden_roots(109)
-
-print ""
-print "=== GOLDEN CHAIN: phi becomes each prime ==="
-print "phi mod f(K)=5 -> K. phi mod f(E)=19 -> E."
-print "phi mod f(b)=41 -> b. phi mod f(L)=109 -> L."
-print "The golden ratio BECOMES each axiom prime"`,
-
 wasm_bench: `-- wasm_bench.ax: Bottleneck Profiler
 -- Check timing breakdown below output
 -- Ring ops: WASM-accelerated when "WASM: active"
@@ -1904,7 +1865,80 @@ show ""
 show "Eisenstein bridge: E3(K,E) = " + E3(K,E) + " = f(E)"
 show "Three fields at (27,64): G-E3 = 1728 = j(i)"
 show ""
-show "The golden ratio is sigma's irrational echo."`
+show "The golden ratio is sigma's irrational echo."`,
+partial_sums: `-- partial_sums.ax: The Partial Sum Language Theorem (S328)
+-- ALL 28 contiguous sums from {s,D,K,E,b,L,13} are axiom-meaningful.
+-- 20/28 smooth. 6/28 boundary prime. 2/28 = axiom*GATE. ZERO noise.
+
+fn imod_s(x, q) = if x < q then x else imod_s(x - q, q)
+fn imod(x, q) = if x < q * q then imod_s(x, q) else imod(x - q * q, q)
+fn strip(n, p) = if imod(n, p) == 0 then strip(n / p, p) else n
+fn is_smooth(n) = if n < D then s
+  else if strip(strip(strip(strip(strip(n, D), K), E), b), L) == s then s else 0
+fn is_prime(n) = if n < D then 0 else if n == D then s else if n == K then s
+  else if n == E then s else if n == b then s else if n == L then s else if n == 13 then s
+  else if imod(n,D)==0 then 0 else if imod(n,K)==0 then 0 else if imod(n,E)==0 then 0
+  else if imod(n,b)==0 then 0 else if imod(n,L)==0 then 0 else if imod(n,13)==0 then 0 else s
+
+fn name(v) = match v
+  | 1 => "s" | 2 => "D" | 3 => "K" | 5 => "E" | 6 => "D*K" | 7 => "b"
+  | 8 => "D^3" | 10 => "D*E" | 11 => "L" | 12 => "D^2*K" | 13 => "GATE"
+  | 15 => "K*E" | 17 => "ESCAPE" | 18 => "ME" | 23 => "CC1(D)[3]"
+  | 24 => "D^3*K" | 26 => "D*GATE" | 28 => "THORNS" | 29 => "FULL_SUM"
+  | 31 => "M(E)" | 36 => "D^2*K^2" | 39 => "K*GATE"
+  | 41 => "KEY" | 42 => "ANSWER" | _ => "" + v
+end
+fn lb(n) = let nm = name(n) in if nm == "" + n then "" + n else "" + n + "=" + nm
+fn tg(v) = if is_smooth(v) == s then "[smooth]"
+  else if is_prime(v) == s then "[boundary]" else "[GATE*]"
+
+let chain = [s, D, K, E, b, L, 13]
+let nm = ["s","D","K","E","b","L","13"]
+let p = [0, s, s+D, s+D+K, s+D+K+E, s+D+K+E+b, s+D+K+E+b+L, s+D+K+E+b+L+13]
+
+show "=== ALL 28 CONTIGUOUS SUMS ==="
+show "Length 1:"
+for i in range(b) do show "  " + nm[i] + " = " + lb(chain[i]) + " " + tg(chain[i])
+show "Length 2:"
+for i in range(D*K) do (let v = p[i+D] - p[i] in
+  show "  " + nm[i] + ".." + nm[i+s] + " = " + lb(v) + " " + tg(v))
+show "Length 3:"
+for i in range(E) do (let v = p[i+K] - p[i] in
+  show "  " + nm[i] + ".." + nm[i+D] + " = " + lb(v) + " " + tg(v))
+show "Length 4:"
+for i in range(D*D) do (let v = p[i+D*D] - p[i] in
+  show "  " + nm[i] + ".." + nm[i+K] + " = " + lb(v) + " " + tg(v))
+show "Length 5:"
+for i in range(K) do (let v = p[i+E] - p[i] in
+  show "  " + nm[i] + ".." + nm[i+D*D] + " = " + lb(v) + " " + tg(v))
+show "Length 6:"
+for i in range(D) do (let v = p[i+D*K] - p[i] in
+  show "  " + nm[i] + ".." + nm[i+E] + " = " + lb(v) + " " + tg(v))
+show "Length 7: s..13 = " + lb(p[b]) + " " + tg(p[b])
+show ""
+
+let all = [s,D,K,E,b,L,13, K,E,D*D*D,D*D*K,D*K*K,D*D*D*K,
+  D*K,D*E,K*E,23,31, L,17,26,36, D*K*K,THORNS,39, 29,41, D*K*b]
+let n_sm = sum(for i in range(THORNS) do is_smooth(all[i]))
+let n_bd = sum(for i in range(THORNS) do if is_smooth(all[i])==0 then is_prime(all[i]) else 0)
+show "=== CLASSIFICATION ==="
+show "Total: 28 = THORNS = C(8,2)"
+show "Smooth: " + n_sm + "/28  Boundary: " + n_bd + "/28  GATE*: " + (THORNS - n_sm - n_bd) + "/28"
+show "Meaningless: 0/28. ZERO NOISE."
+show ""
+
+show "=== CUNNINGHAM OF CUMULATIVE SUMS ==="
+fn c(n) = D * n + s
+for k in [s, K, D*K, L, D*K*K, D*K*E-s] do
+  show "  cumsum -> " + lb(k) + " -> c = " + lb(c(k))
+show "All 6 are prime! The chain BREEDS primes through Cunningham."
+show ""
+show "||axiom||^2 = " + (D*D+K*K+E*E+b*b+L*L) + " = D^4*GATE"
+show "||axiom||^2 + D = " + (D*D+K*K+E*E+b*b+L*L+D) + " = DATA!"
+show "Only non-smooth pair sum: D+L = " + lb(D+L)
+show "KEY = sum of 6 primes = " + lb(D+K+E+b+L+13)
+show ""
+show "Every prefix speaks. 28 = THORNS."`
 };
 
 // ================================================================
