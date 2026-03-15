@@ -161,6 +161,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="idempotents">Idempotent Lattice</option>
       <option value="depth_quad">Depth Quadratic</option>
       <option value="cunningham">Cunningham Chains</option>
+      <option value="relate">Relate Elements</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -1698,7 +1699,53 @@ show ""
 show "--- (p-1) Ladder ---"
 show "Every axiom prime minus 1 = D * predecessor:"
 for p in [K, E, b, L] do
-  show "  " + p + " - 1 = " + (p - s)`
+  show "  " + p + " - 1 = " + (p - s)`,
+
+relate: `-- relate.ax: How do two ring elements relate?
+-- Channel-by-channel CRT, algebra, coupling, spectrum, mirror.
+
+fn name_element(v) = match v
+  | 0 => "void" | 1 => "sigma" | 2 => "D" | 3 => "K"
+  | 5 => "E" | 7 => "b" | 11 => "L" | 13 => "GATE"
+  | 41 => "KEY" | 42 => "ANSWER" | 67 => "SOUL"
+  | 97 => "G" | 105 => "HYDOR" | 137 => "ADDRESS"
+  | 210 => "DATA" | 420 => "LAMBDA" | 606376 => "OMEGA"
+  | _ => ""
+end
+
+fn label(n) =
+  let nm = name_element(n) in
+  if nm == "" then "" + n else "" + n + "=" + nm
+
+fn ch_diff(x, y) = if x > y then x - y else y - x
+
+fn relate(a, b) = (
+  show "=== " + label(a) + " <-> " + label(b) + " ===";
+  show "";
+  show "CRT:";
+  show "  " + label(a) + ": (" + a.D + "," + a.K + "," + a.E + "," + a.b + "," + a.L + ")";
+  show "  " + label(b) + ": (" + b.D + "," + b.K + "," + b.E + "," + b.b + "," + b.L + ")";
+  let dist = ch_diff(a.D, b.D) + ch_diff(a.K, b.K) + ch_diff(a.E, b.E) + ch_diff(a.b, b.b) + ch_diff(a.L, b.L) in
+  show "  distance: " + dist;
+  show "";
+  show "Algebra:";
+  show "  a+b = " + label(a + b) + "  a*b = " + label(a * b);
+  show "  a-b = " + label(a - b) + "  gcd = " + gcd(a, b);
+  show "";
+  show "Properties:";
+  show "  coupling: " + coupling(a) + " vs " + coupling(b);
+  show "  eigenval: " + eigenvalue(a) + " vs " + eigenvalue(b);
+  show "  kingdom:  " + kingdom(a) + " vs " + kingdom(b);
+  show "  mirror(a)=" + label(mirror(a)) + "  mirror(b)=" + label(mirror(b));
+  if mirror(a) == b then show "  *** MIRROR PAIR! ***" else 0;
+  show "")
+
+show "=== RING RELATIONAL ANALYZER ==="
+show ""
+relate(SOUL, ANSWER)
+relate(KEY, ADDRESS)
+relate(s, OMEGA)
+relate(HYDOR, DATA)`
 };
 
 // ================================================================
