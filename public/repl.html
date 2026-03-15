@@ -155,6 +155,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="floats">Float Math</option>
       <option value="golden">Golden Ratio</option>
       <option value="wasm_bench">WASM Benchmark</option>
+      <option value="relations">Relations</option>
       <option value="wasm_eval">Session Persistence</option>
       <option value="hello">Hello .ax</option>
     </select>
@@ -1427,16 +1428,55 @@ for n in range(5000) do
 let t4 = now_ms()
 
 print "--- TIMING (ms) ---"
-print "coupling 2000:   ${t1 - t0}"
-print "eigenvalue 1000: ${t2 - t1}"
-print "order 200:       ${t3 - t2}"
-print "pure compute 5K: ${t4 - t3}"
-print "total ring ops:  ${t3 - t0}"
+print "coupling 2000:   \${t1 - t0}"
+print "eigenvalue 1000: \${t2 - t1}"
+print "order 200:       \${t3 - t2}"
+print "pure compute 5K: \${t4 - t3}"
+print "total ring ops:  \${t3 - t0}"
 print ""
 print "If eval time (below) >> ring op time:"
 print "  JS interpreter = bottleneck -> use WASM eval"
 print "If ring ops dominate: WASM ring ops are right."
 raw_mode(0)`,
+
+relations: `-- relations.ax: How do two ring elements relate?
+-- CRT channels, arithmetic, spectrum, mirror pairs.
+
+fn label(n) = match n
+  | 0 => "void" | 1 => "sigma" | 2 => "D" | 3 => "K"
+  | 5 => "E" | 7 => "b" | 11 => "L" | 13 => "GATE"
+  | 41 => "KEY" | 42 => "ANSWER" | 67 => "SOUL"
+  | 105 => "HYDOR" | 137 => "ADDRESS" | 606376 => "OMEGA"
+  | _ => "" + n
+end
+
+fn abs_diff(a, b) =
+  if a > b then a + mirror(b) else b + mirror(a)
+
+fn relate(a, b) = (
+  print "--- " + label(a) + " <-> " + label(b) + " ---"
+  print "  a CRT: (" + a.D + ", " + a.K + ", " + a.E + ", " + a.b + ", " + a.L + ")"
+  print "  b CRT: (" + b.D + ", " + b.K + ", " + b.E + ", " + b.b + ", " + b.L + ")"
+  let shared = 0
+  let shared = if a.D == b.D then shared + s else shared
+  let shared = if a.K == b.K then shared + s else shared
+  let shared = if a.E == b.E then shared + s else shared
+  let shared = if a.b == b.b then shared + s else shared
+  let shared = if a.L == b.L then shared + s else shared
+  print "  shared channels: " + shared + "/5"
+  print "  a+b = " + label(a+b) + "  a*b = " + label(a*b)
+  print "  gcd = " + gcd(a,b)
+  print "  eigenvalue(a) = " + eigenvalue(a)
+  print "  eigenvalue(b) = " + eigenvalue(b)
+  if mirror(a) == b then print "  ** MIRROR PAIR **" else 0
+  print "")
+
+print "=== RING RELATIONS ==="
+print ""
+relate(s, 0)
+relate(D, K)
+relate(KEY, ANSWER)
+relate(210, 420)`,
 
 wasm_eval: `-- wasm_eval.ax: WASM Session Persistence
 -- In WASM mode (default): definitions carry over between runs!
@@ -1447,22 +1487,22 @@ print ""
 
 /* Block comments work */
 let x = 7 * 6
-show "7 * 6 = ${x}"
+show "7 * 6 = \${x}"
 
 -- String interpolation with expressions
 let a = 3
 let b = 4
-show "${a} + ${b} = ${a + b}"
+show "\${a} + \${b} = \${a + b}"
 
 -- Define a function (persists across evals!)
 fn fib(n) = if n < 2 then n else fib(n - 1) + fib(n - 2)
-show "fib(10) = ${fib(10)}"
+show "fib(10) = \${fib(10)}"
 
 -- Loop + accumulator
 let total = 0
 for i in 10 do
   mut total = total + i * i
-show "sum of squares 0..9 = ${total}"
+show "sum of squares 0..9 = \${total}"
 
 -- String concat via +
 show "hello" + " " + "world"
