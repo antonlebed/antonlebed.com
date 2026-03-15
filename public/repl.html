@@ -163,6 +163,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="cunningham">Cunningham Chains</option>
       <option value="relate">Relate Elements</option>
       <option value="triple">Triple Analyzer</option>
+      <option value="crt_geometry">CRT Geometry</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -1782,7 +1783,48 @@ show ""
 triple(s, D, K)
 triple(K, b, L)
 triple(SOUL, ANSWER, KEY)
-triple(b, L, 13)`
+triple(b, L, 13)`,
+
+crt_geometry: `-- CRT Geometry: Collinearity Threshold Theorem
+-- All elements < D^3=8 are UNIFORM in CRT space => 1D
+
+fn is_uniform(n) = if n.D == n.K then
+  (if n.K == n.E then (if n.E == n.b then (if n.b == n.L then s else 0) else 0) else 0)
+  else 0
+
+fn ch_diff(x, y) = if x > y then x - y else y - x
+fn crt_dist(a, b) =
+  ch_diff(a.D, b.D) + ch_diff(a.K, b.K) + ch_diff(a.E, b.E) + ch_diff(a.b, b.b) + ch_diff(a.L, b.L)
+
+fn is_degen(a, b, c) =
+  let d1 = crt_dist(a, b) in
+  let d2 = crt_dist(b, c) in
+  let d3 = crt_dist(a, c) in
+  if d1 + d2 == d3 then s
+  else if d1 + d3 == d2 then s
+  else if d2 + d3 == d1 then s else 0
+
+fn degen_count(arr, n) =
+  sum(for i in range(n) do
+    sum(for j in range(n) do
+      sum(for k in range(n) do
+        if j > i then (if k > j then is_degen(arr[i], arr[j], arr[k]) else 0) else 0)))
+
+show "=== CRT COLLINEARITY THEOREM ==="
+show ""
+show "Uniform elements (CRT = diagonal):"
+show "  [0,7]: " + sum(for n in range(8) do is_uniform(n)) + "/8"
+show "  [0,19]: " + sum(for n in range(20) do is_uniform(n)) + "/20"
+show "  Threshold = D^3 = 8"
+show ""
+show "n=7: (" + 7.D + "," + 7.K + "," + 7.E + "," + 7.b + "," + 7.L + ") UNIFORM"
+show "n=8: (" + 8.D + "," + 8.K + "," + 8.E + "," + 8.b + "," + 8.L + ") BREAKS"
+show ""
+show "Inner body {s,D,K,E,b}: " + degen_count([s,D,K,E,b], 5) + "/10 collinear (= 1D)"
+show "+L: " + (20 - degen_count([s,D,K,E,b,L], 6)) + "/20 proper triangles"
+show "+GATE: " + (35 - degen_count([s,D,K,E,b,L,13], 7)) + "/35 proper triangles"
+show ""
+show "The protector breaks the line. L creates geometry."`
 };
 
 // ================================================================
