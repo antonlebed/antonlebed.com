@@ -131,8 +131,9 @@ a.verify:hover{background:#2a5a2a;color:#8f8}
 
 </div>
 
+<script src="ax.js"></script>
 <script>
-const N = 970200;
+const N = AX.N;
 const MODS = [8, 9, 25, 49, 11];
 const MOD_LABELS = ['mod 8', 'mod 9', 'mod 25', 'mod 49', 'mod 11'];
 const CH_COLORS = ['#4fc3f7', '#66bb6a', '#ffd54f', '#ce93d8', '#ff8a65'];
@@ -153,15 +154,11 @@ const AX_WORDS = {
 };
 
 function axWord(v) { return AX_WORDS[v] || String(v); }
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while(b) { let t = b; b = a % b; a = t; } return a; }
-function crt(n) { n = ((n % N) + N) % N; return MODS.map(m => n % m); }
-function trace(n) { return crt(n).reduce((a,b) => a+b, 0); }
-function coupling(n) { n = ((n % N) + N) % N; return N / gcd(n, N); }
 
 function kingdom(n) {
   n = ((n % N) + N) % N;
   if (n === 0) return ['void', '#444'];
-  let g = gcd(n, N);
+  let g = AX.gcd(n, N);
   let divs = [2,3,5,7,11].filter(p => g % p === 0);
   if (divs.length === 0) return ['unit (sigma)', '#ffd700'];
   if (divs.length >= 4) return ['near-zero', '#555'];
@@ -169,13 +166,6 @@ function kingdom(n) {
   let colors = {2:'#ff5555',3:'#66bb6a',5:'#ffd54f',7:'#ce93d8',11:'#ff8a65'};
   let primary = divs[0];
   return [names[primary] || 'mixed', colors[primary] || '#888'];
-}
-
-function eigenvalue(n) {
-  let ch = crt(n);
-  return 2*Math.cos(2*Math.PI*ch[0]/8) + 2*Math.cos(2*Math.PI*ch[1]/9)
-       + 2*Math.cos(2*Math.PI*ch[2]/25) + 2*Math.cos(2*Math.PI*ch[3]/49)
-       + 2*Math.cos(2*Math.PI*ch[4]/11);
 }
 
 function nameOf(n) {
@@ -207,13 +197,13 @@ function update() {
   let n = parseInt(document.getElementById('nInput').value) || 0;
   n = ((n % N) + N) % N;
 
-  let ch = crt(n);
+  let ch = AX.crt(n);
   let tr = ch.reduce((a,b) => a+b, 0);
-  let coup = coupling(n);
+  let coup = AX.coupling(n);
   let [kname, kcolor] = kingdom(n);
-  let ev = eigenvalue(n);
+  let ev = AX.eigenvalue(n);
   let mir = (N - n) % N;
-  let mirCh = crt(mir);
+  let mirCh = AX.crt(mir);
   let mirTr = mirCh.reduce((a,b) => a+b, 0);
   let nName = nameOf(n);
 
@@ -253,7 +243,7 @@ function update() {
 
   // Stats
   let statsDiv = document.getElementById('stats');
-  let isUnit = gcd(n, N) === 1 && n > 0;
+  let isUnit = AX.gcd(n, N) === 1 && n > 0;
   let ord = isUnit ? computeOrder(n) : '-';
   statsDiv.innerHTML = [
     stat('CRT', '(' + ch.join(', ') + ')'),

@@ -185,20 +185,16 @@ Every design decision maps to the Decality. Building an AI model? Check: which o
 
 </div>
 <script src="nav.js" defer></script>
+<script src="ax.js"></script>
 <script>
-const N = 970200;
-function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){let t=b;b=a%b;a=t;}return a;}
+const N = AX.N;
 function mod(a,m){return((a%m)+m)%m;}
-function coupling(n){let r=mod(n,N);return N/gcd(r,N);}
-function mirror(n){return mod(N-n,N);}
-function kingdom(n){let c=coupling(n);if(c===1)return'sigma';if(c%2!==0)return'odd';let r=c;while(r%2===0)r/=2;if(r===1)return'D-pure';while(r%3===0)r/=3;if(r===1)return'K';while(r%5===0)r/=5;if(r===1)return'E';while(r%7===0)r/=7;if(r===1)return'b';return'L';}
-function eigenvalue(n){const ch=[8,9,25,49,11];const r=[n%8,n%9,n%25,n%49,n%11];let lam=0;for(let i=0;i<5;i++)lam+=2*Math.cos(2*Math.PI*r[i]/ch[i]);return lam;}
-function crt(n){return[mod(n,8),mod(n,9),mod(n,25),mod(n,49),mod(n,11)];}
-function isUnit(n){return gcd(mod(n,N),N)===1;}
-function isZeroDivisor(n){let r=mod(n,N);return r!==0&&gcd(r,N)>1;}
+function kingdom(n){let c=AX.coupling(n);if(c===1)return'sigma';if(c%2!==0)return'odd';let r=c;while(r%2===0)r/=2;if(r===1)return'D-pure';while(r%3===0)r/=3;if(r===1)return'K';while(r%5===0)r/=5;if(r===1)return'E';while(r%7===0)r/=7;if(r===1)return'b';return'L';}
+function isUnit(n){return AX.gcd(mod(n,N),N)===1;}
+function isZeroDivisor(n){let r=mod(n,N);return r!==0&&AX.gcd(r,N)>1;}
 function omegaProject(n){
   // OMEGA projects: kills D-channel, preserves rest
-  const c=crt(n);
+  const c=AX.crt(n);
   c[0]=0; // D^3=8 channel dies
   // Reconstruct from remaining channels (simplified: just show CRT)
   return c;
@@ -315,10 +311,10 @@ processSteps.forEach((s,i) => {
 function explore() {
   const n = parseInt(document.getElementById('nInput').value) || 0;
   const r = mod(n, N);
-  const c = crt(r);
-  const m = mirror(r);
-  const cp = coupling(r);
-  const ev = eigenvalue(r);
+  const c = AX.crt(r);
+  const m = AX.mirror(r);
+  const cp = AX.coupling(r);
+  const ev = AX.eigenvalue(r);
   const k = kingdom(r);
   const u = isUnit(r);
 
@@ -326,7 +322,7 @@ function explore() {
     {label: 'n mod N', val: r},
     {label: 'CRT (8,9,25,49,11)', val: `(${c.join(', ')})`},
     {label: 'mirror(n)', val: m},
-    {label: 'CRT(mirror)', val: `(${crt(m).join(', ')})`},
+    {label: 'CRT(mirror)', val: `(${AX.crt(m).join(', ')})`},
     {label: 'coupling', val: cp},
     {label: 'eigenvalue', val: ev.toFixed(4)},
     {label: 'kingdom', val: k},
