@@ -965,11 +965,36 @@ function executeWasm(src) {
     _axWasmEval._wasm_run(ptr);
     _axWasmEval._free(ptr);
     var elapsed = performance.now() - t0;
-    outputLines = output;
+    // Emergence: detect consecutive array lines -> render as colored grid
+    var formatted = fmtWasmLines(output);
+    outputLines = formatted;
     traceLines = [];
     lastOutputValues = [];
     lastProfile = { tokenize_ms: '0.0', parse_ms: '0.0', eval_ms: elapsed.toFixed(1), total_ms: elapsed.toFixed(1), wasm: true };
-    return output;
+    return formatted;
+}
+
+// Emergence (S754): WASM outputs [n, n, n] text lines.
+// Consecutive array lines = grid. REPL recognizes the pattern, renders with fmtGrid.
+// No protocol. No markers. The display grows from what already exists.
+function fmtWasmLines(lines) {
+    var result = [], gridRows = [];
+    var arrRe = /^\[[\d,\s.-]+\]$/;
+    function flushGrid() {
+        if (gridRows.length >= 2) {
+            var grid = gridRows.map(function(s) { return JSON.parse(s); });
+            result.push(AX.fmtGrid(grid));
+        } else {
+            for (var j = 0; j < gridRows.length; j++) result.push(esc(gridRows[j]));
+        }
+        gridRows = [];
+    }
+    for (var i = 0; i < lines.length; i++) {
+        if (arrRe.test(lines[i])) { gridRows.push(lines[i]); }
+        else { flushGrid(); result.push(esc(lines[i])); }
+    }
+    flushGrid();
+    return result;
 }
 
 // ================================================================
