@@ -150,6 +150,7 @@ footer .sig{font-size:11px;color:#333;margin-top:12px}
 .contrast th{color:#ffd700;font-size:12px;text-transform:uppercase}
 </style>
 <link rel="stylesheet" href="nav-critical.css">
+<script src="ax.js"></script>
 <script src="nav.js" defer></script>
 </head>
 <body>
@@ -692,27 +693,24 @@ footer .sig{font-size:11px;color:#333;margin-top:12px}
       fills[i].textContent = String(r);
     }
     /* Reconstruct via CRT */
-    var recon = crt(residues, ring.mods);
+    var recon = crtReconstruct(residues, ring.mods);
     reconDiv.innerHTML = 'Reconstructed: <span class="gold">' + recon + '</span>' +
       (recon === ((n % ring.N + ring.N) % ring.N) ? ' <span style="color:#44ff88">&#10003; perfect</span>' : '');
   }
 
-  function crt(residues, mods){
+  // CRT reconstruction (ax.js handles decomposition; reconstruction is widget-specific)
+  function crtReconstruct(residues, mods){
     var N = 1;
     for(var i=0;i<mods.length;i++) N *= mods[i];
     var result = 0;
     for(var i=0;i<mods.length;i++){
       var Ni = N / mods[i];
-      var inv = modInverse(Ni, mods[i]);
+      var a = ((Ni % mods[i]) + mods[i]) % mods[i];
+      var inv = 1;
+      for(var x=1;x<mods[i];x++){if((a*x)%mods[i]===1){inv=x;break;}}
       result = (result + residues[i] * Ni * inv) % N;
     }
     return ((result % N) + N) % N;
-  }
-
-  function modInverse(a, m){
-    a = ((a % m) + m) % m;
-    for(var x=1;x<m;x++){if((a*x)%m===1)return x;}
-    return 1;
   }
 
   buildChannels();

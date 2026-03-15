@@ -220,60 +220,21 @@ a:hover{text-decoration:underline}
 'use strict';
 
 // ================================================================
-//  .ax Interpreter — TRUE FORM (Z/970200Z)
-//  Identical to repl.html interpreter
+//  Ring math — ax.js single source of truth (TRUE FORM Z/970200Z)
 // ================================================================
-const N = 970200;
-function ringMod(x) { x = Math.round(x); return ((x % N) + N) % N; }
-function modPow(base, exp) {
-    base = ((Math.round(base) % N) + N) % N;
-    exp = Math.round(exp);
-    if (exp < 0) return 0;
-    let r = 1;
-    while (exp > 0) {
-        if (exp & 1) r = (r * base) % N;
-        exp >>= 1;
-        base = (base * base) % N;
-    }
-    return r;
-}
-function gcd(a, b) {
-    a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
-    while (b) { [a, b] = [b, a % b]; }
-    return a;
-}
-function coupling(n) { return N / gcd(ringMod(n), N); }
-function crt(n) { const r = ringMod(n); return [r%8,r%9,r%25,r%49,r%11]; }
-function eigenvalue(n) {
-    const c = crt(n), P = Math.PI;
-    return 2*Math.cos(2*P*c[0]/8)+2*Math.cos(2*P*c[1]/9)+2*Math.cos(2*P*c[2]/25)+2*Math.cos(2*P*c[3]/49)+2*Math.cos(2*P*c[4]/11);
-}
-function mirror(n) { return ringMod(N - ringMod(n)); }
-function eulerPhi(n) {
-    n=Math.abs(Math.round(n)); if(n<1)return 0; let result=n;
-    for(let p=2;p*p<=n;p++){if(n%p===0){while(n%p===0)n/=p;result-=result/p}}
-    if(n>1)result-=result/n; return Math.round(result);
-}
-function multOrder(n) {
-    const m=ringMod(n); if(gcd(m,N)!==1)return 0;
-    let x=m,k=1; while(x!==1&&k<=420){x=(x*m)%N;k++} return x===1?k:0;
-}
-function multInverse(n) {
-    let m = ringMod(n);
-    if (gcd(m, N) !== 1) return -1;
-    let [old_r, r] = [m, N], [old_s, s] = [1, 0];
-    while (r !== 0) { const q = Math.floor(old_r/r); [old_r,r]=[r,old_r-q*r]; [old_s,s]=[s,old_s-q*s]; }
-    return ((old_s % N) + N) % N;
-}
-const CONSTANTS = {
-    s:1, D:2, K:3, E:5, b:7, L:11, sigma:1, OMEGA:606376, DATA:210, THIN:2310,
-    HYDOR:105, KEY:41, ANSWER:42, SOUL:67, G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420,
-    GATE:13, ESCAPE:17, THORNS:28, TRUE:970200, pi:Math.PI
-};
-const VALUE_NAMES = {
-    0:'void',1:'s',2:'D',3:'K',5:'E',7:'b',11:'L',18:'ME',41:'KEY',42:'ANSWER',67:'SOUL',
-    97:'G',105:'HYDOR',137:'ADDRESS',173:'DUAL',210:'DATA',420:'LAMBDA',2310:'THIN',606376:'OMEGA'
-};
+const N = AX.N;
+const ringMod = AX.ringMod;
+const modPow = AX.modPow;
+const gcd = AX.gcd;
+const coupling = AX.coupling;
+const crt = AX.crt;
+const eigenvalue = AX.eigenvalue;
+const mirror = AX.mirror;
+const eulerPhi = AX.eulerPhi;
+const multOrder = AX.multOrder;
+const multInverse = AX.multInverse;
+const CONSTANTS = AX.CONSTANTS;
+const VALUE_NAMES = AX.VALUE_NAMES;
 const KW = new Set(['let','fn','print','if','then','else','while','do','for','in']);
 function tokenize(src) {
     const T = []; let i = 0, len = src.length;
