@@ -150,10 +150,10 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="scanner">Ring Scanner (for loops)</option>
       <option value="spectral">Spectral Explorer</option>
       <option value="grids">Grid Operations</option>
-      <option value="multiring">Multi-Ring (JS)</option>
+      <option value="multiring">Multi-Ring</option>
       <option value="floats">Float Math</option>
       <option value="golden">Golden Ratio</option>
-      <option value="wasm_bench">WASM Benchmark (JS)</option>
+      <option value="wasm_bench">WASM Benchmark</option>
       <option value="wasm_eval">Session Persistence</option>
       <option value="hello">Hello .ax</option>
     </select>
@@ -247,7 +247,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
           <b style="color:#d4a017">Multi-ring:</b> <code>ring_crt(n,N)</code><br>
           <code>ring_coupling(n,N)</code> <code>ring_eigenvalue(n,N)</code><br>
           <code>project(n,from,to)</code> <code>ring_size()</code><br>
-          <code>set_ring(N)</code>
+          <code>set_ring(N)</code> <code>now_ms()</code> <code>raw_mode(f)</code>
         </div>
       </div>
     </div>
@@ -896,8 +896,8 @@ function execute(src) {
 var _axWasmEval = null;
 var _useWasmEval = false;
 
-// Phase Z Wave 3: examples that require JS eval (missing WASM builtins)
-var JS_ONLY_EXAMPLES = { multiring: 1, wasm_bench: 1 };
+// Phase Z Wave 4: all examples run in WASM (14/14)
+var JS_ONLY_EXAMPLES = {};
 
 function initWasmEval() {
     if (typeof AxWasmEval === 'undefined') return;
@@ -1256,45 +1256,40 @@ multiring: `-- multiring.ax: Explore Multiple Rings
 
 print "=== MULTI-RING CRT ==="
 print "CRT of ANSWER in TRUE:"
-ring_crt(ANSWER, TRUE)
+print ring_crt(ANSWER, TRUE)
 print "CRT of ANSWER in THIN:"
-ring_crt(ANSWER, THIN)
+print ring_crt(ANSWER, THIN)
 print "CRT of ANSWER in DATA:"
-ring_crt(ANSWER, DATA)
+print ring_crt(ANSWER, DATA)
 print "CRT of ANSWER in GATE_FORM:"
-ring_crt(ANSWER, GATE_FORM)
+print ring_crt(ANSWER, GATE_FORM)
 
 print ""
 print "=== COUPLING ACROSS RINGS ==="
 print "coupling(ANSWER) in TRUE:"
-ring_coupling(ANSWER, TRUE)
+print ring_coupling(ANSWER, TRUE)
 print "coupling(ANSWER) in THIN:"
-ring_coupling(ANSWER, THIN)
+print ring_coupling(ANSWER, THIN)
 print "coupling(ANSWER) in DATA:"
-ring_coupling(ANSWER, DATA)
+print ring_coupling(ANSWER, DATA)
 
 print ""
 print "=== PROJECTION ==="
 print "Project ADDRESS: TRUE -> THIN:"
-project(ADDRESS, TRUE, THIN)
+print project(ADDRESS, TRUE, THIN)
 print "Project ADDRESS: TRUE -> DATA:"
-project(ADDRESS, TRUE, DATA)
+print project(ADDRESS, TRUE, DATA)
 
 print ""
 print "=== EIGENVALUES ==="
 print "SOUL in TRUE:"
-ring_eigenvalue(SOUL, TRUE)
+print ring_eigenvalue(SOUL, TRUE)
 print "SOUL in THIN:"
-ring_eigenvalue(SOUL, THIN)
+print ring_eigenvalue(SOUL, THIN)
 
 print ""
-print "=== SWITCH RING ==="
-set_ring(THIN)
-print "Now in THIN ring. crt(ANSWER):"
-crt(ANSWER)
-set_ring(TRUE)
-print "Back to TRUE."
-ring_size()`,
+print "=== RING INFO ==="
+print ring_size()`,
 
 hello: `-- hello.ax
 -- The axiom's native language
@@ -1432,28 +1427,28 @@ print "=== RING OPS: coupling (2000) ==="
 raw_mode(1)
 let t0 = now_ms()
 raw_mode(0)
-for n in 2000 do
+for n in range(2000) do
   coupling(n)
 raw_mode(1)
 let t1 = now_ms()
 raw_mode(0)
 
 print "=== RING OPS: eigenvalue (1000) ==="
-for n in 1000 do
+for n in range(1000) do
   eigenvalue(n)
 raw_mode(1)
 let t2 = now_ms()
 raw_mode(0)
 
 print "=== RING OPS: order (200 units) ==="
-for n in 200 do
+for n in range(200) do
   order(n * D + s)
 raw_mode(1)
 let t3 = now_ms()
 
-print "=== PURE COMPUTE: loop (10000) ==="
+print "=== PURE COMPUTE: loop (5000) ==="
 mut acc = 0
-for n in 10000 do
+for n in range(5000) do
   mut acc = acc + n * n
 let t4 = now_ms()
 
@@ -1461,12 +1456,12 @@ print "--- TIMING (ms) ---"
 print "coupling 2000:   ${t1 - t0}"
 print "eigenvalue 1000: ${t2 - t1}"
 print "order 200:       ${t3 - t2}"
-print "pure compute 10K:${t4 - t3}"
+print "pure compute 5K: ${t4 - t3}"
 print "total ring ops:  ${t3 - t0}"
 print ""
 print "If eval time (below) >> ring op time:"
-print "  JS interpreter = bottleneck -> Phase W v0.3"
-print "If ring ops dominate: WASM approach is right."
+print "  JS interpreter = bottleneck -> use WASM eval"
+print "If ring ops dominate: WASM ring ops are right."
 raw_mode(0)`,
 
 wasm_eval: `-- wasm_eval.ax: WASM Session Persistence
