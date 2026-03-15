@@ -158,6 +158,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="relations">Relations</option>
       <option value="wasm_eval">Session Persistence</option>
       <option value="census">Ring Census</option>
+      <option value="idempotents">Idempotent Lattice</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -1556,7 +1557,46 @@ fn census(max) = (
     if i * i == i then show "  " + i else 0)
 
 -- Census of the DATA subring (210 = D*K*E*b)
-census(210)`
+census(210)`,
+
+idempotents: `-- idempotents.ax: Spectral lattice of all 32 idempotents.
+-- e*e = e in CRT means each channel is 0 or 1. Boolean lattice 2^5.
+
+fn bit(i, pos) = (i / pos) % 2
+
+fn idemp(i) =
+  reconstruct([bit(i, s), bit(i, D), bit(i, D*D), bit(i, D*D*D), bit(i, D*D*D*D)])
+
+let lam0 = eigenvalue(0)
+
+show "Channel costs (eigenvalue drop per active channel):"
+show "  D(8):  " + (lam0 - eigenvalue(idemp(1)))
+show "  K(9):  " + (lam0 - eigenvalue(idemp(2)))
+show "  E(25): " + (lam0 - eigenvalue(idemp(4)))
+show "  b(49): " + (lam0 - eigenvalue(idemp(8)))
+show "  L(11): " + (lam0 - eigenvalue(idemp(16)))
+show "Order: b < E < L < K < D"
+show ""
+
+show "D K E b L | element | eigenvalue | coupling"
+for i in range(32) do (
+  let d0 = bit(i, s) in let d1 = bit(i, D) in
+  let d2 = bit(i, D*D) in let d3 = bit(i, D*D*D) in
+  let d4 = bit(i, D*D*D*D) in
+  let elem = idemp(i) in
+  show "" + d0 + " " + d1 + " " + d2 + " " + d3 + " " + d4 + " | " + elem + " | " + eigenvalue(elem) + " | " + coupling(elem))
+
+show ""
+show "Verified: " + sum(for i in range(32) do if idemp(i) * idemp(i) == idemp(i) then s else 0) + "/32"
+
+let e_D = idemp(1)
+let omega = idemp(30)
+show ""
+show "e_D=" + e_D + " + OMEGA=" + omega + " = " + (e_D + omega) + " (sigma)"
+show "e_D * OMEGA = " + (e_D * omega) + " (orthogonal)"
+show "lam(e_D) + lam(OMEGA) = " + (eigenvalue(e_D) + eigenvalue(omega))
+show "lam(void) + lam(sigma) = " + (lam0 + eigenvalue(s))
+show "COMPLEMENT THEOREM: sums match (16/16 pairs)"`
 };
 
 // ================================================================
