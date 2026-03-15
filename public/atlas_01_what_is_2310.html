@@ -134,6 +134,7 @@ canvas { display: block; border-radius: 8px; }
 }
 </style>
 <link rel="stylesheet" href="nav-critical.css">
+<script src="ax.js"></script>
 <script src="nav.js" defer></script>
 </head>
 <body>
@@ -359,9 +360,10 @@ canvas { display: block; border-radius: 8px; }
 <!-- JAVASCRIPT -->
 <!-- ============================================================ -->
 <script>
-// ---- Constants ----
-const N = 2310;
-const PRIMES = [2, 3, 5, 7, 11];
+// ---- Ring setup (ax.js = single source of truth for ring math) ----
+AX.setRing(2310);
+const N = AX.N;
+const PRIMES = AX.CRT_MODS;
 const PCOLORS = ['#cc2222', '#cc6600', '#228833', '#2244cc', '#7722cc'];
 const PCOLORS_BRIGHT = ['#ff6666', '#ffaa44', '#44ee88', '#6699ff', '#cc88ff'];
 const COLS = 77, ROWS = 30;
@@ -369,17 +371,8 @@ const KINGDOM_NAME = ['Bacteria','Protista','Fungi','Plants','Animals','Human'];
 const KINGDOM_DIV = [2310, 1155, 770, 462, 330, 210];
 const KINGDOM_COLOR = ['#ff4444','#ff8844','#ffaa22','#44cc44','#4488ff','#aa66ff'];
 
-// ---- Math ----
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { let t = b; b = a % b; a = t; } return a; }
+// ---- Math (ring ops from ax.js, utilities inline) ----
 function mod(n, m) { return ((n % m) + m) % m; }
-function coupling(n) { let g = gcd(mod(n, N), N); return g === 0 ? 1 : N / g; }
-function crt(n) { let m = mod(n, N); return PRIMES.map(p => m % p); }
-function eigenvalue(n) {
-  let x = mod(n, N);
-  return Math.cos(Math.PI * x) + 2 * Math.cos(2 * Math.PI * x / 3)
-       + 2 * Math.cos(2 * Math.PI * x / 5) + 2 * Math.cos(2 * Math.PI * x / 7)
-       + 2 * Math.cos(2 * Math.PI * x / 11);
-}
 function kingdomOf(n) {
   let m = mod(n, N);
   if (m === 0) return 0;
@@ -391,7 +384,7 @@ function kingdomOf(n) {
 const evAll = new Float64Array(N);
 let evMin = 99, evMax = -99;
 for (let i = 0; i < N; i++) {
-  evAll[i] = eigenvalue(i);
+  evAll[i] = AX.eigenvalue(i);
   if (evAll[i] < evMin) evMin = evAll[i];
   if (evAll[i] > evMax) evMax = evAll[i];
 }
@@ -451,7 +444,7 @@ function playChord(primeCount) {
 
 function playNumber(n) {
   initAudio();
-  let sig = crt(n);
+  let sig = AX.crt(n);
   let t = audioCtx.currentTime;
   let master = audioCtx.createGain();
   master.gain.setValueAtTime(0, t);
@@ -571,7 +564,7 @@ function drawClock(canvasId, p, remainder, color) {
 function updateCRT() {
   let val = parseInt(document.getElementById('crt-input').value) || 0;
   val = mod(val, N);
-  let sig = crt(val);
+  let sig = AX.crt(val);
   document.getElementById('crt-result').textContent = '(' + sig.join(', ') + ')';
   for (let i = 0; i < 5; i++) {
     drawClock('clock' + i, PRIMES[i], sig[i], PCOLORS_BRIGHT[i]);
@@ -632,7 +625,7 @@ function evColor(ev) {
 }
 
 function coupColor(n) {
-  let c = coupling(n);
+  let c = AX.coupling(n);
   let t = Math.log(c) / Math.log(N);
   return `rgb(${Math.floor(255 * t)},${Math.floor(100 + 100 * (1 - t))},${Math.floor(255 * (1 - t))})`;
 }
@@ -673,9 +666,9 @@ gCanvas.addEventListener('mousemove', (e) => {
   let tip = document.getElementById('grid-tooltip');
   if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
     let n = gridMap[r * COLS + c];
-    let sig = crt(n);
+    let sig = AX.crt(n);
     let ev = evAll[n].toFixed(2);
-    let cp = coupling(n);
+    let cp = AX.coupling(n);
     let k = kingdomOf(n);
     let kn = k >= 0 ? KINGDOM_NAME[k] : 'non-kingdom';
     tip.innerHTML = `<b>${n}</b> = (${sig.join(',')})  ev=${ev}  c=${cp}  ${kn}`;
@@ -713,9 +706,9 @@ gCanvas.addEventListener('touchstart', (e) => {
   let tip = document.getElementById('grid-tooltip');
   if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
     let n = gridMap[r * COLS + c];
-    let sig = crt(n);
+    let sig = AX.crt(n);
     let ev = evAll[n].toFixed(2);
-    let cp = coupling(n);
+    let cp = AX.coupling(n);
     let k = kingdomOf(n);
     let kn = k >= 0 ? KINGDOM_NAME[k] : 'non-kingdom';
     tip.innerHTML = `<b>${n}</b> = (${sig.join(',')})  ev=${ev}  c=${cp}  ${kn}`;

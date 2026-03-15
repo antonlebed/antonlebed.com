@@ -147,7 +147,7 @@ function coupling(v) {
 function eigenvalue(v) {
     const P = Math.PI;
     let sum = 0;
-    for (let i = 0; i < 5; i++) sum += 2 * Math.cos(2 * P * v[i] / MODS[i]);
+    for (let i = 0; i < 5; i++) sum += (MODS[i] <= 2 ? 1 : 2) * Math.cos(2 * P * v[i] / MODS[i]);
     return sum;
 }
 

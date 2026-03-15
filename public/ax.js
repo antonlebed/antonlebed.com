@@ -78,7 +78,8 @@ function crt(n) {
 function eigenvalue(n) {
     if (_wasm && N === TRUE_N) return _wasm._wasm_eigenvalue(ringMod(n));
     const c = crt(n), P = Math.PI;
-    return c.reduce((sum, ci, i) => sum + 2*Math.cos(2*P*ci/CRT_MODS[i]), 0);
+    // Degree per channel: {1,-1} collapse when modulus=2 (degree 1), distinct otherwise (degree 2)
+    return c.reduce((sum, ci, i) => sum + (CRT_MODS[i] <= 2 ? 1 : 2)*Math.cos(2*P*ci/CRT_MODS[i]), 0);
 }
 
 function mirror(n) {

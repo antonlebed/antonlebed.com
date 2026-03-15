@@ -101,6 +101,7 @@ canvas { display: block; border-radius: 8px; }
 }
 </style>
 <link rel="stylesheet" href="nav-critical.css">
+<script src="ax.js"></script>
 <script src="nav.js" defer></script>
 </head>
 <body>
@@ -370,31 +371,21 @@ canvas { display: block; border-radius: 8px; }
 <!-- JAVASCRIPT -->
 <!-- ============================================================ -->
 <script>
-const N = 2310, N4 = 210;
-const PRIMES = [2, 3, 5, 7, 11];
+AX.setRing(2310);
+const N = AX.N, N4 = 210;
+const PRIMES = AX.CRT_MODS;
 const PNAME = ['D','K','E','b','L'];
 const PCOLORS = ['#ff6666','#ffaa44','#44ee88','#6699ff','#cc88ff'];
 
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { let t = b; b = a % b; a = t; } return a; }
 function mod(n, m) { return ((n % m) + m) % m; }
-function coupling(n) { let g = gcd(mod(n, N), N); return g === 0 ? 1 : N / g; }
-function isUnit(n) { return gcd(mod(n, N), N) === 1; }
-function crt(n) { let m = mod(n, N); return PRIMES.map(p => m % p); }
-function phi(n) { let r = n; let t = n; for (let p = 2; p * p <= t; p++) { if (t % p === 0) { while (t % p === 0) t /= p; r -= r / p; } } if (t > 1) r -= r / t; return r; }
-
-function eigenvalue(n) {
-  let x = mod(n, N);
-  return Math.cos(Math.PI * x) + 2 * Math.cos(2 * Math.PI * x / 3)
-       + 2 * Math.cos(2 * Math.PI * x / 5) + 2 * Math.cos(2 * Math.PI * x / 7)
-       + 2 * Math.cos(2 * Math.PI * x / 11);
-}
+function isUnit(n) { return AX.gcd(mod(n, N), N) === 1; }
 
 // ---- Section 2: Element Classifier ----
 function updateClassifier() {
   let n = parseInt(document.getElementById('class-input').value) || 0;
   n = mod(n, N);
-  let sig = crt(n);
-  let g = gcd(n, N);
+  let sig = AX.crt(n);
+  let g = AX.gcd(n, N);
   let c = (g === 0) ? 1 : N / g;
   let nulls = [];
   for (let i = 0; i < 5; i++) if (sig[i] === 0) nulls.push(PNAME[i]);
@@ -418,7 +409,7 @@ function updateClassifier() {
       nulls.join(', ') + ', coupling ' + c + ')' + extra;
   }
   detail.textContent = 'CRT: (' + sig.join(', ') + ')  gcd(' + n + ', N) = ' + g +
-    '  eigenvalue = ' + eigenvalue(n).toFixed(3);
+    '  eigenvalue = ' + AX.eigenvalue(n).toFixed(3);
 }
 document.getElementById('class-input').addEventListener('input', updateClassifier);
 updateClassifier();
@@ -431,7 +422,7 @@ function updateCalc() {
   a = mod(a, N); b = mod(b, N);
   let result = calcOp === '+' ? mod(a + b, N) : mod(a * b, N);
   document.getElementById('calc-out').textContent = result;
-  let sigA = crt(a), sigB = crt(b), sigR = crt(result);
+  let sigA = AX.crt(a), sigB = AX.crt(b), sigR = AX.crt(result);
   let detail = '(' + sigA.join(',') + ') ' + calcOp + ' (' + sigB.join(',') + ') = (' + sigR.join(',') + ')';
   let unitA = isUnit(a) ? 'unit' : 'ZD';
   let unitR = isUnit(result) ? 'unit' : 'ZD';

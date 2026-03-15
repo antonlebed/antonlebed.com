@@ -78,6 +78,7 @@ input:focus { border-color: #88aaff; }
 }
 </style>
 <link rel="stylesheet" href="nav-critical.css">
+<script src="ax.js"></script>
 <script src="nav.js" defer></script>
 </head>
 <body>
@@ -230,19 +231,17 @@ input:focus { border-color: #88aaff; }
 </div>
 
 <script>
-const P = [2,3,5,7,11];
-const N = 2310;
+AX.setRing(2310);
+const P = AX.CRT_MODS;
+const N = AX.N;
 const KN = ['Bacteria','Protista','Fungi','Plants','Animals','Human'];
 const KC = ['#ddddaa','#ff6666','#66ddaa','#88aaff','#cc88ff','#ffcc44'];
 const PN = ['D=2','K=3','E=5','b=7','L=11'];
 const COMPOUND_C = '#444455';
 
-function gcd(a,b) { a=Math.abs(a);b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
-function coupling(n) { let r=((n%N)+N)%N; return N/gcd(r,N); }
-
 /* Kingdom mask: which primes divide gcd(n, 2310)? */
 function kmask(n) {
-  let g = gcd(((n%N)+N)%N, N), m = 0;
+  let g = AX.gcd(((n%N)+N)%N, N), m = 0;
   for (let i=0;i<5;i++) if (g%P[i]===0) m|=(1<<i);
   return m;
 }
@@ -277,8 +276,8 @@ const classInfo = document.getElementById('classInfo');
 
 function updateClass() {
   const n = ((parseInt(inpN.value)||0)%N+N)%N;
-  const g = gcd(n, N);
-  const c = coupling(n);
+  const g = AX.gcd(n, N);
+  const c = AX.coupling(n);
   const sig = P.map(p => n%p);
   const m = kmask(n);
   const kname = kingdomName(n);
@@ -399,7 +398,7 @@ cvW.addEventListener('mousemove', (e) => {
 
   if (best >= 0) {
     const sig = P.map(p => best%p);
-    wheelInfo.textContent = `n=${best}  CRT=(${sig.join(',')})  coupling=${coupling(best)}  ${kingdomName(best)}`;
+    wheelInfo.textContent = `n=${best}  CRT=(${sig.join(',')})  coupling=${AX.coupling(best)}  ${kingdomName(best)}`;
     wheelInfo.style.color = kingdomColor(best);
   } else {
     wheelInfo.textContent = 'hover over the ring';

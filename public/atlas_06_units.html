@@ -76,6 +76,7 @@ input:focus { border-color: #88aaff; }
 }
 </style>
 <link rel="stylesheet" href="nav-critical.css">
+<script src="ax.js"></script>
 <script src="nav.js" defer></script>
 </head>
 <body>
@@ -237,10 +238,8 @@ input:focus { border-color: #88aaff; }
 const P = [2,3,5,7,11];
 const PN = ['D=2','K=3','E=5','b=7','L=11'];
 const PC = ['#ff6666','#66ddaa','#88aaff','#cc88ff','#ffcc44'];
-const N = 2310;
-
-function gcd(a,b) { a=Math.abs(a);b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
-function coupling(n) { let r=((n%N)+N)%N; return N/gcd(r,N); }
+AX.setRing(2310);
+const N = AX.N;
 
 /* precompute CRT basis */
 const basis = [];
@@ -260,7 +259,7 @@ const elInfo = document.getElementById('elInfo');
 
 function updateEl() {
   const n = ((parseInt(inpEl.value)||0)%N+N)%N;
-  const g = gcd(n, N);
+  const g = AX.gcd(n, N);
   const isUnit = (g === 1);
   const isIdem = ((BigInt(n)*BigInt(n))%BigInt(N) === BigInt(n));
   const sig = P.map(p => n%p);
@@ -281,7 +280,7 @@ function updateEl() {
     html += `</div>`;
     html += `<div class="stat-row"><span class="stat-label">Order</span><span class="stat-val">${ord}</span></div>`;
     html += `<div class="stat-row"><span class="stat-label">Inverse</span><span class="stat-val">${inv}</span></div>`;
-    html += `<div class="stat-row"><span class="stat-label">Coupling</span><span class="stat-val">${coupling(n)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">Coupling</span><span class="stat-val">${AX.coupling(n)}</span></div>`;
     html += `<div class="stat-row"><span class="stat-label">gcd(n,N)</span><span class="stat-val">1</span></div>`;
   } else {
     const imgSize = N / g;
@@ -290,7 +289,7 @@ function updateEl() {
     html += `<div class="stat-row"><span class="stat-label">gcd(n,N)</span><span class="stat-val">${g}</span></div>`;
     html += `<div class="stat-row"><span class="stat-label">|image|</span><span class="stat-val">${imgSize}</span></div>`;
     html += `<div class="stat-row"><span class="stat-label">|kernel|</span><span class="stat-val">${g}</span></div>`;
-    html += `<div class="stat-row"><span class="stat-label">Coupling</span><span class="stat-val">${coupling(n)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-label">Coupling</span><span class="stat-val">${AX.coupling(n)}</span></div>`;
     const frozen = P.filter(p => n%p===0);
     html += `<div class="stat-row"><span class="stat-label">Frozen rings</span><span class="stat-val">${frozen.length>0?frozen.join(','):'none'}</span></div>`;
     if (isIdem) {
@@ -325,11 +324,11 @@ function drawSwitches() {
   /* compute idempotent value */
   const sig = switchState.map(s => s?1:0);
   const e = fromCRT(sig);
-  const g = gcd(e, N);
+  const g = AX.gcd(e, N);
   const imgSize = g===0 ? 0 : N/g;
 
   let info = `<div class="info-line" style="font-size:18px">e = ${e}</div>`;
-  info += `<div class="info-line">CRT = (${sig.join(',')})  |  |image| = ${e===0?1:imgSize}  |  |kernel| = ${e===0?N:g}  |  coupling = ${coupling(e)}</div>`;
+  info += `<div class="info-line">CRT = (${sig.join(',')})  |  |image| = ${e===0?1:imgSize}  |  |kernel| = ${e===0?N:g}  |  coupling = ${AX.coupling(e)}</div>`;
 
   /* kingdom identification */
   const onCount = switchState.filter(s=>s).length;
@@ -363,7 +362,7 @@ function drawImKer() {
   const W=cvIK.width, H=cvIK.height;
   ctxIK.clearRect(0,0,W,H);
 
-  const g = gcd(a, N);
+  const g = AX.gcd(a, N);
   const imgSize = a===0 ? 1 : N/g;
   const kerSize = a===0 ? N : g;
 

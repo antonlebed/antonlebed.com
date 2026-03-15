@@ -91,6 +91,7 @@ input:focus { border-color: #88aaff; }
 }
 </style>
 <link rel="stylesheet" href="nav-critical.css">
+<script src="ax.js"></script>
 <script src="nav.js" defer></script>
 </head>
 <body>
@@ -258,16 +259,13 @@ input:focus { border-color: #88aaff; }
 </div>
 
 <script>
-const P = [2, 3, 5, 7, 11];
+AX.setRing(2310);
+const P = AX.CRT_MODS;
 const PN = ['D=2','K=3','E=5','b=7','L=11'];
 const PC = ['#ff6666','#ffaa44','#44ee88','#6699ff','#cc88ff'];
-const N = 2310;
+const N = AX.N;
 
-function gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a; }
-function coupling(n) { let r=((n%N)+N)%N; return N/gcd(r,N); }
-function crt(n) { return P.map(p => ((n%p)+p)%p); }
 function ringContrib(n, i) { return P[i]===2 ? Math.cos(Math.PI*n) : 2*Math.cos(2*Math.PI*n/P[i]); }
-function eigenvalue(n) { let s=0; for(let i=0;i<5;i++) s+=ringContrib(n,i); return s; }
 
 /* ===== EIGENVALUE CALCULATOR ===== */
 function updateEig() {
@@ -287,7 +285,7 @@ function updateEig() {
   document.getElementById('contribBars').innerHTML = html;
   const col = total >= 0 ? '#6d6' : '#f66';
   document.getElementById('eigTotal').innerHTML = '<span style="color:'+col+'">lambda('+n+') = '+(total>=0?'+':'')+total.toFixed(3)+'</span>';
-  document.getElementById('eigMeta').textContent = 'CRT=('+crt(n).join(',')+')  coupling='+coupling(n);
+  document.getElementById('eigMeta').textContent = 'CRT=('+AX.crt(n).join(',')+')  coupling='+AX.coupling(n);
 }
 document.getElementById('inpEig').addEventListener('input', updateEig);
 updateEig();
@@ -295,7 +293,7 @@ updateEig();
 /* ===== HISTOGRAM ===== */
 const cvH = document.getElementById('cvHist');
 const ctxH = cvH.getContext('2d');
-const allLam = []; for (let n=0;n<N;n++) allLam.push(eigenvalue(n));
+const allLam = []; for (let n=0;n<N;n++) allLam.push(AX.eigenvalue(n));
 const classes = {};
 for (let n=0;n<N;n++) { const key = allLam[n].toFixed(6); if (!classes[key]) classes[key]={lam:allLam[n],count:0}; classes[key].count++; }
 const classArr = Object.values(classes).sort((a,b)=>a.lam-b.lam);
@@ -349,12 +347,12 @@ function drawSwim() {
   for (let v=-4;v<=10;v+=2) { ctxS.beginPath(); ctxS.moveTo(padL,toY(v)); ctxS.lineTo(W-padR,toY(v)); ctxS.stroke(); ctxS.fillStyle='#444'; ctxS.font='11px monospace'; ctxS.textAlign='right'; ctxS.fillText(v.toString(),padL-6,toY(v)+4); }
   ctxS.strokeStyle='#333'; ctxS.setLineDash([4,4]); ctxS.beginPath(); ctxS.moveTo(padL,toY(0)); ctxS.lineTo(W-padR,toY(0)); ctxS.stroke(); ctxS.setLineDash([]);
   for (let i=1;i<swimData.length;i++) {
-    const l0=eigenvalue(swimData[i-1].n), l1=eigenvalue(swimData[i].n);
+    const l0=AX.eigenvalue(swimData[i-1].n), l1=AX.eigenvalue(swimData[i].n);
     ctxS.strokeStyle=l1>l0?'#66ddaa':'#ff6666'; ctxS.lineWidth=2; ctxS.globalAlpha=0.5;
     ctxS.beginPath(); ctxS.moveTo(toX(i-1),toY(l0)); ctxS.lineTo(toX(i),toY(l1)); ctxS.stroke(); ctxS.globalAlpha=1;
   }
   for (let i=0;i<swimData.length;i++) {
-    const lam=eigenvalue(swimData[i].n), x=toX(i), y=toY(lam), act=(i===swimActive);
+    const lam=AX.eigenvalue(swimData[i].n), x=toX(i), y=toY(lam), act=(i===swimActive);
     ctxS.beginPath(); ctxS.arc(x,y,act?8:5,0,2*Math.PI);
     ctxS.fillStyle=act?'#fff':(lam>=0?'#ffcc44':'#4488cc');
     if(act){ctxS.shadowColor='#fff';ctxS.shadowBlur=12;} ctxS.fill(); ctxS.shadowBlur=0;
@@ -363,7 +361,7 @@ function drawSwim() {
     if(act){ctxS.fillStyle='#aaa';ctxS.font='10px monospace';ctxS.fillText(lam.toFixed(3),x,y-14);}
   }
   const sd=swimData[swimActive];
-  document.getElementById('swimInfo').textContent='n='+sd.n+' ('+sd.name+'): lambda='+eigenvalue(sd.n).toFixed(3)+' - '+sd.label;
+  document.getElementById('swimInfo').textContent='n='+sd.n+' ('+sd.name+'): lambda='+AX.eigenvalue(sd.n).toFixed(3)+' - '+sd.label;
 }
 let stepsHTML='';
 for(let i=0;i<swimData.length;i++) stepsHTML+='<span class="swim-step'+(i===0?' active':'')+'" data-idx="'+i+'">'+swimData[i].name+'</span>';
@@ -419,9 +417,9 @@ const ctxSh = cvSh.getContext('2d');
   const plotW=W-padL-padR, plotH=H-padT-padB;
   const shellSum=[0,0,0,0,0,0], shellCount=[0,0,0,0,0,0];
   for(let n=0;n<N;n++){
-    let g=gcd(((n%N)+N)%N,N), omega=0;
+    let g=AX.gcd(((n%N)+N)%N,N), omega=0;
     for(let i=0;i<5;i++) if(g%P[i]===0) omega++;
-    const h=5-omega; shellSum[h]+=eigenvalue(n); shellCount[h]++;
+    const h=5-omega; shellSum[h]+=AX.eigenvalue(n); shellCount[h]++;
   }
   const shellAvg=shellSum.map((s,i)=>shellCount[i]>0?s/shellCount[i]:0);
   const shellColors=['#ffffff','#cc88ff','#88aaff','#66ddaa','#ffcc44','#ff6666'];
