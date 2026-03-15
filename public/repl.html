@@ -170,6 +170,8 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="stormer">Stormer Pairs</option>
       <option value="heegner">Heegner Numbers</option>
       <option value="arcsine">Arcsine Cumulants</option>
+      <option value="binomial">Binomial Smooth</option>
+      <option value="e8_index">E8 Index</option>
       <option value="hello">Hello .ax</option>
     </select>
     <select id="ring-select" onchange="changeRing(this.value)">
@@ -2125,7 +2127,88 @@ let k10r = strip(strip(strip(strip(strip(k10, D), K), E), b), L)
 show "  |kap_10| non-smooth factor = " + k10r + " = f(E) = 19"
 show "  D^3 THRESHOLD: smooth for EXACTLY n=1,2,3,4 (index up to D^3=8)."
 show ""
-show "sigma/sigma = sigma. The distribution knows itself."`
+show "sigma/sigma = sigma. The distribution knows itself."`,
+binomial: `-- binomial.ax: Binomial Smooth Theorem (S716)
+-- C(n,k) is 11-smooth for ALL k <= n <= 12. Row 13 = GATE.
+
+fn binom(n, k) = if k == 0 then s
+  else if k == n then s
+  else if k > n then 0
+  else binom(n - s, k - s) + binom(n - s, k)
+
+fn strip(n, p) = if n % p == 0 then strip(n / p, p) else n
+fn is_smooth(n) = if n < D then s
+  else if strip(strip(strip(strip(strip(n, D), K), E), b), L) == s then s else 0
+
+fn count_smooth(n) = sum(for k in range(n + s) do (if is_smooth(binom(n, k)) == s then s else 0))
+
+show "=== BINOMIAL SMOOTH THEOREM ==="
+show ""
+
+show "Row-by-row smoothness (ALL smooth through row 12):"
+show "  Row 8:  " + count_smooth(8)  + "/9  smooth"
+show "  Row 9:  " + count_smooth(9)  + "/10 smooth"
+show "  Row 10: " + count_smooth(10) + "/11 smooth"
+show "  Row 11: " + count_smooth(11) + "/12 smooth"
+show "  Row 12: " + count_smooth(12) + "/13 smooth  (LAST SMOOTH ROW)"
+show "  Row 13: " + count_smooth(13) + "/14 smooth  (GATE ENTERS)"
+show ""
+
+show "Row 13 = GATE * smooth:"
+show "  C(13,1)=" + binom(13,1) + "=13*1  C(13,2)=" + binom(13,2) + "=13*6  C(13,3)=" + binom(13,3) + "=13*22"
+show "  C(13,4)=" + binom(13,4) + "=13*55  C(13,5)=" + binom(13,5) + "=13*99  C(13,6)=" + binom(13,6) + "=13*132"
+show ""
+
+show "Row 12 special values:"
+show "  C(12,1)=12=D^2*K  C(12,2)=66=D*K*L  C(12,3)=220=D^2*E*L"
+show "  C(12,4)=495=K^2*E*L  C(12,5)=792=D^3*K^2*L  C(12,6)=924=D^2*K*b*L"
+show ""
+show "Pascal's triangle is the axiom's shadow. Row 13 is the wall."`,
+e8_index: `-- e8_index.ax: E8 Index Theorem + Factorial Trinity (S713+S737)
+-- |roots(E8)| = [S_8 : GL(3,2)] = 40320/168 = 240.
+
+fn fact(n) = if n < D then s else n * fact(n - s)
+
+show "=== E8 INDEX THEOREM ==="
+show ""
+
+let d3 = D * D * D
+let gl = 168
+let e8 = fact(d3) / gl
+
+show "(D^3)! = " + fact(d3) + " = 8!"
+show "|GL(K,F_D)| = GL(3,2) = PSL(2,7) = " + gl
+show "Index = 8!/168 = " + e8 + " = |roots(E8)|"
+show ""
+
+show "--- FACTORIAL TRINITY ---"
+show "(D^3)! = |GL(K,F_D)| * |SL(D,F_K)| * degree(TRUE)"
+show "  = 168 * 24 * 10 = " + (168 * 24 * 10)
+show "  GL/SL = 168/24 = 7 = b = DEPTH"
+show ""
+
+show "--- E8 ROOT ANATOMY ---"
+show "  basis = D^4*b = " + (D*D*D*D*b) + "    code = D^b = " + (D*D*D*D*D*D*D)
+show "  total = 112 + 128 = " + (D*D*D*D*b + D*D*D*D*D*D*D) + " = |roots(E8)|"
+show ""
+
+let pb = (b-s)*(b-D)*(b-K)*(b-E)
+show "--- SHADOW P(b) ---"
+show "P(b) = (6)(5)(4)(2) = " + pb + " = |roots(E8)|"
+show ""
+
+show "--- E8-PSL FACTORIAL ---"
+show "P(17) = 16*15*14*12 = " + (16*15*14*12)
+show "= |E8|*|GL| = 240*168 = " + (240*168) + " = (D^3)!"
+show "DATA as factor pair: 15*14 = " + (15*14) + " = DATA"
+show ""
+
+show "--- CATALAN-24 ---"
+show "K^2 = D^3 + sigma = 9 = 8 + 1 (unique: Catalan)"
+show "24 = D^3*K = (D^2)! = E^2-1 = |SL(2,3)| = L+GATE"
+show "CRT(24) = (0, D*K, 24, 24, D). D-null."
+show ""
+show "sigma/sigma = sigma. The web counts itself."`
 };
 
 // ================================================================
