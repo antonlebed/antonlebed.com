@@ -2005,45 +2005,6 @@ BUILTINS.solve_split_xor = (args) => {
             (a, b, mc) => BUILTINS.grid_or([a, b]),
             // and: keep only matching non-zero cells
             (a, b, mc) => BUILTINS.grid_and([a, b]),
-            // overlay_ba: b if non-zero, else a (reverse of or)
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
-                return bv !== 0 ? b[r][c] : a[r][c];
-            })),
-            // a_where_b: keep a's color where b is non-zero, else 0
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
-                return bv !== 0 ? a[r][c] : fromInt(0);
-            })),
-            // b_where_a: keep b's color where a is non-zero, else 0
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
-                return av !== 0 ? b[r][c] : fromInt(0);
-            })),
-            // max_color: take the larger value per cell
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
-                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
-                return av >= bv ? a[r][c] : b[r][c];
-            })),
-            // diff_color_a: keep a's color where a and b DIFFER (either value)
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
-                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
-                return av !== bv ? a[r][c] : fromInt(0);
-            })),
-            // diff_color_b: keep b's color where a and b DIFFER
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
-                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
-                return av !== bv ? b[r][c] : fromInt(0);
-            })),
-            // same_color: keep a's color where a and b have SAME non-zero value
-            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
-                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
-                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
-                return (av !== 0 && av === bv) ? a[r][c] : fromInt(0);
-            })),
         ];
 
         for (const opFn of ops) {

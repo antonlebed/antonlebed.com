@@ -135,33 +135,11 @@ CRT scheduling: the ring IS the optimizer. No Gurobi. No CPLEX. No patents.
 </div>
 
 <script src="nav.js"></script>
+<script src="crt_core.js"></script>
 <script>
-// CRT core
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11];
+const {N, MODS, decompose, reconstruct} = CRT;
 const NAMES = ['D (mod 8)', 'K (mod 9)', 'E (mod 25)', 'b (mod 49)', 'L (mod 11)'];
 const COLORS = ['#f44', '#fb0', '#0ff', '#a6f', '#0f0'];
-
-function decompose(n) {
-  return MODS.map(m => ((n % m) + m) % m);
-}
-
-function extgcd(a, b) {
-  if (b === 0) return [a, 1, 0];
-  const [g, x1, y1] = extgcd(b, a % b);
-  return [g, y1, x1 - Math.floor(a / b) * y1];
-}
-
-function reconstruct(residues) {
-  let result = 0;
-  for (let i = 0; i < MODS.length; i++) {
-    const Mi = N / MODS[i];
-    const [, inv] = extgcd(Mi % MODS[i], MODS[i]);
-    const yi = ((inv % MODS[i]) + MODS[i]) % MODS[i];
-    result = (result + residues[i] * Mi * yi) % N;
-  }
-  return ((result % N) + N) % N;
-}
 
 // Generate random constraints per channel
 function generateTasks(n) {

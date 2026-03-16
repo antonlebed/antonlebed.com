@@ -124,35 +124,12 @@ No patents. No dependencies. No permission needed. antonlebed.com
 </div>
 
 <script src="nav.js"></script>
+<script src="crt_core.js"></script>
 <script>
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11];
-const NAMES = ['Z/8 (D)', 'Z/9 (K)', 'Z/25 (E)', 'Z/49 (b)', 'Z/11 (L)'];
-const COLORS = ['#f44', '#fa0', '#ff0', '#0f0', '#08f'];
+const {N, MODS, decompose, reconstruct} = CRT;
+const NAMES = CRT.NAMES;
+const COLORS = CRT.COLORS;
 const L_CH = 4; // L=11 is channel index 4
-
-const Mi = MODS.map(m => N / m);
-function extgcd(a, b) {
-  if (a === 0) return [b, 0, 1];
-  let [g, x1, y1] = extgcd(b % a, a);
-  return [g, y1 - Math.floor(b / a) * x1, x1];
-}
-function modinv(a, m) {
-  let [g, x] = extgcd(((a % m) + m) % m, m);
-  return ((x % m) + m) % m;
-}
-const MiInv = MODS.map((m, i) => modinv(Mi[i], m));
-const Ei = MODS.map((m, i) => Mi[i] * MiInv[i]);
-
-function decompose(n) {
-  n = ((n % N) + N) % N;
-  return MODS.map(m => n % m);
-}
-function reconstruct(channels) {
-  let sum = 0;
-  for (let i = 0; i < 5; i++) sum += channels[i] * Ei[i];
-  return ((sum % N) + N) % N;
-}
 
 // Text -> L=11 symbols (base-11 encoding)
 // Each char (0-127) needs ceil(log11(128)) = 3 symbols in base 11

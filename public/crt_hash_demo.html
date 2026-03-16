@@ -110,40 +110,13 @@ No patents. No dependencies. No permission needed. antonlebed.com
 </div>
 
 <script src="nav.js"></script>
+<script src="crt_core.js"></script>
 <script>
-// CRT constants for Z/970200Z
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11];
-const LABELS = ['Z/8 (D)', 'Z/9 (K)', 'Z/25 (E)', 'Z/49 (b)', 'Z/11 (L)'];
-const GENS = [3, 2, 2, 3, 2]; // primitive roots per channel
-const ROUNDS = 8; // mixing rounds
-
-// CRT reconstruction
-const M_arr = MODS.map(m => N / m);
-function extgcd(a, b) {
-  if (a === 0) return [b, 0, 1];
-  let [g, x1, y1] = extgcd(b % a, a);
-  return [g, y1 - Math.floor(b / a) * x1, x1];
-}
-function modinv(a, m) {
-  a = ((a % m) + m) % m;
-  if (a === 0) return 0;
-  let [g, x] = extgcd(a, m);
-  return ((x % m) + m) % m;
-}
-const MINV = MODS.map((m, i) => modinv(M_arr[i], m));
-const E_crt = MODS.map((m, i) => M_arr[i] * MINV[i]);
-
-function crt_reconstruct(ch) {
-  let s = 0;
-  for (let i = 0; i < 5; i++) s += ch[i] * E_crt[i];
-  return ((s % N) + N) % N;
-}
-
-function decompose(n) {
-  n = ((n % N) + N) % N;
-  return MODS.map(m => n % m);
-}
+const {N, MODS, decompose} = CRT;
+const crt_reconstruct = CRT.reconstruct;
+const LABELS = CRT.NAMES;
+const GENS = [3, 2, 2, 3, 2];
+const ROUNDS = 8;
 
 // --- CRT HASH CORE ---
 // Multipliers for integer folding (all odd, coprime to N)

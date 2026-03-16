@@ -114,36 +114,12 @@ No patents. No dependencies. No permission needed. antonlebed.com
 </div>
 
 <script src="nav.js"></script>
+<script src="crt_core.js"></script>
 <script>
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11];
-const LABELS = ['Z/8 (D)', 'Z/9 (K)', 'Z/25 (E)', 'Z/49 (b)', 'Z/11 (L)'];
+const {N, MODS, decompose} = CRT;
+const crt_reconstruct = CRT.reconstruct;
+const LABELS = CRT.NAMES;
 const CH_COLORS = ['#f44', '#fb0', '#0f0', '#0af', '#f0f'];
-
-function extgcd(a, b) {
-  if (b === 0) return [a, 1, 0];
-  let [g, x1, y1] = extgcd(b, a % b);
-  return [g, y1, x1 - Math.floor(a / b) * y1];
-}
-function modinv(a, m) {
-  a = ((a % m) + m) % m;
-  let [g, x] = extgcd(a, m);
-  if (g !== 1) return null;
-  return ((x % m) + m) % m;
-}
-const M_arr = MODS.map(m => N / m);
-const MINV = MODS.map((m, i) => modinv(M_arr[i], m));
-const E_crt = MODS.map((m, i) => M_arr[i] * MINV[i]);
-
-function crt_reconstruct(ch) {
-  let s = 0;
-  for (let i = 0; i < 5; i++) s += ch[i] * E_crt[i];
-  return ((s % N) + N) % N;
-}
-function decompose(n) {
-  n = ((n % N) + N) % N;
-  return MODS.map(m => n % m);
-}
 
 function runConsensus() {
   const numNodes = parseInt(document.getElementById('numNodes').value);

@@ -94,45 +94,11 @@ No patents. No dependencies. No permission needed. antonlebed.com
 </div>
 
 <script src="nav.js"></script>
+<script src="crt_core.js"></script>
 <script>
-// CRT constants for Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11];
-// Primitive roots (or generators) for each channel
-// Z/8: 3 has order 2 (max for Z/8). Use 3.
-// Z/9: 2 has order 6 = phi(9). Primitive root.
-// Z/25: 2 has order 20 = phi(25). Primitive root.
-// Z/49: 3 has order 42 = phi(49). Primitive root.
-// Z/11: 2 has order 10 = phi(11). Primitive root.
+const {N, MODS, decompose} = CRT;
+const crt_reconstruct = CRT.reconstruct;
 const GENS = [3, 2, 2, 3, 2];
-// CRT reconstruction constants (precomputed)
-// M_i = N / m_i. e_i = M_i * (M_i^(-1) mod m_i)
-const M = MODS.map(m => N / m);
-// Modular inverse via extended Euclidean
-function modinv(a, m) {
-  let [g, x] = extgcd(a % m, m);
-  return ((x % m) + m) % m;
-}
-function extgcd(a, b) {
-  if (a === 0) return [b, 0, 1];
-  let [g, x1, y1] = extgcd(b % a, a);
-  return [g, y1 - Math.floor(b / a) * x1, x1];
-}
-const MINV = MODS.map((m, i) => modinv(M[i], m));
-const E = MODS.map((m, i) => M[i] * MINV[i]); // CRT basis elements
-
-function crt_reconstruct(channels) {
-  let sum = 0;
-  for (let i = 0; i < 5; i++) {
-    sum += channels[i] * E[i];
-  }
-  return ((sum % N) + N) % N;
-}
-
-function decompose(n) {
-  n = ((n % N) + N) % N;
-  return MODS.map(m => n % m);
-}
 
 // RNG state — wide state with CRT mixing
 // Two 32-bit state words, mixed through CRT channels each step

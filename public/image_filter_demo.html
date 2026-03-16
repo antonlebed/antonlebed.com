@@ -147,33 +147,12 @@ CRT image filtering: the ring IS the filter bank. No Adobe. No patents.
 </div>
 
 <script src="nav.js"></script>
+<script src="crt_core.js"></script>
 <script>
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11];
+const {N, MODS, decompose, reconstruct} = CRT;
 const W = 64, H = 64;
-let imageData = new Uint32Array(W * H); // ring elements
-let decompData = null; // [5][W*H] residues
-
-function decompose(n) {
-  return MODS.map(m => ((n % m) + m) % m);
-}
-
-function extgcd(a, b) {
-  if (b === 0) return [a, 1, 0];
-  const [g, x1, y1] = extgcd(b, a % b);
-  return [g, y1, x1 - Math.floor(a / b) * y1];
-}
-
-function reconstruct(residues) {
-  let result = 0;
-  for (let i = 0; i < MODS.length; i++) {
-    const Mi = N / MODS[i];
-    const [, inv] = extgcd(Mi % MODS[i], MODS[i]);
-    const yi = ((inv % MODS[i]) + MODS[i]) % MODS[i];
-    result = (result + residues[i] * Mi * yi) % N;
-  }
-  return ((result % N) + N) % N;
-}
+let imageData = new Uint32Array(W * H);
+let decompData = null;
 
 // Map ring element to grayscale 0-255
 function toGray(v) {
