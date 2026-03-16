@@ -2005,6 +2005,45 @@ BUILTINS.solve_split_xor = (args) => {
             (a, b, mc) => BUILTINS.grid_or([a, b]),
             // and: keep only matching non-zero cells
             (a, b, mc) => BUILTINS.grid_and([a, b]),
+            // overlay_ba: b if non-zero, else a (reverse of or)
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return bv !== 0 ? b[r][c] : a[r][c];
+            })),
+            // a_where_b: keep a's color where b is non-zero, else 0
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return bv !== 0 ? a[r][c] : fromInt(0);
+            })),
+            // b_where_a: keep b's color where a is non-zero, else 0
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                return av !== 0 ? b[r][c] : fromInt(0);
+            })),
+            // max_color: take the larger value per cell
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return av >= bv ? a[r][c] : b[r][c];
+            })),
+            // diff_color_a: keep a's color where a and b DIFFER (either value)
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return av !== bv ? a[r][c] : fromInt(0);
+            })),
+            // diff_color_b: keep b's color where a and b DIFFER
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return av !== bv ? b[r][c] : fromInt(0);
+            })),
+            // same_color: keep a's color where a and b have SAME non-zero value
+            (a, b, mc) => Array.from({length: a.length}, (_, r) => Array.from({length: a[0].length}, (_, c) => {
+                const av = ArrayBuffer.isView(a[r][c]) ? toInt(a[r][c]) : a[r][c];
+                const bv = ArrayBuffer.isView(b[r][c]) ? toInt(b[r][c]) : b[r][c];
+                return (av !== 0 && av === bv) ? a[r][c] : fromInt(0);
+            })),
         ];
 
         for (const opFn of ops) {
@@ -3243,6 +3282,242 @@ BUILTINS.solve_neighborhood = (args) => {
         results.push(applyTo(patternMap, t));
     }
     return results;
+};
+
+// ================================================================
+//  SMARTER ATOMS (S806): 8 new unary grid→grid primitives for sandpile
+// ================================================================
+
+// outline(g) — keep only non-bg cells adjacent to bg (edge detection)
+BUILTINS.outline = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const R = g.length, C = g[0].length;
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) if (Array.isArray(row)) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const val = (r, c) => (r < 0 || r >= R || c < 0 || c >= C) ? bg : (ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c]);
+    const result = [];
+    for (let r = 0; r < R; r++) {
+        const row = [];
+        for (let c = 0; c < C; c++) {
+            const v = val(r, c);
+            if (v === bg) { row.push(fromInt(bg)); continue; }
+            // Non-bg cell: keep if any 4-neighbor is bg
+            let edge = false;
+            for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) if (val(r+dr, c+dc) === bg) { edge = true; break; }
+            row.push(fromInt(edge ? v : bg));
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+// inner(g) — keep only non-bg cells NOT adjacent to bg (interior)
+BUILTINS.inner = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const R = g.length, C = g[0].length;
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) if (Array.isArray(row)) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const val = (r, c) => (r < 0 || r >= R || c < 0 || c >= C) ? bg : (ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c]);
+    const result = [];
+    for (let r = 0; r < R; r++) {
+        const row = [];
+        for (let c = 0; c < C; c++) {
+            const v = val(r, c);
+            if (v === bg) { row.push(fromInt(bg)); continue; }
+            let edge = false;
+            for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) if (val(r+dr, c+dc) === bg) { edge = true; break; }
+            row.push(fromInt(edge ? bg : v));
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+// largest_obj(g) — extract the largest connected component by cell count
+BUILTINS.largest_obj = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const R = g.length, C = g[0].length;
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) if (Array.isArray(row)) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    let bestCells = null, bestSize = 0, bestBBox = null;
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || val(r, c) === bg) continue;
+            const queue = [[r, c]]; visited[r][c] = true; let qi = 0;
+            let rmin = r, rmax = r, cmin = c, cmax = c;
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C && !visited[nr][nc] && val(nr, nc) !== bg) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                        rmin = Math.min(rmin, nr); rmax = Math.max(rmax, nr);
+                        cmin = Math.min(cmin, nc); cmax = Math.max(cmax, nc);
+                    }
+                }
+            }
+            if (queue.length > bestSize) { bestSize = queue.length; bestCells = queue; bestBBox = [rmin, cmin, rmax, cmax]; }
+        }
+    }
+    if (!bestCells) return [];
+    const [rmin, cmin, rmax, cmax] = bestBBox;
+    const h = rmax - rmin + 1, w = cmax - cmin + 1;
+    const cells = new Set(bestCells.map(([r,c]) => r*C+c));
+    const result = [];
+    for (let rr = 0; rr < h; rr++) {
+        const row = [];
+        for (let cc = 0; cc < w; cc++) {
+            const ar = rmin + rr, ac = cmin + cc;
+            row.push(cells.has(ar*C+ac) ? g[ar][ac] : fromInt(bg));
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+// smallest_obj(g) — extract the smallest connected component by cell count
+BUILTINS.smallest_obj = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const R = g.length, C = g[0].length;
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) if (Array.isArray(row)) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    const visited = Array.from({length: R}, () => new Array(C).fill(false));
+    let bestCells = null, bestSize = Infinity, bestBBox = null;
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            if (visited[r][c] || val(r, c) === bg) continue;
+            const queue = [[r, c]]; visited[r][c] = true; let qi = 0;
+            let rmin = r, rmax = r, cmin = c, cmax = c;
+            while (qi < queue.length) {
+                const [cr, cc] = queue[qi++];
+                for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                    const nr = cr+dr, nc = cc+dc;
+                    if (nr >= 0 && nr < R && nc >= 0 && nc < C && !visited[nr][nc] && val(nr, nc) !== bg) {
+                        visited[nr][nc] = true; queue.push([nr, nc]);
+                        rmin = Math.min(rmin, nr); rmax = Math.max(rmax, nr);
+                        cmin = Math.min(cmin, nc); cmax = Math.max(cmax, nc);
+                    }
+                }
+            }
+            if (queue.length < bestSize) { bestSize = queue.length; bestCells = queue; bestBBox = [rmin, cmin, rmax, cmax]; }
+        }
+    }
+    if (!bestCells) return [];
+    const [rmin, cmin, rmax, cmax] = bestBBox;
+    const h = rmax - rmin + 1, w = cmax - cmin + 1;
+    const cells = new Set(bestCells.map(([r,c]) => r*C+c));
+    const result = [];
+    for (let rr = 0; rr < h; rr++) {
+        const row = [];
+        for (let cc = 0; cc < w; cc++) {
+            const ar = rmin + rr, ac = cmin + cc;
+            row.push(cells.has(ar*C+ac) ? g[ar][ac] : fromInt(bg));
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+// keep_rarest(g) — keep only the rarest non-bg color, zero rest to bg
+BUILTINS.keep_rarest = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) if (Array.isArray(row)) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const counts = new Array(10).fill(0);
+    for (const row of g) if (Array.isArray(row)) for (const v of row) {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        if (n >= 0 && n < 10 && n !== bg) counts[n]++;
+    }
+    let rarest = -1, rarestCount = Infinity;
+    for (let i = 0; i < 10; i++) if (counts[i] > 0 && counts[i] < rarestCount) { rarestCount = counts[i]; rarest = i; }
+    if (rarest === -1) return g;
+    return g.map(row => Array.isArray(row) ? row.map(v => {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        return n === rarest ? v : fromInt(bg);
+    }) : row);
+};
+
+// keep_most(g) — keep only the most common non-bg color, zero rest to bg
+BUILTINS.keep_most = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const bg = (() => { const c = new Array(10).fill(0); for (const row of g) if (Array.isArray(row)) for (const v of row) { const n = ArrayBuffer.isView(v) ? toInt(v) : v; if (n >= 0 && n < 10) c[n]++; } let m = 0, mi = 0; for (let i = 0; i < 10; i++) if (c[i] > m) { m = c[i]; mi = i; } return mi; })();
+    const counts = new Array(10).fill(0);
+    for (const row of g) if (Array.isArray(row)) for (const v of row) {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        if (n >= 0 && n < 10 && n !== bg) counts[n]++;
+    }
+    let most = -1, mostCount = 0;
+    for (let i = 0; i < 10; i++) if (counts[i] > mostCount) { mostCount = counts[i]; most = i; }
+    if (most === -1) return g;
+    return g.map(row => Array.isArray(row) ? row.map(v => {
+        const n = ArrayBuffer.isView(v) ? toInt(v) : v;
+        return n === most ? v : fromInt(bg);
+    }) : row);
+};
+
+// downscale2(g) — reduce by 2x, majority vote per 2x2 block
+BUILTINS.downscale2 = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length < 2) return [];
+    const R = g.length, C = g[0].length;
+    if (C < 2) return [];
+    const oR = Math.floor(R / 2), oC = Math.floor(C / 2);
+    const val = (r, c) => (r < R && c < C && Array.isArray(g[r])) ? (ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c]) : 0;
+    const result = [];
+    for (let r = 0; r < oR; r++) {
+        const row = [];
+        for (let c = 0; c < oC; c++) {
+            // 2x2 block majority vote
+            const counts = new Array(10).fill(0);
+            for (let dr = 0; dr < 2; dr++) for (let dc = 0; dc < 2; dc++) {
+                const v = val(r*2+dr, c*2+dc);
+                if (v >= 0 && v < 10) counts[v]++;
+            }
+            let best = 0, bestC = 0;
+            for (let i = 0; i < 10; i++) if (counts[i] > bestC) { bestC = counts[i]; best = i; }
+            row.push(fromInt(best));
+        }
+        result.push(row);
+    }
+    return result;
+};
+
+// unique_tile(g) — find the smallest repeating unit (inverse of self_tile)
+BUILTINS.unique_tile = (args) => {
+    const g = args[0];
+    if (!Array.isArray(g) || g.length === 0) return [];
+    const R = g.length, C = g[0].length;
+    const val = (r, c) => ArrayBuffer.isView(g[r][c]) ? toInt(g[r][c]) : g[r][c];
+    // Try all divisor pairs (h, w) of (R, C) where h <= R and w <= C
+    for (let h = 1; h <= R; h++) {
+        if (R % h !== 0) continue;
+        for (let w = 1; w <= C; w++) {
+            if (C % w !== 0) continue;
+            if (h === R && w === C) continue; // skip full grid
+            // Check if h x w tile repeats to fill entire grid
+            let ok = true;
+            outer: for (let r = 0; r < R; r++) {
+                for (let c = 0; c < C; c++) {
+                    if (val(r, c) !== val(r % h, c % w)) { ok = false; break outer; }
+                }
+            }
+            if (ok) {
+                // Extract the tile
+                const result = [];
+                for (let r = 0; r < h; r++) {
+                    const row = [];
+                    for (let c = 0; c < w; c++) row.push(g[r][c]);
+                    result.push(row);
+                }
+                return result;
+            }
+        }
+    }
+    return []; // no repeating tile found
 };
 
 BUILTINS.show_grid = (args) => {
