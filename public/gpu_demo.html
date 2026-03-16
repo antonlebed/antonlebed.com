@@ -343,8 +343,16 @@ async function initGPU() {
       }
     });
     gpuSupported = true;
-    const adapterInfo = await adapter.requestAdapterInfo();
-    info.innerHTML = `<span class="good">WebGPU ready.</span> Adapter: ${adapterInfo.description || adapterInfo.vendor || 'unknown'}`;
+    let adapterDesc = 'unknown';
+    try {
+      if (adapter.requestAdapterInfo) {
+        const adapterInfo = await adapter.requestAdapterInfo();
+        adapterDesc = adapterInfo.description || adapterInfo.vendor || 'unknown';
+      } else if (adapter.info) {
+        adapterDesc = adapter.info.description || adapter.info.vendor || 'unknown';
+      }
+    } catch(e) {}
+    info.innerHTML = `<span class="good">WebGPU ready.</span> Adapter: ${adapterDesc}`;
   } catch (e) {
     info.innerHTML = `<span class="warn">GPU init failed: ${e.message}</span> CPU benchmarks still work.`;
   }
