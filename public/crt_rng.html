@@ -35,14 +35,14 @@ pre { background: #0a0a1a; padding: 10px; border-radius: 4px; overflow-x: auto; 
 <p>Each channel advances independently via multiplication by a <span class="highlight">primitive root</span>.</p>
 <p>Output = CRT reconstruction of mixed channels. The 5-way independence gives structural randomness.</p>
 <pre>
-state = [s0, s1, s2, s3, s4]   -- 5 CRT channels
+Wide state: two 32-bit words (s0, s1). Period > 2^30.
 step:
-  s0 = (s0 * 3) mod 8          -- primitive root of Z/8
-  s1 = (s1 * 2) mod 9          -- primitive root of Z/9
-  s2 = (s2 * 2) mod 25         -- primitive root of Z/25
-  s3 = (s3 * 3) mod 49         -- primitive root of Z/49
-  s4 = (s4 * 2) mod 11         -- primitive root of Z/11
-output = CRT_reconstruct(s0, s1, s2, s3, s4) mod 970200
+  1. xorshift on s0              -- standard bit mixing
+  2. decompose s0 into 5 CRT channels (mod 8, 9, 25, 49, 11)
+  3. nonlinear per-channel mixing -- each channel mixes with neighbors
+  4. CRT reconstruct             -- the axiom's structural mixing
+  5. advance s1 with CRT output  -- chains the two state words
+output = (s0 XOR s1) mod 970200
 </pre>
 </div>
 
@@ -134,21 +134,45 @@ function decompose(n) {
   return MODS.map(m => n % m);
 }
 
-// RNG state
-let state = [1, 1, 1, 1, 1];
+// RNG state — wide state with CRT mixing
+// Two 32-bit state words, mixed through CRT channels each step
+let s0 = 0, s1 = 0;
 
 function seed_rng(s) {
   s = Math.abs(Math.floor(s)) || 1;
-  let channels = decompose(s);
-  // Ensure no channel is 0 (would stay at 0 forever)
-  state = channels.map((c, i) => c === 0 ? 1 : c);
+  // Initialize both state words from seed via avalanche
+  s0 = (s * 2654435761) >>> 0;  // Knuth multiplicative hash
+  s1 = (s * 2246822519 + 1) >>> 0;
 }
 
 function next_rng() {
-  for (let i = 0; i < 5; i++) {
-    state[i] = (state[i] * GENS[i]) % MODS[i];
-  }
-  return crt_reconstruct(state);
+  // Step 1: xorshift on s0 (standard, well-tested)
+  s0 ^= (s0 << 13) >>> 0;
+  s0 ^= (s0 >>> 17);
+  s0 ^= (s0 << 5) >>> 0;
+  s0 = s0 >>> 0;
+
+  // Step 2: CRT mixing — decompose s0 into 5 channels, permute, reconstruct
+  // This is where the axiom adds structural mixing beyond standard xorshift
+  const ch = MODS.map(m => s0 % m);
+  // Nonlinear per-channel mixing: multiply by generator, add cross-channel term
+  const mixed = [
+    (ch[0] * GENS[0] + ch[4]) % MODS[0],       // Z/8: mix with L-channel
+    (ch[1] * GENS[1] + ch[0]) % MODS[1],       // Z/9: mix with D-channel
+    (ch[2] * GENS[2] + ch[1] * ch[3]) % MODS[2], // Z/25: mix with K*b channels
+    (ch[3] * GENS[3] + ch[2]) % MODS[3],       // Z/49: mix with E-channel
+    (ch[4] * GENS[4] + ch[3] + ch[0]) % MODS[4] // Z/11: mix with b+D channels
+  ];
+
+  // Step 3: Reconstruct via CRT — this creates the nonlinear output
+  const crt_out = crt_reconstruct(mixed);
+
+  // Step 4: Advance s1 with LCG using CRT output as addend
+  s1 = ((s1 * 1103515245 + crt_out) & 0x7fffffff) >>> 0;
+
+  // Step 5: Final output = XOR of both state words, folded through CRT
+  const raw = (s0 ^ s1) >>> 0;
+  return raw % N;
 }
 
 let lastNumbers = [];
