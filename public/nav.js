@@ -302,14 +302,9 @@ if(axLang!=='en'){
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
-/* Remastered pages (Waves 1-9, single source shared with index.html) */
-var REM = {sm:1,quantum:1,thermo:1,chemistry:1,em:1,gr:1,cosmo:1,classical:1,
-  statmech:1,condensed:1,optics:1,acoustics:1,particles:1,alpha:1,constants:1,
-  millennium:1,d_chain:1,partitions:1,modular_forms:1,depth_quad:1,
-  atlas_10_millennium:1,atlas_12_shadow_polynomial:1,mutual_holography:1,neutron_star:1,eta_bridge:1,ouroboros_compiler:1,sacrifice:1,decality:1,boson_fermion:1,force_hierarchy:1,heegner:1,phase_w:1,lambda_chain:1,arcsine_cumulant:1,cunningham:1,monster_moonshine:1,lie_algebra:1,bernoulli:1,k_squared_stop:1,pell_twins:1,universal_boundary:1,depth_return:1,scale_relativity:1,figurate_bridge:1,eigenvalue_swim:1,mirror:1,equator:1,mirror_cost:1,shadow_eval:1,stormer_pairs:1,fano_e8:1,ax_games:1,smooth_census:1,cyclotomic_fibonacci:1,golden_ratio:1};
-var remSeen={};
-try{remSeen=JSON.parse(localStorage.getItem('rem-seen')||'{}');}catch(e){}
-function isRem(k){return REM[k]&&!remSeen[k+'.html'];}
+/* REM badges removed S793 — all pages are equal, no "new" markers */
+var REM = {};
+function isRem(k){return false;}
 
 var key = f.replace('.html','');
 var catKey = M[key];
@@ -325,7 +320,7 @@ for (var ci = 0; ci < catOrder.length; ci++) catDemos[catOrder[ci]] = [];
 for (var dk in M) { if (T[dk]) catDemos[M[dk]].push(dk); }
 
 /* ===== SINGLE-SOURCE NAV DATA (Wave 11 — shared with index.html hub) ===== */
-window.axNav={CATS:CATS,M:M,T:T,REM:REM,remSeen:remSeen,isRem:isRem,catDemos:catDemos,catOrder:catOrder,markSeen:function(f){remSeen[f]=1;try{localStorage.setItem('rem-seen',JSON.stringify(remSeen));}catch(e){}}};
+window.axNav={CATS:CATS,M:M,T:T,REM:REM,isRem:isRem,catDemos:catDemos,catOrder:catOrder};
 if(window._axBuildHub)window._axBuildHub();
 
 /* ===== STYLES ===== */
@@ -409,11 +404,6 @@ s.textContent =
   'text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
   '.sn-gc a:hover{color:#eee}' +
   '.sn-gc a.cur{color:#ffd700}' +
-  '.sn-gc a.rem,.sn-tr a.rem,.sn-md a.rem{position:relative}' +
-  '.sn-gc a.rem::after,.sn-tr a.rem::after,.sn-md a.rem::after{content:"";display:inline-block;' +
-  'width:5px;height:5px;border-radius:50%;background:#ffd700;margin-left:5px;vertical-align:middle;' +
-  'animation:sn-rem 3s ease-in-out infinite;flex-shrink:0}' +
-  '@keyframes sn-rem{0%,100%{opacity:0.4}50%{opacity:1}}' +
   /* Mobile overlay */
   '#sn-m{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,8,0.99);' +
   'z-index:10000;display:none;flex-direction:column;overflow-y:auto}' +
