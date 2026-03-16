@@ -2579,7 +2579,12 @@ function syncHighlight() {
         _hlRaf = 0;
         const code = document.getElementById('code');
         const hl = document.getElementById('highlight-layer');
-        hl.innerHTML = highlightCode(code.value);
+        try {
+            hl.innerHTML = highlightCode(code.value);
+        } catch(e) {
+            // S811: fallback — show raw text so editor is never invisible
+            hl.textContent = code.value;
+        }
         hl.scrollTop = code.scrollTop;
         hl.scrollLeft = code.scrollLeft;
     });
@@ -2845,8 +2850,12 @@ function run() {
             }
             out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>' + profileLine;
         } catch (e) {
-            const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
-            out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+            try {
+                const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
+                out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+            } catch(e2) {
+                out.innerHTML = '<span class="out-err">Error: ' + String(e.message || e) + '</span>';
+            }
         }
         out.scrollTop = 0;
         // Populate hood panels
@@ -2927,10 +2936,9 @@ function initWasm() {
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Phase W v0.2: load WASM for native-speed ring ops
-    initWasm();
-    // Phase W v0.3: load WASM-compiled .ax evaluator
-    initWasmEval();
+    // S811: WASM init isolated — failures must not break editor/highlighting
+    try { initWasm(); } catch(e) { console.warn('WASM ring init failed:', e); }
+    try { initWasmEval(); } catch(e) { console.warn('WASM eval init failed:', e); }
     // URL params: ?example=name or ?code=base64 — ?run=1 to auto-run
     const params = new URLSearchParams(location.search);
     const pEx = params.get('example');
