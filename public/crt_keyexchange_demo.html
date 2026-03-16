@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<!-- CC0 1.0 Universal - No Rights Reserved - antonlebed.com -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRT Key Exchange - CC0</title>
+<link rel="stylesheet" href="nav-critical.css">
+<style>
+body { font-family: monospace; background: #111; color: #eee; margin: 0; padding: 20px; }
+h1 { color: #f80; font-size: 1.4em; }
+h2 { color: #fb0; font-size: 1.1em; margin-top: 20px; }
+.panel { background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 15px; margin: 10px 0; }
+.highlight { color: #0ff; }
+.warn { color: #f44; }
+.good { color: #0f0; }
+.secret { color: #f0f; }
+button { background: #333; color: #eee; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 4px; font-family: monospace; }
+button:hover { background: #555; }
+pre { background: #0a0a1a; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.85em; }
+.party { display: inline-block; width: 45%; vertical-align: top; margin: 0 2%; }
+.party-box { background: #16213e; padding: 15px; border-radius: 8px; margin: 8px 0; }
+.party-label { font-size: 1.1em; color: #fb0; margin-bottom: 8px; }
+.arrow { text-align: center; color: #0ff; font-size: 1.5em; margin: 10px 0; }
+.shared-box { background: #1a3a1a; border: 2px solid #0f0; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; }
+input[type="number"] { background: #222; color: #eee; border: 1px solid #555; padding: 6px; font-family: monospace; border-radius: 4px; width: 80px; }
+.cc0 { color: #666; font-size: 0.8em; margin-top: 30px; }
+.ch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 8px 0; }
+.ch-cell { background: #0a0a2a; padding: 4px; border-radius: 3px; text-align: center; font-size: 0.85em; }
+.ch-head { color: #888; font-size: 0.75em; }
+</style>
+</head>
+<body>
+<h1>CRT Key Exchange</h1>
+<p>Diffie-Hellman over Z/970200Z. 5 CRT channels = 5 independent key components. CC0.</p>
+
+<div class="panel">
+<h2>How It Works</h2>
+<pre>
+PUBLIC PARAMETERS:
+  Ring: Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11
+  Generator: g = 137 (ADDRESS). order(137) = 420 = lambda(N).
+
+PROTOCOL (Diffie-Hellman variant):
+  1. Alice picks secret a, computes A = g^a mod N
+  2. Bob picks secret b, computes B = g^b mod N
+  3. Alice sends A (public). Bob sends B (public).
+  4. Alice computes S = B^a mod N. Bob computes S = A^b mod N.
+  5. S = g^(a*b) mod N = SHARED SECRET.
+
+WHY CRT MAKES THIS INTERESTING:
+  - g^a decomposes into 5 INDEPENDENT exponentiations (one per channel)
+  - Each channel has its own discrete log problem
+  - Attacker must solve ALL 5 simultaneously to recover the secret
+  - L=11 channel provides built-in authentication (parity check)
+  - CRT structure allows per-channel key derivation
+
+SECURITY NOTE: This is a DEMONSTRATION of the CRT structure applied to
+key exchange. Z/970200Z is too small for real cryptographic use.
+The PATTERN (CRT-decomposed DH) scales to larger rings.
+</pre>
+</div>
+
+<div class="panel">
+<h2>Key Exchange Demo</h2>
+<div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
+  <div class="party">
+    <div class="party-box">
+      <div class="party-label">Alice</div>
+      <label>Secret key a: <input type="number" id="aliceSecret" value="" min="1" max="419"></label>
+      <button onclick="generateAlice()">Random</button>
+      <div id="alicePublic" style="margin-top:8px;"></div>
+    </div>
+  </div>
+  <div class="party">
+    <div class="party-box">
+      <div class="party-label">Bob</div>
+      <label>Secret key b: <input type="number" id="bobSecret" value="" min="1" max="419"></label>
+      <button onclick="generateBob()">Random</button>
+      <div id="bobPublic" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+<div class="arrow">Alice ---[ A = g^a mod N ]---> Bob</div>
+<div class="arrow">Alice <---[ B = g^b mod N ]--- Bob</div>
+<button onclick="exchange()" style="display:block;margin:10px auto;font-size:1.1em;padding:10px 30px;">Run Key Exchange</button>
+<div class="shared-box" id="sharedResult" style="display:none;">
+  <div style="font-size:1.2em;color:#0f0;">SHARED SECRET ESTABLISHED</div>
+  <div id="sharedValue" style="font-size:1.5em;color:#0ff;margin:8px 0;"></div>
+  <div id="sharedChannels"></div>
+  <div id="sharedMatch" style="margin-top:8px;"></div>
+</div>
+</div>
+
+<div class="panel">
+<h2>Channel-by-Channel View</h2>
+<p>Watch the key exchange happen independently in each CRT channel.</p>
+<button onclick="channelView()">Show Per-Channel Exchange</button>
+<div id="channelResult"></div>
+</div>
+
+<div class="panel">
+<h2>Brute Force Attack Simulation</h2>
+<p>Try to find Alice's secret from her public key. Shows why CRT helps.</p>
+<button onclick="bruteForce()">Attack (brute force discrete log)</button>
+<div id="attackResult"></div>
+</div>
+
+<div class="panel">
+<h2>L=11 Authentication Channel</h2>
+<p>The L=11 channel acts as a built-in parity check / authentication tag.</p>
+<button onclick="authDemo()">Run Authentication Demo</button>
+<div id="authResult"></div>
+</div>
+
+<div class="panel">
+<h2>Key Space Explorer</h2>
+<p>Map all g^k for k=0..419. The generator visits every element with gcd(element, N) coprime structure.</p>
+<button onclick="exploreKeySpace()">Map Key Space</button>
+<canvas id="keyCanvas" width="600" height="300"></canvas>
+<div id="keyStats"></div>
+</div>
+
+<div class="cc0">
+CC0 1.0 Universal - No Rights Reserved. CRT-based key exchange using Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11.<br>
+Diffie-Hellman variant with 5-channel CRT decomposition. Generator g=137, order=420=lambda(N).<br>
+No patents. No dependencies. No permission needed. antonlebed.com
+</div>
+
+<script src="nav.js"></script>
+<script>
+const N = 970200;
+const MODS = [8, 9, 25, 49, 11];
+const LABELS = ['Z/8', 'Z/9', 'Z/25', 'Z/49', 'Z/11'];
+const g = 137; // generator, order(137) = 420 = lambda(N)
+const LAMBDA = 420;
+
+function extgcd(a, b) {
+  if (a === 0) return [b, 0, 1];
+  let [g, x1, y1] = extgcd(b % a, a);
+  return [g, y1 - Math.floor(b / a) * x1, x1];
+}
+function modinv(a, m) {
+  a = ((a % m) + m) % m;
+  if (a === 0) return 0;
+  let [gg, x] = extgcd(a, m);
+  return ((x % m) + m) % m;
+}
+const M_arr = MODS.map(m => N / m);
+const MINV = MODS.map((m, i) => modinv(M_arr[i], m));
+const E_crt = MODS.map((m, i) => M_arr[i] * MINV[i]);
+
+function crt_reconstruct(ch) {
+  let s = 0;
+  for (let i = 0; i < 5; i++) s += ch[i] * E_crt[i];
+  return ((s % N) + N) % N;
+}
+function decompose(n) {
+  n = ((n % N) + N) % N;
+  return MODS.map(m => n % m);
+}
+
+// Modular exponentiation
+function modpow(base, exp, mod) {
+  base = ((base % mod) + mod) % mod;
+  exp = ((exp % LAMBDA) + LAMBDA) % LAMBDA; // reduce exp mod lambda for Z/NZ units
+  let result = 1;
+  while (exp > 0) {
+    if (exp & 1) result = (result * base) % mod;
+    base = (base * base) % mod;
+    exp >>= 1;
+  }
+  return result;
+}
+
+// Ring exponentiation: g^k mod N via CRT
+function ring_pow(base, exp) {
+  const ch = decompose(base);
+  const result = ch.map((c, i) => modpow(c, exp, MODS[i]));
+  return crt_reconstruct(result);
+}
+
+function generateAlice() {
+  const a = 1 + Math.floor(Math.random() * (LAMBDA - 1));
+  document.getElementById('aliceSecret').value = a;
+}
+function generateBob() {
+  const b = 1 + Math.floor(Math.random() * (LAMBDA - 1));
+  document.getElementById('bobSecret').value = b;
+}
+
+function exchange() {
+  let a = parseInt(document.getElementById('aliceSecret').value);
+  let b = parseInt(document.getElementById('bobSecret').value);
+  if (!a || a < 1) { generateAlice(); a = parseInt(document.getElementById('aliceSecret').value); }
+  if (!b || b < 1) { generateBob(); b = parseInt(document.getElementById('bobSecret').value); }
+
+  // Public keys
+  const A = ring_pow(g, a);
+  const B = ring_pow(g, b);
+
+  // Shared secrets (should match)
+  const S_alice = ring_pow(B, a); // B^a = g^(ba)
+  const S_bob = ring_pow(A, b);   // A^b = g^(ab)
+
+  const chA = decompose(A);
+  const chB = decompose(B);
+  const chSa = decompose(S_alice);
+  const chSb = decompose(S_bob);
+
+  // Show public keys
+  document.getElementById('alicePublic').innerHTML =
+    'Public A = g^a = ' + g + '^' + a + ' = <span class="highlight">' + A + '</span>' +
+    '<div class="ch-grid">' + chA.map((c, i) => '<div class="ch-cell"><div class="ch-head">' + LABELS[i] + '</div>' + c + '</div>').join('') + '</div>';
+  document.getElementById('bobPublic').innerHTML =
+    'Public B = g^b = ' + g + '^' + b + ' = <span class="highlight">' + B + '</span>' +
+    '<div class="ch-grid">' + chB.map((c, i) => '<div class="ch-cell"><div class="ch-head">' + LABELS[i] + '</div>' + c + '</div>').join('') + '</div>';
+
+  // Show shared secret
+  const box = document.getElementById('sharedResult');
+  box.style.display = 'block';
+  document.getElementById('sharedValue').textContent = 'S = ' + S_alice;
+  document.getElementById('sharedChannels').innerHTML =
+    '<div class="ch-grid">' + chSa.map((c, i) => '<div class="ch-cell"><div class="ch-head">' + LABELS[i] + '</div>' + c + '</div>').join('') + '</div>';
+  document.getElementById('sharedMatch').innerHTML =
+    'Alice computes B^a = ' + S_alice + '<br>' +
+    'Bob computes A^b = ' + S_bob + '<br>' +
+    (S_alice === S_bob ?
+      '<span class="good">MATCH! Shared secret established.</span>' :
+      '<span class="warn">MISMATCH! (bug)</span>');
+}
+
+function channelView() {
+  let a = parseInt(document.getElementById('aliceSecret').value);
+  let b = parseInt(document.getElementById('bobSecret').value);
+  if (!a || a < 1) { generateAlice(); a = parseInt(document.getElementById('aliceSecret').value); }
+  if (!b || b < 1) { generateBob(); b = parseInt(document.getElementById('bobSecret').value); }
+
+  const gCh = decompose(g);
+  let html = '<pre>';
+  html += 'Generator g = ' + g + ' -> CRT(' + gCh.join(', ') + ')\n\n';
+  html += 'Channel  | g_c | g_c^a | g_c^b | g_c^(ab) | order(g_c)\n';
+  html += '---------+-----+-------+-------+----------+-----------\n';
+
+  for (let c = 0; c < 5; c++) {
+    const gc = gCh[c];
+    const ga = modpow(gc, a, MODS[c]);
+    const gb = modpow(gc, b, MODS[c]);
+    const gab = modpow(gc, a * b, MODS[c]);
+    // Compute order of gc in Z/MODS[c]
+    let ord = 1;
+    let x = gc;
+    while (x !== 1 && ord < MODS[c]) {
+      x = (x * gc) % MODS[c];
+      ord++;
+    }
+    if (x !== 1) ord = 0; // gc is not a unit
+    html += LABELS[c].padEnd(9) + '| ' + gc.toString().padEnd(4) +
+      '| ' + ga.toString().padEnd(6) +
+      '| ' + gb.toString().padEnd(6) +
+      '| ' + gab.toString().padEnd(9) +
+      '| ' + ord + '\n';
+  }
+
+  // CRT reconstruction
+  const S_crt = [];
+  for (let c = 0; c < 5; c++) {
+    S_crt.push(modpow(gCh[c], a * b, MODS[c]));
+  }
+  const S = crt_reconstruct(S_crt);
+  html += '\nCRT reconstruct(' + S_crt.join(', ') + ') = ' + S + '\n';
+  html += '\nKEY INSIGHT: each channel computes g^(ab) INDEPENDENTLY.\n';
+  html += 'The shared secret is the CRT reconstruction of 5 independent DH exchanges.\n';
+  html += 'An attacker must solve discrete log in ALL 5 channels simultaneously.';
+  html += '</pre>';
+  document.getElementById('channelResult').innerHTML = html;
+}
+
+function bruteForce() {
+  let a = parseInt(document.getElementById('aliceSecret').value);
+  if (!a || a < 1) { generateAlice(); a = parseInt(document.getElementById('aliceSecret').value); }
+  const A = ring_pow(g, a);
+
+  const t0 = performance.now();
+  // Brute force: try all k until g^k = A
+  let found = -1;
+  for (let k = 0; k < LAMBDA; k++) {
+    if (ring_pow(g, k) === A) { found = k; break; }
+  }
+  const dt = performance.now() - t0;
+
+  // Per-channel attack
+  const gCh = decompose(g);
+  const aCh = decompose(A);
+  let chResults = [];
+  const t1 = performance.now();
+  for (let c = 0; c < 5; c++) {
+    let x = 1;
+    let kc = -1;
+    for (let k = 0; k < MODS[c]; k++) {
+      if (x === aCh[c]) { kc = k; break; }
+      x = (x * gCh[c]) % MODS[c];
+    }
+    chResults.push(kc);
+  }
+  const dt2 = performance.now() - t1;
+
+  const div = document.getElementById('attackResult');
+  div.innerHTML = '<pre>' +
+    'Target: A = g^a = ' + A + ' (true a = <span class="secret">' + a + '</span>)\n\n' +
+    'FULL RING ATTACK (brute force g^k mod N for k=0..' + (LAMBDA-1) + '):\n' +
+    '  Found: k = ' + found + (found === a ? ' <span class="good">CORRECT</span>' : ' (equivalent mod ' + LAMBDA + ')') + '\n' +
+    '  Time: ' + dt.toFixed(2) + ' ms (' + LAMBDA + ' exponentiations)\n\n' +
+    'PER-CHANNEL ATTACK (discrete log in each Z/m):\n' +
+    chResults.map((k, c) => '  ' + LABELS[c] + ': a mod ord(g_c) = ' + k).join('\n') + '\n' +
+    '  Time: ' + dt2.toFixed(2) + ' ms (at most ' + MODS.reduce((a,b)=>a+b) + ' steps total)\n\n' +
+    'NOTE: For this small ring, brute force is trivial.\n' +
+    'For rings with large prime factors, per-channel discrete log\n' +
+    'would require solving in each Z/p^k independently — the CRT\n' +
+    'structure does NOT make it easier (Pohlig-Hellman already does this).\n' +
+    'The value is in the STRUCTURE: 5 independent key channels.' +
+    '</pre>';
+}
+
+function authDemo() {
+  let a = parseInt(document.getElementById('aliceSecret').value);
+  let b = parseInt(document.getElementById('bobSecret').value);
+  if (!a) { generateAlice(); a = parseInt(document.getElementById('aliceSecret').value); }
+  if (!b) { generateBob(); b = parseInt(document.getElementById('bobSecret').value); }
+
+  const S = ring_pow(g, a * b);
+  const sCh = decompose(S);
+
+  // L=11 channel as authentication
+  const authTag = sCh[4]; // Z/11 channel
+  // Check: if an attacker guesses wrong shared secret, L=11 detects
+  let falsePositives = 0;
+  const trials = 1000;
+  for (let i = 0; i < trials; i++) {
+    const fake = Math.floor(Math.random() * N);
+    const fakeCh = decompose(fake);
+    if (fakeCh[4] === authTag) falsePositives++;
+  }
+
+  const div = document.getElementById('authResult');
+  div.innerHTML = '<pre>' +
+    'Shared secret S = ' + S + '\n' +
+    'CRT channels: (' + sCh.join(', ') + ')\n\n' +
+    'L=11 AUTHENTICATION CHANNEL:\n' +
+    '  Auth tag = S mod 11 = ' + authTag + '\n' +
+    '  False positive rate: ' + falsePositives + '/' + trials + ' = ' +
+    (falsePositives/trials*100).toFixed(1) + '% (expected: ~9.1% = 1/11)\n\n' +
+    'USE: After key exchange, both parties verify L=11 channel matches.\n' +
+    'If an attacker tampers with the exchange (MITM), the L=11 channel\n' +
+    'has only a 1/11 chance of matching — ECC for free.\n\n' +
+    'MULTI-CHANNEL AUTH: using all 5 channels as independent checks:\n' +
+    '  Z/8:  1/8  = 12.5% false positive\n' +
+    '  Z/9:  1/9  = 11.1%\n' +
+    '  Z/25: 1/25 = 4.0%\n' +
+    '  Z/49: 1/49 = 2.0%\n' +
+    '  Z/11: 1/11 = 9.1%\n' +
+    '  Combined: 1/(8*9*25*49*11) = 1/970200 = 0.0001%' +
+    '</pre>';
+}
+
+function exploreKeySpace() {
+  const canvas = document.getElementById('keyCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0a0a2a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Compute g^k for all k
+  const powers = [];
+  const seen = new Set();
+  for (let k = 0; k < LAMBDA; k++) {
+    const val = ring_pow(g, k);
+    powers.push(val);
+    seen.add(val);
+  }
+
+  // Plot: x = k, y = g^k / N (normalized)
+  ctx.fillStyle = '#0ff';
+  for (let k = 0; k < LAMBDA; k++) {
+    const x = (k / LAMBDA) * canvas.width;
+    const y = canvas.height - (powers[k] / N) * (canvas.height - 20) - 10;
+    ctx.fillRect(x, y, 2, 2);
+  }
+
+  // Labels
+  ctx.fillStyle = '#888';
+  ctx.font = '10px monospace';
+  ctx.fillText('k (exponent) ->', 10, canvas.height - 2);
+  ctx.fillText('g^k mod N', canvas.width - 80, 12);
+  ctx.fillText('0', 2, canvas.height - 12);
+  ctx.fillText(LAMBDA.toString(), canvas.width - 25, canvas.height - 12);
+
+  // Stats
+  const div = document.getElementById('keyStats');
+  div.innerHTML = '<pre>' +
+    'Generator: g = ' + g + '\n' +
+    'Order: ' + LAMBDA + ' = lambda(N) = lcm(phi(8), phi(9), phi(25), phi(49), phi(11))\n' +
+    'Unique values: ' + seen.size + ' / ' + LAMBDA + '\n' +
+    'Cycle: g^0 = 1, g^1 = ' + powers[1] + ', ..., g^' + (LAMBDA-1) + ' = ' + powers[LAMBDA-1] + ', g^' + LAMBDA + ' = ' + ring_pow(g, LAMBDA) + ' = g^0\n' +
+    'g^(LAMBDA/2) = g^210 = ' + ring_pow(g, 210) + ' (half-cycle = HYDOR)\n' +
+    'g^105 = ' + ring_pow(g, 105) + ' (quarter-cycle)' +
+    '</pre>';
+}
+
+// Auto-init: generate random secrets
+window.addEventListener('load', () => {
+  generateAlice();
+  generateBob();
+});
+</script>
+</body>
+</html>
