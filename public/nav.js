@@ -669,6 +669,26 @@ vf.innerHTML = (_vow[0][axLang]||_vow[0].en) + '<br>' +
   'onmouseover="this.style.color=\'#888\'" onmouseout="this.style.color=\'#555\'">' +
   (_srcLabel[axLang]||_srcLabel.en) + ' \u00b7 ' + (_pdLabel[axLang]||_pdLabel.en) + '</a></div>';
 document.body.appendChild(vf);
+
+/* ===== BUG REPORT BUTTON (S811) ===== */
+var _bugLabel={en:'Report issue',fr:'Signaler',ru:'\u041e\u0448\u0438\u0431\u043a\u0430',de:'Fehler melden',nl:'Probleem melden'};
+var bugBtn = document.createElement('a');
+bugBtn.href = '#';
+bugBtn.textContent = '\u26a0 ' + (_bugLabel[axLang]||_bugLabel.en);
+bugBtn.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:10000;background:#1a1a2e;color:#d4a017;' +
+  'border:1px solid #333;padding:6px 12px;border-radius:4px;font-size:11px;text-decoration:none;' +
+  'opacity:0.5;transition:opacity 0.2s;cursor:pointer';
+bugBtn.onmouseover = function() { this.style.opacity = '1'; };
+bugBtn.onmouseout = function() { this.style.opacity = '0.5'; };
+bugBtn.onclick = function(e) {
+  e.preventDefault();
+  var page = f || location.pathname;
+  var ua = navigator.userAgent.replace(/[()]/g, '');
+  var title = encodeURIComponent('Bug on ' + page);
+  var body = encodeURIComponent('**Page:** ' + location.href + '\n**UA:** ' + ua + '\n**What happened:**\n\n');
+  window.open('https://github.com/antonlebed/antonlebed.com/issues/new?title=' + title + '&body=' + body, '_blank');
+};
+document.body.appendChild(bugBtn);
 }
 if (document.body) init();
 else document.addEventListener('DOMContentLoaded', init);

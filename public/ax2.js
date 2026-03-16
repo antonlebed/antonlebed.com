@@ -934,15 +934,6 @@ BUILTINS.INF_f = (args) => Infinity;
 //  decompose, reconstruct, cross, corrupt = pure .ax.
 //  anneal kept in JS (needs Math.pow — Phase F float builtins will replace).
 // ================================================================
-BUILTINS.anneal = (args) => {
-    const t = toInt(args[0]), max_t = Math.max(1, toInt(args[1]));
-    const weight = toInt(args[2]);
-    const progress = t / max_t;
-    const base = 1.0 - progress;
-    const temp = Math.pow(Math.max(base, 0.001), weight);
-    return fromInt(Math.round(temp * 1000));
-};
-
 // ================================================================
 //  Grid builtins (ARC-AGI — S600)
 // ================================================================
