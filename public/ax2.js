@@ -985,39 +985,39 @@ BUILTINS.cols = (args) => {
 
 BUILTINS.hflip = (args) => {
     const g = args[0];
-    if (!Array.isArray(g)) throw new Error('hflip: not a grid');
+    if (!Array.isArray(g) || g.length === 0) return [];
     return g.map(row => Array.isArray(row) ? [...row].reverse() : row);
 };
 
 BUILTINS.vflip = (args) => {
     const g = args[0];
-    if (!Array.isArray(g)) throw new Error('vflip: not a grid');
+    if (!Array.isArray(g) || g.length === 0) return [];
     return [...g].reverse().map(row => Array.isArray(row) ? [...row] : row);
 };
 
 BUILTINS.rot90 = (args) => {
     const g = args[0];
-    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('rot90: not a grid');
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) return [];
     const R = g.length, C = g[0].length;
     return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[R-1-r][c]));
 };
 
 BUILTINS.rot180 = (args) => {
     const g = args[0];
-    if (!Array.isArray(g)) throw new Error('rot180: not a grid');
+    if (!Array.isArray(g) || g.length === 0) return [];
     return [...g].reverse().map(row => Array.isArray(row) ? [...row].reverse() : row);
 };
 
 BUILTINS.rot270 = (args) => {
     const g = args[0];
-    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('rot270: not a grid');
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) return [];
     const R = g.length, C = g[0].length;
     return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[r][C-1-c]));
 };
 
 BUILTINS.transpose = (args) => {
     const g = args[0];
-    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) throw new Error('transpose: not a grid');
+    if (!Array.isArray(g) || g.length === 0 || !Array.isArray(g[0])) return [];
     const R = g.length, C = g[0].length;
     return Array.from({length: C}, (_, c) => Array.from({length: R}, (_, r) => g[r][c]));
 };
