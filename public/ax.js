@@ -838,6 +838,7 @@ BUILTINS.pow = (args) => Math.pow(args[0], args[1]);
 BUILTINS.len = (args) => Array.isArray(args[0]) ? args[0].length : 0;
 BUILTINS.rand = (args) => Math.floor(Math.random() * (args.length > 0 && args[0] > 0 ? args[0] : 2));
 BUILTINS.set = function(args) { if (Array.isArray(args[0])) { const i = args[1]; if (i >= 0 && i < args[0].length) args[0][i] = args[2]; } return args[2]; };
+BUILTINS.alloc = function(args) { const n = typeof args[0] === 'number' ? args[0] : 0; return new Array(n).fill(0); };
 
 // --- Phase F: Float math builtins (S626 — parity with ax2.js) ---
 // Returns raw JS floats. Binary ops propagate: non-integer + anything = float arithmetic.
