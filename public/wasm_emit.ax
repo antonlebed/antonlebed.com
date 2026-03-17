@@ -14,7 +14,7 @@
 
 /* ================================================================
    BYTE-LEVEL UTILITIES (from test_wasm_emit.ax MVP, proven S819)
-   All byte values are floats to avoid CRT ring wrapping.
+   All byte values are integers (small enough to avoid ring wrapping).
    ================================================================ */
 
 fn wcat(a, b) = (
@@ -28,19 +28,19 @@ fn wcat(a, b) = (
 )
 
 fn leb_u(n) = (
-  if n == 0.0 then [0.0]
+  if n == 0 then [0]
   else (
     mut bytes = [];
-    mut v = n + 0.0;
-    mut going = 1.0;
-    while going == 1.0 do (
-      mut low = fmod(v, 128.0);
-      mut v = ffloor(v / 128.0);
-      if v > 0.0 then (
-        mut bytes = push(bytes, low + 128.0)
+    mut v = n;
+    mut going = 1;
+    while going == 1 do (
+      mut low = v % 128;
+      mut v = v / 128;
+      if v > 0 then (
+        mut bytes = push(bytes, low + 128)
       ) else (
         mut bytes = push(bytes, low);
-        mut going = 0.0
+        mut going = 0
       )
     );
     bytes
@@ -48,25 +48,25 @@ fn leb_u(n) = (
 )
 
 fn leb_s(n) = (
-  if n == 0.0 then [0.0]
+  if n == 0 then [0]
   else (
     mut bytes = [];
-    mut v = n + 0.0;
-    mut going = 1.0;
-    while going == 1.0 do (
-      mut low = fmod(v, 128.0);
-      mut v = ffloor(v / 128.0);
-      if v == 0.0 then (
-        if low < 64.0 then (
+    mut v = n;
+    mut going = 1;
+    while going == 1 do (
+      mut low = v % 128;
+      mut v = v / 128;
+      if v == 0 then (
+        if low < 64 then (
           mut bytes = push(bytes, low);
-          mut going = 0.0
+          mut going = 0
         ) else (
-          mut bytes = push(bytes, low + 128.0);
-          mut bytes = push(bytes, 0.0);
-          mut going = 0.0
+          mut bytes = push(bytes, low + 128);
+          mut bytes = push(bytes, 0);
+          mut going = 0
         )
       ) else (
-        mut bytes = push(bytes, low + 128.0)
+        mut bytes = push(bytes, low + 128)
       )
     );
     bytes
@@ -77,67 +77,65 @@ fn str_bytes(s) = (
   mut r = [];
   mut i = 0;
   while i < len(s) do (
-    mut r = push(r, charCode(s, i) + 0.0);
+    mut r = push(r, charCode(s, i));
     mut i = i + 1
   );
   r
 )
 
-fn flen(a) = len(a) + 0.0
-
-fn wsection(id, payload) = wcat([id], wcat(leb_u(flen(payload)), payload))
+fn wsection(id, payload) = wcat([id], wcat(leb_u(len(payload)), payload))
 
 fn wvec(count, items) = wcat(leb_u(count), items)
 
 /* ================================================================
-   WASM OPCODES (float values)
+   WASM OPCODES
    ================================================================ */
 
-let OP_BLOCK = 2.0
-let OP_LOOP = 3.0
-let OP_IF = 4.0
-let OP_ELSE = 5.0
-let OP_END = 11.0
-let OP_BR = 12.0
-let OP_BR_IF = 13.0
-let OP_CALL = 16.0
-let OP_DROP = 26.0
-let OP_LOCAL_GET = 32.0
-let OP_LOCAL_SET = 33.0
-let OP_LOCAL_TEE = 34.0
-let OP_I32_CONST = 65.0
-let OP_I64_CONST = 66.0
-let OP_I32_EQZ = 69.0
-let OP_I32_EQ = 70.0
-let OP_I32_NE = 71.0
-let OP_I32_LT_S = 72.0
-let OP_I32_GT_S = 74.0
-let OP_I32_LE_S = 76.0
-let OP_I32_GE_S = 78.0
-let OP_I32_ADD = 106.0
-let OP_I32_SUB = 107.0
-let OP_I32_MUL = 108.0
-let OP_I32_DIV_S = 109.0
-let OP_I32_REM_S = 111.0
-let OP_I32_AND = 113.0
-let OP_I64_MUL = 126.0
-let OP_I64_REM_S = 129.0
-let OP_I32_WRAP_I64 = 167.0
-let OP_I64_EXTEND_I32_S = 172.0
+let OP_BLOCK = 2
+let OP_LOOP = 3
+let OP_IF = 4
+let OP_ELSE = 5
+let OP_END = 11
+let OP_BR = 12
+let OP_BR_IF = 13
+let OP_CALL = 16
+let OP_DROP = 26
+let OP_LOCAL_GET = 32
+let OP_LOCAL_SET = 33
+let OP_LOCAL_TEE = 34
+let OP_I32_CONST = 65
+let OP_I64_CONST = 66
+let OP_I32_EQZ = 69
+let OP_I32_EQ = 70
+let OP_I32_NE = 71
+let OP_I32_LT_S = 72
+let OP_I32_GT_S = 74
+let OP_I32_LE_S = 76
+let OP_I32_GE_S = 78
+let OP_I32_ADD = 106
+let OP_I32_SUB = 107
+let OP_I32_MUL = 108
+let OP_I32_DIV_S = 109
+let OP_I32_REM_S = 111
+let OP_I32_AND = 113
+let OP_I64_MUL = 126
+let OP_I64_REM_S = 129
+let OP_I32_WRAP_I64 = 167
+let OP_I64_EXTEND_I32_S = 172
 
-let OP_I32_LOAD = 40.0
-let OP_I32_STORE = 54.0
-let OP_GLOBAL_GET = 35.0
-let OP_GLOBAL_SET = 36.0
+let OP_I32_LOAD = 40
+let OP_I32_STORE = 54
+let OP_GLOBAL_GET = 35
+let OP_GLOBAL_SET = 36
 
-let TYPE_I32 = 127.0
-let TYPE_I64 = 126.0
-let TYPE_VOID = 64.0
+let TYPE_I32 = 127
+let TYPE_I64 = 126
+let TYPE_VOID = 64
 
 /* N = 970200 as signed LEB128 bytes (hardcoded: 970200=0 in CRT ring) */
-let N_LEB_S = [216.0, 155.0, 59.0]
+let N_LEB_S = [216, 155, 59]
 /* N = 970200 as i64 signed LEB128 */
-let N_LEB_S64 = [216.0, 155.0, 59.0]
+let N_LEB_S64 = [216, 155, 59]
 
 /* ================================================================
    AST WALKING: collect fn definitions from parsed program
@@ -399,7 +397,7 @@ fn find_local_idx(name, params, locals) = (
 
 /* ================================================================
    EXPRESSION EMITTER
-   Walks AST, emits WASM bytecode (float array).
+   Walks AST, emits WASM bytecode (integer array).
    All values are i32. Ring arithmetic mod N=970200.
    ================================================================ */
 
@@ -425,94 +423,94 @@ fn emit_ring_mul(left_bytes, right_bytes) =
           wcat([OP_I64_REM_S], [OP_I32_WRAP_I64]))))))))
 
 /* i32.load with memarg: align=2 (natural i32), offset as LEB128 */
-fn emit_load(offset) = wcat([OP_I32_LOAD, 2.0], leb_u(offset))
+fn emit_load(offset) = wcat([OP_I32_LOAD, 2], leb_u(offset))
 
 /* i32.store with memarg: align=2, offset as LEB128 */
-fn emit_store(offset) = wcat([OP_I32_STORE, 2.0], leb_u(offset))
+fn emit_store(offset) = wcat([OP_I32_STORE, 2], leb_u(offset))
 
 /* Emit concat(ptr_a, ptr_b): combine two arrays/strings.
    Uses __op=ptrA, __fa=ptrB, __ol=lenA, __fl=lenB, __hp=new ptr, __ci=copy idx */
 fn emit_concat(a_bytes, b_bytes, params, locals) = (
-  let hp_idx = find_local_idx("__hp", params, locals) + 0.0 in
-  let ci_idx = find_local_idx("__ci", params, locals) + 0.0 in
-  let ol_idx = find_local_idx("__ol", params, locals) + 0.0 in
-  let op_idx = find_local_idx("__op", params, locals) + 0.0 in
-  let fa_idx = find_local_idx("__fa", params, locals) + 0.0 in
-  let fl_idx = find_local_idx("__fl", params, locals) + 0.0 in
+  let hp_idx = find_local_idx("__hp", params, locals) in
+  let ci_idx = find_local_idx("__ci", params, locals) in
+  let ol_idx = find_local_idx("__ol", params, locals) in
+  let op_idx = find_local_idx("__op", params, locals) in
+  let fa_idx = find_local_idx("__fa", params, locals) in
+  let fl_idx = find_local_idx("__fl", params, locals) in
   mut b = [];
   /* 1. Save ptrA, load lenA */
   mut b = wcat(b, a_bytes);
   mut b = wcat(b, wcat([OP_LOCAL_TEE], leb_u(op_idx)));
-  mut b = wcat(b, emit_load(0.0));
+  mut b = wcat(b, emit_load(0));
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ol_idx)));
   /* 2. Save ptrB, load lenB */
   mut b = wcat(b, b_bytes);
   mut b = wcat(b, wcat([OP_LOCAL_TEE], leb_u(fa_idx)));
-  mut b = wcat(b, emit_load(0.0));
+  mut b = wcat(b, emit_load(0));
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(fl_idx)));
   /* 3. Save HP as new array pointer in __hp */
-  mut b = wcat(b, [OP_GLOBAL_GET, 0.0]);
+  mut b = wcat(b, [OP_GLOBAL_GET, 0]);
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(hp_idx)));
   /* 4. Store new length (lenA + lenB) at __hp+0 */
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fl_idx)));
   mut b = wcat(b, [OP_I32_ADD]);
-  mut b = wcat(b, emit_store(0.0));
+  mut b = wcat(b, emit_store(0));
   /* 5. Copy loop A: ci=0; while ci < ol: new[ci]=A[ci]; ci++ */
-  mut b = wcat(b, [OP_I32_CONST, 0.0]);
+  mut b = wcat(b, [OP_I32_CONST, 0]);
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ci_idx)));
   mut b = wcat(b, [OP_BLOCK, TYPE_VOID]);
   mut b = wcat(b, [OP_LOOP, TYPE_VOID]);
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
-  mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1.0]);
+  mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1]);
   /* Store addr: __hp + 4 + __ci*4 */
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
+  mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
   /* Load from: __op + 4 + __ci*4 */
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(op_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
-  mut b = wcat(b, emit_load(4.0));
-  mut b = wcat(b, emit_store(4.0));
+  mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
+  mut b = wcat(b, emit_load(4));
+  mut b = wcat(b, emit_store(4));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_I32_CONST, 1.0, OP_I32_ADD]);
+  mut b = wcat(b, [OP_I32_CONST, 1, OP_I32_ADD]);
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_BR, 0.0]);
+  mut b = wcat(b, [OP_BR, 0]);
   mut b = wcat(b, [OP_END, OP_END]);
   /* 6. Copy loop B: ci=0; while ci < fl: new[ol+ci]=B[ci]; ci++ */
-  mut b = wcat(b, [OP_I32_CONST, 0.0]);
+  mut b = wcat(b, [OP_I32_CONST, 0]);
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ci_idx)));
   mut b = wcat(b, [OP_BLOCK, TYPE_VOID]);
   mut b = wcat(b, [OP_LOOP, TYPE_VOID]);
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fl_idx)));
-  mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1.0]);
+  mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1]);
   /* Store addr: __hp + 4 + (__ol+__ci)*4 */
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_I32_ADD, OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
+  mut b = wcat(b, [OP_I32_ADD, OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
   /* Load from: __fa + 4 + __ci*4 */
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fa_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
-  mut b = wcat(b, emit_load(4.0));
-  mut b = wcat(b, emit_store(4.0));
+  mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
+  mut b = wcat(b, emit_load(4));
+  mut b = wcat(b, emit_store(4));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_I32_CONST, 1.0, OP_I32_ADD]);
+  mut b = wcat(b, [OP_I32_CONST, 1, OP_I32_ADD]);
   mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ci_idx)));
-  mut b = wcat(b, [OP_BR, 0.0]);
+  mut b = wcat(b, [OP_BR, 0]);
   mut b = wcat(b, [OP_END, OP_END]);
   /* 7. Advance HP: HP += (1 + ol + fl) * 4 */
-  mut b = wcat(b, [OP_GLOBAL_GET, 0.0]);
+  mut b = wcat(b, [OP_GLOBAL_GET, 0]);
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
   mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fl_idx)));
-  mut b = wcat(b, [OP_I32_ADD, OP_I32_CONST, 1.0, OP_I32_ADD]);
-  mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
-  mut b = wcat(b, [OP_GLOBAL_SET, 0.0]);
+  mut b = wcat(b, [OP_I32_ADD, OP_I32_CONST, 1, OP_I32_ADD]);
+  mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
+  mut b = wcat(b, [OP_GLOBAL_SET, 0]);
   /* 8. Return new pointer */
   wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)))
 )
@@ -523,7 +521,7 @@ fn emit_expr(node, params, locals, fns) = (
   if t == N_NUM then (
     /* i32.const value — ring values are already 0..970199 */
     let v = node[1] in
-    wcat([OP_I32_CONST], leb_s(v + 0.0))
+    wcat([OP_I32_CONST], leb_s(v))
   )
   else if t == N_STR then (
     /* String literal: allocate char codes in linear memory.
@@ -532,30 +530,30 @@ fn emit_expr(node, params, locals, fns) = (
     let nchars = len(s) in
     let hp_idx = find_local_idx("__hp", params, locals) in
     /* Save current heap pointer to __hp */
-    mut bytes = wcat([OP_GLOBAL_GET, 0.0], wcat([OP_LOCAL_SET], leb_u(hp_idx + 0.0)));
+    mut bytes = wcat([OP_GLOBAL_GET, 0], wcat([OP_LOCAL_SET], leb_u(hp_idx)));
     /* Store length at __hp+0 */
-    mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx + 0.0)));
-    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(nchars + 0.0)));
-    mut bytes = wcat(bytes, emit_store(0.0));
+    mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
+    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(nchars)));
+    mut bytes = wcat(bytes, emit_store(0));
     /* Store each char code at __hp + 4*(i+1) */
     mut i = 0;
     while i < nchars do (
-      mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx + 0.0)));
-      mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(charCode(s, i) + 0.0)));
-      mut bytes = wcat(bytes, emit_store((i + 1) * 4 + 0.0));
+      mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
+      mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(charCode(s, i))));
+      mut bytes = wcat(bytes, emit_store((i + 1) * 4));
       mut i = i + 1
     );
     /* Advance heap pointer: HP += (1 + nchars) * 4 */
-    mut bytes = wcat(bytes, [OP_GLOBAL_GET, 0.0]);
-    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s((1 + nchars) * 4 + 0.0)));
-    mut bytes = wcat(bytes, [OP_I32_ADD, OP_GLOBAL_SET, 0.0]);
+    mut bytes = wcat(bytes, [OP_GLOBAL_GET, 0]);
+    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s((1 + nchars) * 4)));
+    mut bytes = wcat(bytes, [OP_I32_ADD, OP_GLOBAL_SET, 0]);
     /* Return string pointer (old HP) */
-    wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx + 0.0)))
+    wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx)))
   )
   else if t == N_SYM then (
     /* local.get idx */
     let idx = find_local_idx(node[1], params, locals) in
-    wcat([OP_LOCAL_GET], leb_u(idx + 0.0))
+    wcat([OP_LOCAL_GET], leb_u(idx))
   )
   else if t == N_BIN then (
     let op = node[1] in
@@ -564,7 +562,7 @@ fn emit_expr(node, params, locals, fns) = (
     if op == "+" then (
       if is_str_node(node) > 0 then (
         /* String concat — wrap non-string operands with __int_to_str */
-        let its_fi = find_fn_idx(fns, "__int_to_str") + 2.0 in
+        let its_fi = find_fn_idx(fns, "__int_to_str") + 2 in
         let lb2 = if is_str_node(node[2]) > 0 then lb
                   else wcat(lb, wcat([OP_CALL], leb_u(its_fi))) in
         let rb2 = if is_str_node(node[3]) > 0 then rb
@@ -580,20 +578,20 @@ fn emit_expr(node, params, locals, fns) = (
     else if op == "==" then (
       if is_str_node(node[2]) > 0 then (
         /* String detected — use __strcmp */
-        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2 in
         wcat(lb, wcat(rb, wcat([OP_CALL], leb_u(cmp_fi))))
       ) else if is_str_node(node[3]) > 0 then (
-        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2 in
         wcat(lb, wcat(rb, wcat([OP_CALL], leb_u(cmp_fi))))
       ) else wcat(lb, wcat(rb, [OP_I32_EQ]))
     )
     else if op == "!=" then (
       if is_str_node(node[2]) > 0 then (
         /* __strcmp returns 1 if equal; negate with EQZ for != */
-        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2 in
         wcat(lb, wcat(rb, wcat([OP_CALL], wcat(leb_u(cmp_fi), [OP_I32_EQZ]))))
       ) else if is_str_node(node[3]) > 0 then (
-        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2 in
         wcat(lb, wcat(rb, wcat([OP_CALL], wcat(leb_u(cmp_fi), [OP_I32_EQZ]))))
       ) else wcat(lb, wcat(rb, [OP_I32_NE]))
     )
@@ -601,12 +599,12 @@ fn emit_expr(node, params, locals, fns) = (
     else if op == ">" then wcat(lb, wcat(rb, [OP_I32_GT_S]))
     else if op == "<=" then wcat(lb, wcat(rb, [OP_I32_LE_S]))
     else if op == ">=" then wcat(lb, wcat(rb, [OP_I32_GE_S]))
-    else [0.0]
+    else [0]
   )
   else if t == N_NEG then (
     /* 0 - value, then ring normalize */
     let vb = emit_expr(node[1], params, locals, fns) in
-    wcat([OP_I32_CONST, 0.0], wcat(vb, wcat([OP_I32_SUB],
+    wcat([OP_I32_CONST, 0], wcat(vb, wcat([OP_I32_SUB],
       wcat([OP_I32_CONST], wcat(N_LEB_S, wcat([OP_I32_ADD], emit_ring_mod()))))))
   )
   else if t == N_IF then (
@@ -622,14 +620,14 @@ fn emit_expr(node, params, locals, fns) = (
     let val_b = emit_expr(node[2], params, locals, fns) in
     let body_b = emit_expr(node[3], params, locals, fns) in
     let idx = find_local_idx(name, params, locals) in
-    wcat(val_b, wcat([OP_LOCAL_SET], wcat(leb_u(idx + 0.0), body_b)))
+    wcat(val_b, wcat([OP_LOCAL_SET], wcat(leb_u(idx), body_b)))
   )
   else if t == N_SET_E then (
     /* mut name = val -> emit val, local.tee idx (leaves value on stack) */
     let name = node[1] in
     let val_b = emit_expr(node[2], params, locals, fns) in
     let idx = find_local_idx(name, params, locals) in
-    wcat(val_b, wcat([OP_LOCAL_TEE], leb_u(idx + 0.0)))
+    wcat(val_b, wcat([OP_LOCAL_TEE], leb_u(idx)))
   )
   else if t == N_SEQ then (
     /* emit first, drop result, emit second */
@@ -644,12 +642,12 @@ fn emit_expr(node, params, locals, fns) = (
     let blk = wcat([OP_BLOCK, TYPE_VOID],
       wcat([OP_LOOP, TYPE_VOID],
         wcat(cond_b,
-          wcat([OP_I32_EQZ, OP_BR_IF, 1.0],
+          wcat([OP_I32_EQZ, OP_BR_IF, 1],
             wcat(body_b,
-              wcat([OP_DROP, OP_BR, 0.0],
+              wcat([OP_DROP, OP_BR, 0],
                 wcat([OP_END], [OP_END]))))))) in
     /* while is void — push 0 so callers have an i32 on stack */
-    wcat(blk, [OP_I32_CONST, 0.0])
+    wcat(blk, [OP_I32_CONST, 0])
   )
   else if t == N_ARR then (
     /* Array literal: allocate in linear memory via bump allocator.
@@ -661,26 +659,26 @@ fn emit_expr(node, params, locals, fns) = (
     let nelem = len(elems) in
     let ab_idx = find_local_idx("__ab", params, locals) in
     /* Save current heap pointer to __ab local (array base) */
-    mut bytes = wcat([OP_GLOBAL_GET, 0.0], wcat([OP_LOCAL_SET], leb_u(ab_idx + 0.0)));
+    mut bytes = wcat([OP_GLOBAL_GET, 0], wcat([OP_LOCAL_SET], leb_u(ab_idx)));
     /* Advance HP past the array: HP += (1 + nelem) * 4 */
-    mut bytes = wcat(bytes, [OP_GLOBAL_GET, 0.0]);
-    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s((1 + nelem) * 4 + 0.0)));
-    mut bytes = wcat(bytes, [OP_I32_ADD, OP_GLOBAL_SET, 0.0]);
+    mut bytes = wcat(bytes, [OP_GLOBAL_GET, 0]);
+    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s((1 + nelem) * 4)));
+    mut bytes = wcat(bytes, [OP_I32_ADD, OP_GLOBAL_SET, 0]);
     /* Store length at __ab+0 */
-    mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx + 0.0)));
-    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(nelem + 0.0)));
-    mut bytes = wcat(bytes, emit_store(0.0));
+    mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx)));
+    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(nelem)));
+    mut bytes = wcat(bytes, emit_store(0));
     /* Store each element at __ab + 4*(i+1).
        Element expressions may allocate (using __hp + global HP) safely. */
     mut i = 0;
     while i < nelem do (
-      mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx + 0.0)));
+      mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx)));
       mut bytes = wcat(bytes, emit_expr(elems[i], params, locals, fns));
-      mut bytes = wcat(bytes, emit_store((i + 1) * 4 + 0.0));
+      mut bytes = wcat(bytes, emit_store((i + 1) * 4));
       mut i = i + 1
     );
     /* Return array pointer */
-    wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx + 0.0)))
+    wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx)))
   )
   else if t == N_IDX then (
     /* Array indexing: load from (ptr + 4 + index*4)
@@ -689,8 +687,8 @@ fn emit_expr(node, params, locals, fns) = (
     let idx_b = emit_expr(node[2], params, locals, fns) in
     /* addr = base + index*4 + 4 */
     wcat(base_b, wcat(idx_b,
-      wcat([OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD],
-        emit_load(4.0))))
+      wcat([OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD],
+        emit_load(4))))
   )
   else if t == N_CALL then (
     let name = node[1] in
@@ -698,14 +696,14 @@ fn emit_expr(node, params, locals, fns) = (
     if name == "len" then (
       /* Builtin: len(arr) = load length from array pointer */
       let arr_b = emit_expr(args[0], params, locals, fns) in
-      wcat(arr_b, emit_load(0.0))
+      wcat(arr_b, emit_load(0))
     )
     else if name == "set" then (
       /* Builtin: set(arr, i, val) = in-place store at arr[i], returns arr ptr */
       let arr_b = emit_expr(args[0], params, locals, fns) in
       let idx_b = emit_expr(args[1], params, locals, fns) in
       let val_b = emit_expr(args[2], params, locals, fns) in
-      let hp_idx = find_local_idx("__hp", params, locals) + 0.0 in
+      let hp_idx = find_local_idx("__hp", params, locals) in
       mut b = [];
       /* Save arr ptr to __hp (reuse as temp) */
       mut b = wcat(b, arr_b);
@@ -713,10 +711,10 @@ fn emit_expr(node, params, locals, fns) = (
       /* Store addr: __hp + 4 + idx*4 */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
       mut b = wcat(b, idx_b);
-      mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
+      mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
       /* Value */
       mut b = wcat(b, val_b);
-      mut b = wcat(b, emit_store(4.0));
+      mut b = wcat(b, emit_store(4));
       /* Return arr pointer */
       wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)))
     )
@@ -725,71 +723,71 @@ fn emit_expr(node, params, locals, fns) = (
          Uses __op=old ptr, __ol=old len, __hp=new ptr, __ci=copy index. */
       let arr_b = emit_expr(args[0], params, locals, fns) in
       let val_b = emit_expr(args[1], params, locals, fns) in
-      let hp_idx = find_local_idx("__hp", params, locals) + 0.0 in
-      let ci_idx = find_local_idx("__ci", params, locals) + 0.0 in
-      let ol_idx = find_local_idx("__ol", params, locals) + 0.0 in
-      let op_idx = find_local_idx("__op", params, locals) + 0.0 in
+      let hp_idx = find_local_idx("__hp", params, locals) in
+      let ci_idx = find_local_idx("__ci", params, locals) in
+      let ol_idx = find_local_idx("__ol", params, locals) in
+      let op_idx = find_local_idx("__op", params, locals) in
       mut b = [];
       /* 1. Save old arr pointer */
       mut b = wcat(b, arr_b);
       mut b = wcat(b, wcat([OP_LOCAL_TEE], leb_u(op_idx)));
       /* 2. Load old length, save to __ol */
-      mut b = wcat(b, emit_load(0.0));
+      mut b = wcat(b, emit_load(0));
       mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ol_idx)));
       /* 3. Save HP as new array pointer in __hp */
-      mut b = wcat(b, [OP_GLOBAL_GET, 0.0]);
+      mut b = wcat(b, [OP_GLOBAL_GET, 0]);
       mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(hp_idx)));
       /* 4. Store new length (old_len+1) at __hp+0 */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
-      mut b = wcat(b, [OP_I32_CONST, 1.0, OP_I32_ADD]);
-      mut b = wcat(b, emit_store(0.0));
+      mut b = wcat(b, [OP_I32_CONST, 1, OP_I32_ADD]);
+      mut b = wcat(b, emit_store(0));
       /* 5. Copy loop: ci=0; while ci < ol: new[ci]=old[ci]; ci++ */
-      mut b = wcat(b, [OP_I32_CONST, 0.0]);
+      mut b = wcat(b, [OP_I32_CONST, 0]);
       mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ci_idx)));
       mut b = wcat(b, [OP_BLOCK, TYPE_VOID]);
       mut b = wcat(b, [OP_LOOP, TYPE_VOID]);
       /* Break if ci >= ol */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
-      mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1.0]);
+      mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1]);
       /* Store addr: __hp + 4 + __ci*4 */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-      mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
+      mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
       /* Load value: __op + 4 + __ci*4 */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(op_idx)));
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-      mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
-      mut b = wcat(b, emit_load(4.0));
+      mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
+      mut b = wcat(b, emit_load(4));
       /* Store copied value */
-      mut b = wcat(b, emit_store(4.0));
+      mut b = wcat(b, emit_store(4));
       /* ci++ */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ci_idx)));
-      mut b = wcat(b, [OP_I32_CONST, 1.0, OP_I32_ADD]);
+      mut b = wcat(b, [OP_I32_CONST, 1, OP_I32_ADD]);
       mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(ci_idx)));
-      mut b = wcat(b, [OP_BR, 0.0]);
+      mut b = wcat(b, [OP_BR, 0]);
       mut b = wcat(b, [OP_END, OP_END]);
       /* 6. Store pushed value at __hp + 4 + __ol*4 */
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)));
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
-      mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
+      mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
       mut b = wcat(b, val_b);
-      mut b = wcat(b, emit_store(4.0));
+      mut b = wcat(b, emit_store(4));
       /* 7. Advance HP: HP += (2 + __ol) * 4 */
-      mut b = wcat(b, [OP_GLOBAL_GET, 0.0]);
+      mut b = wcat(b, [OP_GLOBAL_GET, 0]);
       mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(ol_idx)));
-      mut b = wcat(b, [OP_I32_CONST, 2.0, OP_I32_ADD]);
-      mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
-      mut b = wcat(b, [OP_GLOBAL_SET, 0.0]);
+      mut b = wcat(b, [OP_I32_CONST, 2, OP_I32_ADD]);
+      mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
+      mut b = wcat(b, [OP_GLOBAL_SET, 0]);
       /* 8. Return new pointer */
       wcat(b, wcat([OP_LOCAL_GET], leb_u(hp_idx)))
     )
     else if name == "show" then (
       /* show(expr): call show_str (import 1) for strings, show_int (import 0) for ints */
       let arg_b = emit_expr(args[0], params, locals, fns) in
-      if is_str_node(args[0]) > 0 then wcat(arg_b, [OP_CALL, 1.0])
-      else wcat(arg_b, [OP_CALL, 0.0])
+      if is_str_node(args[0]) > 0 then wcat(arg_b, [OP_CALL, 1])
+      else wcat(arg_b, [OP_CALL, 0])
     )
     else if name == "concat" then (
       /* Builtin: concat(a, b) = new array/string combining both */
@@ -801,7 +799,7 @@ fn emit_expr(node, params, locals, fns) = (
       /* Builtin: streq(a, b) = compare array/string contents via __strcmp */
       let a_b = emit_expr(args[0], params, locals, fns) in
       let b_b = emit_expr(args[1], params, locals, fns) in
-      let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+      let cmp_fi = find_fn_idx(fns, "__strcmp") + 2 in
       wcat(a_b, wcat(b_b, wcat([OP_CALL], leb_u(cmp_fi))))
     )
     else if name == "charCode" then (
@@ -809,8 +807,8 @@ fn emit_expr(node, params, locals, fns) = (
       let base_b = emit_expr(args[0], params, locals, fns) in
       let idx_b = emit_expr(args[1], params, locals, fns) in
       wcat(base_b, wcat(idx_b,
-        wcat([OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD],
-          emit_load(4.0))))
+        wcat([OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD],
+          emit_load(4))))
     )
     else (
       /* User function call: emit args, call func_idx + 2 (2 imports: show_int, show_str) */
@@ -821,7 +819,7 @@ fn emit_expr(node, params, locals, fns) = (
         mut bytes = wcat(bytes, emit_expr(args[i], params, locals, fns));
         mut i = i + 1
       );
-      wcat(bytes, wcat([OP_CALL], leb_u(fi + 2.0)))
+      wcat(bytes, wcat([OP_CALL], leb_u(fi + 2)))
     )
   )
   else if t == N_FOR then (
@@ -832,20 +830,20 @@ fn emit_expr(node, params, locals, fns) = (
     let vname = node[1] in
     let iter_ast = node[2] in
     let body_ast = node[3] in
-    let fi_idx = find_local_idx("__fi", params, locals) + 0.0 in
-    let fa_idx = find_local_idx("__fa", params, locals) + 0.0 in
-    let fl_idx = find_local_idx("__fl", params, locals) + 0.0 in
-    let x_idx = find_local_idx(vname, params, locals) + 0.0 in
+    let fi_idx = find_local_idx("__fi", params, locals) in
+    let fa_idx = find_local_idx("__fa", params, locals) in
+    let fl_idx = find_local_idx("__fl", params, locals) in
+    let x_idx = find_local_idx(vname, params, locals) in
     mut b = [];
     /* 1. Evaluate iterable, save to __fa */
     mut b = wcat(b, emit_expr(iter_ast, params, locals, fns));
     mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(fa_idx)));
     /* 2. Load length: __fl = len(__fa) = load i32 at __fa+0 */
     mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fa_idx)));
-    mut b = wcat(b, emit_load(0.0));
+    mut b = wcat(b, emit_load(0));
     mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(fl_idx)));
     /* 3. __fi = 0 */
-    mut b = wcat(b, [OP_I32_CONST, 0.0]);
+    mut b = wcat(b, [OP_I32_CONST, 0]);
     mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(fi_idx)));
     /* 4. block { loop { ... } } */
     mut b = wcat(b, [OP_BLOCK, TYPE_VOID]);
@@ -853,12 +851,12 @@ fn emit_expr(node, params, locals, fns) = (
     /* Break if __fi >= __fl */
     mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fi_idx)));
     mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fl_idx)));
-    mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1.0]);
+    mut b = wcat(b, [OP_I32_GE_S, OP_BR_IF, 1]);
     /* x = __fa[__fi] — load from memory: addr = __fa + __fi*4 + 4 */
     mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fa_idx)));
     mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fi_idx)));
-    mut b = wcat(b, [OP_I32_CONST, 4.0, OP_I32_MUL, OP_I32_ADD]);
-    mut b = wcat(b, emit_load(4.0));
+    mut b = wcat(b, [OP_I32_CONST, 4, OP_I32_MUL, OP_I32_ADD]);
+    mut b = wcat(b, emit_load(4));
     mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(x_idx)));
     /* Emit body, drop result */
     let body_b = emit_expr(body_ast, params, locals, fns) in
@@ -866,19 +864,19 @@ fn emit_expr(node, params, locals, fns) = (
     mut b = wcat(b, [OP_DROP]);
     /* __fi++ */
     mut b = wcat(b, wcat([OP_LOCAL_GET], leb_u(fi_idx)));
-    mut b = wcat(b, [OP_I32_CONST, 1.0, OP_I32_ADD]);
+    mut b = wcat(b, [OP_I32_CONST, 1, OP_I32_ADD]);
     mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(fi_idx)));
-    mut b = wcat(b, [OP_BR, 0.0]);
+    mut b = wcat(b, [OP_BR, 0]);
     mut b = wcat(b, [OP_END, OP_END]);
     /* for-loop returns 0 (void) */
-    wcat(b, [OP_I32_CONST, 0.0])
+    wcat(b, [OP_I32_CONST, 0])
   )
   else if t == N_SHOW_S then (
     /* show statement: show_str for strings, show_int for ints */
     let arg = node[1] in
     let arg_b = emit_expr(arg, params, locals, fns) in
-    if is_str_node(arg) > 0 then wcat(arg_b, [OP_CALL, 1.0])
-    else wcat(arg_b, [OP_CALL, 0.0])
+    if is_str_node(arg) > 0 then wcat(arg_b, [OP_CALL, 1])
+    else wcat(arg_b, [OP_CALL, 0])
   )
   else if t == N_EXPR_S then (
     /* expression statement: just emit the expression */
@@ -891,13 +889,13 @@ fn emit_expr(node, params, locals, fns) = (
     let ch = node[2] in
     if ch == "D" then
       /* D=2, D^3=8: mod 8 = AND 7. Specialization beats generalization. */
-      wcat(val_b, [OP_I32_CONST, 7.0, OP_I32_AND])
+      wcat(val_b, [OP_I32_CONST, 7, OP_I32_AND])
     else (
-      let modulus = if ch == "K" then 9.0
-        else if ch == "E" then 25.0
-        else if ch == "b" then 49.0
-        else if ch == "L" then 11.0
-        else 1.0 in
+      let modulus = if ch == "K" then 9
+        else if ch == "E" then 25
+        else if ch == "b" then 49
+        else if ch == "L" then 11
+        else 1 in
       wcat(val_b, wcat([OP_I32_CONST], wcat(leb_s(modulus), [OP_I32_REM_S])))
     )
   )
@@ -912,18 +910,18 @@ fn emit_expr(node, params, locals, fns) = (
       mut bytes = wcat(bytes, emit_expr(args[i], params, locals, fns));
       mut i = i + 1
     );
-    wcat(bytes, wcat([OP_CALL], leb_u(fi + 2.0)))
+    wcat(bytes, wcat([OP_CALL], leb_u(fi + 2)))
   )
   else if t == N_MATCH then (
     /* match expr | pat -> body | ... — if-else chain */
     let match_val = node[1] in
     let arms = node[2] in
-    let mv_idx = find_local_idx("__mv", params, locals) + 0.0 in
+    let mv_idx = find_local_idx("__mv", params, locals) in
     /* Evaluate match value, store to __mv */
     mut b = emit_expr(match_val, params, locals, fns);
     mut b = wcat(b, wcat([OP_LOCAL_SET], leb_u(mv_idx)));
     /* Build nested if-else chain from inside out */
-    mut result = [OP_I32_CONST, 0.0];
+    mut result = [OP_I32_CONST, 0];
     mut i = len(arms);
     while i > 0 do (
       mut i = i - 1;
@@ -946,7 +944,7 @@ fn emit_expr(node, params, locals, fns) = (
   )
   else (
     /* Unknown node: emit 0 */
-    [OP_I32_CONST, 0.0]
+    [OP_I32_CONST, 0]
   )
 )
 
@@ -999,7 +997,7 @@ fn chain_stmts(stmts) = (
 
 fn build_wasm(fns) = (
   /* WASM magic + version */
-  mut wasm = [0.0, 97.0, 115.0, 109.0, 1.0, 0.0, 0.0, 0.0]
+  mut wasm = [0, 97, 115, 109, 1, 0, 0, 0]
   ;
 
   /* --- Type section (ID=1): user fn types + import types --- */
@@ -1007,9 +1005,9 @@ fn build_wasm(fns) = (
   mut type_entries = [];
   mut fi = 0;
   while fi < len(fns) do (
-    let nparams = len(fns[fi][1]) + 0.0 in
+    let nparams = len(fns[fi][1]) in
     /* 0x60 = func type marker */
-    mut entry = [96.0];
+    mut entry = [96];
     mut entry = wcat(entry, leb_u(nparams));
     mut j = 0;
     while j < len(fns[fi][1]) do (
@@ -1017,49 +1015,49 @@ fn build_wasm(fns) = (
       mut j = j + 1
     );
     /* 1 result: i32 */
-    mut entry = wcat(entry, [1.0, TYPE_I32]);
+    mut entry = wcat(entry, [1, TYPE_I32]);
     mut type_entries = wcat(type_entries, entry);
     mut fi = fi + 1
   );
   /* Import types at end: show_int (i32)->i32 and show_str (i32)->i32 */
-  let show_int_type_idx = len(fns) + 0.0 in
-  let show_str_type_idx = len(fns) + 1.0 in
-  mut type_entries = wcat(type_entries, [96.0, 1.0, TYPE_I32, 1.0, TYPE_I32]);
-  mut type_entries = wcat(type_entries, [96.0, 1.0, TYPE_I32, 1.0, TYPE_I32]);
-  mut wasm = wcat(wasm, wsection(1.0, wvec(len(fns) + 2.0, type_entries)))
+  let show_int_type_idx = len(fns) in
+  let show_str_type_idx = len(fns) + 1 in
+  mut type_entries = wcat(type_entries, [96, 1, TYPE_I32, 1, TYPE_I32]);
+  mut type_entries = wcat(type_entries, [96, 1, TYPE_I32, 1, TYPE_I32]);
+  mut wasm = wcat(wasm, wsection(1, wvec(len(fns) + 2, type_entries)))
   ;
 
   /* --- Import section (ID=2): env.show_int (idx 0) + env.show_str (idx 1) --- */
   let mod_name = str_bytes("env") in
   let imp_name_int = str_bytes("show_int") in
-  mut imp_entry1 = wcat(leb_u(flen(mod_name)), mod_name);
-  mut imp_entry1 = wcat(imp_entry1, wcat(leb_u(flen(imp_name_int)), imp_name_int));
-  mut imp_entry1 = wcat(imp_entry1, wcat([0.0], leb_u(show_int_type_idx)));
+  mut imp_entry1 = wcat(leb_u(len(mod_name)), mod_name);
+  mut imp_entry1 = wcat(imp_entry1, wcat(leb_u(len(imp_name_int)), imp_name_int));
+  mut imp_entry1 = wcat(imp_entry1, wcat([0], leb_u(show_int_type_idx)));
   let imp_name_str = str_bytes("show_str") in
-  mut imp_entry2 = wcat(leb_u(flen(mod_name)), mod_name);
-  mut imp_entry2 = wcat(imp_entry2, wcat(leb_u(flen(imp_name_str)), imp_name_str));
-  mut imp_entry2 = wcat(imp_entry2, wcat([0.0], leb_u(show_str_type_idx)));
-  mut wasm = wcat(wasm, wsection(2.0, wvec(2.0, wcat(imp_entry1, imp_entry2))))
+  mut imp_entry2 = wcat(leb_u(len(mod_name)), mod_name);
+  mut imp_entry2 = wcat(imp_entry2, wcat(leb_u(len(imp_name_str)), imp_name_str));
+  mut imp_entry2 = wcat(imp_entry2, wcat([0], leb_u(show_str_type_idx)));
+  mut wasm = wcat(wasm, wsection(2, wvec(2, wcat(imp_entry1, imp_entry2))))
   ;
 
   /* --- Function section (ID=3): each function uses its own type index --- */
   mut func_indices = [];
   mut fi = 0;
   while fi < len(fns) do (
-    mut func_indices = wcat(func_indices, leb_u(fi + 0.0));
+    mut func_indices = wcat(func_indices, leb_u(fi));
     mut fi = fi + 1
   );
-  mut wasm = wcat(wasm, wsection(3.0, wvec(len(fns) + 0.0, func_indices)))
+  mut wasm = wcat(wasm, wsection(3, wvec(len(fns), func_indices)))
   ;
 
   /* --- Memory section (ID=5): 1 page (64KB) of linear memory --- */
   /* limits: 0x00 = min only, 1 page minimum */
-  mut wasm = wcat(wasm, wsection(5.0, wvec(1.0, [0.0, 1.0])))
+  mut wasm = wcat(wasm, wsection(5, wvec(1, [0, 1])))
   ;
 
   /* --- Global section (ID=6): heap pointer (mutable i32, init 0) --- */
   /* global type: 0x7F=i32, 0x01=mutable. init: i32.const 0, end */
-  mut wasm = wcat(wasm, wsection(6.0, wvec(1.0, [127.0, 1.0, 65.0, 0.0, 11.0])))
+  mut wasm = wcat(wasm, wsection(6, wvec(1, [127, 1, 65, 0, 11])))
   ;
 
   /* --- Export section (ID=7): export all functions + memory --- */
@@ -1068,18 +1066,18 @@ fn build_wasm(fns) = (
   while fi < len(fns) do (
     let name = str_bytes(fns[fi][0]) in
     /* name_len + name + 0x00 (func export) + func_idx */
-    mut entry = wcat(leb_u(flen(name)), name);
-    mut entry = wcat(entry, [0.0]);
-    mut entry = wcat(entry, leb_u(fi + 2.0));
+    mut entry = wcat(leb_u(len(name)), name);
+    mut entry = wcat(entry, [0]);
+    mut entry = wcat(entry, leb_u(fi + 2));
     mut export_entries = wcat(export_entries, entry);
     mut fi = fi + 1
   );
   /* Also export memory as "memory" (kind 0x02, index 0) */
   let mem_name = str_bytes("memory") in
-  mut mem_entry = wcat(leb_u(flen(mem_name)), mem_name);
-  mut mem_entry = wcat(mem_entry, [2.0, 0.0]);
+  mut mem_entry = wcat(leb_u(len(mem_name)), mem_name);
+  mut mem_entry = wcat(mem_entry, [2, 0]);
   mut export_entries = wcat(export_entries, mem_entry);
-  mut wasm = wcat(wasm, wsection(7.0, wvec(len(fns) + 1.0, export_entries)))
+  mut wasm = wcat(wasm, wsection(7, wvec(len(fns) + 1, export_entries)))
   ;
 
   /* --- Code section (ID=10): one body per function --- */
@@ -1095,20 +1093,20 @@ fn build_wasm(fns) = (
     mut local_decls = [];
     if len(locals) > 0 then (
       /* One entry: count=len(locals), type=i32 */
-      mut local_decls = wcat(leb_u(len(locals) + 0.0), [TYPE_I32])
+      mut local_decls = wcat(leb_u(len(locals)), [TYPE_I32])
     ) else 0;
-    let num_local_entries = if len(locals) > 0 then 1.0 else 0.0 in
+    let num_local_entries = if len(locals) > 0 then 1 else 0 in
     mut local_section = wvec(num_local_entries, local_decls);
     /* Emit function body bytecode */
     let body_bytes = emit_expr(body_ast, params, locals, fns) in
     /* Function body = local_section + body_bytes + end */
     mut func_code = wcat(local_section, wcat(body_bytes, [OP_END]));
     /* Prepend size */
-    mut func_body = wcat(leb_u(flen(func_code)), func_code);
+    mut func_body = wcat(leb_u(len(func_code)), func_code);
     mut code_bodies = wcat(code_bodies, func_body);
     mut fi = fi + 1
   );
-  mut wasm = wcat(wasm, wsection(10.0, wvec(len(fns) + 0.0, code_bodies)))
+  mut wasm = wcat(wasm, wsection(10, wvec(len(fns), code_bodies)))
   ;
 
   wasm
@@ -1140,8 +1138,8 @@ fn wasm_from_src(src) = (
 fn wasm_compile(src_path, out_path) = (
   let src = readFile(src_path) in
   let wasm = wasm_from_src(src) in
-  show "wasm_emit: compiled (${flen(wasm)} bytes)";
+  show "wasm_emit: compiled (${len(wasm)} bytes)";
   writeBinary(out_path, wasm);
   show "wasm_emit: wrote ${out_path}";
-  flen(wasm)
+  len(wasm)
 )
