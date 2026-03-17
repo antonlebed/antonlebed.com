@@ -154,6 +154,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="multiring">Multi-Ring</option>
       <option value="floats">Float Math</option>
       <option value="wasm_bench">WASM Benchmark</option>
+      <option value="native_compile">Native Compile</option>
       <option value="relations">Relations</option>
       <option value="wasm_eval">Session Persistence</option>
       <option value="census">Ring Census</option>
@@ -192,7 +193,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
     <button onclick="clearOutput()">Clear</button>
-    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#6272a4;border:1px solid #333;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Phase Z: WASM eval loading...">eval: loading</button>
+    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#50fa7b;border:1px solid #50fa7b;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="JS eval mode. Click to cycle: JS \u2192 WASM \u2192 Native.">eval: JS</button>
     <button id="btn-wasm-reset" onclick="resetWasmSession()" style="display:none;background:#1a1a2e;color:#ff5555;border:1px solid #333;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Reset WASM session: clears all definitions and variables">reset</button>
     <span id="wasm-status" style="color:#555;font-size:0.75em;padding:4px 8px;border-radius:3px;border:1px solid #333" title="Phase W v0.2: native-speed ring arithmetic via WebAssembly">WASM: loading...</span>
     <span id="ring-info" style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
@@ -849,6 +850,10 @@ function execute(src) {
 // ================================================================
 var _axWasmEval = null;
 var _useWasmEval = false;
+var _useNativeCompile = false;
+var _nativeCompilerReady = false;
+var _nativeStdlibSrc = null;
+var _ax2Loaded = false;
 
 // Phase Z Wave 4: all examples run in WASM (14/14)
 var JS_ONLY_EXAMPLES = {};
@@ -862,41 +867,58 @@ function initWasmEval() {
         _axWasmEval = mod;
         // S811: WASM eval available but NOT default (was causing hangs)
         // User can toggle via eval button. JS eval is reliable.
-        var btn = document.getElementById('btn-eval-mode');
-        if (btn) {
-            btn.style.color = '#50fa7b';
-            btn.style.borderColor = '#50fa7b';
-            btn.title = 'JS eval (default). Click to switch to WASM.';
-        }
+        updateEvalButton();
     }).catch(function() {});
 }
 
-// Programmatically set eval mode (true=WASM, false=JS)
-function setEvalMode(useWasm) {
-    if (useWasm && !_axWasmEval) return;
-    _useWasmEval = useWasm;
+function updateEvalButton() {
     var btn = document.getElementById('btn-eval-mode');
     var resetBtn = document.getElementById('btn-wasm-reset');
-    if (_useWasmEval) {
+    if (_useNativeCompile) {
+        btn.textContent = 'eval: native';
+        btn.style.background = '#1a1a3a';
+        btn.style.color = '#ffd700';
+        btn.style.borderColor = '#ffd700';
+        btn.title = 'Native compile: .ax \u2192 WASM binary \u2192 execute. Click to switch.';
+        resetBtn.style.display = 'none';
+    } else if (_useWasmEval) {
         btn.textContent = 'eval: WASM';
         btn.style.background = '#1a3a1a';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
-        btn.title = 'Phase Z: WASM eval (default). Click to switch to JS.';
+        btn.title = 'WASM eval mode. Click to switch.';
         resetBtn.style.display = 'inline-block';
     } else {
         btn.textContent = 'eval: JS';
         btn.style.background = '#1a1a2e';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
-        btn.title = 'JS eval mode. Click to switch to WASM.';
+        btn.title = 'JS eval mode. Click to switch.';
         resetBtn.style.display = 'none';
     }
 }
 
+// Programmatically set eval mode (true=WASM, false=JS)
+function setEvalMode(useWasm) {
+    if (useWasm && !_axWasmEval) return;
+    _useWasmEval = useWasm;
+    _useNativeCompile = false;
+    updateEvalButton();
+}
+
 function toggleEvalMode() {
-    if (!_axWasmEval) return;
-    setEvalMode(!_useWasmEval);
+    if (_useNativeCompile) {
+        _useNativeCompile = false;
+        _useWasmEval = false;
+    } else if (_useWasmEval) {
+        _useWasmEval = false;
+        _useNativeCompile = true;
+    } else if (_axWasmEval) {
+        _useWasmEval = true;
+    } else {
+        _useNativeCompile = true;
+    }
+    updateEvalButton();
 }
 
 function resetWasmSession() {
@@ -905,6 +927,87 @@ function resetWasmSession() {
     outputLines = ['Session reset. All definitions cleared.'];
     traceLines = [];
     renderOutput();
+}
+
+// ================================================================
+//  Phase 9: Native WASM compilation (S827)
+//  .ax source → tokenizer.ax → parser.ax → wasm_emit.ax → WASM binary → execute
+//  ax2.js lazy-loaded only when native mode first activates.
+// ================================================================
+async function loadNativeCompiler() {
+    if (_nativeCompilerReady) return;
+    var status = document.getElementById('btn-eval-mode');
+    status.textContent = 'loading compiler...';
+    if (!_ax2Loaded) {
+        await new Promise(function(resolve, reject) {
+            var s = document.createElement('script');
+            s.src = 'ax2.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+        _ax2Loaded = true;
+    }
+    async function tryFetch(name) {
+        var r = await fetch(name);
+        if (!r.ok) r = await fetch('../code/stdlib/' + name);
+        if (!r.ok) throw new Error('Cannot load ' + name);
+        return r.text();
+    }
+    var files = await Promise.all([
+        tryFetch('tokenizer.ax'),
+        tryFetch('parser.ax'),
+        tryFetch('wasm_emit.ax')
+    ]);
+    _nativeStdlibSrc = files[0] + '\n' + files[1] + '\n' + files[2];
+    _nativeCompilerReady = true;
+    updateEvalButton();
+}
+
+async function executeNative(src) {
+    if (!_nativeCompilerReady) await loadNativeCompiler();
+    AX2.BUILTINS.__user_src = function() { return src; };
+    var fullSrc = _nativeStdlibSrc + '\nshow wasm_from_src(__user_src())';
+    var t0 = performance.now();
+    var result = AX2.run(fullSrc);
+    var t1 = performance.now();
+    if (result.error) throw new Error('Compile: ' + result.error);
+    var lastOut = result.output[result.output.length - 1];
+    if (!lastOut || !lastOut.arr) throw new Error('Compiler did not produce WASM bytes');
+    var wasmBytes = new Uint8Array(lastOut.arr.map(function(b) { return Math.floor(typeof b === 'number' ? b : 0); }));
+    var lines = [];
+    var memory;
+    var t2 = performance.now();
+    var wasm = await WebAssembly.instantiate(wasmBytes.buffer, {
+        env: {
+            show_int: function(v) { lines.push(String(v)); return v; },
+            show_str: function(ptr) {
+                var mem = new Uint32Array(memory.buffer);
+                var len = mem[ptr / 4];
+                var s = '';
+                for (var i = 0; i < len; i++) s += String.fromCharCode(mem[ptr / 4 + 1 + i]);
+                lines.push(s);
+                return ptr;
+            }
+        }
+    });
+    memory = wasm.instance.exports.memory;
+    var t3 = performance.now();
+    if (wasm.instance.exports._main) wasm.instance.exports._main();
+    var t4 = performance.now();
+    outputLines = lines.map(function(l) { return esc(l); });
+    traceLines = [];
+    lastOutputValues = [];
+    lastProfile = {
+        tokenize_ms: '0.0', parse_ms: '0.0',
+        eval_ms: (t4-t3).toFixed(2),
+        total_ms: (t4-t0).toFixed(0),
+        wasm: true,
+        native: true,
+        compile_ms: (t1-t0).toFixed(0),
+        wasm_size: wasmBytes.length
+    };
+    return outputLines;
 }
 
 function executeWasm(src) {
@@ -1490,6 +1593,36 @@ show "hello" + " " + "world"
 print ""
 print "Now try: show fib(20)"
 print "Session persists! Use [reset] to clear."`,
+native_compile: `/* Native Compile: .ax -> WASM -> execute */
+/* Switch eval mode to "native" (click eval button) */
+/* Then run: your code compiles to WebAssembly! */
+
+fn fib(n) = (
+  if n < 2 then n
+  else (
+    mut a = 0; mut b = 1; mut i = 2;
+    while i <= n do (
+      let t = a + b in
+      mut a = b; mut b = t; mut i = i + 1
+    ); b
+  )
+)
+
+show "fib(10):"
+show fib(10)
+show "fib(20):"
+show fib(20)
+
+/* CRT channels */
+let x = 42
+show "42.D (mod 8) ="
+show x.D
+show "42.K (mod 9) ="
+show x.K
+
+fn gcd(a, b) = if b == 0 then a else gcd(b, a % b)
+show "gcd(42, 30):"
+show gcd(42, 30)`,
 census: `-- census.ax: Ring Demographics
 -- Survey Z/970200Z: count by type, kingdom, named values.
 
@@ -2827,36 +2960,51 @@ function copyCSrc() {
 // ================================================================
 //  REPL UI
 // ================================================================
+function fmtProfileLine(p) {
+    if (p.native) {
+        return '\n<span class="out-info">-- compile: ' + p.compile_ms + 'ms | exec: ' + p.eval_ms + 'ms | ' + p.wasm_size + ' bytes WASM | total: ' + p.total_ms + 'ms | native --</span>';
+    }
+    return '\n<span class="out-info">-- tokenize: ' + p.tokenize_ms + 'ms | parse: ' + p.parse_ms + 'ms | eval: ' + p.eval_ms + 'ms | total: ' + p.total_ms + 'ms' + (p.wasm ? ' | WASM' : '') + ' --</span>';
+}
+
+function renderRunResult(lines, src) {
+    var out = document.getElementById('output');
+    var hood = document.getElementById('hood');
+    var profileLine = lastProfile ? fmtProfileLine(lastProfile) : '';
+    out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>' + profileLine;
+    out.scrollTop = 0;
+    var hasContent = traceLines.length > 0 || lastOutputValues.length > 0;
+    document.getElementById('hood-trace').innerHTML = traceLines.length > 0
+        ? traceLines.join('\n')
+        : '<span class="a-dim">No traced operations in this program.</span>';
+    document.getElementById('hood-csource').innerHTML = transpileToC(src);
+    document.getElementById('hood-algebra').innerHTML = algebraView();
+    hood.classList.toggle('visible', hasContent || src.trim().length > 0);
+}
+
 function run() {
     const src = document.getElementById('code').value;
     const out = document.getElementById('output');
-    const hood = document.getElementById('hood');
     out.innerHTML = '<span class="out-info">Running...</span>';
+    if (_useNativeCompile) {
+        executeNative(src).then(function(lines) {
+            renderRunResult(lines, src);
+        }).catch(function(e) {
+            out.innerHTML = '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+        });
+        return;
+    }
     // Yield to browser for paint, then do heavy work
     setTimeout(function() {
         traceLines = [];
         lastOutputValues = [];
         try {
             const lines = (_useWasmEval && _axWasmEval) ? executeWasm(src) : execute(src);
-            var profileLine = '';
-            if (lastProfile) {
-                var p = lastProfile;
-                profileLine = '\n<span class="out-info">-- tokenize: ' + p.tokenize_ms + 'ms | parse: ' + p.parse_ms + 'ms | eval: ' + p.eval_ms + 'ms | total: ' + p.total_ms + 'ms' + (p.wasm ? ' | WASM' : '') + ' --</span>';
-            }
-            out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>' + profileLine;
+            renderRunResult(lines, src);
         } catch (e) {
             const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
             out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
         }
-        out.scrollTop = 0;
-        // Populate hood panels
-        const hasContent = traceLines.length > 0 || lastOutputValues.length > 0;
-        document.getElementById('hood-trace').innerHTML = traceLines.length > 0
-            ? traceLines.join('\n')
-            : '<span class="a-dim">No traced operations in this program.</span>';
-        document.getElementById('hood-csource').innerHTML = transpileToC(src);
-        document.getElementById('hood-algebra').innerHTML = algebraView();
-        hood.classList.toggle('visible', hasContent || src.trim().length > 0);
     }, 0);
 }
 
@@ -2890,8 +3038,12 @@ function loadExample(name) {
     if (EXAMPLES[name]) {
         document.getElementById('code').value = EXAMPLES[name];
         syncHighlight();
-        // Phase Z: auto-switch eval mode based on example compatibility
-        if (_axWasmEval) {
+        // Auto-switch eval mode based on example
+        if (name === 'native_compile') {
+            _useWasmEval = false;
+            _useNativeCompile = true;
+            updateEvalButton();
+        } else if (_axWasmEval) {
             if (JS_ONLY_EXAMPLES[name]) {
                 setEvalMode(false);
             } else {
