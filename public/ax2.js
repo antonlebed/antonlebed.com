@@ -777,6 +777,10 @@ BUILTINS.argmax = (args) => {
 };
 
 // String primitives (Arc 1: OUROBOROS — self-hosting needs source code manipulation)
+// ffloor/fmod: float-domain floor and modulo (needed by wasm_emit.ax for byte manipulation)
+BUILTINS.ffloor = (args) => { const x = typeof args[0] === 'number' ? args[0] : toInt(args[0]); return Math.floor(x); };
+BUILTINS.fmod = (args) => { const a = typeof args[0] === 'number' ? args[0] : toInt(args[0]); const b = typeof args[1] === 'number' ? args[1] : toInt(args[1]); return b !== 0 ? a % b : 0; };
+
 BUILTINS.charAt = (args) => {
     const s = args[0];
     if (typeof s !== 'string') throw new Error('charAt: expected string');

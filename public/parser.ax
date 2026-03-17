@@ -1,0 +1,371 @@
+-- parser.ax — .ax parser library (S596+S750, OUROBOROS Step 4, stdlib)
+-- Tokens -> AST (nested arrays). Requires tokenizer.ax.
+-- Usage: let ast = parse("let x = 42") -- returns [stmt, stmt, ...]
+
+-- AST NODE TYPE CODES (101+ to avoid collision with token types 1-6)
+let N_NUM = 101
+let N_STR = 102
+let N_SYM = 103
+let N_CALL = 104
+let N_BIN = 105
+let N_NEG = 106
+let N_IF = 107
+let N_LET_E = 108
+let N_SET_E = 109
+let N_SEQ = 110
+let N_WHILE = 111
+let N_FOR = 112
+let N_ARR = 113
+let N_IDX = 114
+let N_CH = 115
+let N_PIPE = 116
+let N_MATCH = 117
+let N_WILD = 118
+let N_FN = 119
+let N_LET_S = 120
+let N_SET_S = 121
+let N_SHOW_S = 122
+let N_EXPR_S = 123
+
+-- Helpers
+fn str_to_num(s:str) =
+    let result = 0
+    let i = 0
+    in (while i < len(s) do (
+        mut result = result * 10 + (charCode(charAt(s, i)) - 48);
+        mut i = i + 1
+    );
+    result)
+
+fn is_op(t, p:int, val:str) = if t[p][0] == T_OP then (if t[p][1] == val then 1 else 0) else 0
+fn is_kw(t, p:int, val:str) = if t[p][0] == T_KW then (if t[p][1] == val then 1 else 0) else 0
+fn is_addop(t, p:int) = if t[p][0] == T_OP then (if t[p][1] == "+" then 1 else (if t[p][1] == "-" then 1 else 0)) else 0
+fn is_mulop(t, p:int) = if t[p][0] == T_OP then (if t[p][1] == "*" then 1 else (if t[p][1] == "/" then 1 else (if t[p][1] == "%" then 1 else 0))) else 0
+fn is_cmpop(t, p:int) = if t[p][0] == T_OP then (if t[p][1] == "<" then 1 else (if t[p][1] == ">" then 1 else (if t[p][1] == "==" then 1 else (if t[p][1] == "!=" then 1 else (if t[p][1] == "<=" then 1 else (if t[p][1] == ">=" then 1 else 0)))))) else 0
+
+-- Parser functions: each returns [new_pos, ast_node]
+
+fn parse_primary(t, p:int) =
+    if t[p][0] == T_NUM then [p + 1, [N_NUM, str_to_num(t[p][1])]]
+    else if t[p][0] == T_STR then [p + 1, [N_STR, t[p][1]]]
+    else if t[p][0] == T_TMPL then (
+        let parts = t[p][1] in
+        let node = [N_STR, ""] in
+        let i = 0 in
+        (while i < len(parts) do (
+            let part = parts[i] in
+            let pnode = if part[0] == 0 then [N_STR, part[1]]
+                else (
+                    let sub_toks = tokenize(part[1]) in
+                    let sub_r = parse_expr(sub_toks, 0) in
+                    sub_r[1]
+                ) in
+            if i == 0 then (mut node = pnode)
+            else (mut node = [N_BIN, "+", node, pnode]);
+            mut i = i + 1
+        );
+        [p + 1, node])
+    )
+    else if t[p][0] == T_ID then (
+        let name = t[p][1] in
+        if is_op(t, p + 1, "(") > 0 then (
+            let args = []
+            let pos = p + 2
+            in (if is_op(t, pos, ")") == 0 then (
+                let r = parse_expr(t, pos) in (
+                    mut args = push(args, r[1]);
+                    mut pos = r[0]
+                );
+                while is_op(t, pos, ",") > 0 do (
+                    let r2 = parse_expr(t, pos + 1) in (
+                        mut args = push(args, r2[1]);
+                        mut pos = r2[0]
+                    )
+                )
+            ) else 0);
+            [pos + 1, [N_CALL, name, args]]
+        ) else [p + 1, [N_SYM, name]]
+    )
+    else if is_op(t, p, "(") > 0 then (
+        let r = parse_expr(t, p + 1) in
+        [r[0] + 1, r[1]]
+    )
+    else if is_op(t, p, "[") > 0 then (
+        let elems = []
+        let pos = p + 1
+        in (if is_op(t, pos, "]") == 0 then (
+            let r = parse_expr(t, pos) in (
+                mut elems = push(elems, r[1]);
+                mut pos = r[0]
+            );
+            while is_op(t, pos, ",") > 0 do (
+                let r2 = parse_expr(t, pos + 1) in (
+                    mut elems = push(elems, r2[1]);
+                    mut pos = r2[0]
+                )
+            )
+        ) else 0);
+        [pos + 1, [N_ARR, elems]]
+    )
+    else [p + 1, [N_NUM, 0]]
+
+fn parse_postfix(t, p:int) =
+    let r = parse_primary(t, p) in
+    let expr = r[1]
+    let pos = r[0]
+    in (while (is_op(t, pos, ".") + is_op(t, pos, "[")) > 0 do (
+        if is_op(t, pos, ".") > 0 then (
+            mut expr = [N_CH, expr, t[pos + 1][1]];
+            mut pos = pos + 2
+        ) else (
+            let r2 = parse_expr(t, pos + 1) in (
+                mut expr = [N_IDX, expr, r2[1]];
+                mut pos = r2[0] + 1
+            )
+        )
+    );
+    [pos, expr])
+
+fn parse_unary(t, p:int) =
+    if is_op(t, p, "-") > 0 then (
+        let r = parse_unary(t, p + 1) in
+        [r[0], [N_NEG, r[1]]]
+    ) else parse_postfix(t, p)
+
+fn parse_pow(t, p:int) =
+    let r = parse_unary(t, p) in
+    if is_op(t, r[0], "^") > 0 then (
+        let r2 = parse_unary(t, r[0] + 1) in
+        [r2[0], [N_BIN, "^", r[1], r2[1]]]
+    ) else r
+
+fn parse_mul(t, p:int) =
+    let r = parse_pow(t, p) in
+    let left = r[1]
+    let pos = r[0]
+    in (while is_mulop(t, pos) > 0 do (
+        let op = t[pos][1] in
+        let r2 = parse_pow(t, pos + 1) in (
+            mut left = [N_BIN, op, left, r2[1]];
+            mut pos = r2[0]
+        )
+    );
+    [pos, left])
+
+fn parse_add(t, p:int) =
+    let r = parse_mul(t, p) in
+    let left = r[1]
+    let pos = r[0]
+    in (while is_addop(t, pos) > 0 do (
+        let op = t[pos][1] in
+        let r2 = parse_mul(t, pos + 1) in (
+            mut left = [N_BIN, op, left, r2[1]];
+            mut pos = r2[0]
+        )
+    );
+    [pos, left])
+
+fn parse_cmp(t, p:int) =
+    let r = parse_add(t, p) in
+    let left = r[1]
+    let pos = r[0]
+    in (while is_cmpop(t, pos) > 0 do (
+        let op = t[pos][1] in
+        let r2 = parse_add(t, pos + 1) in (
+            mut left = [N_BIN, op, left, r2[1]];
+            mut pos = r2[0]
+        )
+    );
+    [pos, left])
+
+fn parse_pipe(t, p:int) =
+    let r = parse_cmp(t, p) in
+    let left = r[1]
+    let pos = r[0]
+    in (while is_op(t, pos, "|>") > 0 do (
+        let fname = t[pos + 1][1] in
+        if is_op(t, pos + 2, "(") > 0 then (
+            let args = [left]
+            let pos2 = pos + 3
+            in (if is_op(t, pos2, ")") == 0 then (
+                let r2 = parse_expr(t, pos2) in (
+                    mut args = push(args, r2[1]);
+                    mut pos2 = r2[0]
+                );
+                while is_op(t, pos2, ",") > 0 do (
+                    let r3 = parse_expr(t, pos2 + 1) in (
+                        mut args = push(args, r3[1]);
+                        mut pos2 = r3[0]
+                    )
+                )
+            ) else 0);
+            mut left = [N_PIPE, fname, args];
+            mut pos = pos2 + 1
+        ) else (
+            mut left = [N_PIPE, fname, [left]];
+            mut pos = pos + 2
+        )
+    );
+    [pos, left])
+
+fn parse_if(t, p:int) =
+    let r_cond = parse_expr(t, p + 1) in
+    let r_then = parse_expr(t, r_cond[0] + 1) in
+    let r_else = parse_expr_ns(t, r_then[0] + 1) in
+    [r_else[0], [N_IF, r_cond[1], r_then[1], r_else[1]]]
+
+fn parse_let_expr(t, p:int) =
+    let name = t[p + 1][1] in
+    let r_val = parse_expr(t, p + 3) in
+    let pos = r_val[0] in
+    let pos2 = if is_kw(t, pos, "in") > 0 then pos + 1 else pos in
+    let r_body = parse_expr(t, pos2) in
+    [r_body[0], [N_LET_E, name, r_val[1], r_body[1]]]
+
+fn parse_set_expr(t, p:int) =
+    let name = t[p + 1][1] in
+    let r_val = parse_expr_ns(t, p + 3) in
+    [r_val[0], [N_SET_E, name, r_val[1]]]
+
+fn parse_while_expr(t, p:int) =
+    let r_cond = parse_cmp(t, p + 1) in
+    let r_body = parse_expr_ns(t, r_cond[0] + 1) in
+    [r_body[0], [N_WHILE, r_cond[1], r_body[1]]]
+
+fn parse_for_expr(t, p:int) =
+    let vname = t[p + 1][1] in
+    let r_iter = parse_cmp(t, p + 3) in
+    let r_body = parse_expr_ns(t, r_iter[0] + 1) in
+    [r_body[0], [N_FOR, vname, r_iter[1], r_body[1]]]
+
+fn parse_match_expr(t, p:int) =
+    let r_expr = parse_pipe(t, p + 1) in
+    let arms = []
+    let pos = r_expr[0]
+    in (while is_op(t, pos, "|") > 0 do (
+        mut pos = pos + 1;
+        let pat_result = if t[pos][0] == T_ID then (
+            if t[pos][1] == "_" then (
+                mut pos = pos + 1; [N_WILD]
+            ) else (
+                let rp = parse_pipe(t, pos) in (mut pos = rp[0]; rp[1])
+            )
+        ) else (
+            let rp = parse_pipe(t, pos) in (mut pos = rp[0]; rp[1])
+        ) in
+        mut pos = pos + 1;
+        let r_body = parse_expr(t, pos) in (
+            mut arms = push(arms, [pat_result, r_body[1]]);
+            mut pos = r_body[0]
+        )
+    );
+    [pos, [N_MATCH, r_expr[1], arms]])
+
+fn parse_expr_ns(t, p:int) =
+    if is_kw(t, p, "if") > 0 then parse_if(t, p)
+    else if is_kw(t, p, "let") > 0 then parse_let_expr(t, p)
+    else if is_kw(t, p, "mut") > 0 then parse_set_expr(t, p)
+    else if is_kw(t, p, "while") > 0 then parse_while_expr(t, p)
+    else if is_kw(t, p, "for") > 0 then parse_for_expr(t, p)
+    else if is_kw(t, p, "match") > 0 then parse_match_expr(t, p)
+    else if is_kw(t, p, "show") > 0 then (
+        let r = parse_pipe(t, p + 1) in
+        [r[0], [N_CALL, "show", [r[1]]]]
+    )
+    else if is_kw(t, p, "print") > 0 then (
+        let r = parse_pipe(t, p + 1) in
+        [r[0], [N_CALL, "show", [r[1]]]]
+    )
+    else parse_pipe(t, p)
+
+fn parse_expr(t, p:int) =
+    let r = parse_expr_ns(t, p) in
+    if is_op(t, r[0], ";") > 0 then (
+        let r2 = parse_expr(t, r[0] + 1) in
+        [r2[0], [N_SEQ, r[1], r2[1]]]
+    ) else r
+
+fn parse_fn_stmt(t, p:int) =
+    let name = t[p + 1][1] in
+    let params = []
+    let pos = p + 3
+    in (if is_op(t, pos, ")") == 0 then (
+        mut params = push(params, t[pos][1]);
+        mut pos = pos + 1;
+        while is_op(t, pos, ",") > 0 do (
+            mut params = push(params, t[pos + 1][1]);
+            mut pos = pos + 2
+        )
+    ) else 0);
+    let r = parse_expr(t, pos + 2) in
+    [r[0], [N_FN, name, params, r[1]]]
+
+fn parse_stmt(t, p:int) =
+    if is_kw(t, p, "fn") > 0 then parse_fn_stmt(t, p)
+    else if is_kw(t, p, "let") > 0 then (
+        let name = t[p + 1][1] in
+        let r = parse_expr_ns(t, p + 3) in
+        [r[0], [N_LET_S, name, r[1]]]
+    )
+    else if is_kw(t, p, "mut") > 0 then (
+        let name = t[p + 1][1] in
+        let r = parse_expr_ns(t, p + 3) in
+        [r[0], [N_SET_S, name, r[1]]]
+    )
+    else if is_kw(t, p, "show") > 0 then (
+        let r = parse_expr(t, p + 1) in
+        [r[0], [N_SHOW_S, r[1]]]
+    )
+    else if is_kw(t, p, "print") > 0 then (
+        let r = parse_expr(t, p + 1) in
+        [r[0], [N_SHOW_S, r[1]]]
+    )
+    else (
+        let r = parse_expr(t, p) in
+        [r[0], [N_EXPR_S, r[1]]]
+    )
+
+fn parse_program(t, p:int) =
+    let stmts = []
+    let pos = p
+    in (while t[pos][0] != T_EOF do (
+        if is_op(t, pos, ";") > 0 then (mut pos = pos + 1)
+        else (
+            let r = parse_stmt(t, pos) in (
+                mut stmts = push(stmts, r[1]);
+                mut pos = r[0]
+            )
+        )
+    );
+    [pos, stmts])
+
+fn parse(src:str) =
+    let toks = tokenize(src) in
+    let r = parse_program(toks, 0) in
+    r[1]
+
+fn ast_type_name(code:int) =
+    if code == N_NUM then "NUM"
+    else if code == N_STR then "STR"
+    else if code == N_SYM then "SYM"
+    else if code == N_CALL then "CALL"
+    else if code == N_BIN then "BIN"
+    else if code == N_NEG then "NEG"
+    else if code == N_IF then "IF"
+    else if code == N_LET_E then "LET_E"
+    else if code == N_SET_E then "SET_E"
+    else if code == N_SEQ then "SEQ"
+    else if code == N_WHILE then "WHILE"
+    else if code == N_FOR then "FOR"
+    else if code == N_ARR then "ARR"
+    else if code == N_IDX then "IDX"
+    else if code == N_CH then "CH"
+    else if code == N_PIPE then "PIPE"
+    else if code == N_MATCH then "MATCH"
+    else if code == N_WILD then "WILD"
+    else if code == N_FN then "FN"
+    else if code == N_LET_S then "LET_S"
+    else if code == N_SET_S then "SET_S"
+    else if code == N_SHOW_S then "SHOW_S"
+    else if code == N_EXPR_S then "EXPR_S"
+    else "???"

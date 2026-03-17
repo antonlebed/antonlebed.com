@@ -1,0 +1,166 @@
+-- tokenizer.ax — .ax tokenizer library (S596+S750, stdlib)
+-- Token types: 1=NUM, 2=ID, 3=STR, 4=OP, 5=KW, 6=EOF, 7=TMPL
+-- Usage: let toks = tokenize("let x = 42") -- returns [[type,value], ...]
+
+let T_NUM = 1
+let T_ID = 2
+let T_STR = 3
+let T_OP = 4
+let T_KW = 5
+let T_EOF = 6
+let T_TMPL = 7
+
+fn is_digit(c:str) = if charCode(c) >= 48 then (if charCode(c) <= 57 then 1 else 0) else 0
+fn is_alpha(c:str) = if c == "_" then 1 else (if charCode(c) >= 97 then (if charCode(c) <= 122 then 1 else 0) else (if charCode(c) >= 65 then (if charCode(c) <= 90 then 1 else 0) else 0))
+fn is_alnum(c:str) = if is_digit(c) == 1 then 1 else is_alpha(c)
+fn is_space(c:str) = if c == " " then 1 else (if charCode(c) == 10 then 1 else (if charCode(c) == 13 then 1 else (if charCode(c) == 9 then 1 else 0)))
+fn is_keyword(w:str) = if w == "let" then 1 else (if w == "fn" then 1 else (if w == "show" then 1 else (if w == "print" then 1 else (if w == "if" then 1 else (if w == "then" then 1 else (if w == "else" then 1 else (if w == "for" then 1 else (if w == "in" then 1 else (if w == "do" then 1 else (if w == "while" then 1 else (if w == "mut" then 1 else (if w == "match" then 1 else (if w == "end" then 1 else 0)))))))))))))
+
+fn tokenize(src:str) =
+    let tokens = []
+    let pos = 0
+    let n = len(src)
+    in (while pos < n do (
+        let ch = charAt(src, pos) in
+        if is_space(ch) == 1 then (mut pos = pos + 1)
+        else if ch == "/" then (
+            if pos + 1 < n then (
+                if charAt(src, pos + 1) == "*" then (
+                    mut pos = pos + 2;
+                    let done = 0 in
+                    (while done == 0 do (
+                        if pos + 1 >= n then (mut done = 1)
+                        else if charAt(src, pos) == "*" then (
+                            if charAt(src, pos + 1) == "/" then (mut pos = pos + 2; mut done = 1)
+                            else (mut pos = pos + 1)
+                        ) else (mut pos = pos + 1)
+                    ));
+                    0
+                ) else (mut tokens = push(tokens, [T_OP, ch]); mut pos = pos + 1)
+            ) else (mut tokens = push(tokens, [T_OP, ch]); mut pos = pos + 1)
+        )
+        else if ch == "-" then (
+            if pos + 1 < n then (
+                if charAt(src, pos + 1) == "-" then (
+                    mut pos = pos + 2;
+                    while pos < n do (
+                        if charCode(src, pos) == 10 then (mut pos = n + pos)
+                        else (mut pos = pos + 1)
+                    );
+                    (if pos > n then (mut pos = pos - n) else 0);
+                    0
+                ) else if charAt(src, pos + 1) == ">" then (
+                    mut tokens = push(tokens, [T_OP, "->"]); mut pos = pos + 2
+                ) else (mut tokens = push(tokens, [T_OP, ch]); mut pos = pos + 1)
+            ) else (mut tokens = push(tokens, [T_OP, ch]); mut pos = pos + 1)
+        )
+        else if is_digit(ch) == 1 then (
+            let start = pos in (
+                while pos < n do (
+                    if is_digit(charAt(src, pos)) == 1 then (mut pos = pos + 1) else (mut pos = n + pos)
+                );
+                (if pos >= n then (if pos > n then (mut pos = pos - n) else 0) else 0);
+                mut tokens = push(tokens, [T_NUM, substr(src, start, pos - start)])
+            )
+        )
+        else if charCode(ch) == 34 then (
+            mut pos = pos + 1;
+            let start = pos in
+            let has_interp = 0 in
+            let parts = [] in
+            let cur_str = "" in (
+                while pos < n do (
+                    if charCode(src, pos) == 34 then (mut pos = n + pos)
+                    else if charAt(src, pos) == "$" then (
+                        if pos + 1 < n then (
+                            if charAt(src, pos + 1) == "{" then (
+                                mut has_interp = 1;
+                                if len(cur_str) > 0 then (mut parts = push(parts, [0, cur_str])) else 0;
+                                mut cur_str = "";
+                                mut pos = pos + 2;
+                                let depth = 1 in
+                                let expr_str = "" in (
+                                    while pos < n do (
+                                        if depth == 0 then (mut pos = n + pos)
+                                        else if charAt(src, pos) == "{" then (
+                                            mut depth = depth + 1;
+                                            mut expr_str = expr_str + "{";
+                                            mut pos = pos + 1
+                                        ) else if charAt(src, pos) == "}" then (
+                                            mut depth = depth - 1;
+                                            if depth == 0 then (mut pos = pos + 1)
+                                            else (mut expr_str = expr_str + "}"; mut pos = pos + 1)
+                                        ) else (
+                                            mut expr_str = expr_str + charAt(src, pos);
+                                            mut pos = pos + 1
+                                        )
+                                    );
+                                    (if pos > n then (mut pos = pos - n) else 0);
+                                    mut parts = push(parts, [1, expr_str])
+                                )
+                            ) else (mut cur_str = cur_str + "$"; mut pos = pos + 1)
+                        ) else (mut cur_str = cur_str + "$"; mut pos = pos + 1)
+                    )
+                    else (
+                        mut cur_str = cur_str + charAt(src, pos);
+                        mut pos = pos + 1
+                    )
+                );
+                (if pos > n then (mut pos = pos - n) else 0);
+                if has_interp > 0 then (
+                    if len(cur_str) > 0 then (mut parts = push(parts, [0, cur_str])) else 0;
+                    mut tokens = push(tokens, [T_TMPL, parts])
+                ) else (
+                    mut tokens = push(tokens, [T_STR, cur_str])
+                );
+                mut pos = pos + 1
+            )
+        )
+        else if is_alpha(ch) == 1 then (
+            let start = pos in (
+                while pos < n do (
+                    if is_alnum(charAt(src, pos)) == 1 then (mut pos = pos + 1) else (mut pos = n + pos)
+                );
+                (if pos > n then (mut pos = pos - n) else 0);
+                let word = substr(src, start, pos - start) in
+                mut tokens = push(tokens, [if is_keyword(word) == 1 then T_KW else T_ID, word])
+            )
+        )
+        else if ch == "=" then (
+            if pos + 1 < n then (
+                let next = charAt(src, pos + 1) in
+                if next == "=" then (mut tokens = push(tokens, [T_OP, "=="]); mut pos = pos + 2)
+                else if next == ">" then (mut tokens = push(tokens, [T_OP, "=>"]); mut pos = pos + 2)
+                else (mut tokens = push(tokens, [T_OP, "="]); mut pos = pos + 1)
+            ) else (mut tokens = push(tokens, [T_OP, "="]); mut pos = pos + 1)
+        )
+        else if ch == "!" then (
+            if pos + 1 < n then (
+                if charAt(src, pos + 1) == "=" then (mut tokens = push(tokens, [T_OP, "!="]); mut pos = pos + 2)
+                else (mut pos = pos + 1)
+            ) else (mut pos = pos + 1)
+        )
+        else if ch == "|" then (
+            if pos + 1 < n then (
+                if charAt(src, pos + 1) == ">" then (mut tokens = push(tokens, [T_OP, "|>"]); mut pos = pos + 2)
+                else (mut tokens = push(tokens, [T_OP, "|"]); mut pos = pos + 1)
+            ) else (mut tokens = push(tokens, [T_OP, "|"]); mut pos = pos + 1)
+        )
+        else if ch == "<" then (
+            if pos + 1 < n then (
+                if charAt(src, pos + 1) == "=" then (mut tokens = push(tokens, [T_OP, "<="]); mut pos = pos + 2)
+                else (mut tokens = push(tokens, [T_OP, "<"]); mut pos = pos + 1)
+            ) else (mut tokens = push(tokens, [T_OP, "<"]); mut pos = pos + 1)
+        )
+        else if ch == ">" then (
+            if pos + 1 < n then (
+                if charAt(src, pos + 1) == "=" then (mut tokens = push(tokens, [T_OP, ">="]); mut pos = pos + 2)
+                else (mut tokens = push(tokens, [T_OP, ">"]); mut pos = pos + 1)
+            ) else (mut tokens = push(tokens, [T_OP, ">"]); mut pos = pos + 1)
+        )
+        else (mut tokens = push(tokens, [T_OP, ch]); mut pos = pos + 1)
+    );
+    mut tokens = push(tokens, [T_EOF, ""]);
+    tokens)
+
+fn token_name(ttype:int) = if ttype == T_NUM then "NUM" else (if ttype == T_ID then "ID" else (if ttype == T_STR then "STR" else (if ttype == T_OP then "OP" else (if ttype == T_KW then "KW" else (if ttype == T_EOF then "EOF" else (if ttype == T_TMPL then "TMPL" else "???"))))))
