@@ -1,4 +1,4 @@
-/* wasm_emit.ax — .ax -> WASM compiler (Phase 7: top-level statements)
+/* wasm_emit.ax — .ax -> WASM compiler (Phase 16: user fn return type inference)
    Parses .ax source via tokenizer.ax + parser.ax, emits WASM binary.
    Usage: node ax2 wasm_emit.ax input.ax output.wasm
    Stdlib auto-loaded by ax2 (tokenizer.ax + parser.ax available).
@@ -277,7 +277,10 @@ fn is_str_node(node, sp) = (
     else if node[1] == "toUpper" then 1
     else if node[1] == "toLower" then 1
     else if node[1] == "__int_to_str" then 1
-    else 0
+    else (
+      /* Check if user function returns string (name in sp = str_fns merged) */
+      is_param(node[1], sp)
+    )
   )
   else if t == N_MATCH then (
     /* Match is string-typed if any arm body is string-typed */
@@ -330,29 +333,30 @@ fn in_locals(name:str, locals) = (
   found
 )
 
-/* Scan AST node for local variable declarations (let/mut not in params) */
-fn scan_locals(node, params, locals) = (
+/* Scan AST node for local variable declarations (let/mut not in params).
+   sp = string-typed names (params + str_fns) for detecting string "+" concat temps. */
+fn scan_locals(node, params, locals, sp) = (
   let t = node[0] in
   if t == N_LET_E then (
     let name = node[1] in
     let locs = if is_param(name, params) == 0 then (
       if in_locals(name, locals) == 0 then push(locals, name) else locals
     ) else locals in
-    let locs2 = scan_locals(node[2], params, locs) in
-    scan_locals(node[3], params, locs2)
+    let locs2 = scan_locals(node[2], params, locs, sp) in
+    scan_locals(node[3], params, locs2, sp)
   )
   else if t == N_SET_E then (
     let name = node[1] in
     let locs = if is_param(name, params) == 0 then (
       if in_locals(name, locals) == 0 then push(locals, name) else locals
     ) else locals in
-    scan_locals(node[2], params, locs)
+    scan_locals(node[2], params, locs, sp)
   )
   else if t == N_BIN then (
     /* If string "+", need concat temps */
     mut locs = locals;
     if node[1] == "+" then (
-      if is_str_node(node, []) > 0 then (
+      if is_str_node(node, sp) > 0 then (
         if in_locals("__hp", locs) == 0 then (mut locs = push(locs, "__hp")) else 0;
         if in_locals("__ci", locs) == 0 then (mut locs = push(locs, "__ci")) else 0;
         if in_locals("__ol", locs) == 0 then (mut locs = push(locs, "__ol")) else 0;
@@ -361,22 +365,22 @@ fn scan_locals(node, params, locals) = (
         if in_locals("__fl", locs) == 0 then (mut locs = push(locs, "__fl")) else 0
       ) else 0
     ) else 0;
-    let locs2 = scan_locals(node[2], params, locs) in
-    scan_locals(node[3], params, locs2)
+    let locs2 = scan_locals(node[2], params, locs, sp) in
+    scan_locals(node[3], params, locs2, sp)
   )
-  else if t == N_NEG then scan_locals(node[1], params, locals)
+  else if t == N_NEG then scan_locals(node[1], params, locals, sp)
   else if t == N_IF then (
-    let locs2 = scan_locals(node[1], params, locals) in
-    let locs3 = scan_locals(node[2], params, locs2) in
-    scan_locals(node[3], params, locs3)
+    let locs2 = scan_locals(node[1], params, locals, sp) in
+    let locs3 = scan_locals(node[2], params, locs2, sp) in
+    scan_locals(node[3], params, locs3, sp)
   )
   else if t == N_SEQ then (
-    let locs2 = scan_locals(node[1], params, locals) in
-    scan_locals(node[2], params, locs2)
+    let locs2 = scan_locals(node[1], params, locals, sp) in
+    scan_locals(node[2], params, locs2, sp)
   )
   else if t == N_WHILE then (
-    let locs2 = scan_locals(node[1], params, locals) in
-    scan_locals(node[2], params, locs2)
+    let locs2 = scan_locals(node[1], params, locals, sp) in
+    scan_locals(node[2], params, locs2, sp)
   )
   else if t == N_CALL then (
     let cname = node[1] in
@@ -412,7 +416,7 @@ fn scan_locals(node, params, locals) = (
     ) else 0;
     mut i = 0;
     while i < len(args) do (
-      mut locs = scan_locals(args[i], params, locs);
+      mut locs = scan_locals(args[i], params, locs, sp);
       mut i = i + 1
     );
     locs
@@ -431,26 +435,26 @@ fn scan_locals(node, params, locals) = (
     mut locs2 = locs;
     mut i = 0;
     while i < len(elems) do (
-      mut locs2 = scan_locals(elems[i], params, locs2);
+      mut locs2 = scan_locals(elems[i], params, locs2, sp);
       mut i = i + 1
     );
     locs2
   )
   else if t == N_IDX then (
-    let locs2 = scan_locals(node[1], params, locals) in
-    scan_locals(node[2], params, locs2)
+    let locs2 = scan_locals(node[1], params, locals, sp) in
+    scan_locals(node[2], params, locs2, sp)
   )
   else if t == N_SHOW_S then (
     /* show statement: scan the argument expression */
-    scan_locals(node[1], params, locals)
+    scan_locals(node[1], params, locals, sp)
   )
   else if t == N_EXPR_S then (
     /* expression statement: scan the expression */
-    scan_locals(node[1], params, locals)
+    scan_locals(node[1], params, locals, sp)
   )
   else if t == N_CH then (
     /* Channel access: scan the value expression */
-    scan_locals(node[1], params, locals)
+    scan_locals(node[1], params, locals, sp)
   )
   else if t == N_PIPE then (
     /* Pipe: scan all args */
@@ -458,7 +462,7 @@ fn scan_locals(node, params, locals) = (
     mut locs = locals;
     mut i = 0;
     while i < len(args) do (
-      mut locs = scan_locals(args[i], params, locs);
+      mut locs = scan_locals(args[i], params, locs, sp);
       mut i = i + 1
     );
     locs
@@ -469,12 +473,12 @@ fn scan_locals(node, params, locals) = (
     let arms = node[2] in
     mut locs = locals;
     if in_locals("__mv", locs) == 0 then (mut locs = push(locs, "__mv")) else 0;
-    mut locs = scan_locals(match_expr, params, locs);
+    mut locs = scan_locals(match_expr, params, locs, sp);
     mut i = 0;
     while i < len(arms) do (
       let arm = arms[i] in
-      mut locs = scan_locals(arm[0], params, locs);
-      mut locs = scan_locals(arm[1], params, locs);
+      mut locs = scan_locals(arm[0], params, locs, sp);
+      mut locs = scan_locals(arm[1], params, locs, sp);
       mut i = i + 1
     );
     locs
@@ -489,8 +493,8 @@ fn scan_locals(node, params, locals) = (
     if in_locals("__fi", locs) == 0 then (mut locs = push(locs, "__fi")) else 0;
     if in_locals("__fa", locs) == 0 then (mut locs = push(locs, "__fa")) else 0;
     if in_locals("__fl", locs) == 0 then (mut locs = push(locs, "__fl")) else 0;
-    let locs2 = scan_locals(node[2], params, locs) in
-    scan_locals(node[3], params, locs2)
+    let locs2 = scan_locals(node[2], params, locs, sp) in
+    scan_locals(node[3], params, locs2, sp)
   )
   else locals
 )
@@ -1276,6 +1280,40 @@ fn chain_stmts(stmts) = (
   )
 )
 
+/* Compute list of user function names that return strings.
+   Two-pass fixed-point: pass 1 finds obvious cases, pass 2 catches transitive. */
+fn compute_str_fns(fns) = (
+  /* Pass 1: check each fn body with its :str params only */
+  mut sf = [];
+  mut i = 0;
+  while i < len(fns) do (
+    let params = fns[i][1] in
+    let body = fns[i][2] in
+    let types = if len(fns[i]) > 3 then fns[i][3] else [] in
+    let sp = get_str_params(params, types) in
+    let sp2 = collect_str_locals(body, sp) in
+    if is_str_node(body, sp2) > 0 then (
+      mut sf = push(sf, fns[i][0])
+    ) else 0;
+    mut i = i + 1
+  );
+  /* Pass 2: re-check with str_fns from pass 1 merged into sp */
+  mut sf2 = [];
+  mut i = 0;
+  while i < len(fns) do (
+    let params = fns[i][1] in
+    let body = fns[i][2] in
+    let types = if len(fns[i]) > 3 then fns[i][3] else [] in
+    let sp = wcat(get_str_params(params, types), sf) in
+    let sp2 = collect_str_locals(body, sp) in
+    if is_str_node(body, sp2) > 0 then (
+      mut sf2 = push(sf2, fns[i][0])
+    ) else 0;
+    mut i = i + 1
+  );
+  sf2
+)
+
 /* ================================================================
    WASM MODULE BUILDER
    ================================================================ */
@@ -1409,16 +1447,18 @@ fn build_wasm(fns, globals) = (
   ;
 
   /* --- Code section (ID=10): one body per function --- */
+  /* Pre-compute which user fns return strings (for show/concat detection) */
+  let str_fns = compute_str_fns(fns) in
   mut code_bodies = [];
   mut fi = 0;
   while fi < len(fns) do (
     let params = fns[fi][1] in
     let body_ast = fns[fi][2] in
     let types = if len(fns[fi]) > 3 then fns[fi][3] else [] in
-    let sp0 = get_str_params(params, types) in
+    let sp0 = wcat(get_str_params(params, types), str_fns) in
     let sp = collect_str_locals(body_ast, sp0) in
-    /* Scan for local variables */
-    let locals = scan_locals(body_ast, params, []) in
+    /* Scan for local variables (sp passed for string "+" concat temp detection) */
+    let locals = scan_locals(body_ast, params, [], sp) in
     /* Local declarations: count of (count, type) pairs */
     /* Each local is 1 x i32 */
     mut local_decls = [];
