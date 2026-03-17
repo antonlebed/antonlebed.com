@@ -304,8 +304,11 @@ fn scan_locals(node, params, locals) = (
     if in_locals("__hp", locals) == 0 then push(locals, "__hp") else locals
   )
   else if t == N_ARR then (
-    /* Array literal needs __hp temp local for bump allocator */
+    /* Array literal needs __hp + __ab temp locals for bump allocator.
+       __ab = array base pointer (separate from __hp to avoid clobbering
+       when elements are strings/arrays that also use __hp) */
     let locs = if in_locals("__hp", locals) == 0 then push(locals, "__hp") else locals in
+    let locs = if in_locals("__ab", locs) == 0 then push(locs, "__ab") else locs in
     let elems = node[1] in
     mut locs2 = locs;
     mut i = 0;
@@ -574,8 +577,26 @@ fn emit_expr(node, params, locals, fns) = (
     else if op == "*" then emit_ring_mul(lb, rb)
     else if op == "/" then wcat(lb, wcat(rb, [OP_I32_DIV_S]))
     else if op == "%" then wcat(lb, wcat(rb, [OP_I32_REM_S]))
-    else if op == "==" then wcat(lb, wcat(rb, [OP_I32_EQ]))
-    else if op == "!=" then wcat(lb, wcat(rb, [OP_I32_NE]))
+    else if op == "==" then (
+      if is_str_node(node[2]) > 0 then (
+        /* String detected — use __strcmp */
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        wcat(lb, wcat(rb, wcat([OP_CALL], leb_u(cmp_fi))))
+      ) else if is_str_node(node[3]) > 0 then (
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        wcat(lb, wcat(rb, wcat([OP_CALL], leb_u(cmp_fi))))
+      ) else wcat(lb, wcat(rb, [OP_I32_EQ]))
+    )
+    else if op == "!=" then (
+      if is_str_node(node[2]) > 0 then (
+        /* __strcmp returns 1 if equal; negate with EQZ for != */
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        wcat(lb, wcat(rb, wcat([OP_CALL], wcat(leb_u(cmp_fi), [OP_I32_EQZ]))))
+      ) else if is_str_node(node[3]) > 0 then (
+        let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+        wcat(lb, wcat(rb, wcat([OP_CALL], wcat(leb_u(cmp_fi), [OP_I32_EQZ]))))
+      ) else wcat(lb, wcat(rb, [OP_I32_NE]))
+    )
     else if op == "<" then wcat(lb, wcat(rb, [OP_I32_LT_S]))
     else if op == ">" then wcat(lb, wcat(rb, [OP_I32_GT_S]))
     else if op == "<=" then wcat(lb, wcat(rb, [OP_I32_LE_S]))
@@ -632,30 +653,34 @@ fn emit_expr(node, params, locals, fns) = (
   )
   else if t == N_ARR then (
     /* Array literal: allocate in linear memory via bump allocator.
-       Layout: [len:i32, elem0:i32, elem1:i32, ...] */
+       Layout: [len:i32, elem0:i32, elem1:i32, ...]
+       Uses __ab for array base pointer (not __hp) so element expressions
+       that allocate strings/arrays won't clobber the outer array base.
+       HP is advanced FIRST to reserve the array space. */
     let elems = node[1] in
     let nelem = len(elems) in
-    let hp_idx = find_local_idx("__hp", params, locals) in
-    /* Save current heap pointer to __hp local */
-    mut bytes = wcat([OP_GLOBAL_GET, 0.0], wcat([OP_LOCAL_SET], leb_u(hp_idx + 0.0)));
-    /* Store length at __hp+0 */
-    mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx + 0.0)));
+    let ab_idx = find_local_idx("__ab", params, locals) in
+    /* Save current heap pointer to __ab local (array base) */
+    mut bytes = wcat([OP_GLOBAL_GET, 0.0], wcat([OP_LOCAL_SET], leb_u(ab_idx + 0.0)));
+    /* Advance HP past the array: HP += (1 + nelem) * 4 */
+    mut bytes = wcat(bytes, [OP_GLOBAL_GET, 0.0]);
+    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s((1 + nelem) * 4 + 0.0)));
+    mut bytes = wcat(bytes, [OP_I32_ADD, OP_GLOBAL_SET, 0.0]);
+    /* Store length at __ab+0 */
+    mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx + 0.0)));
     mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s(nelem + 0.0)));
     mut bytes = wcat(bytes, emit_store(0.0));
-    /* Store each element at __hp + 4*(i+1) */
+    /* Store each element at __ab + 4*(i+1).
+       Element expressions may allocate (using __hp + global HP) safely. */
     mut i = 0;
     while i < nelem do (
-      mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx + 0.0)));
+      mut bytes = wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx + 0.0)));
       mut bytes = wcat(bytes, emit_expr(elems[i], params, locals, fns));
       mut bytes = wcat(bytes, emit_store((i + 1) * 4 + 0.0));
       mut i = i + 1
     );
-    /* Advance heap pointer: HP += (1 + nelem) * 4 */
-    mut bytes = wcat(bytes, [OP_GLOBAL_GET, 0.0]);
-    mut bytes = wcat(bytes, wcat([OP_I32_CONST], leb_s((1 + nelem) * 4 + 0.0)));
-    mut bytes = wcat(bytes, [OP_I32_ADD, OP_GLOBAL_SET, 0.0]);
-    /* Return array pointer (old HP) */
-    wcat(bytes, wcat([OP_LOCAL_GET], leb_u(hp_idx + 0.0)))
+    /* Return array pointer */
+    wcat(bytes, wcat([OP_LOCAL_GET], leb_u(ab_idx + 0.0)))
   )
   else if t == N_IDX then (
     /* Array indexing: load from (ptr + 4 + index*4)
@@ -771,6 +796,13 @@ fn emit_expr(node, params, locals, fns) = (
       let a_b = emit_expr(args[0], params, locals, fns) in
       let b_b = emit_expr(args[1], params, locals, fns) in
       emit_concat(a_b, b_b, params, locals)
+    )
+    else if name == "streq" then (
+      /* Builtin: streq(a, b) = compare array/string contents via __strcmp */
+      let a_b = emit_expr(args[0], params, locals, fns) in
+      let b_b = emit_expr(args[1], params, locals, fns) in
+      let cmp_fi = find_fn_idx(fns, "__strcmp") + 2.0 in
+      wcat(a_b, wcat(b_b, wcat([OP_CALL], leb_u(cmp_fi))))
     )
     else if name == "charCode" then (
       /* Builtin: charCode(str, idx) = same as array indexing */
@@ -1091,9 +1123,12 @@ fn wasm_from_src(src) = (
   let ast = parse(src) in
   let ufns = collect_fns(ast) in
   let its_src = "fn __int_to_str(n) = (if n == 0 then [48] else (mut nd = 0; mut t = n; while t > 0 do (mut nd = nd + 1; mut t = t / 10); mut dg = []; mut t = n; while t > 0 do (mut dg = push(dg, t % 10 + 48); mut t = t / 10); mut r = []; mut i = nd; while i > 0 do (mut i = i - 1; mut r = push(r, dg[i])); r))" in
+  let cmp_src = "fn __strcmp(a, b) = (let la = len(a) in let lb = len(b) in if la == lb then (mut eq = 1; mut i = 0; while i < la do (if a[i] == b[i] then 0 else (mut eq = 0); mut i = i + 1); eq) else 0)" in
   let its_ast = parse(its_src) in
+  let cmp_ast = parse(cmp_src) in
   let its_fns = collect_fns(its_ast) in
-  let fns_base = push(ufns, its_fns[0]) in
+  let cmp_fns = collect_fns(cmp_ast) in
+  let fns_base = push(push(ufns, its_fns[0]), cmp_fns[0]) in
   let top_stmts = collect_top_stmts(ast) in
   let main_body = chain_stmts(top_stmts) in
   let fns = if len(top_stmts) > 0

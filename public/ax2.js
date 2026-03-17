@@ -796,6 +796,16 @@ BUILTINS.charCode = (args) => {
     return fromInt(s.charCodeAt(idx));
 };
 BUILTINS.fromCharCode = (args) => String.fromCharCode(toInt(args[0]));
+BUILTINS.streq = (args) => {
+    const a = args[0], b = args[1];
+    if (typeof a === 'string' && typeof b === 'string') return a === b ? fromInt(1) : fromInt(0);
+    if (Array.isArray(a) && Array.isArray(b)) {
+        if (a.length !== b.length) return fromInt(0);
+        for (let i = 0; i < a.length; i++) if (toInt(a[i]) !== toInt(b[i])) return fromInt(0);
+        return fromInt(1);
+    }
+    return toInt(a) === toInt(b) ? fromInt(1) : fromInt(0);
+};
 BUILTINS.substr = (args) => {
     const s = args[0];
     if (typeof s !== 'string') throw new Error('substr: expected string');

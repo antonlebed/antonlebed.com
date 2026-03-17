@@ -903,6 +903,17 @@ BUILTINS.PI_f = () => Math.PI;
 BUILTINS.E_f = () => Math.E;
 BUILTINS.INF_f = () => Infinity;
 
+BUILTINS.streq = function(args) {
+    const a = args[0], b = args[1];
+    if (typeof a === 'string' && typeof b === 'string') return a === b ? 1 : 0;
+    if (Array.isArray(a) && Array.isArray(b)) {
+        if (a.length !== b.length) return 0;
+        for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return 0;
+        return 1;
+    }
+    return a === b ? 1 : 0;
+};
+
 // --- Array builtins ---
 BUILTINS.range = function(args) {
     if (args.length === 1) { const n = Math.min(Math.max(0, Math.round(args[0])), 10000); return Array.from({length:n}, (_,i) => i); }
