@@ -64,6 +64,36 @@ function coupling(n) {
     return N / gcd(ringMod(n), N);
 }
 
+// CRT channel metadata (S815: absorbed from crt_core.js)
+const CRT_NAMES = ['Z/8 (D)', 'Z/9 (K)', 'Z/25 (E)', 'Z/49 (b)', 'Z/11 (L)'];
+const CRT_COLORS = ['#f44', '#fa0', '#ff0', '#0f0', '#08f'];
+
+function reconstruct(channels) {
+    const mods = CRT_MODS;
+    let sum = 0;
+    for (let i = 0; i < mods.length; i++) {
+        const Mi = N / mods[i];
+        const inv = multInverse_mod(Mi, mods[i]);
+        sum += channels[i] * Mi * inv;
+    }
+    return ((sum % N) + N) % N;
+}
+
+// modular inverse of a mod m (for reconstruct — different from multInverse which uses ring N)
+function multInverse_mod(a, m) {
+    a = ((a % m) + m) % m;
+    let [old_r, r] = [a, m], [old_s, s] = [1, 0];
+    while (r !== 0) {
+        const q = Math.floor(old_r / r);
+        [old_r, r] = [r, old_r - q * r];
+        [old_s, s] = [s, old_s - q * s];
+    }
+    return ((old_s % m) + m) % m;
+}
+
+function ringAdd(a, b) { return ((a + b) % N + N) % N; }
+function ringMul(a, b) { return Number((BigInt(((a % N) + N) % N) * BigInt(((b % N) + N) % N)) % BigInt(N)); }
+
 function crt(n) {
     if (_wasm && N === TRUE_N) {
         const ptr = _wasm._wasm_decompose(ringMod(n));
@@ -1655,6 +1685,9 @@ return {
     // Ring math (exposed for pages that need direct access)
     ringMod, gcd, crt, coupling, eigenvalue, mirror,
     eulerPhi, multOrder, multInverse, modPow,
+    // CRT core (S815: absorbed from crt_core.js — kills crt_core.js)
+    CRT_NAMES, CRT_COLORS, reconstruct, ringAdd, ringMul,
+    decompose: crt, modinv: multInverse_mod,
 
     // Language
     tokenize, parse, Parser, run, createSession,
@@ -1667,3 +1700,29 @@ return {
 };
 
 })();
+
+// S815: CRT compatibility namespace — pages that used crt_core.js can use this instead.
+// Kills crt_core.js (58L). No separate file needed.
+if (typeof window !== 'undefined' && !window.CRT) {
+    window.CRT = {
+        get N() { return AX.N; },
+        get MODS() { return AX.CRT_MODS; },
+        NAMES: AX.CRT_NAMES,
+        COLORS: AX.CRT_COLORS,
+        decompose: function(n) { return AX.crt(n); },
+        reconstruct: function(ch) { return AX.reconstruct(ch); },
+        gcd: function(a, b) { return AX.gcd(a, b); },
+        coupling: function(n) { return AX.coupling(n); },
+        modpow: function(base, exp, mod) {
+            if (mod !== undefined) {
+                let r = 1; base = ((base % mod) + mod) % mod;
+                while (exp > 0) { if (exp & 1) r = r * base % mod; base = base * base % mod; exp >>= 1; }
+                return r;
+            }
+            return AX.modPow(base, exp);
+        },
+        modinv: function(a, m) { return AX.modinv(a, m); },
+        ringAdd: function(a, b) { return AX.ringAdd(a, b); },
+        ringMul: function(a, b) { return AX.ringMul(a, b); },
+    };
+}
