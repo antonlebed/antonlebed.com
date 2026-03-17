@@ -275,7 +275,7 @@ function tokenize(src) {
         if (src[i] === '>' && i+1 < len && src[i+1] === '=') { pk({t:'>=', v:'>='}); i+=2; continue; }
         if (src[i] === '/' && src[i+1] === '*') { i += 2; while (i < len - 1 && !(src[i] === '*' && src[i+1] === '/')) { if (src[i] === '\n') line++; i++; } i += 2; continue; }
         const ch = src[i];
-        if ('+-*/^~@<>=()[]|,;%'.includes(ch)) { pk({t:ch, v:ch}); i++; continue; }
+        if ('+-*/^~@<>=()[]|,;%:'.includes(ch)) { pk({t:ch, v:ch}); i++; continue; }
         i++;
     }
     pk({t:'EOF', v:null});
@@ -329,7 +329,11 @@ class Parser {
         const params = [];
         if (this.pk().t !== ')') {
             params.push(this.expect('ID').v);
-            while (this.match(',')) params.push(this.expect('ID').v);
+            if (this.match(':')) this.expect('ID');  // skip type annotation
+            while (this.match(',')) {
+                params.push(this.expect('ID').v);
+                if (this.match(':')) this.expect('ID');  // skip type annotation
+            }
         }
         this.expect(')');
         this.expect('=');

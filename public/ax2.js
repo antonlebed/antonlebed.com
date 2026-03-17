@@ -241,7 +241,7 @@ function tokenize(src) {
         if (src[i] === '>' && src[i+1] === '=') { pk({t:'>='}); i+=2; continue; }
         if (src[i] === '.') { pk({t:'.'}); i++; continue; }
         const ch = src[i];
-        if ('+-*/^%<>=()[]|,;'.includes(ch)) { pk({t:ch}); i++; continue; }
+        if ('+-*/^%<>=()[]|,;:'.includes(ch)) { pk({t:ch}); i++; continue; }
         i++;
     }
     pk({t:'EOF'});
@@ -312,13 +312,22 @@ class Parser {
         const name = this.expect('ID').v;
         this.expect('(');
         const params = [];
+        const paramTypes = {};  // explicit type annotations: {paramName: typeStr}
         if (this.pk().t !== ')') {
-            params.push(this.expect('ID').v);
-            while (this.match(',')) params.push(this.expect('ID').v);
+            let p = this.expect('ID').v;
+            params.push(p);
+            if (this.match(':')) paramTypes[p] = this.expect('ID').v;
+            while (this.match(',')) {
+                p = this.expect('ID').v;
+                params.push(p);
+                if (this.match(':')) paramTypes[p] = this.expect('ID').v;
+            }
         }
         this.expect(')');
         this.expect('=');
-        return {t:'Fn', name, params, body:this.parseExpr()};
+        const node = {t:'Fn', name, params, body:this.parseExpr()};
+        if (Object.keys(paramTypes).length > 0) node.paramTypes = paramTypes;
+        return node;
     }
 
     parseExpr() {
