@@ -852,8 +852,7 @@ var _axWasmEval = null;
 var _useWasmEval = false;
 var _useNativeCompile = false;
 var _nativeCompilerReady = false;
-var _nativeStdlibSrc = null;
-var _ax2Loaded = false;
+var _deepOuroborosModule = null; /* Phase 18: cached WebAssembly.Module */
 
 // Phase Z Wave 4: all examples run in WASM (14/14)
 var JS_ONLY_EXAMPLES = {};
@@ -930,70 +929,70 @@ function resetWasmSession() {
 }
 
 // ================================================================
-//  Phase 9: Native WASM compilation (S827)
-//  .ax source → tokenizer.ax → parser.ax → wasm_emit.ax → WASM binary → execute
-//  ax2.js lazy-loaded only when native mode first activates.
+//  Phase 18: Deep Ouroboros native compiler (S836)
+//  .ax source → deep_ouroboros.wasm (native compiler) → WASM binary → execute
+//  62KB pre-compiled WASM replaces ax2.js + 3 .ax files (~58ms → ~1ms compile).
 // ================================================================
 async function loadNativeCompiler() {
     if (_nativeCompilerReady) return;
     var status = document.getElementById('btn-eval-mode');
     status.textContent = 'loading compiler...';
-    if (!_ax2Loaded) {
-        await new Promise(function(resolve, reject) {
-            var s = document.createElement('script');
-            s.src = 'ax2.js';
-            s.onload = resolve;
-            s.onerror = reject;
-            document.head.appendChild(s);
-        });
-        _ax2Loaded = true;
-    }
-    async function tryFetch(name) {
-        var r = await fetch(name);
-        if (!r.ok) r = await fetch('../code/stdlib/' + name);
-        if (!r.ok) throw new Error('Cannot load ' + name);
-        return r.text();
-    }
-    var files = await Promise.all([
-        tryFetch('tokenizer.ax'),
-        tryFetch('parser.ax'),
-        tryFetch('wasm_emit.ax')
-    ]);
-    _nativeStdlibSrc = files[0] + '\n' + files[1] + '\n' + files[2];
+    var r = await fetch('deep_ouroboros.wasm');
+    if (!r.ok) r = await fetch('../code/deep_ouroboros.wasm');
+    if (!r.ok) throw new Error('Cannot load deep_ouroboros.wasm');
+    var buf = await r.arrayBuffer();
+    _deepOuroborosModule = await WebAssembly.compile(buf);
     _nativeCompilerReady = true;
     updateEvalButton();
 }
 
 async function executeNative(src) {
     if (!_nativeCompilerReady) await loadNativeCompiler();
-    AX2.BUILTINS.__user_src = function() { return src; };
-    var fullSrc = _nativeStdlibSrc + '\nshow wasm_from_src(__user_src())';
     var t0 = performance.now();
-    var result = AX2.run(fullSrc);
+    /* Fresh compiler instance each run (clean heap, ~1ms from cached module) */
+    var compiler = await WebAssembly.instantiate(_deepOuroborosModule, {
+        env: {
+            show_int: function(v) { return v; },
+            show_str: function(ptr) { return ptr; }
+        }
+    });
+    var cm = compiler.exports;
+    var compilerMem = cm.memory;
+    /* Grow to 256 pages (16MB) for safety */
+    compilerMem.grow(256 - compilerMem.buffer.byteLength / 65536);
+    var mem32 = new Int32Array(compilerMem.buffer);
+    /* Write source string at 15MB — far above any heap allocation */
+    var strAddr = 15 * 1024 * 1024;
+    mem32[strAddr / 4] = src.length;
+    for (var i = 0; i < src.length; i++) mem32[strAddr / 4 + 1 + i] = src.charCodeAt(i);
+    /* Native compile: .ax source → WASM bytes */
+    var wasmBytesPtr = cm.wasm_from_src(strAddr);
     var t1 = performance.now();
-    if (result.error) throw new Error('Compile: ' + result.error);
-    var lastOut = result.output[result.output.length - 1];
-    if (!lastOut || !lastOut.arr) throw new Error('Compiler did not produce WASM bytes');
-    var wasmBytes = new Uint8Array(lastOut.arr.map(function(b) { return typeof b === 'number' ? Math.floor(b) : AX2.toInt(b); }));
+    /* Read WASM byte array from compiler memory */
+    var reMem32 = new Int32Array(compilerMem.buffer);
+    var wasmLen = reMem32[wasmBytesPtr / 4];
+    var wasmBytes = new Uint8Array(wasmLen);
+    for (var j = 0; j < wasmLen; j++) wasmBytes[j] = reMem32[wasmBytesPtr / 4 + 1 + j];
+    /* Instantiate the compiled program */
     var lines = [];
-    var memory;
+    var childMem;
     var t2 = performance.now();
-    var wasm = await WebAssembly.instantiate(wasmBytes.buffer, {
+    var child = await WebAssembly.instantiate(wasmBytes.buffer, {
         env: {
             show_int: function(v) { lines.push(String(v)); return v; },
             show_str: function(ptr) {
-                var mem = new Uint32Array(memory.buffer);
-                var len = mem[ptr / 4];
+                var m32 = new Int32Array(childMem.buffer);
+                var len = m32[ptr / 4];
                 var s = '';
-                for (var i = 0; i < len; i++) s += String.fromCharCode(mem[ptr / 4 + 1 + i]);
+                for (var k = 0; k < len; k++) s += String.fromCharCode(m32[ptr / 4 + 1 + k]);
                 lines.push(s);
                 return ptr;
             }
         }
     });
-    memory = wasm.instance.exports.memory;
+    childMem = child.instance.exports.memory;
     var t3 = performance.now();
-    if (wasm.instance.exports._main) wasm.instance.exports._main();
+    if (child.instance.exports._main) child.instance.exports._main();
     var t4 = performance.now();
     outputLines = lines.map(function(l) { return esc(l); });
     traceLines = [];
