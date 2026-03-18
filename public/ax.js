@@ -848,6 +848,7 @@ BUILTINS.toFloat = (args) => {
     if (Array.isArray(v)) return v.length;
     return 0;
 };
+BUILTINS.toInt = (args) => Math.trunc(typeof args[0] === 'number' ? args[0] : 0);
 BUILTINS.exp_f = (args) => Math.exp(typeof args[0] === 'number' ? args[0] : 0);
 BUILTINS.log_f = (args) => { const x = typeof args[0] === 'number' ? args[0] : 0; return x > 0 ? Math.log(x) : -Infinity; };
 BUILTINS.log2_f = (args) => { const x = typeof args[0] === 'number' ? args[0] : 0; return x > 0 ? Math.log2(x) : -Infinity; };

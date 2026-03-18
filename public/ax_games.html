@@ -225,7 +225,7 @@ fn tick(frame) = (
 )`;
 
 DEMOS.pong = `/* Pong — two paddles, one ball. Arrow keys. */
-/* Pure let-chain: NO semicolons between lets. */
+/* gvar_f/svar_f for float state = native WASM compatible. */
 
 raw_mode(1)
 
@@ -233,31 +233,32 @@ fn init(frame) = (
   /* Pseudo-random direction from frame count */
   let dirx = if frame % 2 == 0 then 1 else -1
   let diry = if frame % 3 == 0 then 1 else -1
-  svar("bx", 300); svar("by", 200);
-  svar("vx", 2 * dirx); svar("vy", 1.5 * diry);
-  svar("pL", 170); svar("pR", 170);
+  svar_f("bx", 300.0); svar_f("by", 200.0);
+  svar_f("vx", 2.0 * toFloat(dirx)); svar_f("vy", 1.5 * toFloat(diry));
+  svar_f("pL", 170.0); svar_f("pR", 170.0);
   svar("sL", 0); svar("sR", 0);
-  svar("spd", 1); svar("age", 0); svar("diff", 5); svar("pv", 0)
+  svar_f("spd", 1.0); svar("age", 0); svar("diff", 5); svar_f("pv", 0.0);
+  0
 )
 
 fn update(frame) = (
   /* Left/Right = game speed */
-  let _sp = svar("spd", if keyPressed("ArrowRight") then (if gvar("spd") < 3 then gvar("spd") + 0.02 else 3)
-                        else if keyPressed("ArrowLeft") then (if gvar("spd") > 0.5 then gvar("spd") - 0.02 else 0.5)
-                        else gvar("spd"))
+  let _sp = svar_f("spd", if keyPressed("ArrowRight") then (if gvar_f("spd") < 3.0 then gvar_f("spd") + 0.02 else 3.0)
+                        else if keyPressed("ArrowLeft") then (if gvar_f("spd") > 0.5 then gvar_f("spd") - 0.02 else 0.5)
+                        else gvar_f("spd"))
   let age = gvar("age") + 1
   let _ag = svar("age", age)
-  let accel = 1 + age / 600
-  let spd = gvar("spd")
+  let accel = 1.0 + toFloat(age) / 600.0
+  let spd = gvar_f("spd")
   /* Paddle: momentum — accelerate on key, decelerate on release */
-  let pv = gvar("pv")
-  let maxSpd = 3 * spd
-  let npv = if keyPressed("ArrowUp") then (if pv - 0.4 > 0 - maxSpd then pv - 0.4 else 0 - maxSpd)
+  let pv = gvar_f("pv")
+  let maxSpd = 3.0 * spd
+  let npv = if keyPressed("ArrowUp") then (if pv - 0.4 > 0.0 - maxSpd then pv - 0.4 else 0.0 - maxSpd)
             else if keyPressed("ArrowDown") then (if pv + 0.4 < maxSpd then pv + 0.4 else maxSpd)
             else pv * 0.85
-  let _pv = svar("pv", npv)
-  let newPR = gvar("pR") + npv
-  let _pR = svar("pR", if newPR < 0 then 0 else if newPR > 340 then 340 else newPR)
+  let _pv = svar_f("pv", npv)
+  let newPR = gvar_f("pR") + npv
+  let _pR = svar_f("pR", if newPR < 0.0 then 0.0 else if newPR > 340.0 then 340.0 else newPR)
   /* Difficulty: 1-9 keys, 0=10. Controls AI speed + reaction zone */
   let diff = gvar("diff")
   let _d1 = if keyPressed("Digit1") then svar("diff", 1) else 0
@@ -272,54 +273,54 @@ fn update(frame) = (
   let _d0 = if keyPressed("Digit0") then svar("diff", 10) else 0
   let diff2 = gvar("diff")
   /* AI: higher diff = faster + tighter tracking */
-  let aiSpd = (0.5 + diff2 * 0.2) * spd * accel
-  let aiZone = 40 - diff2 * 3
-  let _pL = svar("pL", if gvar("by") > gvar("pL") + 30 + aiZone then (if gvar("pL") + aiSpd > 340 then 340 else gvar("pL") + aiSpd) else if gvar("by") < gvar("pL") + 30 - aiZone then (if gvar("pL") - aiSpd < 0 then 0 else gvar("pL") - aiSpd) else gvar("pL"))
-  /* Ball: base velocity in gvar, multiply by accel+spd for movement */
-  let bvx = gvar("vx")
-  let bvy = gvar("vy")
+  let aiSpd = (0.5 + toFloat(diff2) * 0.2) * spd * accel
+  let aiZone = 40.0 - toFloat(diff2) * 3.0
+  let _pL = svar_f("pL", if gvar_f("by") > gvar_f("pL") + 30.0 + aiZone then (if gvar_f("pL") + aiSpd > 340.0 then 340.0 else gvar_f("pL") + aiSpd) else if gvar_f("by") < gvar_f("pL") + 30.0 - aiZone then (if gvar_f("pL") - aiSpd < 0.0 then 0.0 else gvar_f("pL") - aiSpd) else gvar_f("pL"))
+  /* Ball: base velocity in gvar_f, multiply by accel+spd for movement */
+  let bvx = gvar_f("vx")
+  let bvy = gvar_f("vy")
   let mx = bvx * accel * spd
   let my = bvy * accel * spd
-  let nx = gvar("bx") + mx
-  let ny = gvar("by") + my
+  let nx = gvar_f("bx") + mx
+  let ny = gvar_f("by") + my
   /* Wall bounce: FLIP stored base velocity */
-  let wallY = if ny <= 5 then 1 else if ny >= 395 then -1 else 0
-  let _vy1 = if wallY != 0 then svar("vy", abs_f(bvy) * wallY) else 0
-  let ny2 = if ny <= 5 then 6 else if ny >= 395 then 394 else ny
+  let wallY = if ny <= 5.0 then 1 else if ny >= 395.0 then -1 else 0
+  let _vy1 = if wallY != 0 then svar_f("vy", abs_f(bvy) * toFloat(wallY)) else 0.0
+  let ny2 = if ny <= 5.0 then 6.0 else if ny >= 395.0 then 394.0 else ny
   /* Paddle hit detection — use wide zone to prevent phasing */
-  let hitL = if nx <= 30 then (if nx >= 5 then (if ny2 >= gvar("pL") - 5 then (if ny2 <= gvar("pL") + 65 then 1 else 0) else 0) else 0) else 0
-  let hitR = if nx >= 570 then (if nx <= 595 then (if ny2 >= gvar("pR") - 5 then (if ny2 <= gvar("pR") + 65 then 1 else 0) else 0) else 0) else 0
+  let hitL = if nx <= 30.0 then (if nx >= 5.0 then (if ny2 >= gvar_f("pL") - 5.0 then (if ny2 <= gvar_f("pL") + 65.0 then 1 else 0) else 0) else 0) else 0
+  let hitR = if nx >= 570.0 then (if nx <= 595.0 then (if ny2 >= gvar_f("pR") - 5.0 then (if ny2 <= gvar_f("pR") + 65.0 then 1 else 0) else 0) else 0) else 0
   /* Paddle hit: FLIP stored base velocity, push ball out */
-  let _vx1 = if hitL == 1 then svar("vx", abs_f(bvx)) else if hitR == 1 then svar("vx", 0 - abs_f(bvx)) else 0
-  let nx2 = if hitL == 1 then 31 else if hitR == 1 then 569 else nx
+  let _vx1 = if hitL == 1 then svar_f("vx", abs_f(bvx)) else if hitR == 1 then svar_f("vx", 0.0 - abs_f(bvx)) else 0.0
+  let nx2 = if hitL == 1 then 31.0 else if hitR == 1 then 569.0 else nx
   /* Score */
-  let scored = if nx2 <= 0 then 2 else if nx2 >= 600 then 1 else 0
-  let _bx = svar("bx", if scored > 0 then 300 else nx2)
-  let _by = svar("by", if scored > 0 then 200 else ny2)
+  let scored = if nx2 <= 0.0 then 2 else if nx2 >= 600.0 then 1 else 0
+  let _bx = svar_f("bx", if scored > 0 then 300.0 else nx2)
+  let _by = svar_f("by", if scored > 0 then 200.0 else ny2)
   /* Reset on score: random direction */
   let dirx = if frame % 2 == 0 then 1 else -1
   let diry = if frame % 3 == 0 then 1 else -1
-  let _vxr = if scored > 0 then svar("vx", 2 * dirx) else 0
-  let _vyr = if scored > 0 then svar("vy", 1.5 * diry) else 0
+  let _vxr = if scored > 0 then svar_f("vx", 2.0 * toFloat(dirx)) else 0.0
+  let _vyr = if scored > 0 then svar_f("vy", 1.5 * toFloat(diry)) else 0.0
   let _age2 = if scored > 0 then svar("age", 0) else 0
   let _s1 = if scored == 2 then svar("sR", gvar("sR") + 1) else 0
   let _s2 = if scored == 1 then svar("sL", gvar("sL") + 1) else 0
-  if hitL == 1 then beep(440, 50, 0.2) else if hitR == 1 then beep(550, 50, 0.2) else if scored > 0 then beep(220, 150, 0.3) else 0
+  if hitL == 1 then beep(440, 50, 1) else if hitR == 1 then beep(550, 50, 1) else if scored > 0 then beep(220, 150, 1) else 0
 )
 
 fn draw() = (
   let _0 = canvas_clear(0)
   let _1 = canvas_line(300, 0, 300, 400, 5, 1)
-  let _2 = canvas_rect(10, gvar("pL"), 10, 60, 1)
-  let _3 = canvas_rect(580, gvar("pR"), 10, 60, 2)
-  let _4 = canvas_circle(gvar("bx"), gvar("by"), 6, 8)
+  let _2 = canvas_rect(10, gvar_f("pL"), 10, 60, 1)
+  let _3 = canvas_rect(580, gvar_f("pR"), 10, 60, 2)
+  let _4 = canvas_circle(gvar_f("bx"), gvar_f("by"), 6, 8)
   let _5 = canvas_text(220, 30, "" + gvar("sL"), 24, 1)
   let _6 = canvas_text(340, 30, "" + gvar("sR"), 24, 2)
   let _7 = canvas_text(10, 370, "Controls", 13, 8)
   let _8 = canvas_text(10, 388, "Up/Down: paddle", 10, 5)
   let _9 = canvas_text(170, 388, "Left/Right: speed", 10, 5)
   let _a2 = canvas_text(350, 388, "1-0: difficulty", 10, 5)
-  let _b2 = canvas_text(490, 375, "Speed " + floor(gvar("spd") * 100) / 100, 10, 4)
+  let _b2 = canvas_text(490, 375, "Speed " + toInt(gvar_f("spd")), 10, 4)
   canvas_text(490, 390, "Difficulty " + gvar("diff"), 10, 2)
 )
 
