@@ -653,7 +653,7 @@ if ('ontouchstart' in window) {
 window.axLang = axLang;
 window.axLi = {en:0,fr:1,ru:2,de:3,nl:4}[axLang]||0;
 
-if (isIndex || isWorld) return; /* index + worldview have their own vow footers */
+if (isWorld) return; /* worldview has its own elaborate vow section */
 var vf = document.createElement('div');
 vf.style.cssText = 'text-align:center;padding:32px 24px 40px;color:#777;font-size:12px;' +
   'font-family:system-ui,sans-serif;border-top:1px solid #1a1a2a;margin-top:40px;line-height:2';
