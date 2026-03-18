@@ -1382,6 +1382,8 @@ BUILTINS.svar = function(args) {
     _gameState[name] = args[1];
     return args[1];
 };
+BUILTINS.gvar_f = BUILTINS.gvar;
+BUILTINS.svar_f = BUILTINS.svar;
 
 // ================================================================
 //  Evaluator
