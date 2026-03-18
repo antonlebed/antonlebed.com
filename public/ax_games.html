@@ -212,14 +212,13 @@ fn tick(frame) = (
     let barColor = if ev > 0 then 3 else 2
     let _r1 = canvas_rect(250, barY, 100, barH, barColor)
     let _t4 = canvas_text(250, 245, "eigenvalue", 12, 8)
-    let cr = crt(p)
     let _c1 = canvas_text(420, 25, "CRT:", 14, 8)
-    let _c2 = canvas_text(420, 50, "mod 2 = " + cr[0], 12, 1)
-    let _c3 = canvas_text(420, 70, "mod 3 = " + cr[1], 12, 1)
-    let _c4 = canvas_text(420, 90, "mod 5 = " + cr[2], 12, 1)
-    let _c5 = canvas_text(420, 110, "mod 7 = " + cr[3], 12, 1)
-    let _c6 = canvas_text(420, 130, "mod 11 = " + cr[4], 12, 1)
-    let _bp = if step != 0 then beep(300 + ev * 40, 60, 0.15) else 0
+    let _c2 = canvas_text(420, 50, "mod 2 = " + crt_r(p, 0), 12, 1)
+    let _c3 = canvas_text(420, 70, "mod 3 = " + crt_r(p, 1), 12, 1)
+    let _c4 = canvas_text(420, 90, "mod 5 = " + crt_r(p, 2), 12, 1)
+    let _c5 = canvas_text(420, 110, "mod 7 = " + crt_r(p, 3), 12, 1)
+    let _c6 = canvas_text(420, 130, "mod 11 = " + crt_r(p, 4), 12, 1)
+    let _bp = if step != 0 then beep(300 + toInt(ev * 40), 60, 0.15) else 0
     canvas_text(10, 380, "Arrow keys to walk the ring", 12, 5)
   ) else 0
 )`;
@@ -1164,7 +1163,19 @@ async function runGameNative() {
             },
             svar_f: function(sptr, val) {
                 gameState[readWasmStr(childMem, sptr)] = val; return val;
-            }
+            },
+            set_ring: function(n) { AX.setRing(n); return n; },
+            coupling: function(n) { return AX.coupling(n); },
+            kingdom: function(n) {
+                var m = AX.ringMod(n); if (m === 0) return 0;
+                var g = AX.gcd(m, AX.N);
+                if (g % 2 === 0) return 2; if (g % 3 === 0) return 3;
+                if (g % 5 === 0) return 5; if (g % 7 === 0) return 7;
+                if (g % 11 === 0) return 11; return 1;
+            },
+            eigenvalue: function(n) { return AX.eigenvalue(n); },
+            mirror: function(n) { return AX.mirror(n); },
+            crt_r: function(n, idx) { var c = AX.crt(n); return c[idx] || 0; }
         }});
     } catch(e) {
         output.textContent = 'WASM error: ' + e.message +
