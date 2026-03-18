@@ -35,6 +35,97 @@ if (!document.querySelector('link[rel="icon"]')) {
   ico.rel = 'icon'; ico.type = 'image/png'; ico.href = 'favicon.png';
   document.head.appendChild(ico);
 }
+/* ===== SEO + AI DISCOVERABILITY (S855) ===== */
+/* Inject canonical, robots, and fallback meta description for pages that lack them */
+(function(){
+  var pg = location.pathname.split('/').pop().replace('.html','') || 'index';
+  var url = 'https://antonlebed.com/' + pg + '.html';
+  /* Canonical URL */
+  if (!document.querySelector('link[rel="canonical"]')) {
+    var can = document.createElement('link');
+    can.rel = 'canonical'; can.href = url;
+    document.head.appendChild(can);
+  }
+  /* Robots: index, follow */
+  if (!document.querySelector('meta[name="robots"]')) {
+    var rob = document.createElement('meta');
+    rob.name = 'robots'; rob.content = 'index, follow';
+    document.head.appendChild(rob);
+  }
+  /* Fallback meta description from nav title map (for pages without hand-written descriptions) */
+  if (!document.querySelector('meta[name="description"]')) {
+    var D = {
+      arc_demo:'ARC-AGI puzzle solver demo. Watch .ax solve spatial reasoning tasks with CRT decomposition.',
+      arcsine_cumulant:'Arcsine law cumulants derived from the 108-ring lattice. Interactive visualization.',
+      ax_games:'Five games built with the .ax language. Rose, eigenvalue walk, pong, kingdom, axiom survivor.',
+      bernoulli:'Bernoulli numbers from ring structure. The lambda=420 connection to zeta values.',
+      cdma_demo:'Spread spectrum communication via CRT residues. Interactive demo.',
+      chemistry:'Periodic table structure from five primes. Why elements group the way they do.',
+      consensus_demo:'Byzantine consensus protocol using CRT decomposition. Interactive simulation.',
+      crt_hash_demo:'Hash function built from Chinese Remainder Theorem. Collision-free by construction.',
+      crt_index_demo:'Database indexing via CRT decomposition. O(1) lookup on structured data.',
+      crt_keyexchange_demo:'Diffie-Hellman style key exchange using CRT channels. Interactive demo.',
+      crt_rng:'Random number generator from CRT residue mixing. Provable uniformity.',
+      crt_train_demo:'Neural network training using CRT decomposition. Backprop on ring structure.',
+      cunningham:'The two Cunningham chains through the five primes. Why they stop at 13.',
+      cyclotomic_fibonacci:'Fibonacci meets cyclotomic polynomials at the five primes. Bridge theorem.',
+      d_power_gaussian:'D-power Gaussian primes. How 2^n traces structure in Z[i] mod 970200.',
+      decality:'The ten terms of the axiom. Why exactly ten, and what each one does.',
+      egg:'From egg to organism. Embryonic development mirrors ring structure.',
+      eigenvalue_swim:'Swim through the eigenvalue landscape. Interactive 3D visualization.',
+      equator:'The equatorial symmetry of Z/970200Z. Where mirror meets identity.',
+      fano_e8:'Bridge from the Fano plane to E8 through the five primes.',
+      figurate_bridge:'Triangular, square, pentagonal numbers meet CRT decomposition.',
+      fountain_codes:'Fountain codes from CRT — rateless erasure correction. Interactive demo.',
+      golden_ratio:'The golden ratio emerges from the ring. phi and Fibonacci in Z/970200Z.',
+      gpu_demo:'GPU-accelerated CRT computation via WebGPU. Parallel ring arithmetic.',
+      gravastar:'The gravastar hypothesis. Black hole interiors as ring projections.',
+      image_filter_demo:'Image filtering using CRT channel separation. Interactive demo.',
+      k_squared_stop:'Why does the chain stop at K²=9? The closure theorem.',
+      lambda_chain:'Lambda=420 and the chain of LCMs. Why 420 is universal.',
+      lie_algebra:'Lie algebra census from the ring. Exceptional groups and five primes.',
+      mesh_demo:'Mesh networking protocol using CRT routing. Three ESP32 boards.',
+      mirror:'The mirror automorphism n → N-n. Why 970199 is not zero.',
+      mirror_cost:'The cost of reflection. What the mirror destroys and preserves.',
+      monster_moonshine:'Monstrous moonshine and the j-invariant from ring structure.',
+      pell_twins:'Pell equation twin solutions from CRT decomposition.',
+      phase_w:'Phase W: WASM acceleration for .ax. Ring ops delegated to WebAssembly.',
+      pid_demo:'PID controller using CRT error signal decomposition. Interactive demo.',
+      scale_relativity:'Scale relativity from ring structure. Resolution-dependent physics.',
+      schedule_demo:'Task scheduling via CRT residue assignment. No conflicts by construction.',
+      septum:'The Septum Theorem. Units = Klein bottle self-intersection. 16/77 = where we live.',
+      stego_demo:'Steganography via CRT channel embedding. Hide data in ring residues.',
+      universal_boundary:'The universal boundary at D^L. Where visibility ends.',
+      wasm_native:'Native WASM compilation. .ax source → WASM bytecode → runs natively in browser.'
+    };
+    var desc = D[pg];
+    if (desc) {
+      var m = document.createElement('meta');
+      m.name = 'description'; m.content = desc;
+      document.head.appendChild(m);
+    }
+  }
+  /* Fallback og: tags */
+  if (!document.querySelector('meta[property="og:title"]')) {
+    var title = document.title || pg;
+    var ogT = document.createElement('meta'); ogT.setAttribute('property','og:title'); ogT.content = title;
+    var ogU = document.createElement('meta'); ogU.setAttribute('property','og:url'); ogU.content = url;
+    var ogTy = document.createElement('meta'); ogTy.setAttribute('property','og:type'); ogTy.content = 'website';
+    var ogS = document.createElement('meta'); ogS.setAttribute('property','og:site_name'); ogS.content = 'antonlebed.com';
+    var ogI = document.createElement('meta'); ogI.setAttribute('property','og:image'); ogI.content = 'https://antonlebed.com/og-image.jpg';
+    document.head.appendChild(ogT);
+    document.head.appendChild(ogU);
+    document.head.appendChild(ogTy);
+    document.head.appendChild(ogS);
+    document.head.appendChild(ogI);
+    /* twitter card */
+    var twC = document.createElement('meta'); twC.name = 'twitter:card'; twC.content = 'summary';
+    var twI = document.createElement('meta'); twI.name = 'twitter:image'; twI.content = 'https://antonlebed.com/og-image.jpg';
+    document.head.appendChild(twC);
+    document.head.appendChild(twI);
+  }
+})();
+
 /* ===== DOM SETUP (deferred until body exists) ===== */
 function init() {
 var f = location.pathname.split('/').pop() || 'index.html';
