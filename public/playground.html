@@ -162,7 +162,8 @@ a:hover{text-decoration:underline}
   font-size:10px;color:#fff;font-weight:bold;border-radius:2px}
 </style>
 <script src="crt_wasm.js"></script>
-<script src="ax.js"></script>
+<script src="ring.js"></script>
+<script src="ax_wasm_eval.js"></script>
 <link rel="stylesheet" href="nav-critical.css">
 <script src="nav.js" defer></script>
 </head>
@@ -360,22 +361,36 @@ function fmtValue(v){
 }
 
 // ================================================================
-//  ax.js Integration (single source of truth — S466)
+//  WASM eval integration (S874: ax.js killed, ring.js + WASM eval)
 // ================================================================
+var _axWasmEval = null;
+function initWasmEval() {
+    if (typeof AxWasmEval === 'undefined') return;
+    AxWasmEval({
+        print: function() {},
+        printErr: function() {}
+    }).then(function(mod) { _axWasmEval = mod; }).catch(function() {});
+}
+initWasmEval();
+
 function execute(src) {
-    const result = AX.run(src);
-    outputLines = result.lines;
-    lastOutputValues = result.values;
-    if (result.error) throw new Error(result.error);
-    return result.lines;
+    if (!_axWasmEval) { outputLines = ['WASM evaluator loading...']; return outputLines; }
+    var output = [];
+    _axWasmEval.print = function(text) { output.push(text); };
+    var ptr = _axWasmEval.allocateUTF8(src);
+    _axWasmEval._wasm_run(ptr);
+    _axWasmEval._free(ptr);
+    outputLines = output.map(function(line) { return esc(line); });
+    lastOutputValues = [];
+    return outputLines;
 }
 
 // ================================================================
 //  Syntax Highlighting
 // ================================================================
 const HL_CONSTS=new Set(Object.keys(CONSTANTS));
-const HL_BUILTINS=AX.BUILTIN_NAMES;
-const HL_KEYWORDS=AX.KEYWORDS;
+const HL_BUILTINS=new Set(['coupling','crt','eigenvalue','mirror','gcd','len','rand','set','alloc','toFloat','toInt','sqrt_f','sin_f','cos_f','abs_f','floor_f','ceil_f','pow_f','log_f','PI_f','E_f','range','kingdom','sum','product','show','grid','push','charAt','charCode','fromCharCode','substr','bloom','depth_quad','shadow_poly','is_smooth','phi','order','inv','ecc_detect','ecc_correct','abs','min','max','modpow','decompose','reconstruct','cross']);
+const HL_KEYWORDS=new Set(['let','fn','print','if','then','else','while','do','for','in','show','mut','match','end']);
 function highlightCode(src){
     let html='',i=0;const len=src.length;
     while(i<len){

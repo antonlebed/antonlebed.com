@@ -129,7 +129,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
 .grid-cell{width:20px;height:20px;display:flex;align-items:center;justify-content:center;
   font-size:10px;color:#fff;font-weight:bold;border-radius:2px}
 </style>
-<script src="ax.js"></script>
+<script src="ring.js"></script>
 <script src="crt_wasm.js"></script>
 <script src="ax_wasm_eval.js"></script>
 <link rel="stylesheet" href="nav-critical.css">
@@ -195,7 +195,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
     <button onclick="clearOutput()">Clear</button>
-    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a1a2e;color:#50fa7b;border:1px solid #50fa7b;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="JS eval mode. Click to cycle: JS \u2192 WASM \u2192 Native.">eval: JS</button>
+    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a3a1a;color:#50fa7b;border:1px solid #50fa7b;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="WASM eval. Click to toggle: WASM \u2194 Native.">eval: WASM</button>
     <button id="btn-wasm-reset" onclick="resetWasmSession()" style="display:none;background:#1a1a2e;color:#ff5555;border:1px solid #333;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Reset WASM session: clears all definitions and variables">reset</button>
     <span id="wasm-status" style="color:#555;font-size:0.75em;padding:4px 8px;border-radius:3px;border:1px solid #333" title="Phase W v0.2: native-speed ring arithmetic via WebAssembly">WASM: loading...</span>
     <span id="ring-info" style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
@@ -830,20 +830,10 @@ function fmtNum(v) {
 }
 
 // ================================================================
-//  ax.js Integration (single source of truth — S466)
-//  Overrides execute() to use AX.run(). Old interpreter code above
-//  is kept for transpiler/algebra view compatibility.
+//  WASM eval is now the sole interpreter (S874: ax.js killed)
+//  Ring math via ring.js. Evaluation via ax_wasm_eval.js.
 // ================================================================
 var lastProfile = null;
-function execute(src) {
-    const result = AX.run(src);
-    outputLines = result.lines;
-    traceLines = result.traces;
-    lastOutputValues = result.values;
-    lastProfile = result.profile || null;
-    if (result.error) throw new Error(result.error);
-    return result.lines;
-}
 
 // ================================================================
 //  Phase W v0.3: WASM-compiled .ax evaluator (S746)
@@ -866,8 +856,8 @@ function initWasmEval() {
         printErr: function() {}
     }).then(function(mod) {
         _axWasmEval = mod;
-        // S811: WASM eval available but NOT default (was causing hangs)
-        // User can toggle via eval button. JS eval is reliable.
+        // S874: WASM eval is now DEFAULT. ax.js killed. ring.js for math, WASM for eval.
+        _useWasmEval = true;
         updateEvalButton();
     }).catch(function() {});
 }
@@ -890,12 +880,12 @@ function updateEvalButton() {
         btn.title = 'WASM eval mode. Click to switch.';
         resetBtn.style.display = 'inline-block';
     } else {
-        btn.textContent = 'eval: JS';
-        btn.style.background = '#1a1a2e';
+        btn.textContent = 'eval: WASM';
+        btn.style.background = '#1a3a1a';
         btn.style.color = '#50fa7b';
         btn.style.borderColor = '#50fa7b';
-        btn.title = 'JS eval mode. Click to switch.';
-        resetBtn.style.display = 'none';
+        btn.title = 'WASM eval mode. Click to switch to native compile.';
+        resetBtn.style.display = 'inline-block';
     }
 }
 
@@ -909,14 +899,12 @@ function setEvalMode(useWasm) {
 
 function toggleEvalMode() {
     if (_useNativeCompile) {
+        // Native -> WASM
         _useNativeCompile = false;
-        _useWasmEval = false;
-    } else if (_useWasmEval) {
-        _useWasmEval = false;
-        _useNativeCompile = true;
-    } else if (_axWasmEval) {
         _useWasmEval = true;
     } else {
+        // WASM -> Native
+        _useWasmEval = false;
         _useNativeCompile = true;
     }
     updateEvalButton();
@@ -2667,8 +2655,8 @@ show "The Cunningham map builds BOTH the primes AND the degrees."`
 //  Syntax Highlighting (zero deps — overlay technique)
 // ================================================================
 const HL_CONSTS = new Set(Object.keys(CONSTANTS));
-const HL_BUILTINS = AX.BUILTIN_NAMES;
-const HL_KEYWORDS = AX.KEYWORDS;
+const HL_BUILTINS = new Set(['coupling','crt','eigenvalue','shadow_poly','depth_quad','is_smooth','golden_roots','factorize','sigma3','mirror','phi','order','omega_of','delta_of','d_orbit','water_cycle','idempotent','body_proj','ring_crt','ring_coupling','project','ring_size','set_ring','ring_eigenvalue','gcd','lcm','mod','inv','is_unit','ecc_detect','ecc_correct','abs','min','max','sqrt','cos','sin','acos','asin','log','exp','floor','ceil','pow','len','rand','set','alloc','toFloat','toInt','exp_f','log_f','log2_f','log10_f','pow_f','sqrt_f','sin_f','cos_f','tan_f','abs_f','floor_f','ceil_f','round_f','tanh_f','sigmoid_f','softmax','matmul','dot','sum_f','PI_f','E_f','INF_f','streq','range','kingdom','sum','product','show','show_grid','grid','gset','rows','cols','hflip','vflip','rot90','transpose','grid_eq','gget','subgrid','paste','scale','colors','crop','count_color','replace_color','fill_grid','rot180','rot270','hrepeat','vrepeat','color_map','apply_color_map','self_tile','bg_color','objects','canvas_clear','canvas_line','canvas_rect','canvas_circle','canvas_text','canvas_pixel','canvas_size','beep','playNote','stopSound','now_ms','raw_mode','gvar','svar','gvar_f','svar_f','push','charAt','charCode','fromCharCode','substr','strFind','bloom','ecc','ev_rank','first','argmax','reconstruct','cross','modpow','decompose']);
+const HL_KEYWORDS = new Set(['let','fn','print','if','then','else','while','do','for','in','show','mut','match','end']);
 
 function highlightCode(src) {
     let html = '', i = 0;
@@ -3000,7 +2988,7 @@ function run() {
         traceLines = [];
         lastOutputValues = [];
         try {
-            const lines = (_useWasmEval && _axWasmEval) ? executeWasm(src) : execute(src);
+            const lines = (_axWasmEval) ? executeWasm(src) : [];
             renderRunResult(lines, src);
         } catch (e) {
             const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';

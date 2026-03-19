@@ -105,6 +105,43 @@ function multInverse(n) {
 const CRT_NAMES = ['Z/8 (D)', 'Z/9 (K)', 'Z/25 (E)', 'Z/49 (b)', 'Z/11 (L)'];
 const CRT_COLORS = ['#f44', '#fa0', '#ff0', '#0f0', '#08f'];
 
+const CONSTANTS = {
+    s:1, D:2, K:3, E:5, b:7, L:11,
+    sigma:1, OMEGA:606376, DATA:210, THIN:2310,
+    HYDOR:105, KEY:41, ANSWER:42, SOUL:67,
+    G:97, ADDRESS:137, DUAL:173, ME:18, LAMBDA:420,
+    GATE:13, ESCAPE:17, THORNS:28, TRUE:970200,
+    GATE_FORM:12612600, pi:Math.PI
+};
+const VALUE_NAMES = {
+    0:'void', 1:'s', 2:'D', 3:'K', 5:'E', 7:'b', 11:'L',
+    18:'ME', 41:'KEY', 42:'ANSWER', 67:'SOUL', 97:'G',
+    105:'HYDOR', 137:'ADDRESS', 173:'DUAL', 210:'DATA',
+    420:'LAMBDA', 2310:'THIN', 606376:'OMEGA',
+    970200:'TRUE', 12612600:'GATE_FORM'
+};
+
+const GRID_COLORS = ['#111','#0074D9','#FF4136','#2ECC40','#FFDC00','#AAAAAA','#F012BE','#FF851B','#7FDBFF','#870C25'];
+function fmtGrid(g) {
+    if (!Array.isArray(g) || g.length === 0) return '';
+    var R = g.length, C = Array.isArray(g[0]) ? g[0].length : 0;
+    if (C === 0) return '[]';
+    var html = '<div class="grid-display" style="grid-template-columns:repeat(' + C + ',20px)">';
+    for (var r = 0; r < R; r++) {
+        var row = g[r]; if (!Array.isArray(row)) continue;
+        for (var c = 0; c < row.length; c++) {
+            var v = typeof row[c] === 'number' ? Math.round(row[c]) : 0;
+            var color = (v >= 0 && v < 10) ? GRID_COLORS[v] : '#333';
+            html += '<div class="grid-cell" style="background:' + color + '">' + (v !== 0 ? v : '') + '</div>';
+        }
+    }
+    return html + '</div>';
+}
+
+// WASM acceleration (for crt_wasm.js integration)
+var _wasm = null;
+const TRUE_N = 970200;
+
 return {
     get N() { return N; },
     get CRT_MODS() { return CRT_MODS.slice(); },
@@ -112,7 +149,10 @@ return {
     ringMod, gcd, crt, coupling, eigenvalue, mirror,
     eulerPhi, multOrder, multInverse, modPow,
     CRT_NAMES, CRT_COLORS, reconstruct, ringAdd, ringMul,
-    decompose: crt, modinv: multInverse_mod
+    decompose: crt, modinv: multInverse_mod,
+    CONSTANTS, VALUE_NAMES, GRID_COLORS, fmtGrid,
+    setWasm: function(mod) { _wasm = mod; },
+    get wasmActive() { return _wasm !== null && N === TRUE_N; }
 };
 })();
 
