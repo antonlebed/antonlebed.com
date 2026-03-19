@@ -58,9 +58,6 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
 #output{background:#0d0d18;border:1px solid #333;border-radius:6px;padding:12px;
   font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;
   height:350px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
-.out-text{color:#e0e0e0}
-.out-val{color:#50fa7b}
-.out-ann{color:#6272a4;font-size:0.85em}
 .out-err{color:#ff5555}
 .out-info{color:#6272a4;font-style:italic}
 .out-kw{color:#d4a017}
@@ -92,9 +89,6 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
   max-height:350px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
   color:#8899aa;display:none;line-height:1.6}
 .hood-panel.active{display:block}
-.hood-panel .tr-fn{color:#50fa7b}
-.hood-panel .tr-step{color:#8899aa}
-.hood-panel .tr-result{color:#d4a017}
 .hood-panel .c-kw{color:#bd93f9}
 .hood-panel .c-type{color:#8be9fd}
 .hood-panel .c-fn{color:#50fa7b}
@@ -185,7 +179,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="degree">Primordial Degree</option>
       <option value="hello">Hello .ax</option>
     </select>
-    <select id="ring-select" onchange="changeRing(this.value)">
+    <select id="ring-select" onchange="changeRing(this.value)" title="Changes algebra view only. Code always runs in Z/970200Z.">
       <option value="970200" selected>TRUE (970200)</option>
       <option value="12612600">GATE (12612600)</option>
       <option value="2310">THIN (2310)</option>
@@ -308,38 +302,24 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
 'use strict';
 
 // ================================================================
-//  .ax Interpreter — TRUE FORM (Z/970200Z)
-//  Port of ax_v2_1.py + axiom.c, upgraded to full ring
+//  Ring algebra via ring.js. Evaluation via WASM (ax_wasm_eval.js).
+//  JS interpreter KILLED (S878). Only algebra view helpers remain.
 // ================================================================
 
 let N = 970200;
-let traceLines = [];
-const TRACE_LIMIT = 50; // max trace entries per run
 
-function addTrace(html) {
-    if (traceLines.length < TRACE_LIMIT) traceLines.push(html);
-    else if (traceLines.length === TRACE_LIMIT) traceLines.push('<span class="tr-step">... (trace limit reached, showing first ' + TRACE_LIMIT + ' calls)</span>');
-}
-
-// --- Ring arithmetic: ax.js single source of truth ---
-function ringMod(x) { return AX.ringMod(x); }
-function modPow(base, exp) { return AX.modPow(base, exp); }
+// --- Ring helpers (used by algebraView) ---
 function gcd(a, b) { return AX.gcd(a, b); }
-function coupling(n) { return AX.coupling(n); }
-function crt(n) { return AX.crt(n); }
 function eigenvalue(n) { return AX.eigenvalue(n); }
-function mirror(n) { return AX.mirror(n); }
-function eulerPhi(n) { return AX.eulerPhi(n); }
 function multOrder(n) { return AX.multOrder(n); }
-function multInverse(n) { return AX.multInverse(n); }
 
 // --- Constants ---
 const CONSTANTS = AX.CONSTANTS;
-
 const VALUE_NAMES = AX.VALUE_NAMES;
 
 // ================================================================
-//  Tokenizer
+//  ☠️ SCAFFOLDING: Tokenizer+Parser (~220L) — ONLY used by C Source tab transpiler.
+//  Dies when deep_codegen.wasm produces C in-browser.
 // ================================================================
 const KW = new Set(['let','fn','print','if','then','else','while','do','for','in']);
 
@@ -566,270 +546,17 @@ class Parser {
 }
 
 // ================================================================
-//  Evaluator
+//  State (used by WASM eval + native compile paths)
 // ================================================================
-const MAX_DEPTH = 49; // b^2
 let outputLines = [];
-
-function execute(src) {
-    outputLines = [];
-    const tokens = tokenize(src);
-    const stmts = new Parser(tokens).parseProgram();
-    const env = {...CONSTANTS};
-    const fns = {};
-
-    function ev(node, localEnv, depth) {
-        if (depth > MAX_DEPTH) throw new Error('Max recursion depth (' + MAX_DEPTH + ') exceeded');
-        switch (node.t) {
-            case 'Num': return ringMod(node.v);
-            case 'Str': return node.v;
-            case 'Sym': {
-                if (node.name in localEnv) return localEnv[node.name];
-                if (node.name in fns) return fns[node.name]; // return closure for reference
-                throw new Error('Unknown: ' + node.name);
-            }
-            case 'Bin': {
-                const l = ev(node.l, localEnv, depth), r = ev(node.r, localEnv, depth);
-                switch (node.op) {
-                    case '+': return ringMod(l + r);
-                    case '-': return ringMod(l - r);
-                    case '*': return ringMod(l * r);
-                    case '/': {
-                        const inv = multInverse(r);
-                        if (inv >= 0) return ringMod(l * inv);
-                        if (r === 0) throw new Error('Division by zero');
-                        return l / r; // float fallback
-                    }
-                    case '^': return modPow(l, r);
-                    case '<': return l < r ? 1 : 0;
-                    case '>': return l > r ? 1 : 0;
-                    case '==': return l === r ? 1 : 0;
-                }
-                break;
-            }
-            case 'Unary':
-                if (node.op === '~') return ringMod(N - ev(node.e, localEnv, depth));
-                break;
-            case 'Thresh': {
-                const v = ev(node.val, localEnv, depth);
-                const th = ev(node.th, localEnv, depth);
-                return v > th ? v : ringMod(N - v);
-            }
-            case 'If': {
-                const c = ev(node.cond, localEnv, depth);
-                return c !== 0 ? ev(node.then_, localEnv, depth) : ev(node.else_, localEnv, depth);
-            }
-            case 'Seq':
-                ev(node.a, localEnv, depth);
-                return ev(node.b, localEnv, depth);
-            case 'LetExpr': {
-                const val = ev(node.val, localEnv, depth);
-                return ev(node.body, {...localEnv, [node.name]: val}, depth);
-            }
-            case 'Call': return evalCall(node.fn, node.args, localEnv, depth);
-            case 'Idx': {
-                const arr = ev(node.arr, localEnv, depth);
-                const idx = Math.floor(ev(node.idx, localEnv, depth));
-                if (!Array.isArray(arr)) throw new Error('Cannot index non-array');
-                if (idx < 0 || idx >= arr.length) throw new Error('Index out of bounds: ' + idx);
-                return arr[idx];
-            }
-            case 'Arr': return node.elems.map(e => ev(e, localEnv, depth));
-            case 'For': {
-                const arr = ev(node.iter, localEnv, depth);
-                if (!Array.isArray(arr)) throw new Error('for..in requires an array');
-                if (arr.length > 10000) throw new Error('Iteration limit (max 10000)');
-                return arr.map(item => ev(node.body, {...localEnv, [node.varName]: item}, depth));
-            }
-            case 'DFloat': {
-                const s = ev(node.s, localEnv, depth);
-                const b = ev(node.b, localEnv, depth);
-                return ringMod(Math.floor(s * b));
-            }
-        }
-        throw new Error('Cannot evaluate: ' + JSON.stringify(node));
-    }
-
-    function evalCall(fnName, argNodes, localEnv, depth) {
-        const args = argNodes.map(a => ev(a, localEnv, depth));
-        // Built-in functions
-        switch (fnName) {
-            case 'coupling': {
-                const n = args[0], r = ringMod(n), g = gcd(r, N), result = N / g;
-                addTrace('<span class="tr-fn">coupling</span>(' + n + '): <span class="tr-step">' + n + ' mod ' + N + ' = ' + r + ', gcd(' + r + ', ' + N + ') = ' + g + ', ' + N + ' / ' + g + '</span> = <span class="tr-result">' + result + '</span>');
-                return result;
-            }
-            case 'crt': {
-                const result = crt(args[0]), r = ringMod(args[0]), mods = AX.CRT_MODS;
-                const trParts = result.map((ri,i) => r + ' mod ' + mods[i] + ' = ' + ri);
-                addTrace('<span class="tr-fn">crt</span>(' + args[0] + '): <span class="tr-step">' + trParts.join(', ') + '</span> = <span class="tr-result">[' + result.join(', ') + ']</span>');
-                return result;
-            }
-            case 'eigenvalue': {
-                const result = eigenvalue(args[0]);
-                const c = crt(args[0]), mods = AX.CRT_MODS, P = Math.PI;
-                const terms = c.map((ci,i) => (mods[i] <= 2 ? 1 : 2)*Math.cos(2*P*ci/mods[i]));
-                const trParts = c.map((ci,i) => (mods[i] <= 2 ? '' : '2') + 'cos(2pi*' + ci + '/' + mods[i] + ')=' + terms[i].toFixed(4));
-                addTrace('<span class="tr-fn">eigenvalue</span>(' + args[0] + '): <span class="tr-step">crt=[' + c.join(',') + '] -> ' + trParts.join(' + ') + '</span> = <span class="tr-result">' + result.toFixed(6) + '</span>');
-                return result;
-            }
-            case 'mirror': {
-                const result = mirror(args[0]);
-                addTrace('<span class="tr-fn">mirror</span>(' + args[0] + '): <span class="tr-step">' + N + ' - ' + ringMod(args[0]) + '</span> = <span class="tr-result">' + result + '</span>');
-                return result;
-            }
-            case 'phi': {
-                const input = args.length > 0 ? args[0] : N;
-                const result = eulerPhi(input);
-                addTrace('<span class="tr-fn">phi</span>(' + input + ') = <span class="tr-result">' + result + '</span>');
-                return result;
-            }
-            case 'order': {
-                const result = multOrder(args[0]);
-                addTrace('<span class="tr-fn">order</span>(' + args[0] + '): <span class="tr-step">gcd(' + ringMod(args[0]) + ', ' + N + ')=' + gcd(ringMod(args[0]), N) + (gcd(ringMod(args[0]), N) !== 1 ? ' (not a unit!)' : ', ' + ringMod(args[0]) + '^k mod ' + N + ' = 1 at k=' + result) + '</span> = <span class="tr-result">' + result + '</span>');
-                return result;
-            }
-            case 'gcd': return gcd(args[0], args[1]);
-            case 'mod': return args[1] !== 0 ? ringMod(Math.round(args[0]) % Math.round(args[1])) : 0;
-            case 'inv': { const r = multInverse(args[0]); if (r < 0) throw new Error('No inverse: gcd(' + args[0] + ', ' + N + ') != 1'); return r; }
-            case 'len': return Array.isArray(args[0]) ? args[0].length : 0;
-            case 'abs': return Math.abs(args[0]);
-            case 'show': { outputLines.push(fmtValue(args[0])); lastOutputValues.push(args[0]); return args[0]; }
-            case 'range': {
-                if (args.length === 1) { const n = Math.min(Math.max(0, Math.round(args[0])), 10000); return Array.from({length:n}, (_,i) => i); }
-                const a = Math.round(args[0]), b = Math.min(Math.round(args[1]), a + 10000);
-                return Array.from({length: Math.max(0, b - a)}, (_, i) => a + i);
-            }
-            case 'kingdom': {
-                const n = ringMod(args[0]); if (n === 0) return 0;
-                const g = gcd(n, N);
-                if (g % 2 === 0) return 2; if (g % 3 === 0) return 3;
-                if (g % 5 === 0) return 5; if (g % 7 === 0) return 7;
-                if (g % 11 === 0) return 11; return 1;
-            }
-            case 'sum': { if (!Array.isArray(args[0])) throw new Error('sum expects array'); let s=0; for (const x of args[0]) s=ringMod(s+(typeof x==='number'?x:0)); return s; }
-            case 'product': { if (!Array.isArray(args[0])) throw new Error('product expects array'); let p=1; for (const x of args[0]) p=ringMod(p*(typeof x==='number'?x:0)); return p; }
-            case 'min': return Math.min(args[0], args[1]);
-            case 'max': return Math.max(args[0], args[1]);
-            case 'sqrt': return Math.floor(Math.sqrt(Math.abs(args[0])));
-            case 'cos': return Math.cos(args[0]);
-            case 'sin': return Math.sin(args[0]);
-            case 'acos': return Math.acos(Math.max(-1, Math.min(1, args[0])));
-            case 'asin': return Math.asin(Math.max(-1, Math.min(1, args[0])));
-            case 'log': return Math.log(Math.abs(args[0]));
-            case 'exp': return Math.exp(args[0]);
-            case 'pow': return Math.pow(args[0], args[1]);
-            case 'floor': return Math.floor(args[0]);
-            case 'ceil': return Math.ceil(args[0]);
-            // Phase F float builtins (S626 — parity with ax2.js)
-            case 'toFloat': return typeof args[0] === 'number' ? args[0] + 0.0 : 0;
-            case 'exp_f': return Math.exp(args[0]);
-            case 'log_f': return args[0] > 0 ? Math.log(args[0]) : -Infinity;
-            case 'log2_f': return args[0] > 0 ? Math.log2(args[0]) : -Infinity;
-            case 'log10_f': return args[0] > 0 ? Math.log10(args[0]) : -Infinity;
-            case 'pow_f': return Math.pow(args[0], args[1]);
-            case 'sqrt_f': return Math.sqrt(args[0]);
-            case 'sin_f': return Math.sin(args[0]);
-            case 'cos_f': return Math.cos(args[0]);
-            case 'tan_f': return Math.tan(args[0]);
-            case 'abs_f': return Math.abs(args[0]);
-            case 'floor_f': return Math.floor(args[0]);
-            case 'ceil_f': return Math.ceil(args[0]);
-            case 'round_f': return Math.round(args[0]);
-            case 'tanh_f': return Math.tanh(args[0]);
-            case 'sigmoid_f': return 1.0 / (1.0 + Math.exp(-args[0]));
-            case 'softmax': {
-                if (!Array.isArray(args[0])) throw new Error('softmax: expected array');
-                const mx = Math.max(...args[0]), exps = args[0].map(x => Math.exp(x - mx));
-                const s = exps.reduce((a, b) => a + b, 0);
-                return exps.map(e => e / s);
-            }
-            case 'matmul': {
-                const A = args[0], B = args[1];
-                if (!Array.isArray(A) || !Array.isArray(B)) throw new Error('matmul: expected arrays');
-                const m = A.length, k = A[0].length, n = B[0].length;
-                if (B.length !== k) throw new Error('matmul: dimension mismatch');
-                const C = [];
-                for (let i = 0; i < m; i++) { const row = []; for (let j = 0; j < n; j++) { let s = 0; for (let p = 0; p < k; p++) s += A[i][p] * B[p][j]; row.push(s); } C.push(row); }
-                return C;
-            }
-            case 'dot': {
-                const a = args[0], b = args[1];
-                if (!Array.isArray(a) || !Array.isArray(b)) throw new Error('dot: expected arrays');
-                let s = 0; for (let i = 0; i < Math.min(a.length, b.length); i++) s += a[i] * b[i];
-                return s;
-            }
-            case 'sum_f': return Array.isArray(args[0]) ? args[0].reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0) : 0;
-            case 'PI_f': return Math.PI;
-            case 'E_f': return Math.E;
-            case 'INF_f': return Infinity;
-        }
-        // User-defined function
-        if (fnName in fns) {
-            const fn = fns[fnName];
-            if (args.length !== fn.params.length) throw new Error(fnName + ' expects ' + fn.params.length + ' args, got ' + args.length);
-            const callEnv = {...fn.closureEnv};
-            for (let i = 0; i < fn.params.length; i++) callEnv[fn.params[i]] = args[i];
-            return ev(fn.body, callEnv, depth + 1);
-        }
-        throw new Error('Unknown function: ' + fnName);
-    }
-
-    // Execute statements
-    for (const stmt of stmts) {
-        switch (stmt.t) {
-            case 'Let':
-                env[stmt.name] = ev(stmt.val, env, 0);
-                break;
-            case 'Fn':
-                fns[stmt.name] = {params:stmt.params, body:stmt.body, closureEnv:{...env}};
-                // Make all fns visible to each other (mutual recursion)
-                for (const name in fns) fns[name].closureEnv = {...env, ...Object.fromEntries(Object.entries(fns).map(([k,v])=>[k,v]))};
-                break;
-            case 'Print': {
-                const val = ev(stmt.expr, env, 0);
-                outputLines.push(typeof val === 'string' ? fmtText(val) : fmtValue(val));
-                lastOutputValues.push(val);
-                break;
-            }
-            case 'ExprStmt': {
-                const val = ev(stmt.expr, env, 0);
-                outputLines.push(fmtValue(val));
-                lastOutputValues.push(val);
-                break;
-            }
-        }
-    }
-    return outputLines;
-}
 
 // ================================================================
 //  Output formatting
 // ================================================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function fmtText(s) { return '<span class="out-text">' + esc(s) + '</span>'; }
-
-function fmtValue(v) {
-    if (typeof v === 'string') return fmtText(v);
-    if (Array.isArray(v)) {
-        const inner = v.map(x => typeof x === 'number' ? fmtNum(x) : esc(String(x))).join(', ');
-        return '<span class="out-val">[' + inner + ']</span>';
-    }
-    if (typeof v === 'number') {
-        const display = Number.isInteger(v) ? String(v) : v.toFixed(6);
-        const ann = Number.isInteger(v) && VALUE_NAMES[v] ? '  <span class="out-ann">(' + VALUE_NAMES[v] + ')</span>' : '';
-        return '<span class="out-val">' + esc(display) + '</span>' + ann;
-    }
-    return '<span class="out-val">' + esc(String(v)) + '</span>';
-}
-
-function fmtNum(v) {
-    return Number.isInteger(v) ? String(v) : v.toFixed(4);
-}
-
 // ================================================================
-//  WASM eval is now the sole interpreter (S874: ax.js killed)
+//  WASM eval is the sole interpreter (S874: ax.js killed, S878: JS eval removed)
 //  Ring math via ring.js. Evaluation via ax_wasm_eval.js.
 // ================================================================
 var lastProfile = null;
@@ -846,8 +573,6 @@ var _nativeCompilerReady = false;
 var _deepOuroborosModule = null; /* Phase 18: cached WebAssembly.Module */
 var _wasmOutputTarget = null; /* S876: delegating print target for WASM eval */
 
-// Phase Z Wave 4: all examples run in WASM (14/14)
-var JS_ONLY_EXAMPLES = {};
 
 function initWasmEval() {
     if (typeof AxWasmEval === 'undefined') return;
@@ -915,9 +640,7 @@ function toggleEvalMode() {
 function resetWasmSession() {
     if (!_axWasmEval) return;
     _axWasmEval._wasm_reset();
-    outputLines = ['Session reset. All definitions cleared.'];
-    traceLines = [];
-    renderOutput();
+    document.getElementById('output').innerHTML = '<span class="out-info">Session reset. All definitions cleared.</span>';
 }
 
 // ================================================================
@@ -1024,7 +747,6 @@ async function executeNative(src) {
     if (child.instance.exports._main) child.instance.exports._main();
     var t4 = performance.now();
     outputLines = lines.map(function(l) { return esc(l); });
-    traceLines = ['<span class="tr-step">Native compile: trace not available (' + wasmBytes.length + 'B WASM, ' + (t1-t0).toFixed(0) + 'ms compile)</span>'];
     // S876: extract numeric values from output for algebra view
     lastOutputValues = [];
     for (var ni = 0; ni < lines.length; ni++) {
@@ -1057,7 +779,6 @@ function executeWasm(src) {
     // Emergence: detect consecutive array lines -> render as colored grid
     var formatted = fmtWasmLines(output);
     outputLines = formatted;
-    traceLines = ['<span class="tr-step">WASM eval: trace not available (compiled execution)</span>'];
     // S876: extract numeric values from output for algebra view
     lastOutputValues = [];
     for (var oi = 0; oi < output.length; oi++) {
@@ -2762,7 +2483,8 @@ function syncHighlight() {
 }
 
 // ================================================================
-//  Under the Hood: C Source Transpiler
+//  ☠️ SCAFFOLDING: C Source Transpiler (~180L) — inline parser, 8/17 examples fail.
+//  Dies when deep_codegen.wasm produces C in-browser. codegen.ax IS the real transpiler.
 // ================================================================
 function transpileToC(src) {
     try {
@@ -3039,7 +2761,6 @@ function run() {
     }
     // Yield to browser for paint, then do heavy work
     setTimeout(function() {
-        traceLines = [];
         lastOutputValues = [];
         try {
             const lines = (_axWasmEval) ? executeWasm(src) : [];
@@ -3086,11 +2807,7 @@ function loadExample(name) {
             _useNativeCompile = true;
             updateEvalButton();
         } else if (_axWasmEval) {
-            if (JS_ONLY_EXAMPLES[name]) {
-                setEvalMode(false);
-            } else {
-                setEvalMode(true);
-            }
+            setEvalMode(true);
         }
     }
 }
