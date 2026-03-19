@@ -364,10 +364,12 @@ function fmtValue(v){
 //  WASM eval integration (S874: ax.js killed, ring.js + WASM eval)
 // ================================================================
 var _axWasmEval = null;
+var _pgWasmOutput = null; /* S876: delegating print target */
 function initWasmEval() {
     if (typeof AxWasmEval === 'undefined') return;
     AxWasmEval({
-        print: function() {},
+        // S876: Emscripten 5 captures `out` at init — delegate via closure
+        print: function(text) { if (_pgWasmOutput) _pgWasmOutput.push(text); },
         printErr: function() {}
     }).then(function(mod) { _axWasmEval = mod; }).catch(function() {});
 }
@@ -376,10 +378,11 @@ initWasmEval();
 function execute(src) {
     if (!_axWasmEval) { outputLines = ['WASM evaluator loading...']; return outputLines; }
     var output = [];
-    _axWasmEval.print = function(text) { output.push(text); };
+    _pgWasmOutput = output; /* S876: delegate print to this array */
     var ptr = _axWasmEval.allocateUTF8(src);
     _axWasmEval._wasm_run(ptr);
     _axWasmEval._free(ptr);
+    _pgWasmOutput = null;
     outputLines = output.map(function(line) { return esc(line); });
     lastOutputValues = [];
     return outputLines;
