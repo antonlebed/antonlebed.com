@@ -170,28 +170,3 @@ return {
     get wasmActive() { return _wasm !== null && N === TRUE_N; }
 };
 })();
-
-// CRT compatibility namespace (S815: for pages that used crt_core.js)
-if (typeof window !== 'undefined' && !window.CRT) {
-    window.CRT = {
-        get N() { return AX.N; },
-        get MODS() { return AX.CRT_MODS; },
-        NAMES: AX.CRT_NAMES,
-        COLORS: AX.CRT_COLORS,
-        decompose: function(n) { return AX.crt(n); },
-        reconstruct: function(ch) { return AX.reconstruct(ch); },
-        gcd: function(a, b) { return AX.gcd(a, b); },
-        coupling: function(n) { return AX.coupling(n); },
-        modpow: function(base, exp, mod) {
-            if (mod !== undefined) {
-                let r = 1; base = ((base % mod) + mod) % mod;
-                while (exp > 0) { if (exp & 1) r = r * base % mod; base = base * base % mod; exp >>= 1; }
-                return r;
-            }
-            return AX.modPow(base, exp);
-        },
-        modinv: function(a, m) { return AX.modinv(a, m); },
-        ringAdd: function(a, b) { return AX.ringAdd(a, b); },
-        ringMul: function(a, b) { return AX.ringMul(a, b); },
-    };
-}

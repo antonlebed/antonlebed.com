@@ -133,8 +133,21 @@ No patents. No dependencies. No permission needed. antonlebed.com
 <script src="nav.js"></script>
 <script src="ring.js"></script>
 <script>
-const {N, MODS, decompose, modpow} = CRT;
-const crt_reconstruct = CRT.reconstruct;
+const {N, CRT_MODS: MODS} = AX;
+const decompose = AX.crt;
+const crt_reconstruct = AX.reconstruct;
+// AX.modPow takes 2 args (base, exp) using ring N. For per-channel modpow we need a 3-arg version:
+function modpow(base, exp, mod) {
+  if (mod === 1) return 0;
+  let result = 1;
+  base = ((base % mod) + mod) % mod;
+  while (exp > 0) {
+    if (exp % 2 === 1) result = (result * base) % mod;
+    exp = Math.floor(exp / 2);
+    base = (base * base) % mod;
+  }
+  return result;
+}
 const LABELS = ['Z/8', 'Z/9', 'Z/25', 'Z/49', 'Z/11'];
 const g = 137;
 const LAMBDA = 420;
