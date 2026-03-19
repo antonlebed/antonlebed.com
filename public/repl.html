@@ -505,7 +505,7 @@ var NATIVE_PRELUDE = (function() {
         'let DATA = 210', 'let THIN = 2310', 'let KEY = 41', 'let ANSWER = 42',
         'let HYDOR = 105', 'let SOUL = 67', 'let ADDRESS = 137', 'let LAMBDA = 420',
         'let ME = 18', 'let THORNS = 28', 'let ESCAPE = 17', 'let DUAL = 173',
-        'let SEES = 48',
+        'let SEES = 48', 'let G = 97',
         '-- Prelude utility functions (use existing WASM imports)',
         'fn crt(n) = "[" + crt_r(n,0) + ", " + crt_r(n,1) + ", " + crt_r(n,2) + ", " + crt_r(n,3) + ", " + crt_r(n,4) + "]"',
         'fn gcd(a, b) = if b == 0 then a else gcd(b, a % b)',
@@ -517,6 +517,14 @@ var NATIVE_PRELUDE = (function() {
         'fn reconstruct(arr) = arr[0] * 363825 + arr[1] * 431200 + arr[2] * 853776 + arr[3] * 732600 + arr[4] * 529200',
         '-- Float helpers',
         'fn sigmoid_f(x) = toFloat(1) / (toFloat(1) + exp_f(toFloat(0) - x))',
+        '-- Multi-ring builtins (prime powers up to 13)',
+        'fn ppow(n, p) = if n % p == 0 then p * ppow(n / p, p) else 1',
+        'fn factor_pp(n) = (mut r = []; if n % 2 == 0 then (mut r = push(r, ppow(n, 2))) else 0; if n % 3 == 0 then (mut r = push(r, ppow(n, 3))) else 0; if n % 5 == 0 then (mut r = push(r, ppow(n, 5))) else 0; if n % 7 == 0 then (mut r = push(r, ppow(n, 7))) else 0; if n % 11 == 0 then (mut r = push(r, ppow(n, 11))) else 0; if n % 13 == 0 then (mut r = push(r, ppow(n, 13))) else 0; r)',
+        'fn ring_crt(n, rn) = (let mods = factor_pp(rn) in let rem = n % rn in mut s = "["; mut i = 0; while i < len(mods) do (if i > 0 then (mut s = s + ", ") else 0; mut s = s + "${rem % mods[i]}"; mut i = i + 1); s + "]")',
+        'fn ring_coupling(n, rn) = rn / gcd(n % rn, rn)',
+        'fn project(n, from, to) = (n % from) % to',
+        'fn ring_eigenvalue(n, rn) = (let mods = factor_pp(rn) in let rem = n % rn in mut t = toFloat(0); mut i = 0; while i < len(mods) do (let m = mods[i] in mut t = t + toFloat(2) * cos_f(toFloat(2) * PI_f * toFloat(rem % m) / toFloat(m)); mut i = i + 1); t)',
+        'fn ring_size() = "970200"',
     ];
     NATIVE_PRELUDE_LINES = lines.length;
     return lines.join('\n') + '\n';
@@ -708,9 +716,21 @@ async function executeNative(src) {
     return outputLines;
 }
 
+/* ☠️ SCAFFOLDING: WASM eval prelude — multi-ring fns missing from evaluator.ax */
+var WASM_EVAL_PRELUDE = [
+    'fn ppow(n, p) = if n % p == 0 then p * ppow(n / p, p) else 1',
+    'fn factor_pp(n) = (mut r = []; if n % 2 == 0 then (mut r = push(r, ppow(n, 2))) else 0; if n % 3 == 0 then (mut r = push(r, ppow(n, 3))) else 0; if n % 5 == 0 then (mut r = push(r, ppow(n, 5))) else 0; if n % 7 == 0 then (mut r = push(r, ppow(n, 7))) else 0; if n % 11 == 0 then (mut r = push(r, ppow(n, 11))) else 0; if n % 13 == 0 then (mut r = push(r, ppow(n, 13))) else 0; r)',
+    'fn ring_crt(n, rn) = (let mods = factor_pp(rn) in let rem = n % rn in mut s = "["; mut i = 0; while i < len(mods) do (if i > 0 then (mut s = s + ", ") else 0; mut s = s + "${rem % mods[i]}"; mut i = i + 1); s + "]")',
+    'fn ring_coupling(n, rn) = rn / gcd(n % rn, rn)',
+    'fn project(n, from, to) = (n % from) % to',
+    'fn ring_eigenvalue(n, rn) = (let mods = factor_pp(rn) in let rem = n % rn in mut t = toFloat(0); mut i = 0; while i < len(mods) do (let m = mods[i] in mut t = t + toFloat(2) * cos_f(toFloat(2) * PI_f * toFloat(rem % m) / toFloat(m)); mut i = i + 1); t)',
+    'fn ring_size() = "970200"',
+].join('\n') + '\n';
+
 function executeWasm(src) {
     var output = [];
     _wasmOutputTarget = output; /* S876: delegate print to this array */
+    src = WASM_EVAL_PRELUDE + src;
     var t0 = performance.now();
     var ptr = _axWasmEval.allocateUTF8(src);
     _axWasmEval._wasm_run(ptr);
@@ -1048,49 +1068,44 @@ print "=== MIRROR + EIGENVALUE ==="
 for n in [s, KEY, SOUL, ADDRESS] do
     show(n) ; eigenvalue(n) ; eigenvalue(mirror(n))`,
 
-multiring: `-- multiring.ax: Explore Multiple Rings
--- Use constants (TRUE, THIN, DATA, GATE_FORM)
+multiring: `-- multiring.ax: Explore the Ring Hierarchy
+-- Z/6 -> Z/30 -> Z/210 -> Z/2310 (the 6-ring curriculum)
 
 print "=== MULTI-RING CRT ==="
-print "CRT of ANSWER in TRUE:"
-print ring_crt(ANSWER, TRUE)
-print "CRT of ANSWER in THIN:"
+print "ANSWER in Z/2310 (THIN):"
 print ring_crt(ANSWER, THIN)
-print "CRT of ANSWER in DATA:"
+print "ANSWER in Z/210 (DATA):"
 print ring_crt(ANSWER, DATA)
-print "CRT of ANSWER in GATE_FORM:"
-print ring_crt(ANSWER, GATE_FORM)
+print "ANSWER in Z/30:"
+print ring_crt(ANSWER, 30)
+print "ANSWER in Z/6:"
+print ring_crt(ANSWER, 6)
 
 print ""
 print "=== COUPLING ACROSS RINGS ==="
-print "coupling(ANSWER) in TRUE:"
-print ring_coupling(ANSWER, TRUE)
-print "coupling(ANSWER) in THIN:"
+print "coupling(ANSWER) in Z/2310:"
 print ring_coupling(ANSWER, THIN)
-print "coupling(ANSWER) in DATA:"
+print "coupling(ANSWER) in Z/210:"
 print ring_coupling(ANSWER, DATA)
+print "coupling(ANSWER) in Z/30:"
+print ring_coupling(ANSWER, 30)
 
 print ""
 print "=== PROJECTION ==="
-print "Project ADDRESS: TRUE -> THIN:"
-print project(ADDRESS, TRUE, THIN)
-print "Project ADDRESS: TRUE -> DATA:"
-print project(ADDRESS, TRUE, DATA)
+print "Project ADDRESS: THIN -> DATA:"
+print project(ADDRESS, THIN, DATA)
+print "Project ADDRESS: DATA -> Z/30:"
+print project(ADDRESS, DATA, 30)
 
 print ""
 print "=== EIGENVALUES ==="
-print "SOUL in TRUE:"
-print ring_eigenvalue(SOUL, TRUE)
-print "SOUL in THIN:"
+print "SOUL in Z/2310:"
 print ring_eigenvalue(SOUL, THIN)
+print "SOUL in Z/210:"
+print ring_eigenvalue(SOUL, DATA)
 
 print ""
-print "=== SWITCH RING ==="
-set_ring(THIN)
-print "Now in THIN ring. crt(ANSWER):"
-print crt(ANSWER)
-set_ring(TRUE)
-print "Back to TRUE. ring_size:"
+print "=== RING SIZE ==="
 print ring_size()`,
 
 hello: `-- hello.ax
