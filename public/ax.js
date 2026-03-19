@@ -941,6 +941,11 @@ BUILTINS.product = function(args) {
     let p = 1; for (const x of args[0]) p = ringMod(p * (typeof x === 'number' ? x : 0)); return p;
 };
 
+BUILTINS.alloc = function(args) {
+    const n = Math.min(Math.max(0, Math.round(args[0])), 10000);
+    return new Array(n).fill(0);
+};
+
 // --- Output builtins ---
 BUILTINS.show = function(args, ctx) {
     ctx.output(fmtValue(args[0]), args[0]);
