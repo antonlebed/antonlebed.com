@@ -135,47 +135,19 @@ Operation: <select id="benchOp">
 The ring parallelizes itself. 5 primes. 5 workgroups. Zero engineering.<br>
 antonlebed.com | <a href="https://creativecommons.org/publicdomain/zero/1.0/" style="color:#666">CC0 License</a></p>
 
+<script src="ring.js"></script>
 <script>
-// CRT constants for Z/970200Z
-const N = 970200;
-const MODS = [8, 9, 25, 49, 11]; // D^3, K^2, E^2, b^2, L
+// Ring math from ring.js — CRT constants, decompose, reconstruct, ring arithmetic
+const N = AX.N;
+const MODS = AX.CRT_MODS;
 const NAMES = ['D (mod 8)', 'K (mod 9)', 'E (mod 25)', 'b (mod 49)', 'L (mod 11)'];
 const COLORS = ['#f44', '#fb0', '#0f0', '#0af', '#f0f'];
-
-// CRT coefficients for reconstruction
-// M_i = N / mod_i, then find M_i^{-1} mod mod_i
-function modInverse(a, m) {
-  let [old_r, r] = [a % m, m];
-  let [old_s, s] = [1, 0];
-  while (r !== 0) {
-    const q = Math.floor(old_r / r);
-    [old_r, r] = [r, old_r - q * r];
-    [old_s, s] = [s, old_s - q * s];
-  }
-  return ((old_s % m) + m) % m;
-}
-
 const MS = MODS.map((_, i) => MODS.reduce((a, b, j) => j === i ? a : a * b, 1));
-const MS_INV = MS.map((m, i) => modInverse(m, MODS[i]));
-
-// CPU CRT operations
-function crtDecompose(n) {
-  return MODS.map(m => n % m);
-}
-
-function crtReconstruct(residues) {
-  let result = 0;
-  for (let i = 0; i < 5; i++) {
-    result += residues[i] * MS[i] * MS_INV[i];
-  }
-  return ((result % N) + N) % N;
-}
-
-function cpuRingAdd(a, b) { return (a + b) % N; }
-function cpuRingMul(a, b) {
-  // Use BigInt for large products
-  return Number((BigInt(a) * BigInt(b)) % BigInt(N));
-}
+const MS_INV = MS.map((m, i) => AX.modinv(m, MODS[i]));
+const crtDecompose = n => AX.crt(n);
+const crtReconstruct = r => AX.reconstruct(r);
+function cpuRingAdd(a, b) { return AX.ringMod(a + b); }
+function cpuRingMul(a, b) { return AX.ringMod(a * b); }
 
 // CPU benchmark
 function cpuBenchmark(size, op) {
