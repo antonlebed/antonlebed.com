@@ -1,5 +1,5 @@
 // ax.js — The .ax Language Interpreter
-// ONE FILE. Every page, CLI, and tool that speaks .ax includes this.
+// Used by repl.html + playground.html (pages needing full .ax eval). 59 pages use ring.js instead.
 // 970200 = 2^3 * 3^2 * 5^2 * 7^2 * 11 = TRUE FORM
 // S465: extracted from repl.html. Single source of truth.
 
