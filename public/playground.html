@@ -163,7 +163,7 @@ a:hover{text-decoration:underline}
 </style>
 <script src="crt_wasm.js"></script>
 <script src="ring.js"></script>
-<script src="ax_wasm_eval.js"></script>
+<!-- S876: playground uses inline JS eval, not WASM. ax_wasm_eval.js removed (155KB savings). -->
 <link rel="stylesheet" href="nav-critical.css">
 <script src="nav.js" defer></script>
 </head>
@@ -363,36 +363,10 @@ function fmtValue(v){
 // ================================================================
 //  WASM eval integration (S874: ax.js killed, ring.js + WASM eval)
 // ================================================================
-var _axWasmEval = null;
-var _pgWasmOutput = null; /* S876: delegating print target */
-function initWasmEval() {
-    if (typeof AxWasmEval === 'undefined') return;
-    AxWasmEval({
-        // S876: Emscripten 5 captures `out` at init — delegate via closure
-        print: function(text) { if (_pgWasmOutput) _pgWasmOutput.push(text); },
-        printErr: function() {}
-    }).then(function(mod) { _axWasmEval = mod; }).catch(function() {});
-}
-initWasmEval();
-
-function execute(src) {
-    if (!_axWasmEval) { outputLines = ['WASM evaluator loading...']; return outputLines; }
-    var output = [];
-    _pgWasmOutput = output; /* S876: delegate print to this array */
-    var ptr = _axWasmEval.allocateUTF8(src);
-    _axWasmEval._wasm_run(ptr);
-    _axWasmEval._free(ptr);
-    _pgWasmOutput = null;
-    outputLines = output.map(function(line) { return esc(line); });
-    // S876: extract numeric values from output for algebra view
-    lastOutputValues = [];
-    for (var oi = 0; oi < output.length; oi++) {
-        var trimmed = output[oi].trim();
-        if (/^-?\d+$/.test(trimmed)) lastOutputValues.push(parseInt(trimmed, 10));
-        else if (trimmed.length > 0) lastOutputValues.push(trimmed);
-    }
-    return outputLines;
-}
+// S876: playground uses inline JS eval (lines 292-353), NOT WASM eval.
+// The JS eval auto-prints bare expressions (ExprStmt) which challenges require.
+// WASM eval needs explicit `show` — breaks "type s and press Run" flow.
+// ring.js provides all ring math. No ax.js or ax_wasm_eval.js needed.
 
 // ================================================================
 //  Syntax Highlighting
