@@ -404,6 +404,8 @@ var _useNativeCompile = false;
 var _nativeCompilerReady = false;
 var _deepOuroborosModule = null; /* Phase 18: cached WebAssembly.Module */
 var _wasmOutputTarget = null; /* S876: delegating print target for WASM eval */
+var _gridStore = {}; /* Phase 57: grid handle -> {w, h, data[]} for native grid builtins */
+var _gridNextId = 0;
 
 
 function initWasmEval() {
@@ -513,6 +515,8 @@ var NATIVE_PRELUDE = (function() {
         '-- CRT operations (ring-arithmetic: weighted sum mod N)',
         'fn decompose(n) = [n % 8, n % 9, n % 25, n % 49, n % 11]',
         'fn reconstruct(arr) = arr[0] * 363825 + arr[1] * 431200 + arr[2] * 853776 + arr[3] * 732600 + arr[4] * 529200',
+        '-- Float helpers',
+        'fn sigmoid_f(x) = toFloat(1) / (toFloat(1) + exp_f(toFloat(0) - x))',
     ];
     NATIVE_PRELUDE_LINES = lines.length;
     return lines.join('\n') + '\n';
@@ -520,6 +524,8 @@ var NATIVE_PRELUDE = (function() {
 
 async function executeNative(src) {
     if (!_nativeCompilerReady) await loadNativeCompiler();
+    /* Reset grid store for fresh execution */
+    _gridStore = {}; _gridNextId = 0;
     /* Prepend constants + utility functions so examples resolve Decality names */
     src = NATIVE_PRELUDE + src;
     var t0 = performance.now();
@@ -597,7 +603,83 @@ async function executeNative(src) {
             sin_f: function(x) { return Math.sin(x); },
             cos_f: function(x) { return Math.cos(x); },
             PI_f: function() { return Math.PI; },
+            exp_f: function(x) { return Math.exp(x); },
             sqrt_f: function(x) { return Math.sqrt(x); },
+            /* Grid builtins (handle-based: JS manages grid objects, WASM sees i32 handles) */
+            grid: function(w, h, fill) {
+                var id = ++_gridNextId;
+                var data = new Array(w * h);
+                for (var k = 0; k < data.length; k++) data[k] = fill;
+                _gridStore[id] = { w: w, h: h, data: data };
+                return id;
+            },
+            gset: function(id, x, y, val) {
+                var g = _gridStore[id]; if (!g) return 0;
+                var nid = ++_gridNextId;
+                var nd = g.data.slice();
+                nd[y * g.w + x] = val;
+                _gridStore[nid] = { w: g.w, h: g.h, data: nd };
+                return nid;
+            },
+            show_grid: function(id) {
+                var g = _gridStore[id]; if (!g) { lines.push('[empty grid]'); return 0; }
+                for (var r = 0; r < g.h; r++) {
+                    var row = '';
+                    for (var c = 0; c < g.w; c++) {
+                        if (c > 0) row += ' ';
+                        row += String(g.data[r * g.w + c]);
+                    }
+                    lines.push(row);
+                }
+                return 0;
+            },
+            hflip: function(id) {
+                var g = _gridStore[id]; if (!g) return 0;
+                var nid = ++_gridNextId;
+                var nd = new Array(g.w * g.h);
+                for (var r = 0; r < g.h; r++)
+                    for (var c = 0; c < g.w; c++)
+                        nd[r * g.w + c] = g.data[r * g.w + (g.w - 1 - c)];
+                _gridStore[nid] = { w: g.w, h: g.h, data: nd };
+                return nid;
+            },
+            vflip: function(id) {
+                var g = _gridStore[id]; if (!g) return 0;
+                var nid = ++_gridNextId;
+                var nd = new Array(g.w * g.h);
+                for (var r = 0; r < g.h; r++)
+                    for (var c = 0; c < g.w; c++)
+                        nd[r * g.w + c] = g.data[(g.h - 1 - r) * g.w + c];
+                _gridStore[nid] = { w: g.w, h: g.h, data: nd };
+                return nid;
+            },
+            rot90: function(id) {
+                var g = _gridStore[id]; if (!g) return 0;
+                var nid = ++_gridNextId;
+                var nd = new Array(g.w * g.h);
+                for (var r = 0; r < g.h; r++)
+                    for (var c = 0; c < g.w; c++)
+                        nd[c * g.h + (g.h - 1 - r)] = g.data[r * g.w + c];
+                _gridStore[nid] = { w: g.h, h: g.w, data: nd };
+                return nid;
+            },
+            transpose: function(id) {
+                var g = _gridStore[id]; if (!g) return 0;
+                var nid = ++_gridNextId;
+                var nd = new Array(g.w * g.h);
+                for (var r = 0; r < g.h; r++)
+                    for (var c = 0; c < g.w; c++)
+                        nd[c * g.h + r] = g.data[r * g.w + c];
+                _gridStore[nid] = { w: g.h, h: g.w, data: nd };
+                return nid;
+            },
+            grid_eq: function(id1, id2) {
+                var g1 = _gridStore[id1], g2 = _gridStore[id2];
+                if (!g1 || !g2 || g1.w !== g2.w || g1.h !== g2.h) return 0;
+                for (var k = 0; k < g1.data.length; k++)
+                    if (g1.data[k] !== g2.data[k]) return 0;
+                return 1;
+            },
             alloc: function(n) { return 0; }
         }
     });
@@ -1087,17 +1169,20 @@ print "HOLO = sqrt(1)+sqrt(2)+sqrt(3)+sqrt(5)+sqrt(7)+sqrt(11) ="
 print holo
 
 print ""
-print "=== SOFTMAX ==="
-let probs = softmax([toFloat(1), toFloat(2), toFloat(3), toFloat(5), toFloat(7)])
-print "softmax([1,2,3,5,7]) ="
-print probs
+print "=== EXPONENTIAL ==="
+print "exp(0) ="
+print exp_f(toFloat(0))
+print "exp(1) = e ="
+print exp_f(toFloat(1))
 
 print ""
 print "=== SIGMOID ==="
-print "sigmoid(0) ="
+print "sigmoid(0) = 0.5:"
 print sigmoid_f(toFloat(0))
 print "sigmoid(2) ="
-print sigmoid_f(toFloat(2))`,
+print sigmoid_f(toFloat(2))
+print "sigmoid(-2) ="
+print sigmoid_f(toFloat(0) - toFloat(2))`,
 
 wasm_bench: `-- wasm_bench.ax: Bottleneck Profiler
 -- Check timing breakdown below output
