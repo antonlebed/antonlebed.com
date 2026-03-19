@@ -318,231 +318,63 @@ const CONSTANTS = AX.CONSTANTS;
 const VALUE_NAMES = AX.VALUE_NAMES;
 
 // ================================================================
-//  ☠️ SCAFFOLDING: Tokenizer+Parser (~220L) — ONLY used by C Source tab transpiler.
-//  Dies when deep_codegen.wasm produces C in-browser.
+//  C Source tab: deep_codegen.wasm produces real C in-browser (S883)
+//  Replaced 400L of inline tokenizer+parser+transpiler scaffolding.
 // ================================================================
-const KW = new Set(['let','fn','print','if','then','else','while','do','for','in']);
+var _deepCodegenModule = null;
+var _deepCodegenReady = false;
 
-function tokenize(src) {
-    const T = [];
-    let i = 0, len = src.length;
-    while (i < len) {
-        if (/\s/.test(src[i])) { i++; continue; }
-        if (src[i] === '-' && src[i+1] === '-') { while (i < len && src[i] !== '\n') i++; continue; }
-        if (/\d/.test(src[i]) || (src[i] === '.' && i+1 < len && /\d/.test(src[i+1]))) {
-            let num = '';
-            while (i < len && /[\d.]/.test(src[i])) num += src[i++];
-            T.push({t:'NUM', v:parseFloat(num)}); continue;
-        }
-        if (src[i] === '"') {
-            i++; let s = '';
-            while (i < len && src[i] !== '"') s += src[i++];
-            if (i < len) i++;
-            T.push({t:'STR', v:s}); continue;
-        }
-        if (/[a-zA-Z_]/.test(src[i])) {
-            let id = '';
-            while (i < len && /[a-zA-Z0-9_]/.test(src[i])) id += src[i++];
-            T.push({t: KW.has(id) ? id.toUpperCase() : 'ID', v:id}); continue;
-        }
-        if (src[i] === '=' && i+1 < len && src[i+1] === '=') { T.push({t:'==', v:'=='}); i+=2; continue; }
-        const ch = src[i];
-        if ('+-*/^~@<>=()[]|,;'.includes(ch)) { T.push({t:ch, v:ch}); i++; continue; }
-        i++; // skip unknown
-    }
-    T.push({t:'EOF', v:null});
-    return T;
+async function loadDeepCodegen() {
+    if (_deepCodegenReady) return;
+    var r = await fetch('deep_codegen.wasm');
+    if (!r.ok) r = await fetch('../code/deep_codegen.wasm');
+    if (!r.ok) throw new Error('Cannot load deep_codegen.wasm');
+    var buf = await r.arrayBuffer();
+    _deepCodegenModule = await WebAssembly.compile(buf);
+    _deepCodegenReady = true;
 }
 
-// ================================================================
-//  Parser
-// ================================================================
-class Parser {
-    constructor(tokens) { this.T = tokens; this.p = 0; }
-    pk() { return this.T[this.p]; }
-    adv() { return this.T[this.p++]; }
-    expect(t) {
-        const tok = this.adv();
-        if (tok.t !== t) throw new Error('Expected ' + t + ', got ' + tok.t + ' "' + tok.v + '"');
-        return tok;
-    }
-    match(t) { if (this.pk().t === t) { this.adv(); return true; } return false; }
+function _dcgWriteStr(mem32, ptr, str) {
+    mem32[ptr / 4] = str.length;
+    for (var i = 0; i < str.length; i++) mem32[ptr / 4 + 1 + i] = str.charCodeAt(i);
+}
+function _dcgReadStr(mem32, ptr) {
+    var len = mem32[ptr / 4];
+    var s = '';
+    for (var i = 0; i < len; i++) s += String.fromCharCode(mem32[ptr / 4 + 1 + i]);
+    return s;
+}
+function _dcgReadStrArr(mem32, ptr) {
+    var len = mem32[ptr / 4];
+    var r = '';
+    for (var i = 0; i < len; i++) r += _dcgReadStr(mem32, mem32[ptr / 4 + 1 + i]);
+    return r;
+}
 
-    parseProgram() {
-        const stmts = [];
-        while (this.pk().t !== 'EOF') stmts.push(this.parseStmt());
-        return stmts;
-    }
+function highlightC(code) {
+    var h = esc(code);
+    h = h.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="c-cmt">$1</span>');
+    h = h.replace(/\b(int|uint32_t|void|char|double|static|const|return|if|else|for|while|struct|typedef)\b/g, '<span class="c-kw">$1</span>');
+    h = h.replace(/(#\w+)/g, '<span class="c-kw">$1</span>');
+    h = h.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="c-str">$1</span>');
+    h = h.replace(/\b(main|printf|malloc|free|memcpy|ring_mod|mod_pow)\b(?=\s*\()/g, '<span class="c-fn">$1</span>');
+    return h;
+}
 
-    parseStmt() {
-        switch (this.pk().t) {
-            case 'LET': return this.parseLet();
-            case 'FN': return this.parseFn();
-            case 'PRINT': return this.parsePrint();
-            default: return {t:'ExprStmt', expr:this.parseExpr()};
-        }
-    }
-
-    parseLet() {
-        this.expect('LET');
-        const name = this.expect('ID').v;
-        this.expect('=');
-        return {t:'Let', name, val:this.parseExpr()};
-    }
-
-    parseFn() {
-        this.expect('FN');
-        const name = this.expect('ID').v;
-        this.expect('(');
-        const params = [];
-        if (this.pk().t !== ')') {
-            params.push(this.expect('ID').v);
-            while (this.match(',')) params.push(this.expect('ID').v);
-        }
-        this.expect(')');
-        this.expect('=');
-        return {t:'Fn', name, params, body:this.parseExpr()};
-    }
-
-    parsePrint() {
-        this.expect('PRINT');
-        if (this.pk().t === 'STR') return {t:'Print', expr:{t:'Str', v:this.adv().v}};
-        return {t:'Print', expr:this.parseExpr()};
-    }
-
-    parseExpr() {
-        let left = this.parseIfOrCmp();
-        while (this.pk().t === ';') { this.adv(); left = {t:'Seq', a:left, b:this.parseIfOrCmp()}; }
-        return left;
-    }
-
-    parseIfOrCmp() {
-        if (this.pk().t === 'IF') return this.parseIf();
-        if (this.pk().t === 'LET') return this.parseLetExpr();
-        if (this.pk().t === 'FOR') return this.parseFor();
-        return this.parseCmp();
-    }
-
-    parseFor() {
-        this.expect('FOR');
-        const varName = this.expect('ID').v;
-        this.expect('IN');
-        const iter = this.parseCmp();
-        this.expect('DO');
-        return {t:'For', varName, iter, body:this.parseExpr()};
-    }
-
-    parseLetExpr() {
-        this.expect('LET');
-        const name = this.expect('ID').v;
-        this.expect('=');
-        const val = this.parseExpr();
-        if (this.pk().t === 'IN') { this.adv(); }
-        return {t:'LetExpr', name, val, body:this.parseExpr()};
-    }
-
-    parseIf() {
-        this.expect('IF');
-        const cond = this.parseExpr();
-        this.expect('THEN');
-        const then_ = this.parseExpr();
-        this.expect('ELSE');
-        return {t:'If', cond, then_, else_:this.parseExpr()};
-    }
-
-    parseCmp() {
-        let left = this.parseAdd();
-        while (['<','>','=='].includes(this.pk().t)) {
-            const op = this.adv().t;
-            left = {t:'Bin', op, l:left, r:this.parseAdd()};
-        }
-        return left;
-    }
-
-    parseAdd() {
-        let left = this.parseMul();
-        while (['+','-'].includes(this.pk().t)) {
-            const op = this.adv().t;
-            left = {t:'Bin', op, l:left, r:this.parseMul()};
-        }
-        return left;
-    }
-
-    parseMul() {
-        let left = this.parsePow();
-        while (['*','/'].includes(this.pk().t)) {
-            const op = this.adv().t;
-            left = {t:'Bin', op, l:left, r:this.parsePow()};
-        }
-        return left;
-    }
-
-    parsePow() {
-        let left = this.parseUnary();
-        if (this.pk().t === '^') { this.adv(); left = {t:'Bin', op:'^', l:left, r:this.parseUnary()}; }
-        return left;
-    }
-
-    parseUnary() {
-        if (this.pk().t === '~') { this.adv(); return {t:'Unary', op:'~', e:this.parseUnary()}; }
-        if (this.pk().t === '-') { this.adv(); return {t:'Bin', op:'-', l:{t:'Num',v:0}, r:this.parseUnary()}; }
-        return this.parseThresh();
-    }
-
-    parseThresh() {
-        let e = this.parsePostfix();
-        if (this.pk().t === '@') { this.adv(); e = {t:'Thresh', val:e, th:this.parsePostfix()}; }
-        return e;
-    }
-
-    parsePostfix() {
-        let e = this.parsePrimary();
-        while (this.pk().t === '[') { this.adv(); const idx = this.parseExpr(); this.expect(']'); e = {t:'Idx', arr:e, idx}; }
-        return e;
-    }
-
-    parsePrimary() {
-        const tok = this.pk();
-        if (tok.t === 'NUM') { this.adv(); return {t:'Num', v:tok.v}; }
-        if (tok.t === 'STR') { this.adv(); return {t:'Str', v:tok.v}; }
-        if (tok.t === 'ID') {
-            this.adv();
-            if (this.pk().t === '(') {
-                this.adv();
-                const args = [];
-                if (this.pk().t !== ')') {
-                    args.push(this.parseExpr());
-                    while (this.match(',')) args.push(this.parseExpr());
-                }
-                this.expect(')');
-                return {t:'Call', fn:tok.v, args};
-            }
-            return {t:'Sym', name:tok.v};
-        }
-        if (tok.t === '(') {
-            this.adv();
-            const first = this.parseExpr();
-            if (this.pk().t === '|') {
-                this.adv(); const second = this.parseExpr();
-                this.expect('|'); const third = this.parseExpr();
-                this.expect(')');
-                return {t:'DFloat', s:first, b:second, a:third};
-            }
-            this.expect(')');
-            return first;
-        }
-        if (tok.t === '[') {
-            this.adv();
-            const elems = [];
-            if (this.pk().t !== ']') {
-                elems.push(this.parseExpr());
-                while (this.match(',')) elems.push(this.parseExpr());
-            }
-            this.expect(']');
-            return {t:'Arr', elems};
-        }
-        throw new Error('Unexpected: ' + tok.t + ' "' + tok.v + '"');
-    }
+async function transpileToC(src) {
+    await loadDeepCodegen();
+    var instance = await WebAssembly.instantiate(_deepCodegenModule, {
+        env: { show_int: function(v) { return v; }, show_str: function(p) { return p; } }
+    });
+    var cm = instance.exports;
+    cm.memory.grow(4000);
+    var mem32 = new Int32Array(cm.memory.buffer);
+    var srcPtr = 120 * 1024 * 1024;
+    _dcgWriteStr(mem32, srcPtr, src);
+    var resultPtr = cm.codegen_from_src(srcPtr);
+    var cCode = _dcgReadStrArr(new Int32Array(cm.memory.buffer), resultPtr);
+    if (cCode.length === 0) throw new Error('Empty C output');
+    return highlightC(cCode);
 }
 
 // ================================================================
@@ -2483,183 +2315,9 @@ function syncHighlight() {
 }
 
 // ================================================================
-//  ☠️ SCAFFOLDING: C Source Transpiler (~180L) — inline parser, 8/17 examples fail.
-//  Dies when deep_codegen.wasm produces C in-browser. codegen.ax IS the real transpiler.
+//  C Source Transpiler — uses deep_codegen.wasm (S883). Replaced 180L inline scaffolding.
 // ================================================================
-function transpileToC(src) {
-    try {
-        const tokens = tokenize(src);
-        const stmts = new Parser(tokens).parseProgram();
-        const C_CONST = {s:'1',sigma:'1',D:'2',K:'3',E:'5',b:'7',L:'11',
-            OMEGA:'606376',DATA:'210',THIN:'2310',HYDOR:'105',KEY:'41',
-            ANSWER:'42',SOUL:'67',G:'97',ADDRESS:'137',DUAL:'173',ME:'18',LAMBDA:'420'};
-        const C_CONST_COMMENT = {s:'sigma',D:'duality',K:'closure',E:'observer',b:'depth',L:'protector',
-            OMEGA:'terminal',DATA:'D*K*E*b',THIN:'D*K*E*b*L',HYDOR:'K*E*b',KEY:'self-inverse',
-            ANSWER:'lambda(b^2)',SOUL:'perceiver',ADDRESS:'fine structure',LAMBDA:'Carmichael'};
-        const CRT_FN = {coupling:'crt_coupling',eigenvalue:'crt_eigenvalue',
-            mirror:'crt_mirror',kingdom:'crt_kingdom',gcd:'crt_gcd'};
-        let _tmpIdx = 0;
-        function tmpVar() { return '_t' + (_tmpIdx++); }
-        function iterBounds(iter) {
-            // range(n) -> {start:'0', end:ce(n)}, range(a,b) -> {start:ce(a), end:ce(b)}
-            if (iter.t === 'Call' && iter.fn === 'range') {
-                if (iter.args.length === 1) return {start:'0', end:ce(iter.args[0])};
-                if (iter.args.length === 2) return {start:ce(iter.args[0]), end:ce(iter.args[1])};
-            }
-            return null;
-        }
-        function forToC(node) {
-            const bounds = iterBounds(node.iter);
-            if (bounds) {
-                const v = node.varName;
-                const body = ce(node.body);
-                return 'for (uint32_t ' + v + ' = ' + bounds.start + '; ' + v + ' < ' + bounds.end + '; ' + v + '++) { printf("%u\\n", ' + body + '); }';
-            }
-            // Array literal iteration
-            if (node.iter.t === 'Arr') {
-                const arr = tmpVar();
-                const elems = node.iter.elems.map(ce).join(', ');
-                const n = node.iter.elems.length;
-                const v = node.varName;
-                const body = ce(node.body);
-                return '{ uint32_t ' + arr + '[] = {' + elems + '}; for (int _i = 0; _i < ' + n + '; _i++) { uint32_t ' + v + ' = ' + arr + '[_i]; printf("%u\\n", ' + body + '); } }';
-            }
-            return '/* for ' + node.varName + ' in <dynamic> do ... */';
-        }
-        function ce(node) {
-            switch (node.t) {
-                case 'Num': return String(Math.round(node.v));
-                case 'Str': return '"' + node.v.replace(/"/g,'\\"') + '"';
-                case 'Sym': return C_CONST[node.name] || node.name;
-                case 'Bin': {
-                    const l = ce(node.l), r = ce(node.r);
-                    if (node.op === '^') return 'mod_pow(' + l + ', ' + r + ', N)';
-                    if (node.op === '==') return '(' + l + ' == ' + r + ')';
-                    if (node.op === '<' || node.op === '>') return '(' + l + ' ' + node.op + ' ' + r + ')';
-                    if (node.op === '/') return 'ring_div(' + l + ', ' + r + ')';
-                    return '((' + l + ' ' + node.op + ' ' + r + ') % N + N) % N';
-                }
-                case 'Unary': return '(N - (' + ce(node.e) + ')) % N';
-                case 'Thresh': return '((' + ce(node.val) + ') > (' + ce(node.th) + ') ? (' + ce(node.val) + ') : (N - (' + ce(node.val) + ')) % N)';
-                case 'Call': {
-                    // sum(for x in range(n) do expr) -> accumulator loop
-                    if ((node.fn === 'sum' || node.fn === 'product') && node.args.length === 1 && node.args[0].t === 'For') {
-                        const f = node.args[0], acc = tmpVar();
-                        const init = node.fn === 'sum' ? '0' : '1';
-                        const op = node.fn === 'sum' ? '+=' : '*=';
-                        const body = ce(f.body);
-                        const bounds = iterBounds(f.iter);
-                        if (bounds) {
-                            return '({ uint32_t ' + acc + ' = ' + init + '; for (uint32_t ' + f.varName + ' = ' + bounds.start + '; ' + f.varName + ' < ' + bounds.end + '; ' + f.varName + '++) ' + acc + ' ' + op + ' ' + body + '; ' + acc + ' % N; })';
-                        }
-                        if (f.iter.t === 'Arr') {
-                            const arr = tmpVar(), elems = f.iter.elems.map(ce).join(', '), n = f.iter.elems.length;
-                            return '({ uint32_t ' + arr + '[] = {' + elems + '}; uint32_t ' + acc + ' = ' + init + '; for (int _i = 0; _i < ' + n + '; _i++) { uint32_t ' + f.varName + ' = ' + arr + '[_i]; ' + acc + ' ' + op + ' ' + body + '; } ' + acc + ' % N; })';
-                        }
-                    }
-                    const args = node.args.map(ce);
-                    if (node.fn === 'crt') return 'crt_decompose(' + args[0] + ', ch)';
-                    if (node.fn === 'phi') return 'euler_phi(' + (args[0] || 'N') + ')';
-                    if (node.fn === 'order') return 'mult_order(' + args[0] + ', N)';
-                    if (node.fn === 'inv') return 'mod_inverse(' + args[0] + ', N)';
-                    if (node.fn === 'mod') return args[0] + ' % ' + args[1];
-                    if (node.fn === 'abs') return 'abs(' + args[0] + ')';
-                    if (node.fn === 'sqrt') return '(uint32_t)sqrt(' + args[0] + ')';
-                    if (node.fn === 'show' || node.fn === 'print') return 'printf("%u\\n", ' + args[0] + ')';
-                    if (CRT_FN[node.fn]) return CRT_FN[node.fn] + '(' + args.join(', ') + ')';
-                    if (node.fn === 'range') return args.length === 1 ? 'range(0, ' + args[0] + ')' : 'range(' + args.join(', ') + ')';
-                    if (node.fn === 'sum' || node.fn === 'product' || node.fn === 'len' ||
-                        node.fn === 'min' || node.fn === 'max') return node.fn + '(' + args.join(', ') + ')';
-                    return node.fn + '(' + args.join(', ') + ')';
-                }
-                case 'If': return '(' + ce(node.cond) + ' ? ' + ce(node.then_) + ' : ' + ce(node.else_) + ')';
-                case 'Arr': return '{' + node.elems.map(ce).join(', ') + '}';
-                case 'Seq': return ce(node.a) + '; ' + ce(node.b);
-                case 'For': return forToC(node);
-                case 'LetExpr': {
-                    const inner = ce(node.body);
-                    return '({ ' + node.name + ' = ' + ce(node.val) + '; ' + inner + '; })';
-                }
-                default: return '/* ... */';
-            }
-        }
-        function cs(stmt, indent) {
-            const pad = '    '.repeat(indent || 1);
-            switch (stmt.t) {
-                case 'Let': {
-                    if (stmt.val && stmt.val.t === 'For' && stmt.name === '_')
-                        return pad + esc(forToC(stmt.val));
-                    return pad + '<span class="c-type">uint32_t</span> ' + esc(stmt.name) + ' = ' + esc(ce(stmt.val)) + ';';
-                }
-                case 'Fn': {
-                    const params = stmt.params.map(p => '<span class="c-type">uint32_t</span> ' + esc(p)).join(', ');
-                    return '<span class="c-type">uint32_t</span> <span class="c-fn">' + esc(stmt.name) + '</span>(' + params + ') {\n' + pad + '<span class="c-kw">return</span> ' + esc(ce(stmt.body)) + ';\n}';
-                }
-                case 'Print': {
-                    if (stmt.expr.t === 'Str') return pad + '<span class="c-fn">printf</span>(<span class="c-str">"' + esc(stmt.expr.v) + '\\n"</span>);';
-                    const expr = ce(stmt.expr);
-                    if (stmt.expr.t === 'Call' && stmt.expr.fn === 'crt')
-                        return pad + '<span class="c-type">uint32_t</span> ch[5];\n' + pad + esc(expr) + ';\n' + pad + '<span class="c-fn">printf</span>(<span class="c-str">"[%u, %u, %u, %u, %u]\\n"</span>, ch[0], ch[1], ch[2], ch[3], ch[4]);';
-                    return pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(expr) + ');';
-                }
-                case 'ExprStmt': {
-                    const expr = ce(stmt.expr);
-                    if (stmt.expr.t === 'Call' && stmt.expr.fn === 'crt')
-                        return pad + '<span class="c-type">uint32_t</span> ch[5];\n' + pad + esc(expr) + ';\n' + pad + '<span class="c-fn">printf</span>(<span class="c-str">"[%u, %u, %u, %u, %u]\\n"</span>, ch[0], ch[1], ch[2], ch[3], ch[4]);';
-                    if (stmt.expr.t === 'For')
-                        return pad + esc(forToC(stmt.expr));
-                    return pad + '<span class="c-fn">printf</span>(<span class="c-str">"%u\\n"</span>, ' + esc(expr) + ');';
-                }
-                default: return pad + '<span class="c-cmt">/* ' + esc(stmt.t) + ' */</span>';
-            }
-        }
-        // Collect used constants
-        let usedConsts = new Set();
-        function findConsts(node) {
-            if (!node) return;
-            if (node.t === 'Sym' && C_CONST[node.name]) usedConsts.add(node.name);
-            for (const k of ['l','r','e','val','th','cond','then_','else_','body','expr','iter'])
-                if (node[k]) findConsts(node[k]);
-            if (node.args) node.args.forEach(findConsts);
-            if (node.elems) node.elems.forEach(findConsts);
-            if (node.a) findConsts(node.a);
-            if (node.b) findConsts(node.b);
-        }
-        stmts.forEach(s => { findConsts(s.val || s.expr || s.body); });
-        let out = [];
-        out.push('<span class="c-cmt">/* .ax -> C (with crt.h) — compile: gcc -O2 -o prog prog.c -lm */</span>');
-        out.push('<span class="c-kw">#include</span> <span class="c-str">&lt;stdio.h&gt;</span>');
-        out.push('<span class="c-kw">#include</span> <span class="c-str">&lt;math.h&gt;</span>');
-        out.push('<span class="c-kw">#define</span> CRT_IMPLEMENTATION');
-        out.push('<span class="c-kw">#include</span> <span class="c-str">"crt.h"</span>    <span class="c-cmt">/* github.com/antonlebed/crt.h */</span>');
-        out.push('');
-        out.push('<span class="c-kw">#define</span> N <span class="c-num">' + N + '</span>  <span class="c-cmt">/* Z/' + N + 'Z */</span>');
-        // Emit used constant defines
-        if (usedConsts.size > 0) {
-            out.push('');
-            for (const c of usedConsts) {
-                if (['s','sigma','D','K','E','b','L'].includes(c)) continue; // too basic
-                const comment = C_CONST_COMMENT[c] ? '  <span class="c-cmt">/* ' + C_CONST_COMMENT[c] + ' */</span>' : '';
-                out.push('<span class="c-kw">#define</span> ' + esc(c) + ' <span class="c-num">' + C_CONST[c] + '</span>' + comment);
-            }
-        }
-        out.push('');
-        // Emit user-defined functions before main
-        let fnStmts = stmts.filter(s => s.t === 'Fn');
-        let bodyStmts = stmts.filter(s => s.t !== 'Fn');
-        for (const fn of fnStmts) { out.push(cs(fn, 0)); out.push(''); }
-        out.push('<span class="c-type">int</span> <span class="c-fn">main</span>(<span class="c-type">void</span>) {');
-        for (const s of bodyStmts) out.push(cs(s));
-        out.push('    <span class="c-kw">return</span> <span class="c-num">0</span>;');
-        out.push('}');
-        return out.join('\n');
-    } catch(e) {
-        return '<span class="c-cmt">/* C source preview unavailable for this program. */</span>\n' +
-               '<span class="c-cmt">/* The inline transpiler supports basic .ax (let, fn, print, if/else, for). */</span>\n' +
-               '<span class="c-cmt">/* Advanced features (mut, while, show, match, %, !=) need codegen.ax. */</span>\n' +
-               '<span class="c-cmt">/* Use: node axc file.ax -o out.c  for full transpilation. */</span>';
-    }
-}
+// transpileToC is now async, defined above with deep_codegen.wasm loading.
 
 // ================================================================
 //  Under the Hood: Algebra View
@@ -2742,7 +2400,12 @@ function renderRunResult(lines, src) {
     out.innerHTML = lines.join('\n') + '\n<span class="out-info">\n-- Program complete --</span>' + profileLine;
     out.scrollTop = 0;
     var hasContent = lastOutputValues.length > 0;
-    document.getElementById('hood-csource').innerHTML = transpileToC(src);
+    document.getElementById('hood-csource').innerHTML = '<span class="c-cmt">/* Transpiling... */</span>';
+    transpileToC(src).then(function(html) {
+        document.getElementById('hood-csource').innerHTML = html;
+    }).catch(function(e) {
+        document.getElementById('hood-csource').innerHTML = '<span class="c-cmt">/* C source: ' + esc(e.message) + ' */</span>';
+    });
     document.getElementById('hood-algebra').innerHTML = algebraView();
     hood.classList.toggle('visible', hasContent || src.trim().length > 0);
 }
