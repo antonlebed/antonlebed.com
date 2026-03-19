@@ -12,7 +12,6 @@
 var pre = document.createElement('style');
 pre.textContent = 'body{animation:sn-in 0.15s ease 0.02s both}' +
 '@keyframes sn-in{from{opacity:0}to{opacity:1}}' +
-'.back{top:52px!important}' +
 '#contrast{z-index:10001!important}#contrast .close{top:52px!important}' +
 '#detail{top:52px!important}#legend{top:52px!important}' +
 '*{scrollbar-width:thin;scrollbar-color:#333 transparent}' +
@@ -24,9 +23,7 @@ pre.textContent = 'body{animation:sn-in 0.15s ease 0.02s both}' +
 ':root{--ax-text:#d0d0d0;--ax-dim:#999;--ax-muted:#777;--ax-subtle:#666}' +
 '.caption{color:var(--ax-dim)!important}' +
 '.dim{color:var(--ax-dim)!important}' +
-'.widget-title{color:var(--ax-dim)!important}' +
-/* Tooltip auto-fade class for mobile */
-'.ax-tooltip-fade{transition:opacity 0.5s!important}';
+'.widget-title{color:var(--ax-dim)!important}';
 document.head.appendChild(pre);
 
 /* ===== FAVICON ===== */
@@ -130,8 +127,6 @@ if (!document.querySelector('link[rel="icon"]')) {
 function init() {
 var f = location.pathname.split('/').pop() || 'index.html';
 
-/* Gate removed S796 — users go straight to content */
-
 /* ===== CATEGORIES ===== */
 var CATS = {
   start:['Start Here','#ffd700'], physics:['Physics','#4488ff'],
@@ -140,7 +135,7 @@ var CATS = {
   tutorial:['Tutorial','#44dddd']
 };
 
-/* File -> category */
+/* File -> category. egg.html + index.html intentionally excluded (easter egg + hub). */
 var M = {
   worldview:'start',story:'start',derive_ax:'start',repl:'start',playground:'start',
   particles:'physics',alpha:'physics',constants:'physics',turbulence:'physics',
