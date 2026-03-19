@@ -94,15 +94,6 @@ a:hover{text-decoration:underline}
            box-shadow:0 4px 20px rgba(0,0,0,0.4);text-decoration:none}
 .crd-t{font-size:15px;color:#ccc;margin-bottom:4px;line-height:1.3}
 .crd-d{font-size:12px;color:#555;line-height:1.5}
-.crd.remastered{border-color:#ffd70033;box-shadow:0 0 12px rgba(255,215,0,0.08)}
-.crd.remastered:hover{box-shadow:0 0 20px rgba(255,215,0,0.15)}
-.rem-badge{display:inline-block;font-size:9px;font-family:'Courier New',monospace;
-           color:#ffd700;letter-spacing:2px;padding:2px 6px;border:1px solid #ffd70033;
-           border-radius:3px;margin-top:6px;opacity:0.7;
-           animation:rem-pulse 3s ease-in-out infinite}
-@keyframes rem-pulse{0%,100%{opacity:0.5}50%{opacity:0.9}}
-#wave-counter{text-align:center;font-size:12px;color:#444;font-family:'Courier New',monospace;
-              letter-spacing:2px;margin-bottom:24px}
 #no-res{display:none;text-align:center;padding:40px;color:#444;
         font-style:italic;font-size:16px}
 #hub-foot{text-align:center;padding:40px 24px;color:#333;font-size:13px;
@@ -175,7 +166,6 @@ a:hover{text-decoration:underline}
       </a>
     </div>
   </div>
-  <div id="wave-counter">WAVE K&sup2; &mdash; 20 pages remastered</div>
   <input type="text" id="search-box" placeholder="Search demos...">
   <div id="filters"></div>
   <div id="demo-list"></div>
@@ -187,7 +177,7 @@ a:hover{text-decoration:underline}
 (function(){
 'use strict';
 
-/* === HUB DEMOS — descriptions only. Categories/titles/remastered from nav.js (single source) === */
+/* === HUB DEMOS — descriptions only. Categories/titles from nav.js (single source) === */
 var HUB=[
   /* Physics */
   {k:'sm',d:'All 25 SM parameters from {2,3,5,7,11}. Zero free parameters. Mean error 0.12%.'},
@@ -376,13 +366,9 @@ function render(cat,q){
     var t=nav.T[h.k]||h.k;
     if(cat!=='all'&&c!==cat)continue;
     if(q&&(t+' '+h.d).toLowerCase().indexOf(q)===-1)continue;
-    f.push({k:h.k,c:c,t:t,d:h.d,r:nav.REM[h.k],f:h.k+'.html'});
+    f.push({k:h.k,c:c,t:t,d:h.d,f:h.k+'.html'});
   }
   if(!f.length){nr.style.display='block';return;}
-  /* Update wave counter: show unseen count */
-  var unseen=0;for(var i=0;i<HUB.length;i++){var hk=HUB[i].k;if(nav.REM[hk]&&!nav.remSeen[hk+'.html'])unseen++;}
-  var wc=document.getElementById('wave-counter');
-  if(wc)wc.textContent=unseen>0?'WAVE K\u00B2 \u2014 '+unseen+' updated pages':'WAVE K\u00B2 \u2014 all caught up';
   /* Group by category */
   var order=['tutorial','physics','bio','math','eng','mind'];
   var g={};for(var i=0;i<f.length;i++){var d=f[i];if(!g[d.c])g[d.c]=[];g[d.c].push(d);}
@@ -398,15 +384,11 @@ function render(cat,q){
     for(var j=0;j<items.length;j++){
       var d=items[j],a=document.createElement('a');a.className='crd';a.href=d.f;
       a.style.borderLeftColor=CATS[ck][1];
-      var isNew=d.r&&!nav.remSeen[d.f];
-      if(isNew)a.className+=' remastered';
-      (function(el,clr,isR){
-        el.onmouseenter=function(){el.style.borderColor=isR?'#ffd70066':clr;el.style.boxShadow=isR?'0 0 20px rgba(255,215,0,0.15)':'0 4px 20px '+clr+'18';};
-        el.onmouseleave=function(){el.style.borderColor=isR?'#ffd70033':'#111';el.style.borderLeftColor=clr;el.style.boxShadow=isR?'0 0 12px rgba(255,215,0,0.08)':'';};
-      })(a,CATS[ck][1],isNew);
-      var badge=isNew?'<div class="rem-badge">REMASTERED</div>':'';
-      a.innerHTML='<div class="crd-t">'+d.t+'</div><div class="crd-d">'+d.d+'</div>'+badge;
-      if(d.r){(function(file){a.addEventListener('click',function(){nav.markSeen(file);});})(d.f);}
+      (function(el,clr){
+        el.onmouseenter=function(){el.style.borderColor=clr;el.style.boxShadow='0 4px 20px '+clr+'18';};
+        el.onmouseleave=function(){el.style.borderColor='#111';el.style.borderLeftColor=clr;el.style.boxShadow='';};
+      })(a,CATS[ck][1]);
+      a.innerHTML='<div class="crd-t">'+d.t+'</div><div class="crd-d">'+d.d+'</div>';
       grid.appendChild(a);
     }
     sec.appendChild(grid);list.appendChild(sec);

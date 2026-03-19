@@ -385,9 +385,7 @@ if(axLang!=='en'){
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
-/* REM badges removed S793 — all pages are equal, no "new" markers */
-var REM = {};
-function isRem(k){return false;}
+/* REM badges removed S793 */
 
 var key = f.replace('.html','');
 var catKey = M[key];
@@ -403,7 +401,7 @@ for (var ci = 0; ci < catOrder.length; ci++) catDemos[catOrder[ci]] = [];
 for (var dk in M) { if (T[dk]) catDemos[M[dk]].push(dk); }
 
 /* ===== SINGLE-SOURCE NAV DATA (Wave 11 — shared with index.html hub) ===== */
-window.axNav={CATS:CATS,M:M,T:T,REM:REM,isRem:isRem,catDemos:catDemos,catOrder:catOrder};
+window.axNav={CATS:CATS,M:M,T:T,catDemos:catDemos,catOrder:catOrder};
 if(window._axBuildHub)window._axBuildHub();
 
 /* ===== STYLES ===== */
@@ -453,8 +451,6 @@ s.textContent =
   'transition:color 0.15s,background 0.15s;white-space:nowrap}' +
   '.sn-lp button:hover{color:#ffd700;background:rgba(255,215,0,0.04)}' +
   '.sn-lp button.cur{color:#ffd700}' +
-  '.sn-h{display:none;font-size:22px;color:#888;padding:0 4px;margin-left:auto;' +
-  'flex-shrink:0;line-height:1;background:none;border:none}' +
   '.sn-mn{display:none;align-items:center;color:#ccc;font-size:14px;background:none;' +
   'border:1px solid #333;border-radius:6px;padding:5px 16px;cursor:pointer;' +
   'font-family:system-ui,sans-serif;flex-direction:row;line-height:1;gap:8px}' +
@@ -527,7 +523,6 @@ s.textContent =
   '@media(max-width:700px){' +
   '.sn-l{display:none!important}' +
   '.sn-r{display:none}' +
-  '.sn-h{display:none}' +
   '.sn-mn{display:flex}' +
   '.sn-ld{position:absolute!important;right:10px!important}' +
   '#sn{padding:0 10px;justify-content:center;height:44px}' +
@@ -568,7 +563,6 @@ var h = '<div class="sn-l">' +
   '<button data-lang="de"' + (axLang==='de'?' class="cur"':'') + '>' + _fl('de') + ' Deutsch</button>' +
   '<button data-lang="nl"' + (axLang==='nl'?' class="cur"':'') + '>' + _fl('nl') + ' Nederlands</button>' +
   '</div></div>';
-h += '<button class="sn-h" id="sn-bg">\u2630</button>';
 h += '<button class="sn-mn" id="sn-mn">' + tr('navLabel') + '<span class="mnar">\u25BE</span></button>';
 nav.innerHTML = h;
 document.body.insertBefore(nav, document.body.firstChild);
@@ -582,8 +576,8 @@ if (tutDemos.length) {
   var ti = CATS['tutorial'];
   dh += '<div class="sn-tr"><h5 style="color:' + ti[1] + '">' + tr('atlas') + '</h5><div class="sn-tl">';
   for (var j = 0; j < tutDemos.length; j++) {
-    var _tc = (tutDemos[j] === key ? 'cur' : '') + (isRem(tutDemos[j]) ? ' rem' : '');
-    dh += '<a href="' + tutDemos[j] + '.html"' + (_tc ? ' class="' + _tc.trim() + '"' : '') + '>' + T[tutDemos[j]] + '</a>';
+    var _tc = tutDemos[j] === key ? 'cur' : '';
+    dh += '<a href="' + tutDemos[j] + '.html"' + (_tc ? ' class="' + _tc + '"' : '') + '>' + T[tutDemos[j]] + '</a>';
   }
   dh += '</div></div>';
 }
@@ -593,8 +587,8 @@ for (var i = 0; i < catOrder.length; i++) {
   if (!demos.length || ck === 'start' || ck === 'tutorial') continue;
   dh += '<div class="sn-gc"><h5 style="color:' + ci[1] + '">' + ci[0] + '</h5>';
   for (var j = 0; j < demos.length; j++) {
-    var _dc = (demos[j] === key ? 'cur' : '') + (isRem(demos[j]) ? ' rem' : '');
-    dh += '<a href="' + demos[j] + '.html"' + (_dc ? ' class="' + _dc.trim() + '"' : '') + '>' + T[demos[j]] + '</a>';
+    var _dc = demos[j] === key ? 'cur' : '';
+    dh += '<a href="' + demos[j] + '.html"' + (_dc ? ' class="' + _dc + '"' : '') + '>' + T[demos[j]] + '</a>';
   }
   dh += '</div>';
 }
@@ -635,13 +629,11 @@ var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
 for (var i = 0; i < mAtlasOrder.length; i++) {
   var ck = mAtlasOrder[i], ci = CATS[ck], demos = catDemos[ck];
   if (!demos.length) continue;
-  var _rc=0;for(var ri=0;ri<demos.length;ri++){if(isRem(demos[ri]))_rc++;}
-  var _rl=_rc?' <span style="color:#ffd700;font-size:9px;font-weight:normal">\u2022'+_rc+' new</span>':'';
   mh += '<div class="sn-mc" data-c="' + ck + '" style="color:' + ci[1] + '">' +
-    ci[0] + ' (' + demos.length + ')' + _rl + ' <span class="ma">\u25B8</span></div>' +
+    ci[0] + ' (' + demos.length + ') <span class="ma">\u25B8</span></div>' +
     '<div class="sn-md" data-c="' + ck + '">';
   for (var j = 0; j < demos.length; j++) {
-    mh += '<a href="' + demos[j] + '.html"' + (isRem(demos[j]) ? ' class="rem"' : '') + '>' + T[demos[j]] + '</a>';
+    mh += '<a href="' + demos[j] + '.html">' + T[demos[j]] + '</a>';
   }
   mh += '</div>';
 }
@@ -649,10 +641,6 @@ mh += '</div>';
 mob.innerHTML = mh;
 document.body.appendChild(mob);
 
-document.getElementById('sn-bg').addEventListener('click', function() {
-  mob.classList.add('open');
-  document.body.style.overflow = 'hidden';
-});
 document.getElementById('sn-mn').addEventListener('click', function() {
   mob.classList.add('open');
   document.body.style.overflow = 'hidden';

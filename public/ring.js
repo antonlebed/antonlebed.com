@@ -1,7 +1,6 @@
-// ring.js — Ring math subset of ax.js. ☠️ SCAFFOLDING (dies when WASM replaces it).
-// Provides AX.* and CRT.* API for pages that need ring arithmetic but not the .ax interpreter.
-// ~150L vs ax.js ~1752L. Same API surface for ring math. Drop-in replacement.
-// S873: extracted from ax.js. Kills ax.js dependency for 54+ pages.
+// ring.js — Ring math for antonlebed.com. ☠️ SCAFFOLDING (dies when WASM replaces it).
+// Provides AX.* API for 61 pages. 172L. CRT compat shim killed S890.
+// S873: extracted from ax.js. S874: ax.js killed. S890: CRT.* shim killed.
 
 const AX = (function() {
 'use strict';
