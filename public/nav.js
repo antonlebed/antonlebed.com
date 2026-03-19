@@ -89,7 +89,7 @@ if (!document.querySelector('link[rel="icon"]')) {
       mirror_cost:'The cost of reflection. What the mirror destroys and preserves.',
       monster_moonshine:'Monstrous moonshine and the j-invariant from ring structure.',
       pell_twins:'Pell equation twin solutions from CRT decomposition.',
-      phase_w:'Phase W: WASM acceleration for .ax. Ring ops delegated to WebAssembly.',
+      phase_w:'Phase W: Ring math explorer. CRT decomposition, ECC, eigenvalue spectrum.',
       pid_demo:'PID controller using CRT error signal decomposition. Interactive demo.',
       scale_relativity:'Scale relativity from ring structure. Resolution-dependent physics.',
       schedule_demo:'Task scheduling via CRT residue assignment. No conflicts by construction.',
@@ -389,7 +389,7 @@ var key = f.replace('.html','');
 var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
 var cat = catKey ? CATS[catKey] : null;
-var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl', isIndex = key === 'index';
+var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl';
 var isDerive = key === 'derive_ax', isPlay = key === 'playground';
 var isExplore = catKey && catKey !== 'start';
 
@@ -551,7 +551,7 @@ var h = '<div class="sn-l">' +
   '<button class="sn-x' + (isExplore ? ' on' : '') + '" id="sn-xp">' + tr('explore') + ' <span class="ar">\u25BE</span></button>' +
   '</div>' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
-  '<a class="sn-r sn-rp' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
+  '<a class="sn-r' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
   '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' +
   _fl(axLang) +
   ' \u25BE</button><div class="sn-lp">' +

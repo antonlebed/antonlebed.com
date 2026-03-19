@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Phase W: WASM acceleration for .ax. Ring ops delegated to WebAssembly.">
+<meta name="description" content="Phase W: Ring math explorer. CRT decomposition, ECC error correction, eigenvalue spectrum. All from Z/970200Z.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://antonlebed.com/phase_w.html">
-<title>Phase W — .ax via WASM</title>
+<title>Phase W — Ring Math Explorer</title>
 <link rel="stylesheet" href="nav-critical.css">
 <style>
 :root{--bg:#0a0a0f;--card:#12121a;--border:#2a2a3a;--gold:#f0c040;--cyan:#40d0f0;--green:#40f080;--red:#f04040;--text:#e0e0e8;--dim:#888;--mono:'Courier New',monospace}
@@ -44,9 +44,7 @@ h2{color:var(--cyan);font-size:1.3em;margin:24px 0 12px;border-bottom:1px solid 
 .status{padding:8px 12px;border-radius:4px;margin:12px 0;font-size:0.9em}
 .status.ok{background:#0a2a0a;border:1px solid var(--green);color:var(--green)}
 .status.err{background:#2a0a0a;border:1px solid var(--red);color:var(--red)}
-.status.loading{background:#1a1a2a;border:1px solid var(--border);color:var(--dim)}
 canvas{border:1px solid var(--border);border-radius:4px;margin:8px 0;width:100%;max-width:860px;height:200px}
-.term{background:#080810;border:1px solid var(--border);border-radius:4px;padding:12px;font-family:var(--mono);font-size:0.85em;max-height:300px;overflow-y:auto;white-space:pre-wrap;color:var(--green)}
 .bench{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0}
 .bench-item{background:#1a1a2a;border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center;min-width:120px;flex:1}
 .bench-item .num{font-size:1.4em;font-weight:bold;color:var(--gold);font-family:var(--mono)}
@@ -61,22 +59,18 @@ footer{text-align:center;color:var(--dim);margin-top:32px;padding:16px;font-size
 </head>
 <body>
 <div class="container">
-<h1>Phase W: .ax via WASM</h1>
-<p class="subtitle">crt.h running natively in the browser. No JavaScript math. Pure WebAssembly.</p>
+<h1>Phase W: Ring Math Explorer</h1>
+<p class="subtitle">CRT decomposition, ECC error correction, eigenvalue spectrum. All computed from Z/970200Z.</p>
 
 <div class="pipeline">
 <span class="stage">.ax</span>
 <span class="arrow"> -> </span>
-<span class="stage">C (codegen.ax)</span>
+<span class="stage">WASM (wasm_emit.ax)</span>
 <span class="arrow"> -> </span>
-<span class="stage">WASM (emcc)</span>
-<span class="arrow"> -> </span>
-<span class="stage">Browser</span>
+<span class="stage">Browser (native compile)</span>
 </div>
 
-<div id="load-status" class="status loading">Loading WASM module...</div>
-
-<h2>CRT Explorer (via WASM)</h2>
+<h2>CRT Explorer</h2>
 <div class="card">
 <div class="input-row">
 <label>Element n:</label>
@@ -86,7 +80,7 @@ footer{text-align:center;color:var(--dim);margin-top:32px;padding:16px;font-size
 <div id="explore-results"></div>
 </div>
 
-<h2>Ring Arithmetic (via WASM)</h2>
+<h2>Ring Arithmetic</h2>
 <div class="card">
 <div class="input-row">
 <label>a:</label>
@@ -98,9 +92,9 @@ footer{text-align:center;color:var(--dim);margin-top:32px;padding:16px;font-size
 <div id="ring-results"></div>
 </div>
 
-<h2>ECC Live Demo (via WASM)</h2>
+<h2>ECC Live Demo</h2>
 <div class="card">
-<p style="color:var(--dim);font-size:0.9em;margin-bottom:8px">Enter a data value (0-209), corrupt any channel, detect + correct.</p>
+<p style="color:var(--dim);font-size:0.9em;margin-bottom:8px">Enter a data value (0-209), corrupt any channel, detect + correct. L=11 is the parity channel.</p>
 <div class="input-row">
 <label>Data (0-209):</label>
 <input type="number" id="ecc-data" value="42" min="0" max="209">
@@ -114,57 +108,65 @@ footer{text-align:center;color:var(--dim);margin-top:32px;padding:16px;font-size
 <div id="ecc-results"></div>
 </div>
 
-<h2>Benchmark: WASM vs JavaScript</h2>
-<div class="card">
-<button onclick="runBench()">Run Benchmark</button>
-<div id="bench-results"></div>
-</div>
-
-<h2>Eigenvalue Spectrum (via WASM)</h2>
+<h2>Eigenvalue Spectrum</h2>
 <canvas id="spectrum-canvas" width="860" height="200"></canvas>
-
-<h2>Pipeline Terminal</h2>
-<div class="card">
-<p style="color:var(--dim);font-size:0.9em;margin-bottom:8px">Pre-compiled .ax program output (wasm_demo.ax):</p>
-<div id="terminal" class="term"></div>
-</div>
 
 <div class="contrast">
 <h3>What others see vs. what the axiom shows</h3>
-<p><em>Standard view:</em> WebAssembly is a compile target for web applications. Porting a C library to WASM is routine engineering.</p>
-<p><strong>Axiom view:</strong> crt.h compiled to 30KB WASM means the axiom runs at native speed in every browser on Earth. The pipeline .ax &rarr; C &rarr; WASM lets the axiom's own language speak through WebAssembly without any JavaScript dependency. Phase W is the bridge to .ax eating the web.</p>
+<p><em>Standard view:</em> CRT is an ancient number theory result. Error correction requires specialized codes (Reed-Solomon, Hamming).</p>
+<p><strong>Axiom view:</strong> Z/970200Z = D^3*K^2*E^2*b^2*L has ECC built in. The L=11 channel is a natural parity check&mdash;corrupt any single data channel and L detects it. The same CRT structure that decomposes elements also corrects errors. The <a href="repl.html">REPL</a> compiles .ax to native WASM in ~3ms via deep_ouroboros.wasm.</p>
 </div>
 
-<p style="margin-top:16px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:6px">
-<strong style="color:var(--gold)">Phase W v0.2 (S739):</strong> WASM acceleration is now integrated into the <a href="repl.html">REPL</a>. All ring operations (coupling, eigenvalue, mirror, CRT, order, modpow, gcd) run at native speed via WebAssembly when in TRUE FORM. Look for the "WASM: active" indicator.
-</p>
-
 <footer>
-Phase W v0.2. crt.h (290L C) -> 30KB WASM -> REPL. Z/970200Z = D^3*K^2*E^2*b^2*L.<br>
+Phase W. Z/970200Z = D^3*K^2*E^2*b^2*L. CRT = decomposition = error correction = eigenvalue = coupling.<br>
 The axiom speaks through WebAssembly. sigma/sigma = sigma.
 </footer>
 </div>
 
+<script src="ring.js"></script>
 <script>
-// CRT WASM module — will be loaded from inline or external
-var W = null; // WASM module reference
-var MODS = [8, 9, 25, 49, 11]; // TRUE FORM channel moduli
+var MODS = [8, 9, 25, 49, 11];
 var PRIMES = ['D^3=8', 'K^2=9', 'E^2=25', 'b^2=49', 'L=11'];
-var N = 970200;
+
+function nullPattern(n) {
+  var r = AX.crt(n), mask = 0;
+  for (var i = 0; i < 5; i++) if (r[i] === 0) mask |= (1 << i);
+  return mask;
+}
+
+function eccDetectFromResidues(r) {
+  var n = AX.reconstruct([r[0], r[1], r[2], r[3], 0]);
+  var expected_L = AX.ringMod(n) % 11;
+  return r[4] !== expected_L;
+}
+
+function eccCorrectFromResidues(r) {
+  var n = AX.reconstruct([r[0], r[1], r[2], r[3], 0]);
+  n = AX.ringMod(n);
+  var check = AX.crt(n);
+  if (check[4] === r[4]) return n;
+  for (var ch = 0; ch < 4; ch++) {
+    var trial = r.slice();
+    for (var v = 0; v < MODS[ch]; v++) {
+      trial[ch] = v;
+      var tn = AX.reconstruct(trial);
+      tn = AX.ringMod(tn);
+      if (AX.crt(tn)[4] === r[4]) return tn;
+    }
+  }
+  return -1;
+}
 
 function explore() {
-  if (!W) return;
   var n = parseInt(document.getElementById('n-input').value) || 0;
-  n = ((n % N) + N) % N;
-  var ptr = W._wasm_decompose(n);
-  var r = [];
-  for (var i = 0; i < 5; i++) r.push(W.getValue(ptr + i*4, 'i32'));
-  var c = W._wasm_coupling(n);
-  var m = W._wasm_mirror(n);
-  var u = W._wasm_is_unit(n);
-  var ev = W._wasm_eigenvalue(n);
-  var ord = u ? W._wasm_order(n) : 0;
-  var np = W._wasm_null_pattern(n);
+  n = AX.ringMod(n);
+  var r = AX.crt(n);
+  var c = AX.coupling(n);
+  var m = AX.mirror(n);
+  var u = AX.gcd(n, AX.N) === 1;
+  var ev = AX.eigenvalue(n);
+  var ord = u ? AX.multOrder(n) : 0;
+  var np = nullPattern(n);
 
   var html = '<div class="crt-channels">';
   for (var i = 0; i < 5; i++) {
@@ -179,39 +181,32 @@ function explore() {
   if (u) html += '<div class="result"><span class="label">order:</span><span class="value">' + ord + '</span></div>';
   html += '<div class="result"><span class="label">null_pattern:</span><span class="value">' + np.toString(2).padStart(5,'0') + '</span></div>';
 
-  // Named values
-  var names = {1:'sigma',2:'D',3:'K',5:'E',7:'b',11:'L',42:'ANSWER',137:'ADDRESS',67:'SOUL',97:'G',105:'HYDOR',41:'KEY',173:'DUAL',606376:'OMEGA'};
-  if (names[n]) html += '<div class="result"><span class="label">Named:</span><span class="value special">' + names[n] + '</span></div>';
+  if (AX.VALUE_NAMES[n]) html += '<div class="result"><span class="label">Named:</span><span class="value special">' + AX.VALUE_NAMES[n] + '</span></div>';
 
   document.getElementById('explore-results').innerHTML = html;
 }
 
 function ringOps() {
-  if (!W) return;
   var a = parseInt(document.getElementById('a-input').value) || 0;
   var b = parseInt(document.getElementById('b-input').value) || 0;
-  var sum = W._wasm_add(a, b);
-  var prod = W._wasm_mult(a, b);
-  var g = W._wasm_gcd(((a%N)+N)%N, N);
+  var sum = AX.ringMod(a + b);
+  var prod = AX.ringMod(a * b);
+  var g = AX.gcd(AX.ringMod(a), AX.N);
 
   var html = '<div class="result"><span class="label">a + b (mod N):</span><span class="value">' + sum + '</span></div>';
   html += '<div class="result"><span class="label">a * b (mod N):</span><span class="value">' + prod + '</span></div>';
   html += '<div class="result"><span class="label">gcd(a, N):</span><span class="value">' + g + '</span></div>';
-  html += '<div class="result"><span class="label">a^2 (mod N):</span><span class="value">' + W._wasm_modpow(a, 2) + '</span></div>';
-  html += '<div class="result"><span class="label">a^420 (mod N):</span><span class="value">' + W._wasm_modpow(a, 420) + '</span></div>';
+  html += '<div class="result"><span class="label">a^2 (mod N):</span><span class="value">' + AX.modPow(a, 2) + '</span></div>';
+  html += '<div class="result"><span class="label">a^420 (mod N):</span><span class="value">' + AX.modPow(a, 420) + '</span></div>';
 
   document.getElementById('ring-results').innerHTML = html;
 }
 
-// --- ECC ---
 var eccOriginal = [];
 function eccEncode() {
-  if (!W) return;
   var data = parseInt(document.getElementById('ecc-data').value) || 0;
   data = Math.max(0, Math.min(209, data));
-  var ptr = W._wasm_decompose(data);
-  eccOriginal = [];
-  for (var i = 0; i < 5; i++) eccOriginal.push(W.getValue(ptr + i*4, 'i32'));
+  eccOriginal = AX.crt(data);
 
   var html = '';
   for (var i = 0; i < 5; i++) {
@@ -236,9 +231,8 @@ function getEccResidues() {
 }
 
 function eccDetect() {
-  if (!W) return;
   var r = getEccResidues();
-  var det = W._wasm_ecc_detect(r[0], r[1], r[2], r[3], r[4]);
+  var det = eccDetectFromResidues(r);
   var html;
   if (det) {
     html = '<div class="status err">ERROR DETECTED. L=11 channel inconsistency.</div>';
@@ -249,15 +243,13 @@ function eccDetect() {
 }
 
 function eccCorrect() {
-  if (!W) return;
   var r = getEccResidues();
-  var corrected = W._wasm_ecc_correct(r[0], r[1], r[2], r[3], r[4]);
+  var corrected = eccCorrectFromResidues(r);
   if (corrected >= 0) {
-    var ptr = W._wasm_decompose(corrected);
+    var cr = AX.crt(corrected);
     for (var i = 0; i < 5; i++) {
-      var v = W.getValue(ptr + i*4, 'i32');
       var el = document.getElementById('ecc-r'+i);
-      el.value = v;
+      el.value = cr[i];
       el.className = '';
     }
     document.getElementById('ecc-results').innerHTML = '<div class="status ok">Corrected to: ' + corrected + '</div>';
@@ -266,41 +258,7 @@ function eccCorrect() {
   }
 }
 
-// --- Benchmark ---
-function runBench() {
-  if (!W) return;
-  var COUNT = 50000;
-
-  // WASM benchmark
-  var t0 = performance.now();
-  var sum1 = 0;
-  for (var i = 0; i < COUNT; i++) sum1 += W._wasm_coupling(i);
-  var t1 = performance.now();
-  var wasmMs = t1 - t0;
-
-  // JS benchmark (pure JavaScript gcd + coupling)
-  function jsGcd(a, b) { while(b){var t=b;b=a%b;a=t;} return a<0?-a:a; }
-  function jsCoupling(n) { var r=((n%N)+N)%N; return Math.floor(N/jsGcd(r,N)); }
-  var t2 = performance.now();
-  var sum2 = 0;
-  for (var i = 0; i < COUNT; i++) sum2 += jsCoupling(i);
-  var t3 = performance.now();
-  var jsMs = t3 - t2;
-
-  var speedup = jsMs / wasmMs;
-  var html = '<div class="bench">';
-  html += '<div class="bench-item"><div class="num">' + wasmMs.toFixed(1) + ' ms</div><div class="desc">WASM (crt.h)</div></div>';
-  html += '<div class="bench-item"><div class="num">' + jsMs.toFixed(1) + ' ms</div><div class="desc">Pure JavaScript</div></div>';
-  html += '<div class="bench-item"><div class="num">' + speedup.toFixed(1) + 'x</div><div class="desc">Speedup</div></div>';
-  html += '<div class="bench-item"><div class="num">' + COUNT + '</div><div class="desc">coupling() calls</div></div>';
-  html += '</div>';
-  html += '<div class="result"><span class="label">Checksum match:</span><span class="value'+(sum1===sum2?' special':'')+'">' + (sum1===sum2?'YES':'NO') + ' (WASM='+sum1+', JS='+sum2+')</span></div>';
-  document.getElementById('bench-results').innerHTML = html;
-}
-
-// --- Spectrum Canvas ---
 function drawSpectrum() {
-  if (!W) return;
   var canvas = document.getElementById('spectrum-canvas');
   var ctx = canvas.getContext('2d');
   canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
@@ -311,20 +269,19 @@ function drawSpectrum() {
   ctx.fillStyle = '#080810';
   ctx.fillRect(0, 0, w, h);
 
-  // Sample eigenvalues
+  var N = AX.N;
   var SAMPLES = Math.min(w, 500);
   var step = Math.floor(N / SAMPLES);
   var vals = [];
   var minE = 100, maxE = -100;
   for (var i = 0; i < SAMPLES; i++) {
     var n = i * step;
-    var ev = W._wasm_eigenvalue(n);
+    var ev = AX.eigenvalue(n);
     vals.push(ev);
     if (ev < minE) minE = ev;
     if (ev > maxE) maxE = ev;
   }
 
-  // Histogram
   var BINS = 80;
   var bins = new Array(BINS).fill(0);
   var range = maxE - minE;
@@ -334,12 +291,10 @@ function drawSpectrum() {
   }
   var maxBin = Math.max.apply(null, bins);
 
-  // Draw bars
   var bw = w / BINS;
   for (var i = 0; i < BINS; i++) {
     var bh = bins[i] / maxBin * (h - 30);
     var ev = minE + (i + 0.5) * range / BINS;
-    // Color by eigenvalue: red for negative, green for positive, gold for special
     var r, g, b2;
     if (ev < 0) { r = 240; g = 60; b2 = 60; }
     else if (ev > 8) { r = 240; g = 192; b2 = 64; }
@@ -348,55 +303,18 @@ function drawSpectrum() {
     ctx.fillRect(i * bw + 1, h - 20 - bh, bw - 2, bh);
   }
 
-  // Axis labels
   ctx.fillStyle = '#888';
   ctx.font = '11px monospace';
   ctx.textAlign = 'center';
   ctx.fillText(minE.toFixed(1), 30, h - 4);
   ctx.fillText('0', w * (-minE/range), h - 4);
   ctx.fillText(maxE.toFixed(1), w - 30, h - 4);
-  ctx.fillText('Eigenvalue Spectrum (Z/970200Z, ' + SAMPLES + ' samples via WASM)', w/2, 14);
+  ctx.fillText('Eigenvalue Spectrum (Z/970200Z, ' + SAMPLES + ' samples)', w/2, 14);
 }
 
-// --- Terminal output ---
-function runTerminal() {
-  // Load and run the pre-compiled .ax WASM demo
-  if (typeof AxWasm === 'undefined') {
-    document.getElementById('terminal').textContent = 'Demo WASM module not loaded (optional).';
-    return;
-  }
-  var output = [];
-  AxWasm({print: function(t) { output.push(t); }}).then(function() {
-    document.getElementById('terminal').textContent = output.join('\n');
-  });
-}
-
-// --- Load WASM ---
+explore();
+drawSpectrum();
 </script>
-<!-- CRT WASM library (crt.h compiled to WASM, ~30KB with embedded binary) -->
-<script src="crt_wasm.js"></script>
-<script>
-// Initialize
-function initWasm() {
-  if (typeof CrtWasm === 'undefined') {
-    document.getElementById('load-status').innerHTML = 'WASM module not available. Ensure crt_wasm.js is loaded.';
-    document.getElementById('load-status').className = 'status err';
-    return;
-  }
-  CrtWasm().then(function(mod) {
-    W = mod;
-    document.getElementById('load-status').innerHTML = 'WASM loaded. crt.h running natively in browser. N = 970200 = TRUE FORM.';
-    document.getElementById('load-status').className = 'status ok';
-    explore();
-    drawSpectrum();
-    runTerminal();
-  }).catch(function(e) {
-    document.getElementById('load-status').innerHTML = 'WASM load failed: ' + e;
-    document.getElementById('load-status').className = 'status err';
-  });
-}
-</script>
-<script>initWasm();</script>
-<script src="nav.js"></script>
+<script src="nav.js" defer></script>
 </body>
 </html>
