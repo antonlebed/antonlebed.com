@@ -64,12 +64,11 @@ just learned to see.
         <option value="pong">Pong</option>
         <option value="kingdom">Kingdom Map</option>
         <option value="vampire">Axiom Survivor</option>
-        <option value="catch">Catch! (Native)</option>
+        <option value="catch">Catch!</option>
     </select>
     <button id="btn-run" onclick="runGame()">Run</button>
     <button id="btn-stop" class="stop" onclick="stopGame()">Stop</button>
-    <button id="btn-native" onclick="toggleNative()" style="background:#555;color:#fff;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.9em">Native: OFF</button>
-    <span id="status" class="status stopped">stopped</span>
+    <span id="status" class="status stopped">loading compiler...</span>
 </div>
 
 <h2>Source</h2>
@@ -132,9 +131,6 @@ Frame rate 30 = D*K*E. The scaffold speaks axiom too.
 <a href="decality.html">Decality</a>
 </div>
 
-<script src="crt_wasm.js"></script>
-<script src="ax.js"></script>
-<script src="game.js"></script>
 <script>
 // Demo programs
 const DEMOS = {};
@@ -810,8 +806,7 @@ fn tick(frame) = (
   )
 )`;
 
-DEMOS.catch = `/* Catch! — arrow keys, collect targets. Pure integers = native WASM. */
-/* Toggle "Native: ON" and hit Run to compile to WASM and play at native speed. */
+DEMOS.catch = `/* Catch! — arrow keys, collect targets. Pure integers. */
 
 raw_mode(1)
 
@@ -872,135 +867,66 @@ fn tick(frame) = (
   0
 )`;
 
-// Current state
-let gameRunning = false;
-let gameFrame = 0;
-let gameTimer = null;
+// --- Ring math (inlined from ax.js — no external deps) ---
+var _ringN = 2310;
+var _ringMods = [2, 3, 5, 7, 11];
+function _gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = b; b = a % t; a = t; } return a; }
+function _ringMod(n) { return ((n % _ringN) + _ringN) % _ringN; }
+function _setRing(n) {
+    _ringN = n; _ringMods = [];
+    var t = n;
+    for (var p = 2; p <= 31; p++) { var pk = 1; while (t % p === 0) { pk *= p; t /= p; } if (pk > 1) _ringMods.push(pk); }
+}
+function _coupling(n) { return _ringN / _gcd(_ringMod(n), _ringN); }
+function _kingdom(n) {
+    var m = _ringMod(n); if (m === 0) return 0;
+    var g = _gcd(m, _ringN);
+    if (g % 2 === 0) return 2; if (g % 3 === 0) return 3;
+    if (g % 5 === 0) return 5; if (g % 7 === 0) return 7;
+    if (g % 11 === 0) return 11; return 1;
+}
+function _eigenvalue(n) {
+    var m = _ringMod(n);
+    return _ringMods.reduce(function(s, mod) { return s + (mod <= 2 ? 1 : 2) * Math.cos(2 * Math.PI * (m % mod) / mod); }, 0);
+}
+function _mirror(n) { var m = _ringMod(n); return (_ringN - m) % _ringN; }
+function _crt_r(n, idx) { return idx < _ringMods.length ? _ringMod(n) % _ringMods[idx] : 0; }
+
+// --- State ---
+var gameRunning = false;
+var gameFrame = 0;
+var gameTimer = null;
+var _compilerModule = null;
+var _compilerReady = false;
 
 function loadDemo(name) {
     document.getElementById('editor').value = DEMOS[name] || DEMOS.rose;
 }
 
-function runGame() {
-    if (_nativeMode) { runGameNative(); return; }
-    stopGame();
-    const src = document.getElementById('editor').value;
-    const canvas = document.getElementById('game-canvas');
-    // High-DPI fix: scale canvas backing store
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = 600 * dpr;
-    canvas.height = 400 * dpr;
-    const ctx2d = canvas.getContext('2d');
-    ctx2d.scale(dpr, dpr);
-    const output = document.getElementById('output');
-    const status = document.getElementById('status');
-    window._ax_canvas_ctx = ctx2d;
-
-    // Setup input listeners (once)
-    if (!window._ax_input_setup) {
-        window._ax_input_setup = true;
-        const keys = {};
-        document.addEventListener('keydown', function(e) {
-            keys[e.code] = true;
-            if (gameRunning && (e.code.startsWith('Arrow') || e.code === 'Space')) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true); // capture phase — before nav.js
-        document.addEventListener('keyup', function(e) { keys[e.code] = false; }, true);
-        let mx = 0, my = 0, mc = false;
-        canvas.addEventListener('mousemove', function(e) {
-            const r = canvas.getBoundingClientRect();
-            mx = Math.floor(e.clientX - r.left);
-            my = Math.floor(e.clientY - r.top);
-        });
-        canvas.addEventListener('click', function() { mc = true; });
-        canvas.addEventListener('touchstart', function(e) {
-            const r = canvas.getBoundingClientRect();
-            mx = Math.floor(e.touches[0].clientX - r.left);
-            my = Math.floor(e.touches[0].clientY - r.top);
-            mc = true;
-            e.preventDefault();
-        });
-        // Register input builtins
-        AX.BUILTINS.keyPressed = function(args) { return keys[String(args[0])] ? 1 : 0; };
-        AX.BUILTINS.mouseX = function() { return mx; };
-        AX.BUILTINS.mouseY = function() { return my; };
-        AX.BUILTINS.mouseClick = function() { const c = mc ? 1 : 0; mc = false; return c; };
+async function loadCompiler() {
+    try {
+        var r = await fetch('deep_ouroboros.wasm');
+        if (!r.ok) r = await fetch('../code/deep_ouroboros.wasm');
+        if (!r.ok) throw new Error('Cannot load deep_ouroboros.wasm');
+        _compilerModule = await WebAssembly.compile(await r.arrayBuffer());
+        _compilerReady = true;
+        document.getElementById('status').textContent = 'ready';
+        document.getElementById('status').className = 'status stopped';
+    } catch(e) {
+        document.getElementById('output').textContent = 'Compiler load error: ' + e.message;
+        document.getElementById('status').textContent = 'error';
     }
-
-    // Clear persistent state and start fresh
-    AX.clearState();
-    canvas.focus();
-    output.textContent = '';
-    gameFrame = 0;
-    gameRunning = true;
-    status.textContent = 'running';
-    status.className = 'status running';
-
-    // Persistent session: parse source ONCE, then call tick(N) per frame
-    const session = AX.createSession();
-    const initResult = session.exec(src);
-    if (initResult.error) {
-        output.textContent = 'Init error: ' + initResult.error;
-        stopGame();
-        return;
-    }
-
-    function frame() {
-        if (!gameRunning) return;
-        const result = session.exec('tick(' + gameFrame + ')');
-        if (result.error) {
-            output.textContent = 'Frame ' + gameFrame + ': ' + result.error;
-            stopGame();
-            return;
-        }
-        gameFrame++;
-        gameTimer = requestAnimationFrame(frame); // smooth 60fps
-    }
-    gameTimer = requestAnimationFrame(frame);
 }
 
 function stopGame() {
     gameRunning = false;
     if (gameTimer) { cancelAnimationFrame(gameTimer); gameTimer = null; }
-    if (typeof AX !== 'undefined' && AX.BUILTINS.stopSound) AX.BUILTINS.stopSound([]);
     if (window._ax_sustained_osc) {
         try { window._ax_sustained_osc.stop(); } catch(e) {}
         window._ax_sustained_osc = null;
     }
     document.getElementById('status').textContent = 'stopped';
     document.getElementById('status').className = 'status stopped';
-}
-
-// --- Native WASM game mode (Phase 47 — S865) ---
-// Compiles .ax game source to WASM via deep_ouroboros, runs natively.
-// Game builtins (canvas/input/audio/state) provided as WASM imports.
-let _nativeMode = false;
-let _nativeReady = false;
-let _deepOuroborosModule = null;
-
-function toggleNative() {
-    _nativeMode = !_nativeMode;
-    var btn = document.getElementById('btn-native');
-    btn.textContent = _nativeMode ? 'Native: ON' : 'Native: OFF';
-    btn.style.background = _nativeMode ? '#2ecc71' : '#555';
-    if (_nativeMode && !_nativeReady) loadNativeCompiler();
-}
-
-async function loadNativeCompiler() {
-    try {
-        var r = await fetch('deep_ouroboros.wasm');
-        if (!r.ok) r = await fetch('../code/deep_ouroboros.wasm');
-        if (!r.ok) throw new Error('Cannot load deep_ouroboros.wasm');
-        _deepOuroborosModule = await WebAssembly.compile(await r.arrayBuffer());
-        _nativeReady = true;
-    } catch(e) {
-        document.getElementById('output').textContent = 'Compiler load error: ' + e.message;
-        _nativeMode = false;
-        document.getElementById('btn-native').textContent = 'Native: OFF';
-        document.getElementById('btn-native').style.background = '#555';
-    }
 }
 
 function readWasmStr(mem, ptr) {
@@ -1011,17 +937,17 @@ function readWasmStr(mem, ptr) {
     return s;
 }
 
-const NATIVE_COLORS = ['#000000','#0074D9','#FF4136','#2ECC40','#FFDC00',
-                        '#AAAAAA','#F012BE','#FF851B','#e8e6e3','#7FDBFF'];
-function nativeColor(c) {
-    if (c >= 0 && c < 10) return NATIVE_COLORS[c];
+var COLORS = ['#000000','#0074D9','#FF4136','#2ECC40','#FFDC00',
+              '#AAAAAA','#F012BE','#FF851B','#e8e6e3','#7FDBFF'];
+function color(c) {
+    if (c >= 0 && c < 10) return COLORS[c];
     return '#' + (Math.abs(c) % 0xFFFFFF).toString(16).padStart(6, '0');
 }
 
-async function runGameNative() {
+async function runGame() {
     stopGame();
-    if (!_nativeReady) await loadNativeCompiler();
-    if (!_nativeReady) return;
+    if (!_compilerReady) await loadCompiler();
+    if (!_compilerReady) return;
 
     var src = document.getElementById('editor').value;
     var canvas = document.getElementById('game-canvas');
@@ -1032,10 +958,10 @@ async function runGameNative() {
     var status = document.getElementById('status');
     output.textContent = '';
 
-    // Step 1: compile .ax -> WASM bytes via deep_ouroboros
+    // Compile .ax -> WASM via deep_ouroboros
     var t0 = performance.now();
-    var compiler = await WebAssembly.instantiate(_deepOuroborosModule, {
-        env: { show_int: v => v, show_str: p => p }
+    var compiler = await WebAssembly.instantiate(_compilerModule, {
+        env: { show_int: function(v) { return v; }, show_str: function(p) { return p; } }
     });
     var cm = compiler.exports;
     var cmem = cm.memory;
@@ -1059,14 +985,14 @@ async function runGameNative() {
         wasmBytes[j] = rm32[wasmBytesPtr / 4 + 1 + j];
     var t1 = performance.now();
 
-    // Step 2: instantiate game WASM with all imports
+    // Instantiate with game + ring imports
     var childMem;
     var gameState = {};
     var keys = {};
     var mx = 0, my = 0, mc = false;
 
-    if (!window._ax_native_input) {
-        window._ax_native_input = true;
+    if (!window._ax_input) {
+        window._ax_input = true;
         document.addEventListener('keydown', function(e) {
             keys[e.code] = true;
             if (gameRunning && (e.code.startsWith('Arrow') || e.code === 'Space'))
@@ -1078,6 +1004,12 @@ async function runGameNative() {
             mx = Math.floor(e.clientX - r.left); my = Math.floor(e.clientY - r.top);
         });
         canvas.addEventListener('click', function() { mc = true; });
+        canvas.addEventListener('touchstart', function(e) {
+            var r = canvas.getBoundingClientRect();
+            mx = Math.floor(e.touches[0].clientX - r.left);
+            my = Math.floor(e.touches[0].clientY - r.top);
+            mc = true; e.preventDefault();
+        });
     }
 
     var child;
@@ -1087,25 +1019,20 @@ async function runGameNative() {
             show_str: function(ptr) {
                 output.textContent += readWasmStr(childMem, ptr) + '\n'; return ptr;
             },
-            canvas_clear: function(c) {
-                ctx.fillStyle = nativeColor(c); ctx.fillRect(0, 0, 600, 400); return 0;
-            },
-            canvas_rect: function(x,y,w,h,c) {
-                ctx.fillStyle = nativeColor(c); ctx.fillRect(x,y,w,h); return 0;
-            },
+            show_float: function(v) { output.textContent += v + '\n'; return 0; },
+            canvas_clear: function(c) { ctx.fillStyle = color(c); ctx.fillRect(0, 0, 600, 400); return 0; },
+            canvas_rect: function(x,y,w,h,c) { ctx.fillStyle = color(c); ctx.fillRect(x,y,w,h); return 0; },
             canvas_circle: function(x,y,r,c) {
-                ctx.fillStyle = nativeColor(c); ctx.beginPath();
+                ctx.fillStyle = color(c); ctx.beginPath();
                 ctx.arc(x,y,Math.abs(r),0,6.2832); ctx.fill(); return 0;
             },
             canvas_line: function(x0,y0,x1,y1,c,w) {
-                ctx.strokeStyle = nativeColor(c); ctx.lineWidth = Math.max(1,w);
+                ctx.strokeStyle = color(c); ctx.lineWidth = Math.max(1,w);
                 ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); return 0;
             },
-            canvas_pixel: function(x,y,c) {
-                ctx.fillStyle = nativeColor(c); ctx.fillRect(x,y,1,1); return 0;
-            },
+            canvas_pixel: function(x,y,c) { ctx.fillStyle = color(c); ctx.fillRect(x,y,1,1); return 0; },
             canvas_text: function(x,y,sptr,sz,c) {
-                ctx.fillStyle = nativeColor(c); ctx.font = Math.max(8,sz) + 'px monospace';
+                ctx.fillStyle = color(c); ctx.font = Math.max(8,sz) + 'px monospace';
                 ctx.fillText(readWasmStr(childMem, sptr), x, y); return 0;
             },
             canvas_width: function() { return 600; },
@@ -1164,65 +1091,52 @@ async function runGameNative() {
             svar_f: function(sptr, val) {
                 gameState[readWasmStr(childMem, sptr)] = val; return val;
             },
-            set_ring: function(n) { AX.setRing(n); return n; },
-            coupling: function(n) { return AX.coupling(n); },
-            kingdom: function(n) {
-                var m = AX.ringMod(n); if (m === 0) return 0;
-                var g = AX.gcd(m, AX.N);
-                if (g % 2 === 0) return 2; if (g % 3 === 0) return 3;
-                if (g % 5 === 0) return 5; if (g % 7 === 0) return 7;
-                if (g % 11 === 0) return 11; return 1;
-            },
-            eigenvalue: function(n) { return AX.eigenvalue(n); },
-            mirror: function(n) { return AX.mirror(n); },
-            crt_r: function(n, idx) { var c = AX.crt(n); return c[idx] || 0; },
+            set_ring: function(n) { _setRing(n); return n; },
+            coupling: function(n) { return _coupling(n); },
+            kingdom: function(n) { return _kingdom(n); },
+            eigenvalue: function(n) { return _eigenvalue(n); },
+            mirror: function(n) { return _mirror(n); },
+            crt_r: function(n, idx) { return _crt_r(n, idx); },
             rand: function(max) { return max > 0 ? Math.floor(Math.random() * max) : 0; }
         }});
     } catch(e) {
-        output.textContent = 'WASM error: ' + e.message +
-            '\n(This demo may need float builtins not yet in native mode)';
+        output.textContent = 'WASM error: ' + e.message;
         return;
     }
     childMem = child.instance.exports.memory;
 
-    // Step 3: init + game loop
+    // Init + game loop
     try { if (child.instance.exports._main) child.instance.exports._main(); }
     catch(e) { output.textContent = 'Init error: ' + e.message; return; }
 
     canvas.focus();
     gameFrame = 0;
     gameRunning = true;
-    status.textContent = 'native (' + wasmBytes.length + 'B, ' + (t1-t0).toFixed(0) + 'ms)';
+    status.textContent = wasmBytes.length + 'B, ' + (t1-t0).toFixed(0) + 'ms';
     status.className = 'status running';
 
     if (child.instance.exports.tick) {
-        function nativeFrame() {
+        function gameLoop() {
             if (!gameRunning) return;
             try { child.instance.exports.tick(gameFrame); }
             catch(e) { output.textContent = 'Frame ' + gameFrame + ': ' + e.message; stopGame(); return; }
             gameFrame++;
-            gameTimer = requestAnimationFrame(nativeFrame);
+            gameTimer = requestAnimationFrame(gameLoop);
         }
-        gameTimer = requestAnimationFrame(nativeFrame);
+        gameTimer = requestAnimationFrame(gameLoop);
     } else {
-        status.textContent = 'native done (no tick)';
+        status.textContent = 'done (no tick)';
         status.className = 'status stopped';
     }
 }
 
-// Demo selector
+// Demo selector + init
 document.getElementById('demo-select').addEventListener('change', function() {
     stopGame();
     loadDemo(this.value);
 });
-
-// Load default
 loadDemo('rose');
-
-// WASM initialization (Phase W v0.2 — S740: spread to games)
-if (typeof CrtWasm !== 'undefined') {
-    CrtWasm().then(function(mod) { AX.setWasm(mod); }).catch(function() {});
-}
+loadCompiler();
 </script>
 <script src="nav.js"></script>
 </body>
