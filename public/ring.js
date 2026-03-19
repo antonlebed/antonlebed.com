@@ -1,6 +1,6 @@
 // ring.js — Ring math for antonlebed.com. ☠️ SCAFFOLDING (dies when WASM replaces it).
-// Provides AX.* API for 61 pages. 172L. CRT compat shim killed S890.
-// S873: extracted from ax.js. S874: ax.js killed. S890: CRT.* shim killed.
+// Provides AX.* API for 61 pages. 160L. setWasm removed S892 (was no-op).
+// S873: extracted from ax.js. S874: ax.js killed. S890: CRT.* shim killed. S891: dead exports stripped.
 
 const AX = (function() {
 'use strict';
@@ -155,7 +155,6 @@ return {
     setRing, ringMod, gcd, crt, coupling, eigenvalue, mirror, kingdom, crt_r,
     eulerPhi, multOrder, multInverse, modPow,
     CRT_NAMES, CRT_COLORS, reconstruct, modinv: multInverse_mod,
-    CONSTANTS, VALUE_NAMES, fmtGrid,
-    setWasm: function() {} // no-op (kept for repl/playground compat)
+    CONSTANTS, VALUE_NAMES, fmtGrid
 };
 })();

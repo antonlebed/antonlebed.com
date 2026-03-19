@@ -385,8 +385,6 @@ if(axLang!=='en'){
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
-/* REM badges removed S793 */
-
 var key = f.replace('.html','');
 var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
