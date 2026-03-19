@@ -88,9 +88,6 @@ function reconstruct(channels) {
     return ((sum % N) + N) % N;
 }
 
-function ringAdd(a, b) { return ((a + b) % N + N) % N; }
-function ringMul(a, b) { return Number((BigInt(((a % N) + N) % N) * BigInt(((b % N) + N) % N)) % BigInt(N)); }
-
 function eulerPhi(n) {
     n = Math.abs(Math.round(n));
     if (n < 1) return 0;
@@ -152,20 +149,13 @@ function fmtGrid(g) {
     return html + '</div>';
 }
 
-// WASM acceleration (for crt_wasm.js integration)
-var _wasm = null;
-const TRUE_N = 970200;
-
 return {
     get N() { return N; },
     get CRT_MODS() { return CRT_MODS.slice(); },
-    setRing, factorPrimePowers,
-    ringMod, gcd, crt, coupling, eigenvalue, mirror, kingdom, crt_r,
+    setRing, ringMod, gcd, crt, coupling, eigenvalue, mirror, kingdom, crt_r,
     eulerPhi, multOrder, multInverse, modPow,
-    CRT_NAMES, CRT_COLORS, reconstruct, ringAdd, ringMul,
-    decompose: crt, modinv: multInverse_mod,
-    CONSTANTS, VALUE_NAMES, GRID_COLORS, fmtGrid,
-    setWasm: function(mod) { _wasm = mod; },
-    get wasmActive() { return _wasm !== null && N === TRUE_N; }
+    CRT_NAMES, CRT_COLORS, reconstruct, modinv: multInverse_mod,
+    CONSTANTS, VALUE_NAMES, fmtGrid,
+    setWasm: function() {} // no-op (kept for repl/playground compat)
 };
 })();
