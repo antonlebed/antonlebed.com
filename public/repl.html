@@ -1026,7 +1026,14 @@ async function executeNative(src) {
     var t4 = performance.now();
     outputLines = lines.map(function(l) { return esc(l); });
     traceLines = ['<span class="tr-step">Native compile: trace not available (' + wasmBytes.length + 'B WASM, ' + (t1-t0).toFixed(0) + 'ms compile)</span>'];
+    // S876: extract numeric values from output for algebra view
     lastOutputValues = [];
+    for (var ni = 0; ni < lines.length; ni++) {
+        var nt = lines[ni].trim();
+        if (/^-?\d+$/.test(nt)) lastOutputValues.push(parseInt(nt, 10));
+        else if (/^\[[\d,\s]+\]$/.test(nt)) { try { lastOutputValues.push(JSON.parse(nt)); } catch(e) {} }
+        else if (nt.length > 0) lastOutputValues.push(nt);
+    }
     lastProfile = {
         tokenize_ms: '0.0', parse_ms: '0.0',
         eval_ms: (t4-t3).toFixed(2),
@@ -1052,7 +1059,14 @@ function executeWasm(src) {
     var formatted = fmtWasmLines(output);
     outputLines = formatted;
     traceLines = ['<span class="tr-step">WASM eval: trace not available (compiled execution)</span>'];
+    // S876: extract numeric values from output for algebra view
     lastOutputValues = [];
+    for (var oi = 0; oi < output.length; oi++) {
+        var trimmed = output[oi].trim();
+        if (/^-?\d+$/.test(trimmed)) lastOutputValues.push(parseInt(trimmed, 10));
+        else if (/^\[[\d,\s]+\]$/.test(trimmed)) { try { lastOutputValues.push(JSON.parse(trimmed)); } catch(e) {} }
+        else if (trimmed.length > 0) lastOutputValues.push(trimmed);
+    }
     lastProfile = { tokenize_ms: '0.0', parse_ms: '0.0', eval_ms: elapsed.toFixed(1), total_ms: elapsed.toFixed(1), wasm: true };
     return formatted;
 }

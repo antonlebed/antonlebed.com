@@ -57,6 +57,21 @@ function eigenvalue(n) {
 
 function mirror(n) { return ringMod(N - ringMod(n)); }
 
+function kingdom(n) {
+    var m = ringMod(n), g = gcd(m, N);
+    if (g === 1) return 0; // unit
+    if (g === N) return -1; // void
+    // smallest prime factor of gcd determines kingdom
+    var p = 2;
+    while (p * p <= g) { if (g % p === 0) return p; p++; }
+    return g;
+}
+
+function crt_r(n, idx) {
+    var m = ringMod(n);
+    return (idx >= 0 && idx < CRT_MODS.length) ? m % CRT_MODS[idx] : 0;
+}
+
 function multInverse_mod(a, m) {
     a = ((a % m) + m) % m;
     let [old_r, r] = [a, m], [old_s, s] = [1, 0];
@@ -146,7 +161,7 @@ return {
     get N() { return N; },
     get CRT_MODS() { return CRT_MODS.slice(); },
     setRing, factorPrimePowers,
-    ringMod, gcd, crt, coupling, eigenvalue, mirror,
+    ringMod, gcd, crt, coupling, eigenvalue, mirror, kingdom, crt_r,
     eulerPhi, multOrder, multInverse, modPow,
     CRT_NAMES, CRT_COLORS, reconstruct, ringAdd, ringMul,
     decompose: crt, modinv: multInverse_mod,
