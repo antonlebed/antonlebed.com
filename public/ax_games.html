@@ -63,7 +63,7 @@ just learned to see.
         <option value="eigenvalue">Eigenvalue Walk</option>
         <option value="pong">Pong</option>
         <option value="kingdom">Kingdom Map</option>
-        <option value="vampire">Axiom Survivor (experimental — needs overhaul)</option>
+        <option value="vampire">Axiom Survivor</option>
         <option value="catch">Catch!</option>
     </select>
     <button id="btn-run" onclick="runGame()">Run</button>
@@ -360,77 +360,79 @@ fn tick(frame) = (
   ) else 0
 )`;
 
-DEMOS.vampire = `/* AXIOM SURVIVOR — EXPERIMENTAL, UNPLAYABLE */
-/* Known bugs: no enemies spawn, missing mechanics. */
-/* Needs deep overhaul. Kept as code reference only. */
-/* You are sigma. Auto-fire weapons from the Decality. */
-/* Arrow keys to move. Survive. Level up. Reach TRUE FORM. */
+DEMOS.vampire = `/* AXIOM SURVIVOR — You are sigma. Fight the primes. */
+/* Arrow keys to move. Weapons fire. Level up. Survive. */
 
 raw_mode(1)
 let W = 600
 let H = 400
 let ME = 30
 let MB = 50
-let SPD = 2.5
-let DMG_CD = 20
+let MW = 4
 
-fn dist(x1,y1,x2,y2) = (
-  let dx = x1 - x2
-  let dy = y1 - y2
-  sqrt_f(dx*dx + dy*dy)
-)
+/* Entity arrays — WASM globals, persist across frames */
+let ex = alloc(ME)
+let ey = alloc(ME)
+let eh = alloc(ME)
+let et = alloc(ME)
+let bx = alloc(MB)
+let by = alloc(MB)
+let bvx = alloc(MB)
+let bvy = alloc(MB)
+let bl = alloc(MB)
+let bd = alloc(MB)
+let bt = alloc(MB)
+let wp = alloc(MW)
+let wc = alloc(MW)
 
-fn clamp(v,lo,hi) = if v < lo then lo else if v > hi then hi else v
+fn clamp(v, lo, hi) = if v < lo then lo else if v > hi then hi else v
+fn iabs(x) = if x < 0 then 0 - x else x
 
 fn init() = (
-  svar("px", 300); svar("py", 200);
+  svar("px", W / 2); svar("py", H / 2);
   svar("hp", 10); svar("mhp", 10);
   svar("xp", 0); svar("lvl", 1); svar("xpn", 8);
-  svar("kills", 0); svar("time", 0);
-  svar("icd", 0);
-  svar("ex", alloc(ME));
-  svar("ey", alloc(ME));
-  svar("eh", alloc(ME));
-  svar("et", alloc(ME));
-  svar("bx", alloc(MB));
-  svar("by", alloc(MB));
-  svar("bvx", alloc(MB));
-  svar("bvy", alloc(MB));
-  svar("bl", alloc(MB));
-  svar("bd", alloc(MB));
-  svar("bt", alloc(MB));
-  svar("wep", [1]);
-  svar("wcd", [0]);
-  svar("wave", 1); svar("scd", 0);
-  svar("state", 1);
-  svar("c1", 0); svar("c2", 0); svar("c3", 0)
+  svar("kills", 0); svar("icd", 0);
+  svar("wave", 1); svar("scd", 0); svar("time", 0);
+  for i in range(ME) do set(eh, i, 0);
+  for i in range(MB) do set(bl, i, 0);
+  set(wp, 0, 1);
+  for i in range(MW) do set(wc, i, 0);
+  svar("wn", 1);
+  svar("state", 1); svar("sdb", 15)
 )
 
-fn find_slot(arr) = (
-  svar("_fs", 0 - 1);
-  for i in range(len(arr)) do (
-    if arr[i] == 0 then (if gvar("_fs") < 0 then svar("_fs", i) else 0) else 0
+fn find_eslot() = (
+  svar("_s", 0 - 1);
+  for i in range(ME) do (
+    if eh[i] == 0 then (if gvar("_s") < 0 then svar("_s", i) else 0) else 0
   );
-  gvar("_fs")
+  gvar("_s")
+)
+
+fn find_bslot() = (
+  svar("_b", 0 - 1);
+  for i in range(MB) do (
+    if bl[i] == 0 then (if gvar("_b") < 0 then svar("_b", i) else 0) else 0
+  );
+  gvar("_b")
 )
 
 fn spawn_one() = (
-  let slot = find_slot(gvar("eh"))
+  let slot = find_eslot()
   if slot >= 0 then (
     let w = gvar("wave")
     let r = rand(100)
     let tp = if w > 8 then (if r < 10 then 11 else if r < 30 then 7 else if r < 55 then 5 else if r < 80 then 3 else 2)
-             else if w > 5 then (if r < 5 then 11 else if r < 20 then 7 else if r < 45 then 5 else if r < 75 then 3 else 2)
+             else if w > 5 then (if r < 20 then 7 else if r < 45 then 5 else if r < 75 then 3 else 2)
              else if w > 3 then (if r < 15 then 7 else if r < 40 then 5 else if r < 70 then 3 else 2)
              else if w > 1 then (if r < 10 then 5 else if r < 40 then 3 else 2)
              else (if r < 20 then 3 else 2)
     let side = rand(4)
-    let sx = if side == 0 then rand(W) else if side == 1 then rand(W) else if side == 2 then 0 else W
-    let sy = if side == 0 then 0 else if side == 1 then H else rand(H)
-    set(gvar("ex"), slot, sx);
-    set(gvar("ey"), slot, sy);
-    set(gvar("eh"), slot, tp + w);
-    set(gvar("et"), slot, tp)
+    let sx = if side < 2 then rand(W) else if side == 2 then 0 - 10 else W + 10
+    let sy = if side == 0 then 0 - 10 else if side == 1 then H + 10 else rand(H)
+    set(ex, slot, sx); set(ey, slot, sy);
+    set(eh, slot, tp + w); set(et, slot, tp)
   ) else 0
 )
 
@@ -438,185 +440,150 @@ fn do_spawn(frame) = (
   let cd = gvar("scd") - 1
   let w = gvar("wave")
   let rate = if w < 3 then 40 else if w < 6 then 25 else if w < 10 then 15 else 10
-  if cd <= 0 then (
-    spawn_one();
-    svar("scd", rate)
-  ) else svar("scd", cd);
-  if frame % 600 == 0 then (if frame > 0 then svar("wave", w + 1) else 0) else 0;
+  if cd <= 0 then (spawn_one(); svar("scd", rate))
+  else svar("scd", cd);
+  if frame % 900 == 0 then (if frame > 0 then svar("wave", w + 1) else 0) else 0;
   svar("time", frame / 60)
 )
 
 fn move_player() = (
   let dx = keyPressed("ArrowRight") - keyPressed("ArrowLeft")
   let dy = keyPressed("ArrowDown") - keyPressed("ArrowUp")
-  let mag = if dx != 0 then (if dy != 0 then 0.707 else 1) else (if dy != 0 then 1 else 0)
-  svar("px", clamp(gvar("px") + dx * SPD * mag, 10, W - 10));
-  svar("py", clamp(gvar("py") + dy * SPD * mag, 10, H - 10))
+  svar("px", clamp(gvar("px") + dx * 3, 10, W - 10));
+  svar("py", clamp(gvar("py") + dy * 3, 10, H - 10))
 )
 
 fn move_enemies() = (
-  let ex = gvar("ex")
-  let ey = gvar("ey")
-  let eh = gvar("eh")
-  let et = gvar("et")
   let px = gvar("px")
   let py = gvar("py")
   for i in range(ME) do (
     if eh[i] > 0 then (
-      let spd = if et[i] == 2 then 1.4 else if et[i] == 3 then 1.1 else if et[i] == 5 then 0.9 else if et[i] == 7 then 0.7 else 0.5
-      let d = dist(ex[i], ey[i], px, py)
-      if d > 1 then (
-        set(ex, i, ex[i] + (px - ex[i]) / d * spd);
-        set(ey, i, ey[i] + (py - ey[i]) / d * spd)
-      ) else 0
+      let spd = if et[i] == 2 then 2 else if et[i] == 3 then 2 else 1
+      let dx = px - ex[i]
+      let dy = py - ey[i]
+      let sx = clamp(dx, 0 - spd, spd)
+      let sy = clamp(dy, 0 - spd, spd)
+      set(ex, i, ex[i] + sx);
+      set(ey, i, ey[i] + sy)
     ) else 0
   )
 )
 
 fn fire_sigma(px, py) = (
-  let slot = find_slot(gvar("bl"))
+  let slot = find_bslot()
   if slot >= 0 then (
-    let ne = gvar("eh")
-    let nex = gvar("ex")
-    let ney = gvar("ey")
-    svar("_bd", 9999);
-    svar("_bi", 0 - 1);
+    svar("_nd", 99999); svar("_ni", 0 - 1);
     for i in range(ME) do (
-      if ne[i] > 0 then (
-        let d = dist(nex[i], ney[i], px, py)
-        if d < gvar("_bd") then (svar("_bd", d); svar("_bi", i); d) else d
+      if eh[i] > 0 then (
+        let d = iabs(px - ex[i]) + iabs(py - ey[i])
+        if d < gvar("_nd") then (svar("_nd", d); svar("_ni", i)) else 0
       ) else 0
     );
-    let bi = gvar("_bi")
-    if bi >= 0 then (
-      let d2 = gvar("_bd")
-      if d2 > 1 then (if d2 < 300 then (
-        set(gvar("bx"), slot, px);
-        set(gvar("by"), slot, py);
-        set(gvar("bvx"), slot, (nex[bi] - px) / d2 * 5);
-        set(gvar("bvy"), slot, (ney[bi] - py) / d2 * 5);
-        set(gvar("bl"), slot, 60);
-        set(gvar("bd"), slot, 2);
-        set(gvar("bt"), slot, 1);
+    let ni = gvar("_ni")
+    if ni >= 0 then (
+      let dx = ex[ni] - px
+      let dy = ey[ni] - py
+      let ad = iabs(dx) + iabs(dy)
+      if ad > 0 then (
+        set(bx, slot, px); set(by, slot, py);
+        set(bvx, slot, dx * 5 / ad); set(bvy, slot, dy * 5 / ad);
+        set(bl, slot, 60); set(bd, slot, 2); set(bt, slot, 1);
         beep(600, 30, 0.05)
-      ) else 0) else 0
+      ) else 0
     ) else 0
   ) else 0
 )
 
 fn fire_bridge(px, py) = (
-  let s1 = find_slot(gvar("bl"))
-  if s1 >= 0 then (
-    let a = rand(628) / 100
-    set(gvar("bx"), s1, px); set(gvar("by"), s1, py);
-    set(gvar("bvx"), s1, cos_f(a) * 4); set(gvar("bvy"), s1, sin_f(a) * 4);
-    set(gvar("bl"), s1, 50); set(gvar("bd"), s1, 2);
-    set(gvar("bt"), s1, 2);
-    let s2 = find_slot(gvar("bl"))
+  let slot = find_bslot()
+  if slot >= 0 then (
+    let a = toFloat(rand(628)) / 100.0
+    let vx = toInt(cos_f(a) * 5.0)
+    let vy = toInt(sin_f(a) * 5.0)
+    set(bx, slot, px); set(by, slot, py);
+    set(bvx, slot, vx); set(bvy, slot, vy);
+    set(bl, slot, 50); set(bd, slot, 2); set(bt, slot, 2);
+    let s2 = find_bslot()
     if s2 >= 0 then (
-      set(gvar("bx"), s2, px); set(gvar("by"), s2, py);
-      set(gvar("bvx"), s2, cos_f(a + 3.14) * 4); set(gvar("bvy"), s2, sin_f(a + 3.14) * 4);
-      set(gvar("bl"), s2, 50); set(gvar("bd"), s2, 2);
-      set(gvar("bt"), s2, 2)
+      set(bx, s2, px); set(by, s2, py);
+      set(bvx, s2, 0 - vx); set(bvy, s2, 0 - vy);
+      set(bl, s2, 50); set(bd, s2, 2); set(bt, s2, 2)
     ) else 0;
     beep(400, 30, 0.04)
   ) else 0
 )
 
-fn fire_depth(px, py) = (
-  let slot = find_slot(gvar("bl"))
-  if slot >= 0 then (
-    let a = rand(628) / 100
-    set(gvar("bx"), slot, px); set(gvar("by"), slot, py);
-    set(gvar("bvx"), slot, cos_f(a)*3.5);
-    set(gvar("bvy"), slot, sin_f(a)*3.5);
-    set(gvar("bl"), slot, 120);
-    set(gvar("bd"), slot, 1);
-    set(gvar("bt"), slot, 7);
-    beep(200, 40, 0.06)
-  ) else 0
-)
-
-fn fire_closure(px, py) = (
+fn fire_closure(px, py, frame) = (
   for d in range(3) do (
-    let slot = find_slot(gvar("bl"))
+    let slot = find_bslot()
     if slot >= 0 then (
-      let a = d * 2.094 + gvar("time") * 2
-      set(gvar("bx"), slot, px);
-      set(gvar("by"), slot, py);
-      set(gvar("bvx"), slot, cos_f(a)*4);
-      set(gvar("bvy"), slot, sin_f(a)*4);
-      set(gvar("bl"), slot, 40);
-      set(gvar("bd"), slot, 3);
-      set(gvar("bt"), slot, 3)
+      let a = toFloat(d) * 2.094 + toFloat(frame) * 0.1
+      set(bx, slot, px); set(by, slot, py);
+      set(bvx, slot, toInt(cos_f(a) * 5.0));
+      set(bvy, slot, toInt(sin_f(a) * 5.0));
+      set(bl, slot, 40); set(bd, slot, 3); set(bt, slot, 3)
     ) else 0
   );
   beep(500, 25, 0.04)
 )
 
+fn fire_depth(px, py) = (
+  let slot = find_bslot()
+  if slot >= 0 then (
+    let a = toFloat(rand(628)) / 100.0
+    set(bx, slot, px); set(by, slot, py);
+    set(bvx, slot, toInt(cos_f(a) * 3.0));
+    set(bvy, slot, toInt(sin_f(a) * 3.0));
+    set(bl, slot, 120); set(bd, slot, 1); set(bt, slot, 7);
+    beep(200, 40, 0.06)
+  ) else 0
+)
+
 fn fire_weapons(frame) = (
   let px = gvar("px")
   let py = gvar("py")
-  let wep = gvar("wep")
-  let wcd = gvar("wcd")
-  for i in range(len(wep)) do (
-    let cd = wcd[i] - 1
+  let wn = gvar("wn")
+  for i in range(wn) do (
+    let cd = wc[i] - 1
     if cd <= 0 then (
-      let w = wep[i]
-      let rate = if w == 1 then 20 else if w == 2 then 35 else if w == 3 then 50 else if w == 7 then 30 else 25
-      if w == 1 then fire_sigma(px,py)
-      else if w == 2 then fire_bridge(px,py)
-      else if w == 3 then fire_closure(px,py)
-      else if w == 7 then fire_depth(px,py)
-      else 0;
-      set(wcd, i, rate)
-    ) else set(wcd, i, cd)
+      let w = wp[i]
+      let rate = if w == 1 then 20 else if w == 2 then 35 else if w == 3 then 50 else 30
+      if w == 1 then fire_sigma(px, py)
+      else if w == 2 then fire_bridge(px, py)
+      else if w == 3 then fire_closure(px, py, frame)
+      else fire_depth(px, py);
+      set(wc, i, rate)
+    ) else set(wc, i, cd)
   )
 )
 
 fn move_bullets() = (
-  let bx = gvar("bx")
-  let by = gvar("by")
-  let bvx = gvar("bvx")
-  let bvy = gvar("bvy")
-  let bl = gvar("bl")
   for i in range(MB) do (
     if bl[i] > 0 then (
-      let nx = bx[i] + bvx[i]
-      let ny = by[i] + bvy[i]
-      set(bx, i, nx);
-      set(by, i, ny);
-      if nx < 0 - 20 then set(bl, i, 0)
-      else if nx > W + 20 then set(bl, i, 0)
-      else if ny < 0 - 20 then set(bl, i, 0)
-      else if ny > H + 20 then set(bl, i, 0)
+      set(bx, i, bx[i] + bvx[i]);
+      set(by, i, by[i] + bvy[i]);
+      if bx[i] < 0 - 20 then set(bl, i, 0)
+      else if bx[i] > W + 20 then set(bl, i, 0)
+      else if by[i] < 0 - 20 then set(bl, i, 0)
+      else if by[i] > H + 20 then set(bl, i, 0)
       else set(bl, i, bl[i] - 1)
     ) else 0
   )
 )
 
 fn collide() = (
-  let ex = gvar("ex")
-  let ey = gvar("ey")
-  let et = gvar("et")
-  let bl = gvar("bl")
-  let eh = gvar("eh")
   for b in range(MB) do (
     if bl[b] > 0 then (
-      let bxb = gvar("bx")[b]
-      let byb = gvar("by")[b]
-      let dmg = gvar("bd")[b]
-      let btype = gvar("bt")[b]
       for e in range(ME) do (
         if bl[b] > 0 then (
           if eh[e] > 0 then (
-            let sz = if et[e] == 2 then 64 else if et[e] == 3 then 100 else if et[e] == 5 then 144 else if et[e] == 7 then 196 else 256
-            let dx = bxb - ex[e]
-            let dy = byb - ey[e]
-            if dx*dx + dy*dy < sz then (
-              let nh = eh[e] - dmg
+            let dx = bx[b] - ex[e]
+            let dy = by[b] - ey[e]
+            let sz = if et[e] == 2 then 64 else if et[e] == 3 then 100 else if et[e] == 5 then 144 else 225
+            if dx * dx + dy * dy < sz then (
+              let nh = eh[e] - bd[b]
               set(eh, e, if nh < 0 then 0 else nh);
-              if btype != 7 then set(bl, b, 0) else 0;
+              if bt[b] != 7 then set(bl, b, 0) else 0;
               if nh <= 0 then (
                 svar("kills", gvar("kills") + 1);
                 svar("xp", gvar("xp") + et[e]);
@@ -636,16 +603,14 @@ fn damage_player() = (
   let icd = gvar("icd")
   if icd > 0 then svar("icd", icd - 1) else (
     svar("_hit", 0);
-    let ex = gvar("ex")
-    let ey = gvar("ey")
-    let eh = gvar("eh")
     for i in range(ME) do (
       if gvar("_hit") == 0 then (
         if eh[i] > 0 then (
-          if dist(ex[i], ey[i], px, py) < 15 then (
+          let dx = ex[i] - px
+          let dy = ey[i] - py
+          if dx * dx + dy * dy < 225 then (
             svar("hp", gvar("hp") - 1);
-            svar("icd", DMG_CD);
-            svar("_hit", 1);
+            svar("icd", 20); svar("_hit", 1);
             beep(150, 80, 0.15)
           ) else 0
         ) else 0
@@ -659,41 +624,36 @@ fn check_levelup() = (
   if gvar("xp") >= gvar("xpn") then (
     svar("lvl", gvar("lvl") + 1);
     svar("xp", gvar("xp") - gvar("xpn"));
-    svar("xpn", floor(gvar("xpn") * 1.5 + 5));
+    svar("xpn", gvar("xpn") * 3 / 2 + 5);
     svar("mhp", gvar("mhp") + 2);
     svar("hp", clamp(gvar("hp") + 3, 1, gvar("mhp")));
-    let pool = [2, 3, 7]
-    let owned = gvar("wep")
-    svar("c1", pool[rand(len(pool))]);
-    svar("c2", pool[rand(len(pool))]);
-    svar("c3", pool[rand(len(pool))]);
-    svar("lud", 15);
-    svar("state", 2)
+    let r1 = rand(3)
+    svar("c1", if r1 == 0 then 2 else if r1 == 1 then 3 else 7);
+    let r2 = rand(3)
+    svar("c2", if r2 == 0 then 2 else if r2 == 1 then 3 else 7);
+    let r3 = rand(3)
+    svar("c3", if r3 == 0 then 2 else if r3 == 1 then 3 else 7);
+    svar("lud", 15); svar("state", 2)
   ) else 0
 )
 
-fn wep_name(w) = if w == 1 then "Sigma" else if w == 2 then "Bridge" else if w == 3 then "Closure" else if w == 7 then "Depth" else "?"
-
-fn wep_color(w) = if w == 1 then 4 else if w == 2 then 1 else if w == 3 then 3 else if w == 7 then 7 else 8
+fn wep_name(w) = if w == 1 then "Sigma" else if w == 2 then "Bridge" else if w == 3 then "Closure" else "Depth"
+fn wep_color(w) = if w == 1 then 4 else if w == 2 then 1 else if w == 3 then 3 else 7
 
 fn add_weapon(w) = (
-  let wep = gvar("wep")
+  let wn = gvar("wn")
   svar("_has", 0);
-  for i in range(len(wep)) do (if wep[i] == w then svar("_has", 1) else 0);
-  if gvar("_has") == 1 then (svar("_has", 0); 0)
-  else (
-    svar("wep", for i in range(len(wep) + 1) do (if i < len(wep) then wep[i] else w));
-    svar("wcd", for i in range(len(gvar("wep"))) do 0);
-    svar("_has", 0)
-  )
+  for i in range(wn) do (if wp[i] == w then svar("_has", 1) else 0);
+  if gvar("_has") == 0 then (
+    if wn < MW then (
+      set(wp, wn, w); set(wc, wn, 0);
+      svar("wn", wn + 1)
+    ) else 0
+  ) else 0
 )
 
 fn draw_game() = (
   canvas_clear(0);
-  let eh = gvar("eh")
-  let ex = gvar("ex")
-  let ey = gvar("ey")
-  let et = gvar("et")
   for i in range(ME) do (
     if eh[i] > 0 then (
       let c = if et[i] == 2 then 1 else if et[i] == 3 then 3 else if et[i] == 5 then 4 else if et[i] == 7 then 7 else 6
@@ -701,20 +661,12 @@ fn draw_game() = (
       canvas_circle(ex[i], ey[i], sz, c)
     ) else 0
   );
-  let bl = gvar("bl")
-  let bx = gvar("bx")
-  let by = gvar("by")
-  let bt = gvar("bt")
   for i in range(MB) do (
-    if bl[i] > 0 then (
-      let c = wep_color(bt[i])
-      canvas_circle(bx[i], by[i], 3, c)
-    ) else 0
+    if bl[i] > 0 then canvas_circle(bx[i], by[i], 3, wep_color(bt[i])) else 0
   );
   let px = gvar("px")
   let py = gvar("py")
-  let flash = gvar("icd")
-  if flash % 4 < 2 then (
+  if gvar("icd") % 4 < 2 then (
     canvas_circle(px, py, 8, 8);
     canvas_circle(px, py, 5, 4)
   ) else 0
@@ -723,24 +675,21 @@ fn draw_game() = (
 fn draw_hud() = (
   let hp = gvar("hp")
   let mhp = gvar("mhp")
-  let xp = gvar("xp")
-  let xpn = gvar("xpn")
-  let hpw = hp / mhp * 100
+  let hpw = hp * 100 / mhp
   canvas_rect(10, 8, 102, 10, 5);
   canvas_rect(11, 9, hpw, 8, 2);
   canvas_text(115, 16, "" + hp + "/" + mhp, 10, 8);
-  let xpw = xp / xpn * 100
+  let xpw = gvar("xp") * 100 / gvar("xpn")
   canvas_rect(10, 22, 102, 6, 5);
   canvas_rect(11, 23, xpw, 4, 3);
   canvas_text(115, 27, "Lv" + gvar("lvl"), 10, 4);
   canvas_text(W - 120, 16, "Wave " + gvar("wave"), 12, 8);
   canvas_text(W - 120, 30, "Kills " + gvar("kills"), 10, 5);
-  canvas_text(W - 120, 44, "" + floor(gvar("time")) + "s", 10, 5);
-  let wep = gvar("wep")
-  for i in range(len(wep)) do (
-    let c = wep_color(wep[i])
-    canvas_rect(10 + i * 55, H - 22, 50, 18, c);
-    canvas_text(12 + i * 55, H - 8, wep_name(wep[i]), 10, 0)
+  canvas_text(W - 120, 44, "" + gvar("time") + "s", 10, 5);
+  let wn = gvar("wn")
+  for i in range(wn) do (
+    canvas_rect(10 + i * 55, H - 22, 50, 18, wep_color(wp[i]));
+    canvas_text(12 + i * 55, H - 8, wep_name(wp[i]), 10, 0)
   )
 )
 
@@ -761,9 +710,9 @@ fn draw_levelup() = (
   let lud = gvar("lud")
   if lud > 0 then svar("lud", lud - 1)
   else (
-    if keyPressed("Digit1") == 1 then (add_weapon(c1); svar("state", 1); svar("lud", 15))
-    else if keyPressed("Digit2") == 1 then (add_weapon(c2); svar("state", 1); svar("lud", 15))
-    else if keyPressed("Digit3") == 1 then (add_weapon(c3); svar("state", 1); svar("lud", 15))
+    if keyPressed("Digit1") == 1 then (add_weapon(c1); svar("state", 1))
+    else if keyPressed("Digit2") == 1 then (add_weapon(c2); svar("state", 1))
+    else if keyPressed("Digit3") == 1 then (add_weapon(c3); svar("state", 1))
     else 0
   )
 )
@@ -777,7 +726,9 @@ fn tick(frame) = (
     canvas_text(195, 210, "Arrow keys to move", 12, 5);
     canvas_text(195, 230, "Weapons fire automatically", 12, 5);
     canvas_text(210, 280, "Press SPACE", 16, 3);
-    if keyPressed("Space") == 1 then (if gvar("sdb") <= 0 then (init(); svar("sdb", 20); 0) else 0) else svar("sdb", gvar("sdb") - 1)
+    let sdb = gvar("sdb")
+    if sdb > 0 then svar("sdb", sdb - 1)
+    else (if keyPressed("Space") == 1 then init() else 0)
   )
   else if st == 1 then (
     move_player();
@@ -792,19 +743,18 @@ fn tick(frame) = (
     draw_hud()
   )
   else if st == 2 then (
-    draw_game();
-    draw_hud();
-    draw_levelup()
+    draw_game(); draw_hud(); draw_levelup()
   )
   else (
     draw_game();
     canvas_rect(100, 120, 400, 160, 5);
     canvas_rect(102, 122, 396, 156, 0);
     canvas_text(170, 165, "RING COLLAPSED", 24, 2);
-    canvas_text(190, 200, "Survived " + floor(gvar("time")) + "s", 16, 8);
-    canvas_text(190, 225, "Kills: " + gvar("kills"), 14, 5);
+    canvas_text(190, 200, "Kills: " + gvar("kills"), 14, 5);
     canvas_text(200, 260, "Press SPACE to restart", 12, 3);
-    if keyPressed("Space") == 1 then (if gvar("sdb") <= 0 then (svar("state", 0); svar("sdb", 20)) else 0) else svar("sdb", gvar("sdb") - 1)
+    let sdb = gvar("sdb")
+    if sdb > 0 then svar("sdb", sdb - 1)
+    else (if keyPressed("Space") == 1 then (svar("state", 0); svar("sdb", 15)) else 0)
   )
 )`;
 
@@ -1115,6 +1065,9 @@ async function runGame() {
         return;
     }
     childMem = child.instance.exports.memory;
+    // Grow child memory for games with entity arrays
+    var cp = childMem.buffer.byteLength / 65536;
+    if (cp < 512) { try { childMem.grow(512 - cp); } catch(e) {} }
 
     // Init + game loop
     try { if (child.instance.exports._main) child.instance.exports._main(); }
