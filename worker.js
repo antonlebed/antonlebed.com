@@ -1,17 +1,18 @@
 /* ☠️ SCAFFOLDING — Cloudflare Worker for SPA routing.
-   Routes /new/* to webax bootstrap. Old site untouched.
-   Dies when old site is swapped out (becomes simple not_found_handling). */
+   ALL extensionless paths → site.wasm via bootstrap.
+   Static assets (.html, .js, .wasm, .png, .jpg, .css) served directly.
+   Old HTML pages remain accessible at their .html URLs.
+   ROLLBACK: git revert + wrangler deploy. */
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    /* /new/* routes without file extension: serve webax bootstrap (SPA routing) */
-    if (url.pathname.startsWith('/new') && !url.pathname.includes('.')) {
-      const bootstrapUrl = new URL('/new/index.html', url.origin);
-      return env.ASSETS.fetch(bootstrapUrl.toString());
+    /* Paths without file extension → webax SPA bootstrap */
+    if (!url.pathname.includes('.')) {
+      return env.ASSETS.fetch(new URL('/index.html', url.origin).toString());
     }
 
-    /* Everything else: serve static assets (old site + /new/*.wasm etc.) */
+    /* Static assets (old HTML, JS, WASM, images, CSS) */
     return env.ASSETS.fetch(request);
   }
 };

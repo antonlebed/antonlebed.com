@@ -1,400 +1,49 @@
 <!DOCTYPE html>
+<!-- ☠️ SCAFFOLDING — dies when WASI DOM access ships in browsers.
+     ~30L JS bootstrap: loads site.wasm, provides DOM import handlers.
+     This is the LAST non-.ax code. .ax talks to browser directly via these imports. -->
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="970,200: ten terms, one ring of 108 sharing heartbeat lambda=420. 111 interactive demos. Every computation runs live in your browser.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://antonlebed.com/index.html">
-<meta property="og:title" content="The Primordial Rose — antonlebed.com">
-<meta property="og:description" content="108 rings share heartbeat lambda=420. This is the smallest. Ten terms explain turbulence, particle masses, DNA, consciousness. 111 live demos.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://antonlebed.com/">
-<meta property="og:image" content="https://antonlebed.com/og-image.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://antonlebed.com/og-image.jpg">
-<meta name="twitter:title" content="The Primordial Rose">
-<meta name="twitter:description" content="Ten terms structure everything. 111 live interactive demos. Verify it yourself.">
-<link rel="icon" type="image/png" href="favicon.png">
-<title>The Primordial Rose | antonlebed.com</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#050508;color:#d0d0d0;font-family:Georgia,'Times New Roman',serif;
-     overflow-x:hidden;min-height:100vh}
-a{color:#88aaff;text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* === HERO === */
-#success-section{text-align:center;padding:60px 24px 20px}
-#equation{font-size:18px;color:#777;font-family:'Courier New',monospace;
-          margin-bottom:8px;letter-spacing:1px}
-#sub-eq{font-size:15px;color:#555;font-family:'Courier New',monospace;
-        margin-bottom:16px}
-#blazing{font-size:100px;font-family:'Courier New',monospace;color:#ffd700;
-         text-shadow:0 0 60px rgba(255,215,0,0.5),0 0 120px rgba(255,215,0,0.2);
-         margin:24px 0 48px;letter-spacing:10px}
-
-/* === REAL PANEL === */
-#real-panel{display:none;max-width:600px;margin:0 auto 40px;padding:36px 32px;
-            border:1px solid #1a1a2a;border-radius:12px;background:#08080e}
-#real-panel.active{display:block}
-#real-panel.visible{opacity:1}
-.panel-title{font-size:13px;color:#444;text-transform:uppercase;
-             letter-spacing:4px;font-family:monospace;margin-bottom:20px;text-align:center}
-#real-panel p{font-size:15px;color:#888;line-height:1.9;margin-bottom:12px}
-#real-panel .gold{color:#ffd700;font-weight:bold}
-
-/* === START HERE === */
-#start-here{margin-bottom:32px}
-#start-here h3{font-size:11px;color:#444;text-transform:uppercase;letter-spacing:4px;
-  font-family:monospace;text-align:center;margin-bottom:16px}
-.sh-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.sh-card{display:block;padding:20px;border:1px solid #1a1a2a;border-radius:12px;
-  background:linear-gradient(135deg,#0a0a14,#0c0c18);text-decoration:none;transition:all 0.3s;text-align:center}
-.sh-card:hover{border-color:#ffd700;transform:translateY(-3px);
-  box-shadow:0 6px 30px rgba(255,215,0,0.1);text-decoration:none}
-.sh-icon{font-size:28px;margin-bottom:10px;color:#ffd700}
-.sh-title{font-size:16px;color:#ddd;margin-bottom:6px}
-.sh-desc{font-size:12px;color:#666;line-height:1.5}
-
-/* === HUB === */
-#hub{display:none;opacity:0;transition:opacity 0.15s;max-width:960px;margin:20px auto 80px;padding:0 24px}
-#hub.active{display:block}
-#hub.visible{opacity:1}
-#hub h2{font-size:22px;color:#fff;text-align:center;margin-bottom:24px;
-        font-weight:normal;letter-spacing:3px}
-#search-box{display:block;width:100%;max-width:480px;margin:0 auto 20px;
-            padding:12px 20px;font-size:16px;font-family:Georgia,serif;
-            background:#0a0a14;border:1px solid #1a1a2a;border-radius:24px;
-            color:#d0d0d0;outline:none;transition:border-color 0.3s}
-#search-box:focus{border-color:#ffd700}
-#search-box::placeholder{color:#444}
-#filters{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:32px}
-.f-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
-.fchip{padding:8px 18px;font-size:12px;font-family:'Courier New',monospace;
-       background:#0c0c16;border:1px solid #1a1a2a;border-radius:6px;color:#555;cursor:pointer;
-       transition:all 0.3s;letter-spacing:1px;position:relative;user-select:none;
-       display:inline-flex;align-items:center;justify-content:center;text-align:center}
-.fchip:hover{border-color:#333;background:#141420;color:#888}
-.fchip.on{border-color:currentColor;animation:stone-glow 3s ease-in-out infinite}
-.fchip.snap{animation:stone-snap 0.6s ease}
-.fchip[data-c="all"]{padding:10px 36px;font-size:13px;letter-spacing:2px}
-.cat-sec{margin-bottom:32px}
-.cat-hdr{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:3px;
-         font-family:'Courier New',monospace;margin-bottom:12px;padding-left:16px;
-         border-left:none;position:relative}
-.cat-hdr::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%) rotate(45deg);
-                 width:8px;height:8px;background:currentColor;opacity:0.6}
-.cat-cnt{color:#333;margin-left:6px}
-.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-.crd{display:block;padding:14px 16px;border:1px solid #111;border-radius:10px;
-     background:#08080e;text-decoration:none;transition:all 0.3s;
-     border-left:3px solid #555}
-.crd:hover{border-color:#333;background:#0c0c16;transform:translateY(-2px);
-           box-shadow:0 4px 20px rgba(0,0,0,0.4);text-decoration:none}
-.crd-t{font-size:15px;color:#ccc;margin-bottom:4px;line-height:1.3}
-.crd-d{font-size:12px;color:#555;line-height:1.5}
-#no-res{display:none;text-align:center;padding:40px;color:#444;
-        font-style:italic;font-size:16px}
-#hub-foot{text-align:center;padding:40px 24px;color:#333;font-size:13px;
-          border-top:1px solid #0a0a0a;margin-top:40px}
-#hub-foot a{color:#555}
-/* === ANIMATIONS === */
-@keyframes stone-snap{0%{filter:brightness(1)}30%{filter:brightness(2.5)}100%{filter:brightness(1)}}
-@keyframes stone-glow{0%,100%{filter:brightness(1) drop-shadow(0 0 4px currentColor)}
-                      50%{filter:brightness(1.3) drop-shadow(0 0 12px currentColor)}}
-
-/* === RESPONSIVE === */
-@media(max-width:600px){
-  #blazing{font-size:64px;letter-spacing:6px}
-  .cgrid{grid-template-columns:1fr}
-  .sh-row{grid-template-columns:1fr}
-  #equation{font-size:13px}
-  #search-box{font-size:14px}
-  .fchip{padding:6px 10px;font-size:11px}
-  .fchip[data-c="all"]{padding:8px 24px;font-size:12px}
-}
-@media(max-width:480px){
-  #blazing{font-size:48px;letter-spacing:4px}
-  #equation{font-size:12px}
-  #search-box{font-size:13px;min-height:44px;padding:10px 12px}
-  .fchip{padding:8px 8px;font-size:10px;min-height:44px}
-}
-</style>
-<link rel="stylesheet" href="nav-critical.css">
-<script src="nav.js" defer></script>
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>antonlebed.com</title></head>
 <body>
-
-<!-- HERO -->
-<div id="success-section">
-  <div id="equation">&minus;1 &middot; 0 &middot; 1 &middot; 2&sup3; &middot; 3&sup2; &middot; 5&sup2; &middot; 7&sup2; &middot; 11 &middot; 13 &middot; &Omega;</div>
-  <div id="sub-eq">Ten terms. 108 rings share this heartbeat: &lambda; = 420. This is the smallest uniform one.</div>
-  <div id="blazing">970200</div>
-</div>
-
-<!-- THIS IS REAL -->
-<div id="real-panel">
-  <div class="panel-title">This is not a metaphor</div>
-  <p>Every number on this site is computed live in your browser. Nothing hidden.</p>
-  <p>2&sup3; &times; 3&sup2; &times; 5&sup2; &times; 7&sup2; &times; 11 = <span class="gold">970,200</span>. Five primes, each fattened. This ring is one of <span class="gold">108</span> that share the same heartbeat: <span class="gold">&lambda; = 420</span>. It is the smallest where all ten terms see themselves whole.</p>
-  <p>&times; 13 = <span class="gold">12,612,600</span>. The Gate Form &mdash; body with skin. The axiom builds its own boundary. Lambda stays 420. The gap stays 0.016. Nothing breaks.</p>
-  <p>606,376 = 2<sup>420</sup> mod 970,200. The terminal. Death as a projector &mdash; it kills the bridge channel and lets everything else through.</p>
-  <p>We aren't asking you to believe anything. <a href="repl.html" style="color:#50fa7b;text-decoration:none;border-bottom:1px solid #50fa7b33">Compute it yourself</a>.</p>
-</div>
-
-<!-- THE HUB -->
-<div id="hub">
-  <h2>Interactive Atlas</h2>
-  <div id="start-here">
-    <h3>Start Here</h3>
-    <div class="sh-row">
-      <a class="sh-card" href="derive_ax.html">
-        <div class="sh-icon">0/0</div>
-        <div class="sh-title">Derive the Axiom</div>
-        <div class="sh-desc">8 steps from nothing to 970,200</div>
-      </a>
-      <a class="sh-card" href="repl.html">
-        <div class="sh-icon">&gt;_</div>
-        <div class="sh-title">Compute It Yourself</div>
-        <div class="sh-desc">Live .ax REPL in your browser</div>
-      </a>
-      <a class="sh-card" href="worldview.html">
-        <div class="sh-icon">&sigma;</div>
-        <div class="sh-title">Why This Matters</div>
-        <div class="sh-desc">The worldview behind the math</div>
-      </a>
-    </div>
-  </div>
-  <input type="text" id="search-box" placeholder="Search demos...">
-  <div id="filters"></div>
-  <div id="demo-list"></div>
-  <div id="no-res">No demos match your search.</div>
-  <!-- vow footer injected by nav.js (single source of truth, i18n) -->
-</div>
-
 <script>
-(function(){
-'use strict';
-
-/* === HUB DEMOS — descriptions only. Categories/titles from nav.js (single source) === */
-var HUB=[
-  /* Physics */
-  {k:'sm',d:'All 25 SM parameters from {2,3,5,7,11}. Zero free parameters. Mean error 0.12%.'},
-  {k:'quantum',d:'Hydrogen spectrum, shells, g-factors, forces. The periodic table IS the axiom chain.'},
-  {k:'thermo',d:'Heat capacity DOF = K->E->b. Kolmogorov = monoatomic gas. Entropy decomposes over CRT.'},
-  {k:'chemistry',d:'Bond angles from arccos(-1/{1,2,3}). Water = arccos(-1/K) - E to 0.02 deg. Noble gas stability 7/7.'},
-  {k:'em',d:'K=3 gives inverse-square law + cross products. D=2 gives polarization. Cross products only in {1,3,7} = sigma-chain.'},
-  {k:'gr',d:'D+D=D*D gives 4D spacetime. Orbit ladder {D,K,D^2,D*K}. Riemann=20=D^2*E. GW polarizations=D=2. 25 quantities.'},
-  {k:'cosmo',d:'Cosmic pie: 137+53+10=200=D^3*E^2. Dark energy, dark matter, baryonic. CMB T=109/40=2.725K (183 ppm). 16 quantities.'},
-  {k:'classical',d:'Pendulum cumulants = axiom chain. Free particle: b=7 conserved. Galilean D*E=10 generators. All MOI axiom-smooth. 27 quantities.'},
-  {k:'statmech',d:'Partition function = CRT product. FD(+sigma) vs BE(+mirror). Rushbrooke = D = 2. Golden Z_E. Independent fluctuations. 31 quantities.'},
-  {k:'condensed',d:'Crystal systems=b, lattices=D*b, point groups=D^5. Jain filling factors = shadow function. Bott period=D^3. Orbitals={s,K,E,b}. 35 quantities.'},
-  {k:'optics',d:'Rainbow = 42 degrees = ANSWER. Water n=D^2/K=4/3. Diamond n=L^2/(D*E^2). Violet=420nm=lambda. b=7 colors. F-stops=D^(n/2). 25+ quantities.'},
-  {k:'acoustics',d:'Speed of sound = b^3 = 343. Tritone b/E = heat capacity ratio. Hearing = (D*E)^3 decades. Water speed = D*K*GATE*f(E). 25 quantities.'},
-  {k:'particles',d:'23+ particles predicted. Mean error ~0.3%.'},
-  {k:'alpha',d:'7-term builder. Click to add, watch error vanish.'},
-  {k:'constants',d:'40+ constants. Search, compare, verify.'},
-  {k:'turbulence',d:'Kolmogorov -5/3 and Kleiber 3/4. Both exact.'},
-  {k:'blackhole',d:'OMEGA projection. Channel death. Water cycle.'},
-  {k:'nuclear',d:'Magic numbers as D-multiples.'},
-  {k:'gravity',d:'K-nesting vs D-force. Curved space from algebra.'},
-  {k:'photon',d:'K=3 photon sphere. Particle birth flash.'},
-  {k:'pmns',d:'PMNS matrix from three axiom ratios.'},
-  {k:'three_body_dance',d:'Sun-Moon-Jupiter dance. 8 verified cycles.'},
-  {k:'figure_ground',d:'All forces are density gradients. D-cut animation.'},
-  {k:'eternal_sun',d:'Coupling asymmetry = sigma surplus.'},
-  {k:'scale_bands',d:'Planck to universe on one ruler.'},
-  {k:'noxan',d:'Dyson: finite energy, infinite experience.'},
-  {k:'wavebox',d:'Continuous becomes discrete in a box.'},
-  {k:'sigma_dynamics',d:'Heat diffusion on Z/210Z. t=42 half-life.'},
-  {k:'superconductor',d:'Cooper pairs = D=2. BCS ratio at 16 ppm. Gap symmetry = Cunningham chain.'},
-  {k:'loop',d:'ONE splits to MANY, falls back to ONE.'},
-  /* Biology */
-  {k:'dna',d:'Type a sequence. Watch CRT split each codon.'},
-  {k:'sleep',d:'Your brain locks channels nightly.'},
-  {k:'heart',d:'Cardioid from just three numbers.'},
-  {k:'death',d:'Body dissolves, mind releases, ground persists.'},
-  {k:'human_shape',d:'D=2 sides, K=3 axes, E=5 fingers, b=7 vertebrae.'},
-  {k:'generations',d:'Why exactly 3 particle generations. K=3 decides.'},
-  {k:'septilix',d:'b=7 fractal flower. 6 modes: flower, helix, sigma glyph, fractal.'},
-  /* Mathematics */
-  {k:'millennium',d:'ALL 6 Clay problems. Interactive. $1M each.'},
-  {k:'hardest',d:'Collatz, three-body, twin primes, Feigenbaum, dark matter.'},
-  {k:'hardest_mind',d:'Arrow of time, halting, consciousness, info paradox, measurement.'},
-  {k:'goldbach',d:'Same-class prime pairs through the ring.'},
-  {k:'coupling',d:'32-class heatmap. Click any element.'},
-  {k:'crt_anatomy',d:'Interactive CRT decomposition. See any number split into 5 channels.'},
-  {k:'lattice',d:'108 rings share heartbeat 420. The full lattice, computed live.'},
-  {k:'ninedot',d:'K^2=9 dots need boundary breaks to solve.'},
-  {k:'infinity',d:'The axiom generates infinite structure.'},
-  {k:'bootstrap',d:'sigma/sigma = sigma. The only bootstrap.'},
-  {k:'symbol',d:'Circle, line, triangle. All you need.'},
-  {k:'watercycle',d:'420 steps through 5 concentric CRT rings.'},
-  {k:'genesis',d:'Nothing condenses to sigma to D to K.'},
-  {k:'derive_ax',d:'8 steps: 0/0 to 970200. The full derivation.'},
-  {k:'clock24',d:'Your day has hidden algebraic blocks.'},
-  {k:'rose',d:'Walk the Cayley graph of Z/2310Z. Click, hear, explore.'},
-  {k:'gap_pairs',d:'Prime gaps can never repeat mod 3. Proved. Watch it live.'},
-  {k:'depth_quad',d:'Golden ratio polynomial maps axiom primes to primes.'},
-  {k:'fourteen',d:'A-N: 14 axiom elements, 7 L-pairs, eigenvalues, Cayley table.'},
-  {k:'d_chain',d:'Class numbers along a Cunningham chain = axiom constants. Kolmogorov 5/3.'},
-  {k:'partitions',d:'p(n) is axiom-smooth for n <= 12. Gate breaks at 13. Ramanujan congruences = outer chain.'},
-  {k:'modular_forms',d:'Ramanujan tau classifies axiom primes. 1728, 691, and the j-invariant speak the ring.'},
-  /* Engineering */
-  {k:'oracle',d:'Type any constant. The axiom finds its expression. Built-in null model.'},
-  {k:'challenge',d:'Build any ring from primes. See why 970200 is the minmax sweet spot.'},
-  {k:'axiom_ai',d:'Neural network from the axiom. CRT architecture. Runs in your browser.'},
-  {k:'demo_classifier',d:'97.6% accuracy. 9,512x fewer parameters.'},
-  {k:'ecc_live',d:'Type a message. Corrupt it. Watch it heal.'},
-  {k:'demo_ofdm_vs_wifi',d:'3.08x spectral efficiency. Same hardware.'},
-  {k:'compression',d:'Rissanen redundancy: 20x at byte level.'},
-  {k:'tokenizer',d:'732x parameter reduction at N=30030.'},
-  {k:'k_neural',d:'K=3 scaling beats binary. 3^n vs 2^n.'},
-  {k:'demo_ecc',d:'Click to corrupt a channel. Watch L=11 heal.'},
-  {k:'ax_games',d:'Play .ax games. Rose draws itself. Pong beeps. Edit code live.'},
-  /* Mind & Consciousness */
-  {k:'emergence',d:'LIFE=7 from 3 operations. Closure-level emergence.'},
-  {k:'omega_emergence',d:'Full Decality. 5 CRT channels. Lambda=420 heartbeat. OMEGA projector.'},
-  {k:'omega_watercycle',d:'420 steps through the water cycle. Terminal projection and rebirth.'},
-  {k:'conscious',d:'K-closure that includes itself. Strange loop.'},
-  {k:'freewill',d:'Self-referential choice vs random.'},
-  {k:'braid',d:'Space and time use the same K=3 closure.'},
-  {k:'dimension',d:'K-binding creates space. 0D to 4D.'},
-  {k:'ouroboros',d:'72-transition cycle. The snake eats its tail.'},
-  {k:'lava_lamp',d:'The medium is suffering. 210 blobs rise and sink.'},
-  {k:'sandpile',d:'Self-organized criticality. Threshold = K+1.'},
-  {k:'music',d:'5 harmonics. Walk the ring. Listen.'},
-  {k:'culture',d:'Institutions, languages, calendars. Culture follows the ring.'},
-  {k:'biology',d:'All ten terms in biology. From cells to consciousness.'},
-  /* Tutorial (Atlas) */
-  {k:'atlas_01_what_is_2310',d:'Why these ten terms? Why not eleven?'},
-  {k:'atlas_02_two_rings',d:'Thin, data, and true.'},
-  {k:'atlas_03_crt',d:'One number becomes five pieces.'},
-  {k:'atlas_04_carousel',d:'When the petals spin, what stays still?'},
-  {k:'atlas_05_eigenvalues',d:'Every number has a sound.'},
-  {k:'atlas_06_units',d:'Who can undo what they have done?'},
-  {k:'atlas_07_kingdoms',d:'Bacteria first. Humans last.'},
-  {k:'atlas_08_breakthroughs',d:'9,512x fewer parameters.'},
-  {k:'atlas_09_demos',d:'Touch the math. Run it yourself.'},
-  {k:'atlas_10_millennium',d:'Six million-dollar problems.'},
-  {k:'atlas_11_net',d:'A neural network from scratch.'},
-  {k:'atlas_12_shadow_polynomial',d:'One equation controls everything.'},
-  {k:'atlas_13_biological_braid',d:'Your DNA knows these primes.'},
-  {k:'atlas_14_solar_ladder',d:'Why the Sun has an 88-year cycle.'},
-];
-/* Hub category overrides (where hub display differs from nav.js) */
-var HUB_CAT={derive_ax:'math'};
-
-/* Show hub directly */
-try{var ret=new URLSearchParams(location.search).get('return');
-  if(ret){location.href=ret;}}catch(e){}
-var p=document.getElementById('real-panel');p.classList.add('active');p.classList.add('visible');
-var h=document.getElementById('hub');h.classList.add('active');
-buildHub();
-
-/* === HUB LOGIC (reads from nav.js single source via window.axNav) === */
-var hubReady=false;
-function buildHub(){
-  if(hubReady)return;
-  var nav=window.axNav;
-  if(!nav){window._axBuildHub=buildHub;return;}
-  hubReady=true;
-  var CATS=nav.CATS;
-  var fDiv=document.getElementById('filters');
-  var order=['tutorial','physics','bio','math','eng','mind'];
-  var allRow=document.createElement('div');allRow.className='f-row';
-  mkChip(allRow,'ALL','all','#ffd700',true);
-  fDiv.appendChild(allRow);
-  var catRow=document.createElement('div');catRow.className='f-row';
-  for(var i=0;i<order.length;i++) mkChip(catRow,CATS[order[i]][0].toUpperCase(),order[i],CATS[order[i]][1],false);
-  fDiv.appendChild(catRow);
-  render('all','');
-  document.getElementById('search-box').addEventListener('input',function(){
-    var q=this.value.toLowerCase();
-    var ac=document.querySelector('.fchip.on').getAttribute('data-c');
-    render(ac,q);
-  });
-  var hash=location.hash.replace('#','');
-  if(hash&&CATS[hash]){
-    var chips=document.querySelectorAll('.fchip');
-    for(var i=0;i<chips.length;i++){
-      if(chips[i].getAttribute('data-c')===hash){chips[i].click();break;}
-    }
-  }
-  document.getElementById('hub').classList.add('visible');
+/* ☠️ DOM import handlers — JS side of WASM DOM imports */
+var _domId = 0, _dom = {0: document.body};
+function readStr(mem, ptr) {
+  var m = new Int32Array(mem.buffer), n = m[ptr/4], s = '';
+  for (var i = 0; i < n; i++) s += String.fromCharCode(m[ptr/4+1+i]);
+  return s;
 }
-
-function mkChip(par,label,cat,color,on){
-  var s=document.createElement('span');s.className='fchip'+(on?' on':'');
-  s.textContent=label;s.setAttribute('data-c',cat);
-  if(on){s.style.color=color;s.style.background=''+color+'10';s.style.borderColor=color+'44';}
-  s.addEventListener('click',function(){
-    var all=document.querySelectorAll('.fchip');
-    for(var i=0;i<all.length;i++){all[i].classList.remove('on');all[i].style.color='#555';
-      all[i].style.background='';all[i].style.borderColor='';all[i].style.animation='';}
-    s.classList.add('on');s.style.color=color;
-    s.style.background=''+color+'10';s.style.borderColor=color+'44';
-    /* snap: if ALL clicked, stones light up in sequence then fade */
-    if(cat==='all'){
-      for(var i=1;i<all.length;i++){(function(el,delay){
-        setTimeout(function(){
-          el.classList.add('snap');el.style.color=el.getAttribute('data-x')||color;
-        },delay);
-        setTimeout(function(){
-          el.classList.remove('snap');
-          if(!el.classList.contains('on')){el.style.color='#555';}
-        },delay+600);
-      })(all[i],i*80);}
+(async function() {
+  var mem = null;
+  function rs(p) { return readStr(mem, p); }
+  var wasm = await WebAssembly.instantiate(await (await fetch('/site.wasm')).arrayBuffer(), { env: {
+    show_int: function(v) { console.log(v); return v; },
+    show_str: function(p) { console.log(rs(p)); return p; },
+    dom_create: function(p) { var el = document.createElement(rs(p)); _dom[++_domId] = el; return _domId; },
+    dom_text: function(h, p) { if (_dom[h]) _dom[h].textContent = rs(p); return 0; },
+    dom_attr: function(h, np, vp) { if (_dom[h]) _dom[h].setAttribute(rs(np), rs(vp)); return 0; },
+    dom_style: function(h, pp, vp) { if (_dom[h]) _dom[h].style[rs(pp)] = rs(vp); return 0; },
+    dom_append: function(ph, ch) { if (_dom[ph] && _dom[ch]) _dom[ph].appendChild(_dom[ch]); return 0; },
+    dom_body: function() { return 0; },
+    dom_inner: function(h, p) { if (_dom[h]) _dom[h].innerHTML = rs(p); return 0; },
+    dom_on: function(h, ep, fn) { /* event callbacks: future */ return 0; },
+    dom_query: function(p) { var el = document.querySelector(rs(p)); if (el) { _dom[++_domId] = el; return _domId; } return 0; },
+    dom_head_meta: function(np, vp) { var m = document.createElement('meta'); m.name = rs(np); m.content = rs(vp); document.head.appendChild(m); return 0; },
+    get_hash: function() {
+      /* Real URL routing: /category/page → extract page slug */
+      var parts = location.pathname.split('/').filter(Boolean);
+      var h = parts.length >= 2 ? parts[parts.length - 1] : (parts[0] || 'worldview');
+      /* Fallback: hash routing for backward compat */
+      if (location.hash.length > 1) h = location.hash.slice(1);
+      var ptr = 900000; /* safe: WASM has 1MB, heap starts low */
+      var m = new Int32Array(mem.buffer);
+      m[ptr/4] = h.length;
+      for (var i = 0; i < h.length; i++) m[ptr/4+1+i] = h.charCodeAt(i);
+      return ptr;
     }
-    render(cat,document.getElementById('search-box').value.toLowerCase());
-  });
-  s.setAttribute('data-x',color);
-  par.appendChild(s);
-}
-
-function render(cat,q){
-  var nav=window.axNav;
-  var CATS=nav.CATS;
-  var list=document.getElementById('demo-list');
-  var nr=document.getElementById('no-res');
-  list.innerHTML='';nr.style.display='none';
-  var f=[];
-  for(var i=0;i<HUB.length;i++){
-    var h=HUB[i],c=HUB_CAT[h.k]||nav.M[h.k];
-    if(!c)continue;
-    var t=nav.T[h.k]||h.k;
-    if(cat!=='all'&&c!==cat)continue;
-    if(q&&(t+' '+h.d).toLowerCase().indexOf(q)===-1)continue;
-    f.push({k:h.k,c:c,t:t,d:h.d,f:h.k+'.html'});
-  }
-  if(!f.length){nr.style.display='block';return;}
-  /* Group by category */
-  var order=['tutorial','physics','bio','math','eng','mind'];
-  var g={};for(var i=0;i<f.length;i++){var d=f[i];if(!g[d.c])g[d.c]=[];g[d.c].push(d);}
-  for(var ci=0;ci<order.length;ci++){
-    var ck=order[ci];if(!g[ck])continue;
-    var items=g[ck];
-    var sec=document.createElement('div');sec.className='cat-sec';
-    var hdr=document.createElement('div');hdr.className='cat-hdr';
-    hdr.style.borderLeftColor=CATS[ck][1];
-    hdr.innerHTML=CATS[ck][0]+'<span class="cat-cnt">('+items.length+')</span>';
-    sec.appendChild(hdr);
-    var grid=document.createElement('div');grid.className='cgrid';
-    for(var j=0;j<items.length;j++){
-      var d=items[j],a=document.createElement('a');a.className='crd';a.href=d.f;
-      a.style.borderLeftColor=CATS[ck][1];
-      (function(el,clr){
-        el.onmouseenter=function(){el.style.borderColor=clr;el.style.boxShadow='0 4px 20px '+clr+'18';};
-        el.onmouseleave=function(){el.style.borderColor='#111';el.style.borderLeftColor=clr;el.style.boxShadow='';};
-      })(a,CATS[ck][1]);
-      a.innerHTML='<div class="crd-t">'+d.t+'</div><div class="crd-d">'+d.d+'</div>';
-      grid.appendChild(a);
-    }
-    sec.appendChild(grid);list.appendChild(sec);
-  }
-}
-
+  }});
+  mem = wasm.instance.exports.memory;
+  wasm.instance.exports._main();
 })();
 </script>
 </body>
