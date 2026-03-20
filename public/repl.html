@@ -551,6 +551,11 @@ async function executeNative(src) {
     var wasmLen = reMem32[wasmBytesPtr / 4];
     var wasmBytes = new Uint8Array(wasmLen);
     for (var j = 0; j < wasmLen; j++) wasmBytes[j] = reMem32[wasmBytesPtr / 4 + 1 + j];
+    /* Validate WASM before instantiation — fail loud, not silent (S906) */
+    if (!WebAssembly.validate(wasmBytes)) {
+        outputEl.textContent += '\nERROR: Compiler produced invalid WASM (' + wasmLen + ' bytes)\n';
+        return;
+    }
     /* Instantiate the compiled program */
     var lines = [];
     var childMem;
