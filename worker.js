@@ -4,7 +4,7 @@
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM. */
 
-let compiledModule = null;
+import siteWasm from './public/site.wasm';
 
 const CRAWLERS = /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|claude-web|gptbot|chatgpt-user|perplexity|cohere|bytespider|ia_archiver|embedly|quora|pinterest|applebot|yandex|bingpreview|linkedinbot/i;
 
@@ -21,18 +21,12 @@ export default {
     const ua = request.headers.get('user-agent') || '';
     if (!CRAWLERS.test(ua)) {
       /* Browser — serve bootstrap.html (WASM + DOM path) */
-      return env.ASSETS.fetch(new URL('/index.html', url.origin).toString());
+      return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
     }
 
     /* ===== SSR: same site.wasm, string backend ===== */
     try {
-      /* Compile WASM once per isolate, instantiate per request */
-      if (!compiledModule) {
-        const bytes = await (await env.ASSETS.fetch(
-          new URL('/site.wasm', url.origin).toString()
-        )).arrayBuffer();
-        compiledModule = await WebAssembly.compile(bytes);
-      }
+      /* siteWasm is a pre-compiled WebAssembly.Module (static import) */
 
       /* Virtual DOM tree (handle 0 = body) */
       var nid = 0;
@@ -51,7 +45,8 @@ export default {
         return s;
       }
 
-      var wasm = await WebAssembly.instantiate(compiledModule, { env: {
+      /* instantiate: Module → Instance, BufferSource → {module, instance} */
+      var result = await WebAssembly.instantiate(siteWasm, { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         dom_create: function(p) {
@@ -101,8 +96,9 @@ export default {
         }
       }});
 
-      mem = wasm.instance.exports.memory;
-      wasm.instance.exports._main();
+      var inst = result.exports ? result : (result.instance || result);
+      mem = inst.exports.memory;
+      inst.exports._main();
 
       /* ===== Serialize virtual DOM to HTML ===== */
       function esc(s) {
@@ -164,8 +160,11 @@ export default {
       });
 
     } catch (e) {
-      /* SSR failed — fallback to bootstrap (client-side rendering) */
-      return env.ASSETS.fetch(new URL('/index.html', url.origin).toString());
+      /* SSR failed — return error for debugging, fallback to bootstrap */
+      return new Response('SSR error: ' + e.message + '\n' + e.stack, {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' }
+      });
     }
   }
 };
