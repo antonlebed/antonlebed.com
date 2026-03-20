@@ -6,8 +6,6 @@
 
 import siteWasm from './public/site.wasm';
 
-const CRAWLERS = /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|claude-web|gptbot|chatgpt-user|perplexity|cohere|bytespider|ia_archiver|embedly|quora|pinterest|applebot|yandex|bingpreview|linkedinbot/i;
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -17,14 +15,7 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    /* Detect crawler by User-Agent */
-    const ua = request.headers.get('user-agent') || '';
-    if (!CRAWLERS.test(ua)) {
-      /* Browser — serve bootstrap.html (WASM + DOM path) */
-      return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
-    }
-
-    /* ===== SSR: same site.wasm, string backend ===== */
+    /* ===== SSR for ALL requests. Browsers get WASM bootstrap appended. ===== */
     try {
       /* siteWasm is a pre-compiled WebAssembly.Module (static import) */
 
@@ -152,19 +143,42 @@ export default {
         }
       }
 
-      /* Full HTML: <head> + rendered body */
-      var html = '<!DOCTYPE html><html lang="en"><head>' + head + '</head>' + render(0) + '</html>';
+      /* Bootstrap script: browsers load WASM and take over (progressive enhancement).
+         LLMs/crawlers see the HTML, ignore the script. */
+      var boot = '<script>' +
+        'var _domId=0,_dom={0:document.body};' +
+        'function readStr(m,p){var a=new Int32Array(m.buffer),n=a[p/4],s="";for(var i=0;i<n;i++)s+=String.fromCharCode(a[p/4+1+i]);return s}' +
+        '(async function(){var mem=null;function rs(p){return readStr(mem,p)}' +
+        'var w=await WebAssembly.instantiate(await(await fetch("/site.wasm")).arrayBuffer(),{env:{' +
+        'show_int:function(v){return v},show_str:function(p){return p},' +
+        'dom_create:function(p){var el=document.createElement(rs(p));_dom[++_domId]=el;return _domId},' +
+        'dom_text:function(h,p){if(_dom[h])_dom[h].textContent=rs(p);return 0},' +
+        'dom_attr:function(h,np,vp){if(_dom[h])_dom[h].setAttribute(rs(np),rs(vp));return 0},' +
+        'dom_style:function(h,pp,vp){if(_dom[h])_dom[h].style[rs(pp)]=rs(vp);return 0},' +
+        'dom_append:function(ph,ch){if(_dom[ph]&&_dom[ch])_dom[ph].appendChild(_dom[ch]);return 0},' +
+        'dom_body:function(){return 0},' +
+        'dom_inner:function(h,p){if(_dom[h])_dom[h].innerHTML=rs(p);return 0},' +
+        'dom_on:function(){return 0},' +
+        'dom_query:function(p){var el=document.querySelector(rs(p));if(el){_dom[++_domId]=el;return _domId}return 0},' +
+        'dom_head_meta:function(){return 0},' +
+        'get_hash:function(){var parts=location.pathname.split("/").filter(Boolean);' +
+        'var h=parts.length>=2?parts[parts.length-1]:(parts[0]||"home");' +
+        'if(location.hash.length>1)h=location.hash.slice(1);' +
+        'var ptr=900000,m=new Int32Array(mem.buffer);m[ptr/4]=h.length;' +
+        'for(var i=0;i<h.length;i++)m[ptr/4+1+i]=h.charCodeAt(i);return ptr}' +
+        '}});mem=w.instance.exports.memory;document.body.innerHTML="";_dom={0:document.body};_domId=0;w.instance.exports._main()})()' +
+        '<\/script>';
+
+      /* Full HTML: <head> + rendered body + bootstrap script */
+      var html = '<!DOCTYPE html><html lang="en"><head>' + head + '</head>' + render(0) + boot + '</html>';
 
       return new Response(html, {
         headers: { 'Content-Type': 'text/html;charset=utf-8' }
       });
 
     } catch (e) {
-      /* SSR failed — return error for debugging, fallback to bootstrap */
-      return new Response('SSR error: ' + e.message + '\n' + e.stack, {
-        status: 500,
-        headers: { 'Content-Type': 'text/plain' }
-      });
+      /* SSR failed — fallback to bootstrap (client-side rendering) */
+      return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
     }
   }
 };
