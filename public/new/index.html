@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!-- ☠️ SCAFFOLDING — dies when WASI DOM access ships in browsers.
+     ~30L JS bootstrap: loads site.wasm, provides DOM import handlers.
+     This is the LAST non-.ax code. .ax talks to browser directly via these imports. -->
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>antonlebed.com</title></head>
+<body>
+<script>
+/* ☠️ DOM import handlers — JS side of WASM DOM imports */
+var _domId = 0, _dom = {0: document.body};
+function readStr(mem, ptr) {
+  var m = new Int32Array(mem.buffer), n = m[ptr/4], s = '';
+  for (var i = 0; i < n; i++) s += String.fromCharCode(m[ptr/4+1+i]);
+  return s;
+}
+(async function() {
+  var mem = null;
+  function rs(p) { return readStr(mem, p); }
+  var wasm = await WebAssembly.instantiate(await (await fetch('site.wasm')).arrayBuffer(), { env: {
+    show_int: function(v) { console.log(v); return v; },
+    show_str: function(p) { console.log(rs(p)); return p; },
+    dom_create: function(p) { var el = document.createElement(rs(p)); _dom[++_domId] = el; return _domId; },
+    dom_text: function(h, p) { if (_dom[h]) _dom[h].textContent = rs(p); return 0; },
+    dom_attr: function(h, np, vp) { if (_dom[h]) _dom[h].setAttribute(rs(np), rs(vp)); return 0; },
+    dom_style: function(h, pp, vp) { if (_dom[h]) _dom[h].style[rs(pp)] = rs(vp); return 0; },
+    dom_append: function(ph, ch) { if (_dom[ph] && _dom[ch]) _dom[ph].appendChild(_dom[ch]); return 0; },
+    dom_body: function() { return 0; },
+    dom_inner: function(h, p) { if (_dom[h]) _dom[h].innerHTML = rs(p); return 0; },
+    dom_on: function(h, ep, fn) { /* event callbacks: future */ return 0; },
+    dom_query: function(p) { var el = document.querySelector(rs(p)); if (el) { _dom[++_domId] = el; return _domId; } return 0; },
+    dom_head_meta: function(np, vp) { var m = document.createElement('meta'); m.name = rs(np); m.content = rs(vp); document.head.appendChild(m); return 0; },
+    get_hash: function() {
+      /* Real URL routing: /category/page → extract page slug */
+      var parts = location.pathname.split('/').filter(Boolean);
+      var h = parts.length >= 2 ? parts[parts.length - 1] : (parts[0] || 'worldview');
+      /* Fallback: hash routing for backward compat */
+      if (location.hash.length > 1) h = location.hash.slice(1);
+      var ptr = 900000; /* safe: WASM has 1MB, heap starts low */
+      var m = new Int32Array(mem.buffer);
+      m[ptr/4] = h.length;
+      for (var i = 0; i < h.length; i++) m[ptr/4+1+i] = h.charCodeAt(i);
+      return ptr;
+    }
+  }});
+  mem = wasm.instance.exports.memory;
+  wasm.instance.exports._main();
+})();
+</script>
+</body>
+</html>
