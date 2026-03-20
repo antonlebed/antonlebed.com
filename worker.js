@@ -5,17 +5,13 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    /* Static assets (files with extensions): serve directly */
-    if (url.pathname.match(/\.[a-z0-9]+$/i)) {
-      return env.ASSETS.fetch(request);
+    /* /new/* routes without file extension: serve webax bootstrap (SPA routing) */
+    if (url.pathname.startsWith('/new') && !url.pathname.includes('.')) {
+      const bootstrapUrl = new URL('/new/index.html', url.origin);
+      return env.ASSETS.fetch(bootstrapUrl.toString());
     }
 
-    /* /new/* routes: serve webax bootstrap (SPA routing) */
-    if (url.pathname.startsWith('/new')) {
-      return env.ASSETS.fetch(new Request(new URL('/new/index.html', url.origin), request));
-    }
-
-    /* Everything else: old site (static files, index.html, etc.) */
+    /* Everything else: serve static assets (old site + /new/*.wasm etc.) */
     return env.ASSETS.fetch(request);
   }
 };
