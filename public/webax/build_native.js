@@ -43,15 +43,19 @@ async function main() {
   const { instance } = await WebAssembly.instantiate(compilerBytes, imports);
   const cm = instance.exports;
 
-  /* Grow memory: 4096 pages = 256MB (compiler needs space for AST + code buffers) */
-  cm.memory.grow(4080);
-
   /* Concatenate source files */
   const src = FILES.map(f => fs.readFileSync(path.join(SRC_DIR, f), 'utf8')).join('\n');
   console.log(`Source: ${src.length} chars (${FILES.length} files)`);
 
-  /* Write source into WASM memory at high offset (avoid heap collision) */
-  const srcOffset = 200 * 1024 * 1024; /* 200MB — far above any heap allocation */
+  /* Scale memory to source size: parser uses ~360 bytes/char, build adds ~50MB overhead.
+     Formula: need ~(src.length * 400 + 100MB) for heap, plus source string at safe offset.
+     WASM max = 4GB (65536 pages). Grow to 2x estimated need for safety. */
+  const heapEstimate = Math.ceil(src.length * 400 / 65536) + 2048; /* pages for heap */
+  const totalPages = Math.min(heapEstimate, 65520); /* cap at ~4GB */
+  cm.memory.grow(totalPages - 16); /* subtract initial 16 pages */
+  const totalMB = (totalPages * 65536 / 1048576) | 0;
+  const srcOffset = (totalMB - 32) * 1024 * 1024; /* source 32MB below memory ceiling */
+  console.log(`Memory: ${totalMB}MB, source at ${(srcOffset/1048576)|0}MB`);
   let mem32 = new Int32Array(cm.memory.buffer);
   writeString(mem32, srcOffset, src);
 
