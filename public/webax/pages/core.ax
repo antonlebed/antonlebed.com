@@ -32,13 +32,13 @@ fn ct_body(body) = (
   dom_style(body, "webkitOverflowScrolling", "touch");
   /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#050508}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}html{scrollbar-color:#1a1a3f #050508;scrollbar-width:thin}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #050508;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#050508}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
 fn ct_heading(el) = (
   dom_style(el, "color", "#f0e6d3");
-  dom_style(el, "textShadow", "0 0 30px rgba(255,215,0,0.15)")
+  dom_style(el, "textShadow", "none")
 )
 
 fn ct_gold(el) = (
@@ -88,7 +88,68 @@ fn nav_link(parent, href:str, label:str) = (
   dom_attr(a, "href", href);
   dom_text(a, label);
   ct_link(a);
-  dom_append(parent, a)
+  dom_append(parent, a);
+  a
+)
+
+fn highlight_tier(cat:str) = (
+  let sel = "a[href='/" + cat + "']" in
+  let el = dom_query(sel) in
+  if el then (
+    dom_style(el, "color", "#ffd700");
+    dom_style(el, "borderBottom", "2px solid #ffd700");
+    dom_style(el, "paddingBottom", "2px")
+  ) else 0
+)
+
+fn highlight_nav() = (
+  let hash = get_hash() in
+  /* Check each tier — highlight if hash matches tier name or a page in that tier */
+  if streq(hash, "basics") == 1 then highlight_tier("basics")
+  else if streq(hash, "worldview") == 1 then highlight_tier("basics")
+  else if streq(hash, "story") == 1 then highlight_tier("basics")
+  else if streq(hash, "derive") == 1 then highlight_tier("basics")
+  else if streq(hash, "death") == 1 then highlight_tier("basics")
+  else if streq(hash, "observe") == 1 then highlight_tier("observe")
+  else if streq(hash, "heart") == 1 then highlight_tier("observe")
+  else if streq(hash, "eigenvalue_swim") == 1 then highlight_tier("observe")
+  else if streq(hash, "coupling") == 1 then highlight_tier("observe")
+  else if streq(hash, "crt_anatomy") == 1 then highlight_tier("observe")
+  else if streq(hash, "sandpile") == 1 then highlight_tier("observe")
+  else if streq(hash, "emergence") == 1 then highlight_tier("observe")
+  else if streq(hash, "omega_emergence") == 1 then highlight_tier("observe")
+  else if streq(hash, "omega_watercycle") == 1 then highlight_tier("observe")
+  else if streq(hash, "ecc_live") == 1 then highlight_tier("observe")
+  else if streq(hash, "ouroboros_compiler") == 1 then highlight_tier("observe")
+  else if streq(hash, "ax_games") == 1 then highlight_tier("observe")
+  else if streq(hash, "data") == 1 then highlight_tier("data")
+  else if streq(hash, "turbulence") == 1 then highlight_tier("data")
+  else if streq(hash, "sleep") == 1 then highlight_tier("data")
+  else if streq(hash, "kingdoms") == 1 then highlight_tier("data")
+  else if streq(hash, "alpha") == 1 then highlight_tier("data")
+  else if streq(hash, "ecc") == 1 then highlight_tier("data")
+  else if streq(hash, "cosmo") == 1 then highlight_tier("data")
+  else if streq(hash, "thermo") == 1 then highlight_tier("data")
+  else if streq(hash, "nuclear") == 1 then highlight_tier("data")
+  else if streq(hash, "particles") == 1 then highlight_tier("data")
+  else if streq(hash, "dna") == 1 then highlight_tier("data")
+  else if streq(hash, "pmns") == 1 then highlight_tier("data")
+  else if streq(hash, "human_shape") == 1 then highlight_tier("data")
+  else if streq(hash, "teach") == 1 then highlight_tier("teach")
+  else if streq(hash, "mirror") == 1 then highlight_tier("teach")
+  else if streq(hash, "sacrifice") == 1 then highlight_tier("teach")
+  else if streq(hash, "cunningham") == 1 then highlight_tier("teach")
+  else if streq(hash, "deep") == 1 then highlight_tier("deep")
+  else if streq(hash, "bootstrap") == 1 then highlight_tier("deep")
+  else if streq(hash, "septum") == 1 then highlight_tier("deep")
+  else if streq(hash, "decality") == 1 then highlight_tier("deep")
+  else if streq(hash, "lattice") == 1 then highlight_tier("deep")
+  else if streq(hash, "living") == 1 then highlight_tier("living")
+  else if streq(hash, "chain") == 1 then highlight_tier("living")
+  else if streq(hash, "ai") == 1 then highlight_tier("living")
+  else if streq(hash, "cc0") == 1 then highlight_tier("living")
+  else if streq(hash, "revolution") == 1 then highlight_tier("living")
+  else 0
 )
 
 fn render_nav() = (
@@ -100,6 +161,9 @@ fn render_nav() = (
   dom_style(nav, "gap", "8px");
   dom_style(nav, "flexWrap", "wrap");
   dom_style(nav, "justifyContent", "center");
+  dom_style(nav, "position", "sticky");
+  dom_style(nav, "top", "0");
+  dom_style(nav, "zIndex", "100");
   ct_mono(nav);
   dom_style(nav, "fontSize", "14px");
   let brand = dom_create("a") in
@@ -245,6 +309,7 @@ fn make_findings_grid(parent) = (
   dom_style(g, "margin", "32px 0");
   dom_style(g, "width", "100%");
   dom_style(g, "maxWidth", "700px");
+  dom_style(g, "margin", "32px auto");
   dom_append(parent, g);
   g
 )
@@ -337,6 +402,7 @@ fn page_home() = (
   dom_append(dom_body(), hero);
   let sec = make_section("900px") in
   let g = dom_create("div") in
+  dom_attr(g, "class", "idx-grid");
   dom_style(g, "display", "grid");
   dom_style(g, "gridTemplateColumns", "1fr 1fr 1fr");
   dom_style(g, "gap", "16px");
@@ -381,6 +447,7 @@ fn idx_hero(title:str, ring:str, desc:str) = (
 fn idx_grid() = (
   let sec = make_section("900px") in
   let g = dom_create("div") in
+  dom_attr(g, "class", "idx-grid");
   dom_style(g, "display", "grid");
   dom_style(g, "gridTemplateColumns", "1fr 1fr");
   dom_style(g, "gap", "12px");
