@@ -16,9 +16,10 @@ function readStr(mem, ptr) {
 (async function() {
   var mem = null;
   function rs(p) { return readStr(mem, p); }
-  /* Absolute path: SPA routing means URL path != file path */
-  var base = location.pathname.split('/').slice(0, 2).join('/') + '/';
-  var wasm = await WebAssembly.instantiate(await (await fetch(base + 'site.wasm')).arrayBuffer(), { env: {
+  /* Absolute WASM path — derive from first path segment */
+  var segs = location.pathname.split('/').filter(Boolean);
+  var wasmPath = segs.length > 0 && segs[0] !== 'basics' && segs[0] !== 'observe' && segs[0] !== 'data' && segs[0] !== 'teach' && segs[0] !== 'deep' && segs[0] !== 'living' ? '/' + segs[0] + '/site.wasm' : '/site.wasm';
+  var wasm = await WebAssembly.instantiate(await (await fetch(wasmPath)).arrayBuffer(), { env: {
     show_int: function(v) { console.log(v); return v; },
     show_str: function(p) { console.log(rs(p)); return p; },
     dom_create: function(p) { var el = document.createElement(rs(p)); _dom[++_domId] = el; return _domId; },
