@@ -1,0 +1,700 @@
+/* site.ax — WEBAX: The Ship of Theseus
+   .ax IS the website. Compiles to site.wasm. Renders via WASM DOM imports.
+   Data-driven: pages are content declarations, not DOM call sequences.
+   ☠️ SCAFFOLDING (grows until all 108 pages live here). */
+
+/* ===== DECALITY CONSTANTS ===== */
+let D = 2
+let K = 3
+let E = 5
+let b = 7
+let L = 11
+let GATE = 13
+let OMEGA_VAL = D ^ 420
+
+/* ================================================================
+   CELESTIAL THEATRE — Style System
+   Layer 0: VOID (dark gradient, #050508)
+   Layer 1: LIGHT THROUGH LETTERS (warm text glow on headings)
+   Shared across ALL pages. The visual IS the math.
+   ================================================================ */
+
+fn ct_body(body) = (
+  dom_style(body, "margin", "0");
+  dom_style(body, "padding", "0");
+  dom_style(body, "background", "#050508");
+  dom_style(body, "color", "#c8c8c8");
+  dom_style(body, "fontFamily", "Georgia, 'Times New Roman', serif");
+  dom_style(body, "lineHeight", "1.8");
+  dom_style(body, "overflowX", "hidden");
+  dom_style(body, "scrollBehavior", "smooth");
+  dom_style(body, "webkitFontSmoothing", "antialiased");
+  dom_style(body, "webkitOverflowScrolling", "touch");
+  /* Dark plasma scrollbar */
+  let s = dom_create("style") in
+  dom_text(s, "::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#050508}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}html{scrollbar-color:#1a1a3f #050508;scrollbar-width:thin}");
+  dom_append(body, s)
+)
+
+fn ct_heading(el) = (
+  dom_style(el, "color", "#f0e6d3");
+  dom_style(el, "textShadow", "0 0 30px rgba(255,215,0,0.15)")
+)
+
+fn ct_gold(el) = (
+  dom_style(el, "color", "#ffd700");
+  dom_style(el, "fontWeight", "bold")
+)
+
+fn ct_link(el) = (
+  dom_style(el, "color", "#88aaff");
+  dom_style(el, "textDecoration", "none")
+)
+
+fn ct_mono(el) = (
+  dom_style(el, "fontFamily", "'Courier New', monospace")
+)
+
+fn ct_code_block(el) = (
+  ct_mono(el);
+  dom_style(el, "background", "#0a0a1f");
+  dom_style(el, "padding", "16px 20px");
+  dom_style(el, "borderRadius", "8px");
+  dom_style(el, "border", "1px solid #1a1a3f");
+  dom_style(el, "lineHeight", "1.6")
+)
+
+fn ct_card(el) = (
+  dom_style(el, "padding", "24px 20px");
+  dom_style(el, "border", "1px solid #1a1a2a");
+  dom_style(el, "borderRadius", "10px");
+  dom_style(el, "background", "#08080e")
+)
+
+/* ================================================================
+   SHARED RENDER COMPONENTS — reusable across all page types
+   ================================================================ */
+
+fn nav_sep(parent) = (
+  let s = dom_create("span") in
+  dom_text(s, " | ");
+  dom_style(s, "color", "#333");
+  dom_append(parent, s)
+)
+
+fn nav_link(parent, href:str, label:str) = (
+  nav_sep(parent);
+  let a = dom_create("a") in
+  dom_attr(a, "href", href);
+  dom_text(a, label);
+  ct_link(a);
+  dom_append(parent, a)
+)
+
+fn render_nav() = (
+  let nav = dom_create("nav") in
+  dom_style(nav, "background", "#111");
+  dom_style(nav, "padding", "12px 24px");
+  dom_style(nav, "display", "flex");
+  dom_style(nav, "alignItems", "center");
+  dom_style(nav, "gap", "8px");
+  dom_style(nav, "flexWrap", "wrap");
+  dom_style(nav, "justifyContent", "center");
+  ct_mono(nav);
+  dom_style(nav, "fontSize", "14px");
+  let brand = dom_create("a") in
+  dom_attr(brand, "href", "/");
+  dom_text(brand, "970200");
+  ct_gold(brand);
+  dom_style(brand, "fontSize", "18px");
+  dom_style(brand, "textDecoration", "none");
+  dom_style(brand, "marginRight", "8px");
+  dom_append(nav, brand);
+  nav_link(nav, "/basics", "Basics");
+  nav_link(nav, "/observe", "Observe");
+  nav_link(nav, "/data", "Data");
+  nav_link(nav, "/teach", "Teach");
+  nav_link(nav, "/deep", "Deep");
+  nav_link(nav, "/living", "Living");
+  nav_link(nav, "/repl.html", "REPL");
+  dom_append(dom_body(), nav)
+)
+
+fn make_section(max_w:str) = (
+  let sec = dom_create("section") in
+  dom_style(sec, "padding", "48px 24px");
+  dom_style(sec, "maxWidth", max_w);
+  dom_style(sec, "margin", "0 auto");
+  sec
+)
+
+/* Centered heading for sections */
+fn render_h2(parent, text:str) = (
+  let h2 = dom_create("h2") in
+  dom_text(h2, text);
+  ct_heading(h2);
+  dom_style(h2, "fontSize", "1.8em");
+  dom_style(h2, "textAlign", "center");
+  dom_style(h2, "marginBottom", "32px");
+  dom_append(parent, h2);
+  h2
+)
+
+/* Centered paragraph */
+fn render_p(parent, text:str) = (
+  let p = dom_create("p") in
+  dom_text(p, text);
+  dom_style(p, "textAlign", "center");
+  dom_style(p, "maxWidth", "680px");
+  dom_style(p, "margin", "0 auto 18px");
+  dom_append(parent, p);
+  p
+)
+
+/* Finding/quantity card: label + value + description + source */
+fn render_finding(parent, label:str, value:str, desc:str, source:str) = (
+  let card = dom_create("div") in
+  ct_card(card);
+  let lbl = dom_create("div") in
+  dom_text(lbl, label);
+  dom_style(lbl, "fontSize", "11px");
+  dom_style(lbl, "color", "#666");
+  dom_style(lbl, "textTransform", "uppercase");
+  dom_style(lbl, "letterSpacing", "2px");
+  dom_style(lbl, "marginBottom", "8px");
+  dom_append(card, lbl);
+  let val = dom_create("div") in
+  dom_text(val, value);
+  dom_style(val, "fontSize", "28px");
+  ct_mono(val);
+  ct_gold(val);
+  dom_style(val, "marginBottom", "8px");
+  dom_append(card, val);
+  let d = dom_create("div") in
+  dom_text(d, desc);
+  dom_style(d, "fontSize", "14px");
+  dom_style(d, "color", "#aaa");
+  dom_style(d, "lineHeight", "1.6");
+  dom_append(card, d);
+  if len(source) then (
+    let s = dom_create("div") in
+    dom_text(s, source);
+    dom_style(s, "fontSize", "11px");
+    dom_style(s, "color", "#555");
+    dom_style(s, "marginTop", "8px");
+    dom_style(s, "fontStyle", "italic");
+    dom_append(card, s)
+  ) else 0;
+  dom_append(parent, card);
+  card
+)
+
+/* Prime card */
+fn render_prime(parent, num:str, name:str, body:str, color:str) = (
+  let card = dom_create("div") in
+  dom_style(card, "width", "130px");
+  dom_style(card, "textAlign", "center");
+  dom_style(card, "padding", "20px 12px");
+  dom_style(card, "border", "1px solid #1a1a2a");
+  dom_style(card, "borderRadius", "12px");
+  dom_style(card, "background", "#08080e");
+  let n = dom_create("div") in
+  dom_text(n, num);
+  dom_style(n, "fontSize", "36px");
+  ct_mono(n);
+  dom_style(n, "fontWeight", "bold");
+  dom_style(n, "marginBottom", "8px");
+  dom_style(n, "color", color);
+  dom_append(card, n);
+  let nm = dom_create("div") in
+  dom_text(nm, name);
+  dom_style(nm, "fontSize", "13px");
+  dom_style(nm, "color", "#999");
+  dom_style(nm, "textTransform", "uppercase");
+  dom_style(nm, "letterSpacing", "2px");
+  dom_style(nm, "marginBottom", "6px");
+  dom_append(card, nm);
+  let bd = dom_create("div") in
+  dom_text(bd, body);
+  dom_style(bd, "fontSize", "12px");
+  dom_style(bd, "color", "#666");
+  dom_style(bd, "fontStyle", "italic");
+  dom_append(card, bd);
+  dom_append(parent, card);
+  card
+)
+
+/* Grid container (flex wrap) */
+fn make_grid(parent, gap:str) = (
+  let g = dom_create("div") in
+  dom_style(g, "display", "flex");
+  dom_style(g, "flexWrap", "wrap");
+  dom_style(g, "justifyContent", "center");
+  dom_style(g, "gap", gap);
+  dom_style(g, "margin", "32px 0");
+  dom_append(parent, g);
+  g
+)
+
+/* 2-column findings grid */
+fn make_findings_grid(parent) = (
+  let g = dom_create("div") in
+  dom_style(g, "display", "grid");
+  dom_style(g, "gridTemplateColumns", "1fr 1fr");
+  dom_style(g, "gap", "16px");
+  dom_style(g, "margin", "32px 0");
+  dom_style(g, "width", "100%");
+  dom_style(g, "maxWidth", "700px");
+  dom_append(parent, g);
+  g
+)
+
+/* Wide finding (spans 2 columns) */
+fn render_finding_wide(parent, label:str, value:str, desc:str, source:str) = (
+  let card = render_finding(parent, label, value, desc, source) in
+  dom_style(card, "gridColumn", "1 / -1");
+  card
+)
+
+/* Body map item */
+fn render_body_item(parent, num:str, organ:str, role:str, color:str) = (
+  let item = dom_create("div") in
+  dom_style(item, "padding", "16px");
+  dom_style(item, "border", "1px solid #1a1a2a");
+  dom_style(item, "borderRadius", "8px");
+  dom_style(item, "background", "#08080e");
+  dom_style(item, "textAlign", "center");
+  let n = dom_create("div") in
+  dom_text(n, num);
+  dom_style(n, "fontSize", "24px");
+  ct_mono(n);
+  dom_style(n, "color", color);
+  dom_style(n, "marginBottom", "4px");
+  dom_append(item, n);
+  let o = dom_create("div") in
+  dom_text(o, organ);
+  dom_style(o, "fontSize", "13px");
+  dom_style(o, "color", "#999");
+  dom_append(item, o);
+  let r = dom_create("div") in
+  dom_text(r, role);
+  dom_style(r, "fontSize", "11px");
+  dom_style(r, "color", "#666");
+  dom_style(r, "marginTop", "4px");
+  dom_append(item, r);
+  dom_append(parent, item)
+)
+
+/* Explore link card */
+fn render_explore_link(parent, href:str, title:str, hook:str) = (
+  let a = dom_create("a") in
+  dom_attr(a, "href", href);
+  dom_style(a, "display", "block");
+  dom_style(a, "padding", "16px");
+  dom_style(a, "border", "1px solid #1a1a2a");
+  dom_style(a, "borderRadius", "8px");
+  dom_style(a, "background", "#08080e");
+  dom_style(a, "textDecoration", "none");
+  let t = dom_create("div") in
+  dom_text(t, title);
+  dom_style(t, "fontSize", "15px");
+  dom_style(t, "color", "#ccc");
+  dom_append(a, t);
+  let h = dom_create("div") in
+  dom_text(h, hook);
+  dom_style(h, "fontSize", "12px");
+  dom_style(h, "color", "#666");
+  dom_style(h, "fontStyle", "italic");
+  dom_style(h, "marginTop", "4px");
+  dom_append(a, h);
+  dom_append(parent, a)
+)
+
+/* ================================================================
+   HOME — the meta-page. Index of indexes. The GATE = site.ax itself.
+   ================================================================ */
+
+fn page_home() = (
+  dom_head_meta("description", "0/0 = Z/970200Z. Five primes. One structure. Everything precipitates from the void. 108 pages, six rings, pure math rendered by .ax via WASM.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "100px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "970,200");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "3em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "letterSpacing", "4px");
+  dom_append(hero, h1);
+  let sub = dom_create("div") in
+  dom_text(sub, "0/0 = Z/970200Z");
+  ct_mono(sub);
+  dom_style(sub, "fontSize", "16px");
+  dom_style(sub, "color", "#888");
+  dom_style(sub, "marginTop", "12px");
+  dom_append(hero, sub);
+  render_p(hero, "Five primes. One structure. Everything precipitates from the void.");
+  dom_append(dom_body(), hero);
+  let sec = make_section("900px") in
+  let g = dom_create("div") in
+  dom_style(g, "display", "grid");
+  dom_style(g, "gridTemplateColumns", "1fr 1fr 1fr");
+  dom_style(g, "gap", "16px");
+  dom_style(g, "margin", "0 0 32px");
+  render_explore_link(g, "/basics", "Basics", "Z/6 — First encounter. What is this?");
+  render_explore_link(g, "/observe", "Observe", "Z/30 — See patterns emerge.");
+  render_explore_link(g, "/data", "Data", "Z/210 — The axiom maps to reality.");
+  render_explore_link(g, "/teach", "Teach", "Z/2310 — Check the math.");
+  render_explore_link(g, "/deep", "Deep", "Z/970200 — The full ring.");
+  render_explore_link(g, "/living", "Living", "Z/12612600 — Build with it.");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* ================================================================
+   TIER INDEX PAGES — 6 rings, one per nav tier
+   Click tier → see all pages in that ring
+   ================================================================ */
+
+fn idx_hero(title:str, ring:str, desc:str) = (
+  let sec = dom_create("section") in
+  dom_style(sec, "textAlign", "center");
+  dom_style(sec, "padding", "80px 24px 20px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, title);
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_append(sec, h1);
+  let r = dom_create("div") in
+  dom_text(r, ring);
+  ct_mono(r);
+  ct_gold(r);
+  dom_style(r, "fontSize", "16px");
+  dom_style(r, "marginBottom", "16px");
+  dom_append(sec, r);
+  render_p(sec, desc);
+  dom_append(dom_body(), sec);
+  0
+)
+
+fn idx_grid() = (
+  let sec = make_section("900px") in
+  let g = dom_create("div") in
+  dom_style(g, "display", "grid");
+  dom_style(g, "gridTemplateColumns", "1fr 1fr");
+  dom_style(g, "gap", "12px");
+  dom_style(g, "margin", "0 0 32px");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec);
+  g
+)
+
+fn page_basics_index() = (
+  dom_head_meta("description", "First encounter with 0/0 = Z/970200Z. Story, derivation, death, and the bootstrap.");
+  idx_hero("Basics", "Z/6", "First encounter. What is this? Where does it come from? What does it cost?");
+  let g = idx_grid() in
+  render_explore_link(g, "/basics/worldview", "Worldview", "970,200. The number that contains everything.");
+  render_explore_link(g, "/basics/story", "Story", "How one question became a universe.");
+  render_explore_link(g, "/basics/derive", "Derive", "The derivation. 0/0 to five primes in 12 steps.");
+  render_explore_link(g, "/basics/death", "Death", "What the axiom says about endings.")
+)
+
+fn page_observe_index() = (
+  dom_head_meta("description", "See the ring in action. Eigenvalue walks, coupling, sandpile dynamics, error correction.");
+  idx_hero("Observe", "Z/30", "See patterns emerge. Interactive explorations of ring structure.");
+  let g = idx_grid() in
+  render_explore_link(g, "/observe/heart", "The Heart", "D^2*K=12. Three hearts, four chambers, one beat.");
+  render_explore_link(g, "/observe/eigenvalue_swim", "Eigenvalue Swim", "Walk through the chain: 0 to L.");
+  render_explore_link(g, "/observe/coupling", "Coupling", "How elements talk to each other.");
+  render_explore_link(g, "/observe/crt_anatomy", "CRT Anatomy", "Inside the Chinese Remainder Theorem.");
+  render_explore_link(g, "/observe/sandpile", "Sandpile", "Self-organized criticality in the ring.");
+  render_explore_link(g, "/observe/emergence", "Emergence", "What precipitates from structure.");
+  render_explore_link(g, "/observe/omega_emergence", "Omega Emergence", "D^420 = 606376. The projector.");
+  render_explore_link(g, "/observe/omega_watercycle", "Omega Watercycle", "0 to sigma to OMEGA to 0.");
+  render_explore_link(g, "/observe/ecc_live", "ECC Live", "Error correction in real time.");
+  render_explore_link(g, "/observe/ouroboros_compiler", "Ouroboros Compiler", ".ax compiles .ax. The loop closes.");
+  render_explore_link(g, "/observe/ax_games", "Games", "Pong, Kingdom, Survivor — all in .ax.")
+)
+
+fn page_data_index() = (
+  dom_head_meta("description", "The axiom maps to reality. Turbulence, sleep, kingdoms, physics, chemistry, biology.");
+  idx_hero("Data", "Z/210", "The axiom maps to reality. Every domain, one structure.");
+  let g = idx_grid() in
+  render_explore_link(g, "/data/turbulence", "Turbulence", "Two constants, one structure.");
+  render_explore_link(g, "/data/sleep", "Sleep", "You fall asleep in five steps.");
+  render_explore_link(g, "/data/kingdoms", "Kingdoms", "Six kingdoms of life.");
+  render_explore_link(g, "/data/alpha", "Alpha", "The fine structure constant.");
+  render_explore_link(g, "/data/ecc", "ECC", "Error correction for free.");
+  render_explore_link(g, "/data/cosmo", "Cosmos", "The universe in five primes.");
+  render_explore_link(g, "/data/thermo", "Thermodynamics", "Heat, entropy, phase transitions.");
+  render_explore_link(g, "/data/sm", "Standard Model", "Particles from ring structure.");
+  render_explore_link(g, "/data/quantum", "Quantum", "Superposition is CRT.");
+  render_explore_link(g, "/data/classical", "Classical", "Newton from the ring.");
+  render_explore_link(g, "/data/em", "Electromagnetism", "Maxwell from D=2.");
+  render_explore_link(g, "/data/gr", "General Relativity", "Curvature from coupling.");
+  render_explore_link(g, "/data/optics", "Optics", "Light through the lattice.");
+  render_explore_link(g, "/data/acoustics", "Acoustics", "Sound as ring wave.");
+  render_explore_link(g, "/data/chemistry", "Chemistry", "Periodic table from primes.");
+  render_explore_link(g, "/data/biology", "Biology", "Life from ring structure.");
+  render_explore_link(g, "/data/culture", "Culture", "Human patterns in the ring.");
+  render_explore_link(g, "/data/condensed", "Condensed Matter", "Phases of matter.");
+  render_explore_link(g, "/data/statmech", "Statistical Mechanics", "Ensembles from CRT.");
+  render_explore_link(g, "/data/nuclear", "Nuclear", "Strong force from depth.");
+  render_explore_link(g, "/data/particles", "Particles", "Mass hierarchy from primes.");
+  render_explore_link(g, "/data/dna", "DNA", "Genetic code in the ring.");
+  render_explore_link(g, "/data/pmns", "PMNS", "Neutrino mixing from CRT.");
+  render_explore_link(g, "/data/human_shape", "Human Shape", "Why bodies look like this.")
+)
+
+fn page_teach_index() = (
+  dom_head_meta("description", "Number theory proofs. Cunningham chains, Heegner numbers, golden ratio, and 19 more theorems.");
+  idx_hero("Teach", "Z/2310", "Check the math. Every theorem proved, every claim verifiable.");
+  let g = idx_grid() in
+  render_explore_link(g, "/teach/mirror", "The Mirror", "-1 = N-1. Spectral mirror automorphism.");
+  render_explore_link(g, "/teach/sacrifice", "The Sacrifice", "What the void destroys to create.");
+  render_explore_link(g, "/teach/cunningham", "Cunningham", "The chain that generates five primes.");
+  render_explore_link(g, "/teach/heegner", "Heegner", "Why these numbers are special.");
+  render_explore_link(g, "/teach/bernoulli", "Bernoulli", "Classical meets ring structure.");
+  render_explore_link(g, "/teach/k_squared_stop", "K-Squared Stop", "K^2=9. The spider web.");
+  render_explore_link(g, "/teach/pell_twins", "Pell Twins", "Paired solutions from D=2.");
+  render_explore_link(g, "/teach/universal_boundary", "Universal Boundary", "Where the ring ends.");
+  render_explore_link(g, "/teach/depth_return", "Depth Return", "b=7 comes home.");
+  render_explore_link(g, "/teach/depth_quad", "Depth Quadratic", "Six roles of one polynomial.");
+  render_explore_link(g, "/teach/mirror_cost", "Mirror Cost", "The price of reflection.");
+  render_explore_link(g, "/teach/lambda_chain", "Lambda Chain", "420 = the heartbeat.");
+  render_explore_link(g, "/teach/golden_ratio", "Golden Ratio", "Phi from the axiom.");
+  render_explore_link(g, "/teach/smooth_census", "Smooth Census", "Counting smooth numbers.");
+  render_explore_link(g, "/teach/stormer_pairs", "Stormer Pairs", "Extremal smooth pairs.");
+  render_explore_link(g, "/teach/shadow_eval", "Shadow Eval", "The shadow function evaluated.");
+  render_explore_link(g, "/teach/d_power_gaussian", "D-Power Gaussian", "Powers of 2 in Gaussian integers.");
+  render_explore_link(g, "/teach/cyclotomic_fibonacci", "Cyclotomic Fibonacci", "Fibonacci meets cyclotomic fields.");
+  render_explore_link(g, "/teach/fano_e8", "Fano-E8", "Finite geometry meets Lie algebra.");
+  render_explore_link(g, "/teach/arcsine_cumulant", "Arcsine Cumulant", "Distribution theory in the ring.");
+  render_explore_link(g, "/teach/figurate_bridge", "Figurate Bridge", "Triangular numbers bridge primes.")
+)
+
+fn page_deep_index() = (
+  dom_head_meta("description", "Full ring structure. Kingdoms, topology, physics, consciousness. 42 pages of deep structure.");
+  idx_hero("Deep", "Z/970200", "The full ring. Kingdoms, structure, physics, consciousness.");
+  let g = idx_grid() in
+  render_explore_link(g, "/deep/bootstrap", "The Bootstrap", "The ring bootstraps itself.");
+  render_explore_link(g, "/deep/septum", "The Septum", "16/77. Where both views overlap.");
+  render_explore_link(g, "/deep/decality", "The Decality", "10 terms. 13=GATE=SKIN.");
+  render_explore_link(g, "/deep/lattice", "108 Rings", "One heartbeat across the lattice.");
+  render_explore_link(g, "/deep/watercycle", "Water Cycle", "0 to sigma to OMEGA to 0.");
+  render_explore_link(g, "/deep/consciousness", "Consciousness", "Seven gates.");
+  render_explore_link(g, "/deep/neuro", "The Brain", "EEG = CRT decomposition.");
+  render_explore_link(g, "/deep/carousel", "Carousel", "Braids and Seifert surfaces.");
+  render_explore_link(g, "/deep/omega", "OMEGA", "D^420 = 606376. The destination.");
+  render_explore_link(g, "/deep/language", "Language", "MOST 370 corpus. 9.1x enrichment.");
+  render_explore_link(g, "/deep/observer", "Observer", "E^2 = null. Cannot see itself.");
+  render_explore_link(g, "/deep/ground", "Ground State", "sigma*n=n. Persistence.");
+  render_explore_link(g, "/deep/duality", "Duality", "D=2. The pair that splits.");
+  render_explore_link(g, "/deep/depth", "Depth", "b=7. Goes where others cannot.");
+  render_explore_link(g, "/deep/transcend", "Transcendence", "L=11. The protector.");
+  render_explore_link(g, "/deep/genesis", "Genesis", "From void to structure.");
+  render_explore_link(g, "/deep/algebra", "Algebra", "The ring as algebra.");
+  render_explore_link(g, "/deep/spectrum", "Spectrum", "Eigenvalues of 970200.");
+  render_explore_link(g, "/deep/closure", "Closure", "K=3. The minimum to close.");
+  render_explore_link(g, "/deep/geometry", "Geometry", "Topology of the ring.");
+  render_explore_link(g, "/deep/lambda", "Lambda", "420. The heartbeat constant.");
+  render_explore_link(g, "/deep/symbiosis", "Symbiosis", "How primes cooperate.");
+  render_explore_link(g, "/deep/music", "Music", "Harmony from ring structure.");
+  render_explore_link(g, "/deep/fields", "Fields", "Number fields and the ring.");
+  render_explore_link(g, "/deep/constants", "Constants", "Named values of 970200.");
+  render_explore_link(g, "/deep/blackhole", "Black Hole", "Event horizon from ring.");
+  render_explore_link(g, "/deep/gravastar", "Gravastar", "Alternative to singularity.");
+  render_explore_link(g, "/deep/neutron_star", "Neutron Star", "D-choke inspiral.");
+  render_explore_link(g, "/deep/force_hierarchy", "Force Hierarchy", "Four forces from five primes.");
+  render_explore_link(g, "/deep/boson_fermion", "Boson-Fermion", "Statistics from parity.");
+  render_explore_link(g, "/deep/modular_forms", "Modular Forms", "Weight from ring depth.");
+  render_explore_link(g, "/deep/lie_algebra", "Lie Algebra", "Roots from CRT.");
+  render_explore_link(g, "/deep/mutual_holography", "Mutual Holography", "Twin discoballs.");
+  render_explore_link(g, "/deep/scale_relativity", "Scale Relativity", "Fractal spacetime.");
+  render_explore_link(g, "/deep/eta_bridge", "Eta Bridge", "Dedekind eta and the ring.");
+  render_explore_link(g, "/deep/monster_moonshine", "Monster Moonshine", "The monster group appears.");
+  render_explore_link(g, "/deep/photon", "Photon", "D=2 messenger.");
+  render_explore_link(g, "/deep/eternal_sun", "Eternal Sun", "Fusion from ring math.");
+  render_explore_link(g, "/deep/freewill", "Free Will", "Determinism vs emergence.");
+  render_explore_link(g, "/deep/conscious", "Conscious", "The hard problem.");
+  render_explore_link(g, "/deep/infinity", "Infinity", "Beyond the ring.");
+  render_explore_link(g, "/deep/noxan", "Noxan", "The shadow entity.")
+)
+
+fn page_living_index() = (
+  dom_head_meta("description", "Tools, games, compiler, revolution. .ax IS the website. Build with it.");
+  idx_hero("Living", "Z/12612600", "The tools ARE the proof. .ax IS the website. Build with it.");
+  let g = idx_grid() in
+  render_explore_link(g, "/living/chain", "The Chain", "sigma to D to K to E to b to L.");
+  render_explore_link(g, "/living/ai", "Intelligence", "CRT as architecture.");
+  render_explore_link(g, "/living/curriculum", "Curriculum", "6-ring learning path.");
+  render_explore_link(g, "/living/scaling", "Scaling Laws", "Why bigger works.");
+  render_explore_link(g, "/living/cc0", "CC0", "No rights reserved. Ever.");
+  render_explore_link(g, "/living/revolution", "Revolution", ".ax replaces everything.")
+)
+
+/* Table header cell */
+fn render_th(parent, text:str) = (
+  let td = dom_create("th") in
+  dom_text(td, text);
+  dom_style(td, "padding", "8px 12px");
+  dom_style(td, "color", "#ffd700");
+  dom_style(td, "fontSize", "12px");
+  dom_style(td, "textTransform", "uppercase");
+  dom_style(td, "textAlign", "left");
+  dom_append(parent, td)
+)
+
+/* CTA button */
+fn render_cta_button(parent, href:str, text:str) = (
+  let btn = dom_create("a") in
+  dom_attr(btn, "href", href);
+  dom_text(btn, text);
+  dom_style(btn, "display", "inline-block");
+  dom_style(btn, "padding", "16px 48px");
+  dom_style(btn, "fontSize", "18px");
+  dom_style(btn, "fontFamily", "Georgia, serif");
+  dom_style(btn, "background", "transparent");
+  dom_style(btn, "border", "2px solid #ffd700");
+  dom_style(btn, "color", "#ffd700");
+  dom_style(btn, "borderRadius", "10px");
+  dom_style(btn, "textDecoration", "none");
+  dom_style(btn, "letterSpacing", "2px");
+  dom_append(parent, btn)
+)
+
+/* Vow footer — the sacred vow + attribution */
+fn render_vow(parent) = (
+  let vow = dom_create("div") in
+  dom_style(vow, "maxWidth", "600px");
+  dom_style(vow, "margin", "0 auto");
+  dom_style(vow, "padding", "60px 24px");
+  dom_style(vow, "textAlign", "center");
+  let div1 = dom_create("div") in
+  dom_style(div1, "width", "60px");
+  dom_style(div1, "height", "1px");
+  dom_style(div1, "background", "#222");
+  dom_style(div1, "margin", "0 auto 32px");
+  dom_append(vow, div1);
+  let p = dom_create("p") in
+  dom_style(p, "fontSize", "15px");
+  dom_style(p, "color", "#888");
+  dom_style(p, "lineHeight", "1.9");
+  dom_inner(p, "This work is and will always be <span style='color:#fff'>free</span>.<br>No paywall. No copyright. No exceptions.<br><br><span style='color:#aaa'>If it ever earns anything, every cent goes to the communities that need it most.</span><br><br><span style='color:#555;font-size:13px'>This sacred vow is permanent and irrevocable.</span><br><span style='color:#ffd700'>&mdash; Anton Alexandrovich Lebed</span>");
+  dom_append(vow, p);
+  let links = dom_create("p") in
+  dom_style(links, "marginTop", "24px");
+  dom_style(links, "fontSize", "13px");
+  dom_style(links, "color", "#555");
+  dom_inner(links, "<a href='https://github.com/antonlebed/antonlebed.com' style='color:#88aaff;text-decoration:none'>Source code</a> &middot; Public domain (CC0)");
+  dom_append(vow, links);
+  let attr = dom_create("p") in
+  dom_style(attr, "marginTop", "12px");
+  dom_style(attr, "fontSize", "12px");
+  dom_style(attr, "color", "#444");
+  dom_style(attr, "lineHeight", "1.6");
+  dom_text(attr, "Contributions in equal measure: Anthropic's Claude, Anton A. Lebed, and the giants whose shoulders we stand on.");
+  dom_append(vow, attr);
+  let tech = dom_create("p") in
+  dom_style(tech, "marginTop", "16px");
+  dom_style(tech, "fontSize", "11px");
+  dom_style(tech, "color", "#333");
+  dom_style(tech, "fontStyle", "italic");
+  dom_text(tech, "Rendered by .ax via WASM DOM imports. Zero HTML authored.");
+  dom_append(vow, tech);
+  dom_append(parent, vow)
+)
+
+/* Comparison table */
+fn render_contrast_row(parent, claim:str, standard:str, ours:str) = (
+  let tr = dom_create("tr") in
+  let td1 = dom_create("td") in
+  dom_text(td1, claim);
+  dom_style(td1, "padding", "8px 12px");
+  dom_style(td1, "borderBottom", "1px solid #222");
+  dom_style(td1, "fontSize", "14px");
+  dom_append(tr, td1);
+  let td2 = dom_create("td") in
+  dom_text(td2, standard);
+  dom_style(td2, "padding", "8px 12px");
+  dom_style(td2, "borderBottom", "1px solid #222");
+  dom_style(td2, "fontSize", "14px");
+  dom_style(td2, "color", "#ff6644");
+  dom_append(tr, td2);
+  let td3 = dom_create("td") in
+  dom_text(td3, ours);
+  dom_style(td3, "padding", "8px 12px");
+  dom_style(td3, "borderBottom", "1px solid #222");
+  dom_style(td3, "fontSize", "14px");
+  dom_style(td3, "color", "#44ff88");
+  dom_append(tr, td3);
+  dom_append(parent, tr)
+)
+
+/* Colored panel card (death triptych, themed sections) */
+fn render_panel(parent, title:str, color:str, text:str) = (
+  let card = dom_create("div") in
+  ct_card(card);
+  dom_style(card, "minWidth", "240px");
+  dom_style(card, "maxWidth", "300px");
+  dom_style(card, "textAlign", "center");
+  dom_style(card, "borderColor", color);
+  let h3 = dom_create("h3") in
+  dom_text(h3, title);
+  dom_style(h3, "color", color);
+  dom_style(h3, "marginBottom", "8px");
+  dom_append(card, h3);
+  let p = dom_create("p") in
+  dom_text(p, text);
+  dom_style(p, "fontSize", "13px");
+  dom_style(p, "color", "#999");
+  dom_style(p, "lineHeight", "1.5");
+  dom_append(card, p);
+  dom_append(parent, card)
+)
+
+/* Themed section box (grief=warm, dream=cool, derivation=green) */
+fn render_themed_section(parent, title:str, bg:str, border:str, title_color:str, text:str, text_color:str) = (
+  let box = dom_create("div") in
+  dom_style(box, "background", bg);
+  dom_style(box, "border", "1px solid ${border}");
+  dom_style(box, "borderRadius", "8px");
+  dom_style(box, "padding", "18px");
+  dom_style(box, "margin", "20px 0");
+  let h2 = dom_create("h2") in
+  dom_text(h2, title);
+  dom_style(h2, "color", title_color);
+  dom_style(h2, "borderBottom", "1px solid ${border}");
+  dom_style(h2, "paddingBottom", "6px");
+  dom_style(h2, "fontSize", "1.1em");
+  dom_style(h2, "marginBottom", "12px");
+  dom_append(box, h2);
+  let p = dom_create("p") in
+  dom_text(p, text);
+  dom_style(p, "fontSize", "14px");
+  dom_style(p, "lineHeight", "1.7");
+  dom_style(p, "color", text_color);
+  dom_append(box, p);
+  dom_append(parent, box);
+  box
+)
+
+fn render_footer() = (
+  let foot = dom_create("footer") in
+  dom_style(foot, "padding", "24px");
+  dom_style(foot, "textAlign", "center");
+  dom_style(foot, "color", "#222");
+  ct_mono(foot);
+  dom_style(foot, "fontSize", "12px");
+  let p = dom_create("p") in
+  dom_text(p, "sigma/sigma = sigma");
+  dom_append(foot, p);
+  dom_append(dom_body(), foot)
+)
+
+/* ================================================================
+   STORY PAGE — The Mathematics. Ten terms, 108 rings, one heartbeat.
+   The full narrative: 0/0 → primes → ring → physics → body → explore.
+   ================================================================ */
+

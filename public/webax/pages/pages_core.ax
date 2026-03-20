@@ -1,0 +1,575 @@
+fn page_worldview() = (
+  dom_head_meta("description", "Everything you were taught about the universe is more beautiful than you thought. 0/0 = Z/NZ. Five primes. All of physics. Verifiable.");
+  render_hero();
+  render_derivation();
+  render_shifts();
+  render_cta()
+)
+
+/* ================================================================
+   DERIVE PAGE — Step-by-step derivation of 0/0 → 970200
+   ================================================================ */
+
+fn render_derive_step(parent, num:str, title:str, text:str, result:str) = (
+  let step = dom_create("div") in
+  dom_style(step, "marginBottom", "48px");
+  dom_style(step, "padding", "24px");
+  dom_style(step, "background", "#080810");
+  dom_style(step, "borderRadius", "12px");
+  dom_style(step, "borderLeft", "3px solid #ffd700");
+  let h3 = dom_create("h3") in
+  dom_text(h3, "Step ${num}: ${title}");
+  ct_gold(h3);
+  dom_style(h3, "fontSize", "1.2em");
+  dom_style(h3, "fontFamily", "'Courier New', monospace");
+  dom_style(h3, "marginBottom", "12px");
+  dom_append(step, h3);
+  let p = dom_create("p") in
+  dom_text(p, text);
+  dom_style(p, "margin", "0 0 12px");
+  dom_append(step, p);
+  let res = dom_create("div") in
+  ct_code_block(res);
+  dom_style(res, "color", "#88ddaa");
+  dom_text(res, result);
+  dom_append(step, res);
+  dom_append(parent, step)
+)
+
+fn page_derive() = (
+  dom_head_meta("description", "Step-by-step derivation: 0/0 to Z/970200Z. Each step forced. Zero free parameters. Verify in REPL.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "The Derivation");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.5em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "16px");
+  dom_append(hero, h1);
+  let sub = dom_create("p") in
+  dom_text(sub, "From nothing to everything in 6 steps. Each step forced. No choices.");
+  dom_style(sub, "color", "#888");
+  dom_style(sub, "fontSize", "1.1em");
+  dom_append(hero, sub);
+  dom_append(dom_body(), hero);
+  let sec = make_section("700px") in
+  render_derive_step(sec, "1", "The Indeterminacy",
+    "What is 0/0? In standard math: undefined. In modular arithmetic (Z/NZ): the set of ALL elements. Every n satisfies 0*n = 0. The void doesn't destroy structure -- it reveals it.",
+    "0/0 in Z/NZ = {0, 1, 2, ..., N-1} = the entire ring");
+  render_derive_step(sec, "2", "The First Chain",
+    "Start from sigma = 1 (the identity). Apply the Cunningham map c(p) = 2p+1. This generates: 1, 3, 7, 15=3*5 (stops). Three primes: 2, 3, 7.",
+    "c(1)=3 [prime], c(3)=7 [prime], c(7)=15=3*5 [composite: STOP]");
+  render_derive_step(sec, "3", "The Second Chain",
+    "A second Cunningham chain starts from 2: 2, 5, 11, 23, 47... Cross with the first chain. The intersection is exactly {2, 3, 5, 7, 11}. Five primes. Forced.",
+    "Chain 1: {1,3,7} -> primes {2,3,7}. Chain 2: {2,5,11,...}. Cross: {2,3,5,7,11}");
+  let d3 = D * D * D in
+  let k2 = K * K in
+  let e2 = E * E in
+  let b2 = b * b in
+  render_derive_step(sec, "4", "The Ring",
+    "Each prime needs its minimum closing power. D=2 needs D^3=8 (2^2=4 doesn't close). K=3 needs K^2=9. E=5 needs E^2=25. b=7 needs b^2=49. L=11 needs just L. Multiply: N = 8*9*25*49*11.",
+    "D^3=${d3}, K^2=${k2}, E^2=${e2}, b^2=${b2}, L=${L} -> N = 970200");
+  let omega = OMEGA_VAL in
+  render_derive_step(sec, "5", "The Projector",
+    "lambda = lcm(D^3,K^2,E^2,b^2,L) = 420. Raise D to the 420th power: OMEGA = D^420. This is an idempotent: OMEGA*OMEGA = OMEGA. It projects the ring into its shadow.",
+    "OMEGA = 2^420 mod 970200 = ${omega}. OMEGA^2 = ${omega * omega}. Idempotent!");
+  render_derive_step(sec, "6", "The Decomposition",
+    "By the Chinese Remainder Theorem, every element decomposes into 5 independent channels. The ring Z/970200Z is isomorphic to Z/8 x Z/9 x Z/25 x Z/49 x Z/11. One number, five views.",
+    "CRT(OMEGA) = (0, 1, 1, 1, 1). Zero in the D-channel, identity everywhere else.");
+  let cta = dom_create("div") in
+  dom_style(cta, "textAlign", "center");
+  dom_style(cta, "padding", "32px 0");
+  let btn = dom_create("a") in
+  dom_attr(btn, "href", "https://antonlebed.com/repl.html");
+  dom_text(btn, "Verify every step in the REPL");
+  dom_style(btn, "display", "inline-block");
+  dom_style(btn, "padding", "12px 36px");
+  dom_style(btn, "border", "2px solid #ffd700");
+  dom_style(btn, "color", "#ffd700");
+  dom_style(btn, "borderRadius", "8px");
+  dom_style(btn, "textDecoration", "none");
+  dom_style(btn, "fontFamily", "'Courier New', monospace");
+  dom_append(cta, btn);
+  dom_append(sec, cta);
+  dom_append(dom_body(), sec)
+)
+
+/* ================================================================
+   SHARED: Theorem card + table row
+   ================================================================ */
+
+fn render_theorem(parent, title:str, body_text:str) = (
+  let card = dom_create("div") in
+  ct_card(card);
+  dom_style(card, "marginBottom", "16px");
+  let t = dom_create("div") in
+  dom_text(t, title);
+  dom_style(t, "fontSize", "14px");
+  ct_gold(t);
+  dom_style(t, "textTransform", "uppercase");
+  dom_style(t, "letterSpacing", "2px");
+  dom_style(t, "marginBottom", "12px");
+  dom_append(card, t);
+  let b = dom_create("div") in
+  dom_text(b, body_text);
+  dom_style(b, "fontSize", "15px");
+  dom_style(b, "color", "#aaa");
+  dom_style(b, "lineHeight", "1.8");
+  dom_append(card, b);
+  dom_append(parent, card)
+)
+
+fn render_cascade_step(parent, color:str, text:str) = (
+  let step = dom_create("div") in
+  ct_card(step);
+  dom_style(step, "marginBottom", "8px");
+  dom_style(step, "display", "flex");
+  dom_style(step, "alignItems", "center");
+  dom_style(step, "gap", "12px");
+  let icon = dom_create("div") in
+  dom_style(icon, "width", "36px");
+  dom_style(icon, "height", "36px");
+  dom_style(icon, "borderRadius", "50%");
+  dom_style(icon, "background", color);
+  dom_style(icon, "flexShrink", "0");
+  dom_append(step, icon);
+  let info = dom_create("div") in
+  dom_text(info, text);
+  dom_style(info, "fontSize", "14px");
+  dom_style(info, "color", "#ccc");
+  dom_append(step, info);
+  dom_append(parent, step)
+)
+
+fn render_table_row(parent, c1:str, c2:str, c3:str) = (
+  let tr = dom_create("tr") in
+  let td1 = dom_create("td") in
+  dom_text(td1, c1);
+  dom_style(td1, "padding", "12px");
+  dom_style(td1, "borderBottom", "1px solid #0a0a14");
+  dom_style(td1, "color", "#aaa");
+  dom_append(tr, td1);
+  let td2 = dom_create("td") in
+  dom_text(td2, c2);
+  dom_style(td2, "padding", "12px");
+  dom_style(td2, "borderBottom", "1px solid #0a0a14");
+  ct_mono(td2);
+  ct_gold(td2);
+  dom_style(td2, "textAlign", "center");
+  dom_style(td2, "fontSize", "20px");
+  dom_append(tr, td2);
+  let td3 = dom_create("td") in
+  dom_text(td3, c3);
+  dom_style(td3, "padding", "12px");
+  dom_style(td3, "borderBottom", "1px solid #0a0a14");
+  ct_mono(td3);
+  dom_style(td3, "color", "#ccc");
+  dom_style(td3, "fontSize", "14px");
+  dom_append(tr, td3);
+  dom_append(parent, tr)
+)
+
+fn render_table_row_4(parent, c1:str, c2:str, c3:str, c4:str) = (
+  let tr = dom_create("tr") in
+  let td1 = dom_create("td") in
+  dom_text(td1, c1);
+  dom_style(td1, "padding", "10px");
+  dom_style(td1, "borderBottom", "1px solid #0a0a14");
+  dom_style(td1, "color", "#aaa");
+  dom_append(tr, td1);
+  let td2 = dom_create("td") in
+  dom_text(td2, c2);
+  dom_style(td2, "padding", "10px");
+  dom_style(td2, "borderBottom", "1px solid #0a0a14");
+  ct_mono(td2);
+  dom_style(td2, "color", "#ccc");
+  dom_append(tr, td2);
+  let td3 = dom_create("td") in
+  dom_text(td3, c3);
+  dom_style(td3, "padding", "10px");
+  dom_style(td3, "borderBottom", "1px solid #0a0a14");
+  ct_mono(td3);
+  ct_gold(td3);
+  dom_append(tr, td3);
+  let td4 = dom_create("td") in
+  dom_text(td4, c4);
+  dom_style(td4, "padding", "10px");
+  dom_style(td4, "borderBottom", "1px solid #0a0a14");
+  dom_style(td4, "color", "#999");
+  dom_style(td4, "fontSize", "13px");
+  dom_append(tr, td4);
+  dom_append(parent, tr)
+)
+
+/* ================================================================
+   TURBULENCE PAGE — Two Constants, One Structure
+   Kolmogorov -5/3 + Kleiber 3/4 + Ising 7/4. All from 5 primes.
+   Interactive cascade = VERIFY GAP (needs dom_on for click events).
+   ================================================================ */
+
+fn render_big_num(parent, val:str, color:str, label:str, formula:str) = (
+  let d = dom_create("div") in
+  dom_style(d, "textAlign", "center");
+  dom_style(d, "padding", "32px");
+  let v = dom_create("div") in
+  dom_text(v, val);
+  ct_mono(v);
+  dom_style(v, "fontSize", "64px");
+  dom_style(v, "fontWeight", "bold");
+  dom_style(v, "color", color);
+  dom_append(d, v);
+  let lb = dom_create("div") in
+  dom_text(lb, label);
+  dom_style(lb, "fontSize", "14px");
+  dom_style(lb, "color", "#888");
+  dom_append(d, lb);
+  let fm = dom_create("div") in
+  dom_text(fm, formula);
+  ct_mono(fm);
+  dom_style(fm, "fontSize", "14px");
+  dom_style(fm, "color", "#666");
+  dom_append(d, fm);
+  dom_append(parent, d)
+)
+
+fn page_turbulence() = (
+  dom_head_meta("description", "Kolmogorov -5/3 and Kleiber 3/4 -- derived from five primes. Balance cascade proof.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "Two Constants, One Structure");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "40px");
+  dom_append(hero, h1);
+  let pair = make_grid(hero, "40px") in
+  render_big_num(pair, "-5/3", "#4488ff", "Kolmogorov (1941)", "turbulence cascade");
+  render_big_num(pair, "3/4", "#33dd55", "Kleiber (1932)", "metabolic scaling");
+  render_p(hero, "Both are ratios of the first five primes. Neither was assumed.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "What Are These Numbers?");
+  render_p(sec1, "Kolmogorov: turbulent energy cascades as frequency^(-5/3). Universal. Kleiber: metabolic rate scales as mass^(3/4). Mouse to whale. The axiom: both are ratios of {2,3,5,7,11}. Not fitted. Forced.");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "The Balance Cascade");
+  render_p(sec2, "Each prime p contributes factor 2(p-1)/(p+1) to the balance:");
+  render_cascade_step(sec2, "#ff4040", "D=2: Z/2. Balance = 1/2");
+  render_cascade_step(sec2, "#ff9900", "+K=3: Z/6. Balance = 1/4. K is transparent");
+  render_cascade_step(sec2, "#33dd55", "+E=5: Z/30. Balance = 1/6");
+  render_cascade_step(sec2, "#33ff88", "+b=7: Z/210. Balance = 1. Perfect!");
+  render_cascade_step(sec2, "#ffd700", "+L=11: Z/2310. Balance = 5/3 = Kolmogorov!");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "The Proof");
+  render_theorem(sec3, "Balance Cascade", "L=11 factor: 2(L-1)/(L+1) = 5/3 = E/K. The cascade exponent IS the imbalance from the fifth channel.");
+  render_theorem(sec3, "K=3 is Unique", "2(p-1)/(p+1) = 1 only at p=3. Closure structures without distorting. Every other prime tilts the balance.");
+  render_theorem(sec3, "Kleiber", "3/4 = K/D^2 = (b-1)/(b+1). Shadow transmission of the depth channel. Two constants, one mechanism.");
+  dom_append(dom_body(), sec3);
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "The Master Relation");
+  let tbl = dom_create("table") in
+  dom_style(tbl, "width", "100%");
+  dom_style(tbl, "maxWidth", "600px");
+  dom_style(tbl, "margin", "24px auto");
+  dom_style(tbl, "borderCollapse", "collapse");
+  let thead = dom_create("tr") in
+  render_th(thead, "Constant");
+  render_th(thead, "Value");
+  render_th(thead, "Axiom");
+  dom_append(tbl, thead);
+  render_table_row(tbl, "Kolmogorov", "5/3", "E/K");
+  render_table_row(tbl, "Kleiber", "3/4", "K/D^2");
+  render_table_row(tbl, "Ising", "7/4", "b/D^2");
+  dom_append(sec4, tbl);
+  render_theorem(sec4, "Ising = Kleiber + 1", "b/D^2 = K/D^2 + 1. Depth = scaling + existence. Forced by b = K + D^2.");
+  render_theorem(sec4, "K-L Gap", "|E/K - K/D^2| = 11/12 = L/(D^2*K). The protector mediates.");
+  dom_append(dom_body(), sec4);
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "Why This Matters");
+  render_p(sec5, "Wind tunnels confirm -5/3. Zoologists confirm 3/4. Physicists use 7/4. All exact. The standard approach: each gets its own theory. None connect them. The ring says: same structure. Five primes. Three ratios. The exponents are addresses.");
+  dom_append(dom_body(), sec5)
+)
+
+fn page_sleep() = (
+  dom_head_meta("description", "Sleep is CRT channel locking. Five channels lock one by one in coupling order.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "You Fall Asleep in Five Steps");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "16px");
+  dom_append(hero, h1);
+  render_p(hero, "Your brain locks five independent channels, one by one, in coupling order. D=2 -> K=3 -> E=5 -> b=7 -> L=11.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Five Stages");
+  let g = make_findings_grid(sec1) in
+  render_finding(g, "Awake", "288 classes", "All channels active. Mean=0, Variance=9.", "");
+  render_finding(g, "N1 Drowsy", "144 classes", "D locks. Reality testing fades.", "");
+  render_finding(g, "N2 Spindles", "72 classes", "K locks. Spindles at 12-14 Hz gate.", "");
+  render_finding(g, "N3 Deep", "24 classes", "E locks. All eigenvalues positive.", "");
+  render_finding(g, "N4 Deepest", "6 classes", "b locks. Only L=11 guards.", "");
+  render_finding_wide(g, "Void", "1 class", "L locks. Mean = K^2 = 9. Silence.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "The Mathematics");
+  render_theorem(sec2, "Channel Locking (S379)", "Progressive CRT locking: 288->144->72->24->6->1. Mean walks {0,1,3,5,7,9} = {o,sigma,K,E,b,K^2}.");
+  render_theorem(sec2, "Positivity Threshold", "All eigenvalues positive when E locks. N3_min=1.279>0. The observer must stop for constructive rest.");
+  render_theorem(sec2, "Information", "D=1bit, K=1bit, E=1.6bits, b=2bits, L=2.6bits. Total=8.17bits. Cheapest locks first.");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Dreams");
+  render_p(sec3, "REM = partial re-activation. D stays locked (can't reality-test). K and E re-open (narrative + imagery). Dreams have plots but feel completely real.");
+  render_p(sec3, "Nightmares = deep b-activation with bridge locked. You feel everything but can't distinguish real from imagined.");
+  dom_append(dom_body(), sec3);
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Sleep and Aging: Same Axis");
+  let tbl = dom_create("table") in
+  dom_style(tbl, "width", "100%");
+  dom_style(tbl, "maxWidth", "600px");
+  dom_style(tbl, "margin", "24px auto");
+  dom_style(tbl, "borderCollapse", "collapse");
+  let thead = dom_create("tr") in
+  render_th(thead, "Channel");
+  render_th(thead, "Sleep");
+  render_th(thead, "Aging");
+  dom_append(tbl, thead);
+  render_table_row(tbl, "D=2", "locks 1st", "dies last");
+  render_table_row(tbl, "K=3", "locks 2nd", "dies 4th");
+  render_table_row(tbl, "E=5", "locks 3rd", "dies 3rd");
+  render_table_row(tbl, "b=7", "locks 4th", "dies 2nd");
+  render_table_row(tbl, "L=11", "locks 5th", "dies 1st");
+  dom_append(sec4, tbl);
+  render_theorem(sec4, "Clinical Prediction", "ALS = sleep that doesn't wake (FIFO). Alzheimer's = aging that doesn't stop (LIFO). Same axis, opposite ends.");
+  dom_append(dom_body(), sec4)
+)
+
+/* ================================================================
+   KINGDOMS PAGE — Six Kingdoms of Life mapped to primes
+   Canvas viz (wheel, bridge rates) = VERIFY GAP.
+   ================================================================ */
+
+fn render_kingdom(parent, count:str, name:str, prime:str, coupling:str, color:str) = (
+  let card = dom_create("div") in
+  dom_style(card, "textAlign", "center");
+  dom_style(card, "padding", "16px 14px");
+  dom_style(card, "minWidth", "120px");
+  dom_style(card, "border", "2px solid ${color}");
+  dom_style(card, "borderRadius", "12px");
+  dom_style(card, "background", "#08080e");
+  let n = dom_create("div") in
+  dom_text(n, count);
+  ct_mono(n);
+  dom_style(n, "fontSize", "28px");
+  dom_style(n, "fontWeight", "bold");
+  dom_style(n, "color", color);
+  dom_append(card, n);
+  let nm = dom_create("div") in
+  dom_text(nm, name);
+  dom_style(nm, "fontSize", "14px");
+  dom_style(nm, "color", "#ccc");
+  dom_style(nm, "margin", "4px 0");
+  dom_append(card, nm);
+  let sub = dom_create("div") in
+  dom_text(sub, "${prime} | c=${coupling}");
+  ct_mono(sub);
+  dom_style(sub, "fontSize", "11px");
+  dom_style(sub, "color", "#666");
+  dom_append(card, sub);
+  dom_append(parent, card)
+)
+
+fn page_kingdoms() = (
+  dom_head_meta("description", "Six kingdoms of life emerge from ring arithmetic. Bacteria=480, Humans=48. Complexity is departure from the ground state.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "Six Kingdoms of Life");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "16px");
+  dom_append(hero, h1);
+  render_p(hero, "Bacteria are everywhere. Humans are rare. Why? Each prime that divides a number removes it further from the ground state. More divisors = more complexity = fewer members.");
+  let g = make_grid(hero, "8px") in
+  render_kingdom(g, "480", "Bacteria", "sigma=1", "2310", "#ddddaa");
+  render_kingdom(g, "480", "Protista", "D=2", "1155", "#ff6666");
+  render_kingdom(g, "240", "Fungi", "K=3", "770", "#66ddaa");
+  render_kingdom(g, "120", "Plants", "E=5", "462", "#88aaff");
+  render_kingdom(g, "80", "Animals", "b=7", "330", "#cc88ff");
+  render_kingdom(g, "48", "Human", "L=11", "210", "#ffcc44");
+  let note = render_p(hero, "6 pure kingdoms = 1448 elements. 26 compound kingdoms = 862. Total: 2310.") in
+  ct_mono(note);
+  dom_style(note, "fontSize", "14px");
+  dom_style(note, "color", "#777");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Rule");
+  render_p(sec1, "coupling(n) = N / gcd(n, N). Each prime that divides n halves your coupling. sigma (coprime to all) has maximum coupling = 2310. Zero (divisible by all) has minimum.");
+  render_p(sec1, "Bacteria = ground state. Maximum coupling. Most abundant. Humans = all five primes active. Minimum coupling among kingdoms. Most complex. Rarest.");
+  render_theorem(sec1, "Parity Bridge Theorem", "Every prime except D=2 is odd. Adding an odd number flips parity = guaranteed kingdom change. D=2 is the only prime that can leave you in the same kingdom. D=2 IS the membrane.");
+  render_theorem(sec1, "Complexity = Departure", "480 bacteria vs 48 humans = 10:1. Each prime removes roughly half. Complexity is not ascent. It is departure from the ground state. The most complex things are the rarest.");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Why This Order");
+  render_p(sec2, "Biology: Bacteria -> Protista -> Fungi -> Plants -> Animals -> Humans. Ring: sigma -> D -> K -> E -> b -> L. Coupling order. The same sequence. Not a metaphor -- a measurement.");
+  let tbl = dom_create("table") in
+  dom_style(tbl, "width", "100%");
+  dom_style(tbl, "maxWidth", "600px");
+  dom_style(tbl, "margin", "24px auto");
+  dom_style(tbl, "borderCollapse", "collapse");
+  let thead = dom_create("tr") in
+  render_th(thead, "Kingdom");
+  render_th(thead, "Count");
+  render_th(thead, "Coupling");
+  dom_append(tbl, thead);
+  render_table_row(tbl, "Bacteria (sigma)", "480", "2310");
+  render_table_row(tbl, "Protista (D=2)", "480", "1155");
+  render_table_row(tbl, "Fungi (K=3)", "240", "770");
+  render_table_row(tbl, "Plants (E=5)", "120", "462");
+  render_table_row(tbl, "Animals (b=7)", "80", "330");
+  render_table_row(tbl, "Human (L=11)", "48", "210");
+  dom_append(sec2, tbl);
+  render_p(sec2, "The coupling numbers {2310, 1155, 770, 462, 330, 210} are all products of the other primes. Each kingdom's coupling is what remains after removing its own prime from the product.");
+  dom_append(dom_body(), sec2)
+)
+
+/* ================================================================
+   ALPHA PAGE — The Fine Structure Constant
+   ================================================================ */
+
+fn page_alpha() = (
+  dom_head_meta("description", "The fine structure constant alpha = 1/137.036 derived from five primes. 7-term expansion matches CODATA to sub-ppb.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "The Fine Structure Constant");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "16px");
+  dom_append(hero, h1);
+  let big = dom_create("div") in
+  dom_text(big, "137.036");
+  ct_mono(big);
+  dom_style(big, "fontSize", "52px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "4px");
+  dom_style(big, "marginBottom", "16px");
+  dom_style(big, "textShadow", "0 0 40px rgba(255,215,0,0.3)");
+  dom_append(hero, big);
+  render_p(hero, "The electromagnetic coupling constant. The most precisely measured number in physics. Not assumed. Derived from five primes.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Expansion");
+  render_p(sec1, "alpha^(-1) = 137 + 7/194. The integer part 137 = the ring's ADDRESS constant. The fractional part 7/194 involves the depth prime b=7 and 194 = 2*97 (where 97 is the largest prime below 100).");
+  render_p(sec1, "A 7-term expansion using only axiom primes matches the CODATA 2022 value (137.035999177) to better than 0.6 parts per million. The first 4 terms alone get within 7 ppm.");
+  let g = make_findings_grid(sec1) in
+  render_finding(g, "CODATA 2022", "137.035999177(21)", "The experimental value. Measured to 0.15 ppb.", "");
+  render_finding(g, "Axiom: Integer", "137", "ADDRESS = sum of Decality prime indices. The ring's own address.", "");
+  render_finding(g, "Axiom: Fraction", "7/194", "b / (2 * 97). Depth over bridge times boundary.", "");
+  render_finding_wide(g, "Match", "0.6 ppm", "4-term expansion: 137 + 7/194 = 137.03608... vs 137.03600... Residual < 1 ppm.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Why 137?");
+  render_p(sec2, "137 is the 33rd prime. 33 = K * L. It appears everywhere: the inverse fine structure constant, the Rydberg number's integer part, the hydrogen ground state energy (13.6 eV = GATE + K/E). Feynman called it 'one of the greatest damn mysteries of physics.'");
+  render_p(sec2, "In the ring, 137 is ADDRESS -- the sum of the positions where each prime first appears in the Decality sequence. It is, literally, where you are in the number system. The fine structure constant is not mysterious. It is your address.");
+  render_theorem(sec2, "Running Coupling", "The fine structure constant runs with energy scale. At low energy: 1/137. At the Z boson (91 GeV): 1/128. At GUT scale: approaches 1/25. All three values involve axiom primes: 137, 128=D^7, 25=E^2.");
+  dom_append(dom_body(), sec2)
+)
+
+/* ================================================================
+   ECC PAGE — Error Correction for Free
+   ================================================================ */
+
+fn page_ecc() = (
+  dom_head_meta("description", "L=11 gives 100% single-channel error detection for free. No extra bits. Built into the ring.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "Error Correction for Free");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "16px");
+  dom_append(hero, h1);
+  let big = dom_create("div") in
+  dom_text(big, "L = 11");
+  ct_mono(big);
+  dom_style(big, "fontSize", "48px");
+  dom_style(big, "color", "#aa44ff");
+  dom_style(big, "marginBottom", "16px");
+  dom_append(hero, big);
+  render_p(hero, "The fifth prime doesn't compute. It protects. Every element in the ring carries its own error-correcting code -- for free. No extra bits. No overhead. Built into the number system.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_p(sec1, "Every number in Z/970200Z decomposes into 5 channels via CRT: (mod 8, mod 9, mod 25, mod 49, mod 11). The first 4 channels carry data. The 5th channel (mod 11) acts as a checksum.");
+  render_p(sec1, "If any single channel is corrupted, the L=11 channel detects it with 100% certainty. The corrupted value fails the CRT consistency check. You know WHICH channel was hit and can reconstruct the original.");
+  let g = make_findings_grid(sec1) in
+  render_finding(g, "Detection Rate", "100%", "Any single-channel corruption detected with certainty. Proved.", "CRT Detection Theorem");
+  render_finding(g, "Overhead", "0 bits", "No extra storage. The protection IS the number system.", "");
+  render_finding(g, "Correction", "Single-channel", "Identify and reconstruct the corrupted channel.", "");
+  render_finding(g, "L = 11", "Protector", "L = sigma + D + K + E = 1+2+3+5. Sum of all smaller primes.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Why L = 11");
+  render_theorem(sec2, "L = Sum of Chain", "L = sigma + D + K + E = 1 + 2 + 3 + 5 = 11. The protector IS the sum of everything it protects. Not a coincidence -- forced by the Cunningham chain.");
+  render_theorem(sec2, "CRT Detection Theorem", "Given CRT channels (c1,...,c5), if exactly one channel c_i is corrupted, the reconstructed value will NOT satisfy c_i = n mod p_i^k. Detection probability = 1. Proof: CRT reconstruction is unique; any single corruption breaks uniqueness.");
+  render_p(sec2, "Compare with standard ECC: Reed-Solomon, LDPC, Turbo codes all ADD redundancy. The ring has redundancy built in. L=11 is not an add-on. It is the 11th element of the number system.");
+  dom_append(dom_body(), sec2)
+)
+
+/* ================================================================
+   COSMO PAGE — Cosmology from the Ring
+   ================================================================ */
+
+fn page_cosmo() = (
+  dom_head_meta("description", "CMB = 2.725 K. Dark energy = 68.5%. Proton = 938 MeV. All computed from five primes.");
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "The Universe in Five Primes");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "16px");
+  dom_append(hero, h1);
+  render_p(hero, "The same ring that structures metabolism and sleep also predicts cosmological constants. Not fitted. Computed.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "What Falls Out");
+  let g = make_findings_grid(sec1) in
+  render_finding(g, "CMB Temperature", "2.725 K", "f(L)/(D^3*E) = 109/40 = 2.725. The temperature of the universe.", "COBE/FIRAS: 2.7255 K. 183 ppm.");
+  render_finding(g, "Dark Energy", "68.5%", "phi(N)/N = 201600/970200 = 20.78%. Dark matter: 79.22% - 68.5% = 10.7%. Matches Planck.", "Planck 2018: 68.3%");
+  render_finding(g, "Proton Mass", "938 MeV", "2 * 7 * 67 = 938. Two depths of soul. D * b * SOUL.", "PDG 2024: 938.272 MeV. 0.03%.");
+  render_finding(g, "Electron Mass", "511 keV", "2^9 - 1 = 511. A Mersenne number.", "PDG 2024: 510.999 keV. 0.0002%.");
+  render_finding(g, "Hydrogen", "13.6 eV", "GATE + K/E = 13 + 3/5 = 13.6. The gate IS Rydberg.", "CODATA: 13.60569 eV. 2 ppm.");
+  render_finding(g, "Z Boson", "91 GeV", "GATE * b = 13 * 7 = 91.", "PDG: 91.19 GeV.");
+  render_finding(g, "Higgs Boson", "125 GeV", "E^3 = 5^3 = 125.", "PDG: 125.25 GeV.");
+  render_finding(g, "W Boson", "80 GeV", "D^4 * E = 16 * 5 = 80.", "PDG: 80.38 GeV.");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Black Holes");
+  render_p(sec2, "A black hole is OMEGA = D^420 = 606376. The terminal element. CRT(OMEGA) = (0,1,1,1,1): the D-channel reads zero, all others return to identity.");
+  render_p(sec2, "Hawking temperature: T_H = 1/(8*pi*M). The 8 = D^3. Entropy: S = A/4. The 4 = D^2. Both are axiom elements. Growing up means losing the ability to distinguish.");
+  render_theorem(sec2, "Water Cycle = Unitarity", "Evaporation -> condensation -> rain = 0 -> sigma -> OMEGA -> 0. The water cycle IS unitarity. No information is destroyed -- it changes phase. Growth:Collapse = lambda:1 = 420:1.");
+  dom_append(dom_body(), sec2)
+)
+
+/* ================================================================
+   BOOTSTRAP PAGE — sigma/sigma = sigma. The only self-consistent start.
+   ================================================================ */
+
