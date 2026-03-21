@@ -57,7 +57,7 @@ async function main() {
         const slen = m[ptr / 4];
         let s = '';
         for (let i = 0; i < slen; i++) s += String.fromCharCode(m[ptr / 4 + 1 + i]);
-        if (s.startsWith('warning:') || s.startsWith('  top-level')) console.log(s);
+        if (s.startsWith('warning:') || s.startsWith('  top-level') || s.startsWith('error:')) console.log(s);
         return ptr;
       }
     }

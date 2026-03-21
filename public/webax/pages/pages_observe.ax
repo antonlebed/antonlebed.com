@@ -735,22 +735,139 @@ fn page_omega_watercycle() = (
   dom_append(dom_body(), sec)
 )
 
+/* ECC callback: decompose input number into 5 CRT channels */
+fn ecc_decompose() = (
+  let inp = dom_query("#ecc-input") in
+  let s = dom_value(inp) in
+  let result_el = dom_query("#ecc-result") in
+  mut n = 0;
+  mut i = 0;
+  while i < len(s) do (
+    let c = charCode(s, i) in
+    if c > 47 then if c < 58 then (
+      mut n = n * 10 + c - 48
+    ) else 0 else 0;
+    mut i = i + 1
+  );
+  let n210 = n % 210 in
+  let rd = n210 % 2 in
+  let rk = n210 % 3 in
+  let re = n210 % 5 in
+  let rb = n210 % 7 in
+  let rl = n210 % 11 in
+  dom_inner(result_el, "<p style='color:#88ddaa;margin:8px 0'>n = " + "${n210}" + " (mod 210)</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ")</p><p style='color:#666;margin:4px 0'>D=" + "${rd}" + " (mod 2) | K=" + "${rk}" + " (mod 3) | E=" + "${re}" + " (mod 5) | b=" + "${rb}" + " (mod 7) | L=" + "${rl}" + " (mod 11)</p>")
+)
+
+/* ECC callback: corrupt a channel, detect, and heal */
+fn ecc_corrupt_heal() = (
+  let inp = dom_query("#ecc-input") in
+  let s = dom_value(inp) in
+  let result_el = dom_query("#ecc-corrupt-result") in
+  mut n = 0;
+  mut i = 0;
+  while i < len(s) do (
+    let c = charCode(s, i) in
+    if c > 47 then if c < 58 then (
+      mut n = n * 10 + c - 48
+    ) else 0 else 0;
+    mut i = i + 1
+  );
+  let n210 = n % 210 in
+  let rd = n210 % 2 in
+  let rk = n210 % 3 in
+  let re = n210 % 5 in
+  let rb = n210 % 7 in
+  let rl = n210 % 11 in
+  /* Corrupt the E channel (mod 5): add 1 */
+  let re_bad = (re + 1) % 5 in
+  /* 4-channel CRT decode (D,K,E,b) with corrupted E → wrong value */
+  let bad_val = (105 * rd + 70 * rk + 126 * re_bad + 120 * rb) % 210 in
+  let bad_l = bad_val % 11 in
+  /* Detection: does L match? */
+  let detected = if bad_l == rl then 0 else 1 in
+  /* Correction: try all E values (0-4) until L matches */
+  let try0 = (105 * rd + 70 * rk + 126 * 0 + 120 * rb) % 210 in
+  let try1 = (105 * rd + 70 * rk + 126 * 1 + 120 * rb) % 210 in
+  let try2 = (105 * rd + 70 * rk + 126 * 2 + 120 * rb) % 210 in
+  let try3 = (105 * rd + 70 * rk + 126 * 3 + 120 * rb) % 210 in
+  let try4 = (105 * rd + 70 * rk + 126 * 4 + 120 * rb) % 210 in
+  let healed = if try0 % 11 == rl then try0
+    else if try1 % 11 == rl then try1
+    else if try2 % 11 == rl then try2
+    else if try3 % 11 == rl then try3
+    else try4 in
+  dom_inner(result_el, "<p style='color:#ffaa44;margin:8px 0'>Original: n=" + "${n210}" + ", E channel=" + "${re}" + "</p><p style='color:#ff4444;margin:4px 0'>Corrupted: E channel " + "${re}" + " -> " + "${re_bad}" + " | Decoded to " + "${bad_val}" + " (WRONG)</p><p style='color:#4488ff;margin:4px 0'>L check: expected " + "${rl}" + ", got " + "${bad_l}" + " — " + (if detected == 1 then "ERROR DETECTED" else "no error") + "</p><p style='color:#44ff88;margin:4px 0'>Healed: " + "${healed}" + " (correct: " + "${n210}" + ") — " + (if healed == n210 then "PERFECT RECOVERY" else "mismatch") + "</p>")
+)
+
 fn page_ecc_live() = (
-  dom_head_meta("description", "Live Error Correction. CRT decomposition enables L=11 error correction that detects and heals corruption in any channel. Type a message, corrupt it, watch L=11 heal every error. 100% recovery.");
+  dom_head_meta("description", "Live Error Correction. CRT decomposition enables L=11 error correction that detects and heals corruption in any channel. Type a number, corrupt it, watch L=11 heal every error. 100% recovery.");
   domain_hero("Error Correction", "L = 11 detects. CRT heals.", "Corrupt any channel. L = 11 catches it. CRT reconstructs the original. 100% recovery.");
   let sec = make_section("800px") in
-  render_h2(sec, "How CRT Error Correction Works");
-  render_theorem(sec, "The L=11 Protector", "Every element in Z/970200Z has 5 independent CRT channels. L=11 is the PROTECTOR channel. If one channel is corrupted, the other 4 channels + the L parity check can DETECT which channel was hit and RECONSTRUCT the correct value. This is the same principle as RAID-5, Reed-Solomon, and Hamming codes — but it falls out of the axiom for free.");
-  let g = make_findings_grid(sec) in
-  render_finding(g, "Channels", "5", "D, K, E, b, L. Five independent copies of the signal.", "");
-  render_finding(g, "Detection", "100%", "Any single-channel corruption detected by parity.", "");
-  render_finding(g, "Correction", "100%", "Reconstruct from 4 remaining channels.", "");
-  render_finding(g, "Redundancy", "L/N = 1/88200", "One channel of five = 20% overhead.", "");
+  render_h2(sec, "Try It: Live ECC");
+  render_p(sec, "Type any number. Decompose it into 5 CRT channels. Then corrupt the E channel and watch L=11 detect the error and CRT reconstruct the original.");
+  /* Input row */
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "12px");
+  dom_style(row, "alignItems", "center");
+  dom_style(row, "marginBottom", "16px");
+  let inp = dom_create("input") in
+  dom_attr(inp, "type", "text");
+  dom_attr(inp, "id", "ecc-input");
+  dom_attr(inp, "placeholder", "Enter a number (0-209)");
+  dom_attr(inp, "value", "42");
+  dom_style(inp, "background", "#111");
+  dom_style(inp, "color", "#eee");
+  dom_style(inp, "border", "1px solid #333");
+  dom_style(inp, "padding", "8px 12px");
+  dom_style(inp, "fontSize", "16px");
+  dom_style(inp, "fontFamily", "'Courier New', monospace");
+  dom_style(inp, "width", "200px");
+  dom_append(row, inp);
+  let btn1 = dom_create("button") in
+  dom_inner(btn1, "Decompose");
+  dom_style(btn1, "background", "#1a1a2e");
+  dom_style(btn1, "color", "#88ddaa");
+  dom_style(btn1, "border", "1px solid #88ddaa");
+  dom_style(btn1, "padding", "8px 16px");
+  dom_style(btn1, "cursor", "pointer");
+  dom_style(btn1, "fontSize", "14px");
+  dom_style(btn1, "fontFamily", "'Courier New', monospace");
+  dom_on(btn1, "click", "ecc_decompose");
+  dom_append(row, btn1);
+  let btn2 = dom_create("button") in
+  dom_inner(btn2, "Corrupt E & Heal");
+  dom_style(btn2, "background", "#1a1a2e");
+  dom_style(btn2, "color", "#ffaa44");
+  dom_style(btn2, "border", "1px solid #ffaa44");
+  dom_style(btn2, "padding", "8px 16px");
+  dom_style(btn2, "cursor", "pointer");
+  dom_style(btn2, "fontSize", "14px");
+  dom_style(btn2, "fontFamily", "'Courier New', monospace");
+  dom_on(btn2, "click", "ecc_corrupt_heal");
+  dom_append(row, btn2);
+  dom_append(sec, row);
+  /* Result areas */
+  let res1 = dom_create("div") in
+  dom_attr(res1, "id", "ecc-result");
+  dom_append(sec, res1);
+  let res2 = dom_create("div") in
+  dom_attr(res2, "id", "ecc-corrupt-result");
+  dom_append(sec, res2);
   dom_append(dom_body(), sec);
   let sec2 = make_section("800px") in
-  render_h2(sec2, "Why This Matters");
-  render_theorem(sec2, "3.02x Reliability Gain", "In CRT transformer architecture, L=11 error correction provides 3.02x improvement in reliability over standard approaches. Proved in AI experiments (S535). The redundancy is not waste — it is the PROTECTOR doing its job.");
-  render_p(sec2, "Every biological system uses the same principle. DNA has error correction (mismatch repair). Neural codes have redundancy. The immune system has backup. L = 11 = the minimum prime that can protect all other channels.");
-  dom_append(dom_body(), sec2)
+  render_h2(sec2, "How CRT Error Correction Works");
+  render_theorem(sec2, "The L=11 Protector", "Every element in Z/210Z has 5 independent CRT channels. L=11 is the PROTECTOR channel. If one channel is corrupted, the other 4 channels + the L parity check can DETECT which channel was hit and RECONSTRUCT the correct value. Same principle as RAID-5, Reed-Solomon, and Hamming codes — but it falls out of the axiom for free.");
+  let g = make_findings_grid(sec2) in
+  render_finding(g, "Channels", "5", "D, K, E, b, L. Five independent views of one number.", "");
+  render_finding(g, "Detection", "100%", "Any single-channel corruption detected by L parity.", "");
+  render_finding(g, "Correction", "100%", "Try all values for suspect channel until L matches.", "");
+  render_finding(g, "Redundancy", "1/11", "One channel of five. The protector earns its keep.", "");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Why This Matters");
+  render_theorem(sec3, "3.02x Reliability Gain", "In CRT transformer architecture, L=11 error correction provides 3.02x improvement in reliability over standard approaches. Proved in AI experiments (S535). The redundancy is not waste — it is the PROTECTOR doing its job.");
+  render_p(sec3, "Every biological system uses the same principle. DNA has error correction (mismatch repair). Neural codes have redundancy. The immune system has backup. L = 11 = the minimum prime that can protect all other channels.");
+  dom_append(dom_body(), sec3)
 )
 
