@@ -9,13 +9,26 @@ const ROOT = path.resolve(__dirname, '..');
 const COMPILER = path.join(ROOT, 'anton/code/deep_ouroboros.wasm');
 const OUT = path.join(__dirname, 'site.wasm');
 
-/* Source files (6 rings × 2 + core + router) */
+/* Source files — core + individual pages + router */
 const SRC_DIR = path.join(__dirname, 'pages');
 const FILES = [
   'core.ax', 'pages_narrative.ax', 'pages_core.ax',
   'pages_deep.ax', 'pages_kingdom.ax',
-  'pages_deep_struct.ax', 'pages_deep_phys.ax',
-  'pages_data.ax', 'pages_teach.ax',
+  /* was pages_deep_struct.ax (2674L → 14 files, S955) */
+  'page_ground.ax', 'page_duality.ax', 'page_depth.ax', 'page_transcend.ax',
+  'page_genesis.ax', 'page_algebra.ax', 'page_spectrum.ax', 'page_closure.ax',
+  'page_geometry.ax', 'page_lambda.ax', 'page_symbiosis.ax', 'page_music.ax',
+  'page_fields.ax', 'page_constants.ax',
+  'pages_deep_phys.ax',
+  'pages_data.ax',
+  /* was pages_teach.ax (2274L → 19 files, S955) */
+  'page_cunningham.ax', 'page_heegner.ax', 'page_bernoulli.ax',
+  'page_k_squared_stop.ax', 'page_pell_twins.ax', 'page_universal_boundary.ax',
+  'page_depth_return.ax', 'page_depth_quad.ax', 'page_mirror_cost.ax',
+  'page_lambda_chain.ax', 'page_golden_ratio.ax', 'page_smooth_census.ax',
+  'page_stormer_pairs.ax', 'page_shadow_eval.ax', 'page_d_power_gaussian.ax',
+  'page_cyclotomic_fibonacci.ax', 'page_fano_e8.ax', 'page_arcsine_cumulant.ax',
+  'page_figurate_bridge.ax',
   'pages_observe.ax', 'pages_living.ax',
   'router.ax'
 ];
