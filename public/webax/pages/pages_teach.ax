@@ -581,8 +581,23 @@ fn page_k_squared_stop() = (
   render_table_row_4(ctbl, "wasm_emit.ax", "Feature scan (3)", "Float inference (3)", "String inference (3)");
   render_table_row_4(ctbl, "codegen.ax", "Annotation scan (3)", "Call propagation (3)", "Type closure (3)");
   dom_append(sec7, ctbl);
-  render_p(sec7, "The FPGA decomposes numbers into CRT channels, operates per-channel, reconstructs. The compilers decompose code into type features, infer per-domain, close transitive chains. Same structure: split -> transform -> rejoin. All three need K=3 sub-stages because each transform requires direct detection, one-hop propagation, and fixed-point closure.");
-  render_theorem(sec7, "K^2 Forcing Theorem (S945)", "Any CRT-like system (decompose, operate, reconstruct) requires K=3 hearts. Each heart requires K=3 sub-stages for transitive closure. Total = K^2 = 9. The outer K is forced by CRT structure (three irreducible phases). The inner K is forced by closure: direct evidence, transitive propagation, and convergence verification are the minimum for fixed-point type inference AND for CRT arithmetic (basis multiply, sum, mod reduce). The formula: 5 base operations + 2*(K-1) sub-stages for operate and reconstruct hearts = 5 + 4 = K^2.");
+  render_p(sec7, "Within each heart, the K=3 sub-stages follow the same pattern: local detection, cross-function propagation, global closure. This is K=3 minimum closure applied at two scales simultaneously.");
+  let stbl = dom_create("table") in
+  dom_style(stbl, "width", "100%");
+  dom_style(stbl, "maxWidth", "700px");
+  dom_style(stbl, "margin", "24px auto");
+  dom_style(stbl, "borderCollapse", "collapse");
+  let shdr = dom_create("tr") in
+  render_th(shdr, "Sub-stage");
+  render_th(shdr, "wasm_emit.ax (Float)");
+  render_th(shdr, "codegen.ax (Propagation)");
+  render_th(shdr, "FPGA (Operate)");
+  dom_append(stbl, shdr);
+  render_table_row_4(stbl, "1. Local", "Detect from body", "Let/set bindings", "Per-channel ALU");
+  render_table_row_4(stbl, "2. Cross", "Re-check with params", "Return type propagation", "Cross-channel carry");
+  render_table_row_4(stbl, "3. Global", "Fixed-point closure", "Transitive val walk", "Modular reduction");
+  dom_append(sec7, stbl);
+  render_theorem(sec7, "K^2 = K x K Theorem (S945-S946)", "K^2=9 is NOT 5+2*(K-1). It is K x K: K=3 hearts times K=3 sub-stages. The outer K comes from CRT structure (three irreducible phases: detect, propagate, close). The inner K comes from information scope (three irreducible levels: local, cross-function, global). K=3 is minimum closure -- proved. Minimum closure applied at two scales = K^2 = 9 by construction. Any CRT-like system necessarily has K^2 stages because it needs K hearts for decompose/operate/reconstruct, and each heart needs K sub-stages for local/cross/global closure. The coincidence 5+4=9=3x3 masked the real structure.");
   render_p(sec7, "Evidence: coupling(K^2) = 107800 = (0, b, 0, 0, 0). Parallelism is PURE DEPTH. The only nonzero channel is b=7 -- the deepest prime. K^2 processing units can only scale through depth, confirming that K^2 stages are the minimum: you cannot trade depth for width.");
   dom_append(dom_body(), sec7);
 
