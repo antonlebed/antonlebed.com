@@ -797,6 +797,89 @@ fn render_footer() = (
 )
 
 /* ================================================================
+   INTERACTIVE HELPERS — shared components for dom_on + dom_value widgets (S970)
+   ================================================================ */
+
+/* Styled text input field */
+fn make_input_field(parent, id:str, placeholder:str) = (
+  let inp = dom_create("input") in
+  dom_attr(inp, "type", "text");
+  dom_attr(inp, "id", id);
+  dom_attr(inp, "placeholder", placeholder);
+  dom_style(inp, "background", "#111");
+  dom_style(inp, "color", "#ffd700");
+  dom_style(inp, "border", "1px solid #333");
+  dom_style(inp, "padding", "8px 12px");
+  dom_style(inp, "borderRadius", "6px");
+  dom_style(inp, "fontFamily", "'Courier New', monospace");
+  dom_style(inp, "fontSize", "14px");
+  dom_style(inp, "width", "140px");
+  dom_append(parent, inp);
+  inp
+)
+
+/* Styled action button with dom_on callback */
+fn make_action_btn(parent, text:str, callback:str) = (
+  let btn = dom_create("button") in
+  dom_inner(btn, text);
+  dom_style(btn, "background", "#1a1a2e");
+  dom_style(btn, "color", "#ffd700");
+  dom_style(btn, "border", "1px solid #ffd700");
+  dom_style(btn, "padding", "8px 16px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontSize", "14px");
+  dom_style(btn, "fontFamily", "'Courier New', monospace");
+  dom_on(btn, "click", callback);
+  dom_append(parent, btn);
+  btn
+)
+
+/* Result display area */
+fn make_result_box(parent, id:str) = (
+  let box = dom_create("div") in
+  dom_attr(box, "id", id);
+  ct_code_block(box);
+  dom_append(parent, box);
+  box
+)
+
+/* Interactive row: label + input + button + result */
+fn make_interactive_widget(parent, label:str, input_id:str, placeholder:str, btn_text:str, callback:str, result_id:str) = (
+  let lbl = dom_create("p") in
+  dom_text(lbl, label);
+  dom_style(lbl, "color", "#999");
+  dom_style(lbl, "marginTop", "24px");
+  dom_style(lbl, "marginBottom", "8px");
+  dom_append(parent, lbl);
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "8px");
+  dom_style(row, "alignItems", "center");
+  dom_style(row, "marginBottom", "12px");
+  make_input_field(row, input_id, placeholder);
+  make_action_btn(row, btn_text, callback);
+  dom_append(parent, row);
+  make_result_box(parent, result_id)
+)
+
+/* Parse digit string to integer (ring-modded automatically) */
+fn parse_int_from(id:str) = (
+  let inp = dom_query(id) in
+  let s = dom_value(inp) in
+  mut n = 0;
+  mut i = 0;
+  while i < len(s) do (
+    let c = charCode(s, i) in
+    if c > 47 then if c < 58 then (
+      mut n = n * 10 + c - 48
+    ) else 0 else 0;
+    mut i = i + 1
+  );
+  n
+)
+
+/* ================================================================
    STORY PAGE — The Mathematics. Ten terms, 108 rings, one heartbeat.
    The full narrative: 0/0 → primes → ring → physics → body → explore.
    ================================================================ */

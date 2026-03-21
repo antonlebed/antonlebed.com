@@ -270,9 +270,60 @@ fn coup_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* dom_on callback: coupling analyzer (S970) */
+fn coupling_analyze() = (
+  let n = parse_int_from("#coupling-input") in
+  let result_el = dom_query("#coupling-result") in
+  let d = n % 8 in
+  let k = n % 9 in
+  let e = n % 25 in
+  let b_ch = n % 49 in
+  let l = n % 11 in
+  /* Which primes divide n */
+  let div_d = if d % 2 == 0 then 1 else 0 in
+  let div_k = if k % 3 == 0 then 1 else 0 in
+  let div_e = if e % 5 == 0 then 1 else 0 in
+  let div_b = if b_ch % 7 == 0 then 1 else 0 in
+  let div_l = if l == 0 then 1 else 0 in
+  let dead = div_d + div_k + div_e + div_b + div_l in
+  /* Kingdom */
+  let kingdom = if dead == 0 then "sigma (bacteria)"
+    else if dead == 5 then "void"
+    else if div_d == 1 then (if dead == 1 then "D (protista)" else "compound")
+    else if div_k == 1 then (if dead == 1 then "K (fungi)" else "compound")
+    else if div_e == 1 then (if dead == 1 then "E (plantae)" else "compound")
+    else if div_b == 1 then (if dead == 1 then "b (animalia)" else "compound")
+    else "L (humanity)" in
+  /* Coupling from phi contributions */
+  let cp_d = if d % 2 > 0 then 4 else if d % 4 > 0 then 2 else 1 in
+  let cp_k = if k % 3 > 0 then 6 else if k > 0 then 2 else 1 in
+  let cp_e = if e % 5 > 0 then 20 else if e > 0 then 4 else 1 in
+  let cp_b = if b_ch % 7 > 0 then 42 else if b_ch > 0 then 6 else 1 in
+  let cp_l = if l > 0 then 10 else 1 in
+  let coupling = cp_d * cp_k * cp_e * cp_b * cp_l in
+  /* Channel status */
+  let ch_d = if div_d == 1 then "DEAD" else "alive" in
+  let ch_k = if div_k == 1 then "DEAD" else "alive" in
+  let ch_e = if div_e == 1 then "DEAD" else "alive" in
+  let ch_b = if div_b == 1 then "DEAD" else "alive" in
+  let ch_l = if div_l == 1 then "DEAD" else "alive" in
+  dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>Kingdom: " + kingdom + "</b></p><p style='color:#88ddaa;margin:4px 0'>Coupling: <b>" + "${coupling}" + "</b> (of 201600 max)</p><p style='color:#aaa;margin:4px 0'>Channels: D=" + ch_d + " | K=" + ch_k + " | E=" + ch_e + " | b=" + ch_b + " | L=" + ch_l + "</p><p style='color:#888;margin:4px 0'>Dead channels: " + "${dead}" + "/5 | CRT = (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ")</p>")
+)
+
+/* Interactive coupling section (S970) */
+fn coup_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Coupling Analyzer");
+  render_p(sec, "Enter any number. See its kingdom, coupling class, and channel status. Units have maximum coupling (201600). Void has zero.");
+  make_interactive_widget(sec, "Analyze any element:", "#coupling-input", "e.g. 42", "Analyze", "coupling_analyze", "coupling-result");
+  render_p(sec, "Try: 1 (unit), 2 (D-pure), 6 (DK compound), 11 (L-pure), 0 (void), 30 (DKE compound).");
+  dom_append(dom_body(), sec)
+)
+
 fn page_coupling() = (
   coup_hero();
   coup_classes();
+  coup_interactive();
   coup_kingdoms();
   coup_views();
   coup_scaling();
@@ -372,6 +423,59 @@ fn crt_kingdoms() = (
   dom_append(dom_body(), sec)
 )
 
+/* dom_on callback: CRT explorer — full decomposition + kingdom + mirror (S970) */
+fn crt_explore() = (
+  let n = parse_int_from("#crt-explore-input") in
+  let result_el = dom_query("#crt-explore-result") in
+  let d = n % 8 in
+  let k = n % 9 in
+  let e = n % 25 in
+  let b_ch = n % 49 in
+  let l = n % 11 in
+  /* Determine which primes divide n from CRT channels */
+  let div_d = if d % 2 == 0 then 1 else 0 in
+  let div_k = if k % 3 == 0 then 1 else 0 in
+  let div_e = if e % 5 == 0 then 1 else 0 in
+  let div_b = if b_ch % 7 == 0 then 1 else 0 in
+  let div_l = if l == 0 then 1 else 0 in
+  /* Kingdom from smallest dividing prime */
+  let kingdom = if div_d + div_k + div_e + div_b + div_l == 0 then "sigma (unit)"
+    else if d == 0 then if k == 0 then if e == 0 then if b_ch == 0 then if l == 0 then "void" else "DKEB" else "DKE" else "DK+E" else "DK"
+    else if div_d == 1 then "D (bridge)"
+    else if div_k == 1 then "K (closure)"
+    else if div_e == 1 then "E (observer)"
+    else if div_b == 1 then "b (depth)"
+    else "L (protector)" in
+  /* Mirror: 0-n in ring = N-n */
+  let mirror = 0 - n in
+  let md = mirror % 8 in
+  let mk = mirror % 9 in
+  let me_ch = mirror % 25 in
+  let mb = mirror % 49 in
+  let ml = mirror % 11 in
+  /* Trace = sum of CRT residues */
+  let trace = d + k + e + b_ch + l in
+  let mtrace = md + mk + me_ch + mb + ml in
+  /* Coupling: compute phi contribution from each channel */
+  let cp_d = if d % 2 > 0 then 4 else if d % 4 > 0 then 2 else 1 in
+  let cp_k = if k % 3 > 0 then 6 else if k > 0 then 2 else 1 in
+  let cp_e = if e % 5 > 0 then 20 else if e > 0 then 4 else 1 in
+  let cp_b = if b_ch % 7 > 0 then 42 else if b_ch > 0 then 6 else 1 in
+  let cp_l = if l > 0 then 10 else 1 in
+  let coupling = cp_d * cp_k * cp_e * cp_b * cp_l in
+  dom_inner(result_el, "<p style='color:#88ddaa;margin:4px 0'><b>CRT(" + "${n}" + ") = (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ")</b></p><p style='color:#aaa;margin:4px 0'>D=" + "${d}" + " (mod 8) | K=" + "${k}" + " (mod 9) | E=" + "${e}" + " (mod 25) | b=" + "${b_ch}" + " (mod 49) | L=" + "${l}" + " (mod 11)</p><p style='color:#ffd700;margin:8px 0'>Kingdom: <b>" + kingdom + "</b> | Coupling: <b>" + "${coupling}" + "</b> | Trace: <b>" + "${trace}" + "</b></p><p style='color:#8888ff;margin:4px 0'>Mirror(" + "${n}" + ") = " + "${mirror}" + " | CRT = (" + "${md}" + ", " + "${mk}" + ", " + "${me_ch}" + ", " + "${mb}" + ", " + "${ml}" + ") | Trace: " + "${mtrace}" + "</p><p style='color:#666;margin:4px 0'>Trace + Mirror trace = " + "${trace + mtrace}" + " (should = 102)</p>")
+)
+
+/* Interactive CRT explorer section for crt_anatomy page (S970) */
+fn crt_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: CRT Calculator");
+  render_p(sec, "Enter any number. See its five-channel CRT decomposition, kingdom, coupling class, mirror, and trace. Every claim on this page is verifiable here.");
+  make_interactive_widget(sec, "Decompose any number:", "#crt-explore-input", "e.g. 42", "Explore", "crt_explore", "crt-explore-result");
+  render_p(sec, "Try: 0 (void), 1 (sigma), 606376 (OMEGA), 970199 (mirror), 42 (ANSWER), 137 (ADDRESS).");
+  dom_append(dom_body(), sec)
+)
+
 fn crt_contrast() = (
   let sec = make_section("800px") in
   render_h2(sec, "What Others See");
@@ -394,6 +498,7 @@ fn page_crt_anatomy() = (
   crt_hero();
   crt_channels();
   crt_constants();
+  crt_interactive();
   crt_mirror();
   crt_kingdoms();
   crt_contrast()
