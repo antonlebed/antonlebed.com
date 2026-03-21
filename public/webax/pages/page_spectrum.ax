@@ -62,22 +62,18 @@ fn spectrum_swim() = (
   dom_append(dom_body(), sec)
 )
 
-/* ☠️ SCAFFOLDING — interactive widget (dies when .ax handles full eigenvalue computation) */
-fn spectrum_explore() = (
-  let n = parse_int_from("#spec-input") in
-  let result_el = dom_query("#spec-result") in
+/* Shared spectral display: renders CRT decomposition into a DOM element */
+fn spectrum_display(n, result_el) = (
   let d = n % 8 in
   let k = n % 9 in
   let e = n % 25 in
   let b_ch = n % 49 in
   let l = n % 11 in
-  /* folded class (determines eigenvalue — cosine symmetry) */
   let fd = if d > 4 then 8 - d else d in
   let fk = if k > 4 then 9 - k else k in
   let fe = if e > 12 then 25 - e else e in
   let fb = if b_ch > 24 then 49 - b_ch else b_ch in
   let fl = if l > 5 then 11 - l else l in
-  /* Shell H = active channels (not frozen by shared factors) */
   let div_d = if d % 2 == 0 then 1 else 0 in
   let div_k = if k % 3 == 0 then 1 else 0 in
   let div_e = if e % 5 == 0 then 1 else 0 in
@@ -85,30 +81,26 @@ fn spectrum_explore() = (
   let div_l = if l == 0 then 1 else 0 in
   let dead = div_d + div_k + div_e + div_b + div_l in
   let active = 5 - dead in
-  /* Kingdom */
-  let kingdom = if dead == 5 then "void (all frozen — max coherence, lambda = +10)"
-    else if dead == 0 then "sigma (all spinning — full spectrum)"
+  let kingdom = if dead == 5 then "void (all frozen)"
+    else if dead == 0 then "sigma (all spinning)"
     else if dead == 1 then (
       if div_d == 1 then "D-kingdom (bridge frozen)"
       else if div_k == 1 then "K-kingdom (closure frozen)"
       else if div_e == 1 then "E-kingdom (observer frozen)"
       else if div_b == 1 then "b-kingdom (depth frozen)"
       else "L-kingdom (protector frozen)"
-    ) else "compound (multiple channels frozen)" in
-  /* Average lambda for this shell (from the table on this page) */
+    ) else "compound (multiple frozen)" in
   let shell_avg = if active == 0 then "+9.00 (K^2)"
     else if active == 1 then "+6.90"
     else if active == 2 then "+4.24"
     else if active == 3 then "+1.14"
     else if active == 4 then "-1.14"
     else "-0.48" in
-  /* Mirror CRT */
   let md = if d > 0 then 8 - d else 0 in
   let mk = if k > 0 then 9 - k else 0 in
   let me_ch = if e > 0 then 25 - e else 0 in
   let mb = if b_ch > 0 then 49 - b_ch else 0 in
   let ml = if l > 0 then 11 - l else 0 in
-  /* Named element check */
   let name = if n == 0 then " = void"
     else if n == 1 then " = sigma"
     else if n == 2 then " = D"
@@ -132,10 +124,16 @@ fn spectrum_explore() = (
     else "" in
   dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>n = " + "${n}" + name + "</b></p>" +
     "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ") mod (8, 9, 25, 49, 11)</p>" +
-    "<p style='color:#8888ff;margin:4px 0'>Eigenvalue class: [" + "${fd}" + ", " + "${fk}" + ", " + "${fe}" + ", " + "${fb}" + ", " + "${fl}" + "] — cosine-folded residues</p>" +
-    "<p style='color:#ff8844;margin:4px 0'>Shell H=" + "${active}" + " (" + "${active}" + " spinning, " + "${dead}" + " frozen) — avg lambda ~ " + shell_avg + "</p>" +
+    "<p style='color:#8888ff;margin:4px 0'>Eigenvalue class: [" + "${fd}" + ", " + "${fk}" + ", " + "${fe}" + ", " + "${fb}" + ", " + "${fl}" + "] — cosine-folded</p>" +
+    "<p style='color:#ff8844;margin:4px 0'>Shell H=" + "${active}" + " — avg lambda ~ " + shell_avg + "</p>" +
     "<p style='color:#ccc;margin:4px 0'>" + kingdom + "</p>" +
-    "<p style='color:#666;margin:4px 0'>Mirror CRT: (" + "${md}" + ", " + "${mk}" + ", " + "${me_ch}" + ", " + "${mb}" + ", " + "${ml}" + ") — same eigenvalue (spectral mirror theorem)</p>")
+    "<p style='color:#666;margin:4px 0'>Mirror: (" + "${md}" + ", " + "${mk}" + ", " + "${me_ch}" + ", " + "${mb}" + ", " + "${ml}" + ")</p>")
+)
+
+/* ☠️ SCAFFOLDING — interactive widget (dies when .ax handles full eigenvalue computation) */
+fn spectrum_explore() = (
+  let n = parse_int_from("#spec-input") in
+  spectrum_display(n, dom_query("#spec-result"))
 )
 
 fn spectrum_interactive() = (
@@ -144,6 +142,47 @@ fn spectrum_interactive() = (
   render_p(sec, "Every number has 5 oscillations — one per prime channel. The eigenvalue is how they agree or fight. Enter any number to decompose its spectrum. Try the named elements from the swim above, then try your own.");
   make_interactive_widget(sec, "Enter a number (0 to 970199):", "#spec-input", "e.g. 137", "Explore", "spectrum_explore", "spec-result");
   dom_append(dom_body(), sec)
+)
+
+/* Keyboard walk: arrow keys navigate the ring. dom_on1 passes keyCode to callback. */
+fn spectrum_walk_key(code) = (
+  let cur = parse_int_from("#walk-n") in
+  let n = if code == 39 then cur + 1
+    else if code == 37 then cur + 970199
+    else if code == 38 then cur + 10
+    else if code == 40 then cur + 970190
+    else cur in
+  let state_el = dom_query("#walk-n") in
+  dom_text(state_el, "${n}");
+  spectrum_display(n, dom_query("#walk-display"))
+)
+
+fn spectrum_walk() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Walk: Navigate the Ring");
+  render_p(sec, "Click the box below, then use arrow keys to walk through all 970200 elements. Each step decomposes the spectrum live.");
+  let state = dom_create("span") in
+  dom_attr(state, "id", "walk-n");
+  dom_style(state, "display", "none");
+  dom_text(state, "0");
+  dom_append(sec, state);
+  let box = dom_create("div") in
+  dom_attr(box, "tabindex", "0");
+  dom_style(box, "border", "1px solid #ffd700");
+  dom_style(box, "padding", "12px");
+  dom_style(box, "cursor", "pointer");
+  dom_style(box, "textAlign", "center");
+  dom_style(box, "color", "#ffd700");
+  dom_style(box, "outline", "none");
+  dom_style(box, "marginBottom", "8px");
+  dom_inner(box, "Click here, then: &#x2190; &#x2192; step by 1 &nbsp; &#x2191; &#x2193; step by 10");
+  dom_on1(box, "keydown", "spectrum_walk_key");
+  dom_append(sec, box);
+  let res = dom_create("div") in
+  dom_attr(res, "id", "walk-display");
+  dom_append(sec, res);
+  dom_append(dom_body(), sec);
+  spectrum_display(0, res)
 )
 
 fn spectrum_variance() = (
@@ -570,6 +609,7 @@ fn page_spectrum() = (
   spectrum_formula();
   spectrum_swim();
   spectrum_interactive();
+  spectrum_walk();
   spectrum_variance();
   spectrum_shells();
   spectrum_freezing();

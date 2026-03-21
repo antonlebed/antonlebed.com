@@ -74,6 +74,7 @@ export default {
           return 0;
         },
         dom_on: function() { return 0; },
+        dom_on1: function() { return 0; },
         dom_query: function() { return 0; },
         dom_head_meta: function(np, vp) {
           metas.push({ n: rs(np), c: rs(vp) });
@@ -160,6 +161,7 @@ export default {
         'dom_body:function(){return 0},' +
         'dom_inner:function(h,p){if(_dom[h])_dom[h].innerHTML=rs(p);return 0},' +
         'dom_on:function(h,ep,fnp){if(_dom[h]){var e=rs(ep),f=rs(fnp);_dom[h].addEventListener(e,function(){if(w.instance.exports[f])w.instance.exports[f]()});return 0}return 0},' +
+        'dom_on1:function(h,ep,fnp){if(_dom[h]){var e=rs(ep),f=rs(fnp);_dom[h].addEventListener(e,function(ev){if(w.instance.exports[f])w.instance.exports[f](ev.keyCode||ev.which||ev.button||0)});return 0}return 0},' +
         'dom_query:function(p){var el=document.querySelector(rs(p));if(el){_dom[++_domId]=el;return _domId}return 0},' +
         'dom_head_meta:function(){return 0},' +
         'get_hash:function(){var parts=location.pathname.split("/").filter(Boolean);' +
