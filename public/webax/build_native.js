@@ -13,14 +13,14 @@ const OUT = path.join(__dirname, 'site.wasm');
 const SRC_DIR = path.join(__dirname, 'pages');
 const FILES = [
   'core.ax', 'pages_narrative.ax', 'pages_core.ax',
-  'pages_deep.ax', 'pages_kingdom.ax',
+  'pages_deep.ax', 'pages_kingdom.ax', 'pages_kingdom_2.ax',
   /* was pages_deep_struct.ax (2674L → 14 files, S955) */
   'page_ground.ax', 'page_duality.ax', 'page_depth.ax', 'page_transcend.ax',
   'page_genesis.ax', 'page_algebra.ax', 'page_spectrum.ax', 'page_closure.ax',
   'page_geometry.ax', 'page_lambda.ax', 'page_symbiosis.ax', 'page_music.ax',
   'page_fields.ax', 'page_constants.ax',
-  'pages_deep_phys.ax',
-  'pages_data.ax',
+  'pages_deep_phys.ax', 'pages_deep_phys_2.ax',
+  'pages_data.ax', 'pages_data_2.ax',
   /* was pages_teach.ax (2274L → 19 files, S955) */
   'page_cunningham.ax', 'page_heegner.ax', 'page_bernoulli.ax',
   'page_k_squared_stop.ax', 'page_pell_twins.ax', 'page_universal_boundary.ax',

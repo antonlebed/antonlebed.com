@@ -26,7 +26,7 @@ function readStr(mem, ptr) {
     dom_append: function(ph, ch) { if (_dom[ph] && _dom[ch]) _dom[ph].appendChild(_dom[ch]); return 0; },
     dom_body: function() { return 0; },
     dom_inner: function(h, p) { if (_dom[h]) _dom[h].innerHTML = rs(p); return 0; },
-    dom_on: function(h, ep, fn) { /* event callbacks: future */ return 0; },
+    dom_on: function(h, ep, fnp) { if (_dom[h]) { var e = rs(ep), f = rs(fnp); _dom[h].addEventListener(e, function() { if (wasm.instance.exports[f]) wasm.instance.exports[f](); }); } return 0; },
     dom_query: function(p) { var el = document.querySelector(rs(p)); if (el) { _dom[++_domId] = el; return _domId; } return 0; },
     dom_head_meta: function(np, vp) { var m = document.createElement('meta'); m.name = rs(np); m.content = rs(vp); document.head.appendChild(m); return 0; },
     get_hash: function() {
@@ -39,6 +39,13 @@ function readStr(mem, ptr) {
       var m = new Int32Array(mem.buffer);
       m[ptr/4] = h.length;
       for (var i = 0; i < h.length; i++) m[ptr/4+1+i] = h.charCodeAt(i);
+      return ptr;
+    },
+    dom_value: function(h) {
+      var v = (_dom[h] && (_dom[h].value || _dom[h].textContent)) || '';
+      var ptr = 904000, m = new Int32Array(mem.buffer);
+      m[ptr/4] = v.length;
+      for (var i = 0; i < v.length; i++) m[ptr/4+1+i] = v.charCodeAt(i);
       return ptr;
     }
   }});
