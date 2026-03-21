@@ -47,14 +47,24 @@ function readArr(mem32, ptr) {
 async function main() {
   /* Load native compiler */
   const compilerBytes = fs.readFileSync(COMPILER);
+  let cmRef = null;
   const imports = {
     env: {
       show_int: v => v,
-      show_str: ptr => ptr
+      show_str: ptr => {
+        if (!cmRef) return ptr;
+        const m = new Int32Array(cmRef.memory.buffer);
+        const slen = m[ptr / 4];
+        let s = '';
+        for (let i = 0; i < slen; i++) s += String.fromCharCode(m[ptr / 4 + 1 + i]);
+        if (s.startsWith('warning:') || s.startsWith('  top-level')) console.log(s);
+        return ptr;
+      }
     }
   };
   const { instance } = await WebAssembly.instantiate(compilerBytes, imports);
   const cm = instance.exports;
+  cmRef = cm;
 
   /* Concatenate source files */
   const src = FILES.map(f => fs.readFileSync(path.join(SRC_DIR, f), 'utf8')).join('\n');
