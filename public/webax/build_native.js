@@ -57,7 +57,14 @@ async function main() {
         const slen = m[ptr / 4];
         let s = '';
         for (let i = 0; i < slen; i++) s += String.fromCharCode(m[ptr / 4 + 1 + i]);
-        if (s.startsWith('warning:') || s.startsWith('  top-level') || s.startsWith('error:')) console.log(s);
+        if (s.startsWith('warning:') || s.startsWith('  top-level') || s.startsWith('error:')) {
+          /* Decode i32 string pointers in error messages (compiler emits ptrs for fn names) */
+          const decoded = s.replace(/'(\d{7,})'/g, (_, p) => {
+            try { const a = parseInt(p), l = m[a/4]; if (l > 0 && l < 200) { let n = ''; for (let j = 0; j < l; j++) n += String.fromCharCode(m[a/4+1+j]); return `'${n}'`; } } catch(e) {}
+            return `'${p}'`;
+          });
+          console.log(decoded);
+        }
         return ptr;
       }
     }
