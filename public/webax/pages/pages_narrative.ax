@@ -4,6 +4,30 @@ fn verify_crt() = (
   dom_inner(el, "<p style='color:#88ddaa;margin:4px 0'>CRT(606376) = (0, 1, 1, 1, 1)</p><p style='color:#88ddaa;margin:4px 0'>D-channel: 0 (projector annihilates D)</p><p style='color:#88ddaa;margin:4px 0'>K,E,b,L channels: all 1 (sigma in every channel)</p><p style='color:#666;margin:8px 0 0'>OMEGA = the D-projector. It kills the Bridge and preserves everything else.</p>")
 )
 
+/* dom_value callback: CRT calculator — first dom_value on live site (S967) */
+fn compute_crt() = (
+  let inp = dom_query("#crt-input") in
+  let s = dom_value(inp) in
+  let result_el = dom_query("#crt-result") in
+  /* Parse digits → integer (ring-modded automatically) */
+  mut n = 0;
+  mut i = 0;
+  while i < len(s) do (
+    let c = charCode(s, i) in
+    if c > 47 then if c < 58 then (
+      mut n = n * 10 + c - 48
+    ) else 0 else 0;
+    mut i = i + 1
+  );
+  /* CRT decomposition: Z/970200 = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 */
+  let d = n % 8 in
+  let k = n % 9 in
+  let e = n % 25 in
+  let b = n % 49 in
+  let l = n % 11 in
+  dom_inner(result_el, "<p style='color:#88ddaa;margin:4px 0'>CRT(" + s + ") = (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b}" + ", " + "${l}" + ")</p><p style='color:#666;margin:4px 0'>Channels: D=" + "${d}" + " (mod 8), K=" + "${k}" + " (mod 9), E=" + "${e}" + " (mod 25), b=" + "${b}" + " (mod 49), L=" + "${l}" + " (mod 11)</p>")
+)
+
 fn story_hero() = (
   let hero = dom_create("section") in
   dom_style(hero, "textAlign", "center");
@@ -548,6 +572,49 @@ fn render_derivation() = (
   dom_attr(crt_result, "id", "crt-verify");
   ct_code_block(crt_result);
   dom_append(sec, crt_result);
+
+  /* Interactive CRT calculator — first dom_value on live site (S967) */
+  let calc_label = dom_create("p") in
+  dom_text(calc_label, "Try any number:");
+  dom_style(calc_label, "color", "#999");
+  dom_style(calc_label, "marginTop", "24px");
+  dom_style(calc_label, "marginBottom", "8px");
+  dom_append(sec, calc_label);
+  let calc_row = dom_create("div") in
+  dom_style(calc_row, "display", "flex");
+  dom_style(calc_row, "gap", "8px");
+  dom_style(calc_row, "alignItems", "center");
+  dom_style(calc_row, "marginBottom", "12px");
+  let crt_input = dom_create("input") in
+  dom_attr(crt_input, "id", "crt-input");
+  dom_attr(crt_input, "type", "text");
+  dom_attr(crt_input, "placeholder", "e.g. 42");
+  dom_style(crt_input, "background", "#111");
+  dom_style(crt_input, "color", "#ffd700");
+  dom_style(crt_input, "border", "1px solid #333");
+  dom_style(crt_input, "padding", "8px 12px");
+  dom_style(crt_input, "borderRadius", "6px");
+  dom_style(crt_input, "fontFamily", "'Courier New', monospace");
+  dom_style(crt_input, "fontSize", "14px");
+  dom_style(crt_input, "width", "120px");
+  dom_append(calc_row, crt_input);
+  let calc_btn = dom_create("button") in
+  dom_inner(calc_btn, "Decompose");
+  dom_style(calc_btn, "background", "#1a1a2e");
+  dom_style(calc_btn, "color", "#ffd700");
+  dom_style(calc_btn, "border", "1px solid #ffd700");
+  dom_style(calc_btn, "padding", "8px 16px");
+  dom_style(calc_btn, "borderRadius", "6px");
+  dom_style(calc_btn, "cursor", "pointer");
+  dom_style(calc_btn, "fontSize", "14px");
+  dom_style(calc_btn, "fontFamily", "'Courier New', monospace");
+  dom_on(calc_btn, "click", "compute_crt");
+  dom_append(calc_row, calc_btn);
+  dom_append(sec, calc_row);
+  let crt_calc_result = dom_create("div") in
+  dom_attr(crt_calc_result, "id", "crt-result");
+  ct_code_block(crt_calc_result);
+  dom_append(sec, crt_calc_result);
 
   dom_append(dom_body(), sec)
 )
