@@ -77,6 +77,52 @@ fn lambda_heartbeat() = (
   dom_append(dom_body(), sec)
 )
 
+/* ☠️ SCAFFOLDING — interactive widget */
+fn heartbeat_explore() = (
+  let n = parse_int_from("#heartbeat-input") in
+  let result_el = dom_query("#heartbeat-result") in
+  /* Heartbeat position */
+  let hb = n % 420 in
+  /* Channel sub-cycle positions: phi(q) = {4, 6, 20, 42, 10} */
+  let pos_d = n % 4 in
+  let pos_k = n % 6 in
+  let pos_e = n % 20 in
+  let pos_b = n % 42 in
+  let pos_l = n % 10 in
+  /* Which channel clocks "tick" (complete a cycle) at this n? */
+  let tick_d = if pos_d == 0 then "TICK" else "${pos_d}/4" in
+  let tick_k = if pos_k == 0 then "TICK" else "${pos_k}/6" in
+  let tick_e = if pos_e == 0 then "TICK" else "${pos_e}/20" in
+  let tick_b = if pos_b == 0 then "TICK" else "${pos_b}/42" in
+  let tick_l = if pos_l == 0 then "TICK" else "${pos_l}/10" in
+  /* How many clocks tick at once */
+  let ticks = (if pos_d == 0 then 1 else 0) + (if pos_k == 0 then 1 else 0) + (if pos_e == 0 then 1 else 0) + (if pos_b == 0 then 1 else 0) + (if pos_l == 0 then 1 else 0) in
+  /* Sub-cycle name: 420/phi(q) = how many cycles fit in one heartbeat */
+  let sync = if ticks == 5 then "ALL FIVE CLOCKS SYNCHRONIZED — full heartbeat"
+    else if ticks == 0 then "no clocks tick — between beats"
+    else "${ticks} clock(s) tick simultaneously" in
+  /* Special positions */
+  let name = if hb == 0 then " = heartbeat origin (all clocks reset)"
+    else if hb == 105 then " = HYDOR (D-clock cycles = 420/4)"
+    else if hb == 210 then " = half-heartbeat (D*E clocks tick)"
+    else if hb == 42 then " = ANSWER (b-clock cycle)"
+    else if hb == 60 then " = THIN lambda"
+    else if hb == 12 then " = trinity heart (D^2*K)"
+    else "" in
+  dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>n = " + "${n}" + " | heartbeat position: " + "${hb}" + "/420" + name + "</b></p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>D-clock: " + tick_d + " (105 per beat) | K-clock: " + tick_k + " (70 per beat) | L-clock: " + tick_l + " (42 per beat)</p>" +
+    "<p style='color:#8888ff;margin:4px 0'>E-clock: " + tick_e + " (21 per beat) | b-clock: " + tick_b + " (10 per beat, slowest)</p>" +
+    "<p style='color:#ff8844;margin:4px 0'>" + sync + "</p>")
+)
+
+fn lambda_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: The Five Clocks");
+  render_p(sec, "Lambda = 420 contains five nested clocks. Each prime channel completes its sub-cycle at a different rate. Enter any number to see which clocks tick at that position. Try 420 (all tick), 42 (ANSWER = b-clock cycle), 105 (HYDOR = D-clock cycle).");
+  make_interactive_widget(sec, "Enter a heartbeat position:", "#heartbeat-input", "e.g. 420", "Listen", "heartbeat_explore", "heartbeat-result");
+  dom_append(dom_body(), sec)
+)
+
 fn lambda_partial_sums() = (
   let sec = make_section("800px") in
   render_h2(sec, "Partial Sum Theorem");
@@ -166,6 +212,7 @@ fn page_lambda() = (
   lambda_chain_table();
   lambda_mechanism();
   lambda_heartbeat();
+  lambda_interactive();
   lambda_partial_sums();
   lambda_desert();
   lambda_pisano();

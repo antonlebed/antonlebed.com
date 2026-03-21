@@ -625,6 +625,74 @@ fn omega_spiral() = (
   dom_append(dom_body(), sec)
 )
 
+/* ☠️ SCAFFOLDING — interactive widget */
+fn dpower_explore() = (
+  let k = parse_int_from("#dpower-input") in
+  let result_el = dom_query("#dpower-result") in
+  /* Reduce k mod 420 for efficiency (period = lambda = 420 for k >= 3) */
+  let k_eff = if k > 420 then (
+    let r = k % 420 in
+    if r < 3 then r + 420 else r
+  ) else k in
+  /* Compute 2^k_eff mod 970200 via repeated multiplication */
+  mut p = 1;
+  mut i = 0;
+  while i < k_eff do (
+    mut p = p * 2;
+    mut i = i + 1
+  );
+  /* CRT decomposition of D^k */
+  let d = p % 8 in
+  let kc = p % 9 in
+  let e = p % 25 in
+  let b_ch = p % 49 in
+  let l = p % 11 in
+  /* Channel status */
+  let ch_d = if d == 0 then "DEAD" else if d == 1 then "home" else "${d}" in
+  let ch_k = if kc == 1 then "home" else "${kc}" in
+  let ch_e = if e == 1 then "home" else if e == 24 then "MIRROR (-1)" else "${e}" in
+  let ch_b = if b_ch == 1 then "home" else "${b_ch}" in
+  let ch_l = if l == 1 then "home" else "${l}" in
+  /* Named events */
+  let event = if k == 0 then "sigma — all channels alive"
+    else if k == 3 then "D DIES — nilpotent (2^3 = 0 mod 8)"
+    else if k == 6 then "K returns home — ord(2,9) = 6"
+    else if k == 10 then "L returns home — ord(2,11) = 10"
+    else if k == 20 then "E returns home — ord(2,25) = 20"
+    else if k == 21 then "b returns home — ord(2,49) = 21"
+    else if k == 42 then "ANSWER — K+b synchronized"
+    else if k == 60 then "THIN lambda — K+E+L sync"
+    else if k == 210 then "DATA — E MIRRORS (half-cycle)"
+    else if k == 420 then "OMEGA — all channels home (terminal)"
+    else "" in
+  let event_line = if k == 0 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 3 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 6 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 10 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 20 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 21 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 42 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 60 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 210 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 420 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else "" in
+  /* Is it idempotent? (p^2 mod 970200 == p) */
+  let p2 = p * p in
+  let idemp = if p2 == p then " (IDEMPOTENT: D^k squared = D^k)" else "" in
+  dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>D^" + "${k}" + " = " + "${p}" + idemp + "</b></p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${kc}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ")</p>" +
+    "<p style='color:#8888ff;margin:4px 0'>D=" + ch_d + " | K=" + ch_k + " | E=" + ch_e + " | b=" + ch_b + " | L=" + ch_l + "</p>" +
+    event_line)
+)
+
+fn omega_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Walk the D-Spiral");
+  render_p(sec, "The D-spiral traces D^k through 420 steps. Each channel returns home at its own pace. Enter an exponent to see the CRT state at that step. Try the sub-returns: 3 (D dies), 6 (K home), 10 (L), 20 (E), 21 (b), 42 (ANSWER), 210 (half), 420 (OMEGA).");
+  make_interactive_widget(sec, "Enter exponent k (D^k):", "#dpower-input", "e.g. 42", "Compute", "dpower_explore", "dpower-result");
+  dom_append(dom_body(), sec)
+)
+
 fn omega_broadcaster() = (
   let sec = make_section("800px") in
   render_h2(sec, "The OMEGA Broadcaster");
@@ -703,6 +771,7 @@ fn page_omega() = (
   omega_idempotent();
   omega_decomposition();
   omega_spiral();
+  omega_interactive();
   omega_broadcaster();
   omega_half_cycle();
   omega_geodesic();

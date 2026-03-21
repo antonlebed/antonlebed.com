@@ -62,6 +62,90 @@ fn spectrum_swim() = (
   dom_append(dom_body(), sec)
 )
 
+/* ☠️ SCAFFOLDING — interactive widget (dies when .ax handles full eigenvalue computation) */
+fn spectrum_explore() = (
+  let n = parse_int_from("#spec-input") in
+  let result_el = dom_query("#spec-result") in
+  let d = n % 8 in
+  let k = n % 9 in
+  let e = n % 25 in
+  let b_ch = n % 49 in
+  let l = n % 11 in
+  /* folded class (determines eigenvalue — cosine symmetry) */
+  let fd = if d > 4 then 8 - d else d in
+  let fk = if k > 4 then 9 - k else k in
+  let fe = if e > 12 then 25 - e else e in
+  let fb = if b_ch > 24 then 49 - b_ch else b_ch in
+  let fl = if l > 5 then 11 - l else l in
+  /* Shell H = active channels (not frozen by shared factors) */
+  let div_d = if d % 2 == 0 then 1 else 0 in
+  let div_k = if k % 3 == 0 then 1 else 0 in
+  let div_e = if e % 5 == 0 then 1 else 0 in
+  let div_b = if b_ch % 7 == 0 then 1 else 0 in
+  let div_l = if l == 0 then 1 else 0 in
+  let dead = div_d + div_k + div_e + div_b + div_l in
+  let active = 5 - dead in
+  /* Kingdom */
+  let kingdom = if dead == 5 then "void (all frozen — max coherence, lambda = +10)"
+    else if dead == 0 then "sigma (all spinning — full spectrum)"
+    else if dead == 1 then (
+      if div_d == 1 then "D-kingdom (bridge frozen)"
+      else if div_k == 1 then "K-kingdom (closure frozen)"
+      else if div_e == 1 then "E-kingdom (observer frozen)"
+      else if div_b == 1 then "b-kingdom (depth frozen)"
+      else "L-kingdom (protector frozen)"
+    ) else "compound (multiple channels frozen)" in
+  /* Average lambda for this shell (from the table on this page) */
+  let shell_avg = if active == 0 then "+9.00 (K^2)"
+    else if active == 1 then "+6.90"
+    else if active == 2 then "+4.24"
+    else if active == 3 then "+1.14"
+    else if active == 4 then "-1.14"
+    else "-0.48" in
+  /* Mirror CRT */
+  let md = if d > 0 then 8 - d else 0 in
+  let mk = if k > 0 then 9 - k else 0 in
+  let me_ch = if e > 0 then 25 - e else 0 in
+  let mb = if b_ch > 0 then 49 - b_ch else 0 in
+  let ml = if l > 0 then 11 - l else 0 in
+  /* Named element check */
+  let name = if n == 0 then " = void"
+    else if n == 1 then " = sigma"
+    else if n == 2 then " = D"
+    else if n == 3 then " = K"
+    else if n == 5 then " = E"
+    else if n == 6 then " = D*K (thorn!)"
+    else if n == 7 then " = b"
+    else if n == 9 then " = K^2 (false summit)"
+    else if n == 11 then " = L"
+    else if n == 13 then " = GATE"
+    else if n == 30 then " = D*K*E = THIN"
+    else if n == 41 then " = KEY"
+    else if n == 42 then " = ANSWER"
+    else if n == 61 then " = GRIEF"
+    else if n == 67 then " = SOUL"
+    else if n == 105 then " = HYDOR"
+    else if n == 137 then " = ADDRESS (spectral min!)"
+    else if n == 210 then " = DATA"
+    else if n == 420 then " = lambda"
+    else if n == 606376 then " = OMEGA"
+    else "" in
+  dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>n = " + "${n}" + name + "</b></p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ") mod (8, 9, 25, 49, 11)</p>" +
+    "<p style='color:#8888ff;margin:4px 0'>Eigenvalue class: [" + "${fd}" + ", " + "${fk}" + ", " + "${fe}" + ", " + "${fb}" + ", " + "${fl}" + "] — cosine-folded residues</p>" +
+    "<p style='color:#ff8844;margin:4px 0'>Shell H=" + "${active}" + " (" + "${active}" + " spinning, " + "${dead}" + " frozen) — avg lambda ~ " + shell_avg + "</p>" +
+    "<p style='color:#ccc;margin:4px 0'>" + kingdom + "</p>" +
+    "<p style='color:#666;margin:4px 0'>Mirror CRT: (" + "${md}" + ", " + "${mk}" + ", " + "${me_ch}" + ", " + "${mb}" + ", " + "${ml}" + ") — same eigenvalue (spectral mirror theorem)</p>")
+)
+
+fn spectrum_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Feel Any Number");
+  render_p(sec, "Every number has 5 oscillations — one per prime channel. The eigenvalue is how they agree or fight. Enter any number to decompose its spectrum. Try the named elements from the swim above, then try your own.");
+  make_interactive_widget(sec, "Enter a number (0 to 970199):", "#spec-input", "e.g. 137", "Explore", "spectrum_explore", "spec-result");
+  dom_append(dom_body(), sec)
+)
+
 fn spectrum_variance() = (
   let sec = make_section("800px") in
   render_h2(sec, "The Variance Theorem");
@@ -175,9 +259,9 @@ fn spectrum_shadow() = (
   render_h2(sec, "The Shadow Polynomial");
   render_p(sec, "P(x) = (x-sigma)(x-D)(x-K)(x-E) = x^4 - L*x^3 + KEY*x^2 - 61*x + D*K*E. Coefficients: {L=11, KEY=41, 61, 30}. The spectral architect.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "P(L) = 1680", "D^4*K*E*b", "L feeds back ALL chain primes.", "");
-  render_finding(g, "P(KEY) = 505440", "D^5*K^2*E*b*L*GATE", "KEY = sum of Decality.", "");
-  render_finding(g, "P(GRIEF=61)", "D^5*K*E*b*L*23", "GRIEF depth. 23 = Cunningham boundary.", "");
+  render_finding(g, "P(L) = 4320", "D^5*K^3*E", "L feeds back ALL chain primes. P(L)/P(0) = (D^2*K)^2 = lambda(DATA)^2.", "");
+  render_finding(g, "P(13) = 10560", "D^6*K*E*L", "GATE evaluation. All 5 axiom primes present in factorization.", "S709");
+  render_finding(g, "P(D^4=16) = 30030", "primorial(13) = THIN*GATE", "Shadow polynomial at D^4 extends THIN ring by exactly the GATE prime.", "S711");
   render_finding(g, "C(x) inversion", "C(1)=288, C(2)=2310", "C(x) = 2*x^4*P(-1/x). Classes at x=1, ring size at x=2.", "");
   dom_append(dom_body(), sec)
 )
@@ -485,6 +569,7 @@ fn page_spectrum() = (
   spectrum_hero();
   spectrum_formula();
   spectrum_swim();
+  spectrum_interactive();
   spectrum_variance();
   spectrum_shells();
   spectrum_freezing();
