@@ -330,10 +330,61 @@ fn algebra_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* dom_on callback: ring calculator — a+b, a*b, CRT of both (S970) */
+fn ring_compute() = (
+  let a = parse_int_from("#ring-a") in
+  let b = parse_int_from("#ring-b") in
+  let result_el = dom_query("#ring-result") in
+  let sum = a + b in
+  let prod = a * b in
+  let a2 = a * a in
+  let ad = a % 8 in let ak = a % 9 in let ae = a % 25 in let ab_ch = a % 49 in let al = a % 11 in
+  let bd = b % 8 in let bk = b % 9 in let be_ch = b % 25 in let bb_ch = b % 49 in let bl = b % 11 in
+  let sd = sum % 8 in let sk = sum % 9 in let se = sum % 25 in let sb = sum % 49 in let sl = sum % 11 in
+  let pd = prod % 8 in let pk = prod % 9 in let pe = prod % 25 in let pb = prod % 49 in let pl = prod % 11 in
+  let is_idem = if a2 == a then "YES — idempotent (e^2 = e)" else "no" in
+  dom_inner(result_el, "<p style='color:#88ddaa;margin:4px 0'><b>a = " + "${a}" + "</b> | CRT = (" + "${ad}" + "," + "${ak}" + "," + "${ae}" + "," + "${ab_ch}" + "," + "${al}" + ")</p><p style='color:#88ddaa;margin:4px 0'><b>b = " + "${b}" + "</b> | CRT = (" + "${bd}" + "," + "${bk}" + "," + "${be_ch}" + "," + "${bb_ch}" + "," + "${bl}" + ")</p><p style='color:#ffd700;margin:8px 0'><b>a + b = " + "${sum}" + "</b> | CRT = (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sb}" + "," + "${sl}" + ") — SEE (always reversible)</p><p style='color:#ff8844;margin:4px 0'><b>a * b = " + "${prod}" + "</b> | CRT = (" + "${pd}" + "," + "${pk}" + "," + "${pe}" + "," + "${pb}" + "," + "${pl}" + ") — ACT</p><p style='color:#8888ff;margin:4px 0'>a^2 = " + "${a2}" + " | Idempotent? " + is_idem + "</p>")
+)
+
+/* Interactive ring calculator section (S970) */
+fn algebra_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Ring Calculator");
+  render_p(sec, "Enter two elements. See their sum (SEE), product (ACT), and CRT decompositions. Check if a is idempotent (SOLVE: a^2 = a).");
+  let lbl = dom_create("p") in
+  dom_text(lbl, "Ring arithmetic in Z/970200:");
+  dom_style(lbl, "color", "#999");
+  dom_style(lbl, "marginTop", "24px");
+  dom_style(lbl, "marginBottom", "8px");
+  dom_append(sec, lbl);
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "8px");
+  dom_style(row, "alignItems", "center");
+  dom_style(row, "marginBottom", "12px");
+  dom_style(row, "flexWrap", "wrap");
+  let la = dom_create("span") in
+  dom_text(la, "a =");
+  dom_style(la, "color", "#888");
+  dom_append(row, la);
+  make_input_field(row, "ring-a", "e.g. 42");
+  let lb = dom_create("span") in
+  dom_text(lb, "b =");
+  dom_style(lb, "color", "#888");
+  dom_append(row, lb);
+  make_input_field(row, "ring-b", "e.g. 137");
+  make_action_btn(row, "Compute", "ring_compute");
+  dom_append(sec, row);
+  make_result_box(sec, "ring-result");
+  render_p(sec, "Try: a=606376 (OMEGA), b=606376 — idempotent! Or a=606376, b=363824 — sum = 970200 = 0.");
+  dom_append(dom_body(), sec)
+)
+
 fn page_algebra() = (
   dom_head_meta("description", "Z/970200 = Z/8 x Z/9 x Z/25 x Z/49 x Z/11. Three faces: SEE/ACT/SOLVE. Fermat exponents = axiom constants. Cross-annihilation Catalan-forced. Artin density 37.63%. D^3 subgroup trapping: v_2>=3 kills g=2, g=13 index=1. Axiom-open primes 1.54%, Stephens degree 32. CRT trace: E-multiplication, L-swap, L^2 triangle. Lie rank tower sum=G=97. 350+ tests.");
   algebra_hero();
   algebra_three_faces();
+  algebra_interactive();
   algebra_group();
   algebra_fermat();
   algebra_cross();
