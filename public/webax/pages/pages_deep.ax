@@ -1,3 +1,32 @@
+/* Mirror explorer widget: n vs N-n CRT comparison (S999) */
+fn mirror_explore_calc() = (
+  let n = parse_int_from("#mir-deep-input") in
+  let result = dom_query("#mir-deep-result") in
+  let big_n = 970200 in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let n2 = n % big_n in
+    let m = big_n - n2 in
+    let m2 = if m == big_n then 0 else m in
+    /* CRT of n */
+    let nd = n2 % 8 in
+    let nk = n2 % 9 in
+    let ne = n2 % 25 in
+    let nb = n2 % 49 in
+    let nl = n2 % 11 in
+    /* CRT of mirror */
+    let md = m2 % 8 in
+    let mk = m2 % 9 in
+    let me = m2 % 25 in
+    let mb = m2 % 49 in
+    let ml = m2 % 11 in
+    /* coupling = gcd(n, N) */
+    let cn = gcd_shared(n2, big_n) in
+    let cm = gcd_shared(m2, big_n) in
+    dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>n = " + "${n2}" + " -> CRT = (" + "${nd}" + ", " + "${nk}" + ", " + "${ne}" + ", " + "${nb}" + ", " + "${nl}" + ")</p><p style='color:#88ddaa;margin:4px 0'>N-n = " + "${m2}" + " -> CRT = (" + "${md}" + ", " + "${mk}" + ", " + "${me}" + ", " + "${mb}" + ", " + "${ml}" + ")</p><p style='color:#aaa;margin:4px 0'>Coupling: n=" + "${cn}" + ", N-n=" + "${cm}" + " — " + (if cn == cm then "<span style='color:#ffd700'>EQUAL (mirror preserves coupling)</span>" else "different") + "</p>")
+  )
+)
+
 /* Bootstrap indeterminacy widget: gcd(a, N) = self-division ambiguity */
 fn bootstrap_indet() = (
   let a = parse_int_from("#boot-input") in
@@ -539,6 +568,14 @@ fn mirror_bloom_contrast() = (
   dom_append(dom_body(), sec6)
 )
 
+fn mirror_interactive() = (
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Mirror Pairs");
+  render_p(sec_i, "Enter any n. See n and N-n side by side: CRT decomposition, coupling. The mirror preserves everything structural. Try 137 (ADDRESS), 42 (ANSWER), 606376 (OMEGA).");
+  make_interactive_widget(sec_i, "Element n:", "#mir-deep-input", "e.g. 137", "Mirror", "mirror_explore_calc", "mir-deep-result");
+  dom_append(dom_body(), sec_i)
+)
+
 fn page_mirror() = (
   dom_head_meta("description", "The mirror n -> N-n preserves eigenvalue, coupling, kingdom. Foundation triangle, gravastar, Cunningham mirror law, hemisphere partition, dual bloom.");
   mirror_hero();
@@ -547,6 +584,7 @@ fn page_mirror() = (
   mirror_gravastar();
   mirror_cunningham();
   mirror_hemisphere();
+  mirror_interactive();
   mirror_bloom_contrast()
 )
 

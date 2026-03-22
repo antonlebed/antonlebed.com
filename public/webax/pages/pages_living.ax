@@ -1,5 +1,120 @@
 /* pages_living.ax — LIVING: tools, games, CC0, revolution.
-   Z/12612600. The tools ARE the proof. 8 pages. */
+   Z/12612600. The tools ARE the proof. 8 pages.
+   S999: +scaling smoother, +cc0 domain lookup, +revolution CRT type, +ax_games size calc. */
+
+/* dom_on callback: scaling exponent smoother (S999) */
+fn scaling_smooth_calc() = (
+  let n = parse_int_from("#scale-num-input") in
+  let d = parse_int_from("#scale-den-input") in
+  let result = dom_query("#scale-result") in
+  if d < 1 then dom_inner(result, "<p style='color:#ff6666'>Denominator must be >= 1.</p>")
+  else (
+    /* Check if numerator and denominator are 11-smooth */
+    mut nn = n;
+    mut dd = d;
+    mut i = 0;
+    while i < 5 do (
+      let p = if i == 0 then 2 else if i == 1 then 3 else if i == 2 then 5 else if i == 3 then 7 else 11 in
+      while nn % p == 0 do (mut nn = nn / p);
+      while dd % p == 0 do (mut dd = dd / p);
+      mut i = i + 1
+    );
+    let n_smooth = if nn == 1 then 1 else 0 in
+    let d_smooth = if dd == 1 then 1 else 0 in
+    let both = if n_smooth == 1 then (if d_smooth == 1 then 1 else 0) else 0 in
+    dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>Exponent: " + "${n}" + "/" + "${d}" + "</p><p style='color:" + (if both == 1 then "#ffd700" else "#ff6666") + ";margin:4px 0'>" + (if both == 1 then "11-SMOOTH: factors only over {2,3,5,7,11}" else "NOT 11-smooth" + (if n_smooth == 0 then " (numerator has factor " + "${nn}" + ")" else "") + (if d_smooth == 0 then " (denominator has factor " + "${dd}" + ")" else "")) + "</p><p style='color:#666;margin:4px 0'>91.7% of exact physics exponents are 11-smooth (p = 0.0096). Try 7/4 (Ising gamma), 5/3 (Kolmogorov), 3/4 (Kleiber), 13/9 (Potts-3 — NOT smooth).</p>")
+  )
+)
+
+/* dom_on callback: cc0 kill lookup (S999) */
+fn cc0_kill_calc() = (
+  let k = parse_int_from("#cc0-input") in
+  let result = dom_query("#cc0-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter kill number 1-20.</p>")
+  else if k > 20 then dom_inner(result, "<p style='color:#ff6666'>Only 20 kills deployed. Enter 1-20.</p>")
+  else (
+    let name = if k == 1 then "GPU Compute"
+      else if k == 2 then "Mesh Networking"
+      else if k == 3 then "AI Training"
+      else if k == 4 then "ARC-AGI"
+      else if k == 5 then "Error Correction"
+      else if k == 6 then "OFDM Modulation"
+      else if k == 7 then "Hash Functions"
+      else if k == 8 then "Compression"
+      else if k == 9 then "Random Numbers"
+      else if k == 10 then "Consensus"
+      else if k == 11 then "Scheduling"
+      else if k == 12 then "Audio Synthesis"
+      else if k == 13 then "Image Processing"
+      else if k == 14 then "Database Indexing"
+      else if k == 15 then "PID Control"
+      else if k == 16 then "Steganography"
+      else if k == 17 then "Timetabling"
+      else if k == 18 then "Key Exchange"
+      else if k == 19 then "Fountain Codes"
+      else "Spread Spectrum" in
+    let victim = if k == 1 then "NVIDIA CUDA"
+      else if k == 2 then "Qualcomm/Ericsson"
+      else if k == 3 then "Meta PyTorch"
+      else if k == 4 then "Scaling monoculture"
+      else if k == 5 then "Qualcomm LDPC/5G"
+      else if k == 6 then "WiFi/5G patents"
+      else if k == 7 then "Crypto patents"
+      else if k == 8 then "H.264/H.265 pools"
+      else if k == 9 then "Intel RDRAND"
+      else if k == 10 then "Blockchain patents"
+      else if k == 11 then "Gurobi/CPLEX"
+      else if k == 12 then "Dolby DSP"
+      else if k == 13 then "Adobe/Google"
+      else if k == 14 then "Oracle/IBM"
+      else if k == 15 then "Siemens/ABB"
+      else if k == 16 then "DRM patents"
+      else if k == 17 then "OR software"
+      else if k == 18 then "RSA/Certicom"
+      else if k == 19 then "Qualcomm Raptor"
+      else "Qualcomm CDMA" in
+    let tier = if k <= 4 then "S (Strategic)" else if k <= 9 then "A (Applied)" else if k <= 15 then "B (Broad)" else "C (Covert)" in
+    dom_inner(result, "<p style='color:#ffd700;margin:8px 0'>Kill #" + "${k}" + ": " + name + "</p><p style='color:#ff6666;margin:4px 0'>Victim: " + victim + "</p><p style='color:#88ddaa;margin:4px 0'>Tier: " + tier + "</p><p style='color:#666;margin:4px 0'>Status: DEPLOYED. CC0. Irrevocable prior art.</p>")
+  )
+)
+
+/* dom_on callback: revolution CRT type display (S999) */
+fn revolution_crt_calc() = (
+  let n = parse_int_from("#rev-input") in
+  let result = dom_query("#rev-result") in
+  let big_n = 970200 in
+  let n2 = n % big_n in
+  let rd = n2 % 8 in
+  let rk = n2 % 9 in
+  let re = n2 % 25 in
+  let rb = n2 % 49 in
+  let rl = n2 % 11 in
+  /* Which ring does it live in? */
+  let in_6 = if rd % 2 == n2 % 2 then (if rk % 3 == n2 % 3 then 1 else 0) else 0 in
+  let in_210 = if n2 % 210 == n2 then 1 else 0 in
+  let is_unit = if rd > 0 then (if rk > 0 then (if re > 0 then (if rb > 0 then (if rl > 0 then 1 else 0) else 0) else 0) else 0) else 0 in
+  dom_inner(result, "<p style='color:#ffd700;margin:8px 0'>" + "${n2}" + " = (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Channel access: .D=" + "${rd}" + " .K=" + "${rk}" + " .E=" + "${re}" + " .b=" + "${rb}" + " .L=" + "${rl}" + "</p><p style='color:#aaa;margin:4px 0'>Type: " + (if is_unit == 1 then "unit (invertible)" else "zero divisor") + " in Z/970200</p><p style='color:#666;margin:4px 0'>In .ax v2.0, this IS the value. No conversion. CRT decomposition = the type.</p>")
+)
+
+/* dom_on callback: ax_games WASM size lookup (S999) */
+fn games_size_calc() = (
+  let k = parse_int_from("#game-input") in
+  let result = dom_query("#game-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter game number 1-6.</p>")
+  else if k > 6 then dom_inner(result, "<p style='color:#ff6666'>Only 6 games. Enter 1-6.</p>")
+  else (
+    let name = if k == 1 then "Rose Draw" else if k == 2 then "Eigenvalue Walk" else if k == 3 then "Pong" else if k == 4 then "Kingdom Map" else if k == 5 then "Catch" else "AXIOM SURVIVOR" in
+    let size = if k == 1 then 1896 else if k == 2 then 3697 else if k == 3 then 8046 else if k == 4 then 2401 else if k == 5 then 4130 else 19905 in
+    let desc = if k == 1 then "Draw the 2310 rose with mouse/touch. Ring symmetry visible."
+      else if k == 2 then "Walk the eigenvalue landscape. Arrow keys move through the chain."
+      else if k == 3 then "Classic pong with ring-modular ball physics."
+      else if k == 4 then "Navigate the 6 kingdoms. Color = coupling class."
+      else if k == 5 then "Catch falling elements. Score by kingdom."
+      else "Vampire Survivors-style. 4 Decality weapons. ~350L .ax." in
+    let ratio = size / 1024 in
+    dom_inner(result, "<p style='color:#ffd700;margin:8px 0'>Game " + "${k}" + ": " + name + "</p><p style='color:#88ddaa;margin:4px 0'>WASM size: " + "${size}" + " bytes (~" + "${ratio}" + " KB)</p><p style='color:#aaa;margin:4px 0'>" + desc + "</p><p style='color:#666;margin:4px 0'>Pure .ax. No JS game engine. Canvas + audio + input through WASM imports. 60fps.</p>")
+  )
+)
 
 /* ================================================================
    PAGE: EGG — Hidden. Outside nav. From egg to organism.
@@ -797,6 +912,28 @@ fn page_scaling() = (
   render_p(sec5, "The FIRST non-axiom prime in critical exponents is 13 = exactly where the shadow chain breaks. shadow(13) = 6 = D*K = composite. The axiom's self-imposed boundary IS the exponent boundary. The shadow chain is the spectral ruler.");
   dom_append(dom_body(), sec5);
 
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Is Your Exponent 11-Smooth?");
+  render_p(sec_i, "Enter numerator and denominator of a power-law exponent. Check if it factors entirely over {2,3,5,7,11}.");
+  let lbl_i = dom_create("p") in
+  dom_text(lbl_i, "Numerator / Denominator:");
+  dom_style(lbl_i, "color", "#999");
+  dom_style(lbl_i, "marginTop", "24px");
+  dom_style(lbl_i, "marginBottom", "8px");
+  dom_append(sec_i, lbl_i);
+  let row_i = dom_create("div") in
+  dom_style(row_i, "display", "flex");
+  dom_style(row_i, "gap", "8px");
+  dom_style(row_i, "alignItems", "center");
+  dom_style(row_i, "marginBottom", "12px");
+  make_input_field(row_i, "#scale-num-input", "num (e.g. 7)");
+  make_input_field(row_i, "#scale-den-input", "den (e.g. 4)");
+  make_action_btn(row_i, "Check", "scaling_smooth_calc");
+  dom_append(sec_i, row_i);
+  make_result_box(sec_i, "scale-result");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "What Others See");
@@ -894,6 +1031,13 @@ fn page_cc0() = (
   render_finding(g4, "Timeline", "20 kills in 20 sessions", "Speed > perfection. Width > depth. Ship the prototype, poison the pool.", "");
   render_finding(g4, "Permanence", "Irrevocable", "CC0 means no rights reserved. Not open source (which has conditions). Zero. Nothing. Forever.", "");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Patent Kill Lookup");
+  render_p(sec_i, "Enter kill number (1-20). See the target, victim, and tier. All deployed. All CC0. All irrevocable.");
+  make_interactive_widget(sec_i, "Kill #:", "#cc0-input", "e.g. 5", "Look up", "cc0_kill_calc", "cc0-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
@@ -1010,6 +1154,13 @@ fn page_revolution() = (
   render_p(sec6, ".ax ships -> proves axiom -> IS the entity -> writes .ax -> .ax ships. The website IS the proof. The language IS the math. The compiler IS the theorem. Each pass through the loop: tighter, more capable, fewer pieces.");
   render_theorem(sec6, "Ship of Theseus", "The old website: 154 hand-crafted HTML pages, 58,641 lines. The new website: site.ax compiled to site.wasm. 108 pages, pure .ax. No HTML authored. .ax builds pages directly via WASM DOM imports. The old ship was dismantled plank by plank. The new ship is the same ship -- but every plank is now math.");
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: CRT IS the Type");
+  render_p(sec_i, "Enter any number. See it as .ax v2.0 would: a CRT 5-tuple with per-channel access. In the future, this IS how .ax thinks.");
+  make_interactive_widget(sec_i, "Value:", "#rev-input", "e.g. 42", "Decompose", "revolution_crt_calc", "rev-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec7 = make_section("800px") in
@@ -1147,7 +1298,13 @@ fn page_ax_games() = (
   render_finding(g2, "Input imports", "5", "key_down, mouse_x, mouse_y, mouse_btn, now_ms.", "");
   render_finding(g2, "State imports", "3", "gvar, svar, raw_mode.", "");
   render_finding_wide(g2, "Play them", "/observe/ax_games", "All six games. Route: /observe/ax_games", "");
-  dom_append(dom_body(), sec2)
+  dom_append(dom_body(), sec2);
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Game Stats");
+  render_p(sec_i, "Enter game number (1-6). See its name, WASM size, and what it demonstrates. Pure .ax, no framework, 60fps.");
+  make_interactive_widget(sec_i, "Game # (1-6):", "#game-input", "e.g. 6", "Look up", "games_size_calc", "game-result");
+  dom_append(dom_body(), sec_i)
 )
 
 /* ================================================================
