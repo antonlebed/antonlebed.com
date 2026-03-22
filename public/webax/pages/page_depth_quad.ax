@@ -1,3 +1,32 @@
+/* Depth quadratic explorer callback */
+fn dq_name(v) = (
+  if v == 1 then " = sigma"
+  else if v == 5 then " = E"
+  else if v == 19 then " = f(E)"
+  else if v == 41 then " = KEY!"
+  else if v == 109 then " = f(L)"
+  else ""
+)
+
+fn dq_calc() = (
+  let n = parse_int_from("#dq-input") in
+  let result = dom_query("#dq-result") in
+  if n < 2 then dom_inner(result, "<p style='color:#88ddaa'>f(" + "${n}" + ") = -1 = <b>MIRROR</b> (970199 in ring).</p>")
+  else (
+    let fv = n * n + 970199 * n + 970199 in
+    let br = n * (n + 970199) in
+    let cs = 2 * fv + 3 in
+    let fp = is_prime_trial(fv) in
+    let name = dq_name(fv) in
+    let ptag = if fp > 0 then " (PRIME)" else " (composite)" in
+    let res = fv % n in
+    dom_inner(result,
+      "<p style='color:#88ddaa;margin:4px 0'>f(" + "${n}" + ") = <b>" + "${fv}" + "</b>" + name + ptag + "</p>" +
+      "<p style='color:#ffd700;margin:4px 0'>f(n)+1 = n(n-1) = " + "${br}" + " | f(n) mod n = " + "${res}" + "</p>" +
+      "<p style='color:#8888ff;margin:4px 0'>CS(n) = D*f(n)+K = " + "${cs}" + "</p>")
+  )
+)
+
 fn page_depth_quad() = (
   dom_head_meta("description", "f(p) = p^2-p-1. Discriminant E=5. Zeros = golden ratio. Six roles: mirror, norm, Artin, forbidden index, power, QR-parity. f(p) prime for all 4 odd axiom primes. Wall at GATE=13. f(b)=41=KEY. f(b)+sigma=42=ANSWER. Bridge identities. Stormer zero-trading. Gate-Data factorization. Shadow polynomial evaluations.");
   /* === HERO === */
@@ -117,6 +146,14 @@ fn page_depth_quad() = (
   dom_append(sec7, ptbl);
   render_p(sec7, "P(b) = 240 = roots of E8. rank(E8) = D^3 = P(b)/P(0). dim(E8) = 240 + 8 = 248. The shadow polynomial at depth = the geometry of the exceptional Lie algebra.");
   dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE: DEPTH QUADRATIC EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: f(p) Calculator");
+  render_p(sec_i, "Enter any number n. See f(n) = n^2 - n - 1, whether it is prime, and the centered square CS(n) = D*f(n)+K.");
+  make_interactive_widget(sec_i, "Compute f(n) for:", "dq-input", "e.g. 7", "Compute", "dq_calc", "dq-result");
+  render_p(sec_i, "Try: 3 (K->E), 5 (E->19), 7 (b->KEY=41), 11 (L->109), 13 (GATE->155 WALL).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec8 = make_section("800px") in

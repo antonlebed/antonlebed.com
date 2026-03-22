@@ -1,3 +1,56 @@
+/* Invisible prime counter callback */
+fn lambda_count() = (
+  let lam = parse_int_from("#lc-input") in
+  let result = dom_query("#lc-result") in
+  if lam == 0 then dom_inner(result, "<p style='color:#88ddaa'>lambda=0: no primes are invisible at level 0.</p>")
+  else (
+    /* Count primes q where (q-1) | lambda, for q from 2 to lambda+1 */
+    mut count = 0;
+    mut q = 2;
+    mut primes_list = "";
+    mut shown = 0;
+    while q < lam + 2 do (
+      let qm1 = q + 970199 in
+      if qm1 > 0 then (
+        if lam % qm1 == 0 then (
+          if is_prime_trial(q) > 0 then (
+            mut count = count + 1;
+            if shown < 12 then (
+              if shown > 0 then mut primes_list = primes_list + ", " else 0;
+              mut primes_list = primes_list + "${q}";
+              mut shown = shown + 1
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0;
+      mut q = q + 1
+    );
+    /* Check Fibonacci match */
+    let fib_note = if count == 1 then " = F(2)"
+      else if count == 2 then " = F(3)"
+      else if count == 3 then " = F(4)"
+      else if count == 5 then " = F(5) = E"
+      else if count == 8 then " = F(6) = D^3"
+      else if count == 13 then " = F(7) = GATE!"
+      else if count == 21 then " = F(8) = K*b"
+      else if count == 34 then " = F(9)"
+      else "" in
+    let lam_note = if lam == 1 then " (level 0)"
+      else if lam == 2 then " (level 1, growth D)"
+      else if lam == 4 then " (level 2, growth D)"
+      else if lam == 12 then " (level 3, growth K)"
+      else if lam == 60 then " (level 4, growth E)"
+      else if lam == 420 then " (level 5, growth b) = HEARTBEAT"
+      else if lam == 210 then " = DATA"
+      else if lam == 2310 then " = THIN"
+      else "" in
+    dom_inner(result,
+      "<p style='color:#88ddaa;margin:4px 0'><b>lambda = " + "${lam}" + "</b>" + lam_note + "</p>" +
+      "<p style='color:#ffd700;margin:4px 0'>Invisible primes: <b>" + "${count}" + "</b>" + fib_note + "</p>" +
+      "<p style='color:#8888ff;margin:4px 0'>Primes: {" + primes_list + (if shown < count then ", ..." else "") + "}</p>")
+  )
+)
+
 fn page_lambda_chain() = (
   dom_head_meta("description", "Lambda=420 crystallizes from 5 growth factors D*D*K*E*b across 15 levels. Fibonacci counts invisible primes EXACTLY. Born at level 5 (observer sees itself). Desert pair {1596,1597}. Channel clocks: HYDOR=105, D*E*b=70, ANSWER=42, DNA=21, DEGREE=10. Partial sum theorem. Density decay 1.307*exp(-0.172k). Pisano-E8: lcm = 240.");
   /* === HERO === */
@@ -99,6 +152,14 @@ fn page_lambda_chain() = (
   render_finding(g5, "Level 7", "19+13+L = 43", "Heegner number.", "");
   render_finding(g5, "Level 8", "43+4 = 47", "Largest intruder. The wall.", "");
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE: INVISIBLE PRIME COUNTER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Invisible Prime Counter");
+  render_p(sec_i, "Enter any number lambda. Count how many primes q have (q-1) | lambda -- these primes are 'invisible' at this level. For lambda = 420, the count is 13 = GATE = F(7). Fibonacci counts the invisible primes EXACTLY.");
+  make_interactive_widget(sec_i, "Count invisible primes for lambda:", "lc-input", "e.g. 420", "Count", "lambda_count", "lc-result");
+  render_p(sec_i, "Try: 1, 2, 4, 12, 60, 420 (the growth chain). Also: 2310 (THIN), 210 (DATA), 30, 6.");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
