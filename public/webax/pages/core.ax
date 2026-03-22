@@ -14,16 +14,18 @@ let OMEGA_VAL = 606376
 
 /* ================================================================
    CELESTIAL THEATRE — Style System
-   Layer 0: VOID (dark gradient, #050508)
-   Layer 1: LIGHT THROUGH LETTERS (warm text glow on headings)
-   Shared across ALL pages. The visual IS the math.
+   Dark plasma background + glowing stars. That's it. One thing, done well.
+   Content always on TOP. Stars never obstruct text.
    ================================================================ */
 
 fn ct_body(body) = (
   dom_style(body, "margin", "0");
   dom_style(body, "padding", "0");
-  dom_style(body, "background", "radial-gradient(ellipse at 50% 0%, #0a0a2e 0%, #060612 35%, #030308 70%, #020205 100%)");
+  dom_style(body, "background", "linear-gradient(135deg, #050508 0%, #0a0a1a 25%, #080810 50%, #0a0a1a 75%, #050508 100%)");
+  dom_style(body, "backgroundSize", "400% 400%");
+  dom_style(body, "animation", "plasma 30s ease infinite");
   dom_style(body, "position", "relative");
+  dom_style(body, "zIndex", "0");
   dom_style(body, "color", "#c8c8c8");
   dom_style(body, "fontFamily", "Georgia, 'Times New Roman', serif");
   dom_style(body, "lineHeight", "1.8");
@@ -31,9 +33,8 @@ fn ct_body(body) = (
   dom_style(body, "scrollBehavior", "smooth");
   dom_style(body, "webkitFontSmoothing", "antialiased");
   dom_style(body, "webkitOverflowScrolling", "touch");
-  /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #030308;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#030308}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes twinkle{0%,100%{opacity:0.15}50%{opacity:0.7}}@keyframes drift{0%{transform:translateY(0)}100%{transform:translateY(20px)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #030308;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#030308}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes glow{0%,100%{opacity:0.3;box-shadow:0 0 3px 1px rgba(180,200,255,0.3)}50%{opacity:0.9;box-shadow:0 0 8px 3px rgba(180,200,255,0.6)}}@keyframes fall{0%{transform:translateY(-10vh)}100%{transform:translateY(110vh)}}@keyframes plasma{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -73,32 +74,37 @@ fn ct_card(el) = (
 )
 
 /* ================================================================
-   CELESTIAL THEATRE — Layer 2: STARFIELD
-   42 stars (ANSWER). Positions from ring arithmetic.
-   Primes 23 and 37 scatter across the viewport.
-   The sky IS the math — not random, axiom-distributed.
+   CELESTIAL THEATRE — STARFIELD
+   42 glowing stars falling downward (you're floating up).
+   3 depth layers: near (big, fast), mid, far (small, slow).
+   Stars BEHIND everything. Content always on top.
    ================================================================ */
 
 fn ct_star(c, i) = (
   let star = dom_create("div") in
   dom_style(star, "position", "absolute");
+  /* Horizontal scatter via prime 23 */
   let rx = i * 23 + 7 in
   let x = rx - (rx / 97) * 97 in
-  let ry = i * 37 + 3 in
-  let y = ry - (ry / 91) * 91 in
   dom_style(star, "left", "${x}%");
-  dom_style(star, "top", "${y}%");
-  let sz = i - (i / 3) * 3 + 1 in
+  /* Depth layer: i mod 3 -> 0=far, 1=mid, 2=near */
+  let layer = i - (i / 3) * 3 in
+  let sz = layer + 1 in
   dom_style(star, "width", "${sz}px");
   dom_style(star, "height", "${sz}px");
   dom_style(star, "borderRadius", "50%");
-  dom_style(star, "background", "#fff");
+  dom_style(star, "background", "#c8d8ff");
+  /* Glow: bigger stars glow more */
+  let glow_r = sz * 3 in
+  dom_style(star, "boxShadow", "0 0 ${glow_r}px ${sz}px rgba(180,200,255,0.4)");
+  /* Twinkle timing from prime 7 */
   let d7 = i * 7 in
   let delay = d7 - (d7 / 11) * 11 in
-  let dur = delay + 3 in
-  let drift_dur = delay * 5 + 35 in
-  dom_style(star, "animation", "twinkle ${dur}s ease-in-out ${delay}s infinite, drift ${drift_dur}s ease-in-out ${delay}s infinite alternate");
-  dom_style(star, "opacity", "0.3");
+  let glow_dur = delay + 4 in
+  /* Fall speed: far=slow, near=fast (depth parallax) */
+  let fall_dur = 80 + layer * 30 in
+  let fall_delay = delay * 3 in
+  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out ${delay}s infinite, fall ${fall_dur}s linear ${fall_delay}s infinite");
   dom_append(c, star)
 )
 
@@ -109,84 +115,11 @@ fn ct_starfield(body) = (
   dom_style(c, "left", "0");
   dom_style(c, "width", "100%");
   dom_style(c, "height", "100%");
+  dom_style(c, "overflow", "hidden");
   dom_style(c, "pointerEvents", "none");
   dom_style(c, "zIndex", "-1");
   dom_append(body, c);
   for i in range(42) do ct_star(c, i)
-)
-
-/* ================================================================
-   CELESTIAL THEATRE — Layer 3: CRT WAVE
-   Subtle repeating wave coupling letters across the page.
-   Period = 420px (lambda). Opacity 0.025 — invisible unless you look.
-   SVG sine wave as CSS background. The axiom breathes under the text.
-   ================================================================ */
-
-fn ct_wave(body) = (
-  let w = dom_create("div") in
-  dom_style(w, "position", "fixed");
-  dom_style(w, "top", "0");
-  dom_style(w, "left", "0");
-  dom_style(w, "width", "100%");
-  dom_style(w, "height", "100%");
-  dom_style(w, "pointerEvents", "none");
-  dom_style(w, "zIndex", "-1");
-  dom_style(w, "opacity", "0.025");
-  dom_style(w, "backgroundImage", "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420'%3E%3Cpath d='M0 210 Q105 170 210 210 Q315 250 420 210' fill='none' stroke='%234466aa' stroke-width='1'/%3E%3Cpath d='M0 105 Q105 65 210 105 Q315 145 420 105' fill='none' stroke='%234466aa' stroke-width='0.5'/%3E%3Cpath d='M0 315 Q105 275 210 315 Q315 355 420 315' fill='none' stroke='%234466aa' stroke-width='0.5'/%3E%3C/svg%3E\")");
-  dom_style(w, "backgroundSize", "420px 420px");
-  dom_style(w, "backgroundRepeat", "repeat");
-  dom_append(body, w)
-)
-
-/* ================================================================
-   CELESTIAL THEATRE — Layer 4: E/K SIDEBAR CLOUDS
-   Blurred gradient shapes on margins. E/K=5/3 turbulence ratio.
-   Deep pages only (called explicitly by deep/living tier pages).
-   Two clouds: left at 25% height, right at 60% height.
-   ================================================================ */
-
-fn ct_cloud(body, x, y, r, clr) = (
-  let c = dom_create("div") in
-  dom_style(c, "position", "fixed");
-  dom_style(c, "left", "${x}%");
-  dom_style(c, "top", "${y}%");
-  dom_style(c, "width", "${r}px");
-  dom_style(c, "height", "${r}px");
-  dom_style(c, "borderRadius", "50%");
-  dom_style(c, "background", clr);
-  dom_style(c, "filter", "blur(${r / 2}px)");
-  dom_style(c, "opacity", "0.04");
-  dom_style(c, "pointerEvents", "none");
-  dom_style(c, "zIndex", "-1");
-  dom_append(body, c)
-)
-
-fn ct_clouds(body) = (
-  /* Left cloud: E-scale (5*15=75px), blue-violet */
-  ct_cloud(body, 0 - 2, 25, 75, "radial-gradient(circle, #2233aa 0%, transparent 70%)");
-  /* Right cloud: K-scale (3*15=45px), warm depth */
-  ct_cloud(body, 95, 60, 45, "radial-gradient(circle, #aa3322 0%, transparent 70%)")
-)
-
-/* ================================================================
-   CELESTIAL THEATRE — Layer 5: K^3 MOON
-   27px glow circle in top-right corner. Philosophical pages only.
-   K^3 = 27 = minimum closure cubed. Reading by axiom-moonlight.
-   ================================================================ */
-
-fn ct_moon(body) = (
-  let m = dom_create("div") in
-  dom_style(m, "position", "fixed");
-  dom_style(m, "top", "40px");
-  dom_style(m, "right", "40px");
-  dom_style(m, "width", "27px");
-  dom_style(m, "height", "27px");
-  dom_style(m, "borderRadius", "50%");
-  dom_style(m, "background", "radial-gradient(circle at 40% 40%, #f0e6d3 0%, #c8a050 40%, #665030 70%, transparent 100%)");
-  dom_style(m, "boxShadow", "0 0 20px 8px rgba(240,230,211,0.15), 0 0 60px 20px rgba(200,160,80,0.06)");
-  dom_style(m, "pointerEvents", "none");
-  dom_style(m, "zIndex", "0");
-  dom_append(body, m)
 )
 
 /* ================================================================
