@@ -48,6 +48,8 @@ async function main() {
   /* Load native compiler */
   const compilerBytes = fs.readFileSync(COMPILER);
   let cmRef = null;
+  let topLevelCount = 0;
+  let errorCount = 0;
   const imports = {
     env: {
       show_int: v => v,
@@ -64,6 +66,9 @@ async function main() {
             return `'${p}'`;
           });
           console.log(decoded);
+          const tlMatch = s.match(/^warning: (\d+) top-level/);
+          if (tlMatch) topLevelCount = parseInt(tlMatch[1]);
+          if (s.startsWith('error:')) errorCount++;
         }
         return ptr;
       }
@@ -105,6 +110,18 @@ async function main() {
 
   if (!valid) {
     console.error('ERROR: Compiler produced invalid WASM');
+    process.exit(1);
+  }
+
+  /* BUILD GUARD: S976 lesson — content bleed deployed because warnings were printed
+     but not checked. Router entry = 1 legitimate top-level statement. Anything beyond
+     that means content is leaking as top-level code. Hard error. */
+  if (errorCount > 0) {
+    console.error(`BUILD GUARD: ${errorCount} error(s). Fix before deploying.`);
+    process.exit(1);
+  }
+  if (topLevelCount > 1) {
+    console.error(`BUILD GUARD: ${topLevelCount} top-level statement(s) (expected 1 for router entry). Content bleed?`);
     process.exit(1);
   }
 
