@@ -461,6 +461,119 @@ fn page_quantum() = (
   dom_append(dom_body(), sec_i)
 )
 
+/* Classical: pendulum cumulant lookup by index */
+fn classical_cumulant_calc() = (
+  let k = parse_int_from("#class-input") in
+  let result = dom_query("#class-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter cumulant index >= 1.</p>")
+  else (
+    let val = if k == 1 then "0 (odd cumulants = 0 for symmetric distribution)"
+      else if k == 2 then "2 = D. Variance."
+      else if k == 3 then "0 (odd)"
+      else if k == 4 then "-6 = -D*K. Excess kurtosis."
+      else if k == 5 then "0 (odd)"
+      else if k == 6 then "80 = D^4*E. Sixth cumulant."
+      else if k == 7 then "0 (odd)"
+      else if k == 8 then "-2310 = -THIN = -D*K*E*b*L. Eighth cumulant."
+      else "Higher cumulants involve intruder primes (13+)." in
+    let smooth = if k == 2 then "SMOOTH: D"
+      else if k == 4 then "SMOOTH: D*K"
+      else if k == 6 then "SMOOTH: D^4*E"
+      else if k == 8 then "SMOOTH: ALL 5 primes = THIN ring"
+      else if k % 2 == 1 then "Zero (symmetry)"
+      else "Check factorization." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Arcsine cumulant kap_${k}:</p><p style='margin:4px 0'><b style='color:#ffd700'>${val}</b></p><p style='margin:4px 0;color:#999'>${smooth}</p>")
+  )
+)
+
+/* EM: dimension cross-product checker */
+fn em_dim_calc() = (
+  let d = parse_int_from("#em-input") in
+  let result = dom_query("#em-result") in
+  if d < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter dimension >= 1.</p>")
+  else (
+    let cross = if d == 1 then "YES (trivial)" else if d == 3 then "YES" else if d == 7 then "YES" else "NO" in
+    let orbits = if d <= 3 then "YES" else "NO" in
+    let axiom = if d == 1 then "sigma" else if d == 2 then "D" else if d == 3 then "K" else if d == 5 then "E" else if d == 7 then "b" else if d == 11 then "L" else "" in
+    let both = if d == 3 then "YES — K=3 is the ONLY dimension with BOTH. Magnetism + atoms coexist here alone."
+      else if d == 1 then "Trivial: cross product exists but no spatial structure."
+      else if d == 7 then "NO — cross products exist (octonions) but orbits are unstable in d>3."
+      else if d <= 3 then "Orbits exist but no cross product. No magnetism."
+      else "Neither. No magnetism, no stable orbits." in
+    let color = if d == 3 then "#00ff88" else "#ff6666" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>d = ${d} dimensions ${axiom}</p><p style='margin:4px 0'>Cross products: <b style='color:${color}'>${cross}</b> | Stable orbits: <b style='color:${color}'>${orbits}</b></p><p style='margin:4px 0;color:#999'>${both}</p>")
+  )
+)
+
+/* Optics: refractive index axiom ratio identifier */
+fn optics_refract_calc() = (
+  let num = parse_int_from("#opt-input-n") in
+  let den = parse_int_from("#opt-input-d") in
+  let result = dom_query("#opt-result") in
+  if num < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter numerator >= 1.</p>")
+  else if den < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter denominator >= 1.</p>")
+  else (
+    let material = if num == 1 then if den == 1 then "Vacuum: sigma/sigma = 1." else ""
+      else if num == 4 then if den == 3 then "WATER: D^2/K = 4/3 = 1.333. Error: 0.025%." else ""
+      else if num == 3 then if den == 2 then "Crown glass: K/D = 3/2 = 1.500." else ""
+      else if num == 8 then if den == 5 then "Flint glass: D^3/E = 8/5 = 1.600." else ""
+      else if num == 121 then if den == 50 then "Diamond: L^2/(D*E^2) = 121/50 = 2.420." else ""
+      else "" in
+    let label = if len(material) > 0 then material else "Not a standard axiom ratio. Known: 1/1(vacuum), 4/3(water), 3/2(crown), 8/5(flint), 121/50(diamond)." in
+    let g = gcd_shared(num, den) in
+    let sn = num / g in
+    let sd = den / g in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${num}/${den} = ${sn}/${sd} (reduced)</p><p style='margin:4px 0;color:#ffd700'>${label}</p>")
+  )
+)
+
+/* Acoustics: frequency axiom checker */
+fn acoustics_freq_calc() = (
+  let hz = parse_int_from("#acou-input") in
+  let result = dom_query("#acou-result") in
+  if hz < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter frequency >= 1 Hz.</p>")
+  else (
+    let named = if hz == 20 then "Low hearing threshold = D^2*E."
+      else if hz == 440 then "Concert A = D^3*E*L. ISO 1939."
+      else if hz == 343 then "Speed of sound (m/s) = b^3. 0.06%."
+      else if hz == 20000 then "High hearing threshold = D^5*E^4."
+      else if hz == 432 then "Pythagorean tuning = D^4*K^3."
+      else if hz == 256 then "Scientific middle C = D^8."
+      else if hz == 512 then "Scientific C5 = D^9."
+      else "" in
+    let f = hz in
+    let d2 = if f % 2 == 0 then 1 else 0 in
+    let d3 = if f % 3 == 0 then 1 else 0 in
+    let d5 = if f % 5 == 0 then 1 else 0 in
+    let d7 = if f % 7 == 0 then 1 else 0 in
+    let d11 = if f % 11 == 0 then 1 else 0 in
+    let smooth = if d2 + d3 + d5 + d7 + d11 > 0 then "Has axiom-prime factors." else "No axiom-prime factors." in
+    let label = if len(named) > 0 then named else smooth in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>${hz} Hz</p><p style='margin:4px 0'>D(2):${d2} K(3):${d3} E(5):${d5} b(7):${d7} L(11):${d11}</p><p style='margin:4px 0;color:#ffd700'>${label}</p>")
+  )
+)
+
+/* Chemistry: bond angle from electron pairs + lone pairs */
+fn chemistry_angle_calc() = (
+  let ep = parse_int_from("#chem-input-e") in
+  let lp = parse_int_from("#chem-input-l") in
+  let result = dom_query("#chem-result") in
+  if ep < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter electron pairs >= 2.</p>")
+  else if lp < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter lone pairs >= 0.</p>")
+  else (
+    let base_angle = if ep == 2 then 180 else if ep == 3 then 120 else if ep == 4 then 109 else if ep == 6 then 90 else 0 in
+    let base_frac = if ep == 4 then 47 else 0 in
+    let denom = if ep == 2 then "sigma" else if ep == 3 then "D" else if ep == 4 then "K" else if ep == 6 then "cross-polytope" else "?" in
+    let depression = lp * 25 in
+    let adj_whole = base_angle - (depression / 10) in
+    let adj_frac = base_frac - (depression % 10) in
+    let final_a = if adj_frac < 0 then adj_whole - 1 else adj_whole in
+    let final_f = if adj_frac < 0 then adj_frac + 10 else adj_frac in
+    let molecule = if ep == 4 then if lp == 0 then "CH4 (methane): tetrahedral." else if lp == 1 then "NH3 (ammonia): trigonal pyramidal." else if lp == 2 then "H2O (water): bent." else "" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Electron pairs: ${ep} (denom: ${denom}) | Lone pairs: ${lp}</p><p style='margin:4px 0'>Base angle: ${base_angle}.${base_frac} deg | Depression: ${lp} x E/D = ${lp} x 2.5 deg</p><p style='margin:4px 0'><b style='color:#ffd700'>Predicted: ${final_a}.${final_f} deg</b></p><p style='margin:4px 0;color:#999'>${molecule}</p>")
+  )
+)
+
 fn page_classical() = (
   dom_head_meta("description", "The pendulum encodes the entire axiom chain in its cumulants. Space = K=3 dimensions. Free particles carry b=7 conserved quantities. D=2 rules everything. 27 quantities from five primes.");
   /* === HERO === */
@@ -541,6 +654,13 @@ fn page_classical() = (
   render_finding(g5, "Bertrand types", "D = 2", "Closed orbits ONLY for V~r^D (harmonic) and V~-1/r (Kepler). Exactly D=2 types.", "");
   render_finding(g5, "Kolmogorov", "E/K = 5/3", "Turbulence energy spectrum E ~ k^(-E/K). Same ratio as monoatomic gamma.", "");
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Pendulum Cumulants");
+  render_p(sec_i, "Enter a cumulant index (even: 2,4,6,8). The arcsine distribution walks the axiom chain. Odd cumulants are zero by symmetry.");
+  make_interactive_widget(sec_i, "Index k:", "#class-input", "e.g. 4", "Compute", "classical_cumulant_calc", "class-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
@@ -630,6 +750,13 @@ fn page_em() = (
   render_finding(g5, "Rydberg", "GATE + K/E = 13.6 eV", "Same hydrogen ground state from the quantum page.", "2 ppm");
   render_finding(g5, "Conductance quantum", "D*e^2/h", "D in the numerator. Duality bridges charge and current.", "");
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Dimension Checker");
+  render_p(sec_i, "Enter a number of spatial dimensions. Cross products exist only in {1,3,7}. Stable orbits only for d<=3. Only K=3 has BOTH. Try 3, then 7, then 4.");
+  make_interactive_widget(sec_i, "Dimensions:", "#em-input", "e.g. 3", "Check", "em_dim_calc", "em-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
@@ -792,6 +919,28 @@ fn page_optics() = (
   render_p(sec4, "f-stops: f/1, f/1.4, f/2, f/2.8, f/4, f/5.6, f/8, f/11, f/16, f/22, f/32. Each step multiplies by sqrt(D). So f-number = D^(n/2). Each stop halves the light. f/D^3=f/8 (spider's legs). f/L=f/11 (transcendental stop). f/D^5=f/32 (deepest standard).");
   dom_append(dom_body(), sec4);
 
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Refractive Index");
+  render_p(sec_i, "Enter numerator and denominator of a refractive index ratio. Known axiom ratios: 1/1(vacuum), 4/3(water), 3/2(crown glass), 8/5(flint), 121/50(diamond).");
+  let lbl_i = dom_create("p") in
+  dom_text(lbl_i, "n = num/den:");
+  dom_style(lbl_i, "color", "#999");
+  dom_style(lbl_i, "marginTop", "24px");
+  dom_style(lbl_i, "marginBottom", "8px");
+  dom_append(sec_i, lbl_i);
+  let row_i = dom_create("div") in
+  dom_style(row_i, "display", "flex");
+  dom_style(row_i, "gap", "8px");
+  dom_style(row_i, "alignItems", "center");
+  dom_style(row_i, "marginBottom", "12px");
+  make_input_field(row_i, "#opt-input-n", "num (e.g. 4)");
+  make_input_field(row_i, "#opt-input-d", "den (e.g. 3)");
+  make_action_btn(row_i, "Identify", "optics_refract_calc");
+  dom_append(sec_i, row_i);
+  make_result_box(sec_i, "opt-result");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
   render_h2(sec5, "What Others See");
@@ -865,6 +1014,13 @@ fn page_acoustics() = (
   render_h2(sec4, "Closed Pipe = Sigma Chain");
   render_p(sec4, "A closed pipe produces only odd harmonics: {1, 3, 5, 7, 9, 11, 13, ...} = {sigma, K, E, b, K^2, L, GATE, ...}. The D-channel (even harmonics) is physically removed by the boundary condition. What survives IS the sigma chain.");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Frequency Checker");
+  render_p(sec_i, "Enter a frequency in Hz. See which axiom primes divide it. Try 440 (concert A), 343 (speed of sound), 20 (hearing threshold).");
+  make_interactive_widget(sec_i, "Hz:", "#acou-input", "e.g. 440", "Check", "acoustics_freq_calc", "acou-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
@@ -947,6 +1103,28 @@ fn page_chemistry() = (
   render_theorem(sec4, "Smooth = Stable Theorem", "All 5 stable noble gases have axiom-smooth atomic numbers: He(D), Ne(D*E), Ar(D*K^2), Kr(D^2*K^2), Xe(D*K^3). Both unstable noble gases (Rn Z=86=D*43, Og Z=118=D*59) have NON-smooth Z. Smooth Z = stable. Non-smooth = radioactive. 7/7.");
   render_p(sec4, "Last stable element: Pb, Z = 82 = D*KEY. The KEY (self-inverse element 41) marks the stability boundary. Avogadro mantissa = D*K = 6. Exponent 23 = first excluded Cunningham prime. CRT(23) = palindrome.");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Bond Angle");
+  render_p(sec_i, "Enter total electron pairs and lone pairs. Simplex formula cos=-1/(n-1), lone pair depression = E/D = 2.5 deg each. Try 4,0 (CH4) then 4,1 (NH3) then 4,2 (H2O).");
+  let lbl_i = dom_create("p") in
+  dom_text(lbl_i, "Electron pairs / Lone pairs:");
+  dom_style(lbl_i, "color", "#999");
+  dom_style(lbl_i, "marginTop", "24px");
+  dom_style(lbl_i, "marginBottom", "8px");
+  dom_append(sec_i, lbl_i);
+  let row_i = dom_create("div") in
+  dom_style(row_i, "display", "flex");
+  dom_style(row_i, "gap", "8px");
+  dom_style(row_i, "alignItems", "center");
+  dom_style(row_i, "marginBottom", "12px");
+  make_input_field(row_i, "#chem-input-e", "pairs (e.g. 4)");
+  make_input_field(row_i, "#chem-input-l", "lone (e.g. 2)");
+  make_action_btn(row_i, "Predict", "chemistry_angle_calc");
+  dom_append(sec_i, row_i);
+  make_result_box(sec_i, "chem-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
