@@ -14,16 +14,15 @@ let OMEGA_VAL = 606376
 
 /* ================================================================
    CELESTIAL THEATRE — Style System
-   Dark plasma background + glowing stars. That's it. One thing, done well.
-   Content always on TOP. Stars never obstruct text.
+   Layer 0: VOID (dark gradient, #050508)
+   Layer 1: LIGHT THROUGH LETTERS (warm text glow on headings)
+   Shared across ALL pages. The visual IS the math.
    ================================================================ */
 
 fn ct_body(body) = (
   dom_style(body, "margin", "0");
   dom_style(body, "padding", "0");
-  dom_style(body, "background", "radial-gradient(ellipse at 50% 0%, #0a0a2e 0%, #060612 35%, #030308 70%, #020205 100%)");
-  dom_style(body, "position", "relative");
-  dom_style(body, "zIndex", "0");
+  dom_style(body, "background", "#050508");
   dom_style(body, "color", "#c8c8c8");
   dom_style(body, "fontFamily", "Georgia, 'Times New Roman', serif");
   dom_style(body, "lineHeight", "1.8");
@@ -31,8 +30,9 @@ fn ct_body(body) = (
   dom_style(body, "scrollBehavior", "smooth");
   dom_style(body, "webkitFontSmoothing", "antialiased");
   dom_style(body, "webkitOverflowScrolling", "touch");
+  /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #030308;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#030308}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes glow{0%,100%{opacity:0.3;box-shadow:0 0 3px 1px rgba(180,200,255,0.3)}50%{opacity:0.9;box-shadow:0 0 8px 3px rgba(180,200,255,0.6)}}@keyframes drift{0%{transform:translateY(0)}100%{transform:translateY(60px)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #050508;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#050508}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -57,7 +57,7 @@ fn ct_mono(el) = (
 
 fn ct_code_block(el) = (
   ct_mono(el);
-  dom_style(el, "background", "rgba(10,10,31,0.6)");
+  dom_style(el, "background", "#0a0a1f");
   dom_style(el, "padding", "16px 20px");
   dom_style(el, "borderRadius", "8px");
   dom_style(el, "border", "1px solid #1a1a3f");
@@ -68,58 +68,7 @@ fn ct_card(el) = (
   dom_style(el, "padding", "24px 20px");
   dom_style(el, "border", "1px solid #1a1a2a");
   dom_style(el, "borderRadius", "10px");
-  dom_style(el, "background", "transparent")
-)
-
-/* ================================================================
-   CELESTIAL THEATRE — STARFIELD
-   42 glowing stars falling downward (you're floating up).
-   3 depth layers: near (big, fast), mid, far (small, slow).
-   Stars BEHIND everything. Content always on top.
-   ================================================================ */
-
-fn ct_star(c, i) = (
-  let star = dom_create("div") in
-  dom_style(star, "position", "absolute");
-  /* Scatter: two primes for x and y */
-  let rx = i * 23 + 7 in
-  let x = rx - (rx / 97) * 97 in
-  let ry = i * 37 + 3 in
-  let y = ry - (ry / 91) * 91 in
-  dom_style(star, "left", "${x}%");
-  dom_style(star, "top", "${y}%");
-  /* Depth layer: i mod 3 -> 0=far, 1=mid, 2=near */
-  let layer = i - (i / 3) * 3 in
-  let sz = layer + 1 in
-  dom_style(star, "width", "${sz}px");
-  dom_style(star, "height", "${sz}px");
-  dom_style(star, "borderRadius", "50%");
-  dom_style(star, "background", "#c8d8ff");
-  /* Glow: bigger stars glow more */
-  let glow_r = sz * 3 in
-  dom_style(star, "boxShadow", "0 0 ${glow_r}px ${sz}px rgba(180,200,255,0.4)");
-  /* Timing from prime 7 */
-  let d7 = i * 7 in
-  let delay = d7 - (d7 / 11) * 11 in
-  let glow_dur = delay + 4 in
-  /* Slow drift: far=slow, near=fast (depth parallax) */
-  let drift_dur = 20 + layer * 15 in
-  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out ${delay}s infinite, drift ${drift_dur}s ease-in-out ${delay}s infinite alternate");
-  dom_append(c, star)
-)
-
-fn ct_starfield(body) = (
-  let c = dom_create("div") in
-  dom_style(c, "position", "fixed");
-  dom_style(c, "top", "0");
-  dom_style(c, "left", "0");
-  dom_style(c, "width", "100%");
-  dom_style(c, "height", "100%");
-  dom_style(c, "overflow", "hidden");
-  dom_style(c, "pointerEvents", "none");
-  dom_style(c, "zIndex", "-1");
-  dom_append(body, c);
-  for i in range(42) do ct_star(c, i)
+  dom_style(el, "background", "#08080e")
 )
 
 /* ================================================================
@@ -134,13 +83,11 @@ fn nav_sep(parent) = (
 )
 
 fn nav_link(parent, href:str, label:str) = (
+  nav_sep(parent);
   let a = dom_create("a") in
   dom_attr(a, "href", href);
   dom_text(a, label);
   ct_link(a);
-  dom_style(a, "background", "#1a1a3f");
-  dom_style(a, "padding", "4px 12px");
-  dom_style(a, "borderRadius", "6px");
   dom_append(parent, a);
   a
 )
@@ -282,7 +229,7 @@ fn highlight_nav() = (
 
 fn render_nav() = (
   let nav = dom_create("nav") in
-  dom_style(nav, "background", "transparent");
+  dom_style(nav, "background", "#111");
   dom_style(nav, "padding", "12px 24px");
   dom_style(nav, "display", "flex");
   dom_style(nav, "alignItems", "center");
@@ -300,10 +247,7 @@ fn render_nav() = (
   ct_gold(brand);
   dom_style(brand, "fontSize", "18px");
   dom_style(brand, "textDecoration", "none");
-  dom_style(brand, "background", "#1a1a3f");
-  dom_style(brand, "padding", "4px 12px");
-  dom_style(brand, "borderRadius", "6px");
-  dom_style(brand, "marginRight", "4px");
+  dom_style(brand, "marginRight", "8px");
   dom_append(nav, brand);
   nav_link(nav, "/basics", "Basics");
   nav_link(nav, "/observe", "Observe");
@@ -325,7 +269,6 @@ fn make_hero(title:str) = (
   dom_style(h1, "fontSize", "2.2em");
   dom_style(h1, "fontWeight", "normal");
   dom_style(h1, "marginBottom", "16px");
-  dom_style(h1, "textShadow", "0 0 60px #ffd70020, 0 0 120px #ffd70010");
   dom_append(hero, h1);
   hero
 )
@@ -558,7 +501,6 @@ fn page_home() = (
   dom_style(h1, "fontSize", "3em");
   dom_style(h1, "fontWeight", "normal");
   dom_style(h1, "letterSpacing", "4px");
-  dom_style(h1, "textShadow", "0 0 80px #ffd70025, 0 0 160px #ffd70015");
   dom_append(hero, h1);
   let sub = dom_create("div") in
   dom_text(sub, "0/0 = Z/970200Z");
@@ -600,7 +542,6 @@ fn idx_hero(title:str, ring:str, desc:str) = (
   ct_heading(h1);
   dom_style(h1, "fontSize", "2.2em");
   dom_style(h1, "fontWeight", "normal");
-  dom_style(h1, "textShadow", "0 0 60px #ffd70020, 0 0 120px #ffd70010");
   dom_append(sec, h1);
   let r = dom_create("div") in
   dom_text(r, ring);
