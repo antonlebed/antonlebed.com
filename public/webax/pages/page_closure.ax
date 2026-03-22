@@ -109,10 +109,255 @@ fn closure_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* ================================================================
+   INTERACTIVE: K=3 MAJORITY VOTE — Error Correction Demo
+   3 replicated channels. Corrupt by clicking. Correct by majority.
+   State: 3 hidden divs (mv0, mv1, mv2) hold channel values.
+   Original value = 42 (ANSWER). Corrupt sets to 0 (void).
+   Majority vote: 2-of-3 agreement restores. D=2 mode shows failure.
+   ================================================================ */
+
+fn mv_style_ok(cell) = (
+  dom_style(cell, "backgroundColor", "#1a3a1a");
+  dom_style(cell, "color", "#88ddaa");
+  dom_style(cell, "boxShadow", "0 0 8px rgba(136,221,170,0.3)")
+)
+
+fn mv_style_bad(cell) = (
+  dom_style(cell, "backgroundColor", "#3a1a1a");
+  dom_style(cell, "color", "#ff6666");
+  dom_style(cell, "boxShadow", "0 0 8px rgba(255,102,102,0.3)")
+)
+
+fn mv_style_dim(cell) = (
+  dom_style(cell, "backgroundColor", "#1a1a2e");
+  dom_style(cell, "color", "#444");
+  dom_style(cell, "boxShadow", "none")
+)
+
+fn mv_refresh_cells() = (
+  let v0 = parse_int_from("#mv0") in
+  let v1 = parse_int_from("#mv1") in
+  let v2 = parse_int_from("#mv2") in
+  let mode = parse_int_from("#mv-mode") in
+  let c0 = dom_query("#mc0") in
+  let c1 = dom_query("#mc1") in
+  let c2 = dom_query("#mc2") in
+  dom_text(c0, "${v0}");
+  dom_text(c1, "${v1}");
+  dom_text(c2, "${v2}");
+  if v0 == 42 then mv_style_ok(c0) else mv_style_bad(c0);
+  if v1 == 42 then mv_style_ok(c1) else mv_style_bad(c1);
+  if v2 == 42 then mv_style_ok(c2) else mv_style_bad(c2);
+  /* In D=2 mode, dim the third channel */
+  if mode == 2 then mv_style_dim(c2) else 0;
+  /* Count corruptions */
+  let bad = (if v0 == 42 then 0 else 1) + (if v1 == 42 then 0 else 1) + (if v2 == 42 then 0 else 1) in
+  let status = dom_query("#mv-status") in
+  if bad == 0 then
+    dom_text(status, "All channels agree: ANSWER = 42. Click a channel to corrupt it.")
+  else if bad == 1 then
+    dom_text(status, "1 corruption. Majority still holds — correction possible!")
+  else if bad == 2 then (
+    if mode == 3 then
+      dom_text(status, "2 corruptions! Majority is WRONG. K=3 can correct at most 1 error.")
+    else
+      dom_text(status, "2 corruptions in D=2 mode: both channels disagree. NO MAJORITY. Unrecoverable.")
+  ) else
+    dom_text(status, "All 3 corrupted. Total loss — no uncorrupted reference remains.")
+)
+
+fn mv_corrupt_0() = (
+  let v = parse_int_from("#mv0") in
+  if v == 42 then dom_text(dom_query("#mv0"), "0") else dom_text(dom_query("#mv0"), "42");
+  mv_refresh_cells()
+)
+
+fn mv_corrupt_1() = (
+  let v = parse_int_from("#mv1") in
+  if v == 42 then dom_text(dom_query("#mv1"), "0") else dom_text(dom_query("#mv1"), "42");
+  mv_refresh_cells()
+)
+
+fn mv_corrupt_2() = (
+  let v = parse_int_from("#mv2") in
+  let mode = parse_int_from("#mv-mode") in
+  if mode == 2 then 0
+  else (
+    if v == 42 then dom_text(dom_query("#mv2"), "0") else dom_text(dom_query("#mv2"), "42");
+    mv_refresh_cells()
+  )
+)
+
+fn mv_correct() = (
+  let v0 = parse_int_from("#mv0") in
+  let v1 = parse_int_from("#mv1") in
+  let v2 = parse_int_from("#mv2") in
+  let mode = parse_int_from("#mv-mode") in
+  let count = parse_int_from("#mv-fixes") in
+  if mode == 3 then (
+    /* K=3: majority of 3 */
+    let maj = if v0 == v1 then v0 else if v0 == v2 then v0 else v1 in
+    dom_text(dom_query("#mv0"), "${maj}");
+    dom_text(dom_query("#mv1"), "${maj}");
+    dom_text(dom_query("#mv2"), "${maj}");
+    let new_count = count + 1 in
+    dom_text(dom_query("#mv-fixes"), "${new_count}");
+    if maj == 42 then
+      dom_text(dom_query("#mv-result"), "Majority vote: ${maj} = ANSWER. Correction #${new_count} successful!")
+    else
+      dom_text(dom_query("#mv-result"), "Majority vote: ${maj} = WRONG! Too many corruptions — majority itself is corrupted.")
+  ) else (
+    /* D=2: majority of 2 = impossible when they disagree */
+    if v0 == v1 then (
+      dom_text(dom_query("#mv-result"), "Both channels agree: ${v0}. No correction needed.")
+    ) else (
+      dom_text(dom_query("#mv-result"), "Channels disagree: ${v0} vs ${v1}. NO MAJORITY. D=2 cannot correct errors!")
+    )
+  );
+  mv_refresh_cells()
+)
+
+fn mv_reset() = (
+  dom_text(dom_query("#mv0"), "42");
+  dom_text(dom_query("#mv1"), "42");
+  dom_text(dom_query("#mv2"), "42");
+  dom_text(dom_query("#mv-fixes"), "0");
+  dom_text(dom_query("#mv-result"), "");
+  mv_refresh_cells()
+)
+
+fn mv_toggle_mode() = (
+  let mode = parse_int_from("#mv-mode") in
+  let new_mode = if mode == 3 then 2 else 3 in
+  dom_text(dom_query("#mv-mode"), "${new_mode}");
+  let btn = dom_query("#mv-mode-btn") in
+  if new_mode == 2 then
+    dom_inner(btn, "Mode: D=2 (click for K=3)")
+  else
+    dom_inner(btn, "Mode: K=3 (click for D=2)");
+  mv_reset()
+)
+
+fn closure_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: K=3 Majority Vote");
+  render_p(sec, "WHY does K=3 enable error correction? Because 3 is the minimum number where a MAJORITY exists. With D=2 copies, one corruption gives 50/50 — unrecoverable. With K=3 copies, one corruption still leaves 2 agreeing. Click a channel to corrupt it. Click Correct for majority vote.");
+  /* Hidden state */
+  let s0 = dom_create("div") in
+  dom_attr(s0, "id", "mv0");
+  dom_style(s0, "display", "none");
+  dom_text(s0, "42");
+  dom_append(sec, s0);
+  let s1 = dom_create("div") in
+  dom_attr(s1, "id", "mv1");
+  dom_style(s1, "display", "none");
+  dom_text(s1, "42");
+  dom_append(sec, s1);
+  let s2 = dom_create("div") in
+  dom_attr(s2, "id", "mv2");
+  dom_style(s2, "display", "none");
+  dom_text(s2, "42");
+  dom_append(sec, s2);
+  let sf = dom_create("div") in
+  dom_attr(sf, "id", "mv-fixes");
+  dom_style(sf, "display", "none");
+  dom_text(sf, "0");
+  dom_append(sec, sf);
+  let sm = dom_create("div") in
+  dom_attr(sm, "id", "mv-mode");
+  dom_style(sm, "display", "none");
+  dom_text(sm, "3");
+  dom_append(sec, sm);
+  /* Channel display: 3 boxes in a row */
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "12px");
+  dom_style(row, "justifyContent", "center");
+  dom_style(row, "marginBottom", "16px");
+  dom_style(row, "marginTop", "24px");
+  mut ci = 0;
+  while ci < 3 do (
+    let wrap = dom_create("div") in
+    dom_style(wrap, "textAlign", "center");
+    let lbl = dom_create("div") in
+    let lbl_text = if ci == 0 then "Channel D" else if ci == 1 then "Channel K" else "Channel E" in
+    dom_text(lbl, lbl_text);
+    dom_style(lbl, "color", "#888");
+    dom_style(lbl, "fontSize", "12px");
+    dom_style(lbl, "marginBottom", "4px");
+    dom_style(lbl, "fontFamily", "'Courier New', monospace");
+    dom_append(wrap, lbl);
+    let cell = dom_create("div") in
+    dom_attr(cell, "id", "mc${ci}");
+    dom_text(cell, "42");
+    dom_style(cell, "width", "80px");
+    dom_style(cell, "height", "80px");
+    dom_style(cell, "display", "flex");
+    dom_style(cell, "alignItems", "center");
+    dom_style(cell, "justifyContent", "center");
+    dom_style(cell, "borderRadius", "12px");
+    dom_style(cell, "fontSize", "28px");
+    dom_style(cell, "fontWeight", "bold");
+    dom_style(cell, "fontFamily", "'Courier New', monospace");
+    dom_style(cell, "cursor", "pointer");
+    dom_style(cell, "transition", "all 0.2s");
+    mv_style_ok(cell);
+    let cb = if ci == 0 then "mv_corrupt_0" else if ci == 1 then "mv_corrupt_1" else "mv_corrupt_2" in
+    dom_on(cell, "click", cb);
+    dom_append(wrap, cell);
+    dom_append(row, wrap);
+    mut ci = ci + 1
+  );
+  dom_append(sec, row);
+  /* Status line */
+  let status = dom_create("div") in
+  dom_attr(status, "id", "mv-status");
+  dom_text(status, "All channels agree: ANSWER = 42. Click a channel to corrupt it.");
+  dom_style(status, "color", "#999");
+  dom_style(status, "textAlign", "center");
+  dom_style(status, "marginBottom", "16px");
+  dom_style(status, "fontFamily", "'Courier New', monospace");
+  dom_style(status, "fontSize", "13px");
+  dom_append(sec, status);
+  /* Buttons */
+  let btns = dom_create("div") in
+  dom_style(btns, "display", "flex");
+  dom_style(btns, "gap", "8px");
+  dom_style(btns, "justifyContent", "center");
+  dom_style(btns, "marginBottom", "12px");
+  make_action_btn(btns, "Correct (majority vote)", "mv_correct");
+  make_action_btn(btns, "Reset", "mv_reset");
+  let mbtn = dom_create("button") in
+  dom_attr(mbtn, "id", "mv-mode-btn");
+  dom_inner(mbtn, "Mode: K=3 (click for D=2)");
+  dom_style(mbtn, "background", "#1a1a2e");
+  dom_style(mbtn, "color", "#8888ff");
+  dom_style(mbtn, "border", "1px solid #8888ff");
+  dom_style(mbtn, "padding", "8px 16px");
+  dom_style(mbtn, "borderRadius", "6px");
+  dom_style(mbtn, "cursor", "pointer");
+  dom_style(mbtn, "fontSize", "14px");
+  dom_style(mbtn, "fontFamily", "'Courier New', monospace");
+  dom_on(mbtn, "click", "mv_toggle_mode");
+  dom_append(btns, mbtn);
+  dom_append(sec, btns);
+  /* Result display */
+  let res = dom_create("div") in
+  dom_attr(res, "id", "mv-result");
+  ct_code_block(res);
+  dom_style(res, "textAlign", "center");
+  dom_style(res, "minHeight", "24px");
+  dom_append(sec, res);
+  render_p(sec, "The insight: K=3 is the MINIMUM for majority vote. With D=2 channels and 1 error, you get 50/50 — no way to know which is right. K=3 breaks the tie. This is why every error-correcting code needs at least 3 replicas. L=11 ECC works because the 5-channel CRT gives K=3 independent agreement checks.");
+  dom_append(dom_body(), sec)
+)
+
 fn page_closure() = (
   dom_head_meta("description", "K = 3 is closure. sigma+D = K. Triangle = first shape with area. K^2 = 9 = STOP. Kingdom: Fungi. ONLY prime whose removal breaks graph perfectness. 8 gatekeeping domains. Monster moonshine: all 15 primes axiom-derivable. Bertrand: K=3 = only dimension with closed orbits.");
   closure_hero();
   closure_identity();
+  closure_interactive();
   closure_k_powers();
   closure_gatekeeping();
   closure_monster();
