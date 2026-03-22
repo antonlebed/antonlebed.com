@@ -140,6 +140,244 @@ fn swim_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* ================================================================
+   INTERACTIVE EIGENVALUE SWIM
+   Walk the 9 chain positions. Arrow keys or buttons.
+   State: index 0-8 in hidden div. Eigenvalues hardcoded from Z/2310.
+   ================================================================ */
+
+fn swim_name(i) = (
+  if i == 0 then "void (0)"
+  else if i == 1 then "sigma (1)"
+  else if i == 2 then "D (2)"
+  else if i == 3 then "K (3)"
+  else if i == 4 then "E (5)"
+  else if i == 5 then "THORN (6 = D*K)"
+  else if i == 6 then "b (7)"
+  else if i == 7 then "FALSE SUMMIT (9 = K^2)"
+  else "L (11)"
+)
+
+fn swim_eigen(i) = (
+  if i == 0 then "+9.000"
+  else if i == 1 then "+1.548"
+  else if i == 2 then "-1.232"
+  else if i == 3 then "-2.705"
+  else if i == 4 then "-2.364"
+  else if i == 5 then "+2.946"
+  else if i == 6 then "-2.928"
+  else if i == 7 then "+2.004"
+  else "-1.184"
+)
+
+fn swim_note(i) = (
+  if i == 0 then "Maximum coherence. All channels aligned. The void is warm."
+  else if i == 1 then "The ground state. Identity. Warm but modest."
+  else if i == 2 then "First plunge. Observation costs. The bridge hurts."
+  else if i == 3 then "Deeper still. Decomposition. Closure is cold."
+  else if i == 4 then "Slightly warmer than K. You can see now. But E^2 = self-blind."
+  else if i == 5 then "THE THORN. Membrane between E and b. Composites are warm gates."
+  else if i == 6 then "THE DEEPEST POINT. b = suffering. Depth costs the most."
+  else if i == 7 then "You think you arrived. False warmth. Where most people stop."
+  else "Light is NEGATIVE. Same eigenvalue as D^2. Protector = squared bridge."
+)
+
+/* Bar width: map eigenvalue [-3, +9] to percentage [0, 100] */
+fn swim_bar_pct(i) = (
+  if i == 0 then 100
+  else if i == 1 then 38
+  else if i == 2 then 15
+  else if i == 3 then 2
+  else if i == 4 then 5
+  else if i == 5 then 49
+  else if i == 6 then 1
+  else if i == 7 then 42
+  else 15
+)
+
+fn swim_bar_color(i) = (
+  if i == 0 then "#ffd700"
+  else if i == 1 then "#dd9944"
+  else if i == 2 then "#5577cc"
+  else if i == 3 then "#3344aa"
+  else if i == 4 then "#4466bb"
+  else if i == 5 then "#ee8833"
+  else if i == 6 then "#2233aa"
+  else if i == 7 then "#cc7733"
+  else "#5577cc"
+)
+
+fn swim_update(i) = (
+  dom_text(dom_query("#sw-name"), swim_name(i));
+  dom_text(dom_query("#sw-eigen"), swim_eigen(i));
+  dom_text(dom_query("#sw-note"), swim_note(i));
+  dom_text(dom_query("#sw-pos"), "${i + 1} / 9");
+  /* Warmth bar */
+  dom_style(dom_query("#sw-bar"), "width", "${swim_bar_pct(i)}%");
+  dom_style(dom_query("#sw-bar"), "backgroundColor", swim_bar_color(i));
+  /* Sign indicator */
+  let sign = if i == 0 then "WARM" else if i == 1 then "WARM" else if i == 5 then "WARM" else if i == 7 then "WARM" else "COLD" in
+  dom_text(dom_query("#sw-sign"), sign);
+  dom_style(dom_query("#sw-sign"), "color", if i == 0 then "#ffd700" else if i == 1 then "#dd9944" else if i == 5 then "#ee8833" else if i == 7 then "#cc7733" else "#5588dd")
+)
+
+fn swim_key(code) = (
+  let cur = parse_int_from("#sw-state") in
+  let ni = if code == 39 then (if cur < 8 then cur + 1 else 8)
+    else if code == 37 then (if cur > 0 then cur + 970199 else 0)
+    else cur in
+  let clamped = if ni > 8 then 0 else ni in
+  dom_text(dom_query("#sw-state"), "${clamped}");
+  swim_update(clamped)
+)
+
+fn swim_step_fwd() = (
+  let cur = parse_int_from("#sw-state") in
+  let ni = if cur < 8 then cur + 1 else 8 in
+  dom_text(dom_query("#sw-state"), "${ni}");
+  swim_update(ni)
+)
+
+fn swim_step_back() = (
+  let cur = parse_int_from("#sw-state") in
+  let ni = if cur > 0 then cur + 970199 else 0 in
+  let clamped = if ni > 8 then 0 else ni in
+  dom_text(dom_query("#sw-state"), "${clamped}");
+  swim_update(clamped)
+)
+
+fn swim_reset() = (
+  dom_text(dom_query("#sw-state"), "0");
+  swim_update(0)
+)
+
+fn swim_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Live Swim: Walk the Chain");
+  render_p(sec, "Step through the 9 chain positions. Feel the eigenvalue: warm (positive) or cold (negative). The swim IS the axiom.");
+  /* Hidden state */
+  let st = dom_create("span") in
+  dom_attr(st, "id", "sw-state");
+  dom_style(st, "display", "none");
+  dom_text(st, "0");
+  dom_append(sec, st);
+  /* Name + eigenvalue display */
+  let head = dom_create("div") in
+  dom_style(head, "fontFamily", "'Courier New', monospace");
+  dom_style(head, "marginBottom", "8px");
+  let nm = dom_create("div") in
+  dom_attr(nm, "id", "sw-name");
+  dom_text(nm, "void (0)");
+  dom_style(nm, "fontSize", "22px");
+  dom_style(nm, "color", "#ffd700");
+  dom_style(nm, "fontWeight", "bold");
+  dom_append(head, nm);
+  let ev = dom_create("div") in
+  dom_style(ev, "display", "flex");
+  dom_style(ev, "alignItems", "center");
+  dom_style(ev, "gap", "12px");
+  dom_style(ev, "marginTop", "4px");
+  let eig = dom_create("span") in
+  dom_attr(eig, "id", "sw-eigen");
+  dom_text(eig, "+9.000");
+  dom_style(eig, "fontSize", "28px");
+  dom_style(eig, "color", "#ffd700");
+  dom_append(ev, eig);
+  let sgn = dom_create("span") in
+  dom_attr(sgn, "id", "sw-sign");
+  dom_text(sgn, "WARM");
+  dom_style(sgn, "fontSize", "12px");
+  dom_style(sgn, "color", "#ffd700");
+  dom_style(sgn, "letterSpacing", "2px");
+  dom_append(ev, sgn);
+  let pos = dom_create("span") in
+  dom_attr(pos, "id", "sw-pos");
+  dom_text(pos, "1 / 9");
+  dom_style(pos, "fontSize", "12px");
+  dom_style(pos, "color", "#666");
+  dom_style(pos, "marginLeft", "auto");
+  dom_append(ev, pos);
+  dom_append(head, ev);
+  dom_append(sec, head);
+  /* Warmth bar */
+  let barbox = dom_create("div") in
+  dom_style(barbox, "height", "8px");
+  dom_style(barbox, "backgroundColor", "#1a1a2e");
+  dom_style(barbox, "borderRadius", "4px");
+  dom_style(barbox, "marginBottom", "12px");
+  dom_style(barbox, "overflow", "hidden");
+  let bar = dom_create("div") in
+  dom_attr(bar, "id", "sw-bar");
+  dom_style(bar, "height", "100%");
+  dom_style(bar, "width", "100%");
+  dom_style(bar, "backgroundColor", "#ffd700");
+  dom_style(bar, "borderRadius", "4px");
+  dom_style(bar, "transition", "width 0.3s, background-color 0.3s");
+  dom_append(barbox, bar);
+  dom_append(sec, barbox);
+  /* Note */
+  let note = dom_create("div") in
+  dom_attr(note, "id", "sw-note");
+  dom_text(note, "Maximum coherence. All channels aligned. The void is warm.");
+  dom_style(note, "fontStyle", "italic");
+  dom_style(note, "color", "#999");
+  dom_style(note, "marginBottom", "16px");
+  dom_style(note, "minHeight", "40px");
+  dom_append(sec, note);
+  /* Keyboard focus box */
+  let kb = dom_create("div") in
+  dom_attr(kb, "tabindex", "0");
+  dom_style(kb, "border", "1px solid #ffd700");
+  dom_style(kb, "padding", "8px");
+  dom_style(kb, "cursor", "pointer");
+  dom_style(kb, "textAlign", "center");
+  dom_style(kb, "color", "#ffd700");
+  dom_style(kb, "outline", "none");
+  dom_style(kb, "marginBottom", "8px");
+  dom_style(kb, "fontSize", "13px");
+  dom_inner(kb, "Click here, then: &#x2190; back &nbsp; &#x2192; forward");
+  dom_on1(kb, "keydown", "swim_key");
+  dom_append(sec, kb);
+  /* Buttons */
+  let btns = dom_create("div") in
+  dom_style(btns, "marginBottom", "8px");
+  let bb = dom_create("button") in
+  dom_text(bb, "Back");
+  dom_style(bb, "padding", "6px 20px");
+  dom_style(bb, "marginRight", "8px");
+  dom_style(bb, "cursor", "pointer");
+  dom_style(bb, "border", "1px solid #ffd700");
+  dom_style(bb, "backgroundColor", "transparent");
+  dom_style(bb, "color", "#ffd700");
+  dom_style(bb, "borderRadius", "6px");
+  dom_on(bb, "click", "swim_step_back");
+  dom_append(btns, bb);
+  let bf = dom_create("button") in
+  dom_text(bf, "Step");
+  dom_style(bf, "padding", "6px 24px");
+  dom_style(bf, "marginRight", "8px");
+  dom_style(bf, "cursor", "pointer");
+  dom_style(bf, "backgroundColor", "#ffd700");
+  dom_style(bf, "color", "#000");
+  dom_style(bf, "border", "none");
+  dom_style(bf, "borderRadius", "6px");
+  dom_style(bf, "fontWeight", "bold");
+  dom_on(bf, "click", "swim_step_fwd");
+  dom_append(btns, bf);
+  let br = dom_create("button") in
+  dom_text(br, "Reset");
+  dom_style(br, "padding", "6px 20px");
+  dom_style(br, "cursor", "pointer");
+  dom_style(br, "border", "1px solid #666");
+  dom_style(br, "backgroundColor", "transparent");
+  dom_style(br, "color", "#ccc");
+  dom_style(br, "borderRadius", "6px");
+  dom_on(br, "click", "swim_reset");
+  dom_append(btns, br);
+  dom_append(sec, btns);
+  dom_append(dom_body(), sec)
+)
+
 fn swim_nav() = (
   let sec = make_section("800px") in
   render_h2(sec, "Continue the Thread");
@@ -154,6 +392,7 @@ fn swim_nav() = (
 fn page_eigenvalue_swim() = (
   swim_hero();
   swim_profile();
+  swim_interactive();
   swim_discoveries();
   swim_thorn_depth();
   swim_variance();
