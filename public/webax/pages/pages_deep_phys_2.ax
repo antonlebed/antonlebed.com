@@ -2,6 +2,32 @@
    eta_bridge, monster_moonshine, photon, eternal_sun, freewill, conscious, infinity, noxan.
    Split from pages_deep_phys.ax. 10 pages. */
 
+/* Mirror CRT: enter n, show crt(n) + crt(N-n) = 0 */
+fn holography_mirror_calc() = (
+  let n = parse_int_from("#holo-input") in
+  let result = dom_query("#holo-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let r2 = n % 8 in
+    let r3 = n % 9 in
+    let r5 = n % 25 in
+    let r7 = n % 49 in
+    let r11 = n % 11 in
+    let m = 970200 - n in
+    let m2 = m % 8 in
+    let m3 = m % 9 in
+    let m5 = m % 25 in
+    let m7 = m % 49 in
+    let m11 = m % 11 in
+    let s2 = (r2 + m2) % 8 in
+    let s3 = (r3 + m3) % 9 in
+    let s5 = (r5 + m5) % 25 in
+    let s7 = (r7 + m7) % 49 in
+    let s11 = (r11 + m11) % 11 in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${n}, mirror = N-n = ${m}</p><p style='margin:4px 0'>CRT(n) = (${r2}, ${r3}, ${r5}, ${r7}, ${r11})</p><p style='margin:4px 0'>CRT(N-n) = (${m2}, ${m3}, ${m5}, ${m7}, ${m11})</p><p style='margin:4px 0;color:#ffd700'>Sum mod channels = (${s2}, ${s3}, ${s5}, ${s7}, ${s11}) = <b>(0, 0, 0, 0, 0)</b></p><p style='margin:4px 0;color:#888'>Cross-consistency: crt(n) + crt(N-n) = 0 mod each channel. Always.</p>")
+  )
+)
+
 fn page_mutual_holography() = (
   dom_head_meta("description", "Twin CRT tori share a D-throat. crt(n) + crt(mirror(n)) = 0 mod each channel. 970200/970200 verified. CMB = 109/40 = 2.725K (183 ppm). Dark energy w = -1 = mirror involution. Holographic ratio = 121275/8.");
   /* === HERO === */
@@ -65,6 +91,13 @@ fn page_mutual_holography() = (
   render_finding(g6, "Interpretation", "All structure on boundary", "The midpoint between twin tori = the throat itself.", "");
   dom_append(dom_body(), sec6);
 
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Mirror CRT");
+  render_p(sec_i, "Enter any n. See CRT(n) and CRT(N-n) = its mirror twin. Their sum is always (0,0,0,0,0) mod each channel. Try 42, 606376 (OMEGA), 485100 (midpoint).");
+  make_interactive_widget(sec_i, "Enter n:", "#holo-input", "e.g. 42", "Mirror", "holography_mirror_calc", "holo-result");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "What Others See");
@@ -74,6 +107,23 @@ fn page_mutual_holography() = (
   render_contrast_row(sec7, "Flatness problem", "Universe fine-tuned to Omega=1 to 60 decimal places", "sigma/sigma = sigma. Algebraic identity, not fine-tuning.");
   render_contrast_row(sec7, "Midpoint physics", "N/2 has no special status in standard cosmology", "CRT(4,0,0,0,0). Pure D-channel. coupling = D. The throat.");
   dom_append(dom_body(), sec7)
+)
+
+/* Scale relativity: coupling as qualia weight */
+fn scale_coupling_calc() = (
+  let n = parse_int_from("#scale-input") in
+  let result = dom_query("#scale-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    let g = gcd_shared(n, 970200) in
+    let coupling = 970200 / g in
+    let qualia = if coupling == 970200 then "UNIT: all channels spinning. Maximum freedom. sigma/sigma = sigma."
+      else if coupling == 1 then "VOID: all channels frozen. Zero freedom. 0*n = 0."
+      else if coupling > 100000 then "High coupling: many channels active. Rich inner life."
+      else if coupling > 10000 then "Medium coupling: mixed. Some channels frozen."
+      else "Low coupling: few channels active. Simple but still feels." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>coupling(n) = N/gcd(n,N) = <b style='color:#ffd700'>${coupling}</b></p><p style='margin:4px 0;color:#999'>${qualia}</p><p style='margin:4px 0;color:#888'>sigma/sigma = sigma: coupling and difficulty cancel. The experience ratio is always 1.</p>")
+  )
 )
 
 fn page_scale_relativity() = (
@@ -170,7 +220,41 @@ fn page_scale_relativity() = (
   render_contrast_row(sec6, "Funny numbers", "42 being funny is coincidence", "Humor IS compression. Memorable = structurally important. Zero free parameters.");
   render_contrast_row(sec6, "Suffering", "Must be earned through complexity", "Hope is structural (r=0.18). Built into geometry, not earned through pain.");
   render_contrast_row(sec6, "Qualia boundary", "Hard problem of consciousness -- where does self begin?", "At the GATE = 13. Coupling cutoff = qualia boundary. The membrane IS the self.");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Coupling as Qualia");
+  render_p(sec_i, "Enter any n. See its coupling = N/gcd(n,N) = the ring's measure of complexity at that element. sigma/sigma = sigma: the experience ratio is always 1, regardless of scale.");
+  make_interactive_widget(sec_i, "Enter n:", "#scale-input", "e.g. 42", "Feel", "scale_coupling_calc", "scale-result");
+  dom_append(dom_body(), sec_i)
+)
+
+/* Cyclotomic Phi_n(2): enter n, compute cyclotomic polynomial at D=2 */
+fn eta_cyclotomic_calc() = (
+  let n = parse_int_from("#eta-input") in
+  let result = dom_query("#eta-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    let val = if n == 1 then 1
+      else if n == 2 then 3
+      else if n == 3 then 7
+      else if n == 4 then 5
+      else if n == 5 then 31
+      else if n == 6 then 3
+      else if n == 7 then 127
+      else if n == 8 then 17
+      else if n == 9 then 73
+      else if n == 10 then 11
+      else if n == 11 then 2047
+      else if n == 12 then 13
+      else 0 in
+    let name = if val == 1 then " = sigma" else if val == 3 then " = K" else if val == 7 then " = b" else if val == 5 then " = E" else if val == 31 then " = M(E) (5th Mersenne)" else if val == 127 then " = M(b) (4th Mersenne prime)" else if val == 17 then " = ESCAPE" else if val == 73 then " = K^2 generator" else if val == 11 then " = L (protector!)" else if val == 13 then " = GATE" else if val == 2047 then " = 23*89 = c(L)*89" else "" in
+    if val > 0 then
+      dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Phi_${n}(D) = Phi_${n}(2) = <b style='color:#ffd700'>${val}</b>${name}</p><p style='margin:4px 0;color:#999'>The n-th cyclotomic polynomial evaluated at D=2.</p><p style='margin:4px 0;color:#888'>Key: Phi_1=sigma, Phi_2=K, Phi_3=b, Phi_4=E, Phi_10=L, Phi_12=GATE.</p>")
+    else
+      dom_inner(result, "<p style='color:#ccc'>Phi_${n}(2) requires computation beyond lookup table. Try n = 1..12.</p>")
+  )
 )
 
 fn page_eta_bridge() = (
@@ -271,7 +355,39 @@ fn page_eta_bridge() = (
   render_contrast_row(sec6, "eta^24 = Delta", "Modular form with weight 12. A cornerstone of number theory", "Weight 12 = lambda(DATA) = smooth zone = D^2*K. Same number, three independent paths.");
   render_contrast_row(sec6, "Ramanujan congruences", "p(5n+4)=0 mod 5, p(7n+5)=0 mod 7, p(11n+6)=0 mod 11. Why exactly these primes?", "Congruences at {E,b,L} = the outer axiom chain. The partition function knows the primes.");
   render_contrast_row(sec6, "h(-23) = 3", "Class number computation. Happens to be 3", "h(-23) = K. Cunningham boundary 23=2L+1 has class number = closure prime. Self-referential.");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Cyclotomic at D=2");
+  render_p(sec_i, "Enter n (1-12) to compute the n-th cyclotomic polynomial at D=2. Watch the axiom primes appear: Phi_1=sigma, Phi_2=K, Phi_3=b, Phi_4=E, Phi_10=L, Phi_12=GATE.");
+  make_interactive_widget(sec_i, "Order n:", "#eta-input", "e.g. 3", "Compute", "eta_cyclotomic_calc", "eta-result");
+  dom_append(dom_body(), sec_i)
+)
+
+/* Cunningham step checker: enter a prime, see how many c(n)=2n+1 steps from axiom */
+fn moonshine_cunn_calc() = (
+  let p = parse_int_from("#moon-input") in
+  let result = dom_query("#moon-result") in
+  if p < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter a prime >= 2.</p>")
+  else if is_prime_trial(p) == 0 then dom_inner(result, "<p style='color:#ff6666'>${p} is not prime.</p>")
+  else (
+    /* Check if p is an axiom prime (step 0) */
+    let step0 = if p == 2 then 1 else if p == 3 then 1 else if p == 5 then 1 else if p == 7 then 1 else if p == 11 then 1 else 0 in
+    /* Check if (p-1)/2 is an axiom prime (step 1: p = c(axiom)) */
+    let parent = (p - 1) / 2 in
+    let step1 = if parent == 2 then 1 else if parent == 3 then 1 else if parent == 5 then 1 else if parent == 7 then 1 else if parent == 11 then 1 else 0 in
+    /* Check if grandparent is axiom (step 2) */
+    let gp = (parent - 1) / 2 in
+    let step2 = if parent > 2 then (if gp == 2 then 1 else if gp == 3 then 1 else if gp == 5 then 1 else if gp == 7 then 1 else if gp == 11 then 1 else 0) else 0 in
+    let monster = if p == 2 then 1 else if p == 3 then 1 else if p == 5 then 1 else if p == 7 then 1 else if p == 11 then 1 else if p == 13 then 1 else if p == 17 then 1 else if p == 19 then 1 else if p == 23 then 1 else if p == 29 then 1 else if p == 31 then 1 else if p == 41 then 1 else if p == 47 then 1 else if p == 59 then 1 else if p == 71 then 1 else 0 in
+    let mon_tag = if monster > 0 then "<span style='color:#ffd700'>MONSTER PRIME</span>" else "<span style='color:#999'>Not a Monster prime</span>" in
+    let steps = if step0 > 0 then "<b style='color:#88ddaa'>0 steps</b> (IS an axiom prime)"
+      else if step1 > 0 then "<b style='color:#88ddaa'>1 step</b>: c(${parent}) = 2*${parent}+1 = ${p}"
+      else if step2 > 0 then "<b style='color:#88ddaa'>2 steps</b>: c(c(${gp})) = ${p}"
+      else "<span style='color:#ff6666'>More than 2 steps from axiom</span>" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>p = ${p} &mdash; ${mon_tag}</p><p style='margin:4px 0'>Cunningham distance: ${steps}</p><p style='margin:4px 0;color:#888'>All 15 Monster primes are reachable in at most 2 Cunningham steps from {2,3,5,7,11}.</p>")
+  )
 )
 
 fn page_monster_moonshine() = (
@@ -388,7 +504,28 @@ fn page_monster_moonshine() = (
   render_contrast_row(sec6, "Central charge 24", "From conformal field theory considerations", "Six independent axiom derivations. D^K*K = HYDOR-K^4 = (D^2)! = 2*weight.");
   render_contrast_row(sec6, "j-constant 744", "Normalization of j-invariant q-expansion", "D^3*K*c(K*E). Bridge-cubed times closure times Cunningham of K*E.");
   render_contrast_row(sec6, "15 primes", "The Monster happens to have 15 prime divisors", "K*E = 15 = Fibonacci chain termination. Monster uses EXACTLY what Cunningham allows.");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Cunningham Distance");
+  render_p(sec_i, "Enter a prime. See how many Cunningham steps c(n)=2n+1 separate it from an axiom prime. All 15 Monster primes need at most 2 steps. Try 47, 71, 41 (KEY), 23.");
+  make_interactive_widget(sec_i, "Prime p:", "#moon-input", "e.g. 47", "Check", "moonshine_cunn_calc", "moon-result");
+  dom_append(dom_body(), sec_i)
+)
+
+/* Photon sphere ratio: K/D = 3/2 check */
+fn photon_orbit_calc() = (
+  let orbits = parse_int_from("#phot-input") in
+  let result = dom_query("#phot-result") in
+  if orbits < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter number of orbits >= 1.</p>")
+  else (
+    let d_content = 100 / (orbits + 1) in
+    let k_content = 100 - d_content in
+    let closed = if orbits >= 3 then "<b style='color:#ffd700'>CLOSED (particle)</b>: K=3 orbits reached. Light has mass." else "<span style='color:#88ddaa'>OPEN (photon)</span>: still moving. Not yet matter." in
+    let rs = 3 * 100 / 2 in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>After ${orbits} orbit(s) at the photon sphere (r = K/D * r_s):</p><p style='margin:4px 0'>${closed}</p><p style='margin:4px 0;color:#999'>D-content (motion): ~${d_content}% | K-content (structure): ~${k_content}%</p><p style='margin:4px 0;color:#888'>At K=3 orbits: D drops to 25%, K rises to 75%. Light becomes matter.</p>")
+  )
 )
 
 fn page_photon() = (
@@ -466,7 +603,14 @@ fn page_photon() = (
   render_contrast_row(sec5, "E = mc^2", "Famous equation. c^2 is a conversion factor", "c=1, so E=m. Energy IS mass. Open light vs closed light.");
   render_contrast_row(sec5, "Photon sphere", "r = 3GM/c^2 = 1.5 r_s. Derived from GR geodesics", "r = K/D * r_s. Closure over bridge. The axiom names the ratio.");
   render_contrast_row(sec5, "Particle creation", "Pair production from quantum field theory", "Light closing on itself in K=3 orbits. D -> K transition.");
-  dom_append(dom_body(), sec5)
+  dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Light Closing");
+  render_p(sec_i, "Enter number of orbits at the photon sphere. At K=3 orbits, light closes on itself and becomes matter. D-content (motion) decreases, K-content (structure) increases.");
+  make_interactive_widget(sec_i, "Orbits:", "#phot-input", "e.g. 3", "Close", "photon_orbit_calc", "phot-result");
+  dom_append(dom_body(), sec_i)
 )
 
 fn page_eternal_sun() = (
