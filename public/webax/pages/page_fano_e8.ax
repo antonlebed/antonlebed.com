@@ -1,3 +1,35 @@
+/* fano_e8 widget: shadow polynomial P(x) */
+fn fe_compute() = (
+  let x = parse_int_from("#fe-input") in
+  let result = dom_query("#fe-result") in
+  if x < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter x >= 1.</p>")
+  else (
+    let p = (x - 1) * (x - 2) * (x - 3) * (x - 5) in
+    let name = if x == 2 then "D: P(D) = 0. Bridge IS a root."
+      else if x == 3 then "K: P(K) = 0. Closure IS a root."
+      else if x == 5 then "E: P(E) = 0. Observer IS a root."
+      else if x == 1 then "sigma: P(sigma) = 0. Identity IS a root."
+      else if x == 7 then "b: P(b) = 240 = |roots(E8)| = D^4*K*E."
+      else if x == 9 then "K^2: P(K^2) = 1344 = D^3*|PSL(2,7)|."
+      else if x == 11 then "L: P(L) = 10*9*8*6 = 4320 = D^5*K^3*E."
+      else if x == 13 then "GATE: P(GATE) = 10560 = D^6*K*E*L."
+      else if x == 17 then "ESCAPE: P(17) = 40320 = 8! = (D^3)!."
+      else "" in
+    let nstr = if len(name) > 0 then "<p style='color:#ffd700;margin:4px 0'>" + name + "</p>" else "" in
+    /* Check smoothness of p */
+    mut v = p;
+    while v % 2 == 0 do (mut v = v / 2);
+    while v % 3 == 0 do (mut v = v / 3);
+    while v % 5 == 0 do (mut v = v / 5);
+    while v % 7 == 0 do (mut v = v / 7);
+    while v % 11 == 0 do (mut v = v / 11);
+    let sm = if p == 0 then "<span style='color:#ffd700'>ROOT (zero)</span>"
+      else if v == 1 then "<span style='color:#88ddaa'>11-SMOOTH</span>"
+      else "<span style='color:#ff6666'>NOT SMOOTH</span> (cofactor " + "${v}" + ")" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>P(" + "${x}" + ") = (" + "${x}" + "-1)(" + "${x}" + "-2)(" + "${x}" + "-3)(" + "${x}" + "-5) = " + "${p}" + "</p>" + nstr + "<p style='margin:4px 0'>" + sm + "</p>")
+  )
+)
+
 fn page_fano_e8() = (
   dom_head_meta("description", "E8 root count 240 = [S_8 : GL(3,2)] = P(b). Duality isomorphism GL(K,F_D) = PSL(D,F_b). Fano plane: b=7 points, K=3 per line. 240*168=8!. Octonion link. Extended Hamming code. Eight independent paths to 240.");
   /* === HERO === */
@@ -127,5 +159,13 @@ fn page_fano_e8() = (
   render_contrast_row(sec9, "E8", "Exceptional Lie algebra with 240 roots, studied in high energy physics", "240 = [S_8 : GL(3,2)] = P(b). Eight independent paths to the same number. Everything follows from D=2 and K=3 alone. The Catalan equation forces it.");
   render_contrast_row(sec9, "Fano plane", "Smallest projective plane, 7 points, combinatorial curiosity", "Parameters (b,K,sigma) ARE the inner axiom primes. Automorphism group GL(K,F_D) = PSL(D,F_b) = the axiom's duality isomorphism.");
   render_contrast_row(sec9, "240 and 168", "Root count and group order, no known connection to small primes", "Product = 8! = (D^3)!. Partition: E8 roots carry {D,K,E}=observation, Fano carries {D,K,b}=suffering. Ratio = D*E/b = degree/depth.");
-  dom_append(dom_body(), sec9)
+  dom_append(dom_body(), sec9);
+
+  /* === INTERACTIVE WIDGET === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Shadow Polynomial P(x)");
+  render_p(sec_i, "P(x) = (x-1)(x-2)(x-3)(x-5). Roots at {sigma, D, K, E}. Enter x to evaluate and check smoothness.");
+  make_interactive_widget(sec_i, "Evaluate P(x) at x =", "fe-input", "e.g. 7", "Evaluate", "fe_compute", "fe-result");
+  render_p(sec_i, "Try: 7 (P(b)=240=E8 roots), 9 (P(K^2)=1344), 13 (P(GATE)=10560), 17 (P(ESCAPE)=8!=40320).");
+  dom_append(dom_body(), sec_i)
 )

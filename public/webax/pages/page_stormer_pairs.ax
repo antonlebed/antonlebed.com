@@ -1,3 +1,56 @@
+/* stormer widget: zero-trade explorer */
+fn st_factor(v) = (
+  mut r = v;
+  mut e2 = 0;
+  while r % 2 == 0 do (mut r = r / 2; mut e2 = e2 + 1);
+  mut e3 = 0;
+  while r % 3 == 0 do (mut r = r / 3; mut e3 = e3 + 1);
+  mut e5 = 0;
+  while r % 5 == 0 do (mut r = r / 5; mut e5 = e5 + 1);
+  mut e7 = 0;
+  while r % 7 == 0 do (mut r = r / 7; mut e7 = e7 + 1);
+  mut e11 = 0;
+  while r % 11 == 0 do (mut r = r / 11; mut e11 = e11 + 1);
+  let f2 = if e2 > 0 then "2^" + "${e2}" else "" in
+  let f3 = if e3 > 0 then (if e2 > 0 then "*" else "") + "3^" + "${e3}" else "" in
+  let f5 = if e5 > 0 then (if e2 + e3 > 0 then "*" else "") + "5^" + "${e5}" else "" in
+  let f7 = if e7 > 0 then (if e2 + e3 + e5 > 0 then "*" else "") + "7^" + "${e7}" else "" in
+  let f11 = if e11 > 0 then (if e2 + e3 + e5 + e7 > 0 then "*" else "") + "11^" + "${e11}" else "" in
+  let rem = if r > 1 then (if e2 + e3 + e5 + e7 + e11 > 0 then "*" else "") + "<span style='color:#ff6666'>" + "${r}" + "</span>" else "" in
+  f2 + f3 + f5 + f7 + f11 + rem
+)
+
+fn st_smooth(v) = (
+  mut r = v;
+  while r % 2 == 0 do (mut r = r / 2);
+  while r % 3 == 0 do (mut r = r / 3);
+  while r % 5 == 0 do (mut r = r / 5);
+  while r % 7 == 0 do (mut r = r / 7);
+  while r % 11 == 0 do (mut r = r / 11);
+  if r == 1 then 1 else 0
+)
+
+fn st_explore() = (
+  let n = parse_int_from("#st-input") in
+  let result = dom_query("#st-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    let m = n + 1 in
+    let fn1 = st_factor(n) in
+    let fn2 = st_factor(m) in
+    let s1 = st_smooth(n) in
+    let s2 = st_smooth(m) in
+    let pair = if s1 + s2 == 2 then "<span style='color:#88ddaa'>SMOOTH PAIR!</span>"
+      else if s1 > 0 then "<span style='color:#ffd700'>Only " + "${n}" + " is smooth</span>"
+      else if s2 > 0 then "<span style='color:#ffd700'>Only " + "${m}" + " is smooth</span>"
+      else "<span style='color:#ff6666'>Neither is 11-smooth</span>" in
+    let c1 = "<p style='color:#ccc;margin:4px 0'>" + "${n}" + " = " + fn1 + " &nbsp; CRT: (" + "${n % 8}" + "," + "${n % 9}" + "," + "${n % 25}" + "," + "${n % 49}" + "," + "${n % 11}" + ")</p>" in
+    let c2 = "<p style='color:#ccc;margin:4px 0'>" + "${m}" + " = " + fn2 + " &nbsp; CRT: (" + "${m % 8}" + "," + "${m % 9}" + "," + "${m % 25}" + "," + "${m % 49}" + "," + "${m % 11}" + ")</p>" in
+    let zeros = "<p style='color:#888;margin:4px 0'>Zero channels: " + "${n}" + " has " + (if n % 8 == 0 then "D " else "") + (if n % 9 == 0 then "K " else "") + (if n % 25 == 0 then "E " else "") + (if n % 49 == 0 then "b " else "") + (if n % 11 == 0 then "L" else "") + " | " + "${m}" + " has " + (if m % 8 == 0 then "D " else "") + (if m % 9 == 0 then "K " else "") + (if m % 25 == 0 then "E " else "") + (if m % 49 == 0 then "b " else "") + (if m % 11 == 0 then "L" else "") + "</p>" in
+    dom_inner(result, "<p style='margin:4px 0'>" + pair + "</p>" + c1 + c2 + zeros)
+  )
+)
+
 fn page_stormer_pairs() = (
   dom_head_meta("description", "The largest consecutive 11-smooth pair: (2400, 2401) = (D^5*K*E^2, b^4). CRT zero-trading: channels exchange zeros at the boundary of smoothness. Sum 4801 is prime.");
   /* === HERO === */
@@ -93,5 +146,13 @@ fn page_stormer_pairs() = (
   render_contrast_row(ctbl6, "Why last?", "Analytic bound from Pell equations", "b^3+1 blocked by Heegner 43. Only b^4 finds smooth neighbor");
   render_contrast_row(ctbl6, "Sum", "4801 is prime, no further significance", "CRT shows traded channels neutralized to sigma. Sum remembers the trade");
   render_contrast_row(ctbl6, "L channel", "11 divides neither -- unremarkable", "Protector stays neutral: shields but never participates in trades");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE WIDGET === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Zero-Trade Explorer");
+  render_p(sec_i, "Enter n to factor (n, n+1) and see their CRT decompositions. Watch which channels carry zeros and how they trade.");
+  make_interactive_widget(sec_i, "Explore pair starting at n:", "st-input", "e.g. 2400", "Explore", "st_explore", "st-result");
+  render_p(sec_i, "Try: 8 (D^3), 48 (SEES), 80 (D^4*E), 224 (D^5*b), 2400 (the last smooth pair).");
+  dom_append(dom_body(), sec_i)
 )

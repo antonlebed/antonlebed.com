@@ -1,3 +1,22 @@
+/* arcsine cumulant widget */
+fn ac_compute() = (
+  let n = parse_int_from("#ac-input") in
+  let result = dom_query("#ac-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1 (index of even cumulant k_{2n}).</p>")
+  else if n > 4 then dom_inner(result, "<p style='color:#ff6666'>Only n=1..4 have closed-form axiom-smooth values. Beyond D^3=8: intruders enter.</p>")
+  else (
+    let val = if n == 1 then 2 else if n == 2 then 6 else if n == 3 then 80 else 2310 in
+    let sign = if n % 2 == 1 then "+" else "-" in
+    let fac = if n == 1 then "D" else if n == 2 then "D*K" else if n == 3 then "D^4*E" else "D*K*E*b*L = THIN" in
+    let smooth = "<span style='color:#88ddaa'>11-SMOOTH</span>" in
+    let kur = if n > 1 then (
+      let kd = if n == 2 then "3/8" else if n == 3 then "3/10" else "3/14" in
+      "<p style='color:#aaccff;margin:4px 0'>Excess kurtosis at k=" + "${n}" + " channels: -" + kd + (if n == 2 then " = Kleiber's exponent 3/4!" else "") + "</p>"
+    ) else "" in
+    dom_inner(result, "<p style='color:#ffd700;margin:4px 0;font-size:18px'>k_{" + "${n}" + "*2} = " + sign + "${val}" + "</p><p style='color:#ccc;margin:4px 0'>= " + sign + fac + ". " + smooth + "</p>" + kur)
+  )
+)
+
 fn page_arcsine_cumulant() = (
   dom_head_meta("description", "Arcsine cumulants ARE the axiom chain. k2=D, k4=-D*K, k6=D^4*E, k8=-THIN=2310. All five primes by D^3=8. Bessel connection. Excess kurtosis = -K/(D*k). Brain fractal dimension 2.7 from ring spectral density.");
   /* === HERO === */
@@ -92,5 +111,13 @@ fn page_arcsine_cumulant() = (
   render_contrast_row(ctbl6, "Smooth run", "First 4 cumulants happen to be smooth", "Smooth run = D^3 = 8 = spider legs = rank(E8)");
   render_contrast_row(ctbl6, "Kurtosis", "Just -3/(2k), a formula", "= -K/(D*k). At k=2: Kleiber's law 3/4");
   render_contrast_row(ctbl6, "Brain 2.7", "Empirical measurement", "= 27/10 = M4/M2^2 at k=5. Ring spectral geometry");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE WIDGET === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Cumulant Calculator");
+  render_p(sec_i, "Enter n (1-4) to see the even cumulant k_{2n} of the arcsine distribution. Beyond n=4 (index D^3=8), intruders enter.");
+  make_interactive_widget(sec_i, "Cumulant index n:", "ac-input", "e.g. 2", "Compute", "ac_compute", "ac-result");
+  render_p(sec_i, "Try: 1 (k_2=D), 2 (k_4=-D*K, Kleiber!), 3 (k_6=D^4*E), 4 (k_8=-THIN).");
+  dom_append(dom_body(), sec_i)
 )
