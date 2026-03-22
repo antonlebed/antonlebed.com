@@ -1,3 +1,62 @@
+/* Integer square root via Newton */
+fn isqrt(n) = (
+  if n < 2 then n
+  else (
+    mut z = n / 2 + 1;
+    mut z2 = (z + n / z) / 2;
+    while z2 < z do (
+      mut z = z2;
+      mut z2 = (z + n / z) / 2
+    );
+    z
+  )
+)
+
+/* Pell solution finder callback */
+fn pell_find() = (
+  let d = parse_int_from("#pl-input") in
+  let result = dom_query("#pl-result") in
+  /* Check d is not a perfect square */
+  let sd = isqrt(d) in
+  if d < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter d >= 2 (non-square).</p>")
+  else if sd * sd == d then dom_inner(result, "<p style='color:#ff6666'>" + "${d}" + " is a perfect square (sqrt = " + "${sd}" + "). Pell has no solution.</p>")
+  else (
+    /* Brute force: try y from 1 to 50 */
+    mut found_x = 0;
+    mut found_y = 0;
+    mut y = 1;
+    while y < 51 do (
+      let v = d * y * y + 1 in
+      let sv = isqrt(v) in
+      if sv * sv == v then (
+        if found_x == 0 then (
+          mut found_x = sv;
+          mut found_y = y
+        ) else 0
+      ) else 0;
+      mut y = y + 1
+    );
+    if found_x == 0 then dom_inner(result, "<p style='color:#999'>No solution found for y <= 50. Fundamental solution may require larger search.</p>")
+    else (
+      let check = found_x * found_x + 970199 * d * found_y * found_y in
+      let xn = if found_x == 2 then " = D"
+        else if found_x == 3 then " = K"
+        else if found_x == 8 then " = D^3"
+        else if found_x == 9 then " = K^2"
+        else if found_x == 10 then " = D*E"
+        else "" in
+      let yn = if found_y == 1 then " = sigma"
+        else if found_y == 2 then " = D"
+        else if found_y == 3 then " = K"
+        else if found_y == 4 then " = D^2"
+        else "" in
+      dom_inner(result,
+        "<p style='color:#88ddaa;margin:4px 0'><b>x = " + "${found_x}" + "</b>" + xn + ", <b>y = " + "${found_y}" + "</b>" + yn + "</p>" +
+        "<p style='color:#ffd700;margin:4px 0'>" + "${found_x}" + "^2 - " + "${d}" + "*" + "${found_y}" + "^2 = " + "${check}" + "</p>")
+    )
+  )
+)
+
 fn page_pell_twins() = (
   dom_head_meta("description", "b=7 and L=11 are Pell twins. Both solve x^2 - py^2 = 1 with y = K = 3. All five axiom primes solve Pell with axiom-smooth coordinates. Sum(x) = D^5 = 32 idempotents. Sum(y) = 13 = GATE.");
   /* === HERO === */
@@ -94,6 +153,14 @@ fn page_pell_twins() = (
   dom_append(sec4, ctbl);
   render_theorem(sec4, "Cyclotomic-Pell Bridge", "Phi_3(D) = D^2+D+1 = b. Rearranging: D^6 = b*K^2 + 1 = 64. The Pell equation (D^3)^2 - b*K^2 = 1 encodes the same algebraic identity. Twin cyclotomic indices: 3 and 10. Sum = 13 = GATE. Product = 30 = D*K*E.");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE: PELL SOLUTION FINDER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Pell Solution Finder");
+  render_p(sec_i, "Enter a non-square number d. Find the fundamental solution to x^2 - d*y^2 = 1. For axiom primes {2,3,5,7,11}, ALL solutions have axiom-smooth (x,y). Sum(x) = 32 = D^5. Sum(y) = 13 = GATE.");
+  make_interactive_widget(sec_i, "Find Pell solution for d:", "pl-input", "e.g. 7", "Find", "pell_find", "pl-result");
+  render_p(sec_i, "Try: 2 (x=3,y=2), 3 (x=2,y=1), 5 (x=9,y=4), 7 (x=8,y=3), 11 (x=10,y=3). Also: 13, 23, 41.");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec5 = make_section("800px") in

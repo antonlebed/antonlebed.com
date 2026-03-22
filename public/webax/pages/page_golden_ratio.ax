@@ -1,3 +1,36 @@
+/* Golden ratio visibility callback */
+fn golden_check() = (
+  let p = parse_int_from("#gr-input") in
+  let result = dom_query("#gr-result") in
+  let pr = is_prime_trial(p) in
+  if p < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter a prime >= 2.</p>")
+  else if pr == 0 then dom_inner(result, "<p style='color:#ff6666'>" + "${p}" + " is not prime.</p>")
+  else if p == 2 then dom_inner(result, "<p style='color:#ff6666;margin:4px 0'>(5/2) = <b>-1</b>. phi does NOT exist in Z/2Z. Duality is too small.</p>")
+  else if p == 5 then dom_inner(result, "<p style='color:#ffd700;margin:4px 0'>(5/5) = <b>0</b>. RAMIFIED. phi = 3 = beta in Z/5Z. The observer CANNOT distinguish phi from its conjugate. E^2 = self-blind.</p>")
+  else (
+    let r = p % 5 in
+    let leg = if r == 1 then 1
+      else if r == 4 then 1
+      else 0 in
+    if leg > 0 then (
+      let status = if p == 11 then " phi is a <b>PRIMITIVE ROOT</b> (ord = 10 = D*E)."
+        else if p == 19 then " beta is primitive (ord 9 = K^2). phi has ord K^2/K = K."
+        else if p == 29 then " Neither conjugate is primitive."
+        else if p == 41 then " BOTH phi and beta are primitive roots! KEY unlocks everything."
+        else if p == 109 then " BOTH primitive. f(L) = 109. ord = 108 = lattice count."
+        else if p == 211 then " ord(phi) = 42 = ANSWER! DATA+1 prime."
+        else " phi EXISTS in Z/" + "${p}" + "Z." in
+      dom_inner(result, "<p style='color:#88ddaa;margin:4px 0'>(5/" + "${p}" + ") = <b>+1</b>." + status + "</p><p style='color:#ffd700;margin:4px 0'>p mod 5 = " + "${r}" + " (quadratic residue). sqrt(5) exists mod " + "${p}" + ".</p>")
+    ) else (
+      let note = if p == 3 then " K = closure. Too small for phi."
+        else if p == 7 then " b = depth. phi cannot reach depth."
+        else if p == 13 then " GATE. phi is BLOCKED at the boundary!"
+        else " phi is blocked at this prime." in
+      dom_inner(result, "<p style='color:#ff8844;margin:4px 0'>(5/" + "${p}" + ") = <b>-1</b>." + note + "</p><p style='color:#999;margin:4px 0'>p mod 5 = " + "${r}" + " (non-residue). No sqrt(5) mod " + "${p}" + ".</p>")
+    )
+  )
+)
+
 fn page_golden_ratio() = (
   dom_head_meta("description", "Golden ratio phi = (1+sqrt5)/2 is a primitive root mod L=11. Ramified at E=5 (self-blindness). Blocked at GATE=13. Depth quadratic: phi = p mod f(p). Golden chain, Mersenne-Golden gate, DATA+1 answer. 7 proved theorems.");
   /* === HERO === */
@@ -108,6 +141,14 @@ fn page_golden_ratio() = (
   render_finding(g6, "QNR Pisano", "pi(p) = 2(p+1) maximal", "For axiom-adjacent QNR primes (K,b,GATE,17,23,43,67,97). Sole exception: p=47, pi=32=D^5 (1/K of max).", "S719");
   render_finding(g6, "GATE blocks", "pi(13) = 28 = D^2*b", "THORNS. Divides 2(13+1)=28 exactly. The gate is the boundary where phi must leave the base field.", "");
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: GOLDEN RATIO VISIBILITY === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: phi Visibility Check");
+  render_p(sec_i, "Enter any odd prime p. Does the golden ratio exist in Z/pZ? The Legendre symbol (5/p) tells all: +1 means phi exists, -1 means blocked, 0 means ramified (p=5).");
+  make_interactive_widget(sec_i, "Check golden ratio at prime p:", "gr-input", "e.g. 11", "Check", "golden_check", "gr-result");
+  render_p(sec_i, "Try: 2, 3, 5, 7, 11, 13, 19, 29, 41, 109, 211. Which primes let phi in?");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec7 = make_section("800px") in

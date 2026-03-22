@@ -1,3 +1,42 @@
+/* Shadow polynomial evaluator callback */
+fn sp_name(v) = (
+  if v == 30 then " = D*K*E (Coxeter E8)"
+  else if v == 60 then " = D^2*K*E (lambda THIN)"
+  else if v == 240 then " = D^4*K*E (roots E8!)"
+  else if v == 630 then " = D*K^2*E*b"
+  else if v == 1344 then " = D^3*|PSL(2,7)|"
+  else if v == 2520 then " = lcm(1..K^2)"
+  else if v == 4320 then " = D^5*K^3*E"
+  else if v == 6930 then " = K*THIN"
+  else if v == 10560 then " = D^6*K*E*L (all 5!)"
+  else if v == 30030 then " = THIN*GATE (primorial)"
+  else if v == 40320 then " = 8! = (D^3)!"
+  else ""
+)
+
+fn shadow_calc() = (
+  let x = parse_int_from("#sp-input") in
+  let result = dom_query("#sp-result") in
+  /* P(x) = (x-1)(x-2)(x-3)(x-5) in ring */
+  let a = x + 970199 in
+  let b = x + 970198 in
+  let c = x + 970197 in
+  let d = x + 970195 in
+  let pv = a * b * c * d in
+  let name = sp_name(pv) in
+  /* Check if x is a root */
+  let root_note = if x == 1 then " (ROOT: x = sigma)"
+    else if x == 2 then " (ROOT: x = D)"
+    else if x == 3 then " (ROOT: x = K)"
+    else if x == 5 then " (ROOT: x = E)"
+    else "" in
+  let smooth = is_prime_trial(pv) in
+  let ptag = if smooth > 0 then " <b style='color:#ffd700'>(PRIME)</b>" else "" in
+  dom_inner(result,
+    "<p style='color:#88ddaa;margin:4px 0'><b>P(" + "${x}" + ") = " + "${pv}" + "</b>" + name + root_note + ptag + "</p>" +
+    "<p style='color:#999;margin:4px 0'>= (" + "${x}" + "-1)(" + "${x}" + "-2)(" + "${x}" + "-3)(" + "${x}" + "-5) = " + "${a}" + " * " + "${b}" + " * " + "${c}" + " * " + "${d}" + "</p>")
+)
+
 fn page_shadow_eval() = (
   dom_head_meta("description", "The shadow polynomial P(x) = (x-1)(x-2)(x-3)(x-5) at chain positions. P(b)=240=|roots(E8)|. P(K^2)=1344=8*|PSL(2,7)|. E-Opacity Theorem. Mirror-Light Identity. Primorial and Factorial Theorems.");
   /* === HERO === */
@@ -88,6 +127,14 @@ fn page_shadow_eval() = (
   render_finding(g6, "E8-PSL Factorial", "P(17) = 240 * 168", "= |roots(E8)| * |PSL(2,7)|. 16*15 = 240. 14*12 = 168.", "S712");
   render_finding(g6, "Universal Entry", "p | P(x) iff x = {1,2,3,5} mod p", "For any prime p > 5. Shadow chain = universal entry pattern.", "S712");
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: SHADOW POLYNOMIAL EVALUATOR === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: P(x) Evaluator");
+  render_p(sec_i, "Enter any integer x. Compute P(x) = (x-1)(x-2)(x-3)(x-5). For x from 6 to 13 every result is axiom-smooth. What about YOUR number?");
+  make_interactive_widget(sec_i, "Evaluate P(x) at:", "sp-input", "e.g. 7", "Evaluate", "shadow_calc", "sp-result");
+  render_p(sec_i, "Try: 7 (E8 roots=240), 9 (PSL=1344), 10 (lcm=2520), 13 (all 5 primes), 16 (primorial), 17 (8!=40320).");
+  dom_append(dom_body(), sec_i);
 
   /* === SEC 7: CONTRAST === */
   let sec7 = make_section("800px") in
