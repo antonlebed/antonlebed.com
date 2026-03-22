@@ -124,6 +124,58 @@ fn music_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* music widget: 12-tone decomposition */
+fn mus_note_name(step) = (
+  if step == 0 then "C (unison)"
+  else if step == 1 then "C# / Db"
+  else if step == 2 then "D"
+  else if step == 3 then "D# / Eb"
+  else if step == 4 then "E"
+  else if step == 5 then "F"
+  else if step == 6 then "F# / Gb (tritone)"
+  else if step == 7 then "G (perfect fifth)"
+  else if step == 8 then "G# / Ab"
+  else if step == 9 then "A"
+  else if step == 10 then "A# / Bb"
+  else "B"
+)
+
+fn mus_axiom_note(step) = (
+  if step == 0 then "Unison = sigma (identity)"
+  else if step == 4 then "Major third = E=5 (observer, 5th harmonic)"
+  else if step == 5 then "Perfect fourth = E semitones (observer steps)"
+  else if step == 6 then "Tritone = b/E = 7/5 (depth/observer, devil's interval)"
+  else if step == 7 then "Perfect fifth = K/D = 3/2 (closure/bridge)"
+  else if step == 9 then "Major sixth = K^2 = 9 semitones (spider web)"
+  else if step == 10 then "Septimal seventh ~ b=7 (7th harmonic)"
+  else ""
+)
+
+fn mus_lookup() = (
+  let n = parse_int_from("#mus-input") in
+  let result = dom_query("#mus-result") in
+  let step = n % 12 in
+  let octave = n / 12 in
+  let name = mus_note_name(step) in
+  let axiom = mus_axiom_note(step) in
+  let ax_str = if len(axiom) > 0 then "<p style='color:#ffd700;margin:4px 0'>" + axiom + "</p>" else "" in
+  /* 12 = D^2*K. Fifths generate: step = 7*k mod 12. */
+  /* Count how many perfect fifths from C */
+  mut fifths = 0;
+  mut pos = 0;
+  mut found = 0;
+  while fifths < 12 do (
+    if pos == step then (mut found = fifths) else 0;
+    mut pos = (pos + 7) % 12;
+    mut fifths = fifths + 1
+  );
+  dom_inner(result,
+    "<p style='color:#ccc;margin:4px 0;font-size:18px'><span style='color:#88aaff'>" + name + "</span> (step " + "${step}" + " of 12 = D<sup>2</sup>*K)</p>"
+    + ax_str
+    + "<p style='color:#ccc;margin:4px 0'>Position in circle of fifths: " + "${found}" + " (each fifth = b=7 semitones)</p>"
+    + "<p style='color:#888;margin:4px 0'>12 notes = D^2*K = lambda(DATA). The 13th note = GATE = octave return.</p>")
+)
+
 fn page_music() = (
   dom_head_meta("description", "Every eigenvalue is a chord of 5 cosines. A2 = 110 Hz times {2,3,5,7,11} = the harmonic series. K/D = 3/2 = perfect fifth appears three ways. 12 notes = D^2*K = lambda(DATA). Septimal comma = D^6/(K^2*b). Gorilla drumming at 13 Hz = shadow stopper. The ring sings.");
   music_hero();
@@ -132,5 +184,14 @@ fn page_music() = (
   music_swim();
   music_twelve_tone();
   music_rhythm();
+
+  /* === INTERACTIVE: 12-TONE EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: The 12-Tone Ring");
+  render_p(sec_i, "Enter a semitone number to see its note name, axiom connection, and position in the circle of fifths. 12 = D^2*K = lambda(DATA).");
+  make_interactive_widget(sec_i, "Semitone (0-11):", "mus-input", "e.g. 7", "Play", "mus_lookup", "mus-result");
+  render_p(sec_i, "Try: 0 (unison=sigma), 7 (fifth=K/D), 6 (tritone=b/E), 4 (third=E).");
+  dom_append(dom_body(), sec_i);
+
   music_contrast()
 )

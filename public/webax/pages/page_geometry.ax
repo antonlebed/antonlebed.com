@@ -146,6 +146,50 @@ fn geometry_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* geometry widget: CRT distance from void */
+fn geo_min(a, b) = if a < b then a else b
+
+fn geo_lookup() = (
+  let n = parse_int_from("#geo-input") in
+  let result = dom_query("#geo-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let r2 = n % 8 in
+    let r3 = n % 9 in
+    let r5 = n % 25 in
+    let r7 = n % 49 in
+    let r11 = n % 11 in
+    /* Hamming distance from void = count of nonzero channels */
+    let h2 = if r2 > 0 then 1 else 0 in
+    let h3 = if r3 > 0 then 1 else 0 in
+    let h5 = if r5 > 0 then 1 else 0 in
+    let h7 = if r7 > 0 then 1 else 0 in
+    let h11 = if r11 > 0 then 1 else 0 in
+    let hamming = h2 + h3 + h5 + h7 + h11 in
+    /* CRT L1 distance from void = sum of min(r_i, q_i - r_i) */
+    let d2 = geo_min(r2, 8 - r2) in
+    let d3 = geo_min(r3, 9 - r3) in
+    let d5 = geo_min(r5, 25 - r5) in
+    let d7 = geo_min(r7, 49 - r7) in
+    let d11 = geo_min(r11, 11 - r11) in
+    let l1 = d2 + d3 + d5 + d7 + d11 in
+    /* Cayley distance from void = min(n, N-n) — but N=970200 wraps to 0 */
+    let cayley = if n == 0 then 0 else if n < 485100 then n else 970200 - n in
+    /* Shell = Hamming distance */
+    let shell_name = if hamming == 0 then "VOID (maximum eigenvalue)"
+      else if hamming == 1 then "Shell 1 (1 channel active)"
+      else if hamming == 2 then "Shell 2"
+      else if hamming == 3 then "Shell 3"
+      else if hamming == 4 then "Shell 4"
+      else "Shell 5 (maximum distance)" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>CRT(" + "${n}" + ") = (" + "${r2}" + ", " + "${r3}" + ", " + "${r5}" + ", " + "${r7}" + ", " + "${r11}" + ")</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Per-channel wrapped: (" + "${d2}" + ", " + "${d3}" + ", " + "${d5}" + ", " + "${d7}" + ", " + "${d11}" + ")</p>"
+      + "<p style='color:#88aaff;margin:4px 0;font-size:18px'>Hamming = " + "${hamming}" + " &nbsp; L1 = " + "${l1}" + " &nbsp; Cayley = " + "${cayley}" + "</p>"
+      + "<p style='color:#888;margin:4px 0'>" + shell_name + "</p>")
+  )
+)
+
 fn page_geometry() = (
   dom_head_meta("description", "CRT decomposition gives a 5D coordinate system on the torus T^5. Three metrics (Hamming, CRT L1, Cayley) see different structure. Foundation triangle: E, E, b isosceles. Curvature duality: D flat / L curved in Hamming, reversed in Cayley. Cayley diameter = DATA^2 + 1 = 44101 prime. Kirchhoff + heat half-life = 42. Cross products in {1,3,7} = sigma-chain.");
   geometry_hero();
@@ -157,5 +201,14 @@ fn page_geometry() = (
   geometry_answer();
   geometry_cross();
   geometry_collinear();
+
+  /* === INTERACTIVE: CRT DISTANCE EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Distance from Void");
+  render_p(sec_i, "Enter n to see its CRT coordinates and distance from 0 in all three metrics. Hamming counts active channels, L1 sums wrapped per-channel distances, Cayley is clock distance.");
+  make_interactive_widget(sec_i, "Enter n:", "geo-input", "e.g. 137", "Measure", "geo_lookup", "geo-result");
+  render_p(sec_i, "Try: 1 (sigma, L1=E), 606376 (OMEGA, L1=1), 970199 (mirror, L1=b).");
+  dom_append(dom_body(), sec_i);
+
   geometry_contrast()
 )

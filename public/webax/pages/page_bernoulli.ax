@@ -1,3 +1,53 @@
+/* bernoulli widget: B_{2k} denominator explorer */
+fn bern_lookup() = (
+  let k = parse_int_from("#bern-input") in
+  let result = dom_query("#bern-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter k >= 1.</p>")
+  else (
+    let k2 = k * 2 in
+    /* Von Staudt-Clausen: p | denom(B_{2k}) iff (p-1) | 2k */
+    let has2 = 1 in  /* (2-1)=1 always divides 2k */
+    let has3 = 1 in  /* (3-1)=2 always divides 2k */
+    let has5 = if k2 % 4 == 0 then 1 else 0 in  /* (5-1)=4 | 2k */
+    let has7 = if k2 % 6 == 0 then 1 else 0 in  /* (7-1)=6 | 2k */
+    let has11 = if k2 % 10 == 0 then 1 else 0 in  /* (11-1)=10 | 2k */
+    let has13 = if k2 % 12 == 0 then 1 else 0 in  /* (13-1)=12 | 2k */
+    /* compute denominator */
+    mut d = 6;  /* always has 2*3 */
+    if has5 > 0 then (mut d = d * 5) else 0;
+    if has7 > 0 then (mut d = d * 7) else 0;
+    if has11 > 0 then (mut d = d * 11) else 0;
+    if has13 > 0 then (mut d = d * 13) else 0;
+    /* also check primes 17,19,23,29,31 for larger k */
+    if k2 % 16 == 0 then (mut d = d * 17) else 0;
+    if k2 % 18 == 0 then (mut d = d * 19) else 0;
+    if k2 % 22 == 0 then (mut d = d * 23) else 0;
+    if k2 % 28 == 0 then (mut d = d * 29) else 0;
+    if k2 % 30 == 0 then (mut d = d * 31) else 0;
+    /* build display */
+    let primes_str =
+      "<span style='color:#ffd700'>D=2</span>, <span style='color:#ffd700'>K=3</span>"
+      + (if has5 > 0 then ", <span style='color:#ffd700'>E=5</span>" else "")
+      + (if has7 > 0 then ", <span style='color:#ffd700'>b=7</span>" else "")
+      + (if has11 > 0 then ", <span style='color:#aa44ff'>L=11</span>" else "")
+      + (if has13 > 0 then ", <span style='color:#ff6666'>13=GATE</span>" else "")
+      + (if k2 % 16 == 0 then ", 17" else "")
+      + (if k2 % 18 == 0 then ", 19" else "")
+      + (if k2 % 22 == 0 then ", 23" else "")
+      + (if k2 % 28 == 0 then ", 29" else "")
+      + (if k2 % 30 == 0 then ", 31" else "") in
+    let axiom_count = has2 + has3 + has5 + has7 + has11 in
+    let note = if axiom_count == 5 then "<p style='color:#88ddaa;margin:4px 0'>All 5 axiom primes present! First at k=30=D*K*E.</p>"
+      else if has13 > 0 then "<p style='color:#ff6666;margin:4px 0'>GATE enters! Beyond the axiom primes.</p>"
+      else "" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>B_" + "${k2}" + " (k=" + "${k}" + "): denom = <span style='color:#ffd700;font-size:18px'>" + "${d}" + "</span></p>"
+      + "<p style='color:#ccc;margin:4px 0'>Primes: " + primes_str + "</p>"
+      + "<p style='color:#888;margin:4px 0'>Axiom primes present: " + "${axiom_count}" + "/5</p>"
+      + note)
+  )
+)
+
 fn page_bernoulli() = (
   dom_head_meta("description", "Von Staudt-Clausen (1840) meets the Cunningham chain. Each axiom prime's Bernoulli frequency = 1/(previous axiom prime). B_6 denominator = 42 = ANSWER. DATA ring 210 is structurally forbidden. L=11 self-reference loop. 8 intruder sentinels.");
   /* === HERO === */
@@ -126,6 +176,14 @@ fn page_bernoulli() = (
   dom_append(sec6, etbl);
   render_p(sec6, "Enrichment at prime c(k-1) is exactly c(k-1)/D by Fermat's little theorem. When c(k-1) is composite -- like weight 8 where c(7) = 15 = K*E -- enrichment drops to 1.9x. Only primes carry the full signal.");
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: B_{2k} DENOMINATOR EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Bernoulli Denominators");
+  render_p(sec_i, "Enter k to see denom(B_{2k}). Von Staudt-Clausen: prime p divides denom iff (p-1)|2k.");
+  make_interactive_widget(sec_i, "Enter k (1-30):", "bern-input", "e.g. 3", "Compute", "bern_lookup", "bern-result");
+  render_p(sec_i, "Try: k=1 (denom=6), k=3 (denom=42=ANSWER), k=5 (denom=66), k=6 (denom=2730=GATE enters).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec7 = make_section("800px") in

@@ -157,6 +157,30 @@ fn fields_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* fields widget: Gaussian + Eisenstein norm calculator */
+fn fld_lookup() = (
+  let n = parse_int_from("#fld-input") in
+  let result = dom_query("#fld-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    /* For pair (a, b) where a = n / 100, b = n % 100 — encode as a*100+b */
+    /* Simpler: treat input as single number, compute norms for (1,n) and (n,1) pairs */
+    /* Best approach: show norms for axiom pair (a,b) where we walk a=1..n, b=n */
+    /* Actually simplest: input n, show |1+ni|^2 Gaussian and N_Eis(1,-n) */
+    let gauss = 1 + n * n in  /* |1 + ni|^2 = 1 + n^2 */
+    let eis = 1 + n + n * n in  /* N(1,-n) = 1 + n + n^2 */
+    let gname = con_name(gauss) in
+    let ename = con_name(eis) in
+    let gn = if len(gname) > 0 then " = <span style='color:#ffd700'>" + gname + "</span>" else "" in
+    let en = if len(ename) > 0 then " = <span style='color:#ffd700'>" + ename + "</span>" else "" in
+    let diff = n in  /* N_Eis - N_Gauss = n*(n+1) - n*n = n... wait, 1+n+n^2 - (1+n^2) = n */
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'><b>Gaussian</b> |1 + " + "${n}" + "i|<sup>2</sup> = 1 + " + "${n}" + "<sup>2</sup> = <span style='color:#88aaff;font-size:18px'>" + "${gauss}" + "</span>" + gn + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'><b>Eisenstein</b> N(1, -" + "${n}" + ") = 1 + " + "${n}" + " + " + "${n}" + "<sup>2</sup> = <span style='color:#88ddaa;font-size:18px'>" + "${eis}" + "</span>" + en + "</p>"
+      + "<p style='color:#888;margin:4px 0'>Difference: Eisenstein - Gaussian = " + "${diff}" + " (= ab for pair (1," + "${n}" + "))</p>")
+  )
+)
+
 fn page_fields() = (
   dom_head_meta("description", "Number fields and the axiom. Gaussian norms: |sigma+Di|^2=E, |D+Ki|^2=GATE. Eisenstein lattice: all key constants from one operation. Heegner-Cunningham: all 9 = axiom + c(K*p). Pell: all 5 smooth, Sum(x)=32=D^5. 163 = D^5*K^2-E^3 = Eisenstein norm. Class number mirror involution.");
   fields_hero();
@@ -167,5 +191,14 @@ fn page_fields() = (
   fields_pell();
   fields_legendre();
   fields_class_mirror();
+
+  /* === INTERACTIVE: NORM CALCULATOR === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Norm Calculator");
+  render_p(sec_i, "Enter n to compute Gaussian norm |1+ni|^2 and Eisenstein norm N(1,-n). The difference is always n (= ab for pair (1,n)).");
+  make_interactive_widget(sec_i, "Enter n:", "fld-input", "e.g. 2", "Compute", "fld_lookup", "fld-result");
+  render_p(sec_i, "Try: 2 (Gauss=E, Eis=b), 3 (Gauss=10, Eis=GATE), 5 (Gauss=26, Eis=31), 11 (Gauss=122, Eis=7*19).");
+  dom_append(dom_body(), sec_i);
+
   fields_contrast()
 )
