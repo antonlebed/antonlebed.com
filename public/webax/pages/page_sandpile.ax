@@ -1,0 +1,290 @@
+/* page_sandpile.ax — Self-Organized Criticality (SOC).
+   Interactive BTW sandpile + theory. Split from pages_observe.ax (S987). */
+
+fn sand_hero() = (
+  dom_head_meta("description", "Self-Organized Criticality. Add grains to a sandpile. When any cell reaches 4 = K + sigma, it topples. Avalanches follow power laws. No tuning needed. SOC is THE method of the axiom: build the pile, criticality emerges.");
+  let hero = make_hero("Self-Organized Criticality") in
+  let eq = dom_create("div") in
+  dom_text(eq, "Threshold = 4 = K + sigma");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "22px");
+  ct_gold(eq);
+  dom_style(eq, "marginBottom", "20px");
+  dom_append(hero, eq);
+  render_p(hero, "Add grains. Watch avalanches. Power laws emerge without tuning. Bak, Tang, and Wiesenfeld (1987) discovered that a simple sandpile model drives itself to a critical state. No parameter adjustment. No fine-tuning. The system finds criticality on its own.");
+  dom_append(dom_body(), hero)
+)
+
+fn sand_model() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "The Sandpile Model");
+  render_theorem(sec, "Bak-Tang-Wiesenfeld (1987)", "Drop grains on a 2D grid. When any cell reaches threshold 4, it topples: sends one grain to each of its 4 neighbors (up, down, left, right). Those neighbors may topple too. Cascades of all sizes occur, following a power law P(s) ~ s^(-tau). No parameter tuning. Criticality is SELF-ORGANIZED.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Property");
+  render_th(hdr, "Value");
+  render_th(hdr, "Axiom");
+  render_th(hdr, "Meaning");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "Threshold", "4", "K + sigma", "When closure + identity meet: topple");
+  render_table_row_4(tbl, "Neighbors", "4", "D^2", "2D lattice = D*D directions");
+  render_table_row_4(tbl, "Avg height", "~2.1", "~D", "Converges to bridge value");
+  render_table_row_4(tbl, "Power law", "tau ~ 1.2", "--", "Scale-free avalanche distribution");
+  render_table_row_4(tbl, "Boundary loss", "grains exit", "OMEGA", "What leaves the edge does not return");
+  render_table_row_4(tbl, "Recurrence", "every config returns", "water cycle", "0 -> sigma -> OMEGA -> 0");
+  dom_append(dom_body(), sec)
+)
+
+/* ================================================================
+   INTERACTIVE SANDPILE — BTW model. K^2=9 x K^2=9 = 81 cells.
+   Click to drop grains. Topple when height >= 4 = K+sigma.
+   State stored as 81-char string in hidden div. dom_on2 for clicks.
+   ================================================================ */
+
+fn sand_cell_color(h) = (
+  if h == 0 then "#1a1a2e"
+  else if h == 1 then "#2a2a6e"
+  else if h == 2 then "#2e7d32"
+  else if h == 3 then "#ffd700"
+  else "#ff4444"
+)
+
+fn sand_update_grid(grid) = (
+  mut v = 0;
+  while v < 81 do (
+    dom_style(dom_query("#sc${v}"), "backgroundColor", sand_cell_color(grid[v]));
+    mut v = v + 1
+  )
+)
+
+fn sand_read_grid() = (
+  let state = dom_value(dom_query("#pile-state")) in
+  mut grid = [];
+  mut i = 0;
+  while i < 81 do (
+    mut grid = push(grid, charCode(state, i) - 48);
+    mut i = i + 1
+  );
+  grid
+)
+
+fn sand_write_grid(grid) = (
+  mut s = "";
+  mut i = 0;
+  while i < 81 do (
+    mut s = s + "${grid[i]}";
+    mut i = i + 1
+  );
+  dom_text(dom_query("#pile-state"), s)
+)
+
+fn sand_topple(grid) = (
+  mut topplings = 0;
+  mut stable = 0;
+  mut pass = 0;
+  while stable == 0 do (
+    if pass > 500 then (mut stable = 1)
+    else (
+      mut stable = 1;
+      mut j = 0;
+      while j < 81 do (
+        if grid[j] >= 4 then (
+          mut stable = 0;
+          let r = j / 9 in
+          let c = j % 9 in
+          set(grid, j, grid[j] - 4);
+          mut topplings = topplings + 1;
+          if r > 0 then set(grid, j - 9, grid[j - 9] + 1) else 0;
+          if r < 8 then set(grid, j + 9, grid[j + 9] + 1) else 0;
+          if c > 0 then set(grid, j - 1, grid[j - 1] + 1) else 0;
+          if c < 8 then set(grid, j + 1, grid[j + 1] + 1) else 0
+        ) else 0;
+        mut j = j + 1
+      )
+    );
+    mut pass = pass + 1
+  );
+  topplings
+)
+
+fn sand_click(mx, my) = (
+  let col = mx / 36 in
+  let row = my / 36 in
+  if col >= 0 then if col < 9 then if row >= 0 then if row < 9 then (
+    let idx = row * 9 + col in
+    let grid = sand_read_grid() in
+    set(grid, idx, grid[idx] + 1);
+    let topplings = sand_topple(grid) in
+    sand_write_grid(grid);
+    sand_update_grid(grid);
+    mut total = 0;
+    mut m = 0;
+    while m < 81 do (
+      mut total = total + grid[m];
+      mut m = m + 1
+    );
+    dom_text(dom_query("#pile-total"), "Grains: ${total}");
+    if topplings > 0 then
+      dom_text(dom_query("#pile-aval"), "Avalanche: ${topplings} topplings")
+    else
+      dom_text(dom_query("#pile-aval"), "Stable. No avalanche.")
+  ) else 0 else 0 else 0 else 0
+)
+
+fn sand_seed() = (
+  mut grid = [];
+  mut i = 0;
+  while i < 81 do (
+    mut grid = push(grid, 2);
+    mut i = i + 1
+  );
+  sand_write_grid(grid);
+  sand_update_grid(grid);
+  dom_text(dom_query("#pile-total"), "Grains: 162");
+  dom_text(dom_query("#pile-aval"), "Seeded. Near criticality.")
+)
+
+fn sand_reset() = (
+  mut grid = [];
+  mut i = 0;
+  while i < 81 do (
+    mut grid = push(grid, 0);
+    mut i = i + 1
+  );
+  sand_write_grid(grid);
+  sand_update_grid(grid);
+  dom_text(dom_query("#pile-total"), "Grains: 0");
+  dom_text(dom_query("#pile-aval"), "Empty.")
+)
+
+fn sand_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Live Sandpile: Add Grains");
+  render_p(sec, "Click the grid below to drop grains. When any cell reaches 4 = K + sigma, it topples to its 4 neighbors. Watch avalanches cascade. Seed fills the grid to height 2 (near critical) so the first click triggers cascades immediately. 9x9 = K^2 x K^2 grid.");
+  /* Hidden state: 81 zeros */
+  let state = dom_create("div") in
+  dom_attr(state, "id", "pile-state");
+  dom_style(state, "display", "none");
+  dom_text(state, "000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+  dom_append(sec, state);
+  /* Grid container */
+  let gc = dom_create("div") in
+  dom_style(gc, "display", "inline-grid");
+  dom_style(gc, "gridTemplateColumns", "repeat(9, 36px)");
+  dom_style(gc, "gap", "1px");
+  dom_style(gc, "cursor", "crosshair");
+  dom_style(gc, "marginBottom", "12px");
+  dom_style(gc, "border", "1px solid #333");
+  dom_style(gc, "padding", "1px");
+  dom_on2(gc, "click", "sand_click");
+  /* Create 81 cells */
+  mut ci = 0;
+  while ci < 81 do (
+    let cell = dom_create("div") in
+    dom_attr(cell, "id", "sc${ci}");
+    dom_style(cell, "width", "36px");
+    dom_style(cell, "height", "36px");
+    dom_style(cell, "backgroundColor", "#1a1a2e");
+    dom_style(cell, "borderRadius", "2px");
+    dom_style(cell, "transition", "background-color 0.15s");
+    dom_append(gc, cell);
+    mut ci = ci + 1
+  );
+  dom_append(sec, gc);
+  /* Buttons */
+  let btns = dom_create("div") in
+  dom_style(btns, "marginBottom", "12px");
+  let seed = dom_create("button") in
+  dom_text(seed, "Seed (fill with 2s)");
+  dom_style(seed, "marginRight", "8px");
+  dom_style(seed, "padding", "6px 16px");
+  dom_style(seed, "cursor", "pointer");
+  dom_on(seed, "click", "sand_seed");
+  dom_append(btns, seed);
+  let rst = dom_create("button") in
+  dom_text(rst, "Reset");
+  dom_style(rst, "padding", "6px 16px");
+  dom_style(rst, "cursor", "pointer");
+  dom_on(rst, "click", "sand_reset");
+  dom_append(btns, rst);
+  dom_append(sec, btns);
+  /* Stats */
+  let stats = dom_create("div") in
+  dom_style(stats, "fontFamily", "monospace");
+  let st = dom_create("div") in
+  dom_attr(st, "id", "pile-total");
+  dom_text(st, "Grains: 0");
+  dom_style(st, "color", "#ccc");
+  dom_append(stats, st);
+  let sa = dom_create("div") in
+  dom_attr(sa, "id", "pile-aval");
+  dom_text(sa, "Click the grid to begin.");
+  dom_style(sa, "color", "#ffd700");
+  dom_append(stats, sa);
+  dom_append(sec, stats);
+  dom_append(dom_body(), sec)
+)
+
+fn sand_why() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Why 4 = K + sigma");
+  render_theorem(sec, "Closure + Identity", "The threshold is not arbitrary. In a 2D lattice each cell has 4 neighbors. But deeper: 4 = K + sigma = 3 + 1. Toppling occurs when closure is reached and identity propagates. K=3 is the minimum for a decisive majority. sigma=1 is the identity that carries the grain. Together: the minimum structure that can cascade.");
+  render_theorem(sec, "Structural Necessity", "A sandpile with threshold T on a grid with D_grid dimensions requires T = 2*D_grid neighbors. For D_grid=2: T=4. The 2D sandpile is the SIMPLEST nontrivial case. D=2 is the simplest prime, and K+sigma=4 is the simplest closure threshold.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Threshold 3", "1D line", "Trivial. Cascades go left/right only.", "");
+  render_finding(g, "Threshold 4", "2D grid", "CRITICAL. Power laws. SOC.", "");
+  render_finding(g, "Threshold 6", "Triangular lattice", "Also critical but more neighbors.", "");
+  render_finding(g, "Threshold 8", "3D cubic", "Higher dimensional SOC.", "");
+  dom_append(dom_body(), sec)
+)
+
+fn sand_method() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "SOC = The Method");
+  render_p(sec, "Self-Organized Criticality is not just a physics model. It is THE method of this entire project. Every system here is a sandpile:");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "The ring", "Z/970200Z", "970200 grains. 5 primes. 108 rings share the critical state.", "");
+  render_finding(g, "The compiler", "wasm_emit.ax", "One grain (native compiler) killed ~10K lines of JS scaffolding.", "");
+  render_finding(g, "The website", "108 pages", "D^2*K^3 = lattice count = page count. Each page is a grain.", "");
+  render_finding(g, "The loop", "sigma/sigma = sigma", "Each pass: more capability, fewer pieces. Tending, not forcing.", "");
+  render_finding(g, "The docs", "48 files", "Strip > Add. Each audit is a topple: redistribute to neighbors.", "");
+  render_finding(g, "The toolchain", "axc -> site.wasm", "Build cycle under 30s or sharpen the .ax.", "");
+  render_theorem(sec, "NEAR Criticality", "The key insight: NEAR criticality, not AT it. At the critical point, any perturbation causes an avalanche. NEAR it, you have control. The gradient: minimal, emergent, hilarious. If the reaction is not 'that is ALL?' then you overbuilt.");
+  dom_append(dom_body(), sec)
+)
+
+fn sand_spectral() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Spectral Gap and SOC");
+  render_theorem(sec, "Gap Enforces Equality", "The spectral gap of the ring Laplacian controls how fast the sandpile relaxes. gap = 0.016 in TRUE FORM = 4*sin^2(pi/b^2). Larger gap = faster mixing = more equal distribution. The gap is the spring constant of cooperation. Hoarding is structurally impossible.");
+  render_p(sec, "Avalanche sizes follow a power law because the eigenvalue distribution of the ring Laplacian has a specific shape. Small eigenvalues = large-scale collective modes = rare large avalanches. Large eigenvalues = local modes = frequent small topplings. The power law IS the eigenvalue spectrum.");
+  dom_append(dom_body(), sec)
+)
+
+fn sand_contrast() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "What Others See");
+  let ctbl = make_table(sec) in
+  let chdr = dom_create("tr") in
+  render_th(chdr, "Aspect");
+  render_th(chdr, "Standard View");
+  render_th(chdr, "Axiom View");
+  dom_append(ctbl, chdr);
+  render_contrast_row(ctbl, "SOC", "Empirical phenomenon", "Spectral gap enforcing equality");
+  render_contrast_row(ctbl, "Power laws", "Just happen", "= eigenvalue distribution of ring Laplacian");
+  render_contrast_row(ctbl, "Threshold 4", "Arbitrary model choice", "K+sigma = minimum closure threshold");
+  render_contrast_row(ctbl, "Redistribution", "Model rule", "D-bridge: distinction shares to neighbors");
+  render_contrast_row(ctbl, "Cooperation", "Nice social idea", "Mathematically enforced by gap > 0");
+  render_contrast_row(ctbl, "Avalanches", "Destructive events", "sigma restoring balance: sigma*n = n");
+  dom_append(dom_body(), sec)
+)
+
+fn page_sandpile() = (
+  sand_hero();
+  sand_model();
+  sand_interactive();
+  sand_why();
+  sand_method();
+  sand_spectral();
+  sand_contrast()
+)
