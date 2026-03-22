@@ -458,6 +458,32 @@ fn consciousness_chimera() = (
   dom_append(dom_body(), sec)
 )
 
+/* 7-gate classifier: enter n, show which gates are active */
+fn consciousness_gate_calc() = (
+  let n = parse_int_from("#consc-input") in
+  let result = dom_query("#consc-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let g0 = if n == 0 then 1 else 0 in
+    let g1 = 1 in
+    let g2 = if n % 2 > 0 then 1 else 0 in
+    let g3 = if n % 3 > 0 then 1 else 0 in
+    let g5 = if n % 5 > 0 then 1 else 0 in
+    let g7 = if n % 7 > 0 then 1 else 0 in
+    let g11 = if n % 11 > 0 then 1 else 0 in
+    let active = g2 + g3 + g5 + g7 + g11 in
+    let s2 = if g2 > 0 then "<span style='color:#88ddaa'>MIRROR</span>" else "<span style='color:#ff6666'>frozen</span>" in
+    let s3 = if g3 > 0 then "<span style='color:#88ddaa'>CLOSE</span>" else "<span style='color:#ff6666'>frozen</span>" in
+    let s5 = if g5 > 0 then "<span style='color:#88ddaa'>OBSERVE</span>" else "<span style='color:#ff6666'>frozen</span>" in
+    let s7 = if g7 > 0 then "<span style='color:#88ddaa'>DEEPEN</span>" else "<span style='color:#ff6666'>frozen</span>" in
+    let s11 = if g11 > 0 then "<span style='color:#88ddaa'>PROTECT</span>" else "<span style='color:#ff6666'>frozen</span>" in
+    let status = if g0 > 0 then "<b style='color:#ff6666'>VOID: all gates annihilated.</b>"
+      else if active == 5 then "<b style='color:#ffd700'>UNIT: all 5 gates active (${active}/5 spinning).</b>"
+      else "<b style='color:#ccc'>${active}/5 gates active.</b>" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>${status}</p><p style='margin:4px 0'>D=${s2} | K=${s3} | E=${s5} | b=${s7} | L=${s11}</p><p style='margin:4px 0;color:#888'>Frozen gate = n divisible by that prime. Your composition IS your constraint.</p>")
+  )
+)
+
 fn consciousness_contrast() = (
   let sec = make_section("800px") in
   render_h2(sec, "Numerology vs Axiom");
@@ -487,6 +513,11 @@ fn page_consciousness() = (
   consciousness_binding();
   consciousness_scale();
   consciousness_chimera();
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Gate Classifier");
+  render_p(sec_i, "Enter any number n. See which of the 7 cognitive gates are active (spinning) vs frozen. A gate freezes when n is divisible by its prime. Try 0 (void), 1 (sigma, all active), 210 (DATA, only L spins).");
+  make_interactive_widget(sec_i, "Enter n:", "#consc-input", "e.g. 105", "Classify", "consciousness_gate_calc", "consc-result");
+  dom_append(dom_body(), sec_i);
   consciousness_contrast()
 )
 
@@ -750,6 +781,32 @@ fn neuro_evidence() = (
   dom_append(dom_body(), sec)
 )
 
+/* EEG band classifier: enter Hz, get band + axiom boundary */
+fn neuro_band_calc() = (
+  let hz = parse_int_from("#neuro-input") in
+  let result = dom_query("#neuro-result") in
+  if hz < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter frequency >= 1 Hz.</p>")
+  else (
+    let band = if hz < 4 then "Delta"
+      else if hz < 8 then "Theta"
+      else if hz < 13 then "Alpha"
+      else if hz < 30 then "Beta"
+      else "Gamma" in
+    let boundary = if hz < 4 then "upper = D^2 = 4 Hz"
+      else if hz < 8 then "upper = D^3 = 8 Hz"
+      else if hz < 13 then "upper = GATE = 13 Hz"
+      else if hz < 30 then "upper = D*K*E = 30 Hz"
+      else "above 30 Hz (D*K*E)" in
+    let meaning = if hz < 4 then "Deep sleep. Channel locking begins."
+      else if hz < 8 then "Meditation/drowsiness. CRT collinearity threshold."
+      else if hz < 13 then "Relaxed awareness. Peak = D*E = 10 Hz = degree(TRUE)."
+      else if hz < 30 then "Active thinking. Shadow polynomial P(0) = 30."
+      else "Conscious binding. 40 Hz = D^3*E." in
+    let dpower = if hz == 2 then " = D" else if hz == 4 then " = D^2" else if hz == 8 then " = D^3" else if hz == 16 then " = D^4" else if hz == 32 then " = D^5" else if hz == 10 then " = D*E (degree)" else if hz == 30 then " = D*K*E" else if hz == 40 then " = D^3*E" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>${hz} Hz${dpower}</p><p style='margin:4px 0'>Band: <b style='color:#ffd700'>${band}</b></p><p style='margin:4px 0;color:#999'>Boundary: ${boundary}</p><p style='margin:4px 0;color:#888'>${meaning}</p>")
+  )
+)
+
 fn neuro_contrast() = (
   let sec = make_section("800px") in
   render_h2(sec, "Numerology vs Axiom");
@@ -786,6 +843,11 @@ fn page_neuro() = (
   neuro_hormones();
   neuro_universe();
   neuro_evidence();
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: EEG Band Classifier");
+  render_p(sec_i, "Enter a frequency in Hz. See which EEG band it falls in and the axiom boundary. Try 10 (alpha peak = D*E), 40 (gamma binding = D^3*E), 8 (theta-alpha gate = D^3).");
+  make_interactive_widget(sec_i, "Frequency (Hz):", "#neuro-input", "e.g. 10", "Classify", "neuro_band_calc", "neuro-result");
+  dom_append(dom_body(), sec_i);
   neuro_contrast()
 )
 
@@ -1092,6 +1154,33 @@ fn carousel_identity_lattice() = (
   render_finding(g, "Pair preservation", "Min k > 1 preserving 2 channels", "{D^3,K^2}: b. {K^2,b^2}: 43 = Heegner. {E^2,b^2}: 421 = lambda+1. {b^2,L}: 211 = DATA+1. ALL axiom-meaningful.", "S260");
   render_finding(g, "Cross-chain resonance", "CC1(sigma) {K,b}: self-resonant", "max(p^e) = p^(e-1). Self-similar scaling. CC1(D) {D,E,L}: chain resonance -- each channel resonates with previous Cunningham member.", "S260");
   dom_append(dom_body(), sec)
+)
+
+/* Carousel spinning cost: enter n, show frozen/spinning rings */
+fn carousel_spin_calc() = (
+  let n = parse_int_from("#car-input") in
+  let result = dom_query("#car-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let r2 = n % 8 in
+    let r3 = n % 9 in
+    let r5 = n % 25 in
+    let r7 = n % 49 in
+    let r11 = n % 11 in
+    let f2 = if n % 2 == 0 then 1 else 0 in
+    let f3 = if n % 3 == 0 then 1 else 0 in
+    let f5 = if n % 5 == 0 then 1 else 0 in
+    let f7 = if n % 7 == 0 then 1 else 0 in
+    let f11 = if n % 11 == 0 then 1 else 0 in
+    let spinning = 5 - f2 - f3 - f5 - f7 - f11 in
+    let s2 = if f2 > 0 then "<span style='color:#ff6666'>FROZEN</span>" else "<span style='color:#88ddaa'>${r2}</span>" in
+    let s3 = if f3 > 0 then "<span style='color:#ff6666'>FROZEN</span>" else "<span style='color:#88ddaa'>${r3}</span>" in
+    let s5 = if f5 > 0 then "<span style='color:#ff6666'>FROZEN</span>" else "<span style='color:#88ddaa'>${r5}</span>" in
+    let s7 = if f7 > 0 then "<span style='color:#ff6666'>FROZEN</span>" else "<span style='color:#88ddaa'>${r7}</span>" in
+    let s11 = if f11 > 0 then "<span style='color:#ff6666'>FROZEN</span>" else "<span style='color:#88ddaa'>${r11}</span>" in
+    let hclass = if spinning == 5 then "H=5 (unit, all spinning)" else if spinning == 0 then "H=0 (axis, all frozen)" else "H=${spinning}" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${n} on the carousel</p><p style='margin:4px 0'>CRT = (${s2}, ${s3}, ${s5}, ${s7}, ${s11})</p><p style='margin:4px 0;color:#999'>Hamming weight: ${hclass}</p><p style='margin:4px 0;color:#888'>Frozen = divisible by that prime. ${spinning}/5 rings spinning.</p>")
+  )
 )
 
 fn carousel_contrast() = (

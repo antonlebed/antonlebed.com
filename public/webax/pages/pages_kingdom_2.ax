@@ -22,6 +22,11 @@ fn page_carousel() = (
   carousel_petals();
   carousel_power_maps();
   carousel_identity_lattice();
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Carousel Position");
+  render_p(sec_i, "Enter any number to see its position on the 5-ring carousel. Shows CRT coordinates and which rings are frozen (divisible by that prime). Try 210 (DATA: only L spins), 105 (HYDOR: D and L spin), 1 (sigma: all spin).");
+  make_interactive_widget(sec_i, "Enter n:", "#car-input", "e.g. 42", "Spin", "carousel_spin_calc", "car-result");
+  dom_append(dom_body(), sec_i);
   carousel_contrast()
 )
 
@@ -353,6 +358,33 @@ fn language_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* Alphabet size factorizer */
+fn language_factor_calc() = (
+  let n = parse_int_from("#lang-input") in
+  let result = dom_query("#lang-result") in
+  if n < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter alphabet size >= 2.</p>")
+  else (
+    /* trial divide by axiom primes */
+    mut rem = n;
+    mut v2 = 0;
+    while rem % 2 == 0 do (mut rem = rem / 2; mut v2 = v2 + 1);
+    mut v3 = 0;
+    while rem % 3 == 0 do (mut rem = rem / 3; mut v3 = v3 + 1);
+    mut v5 = 0;
+    while rem % 5 == 0 do (mut rem = rem / 5; mut v5 = v5 + 1);
+    mut v7 = 0;
+    while rem % 7 == 0 do (mut rem = rem / 7; mut v7 = v7 + 1);
+    mut v11 = 0;
+    while rem % 11 == 0 do (mut rem = rem / 11; mut v11 = v11 + 1);
+    let smooth = if rem == 1 then 1 else 0 in
+    let tag = if smooth > 0 then "<b style='color:#88ddaa'>AXIOM-SMOOTH</b>" else "<b style='color:#ffd700'>Contains intruder ${rem}</b>" in
+    let d_null = if v2 > 0 then "D-null (writing IS duality)" else "D-coprime (rare: breaks the writing = duality rule)" in
+    let known = if n == 26 then " = Latin (D * 13 = GATE)" else if n == 33 then " = Georgian/Cyrillic (K * L)" else if n == 22 then " = Hebrew (D * L)" else if n == 24 then " = Greek (D^3 * K)" else if n == 28 then " = Arabic (D^2 * b)" else if n == 46 then " = Devanagari (D * 23)" else "" in
+    let factors = "${v2}*D ${v3}*K ${v5}*E ${v7}*b ${v11}*L" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Alphabet size = ${n}${known}</p><p style='margin:4px 0'>${tag}</p><p style='margin:4px 0;color:#999'>Exponents: D^${v2} * K^${v3} * E^${v5} * b^${v7} * L^${v11}${if smooth > 0 then "" else " * ${rem}"}</p><p style='margin:4px 0;color:#888'>${d_null}</p>")
+  )
+)
+
 fn page_language() = (
   dom_head_meta("description", "Every alphabet decomposes into axiom primes. Georgian=K*L=33. Hebrew=D*L=22. Sacred boundary: 70.3% smooth, 13 dominates. Voynich: MI=1.635 near E/K (1.9%), mean WL near log2(E^2) (0.08%). Greenberg 45=K^2*E universals. Dante: 9+7+9=E^2. Culture: 88.4% smooth (9.1x). Paleolithic: 35,000-year invariance.");
   language_hero();
@@ -372,6 +404,11 @@ fn page_language() = (
   language_dante();
   language_culture();
   language_paleolithic();
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Alphabet Factorizer");
+  render_p(sec_i, "Enter an alphabet size. See its axiom-prime decomposition and whether it is 11-smooth. Try 26 (Latin = D*GATE), 33 (Georgian = K*L), 22 (Hebrew = D*L), 24 (Greek = D^3*K).");
+  make_interactive_widget(sec_i, "Letter count:", "#lang-input", "e.g. 33", "Factor", "language_factor_calc", "lang-result");
+  dom_append(dom_body(), sec_i);
   language_contrast()
 )
 
@@ -543,6 +580,22 @@ fn observer_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* E^2 self-blindness: enter n, compute n mod 25 */
+fn observer_e2_calc() = (
+  let n = parse_int_from("#obs-input") in
+  let result = dom_query("#obs-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let r25 = n % 25 in
+    let blind = if r25 == 0 then "<b style='color:#ffd700'>E-NULL</b>: invisible to the observer. Self-blind zone."
+      else "<span style='color:#88ddaa'>E-visible</span>: observer sees position ${r25} in Z/25." in
+    let r5 = n % 5 in
+    let ediv = if r5 == 0 then "E-divisible (frozen in E-channel)." else "E-coprime (spinning in E-channel)." in
+    let name = if n == 0 then " = VOID" else if n == 1 then " = sigma" else if n == 25 then " = E^2" else if n == 42 then " = ANSWER" else if n == 125 then " = E^3 (Higgs)" else if n == 606376 then " = OMEGA" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${n}${name}</p><p style='margin:4px 0'>n mod E^2 = n mod 25 = <b>${r25}</b></p><p style='margin:4px 0'>${blind}</p><p style='margin:4px 0;color:#999'>${ediv}</p><p style='margin:4px 0;color:#666'>E^2 = 25 = number of SM particles = observer squared. The count IS the self-blindness.</p>")
+  )
+)
+
 fn page_observer() = (
   dom_head_meta("description", "E=5 is the observer prime. 10 proofs of uniqueness. E^2 = self-blind: 5 faces from one bit (E mod 4 = 1). K to E boundary: certainty to probability in one step. Missing-E in crystals and genetics. Gaussian norm, golden ratio, E-mode death, Dual Bloom.");
   observer_hero();
@@ -554,6 +607,11 @@ fn page_observer() = (
   observer_discriminant();
   observer_omega_death();
   observer_dual_bloom();
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: E^2 Self-Blindness");
+  render_p(sec_i, "Enter any number. See its residue mod E^2 = 25. Numbers at position 0 are INVISIBLE to the observer -- they live in E's blind spot. Try 25 (E^2), 125 (Higgs = E^3), 42 (ANSWER).");
+  make_interactive_widget(sec_i, "Enter n:", "#obs-input", "e.g. 25", "Look", "observer_e2_calc", "obs-result");
+  dom_append(dom_body(), sec_i);
   observer_contrast()
 )
 

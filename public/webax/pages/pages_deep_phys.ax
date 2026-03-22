@@ -630,6 +630,34 @@ fn page_force_hierarchy() = (
   dom_append(dom_body(), sec6)
 )
 
+/* Boson/Fermion mass identifier: enter mass, see axiom expression */
+fn bf_mass_calc() = (
+  let m = parse_int_from("#bf-input") in
+  let result = dom_query("#bf-result") in
+  if m < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter mass >= 1.</p>")
+  else (
+    let name = if m == 125 then "Higgs boson: E^3 = 125 GeV. <b style='color:#88ddaa'>PURE</b> (boson)."
+      else if m == 91 then "Z boson: GATE * b = 91 GeV. <b style='color:#88ddaa'>PURE</b> (boson)."
+      else if m == 80 then "W boson: D^4 * E = 80 GeV. <b style='color:#88ddaa'>PURE</b> (boson)."
+      else if m == 938 then "Proton: D * b * SOUL = 938 MeV. <b style='color:#ffd700'>NAMED</b> (SOUL=67)."
+      else if m == 511 then "Electron: D^9 - sigma = 511 keV. <b style='color:#ffd700'>NAMED</b> (sigma offset)."
+      else if m == 105 then "Muon: HYDOR = K*E*b = 105 MeV. <b style='color:#ffd700'>NAMED</b> (HYDOR)."
+      else if m == 173 then "Top quark: DUAL = 173 GeV. <b style='color:#ffd700'>NAMED</b> (DUAL)."
+      else if m == 1270 then "Charm quark: D*E*M(b) = 1270 MeV. <b style='color:#ffd700'>NAMED</b> (M(b)=127)."
+      else if m == 4171 then "Bottom quark: G*43 = 4171 MeV. <b style='color:#ffd700'>NAMED</b> (G=97)."
+      else if m == 0 then "Photon/gluon: VOID = 0. <b style='color:#88ddaa'>PURE</b> (purest product: nothing)."
+      else "No known SM particle at this mass." in
+    let smooth = 1 in
+    let mm = m in
+    let v2 = if mm % 2 == 0 then (if mm % 4 == 0 then (if mm % 8 == 0 then "2^3+" else "2^2") else "2") else "" in
+    let m3 = if mm % 3 == 0 then "3" else "" in
+    let m5 = if mm % 5 == 0 then "5" else "" in
+    let m7 = if mm % 7 == 0 then "7" else "" in
+    let m11 = if mm % 11 == 0 then "11" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Mass = ${m}</p><p style='margin:4px 0'>${name}</p><p style='margin:4px 0;color:#999'>Axiom prime factors present: ${v2} ${m3} ${m5} ${m7} ${m11}</p>")
+  )
+)
+
 fn page_boson_fermion() = (
   dom_head_meta("description", "E^2 = 25 particles = GATE(13 bosons) + D^2*K(12 fermions). Every boson mass = pure axiom-prime product. Every fermion mass requires named ring values. Bosons are anonymous. Fermions are individuals. Purity conjecture: spin-statistics = factorization purity in Z/970200Z.");
   /* === HERO === */
@@ -721,6 +749,13 @@ fn page_boson_fermion() = (
   render_theorem(sec5, "Purity Conjecture", "Why does symmetric exchange (integer spin, bosons) correlate with factorization purity (pure prime products)? Bosons are interchangeable -- swap two and nothing changes. They need no identity. Their masses are anonymous combinations of primes. Fermions obey Pauli exclusion -- they MUST be distinguishable. They need names. Their masses require specific ring elements. Is mass-naming = individuation in the ring? Is spin-statistics a RING-THEORETIC statement about factorization uniqueness? The counting works (13+12=25=E^2). The formulas work. The mechanism remains OPEN.");
   dom_append(dom_body(), sec5);
 
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Particle Mass Identifier");
+  render_p(sec_i, "Enter a particle mass (GeV or MeV as integer). Try 125 (Higgs), 91 (Z), 80 (W), 938 (proton), 511 (electron), 105 (muon), 173 (top).");
+  make_interactive_widget(sec_i, "Mass:", "#bf-input", "e.g. 125", "Identify", "bf_mass_calc", "bf-result");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "What Others See");
@@ -730,6 +765,30 @@ fn page_boson_fermion() = (
   render_contrast_row(sec6, "Fermion masses", "19 free parameters of SM, unexplained", "Named ring values: SOUL, G, DUAL, KEY. Identity = individuation.");
   render_contrast_row(sec6, "Spin-statistics", "Theorem (1940), unexplained at deeper level", "D=2 duality. Integer = idempotent. Half-integer = nilpotent. Ring algebraic.");
   dom_append(dom_body(), sec6)
+)
+
+/* Legendre symbol (p/23) -- tau(p) mod 23 classifier */
+fn modform_legendre_calc() = (
+  let p = parse_int_from("#mf-input") in
+  let result = dom_query("#mf-result") in
+  if p < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter a prime p >= 2.</p>")
+  else if is_prime_trial(p) == 0 then dom_inner(result, "<p style='color:#ff6666'>${p} is not prime.</p>")
+  else if p == 23 then dom_inner(result, "<p style='color:#ccc'>p = 23 is the modulus itself (Ramanujan congruence prime). tau(23) mod 23 = 0 trivially.</p>")
+  else (
+    /* Compute p^11 mod 23 via Euler criterion: (p/23) = p^11 mod 23 */
+    let r = p % 23 in
+    mut acc = 1;
+    mut i = 0;
+    while i < 11 do (
+      mut acc = acc * r % 23;
+      mut i = i + 1
+    );
+    let leg = if acc == 1 then 1 else 0 in
+    let chain = if leg > 0 then "<b style='color:#88ddaa'>INNER</b> (quadratic residue mod 23)" else "<b style='color:#ffd700'>OUTER</b> (non-residue mod 23)" in
+    let tau_mod = if leg > 0 then "nonzero (cycles: sigma, mirror)" else "0 (void)" in
+    let axiom_name = if p == 2 then " = D" else if p == 3 then " = K" else if p == 5 then " = E" else if p == 7 then " = b" else if p == 11 then " = L" else if p == 13 then " = GATE" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>p = ${p}${axiom_name}</p><p style='margin:4px 0'>Legendre (${p}/23): ${chain}</p><p style='margin:4px 0;color:#999'>tau(${p}) mod 23 = ${tau_mod}</p><p style='margin:4px 0;color:#666'>Inner = {D, K, GATE, ...}. Outer = {E, b, L, ...}.</p>")
+  )
 )
 
 fn page_modular_forms() = (
@@ -841,6 +900,13 @@ fn page_modular_forms() = (
   render_h2(sec7, "The Partition-Eta Thread");
   render_p(sec7, "The generating function for partitions is 1/eta(tau). The eta function's 24th power = Delta. 24 = D^3 * K links three structures: the Cunningham chain c(n) = 2n+1, the Leech lattice (24 dimensions), and the modular form (eta^24 = Delta). The partition function p(n) is {2,3,5,7,11}-smooth for n <= 12 = lambda(DATA). The unique cusp form has weight 12. Same number. Same gate.");
   dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Tau Classification");
+  render_p(sec_i, "Enter a prime p. See if tau(p) mod 23 classifies it as INNER (QR) or OUTER (NR). Inner = {D, K, GATE, ...}. Outer = {E, b, L, ...}.");
+  make_interactive_widget(sec_i, "Prime p:", "#mf-input", "e.g. 7", "Classify", "modform_legendre_calc", "mf-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec8 = make_section("800px") in

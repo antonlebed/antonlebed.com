@@ -1,6 +1,26 @@
 /* pages_data_2.ax — DATA continued: condensed, statmech, nuclear, particles, dna, pmns, human_shape.
    Split from pages_data.ax. 7 pages. */
 
+/* Point group order axiom-checker */
+fn condensed_pg_calc() = (
+  let n = parse_int_from("#pg-input") in
+  let result = dom_query("#pg-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter order >= 1.</p>")
+  else (
+    /* Factor into D^a * K^b */
+    mut rem = n;
+    mut v2 = 0;
+    while rem % 2 == 0 do (mut rem = rem / 2; mut v2 = v2 + 1);
+    mut v3 = 0;
+    while rem % 3 == 0 do (mut rem = rem / 3; mut v3 = v3 + 1);
+    let dk_pure = if rem == 1 then 1 else 0 in
+    let tag = if dk_pure > 0 then "<b style='color:#88ddaa'>D^${v2} * K^${v3} = crystallographic</b>"
+      else "<b style='color:#ff6666'>NOT D^a*K^b form (remainder = ${rem})</b>" in
+    let known = if n == 1 then " = C1 (trivial)" else if n == 2 then " = Ci, Cs, C2" else if n == 3 then " = C3" else if n == 4 then " = C2h, C2v, S4, D2" else if n == 6 then " = C3i, C3v, D3" else if n == 8 then " = C4h, C4v, S8, D2h, D2d, D4" else if n == 12 then " = C6h, C6v, D3h, D3d, T, D6" else if n == 16 then " = D4h, D4d" else if n == 24 then " = D6h, D6d, Th, Td, O" else if n == 48 then " = Oh" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Point group order = ${n}${known}</p><p style='margin:4px 0'>${tag}</p><p style='margin:4px 0;color:#999'>ALL 32 point group orders are D^a * K^b. This is the crystallographic restriction theorem.</p>")
+  )
+)
+
 fn page_condensed() = (
   dom_head_meta("description", "Crystal systems = b = 7. Bravais = D*b = 14. Point groups = D^5 = 32. Space groups = D*E*23 = 230. Wallpaper = 17 = ESCAPE. Jain filling fractions walk the axiom chain. Bott period = D^3 = 8. AZ classes = D*E = 10.");
   /* === HERO === */
@@ -79,6 +99,13 @@ fn page_condensed() = (
   render_table_row(t4, "Wiedemann-Franz", "pi^2/3", "pi^2/K");
   render_table_row(t4, "Orbital sequence", "{1,3,5,7}", "{sigma,K,E,b}");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Point Group Order");
+  render_p(sec_i, "Enter a point group order. Check if it is D^a * K^b (crystallographic restriction). ALL 32 groups have orders of this form. Try 48 (Oh), 24 (O, Td), 12 (T, D6).");
+  make_interactive_widget(sec_i, "Group order:", "#pg-input", "e.g. 24", "Check", "condensed_pg_calc", "pg-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
@@ -362,6 +389,43 @@ fn page_nuclear() = (
   dom_append(dom_body(), sec8)
 )
 
+/* SM particle mass identifier */
+fn particles_mass_calc() = (
+  let m = parse_int_from("#part-input") in
+  let result = dom_query("#part-result") in
+  if m < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter mass >= 1.</p>")
+  else (
+    let name = if m == 125 then "<b style='color:#ffd700'>Higgs boson</b>: E^3 = 125 GeV. Pure axiom cube. (0.20%)"
+      else if m == 91 then "<b style='color:#ffd700'>Z boson</b>: GATE*b = 13*7 = 91 GeV. (0.21%)"
+      else if m == 80 then "<b style='color:#ffd700'>W boson</b>: D^4*E = 16*5 = 80 GeV. (0.47%)"
+      else if m == 511 then "<b style='color:#ffd700'>Electron</b>: D^9-sigma = 512-1 = 511 keV. Mersenne. (0.0002%)"
+      else if m == 105 then "<b style='color:#ffd700'>Muon</b>: HYDOR = K*E*b = 105 MeV. (0.62%)"
+      else if m == 1778 then "<b style='color:#ffd700'>Tau</b>: D^4*HYDOR + D*b^2 = 1778 MeV. (0.06%)"
+      else if m == 938 then "<b style='color:#ffd700'>Proton</b>: D*b*SOUL = 2*7*67 = 938 MeV. (0.03%)"
+      else if m == 173 then "<b style='color:#ffd700'>Top quark</b>: DUAL = 173 GeV. (0.35%)"
+      else if m == 1270 then "<b style='color:#ffd700'>Charm quark</b>: D*E*M(b) = 10*127 = 1270 MeV. (EXACT)"
+      else if m == 4171 then "<b style='color:#ffd700'>Bottom quark</b>: G*43 = 97*43 = 4171 MeV. (0.2%)"
+      else if m == 140 then "<b style='color:#ffd700'>Pion+-</b>: ADDRESS+K = 137+3 = 140 MeV. (0.31%)"
+      else if m == 135 then "<b style='color:#ffd700'>Pion0</b>: ADDRESS-D = 137-2 = 135 MeV. (0.02%)"
+      else if m == 3097 then "<b style='color:#ffd700'>J/psi</b>: G*D^E-b = 97*32-7 = 3097 MeV. (0.003%)"
+      else "No known particle at this mass." in
+    /* axiom smoothness check */
+    mut rem = m;
+    mut v2 = 0;
+    while rem % 2 == 0 do (mut rem = rem / 2; mut v2 = v2 + 1);
+    mut v3 = 0;
+    while rem % 3 == 0 do (mut rem = rem / 3; mut v3 = v3 + 1);
+    mut v5 = 0;
+    while rem % 5 == 0 do (mut rem = rem / 5; mut v5 = v5 + 1);
+    mut v7 = 0;
+    while rem % 7 == 0 do (mut rem = rem / 7; mut v7 = v7 + 1);
+    mut v11 = 0;
+    while rem % 11 == 0 do (mut rem = rem / 11; mut v11 = v11 + 1);
+    let smooth = if rem == 1 then "<span style='color:#88ddaa'>11-SMOOTH</span>" else "<span style='color:#999'>Not 11-smooth (cofactor ${rem})</span>" in
+    dom_inner(result, "<p style='margin:4px 0'>${name}</p><p style='margin:4px 0;color:#999'>Factoring: 2^${v2} * 3^${v3} * 5^${v5} * 7^${v7} * 11^${v11}${if rem > 1 then " * ${rem}" else ""}</p><p style='margin:4px 0'>${smooth}</p>")
+  )
+)
+
 fn page_particles() = (
   dom_head_meta("description", "23 particle masses from five primes. Higgs = E^3 = 125 GeV (0.2%). Z = GATE*b = 91 (0.2%). W = D^4*E = 80 (0.5%). Electron = D^9-1 = 511 keV (0.0002%). Proton = D*b*SOUL = 938 (0.03%). All PDG 2024. Zero free parameters.");
   /* === HERO === */
@@ -481,6 +545,13 @@ fn page_particles() = (
   render_finding(g5, "Fermions", "D^2*K = 12", "6 quarks + 6 leptons = 12. Heart structure. Trinity heart.", "");
   render_finding(g5, "Quark colors", "K = 3", "Closure. QCD has exactly K=3 colors because closure IS the strong force.", "");
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Mass Identifier");
+  render_p(sec_i, "Enter a particle mass (integer, in natural units). See if it matches a known SM particle's axiom expression. Try 125 (Higgs=E^3), 938 (proton), 511 (electron).");
+  make_interactive_widget(sec_i, "Mass:", "#part-input", "e.g. 125", "Identify", "particles_mass_calc", "part-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
