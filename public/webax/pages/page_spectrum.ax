@@ -144,6 +144,40 @@ fn spectrum_interactive() = (
   dom_append(dom_body(), sec)
 )
 
+/* Mouse-driven spectrum bar: move mouse across bar to sweep 0..970199.
+   dom_on2 passes (clientX, clientY) to callback. */
+fn spectrum_mouse_move(mx, my) = (
+  let n = mx * 1214 in
+  spectrum_display(n, dom_query("#mouse-result"))
+)
+
+fn spectrum_mouse_bar() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Mouse Explorer: Sweep the Ring");
+  render_p(sec, "Move your mouse across the bar below. Your horizontal position maps to a ring element. The full ring (970200 elements) unfolds under your cursor.");
+  let bar = dom_create("div") in
+  dom_attr(bar, "id", "mouse-bar");
+  dom_style(bar, "height", "48px");
+  dom_style(bar, "background", "linear-gradient(to right, #1a1a2e, #ffd700, #1a1a2e)");
+  dom_style(bar, "borderRadius", "6px");
+  dom_style(bar, "cursor", "crosshair");
+  dom_style(bar, "marginBottom", "12px");
+  dom_style(bar, "position", "relative");
+  let hint = dom_create("div") in
+  dom_text(hint, "Move mouse here to explore");
+  dom_style(hint, "color", "#999");
+  dom_style(hint, "textAlign", "center");
+  dom_style(hint, "lineHeight", "48px");
+  dom_style(hint, "pointerEvents", "none");
+  dom_append(bar, hint);
+  dom_on2(bar, "mousemove", "spectrum_mouse_move");
+  dom_append(sec, bar);
+  let res = dom_create("div") in
+  dom_attr(res, "id", "mouse-result");
+  dom_append(sec, res);
+  dom_append(dom_body(), sec)
+)
+
 /* Keyboard walk: arrow keys navigate the ring. dom_on1 passes keyCode to callback. */
 fn spectrum_walk_key(code) = (
   let cur = parse_int_from("#walk-n") in
@@ -609,6 +643,7 @@ fn page_spectrum() = (
   spectrum_formula();
   spectrum_swim();
   spectrum_interactive();
+  spectrum_mouse_bar();
   spectrum_walk();
   spectrum_variance();
   spectrum_shells();

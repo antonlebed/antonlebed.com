@@ -124,7 +124,6 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
   font-size:10px;color:#fff;font-weight:bold;border-radius:2px}
 </style>
 <script src="ring.js"></script>
-<script src="ax_wasm_eval.js"></script>
 <link rel="stylesheet" href="nav-critical.css">
 <script src="nav.js" defer></script>
 </head>
@@ -148,10 +147,8 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
       <option value="grids">Grid Operations</option>
       <option value="multiring">Multi-Ring</option>
       <option value="floats">Float Math</option>
-      <option value="wasm_bench">WASM Benchmark</option>
-      <option value="native_compile">Native Compile</option>
+      <option value="native_compile">Compile Benchmark</option>
       <option value="relations">Relations</option>
-      <option value="wasm_eval">Session Persistence</option>
       <option value="census">Ring Census</option>
       <option value="idempotents">Idempotent Lattice</option>
       <option value="depth_quad">Depth Quadratic</option>
@@ -180,8 +177,7 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
     </select>
     <button id="btn-run" onclick="run()">&#9654; Run (Ctrl+Enter)</button>
     <button onclick="clearOutput()">Clear</button>
-    <button id="btn-eval-mode" onclick="toggleEvalMode()" style="background:#1a3a1a;color:#50fa7b;border:1px solid #50fa7b;padding:4px 10px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="WASM eval. Click to toggle: WASM \u2194 Native.">eval: WASM</button>
-    <button id="btn-wasm-reset" onclick="resetWasmSession()" style="display:none;background:#1a1a2e;color:#ff5555;border:1px solid #333;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;min-height:28px" title="Reset WASM session: clears all definitions and variables">reset</button>
+    <span id="eval-label" style="color:#50fa7b;font-size:0.75em;padding:4px 10px" title=".ax source → WASM binary → execute. Native compile.">native compile</span>
     <span id="ring-info" style="color:#6272a4;font-size:0.8em;margin-left:auto">Z/970200Z = Z/8 &times; Z/9 &times; Z/25 &times; Z/49 &times; Z/11</span>
   </div>
   <div class="panels">
@@ -292,8 +288,8 @@ table.contrast td:first-child{color:#50fa7b;font-weight:bold}
 'use strict';
 
 // ================================================================
-//  Ring algebra via ring.js. Evaluation via WASM (ax_wasm_eval.js).
-//  JS interpreter KILLED (S878). Only algebra view helpers remain.
+//  Ring algebra via ring.js. Evaluation via deep_ouroboros.wasm (native compile).
+//  ax_wasm_eval.js KILLED (S978). ax.js KILLED (S874). JS eval KILLED (S878).
 // ================================================================
 
 let N = 970200;
@@ -378,111 +374,30 @@ let outputLines = [];
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ================================================================
-//  WASM eval is the sole interpreter (S874: ax.js killed, S878: JS eval removed)
-//  Ring math via ring.js. Evaluation via ax_wasm_eval.js.
+//  Native compile: deep_ouroboros.wasm (S978: ax_wasm_eval.js KILLED)
+//  .ax source → WASM binary → execute. One path. No interpreter.
 // ================================================================
 var lastProfile = null;
-
-// ================================================================
-//  Phase W v0.3: WASM-compiled .ax evaluator (S746)
-//  The .ax interpreter (tokenizer+parser+evaluator) compiled to WASM.
-//  JS calls wasm_run(source) — all show output captured via Module.print.
-// ================================================================
-var _axWasmEval = null;
-var _useWasmEval = false;
-var _useNativeCompile = false;
 var _nativeCompilerReady = false;
-var _deepOuroborosModule = null; /* Phase 18: cached WebAssembly.Module */
-var _wasmOutputTarget = null; /* S876: delegating print target for WASM eval */
-var _gridStore = {}; /* Phase 57: grid handle -> {w, h, data[]} for native grid builtins */
+var _deepOuroborosModule = null;
+var _gridStore = {};
 var _gridNextId = 0;
 
-
-function initWasmEval() {
-    if (typeof AxWasmEval === 'undefined') return;
-    AxWasmEval({
-        // S876: Emscripten 5 captures `out` at init. Use delegating closure
-        // so we can redirect output per-call by swapping _wasmOutputTarget.
-        print: function(text) { if (_wasmOutputTarget) _wasmOutputTarget.push(text); },
-        printErr: function() {}
-    }).then(function(mod) {
-        _axWasmEval = mod;
-        // S874: WASM eval is now DEFAULT. ax.js killed. ring.js for math, WASM for eval.
-        _useWasmEval = true;
-        updateEvalButton();
-    }).catch(function() {});
-}
-
-function updateEvalButton() {
-    var btn = document.getElementById('btn-eval-mode');
-    var resetBtn = document.getElementById('btn-wasm-reset');
-    if (_useNativeCompile) {
-        btn.textContent = 'eval: native (experimental)';
-        btn.style.background = '#1a1a3a';
-        btn.style.color = '#ffd700';
-        btn.style.borderColor = '#ffd700';
-        btn.title = 'EXPERIMENTAL: .ax \u2192 WASM binary \u2192 execute. Some examples may not work. Click to switch.';
-        resetBtn.style.display = 'none';
-    } else if (_useWasmEval) {
-        btn.textContent = 'eval: WASM';
-        btn.style.background = '#1a3a1a';
-        btn.style.color = '#50fa7b';
-        btn.style.borderColor = '#50fa7b';
-        btn.title = 'WASM eval mode. Click to switch.';
-        resetBtn.style.display = 'inline-block';
-    } else {
-        btn.textContent = 'eval: WASM';
-        btn.style.background = '#1a3a1a';
-        btn.style.color = '#50fa7b';
-        btn.style.borderColor = '#50fa7b';
-        btn.title = 'WASM eval mode. Click to switch to native compile.';
-        resetBtn.style.display = 'inline-block';
-    }
-}
-
-// Programmatically set eval mode (true=WASM, false=JS)
-function setEvalMode(useWasm) {
-    if (useWasm && !_axWasmEval) return;
-    _useWasmEval = useWasm;
-    _useNativeCompile = false;
-    updateEvalButton();
-}
-
-function toggleEvalMode() {
-    if (_useNativeCompile) {
-        // Native -> WASM
-        _useNativeCompile = false;
-        _useWasmEval = true;
-    } else {
-        // WASM -> Native
-        _useWasmEval = false;
-        _useNativeCompile = true;
-    }
-    updateEvalButton();
-}
-
-function resetWasmSession() {
-    if (!_axWasmEval) return;
-    _axWasmEval._wasm_reset();
-    document.getElementById('output').innerHTML = '<span class="out-info">Session reset. All definitions cleared.</span>';
-}
-
 // ================================================================
-//  Phase 18: Deep Ouroboros native compiler (S836)
-//  .ax source → deep_ouroboros.wasm (native compiler) → WASM binary → execute
-//  62KB pre-compiled WASM replaces interpreter + 3 .ax files (~58ms → ~1ms compile).
+//  Native compiler: deep_ouroboros.wasm (S836, sole evaluator S978)
+//  .ax source → deep_ouroboros.wasm → WASM binary → execute (~1ms compile)
 // ================================================================
 async function loadNativeCompiler() {
     if (_nativeCompilerReady) return;
-    var status = document.getElementById('btn-eval-mode');
-    status.textContent = 'loading compiler...';
+    var label = document.getElementById('eval-label');
+    if (label) label.textContent = 'loading compiler...';
     var r = await fetch('deep_ouroboros.wasm');
     if (!r.ok) r = await fetch('../code/deep_ouroboros.wasm');
     if (!r.ok) throw new Error('Cannot load deep_ouroboros.wasm');
     var buf = await r.arrayBuffer();
     _deepOuroborosModule = await WebAssembly.compile(buf);
     _nativeCompilerReady = true;
-    updateEvalButton();
+    if (label) label.textContent = 'native compile';
 }
 
 /* ☠️ SCAFFOLDING: Native prelude — dies when wasm_emit.ax handles constants natively */
@@ -553,7 +468,7 @@ async function executeNative(src) {
     for (var j = 0; j < wasmLen; j++) wasmBytes[j] = reMem32[wasmBytesPtr / 4 + 1 + j];
     /* Validate WASM before instantiation — fail loud, not silent (S906) */
     if (!WebAssembly.validate(wasmBytes)) {
-        outputEl.textContent += '\nERROR: Compiler produced invalid WASM (' + wasmLen + ' bytes)\n';
+        throw new Error('Compiler produced invalid WASM (' + wasmLen + ' bytes)');
         return;
     }
     /* Instantiate the compiled program */
@@ -690,7 +605,7 @@ async function executeNative(src) {
     var t3 = performance.now();
     if (child.instance.exports._main) child.instance.exports._main();
     var t4 = performance.now();
-    outputLines = lines.map(function(l) { return esc(l); });
+    outputLines = fmtOutputLines(lines);
     // S876: extract numeric values from output for algebra view
     lastOutputValues = [];
     for (var ni = 0; ni < lines.length; ni++) {
@@ -711,46 +626,8 @@ async function executeNative(src) {
     return outputLines;
 }
 
-/* ☠️ SCAFFOLDING: WASM eval prelude — multi-ring fns missing from evaluator.ax */
-var WASM_EVAL_PRELUDE = [
-    'fn ppow(n, p) = if n % p == 0 then p * ppow(n / p, p) else 1',
-    'fn factor_pp(n) = (mut r = []; if n % 2 == 0 then (mut r = push(r, ppow(n, 2))) else 0; if n % 3 == 0 then (mut r = push(r, ppow(n, 3))) else 0; if n % 5 == 0 then (mut r = push(r, ppow(n, 5))) else 0; if n % 7 == 0 then (mut r = push(r, ppow(n, 7))) else 0; if n % 11 == 0 then (mut r = push(r, ppow(n, 11))) else 0; if n % 13 == 0 then (mut r = push(r, ppow(n, 13))) else 0; r)',
-    'fn ring_crt(n, rn) = (let mods = factor_pp(rn) in let rem = n % rn in mut s = "["; mut i = 0; while i < len(mods) do (if i > 0 then (mut s = s + ", ") else 0; mut s = s + "${rem % mods[i]}"; mut i = i + 1); s + "]")',
-    'fn ring_coupling(n, rn) = rn / gcd(n % rn, rn)',
-    'fn project(n, from, to) = (n % from) % to',
-    'fn ring_eigenvalue(n, rn) = (let mods = factor_pp(rn) in let rem = n % rn in mut t = toFloat(0); mut i = 0; while i < len(mods) do (let m = mods[i] in mut t = t + toFloat(2) * cos_f(toFloat(2) * PI_f * toFloat(rem % m) / toFloat(m)); mut i = i + 1); t)',
-    'fn ring_size() = "970200"',
-].join('\n') + '\n';
-
-function executeWasm(src) {
-    var output = [];
-    _wasmOutputTarget = output; /* S876: delegate print to this array */
-    src = WASM_EVAL_PRELUDE + src;
-    var t0 = performance.now();
-    var ptr = _axWasmEval.allocateUTF8(src);
-    _axWasmEval._wasm_run(ptr);
-    _axWasmEval._free(ptr);
-    _wasmOutputTarget = null;
-    var elapsed = performance.now() - t0;
-    // Emergence: detect consecutive array lines -> render as colored grid
-    var formatted = fmtWasmLines(output);
-    outputLines = formatted;
-    // S876: extract numeric values from output for algebra view
-    lastOutputValues = [];
-    for (var oi = 0; oi < output.length; oi++) {
-        var trimmed = output[oi].trim();
-        if (/^-?\d+$/.test(trimmed)) lastOutputValues.push(parseInt(trimmed, 10));
-        else if (/^\[[\d,\s]+\]$/.test(trimmed)) { try { lastOutputValues.push(JSON.parse(trimmed)); } catch(e) {} }
-        else if (trimmed.length > 0) lastOutputValues.push(trimmed);
-    }
-    lastProfile = { tokenize_ms: '0.0', parse_ms: '0.0', eval_ms: elapsed.toFixed(1), total_ms: elapsed.toFixed(1), wasm: true };
-    return formatted;
-}
-
-// Emergence (S754): WASM outputs [n, n, n] text lines.
-// Consecutive array lines = grid. REPL recognizes the pattern, renders with fmtGrid.
-// No protocol. No markers. The display grows from what already exists.
-function fmtWasmLines(lines) {
+// Emergence (S754): consecutive array lines = grid. Renders with fmtGrid.
+function fmtOutputLines(lines) {
     var result = [], gridRows = [];
     var arrRe = /^\[[\d,\s.-]+\]$/;
     function flushGrid() {
@@ -1194,52 +1071,6 @@ print sigmoid_f(toFloat(2))
 print "sigmoid(-2) ="
 print sigmoid_f(toFloat(0) - toFloat(2))`,
 
-wasm_bench: `-- wasm_bench.ax: Bottleneck Profiler
--- Check timing breakdown below output
--- Ring ops: WASM-accelerated when "WASM: active"
--- Profile line shows tokenize | parse | eval split
-
-print "=== RING OPS: coupling (2000) ==="
-raw_mode(1)
-let t0 = now_ms()
-raw_mode(0)
-for n in range(2000) do
-  coupling(n)
-raw_mode(1)
-let t1 = now_ms()
-raw_mode(0)
-
-print "=== RING OPS: eigenvalue (1000) ==="
-for n in range(1000) do
-  eigenvalue(n)
-raw_mode(1)
-let t2 = now_ms()
-raw_mode(0)
-
-print "=== RING OPS: order (200 units) ==="
-for n in range(200) do
-  order(n * D + s)
-raw_mode(1)
-let t3 = now_ms()
-
-print "=== PURE COMPUTE: loop (5000) ==="
-mut acc = 0
-for n in range(5000) do
-  mut acc = acc + n * n
-let t4 = now_ms()
-
-print "--- TIMING (ms) ---"
-print "coupling 2000:   \${t1 - t0}"
-print "eigenvalue 1000: \${t2 - t1}"
-print "order 200:       \${t3 - t2}"
-print "pure compute 5K: \${t4 - t3}"
-print "total ring ops:  \${t3 - t0}"
-print ""
-print "If eval time (below) >> ring op time:"
-print "  JS interpreter = bottleneck -> use WASM eval"
-print "If ring ops dominate: WASM ring ops are right."
-raw_mode(0)`,
-
 relations: `-- relations.ax: How do two ring elements relate?
 -- CRT channels, arithmetic, spectrum, mirror pairs.
 
@@ -1279,41 +1110,8 @@ relate(D, K)
 relate(KEY, ANSWER)
 relate(210, 420)`,
 
-wasm_eval: `-- wasm_eval.ax: WASM Session Persistence
--- In WASM mode (default): definitions carry over between runs!
--- Try running, then type "show fib(20)" and run again.
-
-print "=== Phase W v0.7: WASM + String Interpolation ==="
-print ""
-
-/* Block comments work */
-let x = 7 * 6
-show "7 * 6 = \${x}"
-
--- String interpolation with expressions
-let a = 3
-let b = 4
-show "\${a} + \${b} = \${a + b}"
-
--- Define a function (persists across evals!)
-fn fib(n) = if n < 2 then n else fib(n - 1) + fib(n - 2)
-show "fib(10) = \${fib(10)}"
-
--- Loop + accumulator
-let total = 0
-for i in 10 do
-  mut total = total + i * i
-show "sum of squares 0..9 = \${total}"
-
--- String concat via +
-show "hello" + " " + "world"
-
-print ""
-print "Now try: show fib(20)"
-print "Session persists! Use [reset] to clear."`,
-native_compile: `/* Native Compile: .ax -> WASM -> execute */
-/* Switch eval mode to "native" (click eval button) */
-/* Then run: your code compiles to WebAssembly! */
+native_compile: `/* Compile Benchmark: .ax -> WASM -> execute */
+/* Your code compiles to WebAssembly in ~1ms, then runs natively */
 
 fn fib(n) = (
   if n < 2 then n
@@ -1337,6 +1135,11 @@ show "42.D (mod 8) ="
 show x.D
 show "42.K (mod 9) ="
 show x.K
+
+/* String interpolation */
+let a = 3
+let b = 4
+show "\${a} + \${b} = \${a + b}"
 
 fn gcd(a, b) = if b == 0 then a else gcd(b, a % b)
 show "gcd(42, 30):"
@@ -2535,26 +2338,12 @@ function renderRunResult(lines, src) {
 function run() {
     const src = document.getElementById('code').value;
     const out = document.getElementById('output');
-    out.innerHTML = '<span class="out-info">Running...</span>';
-    if (_useNativeCompile) {
-        executeNative(src).then(function(lines) {
-            renderRunResult(lines, src);
-        }).catch(function(e) {
-            out.innerHTML = '<span class="out-err">Error: ' + esc(e.message) + '</span>';
-        });
-        return;
-    }
-    // Yield to browser for paint, then do heavy work
-    setTimeout(function() {
-        lastOutputValues = [];
-        try {
-            const lines = (_axWasmEval) ? executeWasm(src) : [];
-            renderRunResult(lines, src);
-        } catch (e) {
-            const partial = outputLines.length ? outputLines.join('\n') + '\n' : '';
-            out.innerHTML = partial + '<span class="out-err">Error: ' + esc(e.message) + '</span>';
-        }
-    }, 0);
+    out.innerHTML = '<span class="out-info">Compiling...</span>';
+    executeNative(src).then(function(lines) {
+        renderRunResult(lines, src);
+    }).catch(function(e) {
+        out.innerHTML = '<span class="out-err">Error: ' + esc(e.message) + '</span>';
+    });
 }
 
 function clearOutput() {
@@ -2568,14 +2357,6 @@ function loadExample(name) {
     if (EXAMPLES[name]) {
         document.getElementById('code').value = EXAMPLES[name];
         syncHighlight();
-        // Auto-switch eval mode based on example
-        if (name === 'native_compile') {
-            _useWasmEval = false;
-            _useNativeCompile = true;
-            updateEvalButton();
-        } else if (_axWasmEval) {
-            setEvalMode(true);
-        }
     }
 }
 
@@ -2584,11 +2365,10 @@ function toggleSection(h2) {
     h2.nextElementSibling.classList.toggle('show');
 }
 
-// --- WASM initialization (Phase W v0.2 — S739) ---
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Phase W v0.3: load WASM-compiled .ax evaluator
-    initWasmEval();
+    // S978: Eagerly load native compiler (deep_ouroboros.wasm)
+    loadNativeCompiler().catch(function() {});
     // URL params: ?example=name or ?code=base64 — ?run=1 to auto-run
     const params = new URLSearchParams(location.search);
     const pEx = params.get('example');
