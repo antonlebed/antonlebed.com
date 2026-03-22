@@ -875,11 +875,20 @@ fn render_footer() = (
    INTERACTIVE HELPERS — shared components for dom_on + dom_value widgets (S970)
    ================================================================ */
 
+/* Strip leading # from id string (S1002: prevent dom_attr/dom_query mismatch) */
+fn strip_hash(s:str) = (
+  if len(s) > 0 then (
+    if charCode(s, 0) == 35 then substr(s, 1, len(s) - 1)
+    else s
+  ) else s
+)
+
 /* Styled text input field */
 fn make_input_field(parent, id:str, placeholder:str) = (
+  let clean_id = strip_hash(id) in
   let inp = dom_create("input") in
   dom_attr(inp, "type", "text");
-  dom_attr(inp, "id", id);
+  dom_attr(inp, "id", clean_id);
   dom_attr(inp, "placeholder", placeholder);
   dom_style(inp, "background", "#111");
   dom_style(inp, "color", "#ffd700");
@@ -912,8 +921,9 @@ fn make_action_btn(parent, text:str, callback:str) = (
 
 /* Result display area */
 fn make_result_box(parent, id:str) = (
+  let clean_id = strip_hash(id) in
   let box = dom_create("div") in
-  dom_attr(box, "id", id);
+  dom_attr(box, "id", clean_id);
   ct_code_block(box);
   dom_append(parent, box);
   box
