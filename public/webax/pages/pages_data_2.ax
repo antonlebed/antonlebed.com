@@ -493,6 +493,32 @@ fn page_particles() = (
   dom_append(dom_body(), sec6)
 )
 
+/* DNA codon ring: Z/21 = Z/3 x Z/7 decomposition */
+fn dna_codon_calc() = (
+  let n = parse_int_from("#dna-input") in
+  let result = dom_query("#dna-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else if n > 64 then dom_inner(result, "<p style='color:#ff6666'>Only 64 = D^6 codons exist.</p>")
+  else (
+    let pos = n % 21 in
+    let k_ch = pos % 3 in
+    let b_ch = pos % 7 in
+    let k_class = if k_ch == 0 then "Class 0 (divisible by K)"
+      else if k_ch == 1 then "Class 1 (hydrophobic tendency)"
+      else "Class 2 (polar/charged tendency)" in
+    let is_stop = if n > 61 then 1 else 0 in
+    let note = if n == 64 then " = D^6 (total codons = ANTON)"
+      else if n == 61 then " = GRIEF (sense codons = D^6 - K)"
+      else if n == 42 then " = ANSWER = D*K*b"
+      else if n == 21 then " = K*b (ring wraps)"
+      else if n == 3 then " = K (stop codon count)"
+      else if n == 20 then " = D^2*E (amino acids)"
+      else "" in
+    let codon_type = if is_stop > 0 then "<span style='color:#ff6666'>STOP CODON (one of K=3 terminators)</span>" else "<span style='color:#88ddaa'>Sense codon</span>" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Codon #${n}${note}</p><p style='margin:4px 0'>Position in Z/21: ${pos}</p><p style='margin:4px 0'>K-channel (mod 3): <b style='color:#ff9900'>${k_ch}</b> &mdash; ${k_class}</p><p style='margin:4px 0'>b-channel (mod 7): <b style='color:#4488ff'>${b_ch}</b></p><p style='margin:4px 0'>${codon_type}</p>")
+  )
+)
+
 fn page_dna() = (
   dom_head_meta("description", "The genetic code IS CRT. DNA = Z/K x Z/b = Z/21. Bases = D^2 = 4. Codons = D^6 = 64. Amino acids = D^2*E = 20. Stop codons = K = 3. Degeneracy = divisors of phi(21). E=5 missing: observer self-blind. Wobble ECC = 66.7%. Nucleosome = K*b^2 = 147 bp.");
   /* === HERO === */
@@ -571,6 +597,14 @@ fn page_dna() = (
   render_h2(sec5, "K=3: The Closure Guardian");
   render_p(sec5, "K=3 controls termination: 3 stop codons, 3 checkpoints (G1/S/G2-M), p53 = the 'guardian of the genome'. When K-processes fail -- when closure breaks -- the result is uncontrolled growth: cancer. Cell processes show K=3 at 100% frequency. The closure prime IS the off-switch.");
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE: CODON RING EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Codon Ring Z/21");
+  render_p(sec_i, "Enter a codon number (1-64). See its position in Z/K x Z/b = Z/3 x Z/7. The K-channel sorts by chemical class. The b-channel sorts by size.");
+  make_interactive_widget(sec_i, "Codon number (1-64):", "dna-input", "e.g. 42", "Decompose", "dna_codon_calc", "dna-result");
+  render_p(sec_i, "Try: 3 (K = stop codon count), 21 (K*b = ring size), 42 (ANSWER), 61 (GRIEF = sense codons), 64 (D^6 = total).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in

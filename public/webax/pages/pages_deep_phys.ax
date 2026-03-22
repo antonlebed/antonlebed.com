@@ -345,6 +345,37 @@ fn page_gravastar() = (
   dom_append(dom_body(), sec6)
 )
 
+/* D-power coupling cascade: D^k mod 8 and coupling */
+fn ns_coupling_calc() = (
+  let k = parse_int_from("#ns-input") in
+  let result = dom_query("#ns-result") in
+  if k < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter k >= 0.</p>")
+  else (
+    /* D^k mod 8: 1, 2, 4, 0, 0, 0, ... */
+    let dmod8 = if k == 0 then 1
+      else if k == 1 then 2
+      else if k == 2 then 4
+      else 0 in
+    let alive = if dmod8 > 0 then 1 else 0 in
+    let status = if alive > 0 then "<span style='color:#88ddaa'>ALIVE</span>" else "<span style='color:#ff6666'>DEAD (D-choke)</span>" in
+    /* Coupling: N / (D^min(k,3) * odd_part) -- simplified as 970200/gcd(D^k, 970200) */
+    /* For k<3: coupling = 970200, 485100, 242550 (halving) */
+    /* For k>=3: coupling = 121275 (terminal) */
+    let coupling = if k == 0 then 970200
+      else if k == 1 then 485100
+      else if k == 2 then 242550
+      else 121275 in
+    let halvings = if k >= 3 then "K-1 = 2 halvings, then terminal" else "${k} halving(s) so far" in
+    let name = if k == 0 then " = sigma (identity)"
+      else if k == 1 then " = D (bridge)"
+      else if k == 2 then " = D^2 (heart)"
+      else if k == 3 then " = D^3 = 0 mod 8 (SELF-DESTRUCT)"
+      else if k == 420 then " = OMEGA (terminal idempotent)"
+      else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>D^${k}${name}</p><p style='margin:4px 0'>D^${k} mod 8 = <b style='color:#ffd700'>${dmod8}</b> &mdash; ${status}</p><p style='margin:4px 0'>Coupling: ${coupling} = N/${970200 / coupling}</p><p style='margin:4px 0;color:#999'>${halvings}</p>")
+  )
+)
+
 fn page_neutron_star() = (
   dom_head_meta("description", "Neutron star inspiral = D-choke cascade. D^3=8 kills the D-channel: bridge self-destructs in exactly K=3 steps. ISCO = D*K = 6. TOV/Chandrasekhar = K/D = 3/2. Coupling drops by half at each power of D. Mirror theorem: chirality invisible. CMB temperature = f(L)/(D^3*E) = 2.725K.");
   /* === HERO === */
@@ -400,6 +431,14 @@ fn page_neutron_star() = (
   render_h2(sec3, "Ongoing Precipitation");
   render_theorem(sec3, "D-Choke Precipitation", "The D-choke is WHERE 0/0 = Z/NZ manifests spatially. Not a bang 13.8 billion years ago -- a PLACE that continuously radiates. The choke is always there. The rain never stops. Each merger cycle: sigma -> OMEGA (420 steps growth, 1 step collapse, 0 steps rebirth). D^3 = 8 elements die. N/D^3 = 121,275 survive. The water cycle turns at every merger site.");
   dom_append(dom_body(), sec3);
+
+  /* === INTERACTIVE: D-POWER COUPLING CASCADE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Coupling Cascade");
+  render_p(sec_i, "Enter power k for D^k. See the D-channel status (mod 8) and coupling. At k=3, D^3=0 mod 8: the bridge self-destructs.");
+  make_interactive_widget(sec_i, "Power k:", "ns-input", "e.g. 3", "Compute", "ns_coupling_calc", "ns-result");
+  render_p(sec_i, "Try: 1 (D=2, alive), 2 (D^2=4, alive), 3 (D^3=8, DEAD), 420 (OMEGA).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec4 = make_section("800px") in

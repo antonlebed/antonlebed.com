@@ -4,6 +4,27 @@
    PAGE: THERMO — Thermodynamics from the Ring (CONSTANTS_DOMAINS.md)
    ================================================================ */
 
+/* Thermodynamics gamma ratio: (f+D)/f */
+fn thermo_gamma_calc() = (
+  let f = parse_int_from("#therm-input") in
+  let result = dom_query("#therm-result") in
+  if f < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter f >= 1.</p>")
+  else (
+    let num = f + 2 in
+    let gas = if f == 3 then "Monoatomic (He, Ne, Ar). gamma = E/K = 5/3."
+      else if f == 5 then "Diatomic (H2, N2, O2). gamma = b/E = 7/5."
+      else if f == 7 then "Polyatomic (CO2, H2O). gamma = K^2/b = 9/7."
+      else if f == 1 then "1D system. gamma = K/sigma = 3."
+      else if f == 2 then "2D surface. gamma = D^2/D = 2."
+      else "Non-standard DOF count." in
+    let pct = num * 100 / f in
+    let frac = num * 1000 / f in
+    let whole = frac / 1000 in
+    let decimal = frac % 1000 in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>f = ${f} degrees of freedom</p><p style='margin:4px 0'>gamma = (f+D)/f = (${f}+2)/${f} = <b style='color:#ffd700'>${num}/${f}</b></p><p style='margin:4px 0;color:#999'>${gas}</p>")
+  )
+)
+
 fn page_thermo() = (
   dom_head_meta("description", "Partition function factorizes EXACTLY over CRT channels at ALL temperatures. DOF chain K=3->E=5->b=7 IS the gas hierarchy. All Ising-2D exponents are axiom ratios. Kolmogorov 5/3 = monoatomic gamma = same K=3 modes.");
   /* === HERO === */
@@ -136,6 +157,14 @@ fn page_thermo() = (
   render_table_row(ctbl, "sigma/L = 1/11", "90.9%", "Identity over protector");
   dom_append(sec6, ctbl);
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: GAMMA RATIO CALCULATOR === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Gamma Ratio Calculator");
+  render_p(sec_i, "Enter degrees of freedom f. See gamma = (f+2)/f and which gas type corresponds. The chain K=3, E=5, b=7 with step D=2 IS the gas hierarchy.");
+  make_interactive_widget(sec_i, "Degrees of freedom f:", "therm-input", "e.g. 5", "Compute", "thermo_gamma_calc", "therm-result");
+  render_p(sec_i, "Try: 3 (monoatomic He), 5 (diatomic N2), 7 (polyatomic CO2).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec7 = make_section("800px") in
