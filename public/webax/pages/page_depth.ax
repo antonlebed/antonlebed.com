@@ -108,12 +108,45 @@ fn depth_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* ================================================================
+   INTERACTIVE: DEPTH QUADRATIC EXPLORER
+   f(p) = p^2 - p - 1. Enter p, see f(p) and verify f(p) = -1 mod p.
+   ================================================================ */
+
+fn depth_quad_compute() = (
+  let p = parse_int_from("#dq-input") in
+  let result = dom_query("#dq-result") in
+  let fp = p * p - p - 1 in
+  /* f(p) mod p should always be p-1 = -1 */
+  let fp_mod_p = if p > 1 then fp % p else 0 in
+  let is_mirror = if p > 1 then (if fp_mod_p == p - 1 then "YES (= p-1 = -1 mod p)" else "NO") else "n/a" in
+  /* CRT of f(p) */
+  let fd = fp % 8 in let fk = fp % 9 in let fe = fp % 25 in let fb = fp % 49 in let fl = fp % 11 in
+  /* Check axiom chain values */
+  let name = if fp == 5 then " = E (observer!)"
+    else if fp == 19 then " = f(E)"
+    else if fp == 41 then " = KEY (self-inverse!)"
+    else if fp == 109 then " = lattice-prime (phi = 108)"
+    else "" in
+  dom_inner(result, "<p style='color:#88ddaa;margin:4px 0'><b>p = " + "${p}" + "</b> | f(p) = p^2 - p - 1 = <b>" + "${fp}" + "</b>" + name + "</p><p style='color:#ffd700;margin:4px 0'>f(p) mod p = " + "${fp_mod_p}" + " | Mirror property: " + is_mirror + "</p><p style='color:#ff8844;margin:4px 0'>CRT(" + "${fp}" + ") = (" + "${fd}" + "," + "${fk}" + "," + "${fe}" + "," + "${fb}" + "," + "${fl}" + ")</p><p style='color:#8888ff;margin:4px 0'>p^2 = " + "${p * p}" + " | KEY identity: b^2-b-1 = 49-7-1 = 41 = KEY</p>")
+)
+
+fn depth_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Depth Quadratic f(p) = p^2 - p - 1");
+  render_p(sec, "The depth quadratic has a universal mirror property: f(p) = -1 mod p for ALL p. Proof: p^2-p = p(p-1) = 0 mod p, so f(p) = 0-1 = -1 mod p. Enter any prime (or any number) to verify.");
+  make_interactive_widget(sec, "Enter p:", "dq-input", "e.g. 7", "Compute f(p)", "depth_quad_compute", "dq-result");
+  render_p(sec, "Try the chain: 3 (f=5=E), 5 (f=19), 7 (f=41=KEY), 11 (f=109, phi=108=lattice). Then try 13 (f=155=E*K*L).");
+  dom_append(dom_body(), sec)
+)
+
 fn page_depth() = (
   dom_head_meta("description", "b = 7 is the depth prime. Master formula: Kleiber 3/4, Ising 7/4, Kolmogorov 5/3 -- all from b and D. Depth quadratic f(p) = p^2-p-1 has 5 roles. The b^2 spiral never mirrors. 7 dominance measurements agree.");
   depth_hero();
   depth_master();
   depth_dominance();
   depth_quadratic();
+  depth_interactive();
   depth_spiral();
   depth_biology();
   depth_contrast()
