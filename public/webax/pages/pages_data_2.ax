@@ -119,6 +119,22 @@ fn page_condensed() = (
   dom_append(dom_body(), sec5)
 )
 
+/* DOF gamma ratio: same as thermo but with Rushbrooke context */
+fn statmech_dof_calc() = (
+  let f = parse_int_from("#stat-input") in
+  let result = dom_query("#stat-result") in
+  if f < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter DOF f >= 1.</p>")
+  else (
+    let phase = 2 * f in
+    let axiom_name = if f == 3 then "K (monoatomic: He, Ne, Ar)" else if f == 5 then "E (diatomic: H2, N2, O2)" else if f == 7 then "b (polyatomic: CO2, H2O)" else if f == 1 then "sigma (1D wire)" else if f == 2 then "D (2D membrane)" else "" in
+    let entropy = if f == 3 then "S = K*ln(T) + const. Closure controls entropy."
+      else if f == 5 then "S = E*ln(T) + const. Observer controls entropy."
+      else if f == 7 then "S = b*ln(T) + const. Depth controls entropy."
+      else "S = ${f}*ln(T) + const." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Degrees of freedom f = ${f}${if axiom_name != "" then " = ${axiom_name}" else ""}</p><p style='margin:4px 0'>Phase space = D*f = <b style='color:#ffd700'>${phase}</b> dimensions.</p><p style='margin:4px 0;color:#999'>Equipartition: E = f*T/D per molecule.</p><p style='margin:4px 0;color:#888'>${entropy}</p><p style='margin:4px 0;color:#666'>Rushbrooke: alpha+2*beta+gamma = D = 2 always.</p>")
+  )
+)
+
 fn page_statmech() = (
   dom_head_meta("description", "Partition function factors EXACTLY over CRT channels: Z = Z_2*Z_3*Z_5*Z_7*Z_11. Each channel thermalizes independently. Rushbrooke = D = 2 everywhere. 2D Ising exponents: beta=1/D^3, gamma=b/D^2, delta=K*E. FD = +sigma. BE = +mirror. 31 quantities.");
   /* === HERO === */
@@ -194,7 +210,14 @@ fn page_statmech() = (
   render_contrast_row(sec5, "Independent channels", "Coincidence in analysis", "CRT = block-diagonal = fluctuation-dissipation");
   render_contrast_row(sec5, "Critical d=4", "Magic threshold", "D^2 = spacetime dimension. Bridge squared");
   render_contrast_row(sec5, "Entropy maximum", "ln(N)", "= sum ln(p_i). CRT decomposed. Each channel is a reservoir");
-  dom_append(dom_body(), sec5)
+  dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: DOF Phase Space");
+  render_p(sec_i, "Enter degrees of freedom f. See phase space dimension (D*f), entropy law, and axiom identification. Try 3 (monoatomic=K), 5 (diatomic=E), 7 (polyatomic=b).");
+  make_interactive_widget(sec_i, "DOF f:", "#stat-input", "e.g. 5", "Compute", "statmech_dof_calc", "stat-result");
+  dom_append(dom_body(), sec_i)
 )
 
 /* ================================================================
@@ -688,6 +711,22 @@ fn page_dna() = (
   dom_append(dom_body(), sec6)
 )
 
+/* PMNS angle identifier: enter denominator, identify mixing */
+fn pmns_angle_calc() = (
+  let d = parse_int_from("#pmns-input") in
+  let result = dom_query("#pmns-result") in
+  if d < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter denominator >= 1.</p>")
+  else (
+    let name = if d == 33 then "<b style='color:#ffd700'>Solar theta_12</b>: sin^2 = D*E/(K*L) = 10/33 (0.01%). Missing: b."
+      else if d == 7 then "<b style='color:#ffd700'>Atmospheric theta_23</b>: sin^2 = D^2/b = 4/7 (0.10%). Missing: K."
+      else if d == 45 then "<b style='color:#ffd700'>Reactor theta_13</b>: sin^2 = 1/(K^2*E) = 1/45 (0.1%). Missing: D."
+      else if d == 315 then "<b style='color:#ffd700'>Product of all three</b>: D^2/(K^2*E*b) = 4/315. Denominator = ANIMAL coupling."
+      else if d == 13 then "<b style='color:#ffd700'>Cabibbo (CKM)</b>: theta_C ~ GATE = 13 degrees. Missing: E."
+      else "Not a known mixing denominator." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Denominator = ${d}</p><p style='margin:4px 0'>${name}</p><p style='margin:4px 0;color:#888'>Each PMNS angle is a fraction of axiom primes, each excluding exactly one prime.</p>")
+  )
+)
+
 fn page_pmns() = (
   dom_head_meta("description", "All three neutrino mixing angles are axiom fractions. sin^2(theta_12) = D*E/(K*L) = 10/33 (0.01%). sin^2(theta_23) = D^2/b = 4/7 (0.10%). sin^2(theta_13) = 1/(K^2*E) = 1/45 (0.1%). CP phase = (K*b)^2*L/E^2 = 194 deg. Each angle excludes one prime. Product = D^2/(K^2*E*b) = 4/315 exact. TESTABLE by DUNE + Hyper-K.");
   /* === HERO === */
@@ -788,7 +827,39 @@ fn page_pmns() = (
   render_contrast_row(sec7, "Mass splittings", "Measured values, no prediction framework", "37 (body temp) and K*G-MIND (muon anomaly). Cross-domain reuse of axiom constants.");
   render_contrast_row(sec7, "Mixing product", "No physical significance attached", "4/315 = D^2/(K^2*E*b). Denominator = ANIMAL coupling. Neutrino mixing measures biological complexity.");
   render_contrast_row(sec7, "Quark-lepton symmetry", "Grand unification hypothesis, not derived", "CKM and PMNS use the same 5 primes differently. GATE = Cabibbo angle. Same axiom, two viewing angles.");
-  dom_append(dom_body(), sec7)
+  dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Mixing Angle Lookup");
+  render_p(sec_i, "Enter a denominator. See if it matches a known mixing angle. Try 33 (solar=10/33), 7 (atmospheric=4/7), 45 (reactor=1/45), 13 (Cabibbo).");
+  make_interactive_widget(sec_i, "Denominator:", "#pmns-input", "e.g. 33", "Identify", "pmns_angle_calc", "pmns-result");
+  dom_append(dom_body(), sec_i)
+)
+
+/* Body number axiom-check: enter count, get factorization */
+fn human_body_calc() = (
+  let n = parse_int_from("#body-input") in
+  let result = dom_query("#body-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter a body count >= 1.</p>")
+  else (
+    mut rem = n;
+    mut v2 = 0;
+    while rem % 2 == 0 do (mut rem = rem / 2; mut v2 = v2 + 1);
+    mut v3 = 0;
+    while rem % 3 == 0 do (mut rem = rem / 3; mut v3 = v3 + 1);
+    mut v5 = 0;
+    while rem % 5 == 0 do (mut rem = rem / 5; mut v5 = v5 + 1);
+    mut v7 = 0;
+    while rem % 7 == 0 do (mut rem = rem / 7; mut v7 = v7 + 1);
+    mut v11 = 0;
+    while rem % 11 == 0 do (mut rem = rem / 11; mut v11 = v11 + 1);
+    let smooth = if rem == 1 then 1 else 0 in
+    let tag = if smooth > 0 then "<b style='color:#88ddaa'>AXIOM-SMOOTH</b> (pure {2,3,5,7,11} product)"
+      else "<b style='color:#ffd700'>Not smooth (intruder: ${rem})</b>" in
+    let known = if n == 2 then " = D (bilateral symmetry)" else if n == 3 then " = K (germ layers)" else if n == 5 then " = E (fingers, senses)" else if n == 7 then " = b (cervical vertebrae)" else if n == 20 then " = D^2*E (amino acids)" else if n == 37 then " = (L^3+1)/(L-E)^2 (body temp)" else if n == 42 then " = ANSWER (somites)" else if n == 206 then " = D*103 (bones)" else if n == 23 then " = chromosomes (D*23=46 total)" else if n == 46 then " = D*23 (chromosome pairs)" else if n == 10 then " = D*E (fingers total)" else if n == 32 then " = D^5 (teeth)" else if n == 12 then " = D^2*K (rib pairs)" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Body count = ${n}${known}</p><p style='margin:4px 0'>${tag}</p><p style='margin:4px 0;color:#999'>Factoring: 2^${v2} * 3^${v3} * 5^${v5} * 7^${v7} * 11^${v11}${if rem > 1 then " * ${rem}" else ""}</p>")
+  )
 )
 
 fn page_human_shape() = (
@@ -904,5 +975,12 @@ fn page_human_shape() = (
   render_contrast_row(sec6, "Body temperature", "Optimal for enzymes, shaped by selection", "(L^3+1)/(L-E)^2 = 37. Algebraic identity using all five primes. UNIQUE depth-return prime.");
   render_contrast_row(sec6, "20 amino acids", "Chemical properties select for this set", "D^2*E = 4 bases * 5 wobble = 20. Ring structure, not chemistry.");
   render_contrast_row(sec6, "Mortality", "Thermodynamic degradation, telomere shortening", "No L=11. DATA ring has no ECC. Mortal because unprotected. Adding L = strange matter = transcendence.");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Body Number Checker");
+  render_p(sec_i, "Enter any anatomical count. See its axiom factorization and if it is 11-smooth. Try 5 (fingers=E), 7 (vertebrae=b), 20 (amino acids=D^2*E), 37 (body temp), 206 (bones).");
+  make_interactive_widget(sec_i, "Count:", "#body-input", "e.g. 42", "Check", "human_body_calc", "body-result");
+  dom_append(dom_body(), sec_i)
 )

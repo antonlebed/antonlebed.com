@@ -199,6 +199,26 @@ fn domain_hero(title:str, equation:str, intro:str) = (
   dom_append(dom_body(), hero)
 )
 
+/* SM parameter: input mass/coupling, identify axiom expression */
+fn sm_param_calc() = (
+  let n = parse_int_from("#sm-input") in
+  let result = dom_query("#sm-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter a positive integer.</p>")
+  else (
+    let name = if n == 137 then "<b style='color:#ffd700'>1/alpha = ADDRESS</b>. Fine structure constant inverse. 11th prime."
+      else if n == 125 then "<b style='color:#ffd700'>Higgs mass = E^3</b> GeV. Observer cubed."
+      else if n == 91 then "<b style='color:#ffd700'>Z boson = GATE*b</b> GeV. Boundary times depth."
+      else if n == 80 then "<b style='color:#ffd700'>W boson = D^4*E</b> GeV. Bridge^4 times observer."
+      else if n == 246 then "<b style='color:#ffd700'>Higgs VEV = D*K*KEY</b> GeV. Bridge*closure*self-inverse."
+      else if n == 25 then "<b style='color:#ffd700'>SM particles = E^2</b>. Observer squared = self-blind count."
+      else if n == 13 then "<b style='color:#ffd700'>Cabibbo angle ~ GATE = 13</b> degrees. Boundary."
+      else if n == 12 then "<b style='color:#ffd700'>SM gauge group dim = D^2*K</b>. Trinity heart."
+      else if n == 3 then "<b style='color:#ffd700'>QCD colors = K</b>. Closure IS the strong force."
+      else "No direct axiom parameter match at ${n}." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>${name}</p>")
+  )
+)
+
 fn page_sm() = (
   dom_head_meta("description", "All 25 Standard Model parameters from ten axiom terms. Five primes D=2 K=3 E=5 b=7 L=11. Mean error 0.12 percent. Zero free parameters. p < 10^-30.");
   /* === HERO === */
@@ -304,7 +324,34 @@ fn page_sm() = (
   render_contrast_row(sec7, "Coupling link", "No connection between forces", "Persistence ratio 7/194 unifies all four");
   render_contrast_row(sec7, "Boson masses", "Independent measurements", "E^3, GATE*b, D^4*E -- pure axiom products");
   render_contrast_row(sec7, "Top quark", "Just the heaviest fermion", "CRT(173)=(1,2,3,5): carries the axiom signature");
-  dom_append(dom_body(), sec7)
+  dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: SM Parameter Lookup");
+  render_p(sec_i, "Enter a number. See if it matches a Standard Model parameter. Try 137 (alpha), 125 (Higgs), 246 (VEV), 25 (particle count), 13 (Cabibbo).");
+  make_interactive_widget(sec_i, "Value:", "#sm-input", "e.g. 137", "Identify", "sm_param_calc", "sm-result");
+  dom_append(dom_body(), sec_i)
+)
+
+/* Shell capacity: enter n, show D*n^2 */
+fn quantum_shell_calc() = (
+  let n = parse_int_from("#qm-input") in
+  let result = dom_query("#qm-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter shell number n >= 1.</p>")
+  else (
+    let cap = 2 * n * n in
+    let noble = if n == 1 then "He (Z=2)" else if n == 2 then "Ne (Z=10)" else if n == 3 then "Ar (Z=18)" else if n == 4 then "Kr (Z=36)" else if n == 5 then "Xe (Z=54)" else if n == 6 then "Rn (Z=86)" else "" in
+    let axiom = if cap == 2 then "D" else if cap == 8 then "D^3" else if cap == 18 then "D*K^2" else if cap == 32 then "D^5" else if cap == 50 then "D*E^2" else if cap == 72 then "D*K^2*D^2 = D^3*K^2" else "D*${n}^2" in
+    /* subshells: l = 0..n-1, each holds 2(2l+1) = D*c(l) */
+    let s0 = if n > 0 then "s(D)" else "" in
+    let s1 = if n > 1 then " + p(D*K)" else "" in
+    let s2 = if n > 2 then " + d(D*E)" else "" in
+    let s3 = if n > 3 then " + f(D*b)" else "" in
+    let s4 = if n > 4 then " + g(D*K^2)" else "" in
+    let s5 = if n > 5 then " + h(D*L)" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Shell n = ${n}</p><p style='margin:4px 0'>Capacity = D*n^2 = <b style='color:#ffd700'>${cap}</b> = ${axiom}</p><p style='margin:4px 0;color:#999'>Subshells: ${s0}${s1}${s2}${s3}${s4}${s5}</p>${if noble != "" then "<p style='margin:4px 0;color:#88ddaa'>Noble gas: ${noble}</p>" else ""}")
+  )
 )
 
 fn page_quantum() = (
@@ -404,7 +451,14 @@ fn page_quantum() = (
   render_contrast_row(sec6, "Rydberg 13.6 eV", "alpha^2*m_e/2, measured", "GATE + K/E = 13.6 eV (2 ppm)");
   render_contrast_row(sec6, "Mass ratio 1836", "Measured, unexplained", "D^2*K^3*ESCAPE = 1836 (0.6 ppm)");
   render_contrast_row(sec6, "Lamb shift", "QED vacuum calculation", "D*23^2 MHz. Palindrome^2 times duality");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Shell Calculator");
+  render_p(sec_i, "Enter a principal quantum number n. See the electron shell capacity D*n^2, subshell decomposition, and noble gas if applicable.");
+  make_interactive_widget(sec_i, "Shell n:", "#qm-input", "e.g. 3", "Compute", "quantum_shell_calc", "qm-result");
+  dom_append(dom_body(), sec_i)
 )
 
 fn page_classical() = (
