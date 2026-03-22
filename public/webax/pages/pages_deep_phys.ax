@@ -6,6 +6,46 @@
                    boson_fermion, modular_forms, lie_algebra
    ================================================================ */
 
+/* OMEGA projection widget: multiply n by OMEGA, show CRT */
+fn omega_project_calc() = (
+  let n = parse_int_from("#omega-input") in
+  let result = dom_query("#omega-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    /* OMEGA = 606376. n*OMEGA mod 970200 */
+    let omega = 606376 in
+    /* compute n*omega mod N using modular arithmetic */
+    /* n mod 8: D-channel of n */
+    let nd = n % 8 in
+    let nk = n % 9 in
+    let ne = n % 25 in
+    let nb = n % 49 in
+    let nl = n % 11 in
+    /* OMEGA CRT = (0,1,1,1,1). Projecting: (n*OMEGA) mod q = n_q * omega_q */
+    let pd = 0 in  /* D-channel always dies */
+    let pk = nk in  /* K-channel: n*1 = n */
+    let pe = ne in  /* E-channel: n*1 = n */
+    let pb = nb in  /* b-channel: n*1 = n */
+    let pl = nl in  /* L-channel: n*1 = n */
+    /* determine fate */
+    let fate = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then "FALL (kernel: completely annihilated)" else "PROJECT") else "PROJECT") else "PROJECT") else "PROJECT")
+      else "PROJECT" in
+    let fate2 = if n % 970200 == 0 then "FALL (kernel: completely annihilated)"
+      else if nd == 0 then "PLUG (already D-null, unchanged by projection)"
+      else fate in
+    /* check if in kernel: n must be divisible by N/8 = 121275 ... no, kernel = {0, 121275, 242550, ...} = multiples of 121275 */
+    let in_kernel = if n % 121275 == 0 then 1 else 0 in
+    let fate_final = if in_kernel > 0 then "FALL (pure D-element, vanishes)"
+      else if nd == 0 then "PLUG (D-channel already zero, unchanged)"
+      else "PROJECT (D-channel stripped, structure preserved)" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>n = " + "${n}" + " &rarr; CRT(n) = (" + "${nd}" + ", " + "${nk}" + ", " + "${ne}" + ", " + "${nb}" + ", " + "${nl}" + ")</p>"
+      + "<p style='color:#ccc;margin:4px 0'>n*OMEGA &rarr; CRT = (<span style='color:#ff6666'>0</span>, " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ")</p>"
+      + "<p style='color:#ccc;margin:4px 0'>D-channel: <span style='color:#ff6666'>DEAD</span> (was " + "${nd}" + ")</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Fate: <span style='color:#ffd700'>" + fate_final + "</span></p>")
+  )
+)
+
 fn page_blackhole() = (
   dom_head_meta("description", "Black holes are OMEGA projections. CRT(OMEGA) = (0,1,1,1,1). The 1/4 in Bekenstein-Hawking entropy IS 1/D^2. The 8 in Hawking temperature IS D^3 = |kernel(OMEGA)|. K=3 bits lost per projection. Information paradox dissolves in the water cycle. Five testable predictions.");
   /* === HERO === */
@@ -117,6 +157,14 @@ fn page_blackhole() = (
   render_table_row(ptbl, "Spectral thinning", "Interior classes = 48750/E = 9750", "Radiation spectrally thinner by factor E=5");
   dom_append(sec6, ptbl);
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: OMEGA PROJECTION === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: OMEGA Projection");
+  render_p(sec_i, "Enter any number n to see what happens when OMEGA projects it. Shows CRT decomposition before and after.");
+  make_interactive_widget(sec_i, "Enter n:", "omega-input", "e.g. 42", "Project", "omega_project_calc", "omega-result");
+  render_p(sec_i, "Try: n=1 (sigma survives), n=2 (D dies), n=121275 (kernel, vanishes), n=42 (ANSWER), n=606376 (OMEGA itself).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec7 = make_section("800px") in

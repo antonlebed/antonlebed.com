@@ -1,3 +1,40 @@
+/* depth quadratic widget: f(p) = p^2 - p - 1 */
+fn depth_quad_calc() = (
+  let p = parse_int_from("#dquad-input") in
+  let result = dom_query("#dquad-result") in
+  if p < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter p >= 2.</p>")
+  else (
+    let fp = p * p - p - 1 in
+    /* check if 11-smooth (factors only from {2,3,5,7,11}) */
+    mut rem = fp;
+    mut s2 = 0; while rem % 2 == 0 do (mut rem = rem / 2; mut s2 = s2 + 1);
+    mut s3 = 0; while rem % 3 == 0 do (mut rem = rem / 3; mut s3 = s3 + 1);
+    mut s5 = 0; while rem % 5 == 0 do (mut rem = rem / 5; mut s5 = s5 + 1);
+    mut s7 = 0; while rem % 7 == 0 do (mut rem = rem / 7; mut s7 = s7 + 1);
+    mut s11 = 0; while rem % 11 == 0 do (mut rem = rem / 11; mut s11 = s11 + 1);
+    let smooth = rem == 1 in
+    let smooth_str = if smooth then "<span style='color:#ffd700'>YES -- axiom-smooth!</span>"
+      else "<span style='color:#888'>NO (remainder " + "${rem}" + ")</span>" in
+    /* build factorization string */
+    mut fstr = "";
+    if s2 > 0 then (mut fstr = fstr + "2^" + "${s2}" + " ") else 0;
+    if s3 > 0 then (mut fstr = fstr + "3^" + "${s3}" + " ") else 0;
+    if s5 > 0 then (mut fstr = fstr + "5^" + "${s5}" + " ") else 0;
+    if s7 > 0 then (mut fstr = fstr + "7^" + "${s7}" + " ") else 0;
+    if s11 > 0 then (mut fstr = fstr + "11^" + "${s11}" + " ") else 0;
+    if rem > 1 then (mut fstr = fstr + "${rem}") else 0;
+    /* name special cases */
+    let name = if p == 2 then " = <span style='color:#ffd700'>sigma</span>"
+      else if p == 3 then " = <span style='color:#ffd700'>E (observer)</span>"
+      else if p == 37 then " = <span style='color:#ffd700'>L^K = 11^3 (THE RETURN!)</span>"
+      else "" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>f(" + "${p}" + ") = " + "${p}" + "^2 - " + "${p}" + " - 1 = <span style='color:#ffd700;font-size:18px'>" + "${fp}" + "</span>" + name + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Factorization: " + fstr + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Axiom-smooth? " + smooth_str + "</p>")
+  )
+)
+
 fn page_depth_return() = (
   dom_head_meta("description", "37 is the only non-axiom prime whose depth quadratic returns to the axiom. f(37) = L^3 = L^K. Index p_12 (12 = lambda(DATA)). Shadow = 18 = ME. Order 420 = lambda. Primitive element. CRT(37) = (E, sigma, D^2*K, 37, D^2). Six axiom connections. Star number S(K) = 37. Biology: 37 genes, 37C, 37 trillion cells.");
   /* === HERO === */
@@ -76,6 +113,14 @@ fn page_depth_return() = (
   render_finding(g5, "Chromosomes", "D * 37 = 74", "Bear and camel: 74 = 2 * 37 chromosomes.", "");
   render_p(sec5, "The prodigal prime is the body's own number: its heat, its engines, its count.");
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE: DEPTH QUADRATIC EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Depth Quadratic");
+  render_p(sec_i, "Enter any prime p to compute f(p) = p^2 - p - 1 and check if it is axiom-smooth.");
+  make_interactive_widget(sec_i, "Enter prime p:", "dquad-input", "e.g. 37", "Compute", "depth_quad_calc", "dquad-result");
+  render_p(sec_i, "Try: p=2 (sigma), p=3 (E), p=37 (L^3 -- the prodigal!), p=5 (19, intruder), p=7 (41=KEY).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in

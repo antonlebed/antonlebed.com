@@ -2,6 +2,67 @@
    PAGE: SYMBIOSIS — 32-Vertex Lattice, Kingdom Combinations (SYMBIOSIS.md)
    ================================================================ */
 
+/* symbiosis widget: enter subset code (sum of primes), compute coupling */
+fn symbiosis_calc() = (
+  let code = parse_int_from("#symb-input") in
+  let result = dom_query("#symb-result") in
+  /* decode: user enters sum of primes in subset. e.g. 5 = {D,K}, 10 = {K,b}, 28 = {D,K,E,b,L} */
+  /* compute which primes are present */
+  mut rem = code;
+  let hasL = if rem > 10 then (if rem % 11 == 0 then 1 else (if rem - 11 > 0 then (let r2 = rem - 11 in if r2 == 0 then 1 else 0) else 0)) else 0 in
+  /* simpler: just check all 32 subsets. User enters a number 0-31 as bitmask: bit0=D, bit1=K, bit2=E, bit3=b, bit4=L */
+  if code < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-31 (5-bit mask: D=1,K=2,E=4,b=8,L=16).</p>")
+  else if code > 31 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-31 (5-bit mask: D=1,K=2,E=4,b=8,L=16).</p>")
+  else (
+    let hasD = code % 2 in
+    let hasK = (code / 2) % 2 in
+    let hasE = (code / 4) % 2 in
+    let hasb = (code / 8) % 2 in
+    let hasL2 = (code / 16) % 2 in
+    /* coupling = N / prod(p^a for p in subset) */
+    /* N = 970200 = 8 * 9 * 25 * 49 * 11 */
+    mut coupling = 970200;
+    if hasD > 0 then (mut coupling = coupling / 8) else 0;
+    if hasK > 0 then (mut coupling = coupling / 9) else 0;
+    if hasE > 0 then (mut coupling = coupling / 25) else 0;
+    if hasb > 0 then (mut coupling = coupling / 49) else 0;
+    if hasL2 > 0 then (mut coupling = coupling / 11) else 0;
+    /* population = phi contribution */
+    mut pop = 1;
+    if hasD > 0 then (mut pop = pop * 4) else (mut pop = pop * 4);
+    /* actually population = prod((p-1)*p^(a-1)) for included, prod(p^a) for excluded ... */
+    /* simplified: population = N * prod((1-1/p)) for included primes */
+    /* Let's just compute it directly from the known values */
+    mut popn = 970200;
+    if hasD > 0 then (mut popn = popn / 8 * 4) else 0;
+    if hasK > 0 then (mut popn = popn / 9 * 6) else 0;
+    if hasE > 0 then (mut popn = popn / 25 * 20) else 0;
+    if hasb > 0 then (mut popn = popn / 49 * 42) else 0;
+    if hasL2 > 0 then (mut popn = popn / 11 * 10) else 0;
+    /* but population of S-null = elements where exactly channels in S are zero */
+    /* this is inclusion-exclusion, complex. Use Mobius. Just show coupling. */
+    /* build subset string */
+    mut sstr = "{";
+    mut cnt = 0;
+    if hasD > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "D"; mut cnt = cnt + 1) else 0;
+    if hasK > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "K"; mut cnt = cnt + 1) else 0;
+    if hasE > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "E"; mut cnt = cnt + 1) else 0;
+    if hasb > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "b"; mut cnt = cnt + 1) else 0;
+    if hasL2 > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "L"; mut cnt = cnt + 1) else 0;
+    mut sstr = sstr + "}";
+    if cnt == 0 then (mut sstr = "{} (bacteria)") else 0;
+    /* what you SEE = complement coupling */
+    let see_coupling = 970200 / coupling in
+    let blind_str = if cnt == 0 then "Everything (full vision)"
+      else if cnt == 5 then "Nothing (total self-blindness)"
+      else "Coupling of complement = " + "${see_coupling}" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>Null channels: <span style='color:#ffd700'>" + sstr + "</span></p>"
+      + "<p style='color:#ccc;margin:4px 0'>Coupling: <span style='color:#ffd700;font-size:18px'>" + "${coupling}" + "</span></p>"
+      + "<p style='color:#ccc;margin:4px 0'>You SEE: " + blind_str + "</p>")
+  )
+)
+
 fn symbiosis_hero() = (
   let hero = make_hero("Symbiosis") in
   let eq = dom_create("div") in
@@ -133,6 +194,15 @@ fn symbiosis_lattice_props() = (
   dom_append(dom_body(), sec)
 )
 
+fn symbiosis_explore() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Kingdom Subsets");
+  render_p(sec, "Enter a 5-bit code (0-31) for a subset of {D,K,E,b,L}. Bits: D=1, K=2, E=4, b=8, L=16. Add values for your subset.");
+  make_interactive_widget(sec, "Enter subset code (0-31):", "symb-input", "e.g. 6 for {K,E}", "Compute", "symbiosis_calc", "symb-result");
+  render_p(sec, "Try: 0 (bacteria), 1 (protista/D), 6 ({K,E}=lichen), 10 ({K,b}=mycorrhiza), 31 (all=origin).");
+  dom_append(dom_body(), sec)
+)
+
 fn symbiosis_contrast() = (
   let sec = make_section("800px") in
   render_h2(sec, "Paradigm Contrast");
@@ -163,5 +233,6 @@ fn page_symbiosis() = (
   symbiosis_elements();
   symbiosis_sponge();
   symbiosis_lattice_props();
+  symbiosis_explore();
   symbiosis_contrast()
 )

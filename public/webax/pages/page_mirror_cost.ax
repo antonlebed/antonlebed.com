@@ -1,3 +1,47 @@
+/* mirror cost widget: factorize N-1 for any N */
+fn mirror_cost_calc() = (
+  let n = parse_int_from("#mirror-input") in
+  let result = dom_query("#mirror-result") in
+  if n < 3 then dom_inner(result, "<p style='color:#ff6666'>Enter N >= 3.</p>")
+  else (
+    let nm1 = n - 1 in
+    /* trial-factor nm1 */
+    mut rem = nm1;
+    mut fstr = "";
+    mut d = 2;
+    mut nfactors = 0;
+    while d * d < rem + 1 do (
+      if rem % d == 0 then (
+        mut exp = 0;
+        while rem % d == 0 do (
+          mut rem = rem / d;
+          mut exp = exp + 1
+        );
+        if nfactors > 0 then (mut fstr = fstr + " * ") else 0;
+        if exp > 1 then (mut fstr = fstr + "${d}" + "^" + "${exp}")
+        else (mut fstr = fstr + "${d}");
+        mut nfactors = nfactors + 1
+      ) else 0;
+      mut d = d + 1
+    );
+    if rem > 1 then (
+      if nfactors > 0 then (mut fstr = fstr + " * ") else 0;
+      mut fstr = fstr + "${rem}";
+      mut nfactors = nfactors + 1
+    ) else 0;
+    let is_prime = nfactors == 1 in
+    /* check mod 79 */
+    let mod79 = nm1 % 79 in
+    let mod79_str = if n % 79 == 1 then "<span style='color:#ffd700'>N = 1 mod 79 (mirror congruence!)</span>"
+      else "<span style='color:#888'>N mod 79 = " + "${mod79}" + "</span>" in
+    let prime_tag = if is_prime then " <span style='color:#88ddaa'>(PRIME)</span>" else "" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>N - 1 = <span style='color:#ffd700;font-size:18px'>" + "${nm1}" + "</span>" + prime_tag + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Factorization: " + fstr + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>" + mod79_str + "</p>")
+  )
+)
+
 fn page_mirror_cost() = (
   dom_head_meta("description", "N-1 = 970199 = 79*12281. Mirror congruence: N=1 mod 79. 79 = D^4*E-1. CC2-Gate chain: D^n*K*GATE+sigma, length K=3, terminal E^4=625. Gate Bridge: K*GATE+sigma = D^3*E. Lambda-420 mirror census. Primorial ladder. (Kb)^2*L = D^5 mod 79.");
   /* === HERO === */
@@ -100,6 +144,14 @@ fn page_mirror_cost() = (
   render_table_row_4(ptbl, "11#", "2310", "2309 (prime)", "Thin mirror is prime");
   dom_append(sec5, ptbl);
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE: MIRROR COST EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Mirror Cost");
+  render_p(sec_i, "Enter any N to factorize N-1 (the mirror element). Check the mirror congruence mod 79.");
+  make_interactive_widget(sec_i, "Enter N:", "mirror-input", "e.g. 970200", "Compute", "mirror_cost_calc", "mirror-result");
+  render_p(sec_i, "Try: N=970200 (TRUE, 79*12281), N=2310 (THIN, 2309 prime), N=210 (DATA, 209=11*19), N=6 (5=E).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in

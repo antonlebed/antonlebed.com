@@ -1,3 +1,41 @@
+/* Gaussian norm widget: |D^n + Ki|^2 = 4^n + 9 */
+fn gauss_norm_calc() = (
+  let n = parse_int_from("#gauss-input") in
+  let result = dom_query("#gauss-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    /* compute 4^n + 9 via repeated squaring */
+    mut pow4 = 1;
+    mut i = 0;
+    while i < n do (
+      mut pow4 = pow4 * 4;
+      mut i = i + 1
+    );
+    let norm = pow4 + 9 in
+    let even = n % 2 == 0 in
+    let e_filter = if even then "<span style='color:#ff6666'>BLOCKED by E-filter (even n: 4^n+9 = 0 mod 5)</span>"
+      else "<span style='color:#88ddaa'>Passes E-filter (odd n)</span>" in
+    /* trial division for small primes */
+    mut is_prime = 1;
+    mut d = 2;
+    while d * d < norm + 1 do (
+      if norm % d == 0 then (mut is_prime = 0) else 0;
+      mut d = d + 1
+    );
+    let prime_str = if norm < 4 then "PRIME"
+      else if is_prime > 0 then "<span style='color:#ffd700'>PRIME</span>"
+      else "<span style='color:#888'>composite</span>" in
+    /* name known values */
+    let name = if n == 1 then " = <span style='color:#ffd700'>GATE</span>"
+      else if n == 3 then " = H0 (Heegner blocker)"
+      else "" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>|D^" + "${n}" + " + Ki|^2 = 4^" + "${n}" + " + 9 = <span style='color:#ffd700;font-size:18px'>" + "${norm}" + "</span>" + name + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>" + e_filter + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Primality: " + prime_str + "</p>")
+  )
+)
+
 fn page_d_power_gaussian() = (
   dom_head_meta("description", "D-power Gaussian primes: |D^n + Ki|^2 = 4^n + 9. |D+Ki|^2 = 13 = GATE. Prime at {sigma,K,E,K^2,K*E}. E-filter, covering vocabulary, mod-24 theorem. The gate lives in Z[i].");
   /* === HERO === */
@@ -75,6 +113,14 @@ fn page_d_power_gaussian() = (
   render_theorem(sec6, "Mod-24 Classification (PROVED)", "Among index-2 primes (D=2 is primitive root, q = 5 mod 8): ODD-covering iff q = GATE mod D^3*K (= 13 mod 24). EVEN-covering iff q = E mod D^3*K (= 5 mod 24). D^3*K = 24 = Leech lattice dimension. Verified: 55/55 odd-covering, 74/74 even-covering.");
   render_p(sec6, "Three-way classification: ODD-covering 25%, EVEN-covering 28%, NON-covering 47%. Densities stable across all bounds tested.");
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: GAUSSIAN NORM EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Gaussian Norms");
+  render_p(sec_i, "Enter n to compute |D^n + Ki|^2 = 4^n + 9. Check primality and E-filter.");
+  make_interactive_widget(sec_i, "Enter n (1-25):", "gauss-input", "e.g. 5", "Compute", "gauss_norm_calc", "gauss-result");
+  render_p(sec_i, "Try: n=1 (13=GATE), n=3 (73=H0), n=5 (1033 prime), n=9 (K^2, prime), n=2 (even, E-blocks).");
+  dom_append(dom_body(), sec_i);
 
   /* === SEC 7: CONTRAST === */
   let sec7 = make_section("800px") in
