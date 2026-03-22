@@ -29,7 +29,7 @@ const FILES = [
   'page_stormer_pairs.ax', 'page_shadow_eval.ax', 'page_d_power_gaussian.ax',
   'page_cyclotomic_fibonacci.ax', 'page_fano_e8.ax', 'page_arcsine_cumulant.ax',
   'page_figurate_bridge.ax',
-  'page_sandpile.ax', 'pages_observe.ax', 'pages_living.ax',
+  'page_heart.ax', 'page_sandpile.ax', 'pages_observe.ax', 'pages_living.ax',
   'router.ax'
 ];
 
