@@ -179,6 +179,49 @@ fn page_statmech() = (
    PHYSICS DOMAIN: nuclear, particles, dna, pmns, human_shape
    ================================================================ */
 
+/* Nuclear shell calculator: HO(n) = (n+1)(n+2)(n+3)/6 */
+fn nuc_ho_calc() = (
+  let n = parse_int_from("#nuc-input") in
+  let result = dom_query("#nuc-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let a = n + 1 in
+    let b = n + 2 in
+    let c = n + 3 in
+    let ho = a * b * c / 6 in
+    let sub = 2 * (2 * n + 1) in
+    let cun = 2 * n + 1 in
+    /* Smoothness check of HO(n) */
+    mut v = ho;
+    mut e2 = 0;
+    while v % 2 == 0 do (mut v = v / 2; mut e2 = e2 + 1);
+    mut e3 = 0;
+    while v % 3 == 0 do (mut v = v / 3; mut e3 = e3 + 1);
+    mut e5 = 0;
+    while v % 5 == 0 do (mut v = v / 5; mut e5 = e5 + 1);
+    mut e7 = 0;
+    while v % 7 == 0 do (mut v = v / 7; mut e7 = e7 + 1);
+    mut e11 = 0;
+    while v % 11 == 0 do (mut v = v / 11; mut e11 = e11 + 1);
+    let smooth = if v == 1 then 1 else 0 in
+    let f2 = if e2 > 0 then "2^${e2}" else "" in
+    let f3 = if e3 > 0 then (if e2 > 0 then " * " else "") + "3^${e3}" else "" in
+    let f5 = if e5 > 0 then (if e2 + e3 > 0 then " * " else "") + "5^${e5}" else "" in
+    let f7 = if e7 > 0 then (if e2 + e3 + e5 > 0 then " * " else "") + "7^${e7}" else "" in
+    let f11 = if e11 > 0 then (if e2 + e3 + e5 + e7 > 0 then " * " else "") + "11^${e11}" else "" in
+    let rem = if v > 1 then (if e2 + e3 + e5 + e7 + e11 > 0 then " * " else "") + "<span style='color:#ff6666'>${v}</span>" else "" in
+    let fstr = f2 + f3 + f5 + f7 + f11 + rem in
+    let verd = if smooth > 0 then "<span style='color:#88ddaa'>SMOOTH</span>" else "<span style='color:#ff6666'>NOT SMOOTH</span>" in
+    let magic = if ho == 2 then " = D (He-4)"
+      else if ho == 8 then " = D^3 (O-16)"
+      else if ho == 20 then " = D^2*E (Ca-40)"
+      else if ho == 40 then " = D^3*E (beyond magic)"
+      else if ho == 70 then " = D*E*b"
+      else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>HO(${n}) = (${a})(${b})(${c})/6 = <b style='color:#ffd700'>${ho}</b>${magic}</p><p style='margin:4px 0'>Subshell capacity at l=${n}: ${sub} = D*c(${n}) = D*${cun}</p><p style='margin:4px 0'>${ho} = ${fstr} &mdash; ${verd}</p>")
+  )
+)
+
 fn page_nuclear() = (
   dom_head_meta("description", "All 7 nuclear magic numbers are D-multiples. 6/7 axiom-smooth. HO(n) = (n+1)(n+2)(n+3)/K -- denominator IS closure. Spin-orbit shifts are ALL axiom-smooth. Iron-56 binding = K^2 - 1/E - 1/(G+D). Subshell capacity = D*(2l+1) = D times the Cunningham map.");
   /* === HERO === */
@@ -299,6 +342,14 @@ fn page_nuclear() = (
   render_theorem(sec7, "Dimensional 13-Gate Theorem (S286, PROVED)", "For d spatial dimensions, M(n,d) = 2*C(n+d, d). In d dimensions, exactly 13-d consecutive axiom-smooth magic numbers exist. At n = 13-d, factor 13 first enters. The gate controls ALL dimensions. Proof: max prime factor of (n+1)...(n+d) is n+d. Smooth iff n+d < 13.");
   render_p(sec7, "In d=K=3 dimensions: 10 smooth magic numbers before 13 enters. In d=1: 12 smooth. In d=12: only 1 smooth. The GATE value 13 sets the axiom-smooth boundary universally across dimensionality. The break value M(13-d, d) = 2*C(13, d) is PALINDROMIC in d -- symmetric around d=13/2.");
   dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE: HO(n) CALCULATOR === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Shell Calculator");
+  render_p(sec_i, "Enter an orbital level n. See the harmonic oscillator magic number HO(n) = (n+1)(n+2)(n+3)/6 and subshell capacity 2*(2l+1). The denominator 6 = D*K IS three-dimensional closure.");
+  make_interactive_widget(sec_i, "Orbital level n (0-6):", "nuc-input", "e.g. 2", "Compute", "nuc_ho_calc", "nuc-result");
+  render_p(sec_i, "Try: n=0 (D=2), n=1 (D^2=4, cumulative D^3=8), n=2 (D*E=10, cumulative D^2*E=20).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec8 = make_section("800px") in

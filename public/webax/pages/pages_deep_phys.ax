@@ -814,6 +814,31 @@ fn page_modular_forms() = (
   dom_append(dom_body(), sec8)
 )
 
+/* Lie algebra tier lookup: input h, show tier info */
+fn lie_tier_calc() = (
+  let h = parse_int_from("#lie-input") in
+  let result = dom_query("#lie-result") in
+  if h < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter h >= 2 (even Coxeter number).</p>")
+  else (
+    let hp1 = h + 1 in
+    let prime = is_prime_trial(hp1) in
+    let ktier = if h % 6 == 0 then 1 else 0 in
+    let pr_tag = if prime > 0 then "<span style='color:#88ddaa'>PRIME</span>" else "<span style='color:#ff6666'>composite</span>" in
+    let kt_tag = if ktier > 0 then "<span style='color:#ffd700'>YES (K-tier: h/2 = ${h / 2} divisible by K=3)</span>" else "<span style='color:#999'>No</span>" in
+    let algebras = if h == 2 then "A1 (= SU(2), rank 1)"
+      else if h == 4 then "A3, B2 (rank 2-3)"
+      else if h == 6 then "A5, B3, C3, D4, <b style='color:#ffd700'>G2</b> (rank 2-4)"
+      else if h == 10 then "A9, B5, C5, D6 (rank 5-9)"
+      else if h == 12 then "B6, C6, D7, <b style='color:#ffd700'>E6</b>, <b style='color:#ffd700'>F4</b> (rank 4-7)"
+      else if h == 16 then "B8, C8, D9 (rank 8-9)"
+      else if h == 18 then "A17, B9, C9, <b style='color:#ffd700'>E7</b> (rank 7-17)"
+      else if h == 30 then "<b style='color:#ffd700'>E8</b> alone (rank 8). Terminal tier."
+      else "No axiom-complete algebras at this Coxeter number." in
+    let boundary = if hp1 == 3 then " = K" else if hp1 == 5 then " = E" else if hp1 == 7 then " = b" else if hp1 == 11 then " = L" else if hp1 == 13 then " = GATE" else if hp1 == 17 then " = ESCAPE" else if hp1 == 19 then " = f(E)" else if hp1 == 31 then " = c(K*E)" else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Coxeter number h = ${h}</p><p style='margin:4px 0'>h+1 = <b>${hp1}</b>${boundary} &mdash; ${pr_tag}</p><p style='margin:4px 0'>K-tier: ${kt_tag}</p><p style='margin:4px 0'>Algebras: ${algebras}</p>")
+  )
+)
+
 fn page_lie_algebra() = (
   dom_head_meta("description", "All 25 axiom-complete simple Lie algebras across D^3=8 tiers. Exceptional algebras sit on K-tiers. E8 terminates at rank D^3 < L=11. Root counts axiom-smooth. b1-Lie correspondence from ring topology.");
   /* === HERO === */
@@ -933,6 +958,14 @@ fn page_lie_algebra() = (
   render_h2(sec7, "b1-Lie Correspondence");
   render_theorem(sec7, "Betti-Lie Theorem (S338-S344)", "First Betti number b1(Z/p x Z/q) = (p-1)(q-1). For axiom prime products: b1(D^3, K^2) = 7*8 = 56 = dim(fund E7). b1(E^2, L) = 24*10 = 240 = |roots(E8)|. PSL Ladder: b1(K,b) = PSL(2,K) = 12 = trinity heart. b1(b,L) = PSL(2,E) = 60 = icosahedron. b1(D^3,E^2) = PSL(2,b) = 168. dim SU(p) = p^2 - 1 = b1(Z/p, Z/(p+2)). Trivial from D=2.");
   dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE: COXETER TIER EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Coxeter Tier Lookup");
+  render_p(sec_i, "Enter a Coxeter number h (even). See h+1, K-tier status, and which algebras live on that tier. The eight axiom-complete tiers: h = {2, 4, 6, 10, 12, 16, 18, 30}.");
+  make_interactive_widget(sec_i, "Coxeter number h:", "lie-input", "e.g. 6", "Look up", "lie_tier_calc", "lie-result");
+  render_p(sec_i, "Try: 6 (b-boundary, G2+5 classical), 12 (GATE, F4+E6), 30 (E8 alone).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec8 = make_section("800px") in

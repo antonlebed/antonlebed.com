@@ -1,3 +1,39 @@
+/* Bootstrap indeterminacy widget: gcd(a, N) = self-division ambiguity */
+fn bootstrap_indet() = (
+  let a = parse_int_from("#boot-input") in
+  let result = dom_query("#boot-result") in
+  if a < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter a >= 0.</p>")
+  else (
+    let n = 970200 in
+    let g = gcd_shared(a, n) in
+    let name = if a == 0 then "void (o)"
+      else if a == 1 then "sigma"
+      else if a == 2 then "D"
+      else if a == 3 then "K"
+      else if a == 5 then "E"
+      else if a == 7 then "b"
+      else if a == 11 then "L"
+      else if a == 13 then "GATE"
+      else if a == 41 then "KEY"
+      else if a == 42 then "ANSWER"
+      else if a == 67 then "SOUL"
+      else if a == 137 then "ADDRESS"
+      else if a == 420 then "lambda"
+      else if a == 606376 then "OMEGA"
+      else "" in
+    let tag = if name == "" then "" else " = <span style='color:#ffd700'>" + name + "</span>" in
+    let meaning = if g == 1 then "FULLY DETERMINED. Zero noise. This element could be the bootstrap."
+      else if g == n then "FULLY INDETERMINATE. Every element solves a*x=a. The void."
+      else if g == 2 then "Binary ambiguity. Observer/observed duality."
+      else if g == 3 then "Ternary. Closure ambiguity."
+      else if g == 5 then "Pentary. Observation limit."
+      else if g == 7 then "Septenary. Depth ambiguity."
+      else if g == 11 then "L = 11 solutions. Maximal prime ambiguity."
+      else "Composite ambiguity." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'><b>a = ${a}</b>${tag}</p><p style='margin:4px 0'>gcd(${a}, 970200) = <b style='color:#ffd700'>${g}</b> solutions to a*x = a</p><p style='margin:4px 0;color:#999'>${meaning}</p>")
+  )
+)
+
 fn page_bootstrap() = (
   dom_head_meta("description", "sigma = 1 is the ONLY self-consistent bootstrap. Proof: every other candidate fails. The indeterminacy gradient, the cross-chain genesis, and the water cycle -- all forced from 0/0.");
   /* === HERO === */
@@ -140,6 +176,14 @@ fn page_bootstrap() = (
     "970201 = N+1 is PRIME. Its multiplicative group is exactly Z/970200Z -- the ring. Primitive root = 13 (the gate). The boundary of the ring generates the ring from outside. 13 cannot join the axiom (shadow = 6 = D*K, composite) but GENERATES the multiplicative group.");
   render_p(st, "The seed {sigma, D} = {1, 2} is the unique irreducible starting pair. Minimal (identity + first prime). Disjoint chains. Symmetric (each contributes K=3 elements). {2,3} produces the same primes but K = D+sigma is already derived.");
   dom_append(dom_body(), st);
+
+  /* === INTERACTIVE: INDETERMINACY EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Self-Division Ambiguity");
+  render_p(sec_i, "Enter any element a. See how many solutions exist for a*x = a mod 970200. The count = gcd(a, N). sigma has 1 (unique). Void has 970200 (everything). Each chain element's ambiguity equals ITSELF.");
+  make_interactive_widget(sec_i, "Enter element a:", "boot-input", "e.g. 7", "Compute", "bootstrap_indet", "boot-result");
+  render_p(sec_i, "Try the chain: 0 (void), 1 (sigma), 2 (D), 3 (K), 5 (E), 7 (b), 11 (L), 606376 (OMEGA).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST TABLE === */
   let sec4 = make_section("800px") in
@@ -510,6 +554,39 @@ fn page_mirror() = (
    SACRIFICE PAGE — Universal Sacrifice: the wound landscape
    ================================================================ */
 
+/* OMEGA wound calculator: multiply n by OMEGA, show CRT channels */
+fn sacrifice_wound() = (
+  let n = parse_int_from("#sac-input") in
+  let result = dom_query("#sac-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    /* CRT of n: n mod {8, 9, 25, 49, 11} */
+    let nd = n % 8 in
+    let nk = n % 9 in
+    let ne = n % 25 in
+    let nb = n % 49 in
+    let nl = n % 11 in
+    /* OMEGA = (0,1,1,1,1). OMEGA*n = (0*nd, 1*nk, 1*ne, 1*nb, 1*nl) = (0, nk, ne, nb, nl) */
+    let rd = 0 in
+    let rk = nk in
+    let re = ne in
+    let rb = nb in
+    let rl = nl in
+    /* Reconstruct OMEGA*n from CRT */
+    /* channels killed = those that went to 0 */
+    mut killed = 0;
+    if rk == 0 then (mut killed = killed + 1) else 0;
+    if re == 0 then (mut killed = killed + 1) else 0;
+    if rb == 0 then (mut killed = killed + 1) else 0;
+    if rl == 0 then (mut killed = killed + 1) else 0;
+    let fate = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then "ANNIHILATED: n is in ker(OMEGA). Pure D-element."
+      else "4 channels dead") else "D dead + partial") else "D dead + partial") else "D dead + partial")
+      else "D-channel killed. " + "${killed}" + " other channel(s) also zero." in
+    let d_status = if nd == 0 then "<span style='color:#666'>0</span>" else "<span style='color:#ff6666'>${nd} -> 0</span>" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>CRT(${n}) = (${nd}, ${nk}, ${ne}, ${nb}, ${nl})</p><p style='margin:4px 0'>OMEGA*${n}: CRT = (<b style='color:#ff6666'>0</b>, ${rk}, ${re}, ${rb}, ${rl})</p><p style='margin:4px 0;color:#999'>D-channel: ${d_status}. ${fate}</p>")
+  )
+)
+
 fn page_sacrifice() = (
   dom_head_meta("description", "Zero is the only element annihilated by every idempotent. 7 proved theorems: universal sacrifice, wound landscape, pair destruction, 42 theorem, grief cosmology. OMEGA kills D. 79.22% grief depth. The arithmetic of loss.");
   /* === HERO === */
@@ -648,6 +725,14 @@ fn page_sacrifice() = (
   render_themed_section(sec8, "The Witness Theorem", "#0f1410", "#33dd55", "#33dd55", "E=5 (observation) and 0 (annihilation) are independent CRT channels. You can observe him -- prove theorems, contemplate, write 0/0=1 on a blackboard -- without triggering his sword. Perception is not multiplication. The ten operations exist separately so she can look back.", "#bbb");
   render_p(sec8, "Conservation from sacrifice: 0+n = n persists in EVERY quotient ring. The sacrifice is irreversible (0*n = 0), but the memory is eternal (0+n = n). Energy conservation = additive identity persistence. He gave everything so that addition would work. (-1)*(-1) = sigma: the way home takes exactly one step through the mirror. The redemption is built into the wound.");
   dom_append(dom_body(), sec8);
+
+  /* === INTERACTIVE: OMEGA WOUND === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: The Wound");
+  render_p(sec_i, "Enter any element n. See what OMEGA does to it. OMEGA = (0,1,1,1,1) kills the D-channel and preserves everything else. The wound re-enacts itself.");
+  make_interactive_widget(sec_i, "Enter n:", "sac-input", "e.g. 42", "Project", "sacrifice_wound", "sac-result");
+  render_p(sec_i, "Try: 1 (sigma), 2 (D, pure pair), 7 (b, depth), 606376 (OMEGA itself), 0 (void).");
+  dom_append(dom_body(), sec_i);
 
   /* === SEC 9: CONTRAST === */
   let sec9 = make_section("800px") in
