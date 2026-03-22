@@ -103,10 +103,63 @@ fn ground_contrast() = (
   dom_append(dom_body(), sec)
 )
 
+/* ================================================================
+   INTERACTIVE: KINGDOM CLASSIFIER
+   Enter a number → see CRT, coupling, kingdom, persistence.
+   ================================================================ */
+
+fn gcd_compute(a, b) = (
+  if b == 0 then a else gcd_compute(b, a % b)
+)
+
+fn ground_classify() = (
+  let n = parse_int_from("#gnd-input") in
+  let result = dom_query("#gnd-result") in
+  /* CRT decomposition */
+  let rd = n % 8 in let rk = n % 9 in let re = n % 25 in let rb = n % 49 in let rl = n % 11 in
+  /* Coupling = N / gcd(n, N) */
+  let g = gcd_compute(n, 970200) in
+  let coup = 970200 / g in
+  /* Which channels are dead (zero residue)? */
+  let dd = if rd == 0 then 1 else 0 in
+  let dk = if rk == 0 then 1 else 0 in
+  let de = if re == 0 then 1 else 0 in
+  let db = if rb == 0 then 1 else 0 in
+  let dl = if rl == 0 then 1 else 0 in
+  let dead = dd + dk + de + db + dl in
+  /* Kingdom: determined by highest dead channel */
+  let kingdom = if dead == 5 then "VOID (all dead)"
+    else if dead == 0 then "Bacteria (sigma) — all channels alive, unit"
+    else if dl > 0 then "Human (L=11 dead)"
+    else if db > 0 then "Animal (b=7 dead)"
+    else if de > 0 then "Plant (E=5 dead)"
+    else if dk > 0 then "Fungi (K=3 dead)"
+    else "Protista (D=2 dead)" in
+  /* Persistence: min exponent steps across dead channels */
+  let persist = if dead == 0 then "infinite (unit)"
+    else if dd > 0 then "D-channel: 3 steps"
+    else if dk > 0 then "K-channel: 2 steps"
+    else if de > 0 then "E-channel: 2 steps"
+    else if db > 0 then "b-channel: 2 steps"
+    else "L-channel: 1 step" in
+  /* Ambiguity: gcd(n, N) */
+  dom_inner(result, "<p style='color:#88ddaa;margin:4px 0'><b>n = " + "${n}" + "</b> | CRT = (" + "${rd}" + "," + "${rk}" + "," + "${re}" + "," + "${rb}" + "," + "${rl}" + ")</p><p style='color:#ffd700;margin:4px 0'>Coupling: <b>" + "${coup}" + "</b> | gcd(n,N) = " + "${g}" + " | Self-division solutions: " + "${g}" + "</p><p style='color:#ff8844;margin:4px 0'>Kingdom: <b>" + kingdom + "</b> | Dead channels: " + "${dead}" + "/5</p><p style='color:#8888ff;margin:4px 0'>Persistence: " + persist + "</p>")
+)
+
+fn ground_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Kingdom Classifier");
+  render_p(sec, "Enter any number. See its CRT decomposition, coupling (how connected), kingdom (which channels are dead), and persistence (how long it survives). sigma=1 has coupling 970200 (maximum). void=0 has coupling 1 (minimum).");
+  make_interactive_widget(sec, "Classify an element of Z/970200:", "gnd-input", "e.g. 42", "Classify", "ground_classify", "gnd-result");
+  render_p(sec, "Try: 1 (sigma), 0 (void), 2 (bridge), 606376 (OMEGA), 42 (ANSWER), 137 (ADDRESS), 67 (SOUL), 41 (KEY).");
+  dom_append(dom_body(), sec)
+)
+
 fn page_ground() = (
   dom_head_meta("description", "sigma = 1 is the identity. Maximum coupling. Selected from 0/0 by uniqueness. Six kingdoms from coupling. Three Omnis. Persistence gradient. The ground state from which all kingdoms depart.");
   ground_hero();
   ground_indeterminacy();
+  ground_interactive();
   ground_kingdoms();
   ground_three_omnis();
   ground_persistence();
