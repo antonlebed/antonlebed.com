@@ -190,6 +190,50 @@ fn page_bootstrap() = (
    SEPTUM PAGE — 16/77: Where We Live
    ================================================================ */
 
+/* septum widget: Euler totient ratio phi(N)/N */
+fn septum_calc() = (
+  let n = parse_int_from("#sept-input") in
+  let result = dom_query("#sept-result") in
+  if n < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter N >= 2.</p>")
+  else (
+    /* compute phi(N) by trial division */
+    mut phi = n;
+    mut rem = n;
+    mut d = 2;
+    mut pstr = "";
+    mut pcnt = 0;
+    while d * d < rem + 1 do (
+      if rem % d == 0 then (
+        while rem % d == 0 do (mut rem = rem / d);
+        mut phi = phi / d * (d - 1);
+        if pcnt > 0 then (mut pstr = pstr + ", ") else 0;
+        mut pstr = pstr + "${d}";
+        mut pcnt = pcnt + 1
+      ) else 0;
+      mut d = d + 1
+    );
+    if rem > 1 then (
+      mut phi = phi / rem * (rem - 1);
+      if pcnt > 0 then (mut pstr = pstr + ", ") else 0;
+      mut pstr = pstr + "${rem}";
+      mut pcnt = pcnt + 1
+    ) else 0;
+    /* compute gcd for reduced fraction */
+    mut a = phi;
+    mut b2 = n;
+    while b2 > 0 do (let t = b2 in mut b2 = a % b2; mut a = t);
+    let g = a in
+    let num = phi / g in
+    let den = n / g in
+    let pct = phi * 100 / n in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>phi(" + "${n}" + ") = <span style='color:#ffd700;font-size:18px'>" + "${phi}" + "</span></p>"
+      + "<p style='color:#ccc;margin:4px 0'>phi(N)/N = " + "${num}" + "/" + "${den}" + " = " + "${pct}" + "%</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Prime factors: {" + pstr + "} (" + "${pcnt}" + " primes)</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Zero-divisors: " + "${n}" + " - " + "${phi}" + " = " + "${n - phi}" + " (" + "${100 - pct}" + "%)</p>")
+  )
+)
+
 fn page_septum() = (
   dom_head_meta("description", "Units = 16/77 of the ring. The septum = Klein bottle self-intersection zone. Euler product derivation, grief/soul symmetry, persistence gradient, five-prime bridge.");
   /* === HERO === */
@@ -279,6 +323,14 @@ fn page_septum() = (
     "D^4 * E = b * L + K = 80. All five axiom primes participate. The numerator of the septum (D^4 = 16) times the observer (E = 5) equals the denominator (b*L = 77) plus closure (K = 3). The bridge connects the heart to the protector through the observer.");
   render_p(sf, "This is the ONLY linear equation in the five primes (with D^4 as the natural unit). It ties the septum ratio directly to the axiom structure: what lives (units) is connected to what shields (b*L) through what observes (E).");
   dom_append(dom_body(), sf);
+
+  /* === INTERACTIVE: SEPTUM EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Euler Totient Ratio");
+  render_p(sec_i, "Enter any N to compute phi(N)/N -- the fraction of the ring that is alive (units).");
+  make_interactive_widget(sec_i, "Enter N:", "sept-input", "e.g. 970200", "Compute", "septum_calc", "sept-result");
+  render_p(sec_i, "Try: N=970200 (16/77), N=2310 (THIN, 8/21), N=210 (DATA, 8/35), N=30 (4/15), N=6 (1/3).");
+  dom_append(dom_body(), sec_i);
 
   /* === SOC IN THE SEPTUM === */
   let ss = make_section("800px") in
@@ -633,6 +685,51 @@ fn page_sacrifice() = (
    DECALITY PAGE — The 10 Terms
    ================================================================ */
 
+/* decality widget: partial sum explorer */
+fn decality_sum_calc() = (
+  let k = parse_int_from("#dec-input") in
+  let result = dom_query("#dec-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter k (1-10).</p>")
+  else if k > 10 then dom_inner(result, "<p style='color:#ff6666'>Enter k (1-10). Only 10 terms.</p>")
+  else (
+    /* terms: -1, 0, 1, 2, 3, 5, 7, 11, 13, OMEGA(606376) */
+    /* partial sums: -1, -1, 0, 2, 5, 10, 17, 28, 41, 41+606376=606417 */
+    let term_name = if k == 1 then "-1 (MIRROR)"
+      else if k == 2 then "0 (VOID)"
+      else if k == 3 then "1 (SIGMA)"
+      else if k == 4 then "2 (BRIDGE)"
+      else if k == 5 then "3 (CLOSURE)"
+      else if k == 6 then "5 (OBSERVER)"
+      else if k == 7 then "7 (DEPTH)"
+      else if k == 8 then "11 (PROTECTOR)"
+      else if k == 9 then "13 (GATE)"
+      else "OMEGA (606376)" in
+    let psum = if k == 1 then 970199
+      else if k == 2 then 970199
+      else if k == 3 then 0
+      else if k == 4 then 2
+      else if k == 5 then 5
+      else if k == 6 then 10
+      else if k == 7 then 17
+      else if k == 8 then 28
+      else if k == 9 then 41
+      else 606417 in
+    let pname = if k == 1 then "-1 = MIRROR"
+      else if k == 2 then "-1 = MIRROR (unchanged)"
+      else if k == 3 then "0 = VOID"
+      else if k == 4 then "2 = D (duality)"
+      else if k == 5 then "5 = E (observer!)"
+      else if k == 6 then "10 = D*E (degree of TRUE)"
+      else if k == 7 then "17 = ESCAPE"
+      else if k == 8 then "28 = THORNS (perfect number)"
+      else if k == 9 then "41 = KEY (13th prime!)"
+      else "606417 = KEY + OMEGA" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>Term " + "${k}" + ": <span style='color:#ffd700'>" + term_name + "</span></p>"
+      + "<p style='color:#ccc;margin:4px 0'>Partial sum after " + "${k}" + " terms: <span style='color:#ffd700;font-size:18px'>" + pname + "</span></p>")
+  )
+)
+
 fn page_decality() = (
   dom_head_meta("description", "Ten terms span the axiom: {-1, 0, 1, 2, 3, 5, 7, 11, 13, OMEGA}. Sum = 41 = KEY = the 13th prime. Primes sum = 42. Each term is an operation. The sequence contains its own differences.");
   /* === HERO === */
@@ -747,6 +844,14 @@ fn page_decality() = (
   render_finding_wide(pg, "OMEGA: STOP", "Convergence", "Adaptive per-position entropy. Know when to stop. The organism with skin.", "");
   render_p(sdp, "The process is not sequential. All ten condense simultaneously. Coupling hierarchy = convergence rate. Coarsest channels (sigma) stabilize first, finest (L) last.");
   dom_append(dom_body(), sdp);
+
+  /* === INTERACTIVE: DECALITY PARTIAL SUMS === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Partial Sums");
+  render_p(sec_i, "Enter k (1-10) to see the k-th Decality term and the running sum after k terms.");
+  make_interactive_widget(sec_i, "Enter k (1-10):", "dec-input", "e.g. 9", "Compute", "decality_sum_calc", "dec-result");
+  render_p(sec_i, "Try: k=5 (sum=E), k=7 (sum=ESCAPE), k=9 (sum=41=KEY), k=8 (sum=28=perfect).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sc = make_section("800px") in
@@ -910,6 +1015,80 @@ fn lattice_heartbeat() = (
   dom_append(dom_body(), sec)
 )
 
+/* lattice widget: check if N shares lambda=420 */
+fn lattice_check_calc() = (
+  let n = parse_int_from("#lat-input") in
+  let result = dom_query("#lat-result") in
+  if n < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter N >= 2.</p>")
+  else (
+    /* compute lambda(N) = lcm of lambda(p^e) for each prime power in N */
+    /* lambda(2^a) = 2^(a-2) for a>=3, 2^(a-1) for a<=2 */
+    /* lambda(p^a) = p^(a-1)*(p-1) for odd p */
+    mut rem = n;
+    mut lam = 1;
+    mut d = 2;
+    mut pstr = "";
+    mut pcnt = 0;
+    while d * d < rem + 1 do (
+      if rem % d == 0 then (
+        mut exp = 0;
+        while rem % d == 0 do (mut rem = rem / d; mut exp = exp + 1);
+        /* compute lambda(d^exp) */
+        mut lpe = 1;
+        if d == 2 then (
+          if exp == 1 then (mut lpe = 1)
+          else if exp == 2 then (mut lpe = 2)
+          else (
+            mut lpe = 1;
+            mut i = 0;
+            while i < exp - 2 do (mut lpe = lpe * 2; mut i = i + 1)
+          )
+        ) else (
+          mut lpe = d - 1;
+          mut i = 1;
+          while i < exp do (mut lpe = lpe * d; mut i = i + 1)
+        );
+        /* lcm(lam, lpe) */
+        mut a = lam;
+        mut b3 = lpe;
+        while b3 > 0 do (let t = b3 in mut b3 = a % b3; mut a = t);
+        mut lam = lam / a * lpe;
+        if pcnt > 0 then (mut pstr = pstr + " * ") else 0;
+        if exp > 1 then (mut pstr = pstr + "${d}" + "^" + "${exp}")
+        else (mut pstr = pstr + "${d}");
+        mut pcnt = pcnt + 1
+      ) else 0;
+      mut d = d + 1
+    );
+    if rem > 1 then (
+      let lpe2 = rem - 1 in
+      mut a = lam;
+      mut b3 = lpe2;
+      while b3 > 0 do (let t = b3 in mut b3 = a % b3; mut a = t);
+      mut lam = lam / a * lpe2;
+      if pcnt > 0 then (mut pstr = pstr + " * ") else 0;
+      mut pstr = pstr + "${rem}";
+      mut pcnt = pcnt + 1
+    ) else 0;
+    let in_lattice = if lam == 420 then "<span style='color:#ffd700'>YES -- lambda=420! This ring is in the lattice.</span>"
+      else if 420 % lam == 0 then "<span style='color:#88ddaa'>lambda divides 420 (sub-ring compatible)</span>"
+      else "<span style='color:#888'>NO (lambda=" + "${lam}" + ", not 420)</span>" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>N = " + "${n}" + " = " + pstr + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>lambda(N) = <span style='color:#ffd700;font-size:18px'>" + "${lam}" + "</span></p>"
+      + "<p style='color:#ccc;margin:4px 0'>In 108-ring lattice? " + in_lattice + "</p>")
+  )
+)
+
+fn lattice_explore() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Explore: Lambda-420 Membership");
+  render_p(sec, "Enter any N to compute lambda(N) (Carmichael function) and check if it belongs to the 108-ring lattice.");
+  make_interactive_widget(sec, "Enter N:", "lat-input", "e.g. 970200", "Check", "lattice_check_calc", "lat-result");
+  render_p(sec, "Try: N=970200 (TRUE, 420), N=2310 (THIN, 420), N=210 (DATA, 420), N=30 (Z/30, 420), N=12 (lambda=2).");
+  dom_append(dom_body(), sec)
+)
+
 fn lattice_contrast() = (
   let sec = make_section("800px") in
   render_h2(sec, "Paradigm Contrast");
@@ -939,6 +1118,7 @@ fn page_lattice() = (
   lattice_named();
   lattice_uniformity();
   lattice_heartbeat();
+  lattice_explore();
   lattice_contrast()
 )
 

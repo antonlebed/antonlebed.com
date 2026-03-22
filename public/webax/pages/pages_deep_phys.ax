@@ -179,6 +179,39 @@ fn page_blackhole() = (
   dom_append(dom_body(), sec7)
 )
 
+/* gravastar widget: equation of state classifier */
+fn gravastar_eos_calc() = (
+  let n = parse_int_from("#grav-input") in
+  let result = dom_query("#grav-result") in
+  /* classify n in Z/970200 by its ring-theoretic "equation of state" */
+  let nmod = n % 970200 in
+  let region = if nmod == 0 then "VOID (w=0)"
+    else if nmod == 1 then "SIGMA / SHELL (w=+1)"
+    else if nmod == 970199 then "MIRROR / INTERIOR (w=-1)"
+    else "" in
+  /* compute CRT */
+  let cd = nmod % 8 in
+  let ck = nmod % 9 in
+  let ce = nmod % 25 in
+  let cb = nmod % 49 in
+  let cl = nmod % 11 in
+  /* count zero channels */
+  mut zeros = 0;
+  if cd == 0 then (mut zeros = zeros + 1) else 0;
+  if ck == 0 then (mut zeros = zeros + 1) else 0;
+  if ce == 0 then (mut zeros = zeros + 1) else 0;
+  if cb == 0 then (mut zeros = zeros + 1) else 0;
+  if cl == 0 then (mut zeros = zeros + 1) else 0;
+  let classify = if zeros == 5 then "VOID (all channels dead)"
+    else if zeros == 0 then "UNIT (all channels alive, in the septum)"
+    else "ZERO-DIVISOR (" + "${zeros}" + " dead channel" + (if zeros > 1 then "s" else "") + ")" in
+  dom_inner(result,
+    "<p style='color:#ccc;margin:4px 0'>n mod N = " + "${nmod}" + " &rarr; CRT = (" + "${cd}" + ", " + "${ck}" + ", " + "${ce}" + ", " + "${cb}" + ", " + "${cl}" + ")</p>"
+    + (if region == "" then "" else "<p style='color:#ffd700;margin:4px 0'>" + region + "</p>")
+    + "<p style='color:#ccc;margin:4px 0'>Classification: <span style='color:#ffd700'>" + classify + "</span></p>"
+    + "<p style='color:#888;margin:4px 0'>Null channels: " + "${zeros}" + "/5</p>")
+)
+
 fn page_gravastar() = (
   dom_head_meta("description", "Gravastar = 0/0 as topology. Three equations of state ARE the three ring foundation elements: interior w=-1 = MIRROR, shell w=+1 = SIGMA, exterior w=0 = VOID. Mirror-shell spectrally identical. Foundation triangle isosceles in ALL 108 rings. QCD phases = kingdom hierarchy. Scale invariant: atom to cosmos.");
   /* === HERO === */
@@ -293,6 +326,14 @@ fn page_gravastar() = (
   render_p(sec5, "sigma/sigma = sigma: the shell persists across all scales. D=2 creates every membrane.");
   dom_append(dom_body(), sec5);
 
+  /* === INTERACTIVE: GRAVASTAR CLASSIFIER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Ring Element Classifier");
+  render_p(sec_i, "Enter any n to see its CRT decomposition and gravastar classification (void/shell/interior/zero-divisor/unit).");
+  make_interactive_widget(sec_i, "Enter n:", "grav-input", "e.g. 42", "Classify", "gravastar_eos_calc", "grav-result");
+  render_p(sec_i, "Try: n=0 (void), n=1 (sigma/shell), n=970199 (mirror/interior), n=42 (zero-divisor), n=37 (unit).");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "What Others See");
@@ -369,6 +410,45 @@ fn page_neutron_star() = (
   render_contrast_row(sec4, "Chirality", "Parity violation, unexplained origin", "Mirror theorem: D^k and N-D^k have identical coupling. Choice breaks symmetry.");
   render_contrast_row(sec4, "CMB origin", "Relic radiation from Big Bang", "f(L)/(D^3*E) = 2.725K. Continuous fountain, not historical residue.");
   dom_append(dom_body(), sec4)
+)
+
+/* force hierarchy widget: SU(p) dimension and smoothness check */
+fn su_dim_calc() = (
+  let p = parse_int_from("#su-input") in
+  let result = dom_query("#su-result") in
+  if p < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter p >= 2.</p>")
+  else (
+    let dim = p * p - 1 in
+    /* check if dim is 11-smooth */
+    mut rem = dim;
+    mut s2 = 0; while rem % 2 == 0 do (mut rem = rem / 2; mut s2 = s2 + 1);
+    mut s3 = 0; while rem % 3 == 0 do (mut rem = rem / 3; mut s3 = s3 + 1);
+    mut s5 = 0; while rem % 5 == 0 do (mut rem = rem / 5; mut s5 = s5 + 1);
+    mut s7 = 0; while rem % 7 == 0 do (mut rem = rem / 7; mut s7 = s7 + 1);
+    mut s11 = 0; while rem % 11 == 0 do (mut rem = rem / 11; mut s11 = s11 + 1);
+    let smooth = rem == 1 in
+    let smooth_str = if smooth then "<span style='color:#ffd700'>YES -- axiom-smooth!</span>"
+      else "<span style='color:#ff6666'>NO (remainder " + "${rem}" + ")</span>" in
+    /* build factorization */
+    mut fstr = "";
+    if s2 > 0 then (mut fstr = fstr + "2^" + "${s2}" + " ") else 0;
+    if s3 > 0 then (mut fstr = fstr + "3^" + "${s3}" + " ") else 0;
+    if s5 > 0 then (mut fstr = fstr + "5^" + "${s5}" + " ") else 0;
+    if s7 > 0 then (mut fstr = fstr + "7^" + "${s7}" + " ") else 0;
+    if s11 > 0 then (mut fstr = fstr + "11^" + "${s11}" + " ") else 0;
+    if rem > 1 then (mut fstr = fstr + "${rem}") else 0;
+    /* name known cases */
+    let name = if p == 2 then " = K (3 weak bosons: W+,W-,Z)"
+      else if p == 3 then " = D^3 (8 gluons)"
+      else if p == 5 then " = D^3*K (GUT = SU(E))"
+      else if p == 7 then " = D^4*K = phi(DATA)"
+      else if p == 11 then " = D^3*K*E = |icosahedral| = |A_5|"
+      else "" in
+    dom_inner(result,
+      "<p style='color:#ccc;margin:4px 0'>dim(SU(" + "${p}" + ")) = " + "${p}" + "^2 - 1 = <span style='color:#ffd700;font-size:18px'>" + "${dim}" + "</span>" + name + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Factorization: " + fstr + "</p>"
+      + "<p style='color:#ccc;margin:4px 0'>Axiom-smooth? " + smooth_str + "</p>")
+  )
 )
 
 fn page_force_hierarchy() = (
@@ -490,6 +570,14 @@ fn page_force_hierarchy() = (
   render_table_row_4(ktbl, "L^3", "1331", "L (mod 11 = 0)", "(L^3+1)/(L-E)^2 = 37C body temp");
   dom_append(sec5, ktbl);
   dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE: SU(p) DIMENSION EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: SU(p) Dimensions");
+  render_p(sec_i, "Enter p to compute dim(SU(p)) = p^2-1 and check if it is axiom-smooth ({2,3,5,7,11}-smooth).");
+  make_interactive_widget(sec_i, "Enter p:", "su-input", "e.g. 5", "Compute", "su_dim_calc", "su-result");
+  render_p(sec_i, "Try: p=2 (3=K), p=3 (8=D^3), p=5 (24=GUT), p=7 (48=phi(DATA)), p=11 (120=|A_5|), p=37 (1368, NOT smooth!).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
