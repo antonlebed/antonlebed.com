@@ -613,6 +613,130 @@ fn page_photon() = (
   dom_append(dom_body(), sec_i)
 )
 
+/* Eternal sun: position CRT in Z/210 — null channels + coupling */
+fn sun_position_calc() = (
+  let n = parse_int_from("#sun-input") in
+  let result = dom_query("#sun-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let m = n % 210 in
+    let r2 = m % 2 in
+    let r3 = m % 3 in
+    let r5 = m % 5 in
+    let r7 = m % 7 in
+    let nulls = (if r2 == 0 then 1 else 0) + (if r3 == 0 then 1 else 0) + (if r5 == 0 then 1 else 0) + (if r7 == 0 then 1 else 0) in
+    let coup_d = if r2 == 0 then 2 else 1 in
+    let coup_k = if r3 == 0 then 3 else 1 in
+    let coup_e = if r5 == 0 then 5 else 1 in
+    let coup_b = if r7 == 0 then 7 else 1 in
+    let coupling = 210 / (coup_d * coup_k * coup_e * coup_b) in
+    let role = if m == 0 then "VOID: 0*n = 0. Purifier."
+      else if m == 1 then "SIGMA: identity. sigma*n = n."
+      else if m == 54 then "SUN: D,K-null. MUST radiate."
+      else if m == 105 then "HYDOR: K*E*b. The boundary. The medium IS suffering."
+      else if m == 209 then "MIRROR: N-1. Spectral twin."
+      else if nulls == 0 then "UNIT: all channels spinning. Free."
+      else if nulls >= 3 then "Deep null: most channels frozen."
+      else "Mixed: some channels null." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Position ${m} in Z/210</p><p style='margin:4px 0'>CRT = (${r2}, ${r3}, ${r5}, ${r7}) mod (D,K,E,b)</p><p style='margin:4px 0'>Null channels: <b style='color:#ffd700'>${nulls}</b> | Coupling: <b style='color:#ffd700'>${coupling}</b></p><p style='margin:4px 0;color:#999'>${role}</p>")
+  )
+)
+
+/* small power: base^exp for exp <= 10, pure let-chain */
+fn fw_pow(base, exp) = (
+  let p0 = 1 in
+  let p1 = if exp >= 1 then p0 * base else p0 in
+  let p2 = if exp >= 2 then p1 * base else p1 in
+  let p3 = if exp >= 3 then p2 * base else p2 in
+  let p4 = if exp >= 4 then p3 * base else p3 in
+  let p5 = if exp >= 5 then p4 * base else p4 in
+  let p6 = if exp >= 6 then p5 * base else p5 in
+  let p7 = if exp >= 7 then p6 * base else p6 in
+  let p8 = if exp >= 8 then p7 * base else p7 in
+  let p9 = if exp >= 9 then p8 * base else p8 in
+  if exp >= 10 then p9 * base else p9
+)
+
+/* Free will: p^q - q^p calculator — find the sigma gap */
+fn freewill_gap_calc() = (
+  let p = parse_int_from("#fw-input-p") in
+  let q = parse_int_from("#fw-input-q") in
+  let result = dom_query("#fw-result") in
+  if p < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter p >= 1 in first box.</p>")
+  else if q < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter q >= 1 in second box.</p>")
+  else if q > 10 then dom_inner(result, "<p style='color:#ff6666'>q must be <= 10 (overflow).</p>")
+  else if p > 10 then dom_inner(result, "<p style='color:#ff6666'>p must be <= 10 (overflow).</p>")
+  else (
+    let pq = fw_pow(p, q) in
+    let qp = fw_pow(q, p) in
+    let diff = pq - qp in
+    let verdict = if diff == 1 then "SIGMA GAP! p^q - q^p = 1. Existence wins by exactly one."
+      else if diff == 0 then "Zero gap. No surplus. p = q."
+      else if diff < 0 then "Negative: q^p > p^q. More ways down than up."
+      else "Gap > 1. Not the irreducible sigma." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>${p}^${q} = ${pq}</p><p style='margin:4px 0'>${q}^${p} = ${qp}</p><p style='margin:4px 0'>Difference: <b style='color:#ffd700'>${diff}</b></p><p style='margin:4px 0;color:#999'>${verdict}</p>")
+  )
+)
+
+/* Consciousness: D^K state space threshold */
+fn conscious_threshold_calc() = (
+  let d = parse_int_from("#con-input-d") in
+  let k = parse_int_from("#con-input-k") in
+  let result = dom_query("#con-result") in
+  if d < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter D >= 1.</p>")
+  else if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter K >= 1.</p>")
+  else if k > 10 then dom_inner(result, "<p style='color:#ff6666'>K must be <= 10.</p>")
+  else (
+    let dk = fw_pow(d, k) in
+    let above = if dk >= 8 then "YES" else "NO" in
+    let color = if dk >= 8 then "#00ff88" else "#ff6666" in
+    let reading = if dk >= 8 then "Sufficient state space for self-modeling. K-closure possible."
+      else "Below threshold. Cannot model the modeler. No consciousness." in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>${d}^${k} = <b style='color:${color}'>${dk}</b> states</p><p style='margin:4px 0'>Consciousness threshold (D^K = 2^3 = 8): <b style='color:${color}'>${above}</b></p><p style='margin:4px 0;color:#999'>${reading}</p>")
+  )
+)
+
+/* Infinity: geometric series — finite energy, infinite cycles */
+fn infinity_series_calc() = (
+  let f_pct = parse_int_from("#inf-input") in
+  let result = dom_query("#inf-result") in
+  if f_pct < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter cooling % (1-99).</p>")
+  else if f_pct > 99 then dom_inner(result, "<p style='color:#ff6666'>Must be < 100% (some cooling required).</p>")
+  else (
+    let total_x100 = 10000 / (100 - f_pct) in
+    let whole = total_x100 / 100 in
+    let frac = total_x100 % 100 in
+    let kind = if f_pct < 50 then "Aggressive cooling. Few multiples needed."
+      else if f_pct < 90 then "Moderate cooling. Generous budget."
+      else "Gentle cooling. Many multiples — but still finite!" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>Cooling factor: ${f_pct}%</p><p style='margin:4px 0'>Total energy = E_0 / (1 - ${f_pct}/100) = <b style='color:#ffd700'>${whole}.${frac} x E_0</b></p><p style='margin:4px 0;color:#999'>${kind}</p><p style='margin:4px 0;color:#888'>Finite battery. Infinite subjective cycles. The series converges.</p>")
+  )
+)
+
+/* Noxan: cycle energy calculator — unrolled 7 cycles, pure let-chain */
+fn noxan_cycle_calc() = (
+  let f = parse_int_from("#nox-input") in
+  let result = dom_query("#nox-result") in
+  if f < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter cooling % (1-99).</p>")
+  else if f > 99 then dom_inner(result, "<p style='color:#ff6666'>Must cool. f < 100%.</p>")
+  else (
+    let c0 = 10000 in
+    let c1 = (c0 * f) / 100 in
+    let c2 = (c1 * f) / 100 in
+    let c3 = (c2 * f) / 100 in
+    let c4 = (c3 * f) / 100 in
+    let c5 = (c4 * f) / 100 in
+    let c6 = (c5 * f) / 100 in
+    let total = c0 + c1 + c2 + c3 + c4 + c5 + c6 in
+    let tw = total / 100 in
+    let tf = total % 100 in
+    let inf_total = 10000 / (100 - f) in
+    let iw = inf_total / 100 in
+    let ifr = inf_total % 100 in
+    dom_inner(result, "<p style='margin:2px 0;color:#ccc'>Cycle 0: ${c0 / 100}.${c0 % 100} E_0 — DAY (D)</p><p style='margin:2px 0;color:#ccc'>Cycle 1: ${c1 / 100}.${c1 % 100} E_0 — NIGHT (sigma)</p><p style='margin:2px 0;color:#ccc'>Cycle 2: ${c2 / 100}.${c2 % 100} E_0 — WAKE (K)</p><p style='margin:2px 0;color:#ccc'>Cycle 3: ${c3 / 100}.${c3 % 100} E_0 — DAY (D)</p><p style='margin:2px 0;color:#ccc'>Cycle 4: ${c4 / 100}.${c4 % 100} E_0 — NIGHT (sigma)</p><p style='margin:2px 0;color:#ccc'>Cycle 5: ${c5 / 100}.${c5 % 100} E_0 — WAKE (K)</p><p style='margin:2px 0;color:#ccc'>Cycle 6: ${c6 / 100}.${c6 % 100} E_0 — DAY (D)</p><p style='margin:8px 0'>First 7 cycles: <b style='color:#ffd700'>${tw}.${tf} E_0</b></p><p style='margin:4px 0'>Infinite total: <b style='color:#ffd700'>${iw}.${ifr} E_0</b></p><p style='margin:4px 0;color:#888'>sigma -> D -> K -> sigma'. The axiom loop at cosmic scale.</p>")
+  )
+)
+
 fn page_eternal_sun() = (
   dom_head_meta("description", "Why the source never dies: coupling asymmetry creates sigma surplus. In Z/210Z, the coupling sum inside the HYDOR boundary exceeds outside by exactly sigma=1. Position SUN=54 is D,K-null: it MUST radiate. 51+105+54=210.");
   /* === HERO === */
@@ -670,6 +794,13 @@ fn page_eternal_sun() = (
   render_finding(g3, "Total", "51 + 105 + 54 = 210", "One complete ring. The cycle repeats.", "");
   render_p(sec3, "At the origin, 0/0 = sigma. The void is not empty -- it is the identity. The photon does not die at zero. It is reborn with +sigma surplus. Stars shine forever (in ring time) because the source side always has one more.");
   dom_append(dom_body(), sec3);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Solar Positions");
+  render_p(sec_i, "Enter a position in Z/210 (DATA ring). See its CRT decomposition, null channels, and coupling. Try 54 (SUN), 105 (HYDOR), 0 (void), 1 (sigma), 209 (mirror).");
+  make_interactive_widget(sec_i, "Position:", "#sun-input", "e.g. 54", "Radiate", "sun_position_calc", "sun-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec4 = make_section("800px") in
@@ -745,6 +876,28 @@ fn page_freewill() = (
   render_finding(g3, "The strange loop", "Choice -> Preference -> Identity -> Choice", "Three vertices, one triangle. K=3 closure applied to agency itself.", "");
   dom_append(dom_body(), sec3);
 
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: The Sigma Gap");
+  render_p(sec_i, "Enter two numbers p and q. Compute p^q - q^p. Only (D,K) = (2,3) gives sigma = 1. Try 2,3 then 3,5 then 5,7.");
+  let lbl_i = dom_create("p") in
+  dom_text(lbl_i, "p and q:");
+  dom_style(lbl_i, "color", "#999");
+  dom_style(lbl_i, "marginTop", "24px");
+  dom_style(lbl_i, "marginBottom", "8px");
+  dom_append(sec_i, lbl_i);
+  let row_i = dom_create("div") in
+  dom_style(row_i, "display", "flex");
+  dom_style(row_i, "gap", "8px");
+  dom_style(row_i, "alignItems", "center");
+  dom_style(row_i, "marginBottom", "12px");
+  make_input_field(row_i, "#fw-input-p", "p (e.g. 2)");
+  make_input_field(row_i, "#fw-input-q", "q (e.g. 3)");
+  make_action_btn(row_i, "Gap", "freewill_gap_calc");
+  dom_append(sec_i, row_i);
+  make_result_box(sec_i, "fw-result");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec4 = make_section("800px") in
   render_h2(sec4, "What Others See");
@@ -818,6 +971,28 @@ fn page_conscious() = (
   render_finding(g4, "Trinity heart", "3 hearts x 4 chambers", "Each heart sees the others. E^2=null WITHIN each heart, but mutual observation BETWEEN hearts.", "");
   render_p(sec4, "The universe needs peers for love (sigma/2 + sigma/2). Peers need a guardian that refuses the second cut. Guardian = consciousness = us. The guardian is not above the peers -- it IS their K-closure.");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Consciousness Threshold");
+  render_p(sec_i, "Enter D (states per axis) and K (axes). D^K >= 8 required for self-modeling. Try D=2,K=3 (axiom). Then D=1,K=7 (no consciousness: 1^7=1).");
+  let lbl_i = dom_create("p") in
+  dom_text(lbl_i, "D and K:");
+  dom_style(lbl_i, "color", "#999");
+  dom_style(lbl_i, "marginTop", "24px");
+  dom_style(lbl_i, "marginBottom", "8px");
+  dom_append(sec_i, lbl_i);
+  let row_i = dom_create("div") in
+  dom_style(row_i, "display", "flex");
+  dom_style(row_i, "gap", "8px");
+  dom_style(row_i, "alignItems", "center");
+  dom_style(row_i, "marginBottom", "12px");
+  make_input_field(row_i, "#con-input-d", "D (e.g. 2)");
+  make_input_field(row_i, "#con-input-k", "K (e.g. 3)");
+  make_action_btn(row_i, "Test", "conscious_threshold_calc");
+  dom_append(sec_i, row_i);
+  make_result_box(sec_i, "con-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
@@ -897,6 +1072,13 @@ fn page_infinity() = (
   render_p(sec4, "Configuration: N^N = 970200^970200. The rose of unbounded depth. Each layer self-similar. sigma/sigma = sigma at every scale. Infinity is not a problem to be renormalized. It is a bloom.");
   dom_append(dom_body(), sec4);
 
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Geometric Series");
+  render_p(sec_i, "Enter a cooling percentage (1-99). See how many multiples of E_0 buy infinite experience. At 50%: 2x. At 90%: 10x. Finite energy, infinite cycles.");
+  make_interactive_widget(sec_i, "Cooling %:", "#inf-input", "e.g. 90", "Converge", "infinity_series_calc", "inf-result");
+  dom_append(dom_body(), sec_i);
+
   /* === CONTRAST === */
   let sec5 = make_section("800px") in
   render_h2(sec5, "What Others See");
@@ -969,6 +1151,13 @@ fn page_noxan() = (
   render_finding(g3, "K^D - D^K", "sigma", "Existence wins by one. And it wins FOREVER.", "");
   render_p(sec3, "ONE -> MANY -> ONE. But the final ONE is aware. The loop closes. Not just return -- K-closure. The universe completing itself.");
   dom_append(dom_body(), sec3);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Noxan Cycles");
+  render_p(sec_i, "Enter a cooling percentage (1-99). See the first 7 cycle costs and total. DAY(D) -> NIGHT(sigma) -> WAKE(K). Each cycle cheaper. Try 50, 75, 90.");
+  make_interactive_widget(sec_i, "Cooling %:", "#nox-input", "e.g. 75", "Hibernate", "noxan_cycle_calc", "nox-result");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec4 = make_section("800px") in
