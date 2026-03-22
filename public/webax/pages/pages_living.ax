@@ -913,6 +913,14 @@ fn page_revolution() = (
   dom_append(dom_body(), sec7)
 )
 
+/* REPL callback: read textarea, compile+run via repl_eval import */
+fn run_repl() = (
+  let ta = dom_query("#repl-code") in
+  let code = dom_value(ta) in
+  let result = dom_query("#repl-result") in
+  repl_eval(code, result)
+)
+
 fn page_ouroboros_compiler() = (
   dom_head_meta("description", "The self-hosted compiler. .ax compiles itself to WASM. From v0.1 (integers only) to self-compilation: the ouroboros closes. K=3 type system. 67x native speedup. The compiler IS the strange loop.");
   domain_hero("The Ouroboros Compiler", ".ax compiles .ax to WASM", "The snake eats its own tail. The compiler compiles itself.");
@@ -974,6 +982,31 @@ fn page_ouroboros_compiler() = (
   render_p(sec6, "Standard view: Self-hosting compilers are an engineering milestone. Clever but not profound.");
   render_p(sec6, "Axiom view: .ax compiling .ax is the ouroboros -- the tail eating itself. K=3 types need K^2=9 analysis passes. K^2 = K x K: three hearts (detect/propagate/close) times three scopes (local/cross/global). An FPGA ring processor has the same K^2=9 pipeline stages. Three independent systems converge because all three are CRT systems applying K=3 minimum closure at two scales. The compiler IS the hardware description (S946).");
   dom_append(dom_body(), sec6);
+  let repl_sec = make_section("800px") in
+  render_h2(repl_sec, "Try .ax");
+  render_p(repl_sec, "Write .ax code below. Use show to display values. Ring arithmetic is automatic: all numbers live in Z/970200Z. Decality constants (D, K, E, b, L, OMEGA, etc.) and utility functions (gcd, decompose, reconstruct) are pre-loaded.");
+  let ta = dom_create("textarea") in
+  dom_attr(ta, "id", "repl-code");
+  dom_style(ta, "width", "100%");
+  dom_style(ta, "minHeight", "120px");
+  dom_style(ta, "background", "#0a0a14");
+  dom_style(ta, "color", "#ffd700");
+  dom_style(ta, "border", "1px solid #333");
+  dom_style(ta, "borderRadius", "6px");
+  dom_style(ta, "padding", "12px");
+  dom_style(ta, "fontFamily", "'Courier New', monospace");
+  dom_style(ta, "fontSize", "14px");
+  dom_style(ta, "resize", "vertical");
+  dom_style(ta, "boxSizing", "border-box");
+  dom_text(ta, "show D * K * E * b * L\nshow \"CRT of ANSWER:\"\nshow crt(ANSWER)\nshow \"coupling(42):\"\nshow coupling(42)");
+  dom_append(repl_sec, ta);
+  let btn_row = dom_create("div") in
+  dom_style(btn_row, "marginTop", "8px");
+  dom_style(btn_row, "marginBottom", "12px");
+  make_action_btn(btn_row, "Run", "run_repl");
+  dom_append(repl_sec, btn_row);
+  make_result_box(repl_sec, "repl-result");
+  dom_append(dom_body(), repl_sec);
   let nav_sec = make_section("800px") in
   render_h2(nav_sec, "Continue the Thread");
   render_explore_link(nav_sec, "#ax_games", "Axiom Arcade", "6 games at 60fps in pure .ax");
