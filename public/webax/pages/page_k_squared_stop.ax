@@ -1,3 +1,37 @@
+/* K^2 bootstrap step name */
+fn k9_sname(s) = (
+  if s == 0 then "D (fixed point)"
+  else if s == 1 then "sigma"
+  else if s == 2 then "sigma"
+  else if s == 3 then "K (closure)"
+  else if s == 4 then "D^2"
+  else if s == 5 then "E (observer)"
+  else if s == 7 then "b (depth)"
+  else "${s}"
+)
+
+fn k9_check() = (
+  let n = parse_int_from("#k9-input") in
+  let result = dom_query("#k9-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    let c1 = n % 8 in
+    let c2 = n % 9 in
+    let c3 = n % 25 in
+    let c4 = n % 49 in
+    let c5 = n % 11 in
+    mut v = n;
+    mut steps = 0;
+    while v > 2 do (
+      mut v = v / 2 + 1;
+      mut steps = steps + 1
+    );
+    let k9 = n % 9 in
+    let k9n = if k9 == 0 then " K-channel DEAD." else if k9 == 1 then " sigma mod K^2." else "" in
+    dom_inner(result, "<p style='color:#ffd700;margin:4px 0'>CRT(" + "${n}" + ") = (" + "${c1}" + "," + "${c2}" + "," + "${c3}" + "," + "${c4}" + "," + "${c5}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Bootstrap: " + "${steps}" + " steps = " + k9_sname(steps) + "</p><p style='color:#ff9900;margin:4px 0'>mod 9 = " + "${k9}" + "." + k9n + "</p>")
+  )
+)
+
 fn page_k_squared_stop() = (
   dom_head_meta("description", "K^2 = 9 = D^3 + 1. The only consecutive prime powers. Mihailescu 2002. Three independent proofs. Four pairings sum to 42. Fifteen roles. Fano plane. CRT(9) = (1,0,9,9,9): K-channel vanishes.");
   /* === HERO === */
@@ -226,6 +260,14 @@ fn page_k_squared_stop() = (
   render_p(sec7, "Evidence: coupling(K^2) = 107800 = (0, b, 0, 0, 0). Parallelism is PURE DEPTH. The only nonzero channel is b=7 -- the deepest prime. K^2 processing units can only scale through depth, confirming that K^2 stages are the minimum: you cannot trade depth for width.");
   render_p(sec7, "DYNAMICAL REASON: greedy spectral ascent (2310 starting points) shows K dominates at 66.7% = (K-1)/K = D/K of first moves. Learning gravitates toward CLOSURE first because K has the highest improvement-to-probability ratio. E: 18.1%. D: 10.0% = 1/degree. b: 4.2%. L: 1.0%. The gradient FORCES K^2: closure is the first thing any system learns, and closure applied to itself gives K^2 = 9.");
   dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE: K^2 EXPLORER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: K^2 Analyzer");
+  render_p(sec_i, "Enter any n. See its CRT decomposition, K^2=9 residue (K-channel visibility), and class bootstrap convergence to D=2.");
+  make_interactive_widget(sec_i, "Analyze n:", "k9-input", "e.g. 9", "Analyze", "k9_check", "k9-result");
+  render_p(sec_i, "Try: 9 (K^2, K-channel dead), 8 (D^3, spider legs), 42 (ANSWER), 108 (lattice), 606376 (OMEGA).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec8 = make_section("800px") in

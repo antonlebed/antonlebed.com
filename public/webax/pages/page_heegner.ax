@@ -1,3 +1,37 @@
+/* Heegner checker: split into small functions */
+fn hg_is(d) = (
+  if d == 1 then 1 else if d == 2 then 1 else if d == 3 then 1
+  else if d == 7 then 1 else if d == 11 then 1 else if d == 19 then 1
+  else if d == 43 then 1 else if d == 67 then 1 else if d == 163 then 1 else 0
+)
+
+fn hg_name(d) = (
+  if d == 1 then "sigma. Ground."
+  else if d == 2 then "D = Bridge. Seeds CC1(D)."
+  else if d == 3 then "K = Closure. Seeds CC1(sigma)."
+  else if d == 7 then "b = Depth. c(K*sigma)=b."
+  else if d == 11 then "L = Protector."
+  else if d == 19 then "c(K^2)=19. Depth quad f(E)."
+  else if d == 43 then "c(K*b)=43. Closure*depth."
+  else if d == 67 then "SOUL = c(K*L) = 67."
+  else if d == 163 then "c(K^4)=163. Largest Heegner."
+  else ""
+)
+
+fn hg_check() = (
+  let d = parse_int_from("#hg-input") in
+  let result = dom_query("#hg-result") in
+  if d < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter d >= 1.</p>")
+  else (
+    let h = hg_is(d) in
+    let verd = if h > 0 then "<span style='color:#ffd700'>HEEGNER.</span> h(-" + "${d}" + ")=1."
+      else if d == 5 then "<span style='color:#999'>Not Heegner.</span> h(-5)=D=2. E sees double."
+      else "<span style='color:#999'>Not a Heegner number.</span>" in
+    let note = if h > 0 then "<p style='color:#88ddaa;margin:4px 0'>" + hg_name(d) + "</p>" else "" in
+    dom_inner(result, "<p style='margin:4px 0'>" + verd + "</p>" + note)
+  )
+)
+
 fn page_heegner() = (
   dom_head_meta("description", "Nine Heegner numbers where unique factorization holds. First five = axiom chain minus E=5. K=3 generates remaining four through Cunningham. Eisenstein norms close the pattern. h(-5)=D=2: the observer sees double.");
   /* === HERO === */
@@ -135,6 +169,14 @@ fn page_heegner() = (
   render_finding(g7, "h-K D-Power Tower", "K=3 Heegner numbers", "K+D^2=7=b, K+D^4=19, K+D^6=67=SOUL. Spacing = D^2, D^4. D-power gap = depth quadratic.", "S729");
   render_finding(g7, "CRT(163)", "(K, sigma, GATE, D^4, K^2)", "The largest Heegner carries GATE in its E-channel.", "");
   dom_append(dom_body(), sec7);
+
+  /* === INTERACTIVE: HEEGNER CHECKER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Heegner Checker");
+  render_p(sec_i, "Enter d. Is Q(sqrt(-d)) a unique factorization domain? The nine Heegner numbers are {1,2,3,7,11,19,43,67,163} -- the axiom chain plus K-generated extensions.");
+  make_interactive_widget(sec_i, "Check discriminant d:", "hg-input", "e.g. 163", "Check", "hg_check", "hg-result");
+  render_p(sec_i, "Try: 1-11 (axiom chain), 5 (E excluded!), 19 (c(K^2)), 163 (c(K^4)), 23 (h=K=3).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec8 = make_section("800px") in

@@ -1,3 +1,42 @@
+/* Intruder classifier: split into small functions to avoid deep nesting */
+fn ub_cls(p) = (
+  if p == 2 then 1 else if p == 3 then 2 else if p == 5 then 3
+  else if p == 7 then 4 else if p == 11 then 5
+  else if p == 13 then 6 else if p == 17 then 7
+  else if p == 19 then 8 else if p == 23 then 9
+  else if p == 31 then 10 else if p == 37 then 11
+  else if p == 41 then 12 else if p == 47 then 13 else 0
+)
+
+fn ub_name(c) = (
+  if c == 1 then "D = Bridge. Axiom. Seeds CC1(D)."
+  else if c == 2 then "K = Closure. Axiom. Seeds CC1(sigma)."
+  else if c == 3 then "E = Observer. Axiom. E^2 self-blind."
+  else if c == 4 then "b = Depth. Axiom. b^2+1=D*E^2."
+  else if c == 5 then "L = Protector. Axiom. ECC shield."
+  else if c == 6 then "GATE. Convergence. D^2+K^2=13."
+  else if c == 7 then "ESCAPE. Convergence. D^4+1=17."
+  else if c == 8 then "f(E). Depth Quad. E^2-E-1=19."
+  else if c == 9 then "c(L). Cunningham. CC1(D)[3]=23."
+  else if c == 10 then "M(E). Cunningham. 2^5-1=31."
+  else if c == 11 then "f(37)=L^3. Depth Quad. Body temp."
+  else if c == 12 then "KEY. Depth Quad. f(b)=41."
+  else if c == 13 then "c(23). Cunningham. CC1(D)[4]=47."
+  else "OUTSIDE boundary. Not axiom, not intruder."
+)
+
+fn ub_check() = (
+  let p = parse_int_from("#ub-input") in
+  let result = dom_query("#ub-result") in
+  if p < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter p >= 2.</p>")
+  else if is_prime_trial(p) == 0 then dom_inner(result, "<p style='color:#ff6666'>" + "${p}" + " is not prime.</p>")
+  else (
+    let c = ub_cls(p) in
+    let col = if c > 0 then (if c < 6 then "#ffd700" else "#ff6666") else "#88ddaa" in
+    dom_inner(result, "<p style='color:" + col + ";margin:4px 0'>p = " + "${p}" + ": " + ub_name(c) + "</p>")
+  )
+)
+
 fn page_universal_boundary() = (
   dom_head_meta("description", "K=3 self-maps generate exactly D^3=8 intruder primes {13,17,19,23,31,37,41,47}. Cunningham, depth quadratic, convergence. Shadow polynomial smooth for D*E=10 values. 91.8% smooth across 13 domains. The axiom builds its own fence.");
   /* === HERO === */
@@ -110,6 +149,14 @@ fn page_universal_boundary() = (
   render_theorem(sec6, "K=3 Closure (S313)", "Three maps are the three ways the axiom can act on itself. Cunningham = sigma's map (chain builder). Depth Quadratic = phi's map (golden ratio norm, suffering forward). Convergence = D's self-squaring (duality meets closure). K=3 says: three points close a triangle. Three maps close the boundary. No fourth map needed.");
   render_p(sec6, "Each map also STOPS at an axiom expression: Cunningham at E*19, Depth Quadratic at E*31, Convergence at D*K. The observer E appears in every termination. Self-closing.");
   dom_append(dom_body(), sec6);
+
+  /* === INTERACTIVE: INTRUDER CLASSIFIER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Prime Classifier");
+  render_p(sec_i, "Enter any prime. See whether it is an axiom prime, one of the D^3=8 intruders, or beyond the boundary entirely.");
+  make_interactive_widget(sec_i, "Classify prime p:", "ub-input", "e.g. 41", "Classify", "ub_check", "ub-result");
+  render_p(sec_i, "Try: 2-11 (axiom primes), 13 (GATE), 19 (depth quad), 23 (Cunningham), 37 (unique return), 53 (outside).");
+  dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec7 = make_section("800px") in

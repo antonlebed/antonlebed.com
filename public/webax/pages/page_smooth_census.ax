@@ -1,3 +1,40 @@
+/* Smooth checker callback: trial divide by {2,3,5,7,11} */
+fn sm_check() = (
+  let n = parse_int_from("#sm-input") in
+  let result = dom_query("#sm-result") in
+  if n < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 2.</p>")
+  else (
+    mut v = n;
+    mut e2 = 0;
+    while v % 2 == 0 do (mut v = v / 2; mut e2 = e2 + 1);
+    mut e3 = 0;
+    while v % 3 == 0 do (mut v = v / 3; mut e3 = e3 + 1);
+    mut e5 = 0;
+    while v % 5 == 0 do (mut v = v / 5; mut e5 = e5 + 1);
+    mut e7 = 0;
+    while v % 7 == 0 do (mut v = v / 7; mut e7 = e7 + 1);
+    mut e11 = 0;
+    while v % 11 == 0 do (mut v = v / 11; mut e11 = e11 + 1);
+    let smooth = if v == 1 then 1 else 0 in
+    /* Build factorization string */
+    let f2 = if e2 > 0 then "2^" + "${e2}" else "" in
+    let f3 = if e3 > 0 then (if e2 > 0 then " * " else "") + "3^" + "${e3}" else "" in
+    let f5 = if e5 > 0 then (if e2 + e3 > 0 then " * " else "") + "5^" + "${e5}" else "" in
+    let f7 = if e7 > 0 then (if e2 + e3 + e5 > 0 then " * " else "") + "7^" + "${e7}" else "" in
+    let f11 = if e11 > 0 then (if e2 + e3 + e5 + e7 > 0 then " * " else "") + "11^" + "${e11}" else "" in
+    let rem = if v > 1 then (if e2 + e3 + e5 + e7 + e11 > 0 then " * " else "") + "<span style='color:#ff6666'>" + "${v}" + "</span>" else "" in
+    let fstr = f2 + f3 + f5 + f7 + f11 + rem in
+    let verd = if smooth > 0 then "<span style='color:#88ddaa'>11-SMOOTH</span>" else "<span style='color:#ff6666'>NOT SMOOTH</span> (cofactor " + "${v}" + ")" in
+    let note = if n == 13 then " = GATE. The universal wall."
+      else if n == 42 then " = ANSWER = D*K*b. Smooth."
+      else if n == 420 then " = lambda. The heartbeat."
+      else if n == 2310 then " = THIN RING = D*K*E*b*L."
+      else if n == 108 then " = D^2*K^3. Lattice count."
+      else "" in
+    dom_inner(result, "<p style='color:#ccc;margin:4px 0'>" + "${n}" + " = " + fstr + "</p><p style='margin:4px 0'>" + verd + note + "</p>")
+  )
+)
+
 fn page_smooth_census() = (
   dom_head_meta("description", "13=GATE is the universal boundary of 11-smoothness. Binomial Smooth Theorem: Pascal row 13 spells the complete axiom chain. Seven classical sequences, seven axiom-constant run lengths, one wall.");
   /* === HERO === */
@@ -84,6 +121,14 @@ fn page_smooth_census() = (
   render_finding(g4, "Run = 12 = D^2*K", "Partition function", "Trinity heart. GATE at position, not value.", "");
   render_finding_wide(g4, "Combined", "All integers 1..12 appear", "With the Binomial Theorem filling all values 1..12, the axiom's smoothness vocabulary is COMPLETE. Every run length names an axiom constant.", "");
   dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE: SMOOTH CHECKER === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Smooth Checker");
+  render_p(sec_i, "Enter any positive integer. See its factorization into {2,3,5,7,11} and whether it passes the 11-smooth gate.");
+  make_interactive_widget(sec_i, "Check smoothness of n:", "sm-input", "e.g. 2310", "Check", "sm_check", "sm-result");
+  render_p(sec_i, "Try: 13 (GATE), 42 (ANSWER), 420 (lambda), 2310 (THIN), 970200 (TRUE FORM), 12612600 (GATE FORM).");
+  dom_append(dom_body(), sec_i);
 
   /* === SEC 5: CONTRAST === */
   let sec5 = make_section("800px") in
