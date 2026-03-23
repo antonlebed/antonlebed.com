@@ -32,7 +32,7 @@ fn ct_body(body) = (
   dom_style(body, "webkitOverflowScrolling", "touch");
   /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;width:100%}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;min-height:100vh;min-width:100vw}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;min-height:100vh;min-width:100vw;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -72,18 +72,21 @@ fn ct_card(el) = (
 )
 
 /* ================================================================
-   CELESTIAL THEATRE — 42 stars total.
-   21 resident: scattered on screen, glow only (always visible).
-   21 rain: spawn above, fall past bottom, loop forever.
+   CELESTIAL THEATRE — 42 glowing stars, projectile-style.
+   Each star spawns above the screen, falls past the bottom.
+   Loop resets to spawn point (offscreen) — no visible teleport.
    ================================================================ */
 
-fn ct_make_star(c, i, y_str:str, anim:str) = (
+fn ct_star(c, i) = (
   let star = dom_create("div") in
   dom_style(star, "position", "absolute");
   let rx = i * 23 + 7 in
   let x = rx - (rx / 97) * 97 in
   dom_style(star, "left", "${x}%");
-  dom_style(star, "top", y_str);
+  let ry = i * 37 + 3 in
+  let spawn = ry - (ry / 91) * 91 in
+  let spawn_px = spawn * 3 + 20 in
+  dom_style(star, "top", "-${spawn_px}px");
   let layer = i - (i / 3) * 3 in
   let sz = layer + 1 in
   dom_style(star, "width", "${sz}px");
@@ -92,30 +95,13 @@ fn ct_make_star(c, i, y_str:str, anim:str) = (
   dom_style(star, "background", "#c8d8ff");
   let gr = sz * 4 in
   dom_style(star, "boxShadow", "0 0 ${gr}px ${sz}px rgba(180,200,255,0.5)");
-  dom_style(star, "animation", anim);
-  dom_append(c, star)
-)
-
-fn ct_resident(c, i) = (
-  let ry = i * 37 + 3 in
-  let y = ry - (ry / 91) * 91 in
-  let d7 = i * 7 in
-  let gd = d7 - (d7 / 11) * 11 in
-  let glow_dur = gd + 3 in
-  ct_make_star(c, i, "${y}%", "glow ${glow_dur}s ease-in-out 0s infinite")
-)
-
-fn ct_rain(c, i) = (
-  let ry = i * 41 + 5 in
-  let spawn = ry - (ry / 83) * 83 in
-  let spawn_px = spawn * 3 + 20 in
-  let layer = i - (i / 3) * 3 in
   let d7 = i * 7 in
   let gd = d7 - (d7 / 11) * 11 in
   let glow_dur = gd + 3 in
   let fall_dur = 30 + layer * 15 in
-  let fall_delay = spawn / 5 in
-  ct_make_star(c, i + 21, "-${spawn_px}px", "glow ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear ${fall_delay}s infinite")
+  let fall_delay = spawn / 6 in
+  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear ${fall_delay}s infinite");
+  dom_append(c, star)
 )
 
 fn ct_starfield(body) = (
@@ -128,8 +114,7 @@ fn ct_starfield(body) = (
   dom_style(c, "overflow", "hidden");
   dom_style(c, "pointerEvents", "none");
   dom_append(body, c);
-  for i in range(21) do ct_resident(c, i);
-  for i in range(21) do ct_rain(c, i)
+  for i in range(42) do ct_star(c, i)
 )
 
 /* ================================================================
