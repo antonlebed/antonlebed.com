@@ -40,6 +40,8 @@ export default {
       var result = await WebAssembly.instantiate(siteWasm, { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
+        show_float: function(v) { return 0; },
+        sin_f: Math.sin, cos_f: Math.cos, PI_f: function() { return Math.PI; }, exp_f: Math.exp,
         /* Game/ring import stubs — coupling() in widgets triggers ALL game imports */
         canvas_clear: function(){return 0;}, canvas_rect: function(){return 0;},
         canvas_circle: function(){return 0;}, canvas_line: function(){return 0;},
