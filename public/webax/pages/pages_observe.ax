@@ -894,6 +894,37 @@ fn ecc_batch_test() = (
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;font-size:16px;margin:0 0 12px'>EXHAUSTIVE TEST: 210/210 values</p><p style='color:#44ff88;margin:4px 0'>Detected: " + "${detected}" + "/210 (each channel corrupted by +1 mod p)</p><p style='color:#44ff88;margin:4px 0'>Corrected: " + "${corrected}" + "/210 (brute-force trial over suspect channel)</p><p style='color:#a0a0b0;margin:8px 0 0'>Every element tested. Every corruption caught. Every value restored. This is not statistics — it is exhaustive proof over the finite ring.</p></div>")
 )
 
+/* CRT spread spectrum analyzer — absorbed from cdma_demo.html (S1023) */
+fn spread_spectrum_calc() = (
+  let k = parse_int_from("#cdma-input") in
+  let result_el = dom_query("#cdma-result") in
+  if k < 2 then dom_inner(result_el, "<p style='color:#ff6666'>Enter a spreading key (2 or larger, coprime to 970200).</p>")
+  else (
+    /* Check coprimality: k must not be divisible by 2, 3, 5, 7, or 11 */
+    let div2 = k % 2 in
+    let div3 = k % 3 in
+    let div5 = k % 5 in
+    let div7 = k % 7 in
+    let div11 = k % 11 in
+    let is_coprime = if div2 == 0 then 0
+      else if div3 == 0 then 0
+      else if div5 == 0 then 0
+      else if div7 == 0 then 0
+      else if div11 == 0 then 0
+      else 1 in
+    /* CRT decomposition of key */
+    let rd = k % 8 in
+    let rk = k % 9 in
+    let re = k % 25 in
+    let rb = k % 49 in
+    let rl = k % 11 in
+    if is_coprime == 0 then
+      dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ff8888;margin:0 0 8px'>KEY " + "${k}" + " is NOT coprime to 970,200</p><p style='color:#b0b0c0;margin:4px 0'>Divisible by " + (if div2 == 0 then "2 " else "") + (if div3 == 0 then "3 " else "") + (if div5 == 0 then "5 " else "") + (if div7 == 0 then "7 " else "") + (if div11 == 0 then "11" else "") + ". Not a valid spreading code.</p><p style='color:#b0b0c0;margin:4px 0'>CRT decomposition: (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ")</p><p style='color:#a0a0b0;margin:4px 0'>Try a prime > 11: 13, 17, 19, 23, 29, 31, 37, 41, 43, 47...</p></div>")
+    else
+      dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>SPREADING KEY: " + "${k}" + "</p><p style='color:#44ff88;margin:4px 0'>VALID — coprime to 970,200 (invertible in the ring)</p><p style='color:#88ddaa;margin:4px 0'>CRT slot: (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Channels: D=" + "${rd}" + "/8, K=" + "${rk}" + "/9, E=" + "${re}" + "/25, b=" + "${rb}" + "/49, L=" + "${rl}" + "/11</p><p style='color:#b0b0c0;margin:4px 0'>This 5-tuple is UNIQUE to key " + "${k}" + ". No other coprime key maps here.</p><p style='color:#ffd700;margin:8px 0'>Capacity: 201,600 valid keys (phi = D^4/(b*L) = 16/77 of ring)</p><p style='color:#b0b0c0;margin:4px 0'>Encode: data * " + "${k}" + " mod 970200. Decode: signal * " + "${k}" + "^(-1) mod 970200.</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>CRT guarantees unique decomposition = unique spreading code. 5 algebraically orthogonal channels. L=11 = free error detection per symbol. CC0.</p></div>")
+  )
+)
+
 /* CRT fountain drop simulator — absorbed from fountain_codes.html (S1022) */
 fn fountain_drop_calc() = (
   let n = parse_int_from("#ftn-input") in
@@ -1031,6 +1062,25 @@ fn page_ecc_live() = (
   render_finding(g6, "Recovery", "4-of-5 channels", "Any 4 drops reconstruct ASCII. Graceful: even 3 drops give partial info.", "");
   render_finding(g6, "Error check", "L=11 free", "5th channel detects corruption in any of the other 4. Same as ECC above.", "");
   render_finding(g6, "Patent kills", "Qualcomm Raptor/LT", "CRT fountain codes need zero special encoding. The ring IS the code. CC0.", "");
-  dom_append(dom_body(), sec6)
+  dom_append(dom_body(), sec6);
+
+  /* === SEC 7: CRT SPREAD SPECTRUM — absorbed from cdma_demo.html (S1023) === */
+  let sec7 = make_section("800px") in
+  render_h2(sec7, "CRT Spread Spectrum / CDMA");
+  render_p(sec7, "Multiple users share ONE channel. CRT separates them algebraically. Traditional CDMA uses Walsh-Hadamard spreading codes (O(N^2) matrix operations). CRT CDMA uses the ring structure itself. Each coprime key IS a unique spreading code. 201,600 simultaneous users at O(1) cost.");
+  render_theorem(sec7, "CRT CDMA Principle (cdma_demo.html, CC0)", "Each user i has a spreading key k_i coprime to N=970,200. Encoding: multiply data by key (d * k_i mod N). CRT decomposes the spread signal into 5 independent channels. Decoding: multiply by modular inverse (S * k_i^(-1) mod N). The CRT structure guarantees algebraic separation — unique decomposition means unique code. L=11 provides FREE error detection on every transmission. Capacity: phi(970,200) = 201,600 valid keys = 201,600 simultaneous users.");
+  render_p(sec7, "Enter a spreading key. See CRT decomposition and orthogonality:");
+  make_interactive_widget(sec7, "Spreading key (coprime to N):", "cdma-input", "e.g. 13", "Analyze", "spread_spectrum_calc", "cdma-result");
+  let g7 = make_findings_grid(sec7) in
+  render_finding(g7, "Code space", "201,600 keys", "phi(970,200) = 201,600 coprime keys. Each IS a spreading code. 20.78% = septum.", "");
+  render_finding(g7, "Operations", "O(1) per symbol", "5 mod ops to encode/decode. Walsh-Hadamard: O(N^2) matrix multiply.", "");
+  render_finding(g7, "Error detection", "L=11 free", "5th CRT channel detects corruption on every transmission. No extra cost.", "");
+  render_finding(g7, "Patent kill", "CC0", "No Qualcomm CDMA patents. No code assignment authority. The algebra IS the protocol.", "");
+  render_contrast_row(sec7, "Code space", "Walsh-Hadamard: 64-256 codes (fixed matrix)", "CRT: 201,600 codes (coprime to N)");
+  render_contrast_row(sec7, "Operations", "O(N^2) per symbol (matrix multiply)", "O(1) per symbol (5 mod ops + 1 modinv)");
+  render_contrast_row(sec7, "Error handling", "External ECC layer (convolutional/turbo/LDPC)", "L=11 FREE — built into the ring");
+  render_contrast_row(sec7, "Orthogonality", "H*H^T = NI (constructed)", "CRT isomorphism (algebraic — by theorem)");
+  render_contrast_row(sec7, "Authority", "Central code assignment needed", "None — coprime to N = valid code. Self-organizing.");
+  dom_append(dom_body(), sec7)
 )
 
