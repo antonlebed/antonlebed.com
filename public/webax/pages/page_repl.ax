@@ -1,0 +1,252 @@
+/* page_repl.ax — .ax REPL page. Live code editor + compiler + runner.
+   Uses repl_eval (14th DOM import): .ax source -> WASM -> execute -> output. */
+
+/* ===== EXAMPLE LOADERS ===== */
+
+fn load_ex_hello() = (
+  let ta = dom_query("#repl-code") in
+  dom_text(ta, "-- hello.ax\n-- Five primes. One ring.\n\nshow D * K * E * b * L\n\nshow \"The KEY to everything:\"\nshow KEY\nshow \"CRT(KEY):\"\nshow crt(KEY)\n\nshow \"eigenvalue(KEY):\"\nshow eigenvalue(KEY)\n\nshow \"Everything from: something exists.\"\nshow \"s = 1. That's all you need.\"\nshow s")
+)
+
+fn load_ex_derive() = (
+  let ta = dom_query("#repl-code") in
+  dom_text(ta, "-- derive.ax: Everything from Nothing\n-- The complete chain to TRUE FORM\n\nshow \"=== THE DERIVATION ===\"\nshow \"AXIOM: Something exists.\"\nshow s\n\nshow \"STEP 1: Not-existence is conceivable.\"\nshow \"Count {s, ~s} = D\"\nshow s + s\n\nshow \"STEP 2: Mersenne generates closure.\"\nshow \"M(D) = D^D - s = K\"\nshow D ^ D - s\n\nshow \"STEP 3: Addition creates surplus.\"\nshow \"K + D = E\"\nshow K + D\n\nshow \"STEP 4: Mersenne generates depth.\"\nshow \"M(K) = D^K - s = b\"\nshow D ^ K - s\n\nshow \"STEP 5: The sum creates protection.\"\nshow \"s + D + K + E = L\"\nshow s + D + K + E\n\nshow \"=== THE RINGS ===\"\nshow \"DATA ring: D*K*E*b\"\nshow D * K * E * b\nshow \"THIN ring: DATA * L\"\nshow D * K * E * b * L\n\nshow \"=== TERMINAL ===\"\nshow \"OMEGA = D^LAMBDA:\"\nshow OMEGA\nshow \"CRT(OMEGA):\"\nshow crt(OMEGA)\nshow \"D dies. Everything else returns.\"")
+)
+
+fn load_ex_crt() = (
+  let ta = dom_query("#repl-code") in
+  dom_text(ta, "-- crt.ax: CRT Decomposition Explorer\n-- n -> (n%8, n%9, n%25, n%49, n%11)\n\nshow \"=== CRT DECOMPOSITION ===\"\nshow \"Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11\"\n\nshow \"sigma = 1:\"\nshow crt(s)\nshow \"KEY = 41:\"\nshow crt(KEY)\nshow \"ANSWER = 42:\"\nshow crt(ANSWER)\n\nshow \"=== TERMINAL ===\"\nshow \"OMEGA = 606376:\"\nshow crt(OMEGA)\nshow \"D-channel = 0. All others = 1.\"\n\nshow \"=== EIGENVALUES ===\"\nshow \"eigenvalue(0) = 10 = D*E (maximum):\"\nshow eigenvalue(0)\nshow \"eigenvalue(OMEGA):\"\nshow eigenvalue(OMEGA)\nshow \"eigenvalue(KEY):\"\nshow eigenvalue(KEY)")
+)
+
+fn load_ex_analyze() = (
+  let ta = dom_query("#repl-code") in
+  dom_text(ta, "-- analyze.ax: Ring Element Profiler\n\nfn classify(n) = (\n  if n == 0 then \"ZERO\"\n  else if coupling(n) == 0 then \"UNIT\"\n  else if n * n == n then \"IDEMPOTENT\"\n  else if n ^ 8 == 0 then \"NILPOTENT\"\n  else \"ZERO DIVISOR\")\n\nfn profile(n) = (\n  show \"--- \" + n + \" ---\";\n  show \"CRT:        \" + crt(n);\n  show \"coupling:   \" + coupling(n);\n  show \"eigenvalue: \" + eigenvalue(n);\n  show \"class:      \" + classify(n);\n  show \"n^LAMBDA:   \" + n ^ 420;\n  show \"\")\n\nshow \"=== RING ELEMENT ANALYZER ===\"\nprofile(s)\nprofile(ANSWER)\nprofile(OMEGA)\n\nshow \"=== TRY YOUR OWN ===\"\nprofile(137)\nprofile(420)")
+)
+
+fn load_ex_fib() = (
+  let ta = dom_query("#repl-code") in
+  dom_text(ta, "-- fib.ax: Ring Fibonacci\n-- Fibonacci in Z/970200Z\n\nfn fib(n) = (\n  if n < D then n\n  else fib(n - s) + fib(n - D))\n\nshow \"=== RING FIBONACCI ===\"\nshow \"fib(1) = \" + fib(1)\nshow \"fib(5) = \" + fib(5)\nshow \"fib(10) = \" + fib(10)\nshow \"fib(15) = \" + fib(15)\nshow \"fib(20) = \" + fib(20)\n\nshow \"\"\nshow \"CRT of fib(20):\"\nshow crt(fib(20))\nshow \"coupling of fib(20):\"\nshow coupling(fib(20))")
+)
+
+fn load_ex_coupling() = (
+  let ta = dom_query("#repl-code") in
+  dom_text(ta, "-- coupling.ax: Coupling Scanner\n-- coupling(n) = N / gcd(n, N)\n\nshow \"=== COUPLING LEVELS ===\"\nshow \"coupling(0) = \" + coupling(0)\nshow \"coupling(1) = \" + coupling(s)\nshow \"coupling(2) = \" + coupling(D)\nshow \"coupling(3) = \" + coupling(K)\nshow \"coupling(6) = \" + coupling(D*K)\nshow \"coupling(42) = \" + coupling(ANSWER)\nshow \"coupling(210) = \" + coupling(DATA)\nshow \"coupling(2310) = \" + coupling(THIN)\nshow \"coupling(OMEGA) = \" + coupling(OMEGA)\n\nshow \"\"\nshow \"=== DECALITY ===\"\nshow \"D=2: coupling \" + coupling(D)\nshow \"K=3: coupling \" + coupling(K)\nshow \"E=5: coupling \" + coupling(E)\nshow \"b=7: coupling \" + coupling(b)\nshow \"L=11: coupling \" + coupling(L)\nshow \"GATE=13: coupling \" + coupling(GATE)")
+)
+
+/* run_repl() already defined in pages_living.ax — reuses same #repl-code + #repl-result IDs */
+
+/* ===== THE PAGE ===== */
+fn page_repl() = (
+  dom_head_meta("description", "Write and run .ax code live in your browser. Native WASM compilation. Ring arithmetic in Z/970200Z. Five primes, ten terms, one ring. Zero dependencies.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"WebApplication\",\"name\":\".ax REPL\",\"description\":\"Live .ax code editor with native WASM compilation. Ring arithmetic in Z/970200Z.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/repl\",\"applicationCategory\":\"DeveloperApplication\",\"operatingSystem\":\"Any\"}");
+
+  /* Hero */
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 24px");
+  let h1 = dom_create("h1") in
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.5em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "8px");
+  let dot = dom_create("span") in
+  ct_gold(dot);
+  dom_text(dot, ".");
+  dom_append(h1, dot);
+  let rest = dom_create("span") in
+  dom_text(rest, "ax REPL");
+  dom_append(h1, rest);
+  dom_append(hero, h1);
+  let sub = dom_create("p") in
+  dom_text(sub, "Write code. Run it. Everything lives in Z/970200Z.");
+  dom_style(sub, "color", "#8899aa");
+  dom_style(sub, "fontSize", "1.1em");
+  dom_style(sub, "margin", "0");
+  dom_append(hero, sub);
+  let sub2 = dom_create("p") in
+  dom_style(sub2, "color", "#556677");
+  dom_style(sub2, "fontSize", "0.9em");
+  dom_style(sub2, "margin", "8px 0 0");
+  dom_text(sub2, "Native WASM compile. No server. No dependencies. DFloat only type.");
+  dom_append(hero, sub2);
+  dom_append(dom_body(), hero);
+
+  /* Editor section */
+  let sec = make_section("900px") in
+
+  /* Example buttons */
+  let ex_row = dom_create("div") in
+  dom_style(ex_row, "display", "flex");
+  dom_style(ex_row, "gap", "6px");
+  dom_style(ex_row, "flexWrap", "wrap");
+  dom_style(ex_row, "marginBottom", "12px");
+  dom_style(ex_row, "alignItems", "center");
+  let ex_label = dom_create("span") in
+  dom_text(ex_label, "Examples:");
+  dom_style(ex_label, "color", "#8899aa");
+  dom_style(ex_label, "fontSize", "13px");
+  ct_mono(ex_label);
+  dom_append(ex_row, ex_label);
+  make_action_btn(ex_row, "Hello", "load_ex_hello");
+  make_action_btn(ex_row, "Derivation", "load_ex_derive");
+  make_action_btn(ex_row, "CRT", "load_ex_crt");
+  make_action_btn(ex_row, "Analyzer", "load_ex_analyze");
+  make_action_btn(ex_row, "Fibonacci", "load_ex_fib");
+  make_action_btn(ex_row, "Coupling", "load_ex_coupling");
+  dom_append(sec, ex_row);
+
+  /* Textarea */
+  let ta = dom_create("textarea") in
+  dom_attr(ta, "id", "repl-code");
+  dom_attr(ta, "spellcheck", "false");
+  dom_style(ta, "width", "100%");
+  dom_style(ta, "minHeight", "280px");
+  dom_style(ta, "background", "#0a0a14");
+  dom_style(ta, "color", "#ffd700");
+  ct_mono(ta);
+  dom_style(ta, "fontSize", "14px");
+  dom_style(ta, "padding", "16px");
+  dom_style(ta, "border", "1px solid #1a1a3f");
+  dom_style(ta, "borderRadius", "8px");
+  dom_style(ta, "resize", "vertical");
+  dom_style(ta, "lineHeight", "1.6");
+  dom_style(ta, "outline", "none");
+  dom_style(ta, "tabSize", "2");
+  /* Default: Hello example */
+  dom_text(ta, "-- hello.ax\n-- Five primes. One ring.\n\nshow D * K * E * b * L\n\nshow \"The KEY to everything:\"\nshow KEY\nshow \"CRT(KEY):\"\nshow crt(KEY)\n\nshow \"eigenvalue(KEY):\"\nshow eigenvalue(KEY)\n\nshow \"Everything from: something exists.\"\nshow \"s = 1. That's all you need.\"\nshow s");
+  dom_append(sec, ta);
+
+  /* Run button */
+  let btn_row = dom_create("div") in
+  dom_style(btn_row, "display", "flex");
+  dom_style(btn_row, "gap", "8px");
+  dom_style(btn_row, "marginTop", "10px");
+  dom_style(btn_row, "marginBottom", "12px");
+  dom_style(btn_row, "alignItems", "center");
+  let run_btn = dom_create("button") in
+  dom_inner(run_btn, "&#9654; Run");
+  dom_style(run_btn, "background", "#1a3a1a");
+  dom_style(run_btn, "color", "#50fa7b");
+  dom_style(run_btn, "border", "1px solid #50fa7b");
+  dom_style(run_btn, "padding", "10px 24px");
+  dom_style(run_btn, "borderRadius", "6px");
+  dom_style(run_btn, "cursor", "pointer");
+  dom_style(run_btn, "fontSize", "15px");
+  dom_style(run_btn, "fontWeight", "bold");
+  ct_mono(run_btn);
+  dom_on(run_btn, "click", "run_repl");
+  dom_append(btn_row, run_btn);
+  let ring_info = dom_create("span") in
+  dom_text(ring_info, "Z/970200Z = Z/8 x Z/9 x Z/25 x Z/49 x Z/11");
+  dom_style(ring_info, "color", "#556677");
+  dom_style(ring_info, "fontSize", "12px");
+  ct_mono(ring_info);
+  dom_append(btn_row, ring_info);
+  dom_append(sec, btn_row);
+
+  /* Output */
+  make_result_box(sec, "repl-result");
+  dom_append(dom_body(), sec);
+
+  /* Quick Reference */
+  let ref_sec = make_section("900px") in
+  render_h2(ref_sec, "Quick Reference");
+
+  let ref_grid = dom_create("div") in
+  dom_style(ref_grid, "display", "grid");
+  dom_style(ref_grid, "gridTemplateColumns", "1fr 1fr");
+  dom_style(ref_grid, "gap", "16px");
+
+  /* Constants */
+  let c1 = dom_create("div") in
+  ct_code_block(c1);
+  dom_inner(c1, "<b style='color:#50fa7b'>Axiom Constants</b><br>s=1 D=2 K=3 E=5 b=7 L=11<br>OMEGA=606376 DATA=210 THIN=2310<br>KEY=41 ANSWER=42 HYDOR=105<br>GATE=13 LAMBDA=420");
+  dom_append(ref_grid, c1);
+
+  /* Operators */
+  let c2 = dom_create("div") in
+  ct_code_block(c2);
+  dom_inner(c2, "<b style='color:#50fa7b'>Operators</b><br>+ - * / ^ &nbsp; arithmetic (mod N)<br>~x &nbsp; complement (N - x)<br>== &lt; &gt; &nbsp; comparison (0 or 1)<br>a ; b &nbsp; sequence (eval both, return b)");
+  dom_append(ref_grid, c2);
+
+  /* Syntax */
+  let c3 = dom_create("div") in
+  ct_code_block(c3);
+  dom_inner(c3, "<b style='color:#50fa7b'>Syntax</b><br>let x = expr &nbsp; bind variable<br>fn f(a, b) = expr &nbsp; define function<br>show expr &nbsp; display value<br>if c then a else b &nbsp; conditional<br>for x in arr do body &nbsp; iteration<br>[a, b, c] &nbsp; array &mdash; arr[i] index<br>-- comment &nbsp; /* block comment */");
+  dom_append(ref_grid, c3);
+
+  /* Builtins */
+  let c4 = dom_create("div") in
+  ct_code_block(c4);
+  dom_inner(c4, "<b style='color:#50fa7b'>Built-in Functions</b><br>coupling(n) &nbsp; ring coupling level<br>crt(n) &nbsp; CRT decomposition<br>eigenvalue(n) &nbsp; spectral eigenvalue<br>gcd(a,b) &nbsp; greatest common divisor<br>decompose(n) &nbsp; CRT as array<br>reconstruct(arr) &nbsp; array to element<br>range(n) or range(a,b) &nbsp; array<br>sum(arr) &nbsp; len(arr) &nbsp; show(n)");
+  dom_append(ref_grid, c4);
+
+  dom_append(ref_sec, ref_grid);
+  dom_append(dom_body(), ref_sec);
+
+  /* Why .ax */
+  let why_sec = make_section("900px") in
+  render_h2(why_sec, "Why .ax?");
+  render_p(why_sec, "The axiom has its own programming language. Ring arithmetic is automatic: all numbers live in Z/970200Z. CRT decomposition, coupling, eigenvalue are built-in. No server, no dependencies, no account. .ax source compiles to WASM in your browser, then executes natively. Free, open, forever.");
+
+  let tbl = make_table(why_sec) in
+  let thead = dom_create("thead") in
+  let thr = dom_create("tr") in
+  let th1 = dom_create("th") in
+  dom_text(th1, ".ax REPL");
+  dom_style(th1, "color", "#ffd700");
+  dom_style(th1, "padding", "8px");
+  dom_style(th1, "textAlign", "left");
+  dom_append(thr, th1);
+  let th2 = dom_create("th") in
+  dom_text(th2, "Python");
+  dom_style(th2, "padding", "8px");
+  dom_style(th2, "textAlign", "left");
+  dom_append(thr, th2);
+  let th3 = dom_create("th") in
+  dom_text(th3, "Wolfram");
+  dom_style(th3, "padding", "8px");
+  dom_style(th3, "textAlign", "left");
+  dom_append(thr, th3);
+  dom_append(thead, thr);
+  dom_append(tbl, thead);
+  let tbody = dom_create("tbody") in
+  render_why_row(tbody, "Z/970200Z built-in", "import sympy, define ring", "Mod[expr, 970200]");
+  render_why_row(tbody, "CRT: crt(n)", "Write it (~20 lines)", "ChineseRemainder[...]");
+  render_why_row(tbody, "Coupling, eigenvalue built-in", "Write from scratch", "Write from scratch");
+  render_why_row(tbody, "Runs in any browser", "Needs Python installed", "Cloud + account ($375/yr)");
+  render_why_row(tbody, "Free, open, forever (CC0)", "Free (Python is)", "Proprietary");
+  dom_append(tbl, tbody);
+  dom_append(dom_body(), why_sec);
+
+  /* Explore links */
+  let nav_sec = make_section("900px") in
+  render_h2(nav_sec, "Explore");
+  render_explore_link(nav_sec, "/basics/derive", "The Derivation", "Everything from nothing");
+  render_explore_link(nav_sec, "/observe/ouroboros_compiler", "The Compiler", ".ax compiles .ax to WASM");
+  render_explore_link(nav_sec, "/observe/ax_games", "Axiom Arcade", "6 games at 60fps in pure .ax");
+  render_explore_link(nav_sec, "/observe/sandpile", "Sandpile", "Self-organized criticality");
+  dom_append(dom_body(), nav_sec)
+)
+
+/* Helper: contrast table row */
+fn render_why_row(tbody, ax:str, py:str, wf:str) = (
+  let tr = dom_create("tr") in
+  let td1 = dom_create("td") in
+  dom_text(td1, ax);
+  dom_style(td1, "color", "#50fa7b");
+  dom_style(td1, "padding", "6px 8px");
+  dom_style(td1, "borderBottom", "1px solid #1a1a2e");
+  dom_append(tr, td1);
+  let td2 = dom_create("td") in
+  dom_text(td2, py);
+  dom_style(td2, "padding", "6px 8px");
+  dom_style(td2, "borderBottom", "1px solid #1a1a2e");
+  dom_append(tr, td2);
+  let td3 = dom_create("td") in
+  dom_text(td3, wf);
+  dom_style(td3, "padding", "6px 8px");
+  dom_style(td3, "borderBottom", "1px solid #1a1a2e");
+  dom_append(tr, td3);
+  dom_append(tbody, tr)
+)
