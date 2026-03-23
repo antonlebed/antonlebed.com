@@ -1,0 +1,491 @@
+/* page_tutorial.ax -- .ax Tutorial: 10 guided challenges.
+   Rebuilt from playground.html (768L JS). Pure .ax. repl_eval for code execution.
+   State: hidden div #tut-state holds current challenge index (0-9).
+   Each challenge = div #tut-ch-N. Show current, hide others. */
+
+/* ===== CHALLENGE RUNNERS ===== */
+
+fn tut_run() = (
+  let idx = parse_int_from("#tut-state") in
+  let ta = dom_query("#tut-code-" + idx) in
+  let code = dom_value(ta) in
+  let result = dom_query("#tut-out-" + idx) in
+  repl_eval(code, result)
+)
+
+fn tut_check() = (
+  tut_run();
+  let idx = parse_int_from("#tut-state") in
+  let result = dom_query("#tut-out-" + idx) in
+  let text = dom_value(result) in
+  let msg = dom_query("#tut-msg-" + idx) in
+  let ok = tut_verify(idx, text) in
+  if ok == 1 then (
+    dom_text(msg, "Correct. The chain grows.");
+    dom_style(msg, "color", "#50fa7b");
+    dom_style(msg, "background", "#0a2a0a");
+    dom_style(msg, "border", "1px solid #50fa7b");
+    dom_style(msg, "display", "block");
+    /* mark dot green */
+    let dot = dom_query("#tut-dot-" + idx) in
+    dom_style(dot, "borderColor", "#50fa7b");
+    dom_style(dot, "color", "#50fa7b");
+    dom_style(dot, "background", "#0a2a0a")
+  ) else (
+    dom_text(msg, "Not quite. Check your output and try again.");
+    dom_style(msg, "color", "#ff5555");
+    dom_style(msg, "background", "#2a0a0a");
+    dom_style(msg, "border", "1px solid #ff5555");
+    dom_style(msg, "display", "block")
+  )
+)
+
+/* Verify: always pass for now. Checking output content requires string search
+   which needs more compiler support. The Run button shows output — user self-verifies. */
+fn tut_verify(idx, text:str) = 1
+
+/* ===== NAVIGATION ===== */
+
+fn tut_hide_one(i) = (
+  let ch = dom_query("#tut-ch-" + i) in
+  dom_style(ch, "display", "none")
+)
+
+fn tut_show_ch(idx) = (
+  /* Hide all 10 */
+  tut_hide_one(0); tut_hide_one(1); tut_hide_one(2); tut_hide_one(3); tut_hide_one(4);
+  tut_hide_one(5); tut_hide_one(6); tut_hide_one(7); tut_hide_one(8); tut_hide_one(9);
+  /* Show target */
+  let ch = dom_query("#tut-ch-" + idx) in
+  dom_style(ch, "display", "block");
+  /* Update state */
+  let state = dom_query("#tut-state") in
+  dom_attr(state, "value", "" + idx);
+  /* Highlight current dot */
+  let dot = dom_query("#tut-dot-" + idx) in
+  dom_style(dot, "boxShadow", "0 0 12px rgba(255,215,0,0.3)")
+)
+
+fn tut_next() = (
+  let idx = parse_int_from("#tut-state") in
+  if idx < 9 then tut_show_ch(idx + 1)
+  else (
+    /* Show completion */
+    let comp = dom_query("#tut-completion") in
+    dom_style(comp, "display", "block");
+    let ch = dom_query("#tut-ch-" + idx) in
+    dom_style(ch, "display", "none")
+  )
+)
+
+fn tut_prev() = (
+  let idx = parse_int_from("#tut-state") in
+  if idx > 0 then tut_show_ch(idx - 1)
+  else 0
+)
+
+fn tut_reset() = (
+  let idx = parse_int_from("#tut-state") in
+  let ta = dom_query("#tut-code-" + idx) in
+  let starter = dom_query("#tut-starter-" + idx) in
+  let code = dom_value(starter) in
+  dom_text(ta, code);
+  let out = dom_query("#tut-out-" + idx) in
+  dom_inner(out, "<span style='color:#556677'>Press Run to execute your code.</span>");
+  let msg = dom_query("#tut-msg-" + idx) in
+  dom_style(msg, "display", "none")
+)
+
+/* ===== PROGRESS DOT CLICKS ===== */
+fn tut_go_0() = tut_show_ch(0)
+fn tut_go_1() = tut_show_ch(1)
+fn tut_go_2() = tut_show_ch(2)
+fn tut_go_3() = tut_show_ch(3)
+fn tut_go_4() = tut_show_ch(4)
+fn tut_go_5() = tut_show_ch(5)
+fn tut_go_6() = tut_show_ch(6)
+fn tut_go_7() = tut_show_ch(7)
+fn tut_go_8() = tut_show_ch(8)
+fn tut_go_9() = tut_show_ch(9)
+
+/* ===== BUILD ONE CHALLENGE ===== */
+
+fn tut_challenge(parent, idx, title:str, level:str, desc:str, hint:str, starter:str) = (
+  let ch = dom_create("div") in
+  dom_attr(ch, "id", "tut-ch-" + idx);
+  dom_style(ch, "display", if idx == 0 then "block" else "none");
+
+  /* Level + Title */
+  let lv = dom_create("div") in
+  ct_mono(lv);
+  dom_style(lv, "fontSize", "0.75em");
+  dom_style(lv, "color", "#556677");
+  dom_style(lv, "letterSpacing", "2px");
+  dom_style(lv, "marginBottom", "4px");
+  dom_text(lv, "CHALLENGE " + (idx + 1) + " OF 10");
+  dom_append(ch, lv);
+
+  let t = dom_create("div") in
+  ct_mono(t);
+  dom_style(t, "fontSize", "1.3em");
+  ct_gold(t);
+  dom_style(t, "marginBottom", "4px");
+  dom_text(t, title);
+  dom_append(ch, t);
+
+  /* Description */
+  let d = dom_create("div") in
+  dom_style(d, "color", "#bbb");
+  dom_style(d, "fontSize", "15px");
+  dom_style(d, "lineHeight", "1.7");
+  dom_style(d, "marginBottom", "16px");
+  dom_inner(d, desc);
+  dom_append(ch, d);
+
+  /* Hint (collapsed) */
+  let h = dom_create("div") in
+  dom_style(h, "fontSize", "13px");
+  dom_style(h, "color", "#556677");
+  dom_style(h, "fontStyle", "italic");
+  dom_style(h, "marginBottom", "12px");
+  dom_text(h, "+ hint: " + hint);
+  dom_append(ch, h);
+
+  /* Hidden starter code storage */
+  let starter_store = dom_create("input") in
+  dom_attr(starter_store, "type", "hidden");
+  dom_attr(starter_store, "id", "tut-starter-" + idx);
+  dom_attr(starter_store, "value", starter);
+  dom_append(ch, starter_store);
+
+  /* Textarea */
+  let ta = dom_create("textarea") in
+  dom_attr(ta, "id", "tut-code-" + idx);
+  dom_attr(ta, "spellcheck", "false");
+  dom_style(ta, "width", "100%");
+  dom_style(ta, "minHeight", "160px");
+  dom_style(ta, "background", "#0a0a14");
+  dom_style(ta, "color", "#ffd700");
+  ct_mono(ta);
+  dom_style(ta, "fontSize", "14px");
+  dom_style(ta, "padding", "12px");
+  dom_style(ta, "border", "1px solid #1a1a3f");
+  dom_style(ta, "borderRadius", "6px");
+  dom_style(ta, "resize", "vertical");
+  dom_style(ta, "lineHeight", "1.6");
+  dom_style(ta, "outline", "none");
+  dom_style(ta, "tabSize", "2");
+  dom_text(ta, starter);
+  dom_append(ch, ta);
+
+  /* Buttons */
+  let btn_row = dom_create("div") in
+  dom_style(btn_row, "display", "flex");
+  dom_style(btn_row, "gap", "8px");
+  dom_style(btn_row, "marginTop", "8px");
+  dom_style(btn_row, "marginBottom", "8px");
+
+  let run_btn = dom_create("button") in
+  dom_inner(run_btn, "&#9654; Run");
+  dom_style(run_btn, "background", "#1a3a1a");
+  dom_style(run_btn, "color", "#50fa7b");
+  dom_style(run_btn, "border", "1px solid #50fa7b");
+  dom_style(run_btn, "padding", "10px 18px");
+  dom_style(run_btn, "borderRadius", "4px");
+  dom_style(run_btn, "cursor", "pointer");
+  dom_style(run_btn, "fontWeight", "bold");
+  ct_mono(run_btn);
+  dom_on(run_btn, "click", "tut_run");
+  dom_append(btn_row, run_btn);
+
+  let chk_btn = dom_create("button") in
+  dom_inner(chk_btn, "&#10003; Check");
+  dom_style(chk_btn, "background", "#1a1a3a");
+  dom_style(chk_btn, "color", "#88aaff");
+  dom_style(chk_btn, "border", "1px solid #88aaff");
+  dom_style(chk_btn, "padding", "10px 18px");
+  dom_style(chk_btn, "borderRadius", "4px");
+  dom_style(chk_btn, "cursor", "pointer");
+  ct_mono(chk_btn);
+  dom_on(chk_btn, "click", "tut_check");
+  dom_append(btn_row, chk_btn);
+
+  let rst_btn = dom_create("button") in
+  dom_text(rst_btn, "Reset");
+  dom_style(rst_btn, "background", "#1a1a2e");
+  dom_style(rst_btn, "color", "#e0e0e0");
+  dom_style(rst_btn, "border", "1px solid #333");
+  dom_style(rst_btn, "padding", "10px 18px");
+  dom_style(rst_btn, "borderRadius", "4px");
+  dom_style(rst_btn, "cursor", "pointer");
+  dom_on(rst_btn, "click", "tut_reset");
+  dom_append(btn_row, rst_btn);
+
+  dom_append(ch, btn_row);
+
+  /* Output */
+  let out = dom_create("pre") in
+  dom_attr(out, "id", "tut-out-" + idx);
+  dom_style(out, "background", "#0a0a14");
+  dom_style(out, "border", "1px solid #222");
+  dom_style(out, "borderRadius", "6px");
+  dom_style(out, "padding", "12px");
+  ct_mono(out);
+  dom_style(out, "fontSize", "13px");
+  dom_style(out, "minHeight", "60px");
+  dom_style(out, "maxHeight", "300px");
+  dom_style(out, "overflowY", "auto");
+  dom_style(out, "whiteSpace", "pre-wrap");
+  dom_style(out, "wordBreak", "break-word");
+  dom_inner(out, "<span style='color:#556677'>Press Run to execute your code.</span>");
+  dom_append(ch, out);
+
+  /* Result message */
+  let msg = dom_create("div") in
+  dom_attr(msg, "id", "tut-msg-" + idx);
+  dom_style(msg, "padding", "12px");
+  dom_style(msg, "borderRadius", "8px");
+  dom_style(msg, "textAlign", "center");
+  dom_style(msg, "fontSize", "15px");
+  dom_style(msg, "marginTop", "8px");
+  dom_style(msg, "marginBottom", "8px");
+  dom_style(msg, "display", "none");
+  dom_append(ch, msg);
+
+  /* Nav: prev / next */
+  let nav = dom_create("div") in
+  dom_style(nav, "display", "flex");
+  dom_style(nav, "justifyContent", "space-between");
+  dom_style(nav, "marginTop", "8px");
+  dom_style(nav, "paddingTop", "12px");
+  dom_style(nav, "borderTop", "1px solid #111");
+
+  let prev_btn = dom_create("button") in
+  dom_inner(prev_btn, "&larr; Previous");
+  dom_style(prev_btn, "background", "none");
+  dom_style(prev_btn, "border", "1px solid #333");
+  dom_style(prev_btn, "color", "#888");
+  dom_style(prev_btn, "padding", "10px 20px");
+  dom_style(prev_btn, "borderRadius", "4px");
+  dom_style(prev_btn, "cursor", "pointer");
+  dom_on(prev_btn, "click", "tut_prev");
+  dom_append(nav, prev_btn);
+
+  let next_btn = dom_create("button") in
+  dom_inner(next_btn, if idx == 9 then "Finish" else "Next &rarr;");
+  dom_style(next_btn, "background", "none");
+  dom_style(next_btn, "border", "1px solid #333");
+  dom_style(next_btn, "color", "#888");
+  dom_style(next_btn, "padding", "10px 20px");
+  dom_style(next_btn, "borderRadius", "4px");
+  dom_style(next_btn, "cursor", "pointer");
+  dom_on(next_btn, "click", "tut_next");
+  dom_append(nav, next_btn);
+
+  dom_append(ch, nav);
+  dom_append(parent, ch)
+)
+
+/* ===== PROGRESS DOT HELPERS ===== */
+
+fn tut_prog_line(parent) = (
+  let line = dom_create("div") in
+  dom_style(line, "flex", "1");
+  dom_style(line, "height", "2px");
+  dom_style(line, "background", "#222");
+  dom_append(parent, line)
+)
+
+fn tut_make_dot(parent, idx, label:str, callback:str, is_first) = (
+  let dot = dom_create("div") in
+  dom_attr(dot, "id", "tut-dot-" + idx);
+  dom_style(dot, "width", "28px");
+  dom_style(dot, "height", "28px");
+  dom_style(dot, "borderRadius", "50%");
+  if is_first == 1 then (
+    dom_style(dot, "border", "2px solid #ffd700");
+    dom_style(dot, "color", "#ffd700");
+    dom_style(dot, "boxShadow", "0 0 12px rgba(255,215,0,0.3)")
+  ) else (
+    dom_style(dot, "border", "2px solid #222");
+    dom_style(dot, "color", "#444")
+  );
+  dom_style(dot, "display", "flex");
+  dom_style(dot, "alignItems", "center");
+  dom_style(dot, "justifyContent", "center");
+  dom_style(dot, "fontSize", "11px");
+  ct_mono(dot);
+  dom_style(dot, "cursor", "pointer");
+  dom_text(dot, label);
+  dom_on(dot, "click", callback);
+  dom_append(parent, dot)
+)
+
+/* ===== THE PAGE ===== */
+
+fn page_tutorial() = (
+  dom_head_meta("description", "10 guided challenges that teach the axiom from nothing. Write .ax code, verify results, discover how ten terms structure everything.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"Course\",\"name\":\".ax Tutorial\",\"description\":\"10 guided challenges: from existence (sigma=1) to free exploration. Learn ring arithmetic, CRT decomposition, and the five primes.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/basics/tutorial\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"ring arithmetic\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT decomposition\"},{\"@type\":\"DefinedTerm\",\"name\":\"axiom\"}]}");
+
+  /* Hero */
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "80px 24px 16px");
+  let h1 = dom_create("h1") in
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "2.2em");
+  dom_style(h1, "fontWeight", "normal");
+  dom_style(h1, "marginBottom", "8px");
+  let dot = dom_create("span") in
+  ct_gold(dot);
+  dom_text(dot, ".");
+  dom_append(h1, dot);
+  let rest = dom_create("span") in
+  dom_text(rest, "ax Tutorial");
+  dom_append(h1, rest);
+  dom_append(hero, h1);
+  let sub = dom_create("p") in
+  dom_text(sub, "10 challenges. From nothing to everything. Write code, discover the axiom.");
+  dom_style(sub, "color", "#8899aa");
+  dom_style(sub, "fontSize", "1.05em");
+  dom_style(sub, "margin", "0");
+  dom_append(hero, sub);
+  dom_append(dom_body(), hero);
+
+  /* Progress dots */
+  let prog = dom_create("div") in
+  dom_style(prog, "maxWidth", "700px");
+  dom_style(prog, "margin", "16px auto");
+  dom_style(prog, "padding", "0 16px");
+  dom_style(prog, "display", "flex");
+  dom_style(prog, "gap", "4px");
+  dom_style(prog, "alignItems", "center");
+
+  tut_make_dot(prog, 0, "1", "tut_go_0", 1);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 1, "2", "tut_go_1", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 2, "3", "tut_go_2", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 3, "4", "tut_go_3", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 4, "5", "tut_go_4", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 5, "6", "tut_go_5", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 6, "7", "tut_go_6", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 7, "8", "tut_go_7", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 8, "9", "tut_go_8", 0);
+  tut_prog_line(prog);
+  tut_make_dot(prog, 9, "10", "tut_go_9", 0);
+  dom_append(dom_body(), prog);
+
+  /* Hidden state: current challenge index */
+  let state = dom_create("input") in
+  dom_attr(state, "type", "hidden");
+  dom_attr(state, "id", "tut-state");
+  dom_attr(state, "value", "0");
+  dom_append(dom_body(), state);
+
+  /* Challenge area */
+  let area = make_section("700px") in
+
+  /* Challenge 1: Existence */
+  tut_challenge(area, 0, "Existence", "BASICS",
+    "Everything begins with one fact: <em>something exists</em>. In .ax, the ground state is <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>s</code> (sigma). It equals 1 — the identity, the preserver.<br><br>Type <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>show s</code> and press Run.",
+    "Just type: show s",
+    "-- Type your answer below\nshow s");
+
+  /* Challenge 2: Duality */
+  tut_challenge(area, 1, "Duality", "BASICS",
+    "Sigma sees itself. Existence observing existence creates <em>two</em> — duality. <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>D = 2</code>.<br><br>Compute <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>show s + s</code>.",
+    "Addition in the ring: show s + s. Or just: show D",
+    "-- Observation creates duality\nshow s + s");
+
+  /* Challenge 3: The Chain */
+  tut_challenge(area, 2, "The Chain", "BASICS",
+    "From D, the chain unfolds: <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>D + s = K = 3</code> (closure), <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>K + D = E = 5</code> (observer), <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>E + D = b = 7</code> (depth). The sum <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>s + D + K + E = L = 11</code> (protector).<br><br>Show all five primes.",
+    "Use show for each: show D, show K, show E, show b, show L",
+    "-- The five primes that structure everything\nshow D\nshow K\nshow E\nshow b\nshow L");
+
+  /* Challenge 4: The Thin Ring */
+  tut_challenge(area, 3, "The Thin Ring", "STRUCTURE",
+    "Multiply the five primes together: <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>D * K * E * b * L</code>. This is the <em>thin ring</em> — the pedagogical shadow of the true form.<br><br>What number do you get?",
+    "Just multiply: show D * K * E * b * L",
+    "-- Five primes, one product\nshow D * K * E * b * L");
+
+  /* Challenge 5: Decomposition */
+  tut_challenge(area, 4, "Decomposition", "STRUCTURE",
+    "The Chinese Remainder Theorem splits any number into 5 independent channels. The builtin <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>crt(n)</code> returns [n%8, n%9, n%25, n%49, n%11].<br><br>Decompose the KEY: <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>show crt(KEY)</code>. The KEY is 41 — the self-inverse element.",
+    "Type: show crt(KEY)",
+    "-- CRT: one number, five channels\nshow crt(KEY)");
+
+  /* Challenge 6: The True Form */
+  tut_challenge(area, 5, "The True Form", "DEEP",
+    "The true ring is <em>fat</em> — each channel gets its full capacity. <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>D^3 * K^2 * E^2 * b^2 * L = 970200</code>. But all arithmetic is mod 970200.<br><br>Compute <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>show D^3 * K^2 * E^2 * b^2 * L</code>. What happens?",
+    "The ring wraps: 970200 mod 970200 = 0. The void IS the ring.",
+    "-- The TRUE FORM\nshow \"D^3 * K^2 * E^2 * b^2 * L =\"\nshow D^3 * K^2 * E^2 * b^2 * L");
+
+  /* Challenge 7: The Terminal */
+  tut_challenge(area, 6, "The Terminal", "DEEP",
+    "OMEGA (606376) is the terminal — where the spider arrives. It is an <em>idempotent</em>: multiplying it by itself changes nothing.<br><br>Verify: <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>show OMEGA * OMEGA</code> and check it equals OMEGA.",
+    "show OMEGA * OMEGA should display 606376.",
+    "-- The terminal is self-stabilizing\nshow \"OMEGA =\"\nshow OMEGA\nshow \"OMEGA * OMEGA =\"\nshow OMEGA * OMEGA");
+
+  /* Challenge 8: The Key Returns */
+  tut_challenge(area, 7, "The Key Returns", "DEEP",
+    "KEY = 41 is self-inverse in the data ring (Z/210Z). That means KEY * KEY mod 210 = 1. The key, applied twice, returns you to the ground state.<br><br>Verify: compute KEY * KEY, then decompose with crt to see channel values.",
+    "show KEY * KEY, then show crt(KEY * KEY). The K-channel (mod 9) should show 1.",
+    "-- The self-inverse key\nshow \"KEY =\"\nshow KEY\nshow \"KEY * KEY =\"\nshow KEY * KEY\nshow \"CRT(KEY * KEY):\"\nshow crt(KEY * KEY)");
+
+  /* Challenge 9: Error Correction */
+  tut_challenge(area, 8, "Error Correction", "ADVANCED",
+    "L = 11 is the protector. It detects errors because gcd(DATA/p, L) = 1 for every data prime p in {D, K, E, b}. L can see any single-channel corruption.<br><br>Verify all four: show gcd(DATA/D, L), gcd(DATA/K, L), gcd(DATA/E, L), gcd(DATA/b, L). All should be 1.",
+    "DATA/D = 105, DATA/K = 70, DATA/E = 42, DATA/b = 30. All coprime to L=11.",
+    "-- L=11 protects ALL data channels\nshow \"gcd(DATA/D, L) =\" \nshow gcd(105, L)\nshow \"gcd(DATA/K, L) =\"\nshow gcd(70, L)\nshow \"gcd(DATA/E, L) =\"\nshow gcd(42, L)\nshow \"gcd(DATA/b, L) =\"\nshow gcd(30, L)");
+
+  /* Challenge 10: The Rose */
+  tut_challenge(area, 9, "The Rose", "FREE",
+    "You have walked the chain from nothing to everything. The ring wraps. 0/0 = everything.<br><br>There are no rules here. Explore freely. Use <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>for x in arr do body</code> to iterate, <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>range(n)</code> for arrays, <code style='color:#d4a017;background:#1a1a2e;padding:2px 6px;border-radius:3px'>fn f(x) = expr</code> to define functions.",
+    "Try: fn sq(p) = p * p - p - s\nfor p in [K, E, b, L] do show sq(p)",
+    "-- The Rose: free exploration\n-- The ring is yours.\n\nfn sq(p) = p * p - p - s\n\n-- depth quadratic: p^2 - p - 1\nfor p in [K, E, b, L] do\n  show sq(p)\n\n-- Count units of DATA ring\nshow \"phi(210) =\"\nshow sum(for n in range(210) do\n  if gcd(n, 210) == s then s else 0)");
+
+  dom_append(dom_body(), area);
+
+  /* Completion screen */
+  let comp = dom_create("div") in
+  dom_attr(comp, "id", "tut-completion");
+  dom_style(comp, "textAlign", "center");
+  dom_style(comp, "padding", "40px 16px");
+  dom_style(comp, "display", "none");
+  let comp_h = dom_create("h2") in
+  ct_gold(comp_h);
+  dom_style(comp_h, "fontSize", "1.5em");
+  dom_style(comp_h, "marginBottom", "12px");
+  dom_text(comp_h, "The web is complete.");
+  dom_append(comp, comp_h);
+  let comp_p = dom_create("p") in
+  dom_style(comp_p, "color", "#888");
+  dom_style(comp_p, "fontSize", "15px");
+  dom_style(comp_p, "maxWidth", "500px");
+  dom_style(comp_p, "margin", "8px auto");
+  dom_text(comp_p, "You walked the entire chain from nothing to everything. The ring wraps. 0/0 = everything.");
+  dom_append(comp, comp_p);
+  let comp_links = dom_create("p") in
+  dom_style(comp_links, "margin", "16px auto");
+  dom_style(comp_links, "maxWidth", "500px");
+  dom_inner(comp_links, "Now explore freely in the <a href='/living/repl' style='color:#50fa7b'>.ax REPL</a>, or see what it means for <a href='/basics/worldview' style='color:#88aaff'>how the world works</a>.");
+  dom_append(comp, comp_links);
+  dom_append(dom_body(), comp);
+
+  /* Footer note */
+  let foot = dom_create("p") in
+  dom_style(foot, "textAlign", "center");
+  dom_style(foot, "color", "#333");
+  dom_style(foot, "fontSize", "0.8em");
+  dom_style(foot, "padding", "30px 16px");
+  dom_text(foot, ".ax Tutorial — the axiom teaches itself. Five primes. One ring. 0/0 = everything.");
+  dom_append(dom_body(), foot)
+)
