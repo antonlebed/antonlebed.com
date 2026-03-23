@@ -240,7 +240,7 @@ export default {
         '<\/script>';
 
       /* Full HTML: <head> + rendered body + bootstrap script */
-      var html = '<!DOCTYPE html><html lang="en"><head>' + head + '</head>' + render(0) + boot + '</html>';
+      var html = '<!DOCTYPE html><html lang="en" style="background:#0a0a1a;margin:0;padding:0"><head>' + head + '</head>' + render(0) + boot + '</html>';
 
       return new Response(html, {
         headers: { 'Content-Type': 'text/html;charset=utf-8' }
