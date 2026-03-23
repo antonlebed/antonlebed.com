@@ -29,7 +29,7 @@ const FILES = [
   'page_stormer_pairs.ax', 'page_shadow_eval.ax', 'page_d_power_gaussian.ax',
   'page_cyclotomic_fibonacci.ax', 'page_fano_e8.ax', 'page_arcsine_cumulant.ax',
   'page_figurate_bridge.ax',
-  'page_heart.ax', 'page_sandpile.ax', 'page_swim.ax', 'page_repl.ax', 'page_prerequisites.ax', 'page_tutorial.ax', 'page_arc.ax', 'page_mesh.ax', 'page_image_filter.ax', 'page_ecc_live.ax', 'page_crt_train.ax', 'pages_observe.ax', 'pages_living.ax',
+  'page_heart.ax', 'page_sandpile.ax', 'page_swim.ax', 'page_repl.ax', 'page_prerequisites.ax', 'page_tutorial.ax', 'page_arc.ax', 'page_mesh.ax', 'page_image_filter.ax', 'page_ecc_live.ax', 'page_crt_train.ax', 'page_ax_games.ax', 'pages_observe.ax', 'pages_living.ax',
   'router.ax'
 ];
 
@@ -49,6 +49,7 @@ async function main() {
   const compilerBytes = fs.readFileSync(COMPILER);
   let cmRef = null;
   let topLevelCount = 0;
+  let topLevelExprCount = 0;
   let errorCount = 0;
   const imports = {
     env: {
@@ -68,6 +69,7 @@ async function main() {
           console.log(decoded);
           const tlMatch = s.match(/^warning: (\d+) top-level/);
           if (tlMatch) topLevelCount = parseInt(tlMatch[1]);
+          if (s.match(/top-level expr/)) topLevelExprCount++;
           if (s.startsWith('error:')) errorCount++;
         }
         return ptr;
@@ -114,14 +116,15 @@ async function main() {
   }
 
   /* BUILD GUARD: S976 lesson — content bleed deployed because warnings were printed
-     but not checked. Router entry = 1 legitimate top-level statement. Anything beyond
-     that means content is leaking as top-level code. Hard error. */
+     but not checked. Router entry = 1 legitimate top-level expression. Top-level lets
+     are allowed (global state for games, etc). Only top-level EXPRESSIONS beyond the
+     router entry indicate content bleed. */
   if (errorCount > 0) {
     console.error(`BUILD GUARD: ${errorCount} error(s). Fix before deploying.`);
     process.exit(1);
   }
-  if (topLevelCount > 1) {
-    console.error(`BUILD GUARD: ${topLevelCount} top-level statement(s) (expected 1 for router entry). Content bleed?`);
+  if (topLevelExprCount > 1) {
+    console.error(`BUILD GUARD: ${topLevelExprCount} top-level expression(s) (expected 1 for router entry). Content bleed?`);
     process.exit(1);
   }
 

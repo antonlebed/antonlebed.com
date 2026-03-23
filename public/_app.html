@@ -8,6 +8,9 @@
 <script>
 /* ☠️ DOM import handlers — JS side of WASM DOM imports */
 var _domId = 0, _dom = {0: document.body};
+var _keys = {};
+window.addEventListener('keydown', function(e) { _keys[e.keyCode] = 1; if(e.keyCode>=37&&e.keyCode<=40||e.keyCode==32)e.preventDefault(); });
+window.addEventListener('keyup', function(e) { _keys[e.keyCode] = 0; });
 function readStr(mem, ptr) {
   var m = new Int32Array(mem.buffer), n = m[ptr/4], s = '';
   for (var i = 0; i < n; i++) s += String.fromCharCode(m[ptr/4+1+i]);
@@ -98,7 +101,10 @@ function readStr(mem, ptr) {
     cvs_filltext: function(ctx, p, x, y) { var c = _dom[ctx]; if (c) c.fillText(rs(p), x, y); return 0; },
     cvs_moveto: function(ctx, x, y) { var c = _dom[ctx]; if (c) c.moveTo(x, y); return 0; },
     cvs_lineto: function(ctx, x, y) { var c = _dom[ctx]; if (c) c.lineTo(x, y); return 0; },
-    cvs_setsize: function(h, w, h2) { var el = _dom[h]; if (el) { el.width = w; el.height = h2; } return 0; }
+    cvs_setsize: function(h, w, h2) { var el = _dom[h]; if (el) { el.width = w; el.height = h2; } return 0; },
+    raf: function(fnp) { var f = rs(fnp); function loop() { if (wasm.instance.exports[f]) wasm.instance.exports[f](); requestAnimationFrame(loop); } requestAnimationFrame(loop); return 0; },
+    key_state: function(code) { return _keys[code] ? 1 : 0; },
+    cvs_font: function(ctx, p) { var c = _dom[ctx]; if (c) c.font = rs(p); return 0; }
   }});
   mem = wasm.instance.exports.memory;
   /* Clear SSR content before WASM re-renders (SSR = crawler snapshot, browser = live) */
@@ -193,7 +199,10 @@ async function _replRun(code, el) {
       cvs_arc:function(){return 0;}, cvs_fill:function(){return 0;},
       cvs_stroke:function(){return 0;}, cvs_filltext:function(){return 0;},
       cvs_moveto:function(){return 0;}, cvs_lineto:function(){return 0;},
-      cvs_setsize:function(){return 0;}
+      cvs_setsize:function(){return 0;},
+      raf:function(){return 0;},
+      key_state:function(){return 0;},
+      cvs_font:function(){return 0;}
     }});
     childMem = child.instance.exports.memory;
     child.instance.exports._main();

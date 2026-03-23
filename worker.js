@@ -129,7 +129,10 @@ export default {
         cvs_filltext: function() { return 0; },
         cvs_moveto: function() { return 0; },
         cvs_lineto: function() { return 0; },
-        cvs_setsize: function() { return 0; }
+        cvs_setsize: function() { return 0; },
+        raf: function() { return 0; },
+        key_state: function() { return 0; },
+        cvs_font: function() { return 0; }
       }});
 
       var inst = result.exports ? result : (result.instance || result);
