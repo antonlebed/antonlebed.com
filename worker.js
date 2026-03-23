@@ -154,7 +154,7 @@ export default {
       }
 
       /* Build <head> with meta tags */
-      var head = '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>html,body{margin:0;padding:0;background:#0a0a1a;min-height:100vh}</style>';
+      var head = '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">';
       head += '<title>' + esc(title) + '</title>';
       head += '<link rel="icon" href="/favicon.png">';
       head += '<link rel="canonical" href="' + esc(url.href) + '">';
@@ -240,7 +240,7 @@ export default {
         '<\/script>';
 
       /* Full HTML: <head> + rendered body + bootstrap script */
-      var html = '<!DOCTYPE html><html lang="en" style="background:#0a0a1a;margin:0;padding:0"><head>' + head + '</head>' + render(0) + boot + '</html>';
+      var html = '<!DOCTYPE html><html lang="en"><head>' + head + '</head>' + render(0) + boot + '</html>';
 
       return new Response(html, {
         headers: { 'Content-Type': 'text/html;charset=utf-8' }
