@@ -29,7 +29,7 @@ const FILES = [
   'page_stormer_pairs.ax', 'page_shadow_eval.ax', 'page_d_power_gaussian.ax',
   'page_cyclotomic_fibonacci.ax', 'page_fano_e8.ax', 'page_arcsine_cumulant.ax',
   'page_figurate_bridge.ax',
-  'page_heart.ax', 'page_sandpile.ax', 'page_swim.ax', 'page_repl.ax', 'pages_observe.ax', 'pages_living.ax',
+  'page_heart.ax', 'page_sandpile.ax', 'page_swim.ax', 'page_repl.ax', 'page_prerequisites.ax', 'pages_observe.ax', 'pages_living.ax',
   'router.ax'
 ];
 
@@ -85,7 +85,7 @@ async function main() {
   /* Scale memory to source size: parser uses ~360 bytes/char, build adds ~50MB overhead.
      Formula: need ~(src.length * 400 + 100MB) for heap, plus source string at safe offset.
      WASM max = 4GB (65536 pages). Grow to 2x estimated need for safety. */
-  const heapEstimate = Math.ceil(src.length * 400 / 65536) + 2048; /* pages for heap */
+  const heapEstimate = Math.ceil(src.length * 450 / 65536) + 2048; /* pages for heap */
   const totalPages = Math.min(heapEstimate, 65520); /* cap at ~4GB */
   cm.memory.grow(totalPages - 16); /* subtract initial 16 pages */
   const totalMB = (totalPages * 65536 / 1048576) | 0;
