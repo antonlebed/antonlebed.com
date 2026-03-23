@@ -31,7 +31,7 @@ fn ct_body(body) = (
   dom_style(body, "webkitFontSmoothing", "antialiased");
   dom_style(body, "webkitOverflowScrolling", "touch");
   let s = dom_create("style") in
-  dom_text(s, "html,body{background:#0a0a1a!important;scroll-behavior:smooth;scrollbar-color:#1a1a3f #0a0a1a;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#0a0a1a}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(120vh)}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html,body{background:#0a0a1a!important;scroll-behavior:smooth;scrollbar-color:#1a1a3f #0a0a1a;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#0a0a1a}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(-50%)}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -76,13 +76,13 @@ fn ct_card(el) = (
    No z-index hacks. Natural paint order.
    ================================================================ */
 
-fn ct_star(c, i) = (
+fn ct_star_at(c, i, yoff) = (
   let star = dom_create("div") in
   dom_style(star, "position", "absolute");
   let rx = i * 23 + 7 in
   let x = rx - (rx / 97) * 97 in
   let ry = i * 37 + 3 in
-  let y = ry - (ry / 91) * 91 in
+  let y = ry - (ry / 91) * 91 + yoff in
   dom_style(star, "left", "${x}%");
   dom_style(star, "top", "${y}%");
   let layer = i - (i / 3) * 3 in
@@ -96,19 +96,27 @@ fn ct_star(c, i) = (
   let d7 = i * 7 in
   let gd = d7 - (d7 / 11) * 11 in
   let glow_dur = gd + 3 in
-  let fall_dur = 30 + layer * 15 in
-  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear 0s infinite");
+  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out 0s infinite");
   dom_append(c, star)
 )
 
 fn ct_starfield(body) = (
+  let wrap = dom_create("div") in
+  dom_style(wrap, "position", "fixed");
+  dom_style(wrap, "inset", "0");
+  dom_style(wrap, "overflow", "hidden");
+  dom_style(wrap, "pointerEvents", "none");
+  /* Inner container: 200% tall, animates upward. When it hits -50% it loops = seamless. */
   let c = dom_create("div") in
-  dom_style(c, "position", "fixed");
-  dom_style(c, "inset", "0");
-  dom_style(c, "overflow", "hidden");
-  dom_style(c, "pointerEvents", "none");
-  dom_append(body, c);
-  for i in range(42) do ct_star(c, i)
+  dom_style(c, "position", "absolute");
+  dom_style(c, "width", "100%");
+  dom_style(c, "height", "200%");
+  dom_style(c, "animation", "starfall 60s linear 0s infinite");
+  /* Place 42 stars in top half, then duplicate in bottom half */
+  for i in range(42) do ct_star_at(c, i, 0);
+  for i in range(42) do ct_star_at(c, i, 100);
+  dom_append(wrap, c);
+  dom_append(body, wrap)
 )
 
 /* ================================================================
