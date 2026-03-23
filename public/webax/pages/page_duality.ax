@@ -164,12 +164,101 @@ fn duality_interactive() = (
   dom_append(dom_body(), sec)
 )
 
+/* CRT Key Exchange — absorbed from crt_keyexchange_demo.html (S1020) */
+fn dh_modpow(base, exp, m) = (
+  /* Square-and-multiply modular exponentiation */
+  mut result = 1;
+  mut bx = base % m;
+  mut ex = exp;
+  while ex > 0 do (
+    if ex % 2 == 1 then mut result = (result * bx) % m else 0;
+    mut ex = ex / 2;
+    mut bx = (bx * bx) % m
+  );
+  result
+)
+
+fn dh_ring_pow(base, exp) = (
+  /* Exponentiation via CRT: decompose, per-channel modpow, reconstruct */
+  let mods = [8, 9, 25, 49, 11] in
+  let idem = [848925, 754600, 194481, 554400, 88200] in
+  let ch0 = dh_modpow(base % 8, exp, 8) in
+  let ch1 = dh_modpow(base % 9, exp, 9) in
+  let ch2 = dh_modpow(base % 25, exp, 25) in
+  let ch3 = dh_modpow(base % 49, exp, 49) in
+  let ch4 = dh_modpow(base % 11, exp, 11) in
+  (ch0 * idem[0] + ch1 * idem[1] + ch2 * idem[2] + ch3 * idem[3] + ch4 * idem[4]) % 970200
+)
+
+fn keyex_run() = (
+  let asec = parse_int_from("#dh-alice") in
+  let bsec = parse_int_from("#dh-bob") in
+  let result_el = dom_query("#dh-result") in
+  if asec < 1 then dom_inner(result_el, "<p style='color:#ff6666'>Alice needs a secret (1-419).</p>")
+  else if bsec < 1 then dom_inner(result_el, "<p style='color:#ff6666'>Bob needs a secret (1-419).</p>")
+  else (
+    let gen = 137 in
+    /* Public keys: A = g^a, B = g^b */
+    let pub_a = dh_ring_pow(gen, asec) in
+    let pub_b = dh_ring_pow(gen, bsec) in
+    /* Shared secrets (should match) */
+    let s_alice = dh_ring_pow(pub_b, asec) in
+    let s_bob = dh_ring_pow(pub_a, bsec) in
+    let ok = if s_alice == s_bob then 1 else 0 in
+    /* CRT of shared secret */
+    let sd = s_alice % 8 in let sk = s_alice % 9 in let se = s_alice % 25 in let sb = s_alice % 49 in let sl = s_alice % 11 in
+    /* CRT of public keys */
+    let ad = pub_a % 8 in let ak = pub_a % 9 in let ae = pub_a % 25 in let ab_ch = pub_a % 49 in let al = pub_a % 11 in
+    let pd = pub_b % 8 in let pk = pub_b % 9 in let pe = pub_b % 25 in let pb = pub_b % 49 in let pl = pub_b % 11 in
+    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>DIFFIE-HELLMAN OVER Z/970200 (g = 137, order = 420)</p><p style='margin:4px 0;color:#88ddaa'><b>Alice:</b> secret a = " + "${asec}" + " | public A = g^a = " + "${pub_a}" + " | CRT = (" + "${ad}" + "," + "${ak}" + "," + "${ae}" + "," + "${ab_ch}" + "," + "${al}" + ")</p><p style='margin:4px 0;color:#ff8844'><b>Bob:</b> secret b = " + "${bsec}" + " | public B = g^b = " + "${pub_b}" + " | CRT = (" + "${pd}" + "," + "${pk}" + "," + "${pe}" + "," + "${pb}" + "," + "${pl}" + ")</p><p style='margin:8px 0 4px;color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px'>" + (if ok == 1 then "SHARED SECRET ESTABLISHED" else "MISMATCH (bug)") + ": S = " + "${s_alice}" + "</p><p style='margin:4px 0;color:#b0b0c0'>CRT(S) = (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sb}" + "," + "${sl}" + ")</p><p style='margin:4px 0;color:#b0b0c0'>Alice: B^a = " + "${s_alice}" + " | Bob: A^b = " + "${s_bob}" + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>g^a decomposes into 5 INDEPENDENT exponentiations. Each channel = independent DH. L=11 channel = built-in authentication tag (1/11 false positive rate).</p></div>")
+  )
+)
+
+fn duality_keyexchange() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "CRT Key Exchange");
+  render_p(sec, "Diffie-Hellman naturally decomposes via CRT. Alice and Bob = D=2 pair. g = 137 (ADDRESS). g^a splits into 5 independent exponentiations, one per channel. The shared secret is the CRT reconstruction of 5 independent DH exchanges. L=11 channel acts as built-in authentication.");
+  render_theorem(sec, "CRT-DH Decomposition", "g^a mod N = CRT(g_D^a mod 8, g_K^a mod 9, g_E^a mod 25, g_b^a mod 49, g_L^a mod 11). Each channel computes DH independently. An attacker must solve discrete log in ALL 5 channels. The 5-channel structure is not a security improvement (Pohlig-Hellman already does this) -- it is a STRUCTURAL insight: key exchange IS CRT decomposition.");
+  make_interactive_widget(sec, "Alice secret (1-419):", "dh-alice", "e.g. 137", "Exchange Keys", "keyex_run", "dh-result");
+  /* Add Bob's input field */
+  let extras = dom_create("div") in
+  dom_style(extras, "display", "flex");
+  dom_style(extras, "gap", "8px");
+  dom_style(extras, "alignItems", "center");
+  dom_style(extras, "marginBottom", "12px");
+  let lbl = dom_create("span") in
+  dom_text(lbl, "Bob secret:");
+  dom_style(lbl, "color", "#b0b0c0");
+  dom_append(extras, lbl);
+  let inp_b = dom_create("input") in
+  dom_attr(inp_b, "type", "text");
+  dom_attr(inp_b, "id", "dh-bob");
+  dom_attr(inp_b, "placeholder", "e.g. 42");
+  dom_attr(inp_b, "value", "42");
+  dom_style(inp_b, "background", "#111");
+  dom_style(inp_b, "color", "#eee");
+  dom_style(inp_b, "border", "1px solid #333");
+  dom_style(inp_b, "padding", "6px 8px");
+  dom_style(inp_b, "fontFamily", "'Courier New', monospace");
+  dom_style(inp_b, "width", "100px");
+  dom_append(extras, inp_b);
+  dom_append(sec, extras);
+  render_p(sec, "Try: Alice=137 Bob=42 | Alice=210 Bob=210 (HYDOR half-cycle) | Alice=1 Bob=419 (boundary).");
+  render_contrast_row(sec, "Key structure", "Single opaque integer", "5 independent CRT channel keys");
+  render_contrast_row(sec, "Authentication", "Separate MAC required", "L=11 channel = FREE auth tag (1/11 false positive)");
+  render_contrast_row(sec, "Per-channel key", "Not possible", "Each channel yields independent sub-key for different purposes");
+  render_contrast_row(sec, "Exponentiation", "Monolithic modpow", "5 small modpows via CRT (parallelizable)");
+  render_contrast_row(sec, "Dependencies", "OpenSSL / libsodium", "CC0. 20 lines. No imports.");
+  dom_append(dom_body(), sec)
+)
+
 fn page_duality() = (
   dom_head_meta("description", "D = 2 is the ONLY even prime. Engine of the chain. Self-destructs at step 3. The 42 Theorem. Parity mechanism. D-channel sum. Spinor zero. The bridge that burns behind you.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Duality: D=2\",\"description\":\"D=2 is the only even prime. Engine of the Cunningham chain. Self-destructs at step 3 (D^3=0 mod 8). 42 Theorem: OMEGA+OMEGA=D iff thin bridge. Parity mechanism: perfect matching, Hamiltonian. Forbidden Vertex Theorem: YY impossibility = Klein non-embeddability.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/observe/duality\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"even prime\"},{\"@type\":\"DefinedTerm\",\"name\":\"bridge membrane\"},{\"@type\":\"DefinedTerm\",\"name\":\"Klein four-group\"}]}");
   duality_hero();
   duality_drive();
   duality_interactive();
+  duality_keyexchange();
   duality_self_destruct();
   duality_answer();
   duality_membrane();
