@@ -113,7 +113,23 @@ export default {
           return ptr;
         },
         dom_value: function() { return 0; },
-        repl_eval: function() { return 0; }
+        repl_eval: function() { return 0; },
+        /* Canvas 2D stubs — no-op for SSR (canvas is browser-only) */
+        cvs_getctx: function() { return -1; },
+        cvs_fillrect: function() { return 0; },
+        cvs_clearrect: function() { return 0; },
+        cvs_strokerect: function() { return 0; },
+        cvs_fillstyle: function() { return 0; },
+        cvs_strokestyle: function() { return 0; },
+        cvs_linewidth: function() { return 0; },
+        cvs_beginpath: function() { return 0; },
+        cvs_arc: function() { return 0; },
+        cvs_fill: function() { return 0; },
+        cvs_stroke: function() { return 0; },
+        cvs_filltext: function() { return 0; },
+        cvs_moveto: function() { return 0; },
+        cvs_lineto: function() { return 0; },
+        cvs_setsize: function() { return 0; }
       }});
 
       var inst = result.exports ? result : (result.instance || result);

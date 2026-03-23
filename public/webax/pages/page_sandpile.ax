@@ -335,10 +335,49 @@ fn sand_rng() = (
   dom_append(dom_body(), sec)
 )
 
+fn sand_canvas_demo() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Canvas: CRT Kingdom Map");
+  render_p(sec, "Each cell shows the kingdom of n mod 25. Colors: void=black, sigma=white, D=blue, K=green, E=yellow, b=orange, L=red. Rendered via .ax canvas DOM imports -- .ax talks to HTML5 Canvas directly through WASM.");
+  let cvs = dom_create("canvas") in
+  let _sz = cvs_setsize(cvs, 250, 250) in
+  dom_style(cvs, "border", "1px solid #444");
+  dom_style(cvs, "borderRadius", "4px");
+  dom_style(cvs, "cursor", "crosshair");
+  dom_append(sec, cvs);
+  let ctx = cvs_getctx(cvs) in
+  /* Draw 25x25 grid colored by kingdom */
+  mut n = 0;
+  while n < 625 do (
+    let row = n / 25 in
+    let col = n % 25 in
+    let k = kingdom(n) in
+    let _fs = cvs_fillstyle(ctx,
+      if k == 0 then "#111111"
+      else if k == 1 then "#cccccc"
+      else if k == 2 then "#0074D9"
+      else if k == 3 then "#2ECC40"
+      else if k == 5 then "#FFDC00"
+      else if k == 7 then "#FF851B"
+      else if k == 11 then "#FF4136"
+      else "#666666"
+    ) in
+    let _fr = cvs_fillrect(ctx, col * 10, row * 10, 10, 10) in
+    mut n = n + 1
+  );
+  /* Grid lines */
+  let _ss = cvs_strokestyle(ctx, "#333333") in
+  let _lw = cvs_linewidth(ctx, 1) in
+  let _sr = cvs_strokerect(ctx, 0, 0, 250, 250) in
+  render_p(sec, "25 = E^2. The grid reveals the kingdom structure of Z/25: void at 0 (mod 25), E-kingdom (yellow) at multiples of 5, sigma-kingdom (white) for units. No assets, no images. Pure .ax math rendered to canvas.");
+  dom_append(dom_body(), sec)
+)
+
 fn page_sandpile() = (
   sand_hero();
   sand_model();
   sand_interactive();
+  sand_canvas_demo();
   sand_rng();
   sand_why();
   sand_method();
