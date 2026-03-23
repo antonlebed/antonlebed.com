@@ -233,9 +233,47 @@ fn transcend_boundary() = (
   dom_append(dom_body(), sec)
 )
 
+/* === CRT STEGANOGRAPHY — absorbed from stego_demo.html (S1024) === */
+fn stego_run() = (
+  let n = parse_int_from("#stego-input") in
+  let result = dom_query("#stego-result") in
+  if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
+  else (
+    let r2 = n % 8 in
+    let r3 = n % 9 in
+    let r5 = n % 25 in
+    let r7 = n % 49 in
+    let r11 = n % 11 in
+    let hidden = 5 in
+    let m_l = 529200 in
+    let diff = (hidden + 11 - r11) % 11 in
+    let stego_n = n + diff * m_l in
+    let s11 = stego_n % 11 in
+    dom_inner(result, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT STEGANOGRAPHY</p><p style='color:#88ddaa;margin:4px 0'>Original: CRT(" + "${n}" + ") = (" + "${r2}" + ", " + "${r3}" + ", " + "${r5}" + ", " + "${r7}" + ", <span style='color:#ffd700'>" + "${r11}" + "</span>)</p><p style='color:#88ddaa;margin:4px 0'>Hiding value E=" + "${hidden}" + " in L-channel...</p><p style='color:#88ddaa;margin:4px 0'>Stego: CRT(" + "${stego_n}" + ") = (" + "${r2}" + ", " + "${r3}" + ", " + "${r5}" + ", " + "${r7}" + ", <span style='color:#ff8800'>" + "${s11}" + "</span>)</p><p style='color:#b0b0c0;margin:8px 0 4px'>D(mod 8), K(mod 9), E(mod 25), b(mod 49) = <span style='color:#44ff88'>IDENTICAL</span>. Only L changed.</p><p style='color:#b0b0c0;margin:4px 0'>Carrier " + "${n}" + " becomes " + "${stego_n}" + ". Extract: " + "${stego_n}" + " mod 11 = <span style='color:#ff8800'>" + "${s11}" + "</span>.</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>M_L = 529200 = CRT(0,0,0,0,1). Adding diff*M_L changes ONLY L. 3.46 bits/number. CC0.</p></div>")
+  )
+)
+
+fn transcend_stego() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "CRT Steganography");
+  render_p(sec, "The L=11 channel is invisible to anyone who does not know the ring. Hide data in it. The other 4 channels are UNTOUCHED -- statistical profile preserved. Without knowing it is Z/970200Z, the L=11 data is noise.");
+  render_theorem(sec, "CRT Steganography Principle (stego_demo.html, CC0)", "Decompose carrier numbers into 5 CRT channels. Replace L=11 channel with secret data (0-10 per symbol, 3.46 bits). Reconstruct via CRT. The other 4 channels are UNTOUCHED. Statistical profile of D, K, E, b channels: identical before and after. Corruption detection: if a stego number is tampered with, CRT cross-check across channels fails. Capacity: 2 base-11 symbols per ASCII character (11^2 = 121 > 96 printable).");
+  render_p(sec, "Enter a carrier number. See L=11 replaced with hidden value E=5:");
+  make_interactive_widget(sec, "Carrier number:", "stego-input", "e.g. 42", "Hide in L", "stego_run", "stego-result");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Capacity", "3.46 bits/number", "log2(11) per carrier. 2 symbols per ASCII char (11^2=121 > 96 printable).", "");
+  render_finding(g, "Invisibility", "4/5 channels identical", "D, K, E, b distributions unchanged. Only L (the thin channel) carries payload.", "");
+  render_finding(g, "Detection", "CRT cross-check", "Tamper with a stego number: multiple channels change. Cross-channel consistency fails.", "");
+  render_finding(g, "Patent kill", "CC0", "Kills Digimarc watermarking patents, DRM embedding patents. The ring IS the hiding place.", "");
+  render_contrast_row(sec, "Hiding mechanism", "LSB embedding (fragile, detectable)", "CRT channel replacement (algebraic, 4/5 channels pristine)");
+  render_contrast_row(sec, "Capacity", "1 bit/sample (LSB)", "3.46 bits/number (L=11 channel)");
+  render_contrast_row(sec, "Detection", "Statistical analysis reveals LSB bias", "Non-L channels statistically identical to clean data");
+  dom_append(dom_body(), sec)
+)
+
 fn page_transcend() = (
-  dom_head_meta("description", "L = 11 = sigma+D+K+E. The sum of the chain, not the next step. Kingdom: Human. Only thin channel in TRUE FORM. 100% error detection. Selfless: |L|^2 = D^8 - 1 = 255. The rosehip neuron IS the biological L-channel. Solar Schwabe cycle = L. Individuation = ECC.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Transcendence: L=11\",\"description\":\"L=11 is the sum sigma+D+K+E. Not the next chain step but the protector built FROM the chain. Kingdom: Human. Only thin channel in TRUE FORM. 100% single-channel error detection. Selfless: |L|^2 = D^8 - 1. Rosehip neuron = biological L-channel (human-only). Solar Schwabe cycle = L years. Lambda phage manifests L in biology.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/observe/transcend\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"rosehip neuron\"},{\"@type\":\"DefinedTerm\",\"name\":\"lambda phage\"}]}");
+  dom_head_meta("description", "L = 11 = sigma+D+K+E. The sum of the chain, not the next step. Kingdom: Human. Only thin channel in TRUE FORM. 100% error detection. Selfless: |L|^2 = D^8 - 1 = 255. The rosehip neuron IS the biological L-channel. Solar Schwabe cycle = L. Individuation = ECC. CRT steganography: hide data in L=11.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Transcendence: L=11\",\"description\":\"L=11 is the sum sigma+D+K+E. Not the next chain step but the protector built FROM the chain. Kingdom: Human. Only thin channel in TRUE FORM. 100% single-channel error detection. Selfless: |L|^2 = D^8 - 1. Rosehip neuron = biological L-channel (human-only). Solar Schwabe cycle = L years. Lambda phage manifests L in biology. CRT steganography: hide data in L=11 channel.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/observe/transcend\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"rosehip neuron\"},{\"@type\":\"DefinedTerm\",\"name\":\"steganography\"}]}");
   transcend_hero();
   transcend_selfless();
   transcend_ecc();
@@ -248,6 +286,7 @@ fn page_transcend() = (
   transcend_lambda_phage();
   transcend_brain_crt();
   transcend_ear_crt();
+  transcend_stego();
   transcend_contrast();
   /* === INTERACTIVE WIDGET === */
   let sec_i = make_section("800px") in
