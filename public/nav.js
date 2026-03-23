@@ -137,7 +137,7 @@ var CATS = {
 
 /* File -> category. egg.html + index.html intentionally excluded (easter egg + hub). */
 var M = {
-  worldview:'start',story:'start',derive_ax:'start',repl:'start',playground:'start',
+  worldview:'start',story:'start',derive_ax:'start',repl:'start',
   particles:'physics',alpha:'physics',constants:'physics',turbulence:'physics',
   blackhole:'physics',nuclear:'physics',gravity:'physics',photon:'physics',
   pmns:'physics',three_body_dance:'physics',figure_ground:'physics',
@@ -163,7 +163,7 @@ var M = {
 
 /* Short titles */
 var T = {
-  worldview:'How the World Works',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',playground:'.ax Playground',
+  worldview:'How the World Works',story:'The Mathematics',derive_ax:'From Nothing',repl:'.ax REPL',
   particles:'Particle Masses',alpha:'Fine Structure Constant',constants:'All Physics Constants',turbulence:'Turbulence & Metabolism',
   blackhole:'Black Holes',nuclear:'Nuclear Shells',gravity:'Gravity',photon:'Light Becomes Mass',
   pmns:'Neutrino Mixing',three_body_dance:'Orbital Resonances',figure_ground:'One Force',
@@ -267,7 +267,7 @@ if(axLang!=='en'){
     atlas_09_demos:'8. D\u00e9mos',atlas_10_millennium:'9. Mill\u00e9naire',
     atlas_11_net:"10. Filet d'Indra",atlas_12_shadow_polynomial:"11. Polyn\u00f4me d'ombre",
     atlas_13_biological_braid:'12. Tresse biologique',atlas_14_solar_ladder:'13. \u00c9chelle solaire',
-    repl:'.ax REPL',playground:'.ax Bac \u00e0 sable'},
+    repl:'.ax REPL'},
   ru:{
     worldview:'\u041a\u0430\u043a \u0443\u0441\u0442\u0440\u043e\u0435\u043d \u043c\u0438\u0440',story:'\u041c\u0430\u0442\u0435\u043c\u0430\u0442\u0438\u043a\u0430',derive_ax:'\u0418\u0437 \u043d\u0438\u0447\u0435\u0433\u043e',
     particles:'\u041c\u0430\u0441\u0441\u044b \u0447\u0430\u0441\u0442\u0438\u0446',alpha:'\u041f\u043e\u0441\u0442\u043e\u044f\u043d\u043d\u0430\u044f \u0442\u043e\u043d\u043a\u043e\u0439 \u0441\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u044b',
@@ -304,7 +304,7 @@ if(axLang!=='en'){
     atlas_11_net:'10. \u0421\u0435\u0442\u044c \u0418\u043d\u0434\u0440\u044b',atlas_12_shadow_polynomial:'11. \u0422\u0435\u043d\u0435\u0432\u043e\u0439 \u043f\u043e\u043b\u0438\u043d\u043e\u043c',
     atlas_13_biological_braid:'12. \u0411\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043a\u043e\u0441\u0430',
     atlas_14_solar_ladder:'13. \u0421\u043e\u043b\u043d\u0435\u0447\u043d\u0430\u044f \u043b\u0435\u0441\u0442\u043d\u0438\u0446\u0430',
-    repl:'.ax REPL',playground:'.ax \u041f\u0435\u0441\u043e\u0447\u043d\u0438\u0446\u0430'},
+    repl:'.ax REPL'},
   de:{
     worldview:'Wie die Welt funktioniert',story:'Die Mathematik',derive_ax:'Aus dem Nichts',
     particles:'Teilchenmassen',alpha:'Feinstrukturkonstante',
@@ -340,7 +340,7 @@ if(axLang!=='en'){
     atlas_09_demos:'8. Demos',atlas_10_millennium:'9. Millennium',
     atlas_11_net:'10. Indras Netz',atlas_12_shadow_polynomial:'11. Schattenpolynom',
     atlas_13_biological_braid:'12. Biologischer Zopf',atlas_14_solar_ladder:'13. Sonnenleiter',
-    repl:'.ax REPL',playground:'.ax Spielplatz'},
+    repl:'.ax REPL'},
   nl:{
     worldview:'Hoe de wereld werkt',story:'De wiskunde',derive_ax:'Uit het niets',
     particles:'Deeltjesmassa\'s',alpha:'Fijnstructuurconstante',
@@ -376,7 +376,7 @@ if(axLang!=='en'){
     atlas_09_demos:'8. Demo\'s',atlas_10_millennium:'9. Millennium',
     atlas_11_net:'10. Indra\'s net',atlas_12_shadow_polynomial:'11. Schaduwpolynoom',
     atlas_13_biological_braid:'12. Biologische vlecht',atlas_14_solar_ladder:'13. Zonneladder',
-    repl:'.ax REPL',playground:'.ax Speeltuin'}};
+    repl:'.ax REPL'}};
   var _tm=_titles[axLang];if(_tm)for(var _k in _tm)T[_k]=_tm[_k];
 }
 
@@ -385,7 +385,7 @@ var catKey = M[key];
 if (!catKey && key.indexOf('atlas_') === 0) catKey = 'tutorial';
 var cat = catKey ? CATS[catKey] : null;
 var isWorld = key === 'worldview', isMath = key === 'story', isRepl = key === 'repl';
-var isDerive = key === 'derive_ax', isPlay = key === 'playground';
+var isDerive = key === 'derive_ax';
 var isExplore = catKey && catKey !== 'start';
 
 /* Build per-category demo lists */
@@ -546,7 +546,6 @@ var h = '<div class="sn-l">' +
   '<button class="sn-x' + (isExplore ? ' on' : '') + '" id="sn-xp">' + tr('explore') + ' <span class="ar">\u25BE</span></button>' +
   '</div>' +
   '<a class="sn-r' + (isRepl ? ' on' : '') + '" href="repl.html">.ax REPL</a>' +
-  '<a class="sn-r' + (isPlay ? ' on' : '') + '" href="playground.html">Playground</a>' +
   '<div class="sn-ld" id="sn-ld"><button class="sn-lang">' +
   _fl(axLang) +
   ' \u25BE</button><div class="sn-lp">' +
@@ -616,7 +615,6 @@ var mh = '<div class="sn-mh">' +
   '<a href="story.html">' + tr('theMath') + '</a>' +
   '<a href="derive_ax.html">' + tr('fromNothing') + '</a>' +
   '<a class="rpl" href="repl.html">.ax REPL</a>' +
-  '<a class="rpl" href="playground.html">.ax Playground</a>' +
   '<div class="sn-ms" style="margin-top:8px">' + tr('atlas') + '</div>';
 var mAtlasOrder = ['tutorial','physics','bio','math','eng','mind'];
 for (var i = 0; i < mAtlasOrder.length; i++) {
