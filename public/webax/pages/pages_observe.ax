@@ -894,6 +894,27 @@ fn ecc_batch_test() = (
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;font-size:16px;margin:0 0 12px'>EXHAUSTIVE TEST: 210/210 values</p><p style='color:#44ff88;margin:4px 0'>Detected: " + "${detected}" + "/210 (each channel corrupted by +1 mod p)</p><p style='color:#44ff88;margin:4px 0'>Corrected: " + "${corrected}" + "/210 (brute-force trial over suspect channel)</p><p style='color:#a0a0b0;margin:8px 0 0'>Every element tested. Every corruption caught. Every value restored. This is not statistics — it is exhaustive proof over the finite ring.</p></div>")
 )
 
+/* CRT fountain drop simulator — absorbed from fountain_codes.html (S1022) */
+fn fountain_drop_calc() = (
+  let n = parse_int_from("#ftn-input") in
+  let result_el = dom_query("#ftn-result") in
+  if n < 0 then dom_inner(result_el, "<p style='color:#ff6666'>Enter a value 0-209.</p>")
+  else (
+    let v = n % 210 in
+    let rd = v % 2 in let rk = v % 3 in let re = v % 5 in let rb = v % 7 in let rl = v % 11 in
+    /* Simulate 30% channel loss: drop channels 1 and 3 (K and b) */
+    /* With 3 remaining channels (D, E, L), can we recover ASCII? */
+    /* Product of D*E*L = 2*5*11 = 110. ASCII < 128 > 110, so NOT always recoverable from 3. */
+    /* Product of D*K*E*L = 2*3*5*11 = 330 > 128. So 4 channels always recover ASCII. */
+    /* Product of any 4: min is 2*3*5*7 = 210. Always >= 210 > 127. */
+    /* With 4/5 channels, ASCII is ALWAYS recoverable. */
+    let r4_skip_l = (105 * rd + 70 * rk + 126 * re + 120 * rb) % 210 in
+    let check_l = r4_skip_l % 11 in
+    let r4_skip_b = (105 * rd + 70 * rk + 126 * re) % 210 in
+    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT FOUNTAIN DROPS</p><p style='color:#88ddaa;margin:4px 0'>Value: " + "${v}" + " (mod 210)</p><p style='color:#b0b0c0;margin:4px 0'>5 drops: D=" + "${rd}" + " K=" + "${rk}" + " E=" + "${re}" + " b=" + "${rb}" + " L=" + "${rl}" + "</p><p style='color:#ffd700;margin:12px 0 4px'>LOSSY CHANNEL (lose L drop)</p><p style='color:#88ddaa;margin:4px 0'>4 drops received: D=" + "${rd}" + " K=" + "${rk}" + " E=" + "${re}" + " b=" + "${rb}" + "</p><p style='color:#88ddaa;margin:4px 0'>CRT reconstruct from 4: " + "${r4_skip_l}" + (if r4_skip_l == v then " — PERFECT RECOVERY" else " — mismatch") + "</p><p style='color:#b0b0c0;margin:4px 0'>L check: reconstructed mod 11 = " + "${check_l}" + ", original L = " + "${rl}" + (if check_l == rl then " — CONSISTENT" else " — ERROR DETECTED") + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>CRT = rateless fountain code. Each channel = one drop. Any 4+ drops recover (for values < 210). No Luby transform. No graph structure. The ring IS the code. CC0.</p></div>")
+  )
+)
+
 fn page_ecc_live() = (
   dom_head_meta("description", "Live Error Correction. CRT decomposition enables L=11 error correction that detects and heals corruption in any channel. Type a number, corrupt it, watch L=11 heal every error. 100% recovery.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Live Error Correction\",\"description\":\"Interactive L=11 error correction demo. CRT decomposition enables detection and healing of any single-channel corruption. 100% recovery for all byte values. Type, corrupt, watch L=11 heal.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/observe/ecc_live\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protection\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT reconstruction\"}]}");
@@ -996,6 +1017,20 @@ fn page_ecc_live() = (
   render_contrast_row(sec5, "Levels", "256 (8 bits, arbitrary)", "210 = 2 x 3 x 5 x 7 (7.7 bits, structured)");
   render_contrast_row(sec5, "Cost", "0 dB overhead, but silent failures", "0.2 dB SQNR loss — built-in protection is free");
   render_contrast_row(sec5, "Paradigm", "Pray nothing goes wrong", "Structure prevents wrong — the ring self-heals");
-  dom_append(dom_body(), sec5)
+  dom_append(dom_body(), sec5);
+
+  /* === SEC 6: CRT FOUNTAIN CODES — absorbed from fountain_codes.html (S1022) === */
+  let sec6 = make_section("800px") in
+  render_h2(sec6, "CRT Fountain Codes");
+  render_p(sec6, "Rateless erasure coding via CRT decomposition. Traditional fountain codes (LT, Raptor) use complex XOR-graph constructions patented by Qualcomm. CRT fountain codes use the ring structure itself. No special encoding needed. The decomposition IS the code.");
+  render_theorem(sec6, "CRT Fountain Principle (fountain_codes.html, CC0)", "Each data symbol lives in Z/210Z (the data ring). CRT decomposes it into 5 independent drops: (n mod 2, n mod 3, n mod 5, n mod 7, n mod 11). Send drops over a lossy channel. When any 4+ drops arrive, CRT reconstructs the original (product of any 4 mods >= 210 > max data value). L=11 provides error detection for FREE. For ASCII (0-127): any 4 channels suffice (min 4-channel product = 210 > 127). The ring IS the fountain.");
+  render_p(sec6, "Enter a value (0-209). See 5 fountain drops. Simulate channel loss:");
+  make_interactive_widget(sec6, "Value (0-209):", "ftn-input", "e.g. 72", "Send Drops", "fountain_drop_calc", "ftn-result");
+  let g6 = make_findings_grid(sec6) in
+  render_finding(g6, "Encoding", "CRT decomposition", "No Luby transform. No graph structure. n -> (n%2, n%3, n%5, n%7, n%11). Done.", "");
+  render_finding(g6, "Recovery", "4-of-5 channels", "Any 4 drops reconstruct ASCII. Graceful: even 3 drops give partial info.", "");
+  render_finding(g6, "Error check", "L=11 free", "5th channel detects corruption in any of the other 4. Same as ECC above.", "");
+  render_finding(g6, "Patent kills", "Qualcomm Raptor/LT", "CRT fountain codes need zero special encoding. The ring IS the code. CC0.", "");
+  dom_append(dom_body(), sec6)
 )
 
