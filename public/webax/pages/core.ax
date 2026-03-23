@@ -32,7 +32,7 @@ fn ct_body(body) = (
   dom_style(body, "webkitOverflowScrolling", "touch");
   /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{position:relative;z-index:0;scroll-behavior:smooth;background:#050508;margin:0;padding:0;scrollbar-color:#1a1a3f #050508;scrollbar-width:thin}html::before{content:'';position:fixed;top:0;left:0;width:100vw;height:100vh;background:#050508;z-index:-1;pointer-events:none}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#050508}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #050508;scrollbar-width:thin}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#050508}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -72,6 +72,57 @@ fn ct_card(el) = (
 )
 
 /* ================================================================
+   CELESTIAL THEATRE — 42 glowing stars, projectile-style.
+   Each star spawns above the screen, falls past the bottom.
+   Loop resets to spawn point (offscreen) — no visible teleport.
+   ================================================================ */
+
+fn ct_star(c, i) = (
+  let star = dom_create("div") in
+  dom_style(star, "position", "absolute");
+  /* Horizontal scatter */
+  let rx = i * 23 + 7 in
+  let x = rx - (rx / 97) * 97 in
+  dom_style(star, "left", "${x}%");
+  /* Spawn above screen: stagger from -300px to -10px */
+  let ry = i * 37 + 3 in
+  let spawn = ry - (ry / 91) * 91 in
+  let spawn_px = spawn * 3 + 10 in
+  dom_style(star, "top", "-${spawn_px}px");
+  /* Depth layer */
+  let layer = i - (i / 3) * 3 in
+  let sz = layer + 1 in
+  dom_style(star, "width", "${sz}px");
+  dom_style(star, "height", "${sz}px");
+  dom_style(star, "borderRadius", "50%");
+  dom_style(star, "background", "#c8d8ff");
+  let gr = sz * 4 in
+  dom_style(star, "boxShadow", "0 0 ${gr}px ${sz}px rgba(180,200,255,0.5)");
+  /* Glow timing */
+  let d7 = i * 7 in
+  let gd = d7 - (d7 / 11) * 11 in
+  let glow_dur = gd + 3 in
+  /* Fall: slower for far stars. Stagger start with positive delay */
+  let fall_dur = 25 + layer * 12 in
+  let fall_delay = spawn / 7 in
+  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear ${fall_delay}s infinite");
+  dom_append(c, star)
+)
+
+fn ct_starfield(body) = (
+  let c = dom_create("div") in
+  dom_style(c, "position", "fixed");
+  dom_style(c, "top", "0");
+  dom_style(c, "left", "0");
+  dom_style(c, "width", "100%");
+  dom_style(c, "height", "100%");
+  dom_style(c, "overflow", "hidden");
+  dom_style(c, "pointerEvents", "none");
+  dom_append(body, c);
+  for i in range(42) do ct_star(c, i)
+)
+
+/* ================================================================
    SHARED RENDER COMPONENTS — reusable across all page types
    ================================================================ */
 
@@ -83,11 +134,13 @@ fn nav_sep(parent) = (
 )
 
 fn nav_link(parent, href:str, label:str) = (
-  nav_sep(parent);
   let a = dom_create("a") in
   dom_attr(a, "href", href);
   dom_text(a, label);
   ct_link(a);
+  dom_style(a, "background", "#1a1a3f");
+  dom_style(a, "padding", "4px 12px");
+  dom_style(a, "borderRadius", "6px");
   dom_append(parent, a);
   a
 )
@@ -229,7 +282,7 @@ fn highlight_nav() = (
 
 fn render_nav() = (
   let nav = dom_create("nav") in
-  dom_style(nav, "background", "#111");
+  dom_style(nav, "background", "transparent");
   dom_style(nav, "padding", "12px 24px");
   dom_style(nav, "display", "flex");
   dom_style(nav, "alignItems", "center");
@@ -247,7 +300,10 @@ fn render_nav() = (
   ct_gold(brand);
   dom_style(brand, "fontSize", "18px");
   dom_style(brand, "textDecoration", "none");
-  dom_style(brand, "marginRight", "8px");
+  dom_style(brand, "background", "#1a1a3f");
+  dom_style(brand, "padding", "4px 12px");
+  dom_style(brand, "borderRadius", "6px");
+  dom_style(brand, "marginRight", "4px");
   dom_append(nav, brand);
   nav_link(nav, "/basics", "Basics");
   nav_link(nav, "/observe", "Observe");
