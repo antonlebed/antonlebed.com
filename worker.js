@@ -215,7 +215,7 @@ export default {
         'var pre="let o=0\\nlet s=1\\nlet D=2\\nlet K=3\\nlet E=5\\nlet b=7\\nlet L=11\\nlet GATE=13\\nlet OMEGA=606376\\nlet DATA=210\\nlet THIN=2310\\nlet HYDOR=105\\nlet LAMBDA=420\\nlet KEY=41\\nlet ANSWER=42\\n";' +
         'pre+="fn gcd(a,b)=if b==0 then a else gcd(b,a%b)\\nfn decompose(n)=[n%8,n%9,n%25,n%49,n%11]\\nfn reconstruct(arr)=arr[0]*363825+arr[1]*431200+arr[2]*853776+arr[3]*732600+arr[4]*529200\\nfn crt(n)=\\"(\\" + \\"${n%8}\\" + \\",\\" + \\"${n%9}\\" + \\",\\" + \\"${n%25}\\" + \\",\\" + \\"${n%49}\\" + \\",\\" + \\"${n%11}\\" + \\")\\"\\n";' +
         'code=pre+code;var cm=(await WebAssembly.instantiate(_cMod,{env:{show_int:function(v){return v},show_str:function(p){return p}}})).exports;' +
-        'cm.memory.grow(Math.max(0,256-cm.memory.buffer.byteLength/65536));var m32=new Int32Array(cm.memory.buffer),addr=15*1024*1024;' +
+        'cm.memory.grow(Math.max(0,512-cm.memory.buffer.byteLength/65536));var m32=new Int32Array(cm.memory.buffer),addr=15*1024*1024;' +
         'm32[addr/4]=code.length;for(var i=0;i<code.length;i++)m32[addr/4+1+i]=code.charCodeAt(i);var bp=cm.wasm_from_src(addr);' +
         'm32=new Int32Array(cm.memory.buffer);var bl=m32[bp/4],wb=new Uint8Array(bl);for(var j=0;j<bl;j++)wb[j]=m32[bp/4+1+j];' +
         'if(!WebAssembly.validate(wb)){el.innerHTML="<pre style=\\"color:#ff6666\\">Compilation error</pre>";return}' +
