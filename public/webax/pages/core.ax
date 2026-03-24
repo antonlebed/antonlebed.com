@@ -32,7 +32,7 @@ fn ct_body(body) = (
   dom_style(body, "webkitOverflowScrolling", "touch");
   /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@keyframes clouddrift{0%{transform:translateX(-10%)}50%{transform:translateX(10%)}100%{transform:translateX(-10%)}}@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@keyframes clouddrift_v{0%{transform:translateY(-15%)}50%{transform:translateY(15%)}100%{transform:translateY(-15%)}}@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -172,43 +172,55 @@ fn ct_moon(body) = (
 )
 
 /* ================================================================
-   CELESTIAL THEATRE — E/K Clouds. E=5 clouds, K=3 opacity layers.
-   E/K turbulence. Drift period: E*b=35s. The atmosphere IS observation.
+   CELESTIAL THEATRE — E/K Clouds along vertical edges.
+   E=5 per side, K=3 opacity layers. Slow vertical drift.
+   The atmosphere hugs the screen edges like fog in a valley.
    ================================================================ */
 
-fn ct_cloud(c, i) = (
+fn ct_edge_cloud(c, i, side:str) = (
   let cl = dom_create("div") in
   dom_style(cl, "position", "absolute");
-  /* vertical: (i*b + K) mod (E*K) — scattered across upper sky */
+  /* vertical start: stagger across full height */
   let vy = i * 7 + 3 in
-  let ymod = vy - (vy / 15) * 15 in
-  let ypos = ymod * 5 + 5 in
+  let ymod = vy - (vy / 10) * 10 in
+  let ypos = ymod * 10 in
   dom_style(cl, "top", "${ypos}%");
-  /* horizontal: (i*GATE + E) mod b^2 */
-  let hx = i * 13 + 5 in
-  let xmod = hx - (hx / 49) * 49 in
-  let xpos = xmod * 2 in
-  dom_style(cl, "left", "${xpos}%");
-  /* width: (i*D + K) mod E + 8 => 8-12% of viewport */
-  let wd = i * 2 + 3 in
-  let wmod = wd - (wd / 5) * 5 in
-  let wpct = wmod + 8 in
-  dom_style(cl, "width", "${wpct}%");
-  dom_style(cl, "height", "2px");
-  /* K=3 opacity layers: visible wispy clouds */
+  /* hug the edge: 0 on left, right:0 on right */
+  if side == "L" then (
+    dom_style(cl, "left", "0")
+  ) else (
+    dom_style(cl, "right", "0")
+  );
+  /* tall vertical wisps, narrow horizontal */
   let layer = i - (i / 3) * 3 in
-  let hpx = layer * 10 + 20 in
+  let hpx = layer * 40 + 80 in
   dom_style(cl, "height", "${hpx}px");
+  let wpx = layer * 20 + 40 in
+  dom_style(cl, "width", "${wpx}px");
+  /* CRT channel colors: D=warm red, K=cool blue, E=gold, b=deep purple, L=bright green */
+  let ch = i - (i / 5) * 5 in
   let opac_hi = layer + 2 in
   let opac_lo = layer + 1 in
-  dom_style(cl, "background", "linear-gradient(90deg, transparent 0%, rgba(150,170,220,0.0${opac_lo}) 20%, rgba(180,200,240,0.0${opac_hi}) 50%, rgba(150,170,220,0.0${opac_lo}) 80%, transparent 100%)");
+  if side == "L" then (
+    if ch == 0 then dom_style(cl, "background", "linear-gradient(90deg, rgba(255,107,74,0.0${opac_hi}) 0%, rgba(255,107,74,0.0${opac_lo}) 40%, transparent 100%)")
+    else if ch == 1 then dom_style(cl, "background", "linear-gradient(90deg, rgba(74,158,255,0.0${opac_hi}) 0%, rgba(74,158,255,0.0${opac_lo}) 40%, transparent 100%)")
+    else if ch == 2 then dom_style(cl, "background", "linear-gradient(90deg, rgba(255,215,0,0.0${opac_hi}) 0%, rgba(255,215,0,0.0${opac_lo}) 40%, transparent 100%)")
+    else if ch == 3 then dom_style(cl, "background", "linear-gradient(90deg, rgba(107,63,160,0.0${opac_hi}) 0%, rgba(107,63,160,0.0${opac_lo}) 40%, transparent 100%)")
+    else dom_style(cl, "background", "linear-gradient(90deg, rgba(0,255,136,0.0${opac_hi}) 0%, rgba(0,255,136,0.0${opac_lo}) 40%, transparent 100%)")
+  ) else (
+    if ch == 0 then dom_style(cl, "background", "linear-gradient(270deg, rgba(255,107,74,0.0${opac_hi}) 0%, rgba(255,107,74,0.0${opac_lo}) 40%, transparent 100%)")
+    else if ch == 1 then dom_style(cl, "background", "linear-gradient(270deg, rgba(74,158,255,0.0${opac_hi}) 0%, rgba(74,158,255,0.0${opac_lo}) 40%, transparent 100%)")
+    else if ch == 2 then dom_style(cl, "background", "linear-gradient(270deg, rgba(255,215,0,0.0${opac_hi}) 0%, rgba(255,215,0,0.0${opac_lo}) 40%, transparent 100%)")
+    else if ch == 3 then dom_style(cl, "background", "linear-gradient(270deg, rgba(107,63,160,0.0${opac_hi}) 0%, rgba(107,63,160,0.0${opac_lo}) 40%, transparent 100%)")
+    else dom_style(cl, "background", "linear-gradient(270deg, rgba(0,255,136,0.0${opac_hi}) 0%, rgba(0,255,136,0.0${opac_lo}) 40%, transparent 100%)")
+  );
   dom_style(cl, "borderRadius", "50%");
-  dom_style(cl, "filter", "blur(12px)");
+  dom_style(cl, "filter", "blur(15px)");
   dom_style(cl, "pointerEvents", "none");
-  /* drift: E*b=35s base + i*K offset */
+  /* vertical drift: slow up-down along the edge */
   let drift_dur = 35 + i * 3 in
   let drift_delay = i * 7 in
-  dom_style(cl, "animation", "clouddrift ${drift_dur}s ease-in-out ${drift_delay}s infinite");
+  dom_style(cl, "animation", "clouddrift_v ${drift_dur}s ease-in-out ${drift_delay}s infinite");
   dom_append(c, cl)
 )
 
@@ -223,8 +235,9 @@ fn ct_clouds(body) = (
   dom_style(c, "pointerEvents", "none");
   dom_style(c, "zIndex", "0");
   dom_append(body, c);
-  /* E=5 clouds — observation made visible */
-  for i in range(5) do ct_cloud(c, i)
+  /* E=5 clouds per side — left and right edges */
+  for i in range(5) do ct_edge_cloud(c, i, "L");
+  for i in range(5) do ct_edge_cloud(c, i, "R")
 )
 
 /* ================================================================
