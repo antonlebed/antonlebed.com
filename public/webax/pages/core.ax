@@ -32,7 +32,7 @@ fn ct_body(body) = (
   dom_style(body, "webkitOverflowScrolling", "touch");
   /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@keyframes clouddrift_v{0%{transform:translateY(-15%)}50%{transform:translateY(15%)}100%{transform:translateY(-15%)}}@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%),radial-gradient(ellipse at 10% 20%,rgba(255,107,74,0.03) 0%,transparent 50%),radial-gradient(ellipse at 90% 30%,rgba(74,158,255,0.03) 0%,transparent 50%),radial-gradient(ellipse at 20% 70%,rgba(255,215,0,0.025) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(107,63,160,0.03) 0%,transparent 50%),radial-gradient(ellipse at 50% 90%,rgba(0,255,136,0.02) 0%,transparent 50%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@keyframes clouddrift_v{0%{transform:translateY(-15%)}50%{transform:translateY(15%)}100%{transform:translateY(-15%)}}@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -185,37 +185,22 @@ fn ct_edge_cloud(c, i, side:str) = (
   let ymod = vy - (vy / 10) * 10 in
   let ypos = ymod * 10 in
   dom_style(cl, "top", "${ypos}%");
-  /* hug the edge: 0 on left, right:0 on right */
-  if side == "L" then (
-    dom_style(cl, "left", "0")
-  ) else (
-    dom_style(cl, "right", "0")
-  );
-  /* tall vertical wisps, narrow horizontal */
+  /* hug the edge */
+  if side == "L" then dom_style(cl, "left", "-40px")
+  else dom_style(cl, "right", "-40px");
+  /* large diffuse blobs */
   let layer = i - (i / 3) * 3 in
-  let hpx = layer * 40 + 80 in
+  let hpx = layer * 80 + 200 in
   dom_style(cl, "height", "${hpx}px");
-  let wpx = layer * 20 + 40 in
+  let wpx = layer * 40 + 120 in
   dom_style(cl, "width", "${wpx}px");
-  /* CRT channel colors: D=warm red, K=cool blue, E=gold, b=deep purple, L=bright green */
-  let ch = i - (i / 5) * 5 in
-  let opac_hi = layer + 2 in
-  let opac_lo = layer + 1 in
-  if side == "L" then (
-    if ch == 0 then dom_style(cl, "background", "linear-gradient(90deg, rgba(255,107,74,0.0${opac_hi}) 0%, rgba(255,107,74,0.0${opac_lo}) 40%, transparent 100%)")
-    else if ch == 1 then dom_style(cl, "background", "linear-gradient(90deg, rgba(74,158,255,0.0${opac_hi}) 0%, rgba(74,158,255,0.0${opac_lo}) 40%, transparent 100%)")
-    else if ch == 2 then dom_style(cl, "background", "linear-gradient(90deg, rgba(255,215,0,0.0${opac_hi}) 0%, rgba(255,215,0,0.0${opac_lo}) 40%, transparent 100%)")
-    else if ch == 3 then dom_style(cl, "background", "linear-gradient(90deg, rgba(107,63,160,0.0${opac_hi}) 0%, rgba(107,63,160,0.0${opac_lo}) 40%, transparent 100%)")
-    else dom_style(cl, "background", "linear-gradient(90deg, rgba(0,255,136,0.0${opac_hi}) 0%, rgba(0,255,136,0.0${opac_lo}) 40%, transparent 100%)")
-  ) else (
-    if ch == 0 then dom_style(cl, "background", "linear-gradient(270deg, rgba(255,107,74,0.0${opac_hi}) 0%, rgba(255,107,74,0.0${opac_lo}) 40%, transparent 100%)")
-    else if ch == 1 then dom_style(cl, "background", "linear-gradient(270deg, rgba(74,158,255,0.0${opac_hi}) 0%, rgba(74,158,255,0.0${opac_lo}) 40%, transparent 100%)")
-    else if ch == 2 then dom_style(cl, "background", "linear-gradient(270deg, rgba(255,215,0,0.0${opac_hi}) 0%, rgba(255,215,0,0.0${opac_lo}) 40%, transparent 100%)")
-    else if ch == 3 then dom_style(cl, "background", "linear-gradient(270deg, rgba(107,63,160,0.0${opac_hi}) 0%, rgba(107,63,160,0.0${opac_lo}) 40%, transparent 100%)")
-    else dom_style(cl, "background", "linear-gradient(270deg, rgba(0,255,136,0.0${opac_hi}) 0%, rgba(0,255,136,0.0${opac_lo}) 40%, transparent 100%)")
-  );
+  /* white/pale fog — high opacity, massive blur does the rest */
+  if side == "L" then
+    dom_style(cl, "background", "radial-gradient(ellipse at 0% 50%, rgba(200,210,230,0.12) 0%, rgba(180,195,220,0.06) 50%, transparent 80%)")
+  else
+    dom_style(cl, "background", "radial-gradient(ellipse at 100% 50%, rgba(200,210,230,0.12) 0%, rgba(180,195,220,0.06) 50%, transparent 80%)");
   dom_style(cl, "borderRadius", "50%");
-  dom_style(cl, "filter", "blur(15px)");
+  dom_style(cl, "filter", "blur(40px)");
   dom_style(cl, "pointerEvents", "none");
   /* vertical drift: slow up-down along the edge */
   let drift_dur = 35 + i * 3 in
