@@ -272,6 +272,12 @@ fn highlight_tier(cat:str) = (
   let el = dom_query(sel) in
   if el then (
     dom_style(el, "border", "1px solid #ffd700")
+  ) else 0;
+  /* highlight Explore button when any tier is active */
+  let btn = dom_query("#nav-explore-btn") in
+  if btn then (
+    dom_style(btn, "color", "#ffd700");
+    dom_style(btn, "background", "#2a1a3f")
   ) else 0
 )
 
@@ -284,18 +290,17 @@ fn unhighlight_tier(cat:str) = (
   ) else 0
 )
 
-/* Reset gold-by-default links (970200 brand + REPL): only remove border */
-fn unhighlight_gold(cat:str) = (
-  let sel = "a[href='/" + cat + "']" in
+/* Reset gold-by-default nav buttons */
+fn unhighlight_gold(tid:str) = (
+  let sel = "#nt-" + tid in
   let el = dom_query(sel) in
   if el then (
-    dom_style(el, "borderBottom", "none");
-    dom_style(el, "paddingBottom", "4px")
+    dom_style(el, "borderBottom", "none")
   ) else 0
 )
 
 fn reset_nav_highlights() = (
-  unhighlight_gold("");
+  unhighlight_gold("home");
   unhighlight_tier("basics");
   unhighlight_tier("observe");
   unhighlight_tier("data");
@@ -303,14 +308,22 @@ fn reset_nav_highlights() = (
   unhighlight_tier("deep");
   unhighlight_tier("living");
   unhighlight_gold("repl");
-  0
+  /* reset Explore button */
+  let btn = dom_query("#nav-explore-btn") in
+  if btn then (
+    dom_style(btn, "color", "#ffd700");
+    dom_style(btn, "background", "#1a1a3f")
+  ) else 0
 )
 
 fn highlight_nav() = (
   reset_nav_highlights();
   let hash = get_hash() in
-  /* Home */
-  if streq(hash, "home") == 1 then highlight_tier("")
+  /* Home — highlight 970200 brand */
+  if streq(hash, "home") == 1 then (
+    let hb = dom_query("#nt-home") in
+    if hb then dom_style(hb, "borderBottom", "2px solid #ffd700") else 0
+  )
   /* Basics (4 pages) */
   else if streq(hash, "basics") == 1 then highlight_tier("basics")
   else if streq(hash, "worldview") == 1 then highlight_tier("basics")
@@ -433,7 +446,10 @@ fn highlight_nav() = (
   else if streq(hash, "noxan") == 1 then highlight_tier("deep")
   /* Living (8 pages) */
   else if streq(hash, "living") == 1 then highlight_tier("living")
-  else if streq(hash, "repl") == 1 then highlight_tier("repl")
+  else if streq(hash, "repl") == 1 then (
+    let rb = dom_query("#nt-repl") in
+    if rb then dom_style(rb, "borderBottom", "2px solid #ffd700") else 0
+  )
   else if streq(hash, "chain") == 1 then highlight_tier("living")
   else if streq(hash, "ai") == 1 then highlight_tier("living")
   else if streq(hash, "curriculum") == 1 then highlight_tier("living")
@@ -530,6 +546,7 @@ fn render_nav() = (
   /* brand */
   let brand = dom_create("a") in
   dom_attr(brand, "href", "/");
+  dom_attr(brand, "id", "nt-home");
   dom_text(brand, "970200");
   ct_gold(brand);
   dom_style(brand, "fontSize", "18px");
@@ -603,6 +620,7 @@ fn render_nav() = (
   /* REPL */
   let repl = dom_create("a") in
   dom_attr(repl, "href", "/repl");
+  dom_attr(repl, "id", "nt-repl");
   dom_text(repl, "REPL");
   ct_gold(repl);
   dom_style(repl, "fontSize", "18px");
