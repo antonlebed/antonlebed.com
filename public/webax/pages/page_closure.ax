@@ -409,22 +409,22 @@ fn consensus_run() = (
   else if n_byz >= n_nodes then dom_inner(result_el, "<p style='color:#ff6666'>Byzantine count must be less than node count.</p>")
   else (
     let vtf = value in
-    /* TRUE FORM Z/970200 channel moduli */
-    let mods = [8, 9, 25, 49, 11] in
-    /* CRT idempotents for Z/970200 */
-    let idem = [363825, 431200, 853776, 732600, 529200] in
-    /* Decompose true value in TRUE FORM */
-    let tv = [vtf % 8, vtf % 9, vtf % 25, vtf % 49, vtf % 11] in
+    /* TRUE ring Z/12612600 channel moduli */
+    let mods = [8, 9, 25, 49, 11, 13] in
+    /* CRT idempotents for Z/12612600 */
+    let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+    /* Decompose true value in TRUE ring */
+    let tv = [vtf % 8, vtf % 9, vtf % 25, vtf % 49, vtf % 11, vtf % 13] in
     /* Per-channel vote tallies: track votes for true value */
-    mut honest0 = 0; mut honest1 = 0; mut honest2 = 0; mut honest3 = 0; mut honest4 = 0;
-    mut total0 = 0; mut total1 = 0; mut total2 = 0; mut total3 = 0; mut total4 = 0;
+    mut honest0 = 0; mut honest1 = 0; mut honest2 = 0; mut honest3 = 0; mut honest4 = 0; mut honest5 = 0;
+    mut total0 = 0; mut total1 = 0; mut total2 = 0; mut total3 = 0; mut total4 = 0; mut total5 = 0;
     /* Simulate: mark first n_byz nodes as Byzantine */
     mut i = 0;
     while i < n_nodes do (
       let is_byz = if i < n_byz then 1 else 0 in
-      /* Each node votes in all 5 channels */
+      /* Each node votes in all 6 channels */
       mut ch = 0;
-      while ch < 5 do (
+      while ch < 6 do (
         let m = mods[ch] in
         let vote = if is_byz == 1 then rand(m) else tv[ch] in
         let honest_vote = if vote == tv[ch] then 1 else 0 in
@@ -432,7 +432,8 @@ fn consensus_run() = (
         else if ch == 1 then (mut total1 = total1 + 1; mut honest1 = honest1 + honest_vote)
         else if ch == 2 then (mut total2 = total2 + 1; mut honest2 = honest2 + honest_vote)
         else if ch == 3 then (mut total3 = total3 + 1; mut honest3 = honest3 + honest_vote)
-        else (mut total4 = total4 + 1; mut honest4 = honest4 + honest_vote);
+        else if ch == 4 then (mut total4 = total4 + 1; mut honest4 = honest4 + honest_vote)
+        else (mut total5 = total5 + 1; mut honest5 = honest5 + honest_vote);
         mut ch = ch + 1
       );
       mut i = i + 1
@@ -444,28 +445,30 @@ fn consensus_run() = (
     let w2 = if honest2 > half then tv[2] else 999 in
     let w3 = if honest3 > half then tv[3] else 999 in
     let w4 = if honest4 > half then tv[4] else 999 in
+    let w5 = if honest5 > half then tv[5] else 999 in
     /* Reconstruct from winners */
     let ok0 = if w0 == 999 then 0 else 1 in
     let ok1 = if w1 == 999 then 0 else 1 in
     let ok2 = if w2 == 999 then 0 else 1 in
     let ok3 = if w3 == 999 then 0 else 1 in
     let ok4 = if w4 == 999 then 0 else 1 in
-    let channels_ok = ok0 + ok1 + ok2 + ok3 + ok4 in
-    /* CRT reconstruction (using idempotents mod 970200) */
-    let recon = if channels_ok == 5 then
-      (idem[0] * w0 + idem[1] * w1 + idem[2] * w2 + idem[3] * w3 + idem[4] * w4) % 970200
+    let ok5 = if w5 == 999 then 0 else 1 in
+    let channels_ok = ok0 + ok1 + ok2 + ok3 + ok4 + ok5 in
+    /* CRT reconstruction (using idempotents mod 12612600) */
+    let recon = if channels_ok == 6 then
+      (idem[0] * w0 + idem[1] * w1 + idem[2] * w2 + idem[3] * w3 + idem[4] * w4 + idem[5] * w5) % 12612600
     else 0 in
-    let correct = if channels_ok == 5 then (if recon == vtf then 1 else 0) else 0 in
+    let correct = if channels_ok == 6 then (if recon == vtf then 1 else 0) else 0 in
     let byz_pct = (n_byz * 100) / n_nodes in
-    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT CONSENSUS: " + "${n_nodes}" + " nodes, " + "${n_byz}" + " Byzantine (" + "${byz_pct}" + "%)</p><p style='margin:4px 0;color:#b0b0c0'>True value: " + "${vtf}" + " (Z/970200) = (" + "${tv[0]}" + "," + "${tv[1]}" + "," + "${tv[2]}" + "," + "${tv[3]}" + "," + "${tv[4]}" + ")</p><p style='margin:4px 0;color:#b0b0c0'>Channel majorities: D=" + "${honest0}" + "/" + "${n_nodes}" + " K=" + "${honest1}" + "/" + "${n_nodes}" + " E=" + "${honest2}" + "/" + "${n_nodes}" + " b=" + "${honest3}" + "/" + "${n_nodes}" + " L=" + "${honest4}" + "/" + "${n_nodes}" + "</p><p style='margin:4px 0;color:" + (if correct == 1 then "#44ff88" else "#ff4444") + ";font-size:16px'>" + (if correct == 1 then "CONSENSUS CORRECT" else "CONSENSUS FAILED — too many Byzantine nodes") + " (" + "${channels_ok}" + "/5 channels held)</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Each channel votes independently. Byzantine corruption is CONTAINED. CRT reconstructs from 5 local majorities. O(n) messages, not O(n^2).</p></div>")
+    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT CONSENSUS: " + "${n_nodes}" + " nodes, " + "${n_byz}" + " Byzantine (" + "${byz_pct}" + "%)</p><p style='margin:4px 0;color:#b0b0c0'>True value: " + "${vtf}" + " (Z/12612600) = (" + "${tv[0]}" + "," + "${tv[1]}" + "," + "${tv[2]}" + "," + "${tv[3]}" + "," + "${tv[4]}" + "," + "${tv[5]}" + ")</p><p style='margin:4px 0;color:#b0b0c0'>Channel majorities: D=" + "${honest0}" + "/" + "${n_nodes}" + " K=" + "${honest1}" + "/" + "${n_nodes}" + " E=" + "${honest2}" + "/" + "${n_nodes}" + " b=" + "${honest3}" + "/" + "${n_nodes}" + " L=" + "${honest4}" + "/" + "${n_nodes}" + " G=" + "${honest5}" + "/" + "${n_nodes}" + "</p><p style='margin:4px 0;color:" + (if correct == 1 then "#44ff88" else "#ff4444") + ";font-size:16px'>" + (if correct == 1 then "CONSENSUS CORRECT" else "CONSENSUS FAILED — too many Byzantine nodes") + " (" + "${channels_ok}" + "/6 channels held)</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Each channel votes independently. Byzantine corruption is CONTAINED. CRT reconstructs from 6 local majorities. O(n) messages, not O(n^2).</p></div>")
   )
 )
 
 fn closure_consensus() = (
   let sec = make_section("800px") in
   render_h2(sec, "CRT Byzantine Consensus");
-  render_p(sec, "K=3 majority vote scales to distributed consensus. Each CRT channel = independent voting group. Byzantine nodes in one channel cannot affect others. CRT reconstructs the global consensus from 5 independent local votes. O(n) messages — no blockchain, no mining, no leader election.");
-  render_theorem(sec, "CRT Fault Tolerance", "Traditional BFT (PBFT): tolerates f < n/3 Byzantine nodes with O(n^2) messages. CRT consensus: 5 independent channels vote by simple majority. Any single channel can be fully corrupted and the other 4 still reconstruct correctly. Channel independence = algebraic firewall.");
+  render_p(sec, "K=3 majority vote scales to distributed consensus. Each CRT channel = independent voting group. Byzantine nodes in one channel cannot affect others. CRT reconstructs the global consensus from 6 independent local votes. O(n) messages — no blockchain, no mining, no leader election.");
+  render_theorem(sec, "CRT Fault Tolerance", "Traditional BFT (PBFT): tolerates f < n/3 Byzantine nodes with O(n^2) messages. CRT consensus: 6 independent channels vote by simple majority. Any single channel can be fully corrupted and the other 5 still reconstruct correctly. Channel independence = algebraic firewall.");
   /* Widget */
   let row = dom_create("div") in
   dom_style(row, "display", "flex");

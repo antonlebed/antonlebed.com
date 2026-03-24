@@ -144,23 +144,23 @@ fn duality_contrast() = (
 
 fn duality_mirror_compute() = (
   let n = parse_int_from("#mir-input") in
-  let m = 970200 - n in
+  let m = 12612600 - n in
   let result = dom_query("#mir-result") in
-  let nd = n % 8 in let nk = n % 9 in let ne = n % 25 in let nb = n % 49 in let nl = n % 11 in
-  let md = m % 8 in let mk = m % 9 in let me_ch = m % 25 in let mb = m % 49 in let ml = m % 11 in
+  let nd = n % 8 in let nk = n % 9 in let ne = n % 25 in let nb = n % 49 in let nl = n % 11 in let ng = n % 13 in
+  let md = m % 8 in let mk = m % 9 in let me_ch = m % 25 in let mb = m % 49 in let ml = m % 11 in let mg = m % 13 in
   /* Verify channel sums = modulus */
-  let sd = nd + md in let sk = nk + mk in let se = ne + me_ch in let sb = nb + mb in let sl = nl + ml in
+  let sd = nd + md in let sk = nk + mk in let se = ne + me_ch in let sb = nb + mb in let sl = nl + ml in let sg_ch = ng + mg in
   /* Is n a unit? gcd(n, N) = 1 */
   let is_self_mirror = if n == m then "YES — fixed point of mirror!" else "no" in
-  dom_inner(result, "<p style='color:#88ddaa;margin:4px 0'><b>n = " + "${n}" + "</b> | CRT = (" + "${nd}" + "," + "${nk}" + "," + "${ne}" + "," + "${nb}" + "," + "${nl}" + ")</p><p style='color:#ff8844;margin:4px 0'><b>mirror = " + "${m}" + "</b> | CRT = (" + "${md}" + "," + "${mk}" + "," + "${me_ch}" + "," + "${mb}" + "," + "${ml}" + ")</p><p style='color:#ffd700;margin:4px 0'>Channel sums: (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sb}" + "," + "${sl}" + ") = (D^3, K^2, E^2, b^2, L)</p><p style='color:#b0b0c08ff;margin:4px 0'>Self-mirror? " + is_self_mirror + " | n + mirror = " + "${n + m}" + " = 970200 = 0</p>")
+  dom_inner(result, "<p style='color:#88ddaa;margin:4px 0'><b>n = " + "${n}" + "</b> | CRT = (" + "${nd}" + "," + "${nk}" + "," + "${ne}" + "," + "${nb}" + "," + "${nl}" + "," + "${ng}" + ")</p><p style='color:#ff8844;margin:4px 0'><b>mirror = " + "${m}" + "</b> | CRT = (" + "${md}" + "," + "${mk}" + "," + "${me_ch}" + "," + "${mb}" + "," + "${ml}" + "," + "${mg}" + ")</p><p style='color:#ffd700;margin:4px 0'>Channel sums: (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sb}" + "," + "${sl}" + "," + "${sg_ch}" + ") = (D^3, K^2, E^2, b^2, L, GATE)</p><p style='color:#b0b0c0;margin:4px 0'>Self-mirror? " + is_self_mirror + " | n + mirror = " + "${n + m}" + " = 12612600 = 0</p>")
 )
 
 fn duality_interactive() = (
   let sec = make_section("800px") in
   render_h2(sec, "Explore: The Mirror");
-  render_p(sec, "Every element n has a twin: N-n. Their CRT residues sum to the channel modulus in each channel: (8,9,25,49,11). The mirror swaps without loss — addition is ALWAYS reversible. The mirror IS the additive inverse.");
+  render_p(sec, "Every element n has a twin: N-n. Their CRT residues sum to the channel modulus in each channel: (8,9,25,49,11,13). The mirror swaps without loss — addition is ALWAYS reversible. The mirror IS the additive inverse.");
   make_interactive_widget(sec, "Enter n to see its mirror:", "mir-input", "e.g. 137", "Mirror", "duality_mirror_compute", "mir-result");
-  render_p(sec, "Try: 1 (sigma, mirror=970199), 485100 (N/2, self-mirror!), 606376 (OMEGA), 42 (ANSWER, mirror=970158).");
+  render_p(sec, "Try: 1 (sigma, mirror=12612599), 6306300 (N/2, self-mirror!), 1576576 (OMEGA), 42 (ANSWER, mirror=12612558).");
   dom_append(dom_body(), sec)
 )
 
@@ -180,14 +180,15 @@ fn dh_modpow(base, exp, m) = (
 
 fn dh_ring_pow(base, exp) = (
   /* Exponentiation via CRT: decompose, per-channel modpow, reconstruct */
-  let mods = [8, 9, 25, 49, 11] in
-  let idem = [363825, 431200, 853776, 732600, 529200] in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   let ch0 = dh_modpow(base % 8, exp, 8) in
   let ch1 = dh_modpow(base % 9, exp, 9) in
   let ch2 = dh_modpow(base % 25, exp, 25) in
   let ch3 = dh_modpow(base % 49, exp, 49) in
   let ch4 = dh_modpow(base % 11, exp, 11) in
-  (ch0 * idem[0] + ch1 * idem[1] + ch2 * idem[2] + ch3 * idem[3] + ch4 * idem[4]) % 970200
+  let ch5 = dh_modpow(base % 13, exp, 13) in
+  (ch0 * idem[0] + ch1 * idem[1] + ch2 * idem[2] + ch3 * idem[3] + ch4 * idem[4] + ch5 * idem[5]) % 12612600
 )
 
 fn keyex_run() = (
@@ -206,19 +207,19 @@ fn keyex_run() = (
     let s_bob = dh_ring_pow(pub_a, bsec) in
     let ok = if s_alice == s_bob then 1 else 0 in
     /* CRT of shared secret */
-    let sd = s_alice % 8 in let sk = s_alice % 9 in let se = s_alice % 25 in let sb = s_alice % 49 in let sl = s_alice % 11 in
+    let sd = s_alice % 8 in let sk = s_alice % 9 in let se = s_alice % 25 in let sb = s_alice % 49 in let sl = s_alice % 11 in let sg_s = s_alice % 13 in
     /* CRT of public keys */
-    let ad = pub_a % 8 in let ak = pub_a % 9 in let ae = pub_a % 25 in let ab_ch = pub_a % 49 in let al = pub_a % 11 in
-    let pd = pub_b % 8 in let pk = pub_b % 9 in let pe = pub_b % 25 in let pb = pub_b % 49 in let pl = pub_b % 11 in
-    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>DIFFIE-HELLMAN OVER Z/970200 (g = 137, order = 420)</p><p style='margin:4px 0;color:#88ddaa'><b>Alice:</b> secret a = " + "${asec}" + " | public A = g^a = " + "${pub_a}" + " | CRT = (" + "${ad}" + "," + "${ak}" + "," + "${ae}" + "," + "${ab_ch}" + "," + "${al}" + ")</p><p style='margin:4px 0;color:#ff8844'><b>Bob:</b> secret b = " + "${bsec}" + " | public B = g^b = " + "${pub_b}" + " | CRT = (" + "${pd}" + "," + "${pk}" + "," + "${pe}" + "," + "${pb}" + "," + "${pl}" + ")</p><p style='margin:8px 0 4px;color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px'>" + (if ok == 1 then "SHARED SECRET ESTABLISHED" else "MISMATCH (bug)") + ": S = " + "${s_alice}" + "</p><p style='margin:4px 0;color:#b0b0c0'>CRT(S) = (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sb}" + "," + "${sl}" + ")</p><p style='margin:4px 0;color:#b0b0c0'>Alice: B^a = " + "${s_alice}" + " | Bob: A^b = " + "${s_bob}" + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>g^a decomposes into 5 INDEPENDENT exponentiations. Each channel = independent DH. L=11 channel = built-in authentication tag (1/11 false positive rate).</p></div>")
+    let ad = pub_a % 8 in let ak = pub_a % 9 in let ae = pub_a % 25 in let ab_ch = pub_a % 49 in let al = pub_a % 11 in let ag = pub_a % 13 in
+    let pd = pub_b % 8 in let pk = pub_b % 9 in let pe = pub_b % 25 in let pb = pub_b % 49 in let pl = pub_b % 11 in let pg = pub_b % 13 in
+    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>DIFFIE-HELLMAN OVER Z/12612600 (g = 137, order = 420)</p><p style='margin:4px 0;color:#88ddaa'><b>Alice:</b> secret a = " + "${asec}" + " | public A = g^a = " + "${pub_a}" + " | CRT = (" + "${ad}" + "," + "${ak}" + "," + "${ae}" + "," + "${ab_ch}" + "," + "${al}" + "," + "${ag}" + ")</p><p style='margin:4px 0;color:#ff8844'><b>Bob:</b> secret b = " + "${bsec}" + " | public B = g^b = " + "${pub_b}" + " | CRT = (" + "${pd}" + "," + "${pk}" + "," + "${pe}" + "," + "${pb}" + "," + "${pl}" + "," + "${pg}" + ")</p><p style='margin:8px 0 4px;color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px'>" + (if ok == 1 then "SHARED SECRET ESTABLISHED" else "MISMATCH (bug)") + ": S = " + "${s_alice}" + "</p><p style='margin:4px 0;color:#b0b0c0'>CRT(S) = (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sb}" + "," + "${sl}" + "," + "${sg_s}" + ")</p><p style='margin:4px 0;color:#b0b0c0'>Alice: B^a = " + "${s_alice}" + " | Bob: A^b = " + "${s_bob}" + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>g^a decomposes into 6 INDEPENDENT exponentiations. Each channel = independent DH. L=11 + GATE=13 = dual authentication (1/143 false positive rate).</p></div>")
   )
 )
 
 fn duality_keyexchange() = (
   let sec = make_section("800px") in
   render_h2(sec, "CRT Key Exchange");
-  render_p(sec, "Diffie-Hellman naturally decomposes via CRT. Alice and Bob = D=2 pair. g = 137 (ADDRESS). g^a splits into 5 independent exponentiations, one per channel. The shared secret is the CRT reconstruction of 5 independent DH exchanges. L=11 channel acts as built-in authentication.");
-  render_theorem(sec, "CRT-DH Decomposition", "g^a mod N = CRT(g_D^a mod 8, g_K^a mod 9, g_E^a mod 25, g_b^a mod 49, g_L^a mod 11). Each channel computes DH independently. An attacker must solve discrete log in ALL 5 channels. The 5-channel structure is not a security improvement (Pohlig-Hellman already does this) -- it is a STRUCTURAL insight: key exchange IS CRT decomposition.");
+  render_p(sec, "Diffie-Hellman naturally decomposes via CRT. Alice and Bob = D=2 pair. g = 137 (ADDRESS). g^a splits into 6 independent exponentiations, one per channel. The shared secret is the CRT reconstruction of 6 independent DH exchanges. L=11 + GATE=13 = dual authentication.");
+  render_theorem(sec, "CRT-DH Decomposition", "g^a mod N = CRT(g_D^a mod 8, g_K^a mod 9, g_E^a mod 25, g_b^a mod 49, g_L^a mod 11, g_G^a mod 13). Each channel computes DH independently. An attacker must solve discrete log in ALL 6 channels. The 6-channel structure is not a security improvement (Pohlig-Hellman already does this) -- it is a STRUCTURAL insight: key exchange IS CRT decomposition.");
   make_interactive_widget(sec, "Alice secret (1-419):", "dh-alice", "e.g. 137", "Exchange Keys", "keyex_run", "dh-result");
   /* Add Bob's input field */
   let extras = dom_create("div") in
