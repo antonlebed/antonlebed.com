@@ -603,30 +603,32 @@ fn sacrifice_wound() = (
   let result = dom_query("#sac-result") in
   if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
   else (
-    /* CRT of n: n mod {8, 9, 25, 49, 11} */
+    /* CRT of n: n mod {8, 9, 25, 49, 11, 13} */
     let nd = n % 8 in
     let nk = n % 9 in
     let ne = n % 25 in
     let nb = n % 49 in
     let nl = n % 11 in
-    /* OMEGA = (0,1,1,1,1). OMEGA*n = (0*nd, 1*nk, 1*ne, 1*nb, 1*nl) = (0, nk, ne, nb, nl) */
+    let ng = n % 13 in
+    /* OMEGA = (0,1,1,1,1,1). OMEGA*n = (0*nd, 1*nk, 1*ne, 1*nb, 1*nl, 1*ng) = (0, nk, ne, nb, nl, ng) */
     let rd = 0 in
     let rk = nk in
     let re = ne in
     let rb = nb in
     let rl = nl in
-    /* Reconstruct OMEGA*n from CRT */
+    let rg = ng in
     /* channels killed = those that went to 0 */
     mut killed = 0;
     if rk == 0 then (mut killed = killed + 1) else 0;
     if re == 0 then (mut killed = killed + 1) else 0;
     if rb == 0 then (mut killed = killed + 1) else 0;
     if rl == 0 then (mut killed = killed + 1) else 0;
-    let fate = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then "ANNIHILATED: n is in ker(OMEGA). Pure D-element."
-      else "4 channels dead") else "D dead + partial") else "D dead + partial") else "D dead + partial")
+    if rg == 0 then (mut killed = killed + 1) else 0;
+    let fate = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then (if ng == 0 then "ANNIHILATED: n is in ker(OMEGA). Pure D-element."
+      else "5 channels dead") else "multi-dead") else "multi-dead") else "multi-dead") else "multi-dead")
       else "D-channel killed. " + "${killed}" + " other channel(s) also zero." in
     let d_status = if nd == 0 then "<span style='color:#a0a0b0'>0</span>" else "<span style='color:#ff6666'>${nd} -> 0</span>" in
-    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>CRT(${n}) = (${nd}, ${nk}, ${ne}, ${nb}, ${nl})</p><p style='margin:4px 0'>OMEGA*${n}: CRT = (<b style='color:#ff6666'>0</b>, ${rk}, ${re}, ${rb}, ${rl})</p><p style='margin:4px 0;color:#b8b8c8'>D-channel: ${d_status}. ${fate}</p>")
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>CRT(${n}) = (${nd}, ${nk}, ${ne}, ${nb}, ${nl}, ${ng})</p><p style='margin:4px 0'>OMEGA*${n}: CRT = (<b style='color:#ff6666'>0</b>, ${rk}, ${re}, ${rb}, ${rl}, ${rg})</p><p style='margin:4px 0;color:#b8b8c8'>D-channel: ${d_status}. ${fate}</p>")
   )
 )
 

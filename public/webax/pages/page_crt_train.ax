@@ -17,13 +17,14 @@ fn xor_x1(i) = if i == 1 then 1000 else if i == 2 then 1000 else 0
 fn xor_y(i) = if i == 1 then 1000 else if i == 2 then 1000 else 0
 
 /* ===== STATE: weights as comma-separated i32s in hidden textarea =====
-   118 values total:
+   135 values total:
      [0..32]:    Standard network (nh=8, 33 params)
      [33..49]:   CRT channel D (nh=4, 17 params)
      [50..66]:   CRT channel K
      [67..83]:   CRT channel E
      [84..100]:  CRT channel b
      [101..117]: CRT channel L
+     [118..134]: CRT channel GATE
    Layout per network (nh hidden units): w1[nh*2] + b1[nh] + w2[nh] + b2[1] = nh*4+1 */
 
 fn ct_parse_csv(s) = (
@@ -127,7 +128,7 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
   mut sum = 0;
   mut n = 0;
   mut c = 0;
-  while c < 5 do (
+  while c < 6 do (
     if kills[c] == 0 then (
       mut sum = sum + nn_fwd(w, 33 + c * 17, 4, x0, x1);
       mut n = n + 1
@@ -146,7 +147,7 @@ fn ct_train_epochs(w, epochs) = (
     while i < 4 do (
       nn_bkwd(w, 0, 8, xor_x0(i), xor_x1(i), xor_y(i), lr);
       mut c = 0;
-      while c < 5 do (
+      while c < 6 do (
         nn_bkwd(w, 33 + c * 17, 4, xor_x0(i), xor_x1(i), xor_y(i), lr);
         mut c = c + 1
       );
@@ -323,12 +324,12 @@ fn ct_show_stats(w) = (
     if (out > 500) == (xor_y(i) > 500) then mut crt_correct = crt_correct + 1 else 0;
     mut i = i + 1
   );
-  let active = 5 - kills[0] - kills[1] - kills[2] - kills[3] - kills[4] in
-  dom_text(dom_query("#ct-crt-stats"), "Accuracy: ${crt_correct}/4 | Active: ${active}/5");
+  let active = 6 - kills[0] - kills[1] - kills[2] - kills[3] - kills[4] - kills[5] in
+  dom_text(dom_query("#ct-crt-stats"), "Accuracy: ${crt_correct}/4 | Active: ${active}/6");
   mut c = 0;
-  while c < 5 do (
+  while c < 6 do (
     let acc = ct_accuracy(w, 33 + c * 17, 4) in
-    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else "L" in
+    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else if c == 4 then "L" else "G" in
     let dead = kills[c] in
     dom_text(dom_query("#ct-ch${c}"), "${name}: ${if dead == 1 then "DEAD" else "${acc}/4"}");
     dom_style(dom_query("#ct-ch${c}"), "color", if dead == 1 then "#ff4444" else if acc == 4 then "#44ff44" else "#ffbb00");
@@ -349,7 +350,7 @@ fn ct_draw_all(w) = (
 
 /* ===== CALLBACKS ===== */
 fn on_ct_init() = (
-  mut w = alloc(118);
+  mut w = alloc(135);
   /* Standard: nh=8, 33 params */
   mut i = 0;
   while i < 33 do (
@@ -360,9 +361,9 @@ fn on_ct_init() = (
     set(w, i, v);
     mut i = i + 1
   );
-  /* CRT: 5 channels x 17 params */
+  /* CRT: 6 channels x 17 params */
   mut c = 0;
-  while c < 5 do (
+  while c < 6 do (
     let base = 33 + c * 17 in
     mut j = 0;
     while j < 17 do (
@@ -375,7 +376,7 @@ fn on_ct_init() = (
     );
     mut c = c + 1
   );
-  dom_attr(dom_query("#ct-kills"), "value", "0,0,0,0,0");
+  dom_attr(dom_query("#ct-kills"), "value", "0,0,0,0,0,0");
   dom_attr(dom_query("#ct-epoch-n"), "value", "0");
   ct_write_w(w);
   ct_draw_all(w);
@@ -384,7 +385,7 @@ fn on_ct_init() = (
 
 fn on_ct_train() = (
   let check = ct_read_w() in
-  if len(check) < 118 then on_ct_init() else 0;
+  if len(check) < 135 then on_ct_init() else 0;
   let w = ct_read_w() in
   ct_train_epochs(w, 200);
   ct_write_w(w);
@@ -397,12 +398,12 @@ fn on_ct_train() = (
 
 fn ct_toggle_kill(ch) = (
   let kills = ct_read_kills() in
-  if len(kills) < 5 then 0
+  if len(kills) < 6 then 0
   else (
     set(kills, ch, if kills[ch] == 0 then 1 else 0);
     dom_attr(dom_query("#ct-kills"), "value", ct_to_csv(kills));
     let w = ct_read_w() in
-    if len(w) >= 118 then (
+    if len(w) >= 135 then (
       ct_draw_crt_heatmap(w, kills);
       ct_draw_points("#ct-crt-cvs");
       ct_show_stats(w)
@@ -415,10 +416,11 @@ fn on_kill_k() = ct_toggle_kill(1)
 fn on_kill_e() = ct_toggle_kill(2)
 fn on_kill_b() = ct_toggle_kill(3)
 fn on_kill_l() = ct_toggle_kill(4)
+fn on_kill_g() = ct_toggle_kill(5)
 
 fn on_ct_corrupt() = (
   let w = ct_read_w() in
-  if len(w) < 118 then dom_text(dom_query("#ct-corrupt-out"), "Train a model first.")
+  if len(w) < 135 then dom_text(dom_query("#ct-corrupt-out"), "Train a model first.")
   else (
     /* Save b-channel weights (ch=3) */
     let b_base = 33 + 3 * 17 in
@@ -438,11 +440,12 @@ fn on_ct_corrupt() = (
       let l_out = nn_fwd(w, 33 + 4 * 17, 4, xor_x0(i), xor_x1(i)) in
       mut non_l = 0;
       mut c = 0;
-      while c < 4 do (
-        mut non_l = non_l + nn_fwd(w, 33 + c * 17, 4, xor_x0(i), xor_x1(i));
+      while c < 6 do (
+        if c == 4 then 0
+        else (mut non_l = non_l + nn_fwd(w, 33 + c * 17, 4, xor_x0(i), xor_x1(i)));
         mut c = c + 1
       );
-      let avg = non_l / 4 in
+      let avg = non_l / 5 in
       let diff = if l_out > avg then l_out - avg else avg - l_out in
       if diff > 200 then mut detected = detected + 1 else 0;
       mut i = i + 1
@@ -467,7 +470,7 @@ fn ct_nn_btn(btn) = (
   dom_style(btn, "borderRadius", "4px")
 )
 
-fn ct_ch_color(c) = if c == 0 then "#4488ff" else if c == 1 then "#33dd55" else if c == 2 then "#ff9900" else if c == 3 then "#cc44ff" else "#44dddd"
+fn ct_ch_color(c) = if c == 0 then "#4488ff" else if c == 1 then "#33dd55" else if c == 2 then "#ff9900" else if c == 3 then "#cc44ff" else if c == 4 then "#44dddd" else "#ff4466"
 
 /* ===== PAGE ===== */
 fn page_crt_train() = (
@@ -484,14 +487,14 @@ fn page_crt_train() = (
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Train a neural network split into 5 independent CRT channels. Each channel trains alone -- kill any channel, the network degrades gracefully. Corrupt weights -- L=11 detects it for free. All math is integer. No floats needed.");
+  render_p(hero, "Train a neural network split into 6 independent CRT channels. Each channel trains alone -- kill any channel, the network degrades gracefully. Corrupt weights -- L=11 detects it for free. All math is integer. No floats needed.");
   dom_append(dom_body(), hero);
 
   /* === HIDDEN STATE === */
   let ws = dom_create("textarea") in dom_attr(ws, "id", "ct-w");
   dom_style(ws, "display", "none"); dom_append(dom_body(), ws);
   let ks = dom_create("textarea") in dom_attr(ks, "id", "ct-kills");
-  dom_attr(ks, "value", "0,0,0,0,0");
+  dom_attr(ks, "value", "0,0,0,0,0,0");
   dom_style(ks, "display", "none"); dom_append(dom_body(), ks);
   let en = dom_create("textarea") in dom_attr(en, "id", "ct-epoch-n");
   dom_attr(en, "value", "0");
@@ -501,7 +504,7 @@ fn page_crt_train() = (
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
   let pre = dom_create("pre") in
-  dom_text(pre, "STANDARD NEURAL NETWORK:\n  Forward:  x -> W*x + b -> ReLU -> output\n  Backward: full Jacobian (all neurons interact)\n  Cost: O(N^2) per layer\n\nCRT NEURAL NETWORK:\n  Forward:  x -> 5 independent sub-networks -> average\n  Backward: 5 INDEPENDENT Jacobians (block-diagonal)\n  Cost: O(sum(m_i^2)) = O(8^2+9^2+25^2+49^2+11^2) = O(3292)\n\n  Channel D (mod 8):   temporal features\n  Channel K (mod 9):   structural features\n  Channel E (mod 25):  observational features\n  Channel b (mod 49):  depth features\n  Channel L (mod 11):  ECC / integrity\n\nAt N=970200: 286 MILLION x fewer gradient ops.\nL=11 = free error detection on every inference.");
+  dom_text(pre, "STANDARD NEURAL NETWORK:\n  Forward:  x -> W*x + b -> ReLU -> output\n  Backward: full Jacobian (all neurons interact)\n  Cost: O(N^2) per layer\n\nCRT NEURAL NETWORK:\n  Forward:  x -> 6 independent sub-networks -> average\n  Backward: 6 INDEPENDENT Jacobians (block-diagonal)\n  Cost: O(sum(m_i^2)) = O(8^2+9^2+25^2+49^2+11^2+13^2) = O(3461)\n\n  Channel D (mod 8):   temporal features\n  Channel K (mod 9):   structural features\n  Channel E (mod 25):  observational features\n  Channel b (mod 49):  depth features\n  Channel L (mod 11):  ECC / integrity\n  Channel GATE (mod 13): boundary / skin\n\nAt N=12612600: 46 BILLION x fewer gradient ops.\nL=11 = free error detection on every inference.");
   dom_style(pre, "background", "#0a0a1a");
   dom_style(pre, "padding", "16px");
   dom_style(pre, "borderRadius", "4px");
@@ -515,7 +518,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training: XOR");
-  render_p(sec2, "XOR: the classic non-linear test. Standard = one 2->8->1 network (33 params). CRT = five independent 2->4->1 networks (85 params), outputs averaged. Same task, different architecture.");
+  render_p(sec2, "XOR: the classic non-linear test. Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Same task, different architecture.");
 
   /* Buttons */
   let btns = dom_create("div") in
@@ -601,12 +604,12 @@ fn page_crt_train() = (
   dom_style(kill_row, "flexWrap", "wrap");
   dom_style(kill_row, "margin", "16px 0");
   mut c = 0;
-  while c < 5 do (
+  while c < 6 do (
     let btn = dom_create("button") in
-    let name = if c == 0 then "Toggle D" else if c == 1 then "Toggle K" else if c == 2 then "Toggle E" else if c == 3 then "Toggle b" else "Toggle L" in
+    let name = if c == 0 then "Toggle D" else if c == 1 then "Toggle K" else if c == 2 then "Toggle E" else if c == 3 then "Toggle b" else if c == 4 then "Toggle L" else "Toggle G" in
     dom_text(btn, name);
     ct_nn_btn(btn);
-    let cb = if c == 0 then "on_kill_d" else if c == 1 then "on_kill_k" else if c == 2 then "on_kill_e" else if c == 3 then "on_kill_b" else "on_kill_l" in
+    let cb = if c == 0 then "on_kill_d" else if c == 1 then "on_kill_k" else if c == 2 then "on_kill_e" else if c == 3 then "on_kill_b" else if c == 4 then "on_kill_l" else "on_kill_g" in
     dom_on(btn, "click", cb);
     dom_style(btn, "borderColor", ct_ch_color(c));
     dom_append(kill_row, btn);
@@ -620,10 +623,10 @@ fn page_crt_train() = (
   dom_style(ch_row, "flexWrap", "wrap");
   dom_style(ch_row, "margin", "16px 0");
   mut c = 0;
-  while c < 5 do (
+  while c < 6 do (
     let ch_box = dom_create("div") in
     dom_attr(ch_box, "id", "ct-ch${c}");
-    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else "L" in
+    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else if c == 4 then "L" else "G" in
     dom_text(ch_box, "${name}: -");
     dom_style(ch_box, "padding", "8px 12px");
     dom_style(ch_box, "background", "#16213e");
@@ -669,12 +672,12 @@ fn page_crt_train() = (
   render_th(chdr, "Standard");
   render_th(chdr, "CRT");
   dom_append(ctbl, chdr);
-  render_table_row(ctbl, "Backprop", "Full Jacobian", "Block-diagonal (5 independent)");
-  render_table_row(ctbl, "Ops at N=970200", "N^2 = 941 billion", "sum(m_i^2) = 3,292");
-  render_table_row(ctbl, "Savings", "1x", "286,000,000x");
+  render_table_row(ctbl, "Backprop", "Full Jacobian", "Block-diagonal (6 independent)");
+  render_table_row(ctbl, "Ops at N=12612600", "N^2 = 159 trillion", "sum(m_i^2) = 3,461");
+  render_table_row(ctbl, "Savings", "1x", "46,000,000,000x");
   render_table_row(ctbl, "Channel failure", "Cascade", "Graceful degradation");
   render_table_row(ctbl, "Error detection", "External validation", "L=11 built-in (free)");
-  render_table_row(ctbl, "Parallelism", "Synchronous", "5 independent machines");
+  render_table_row(ctbl, "Parallelism", "Synchronous", "6 independent machines");
   render_table_row(ctbl, "Hot swap", "Retrain everything", "Add/remove channels");
   dom_append(sec5, ctbl);
   render_p(sec5, "CRT decomposition is EXACT. Not an approximation -- the Chinese Remainder Theorem guarantees unique reconstruction. The savings are algebraic.");
