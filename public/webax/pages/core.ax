@@ -32,7 +32,7 @@ fn ct_body(body) = (
   dom_style(body, "webkitOverflowScrolling", "touch");
   /* Dark plasma scrollbar */
   let s = dom_create("style") in
-  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%),radial-gradient(ellipse at 10% 20%,rgba(255,107,74,0.03) 0%,transparent 50%),radial-gradient(ellipse at 90% 30%,rgba(74,158,255,0.03) 0%,transparent 50%),radial-gradient(ellipse at 20% 70%,rgba(255,215,0,0.025) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(107,63,160,0.03) 0%,transparent 50%),radial-gradient(ellipse at 50% 90%,rgba(0,255,136,0.02) 0%,transparent 50%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@keyframes clouddrift_v{0%{transform:translateY(-15%)}50%{transform:translateY(15%)}100%{transform:translateY(-15%)}}@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
+  dom_text(s, "html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}@keyframes clouddrift_v{0%{transform:translateY(-60px)}50%{transform:translateY(60px)}100%{transform:translateY(-60px)}}@keyframes plasma0{0%{top:10%;left:5%}33%{top:30%;left:15%}66%{top:15%;left:8%}100%{top:10%;left:5%}}@keyframes plasma1{0%{top:20%;right:8%}33%{top:40%;right:15%}66%{top:25%;right:5%}100%{top:20%;right:8%}}@keyframes plasma2{0%{top:55%;left:10%}33%{top:65%;left:20%}66%{top:50%;left:5%}100%{top:55%;left:10%}}@keyframes plasma3{0%{top:60%;right:5%}33%{top:75%;right:15%}66%{top:65%;right:10%}100%{top:60%;right:5%}}@keyframes plasma4{0%{bottom:10%;left:40%}33%{bottom:20%;left:50%}66%{bottom:15%;left:35%}100%{bottom:10%;left:40%}}@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}}");
   dom_append(body, s)
 )
 
@@ -172,29 +172,84 @@ fn ct_moon(body) = (
 )
 
 /* ================================================================
-   CELESTIAL THEATRE — E/K Clouds along vertical edges.
-   E=5 per side, K=3 opacity layers. Slow vertical drift.
-   The atmosphere hugs the screen edges like fog in a valley.
+   CELESTIAL THEATRE — CRT Plasma. 5 animated blobs, one per channel.
+   D=red, K=blue, E=gold, b=purple, L=green. Slowly orbiting.
+   The void isn't empty — it's 5 channels of light mixing in darkness.
+   ================================================================ */
+
+fn ct_plasma_blob(c, idx) = (
+  let bl = dom_create("div") in
+  dom_style(bl, "position", "absolute");
+  dom_style(bl, "width", "50vw");
+  dom_style(bl, "height", "50vh");
+  dom_style(bl, "borderRadius", "50%");
+  dom_style(bl, "pointerEvents", "none");
+  dom_style(bl, "filter", "blur(80px)");
+  dom_style(bl, "mixBlendMode", "screen");
+  /* channel color + position + animation per blob */
+  if idx == 0 then (
+    dom_style(bl, "background", "radial-gradient(circle, rgba(255,107,74,0.06) 0%, transparent 70%)");
+    dom_style(bl, "top", "10%");
+    dom_style(bl, "left", "5%");
+    dom_style(bl, "animation", "plasma0 45s ease-in-out infinite")
+  ) else if idx == 1 then (
+    dom_style(bl, "background", "radial-gradient(circle, rgba(74,158,255,0.06) 0%, transparent 70%)");
+    dom_style(bl, "top", "20%");
+    dom_style(bl, "right", "8%");
+    dom_style(bl, "animation", "plasma1 55s ease-in-out infinite")
+  ) else if idx == 2 then (
+    dom_style(bl, "background", "radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 70%)");
+    dom_style(bl, "top", "55%");
+    dom_style(bl, "left", "10%");
+    dom_style(bl, "animation", "plasma2 50s ease-in-out infinite")
+  ) else if idx == 3 then (
+    dom_style(bl, "background", "radial-gradient(circle, rgba(107,63,160,0.06) 0%, transparent 70%)");
+    dom_style(bl, "top", "60%");
+    dom_style(bl, "right", "5%");
+    dom_style(bl, "animation", "plasma3 60s ease-in-out infinite")
+  ) else (
+    dom_style(bl, "background", "radial-gradient(circle, rgba(0,255,136,0.04) 0%, transparent 70%)");
+    dom_style(bl, "bottom", "10%");
+    dom_style(bl, "left", "40%");
+    dom_style(bl, "animation", "plasma4 52s ease-in-out infinite")
+  );
+  dom_append(c, bl)
+)
+
+fn ct_plasma(body) = (
+  let c = dom_create("div") in
+  dom_style(c, "position", "fixed");
+  dom_style(c, "top", "0");
+  dom_style(c, "left", "0");
+  dom_style(c, "width", "100%");
+  dom_style(c, "height", "100%");
+  dom_style(c, "overflow", "hidden");
+  dom_style(c, "pointerEvents", "none");
+  dom_style(c, "zIndex", "0");
+  dom_append(body, c);
+  /* 5 channels = 5 plasma blobs */
+  for i in range(5) do ct_plasma_blob(c, i)
+)
+
+/* ================================================================
+   CELESTIAL THEATRE — Edge Clouds along vertical edges.
+   E=5 per side. White fog drifting vertically. 60px travel range.
    ================================================================ */
 
 fn ct_edge_cloud(c, i, side:str) = (
   let cl = dom_create("div") in
   dom_style(cl, "position", "absolute");
-  /* vertical start: stagger across full height */
   let vy = i * 7 + 3 in
   let ymod = vy - (vy / 10) * 10 in
   let ypos = ymod * 10 in
   dom_style(cl, "top", "${ypos}%");
-  /* hug the edge */
   if side == "L" then dom_style(cl, "left", "-40px")
   else dom_style(cl, "right", "-40px");
-  /* large diffuse blobs */
   let layer = i - (i / 3) * 3 in
   let hpx = layer * 80 + 200 in
   dom_style(cl, "height", "${hpx}px");
   let wpx = layer * 40 + 120 in
   dom_style(cl, "width", "${wpx}px");
-  /* white/pale fog — high opacity, massive blur does the rest */
   if side == "L" then
     dom_style(cl, "background", "radial-gradient(ellipse at 0% 50%, rgba(200,210,230,0.12) 0%, rgba(180,195,220,0.06) 50%, transparent 80%)")
   else
@@ -202,7 +257,6 @@ fn ct_edge_cloud(c, i, side:str) = (
   dom_style(cl, "borderRadius", "50%");
   dom_style(cl, "filter", "blur(40px)");
   dom_style(cl, "pointerEvents", "none");
-  /* vertical drift: slow up-down along the edge */
   let drift_dur = 35 + i * 3 in
   let drift_delay = i * 7 in
   dom_style(cl, "animation", "clouddrift_v ${drift_dur}s ease-in-out ${drift_delay}s infinite");
@@ -220,7 +274,6 @@ fn ct_clouds(body) = (
   dom_style(c, "pointerEvents", "none");
   dom_style(c, "zIndex", "0");
   dom_append(body, c);
-  /* E=5 clouds per side — left and right edges */
   for i in range(5) do ct_edge_cloud(c, i, "L");
   for i in range(5) do ct_edge_cloud(c, i, "R")
 )
