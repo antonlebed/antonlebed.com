@@ -1,6 +1,6 @@
-/* ☠️ SCAFFOLDING — Cloudflare Worker: SPA routing + SSR.
-   Browser → bootstrap.html (WASM + DOM imports).
-   Crawler → SSR: same site.wasm, string-based imports → full HTML.
+/* [DEAD] SCAFFOLDING -- Cloudflare Worker: SPA routing + SSR.
+   Browser -> _app.html (WASM + DOM imports).
+   Crawler -> SSR: same site.wasm, string-based imports -> full HTML.
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM. */
 
@@ -36,13 +36,13 @@ export default {
         return s;
       }
 
-      /* instantiate: Module → Instance, BufferSource → {module, instance} */
+      /* instantiate: Module -> Instance, BufferSource -> {module, instance} */
       var result = await WebAssembly.instantiate(siteWasm, { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },
         sin_f: Math.sin, cos_f: Math.cos, PI_f: function() { return Math.PI; }, exp_f: Math.exp,
-        /* Game/ring import stubs — coupling() in widgets triggers ALL game imports */
+        /* Game/ring import stubs -- coupling() in widgets triggers ALL game imports */
         canvas_clear: function(){return 0;}, canvas_rect: function(){return 0;},
         canvas_circle: function(){return 0;}, canvas_line: function(){return 0;},
         canvas_pixel: function(){return 0;}, canvas_text: function(){return 0;},
@@ -114,7 +114,7 @@ export default {
         },
         dom_value: function() { return 0; },
         repl_eval: function() { return 0; },
-        /* Canvas 2D stubs — no-op for SSR (canvas is browser-only) */
+        /* Canvas 2D stubs -- no-op for SSR (canvas is browser-only) */
         cvs_getctx: function() { return -1; },
         cvs_fillrect: function() { return 0; },
         cvs_clearrect: function() { return 0; },
@@ -132,7 +132,12 @@ export default {
         cvs_setsize: function() { return 0; },
         raf: function() { return 0; },
         key_state: function() { return 0; },
-        cvs_font: function() { return 0; }
+        cvs_font: function() { return 0; },
+        readFile: function() { return 0; },
+        writeBinary: function() { return 0; },
+        cliArgs: function() { return 0; },
+        dom_set_root: function() { return 0; },
+        dom_spa_init: function() { return 0; }
       }});
 
       var inst = result.exports ? result : (result.instance || result);
@@ -144,7 +149,7 @@ export default {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
-      /* camelCase → kebab-case for CSS properties */
+      /* camelCase -> kebab-case for CSS properties */
       function c2k(s) {
         var r = s.replace(/[A-Z]/g, function(m) { return '-' + m.toLowerCase(); });
         if (r.startsWith('webkit-') || r.startsWith('moz-')) r = '-' + r;
@@ -211,7 +216,7 @@ export default {
       });
 
     } catch (e) {
-      /* SSR failed — fallback to bootstrap (client-side rendering) */
+      /* SSR failed -- fallback to bootstrap (client-side rendering) */
       return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
     }
   }

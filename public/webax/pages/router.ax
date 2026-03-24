@@ -169,11 +169,35 @@ fn route() = (
   else route_deep(hash)
 )
 
+/* SPA navigate: clear content wrapper, re-render page.
+   Called on link click (intercepted) and popstate (back/forward).
+   Starfield + nav stay on real body — never destroyed. */
+fn on_navigate() = (
+  dom_inner(dom_body(), "");
+  route();
+  highlight_nav();
+  render_vow(dom_body());
+  render_footer()
+)
+
 /* ===== MAIN ===== */
+/* Phase 1: permanent elements on real body (survive SPA navigation) */
 ct_body(dom_body());
 ct_starfield(dom_body());
 render_nav();
+
+/* Phase 2: create content wrapper, redirect dom_body() to it */
+let spa_root = dom_create("div") in
+dom_style(spa_root, "position", "relative");
+dom_style(spa_root, "zIndex", "1");
+dom_append(dom_body(), spa_root);
+dom_set_root(spa_root);
+
+/* Phase 3: render page content (into wrapper via dom_body()) */
 route();
 highlight_nav();
 render_vow(dom_body());
-render_footer()
+render_footer();
+
+/* Phase 4: enable SPA routing */
+dom_spa_init("on_navigate")

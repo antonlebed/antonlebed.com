@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- ☠️ SCAFFOLDING — dies when WASI DOM access ships in browsers.
+<!-- [DEAD] SCAFFOLDING -- dies when WASI DOM access ships in browsers.
      ~30L JS bootstrap: loads site.wasm, provides DOM import handlers.
      This is the LAST non-.ax code. .ax talks to browser directly via these imports. -->
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>antonlebed.com</title><link rel="icon" href="/favicon.png"><meta property="og:image" content="https://antonlebed.com/og-image.jpg"><meta property="og:type" content="website"><meta property="og:site_name" content="antonlebed.com"></head>
 <body>
 <script>
-/* ☠️ DOM import handlers — JS side of WASM DOM imports */
+/* [DEAD] DOM import handlers -- JS side of WASM DOM imports */
 var _domId = 0, _dom = {0: document.body};
 var _keys = {};
 window.addEventListener('keydown', function(e) { _keys[e.keyCode] = 1; if(e.keyCode>=37&&e.keyCode<=40||e.keyCode==32)e.preventDefault(); });
@@ -24,7 +24,7 @@ function readStr(mem, ptr) {
     show_str: function(p) { console.log(rs(p)); return p; },
     show_float: function(v) { console.log(v); return 0; },
     sin_f: Math.sin, cos_f: Math.cos, PI_f: function() { return Math.PI; }, exp_f: Math.exp,
-    /* Game/ring import stubs — needed because coupling() etc. in interactive widgets triggers ALL game imports */
+    /* Game/ring import stubs -- needed because coupling() etc. in interactive widgets triggers ALL game imports */
     canvas_clear: function() { return 0; }, canvas_rect: function() { return 0; },
     canvas_circle: function() { return 0; }, canvas_line: function() { return 0; },
     canvas_pixel: function() { return 0; }, canvas_text: function() { return 0; },
@@ -60,7 +60,7 @@ function readStr(mem, ptr) {
     dom_query: function(p) { var s = rs(p); try { var el = document.querySelector(s); } catch(e) { return -1; } if (el) { _dom[++_domId] = el; return _domId; } return -1; },
     dom_head_meta: function(np, vp) { var m = document.createElement('meta'); m.name = rs(np); m.content = rs(vp); document.head.appendChild(m); return 0; },
     get_hash: function() {
-      /* Real URL routing: /category/page → extract page slug */
+      /* Real URL routing: /category/page -> extract page slug */
       var parts = location.pathname.split('/').filter(Boolean);
       var h = parts.length >= 2 ? parts[parts.length - 1] : (parts[0] || 'home');
       /* Fallback: hash routing for backward compat */
@@ -78,7 +78,7 @@ function readStr(mem, ptr) {
       for (var i = 0; i < v.length; i++) m[ptr/4+1+i] = v.charCodeAt(i);
       return ptr;
     },
-    /* ☠️ SCAFFOLDING — repl_eval: compile+run .ax code, write output to element.
+    /* [DEAD] SCAFFOLDING -- repl_eval: compile+run .ax code, write output to element.
        Dies when .ax gets runtime evaluation (COMPILATION/RUNTIME COLLAPSE). */
     repl_eval: function(cp, rh) {
       var code = rs(cp), el = _dom[rh]; if (!el) return 0;
@@ -86,7 +86,7 @@ function readStr(mem, ptr) {
       setTimeout(function() { _replRun(code, el); }, 0);
       return 0;
     },
-    /* Canvas 2D imports — .ax talks to canvas directly via WASM imports */
+    /* Canvas 2D imports -- .ax talks to canvas directly via WASM imports */
     cvs_getctx: function(h) { var el = _dom[h]; if (el && el.getContext) { var ctx = el.getContext('2d'); _dom[++_domId] = ctx; return _domId; } return -1; },
     cvs_fillrect: function(ctx, x, y, w, h) { var c = _dom[ctx]; if (c) c.fillRect(x, y, w, h); return 0; },
     cvs_clearrect: function(ctx, x, y, w, h) { var c = _dom[ctx]; if (c) c.clearRect(x, y, w, h); return 0; },
@@ -104,7 +104,28 @@ function readStr(mem, ptr) {
     cvs_setsize: function(h, w, h2) { var el = _dom[h]; if (el) { el.width = w; el.height = h2; } return 0; },
     raf: function(fnp) { var f = rs(fnp); function loop() { if (wasm.instance.exports[f]) wasm.instance.exports[f](); requestAnimationFrame(loop); } requestAnimationFrame(loop); return 0; },
     key_state: function(code) { return _keys[code] ? 1 : 0; },
-    cvs_font: function(ctx, p) { var c = _dom[ctx]; if (c) c.font = rs(p); return 0; }
+    cvs_font: function(ctx, p) { var c = _dom[ctx]; if (c) c.font = rs(p); return 0; },
+    readFile: function() { return 0; },
+    writeBinary: function() { return 0; },
+    cliArgs: function() { return 0; },
+    dom_set_root: function(h) { _dom[0] = _dom[h]; return 0; },
+    dom_spa_init: function(fnp) {
+      var f = rs(fnp);
+      document.addEventListener('click', function(e) {
+        var a = e.target.closest('a[href]');
+        if (!a) return;
+        var href = a.getAttribute('href');
+        if (!href || href.charAt(0) !== '/' || href.indexOf('//') === 0) return;
+        e.preventDefault();
+        history.pushState(null, '', href);
+        window.scrollTo(0, 0);
+        if (wasm.instance.exports[f]) wasm.instance.exports[f]();
+      });
+      window.addEventListener('popstate', function() {
+        if (wasm.instance.exports[f]) wasm.instance.exports[f]();
+      });
+      return 0;
+    }
   }});
   mem = wasm.instance.exports.memory;
   /* Clear SSR content before WASM re-renders (SSR = crawler snapshot, browser = live) */
@@ -115,7 +136,7 @@ function readStr(mem, ptr) {
   var rl = document.getElementById('report-issue-link');
   if (rl) rl.href = 'https://github.com/antonlebed/antonlebed.com/issues/new?title=Issue+on+' + encodeURIComponent(location.pathname) + '&body=' + encodeURIComponent('Page: ' + location.href + '\nUser Agent: ' + navigator.userAgent + '\n\nDescription:\n');
 })();
-/* ☠️ SCAFFOLDING — REPL evaluation engine. Loads deep_ouroboros.wasm (compiler),
+/* [DEAD] SCAFFOLDING -- REPL evaluation engine. Loads deep_ouroboros.wasm (compiler),
    compiles .ax source to WASM, instantiates, runs, captures output.
    Dies when .ax gets runtime evaluation. */
 var _cMod = null, _N = 970200;
@@ -161,7 +182,7 @@ async function _replRun(code, el) {
       /* Float imports (indices 2-6 when floats detected) */
       show_float: function(v) { lines.push(''+v); return 0; },
       sin_f:Math.sin, cos_f:Math.cos, PI_f:function(){return Math.PI;}, exp_f:Math.exp,
-      /* Game imports (35 total, indices 7-41 when game detected) — names from wasm_emit.ax game_name() */
+      /* Game imports (35 total, indices 7-41 when game detected) -- names from wasm_emit.ax game_name() */
       canvas_clear:function(){return 0;}, canvas_rect:function(){return 0;},
       canvas_circle:function(){return 0;}, canvas_line:function(){return 0;},
       canvas_pixel:function(){return 0;}, canvas_text:function(){return 0;},
@@ -202,7 +223,12 @@ async function _replRun(code, el) {
       cvs_setsize:function(){return 0;},
       raf:function(){return 0;},
       key_state:function(){return 0;},
-      cvs_font:function(){return 0;}
+      cvs_font:function(){return 0;},
+      readFile:function(){return 0;},
+      writeBinary:function(){return 0;},
+      cliArgs:function(){return 0;},
+      dom_set_root:function(){return 0;},
+      dom_spa_init:function(){return 0;}
     }});
     childMem = child.instance.exports.memory;
     child.instance.exports._main();
