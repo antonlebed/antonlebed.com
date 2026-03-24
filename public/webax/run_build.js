@@ -53,8 +53,8 @@ async function main() {
       cvs_arc: noop, cvs_fill: noop, cvs_stroke: noop, cvs_filltext: noop,
       cvs_moveto: noop, cvs_lineto: noop, cvs_setsize: noop,
       raf: noop, key_state: noop, cvs_font: noop,
-      /* CLI (di 36) + SPA (di 37-38) */
-      cliArgs: noop, dom_set_root: noop, dom_spa_init: noop,
+      /* CLI (di 36) + SPA (di 37-38) + scroll (di 39) */
+      cliArgs: noop, dom_set_root: noop, dom_spa_init: noop, dom_scroll: noop,
       /* Real file I/O (di 34-35) */
       readFile: function(pathPtr) {
         const filePath = readString(inst.exports.memory, pathPtr);

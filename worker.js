@@ -137,7 +137,8 @@ export default {
         writeBinary: function() { return 0; },
         cliArgs: function() { return 0; },
         dom_set_root: function() { return 0; },
-        dom_spa_init: function() { return 0; }
+        dom_spa_init: function() { return 0; },
+        dom_scroll: function() { return 0; }
       }});
 
       var inst = result.exports ? result : (result.instance || result);
