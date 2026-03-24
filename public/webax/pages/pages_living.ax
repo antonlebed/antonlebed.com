@@ -82,18 +82,19 @@ fn cc0_kill_calc() = (
 fn revolution_crt_calc() = (
   let n = parse_int_from("#rev-input") in
   let result = dom_query("#rev-result") in
-  let big_n = 970200 in
+  let big_n = 12612600 in
   let n2 = n % big_n in
   let rd = n2 % 8 in
   let rk = n2 % 9 in
   let re = n2 % 25 in
   let rb = n2 % 49 in
   let rl = n2 % 11 in
+  let rg = n2 % 13 in
   /* Which ring does it live in? */
   let in_6 = if rd % 2 == n2 % 2 then (if rk % 3 == n2 % 3 then 1 else 0) else 0 in
   let in_210 = if n2 % 210 == n2 then 1 else 0 in
-  let is_unit = if rd > 0 then (if rk > 0 then (if re > 0 then (if rb > 0 then (if rl > 0 then 1 else 0) else 0) else 0) else 0) else 0 in
-  dom_inner(result, "<p style='color:#ffd700;margin:8px 0'>" + "${n2}" + " = (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Channel access: .D=" + "${rd}" + " .K=" + "${rk}" + " .E=" + "${re}" + " .b=" + "${rb}" + " .L=" + "${rl}" + "</p><p style='color:#c0c0d0;margin:4px 0'>Type: " + (if is_unit == 1 then "unit (invertible)" else "zero divisor") + " in Z/970200</p><p style='color:#a0a0b0;margin:4px 0'>In .ax v2.0, this IS the value. No conversion. CRT decomposition = the type.</p>")
+  let is_unit = if rd > 0 then (if rk > 0 then (if re > 0 then (if rb > 0 then (if rl > 0 then (if rg > 0 then 1 else 0) else 0) else 0) else 0) else 0) else 0 in
+  dom_inner(result, "<p style='color:#ffd700;margin:8px 0'>" + "${n2}" + " = (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ", " + "${rg}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Channel access: .D=" + "${rd}" + " .K=" + "${rk}" + " .E=" + "${re}" + " .b=" + "${rb}" + " .L=" + "${rl}" + " .G=" + "${rg}" + "</p><p style='color:#c0c0d0;margin:4px 0'>Type: " + (if is_unit == 1 then "unit (invertible)" else "zero divisor") + " in Z/12612600</p><p style='color:#a0a0b0;margin:4px 0'>In .ax v2.0, this IS the value. No conversion. CRT decomposition = the type.</p>")
 )
 
 /* dom_on callback: ax_games WASM size lookup (S999) */
@@ -507,14 +508,16 @@ fn ai_crt_calc() = (
     let crt_e = n % 25 in
     let crt_b = n % 49 in
     let crt_l = n % 11 in
-    let crt_total = 8 + 9 + 25 + 49 + 11 in
+    let crt_g = n % 13 in
+    let crt_total = 8 + 9 + 25 + 49 + 11 + 13 in
     let ratio = if crt_total > 0 then n / crt_total else 0 in
-    let named = if n == 970200 then "TRUE FORM. 9512x compression. This is the real thing."
-      else if n == 2310 then "THIN ring. 22.6x compression."
-      else if n == 210 then "DATA ring. D*K*E*b. 2.06x compression."
-      else if n == 256 then "Byte space. CRT gives 102 vs 256. 2.5x."
+    let named = if n == 12612600 then "TRUE FORM. 6 channels. 109,674x compression."
+      else if n == 970200 then "DEEP ring (body without skin). 9512x compression."
+      else if n == 2310 then "THIN ring. 20.1x compression."
+      else if n == 210 then "DATA ring. D*K*E*b. 1.83x compression."
+      else if n == 256 then "Byte space. CRT gives 115 vs 256. 2.2x."
       else "" in
-    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>N = ${n}</p><p style='margin:4px 0'>Monolithic softmax: <b>${mono}</b> classes</p><p style='margin:4px 0'>CRT output: 8+9+25+49+11 = <b style='color:#ffd700'>${crt_total}</b> classes (fixed)</p><p style='margin:4px 0'>Compression: <b style='color:#ffd700'>${ratio}x</b></p><p style='margin:4px 0;color:#b8b8c8'>${named}</p><p style='margin:4px 0;color:#b0b0c0'>CRT(${n}) = (${crt_d}, ${crt_k}, ${crt_e}, ${crt_b}, ${crt_l})</p>")
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>N = ${n}</p><p style='margin:4px 0'>Monolithic softmax: <b>${mono}</b> classes</p><p style='margin:4px 0'>CRT output: 8+9+25+49+11+13 = <b style='color:#ffd700'>${crt_total}</b> classes (fixed)</p><p style='margin:4px 0'>Compression: <b style='color:#ffd700'>${ratio}x</b></p><p style='margin:4px 0;color:#b8b8c8'>${named}</p><p style='margin:4px 0;color:#b0b0c0'>CRT(${n}) = (${crt_d}, ${crt_k}, ${crt_e}, ${crt_b}, ${crt_l}, ${crt_g})</p>")
   )
 )
 
@@ -582,12 +585,12 @@ fn curriculum_ring_calc() = (
 )
 
 fn page_ai() = (
-  dom_head_meta("description", "CRT-decomposed transformer: shared backbone + 5 independent output heads. Architecture theorem: unique optimal point. 25654x backprop. L=11 free ECC. Precipitation paradigm: diffusion, not prediction. Trinity Heart: 3 hearts x 4 chambers = 12 phases. Majority crystallization. 94% Gibbs byte recovery.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Intelligence\",\"description\":\"CRT-decomposed transformer with 5 independent heads. Trinity Heart: 3 hearts x 4 chambers. 94% Gibbs byte recovery.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ai\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT diffusion\"},{\"@type\":\"DefinedTerm\",\"name\":\"trinity heart\"},{\"@type\":\"DefinedTerm\",\"name\":\"neural architecture\"}]}");
+  dom_head_meta("description", "CRT-decomposed transformer: shared backbone + 6 independent output heads. Architecture theorem: unique optimal point. Block-diagonal backprop. L=11 free ECC. Precipitation paradigm: diffusion, not prediction. Trinity Heart: 3 hearts x 4 chambers = 12 phases. Majority crystallization. 94% Gibbs byte recovery.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Intelligence\",\"description\":\"CRT-decomposed transformer with 6 independent heads. Trinity Heart: 3 hearts x 4 chambers. 94% Gibbs byte recovery.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ai\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT diffusion\"},{\"@type\":\"DefinedTerm\",\"name\":\"trinity heart\"},{\"@type\":\"DefinedTerm\",\"name\":\"neural architecture\"}]}");
   /* === HERO === */
   let hero = make_hero("Intelligence") in
   let big = dom_create("div") in
-  dom_text(big, "5 channels = 5 minds in parallel");
+  dom_text(big, "6 channels = 6 minds in parallel");
   ct_mono(big);
   dom_style(big, "fontSize", "28px");
   ct_gold(big);
@@ -1221,7 +1224,7 @@ fn page_revolution() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "24px");
   dom_append(hero, eq);
-  render_p(hero, ".ax was born in the era of 3 terms. DFloat(s|b|a) was the fundamental type -- never implemented. CRT was a builtin you called. Now we know: 10 terms, 108 rings, 5 channels. The language should THINK in channels, not translate to them. CRT IS the type. The Decality IS the instruction set. This document: the blueprint for .ax v2.0.");
+  render_p(hero, ".ax was born in the era of 3 terms. DFloat(s|b|a) was the fundamental type -- never implemented. CRT was a builtin you called. Now we know: 10 terms, 108 rings, 6 channels. The language should THINK in channels, not translate to them. CRT IS the type. The Decality IS the instruction set. This document: the blueprint for .ax v2.0.");
   dom_append(dom_body(), hero);
 
   /* === SEC 1: THE DIAGNOSIS === */

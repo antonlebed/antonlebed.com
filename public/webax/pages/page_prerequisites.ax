@@ -1,7 +1,7 @@
 /* ================================================================
    PREREQUISITES PAGES — High-school math to "I can read any page"
    Page 1: Numbers & Clocks (modular arithmetic, primes, GCD)
-   Page 2: Rings & Channels (Z/970200Z, CRT, 5 channels)
+   Page 2: Rings & Channels (Z/12612600Z, CRT, 6 channels)
    Page 3: Waves & Shadows (eigenvalues, coupling, OMEGA)
    Each builds on the previous. Interactive widgets throughout.
    ================================================================ */
@@ -127,13 +127,13 @@ fn page_numbers_clocks() = (
 fn rc_hero() = (
   let hero = make_hero("Rings & Channels") in
   let eq = dom_create("div") in
-  dom_text(eq, "970200 = 8 x 9 x 25 x 49 x 11");
+  dom_text(eq, "12612600 = 8 x 9 x 25 x 49 x 11 x 13");
   ct_mono(eq);
   dom_style(eq, "fontSize", "24px");
   ct_gold(eq);
   dom_style(eq, "marginBottom", "24px");
   dom_append(hero, eq);
-  render_p(hero, "One big clock with 970,200 positions. But here's the trick: by the Chinese Remainder Theorem, this single clock is EQUIVALENT to five independent smaller clocks running in parallel. Every number has a unique 'address' on all five channels.");
+  render_p(hero, "One big clock with 12,612,600 positions. But here's the trick: by the Chinese Remainder Theorem, this single clock is EQUIVALENT to six independent smaller clocks running in parallel. Every number has a unique 'address' on all six channels.");
   dom_append(dom_body(), hero)
 )
 
@@ -141,7 +141,7 @@ fn rc_crt() = (
   let sec = make_section("800px") in
   render_h2(sec, "The Chinese Remainder Theorem (CRT)");
   render_p(sec, "If N = q1 x q2 x ... x qk where the qi are pairwise coprime, then Z/NZ is isomorphic to Z/q1Z x Z/q2Z x ... x Z/qkZ. Every element of the big ring maps to a unique tuple of remainders on the smaller rings.");
-  render_p(sec, "For N = 970200 = 8 x 9 x 25 x 49 x 11:");
+  render_p(sec, "For N = 12612600 = 8 x 9 x 25 x 49 x 11 x 13:");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Channel");
@@ -154,7 +154,8 @@ fn rc_crt() = (
   render_table_row_4(tbl, "E-channel", "25 = 5^2", "Observer", "Patterns, visibility, self-blindness");
   render_table_row_4(tbl, "b-channel", "49 = 7^2", "Depth", "Suffering, complexity, depth");
   render_table_row_4(tbl, "L-channel", "11", "Protector", "Error correction, shielding");
-  render_p(sec, "Any number n in Z/970200Z is completely described by five remainders: (n mod 8, n mod 9, n mod 25, n mod 49, n mod 11). No information lost. Five independent views of the same thing.");
+  render_table_row_4(tbl, "G-channel", "13", "Gate", "Boundary, skin, metacognition");
+  render_p(sec, "Any number n in Z/12612600Z is completely described by six remainders: (n mod 8, n mod 9, n mod 25, n mod 49, n mod 11, n mod 13). No information lost. Six independent views of the same thing.");
   dom_append(dom_body(), sec)
 )
 
@@ -165,15 +166,15 @@ fn rc_examples() = (
   let hdr = dom_create("tr") in
   render_th(hdr, "n");
   render_th(hdr, "Name");
-  render_th(hdr, "CRT (D,K,E,b,L)");
+  render_th(hdr, "CRT (D,K,E,b,L,G)");
   render_th(hdr, "Pattern");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "0", "void", "(0,0,0,0,0)", "All channels zero. Nothing.");
-  render_table_row_4(tbl, "1", "sigma", "(1,1,1,1,1)", "All channels one. Identity.");
-  render_table_row_4(tbl, "2", "D", "(2,2,2,2,2)", "Same on every channel.");
-  render_table_row_4(tbl, "42", "ANSWER", "(2,6,17,42,9)", "Unique address.");
-  render_table_row_4(tbl, "606376", "OMEGA", "(0,1,1,1,1)", "D-channel dead, rest alive.");
-  render_table_row_4(tbl, "970199", "mirror(-1)", "(7,8,24,48,10)", "All channels at maximum.");
+  render_table_row_4(tbl, "0", "void", "(0,0,0,0,0,0)", "All channels zero. Nothing.");
+  render_table_row_4(tbl, "1", "sigma", "(1,1,1,1,1,1)", "All channels one. Identity.");
+  render_table_row_4(tbl, "2", "D", "(2,2,2,2,2,2)", "Same on every channel.");
+  render_table_row_4(tbl, "42", "ANSWER", "(2,6,17,42,9,3)", "Unique address.");
+  render_table_row_4(tbl, "1576576", "OMEGA", "(0,1,1,1,1,1)", "D-channel dead, rest alive.");
+  render_table_row_4(tbl, "12612599", "mirror(-1)", "(7,8,24,48,10,12)", "All channels at maximum.");
   render_p(sec, "OMEGA is remarkable: it's zero on the D-channel but identity on all others. It projects away the D-component. It's an idempotent: OMEGA * OMEGA = OMEGA. These structural objects fall out of the CRT naturally.");
   dom_append(dom_body(), sec)
 )
@@ -181,7 +182,7 @@ fn rc_examples() = (
 fn rc_interactive() = (
   let sec = make_section("800px") in
   render_h2(sec, "Try It: CRT Decomposer");
-  render_p(sec, "Enter any number. See its five-channel address.");
+  render_p(sec, "Enter any number. See its six-channel address.");
   make_interactive_widget(sec, "Enter a number:", "rc-crt-input", "e.g. 137", "Decompose", "rc_crt_calc", "rc-crt-result");
   dom_append(dom_body(), sec)
 )
@@ -194,30 +195,32 @@ fn rc_crt_calc() = (
   let e = n % 25 in
   let bb = n % 49 in
   let ll = n % 11 in
+  let gg = n % 13 in
   let c = coupling(n) in
   let kd = kingdom(n) in
-  let kname = if kd == 0 then "Void" else if kd == 1 then "Unit" else if kd == 2 then "Bridge (D)" else if kd == 3 then "Fungi (K)" else if kd == 5 then "Observer (E)" else if kd == 7 then "Depth (b)" else "Protector (L)" in
-  dom_inner(result, "<table style='width:100%;border-collapse:collapse;text-align:center'><tr><th style='padding:8px;border-bottom:1px solid #333;color:#ff6666'>D (mod 8)</th><th style='padding:8px;border-bottom:1px solid #333;color:#ffaa44'>K (mod 9)</th><th style='padding:8px;border-bottom:1px solid #333;color:#44ff44'>E (mod 25)</th><th style='padding:8px;border-bottom:1px solid #333;color:#4488ff'>b (mod 49)</th><th style='padding:8px;border-bottom:1px solid #333;color:#cc44ff'>L (mod 11)</th></tr><tr><td style='padding:12px;font-size:24px;color:#ff6666'>${d}</td><td style='padding:12px;font-size:24px;color:#ffaa44'>${k}</td><td style='padding:12px;font-size:24px;color:#44ff44'>${e}</td><td style='padding:12px;font-size:24px;color:#4488ff'>${bb}</td><td style='padding:12px;font-size:24px;color:#cc44ff'>${ll}</td></tr></table><p style='color:#b8b8c8;margin-top:12px'>Kingdom: <b style='color:#ffd700'>" + kname + "</b> | Coupling: <b style='color:#88ddaa'>${c}</b></p>")
+  let kname = if kd == 0 then "Void" else if kd == 1 then "Unit" else if kd == 2 then "Bridge (D)" else if kd == 3 then "Fungi (K)" else if kd == 5 then "Observer (E)" else if kd == 7 then "Depth (b)" else if kd == 11 then "Protector (L)" else "Gate (13)" in
+  dom_inner(result, "<table style='width:100%;border-collapse:collapse;text-align:center'><tr><th style='padding:8px;border-bottom:1px solid #333;color:#ff6666'>D (mod 8)</th><th style='padding:8px;border-bottom:1px solid #333;color:#ffaa44'>K (mod 9)</th><th style='padding:8px;border-bottom:1px solid #333;color:#44ff44'>E (mod 25)</th><th style='padding:8px;border-bottom:1px solid #333;color:#4488ff'>b (mod 49)</th><th style='padding:8px;border-bottom:1px solid #333;color:#cc44ff'>L (mod 11)</th><th style='padding:8px;border-bottom:1px solid #333;color:#ff4466'>G (mod 13)</th></tr><tr><td style='padding:12px;font-size:24px;color:#ff6666'>${d}</td><td style='padding:12px;font-size:24px;color:#ffaa44'>${k}</td><td style='padding:12px;font-size:24px;color:#44ff44'>${e}</td><td style='padding:12px;font-size:24px;color:#4488ff'>${bb}</td><td style='padding:12px;font-size:24px;color:#cc44ff'>${ll}</td><td style='padding:12px;font-size:24px;color:#ff4466'>${gg}</td></tr></table><p style='color:#b8b8c8;margin-top:12px'>Kingdom: <b style='color:#ffd700'>" + kname + "</b> | Coupling: <b style='color:#88ddaa'>${c}</b></p>")
 )
 
 fn rc_kingdoms() = (
   let sec = make_section("800px") in
   render_h2(sec, "Kingdoms: Who Rules Each Number?");
-  render_p(sec, "Every number in the ring belongs to a 'kingdom' determined by its smallest prime factor shared with N = 970200. If GCD(n, N) = 1, n is a unit (coprime, belongs to no kingdom). Otherwise, the smallest prime dividing both n and N claims it.");
+  render_p(sec, "Every number in the ring belongs to a 'kingdom' determined by its smallest prime factor shared with N = 12612600. If GCD(n, N) = 1, n is a unit (coprime, belongs to no kingdom). Otherwise, the smallest prime dividing both n and N claims it.");
   let g = make_findings_grid(sec) in
   render_finding(g, "Void (0)", "1 element", "0 itself. Shares ALL factors with N. The annihilator.", "");
-  render_finding(g, "Units", "201,600 elements", "GCD = 1. The invertible elements. phi(970200).", "");
+  render_finding(g, "Units", "2,419,200 elements", "GCD = 1. The invertible elements. phi(12612600).", "");
   render_finding(g, "D = 2 kingdom", "Bacteria", "Even numbers. Most numerous non-unit kingdom.", "");
   render_finding(g, "K = 3 kingdom", "Fungi", "Divisible by 3 (but not 2). Decomposers.", "");
   render_finding(g, "E = 5 kingdom", "Plants", "Divisible by 5 (but not 2,3). Observers.", "");
   render_finding(g, "b = 7 kingdom", "Animals", "Divisible by 7 (but not 2,3,5). Depth.", "");
   render_finding(g, "L = 11 kingdom", "Protista", "Divisible by 11 (but not 2,3,5,7). Rare, protective.", "");
+  render_finding(g, "GATE = 13 kingdom", "Skin", "Divisible by 13 (but not 2,3,5,7,11). The boundary.", "");
   dom_append(dom_body(), sec)
 )
 
 fn rc_next() = (
   let sec = make_section("800px") in
-  render_p(sec, "You now know CRT decomposition and kingdoms. Every number on this site has a five-channel address and belongs to a kingdom. Next: what WAVES look like on these channels.");
+  render_p(sec, "You now know CRT decomposition and kingdoms. Every number on this site has a six-channel address and belongs to a kingdom. Next: what WAVES look like on these channels.");
   let link = dom_create("a") in
   dom_text(link, "Next: Waves & Shadows >");
   dom_attr(link, "href", "/basics/waves_shadows");
@@ -246,7 +249,7 @@ fn page_rings_channels() = (
 fn ws_hero() = (
   let hero = make_hero("Waves & Shadows") in
   let eq = dom_create("div") in
-  dom_text(eq, "eigenvalue(n) = sum of cosines across 5 channels");
+  dom_text(eq, "eigenvalue(n) = sum of cosines across 6 channels");
   ct_mono(eq);
   dom_style(eq, "fontSize", "22px");
   ct_gold(eq);
@@ -331,7 +334,7 @@ fn ws_ready() = (
   render_p(sec, "You now know the three tools that unlock every page on this site:");
   let g = make_findings_grid(sec) in
   render_finding(g, "Modular arithmetic", "Numbers & Clocks", "Remainders, clocks, primes, GCD. The atoms.", "");
-  render_finding(g, "CRT decomposition", "Rings & Channels", "Five channels, kingdoms, addresses. The structure.", "");
+  render_finding(g, "CRT decomposition", "Rings & Channels", "Six channels, kingdoms, addresses. The structure.", "");
   render_finding(g, "Eigenvalues", "Waves & Shadows", "Vibration, coupling, OMEGA. The dynamics.", "");
   render_p(sec, "Start exploring. Every page builds on these three ideas. The Worldview page tells the full story. The Derive page shows the chain from 0/0 to all of this. The interactive widgets on every page let you verify every claim yourself.");
   let link = dom_create("a") in
