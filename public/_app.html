@@ -7,7 +7,7 @@
 <body>
 <script>
 /* [DEAD] DOM import handlers -- JS side of WASM DOM imports */
-var _domId = 0, _dom = {0: document.body};
+var _domId = 0, _dom = {0: document.body}, _rafActive = false, _spaBase = 0;
 var _keys = {};
 window.addEventListener('keydown', function(e) { _keys[e.keyCode] = 1; if(e.keyCode>=37&&e.keyCode<=40||e.keyCode==32)e.preventDefault(); });
 window.addEventListener('keyup', function(e) { _keys[e.keyCode] = 0; });
@@ -58,7 +58,7 @@ function readStr(mem, ptr) {
     dom_on2: function(h, ep, fnp) { if (_dom[h]) { var e = rs(ep), f = rs(fnp); _dom[h].addEventListener(e, function(ev) { if (wasm.instance.exports[f]) wasm.instance.exports[f](ev.offsetX || 0, ev.offsetY || 0); }); } return 0; },
     dom_window: function(ep, fnp) { var e = rs(ep), f = rs(fnp); window.addEventListener(e, function() { if (wasm.instance.exports[f]) wasm.instance.exports[f](); }); return 0; },
     dom_query: function(p) { var s = rs(p); try { var el = document.querySelector(s); } catch(e) { return -1; } if (el) { _dom[++_domId] = el; return _domId; } return -1; },
-    dom_head_meta: function(np, vp) { var m = document.createElement('meta'); m.name = rs(np); m.content = rs(vp); document.head.appendChild(m); return 0; },
+    dom_head_meta: function(np, vp) { var n = rs(np), v = rs(vp), ex = document.head.querySelector('meta[name="' + n + '"]'); if (ex) ex.content = v; else { var m = document.createElement('meta'); m.name = n; m.content = v; document.head.appendChild(m); } return 0; },
     get_hash: function() {
       /* Real URL routing: /category/page -> extract page slug */
       var parts = location.pathname.split('/').filter(Boolean);
@@ -102,15 +102,16 @@ function readStr(mem, ptr) {
     cvs_moveto: function(ctx, x, y) { var c = _dom[ctx]; if (c) c.moveTo(x, y); return 0; },
     cvs_lineto: function(ctx, x, y) { var c = _dom[ctx]; if (c) c.lineTo(x, y); return 0; },
     cvs_setsize: function(h, w, h2) { var el = _dom[h]; if (el) { el.width = w; el.height = h2; } return 0; },
-    raf: function(fnp) { var f = rs(fnp); function loop() { if (wasm.instance.exports[f]) wasm.instance.exports[f](); requestAnimationFrame(loop); } requestAnimationFrame(loop); return 0; },
+    raf: function(fnp) { var f = rs(fnp); _rafActive = true; function loop() { if (!_rafActive) return; if (wasm.instance.exports[f]) wasm.instance.exports[f](); requestAnimationFrame(loop); } requestAnimationFrame(loop); return 0; },
     key_state: function(code) { return _keys[code] ? 1 : 0; },
     cvs_font: function(ctx, p) { var c = _dom[ctx]; if (c) c.font = rs(p); return 0; },
     readFile: function() { return 0; },
     writeBinary: function() { return 0; },
     cliArgs: function() { return 0; },
-    dom_set_root: function(h) { _dom[0] = _dom[h]; return 0; },
+    dom_set_root: function(h) { _dom[0] = _dom[h]; _spaBase = _domId; return 0; },
     dom_spa_init: function(fnp) {
       var f = rs(fnp);
+      function _spaClean() { _rafActive = false; for (var i = _spaBase + 1; i <= _domId; i++) delete _dom[i]; _domId = _spaBase; }
       document.addEventListener('click', function(e) {
         var a = e.target.closest('a[href]');
         if (!a) return;
@@ -119,10 +120,12 @@ function readStr(mem, ptr) {
         e.preventDefault();
         history.pushState(null, '', href);
         window.scrollTo(0, 0);
-        if (wasm.instance.exports[f]) wasm.instance.exports[f]();
+        _spaClean();
+        if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); }
       });
       window.addEventListener('popstate', function() {
-        if (wasm.instance.exports[f]) wasm.instance.exports[f]();
+        _spaClean();
+        if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); }
       });
       return 0;
     }
@@ -132,9 +135,10 @@ function readStr(mem, ptr) {
   document.body.innerHTML = '';
   _dom = {0: document.body};
   _domId = 0;
+  function _fixRL() { var rl = document.getElementById('report-issue-link'); if (rl) rl.href = 'https://github.com/antonlebed/antonlebed.com/issues/new?title=Issue+on+' + encodeURIComponent(location.pathname) + '&body=' + encodeURIComponent('Page: ' + location.href + '\nUser Agent: ' + navigator.userAgent + '\n\nDescription:\n'); }
+  function _fixTitle() { var h = document.querySelector('h1,h2'); if (h) document.title = h.textContent + ' - antonlebed.com'; }
   wasm.instance.exports._main();
-  var rl = document.getElementById('report-issue-link');
-  if (rl) rl.href = 'https://github.com/antonlebed/antonlebed.com/issues/new?title=Issue+on+' + encodeURIComponent(location.pathname) + '&body=' + encodeURIComponent('Page: ' + location.href + '\nUser Agent: ' + navigator.userAgent + '\n\nDescription:\n');
+  _fixRL(); _fixTitle();
 })();
 /* [DEAD] SCAFFOLDING -- REPL evaluation engine. Loads deep_ouroboros.wasm (compiler),
    compiles .ax source to WASM, instantiates, runs, captures output.
