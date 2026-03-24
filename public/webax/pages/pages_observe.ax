@@ -200,42 +200,47 @@ fn coupling_analyze() = (
   let e = n % 25 in
   let b_ch = n % 49 in
   let l = n % 11 in
+  let g = n % 13 in
   /* Which primes divide n */
   let div_d = if d % 2 == 0 then 1 else 0 in
   let div_k = if k % 3 == 0 then 1 else 0 in
   let div_e = if e % 5 == 0 then 1 else 0 in
   let div_b = if b_ch % 7 == 0 then 1 else 0 in
   let div_l = if l == 0 then 1 else 0 in
-  let dead = div_d + div_k + div_e + div_b + div_l in
+  let div_g = if g == 0 then 1 else 0 in
+  let dead = div_d + div_k + div_e + div_b + div_l + div_g in
   /* Kingdom */
   let kingdom = if dead == 0 then "sigma (bacteria)"
-    else if dead == 5 then "void"
+    else if dead == 6 then "void"
     else if div_d == 1 then (if dead == 1 then "D (protista)" else "compound")
     else if div_k == 1 then (if dead == 1 then "K (fungi)" else "compound")
     else if div_e == 1 then (if dead == 1 then "E (plantae)" else "compound")
     else if div_b == 1 then (if dead == 1 then "b (animalia)" else "compound")
-    else "L (humanity)" in
+    else if div_l == 1 then (if dead == 1 then "L (humanity)" else "compound")
+    else "GATE (gate)" in
   /* Coupling from phi contributions */
   let cp_d = if d % 2 > 0 then 4 else if d % 4 > 0 then 2 else 1 in
   let cp_k = if k % 3 > 0 then 6 else if k > 0 then 2 else 1 in
   let cp_e = if e % 5 > 0 then 20 else if e > 0 then 4 else 1 in
   let cp_b = if b_ch % 7 > 0 then 42 else if b_ch > 0 then 6 else 1 in
   let cp_l = if l > 0 then 10 else 1 in
-  let coupling = cp_d * cp_k * cp_e * cp_b * cp_l in
+  let cp_g = if g > 0 then 12 else 1 in
+  let coupling = cp_d * cp_k * cp_e * cp_b * cp_l * cp_g in
   /* Channel status */
   let ch_d = if div_d == 1 then "DEAD" else "alive" in
   let ch_k = if div_k == 1 then "DEAD" else "alive" in
   let ch_e = if div_e == 1 then "DEAD" else "alive" in
   let ch_b = if div_b == 1 then "DEAD" else "alive" in
   let ch_l = if div_l == 1 then "DEAD" else "alive" in
-  dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>Kingdom: " + kingdom + "</b></p><p style='color:#88ddaa;margin:4px 0'>Coupling: <b>" + "${coupling}" + "</b> (of 201600 max)</p><p style='color:#c0c0d0;margin:4px 0'>Channels: D=" + ch_d + " | K=" + ch_k + " | E=" + ch_e + " | b=" + ch_b + " | L=" + ch_l + "</p><p style='color:#b0b0c0;margin:4px 0'>Dead channels: " + "${dead}" + "/5 | CRT = (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ")</p>")
+  let ch_g = if div_g == 1 then "DEAD" else "alive" in
+  dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>Kingdom: " + kingdom + "</b></p><p style='color:#88ddaa;margin:4px 0'>Coupling: <b>" + "${coupling}" + "</b> (of 2419200 max)</p><p style='color:#c0c0d0;margin:4px 0'>Channels: D=" + ch_d + " | K=" + ch_k + " | E=" + ch_e + " | b=" + ch_b + " | L=" + ch_l + " | G=" + ch_g + "</p><p style='color:#b0b0c0;margin:4px 0'>Dead channels: " + "${dead}" + "/6 | CRT = (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ", " + "${g}" + ")</p>")
 )
 
 /* Interactive coupling section (S970) */
 fn coup_interactive() = (
   let sec = make_section("800px") in
   render_h2(sec, "Explore: Coupling Analyzer");
-  render_p(sec, "Enter any number. See its kingdom, coupling class, and channel status. Units have maximum coupling (201600). Void has zero.");
+  render_p(sec, "Enter any number. See its kingdom, coupling class, and channel status. Units have maximum coupling (2419200). Void has zero.");
   make_interactive_widget(sec, "Analyze any element:", "coupling-input", "e.g. 42", "Analyze", "coupling_analyze", "coupling-result");
   render_p(sec, "Try: 1 (unit), 2 (D-pure), 6 (DK compound), 11 (L-pure), 0 (void), 30 (DKE compound).");
   dom_append(dom_body(), sec)
