@@ -527,14 +527,16 @@ fn pid_multiscale_calc() = (
   let result = dom_query("#pid-result") in
   if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter a non-negative control signal.</p>")
   else (
-    let v = n % 970200 in
-    let cd = v % 8 in let ck = v % 9 in let ce = v % 25 in let cb = v % 49 in let cl = v % 11 in
-    /* Resolution per channel: 100/mod percent */
-    /* L=11 integrity check: reconstruct from first 4, compare L */
-    let r4 = cd * 363825 + ck * 431200 + ce * 853776 + cb * 732600 in
+    let v = n % 12612600 in
+    let cd = v % 8 in let ck = v % 9 in let ce = v % 25 in let cb = v % 49 in let cl = v % 11 in let cg = v % 13 in
+    /* L=11 + GATE=13 integrity: reconstruct from 4 data channels, compare L and GATE */
+    let r4 = cd * 11036025 + ck * 1401400 + ce * 9585576 + cb * 8494200 in
     let check_l = r4 % 11 in
-    let integrity = if check_l == cl then "PASS" else "FAIL" in
-    dom_inner(result, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT MULTI-SCALE DECOMPOSITION</p><p style='color:#88ddaa;margin:4px 0'>Signal: " + "${v}" + " (mod 970200)</p><p style='color:#b0b0c0;margin:4px 0'>Z/8  (D-coarse):  " + "${cd}" + " / 8   — 12.5% resolution (emergency corrections)</p><p style='color:#b0b0c0;margin:4px 0'>Z/9  (K-medium):  " + "${ck}" + " / 9   — 11.1% resolution (mode switching)</p><p style='color:#b0b0c0;margin:4px 0'>Z/25 (E-fine):    " + "${ce}" + " / 25  — 4.0% resolution (tracking)</p><p style='color:#b0b0c0;margin:4px 0'>Z/49 (b-precise):  " + "${cb}" + " / 49  — 2.0% resolution (precision)</p><p style='color:#b0b0c0;margin:4px 0'>Z/11 (L-integrity): " + "${cl}" + " / 11  — actuator check</p><p style='color:#ffd700;margin:12px 0 4px'>L=11 INTEGRITY</p><p style='color:" + (if check_l == cl then "#44ff88" else "#ff4444") + ";margin:4px 0'>Reconstruct from 4 channels, check L: expected " + "${cl}" + ", got " + "${check_l}" + " — <b>" + integrity + "</b></p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Total control space: 8 x 9 x 25 x 49 x 11 = 970200 distinct states. ~20 bits with algebraic structure. CC0.</p></div>")
+    let check_g = r4 % 13 in
+    let ok_l = if check_l == cl then 1 else 0 in
+    let ok_g = if check_g == cg then 1 else 0 in
+    let integrity = if ok_l > 0 then if ok_g > 0 then "PASS" else "GATE FAIL" else "L FAIL" in
+    dom_inner(result, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT MULTI-SCALE DECOMPOSITION</p><p style='color:#88ddaa;margin:4px 0'>Signal: " + "${v}" + " (mod 12612600)</p><p style='color:#b0b0c0;margin:4px 0'>Z/8  (D-coarse):   " + "${cd}" + " / 8   — 12.5% resolution (emergency corrections)</p><p style='color:#b0b0c0;margin:4px 0'>Z/9  (K-medium):   " + "${ck}" + " / 9   — 11.1% resolution (mode switching)</p><p style='color:#b0b0c0;margin:4px 0'>Z/25 (E-fine):     " + "${ce}" + " / 25  — 4.0% resolution (tracking)</p><p style='color:#b0b0c0;margin:4px 0'>Z/49 (b-precise):  " + "${cb}" + " / 49  — 2.0% resolution (precision)</p><p style='color:#b0b0c0;margin:4px 0'>Z/11 (L-integrity): " + "${cl}" + " / 11  — error detection</p><p style='color:#b0b0c0;margin:4px 0'>Z/13 (GATE-skin):  " + "${cg}" + " / 13  — boundary check</p><p style='color:#ffd700;margin:12px 0 4px'>DUAL INTEGRITY (L=11 + GATE=13)</p><p style='color:" + (if ok_l > 0 then if ok_g > 0 then "#44ff88" else "#ff4444" else "#ff4444") + ";margin:4px 0'>L-check: expected " + "${cl}" + " got " + "${check_l}" + " | GATE-check: expected " + "${cg}" + " got " + "${check_g}" + " — <b>" + integrity + "</b></p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Total control space: 8 x 9 x 25 x 49 x 11 x 13 = 12612600 distinct states. ~23 bits with algebraic structure. CC0.</p></div>")
   )
 )
 
@@ -1012,8 +1014,8 @@ fn page_scaling() = (
   /* === SEC 6: CRT MULTI-SCALE CONTROL — absorbed from pid_demo.html (S1022) === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "CRT Multi-Scale Control");
-  render_p(sec6, "CRT decomposition turns a single control signal into 5 independent channels with DIFFERENT dynamic ranges. Each channel runs its own PID controller. The result: multi-scale control from one signal, fault tolerance by algebra, and L=11 actuator integrity -- for free.");
-  render_theorem(sec6, "CRT PID Principle (pid_demo.html, CC0)", "Standard PID: ONE control signal u(t) = Kp*e + Ki*integral + Kd*de/dt. CRT PID: decompose error into 5 channels, run 5 independent PIDs, reconstruct. Z/8 = coarse fast response (emergency). Z/9 = mode switching. Z/25 = fine tracking. Z/49 = precision. Z/11 = integrity check. Total: 970200 control states with algebraic structure.");
+  render_p(sec6, "CRT decomposition turns a single control signal into 6 independent channels with DIFFERENT dynamic ranges. Each channel runs its own PID controller. The result: multi-scale control from one signal, fault tolerance by algebra, and dual integrity (L=11 + GATE=13) -- for free.");
+  render_theorem(sec6, "CRT PID Principle (pid_demo.html, CC0)", "Standard PID: ONE control signal u(t) = Kp*e + Ki*integral + Kd*de/dt. CRT PID: decompose error into 6 channels, run 6 independent PIDs, reconstruct. Z/8 = coarse fast response (emergency). Z/9 = mode switching. Z/25 = fine tracking. Z/49 = precision. Z/11 = error detection. Z/13 = boundary check. Total: 12612600 control states with algebraic structure.");
   render_p(sec6, "Enter a control signal value. See its CRT multi-scale decomposition:");
   make_interactive_widget(sec6, "Control signal:", "pid-input", "e.g. 42", "Decompose", "pid_multiscale_calc", "pid-result");
   let g6 = make_findings_grid(sec6) in
@@ -1053,7 +1055,7 @@ fn page_scaling() = (
   render_contrast_row(sec7, "Kolmogorov", "-5/3 is an empirical turbulence law", "-E/K. Derived from Z/210Z Laplacian quotient ratio. Not empirical.");
   render_contrast_row(sec7, "Kleiber", "3/4 metabolic scaling is approximate", "K/D^2. Spectral gap of sigma. 0.4% agreement across 27 orders of magnitude.");
   render_contrast_row(sec7, "Dimensional solvability", "3D Ising unsolved, no structural reason known", "d=K=3 decomposes solvability. Irrational exponents at the closure dimension.");
-  render_contrast_row(sec7, "Control systems", "Standard PID: 1 controller, 1 resolution, 0 fault tolerance", "CRT PID: 5 independent channels, multi-scale, algebraic fault tolerance. L=11 = free actuator integrity.");
+  render_contrast_row(sec7, "Control systems", "Standard PID: 1 controller, 1 resolution, 0 fault tolerance", "CRT PID: 6 independent channels, multi-scale, algebraic fault tolerance. L=11 + GATE=13 = dual integrity.");
   dom_append(dom_body(), sec7)
 )
 

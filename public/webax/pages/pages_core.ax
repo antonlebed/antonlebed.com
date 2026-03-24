@@ -1163,7 +1163,7 @@ fn page_alpha() = (
    ECC PAGE — Error Correction for Free
    ================================================================ */
 
-/* ECC syndrome checker: show CRT + L-channel check */
+/* ECC syndrome checker: show CRT + L-channel check (TRUE ring, 6 channels) */
 fn ecc_syndrome_calc() = (
   let n = parse_int_from("#ecc-chk-input") in
   let result = dom_query("#ecc-chk-result") in
@@ -1174,16 +1174,20 @@ fn ecc_syndrome_calc() = (
     let ne = n % 25 in
     let nb = n % 49 in
     let nl = n % 11 in
-    /* Reconstruct from first 4 channels only */
-    /* CRT basis: e_D=363825, e_K=431200, e_E=853776, e_b=732600, e_L=529200 */
-    /* Data reconstruction: n_data = (nd*363825 + nk*431200 + ne*853776 + nb*732600) mod 970200 */
-    /* Then check: n_data mod 11 should equal nl */
-    let part = nd * 363825 + nk * 431200 + ne * 853776 + nb * 732600 in
-    let n_data = part % 970200 in
-    let check = n_data % 11 in
-    let ok = if check == nl then 1 else 0 in
-    let status = if ok > 0 then "<span style='color:#88ddaa'>INTACT</span> -- L-channel syndrome matches" else "<span style='color:#ff6666'>CORRUPTED</span> -- L-check failed" in
-    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>CRT: (<span style='color:#ff4040'>${nd}</span>, <span style='color:#ff9900'>${nk}</span>, <span style='color:#33dd55'>${ne}</span>, <span style='color:#4488ff'>${nb}</span>, <span style='color:#aa44ff'>${nl}</span>)</p><p style='margin:4px 0'>Data channels (D,K,E,b) reconstruct to: ${n_data}</p><p style='margin:4px 0'>L-check: ${n_data} mod 11 = ${check} vs stored ${nl} &mdash; ${status}</p>")
+    let ng = n % 13 in
+    /* Reconstruct from first 4 data channels only (D,K,E,b) */
+    /* TRUE ring idempotents: e_D=11036025, e_K=1401400, e_E=9585576, e_b=8494200, e_L=3439800, e_G=3880800 */
+    /* Data reconstruction: n_data = (nd*e_D + nk*e_K + ne*e_E + nb*e_b) mod 12612600 */
+    /* Then check: n_data mod 11 should equal nl, n_data mod 13 should equal ng */
+    let part = nd * 11036025 + nk * 1401400 + ne * 9585576 + nb * 8494200 in
+    let n_data = part % 12612600 in
+    let check_l = n_data % 11 in
+    let check_g = n_data % 13 in
+    let ok_l = if check_l == nl then 1 else 0 in
+    let ok_g = if check_g == ng then 1 else 0 in
+    let ok = if ok_l > 0 then if ok_g > 0 then 1 else 0 else 0 in
+    let status = if ok > 0 then "<span style='color:#88ddaa'>INTACT</span> -- L+GATE syndromes match" else if ok_l == 0 then "<span style='color:#ff6666'>CORRUPTED</span> -- L-check failed" else "<span style='color:#ff6666'>CORRUPTED</span> -- GATE-check failed" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>CRT: (<span style='color:#ff4040'>${nd}</span>, <span style='color:#ff9900'>${nk}</span>, <span style='color:#33dd55'>${ne}</span>, <span style='color:#4488ff'>${nb}</span>, <span style='color:#aa44ff'>${nl}</span>, <span style='color:#ff88cc'>${ng}</span>)</p><p style='margin:4px 0'>Data channels (D,K,E,b) reconstruct to: ${n_data}</p><p style='margin:4px 0'>L-check: ${n_data} mod 11 = ${check_l} vs stored ${nl} | GATE-check: ${n_data} mod 13 = ${check_g} vs stored ${ng} &mdash; ${status}</p>")
   )
 )
 

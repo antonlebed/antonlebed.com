@@ -200,7 +200,7 @@ fn ground_condensation() = (
 
 /* ================================================================
    CRT HASH — absorbed from crt_hash_demo.html (S1021)
-   5-channel Feistel. 8 rounds. Pure ring arithmetic.
+   6-channel Feistel. 8 rounds. Pure ring arithmetic. TRUE ring.
    ================================================================ */
 
 fn crt_hash(n) = (
@@ -211,6 +211,7 @@ fn crt_hash(n) = (
   mut ch2 = x0 % 25;
   mut ch3 = x0 % 49;
   mut ch4 = x0 % 11;
+  mut ch5 = x0 % 13;
   mut rd = 0;
   while rd < 8 do (
     /* Per-channel mix: primitive root * self + cross-channel diffusion */
@@ -219,41 +220,43 @@ fn crt_hash(n) = (
     let a2 = (ch2 * 2 + ch3 + ch1 * 2 + rd + 1) % 25 in
     let a3 = (ch3 * 3 + ch4 + ch2 * 2 + rd + 1) % 49 in
     let a4 = (ch4 * 2 + ch0 + ch3 * 2 + rd + 1) % 11 in
+    let a5 = (ch5 * 2 + ch0 + ch4 * 2 + rd + 1) % 13 in
     /* Fold: CRT reconstruct + ring multiply + re-decompose */
-    let v = a0 * 363825 + a1 * 431200 + a2 * 853776 + a3 * 732600 + a4 * 529200 in
+    let v = a0 * 11036025 + a1 * 1401400 + a2 * 9585576 + a3 * 8494200 + a4 * 3439800 + a5 * 3880800 in
     let x1 = v * 137 + rd * 41 + n in
     mut ch0 = x1 % 8;
     mut ch1 = x1 % 9;
     mut ch2 = x1 % 25;
     mut ch3 = x1 % 49;
     mut ch4 = x1 % 11;
+    mut ch5 = x1 % 13;
     mut rd = rd + 1
   );
   /* Return final hash as reconstructed value */
-  ch0 * 363825 + ch1 * 431200 + ch2 * 853776 + ch3 * 732600 + ch4 * 529200
+  ch0 * 11036025 + ch1 * 1401400 + ch2 * 9585576 + ch3 * 8494200 + ch4 * 3439800 + ch5 * 3880800
 )
 
 fn hash_run() = (
   let n = parse_int_from("#hash-input") in
   let result_el = dom_query("#hash-result") in
   let h = crt_hash(n) in
-  let hd = h % 8 in let hk = h % 9 in let he = h % 25 in let hb = h % 49 in let hl = h % 11 in
+  let hd = h % 8 in let hk = h % 9 in let he = h % 25 in let hb = h % 49 in let hl = h % 11 in let hg = h % 13 in
   /* Hash n+1 to show avalanche */
   let h2 = crt_hash(n + 1) in
-  let h2d = h2 % 8 in let h2k = h2 % 9 in let h2e = h2 % 25 in let h2b = h2 % 49 in let h2l = h2 % 11 in
-  let diff = (if hd == h2d then 0 else 1) + (if hk == h2k then 0 else 1) + (if he == h2e then 0 else 1) + (if hb == h2b then 0 else 1) + (if hl == h2l then 0 else 1) in
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT HASH (8 rounds, 5-channel Feistel)</p><p style='color:#88ddaa;margin:4px 0'><b>hash(" + "${n}" + ") = " + "${h}" + "</b></p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${hd}" + ", " + "${hk}" + ", " + "${he}" + ", " + "${hb}" + ", " + "${hl}" + ")</p><p style='color:#ffd700;margin:12px 0 4px'>AVALANCHE TEST</p><p style='color:#88ddaa;margin:4px 0'>hash(" + "${n + 1}" + ") = " + "${h2}" + "</p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${h2d}" + ", " + "${h2k}" + ", " + "${h2e}" + ", " + "${h2b}" + ", " + "${h2l}" + ")</p><p style='color:" + (if diff > 3 then "#44ff88" else "#ff8844") + ";margin:4px 0'>Channels changed: <b>" + "${diff}" + "/5</b>" + (if diff > 3 then " — good diffusion" else "") + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Per-channel primitive root mixing + CRT fold. Pure ring arithmetic. No XOR, no bit shifts. CC0.</p></div>")
+  let h2d = h2 % 8 in let h2k = h2 % 9 in let h2e = h2 % 25 in let h2b = h2 % 49 in let h2l = h2 % 11 in let h2g = h2 % 13 in
+  let diff = (if hd == h2d then 0 else 1) + (if hk == h2k then 0 else 1) + (if he == h2e then 0 else 1) + (if hb == h2b then 0 else 1) + (if hl == h2l then 0 else 1) + (if hg == h2g then 0 else 1) in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT HASH (8 rounds, 6-channel Feistel)</p><p style='color:#88ddaa;margin:4px 0'><b>hash(" + "${n}" + ") = " + "${h}" + "</b></p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${hd}" + ", " + "${hk}" + ", " + "${he}" + ", " + "${hb}" + ", " + "${hl}" + ", " + "${hg}" + ")</p><p style='color:#ffd700;margin:12px 0 4px'>AVALANCHE TEST</p><p style='color:#88ddaa;margin:4px 0'>hash(" + "${n + 1}" + ") = " + "${h2}" + "</p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${h2d}" + ", " + "${h2k}" + ", " + "${h2e}" + ", " + "${h2b}" + ", " + "${h2l}" + ", " + "${h2g}" + ")</p><p style='color:" + (if diff > 4 then "#44ff88" else "#ff8844") + ";margin:4px 0'>Channels changed: <b>" + "${diff}" + "/6</b>" + (if diff > 4 then " — good diffusion" else "") + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Per-channel primitive root mixing + CRT fold. Pure ring arithmetic. No XOR, no bit shifts. CC0.</p></div>")
 )
 
 fn ground_hash() = (
   let sec = make_section("800px") in
   render_h2(sec, "CRT Hash Function");
-  render_p(sec, "CRT decomposition IS a hash function. Decompose into 5 independent channels, mix per-channel with primitive roots, fold through CRT reconstruction. 8 rounds. Pure ring arithmetic. The 5-channel structure gives 970200 distinct outputs with natural avalanche: changing 1 input affects ALL channels.");
-  render_theorem(sec, "CRT Hash Principle", "Every integer has a UNIQUE 5-dimensional CRT address. Per-channel mixing with generators {3,2,2,3,2} creates nonlinearity. Cross-channel addition (each channel absorbs 2 neighbors) creates diffusion. CRT reconstruction folds channels back to an integer, breaking the bijection. Re-decompose and repeat. After 8 rounds, no channel remembers the input alone.");
-  make_interactive_widget(sec, "Hash an integer (0-970199):", "hash-input", "e.g. 42", "Hash", "hash_run", "hash-result");
-  render_p(sec, "Try: 42 vs 43 (avalanche), 137 (ADDRESS), 606376 (OMEGA), 0 (void), 970199 (mirror).");
+  render_p(sec, "CRT decomposition IS a hash function. Decompose into 6 independent channels, mix per-channel with primitive roots, fold through CRT reconstruction. 8 rounds. Pure ring arithmetic. The 6-channel structure gives 12612600 distinct outputs with natural avalanche: changing 1 input affects ALL channels.");
+  render_theorem(sec, "CRT Hash Principle", "Every integer has a UNIQUE 6-dimensional CRT address. Per-channel mixing with generators {3,2,2,3,2,2} creates nonlinearity. Cross-channel addition (each channel absorbs 2 neighbors) creates diffusion. CRT reconstruction folds channels back to an integer, breaking the bijection. Re-decompose and repeat. After 8 rounds, no channel remembers the input alone.");
+  make_interactive_widget(sec, "Hash an integer (0-12612599):", "hash-input", "e.g. 42", "Hash", "hash_run", "hash-result");
+  render_p(sec, "Try: 42 vs 43 (avalanche), 137 (ADDRESS), 1576576 (OMEGA), 0 (void), 12612599 (mirror).");
   let g = make_findings_grid(sec) in
-  render_finding(g, "5 parallel lanes", "CRT decomposition", "Z/8 x Z/9 x Z/25 x Z/49 x Z/11 = 5 independent mixing networks. Each uses a different primitive root.", "");
+  render_finding(g, "6 parallel lanes", "CRT decomposition", "Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13 = 6 independent mixing networks. Each uses a different primitive root.", "");
   render_finding(g, "Cross diffusion", "Neighbor injection", "Each channel absorbs 2 neighbors per round. After 3 rounds, every channel has been influenced by every other.", "");
   render_finding(g, "CRT fold", "Bijection breaker", "Reconstruct to integer, multiply by 137 (ADDRESS), re-decompose. This scrambles the channel-to-integer mapping.", "");
   render_finding(g, "CC0", "No patents", "This hash function is public domain. The CRT structure IS the hash. No secret sauce needed.", "");
