@@ -287,36 +287,38 @@ fn rng_run() = (
   if seed < 1 then dom_inner(result_el, "<p style='color:#ff6666'>Enter a positive seed.</p>")
   else (
     /* Initialize state from seed via mixing */
-    mut s0 = (seed * 137 + 1) % 970200;
-    mut s1 = (seed * 42 + 7) % 970200;
+    mut s0 = (seed * 137 + 1) % 12612600;
+    mut s1 = (seed * 42 + 7) % 12612600;
     mut nums = "";
     mut first_out = 0;
     mut i = 0;
     while i < 20 do (
-      /* Decompose s0 into 5 CRT channels */
+      /* Decompose s0 into 6 CRT channels */
       let cd = s0 % 8 in
       let ck = s0 % 9 in
       let ce = s0 % 25 in
       let cb = s0 % 49 in
       let cl = s0 % 11 in
+      let cg = s0 % 13 in
       /* Per-channel mixing: multiply by primitive root + cross-channel term */
       let md = (cd * 3 + cl) % 8 in
       let mk = (ck * 2 + cd) % 9 in
       let mie = (ce * 2 + (ck * cb) % 25) % 25 in
       let mib = (cb * 3 + ce) % 49 in
       let ml = (cl * 2 + cb + cd) % 11 in
+      let mg = (cg * 2 + cl + cd) % 13 in
       /* CRT reconstruct via idempotents */
-      let out = (md * 363825 + mk * 431200 + mie * 853776 + mib * 732600 + ml * 529200) % 970200 in
+      let out = (md * 11036025 + mk * 1401400 + mie * 9585576 + mib * 8494200 + ml * 3439800 + mg * 3880800) % 12612600 in
       /* Advance state */
-      mut s1 = (s1 * 137 + out) % 970200;
-      mut s0 = (s0 + s1 + i * 7) % 970200;
+      mut s1 = (s1 * 137 + out) % 12612600;
+      mut s0 = (s0 + s1 + i * 7) % 12612600;
       if i == 0 then mut first_out = out else 0;
       mut nums = nums + (if i > 0 then ", " else "") + "${out}";
       mut i = i + 1
     );
     /* Channel decomposition of first output */
-    let fd = first_out % 8 in let fk = first_out % 9 in let fe = first_out % 25 in let ffb = first_out % 49 in let fl = first_out % 11 in
-    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT RANDOM NUMBERS (seed = " + "${seed}" + ")</p><p style='margin:4px 0;color:#b0b0c0;font-size:13px;word-break:break-all'>" + nums + "</p><p style='margin:4px 0;color:#b0b0c0'>First output CRT: (" + "${fd}" + "," + "${fk}" + "," + "${fe}" + "," + "${ffb}" + "," + "${fl}" + ") in (Z/8, Z/9, Z/25, Z/49, Z/11)</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>5 CRT channels mix independently via primitive roots. Cross-channel terms create nonlinear diffusion. Structural randomness from ring arithmetic.</p></div>")
+    let fd = first_out % 8 in let fk = first_out % 9 in let fe = first_out % 25 in let ffb = first_out % 49 in let fl = first_out % 11 in let fg = first_out % 13 in
+    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT RANDOM NUMBERS (seed = " + "${seed}" + ")</p><p style='margin:4px 0;color:#b0b0c0;font-size:13px;word-break:break-all'>" + nums + "</p><p style='margin:4px 0;color:#b0b0c0'>First output CRT: (" + "${fd}" + "," + "${fk}" + "," + "${fe}" + "," + "${ffb}" + "," + "${fl}" + "," + "${fg}" + ") in (Z/8, Z/9, Z/25, Z/49, Z/11, Z/13)</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>6 CRT channels mix independently via primitive roots. Cross-channel terms create nonlinear diffusion. Structural randomness from ring arithmetic.</p></div>")
   )
 )
 

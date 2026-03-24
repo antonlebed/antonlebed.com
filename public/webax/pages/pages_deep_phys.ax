@@ -12,35 +12,36 @@ fn omega_project_calc() = (
   let result = dom_query("#omega-result") in
   if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
   else (
-    /* OMEGA = 606376. n*OMEGA mod 970200 */
-    let omega = 606376 in
-    /* compute n*omega mod N using modular arithmetic */
-    /* n mod 8: D-channel of n */
+    /* OMEGA = 1576576. n*OMEGA mod 12612600 */
+    let omega = 1576576 in
+    /* compute n*omega mod N using CRT: OMEGA CRT = (0,1,1,1,1,1) */
     let nd = n % 8 in
     let nk = n % 9 in
     let ne = n % 25 in
     let nb = n % 49 in
     let nl = n % 11 in
-    /* OMEGA CRT = (0,1,1,1,1,1) in TRUE ring. Widget computes in DEEP (Z/970200). Projecting: (n*OMEGA) mod q = n_q * omega_q */
+    let ng = n % 13 in
+    /* Projecting: (n*OMEGA) per channel = n_q * omega_q. OMEGA=(0,1,1,1,1,1) */
     let pd = 0 in  /* D-channel always dies */
     let pk = nk in  /* K-channel: n*1 = n */
     let pe = ne in  /* E-channel: n*1 = n */
     let pb = nb in  /* b-channel: n*1 = n */
     let pl = nl in  /* L-channel: n*1 = n */
+    let pg = ng in  /* GATE-channel: n*1 = n */
     /* determine fate */
-    let fate = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then "FALL (kernel: completely annihilated)" else "PROJECT") else "PROJECT") else "PROJECT") else "PROJECT")
+    let fate = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then (if ng == 0 then "FALL (kernel: completely annihilated)" else "PROJECT") else "PROJECT") else "PROJECT") else "PROJECT") else "PROJECT")
       else "PROJECT" in
-    let fate2 = if n % 970200 == 0 then "FALL (kernel: completely annihilated)"
+    let fate2 = if n % 12612600 == 0 then "FALL (kernel: completely annihilated)"
       else if nd == 0 then "PLUG (already D-null, unchanged by projection)"
       else fate in
-    /* check if in kernel: n must be divisible by N/8 = 121275 ... no, kernel = {0, 121275, 242550, ...} = multiples of 121275 */
-    let in_kernel = if n % 121275 == 0 then 1 else 0 in
+    /* check if in kernel: n must be divisible by N/8 = 1576575 */
+    let in_kernel = if n % 1576575 == 0 then 1 else 0 in
     let fate_final = if in_kernel > 0 then "FALL (pure D-element, vanishes)"
       else if nd == 0 then "PLUG (D-channel already zero, unchanged)"
       else "PROJECT (D-channel stripped, structure preserved)" in
     dom_inner(result,
-      "<p style='color:#d8d8e0;margin:4px 0'>n = " + "${n}" + " &rarr; CRT(n) = (" + "${nd}" + ", " + "${nk}" + ", " + "${ne}" + ", " + "${nb}" + ", " + "${nl}" + ")</p>"
-      + "<p style='color:#d8d8e0;margin:4px 0'>n*OMEGA &rarr; CRT = (<span style='color:#ff6666'>0</span>, " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ")</p>"
+      "<p style='color:#d8d8e0;margin:4px 0'>n = " + "${n}" + " &rarr; CRT(n) = (" + "${nd}" + ", " + "${nk}" + ", " + "${ne}" + ", " + "${nb}" + ", " + "${nl}" + ", " + "${ng}" + ")</p>"
+      + "<p style='color:#d8d8e0;margin:4px 0'>n*OMEGA &rarr; CRT = (<span style='color:#ff6666'>0</span>, " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ", " + "${pg}" + ")</p>"
       + "<p style='color:#d8d8e0;margin:4px 0'>D-channel: <span style='color:#ff6666'>DEAD</span> (was " + "${nd}" + ")</p>"
       + "<p style='color:#d8d8e0;margin:4px 0'>Fate: <span style='color:#ffd700'>" + fate_final + "</span></p>")
   )
@@ -185,11 +186,11 @@ fn page_blackhole() = (
 fn gravastar_eos_calc() = (
   let n = parse_int_from("#grav-input") in
   let result = dom_query("#grav-result") in
-  /* classify n in Z/970200 by its ring-theoretic "equation of state" */
-  let nmod = n % 970200 in
+  /* classify n in Z/12612600 by its ring-theoretic "equation of state" */
+  let nmod = n % 12612600 in
   let region = if nmod == 0 then "VOID (w=0)"
     else if nmod == 1 then "SIGMA / SHELL (w=+1)"
-    else if nmod == 970199 then "MIRROR / INTERIOR (w=-1)"
+    else if nmod == 12612599 then "MIRROR / INTERIOR (w=-1)"
     else "" in
   /* compute CRT */
   let cd = nmod % 8 in
@@ -197,6 +198,7 @@ fn gravastar_eos_calc() = (
   let ce = nmod % 25 in
   let cb = nmod % 49 in
   let cl = nmod % 11 in
+  let cg = nmod % 13 in
   /* count zero channels */
   mut zeros = 0;
   if cd == 0 then (mut zeros = zeros + 1) else 0;
@@ -204,14 +206,15 @@ fn gravastar_eos_calc() = (
   if ce == 0 then (mut zeros = zeros + 1) else 0;
   if cb == 0 then (mut zeros = zeros + 1) else 0;
   if cl == 0 then (mut zeros = zeros + 1) else 0;
-  let classify = if zeros == 5 then "VOID (all channels dead)"
+  if cg == 0 then (mut zeros = zeros + 1) else 0;
+  let classify = if zeros == 6 then "VOID (all channels dead)"
     else if zeros == 0 then "UNIT (all channels alive, in the septum)"
     else "ZERO-DIVISOR (" + "${zeros}" + " dead channel" + (if zeros > 1 then "s" else "") + ")" in
   dom_inner(result,
-    "<p style='color:#d8d8e0;margin:4px 0'>n mod N = " + "${nmod}" + " &rarr; CRT = (" + "${cd}" + ", " + "${ck}" + ", " + "${ce}" + ", " + "${cb}" + ", " + "${cl}" + ")</p>"
+    "<p style='color:#d8d8e0;margin:4px 0'>n mod N = " + "${nmod}" + " &rarr; CRT = (" + "${cd}" + ", " + "${ck}" + ", " + "${ce}" + ", " + "${cb}" + ", " + "${cl}" + ", " + "${cg}" + ")</p>"
     + (if region == "" then "" else "<p style='color:#ffd700;margin:4px 0'>" + region + "</p>")
     + "<p style='color:#d8d8e0;margin:4px 0'>Classification: <span style='color:#ffd700'>" + classify + "</span></p>"
-    + "<p style='color:#b0b0c0;margin:4px 0'>Null channels: " + "${zeros}" + "/5</p>")
+    + "<p style='color:#b0b0c0;margin:4px 0'>Null channels: " + "${zeros}" + "/6</p>")
 )
 
 fn page_gravastar() = (
