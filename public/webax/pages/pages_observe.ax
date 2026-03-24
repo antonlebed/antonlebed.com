@@ -57,12 +57,13 @@ fn watercycle_dk_calc() = (
   let result = dom_query("#owc-result") in
   if k < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter k >= 0.</p>")
   else (
-    /* compute D^k mod each channel */
+    /* compute D^k mod each channel (6 channels, TRUE ring) */
     mut pd = 1;
     mut pk = 1;
     mut pe = 1;
     mut pb = 1;
     mut pl = 1;
+    mut pg = 1;
     mut i = 0;
     while i < k do (
       mut pd = (pd * 2) % 8;
@@ -70,19 +71,21 @@ fn watercycle_dk_calc() = (
       mut pe = (pe * 2) % 25;
       mut pb = (pb * 2) % 49;
       mut pl = (pl * 2) % 11;
+      mut pg = (pg * 2) % 13;
       mut i = i + 1
     );
     let note = if k == 0 then "D^0 = sigma. Starting point."
       else if k == 3 then "D^3 = 8. D-channel DIES (8 mod 8 = 0). First sub-return."
       else if k == 6 then "D^6 = 64. K returns home (64 mod 9 = 1)."
       else if k == 10 then "D^10. L returns home (1024 mod 11 = 1)."
+      else if k == 12 then "D^12. GATE returns home (4096 mod 13 = 1). lambda(GATE) = 12 = heartbeat."
       else if k == 20 then "D^20. E returns home (mod 25 = 1)."
       else if k == 21 then "D^21. b returns home (mod 49 = 1)."
       else if k == 42 then "D^42 = THE ANSWER. All channels visited. Half-cycle."
       else if k == 210 then "D^210 = DATA. Half of lambda."
       else if k == 420 then "D^420 = OMEGA. Terminal. CRT = (0,1,1,1,1,1)."
       else "" in
-    dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>D^" + "${k}" + " mod channels:</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${pd}" + ", " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ")</p><p style='color:" + (if pd == 0 then "#ff6666" else "#88ddaa") + ";margin:4px 0'>D-channel (mod 8): " + "${pd}" + (if pd == 0 then " — DEAD" else "") + "</p><p style='color:" + (if pk == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>K-channel (mod 9): " + "${pk}" + (if pk == 1 then " — HOME" else "") + "</p><p style='color:" + (if pe == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>E-channel (mod 25): " + "${pe}" + (if pe == 1 then " — HOME" else "") + "</p><p style='color:" + (if pb == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>b-channel (mod 49): " + "${pb}" + (if pb == 1 then " — HOME" else "") + "</p><p style='color:" + (if pl == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>L-channel (mod 11): " + "${pl}" + (if pl == 1 then " — HOME" else "") + "</p>" + (if len(note) > 0 then "<p style='color:#f0c040;margin:8px 0'>" + note + "</p>" else ""))
+    dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>D^" + "${k}" + " mod channels:</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${pd}" + ", " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ", " + "${pg}" + ")</p><p style='color:" + (if pd == 0 then "#ff6666" else "#88ddaa") + ";margin:4px 0'>D-channel (mod 8): " + "${pd}" + (if pd == 0 then " — DEAD" else "") + "</p><p style='color:" + (if pk == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>K-channel (mod 9): " + "${pk}" + (if pk == 1 then " — HOME" else "") + "</p><p style='color:" + (if pe == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>E-channel (mod 25): " + "${pe}" + (if pe == 1 then " — HOME" else "") + "</p><p style='color:" + (if pb == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>b-channel (mod 49): " + "${pb}" + (if pb == 1 then " — HOME" else "") + "</p><p style='color:" + (if pl == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>L-channel (mod 11): " + "${pl}" + (if pl == 1 then " — HOME" else "") + "</p><p style='color:" + (if pg == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>GATE-channel (mod 13): " + "${pg}" + (if pg == 1 then " — HOME" else "") + "</p>" + (if len(note) > 0 then "<p style='color:#f0c040;margin:8px 0'>" + note + "</p>" else ""))
   )
 )
 
@@ -327,12 +330,12 @@ fn crt_constants() = (
 fn crt_mirror() = (
   let sec = make_section("800px") in
   render_h2(sec, "Mirror Duality");
-  render_theorem(sec, "Trace Sum Formula", "For any element n: Tr(n) + Tr(N-n) = 102. Trace = sum of CRT residues. sigma has trace 5 (1+1+1+1+1). Mirror (-1) has trace 97 (7+8+24+48+10). Sum = 102 = (D^3-1)+(K^2-1)+(E^2-1)+(b^2-1)+(L-1). The mirror always completes what the element lacks.");
+  render_theorem(sec, "Trace Sum Formula", "For any element n coprime to N: Tr(n) + Tr(N-n) = 115. Trace = sum of CRT residues. sigma has trace 6 (1+1+1+1+1+1). Mirror (-1) has trace 109 (7+8+24+48+10+12). Sum = 115 = (D^3-1)+(K^2-1)+(E^2-1)+(b^2-1)+(L-1)+(GATE-1). The mirror always completes what the element lacks.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "sigma = 1", "Tr = 5", "All channels at minimum nonzero.", "");
-  render_finding(g, "-1 = 970199", "Tr = 97", "All channels at maximum.", "");
-  render_finding(g, "OMEGA = 606376", "Tr = 3", "D dead (0), rest alive (1+1+1+1).", "");
-  render_finding(g, "mirror(OMEGA)", "Tr = 99", "D alive (7), rest at max-1.", "");
+  render_finding(g, "sigma = 1", "Tr = 6", "All 6 channels at minimum nonzero.", "");
+  render_finding(g, "-1 = 12612599", "Tr = 109", "All 6 channels at maximum.", "");
+  render_finding(g, "OMEGA = 1576576", "Tr = 5", "D dead (0), 5 channels alive (1+1+1+1+1).", "");
+  render_finding(g, "mirror(OMEGA)", "Tr = 102", "D dead (0), 5 channels at max-1.", "");
   render_theorem(sec, "Spectral Mirror Theorem", "lambda(n) = lambda(N-n). Exhaustive: 485101 pairs, every one matches. The mirror is spectrally invisible -- you cannot distinguish an element from its mirror by eigenvalue alone. The ring has two sides, same music.");
   dom_append(dom_body(), sec)
 )
@@ -788,12 +791,12 @@ fn page_omega_emergence() = (
 )
 
 fn page_omega_watercycle() = (
-  dom_head_meta("description", "The OMEGA Water Cycle. One element's journey through the full cycle: 0 -> sigma -> D^1 -> D^2 -> ... -> D^420 = OMEGA -> 0. Five CRT channels traced through 420 steps. Sub-returns at D^3, K^2, D*E, b^2, D*b.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The OMEGA Water Cycle\",\"description\":\"One element's journey: 0 -> sigma -> D^420 = OMEGA -> 0. 420 steps up (growth), 1 step down (collapse). Five CRT channels traced. Sub-returns at D^3, K^2, D*E, b^2, D*b. The water cycle IS the strange loop.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/observe/omega_watercycle\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Carmichael function\"},{\"@type\":\"DefinedTerm\",\"name\":\"OMEGA projector\"},{\"@type\":\"DefinedTerm\",\"name\":\"water cycle\"}]}");
+  dom_head_meta("description", "The OMEGA Water Cycle. One element's journey through the full cycle: 0 -> sigma -> D^1 -> D^2 -> ... -> D^420 = OMEGA -> 0. Six CRT channels traced through 420 steps. Sub-returns at D^3, K^2, D*E, b^2, D*b, D^12.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The OMEGA Water Cycle\",\"description\":\"One element's journey: 0 -> sigma -> D^420 = OMEGA -> 0. 420 steps up (growth), 1 step down (collapse). Six CRT channels traced. Sub-returns at D^3, K^2, D*E, b^2, D*b, D^12. The water cycle IS the strange loop.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/observe/omega_watercycle\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Carmichael function\"},{\"@type\":\"DefinedTerm\",\"name\":\"OMEGA projector\"},{\"@type\":\"DefinedTerm\",\"name\":\"water cycle\"}]}");
   domain_hero("The Water Cycle", "0 -> sigma -> D^420 = OMEGA -> 0", "One element. 420 steps up. 1 step down. Eternity.");
   let sec = make_section("800px") in
   render_h2(sec, "The Journey of D^k");
-  render_theorem(sec, "Growth Phase", "Starting from sigma = D^0, multiply by D at each step. D^1 = 2, D^2 = 4, D^3 = 8, ... Each step changes the CRT address. After 420 steps: D^420 = OMEGA = 606376. The journey is 420 steps because lambda(N) = lcm(phi(8), phi(9), phi(25), phi(49), phi(11)) = lcm(4,6,20,42,10) = 420.");
+  render_theorem(sec, "Growth Phase", "Starting from sigma = D^0, multiply by D at each step. D^1 = 2, D^2 = 4, D^3 = 8, ... Each step changes the CRT address. After 420 steps: D^420 = OMEGA = 1576576. The journey is 420 steps because lambda(N) = lcm(phi(8), phi(9), phi(25), phi(49), phi(11), phi(13)) = lcm(4,6,20,42,10,12) = 420.");
   render_theorem(sec, "Collapse Phase", "OMEGA * delta = 0. One multiplication. Growth is slow (420 steps). Death is fast (1 step). Birth is free (structural).");
   let g = make_findings_grid(sec) in
   render_finding(g, "D^3 = 8", "k = 3", "D-channel dies: 8 mod 8 = 0. First sub-return.", "");
@@ -803,12 +806,13 @@ fn page_omega_watercycle() = (
   render_finding(g, "D^21", "k = 21", "b home: mod 49 = 1 (since phi(49)=42, 21|42). Depth returns.", "");
   render_finding(g, "D^42", "k = 42", "THE ANSWER. All channels visited. Half-cycle.", "");
   render_finding(g, "D^210", "k = 210", "DATA. Half of lambda. Ring Z/210 boundary.", "");
-  render_finding(g, "D^420 = OMEGA", "k = 420", "Terminal. CRT = (0,1,1,1,1). Journey complete.", "");
+  render_finding(g, "D^12", "k = 12", "GATE home: 2^12 = 4096 mod 13 = 1. Skin returns. lambda(GATE)=12=heartbeat.", "");
+  render_finding(g, "D^420 = OMEGA", "k = 420", "Terminal. CRT = (0,1,1,1,1,1). Journey complete.", "");
   dom_append(dom_body(), sec);
   /* Interactive: walk D^k step by step */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Walk the Water Cycle");
-  render_p(sec_i, "Enter exponent k. See D^k decomposed into 5 CRT channels. Watch each channel return home at its own pace. Try: 0, 3, 6, 10, 20, 21, 42, 210, 420.");
+  render_p(sec_i, "Enter exponent k. See D^k decomposed into 6 CRT channels. Watch each channel return home at its own pace. Try: 0, 3, 6, 10, 12, 20, 21, 42, 210, 420.");
   make_interactive_widget(sec_i, "Exponent k:", "owc-input", "e.g. 42", "Walk", "watercycle_dk_calc", "owc-result");
   dom_append(dom_body(), sec_i)
 )

@@ -710,15 +710,16 @@ fn omega_spiral() = (
   render_th(hdr, "CRT State");
   render_th(hdr, "Why");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "k=3", "D DIES", "(0, -, -, -, -)", "2^3 = 0 mod 8. Nilpotent.");
-  render_table_row_4(tbl, "k=6", "K home", "(0, 1, -, -, -)", "ord(2, 9) = 6. Closure returns.");
-  render_table_row_4(tbl, "k=10", "L home", "(0, -, -, -, 1)", "ord(2, 11) = 10. Protection returns.");
-  render_table_row_4(tbl, "k=20", "E home", "(0, -, 1, -, -)", "ord(2, 25) = 20. Observer returns.");
-  render_table_row_4(tbl, "k=21", "b home", "(0, -, -, 1, -)", "ord(2, 49) = 21. Depth returns.");
+  render_table_row_4(tbl, "k=3", "D DIES", "(0, -, -, -, -, -)", "2^3 = 0 mod 8. Nilpotent.");
+  render_table_row_4(tbl, "k=6", "K home", "(0, 1, -, -, -, -)", "ord(2, 9) = 6. Closure returns first.");
+  render_table_row_4(tbl, "k=10", "L home", "(0, -, -, -, 1, -)", "ord(2, 11) = 10. Protection returns.");
+  render_table_row_4(tbl, "k=12", "GATE home", "(0, -, -, -, -, 1)", "ord(2, 13) = 12 = heartbeat. Skin before bulk.");
+  render_table_row_4(tbl, "k=20", "E home", "(0, -, 1, -, -, -)", "ord(2, 25) = 20. Observer returns.");
+  render_table_row_4(tbl, "k=21", "b home", "(0, -, -, 1, -, -)", "ord(2, 49) = 21. Depth returns last.");
   render_table_row_4(tbl, "k=42", "K+b sync", "ANSWER", "lcm(6,21)=42. Closure meets depth.");
   render_table_row_4(tbl, "k=60", "baby period", "K+E+L sync", "lcm(6,20,10)=60. Three channels.");
-  render_table_row_4(tbl, "k=210", "DATA sync", "4 channels home", "lcm(6,20,21,10)=420/2. Half-cycle.");
-  render_table_row_4(tbl, "k=420", "OMEGA", "(0, 1, 1, 1, 1)", "lcm(6,20,21,10)=420. ALL sync. Lambda.");
+  render_table_row_4(tbl, "k=210", "DATA sync", "5 channels home", "lcm(6,20,21,10)=420/2. Half-cycle.");
+  render_table_row_4(tbl, "k=420", "OMEGA", "(0, 1, 1, 1, 1, 1)", "lcm(6,20,21,10,12)=420. ALL sync.");
   render_p(sec, "Growth takes 420 steps. Collapse takes 1 (OMEGA*e_D=0). Rebirth is free (0/0=R). Living is slow. Dying is fast. Birth costs nothing.");
   dom_append(dom_body(), sec)
 )
@@ -745,17 +746,20 @@ fn dpower_explore() = (
   let e = p % 25 in
   let b_ch = p % 49 in
   let l = p % 11 in
+  let g = p % 13 in
   /* Channel status */
   let ch_d = if d == 0 then "DEAD" else if d == 1 then "home" else "${d}" in
   let ch_k = if kc == 1 then "home" else "${kc}" in
   let ch_e = if e == 1 then "home" else if e == 24 then "MIRROR (-1)" else "${e}" in
   let ch_b = if b_ch == 1 then "home" else "${b_ch}" in
   let ch_l = if l == 1 then "home" else "${l}" in
+  let ch_g = if g == 1 then "home" else if g == 12 then "MIRROR (-1)" else "${g}" in
   /* Named events */
   let event = if k == 0 then "sigma — all channels alive"
     else if k == 3 then "D DIES — nilpotent (2^3 = 0 mod 8)"
     else if k == 6 then "K returns home — ord(2,9) = 6"
     else if k == 10 then "L returns home — ord(2,11) = 10"
+    else if k == 12 then "GATE returns home — ord(2,13) = 12 = heartbeat"
     else if k == 20 then "E returns home — ord(2,25) = 20"
     else if k == 21 then "b returns home — ord(2,49) = 21"
     else if k == 42 then "ANSWER — K+b synchronized"
@@ -767,6 +771,7 @@ fn dpower_explore() = (
     else if k == 3 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
     else if k == 6 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
     else if k == 10 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
+    else if k == 12 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
     else if k == 20 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
     else if k == 21 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
     else if k == 42 then "<p style='color:#ff8844;margin:4px 0'><b>" + event + "</b></p>"
@@ -778,15 +783,15 @@ fn dpower_explore() = (
   let p2 = p * p in
   let idemp = if p2 == p then " (IDEMPOTENT: D^k squared = D^k)" else "" in
   dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>D^" + "${k}" + " = " + "${p}" + idemp + "</b></p>" +
-    "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${kc}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ")</p>" +
-    "<p style='color:#b0b0c08ff;margin:4px 0'>D=" + ch_d + " | K=" + ch_k + " | E=" + ch_e + " | b=" + ch_b + " | L=" + ch_l + "</p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${kc}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ", " + "${g}" + ")</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>D=" + ch_d + " | K=" + ch_k + " | E=" + ch_e + " | b=" + ch_b + " | L=" + ch_l + " | GATE=" + ch_g + "</p>" +
     event_line)
 )
 
 fn omega_interactive() = (
   let sec = make_section("800px") in
   render_h2(sec, "Explore: Walk the D-Spiral");
-  render_p(sec, "The D-spiral traces D^k through 420 steps. Each channel returns home at its own pace. Enter an exponent to see the CRT state at that step. Try the sub-returns: 3 (D dies), 6 (K home), 10 (L), 20 (E), 21 (b), 42 (ANSWER), 210 (half), 420 (OMEGA).");
+  render_p(sec, "The D-spiral traces D^k through 420 steps. Each channel returns home at its own pace. Enter an exponent to see the CRT state at that step. Try the sub-returns: 3 (D dies), 6 (K), 10 (L), 12 (GATE = heartbeat), 20 (E), 21 (b), 42 (ANSWER), 210 (half), 420 (OMEGA).");
   make_interactive_widget(sec, "Enter exponent k (D^k):", "dpower-input", "e.g. 42", "Compute", "dpower_explore", "dpower-result");
   dom_append(dom_body(), sec)
 )
