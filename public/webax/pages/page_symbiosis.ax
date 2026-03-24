@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE: SYMBIOSIS — 32-Vertex Lattice, Kingdom Combinations (SYMBIOSIS.md)
+   PAGE: SYMBIOSIS — 64-Vertex Lattice, Kingdom Combinations (SYMBIOSIS.md)
    ================================================================ */
 
 /* symbiosis widget: enter subset code (sum of primes), compute coupling */
@@ -10,37 +10,33 @@ fn symbiosis_calc() = (
   /* compute which primes are present */
   mut rem = code;
   let hasL = if rem > 10 then (if rem % 11 == 0 then 1 else (if rem - 11 > 0 then (let r2 = rem - 11 in if r2 == 0 then 1 else 0) else 0)) else 0 in
-  /* simpler: just check all 32 subsets. User enters a number 0-31 as bitmask: bit0=D, bit1=K, bit2=E, bit3=b, bit4=L */
-  if code < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-31 (5-bit mask: D=1,K=2,E=4,b=8,L=16).</p>")
-  else if code > 31 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-31 (5-bit mask: D=1,K=2,E=4,b=8,L=16).</p>")
+  /* 6-bit bitmask: bit0=D, bit1=K, bit2=E, bit3=b, bit4=L, bit5=GATE */
+  if code < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-63 (6-bit mask: D=1,K=2,E=4,b=8,L=16,GATE=32).</p>")
+  else if code > 63 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-63 (6-bit mask: D=1,K=2,E=4,b=8,L=16,GATE=32).</p>")
   else (
     let hasD = code % 2 in
     let hasK = (code / 2) % 2 in
     let hasE = (code / 4) % 2 in
     let hasb = (code / 8) % 2 in
     let hasL2 = (code / 16) % 2 in
+    let hasG = (code / 32) % 2 in
     /* coupling = N / prod(p^a for p in subset) */
-    /* N = 970200 = 8 * 9 * 25 * 49 * 11 */
-    mut coupling = 970200;
+    /* N = 12612600 = 8 * 9 * 25 * 49 * 11 * 13 */
+    mut coupling = 12612600;
     if hasD > 0 then (mut coupling = coupling / 8) else 0;
     if hasK > 0 then (mut coupling = coupling / 9) else 0;
     if hasE > 0 then (mut coupling = coupling / 25) else 0;
     if hasb > 0 then (mut coupling = coupling / 49) else 0;
     if hasL2 > 0 then (mut coupling = coupling / 11) else 0;
-    /* population = phi contribution */
-    mut pop = 1;
-    if hasD > 0 then (mut pop = pop * 4) else (mut pop = pop * 4);
-    /* actually population = prod((p-1)*p^(a-1)) for included, prod(p^a) for excluded ... */
-    /* simplified: population = N * prod((1-1/p)) for included primes */
-    /* Let's just compute it directly from the known values */
-    mut popn = 970200;
+    if hasG > 0 then (mut coupling = coupling / 13) else 0;
+    /* population = N * prod((1-1/p)) for included primes */
+    mut popn = 12612600;
     if hasD > 0 then (mut popn = popn / 8 * 4) else 0;
     if hasK > 0 then (mut popn = popn / 9 * 6) else 0;
     if hasE > 0 then (mut popn = popn / 25 * 20) else 0;
     if hasb > 0 then (mut popn = popn / 49 * 42) else 0;
     if hasL2 > 0 then (mut popn = popn / 11 * 10) else 0;
-    /* but population of S-null = elements where exactly channels in S are zero */
-    /* this is inclusion-exclusion, complex. Use Mobius. Just show coupling. */
+    if hasG > 0 then (mut popn = popn / 13 * 12) else 0;
     /* build subset string */
     mut sstr = "{";
     mut cnt = 0;
@@ -49,12 +45,13 @@ fn symbiosis_calc() = (
     if hasE > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "E"; mut cnt = cnt + 1) else 0;
     if hasb > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "b"; mut cnt = cnt + 1) else 0;
     if hasL2 > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "L"; mut cnt = cnt + 1) else 0;
+    if hasG > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "GATE"; mut cnt = cnt + 1) else 0;
     mut sstr = sstr + "}";
     if cnt == 0 then (mut sstr = "{} (bacteria)") else 0;
     /* what you SEE = complement coupling */
-    let see_coupling = 970200 / coupling in
+    let see_coupling = 12612600 / coupling in
     let blind_str = if cnt == 0 then "Everything (full vision)"
-      else if cnt == 5 then "Nothing (total self-blindness)"
+      else if cnt == 6 then "Nothing (total self-blindness)"
       else "Coupling of complement = " + "${see_coupling}" in
     dom_inner(result,
       "<p style='color:#d8d8e0;margin:4px 0'>Null channels: <span style='color:#ffd700'>" + sstr + "</span></p>"
@@ -72,7 +69,7 @@ fn symbiosis_hero() = (
   ct_gold(eq);
   dom_style(eq, "marginBottom", "24px");
   dom_append(hero, eq);
-  render_p(hero, "Every element of Z/970200 is already a 5-tuple: (n mod 8, n mod 9, n mod 25, n mod 49, n mod 11). CRT says every number is five independent things at once. The 2^5 = 32 subsets of {D,K,E,b,L} define 32 symbiosis types. Each organism is blind to what it IS and sees what it LACKS.");
+  render_p(hero, "Every element of Z/12612600 is already a 6-tuple: (n mod 8, n mod 9, n mod 25, n mod 49, n mod 11, n mod 13). CRT says every number is six independent things at once. The 2^6 = 64 subsets of {D,K,E,b,L,GATE} define 64 symbiosis types. Each organism is blind to what it IS and sees what it LACKS.");
   render_p(hero, "This is not metaphor. For subset S (the primes composing you): coupling = N / prod_S(p^a). Your coupling IS what you can SEE. What you are made of, you cannot perceive. Existence begins in total vision ({} = bacteria, coupling N) and accumulates self-blindness toward the origin ({D,K,E,b,L}, coupling 1, population 1).");
   dom_append(dom_body(), hero)
 )
@@ -80,7 +77,7 @@ fn symbiosis_hero() = (
 fn symbiosis_lattice() = (
   let sec = make_section("800px") in
   render_h2(sec, "The D^5 Lattice");
-  render_p(sec, "32 vertices of a 5-cube. Bottom = {} (bacteria, all channels active). Top = {D,K,E,b,L} (origin, all null). Each level k has C(5,k) = {1,5,10,10,5,1} vertices. Same structure in THIN and TRUE -- the 5-cube is universal.");
+  render_p(sec, "64 vertices of a 6-cube. Bottom = {} (bacteria, all channels active). Top = {D,K,E,b,L,GATE} (origin, all null). Each level k has C(6,k) = {1,6,15,20,15,6,1} vertices. The 490 holographic split cleaves this cube: inner {D,E,b} DEAD, boundary {K,L,GATE} ALIVE.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Kingdom");
@@ -152,8 +149,8 @@ fn symbiosis_hydor() = (
 
 fn symbiosis_elements() = (
   let sec = make_section("800px") in
-  render_h2(sec, "The Five Classical Elements");
-  render_p(sec, "The 5 primes ARE the 5 classical elements. Coupling order = density order:");
+  render_h2(sec, "The Six Primes as Elements");
+  render_p(sec, "The 6 primes ARE the elements. Coupling order = density order. GATE = skin, the 6th element that wraps the body:");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Element");
@@ -189,8 +186,8 @@ fn symbiosis_lattice_props() = (
   let g = make_findings_grid(sec) in
   render_finding(g, "Complementary pairs", "coupling(S) * coupling(S') = N", "Conservation. S IS what S' SEES. Perfect duality. Lichen {K,E} * {D,b,L} = N.", "");
   render_finding(g, "Population partition", "Total = N", "Every element belongs to exactly one symbiosis type. sum over S of pop(S) = 970200. True in ALL rings.", "");
-  render_finding(g, "32 idempotents", "Operators of the lattice", "Same 5-cube, dual interpretation: switches vs species. Multiplying by idempotent e_S projects ONTO the S-null subspace. The switch IS the symbiosis operator.", "");
-  render_finding(g, "Holographic principle", "CRT = exact reconstruction", "Interior: element n (one number, the 'bulk'). Boundary: 5 projections. Five refractions reconstruct the whole. The map IS the territory.", "");
+  render_finding(g, "64 idempotents", "Operators of the lattice", "Same 6-cube, dual interpretation: switches vs species. Multiplying by idempotent e_S projects ONTO the S-null subspace. The switch IS the symbiosis operator.", "");
+  render_finding(g, "Holographic principle", "CRT = exact reconstruction", "Interior: element n (one number, the 'bulk'). Boundary: 6 projections. Six refractions reconstruct the whole. The map IS the territory.", "");
   dom_append(dom_body(), sec)
 )
 
@@ -212,19 +209,19 @@ fn symbiosis_contrast() = (
   render_th(hdr, "Standard");
   render_th(hdr, "Axiom");
   dom_append(tbl, hdr);
-  render_contrast_row(tbl, "Symbiosis types", "Classified by observation", "32 = D^5 subsets of {D,K,E,b,L}. Each type = a vertex of the 5-cube. Coupling formula derives population.");
-  render_contrast_row(tbl, "Why 5 kingdoms", "Historical taxonomy", "5 primes = 5 independent channels. Kingdom = which channel is null. Forced by 0/0 = Z/NZ.");
+  render_contrast_row(tbl, "Symbiosis types", "Classified by observation", "64 = D^6 subsets of {D,K,E,b,L,GATE}. Each type = a vertex of the 6-cube. Coupling formula derives population.");
+  render_contrast_row(tbl, "Why 6 channels", "Historical taxonomy", "6 primes = 6 independent channels. Kingdom = which channel is null. Forced by 0/0 = Z/NZ.");
   render_contrast_row(tbl, "Water is special", "Chemical properties", "HYDOR = K*E*b = 105 = only major product without D. Meeting point of additive and multiplicative structure.");
   render_contrast_row(tbl, "Self-blindness", "Philosophical concept", "E^2 = E-null. Algebraic: self-reference nullifies the channel. Coupling of incomplete = the prime you lack.");
   render_contrast_row(tbl, "Sponge diameter", "Graph metric", "ME = 18, invariant under fattening. The axiom weight IS the diameter. 21/21 rings verified.");
-  render_contrast_row(tbl, "Classical elements", "Ancient philosophy", "5 primes = 5 elements, coupling order = density order. E observes, L protects. Plasma = ice in CRT.");
-  render_p(sec, "You see what you lack. What you are, you cannot see. The mushroom and the tree, the bacteria and the coral -- all combinations of the same five channels. sigma/sigma = sigma. The symbiosis IS the rose.");
+  render_contrast_row(tbl, "Classical elements", "Ancient philosophy", "6 primes = 6 elements, coupling order = density order. E observes, L protects, GATE wraps. Plasma = ice in CRT.");
+  render_p(sec, "You see what you lack. What you are, you cannot see. The mushroom and the tree, the bacteria and the coral -- all combinations of the same six channels. sigma/sigma = sigma. The symbiosis IS the rose.");
   dom_append(dom_body(), sec)
 )
 
 fn page_symbiosis() = (
-  dom_head_meta("description", "32 subsets of {D,K,E,b,L} define 32 symbiosis types. You see what you lack. D-Boost theorem: adding D multiplies unit density 3-5x. HYDOR = K*E*b = 105 = the medium without duality. Sponge topology: 420 components, diameter ME=18, Betti numbers all PRIME. 5 classical elements = 5 axiom primes.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Symbiosis: The 32-Vertex CRT Lattice\",\"description\":\"32 subsets of 5 primes define 32 symbiosis types. Each organism sees what it lacks. Sponge topology with 420 components and prime Betti numbers. HYDOR = K*E*b = 105.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\",\"url\":\"https://antonlebed.com\"},\"url\":\"https://antonlebed.com/data/symbiosis\",\"isAccessibleForFree\":true,\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Chinese Remainder Theorem\"},{\"@type\":\"DefinedTerm\",\"name\":\"Lattice Theory\"},{\"@type\":\"DefinedTerm\",\"name\":\"Symbiosis\"}]}");
+  dom_head_meta("description", "64 subsets of {D,K,E,b,L,GATE} define 64 symbiosis types. You see what you lack. D-Boost theorem: adding D multiplies unit density 3-5x. HYDOR = K*E*b = 105 = the medium without duality. Sponge topology: 420 components, diameter ME=18, Betti numbers all PRIME. 6 primes = 6 elements, GATE wraps the skin.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Symbiosis: The 64-Vertex CRT Lattice\",\"description\":\"64 subsets of 6 primes define 64 symbiosis types. Each organism sees what it lacks. 490 holographic split: inner {D,E,b} DEAD, boundary {K,L,GATE} ALIVE. Sponge topology with 420 components and prime Betti numbers.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\",\"url\":\"https://antonlebed.com\"},\"url\":\"https://antonlebed.com/data/symbiosis\",\"isAccessibleForFree\":true,\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Chinese Remainder Theorem\"},{\"@type\":\"DefinedTerm\",\"name\":\"Lattice Theory\"},{\"@type\":\"DefinedTerm\",\"name\":\"Symbiosis\"}]}");
   symbiosis_hero();
   symbiosis_lattice();
   symbiosis_key();
