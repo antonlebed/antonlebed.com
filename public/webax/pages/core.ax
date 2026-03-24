@@ -63,8 +63,9 @@ fn ct_kf_clouds() = (
 /* base styles: reset, scrollbar, body, links */
 fn ct_css_base() = "*{box-sizing:border-box}html{scroll-behavior:smooth;scrollbar-color:#1a1a3f #08080e;scrollbar-width:thin;background:#08080e;margin:0;padding:0;overflow-x:hidden;position:relative;z-index:0}html::before{content:'';position:fixed;top:-100px;left:-100px;right:-100px;bottom:-100px;background:radial-gradient(ellipse at 50% 40%,#12101e 0%,#0c0a16 30%,#08080e 70%);z-index:-1;pointer-events:none}body{color:#e0ddd5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}a{color:#88aaff}table{margin:0 auto;border-collapse:collapse}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080e}::-webkit-scrollbar-thumb{background:#1a1a3f;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2a2a5f}"
 
-/* star animation keyframes: fall + glow */
-fn ct_css_stars() = "@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}@keyframes glow{0%,100%{opacity:0.4}50%{opacity:1}}"
+/* star animation keyframes: fall + K=3 depth glow.
+   glow0=far(dim), glow1=mid, glow2=near(vivid). Ship of Theseus parallax. */
+fn ct_css_stars() = "@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}" + "@keyframes glow0{0%,100%{opacity:0.15}50%{opacity:0.45}}" + "@keyframes glow1{0%,100%{opacity:0.3}50%{opacity:0.75}}" + "@keyframes glow2{0%,100%{opacity:0.5}50%{opacity:1}}"
 
 /* moon pulse keyframe — b*K=21s cycle */
 fn ct_css_moon() = "@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}"
@@ -148,25 +149,34 @@ fn ct_star(c, i) = (
   let spawn = ry - (ry / 91) * 91 in
   let spawn_px = spawn * 3 + 20 in
   dom_style(star, "top", "-${spawn_px}px");
-  /* K=3 size layers */
+  /* K=3 depth layers: 0=far(cool,dim,slow), 1=mid, 2=near(warm,bright,fast)
+     Ship of Theseus parallax: fly through the mathematical cosmos.
+     Near stars zip past. Far stars crawl. Depth IS K=3 closure. */
   let layer = i - (i / 3) * 3 in
   let sz = layer + 1 in
   dom_style(star, "width", "${sz}px");
   dom_style(star, "height", "${sz}px");
   dom_style(star, "borderRadius", "50%");
-  dom_style(star, "background", "#c8d8ff");
+  /* color temperature: far=cool blue, mid=neutral, near=warm white */
+  let col = if layer == 0 then "#7788aa" else if layer == 1 then "#aabbdd" else "#dde8ff" in
+  dom_style(star, "background", col);
   let gr = sz * 4 in
-  dom_style(star, "boxShadow", "0 0 ${gr}px ${sz}px rgba(180,200,255,0.5)");
+  /* glow intensity: far=subtle, near=vivid */
+  let glow_a = if layer == 0 then "0.25" else if layer == 1 then "0.45" else "0.7" in
+  dom_style(star, "boxShadow", "0 0 ${gr}px ${sz}px rgba(180,200,255,${glow_a})");
   /* glow: (i*b) mod L + K = 3-13s */
   let d7 = i * 7 in
   let gd = d7 - (d7 / 11) * 11 in
   let glow_dur = gd + 3 in
-  /* fall: E^2 base + (i*D) mod E*b — 25-59s range */
+  /* fall: depth parallax — K=3 speed bands.
+     Layer 0(far): 50-84s. Layer 1(mid): 35-69s. Layer 2(near): 20-54s.
+     (2-layer)*15 = axiom-derived depth offset. */
   let fd = i * 2 in
   let fm = fd - (fd / 35) * 35 in
-  let fall_dur = 25 + fm in
+  let depth_slow = (2 - layer) * 15 in
+  let fall_dur = 20 + fm + depth_slow in
   let fall_delay = spawn / 6 in
-  dom_style(star, "animation", "glow ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear ${fall_delay}s infinite");
+  dom_style(star, "animation", "glow${layer} ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear ${fall_delay}s infinite");
   dom_append(c, star)
 )
 
