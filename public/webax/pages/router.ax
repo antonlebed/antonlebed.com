@@ -169,10 +169,20 @@ fn route() = (
   else route_deep(hash)
 )
 
-/* SPA navigate: clear content wrapper, re-render page.
+/* Arena mark: heap pointer saved after permanent elements.
+   SPA navigation resets to this point, reclaiming per-page strings.
+   All DOM strings are copied to JS on creation — safe to reclaim WASM copies. */
+let arena_mark = [0]
+
+/* Exported wrappers for JS-side arena reset (hp/set_hp are builtins, not exportable) */
+fn get_hp() = hp()
+fn reset_hp(v) = set_hp(v)
+
+/* SPA navigate: reset arena + clear content wrapper, re-render page.
    Called on link click (intercepted) and popstate (back/forward).
    Starfield + nav stay on real body — never destroyed. */
 fn on_navigate() = (
+  set_hp(arena_mark[0]);
   close_nav_dd();
   dom_inner(dom_body(), "");
   ct_moon(dom_body());
@@ -190,13 +200,15 @@ ct_clouds(dom_body());
 ct_wave(dom_body());
 render_nav();
 
-/* Phase 2: create content wrapper, redirect dom_body() to it */
+/* Phase 2: create content wrapper, redirect dom_body() to it.
+   Save arena mark HERE — everything after this is per-page, reclaimable. */
 let spa_root = dom_create("div") in
 dom_style(spa_root, "position", "relative");
 dom_style(spa_root, "zIndex", "1");
 dom_style(spa_root, "paddingTop", "52px");
 dom_append(dom_body(), spa_root);
 dom_set_root(spa_root);
+set(arena_mark, 0, hp());
 
 /* Phase 3: render page content (into wrapper via dom_body()) */
 ct_moon(dom_body());
