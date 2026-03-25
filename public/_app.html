@@ -7,7 +7,7 @@
 <body>
 <script>
 /* [DEAD] DOM import handlers -- JS side of WASM DOM imports */
-var _domId = 0, _dom = {0: document.body}, _rafActive = false, _spaBase = 0;
+var _domId = 0, _dom = {0: document.body}, _rafActive = false, _spaBase = 0, _qc = {};
 var _keys = {};
 window.addEventListener('keydown', function(e) { _keys[e.keyCode] = 1; if(e.keyCode>=37&&e.keyCode<=40||e.keyCode==32)e.preventDefault(); });
 window.addEventListener('keyup', function(e) { _keys[e.keyCode] = 0; });
@@ -57,7 +57,7 @@ function readStr(mem, ptr) {
     dom_on1: function(h, ep, fnp) { if (_dom[h]) { var e = rs(ep), f = rs(fnp); _dom[h].addEventListener(e, function(ev) { if (wasm.instance.exports[f]) wasm.instance.exports[f](ev.keyCode || ev.which || ev.button || 0); }); } return 0; },
     dom_on2: function(h, ep, fnp) { if (_dom[h]) { var e = rs(ep), f = rs(fnp); _dom[h].addEventListener(e, function(ev) { if (wasm.instance.exports[f]) wasm.instance.exports[f](ev.offsetX || 0, ev.offsetY || 0); }); } return 0; },
     dom_window: function(ep, fnp) { var e = rs(ep), f = rs(fnp); window.addEventListener(e, function() { if (wasm.instance.exports[f]) wasm.instance.exports[f](); }); return 0; },
-    dom_query: function(p) { var s = rs(p); try { var el = document.querySelector(s); } catch(e) { return -1; } if (el) { _dom[++_domId] = el; return _domId; } return -1; },
+    dom_query: function(p) { var s = rs(p); if (_qc[s] !== undefined && _dom[_qc[s]]) return _qc[s]; try { var el = document.querySelector(s); } catch(e) { return -1; } if (el) { _dom[++_domId] = el; _qc[s] = _domId; return _domId; } return -1; },
     dom_head_meta: function(np, vp) { var n = rs(np), v = rs(vp), ex = document.head.querySelector('meta[name="' + n + '"]'); if (ex) ex.content = v; else { var m = document.createElement('meta'); m.name = n; m.content = v; document.head.appendChild(m); } return 0; },
     get_hash: function() {
       /* Real URL routing: /category/page -> extract page slug */
@@ -110,9 +110,17 @@ function readStr(mem, ptr) {
     cliArgs: function() { return 0; },
     dom_set_root: function(h) { _dom[0] = _dom[h]; _spaBase = _domId; return 0; },
     dom_scroll: function() { return window.scrollY | 0; },
+    get_category: function() {
+      var parts = location.pathname.split('/').filter(Boolean);
+      var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
+      var ptr = 908000, m = new Int32Array(mem.buffer);
+      m[ptr/4] = c.length;
+      for (var i = 0; i < c.length; i++) m[ptr/4+1+i] = c.charCodeAt(i);
+      return ptr;
+    },
     dom_spa_init: function(fnp) {
       var f = rs(fnp);
-      function _spaClean() { _rafActive = false; for (var i = _spaBase + 1; i <= _domId; i++) delete _dom[i]; _domId = _spaBase; }
+      function _spaClean() { _rafActive = false; for (var i = _spaBase + 1; i <= _domId; i++) delete _dom[i]; _domId = _spaBase; _qc = {}; }
       document.addEventListener('click', function(e) {
         var a = e.target.closest('a[href]');
         if (!a) return;
@@ -122,11 +130,11 @@ function readStr(mem, ptr) {
         history.pushState(null, '', href);
         window.scrollTo(0, 0);
         _spaClean();
-        if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); }
+        try { if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); } } catch(e) { console.error('nav:', e); }
       });
       window.addEventListener('popstate', function() {
         _spaClean();
-        if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); }
+        try { if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); } } catch(e) { console.error('nav:', e); }
       });
       return 0;
     }
@@ -234,7 +242,8 @@ async function _replRun(code, el) {
       cliArgs:function(){return 0;},
       dom_set_root:function(){return 0;},
       dom_spa_init:function(){return 0;},
-      dom_scroll:function(){return 0;}
+      dom_scroll:function(){return 0;},
+      get_category:function(){return 0;}
     }});
     childMem = child.instance.exports.memory;
     child.instance.exports._main();

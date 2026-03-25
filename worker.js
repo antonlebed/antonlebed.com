@@ -138,7 +138,14 @@ export default {
         cliArgs: function() { return 0; },
         dom_set_root: function() { return 0; },
         dom_spa_init: function() { return 0; },
-        dom_scroll: function() { return 0; }
+        dom_scroll: function() { return 0; },
+        get_category: function() {
+          var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
+          var ptr = 908000, m = new Int32Array(mem.buffer);
+          m[ptr/4] = c.length;
+          for (var i = 0; i < c.length; i++) m[ptr/4+1+i] = c.charCodeAt(i);
+          return ptr;
+        }
       }});
 
       var inst = result.exports ? result : (result.instance || result);
