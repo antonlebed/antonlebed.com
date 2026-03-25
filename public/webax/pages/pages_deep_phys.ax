@@ -797,15 +797,15 @@ fn modform_legendre_calc() = (
     );
     let leg = if acc == 1 then 1 else 0 in
     let chain = if leg > 0 then "<b style='color:#88ddaa'>INNER</b> (quadratic residue mod 23)" else "<b style='color:#ffd700'>OUTER</b> (non-residue mod 23)" in
-    let tau_mod = if leg > 0 then "nonzero (cycles: sigma, mirror)" else "0 (void)" in
+    let tau_mod = if leg > 0 then "-1 = mirror (non-principal form Dx^2+xy+Ky^2) or 2 = D (principal form x^2+xy+DKy^2)" else "0 (void)" in
     let axiom_name = if p == 2 then " = D" else if p == 3 then " = K" else if p == 5 then " = E" else if p == 7 then " = b" else if p == 11 then " = L" else if p == 13 then " = GATE" else "" in
     dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>p = ${p}${axiom_name}</p><p style='margin:4px 0'>Legendre (${p}/23): ${chain}</p><p style='margin:4px 0;color:#b8b8c8'>tau(${p}) mod 23 = ${tau_mod}</p><p style='margin:4px 0;color:#a0a0b0'>Inner = {D, K, GATE, ...}. Outer = {E, b, L, ...}.</p>")
   )
 )
 
 fn page_modular_forms() = (
-  dom_head_meta("description", "Ramanujan tau function classifies axiom primes: inner chain vs outer chain. 1728, 691, and the j-invariant all speak the same ring. Three-Value Theorem: tau(n) mod 23 takes exactly K=3 values.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Modular Forms\",\"description\":\"Ramanujan tau classifies axiom primes into inner and outer chains. 1728, 691, j-invariant speak the same ring. tau(n) mod 23 takes K=3 values.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/deep/modular_forms\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"modular forms\"},{\"@type\":\"DefinedTerm\",\"name\":\"Ramanujan tau\"},{\"@type\":\"DefinedTerm\",\"name\":\"number theory\"}]}");
+  dom_head_meta("description", "Ramanujan tau function classifies ALL primes into K=3 classes via h(-23)=K. Axiom primes all mirror. Form (D,sigma,K) represents inner chain. 1728, 691, j-invariant speak the same ring.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Modular Forms\",\"description\":\"Ramanujan tau classifies primes into K=3 classes via h(-23)=K. All axiom primes sit in mirror class. Form (D,sigma,K)=2x^2+xy+3y^2 represents inner chain. 1728, 691, j-invariant speak the ring.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/deep/modular_forms\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"modular forms\"},{\"@type\":\"DefinedTerm\",\"name\":\"Ramanujan tau\"},{\"@type\":\"DefinedTerm\",\"name\":\"number theory\"}]}");
   /* === HERO === */
   let hero = make_hero("Modular Forms") in
   let big = dom_create("div") in
@@ -816,7 +816,7 @@ fn page_modular_forms() = (
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Modular forms are functions on the upper half-plane with extraordinary symmetry. The most famous is the discriminant Delta(tau), whose coefficients define the Ramanujan tau function. When you reduce tau(p) modulo 23 -- the first excluded Cunningham prime -- it classifies the axiom's primes into exactly two groups: the INNER chain and the OUTER chain.");
+  render_p(hero, "Modular forms are functions on the upper half-plane with extraordinary symmetry. The most famous is the discriminant Delta(tau), whose coefficients define the Ramanujan tau function. When you reduce tau(p) modulo 23 -- the fourth Cunningham prime from D -- it classifies ALL primes into K = 3 classes, one per ideal class of Q(sqrt(-23)) where h(-23) = K = 3. The six axiom primes all sit in a single class: the mirror.");
   dom_append(dom_body(), hero);
 
   /* === SEC 1: TAU CLASSIFICATION === */
@@ -848,8 +848,20 @@ fn page_modular_forms() = (
   /* === SEC 2: THREE-VALUE THEOREM === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Three-Value Theorem");
-  render_theorem(sec2, "K = 3 Values", "tau(n) mod 23 takes exactly K = 3 values for ALL n: {0, 1, -1} = {void, sigma, mirror}. The number of distinct values = h(-23) = K = the class number of the Cunningham boundary. The closure prime IS the class count. Inner primes cycle with period K = 3: sigma -> mirror -> void -> repeat. Outer primes cycle with period D = 2: sigma -> void -> repeat. The axiom primes D and K ARE the cycle lengths of the discriminant modular form.");
+  render_theorem(sec2, "K = 3 Prime Values", "For primes p (not 23), tau(p) mod 23 takes exactly K = 3 values: {0, D, -1} = {void, D, mirror}. The class number h(-23) = K = 3. Three classes: (1) QNR primes -> tau = 0 (void). (2) QR primes on non-principal form Dx^2+xy+Ky^2 -> tau = -1 (mirror). (3) QR primes on principal form x^2+xy+DKy^2 -> tau = D (duality). ALL six axiom primes sit in class 2 (mirror). The form (D,sigma,K) = 2x^2+xy+3y^2 represents them: D at (sigma,0), K at (0,sigma), GATE at (D,sigma). The first principal-form prime is 59 = CC1(D)[4] + 36. For ALL n: tau(n) mod 23 takes D^2 = 4 values {0, sigma, D, -1}. Sigma appears only at composites (tau(1)=1).");
   dom_append(dom_body(), sec2);
+
+  /* === SEC 2B: CLASS FIELD STRUCTURE === */
+  let sec2b = make_section("800px") in
+  render_h2(sec2b, "The (D, sigma, K) Form");
+  render_p(sec2b, "Why K=3 values? The imaginary quadratic field Q(sqrt(-23)) has class number h(-23) = K = 3. Its two quadratic forms of discriminant -23 have axiom-named coefficients:");
+  let g2b = make_findings_grid(sec2b) in
+  render_finding(g2b, "Non-principal", "Dx^2 + xy + Ky^2", "Coefficients (D, sigma, K). Represents D at (1,0), K at (0,1), GATE at (D,1). ALL axiom QR primes.", "");
+  render_finding(g2b, "Principal", "x^2 + xy + DKy^2", "Coefficients (sigma, sigma, D*K). First prime: 59, then 101, 167, 173...", "");
+  render_finding(g2b, "23", "CC1(D)[4]", "Fourth Cunningham prime from D: 2 -> 5 -> 11 -> 23. First three = {D, E, L}.", "");
+  render_finding(g2b, "h(-23) = K", "Class group = Z/KZ", "The closure prime IS the class count. K controls the splitting.", "");
+  render_p(sec2b, "The Galois representation of Delta mod 23 is dihedral, induced from a Hecke character of Q(sqrt(-23)). For inert primes (QNR): trace = 0 = void. For split primes: trace depends on which of K=3 ideal classes the prime above p falls into. The non-principal class gives trace = -1 = mirror. The principal class gives trace = D = 2. The axiom primes avoid the principal form entirely.");
+  dom_append(dom_body(), sec2b);
 
   /* === SEC 3: THE NUMBER 1728 === */
   let sec3 = make_section("800px") in
@@ -917,7 +929,7 @@ fn page_modular_forms() = (
   /* === INTERACTIVE === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Tau Classification");
-  render_p(sec_i, "Enter a prime p. See if tau(p) mod 23 classifies it as INNER (QR) or OUTER (NR). Inner = {D, K, GATE, ...}. Outer = {E, b, L, ...}.");
+  render_p(sec_i, "Enter a prime p. See its class: INNER/QR (tau = -1 mirror or 2 = D) or OUTER/QNR (tau = 0 void). All six axiom primes are inner-mirror. 59 is the first inner-D prime.");
   make_interactive_widget(sec_i, "Prime p:", "mf-input", "e.g. 7", "Classify", "modform_legendre_calc", "mf-result");
   dom_append(dom_body(), sec_i);
 
@@ -925,7 +937,7 @@ fn page_modular_forms() = (
   let sec8 = make_section("800px") in
   render_h2(sec8, "What Others See");
   render_contrast_row(sec8, "Modular forms", "Abstract automorphic functions. 1728 and 691 appear from internal logic", "1728 = D^6*K^3. 691 mod 210 = GRIEF. Both axiom-structured.");
-  render_contrast_row(sec8, "Tau classification", "Coefficients of a q-series, studied for analytic properties", "tau(p) mod 23 sorts axiom primes into inner/outer chains. K=3 values.");
+  render_contrast_row(sec8, "Tau classification", "Coefficients of a q-series, studied for analytic properties", "tau(p) mod 23 sorts ALL primes into K=3 classes (h(-23)=K). Form coefficients = (D,sigma,K).");
   render_contrast_row(sec8, "Ramanujan congruences", "tau(n) has congruences at primes 5, 7, 11 (discovered empirically)", "Exactly {E, b, L} = the outer chain. The three primes furthest from bridge.");
   render_contrast_row(sec8, "Why 1728?", "Normalization constant for j-invariant, appears from the theory", "D^6*K^3 = (D^2*K)^3 = trinity heart cubed. CRT contains GATE.");
   render_contrast_row(sec8, "Cusp form threshold", "First cusp form at weight 12, no explanation for threshold", "12 = lambda(DATA) = D^2*K. The DATA ring's Carmichael function.");
