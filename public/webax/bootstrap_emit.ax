@@ -4,6 +4,12 @@
    Dies when WASI DOM access ships in browsers.
    7 sections: head, loader(a,b,c), repl(a,b,c). */
 
+/* SSOT: ring constants for JS emit. Change HERE, propagates everywhere.
+   Used by bootstrap_emit.ax + worker_emit.ax (same compilation unit). */
+fn js_ring_n() = "12612600"
+fn js_ring_qs() = "[8,9,25,49,11,13]"
+fn js_ring_ps() = "[2,3,5,7,11,13]"
+
 fn boot_head() =
   "<!DOCTYPE html>\n"
   + "<!-- [DEAD] SCAFFOLDING -- dies when WASI DOM access ships in browsers.\n"
@@ -45,11 +51,11 @@ fn boot_loader_a() =
   + "    gvar: function() { return 0; }, svar: function() { return 0; },\n"
   + "    gvar_f: function() { return 0; }, svar_f: function() { return 0; },\n"
   + "    set_ring: function() { return 0; },\n"
-  + "    coupling: function(n) { var N=12612600; n=((n%N)+N)%N; function g(a,b){while(b){var t=b;b=a%b;a=t;}return a;} return N/g(n||N,N); },\n"
-  + "    kingdom: function(n) { var N=12612600; n=((n%N)+N)%N; if(n===0) return 0; var ps=[2,3,5,7,11,13]; for(var i=0;i<6;i++) if(n%ps[i]===0) return ps[i]; return 1; },\n"
-  + "    eigenvalue: function(n) { var N=12612600,qs=[8,9,25,49,11,13]; n=((n%N)+N)%N; var t=0; for(var i=0;i<6;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },\n"
-  + "    mirror: function(n) { return ((12612600-(n%12612600))%12612600); },\n"
-  + "    crt_r: function(n,c) { var qs=[8,9,25,49,11,13]; return ((n%12612600)+12612600)%12612600%qs[c]; },\n"
+  + "    coupling: function(n) { var N=${js_ring_n()}; n=((n%N)+N)%N; function g(a,b){while(b){var t=b;b=a%b;a=t;}return a;} return N/g(n||N,N); },\n"
+  + "    kingdom: function(n) { var N=${js_ring_n()}; n=((n%N)+N)%N; if(n===0) return 0; var ps=${js_ring_ps()}; for(var i=0;i<6;i++) if(n%ps[i]===0) return ps[i]; return 1; },\n"
+  + "    eigenvalue: function(n) { var N=${js_ring_n()},qs=${js_ring_qs()}; n=((n%N)+N)%N; var t=0; for(var i=0;i<6;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },\n"
+  + "    mirror: function(n) { var N=${js_ring_n()}; return ((N-(n%N))%N); },\n"
+  + "    crt_r: function(n,c) { var N=${js_ring_n()},qs=${js_ring_qs()}; return ((n%N)+N)%N%qs[c]; },\n"
   + "    rand: function(n) { return Math.floor(Math.random()*n); },\n"
   + "    grid: function() { return 0; }, gset: function() { return 0; },\n"
   + "    show_grid: function() { return 0; }, hflip: function() { return 0; },\n"
@@ -167,7 +173,7 @@ fn boot_repl_a() =
   "/* [DEAD] SCAFFOLDING -- REPL evaluation engine. Loads deep_ouroboros.wasm (compiler),\n"
   + "   compiles .ax source to WASM, instantiates, runs, captures output.\n"
   + "   Dies when .ax gets runtime evaluation. */\n"
-  + "var _cMod = null, _N = 12612600;\n"
+  + "var _cMod = null, _N = ${js_ring_n()};\n"
   + "function _gcd(a,b) { while(b) { var t = b; b = a % b; a = t; } return a; }\n"
   + "async function _replRun(code, el) {\n"
   + "  try {\n"
@@ -227,7 +233,7 @@ fn boot_repl_b() =
   + "      coupling: function(n) { n=((n%_N)+_N)%_N; return _N/_gcd(n||_N,_N); },\n"
   + "      kingdom: function(n) { n=((n%_N)+_N)%_N; if(n===0) return 0; var ps=[2,3,5,7,11,13]; for(var i=0;i<6;i++) if(n%ps[i]===0) return ps[i]; return 1; },\n"
   + "      eigenvalue: function(n) { n=((n%_N)+_N)%_N; var t=0; for(var i=0;i<6;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },\n"
-  + "      mirror: function(n) { return ((12612600-(n%12612600))%12612600); },\n"
+  + "      mirror: function(n) { return ((_N-(n%_N))%_N); },\n"
   + "      crt_r: function(n,c) { return ((n%_N)+_N)%_N%qs[c]; },\n"
   + "      rand:function(n){return Math.floor(Math.random()*n);},\n"
   + "      grid:function(){return 0;}, gset:function(){return 0;},\n"
