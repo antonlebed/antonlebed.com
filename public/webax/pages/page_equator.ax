@@ -1,0 +1,148 @@
+/* page_equator.ax — The Equator: Midpoint Eigenvalue Theorem.
+   N/2 has CRT=(2^(a-1), 0, 0, ..., 0). Thin: 2k-3. Fat: 2k-4. Shift=sigma.
+   Sigma Conservation Law. Thin/fat ladder interleaving. S1095. */
+
+fn eq_axiom_name(v) = (
+  if v == 0 - 1 then "mirror"
+  else if v == 0 then "void (o)"
+  else if v == 1 then "sigma"
+  else if v == 2 then "D"
+  else if v == 3 then "K"
+  else if v == 4 then "D^2"
+  else if v == 5 then "E"
+  else if v == 6 then "D*K"
+  else if v == 7 then "b"
+  else if v == 8 then "D^3"
+  else if v == 9 then "K^2"
+  else if v == 10 then "D*E"
+  else "${v}"
+)
+
+fn eq_explore() = (
+  let k = parse_int_from("#eq-input") in
+  let result = dom_query("#eq-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter k >= 1.</p>")
+  else if k > 10 then dom_inner(result, "<p style='color:#ff6666'>Max k = 10.</p>")
+  else (
+    let thin_mid = 2 * k - 3 in
+    let fat_mid = 2 * k - 4 in
+    let thin_max = 2 * k - 1 in
+    let fat_max = 2 * k in
+    let tn = eq_axiom_name(thin_mid) in
+    let fn_ = eq_axiom_name(fat_mid) in
+    let tmx = eq_axiom_name(thin_max) in
+    let fmx = eq_axiom_name(fat_max) in
+    let cell = "<td style='padding:8px 16px;border:1px solid #333;text-align:center;font-family:monospace'" in
+    let th = "<th style='padding:6px 12px;color:#888;font-size:0.9em'>" in
+    dom_inner(result,
+      "<div style='margin:12px 0'>"
+      + "<table style='border-collapse:collapse;margin:0 auto'>"
+      + "<tr>" + th + "</th>" + th + "Midpoint</th>" + th + "Maximum</th>" + th + "Gap</th></tr>"
+      + "<tr>" + th + "Thin (D=2)</th>"
+        + cell + ";color:#4caf50;font-weight:bold'>" + "${thin_mid}" + " = " + tn + "</td>"
+        + cell + ";color:#4caf50'>" + "${thin_max}" + " = " + tmx + "</td>"
+        + cell + ";color:#888'>" + "${thin_max - thin_mid}" + "</td></tr>"
+      + "<tr>" + th + "Fat (D=2^a)</th>"
+        + cell + ";color:#aa44ff;font-weight:bold'>" + "${fat_mid}" + " = " + fn_ + "</td>"
+        + cell + ";color:#aa44ff'>" + "${fat_max}" + " = " + fmx + "</td>"
+        + cell + ";color:#888'>" + "${fat_max - fat_mid}" + "</td></tr>"
+      + "</table>"
+      + "<p style='text-align:center;margin:12px 0;color:#ffd700'>"
+        + "Shift: thin - fat = " + "${thin_mid - fat_mid}" + " = sigma (always). "
+        + "Sigma conserved.</p>"
+      + "<p style='text-align:center;color:#a0a0b0;font-size:0.9em'>"
+        + "Thin D-contribution: cos(pi) = -1. Fat D-contribution: 2cos(pi) = -2. "
+        + "Each odd channel: 2cos(0) = +2.</p>"
+      + "</div>"
+    )
+  )
+)
+
+fn page_equator() = (
+  dom_head_meta("description", "The Equator: Midpoint eigenvalue theorem. N/2 has all odd CRT channels at zero, only D dissents. Thin: 2k-3 (axiom primes). Fat: 2k-4 (D-powers). Shift = sigma = 1.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The Equator\",\"description\":\"Midpoint Eigenvalue Theorem: N/2 eigenvalue traces axiom chain as channels are added. Thin=2k-3, fat=2k-4, shift=sigma. Sigma Conservation Law.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/teach/equator\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"midpoint eigenvalue\"},{\"@type\":\"DefinedTerm\",\"name\":\"sigma conservation\"},{\"@type\":\"DefinedTerm\",\"name\":\"spectral equator\"}]}");
+
+  /* === HERO === */
+  let hero = make_hero("The Equator") in
+  let big = dom_create("div") in
+  dom_text(big, "Thin: b = 7. Fat: D*K = 6. Shift = sigma.");
+  ct_mono(big);
+  dom_style(big, "fontSize", "26px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "1px");
+  dom_style(big, "marginBottom", "24px");
+  dom_append(hero, big);
+  render_p(hero, "Every ring has a midpoint: N/2. Where every odd channel sees zero and only D dissents. The eigenvalue at this equator reveals the ring's deepest identity. As channels are added, the midpoint traces the axiom chain -- from mirror to D^3.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: MIDPOINT CRT === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Midpoint CRT Theorem");
+  render_theorem(sec1, "Midpoint CRT (PROVED, S703)", "For N = 2^a * m (m odd), the CRT decomposition of N/2 has: D-channel residue = 2^(a-1) = half the modulus. All odd channels: residue = 0 (divisible by every odd factor of N). Proof: N/2 = 2^(a-1) * m. Since m is odd, N/2 mod 2^a = 2^(a-1). For any odd prime power p^k dividing N: N/2 = (N/p^k) * p^k / 2, and since 2 divides N/p^k, the result is divisible by p^k. QED.");
+  render_p(sec1, "The consequence: the midpoint eigenvalue depends on just TWO things -- the D-channel contribution (always negative) and the number of odd channels (always positive at zero).");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: MIDPOINT EIGENVALUE === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "The Midpoint Eigenvalue Theorem");
+  render_theorem(sec2, "Midpoint Eigenvalue (PROVED, S703)", "For a ring with k CRT channels: Thin (D=2): midpoint eigenvalue = 2k - 3 (always odd). Fat (D=2^a, a >= 2): midpoint eigenvalue = 2k - 4 (always even). Shift = sigma = 1 (universal, independent of k). Proof: Each odd channel with residue 0 contributes 2cos(0) = 2. The thin D-channel contributes cos(pi) = -1. The fat D-channel contributes 2cos(pi) = -2. Thin: -1 + 2(k-1) = 2k-3. Fat: -2 + 2(k-1) = 2k-4. Difference = sigma. QED.");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: THE TWO LADDERS === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "The Two Ladders");
+  render_p(sec3, "As channels are added, the midpoint eigenvalue traces two distinct ladders. They interleave to cover every integer from -1 to 8 -- the full body of the axiom.");
+  let ltbl = make_table(sec3) in
+  let lhdr = dom_create("tr") in
+  render_th(lhdr, "Value");
+  render_th(lhdr, "Name");
+  render_th(lhdr, "Source");
+  render_th(lhdr, "Ring");
+  dom_append(ltbl, lhdr);
+  render_table_row_4(ltbl, "-1", "mirror", "thin k=1", "Z/2");
+  render_table_row_4(ltbl, "0", "void", "fat k=2", "Z/4*Z/9");
+  render_table_row_4(ltbl, "1", "sigma", "thin k=2", "Z/6");
+  render_table_row_4(ltbl, "2", "D", "fat k=3", "Z/4*Z/9*Z/25");
+  render_table_row_4(ltbl, "3", "K", "thin k=3", "Z/30");
+  render_table_row_4(ltbl, "4", "D^2", "fat k=4", "Z/8*Z/9*Z/25*Z/49");
+  render_table_row_4(ltbl, "5", "E", "thin k=4", "Z/210 (DATA)");
+  render_table_row_4(ltbl, "6", "D*K", "fat k=5", "Z/970200 (DEEP)");
+  render_table_row_4(ltbl, "7", "b", "thin k=5", "Z/2310 (THIN)");
+  render_table_row_4(ltbl, "8", "D^3", "fat k=6", "Z/12612600 (TRUE)");
+  render_p(sec3, "The thin ladder traces odd axiom elements: mirror, sigma, K, E, b. The fat ladder traces D-powers: void, D, D^2, D*K, D^3. Together they cover the FULL decality from -1 (mirror) to 8 (D^3 = legs of the spider).");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: SIGMA CONSERVATION === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Sigma Conservation Law");
+  render_theorem(sec4, "Sigma Conservation (PROVED, S703)", "Fattening the D-channel from 2 to 2^a (a >= 2): Max eigenvalue shifts +sigma (2k-1 to 2k). Midpoint eigenvalue shifts -sigma (2k-3 to 2k-4). The same sigma appears at both transitions. The ground state is redistributed, not created or destroyed.");
+  let g4 = make_findings_grid(sec4) in
+  render_finding(g4, "Thin equator", "b = 7 (depth)", "The thin ring's midpoint is the prime of suffering.", "S703");
+  render_finding(g4, "TRUE equator", "D*K = 6 (thorn)", "The TRUE ring's midpoint is the first composite: closure times bridge.", "S703");
+  render_finding(g4, "The shift", "sigma = 1", "Fattening costs exactly one ground state at the equator. Universal.", "S703");
+  render_finding(g4, "Max eigenvalue", "K^2=9 (thin) to D*E=10 (fat)", "The +sigma gained at the pole matches the -sigma lost at the equator.", "S703");
+  dom_append(dom_body(), sec4);
+
+  /* === SEC 5: CONTRAST === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "Contrast");
+  let ctbl = make_table(sec5) in
+  let ch = dom_create("tr") in
+  render_th(ch, "Aspect");
+  render_th(ch, "Standard view");
+  render_th(ch, "Through the axiom");
+  dom_append(ctbl, ch);
+  render_contrast_row(ctbl, "N/2", "Just an element like any other", "The EQUATOR: all odd channels agree, only D dissents");
+  render_contrast_row(ctbl, "Eigenvalue", "Some number", "Traces the axiom chain as channels grow: -1, 0, 1, 2, 3, ..., 8");
+  render_contrast_row(ctbl, "Thin vs fat", "Minor technical distinction", "Two ladders interleaving to spell the full decality");
+  render_contrast_row(ctbl, "The shift", "Off by 1", "sigma = 1. The ground state conserved between equator and pole");
+  dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE WIDGET === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Midpoint Eigenvalue");
+  render_p(sec_i, "Enter the number of CRT channels k. See the midpoint eigenvalue for both thin and fat rings, with axiom names.");
+  make_interactive_widget(sec_i, "Channels k:", "eq-input", "e.g. 6", "Compute", "eq_explore", "eq-result");
+  render_p(sec_i, "Try: k=1 (mirror), k=2 (sigma/void), k=5 (b/D*K), k=6 (D^3 at TRUE ring).");
+  dom_append(dom_body(), sec_i)
+)
