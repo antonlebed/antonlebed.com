@@ -17,7 +17,7 @@ function readStr(mem, ptr) {
   return s;
 }
 (async function() {
-  var mem = null;
+  var mem = null, _hashPtr = 0, _valuePtr = 0, _catPtr = 0;
   function rs(p) { return readStr(mem, p); }
   var wasm = await WebAssembly.instantiate(await (await fetch('/site.wasm')).arrayBuffer(), { env: {
     show_int: function(v) { console.log(v); return v; },
@@ -65,7 +65,7 @@ function readStr(mem, ptr) {
       var h = parts.length >= 2 ? parts[parts.length - 1] : (parts[0] || 'home');
       /* Fallback: hash routing for backward compat */
       if (location.hash.length > 1) h = location.hash.slice(1);
-      var ptr = 900000;
+      var ptr = _hashPtr;
       var m = new Int32Array(mem.buffer);
       m[ptr/4] = h.length;
       for (var i = 0; i < h.length; i++) m[ptr/4+1+i] = h.charCodeAt(i);
@@ -73,7 +73,7 @@ function readStr(mem, ptr) {
     },
     dom_value: function(h) {
       var v = (_dom[h] && (_dom[h].value || _dom[h].textContent)) || '';
-      var ptr = 904000, m = new Int32Array(mem.buffer);
+      var ptr = _valuePtr, m = new Int32Array(mem.buffer);
       m[ptr/4] = v.length;
       for (var i = 0; i < v.length; i++) m[ptr/4+1+i] = v.charCodeAt(i);
       return ptr;
@@ -113,7 +113,7 @@ function readStr(mem, ptr) {
     get_category: function() {
       var parts = location.pathname.split('/').filter(Boolean);
       var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
-      var ptr = 908000, m = new Int32Array(mem.buffer);
+      var ptr = _catPtr, m = new Int32Array(mem.buffer);
       m[ptr/4] = c.length;
       for (var i = 0; i < c.length; i++) m[ptr/4+1+i] = c.charCodeAt(i);
       return ptr;
@@ -140,6 +140,9 @@ function readStr(mem, ptr) {
     }
   }});
   mem = wasm.instance.exports.memory;
+  _hashPtr = wasm.instance.exports.js_alloc(1024);
+  _valuePtr = wasm.instance.exports.js_alloc(1024);
+  _catPtr = wasm.instance.exports.js_alloc(256);
   /* Clear SSR content before WASM re-renders (SSR = crawler snapshot, browser = live) */
   document.body.innerHTML = '';
   _dom = {0: document.body};

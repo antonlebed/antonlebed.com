@@ -23,7 +23,7 @@ export default {
       var nid = 0;
       var nodes = { 0: { tag: 'body', ch: [], at: {}, st: {}, tx: '', ih: '' } };
       var metas = [];
-      var mem = null;
+      var mem = null, _hashPtr = 0, _catPtr = 0;
       var title = 'antonlebed.com';
 
       /* Extract route from URL path (matches bootstrap.html logic) */
@@ -107,7 +107,7 @@ export default {
           return 0;
         },
         get_hash: function() {
-          var ptr = 900000, m = new Int32Array(mem.buffer);
+          var ptr = _hashPtr, m = new Int32Array(mem.buffer);
           m[ptr / 4] = route.length;
           for (var i = 0; i < route.length; i++) m[ptr / 4 + 1 + i] = route.charCodeAt(i);
           return ptr;
@@ -141,7 +141,7 @@ export default {
         dom_scroll: function() { return 0; },
         get_category: function() {
           var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
-          var ptr = 908000, m = new Int32Array(mem.buffer);
+          var ptr = _catPtr, m = new Int32Array(mem.buffer);
           m[ptr/4] = c.length;
           for (var i = 0; i < c.length; i++) m[ptr/4+1+i] = c.charCodeAt(i);
           return ptr;
@@ -150,6 +150,8 @@ export default {
 
       var inst = result.exports ? result : (result.instance || result);
       mem = inst.exports.memory;
+      _hashPtr = inst.exports.js_alloc(1024);
+      _catPtr = inst.exports.js_alloc(256);
       inst.exports._main();
 
       /* ===== Serialize virtual DOM to HTML ===== */
