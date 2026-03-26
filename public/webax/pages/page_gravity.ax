@@ -1,0 +1,425 @@
+/* page_gravity.ax — Gravity as K-nesting vs D-force.
+   Interactive canvas: D vs K comparison, K-nesting merger, black hole formation.
+   Ported from gravity.html (613L JS). */
+
+/* ===== STATE ===== */
+let g_gctx = [0]
+let g_gframe = [0]
+let g_gscene = [0]
+let g_grun = [1]
+let g_gnbod = [0]
+/* Body storage: stride 7, max 20 bodies
+   [x_x100, y_x100, vx_x100, vy_x100, mass, radius_px, alive] */
+let g_bod = alloc(140)
+
+/* ===== MATH ===== */
+fn grav_isqrt(n) = (
+  if n <= 1 then n
+  else (
+    mut x = n;
+    mut y = (x + 1) / 2;
+    while y < x do (mut x = y; mut y = (x + n / x) / 2);
+    x
+  )
+)
+
+fn grav_abs(v) = if v < 0 then 0 - v else v
+
+fn grav_tri(t, period) = (
+  let half = period / 2 in
+  let phase = t % period in
+  if phase < half then phase * 100 / half
+  else (period - phase) * 100 / half
+)
+
+/* ===== BODY ACCESS (stride 7) ===== */
+fn gb(i, f) = g_bod[i * 7 + f]
+fn gbs(i, f, v) = set(g_bod, i * 7 + f, v)
+
+/* ===== INIT ===== */
+fn grav_init8() = (
+  set(g_gnbod, 0, 8);
+  let cx = 30000 in let cy = 20000 in let r = 14000 in
+  let cos8 = [100, 71, 0, 0-71, 0-100, 0-71, 0, 71] in
+  let sin8 = [0, 71, 100, 71, 0, 0-71, 0-100, 0-71] in
+  mut i = 0;
+  while i < 8 do (
+    let bx = cx + r * cos8[i] / 100 in
+    let by = cy + r * sin8[i] / 100 in
+    let tvx = 0 - sin8[i] * 2 in
+    let tvy = cos8[i] * 2 in
+    gbs(i, 0, bx); gbs(i, 1, by); gbs(i, 2, tvx); gbs(i, 3, tvy);
+    gbs(i, 4, 50 + i * 5); gbs(i, 5, 6); gbs(i, 6, 1);
+    mut i = i + 1
+  )
+)
+
+fn grav_init20() = (
+  set(g_gnbod, 0, 20);
+  let cx = 30000 in let cy = 20000 in
+  mut i = 0;
+  while i < 20 do (
+    let px = cx + ((i * 137 + 43) % 240 - 120) * 100 in
+    let py = cy + ((i * 89 + 71) % 180 - 90) * 100 in
+    let tvx = ((i * 53 + 17) % 40 - 20) * 3 in
+    let tvy = ((i * 41 + 29) % 40 - 20) * 3 in
+    gbs(i, 0, px); gbs(i, 1, py); gbs(i, 2, tvx); gbs(i, 3, tvy);
+    gbs(i, 4, 30 + (i % 5) * 10); gbs(i, 5, 5); gbs(i, 6, 1);
+    mut i = i + 1
+  )
+)
+
+/* ===== PHYSICS ===== */
+fn grav_physics(g_const) = (
+  let n = g_gnbod[0] in
+  /* Pairwise forces */
+  mut i = 0;
+  while i < n do (
+    if gb(i, 6) == 1 then (
+      mut j = i + 1;
+      while j < n do (
+        if gb(j, 6) == 1 then (
+          let dx_px = (gb(j, 0) - gb(i, 0)) / 100 in
+          let dy_px = (gb(j, 1) - gb(i, 1)) / 100 in
+          let dsq = dx_px * dx_px + dy_px * dy_px in
+          let dist = grav_isqrt(dsq) in
+          if dist < gb(i, 5) + gb(j, 5) then (
+            /* Merge: i absorbs j */
+            let mi = gb(i, 4) in let mj = gb(j, 4) in
+            let newm = mi + mj in
+            gbs(i, 4, newm);
+            gbs(i, 5, 4 + newm / 15);
+            let nvx = (gb(i, 2) * mi + gb(j, 2) * mj) / newm in
+            let nvy = (gb(i, 3) * mi + gb(j, 3) * mj) / newm in
+            gbs(i, 2, nvx); gbs(i, 3, nvy);
+            gbs(j, 6, 0)
+          ) else if dist > 2 then (
+            /* Gravity: 1/r^2 scaled for integer stability */
+            let denom = (dist + 5) * (dist + 5) in
+            let dvx = g_const * dx_px * 100 / denom in
+            let dvy = g_const * dy_px * 100 / denom in
+            gbs(i, 2, gb(i, 2) + dvx);
+            gbs(i, 3, gb(i, 3) + dvy);
+            gbs(j, 2, gb(j, 2) - dvx);
+            gbs(j, 3, gb(j, 3) - dvy)
+          ) else 0
+        ) else 0;
+        mut j = j + 1
+      )
+    ) else 0;
+    mut i = i + 1
+  );
+  /* Update positions + boundary bounce */
+  mut k = 0;
+  while k < n do (
+    if gb(k, 6) == 1 then (
+      gbs(k, 0, gb(k, 0) + gb(k, 2));
+      gbs(k, 1, gb(k, 1) + gb(k, 3));
+      if gb(k, 0) < 1000 then gbs(k, 2, grav_abs(gb(k, 2)))
+      else if gb(k, 0) > 59000 then gbs(k, 2, 0 - grav_abs(gb(k, 2)))
+      else 0;
+      if gb(k, 1) < 1000 then gbs(k, 3, grav_abs(gb(k, 3)))
+      else if gb(k, 1) > 39000 then gbs(k, 3, 0 - grav_abs(gb(k, 3)))
+      else 0
+    ) else 0;
+    mut k = k + 1
+  )
+)
+
+/* ===== DRAWING PRIMITIVES ===== */
+fn grav_triangle(ctx, x, y, r, col:str) = (
+  let _ss = cvs_strokestyle(ctx, col) in
+  let _lw = cvs_linewidth(ctx, 2) in
+  let _bp = cvs_beginpath(ctx) in
+  let _m = cvs_moveto(ctx, x, y - r) in
+  let _l1 = cvs_lineto(ctx, x - r * 87 / 100, y + r / 2) in
+  let _l2 = cvs_lineto(ctx, x + r * 87 / 100, y + r / 2) in
+  let _l3 = cvs_lineto(ctx, x, y - r) in
+  cvs_stroke(ctx)
+)
+
+fn grav_circle(ctx, x, y, r, col:str) = (
+  let _fs = cvs_fillstyle(ctx, col) in
+  let _bp = cvs_beginpath(ctx) in
+  let _ar = cvs_arc(ctx, x, y, r, 0, 36000) in
+  cvs_fill(ctx)
+)
+
+fn grav_count_alive() = (
+  let n = g_gnbod[0] in
+  mut cnt = 0;
+  mut i = 0;
+  while i < n do (
+    if gb(i, 6) == 1 then mut cnt = cnt + 1 else 0;
+    mut i = i + 1
+  );
+  cnt
+)
+
+fn grav_biggest() = (
+  let n = g_gnbod[0] in
+  mut best = 0;
+  mut best_m = 0;
+  mut i = 0;
+  while i < n do (
+    if gb(i, 6) == 1 then (
+      if gb(i, 4) > best_m then (mut best = i; mut best_m = gb(i, 4)) else 0
+    ) else 0;
+    mut i = i + 1
+  );
+  best
+)
+
+/* ===== SCENE 0: D vs K COMPARISON ===== */
+fn grav_draw_scene0(ctx, frame) = (
+  /* Left: D-force */
+  let _ft = cvs_font(ctx, "bold 14px Courier New") in
+  let _fs = cvs_fillstyle(ctx, "#6688ff") in
+  let _t1 = cvs_filltext(ctx, "D-FORCE (exchange)", 60, 40) in
+  grav_circle(ctx, 100, 200, 18, "#ff5555");
+  grav_circle(ctx, 200, 200, 18, "#6688ff");
+  /* Photon bouncing */
+  let frac = grav_tri(frame, 120) in
+  grav_circle(ctx, 100 + frac, 195, 4, "#ffd700");
+  /* Labels */
+  let _ft2 = cvs_font(ctx, "11px Courier New") in
+  let _fs2 = cvs_fillstyle(ctx, "#888") in
+  let _t2 = cvs_filltext(ctx, "Mediator: photon", 80, 260) in
+  let _t3 = cvs_filltext(ctx, "Can attract OR repel", 73, 278) in
+  let _t4 = cvs_filltext(ctx, "Distinguishes charge", 73, 296) in
+  /* Divider */
+  let _ss = cvs_strokestyle(ctx, "#333") in
+  let _lw = cvs_linewidth(ctx, 1) in
+  let _bp = cvs_beginpath(ctx) in
+  let _mv = cvs_moveto(ctx, 300, 20) in
+  let _ln = cvs_lineto(ctx, 300, 380) in
+  let _st = cvs_stroke(ctx) in
+  /* Right: K-force */
+  let _fs3 = cvs_fillstyle(ctx, "#44ff88") in
+  let _ft3 = cvs_font(ctx, "bold 14px Courier New") in
+  let _t5 = cvs_filltext(ctx, "K-FORCE (completion)", 355, 40) in
+  /* Two K-closures slowly approaching */
+  let approach = frame % 300 in
+  let off = if approach < 150 then approach / 15 else (300 - approach) / 15 in
+  grav_triangle(ctx, 380 + off, 200, 22, "#44ff88");
+  grav_triangle(ctx, 520 - off, 200, 22, "#44ff88");
+  /* Curved space lines */
+  let _ss2 = cvs_strokestyle(ctx, "rgba(68,255,136,0.2)") in
+  mut ln = 0;
+  while ln < 7 do (
+    let yoff = (ln - 3) * 12 in
+    let _bp2 = cvs_beginpath(ctx) in
+    let _mv2 = cvs_moveto(ctx, 405 + off, 200 + yoff) in
+    let _ln2 = cvs_lineto(ctx, 495 - off, 200 + yoff) in
+    let _st2 = cvs_stroke(ctx) in
+    mut ln = ln + 1
+  );
+  let _fs4 = cvs_fillstyle(ctx, "#888") in
+  let _ft4 = cvs_font(ctx, "11px Courier New") in
+  let _t6 = cvs_filltext(ctx, "No mediator needed", 380, 260) in
+  let _t7 = cvs_filltext(ctx, "Always completes", 380, 278) in
+  let _t8 = cvs_filltext(ctx, "IS the geometry", 380, 296) in
+  /* Bottom */
+  let _ft5 = cvs_font(ctx, "12px Courier New") in
+  let _fs5 = cvs_fillstyle(ctx, "#aaa") in
+  let _t9 = cvs_filltext(ctx, "Not 4 forces. D + K = 2 kinds.", 180, 365) in
+  let _fs6 = cvs_fillstyle(ctx, "#666") in
+  let _ft6 = cvs_font(ctx, "10px Courier New") in
+  cvs_filltext(ctx, "D distinguishes. K completes.", 190, 383)
+)
+
+/* ===== SCENE 1: K-NESTING ===== */
+fn grav_draw_scene1(ctx) = (
+  if g_grun[0] == 1 then grav_physics(5) else 0;
+  let n = g_gnbod[0] in
+  mut i = 0;
+  while i < n do (
+    if gb(i, 6) == 1 then (
+      let px = gb(i, 0) / 100 in
+      let py = gb(i, 1) / 100 in
+      let r = gb(i, 5) in
+      grav_triangle(ctx, px, py, r, "#44ff88");
+      grav_circle(ctx, px, py, r / 3 + 1, "rgba(68,255,136,0.3)")
+    ) else 0;
+    mut i = i + 1
+  );
+  let alive = grav_count_alive() in
+  let _ft = cvs_font(ctx, "12px Courier New") in
+  let _fs = cvs_fillstyle(ctx, "#aaa") in
+  cvs_filltext(ctx, "${alive} K-closures remaining (of 8)", 195, 25);
+  if alive == 1 then (
+    let _fs2 = cvs_fillstyle(ctx, "#ffd700") in
+    let _ft2 = cvs_font(ctx, "bold 14px Courier New") in
+    cvs_filltext(ctx, "All closures nested. One remains.", 150, 385)
+  ) else 0
+)
+
+/* ===== SCENE 2: BLACK HOLE ===== */
+fn grav_draw_scene2(ctx) = (
+  if g_grun[0] == 1 then grav_physics(10) else 0;
+  let n = g_gnbod[0] in
+  let big = grav_biggest() in
+  let big_m = gb(big, 4) in
+  mut i = 0;
+  while i < n do (
+    if gb(i, 6) == 1 then (
+      let px = gb(i, 0) / 100 in
+      let py = gb(i, 1) / 100 in
+      let r = gb(i, 5) in
+      if i == big then (
+        if big_m > 150 then (
+          grav_circle(ctx, px, py, r, "#000");
+          let _ss = cvs_strokestyle(ctx, "#ff4444") in
+          let _lw = cvs_linewidth(ctx, 2) in
+          let _bp = cvs_beginpath(ctx) in
+          let _ar = cvs_arc(ctx, px, py, r * 18 / 10, 0, 36000) in
+          let _st = cvs_stroke(ctx) in
+          let _ft = cvs_font(ctx, "10px Courier New") in
+          let _fs = cvs_fillstyle(ctx, "#ff4444") in
+          cvs_filltext(ctx, "event horizon", px - 40, py + r * 2 + 14);
+          cvs_filltext(ctx, "D -> 0", px - 15, py + r * 2 + 28)
+        ) else (
+          grav_circle(ctx, px, py, r, "#ff6644");
+          grav_triangle(ctx, px, py, r + 3, "#ff6644")
+        )
+      ) else grav_triangle(ctx, px, py, r, "#44ff88")
+    ) else 0;
+    mut i = i + 1
+  );
+  let alive = grav_count_alive() in
+  let _ft2 = cvs_font(ctx, "12px Courier New") in
+  let _fs2 = cvs_fillstyle(ctx, "#aaa") in
+  cvs_filltext(ctx, "${alive} bodies. Largest mass: ${big_m}", 195, 25);
+  if alive <= 2 then (
+    if big_m > 150 then (
+      let _fs3 = cvs_fillstyle(ctx, "#ff4444") in
+      let _ft3 = cvs_font(ctx, "bold 13px Courier New") in
+      cvs_filltext(ctx, "Maximum K-nesting. D dies at horizon.", 130, 370);
+      let _fs4 = cvs_fillstyle(ctx, "#888") in
+      let _ft4 = cvs_font(ctx, "11px Courier New") in
+      cvs_filltext(ctx, "OMEGA=(0,1,1,1,1,1). D dies, rest survives.", 115, 388)
+    ) else 0
+  ) else 0
+)
+
+/* ===== TICK ===== */
+fn gravity_tick() = (
+  let ctx = g_gctx[0] in
+  let frame = g_gframe[0] in
+  set(g_gframe, 0, frame + 1);
+  let _fs = cvs_fillstyle(ctx, "#0a0a14") in
+  let _cl = cvs_fillrect(ctx, 0, 0, 600, 400) in
+  let scene = g_gscene[0] in
+  if scene == 0 then grav_draw_scene0(ctx, frame)
+  else if scene == 1 then grav_draw_scene1(ctx)
+  else grav_draw_scene2(ctx);
+  0
+)
+
+/* ===== CONTROLS ===== */
+fn grav_scene0() = (set(g_gscene, 0, 0); set(g_gframe, 0, 0))
+fn grav_scene1() = (set(g_gscene, 0, 1); set(g_gframe, 0, 0); grav_init8())
+fn grav_scene2() = (set(g_gscene, 0, 2); set(g_gframe, 0, 0); grav_init20())
+fn grav_reset() = (
+  set(g_gframe, 0, 0);
+  let s = g_gscene[0] in
+  if s == 1 then grav_init8() else if s == 2 then grav_init20() else 0
+)
+fn grav_toggle() = (
+  set(g_grun, 0, if g_grun[0] == 1 then 0 else 1);
+  dom_text(dom_query("#grav-run"), if g_grun[0] == 1 then "Running" else "Paused")
+)
+
+/* ===== THEORY ===== */
+fn grav_theory() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "D vs K: Two Kinds of Operation");
+  render_contrast_row(sec, "Electromagnetic", "D-operation: photon exchange", "Distinguishes charge. Can attract or repel.");
+  render_contrast_row(sec, "Weak force", "D-operation: W/Z exchange", "Distinguishes flavor. Causes decay.");
+  render_contrast_row(sec, "Strong force", "D-operation: gluon exchange", "Distinguishes color. Confines via K-closure.");
+  render_contrast_row(sec, "Gravity", "K-operation: NO exchange", "Completion tendency. Always attracts. IS the geometry.");
+  dom_append(dom_body(), sec);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Why This Changes Everything");
+  render_contrast_row(sec2, "Why no graviton?", "Predicted but never found. Quantum gravity unresolved.", "K needs no mediator. Completion is intrinsic, not exchanged.");
+  render_contrast_row(sec2, "Why gravity is weak", "Hierarchy problem: 10^38 weaker than EM.", "Emergent from K-nesting. One closure = tiny tendency. Many = a planet.");
+  render_contrast_row(sec2, "Black holes", "Singularity (Penrose 1965). Information paradox.", "Maximum K-nesting. D -> 0. OMEGA = (0,1,1,1,1,1). Information survives in 5 channels.");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Ring Connection");
+  render_theorem(sec3, "K-Nesting as Gravity", "In Z/12612600Z, K=3 closures combine by multiplication. K^2 = 9 = the web. CRT(9) = (1,0,9,9,9,9): K-channel dead. Closure cannot see its own web. Bodies fall toward each other because their closures COMPLETE, not because a mediator forces them.");
+  render_theorem(sec3, "Black Hole as OMEGA", "OMEGA = D^420 = 1576576. CRT = (0,1,1,1,1,1). D-channel dies. Maximum K-nesting annihilates ALL distinguishing operations. What remains: five channels of pure structure. No-hair theorem: mass, charge, angular momentum ARE the surviving CRT channels.");
+  render_p(sec3, "The hierarchy problem dissolves: gravity is weak because it takes MANY K-closures nesting to produce measurable curvature. One K-closure changes almost nothing. A billion nested closures make a planet. Not mysteriously weak -- K-nesting is deep.");
+  dom_append(dom_body(), sec3)
+)
+
+/* ===== PAGE ===== */
+fn grav_btn(parent, label:str, bg:str, fg:str) = (
+  let btn = dom_create("button") in
+  dom_text(btn, label);
+  dom_style(btn, "padding", "8px 16px"); dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "background", bg); dom_style(btn, "color", fg);
+  dom_style(btn, "border", "none"); dom_style(btn, "borderRadius", "4px");
+  dom_style(btn, "fontFamily", "Courier New, monospace");
+  dom_append(parent, btn);
+  btn
+)
+
+fn page_gravity() = (
+  dom_head_meta("description", "Gravity as K-nesting. Interactive simulation: D-force exchanges particles, K-force completes closures. Not 4 forces but 2 kinds. N-body K-merger and black hole formation in Z/12612600Z.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Gravity\",\"description\":\"Gravity as K-nesting vs D-force. Interactive canvas simulation.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/deep/gravity\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"gravity\"},{\"@type\":\"DefinedTerm\",\"name\":\"K-nesting\"}]}");
+  /* Hero */
+  let hero = make_hero("Gravity") in
+  let eq = dom_create("div") in
+  dom_text(eq, "D-force != K-force");
+  ct_mono(eq); dom_style(eq, "fontSize", "24px"); ct_gold(eq);
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Standard physics has four forces and cannot find gravity's mediator. The axiom has two KINDS of operation: D (distinguishing, exchange) and K (completion, geometry). Gravity is not a force -- it is the tendency of K-closures to nest.");
+  dom_append(dom_body(), hero);
+  /* Canvas section */
+  let sec = make_section("800px") in
+  render_h2(sec, "Interactive Simulation");
+  render_p(sec, "Three scenes. D vs K shows the fundamental difference. K-Nesting runs an N-body simulation where triangular K-closures attract and merge. Black Hole increases gravity until maximum K-nesting forms.");
+  let btns = dom_create("div") in
+  dom_style(btns, "display", "flex");
+  dom_style(btns, "gap", "8px");
+  dom_style(btns, "flexWrap", "wrap");
+  dom_style(btns, "marginBottom", "12px");
+  let b1 = grav_btn(btns, "D vs K", "#ffd700", "#000") in
+  dom_on(b1, "click", "grav_scene0");
+  let b2 = grav_btn(btns, "K-Nesting", "#44ff88", "#000") in
+  dom_on(b2, "click", "grav_scene1");
+  let b3 = grav_btn(btns, "Black Hole", "#ff4444", "#fff") in
+  dom_on(b3, "click", "grav_scene2");
+  let run_btn = dom_create("button") in
+  dom_text(run_btn, "Running"); dom_attr(run_btn, "id", "grav-run");
+  dom_style(run_btn, "padding", "8px 16px"); dom_style(run_btn, "cursor", "pointer");
+  dom_style(run_btn, "background", "#333"); dom_style(run_btn, "color", "#fff");
+  dom_style(run_btn, "border", "1px solid #555"); dom_style(run_btn, "borderRadius", "4px");
+  dom_style(run_btn, "fontFamily", "Courier New, monospace");
+  dom_on(run_btn, "click", "grav_toggle");
+  dom_append(btns, run_btn);
+  let b5 = grav_btn(btns, "Reset", "#333", "#fff") in
+  dom_style(b5, "border", "1px solid #555");
+  dom_on(b5, "click", "grav_reset");
+  dom_append(sec, btns);
+  /* Canvas */
+  let cvs = dom_create("canvas") in
+  dom_attr(cvs, "id", "grav-canvas");
+  cvs_setsize(cvs, 600, 400);
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "background", "#0a0a14");
+  dom_style(cvs, "maxWidth", "100%");
+  dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_append(sec, cvs);
+  let ctx = cvs_getctx(cvs) in
+  set(g_gctx, 0, ctx);
+  set(g_gframe, 0, 0);
+  set(g_gscene, 0, 0);
+  set(g_grun, 0, 1);
+  dom_append(dom_body(), sec);
+  raf("gravity_tick");
+  grav_theory()
+)

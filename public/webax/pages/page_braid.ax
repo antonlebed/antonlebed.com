@@ -1,0 +1,282 @@
+/* Bitwise ops */
+fn b3_and(a, b) = (a % 2) * (b % 2) + ((a / 2) % 2) * ((b / 2) % 2) * 2 + ((a / 4) % 2) * ((b / 4) % 2) * 4
+fn b3_or(a, b) = (
+  let r0 = if (a % 2) + (b % 2) > 0 then 1 else 0 in
+  let r1 = if ((a / 2) % 2) + ((b / 2) % 2) > 0 then 1 else 0 in
+  let r2 = if ((a / 4) % 2) + ((b / 4) % 2) > 0 then 1 else 0 in
+  r0 + r1 * 2 + r2 * 4
+)
+fn b3_maj(a, b, c) = b3_or(b3_or(b3_and(a, b), b3_and(b, c)), b3_and(a, c))
+let g_bctx = [0]
+let g_bframe = [0]
+let g_btest = [0]
+let g_bpaused = [0]
+let g_bgen = [0]
+let g_blfsr = [42]
+let g_bagents = alloc(12)
+let g_bstats = alloc(7)
+let g_bhist = alloc(200)
+let g_bhlen = [0]
+
+fn br_lfsr() = (
+  let s = g_blfsr[0] in
+  let bit = ((s / 64) % 2 + (s / 32) % 2) % 2 in
+  let ns = (s * 2 + bit) % 128 in
+  let r = if ns == 0 then 1 else ns in
+  set(g_blfsr, 0, r); r
+)
+fn bra(i, f) = g_bagents[i * 4 + f]
+fn bras(i, f, v) = set(g_bagents, i * 4 + f, v)
+fn br_init() = (
+  set(g_blfsr, 0, 42 + g_bgen[0] * 7);
+  mut i = 0;
+  while i < 3 do (
+    let s0 = br_lfsr() % 8 in let sinf = br_lfsr() % 8 in
+    bras(i, 0, s0); bras(i, 1, s0); bras(i, 2, sinf); bras(i, 3, 64);
+    mut i = i + 1
+  )
+)
+fn br_project(i, env) = bras(i, 2, b3_maj(b3_and(bra(i, 1), bra(i, 0)), bra(i, 0), env))
+fn br_spatK() = b3_maj(bra(0, 0), bra(1, 0), bra(2, 0))
+fn br_tempK(i) = b3_maj(bra(i, 1), bra(i, 0), bra(i, 2))
+/* ===== HISTORY (max 28 entries, stride 4: spatial, temporal, agree, meta) ===== */
+fn br_hist(s, t, agr, m) = (
+  let n = g_bhlen[0] in
+  let idx = if n < 28 then n else 27 in
+  if n >= 28 then (
+    mut j = 0;
+    while j < 27 do (
+      set(g_bhist, j * 4, g_bhist[(j + 1) * 4]);
+      set(g_bhist, j * 4 + 1, g_bhist[(j + 1) * 4 + 1]);
+      set(g_bhist, j * 4 + 2, g_bhist[(j + 1) * 4 + 2]);
+      set(g_bhist, j * 4 + 3, g_bhist[(j + 1) * 4 + 3]);
+      mut j = j + 1
+    )
+  ) else set(g_bhlen, 0, n + 1);
+  set(g_bhist, idx * 4, s); set(g_bhist, idx * 4 + 1, t);
+  set(g_bhist, idx * 4 + 2, agr); set(g_bhist, idx * 4 + 3, m)
+)
+
+/* ===== STEP ===== */
+fn br_step_equiv() = (
+  let s = br_spatK() in
+  br_project(0, s); br_project(1, s); br_project(2, s);
+  let t = b3_maj(br_tempK(0), br_tempK(1), br_tempK(2)) in
+  let inj = if s == t then 1 else 0 in
+  mut i = 0;
+  while i < 3 do (bras(i, 0, b3_or(b3_maj(bra(i, 0), s, t), inj)); mut i = i + 1);
+  set(g_bstats, 3, g_bstats[3] + 1);
+  if s == 5 then set(g_bstats, 0, g_bstats[0] + 1) else 0;
+  if t == 5 then set(g_bstats, 1, g_bstats[1] + 1) else 0;
+  if s == t then set(g_bstats, 2, g_bstats[2] + 1) else 0;
+  br_hist(s, t, if s == t then 1 else 0, 0)
+)
+
+fn br_step_stack() = (
+  let s = br_spatK() in
+  br_project(0, s); br_project(1, s); br_project(2, s);
+  let t = b3_maj(br_tempK(0), br_tempK(1), br_tempK(2)) in
+  let meta = b3_or(b3_maj(s, t, b3_and(s, t)), if s == t then 1 else 0) in
+  bras(0, 0, meta); bras(1, 0, meta); bras(2, 0, meta);
+  set(g_bstats, 3, g_bstats[3] + 1);
+  if s == 5 then set(g_bstats, 0, g_bstats[0] + 1) else 0;
+  if t == 5 then set(g_bstats, 1, g_bstats[1] + 1) else 0;
+  if s == t then set(g_bstats, 2, g_bstats[2] + 1) else 0;
+  if meta == 5 then set(g_bstats, 4, g_bstats[4] + 1) else 0;
+  br_hist(s, t, if s == t then 1 else 0, meta)
+)
+
+fn br_step_nest() = (
+  br_step_equiv();
+  let k0 = (b3_maj(bra(0, 0), bra(1, 0), bra(2, 0)) / 4) % 2 in
+  let k1 = (b3_maj(b3_maj(bra(0, 0), bra(1, 0), bra(2, 0)),
+                    b3_maj(bra(1, 0), bra(2, 0), bra(0, 0)),
+                    b3_maj(bra(2, 0), bra(0, 0), bra(1, 0))) / 4) % 2 in
+  if k0 == 1 then (if k1 == 1 then set(g_bstats, 6, g_bstats[6] + 1) else 0)
+  else set(g_bstats, 6, g_bstats[6] + 1)
+)
+
+fn br_step() = (
+  set(g_bgen, 0, g_bgen[0] + 1);
+  let test = g_btest[0] in
+  if test == 0 then br_step_equiv()
+  else if test == 1 then br_step_stack()
+  else br_step_nest()
+)
+
+/* ===== DRAWING ===== */
+fn br_draw(ctx) = (
+  let n = g_bhlen[0] in
+  if n < 2 then 0
+  else (
+    let dx = 560 * 100 / n in
+    /* Spatial K strand */
+    let _ss = cvs_strokestyle(ctx, "#ffd700") in
+    let _lw = cvs_linewidth(ctx, 3) in
+    let _bp1 = cvs_beginpath(ctx) in
+    mut i = 0;
+    while i < n do (
+      let x = 20 + i * dx / 100 in
+      let y = 120 + g_bhist[i * 4] * 5 in
+      if i == 0 then let _m = cvs_moveto(ctx, x, y) in 0
+      else let _l = cvs_lineto(ctx, x, y) in 0;
+      mut i = i + 1
+    );
+    let _st1 = cvs_stroke(ctx) in
+    /* Temporal K strand */
+    let _ss2 = cvs_strokestyle(ctx, "#6688ff") in
+    let _bp2 = cvs_beginpath(ctx) in
+    mut i2 = 0;
+    while i2 < n do (
+      let x = 20 + i2 * dx / 100 in
+      let y = 180 + g_bhist[i2 * 4 + 1] * 5 in
+      if i2 == 0 then let _m = cvs_moveto(ctx, x, y) in 0
+      else let _l = cvs_lineto(ctx, x, y) in 0;
+      mut i2 = i2 + 1
+    );
+    let _st2 = cvs_stroke(ctx) in
+    /* Agreement dots */
+    mut i3 = 0;
+    while i3 < n do (
+      if g_bhist[i3 * 4 + 2] == 1 then (
+        let x = 20 + i3 * dx / 100 in
+        let _fs = cvs_fillstyle(ctx, "rgba(68,255,136,0.6)") in
+        let _bp3 = cvs_beginpath(ctx) in
+        let _ar = cvs_arc(ctx, x, 150, 3, 0, 36000) in
+        cvs_fill(ctx)
+      ) else 0;
+      mut i3 = i3 + 1
+    );
+    let _ft = cvs_font(ctx, "11px Courier New") in
+    let _fs2 = cvs_fillstyle(ctx, "#ffd700") in
+    let _t1 = cvs_filltext(ctx, "Spatial K (consensus NOW)", 20, 105) in
+    let _fs3 = cvs_fillstyle(ctx, "#6688ff") in
+    let _t2 = cvs_filltext(ctx, "Temporal K (persistence)", 20, 220) in
+    let _fs4 = cvs_fillstyle(ctx, "#44ff88") in
+    cvs_filltext(ctx, "Agreement points", 430, 152)
+  )
+)
+
+fn br_draw_stats(ctx) = (
+  let t = if g_bstats[3] == 0 then 1 else g_bstats[3] in
+  let _ft = cvs_font(ctx, "12px Courier New") in
+  let _fs = cvs_fillstyle(ctx, "#aaa") in
+  let _t1 = cvs_filltext(ctx, "Gen: ${g_bgen[0]}", 20, 280) in
+  let _fs2 = cvs_fillstyle(ctx, "#ffd700") in
+  let _t2 = cvs_filltext(ctx, "SP5: ${g_bstats[0] * 100 / t}%", 130, 280) in
+  let _fs3 = cvs_fillstyle(ctx, "#6688ff") in
+  let _t3 = cvs_filltext(ctx, "TP5: ${g_bstats[1] * 100 / t}%", 250, 280) in
+  let _fs4 = cvs_fillstyle(ctx, "#44ff88") in
+  cvs_filltext(ctx, "Agree: ${g_bstats[2] * 100 / t}%", 370, 280)
+)
+
+/* ===== CONTROLS ===== */
+fn br_reset() = (
+  set(g_bgen, 0, 0); set(g_bhlen, 0, 0);
+  mut s = 0; while s < 7 do (set(g_bstats, s, 0); mut s = s + 1);
+  br_init()
+)
+fn br_set_test(t) = (set(g_btest, 0, t); br_reset())
+fn br_test0() = br_set_test(0)
+fn br_test1() = br_set_test(1)
+fn br_test2() = br_set_test(2)
+fn br_toggle_pause() = (
+  set(g_bpaused, 0, if g_bpaused[0] == 1 then 0 else 1);
+  dom_text(dom_query("#br-pause"), if g_bpaused[0] == 1 then "Play" else "Pause")
+)
+fn br_do_reset() = br_reset()
+
+/* ===== TICK ===== */
+fn braid_tick() = (
+  let ctx = g_bctx[0] in
+  set(g_bframe, 0, g_bframe[0] + 1);
+  if g_bpaused[0] == 0 then (br_step(); br_step(); br_step(); br_step()) else 0;
+  let _fs = cvs_fillstyle(ctx, "#050510") in
+  let _cl = cvs_fillrect(ctx, 0, 0, 600, 300) in
+  let titles = ["EQUIVALENCE: Spatial K = Temporal K",
+                "STACKING: Spatial + Temporal = Meta",
+                "NESTING: K propagates through levels"] in
+  let _ft = cvs_font(ctx, "bold 14px Courier New") in
+  let _fs2 = cvs_fillstyle(ctx, "#ffd700") in
+  let _t = cvs_filltext(ctx, titles[g_btest[0]], 20, 25) in
+  br_draw(ctx);
+  br_draw_stats(ctx);
+  0
+)
+
+/* ===== THEORY ===== */
+fn br_theory() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "K=3 Braid Hypothesis");
+  render_contrast_row(sec, "Spatial K", "MAJ(agent A, agent B, agent C): what 3 observers agree on NOW.", "Consensus = closure = binding.");
+  render_contrast_row(sec, "Temporal K", "MAJ(origin, present, terminus): what persists across 3 moments.", "Persistence = the same majority operation.");
+  render_contrast_row(sec, "Equivalence", "Spatial K = Temporal K. They converge because MAJ = MAJ.", "Same operation, different framing.");
+  dom_append(dom_body(), sec);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "The Three Tests");
+  render_theorem(sec2, "Equivalence", "Three agents observe each other. Spatial K = MAJ of patterns. Temporal K = MAJ of origin/present/terminus. Both converge to the same attractors.");
+  render_theorem(sec2, "Stacking", "Stack spatial and temporal K. Meta-structure emerges from agreement. K creates K at the next level.");
+  render_theorem(sec2, "Nesting", "K at level 0 forces K at level 1, which forces K at level 2. Closure breeds closure. The braid propagates upward.");
+  render_p(sec2, "K=3 is the minimum for non-trivial braiding. Two strands merely twist; three strands weave. The braid group B_3 is infinite and non-abelian.");
+  dom_append(dom_body(), sec2)
+)
+
+/* ===== PAGE ===== */
+fn page_braid() = (
+  dom_head_meta("description", "K=3 Braid Hypothesis: spatial consensus equals temporal persistence. Interactive simulation.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The Braid\",\"description\":\"Spatial K equals temporal K. Interactive simulation.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/deep/braid\"}");
+  let hero = make_hero("The Braid") in
+  let eq = dom_create("div") in
+  dom_text(eq, "Spatial K = Temporal K");
+  ct_mono(eq); dom_style(eq, "fontSize", "24px"); ct_gold(eq);
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Three observers agreeing NOW is the same operation as one observer persisting across three moments. K=3: minimum for majority, minimum for braiding.");
+  dom_append(dom_body(), hero);
+  let sec = make_section("800px") in
+  render_h2(sec, "Interactive: Braid Tests");
+  render_p(sec, "Three tests. Equivalence shows convergence. Stacking creates meta-structure. Nesting propagates K upward.");
+  let tabs = dom_create("div") in
+  dom_style(tabs, "display", "flex"); dom_style(tabs, "gap", "6px"); dom_style(tabs, "marginBottom", "8px");
+  let t0 = dom_create("button") in dom_text(t0, "Equivalence");
+  dom_style(t0, "padding", "6px 14px"); dom_style(t0, "cursor", "pointer");
+  dom_style(t0, "background", "#ffd700"); dom_style(t0, "color", "#000");
+  dom_style(t0, "border", "none"); dom_style(t0, "borderRadius", "4px");
+  dom_on(t0, "click", "br_test0"); dom_append(tabs, t0);
+  let t1 = dom_create("button") in dom_text(t1, "Stacking");
+  dom_style(t1, "padding", "6px 14px"); dom_style(t1, "cursor", "pointer");
+  dom_style(t1, "background", "#6688ff"); dom_style(t1, "color", "#fff");
+  dom_style(t1, "border", "none"); dom_style(t1, "borderRadius", "4px");
+  dom_on(t1, "click", "br_test1"); dom_append(tabs, t1);
+  let t2 = dom_create("button") in dom_text(t2, "Nesting");
+  dom_style(t2, "padding", "6px 14px"); dom_style(t2, "cursor", "pointer");
+  dom_style(t2, "background", "#44ff88"); dom_style(t2, "color", "#000");
+  dom_style(t2, "border", "none"); dom_style(t2, "borderRadius", "4px");
+  dom_on(t2, "click", "br_test2"); dom_append(tabs, t2);
+  dom_append(sec, tabs);
+  let ctrls = dom_create("div") in
+  dom_style(ctrls, "display", "flex"); dom_style(ctrls, "gap", "8px"); dom_style(ctrls, "marginBottom", "12px");
+  let pbtn = dom_create("button") in dom_text(pbtn, "Pause"); dom_attr(pbtn, "id", "br-pause");
+  dom_style(pbtn, "padding", "6px 14px"); dom_style(pbtn, "cursor", "pointer");
+  dom_style(pbtn, "background", "#333"); dom_style(pbtn, "color", "#fff");
+  dom_style(pbtn, "border", "1px solid #555"); dom_style(pbtn, "borderRadius", "4px");
+  dom_on(pbtn, "click", "br_toggle_pause"); dom_append(ctrls, pbtn);
+  let rbtn = dom_create("button") in dom_text(rbtn, "Reset");
+  dom_style(rbtn, "padding", "6px 14px"); dom_style(rbtn, "cursor", "pointer");
+  dom_style(rbtn, "background", "#333"); dom_style(rbtn, "color", "#fff");
+  dom_style(rbtn, "border", "1px solid #555"); dom_style(rbtn, "borderRadius", "4px");
+  dom_on(rbtn, "click", "br_do_reset"); dom_append(ctrls, rbtn);
+  dom_append(sec, ctrls);
+  let cvs = dom_create("canvas") in
+  cvs_setsize(cvs, 600, 300);
+  dom_style(cvs, "display", "block"); dom_style(cvs, "background", "#050510");
+  dom_style(cvs, "maxWidth", "100%"); dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_append(sec, cvs);
+  set(g_bctx, 0, cvs_getctx(cvs));
+  set(g_bframe, 0, 0); set(g_btest, 0, 0); set(g_bpaused, 0, 0);
+  br_reset();
+  dom_append(dom_body(), sec);
+  raf("braid_tick");
+  br_theory()
+)

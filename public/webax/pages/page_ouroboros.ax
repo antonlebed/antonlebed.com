@@ -1,0 +1,674 @@
+/* page_ouroboros.ax — The 72-Transition Ouroboros Cycle.
+   4 scenes: operations, ascension, ouroboros ring, meta-closure.
+   Ported from ouroboros.html (698L JS). Canvas animation. */
+
+/* ===== CONSTANTS ===== */
+let OUR_DK = 8
+let OUR_KD = 9
+let OUR_MAX = 72
+let OUR_LIFE = 7
+
+/* ===== STATE ===== */
+let g_octx = [0]
+let g_oframe = [0]
+let g_oscene = [0]
+let g_orun = [1]
+let g_olfsr = [1]
+
+/* Scene 0 state: opA, opB, opC, phase */
+let g_op = alloc(4)
+/* Scene 1 state: level, trans, gen, + 3 roots x (life, nch, 9 children) = 3*11=33 */
+let g_asc = alloc(40)
+/* Scene 2 state: transitions, level, gen, complete, path_len */
+let g_ouro = alloc(5)
+/* Scene 2 roots: 3 roots x (life, nch, 9 children) */
+let g_ouro_r = alloc(33)
+/* Scene 3 state: 3 runs x (transitions, gen, done, seed, + 3 roots x 11) = 3*37 */
+let g_meta = alloc(120)
+let g_meta_complete = [0]
+let g_meta_hyper = [0]
+let g_meta_phase = [0]
+
+/* Pattern colors: 8 entries x stride 7 (RRGGBB + len) — stored as hex triplets */
+/* void=#333, sigma=#ffd700, D=#6af, sigma+D=#8cf, K=#4f8, sigma+K=#cf8, D+K=#4cf, LIFE=#fff */
+
+/* ===== LFSR RNG (8-bit) ===== */
+fn our_rng() = (
+  let lf = g_olfsr[0] in
+  let b0 = lf % 2 in
+  let b2 = (lf / 4) % 2 in
+  let b3 = (lf / 8) % 2 in
+  let b5 = (lf / 32) % 2 in
+  let xb = (b0 + b2 + b3 + b5) % 2 in
+  let nxt = lf / 2 + xb * 128 in
+  let nxt2 = if nxt == 0 then 1 else nxt in
+  set(g_olfsr, 0, nxt2);
+  nxt2 % 8
+)
+
+fn our_seed(s) = (
+  let v = s % 256 in
+  set(g_olfsr, 0, if v == 0 then 1 else v)
+)
+
+/* ===== BIT OPERATIONS ===== */
+fn our_and(a, b) = (
+  let b0 = (a % 2) * (b % 2) in
+  let b1 = ((a / 2) % 2) * ((b / 2) % 2) in
+  let b2 = ((a / 4) % 2) * ((b / 4) % 2) in
+  b0 + b1 * 2 + b2 * 4
+)
+
+fn our_xor(a, b) = (
+  let b0 = ((a % 2) + (b % 2)) % 2 in
+  let b1 = (((a / 2) % 2) + ((b / 2) % 2)) % 2 in
+  let b2 = (((a / 4) % 2) + ((b / 4) % 2)) % 2 in
+  b0 + b1 * 2 + b2 * 4
+)
+
+fn our_or(a, b) = (
+  let v0 = a % 2 in let v1 = b % 2 in
+  let b0 = if v0 + v1 > 0 then 1 else 0 in
+  let v2 = (a / 2) % 2 in let v3 = (b / 2) % 2 in
+  let b1 = if v2 + v3 > 0 then 1 else 0 in
+  let v4 = (a / 4) % 2 in let v5 = (b / 4) % 2 in
+  let b2 = if v4 + v5 > 0 then 1 else 0 in
+  b0 + b1 * 2 + b2 * 4
+)
+
+fn our_maj(a, b, c) = our_or(our_and(a, b), our_or(our_and(b, c), our_and(a, c)))
+
+/* ===== PATTERN COLORS ===== */
+fn our_col(p:int):str = (
+  if p == 0 then "#333333"
+  else if p == 1 then "#ffd700"
+  else if p == 2 then "#6688ff"
+  else if p == 3 then "#88ccff"
+  else if p == 4 then "#44ff88"
+  else if p == 5 then "#ccff88"
+  else if p == 6 then "#44ccff"
+  else "#ffffff"
+)
+
+fn our_name(p:int):str = (
+  if p == 0 then "void"
+  else if p == 1 then "sigma"
+  else if p == 2 then "D"
+  else if p == 3 then "sigma+D"
+  else if p == 4 then "K"
+  else if p == 5 then "sigma+K"
+  else if p == 6 then "D+K"
+  else "LIFE"
+)
+
+/* ===== DRAWING HELPERS ===== */
+fn our_circle(ctx, x, y, r, col:str) = (
+  cvs_fillstyle(ctx, col);
+  cvs_beginpath(ctx);
+  cvs_arc(ctx, x, y, r, 0, 36000);
+  cvs_fill(ctx)
+)
+
+fn our_circle_stroke(ctx, x, y, r, col:str, lw) = (
+  cvs_strokestyle(ctx, col);
+  cvs_linewidth(ctx, lw);
+  cvs_beginpath(ctx);
+  cvs_arc(ctx, x, y, r, 0, 36000);
+  cvs_stroke(ctx)
+)
+
+fn our_text(ctx, x, y, txt:str, col:str, sz) = (
+  cvs_fillstyle(ctx, col);
+  cvs_font(ctx, "${sz}px Courier New");
+  cvs_filltext(ctx, txt, x, y)
+)
+
+fn our_line(ctx, x1, y1, x2, y2, col:str, lw) = (
+  cvs_strokestyle(ctx, col);
+  cvs_linewidth(ctx, lw);
+  cvs_beginpath(ctx);
+  cvs_moveto(ctx, x1, y1);
+  cvs_lineto(ctx, x2, y2);
+  cvs_stroke(ctx)
+)
+
+/* Draw 3-bit pattern as colored dots */
+fn our_draw_pat(ctx, x, y, p) = (
+  let dx = [0 - 18, 0, 18] in
+  let bcol0 = if p % 2 > 0 then "#ffd700" else "#1a1a1a" in
+  let bcol1 = if (p / 2) % 2 > 0 then "#6688ff" else "#1a1a1a" in
+  let bcol2 = if (p / 4) % 2 > 0 then "#44ff88" else "#1a1a1a" in
+  our_circle(ctx, x + dx[0], y, 8, bcol0);
+  our_circle(ctx, x + dx[1], y, 8, bcol1);
+  our_circle(ctx, x + dx[2], y, 8, bcol2);
+  our_text(ctx, x, y + 24, "${our_name(p)} (${p})", our_col(p), 11)
+)
+
+/* ===== SCENE 0: THE THREE OPERATIONS ===== */
+fn our_reset_op() = (set(g_op, 0, 5); set(g_op, 1, 3); set(g_op, 2, 6); set(g_op, 3, 0))
+
+fn our_tick_op() = set(g_op, 3, g_op[3] + 1)
+
+fn our_draw_op(ctx) = (
+  let ph = g_op[3] in
+  /* Cycle inputs every 120 frames */
+  let _chk = if ph % 120 == 0 then (set(g_op, 0, our_rng()); set(g_op, 1, our_rng()); set(g_op, 2, our_rng())) else 0 in
+  let a = g_op[0] in let b = g_op[1] in let c = g_op[2] in
+  let sab = our_and(a, b) in
+  let dab = our_xor(a, b) in
+  let kabc = our_maj(a, b, c) in
+  our_text(ctx, 300, 40, "THE THREE OPERATIONS", "#ffd700", 18);
+  our_text(ctx, 300, 65, "sigma=AND  D=XOR  K=MAJ", "#888888", 12);
+  /* Three columns */
+  let cols = [80, 300, 520] in
+  our_text(ctx, cols[0], 95, "Input A", "#888888", 12);
+  our_text(ctx, cols[1], 95, "Input B", "#888888", 12);
+  our_text(ctx, cols[2], 95, "Input C", "#888888", 12);
+  our_draw_pat(ctx, cols[0], 120, a);
+  our_draw_pat(ctx, cols[1], 120, b);
+  our_draw_pat(ctx, cols[2], 120, c);
+  /* Arrows */
+  mut ai = 0;
+  while ai < 3 do (our_line(ctx, cols[ai], 155, cols[ai], 185, "#333333", 1); mut ai = ai + 1);
+  /* Results */
+  our_text(ctx, cols[0], 210, "sigma(A,B)=AND", "#ffd700", 13);
+  our_draw_pat(ctx, cols[0], 235, sab);
+  our_text(ctx, cols[1], 210, "D(A,B)=XOR", "#6688ff", 13);
+  our_draw_pat(ctx, cols[1], 235, dab);
+  our_text(ctx, cols[2], 210, "K(A,B,C)=MAJ", "#44ff88", 13);
+  our_draw_pat(ctx, cols[2], 235, kabc);
+  /* Identity at bottom */
+  our_text(ctx, 300, 295, "K is COMPOSED of sigma:", "#888888", 13);
+  our_text(ctx, 300, 315, "MAJ(a,b,c) = AND(a,b)|AND(b,c)|AND(a,c)", "#44ff88", 12);
+  /* Animated highlight */
+  let hl = (ph / 120) % 3 in
+  let hcol = if hl == 0 then "#ffd700" else if hl == 1 then "#6688ff" else "#44ff88" in
+  cvs_strokestyle(ctx, hcol);
+  cvs_linewidth(ctx, 2);
+  cvs_strokerect(ctx, cols[hl] + 0 - 40, 195, 80, 75);
+  /* Footer */
+  our_text(ctx, 300, 360, "LIFE=7: all 3 bits ON. 8 patterns = D^K.", "#555555", 11);
+  our_text(ctx, 300, 375, "Pattern 0 = void. Pattern 7 = LIFE.", "#555555", 11)
+)
+
+/* ===== SCENE 1: OCTAVE ASCENSION ===== */
+/* g_asc layout: [0]=level, [1]=trans, [2]=gen, [3..35]=3 roots x 11 (life,nch,ch0..ch8) */
+fn asc_root(r, f) = g_asc[3 + r * 11 + f]
+fn asc_set(r, f, v) = set(g_asc, 3 + r * 11 + f, v)
+
+fn our_update_root_life(base, r) = (
+  let nch = base[3 + r * 11 + 1] in
+  mut cov = 0;
+  mut ci = 0;
+  while ci < nch do (
+    mut cov = our_or(cov, base[3 + r * 11 + 2 + ci]);
+    mut ci = ci + 1
+  );
+  /* life = all 3 bits present */
+  set(base, 3 + r * 11, if cov % 2 > 0 then (if (cov / 2) % 2 > 0 then (if (cov / 4) % 2 > 0 then 1 else 0) else 0) else 0)
+)
+
+fn our_reset_asc() = (
+  our_seed(42);
+  set(g_asc, 0, 1);
+  set(g_asc, 1, 0);
+  set(g_asc, 2, 0);
+  mut r = 0;
+  while r < 3 do (
+    asc_set(r, 0, 0);
+    asc_set(r, 1, 3);
+    mut ci = 0;
+    while ci < 3 do (asc_set(r, 2 + ci, our_rng()); mut ci = ci + 1);
+    our_update_root_life(g_asc, r);
+    mut r = r + 1
+  )
+)
+
+fn our_tick_asc() = (
+  let all_life = if asc_root(0, 0) + asc_root(1, 0) + asc_root(2, 0) == 3 then 1 else 0 in
+  if all_life == 1 then (
+    if g_asc[1] < 12 then (
+      set(g_asc, 1, g_asc[1] + 1);
+      set(g_asc, 0, g_asc[0] + 1);
+      /* Gattai: reset children with LIFE seed */
+      mut r = 0;
+      while r < 3 do (
+        asc_set(r, 1, 3);
+        asc_set(r, 2, OUR_LIFE);
+        asc_set(r, 3, our_rng());
+        asc_set(r, 4, our_rng());
+        our_update_root_life(g_asc, r);
+        mut r = r + 1
+      )
+    ) else 0
+  ) else (
+    set(g_asc, 2, g_asc[2] + 1);
+    mut r = 0;
+    while r < 3 do (
+      let nch = asc_root(r, 1) in
+      if nch < OUR_KD then (asc_set(r, 2 + nch, our_rng()); asc_set(r, 1, nch + 1)) else 0;
+      our_update_root_life(g_asc, r);
+      mut r = r + 1
+    )
+  )
+)
+
+fn our_draw_asc(ctx) = (
+  our_text(ctx, 300, 40, "OCTAVE ASCENSION", "#ffd700", 18);
+  our_text(ctx, 300, 65, "K=3 roots evolve. All LIFE -> GATTAI.", "#888888", 12);
+  /* 3 root boxes */
+  mut r = 0;
+  while r < 3 do (
+    let rx = 100 + r * 200 in
+    let ry = 100 in
+    let life = asc_root(r, 0) in
+    let bcol = if life == 1 then "#44ff88" else "#333333" in
+    cvs_strokestyle(ctx, bcol);
+    cvs_linewidth(ctx, if life == 1 then 2 else 1);
+    cvs_strokerect(ctx, rx + 0 - 70, ry, 140, 130);
+    our_text(ctx, rx, ry + 0 - 8, "Root ${r}", if life == 1 then "#44ff88" else "#888888", 12);
+    our_text(ctx, rx, ry + 18, "Level ${g_asc[0]}", "#888888", 11);
+    our_text(ctx, rx, ry + 36, if life == 1 then "LIFE" else "evolving...", if life == 1 then "#44ff88" else "#666666", 11);
+    /* Draw children as dots */
+    let nch = asc_root(r, 1) in
+    mut ci = 0;
+    while ci < nch do (
+      let col2 = ci % 4 in
+      let row2 = ci / 4 in
+      let dx = rx + 0 - 30 + col2 * 20 in
+      let dy = ry + 55 + row2 * 20 in
+      our_circle(ctx, dx, dy, 6, our_col(asc_root(r, 2 + ci)));
+      mut ci = ci + 1
+    );
+    mut r = r + 1
+  );
+  /* Status */
+  our_text(ctx, 300, 260, "Level: ${g_asc[0]}  Transitions: ${g_asc[1]}/12  Gen: ${g_asc[2]}", "#ffd700", 14);
+  /* Level ladder */
+  mut lv = 1;
+  while lv < 13 do (
+    let ly = 300 + 0 - lv * 8 in
+    let lcol = if lv <= g_asc[0] then "#ffd700" else "#222222" in
+    our_line(ctx, 550, ly, 570, ly, lcol, 1);
+    let _lbl = if lv < 5 then our_text(ctx, 545, ly + 4, "L${lv}", if lv == g_asc[0] then "#ffd700" else "#555555", 9) else 0 in
+    mut lv = lv + 1
+  );
+  our_text(ctx, 300, 380, "LIFE=7 persists. Every level. Every root.", "#555555", 11)
+)
+
+/* ===== SCENE 2: THE OUROBOROS RING ===== */
+/* g_ouro: [0]=transitions, [1]=level, [2]=gen, [3]=complete, [4]=path_len */
+/* g_ouro_r: 3 roots x 11 */
+
+fn ouro_root(r, f) = g_ouro_r[r * 11 + f]
+fn ouro_set(r, f, v) = set(g_ouro_r, r * 11 + f, v)
+
+fn our_reset_ouro() = (
+  our_seed(137);
+  set(g_ouro, 0, 0);
+  set(g_ouro, 1, 1);
+  set(g_ouro, 2, 0);
+  set(g_ouro, 3, 0);
+  set(g_ouro, 4, 0);
+  mut r = 0;
+  while r < 3 do (
+    ouro_set(r, 0, 0);
+    ouro_set(r, 1, 3);
+    mut ci = 0;
+    while ci < 3 do (ouro_set(r, 2 + ci, our_rng()); mut ci = ci + 1);
+    our_update_root_life(g_ouro_r, r);
+    mut r = r + 1
+  )
+)
+
+fn our_tick_ouro() = (
+  if g_ouro[3] == 1 then 0
+  else (
+    let all_life = if ouro_root(0, 0) + ouro_root(1, 0) + ouro_root(2, 0) == 3 then 1 else 0 in
+    if all_life == 1 then (
+      set(g_ouro, 0, g_ouro[0] + 1);
+      set(g_ouro, 1, g_ouro[1] + 1);
+      mut r = 0;
+      while r < 3 do (
+        ouro_set(r, 1, 3);
+        ouro_set(r, 2, OUR_LIFE);
+        ouro_set(r, 3, our_rng());
+        ouro_set(r, 4, our_rng());
+        our_update_root_life(g_ouro_r, r);
+        mut r = r + 1
+      );
+      if g_ouro[0] >= OUR_MAX then set(g_ouro, 3, 1) else 0
+    ) else (
+      set(g_ouro, 2, g_ouro[2] + 1);
+      mut r = 0;
+      while r < 3 do (
+        let nch = ouro_root(r, 1) in
+        if nch < OUR_KD then (ouro_set(r, 2 + nch, our_rng()); ouro_set(r, 1, nch + 1)) else 0;
+        our_update_root_life(g_ouro_r, r);
+        mut r = r + 1
+      )
+    )
+  )
+)
+
+/* Integer sin/cos x100 for 72 positions around a circle */
+fn our_cos72(i) = (
+  /* Precomputed cos(2*pi*i/72)*100 for first quadrant, mirrored */
+  let q = i % 72 in
+  let cos18 = [100, 99, 98, 97, 94, 91, 87, 82, 77, 71, 64, 57, 50, 42, 34, 26, 17, 9, 0] in
+  if q < 19 then cos18[q]
+  else if q < 37 then 0 - cos18[36 + 0 - q]
+  else if q < 55 then 0 - cos18[q + 0 - 36]
+  else cos18[72 + 0 - q]
+)
+
+fn our_sin72(i) = our_cos72(i + 54)
+
+fn our_draw_ouro(ctx) = (
+  our_text(ctx, 300, 40, "THE OUROBOROS", "#ffd700", 18);
+  our_text(ctx, 300, 65, "72 transitions. The snake eats its tail.", "#888888", 12);
+  /* Draw ring of 72 segments */
+  let ocx = 300 in let ocy = 210 in let orad = 130 in
+  let trans = g_ouro[0] in
+  mut i = 0;
+  while i < OUR_MAX do (
+    let done = if i < trans then 1 else 0 in
+    let scol = if done == 1 then (if i + 1 == trans then "#ffffff" else our_col(i % 8)) else "#1a1a1a" in
+    let x1 = ocx + our_cos72(i) * orad / 100 in
+    let y1 = ocy + our_sin72(i) * orad / 100 in
+    let x2 = ocx + our_cos72(i + 1) * orad / 100 in
+    let y2 = ocy + our_sin72(i + 1) * orad / 100 in
+    cvs_strokestyle(ctx, scol);
+    cvs_linewidth(ctx, if done == 1 then 4 else 1);
+    cvs_beginpath(ctx);
+    cvs_moveto(ctx, x1, y1);
+    cvs_lineto(ctx, x2, y2);
+    cvs_stroke(ctx);
+    mut i = i + 1
+  );
+  /* Snake head */
+  let _hd = if trans > 0 then (
+    if trans <= OUR_MAX then (
+      let hx = ocx + our_cos72(trans) * orad / 100 in
+      let hy = ocy + our_sin72(trans) * orad / 100 in
+      let hcol = if g_ouro[3] == 1 then "#44ff88" else "#ffd700" in
+      our_circle(ctx, hx, hy, 7, hcol);
+      our_circle_stroke(ctx, hx, hy, 7, "#ffffff", 2)
+    ) else 0
+  ) else 0 in
+  /* Center info */
+  let ccol = if g_ouro[3] == 1 then "#44ff88" else "#ffd700" in
+  our_text(ctx, ocx, ocy + 0 - 5, "${trans}/${OUR_MAX}", ccol, 24);
+  our_text(ctx, ocx, ocy + 18, "Level ${g_ouro[1]}", "#888888", 12);
+  our_text(ctx, ocx, ocy + 34, "Gen ${g_ouro[2]}", "#888888", 12);
+  let _comp = if g_ouro[3] == 1 then (
+    our_text(ctx, ocx, ocy + 56, "LOOP CLOSED", "#44ff88", 16);
+    our_text(ctx, ocx, ocy + 76, "Level ${g_ouro[1]} feeds seed back to Level 0", "#888888", 11)
+  ) else 0 in
+  our_text(ctx, 300, 375, "K^D=9 x D^K=8 = 72. Self-similar at every level.", "#555555", 11)
+)
+
+/* ===== SCENE 3: META-CLOSURE ===== */
+/* g_meta: 3 runs x 37 (trans, gen, done, seed, + 3 roots x 11) */
+fn meta_get(run, f) = g_meta[run * 37 + f]
+fn meta_put(run, f, v) = set(g_meta, run * 37 + f, v)
+fn meta_root(run, r, f) = g_meta[run * 37 + 4 + r * 11 + f]
+fn meta_rset(run, r, f, v) = set(g_meta, run * 37 + 4 + r * 11 + f, v)
+
+fn meta_upd_life(run, r) = (
+  let base_off = run * 37 + 4 in
+  let nch = g_meta[base_off + r * 11 + 1] in
+  mut cov = 0;
+  mut ci = 0;
+  while ci < nch do (
+    mut cov = our_or(cov, g_meta[base_off + r * 11 + 2 + ci]);
+    mut ci = ci + 1
+  );
+  set(g_meta, base_off + r * 11, if cov % 2 > 0 then (if (cov / 2) % 2 > 0 then (if (cov / 4) % 2 > 0 then 1 else 0) else 0) else 0)
+)
+
+fn our_reset_meta() = (
+  set(g_meta_complete, 0, 0);
+  set(g_meta_hyper, 0, 0);
+  set(g_meta_phase, 0, 0);
+  mut ri = 0;
+  while ri < 3 do (
+    meta_put(ri, 0, 0);
+    meta_put(ri, 1, 0);
+    meta_put(ri, 2, 0);
+    meta_put(ri, 3, 0);
+    our_seed(ri * 27 + 1);
+    mut r = 0;
+    while r < 3 do (
+      meta_rset(ri, r, 0, 0);
+      meta_rset(ri, r, 1, 3);
+      mut ci = 0;
+      while ci < 3 do (meta_rset(ri, r, 2 + ci, our_rng()); mut ci = ci + 1);
+      meta_upd_life(ri, r);
+      mut r = r + 1
+    );
+    mut ri = ri + 1
+  )
+)
+
+fn our_tick_meta() = (
+  if g_meta_complete[0] == 1 then set(g_meta_phase, 0, g_meta_phase[0] + 1)
+  else (
+    mut all_done = 1;
+    mut ri = 0;
+    while ri < 3 do (
+      if meta_get(ri, 2) == 0 then (
+        mut all_done = 0;
+        let al = if meta_root(ri, 0, 0) + meta_root(ri, 1, 0) + meta_root(ri, 2, 0) == 3 then 1 else 0 in
+        if al == 1 then (
+          meta_put(ri, 0, meta_get(ri, 0) + 1);
+          our_seed(ri * 100 + meta_get(ri, 0));
+          mut r = 0;
+          while r < 3 do (
+            meta_rset(ri, r, 1, 3);
+            meta_rset(ri, r, 2, OUR_LIFE);
+            meta_rset(ri, r, 3, our_rng());
+            meta_rset(ri, r, 4, our_rng());
+            meta_upd_life(ri, r);
+            mut r = r + 1
+          )
+        ) else (
+          meta_put(ri, 1, meta_get(ri, 1) + 1);
+          our_seed(ri * 1000 + meta_get(ri, 1));
+          mut r = 0;
+          while r < 3 do (
+            let nch = meta_root(ri, r, 1) in
+            if nch < OUR_KD then (meta_rset(ri, r, 2 + nch, our_rng()); meta_rset(ri, r, 1, nch + 1)) else 0;
+            meta_upd_life(ri, r);
+            mut r = r + 1
+          )
+        );
+        if meta_get(ri, 0) >= 12 then (meta_put(ri, 2, 1); meta_put(ri, 3, OUR_LIFE)) else 0
+      ) else 0;
+      mut ri = ri + 1
+    );
+    if all_done == 1 then (
+      set(g_meta_complete, 0, 1);
+      set(g_meta_hyper, 0, our_maj(meta_get(0, 3), meta_get(1, 3), meta_get(2, 3)))
+    ) else 0
+  )
+)
+
+fn our_draw_meta(ctx) = (
+  our_text(ctx, 300, 40, "META-CLOSURE", "#ffd700", 18);
+  our_text(ctx, 300, 65, "K=3 ouroboroses run, then GATTAI.", "#888888", 12);
+  /* Draw 3 mini ouroboros rings */
+  let ring_r = 55 in
+  let ring_y = 175 in
+  mut ri = 0;
+  while ri < 3 do (
+    let rcx = 100 + ri * 200 in
+    let tr = meta_get(ri, 0) in
+    let done = meta_get(ri, 2) in
+    /* 12 segments */
+    mut s = 0;
+    while s < 12 do (
+      let a_deg = s * 628 / 12 in
+      /* Draw segment as line between two points */
+      let x1 = rcx + our_cos72(s * 6) * ring_r / 100 in
+      let y1 = ring_y + our_sin72(s * 6) * ring_r / 100 in
+      let x2 = rcx + our_cos72((s + 1) * 6) * ring_r / 100 in
+      let y2 = ring_y + our_sin72((s + 1) * 6) * ring_r / 100 in
+      let scol = if s < tr then our_col((s + ri * 3) % 8) else "#1a1a1a" in
+      cvs_strokestyle(ctx, scol);
+      cvs_linewidth(ctx, if s < tr then 3 else 1);
+      cvs_beginpath(ctx);
+      cvs_moveto(ctx, x1, y1);
+      cvs_lineto(ctx, x2, y2);
+      cvs_stroke(ctx);
+      mut s = s + 1
+    );
+    /* Center label */
+    let lcol = if done == 1 then "#44ff88" else "#888888" in
+    our_text(ctx, rcx, ring_y + 5, if done == 1 then "LIFE" else "${tr}/12", lcol, 13);
+    our_text(ctx, rcx, ring_y + ring_r + 20, "Ouroboros ${ri}", "#555555", 10);
+    let _sd = if done == 1 then our_text(ctx, rcx, ring_y + ring_r + 34, "seed=${meta_get(ri, 3)}", "#44ff88", 10) else 0 in
+    mut ri = ri + 1
+  );
+  /* Gattai convergence */
+  let _gat = if g_meta_complete[0] == 1 then (
+    let gy = ring_y + ring_r + 55 in
+    /* Arrows from each ring to center */
+    mut ai = 0;
+    while ai < 3 do (
+      let fx = 100 + ai * 200 in
+      our_line(ctx, fx, ring_y + ring_r + 40, 300, gy + 10, "#ffd700", 2);
+      mut ai = ai + 1
+    );
+    /* Result sphere */
+    our_circle(ctx, 300, gy + 28, 20, "#000000");
+    let hcol = if g_meta_hyper[0] == OUR_LIFE then "#44ff88" else "#ffd700" in
+    our_circle_stroke(ctx, 300, gy + 28, 20, hcol, 3);
+    our_text(ctx, 300, gy + 34, "${g_meta_hyper[0]}", "#ffffff", 16);
+    let lbl = if g_meta_hyper[0] == OUR_LIFE then "HYPER-SEED = LIFE" else "HYPER-SEED = ${g_meta_hyper[0]}" in
+    our_text(ctx, 300, gy + 58, lbl, hcol, 13);
+    our_text(ctx, 300, gy + 80, "Different journeys. Same destination.", "#555555", 11);
+    our_text(ctx, 300, gy + 96, "LIFE=7 stabilizes across ALL recursion levels.", "#555555", 11)
+  ) else 0 in
+  0
+)
+
+/* ===== TICK + MAIN PAGE ===== */
+fn ouroboros_tick() = (
+  let ctx = g_octx[0] in
+  let frame = g_oframe[0] in
+  let scene = g_oscene[0] in
+  set(g_oframe, 0, frame + 1);
+  /* Clear */
+  cvs_fillstyle(ctx, "#000000");
+  cvs_fillrect(ctx, 0, 0, 600, 400);
+  /* Tick */
+  let _t = if g_orun[0] == 1 then (
+    if scene == 0 then our_tick_op()
+    else if scene == 1 then our_tick_asc()
+    else if scene == 2 then our_tick_ouro()
+    else our_tick_meta()
+  ) else 0 in
+  /* Draw */
+  if scene == 0 then our_draw_op(ctx)
+  else if scene == 1 then our_draw_asc(ctx)
+  else if scene == 2 then our_draw_ouro(ctx)
+  else our_draw_meta(ctx)
+)
+
+fn our_scene0() = (set(g_oscene, 0, 0); our_reset_op())
+fn our_scene1() = (set(g_oscene, 0, 1); our_reset_asc())
+fn our_scene2() = (set(g_oscene, 0, 2); our_reset_ouro())
+fn our_scene3() = (set(g_oscene, 0, 3); our_reset_meta())
+fn our_toggle() = set(g_orun, 0, if g_orun[0] == 1 then 0 else 1)
+fn our_reset() = (
+  set(g_oframe, 0, 0);
+  our_seed(42);
+  our_reset_op();
+  our_reset_asc();
+  our_reset_ouro();
+  our_reset_meta()
+)
+
+fn our_btn(parent, label:str, bg:str, col:str) = (
+  let b = dom_create("button") in
+  dom_text(b, label);
+  dom_style(b, "background", bg);
+  dom_style(b, "color", col);
+  dom_style(b, "border", "1px solid #555");
+  dom_style(b, "padding", "8px 16px");
+  dom_style(b, "borderRadius", "6px");
+  dom_style(b, "cursor", "pointer");
+  dom_style(b, "fontFamily", "Courier New, monospace");
+  dom_style(b, "fontSize", "13px");
+  dom_append(parent, b);
+  b
+)
+
+fn our_theory() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "The 72-Transition Cycle");
+  render_p(sec, "K^D x D^K = 9 x 8 = 72. Starting from any of 8 patterns, applying sigma (AND), D (XOR), and K (MAJ) repeatedly cycles through 72 transitions before the highest level feeds back into level 0. The snake eats its own tail.");
+  render_p(sec, "LIFE=7 (all three bits ON: sigma, D, K present) is the unique fixed-point attractor. Every seed, every level, every meta-level -- all roads lead to LIFE=7. Different journeys, same destination.");
+
+  render_contrast_row(sec, "Self-reference", "Hofstadter's strange loops -- metaphorical, philosophical", "72-transition deterministic cycle. Not metaphor -- arithmetic.");
+  render_contrast_row(sec, "Operations", "Arbitrarily chosen (Conway: neighbor count)", "Forced: AND, XOR, MAJ = the only 3-input complete basis from D=2, K=3.");
+  render_contrast_row(sec, "States", "2 (alive/dead) in Conway", "8 = D^K = 2^3. Three domains, eight patterns.");
+  render_contrast_row(sec, "Fixed point", "Many (gliders, oscillators)", "One: LIFE=7. Unique across ALL meta-levels.");
+  render_contrast_row(sec, "Closure", "No -- runs forever or dies", "Yes -- 72 transitions, level N feeds level 0.");
+
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Why 72?");
+  render_p(sec2, "K^D = 3^2 = 9: the number of operation triples (sigma/D/K applied to 3 inputs). D^K = 2^3 = 8: the number of distinct 3-bit patterns. 9 x 8 = 72 transitions to exhaust all operation-pattern combinations. The cycle length is not chosen -- it falls out of D=2 and K=3.");
+  render_theorem(sec2, "Ouroboros Closure", "For any seed pattern p in {0,...,7}, applying the 72-transition cycle of (sigma, D, K) operations returns to p. The attractor state LIFE=7 appears at every meta-level.");
+  render_p(sec2, "The compiler .ax compiling itself is this same loop made literal. wasm_from_src applied to its own source produces itself. sigma/sigma = sigma.");
+  dom_append(dom_body(), sec);
+  dom_append(dom_body(), sec2)
+)
+
+fn page_ouroboros() = (
+  dom_head_meta("description", "72-transition ouroboros: operations, ascension, ring closure, meta-level. Interactive canvas. K^D x D^K = 72.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Ouroboros\",\"description\":\"72-transition ouroboros cycle. K^D x D^K = 72. LIFE=7 attractor.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/deep/ouroboros\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"ouroboros\"},{\"@type\":\"DefinedTerm\",\"name\":\"self-reference\"}]}");
+  let hero = make_hero("The Ouroboros") in
+  render_p(hero, "72 transitions. The snake eats its tail. K^D x D^K = 9 x 8 = 72. Starting from any seed, applying sigma/D/K operations cycles back. LIFE=7 persists at every level.");
+  dom_append(dom_body(), hero);
+  /* Canvas section */
+  let sec = make_section("800px") in
+  let btns = dom_create("div") in
+  dom_style(btns, "display", "flex");
+  dom_style(btns, "gap", "8px");
+  dom_style(btns, "flexWrap", "wrap");
+  dom_style(btns, "marginBottom", "12px");
+  let b0 = our_btn(btns, "Operations", "#3a3a7a", "#ffd700") in
+  dom_on(b0, "click", "our_scene0");
+  let b1 = our_btn(btns, "Ascension", "#1a1a3a", "#cccccc") in
+  dom_on(b1, "click", "our_scene1");
+  let b2 = our_btn(btns, "Ouroboros", "#1a1a3a", "#cccccc") in
+  dom_on(b2, "click", "our_scene2");
+  let b3 = our_btn(btns, "Meta", "#1a1a3a", "#cccccc") in
+  dom_on(b3, "click", "our_scene3");
+  let run_btn = our_btn(btns, "Pause", "#1a1a3a", "#cccccc") in
+  dom_on(run_btn, "click", "our_toggle");
+  let rst_btn = our_btn(btns, "Reset", "#1a1a3a", "#cccccc") in
+  dom_on(rst_btn, "click", "our_reset");
+  dom_append(sec, btns);
+  /* Canvas */
+  let cvs = dom_create("canvas") in
+  dom_attr(cvs, "id", "our-canvas");
+  cvs_setsize(cvs, 600, 400);
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "background", "#0a0a14");
+  dom_style(cvs, "maxWidth", "100%");
+  dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_append(sec, cvs);
+  let ctx = cvs_getctx(cvs) in
+  set(g_octx, 0, ctx);
+  set(g_oframe, 0, 0);
+  set(g_oscene, 0, 0);
+  set(g_orun, 0, 1);
+  our_reset();
+  dom_append(dom_body(), sec);
+  raf("ouroboros_tick");
+  our_theory()
+)

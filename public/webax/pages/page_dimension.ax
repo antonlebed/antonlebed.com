@@ -1,0 +1,561 @@
+/* page_dimension.ax — How K=3 binding creates space.
+   Interactive canvas: 5 dimension levels (0D-4D), K-binding energy search,
+   3D tetrahedron, 1/3 attractor convergence.
+   Ported from dimension.html (714L JS). */
+
+/* ===== STATE ===== */
+let g_dctx = [0]
+let g_dframe = [0]
+let g_dmode = [0]
+let g_dauto = [0]
+let g_datimer = [0]
+let g_dksearch = [1]
+let g_dkstep = [0]
+let g_dkbx = [300]
+let g_dkby = [100]
+let g_dkenergy = [999]
+/* Attractor: 3 shares x1000. History: stride 3, max 80 steps */
+let g_dshow_att = [0]
+let g_datt = [333, 333, 334]
+let g_datt_hist = alloc(240)
+let g_datt_len = [0]
+let g_datt_idx = [0]
+let g_datt_t = [0]
+/* Attractor start conditions: 8 sets x 3 values (x1000) */
+let g_datt_starts = [900, 50, 50, 50, 900, 50, 50, 50, 900, 500, 500, 0, 500, 0, 500, 0, 500, 500, 400, 400, 200, 200, 300, 500]
+
+/* ===== INTEGER TRIG (x1000 scale) ===== */
+/* sin_1k(deg) -> sin(deg)*1000. Uses 91-entry table for 0..90 degrees */
+let g_sin90 = [0, 17, 35, 52, 70, 87, 105, 122, 139, 156, 174, 191, 208, 225, 242, 259, 276, 292, 309, 326, 342, 358, 375, 391, 407, 423, 438, 454, 469, 485, 500, 515, 530, 545, 559, 574, 588, 602, 616, 629, 643, 656, 669, 682, 695, 707, 719, 731, 743, 755, 766, 777, 788, 799, 809, 819, 829, 839, 848, 857, 866, 875, 883, 891, 899, 906, 914, 921, 927, 934, 940, 946, 951, 956, 961, 966, 970, 974, 978, 982, 985, 988, 990, 993, 995, 996, 998, 999, 999, 1000, 1000]
+
+fn dim_sin1k(deg) = (
+  let d = ((deg % 360) + 360) % 360 in
+  if d <= 90 then g_sin90[d]
+  else if d <= 180 then g_sin90[180 - d]
+  else if d <= 270 then 0 - g_sin90[d - 180]
+  else 0 - g_sin90[360 - d]
+)
+
+fn dim_cos1k(deg) = dim_sin1k(deg + 90)
+
+/* ===== MATH ===== */
+fn dim_isqrt(n) = (
+  if n <= 1 then n
+  else (
+    mut x = n;
+    mut y = (x + 1) / 2;
+    while y < x do (mut x = y; mut y = (x + n / x) / 2);
+    x
+  )
+)
+
+fn dim_abs(v) = if v < 0 then 0 - v else v
+
+/* ===== DRAWING PRIMITIVES ===== */
+fn dim_point(ctx, x, y, r, col:str) = (
+  let _fs = cvs_fillstyle(ctx, col) in
+  let _bp = cvs_beginpath(ctx) in
+  let _ar = cvs_arc(ctx, x, y, r, 0, 36000) in
+  cvs_fill(ctx)
+)
+
+fn dim_glow(ctx, x, y, r, col:str, outer:str) = (
+  let _fs = cvs_fillstyle(ctx, outer) in
+  let _bp = cvs_beginpath(ctx) in
+  let _ar = cvs_arc(ctx, x, y, r * 3, 0, 36000) in
+  let _f = cvs_fill(ctx) in
+  dim_point(ctx, x, y, r, col)
+)
+
+fn dim_line(ctx, x1, y1, x2, y2, col:str, w) = (
+  let _ss = cvs_strokestyle(ctx, col) in
+  let _lw = cvs_linewidth(ctx, w) in
+  let _bp = cvs_beginpath(ctx) in
+  let _mv = cvs_moveto(ctx, x1, y1) in
+  let _ln = cvs_lineto(ctx, x2, y2) in
+  cvs_stroke(ctx)
+)
+
+fn dim_label(ctx, x, y, text:str, col:str, font:str) = (
+  let _fs = cvs_fillstyle(ctx, col) in
+  let _ft = cvs_font(ctx, font) in
+  cvs_filltext(ctx, text, x, y)
+)
+
+/* ===== DRAW 0D: POINT ===== */
+fn dim_draw0d(ctx, frame) = (
+  let cx = 300 in let cy = 180 in
+  let pulse = 8 + (frame % 60) / 10 in
+  dim_glow(ctx, cx, cy, pulse, "#ffd700", "rgba(255,215,0,0.08)");
+  dim_label(ctx, cx - 18, cy + pulse + 20, "sigma", "#fff", "14px Courier New");
+  dim_label(ctx, cx - 60, cy + pulse + 42, "0D: a point. No extent.", "#555", "13px Courier New")
+)
+
+/* ===== DRAW 1D: LINE ===== */
+fn dim_draw1d(ctx, frame) = (
+  let cx = 300 in let cy = 180 in let len = 160 in
+  let ax = cx - len in let bx = cx + len in
+  dim_line(ctx, ax - 30, cy, bx + 30, cy, "#333", 1);
+  dim_line(ctx, ax, cy, bx, cy, "#6688ff", 2);
+  dim_glow(ctx, ax, cy, 8, "#6688ff", "rgba(102,136,255,0.06)");
+  dim_glow(ctx, bx, cy, 8, "#6688ff", "rgba(102,136,255,0.06)");
+  dim_label(ctx, ax - 18, cy + 24, "A", "#6688ff", "12px Courier New");
+  dim_label(ctx, bx - 4, cy + 24, "B", "#6688ff", "12px Courier New");
+  /* Pulsing question mark */
+  let alpha = 40 + (frame % 50) * 4 in
+  dim_label(ctx, cx - 5, cy - 20, "?", "#44ff88", "bold 24px Courier New");
+  dim_label(ctx, cx - 65, cy + 44, "Where does K sit?", "#555", "13px Courier New");
+  dim_label(ctx, cx - 140, cy + 62, "On the line = just a midpoint, not a binding", "#555", "13px Courier New")
+)
+
+/* ===== DRAW 2D: TRIANGLE + K SEARCH ===== */
+fn dim_draw2d(ctx, frame) = (
+  let cx = 300 in let cy = 210 in let len = 140 in
+  let ax = cx - len in let bx = cx + len in
+  let kh = len * 173 / 100 in
+  /* Energy landscape: faint green above midline */
+  mut ey = 10;
+  while ey < kh do (
+    mut ex = ax - 20;
+    while ex < bx + 20 do (
+      let da = dim_isqrt((ex - ax) * (ex - ax) + ey * ey) in
+      let db = dim_isqrt((ex - bx) * (ex - bx) + ey * ey) in
+      let sym = dim_abs(da - db) * 100 / len in
+      if sym < 70 then (
+        dim_point(ctx, ex, cy - ey, 3, "rgba(79,255,136,0.04)")
+      ) else 0;
+      mut ex = ex + 10
+    );
+    mut ey = ey + 10
+  );
+  /* Base line */
+  dim_line(ctx, ax, cy, bx, cy, "#6688ff", 2);
+  /* K search animation */
+  if g_dksearch[0] == 1 then (
+    let step = g_dkstep[0] in
+    set(g_dkstep, 0, step + 1);
+    let angle = step * 9 in
+    let radius = step * 3 in
+    let clamp_r = if radius > kh + 10 then kh + 10 else radius in
+    let kx = cx + clamp_r * dim_cos1k(angle) / 3000 in
+    let ky = cy - clamp_r * dim_sin1k(angle) * 8 / 10000 in
+    /* Energy check */
+    let da = dim_isqrt((kx - ax) * (kx - ax) + (ky - cy) * (ky - cy)) in
+    let db = dim_isqrt((kx - bx) * (kx - bx) + (ky - cy) * (ky - cy)) in
+    let on_line = if dim_abs(ky - cy) < 5 then 100 else 0 in
+    let energy = dim_abs(da - db) + on_line in
+    if energy < g_dkenergy[0] then (
+      set(g_dkenergy, 0, energy);
+      set(g_dkbx, 0, kx);
+      set(g_dkby, 0, ky)
+    ) else 0;
+    /* Trail dot */
+    dim_point(ctx, kx, ky, 2, "rgba(79,255,136,0.15)");
+    /* Current K position */
+    dim_point(ctx, kx, ky, 5, "#44ff88");
+    if step > 60 then set(g_dksearch, 0, 0) else 0
+  ) else (
+    /* Final triangle */
+    let ky = cy - kh * 6 / 10 in
+    /* Filled triangle */
+    let _fs = cvs_fillstyle(ctx, "rgba(79,255,136,0.06)") in
+    let _bp = cvs_beginpath(ctx) in
+    let _m = cvs_moveto(ctx, ax, cy) in
+    let _l1 = cvs_lineto(ctx, bx, cy) in
+    let _l2 = cvs_lineto(ctx, cx, ky) in
+    let _l3 = cvs_lineto(ctx, ax, cy) in
+    let _f = cvs_fill(ctx) in
+    /* Triangle edges */
+    dim_line(ctx, ax, cy, cx, ky, "#44ff88", 2);
+    dim_line(ctx, bx, cy, cx, ky, "#44ff88", 2);
+    /* K point */
+    dim_glow(ctx, cx, ky, 9, "#44ff88", "rgba(79,255,136,0.08)");
+    dim_label(ctx, cx - 30, ky - 14, "K (binding)", "#44ff88", "12px Courier New");
+    /* Off-axis arrow */
+    dim_line(ctx, cx, cy, cx, ky, "#ff8844", 1);
+    dim_label(ctx, cx + 8, (cy + ky) / 2, "off-axis!", "#ff8844", "12px Courier New");
+    dim_label(ctx, cx - 120, cy + 50, "2D: triangle. Relation forces new dimension.", "#555", "13px Courier New")
+  );
+  dim_glow(ctx, ax, cy, 8, "#6688ff", "rgba(102,136,255,0.06)");
+  dim_glow(ctx, bx, cy, 8, "#6688ff", "rgba(102,136,255,0.06)");
+  dim_label(ctx, ax - 4, cy + 24, "A", "#6688ff", "12px Courier New");
+  dim_label(ctx, bx - 4, cy + 24, "B", "#6688ff", "12px Courier New")
+)
+
+/* ===== 3D PROJECTION ===== */
+/* project(x,y,z, rx_deg, ry_deg) -> [px, py, scale_x1000] */
+fn dim_project(x, y, z, rx, ry) = (
+  /* Rotate around Y */
+  let cy_r = dim_cos1k(ry) in let sy_r = dim_sin1k(ry) in
+  let x1 = (x * cy_r - z * sy_r) / 1000 in
+  let z1 = (x * sy_r + z * cy_r) / 1000 in
+  /* Rotate around X */
+  let cx_r = dim_cos1k(rx) in let sx_r = dim_sin1k(rx) in
+  let y1 = (y * cx_r - z1 * sx_r) / 1000 in
+  let z2 = (y * sx_r + z1 * cx_r) / 1000 in
+  /* Perspective: scale = 300/(300+z2) x1000 */
+  let s = 300000 / (300 + z2) in
+  [x1 * s / 1000, y1 * s / 1000, s]
+)
+
+/* ===== DRAW 3D: TETRAHEDRON ===== */
+fn dim_draw3d(ctx, frame) = (
+  let cx = 300 in let cy = 180 in
+  let r = 120 in
+  let rx = 17 + frame / 3 in
+  let ry = frame * 2 / 3 in
+  /* Tetrahedron vertices (x1000 for fractional coords) */
+  let vx = [0, r * 943 / 1000, 0 - r * 471 / 1000, 0 - r * 471 / 1000] in
+  let vy = [0 - r, r * 333 / 1000, r * 333 / 1000, r * 333 / 1000] in
+  let vz = [0, 0, r * 816 / 1000, 0 - r * 816 / 1000] in
+  /* Project all 4 vertices */
+  let p0 = dim_project(vx[0], vy[0], vz[0], rx, ry) in
+  let p1 = dim_project(vx[1], vy[1], vz[1], rx, ry) in
+  let p2 = dim_project(vx[2], vy[2], vz[2], rx, ry) in
+  let p3 = dim_project(vx[3], vy[3], vz[3], rx, ry) in
+  let pts = [cx + p0[0], cy + p0[1], p0[2],
+             cx + p1[0], cy + p1[1], p1[2],
+             cx + p2[0], cy + p2[1], p2[2],
+             cx + p3[0], cy + p3[1], p3[2]] in
+  /* Draw 6 edges */
+  let edges = [0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3] in
+  mut e = 0;
+  while e < 12 do (
+    let i = edges[e] in let j = edges[e + 1] in
+    let ix = pts[i * 3] in let iy = pts[i * 3 + 1] in
+    let jx = pts[j * 3] in let jy = pts[j * 3 + 1] in
+    dim_line(ctx, ix, iy, jx, jy, "rgba(79,255,136,0.4)", 1);
+    mut e = e + 2
+  );
+  /* Draw 4 face fills */
+  let faces = [0, 1, 2, 0, 1, 3, 0, 2, 3, 1, 2, 3] in
+  mut f = 0;
+  while f < 12 do (
+    let a = faces[f] in let b = faces[f + 1] in let c = faces[f + 2] in
+    let _fs = cvs_fillstyle(ctx, "rgba(79,255,136,0.03)") in
+    let _bp = cvs_beginpath(ctx) in
+    let _m = cvs_moveto(ctx, pts[a * 3], pts[a * 3 + 1]) in
+    let _l1 = cvs_lineto(ctx, pts[b * 3], pts[b * 3 + 1]) in
+    let _l2 = cvs_lineto(ctx, pts[c * 3], pts[c * 3 + 1]) in
+    let _l3 = cvs_lineto(ctx, pts[a * 3], pts[a * 3 + 1]) in
+    let _fi = cvs_fill(ctx) in
+    mut f = f + 3
+  );
+  /* Draw vertices sorted roughly by depth (draw back first) */
+  let labels = ["sigma", "D", "K", "K'"] in
+  let colors = ["#ffd700", "#6688ff", "#44ff88", "#44ff88"] in
+  /* Simple depth sort: draw all 4 with glow */
+  mut v = 0;
+  while v < 4 do (
+    let px = pts[v * 3] in let py = pts[v * 3 + 1] in let sc = pts[v * 3 + 2] in
+    let sz = 5 + sc / 300 in
+    dim_glow(ctx, px, py, sz, colors[v], "rgba(0,0,0,0)");
+    dim_label(ctx, px - 10, py + sz + 14, labels[v], colors[v], "12px Courier New");
+    mut v = v + 1
+  );
+  dim_label(ctx, cx - 100, cy + r + 50, "3D: tetrahedron. New K off-plane.", "#555", "13px Courier New")
+)
+
+/* ===== DRAW 4D: SPACETIME ===== */
+fn dim_draw4d(ctx, frame) = (
+  let cx = 300 in let cy = 170 in
+  let r = 90 in
+  let rx = 17 + frame / 3 in
+  let ry = frame * 2 / 3 in
+  /* Draw two tetrahedra at different time offsets */
+  let time_offs = [0 - r * 6 / 5, r * 6 / 5] in
+  let scales = [60, 100] in
+  let alphas = ["rgba(200,136,255,0.15)", "rgba(200,136,255,0.4)"] in
+  let pt_alphas = ["rgba(200,136,255,0.35)", "rgba(200,136,255,0.8)"] in
+  let time_labels = ["past", "now"] in
+  mut ti = 0;
+  while ti < 2 do (
+    let sc = scales[ti] in
+    let toff = time_offs[ti] in
+    let vx = [0, r * sc * 943 / 100000, 0 - r * sc * 471 / 100000, 0 - r * sc * 471 / 100000] in
+    let vy = [0 - r * sc / 100 + toff, r * sc * 333 / 100000 + toff, r * sc * 333 / 100000 + toff, r * sc * 333 / 100000 + toff] in
+    let vz = [0, 0, r * sc * 816 / 100000, 0 - r * sc * 816 / 100000] in
+    let p0 = dim_project(vx[0], vy[0], vz[0], rx, ry) in
+    let p1 = dim_project(vx[1], vy[1], vz[1], rx, ry) in
+    let p2 = dim_project(vx[2], vy[2], vz[2], rx, ry) in
+    let p3 = dim_project(vx[3], vy[3], vz[3], rx, ry) in
+    let pts = [cx + p0[0], cy + p0[1], cx + p1[0], cy + p1[1],
+               cx + p2[0], cy + p2[1], cx + p3[0], cy + p3[1]] in
+    let edges = [0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3] in
+    mut e = 0;
+    while e < 12 do (
+      let i = edges[e] in let j = edges[e + 1] in
+      dim_line(ctx, pts[i * 2], pts[i * 2 + 1], pts[j * 2], pts[j * 2 + 1], alphas[ti], 1);
+      mut e = e + 2
+    );
+    let colors = ["#ffd700", "#6688ff", "#44ff88", "#44ff88"] in
+    mut v = 0;
+    while v < 4 do (
+      dim_point(ctx, pts[v * 2], pts[v * 2 + 1], 4, pt_alphas[ti]);
+      mut v = v + 1
+    );
+    dim_label(ctx, cx - r - 50, cy + toff * 6 / 10, time_labels[ti], "#c88fff", "11px Courier New");
+    mut ti = ti + 1
+  );
+  /* Time arrow */
+  dim_line(ctx, cx - r - 30, cy - r / 2, cx - r - 30, cy + r / 2, "#c88fff", 2);
+  dim_label(ctx, cx - r - 25, cy + r * 7 / 10, "time", "#c88fff", "12px Courier New");
+  dim_label(ctx, cx - r - 50, cy + r + 20, "terminus", "rgba(200,136,255,0.3)", "11px Courier New");
+  dim_label(ctx, cx - 130, cy + r + 55, "4D: spacetime. K+sigma=4. Complete closure.", "#555", "13px Courier New");
+  dim_label(ctx, cx - 95, cy + r + 73, "No structural need beyond this.", "#555", "13px Courier New")
+)
+
+/* ===== DIMENSION LADDER ===== */
+fn dim_ladder(ctx, mode) = (
+  let lx = 25 in let ly = 40 in let step = 48 in
+  let labels = ["0D: Point", "1D: Line", "2D: Triangle", "3D: Tetra", "4D: Spacetime"] in
+  let axioms = ["sigma", "D splits", "K binds", "K nests", "K + sigma"] in
+  mut i = 0;
+  while i < 5 do (
+    let active = if i == mode then 1 else 0 in
+    let below = if i < mode then 1 else 0 in
+    let col = if active == 1 then "#fff" else if below == 1 then "#666" else "#333" in
+    let font = if active == 1 then "bold 12px Courier New" else "12px Courier New" in
+    dim_label(ctx, lx + 14, ly + i * step, labels[i], col, font);
+    let acol = if active == 1 then "#44ff88" else if below == 1 then "#444" else "#222" in
+    dim_label(ctx, lx + 14, ly + i * step + 14, axioms[i], acol, "10px Courier New");
+    let dcol = if active == 1 then "#ffd700" else if below == 1 then "#444" else "#222" in
+    let dr = if active == 1 then 5 else 3 in
+    dim_point(ctx, lx, ly + i * step - 4, dr, dcol);
+    if i < 4 then (
+      let lcol = if below == 1 then "#333" else "#181818" in
+      dim_line(ctx, lx, ly + i * step + 6, lx, ly + (i + 1) * step - 14, lcol, 1)
+    ) else 0;
+    mut i = i + 1
+  )
+)
+
+/* ===== 1/3 ATTRACTOR ===== */
+fn dim_att_evolve() = (
+  let s = g_datt[0] in let d = g_datt[1] in let k = g_datt[2] in
+  let total = s + d + k in
+  let ns = s * 1000 / total in let nd = d * 1000 / total in let nk = k * 1000 / total in
+  /* Converge toward 1/3: penalize deviation, cross-product terms */
+  let ds = ns * (1000 - dim_abs(ns - 333)) / 1000 + 100 * nd * nk / 1000000 in
+  let dd = nd * (1000 - dim_abs(nd - 333)) / 1000 + 100 * ns * (1000 - nk) / 1000000 in
+  let dk = nk * (1000 - dim_abs(nk - 333)) / 1000 + 100 * ns * nd / 1000000 in
+  let t2 = ds + dd + dk in
+  if t2 > 0 then (
+    set(g_datt, 0, ds * 1000 / t2);
+    set(g_datt, 1, dd * 1000 / t2);
+    set(g_datt, 2, dk * 1000 / t2)
+  ) else 0
+)
+
+fn dim_att_reset() = (
+  let idx = g_datt_idx[0] in
+  set(g_datt, 0, g_datt_starts[idx * 3]);
+  set(g_datt, 1, g_datt_starts[idx * 3 + 1]);
+  set(g_datt, 2, g_datt_starts[idx * 3 + 2]);
+  set(g_datt_len, 0, 0);
+  set(g_datt_t, 0, 0)
+)
+
+fn dim_draw_attractor(ctx) = (
+  let ox = 380 in let oy = 30 in let aw = 180 in let ah = 140 in
+  /* Background */
+  let _fs = cvs_fillstyle(ctx, "rgba(0,0,0,0.75)") in
+  let _bp = cvs_beginpath(ctx) in
+  let _ar = cvs_arc(ctx, ox + aw / 2, oy + ah / 2 + 15, 120, 0, 36000) in
+  let _f = cvs_fill(ctx) in
+  dim_label(ctx, ox + aw / 2 - 40, oy - 4, "1/3 ATTRACTOR", "#888", "11px Courier New");
+  /* Evolve */
+  let t = g_datt_t[0] in
+  set(g_datt_t, 0, t + 1);
+  let hlen = g_datt_len[0] in
+  if t % 3 == 0 then (
+    if hlen < 80 then (
+      dim_att_evolve();
+      set(g_datt_hist, hlen * 3, g_datt[0]);
+      set(g_datt_hist, hlen * 3 + 1, g_datt[1]);
+      set(g_datt_hist, hlen * 3 + 2, g_datt[2]);
+      set(g_datt_len, 0, hlen + 1)
+    ) else 0
+  ) else 0;
+  /* If converged, next start */
+  let hl = g_datt_len[0] in
+  if hl >= 80 then (
+    set(g_datt_idx, 0, (g_datt_idx[0] + 1) % 8);
+    dim_att_reset()
+  ) else 0;
+  /* Draw convergence: 3 lines (sigma=gold, D=blue, K=green) */
+  let colors = ["#ffd700", "#6688ff", "#44ff88"] in
+  let dx = aw * 100 / 80 in
+  mut c = 0;
+  while c < 3 do (
+    let _ss = cvs_strokestyle(ctx, colors[c]) in
+    let _lw = cvs_linewidth(ctx, 1) in
+    let _bp2 = cvs_beginpath(ctx) in
+    mut i = 0;
+    while i < hl do (
+      let x = ox + i * dx / 100 in
+      let val = g_datt_hist[i * 3 + c] in
+      let y = oy + ah - val * ah / 1000 in
+      if i == 0 then let _m = cvs_moveto(ctx, x, y) in 0
+      else let _l = cvs_lineto(ctx, x, y) in 0;
+      mut i = i + 1
+    );
+    let _st = cvs_stroke(ctx) in
+    mut c = c + 1
+  );
+  /* 1/3 target line */
+  dim_line(ctx, ox, oy + ah - ah * 333 / 1000, ox + aw, oy + ah - ah * 333 / 1000, "#444", 1);
+  dim_label(ctx, ox + aw + 4, oy + ah - ah * 333 / 1000 + 4, "1/3", "#555", "10px Courier New");
+  /* Legend */
+  dim_label(ctx, ox, oy + ah + 16, "sigma", "#ffd700", "10px Courier New");
+  dim_label(ctx, ox + 50, oy + ah + 16, "D", "#6688ff", "10px Courier New");
+  dim_label(ctx, ox + 80, oy + ah + 16, "K", "#44ff88", "10px Courier New");
+  let idx = g_datt_idx[0] in
+  dim_label(ctx, ox, oy + ah + 32, "Start #${idx + 1}/8", "#555", "10px Courier New")
+)
+
+/* ===== CONTROLS ===== */
+fn dim_set_mode(m) = (
+  set(g_dmode, 0, m);
+  set(g_dksearch, 0, 1);
+  set(g_dkstep, 0, 0);
+  set(g_dkenergy, 0, 999);
+  set(g_dframe, 0, 0)
+)
+
+fn dim_mode0() = dim_set_mode(0)
+fn dim_mode1() = dim_set_mode(1)
+fn dim_mode2() = dim_set_mode(2)
+fn dim_mode3() = dim_set_mode(3)
+fn dim_mode4() = dim_set_mode(4)
+
+fn dim_toggle_auto() = (
+  set(g_dauto, 0, if g_dauto[0] == 1 then 0 else 1);
+  set(g_datimer, 0, 0);
+  dom_text(dom_query("#dim-auto"), if g_dauto[0] == 1 then "Auto: ON" else "Auto")
+)
+
+fn dim_toggle_att() = (
+  set(g_dshow_att, 0, if g_dshow_att[0] == 1 then 0 else 1);
+  if g_dshow_att[0] == 1 then (
+    set(g_datt_idx, 0, 0);
+    dim_att_reset()
+  ) else 0;
+  dom_text(dom_query("#dim-att"), if g_dshow_att[0] == 1 then "Attractor: ON" else "Attractor")
+)
+
+/* ===== TICK ===== */
+fn dimension_tick() = (
+  let ctx = g_dctx[0] in
+  let frame = g_dframe[0] in
+  set(g_dframe, 0, frame + 1);
+  let _fs = cvs_fillstyle(ctx, "#0a0a14") in
+  let _cl = cvs_fillrect(ctx, 0, 0, 600, 400) in
+  /* Auto mode */
+  if g_dauto[0] == 1 then (
+    let at = g_datimer[0] + 1 in
+    set(g_datimer, 0, at);
+    if at > 180 then (
+      set(g_datimer, 0, 0);
+      let next = (g_dmode[0] + 1) % 5 in
+      dim_set_mode(next)
+    ) else 0
+  ) else 0;
+  let mode = g_dmode[0] in
+  if mode == 0 then dim_draw0d(ctx, frame)
+  else if mode == 1 then dim_draw1d(ctx, frame)
+  else if mode == 2 then dim_draw2d(ctx, frame)
+  else if mode == 3 then dim_draw3d(ctx, frame)
+  else dim_draw4d(ctx, frame);
+  dim_ladder(ctx, mode);
+  if g_dshow_att[0] == 1 then dim_draw_attractor(ctx) else 0;
+  0
+)
+
+/* ===== BUTTON FACTORY ===== */
+fn dim_btn(parent, label:str, bg:str, fg:str) = (
+  let btn = dom_create("button") in
+  dom_text(btn, label);
+  dom_style(btn, "padding", "8px 16px"); dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "background", bg); dom_style(btn, "color", fg);
+  dom_style(btn, "border", "none"); dom_style(btn, "borderRadius", "4px");
+  dom_style(btn, "fontFamily", "Courier New, monospace");
+  dom_append(parent, btn);
+  btn
+)
+
+/* ===== THEORY ===== */
+fn dim_theory() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "K=3 Creates Dimension");
+  render_contrast_row(sec, "Why 3+1 dimensions?", "K=3 spatial closures + sigma=1 temporal = K+sigma = 4.", "Anthropic principle / \"just is\" (standard).");
+  render_contrast_row(sec, "How dimensions emerge", "K-binding off-axis position: a new dimension structurally.", "Compactification from 10/11D (string theory).");
+  render_contrast_row(sec, "Equilateral attractor", "1/3 + 1/3 + 1/3 = sigma. Maximum symmetry = minimum energy.", "No equivalent derivation.");
+  render_contrast_row(sec, "Dimension limit", "K+sigma = 4: beyond this, no structural need.", "Extra dimensions assumed, compactified away.");
+  dom_append(dom_body(), sec);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "The Structural Argument");
+  render_theorem(sec2, "K-Binding Dimension Theorem", "Two points define a line (1D). Their binding K CANNOT sit on that line -- or it is a midpoint, not a relation. K must go off-axis, creating 2D. Three points define a plane. Their binding cannot sit in the plane (same argument). 3D emerges. K=3 closures give exactly 3 spatial dimensions. Add sigma=1 for temporal persistence: K+sigma = 4 = spacetime.");
+  render_theorem(sec2, "1/3 Attractor", "Start with ANY distribution of shares among sigma, D, K. Apply K-binding dynamics: penalize asymmetry, reward cross-products. From ALL starting conditions, the system converges to 1/K = 1/3 each. The equilateral distribution is the unique attractor. Not assumed -- computed.");
+  render_p(sec2, "K=3 is not chosen. It is the minimum for closure (CLAUDE.md). Two strands cannot braid. Three can. K=3 is why space has three dimensions, why orbits are stable, why you can tie a knot.");
+  dom_append(dom_body(), sec2)
+)
+
+/* ===== PAGE ===== */
+fn page_dimension() = (
+  dom_head_meta("description", "How K=3 binding creates space: 5 levels from 0D to 4D, K-binding energy search, tetrahedron rotation, 1/3 attractor convergence. Interactive canvas simulation.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Dimension\",\"description\":\"How K=3 binding creates space. Interactive canvas simulation.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/deep/dimension\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"dimension\"},{\"@type\":\"DefinedTerm\",\"name\":\"K-binding\"}]}");
+  /* Hero */
+  let hero = make_hero("Dimension") in
+  let eq = dom_create("div") in
+  dom_text(eq, "K + sigma = 4");
+  ct_mono(eq); dom_style(eq, "fontSize", "24px"); ct_gold(eq);
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Why 3+1 dimensions? Not anthropic. Not compactified from 10D. K=3 is the minimum for closure. Each binding must go off-axis, creating a new dimension. Three closures give three spatial dimensions. Add sigma for persistence: K+sigma = 4.");
+  dom_append(dom_body(), hero);
+  /* Canvas section */
+  let sec = make_section("800px") in
+  render_h2(sec, "Interactive: Dimension Ladder");
+  render_p(sec, "Five levels. Click each to see how K-binding creates the next dimension. Auto cycles through all five. Attractor shows 1/3 convergence from any starting distribution.");
+  let btns = dom_create("div") in
+  dom_style(btns, "display", "flex");
+  dom_style(btns, "gap", "6px");
+  dom_style(btns, "flexWrap", "wrap");
+  dom_style(btns, "marginBottom", "12px");
+  let b0 = dim_btn(btns, "0D Point", "#ffd700", "#000") in dom_on(b0, "click", "dim_mode0");
+  let b1 = dim_btn(btns, "1D Line", "#6688ff", "#fff") in dom_on(b1, "click", "dim_mode1");
+  let b2 = dim_btn(btns, "2D Triangle", "#44ff88", "#000") in dom_on(b2, "click", "dim_mode2");
+  let b3 = dim_btn(btns, "3D Tetra", "#44ff88", "#000") in dom_on(b3, "click", "dim_mode3");
+  let b4 = dim_btn(btns, "4D Time", "#c88fff", "#000") in dom_on(b4, "click", "dim_mode4");
+  let ba = dim_btn(btns, "Auto", "#333", "#fff") in
+  dom_attr(ba, "id", "dim-auto");
+  dom_style(ba, "border", "1px solid #555");
+  dom_on(ba, "click", "dim_toggle_auto");
+  let batt = dim_btn(btns, "Attractor", "#333", "#fff") in
+  dom_attr(batt, "id", "dim-att");
+  dom_style(batt, "border", "1px solid #555");
+  dom_on(batt, "click", "dim_toggle_att");
+  dom_append(sec, btns);
+  /* Canvas */
+  let cvs = dom_create("canvas") in
+  dom_attr(cvs, "id", "dim-canvas");
+  cvs_setsize(cvs, 600, 400);
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "background", "#0a0a14");
+  dom_style(cvs, "maxWidth", "100%");
+  dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_append(sec, cvs);
+  let ctx = cvs_getctx(cvs) in
+  set(g_dctx, 0, ctx);
+  set(g_dframe, 0, 0);
+  set(g_dmode, 0, 0);
+  set(g_dauto, 0, 0);
+  set(g_dksearch, 0, 1);
+  set(g_dkstep, 0, 0);
+  set(g_dkenergy, 0, 999);
+  dom_append(dom_body(), sec);
+  raf("dimension_tick");
+  dim_theory()
+)
