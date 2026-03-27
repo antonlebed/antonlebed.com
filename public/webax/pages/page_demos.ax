@@ -353,7 +353,7 @@ fn demo_consensus_run() = (
     let ok5 = if w5 == 999 then 0 else 1 in
     let channels_ok = ok0 + ok1 + ok2 + ok3 + ok4 + ok5 in
     let recon = if channels_ok == 6 then
-      (idem[0] * w0 + idem[1] * w1 + idem[2] * w2 + idem[3] * w3 + idem[4] * w4 + idem[5] * w5) % 12612600
+      (idem[0] * w0 + idem[1] * w1 + idem[2] * w2 + idem[3] * w3 + idem[4] * w4 + idem[5] * w5) % N_TRUE
     else 0 in
     let correct = if channels_ok == 6 then (if recon == vtf then 1 else 0) else 0 in
     let byz_pct = (n_byz * 100) / n_nodes in
@@ -498,7 +498,7 @@ fn demo_rng_step(s0, s1, i) = (
   let mib = (cb * 3 + ce) % 49 in
   let ml = (cl * 2 + cb + cd) % 11 in
   let mg = (cg * 2 + cl + cd) % 13 in
-  (md * 11036025 + mk * 1401400 + mie * 9585576 + mib * 8494200 + ml * 3439800 + mg * 3880800) % 12612600
+  (md * 11036025 + mk * 1401400 + mie * 9585576 + mib * 8494200 + ml * 3439800 + mg * 3880800) % N_TRUE
 )
 
 fn demo_rng_run() = (
@@ -506,15 +506,15 @@ fn demo_rng_run() = (
   let result_el = dom_query("#drng-result") in
   if seed < 1 then dom_inner(result_el, "<p style='color:#ff6666'>Enter a positive seed.</p>")
   else (
-    mut s0 = (seed * 137 + 1) % 12612600;
-    mut s1 = (seed * 42 + 7) % 12612600;
+    mut s0 = (seed * 137 + 1) % N_TRUE;
+    mut s1 = (seed * 42 + 7) % N_TRUE;
     mut nums = "";
     mut first_out = 0;
     mut i = 0;
     while i < 20 do (
       let out = demo_rng_step(s0, s1, i) in
-      mut s1 = (s1 * 137 + out) % 12612600;
-      mut s0 = (s0 + s1 + i * 7) % 12612600;
+      mut s1 = (s1 * 137 + out) % N_TRUE;
+      mut s0 = (s0 + s1 + i * 7) % N_TRUE;
       if i == 0 then mut first_out = out else 0;
       mut nums = nums + (if i > 0 then ", " else "") + "${out}";
       mut i = i + 1
@@ -529,14 +529,14 @@ fn demo_rng_compare() = (
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>SEED COMPARISON: first 5 outputs from seeds 1-5</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Seed</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>out[0]</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>out[1]</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>out[2]</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>out[3]</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>out[4]</th></tr>";
   mut seed = 1;
   while seed < 6 do (
-    mut s0 = (seed * 137 + 1) % 12612600;
-    mut s1 = (seed * 42 + 7) % 12612600;
+    mut s0 = (seed * 137 + 1) % N_TRUE;
+    mut s1 = (seed * 42 + 7) % N_TRUE;
     mut html = html + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${seed}" + "</td>";
     mut j = 0;
     while j < 5 do (
       let out = demo_rng_step(s0, s1, j) in
-      mut s1 = (s1 * 137 + out) % 12612600;
-      mut s0 = (s0 + s1 + j * 7) % 12612600;
+      mut s1 = (s1 * 137 + out) % N_TRUE;
+      mut s0 = (s0 + s1 + j * 7) % N_TRUE;
       mut html = html + "<td style='padding:3px;color:#b0b0c0;font-size:11px'>" + "${out}" + "</td>";
       mut j = j + 1
     );
@@ -630,7 +630,7 @@ fn demo_compress_bits(m) = (
 fn demo_compress_run() = (
   let val = parse_int_from("#dcomp-input") in
   let result_el = dom_query("#dcomp-result") in
-  let v = val % 12612600 in
+  let v = val % N_TRUE in
   let d = v % 8 in let k = v % 9 in let e = v % 25 in
   let b = v % 49 in let l = v % 11 in let g = v % 13 in
   let bd = demo_compress_bits(8) in let bk = demo_compress_bits(9) in
@@ -645,7 +645,7 @@ fn demo_compress_run() = (
   mut sparse = 0;
   mut i = 0;
   while i < 1000 do (
-    let tv = (v + i) % 12612600 in
+    let tv = (v + i) % N_TRUE in
     let has_zero = if tv % 8 == 0 then 1 else (if tv % 9 == 0 then 1 else (if tv % 25 == 0 then 1 else (if tv % 49 == 0 then 1 else (if tv % 11 == 0 then 1 else (if tv % 13 == 0 then 1 else 0))))) in
     mut sparse = sparse + has_zero;
     mut i = i + 1
@@ -659,7 +659,7 @@ fn demo_compress_batch() = (
   mut z0 = 0; mut z1 = 0; mut z2 = 0; mut z3 = 0; mut z4 = 0; mut z5 = 0;
   mut i = 0;
   while i < 10000 do (
-    let v = (i * 137 + 42) % 12612600 in
+    let v = (i * 137 + 42) % N_TRUE in
     if v % 8 == 0 then mut z0 = z0 + 1 else 0;
     if v % 9 == 0 then mut z1 = z1 + 1 else 0;
     if v % 25 == 0 then mut z2 = z2 + 1 else 0;
@@ -741,13 +741,13 @@ fn demo_pid_step(err, prev_err, integral, dt) = (
   let p_term = kp * err in
   let i_term = ki * new_int in
   let d_term = kd * deriv in
-  (p_term + i_term + d_term) % 12612600
+  (p_term + i_term + d_term) % N_TRUE
 )
 
 fn demo_pid_run() = (
   let setpoint = parse_int_from("#dpid-input") in
   let result_el = dom_query("#dpid-result") in
-  let sp = setpoint % 12612600 in
+  let sp = setpoint % N_TRUE in
   let sp_d = sp % 8 in let sp_k = sp % 9 in let sp_e = sp % 25 in
   let sp_b = sp % 49 in let sp_l = sp % 11 in let sp_g = sp % 13 in
   /* Simulate: start at 0, chase setpoint per-channel */
@@ -827,21 +827,21 @@ fn demo_stego_encode(carrier, secret) = (
   let sd = secret % 8 in
   /* Replace D-channel with secret, keep others intact */
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  (sd * idem[0] + ck * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % 12612600
+  (sd * idem[0] + ck * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % N_TRUE
 )
 
 fn demo_stego_run() = (
   let carrier = parse_int_from("#dsteg-carrier") in
   let secret = parse_int_from("#dsteg-secret") in
   let result_el = dom_query("#dsteg-result") in
-  let c = carrier % 12612600 in
+  let c = carrier % N_TRUE in
   let s = secret % 256 in
   let cd = c % 8 in let ck = c % 9 in let ce = c % 25 in
   let cb = c % 49 in let cl = c % 11 in let cg = c % 13 in
   /* Encode: hide 3 bits in D, 4 bits in K (total 7 bits = one ASCII-ish byte) */
   let s_lo = s % 8 in let s_hi = s / 8 in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  let stego = (s_lo * idem[0] + (s_hi % 9) * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % 12612600 in
+  let stego = (s_lo * idem[0] + (s_hi % 9) * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % N_TRUE in
   let st_d = stego % 8 in let st_k = stego % 9 in let st_e = stego % 25 in
   let st_b = stego % 49 in let st_l = stego % 11 in let st_g = stego % 13 in
   /* Distortion: how many channels changed? */
@@ -965,7 +965,7 @@ fn demo_kex_run() = (
   let ch_ok =(if s0 == v0 then 1 else 0) + (if s1 == v1 then 1 else 0) + (if s2 == v2 then 1 else 0) + (if s3 == v3 then 1 else 0) + (if s4 == v4 then 1 else 0) + (if s5 == v5 then 1 else 0) in
   /* CRT reconstruct shared secret */
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  let shared = (s0 * idem[0] + s1 * idem[1] + s2 * idem[2] + s3 * idem[3] + s4 * idem[4] + s5 * idem[5]) % 12612600 in
+  let shared = (s0 * idem[0] + s1 * idem[1] + s2 * idem[2] + s3 * idem[3] + s4 * idem[4] + s5 * idem[5]) % N_TRUE in
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT KEY EXCHANGE</p><p style='color:#b0b0c0;margin:4px 0'>Alice secret: " + "${a}" + " | Bob secret: " + "${b}" + "</p><p style='margin:8px 0 4px;color:#ffd700'>Public keys (visible to eavesdropper)</p><p style='color:#b0b0c0;margin:4px 0'>Alice public: (" + "${ap0}" + "," + "${ap1}" + "," + "${ap2}" + "," + "${ap3}" + "," + "${ap4}" + "," + "${ap5}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Bob public: (" + "${bp0}" + "," + "${bp1}" + "," + "${bp2}" + "," + "${bp3}" + "," + "${bp4}" + "," + "${bp5}" + ")</p><p style='margin:8px 0 4px;color:#ffd700'>Shared secrets (computed independently)</p><p style='color:#88ddaa;margin:4px 0'>Alice computes: (" + "${s0}" + "," + "${s1}" + "," + "${s2}" + "," + "${s3}" + "," + "${s4}" + "," + "${s5}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Bob computes: (" + "${v0}" + "," + "${v1}" + "," + "${v2}" + "," + "${v3}" + "," + "${v4}" + "," + "${v5}" + ")</p><p style='color:" + (if ch_ok == 6 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>Channel agreement: " + "${ch_ok}" + "/6" + (if ch_ok == 6 then " -- KEYS MATCH" else " -- MISMATCH") + "</p><p style='color:#88ddaa;margin:4px 0'>Shared secret (CRT): <b>" + "${shared}" + "</b></p></div>")
 )
 
@@ -1045,7 +1045,7 @@ fn tt_assign(event_id) = (
   let l = (seed * 13 + event_id * 7 + 1) % 11 in
   let g = (seed * 17 + event_id * 11 + 1) % 13 in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  (d * idem[0] + k * idem[1] + e * idem[2] + b * idem[3] + l * idem[4] + g * idem[5]) % 12612600
+  (d * idem[0] + k * idem[1] + e * idem[2] + b * idem[3] + l * idem[4] + g * idem[5]) % N_TRUE
 )
 
 /* Check if two events conflict in channel ch (share same residue) */
@@ -1234,10 +1234,10 @@ fn demo_cdma_run() = (
   else if cdma_is_coprime(key) == 0 then
     dom_inner(result_el, "<p style='color:#ff6666'>Key " + "${key}" + " is NOT coprime to 12,612,600. Try a prime > 13.</p>")
   else (
-    let d = data % 12612600 in
+    let d = data % N_TRUE in
     let dd = d % 8 in let dk = d % 9 in let de = d % 25 in let db = d % 49 in let dl = d % 11 in let dg = d % 13 in
     /* Encode: data * key mod N */
-    let encoded = (d * key) % 12612600 in
+    let encoded = (d * key) % N_TRUE in
     let ed = encoded % 8 in let ek = encoded % 9 in let ee = encoded % 25 in let eb = encoded % 49 in let el = encoded % 11 in let eg = encoded % 13 in
     /* Decode: encoded * key^(-1) mod m per channel */
     let id = cdma_modinv(key % 8, 8) in
@@ -1253,7 +1253,7 @@ fn demo_cdma_run() = (
     let dec_l = (el * il) % 11 in
     let dec_g = (eg * ig) % 13 in
     let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-    let decoded = (dec_d * idem[0] + dec_k * idem[1] + dec_e * idem[2] + dec_b * idem[3] + dec_l * idem[4] + dec_g * idem[5]) % 12612600 in
+    let decoded = (dec_d * idem[0] + dec_k * idem[1] + dec_e * idem[2] + dec_b * idem[3] + dec_l * idem[4] + dec_g * idem[5]) % N_TRUE in
     let ok = if decoded == d then 1 else 0 in
     dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT SPREAD SPECTRUM</p><p style='color:#b0b0c0;margin:4px 0'>Data: " + "${d}" + " = (" + "${dd}" + "," + "${dk}" + "," + "${de}" + "," + "${db}" + "," + "${dl}" + "," + "${dg}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Key: " + "${key}" + " (coprime to N)</p><p style='color:#ffd700;margin:8px 0 4px'>ENCODE: data * key mod N</p><p style='color:#88ddaa;margin:4px 0'>Spread: " + "${encoded}" + " = (" + "${ed}" + "," + "${ek}" + "," + "${ee}" + "," + "${eb}" + "," + "${el}" + "," + "${eg}" + ")</p><p style='color:#ffd700;margin:8px 0 4px'>DECODE: per-channel key^(-1)</p><p style='color:#b0b0c0;margin:4px 0'>Inverses: (" + "${id}" + "," + "${ik}" + "," + "${ie}" + "," + "${ib}" + "," + "${il}" + "," + "${ig}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Despread: (" + "${dec_d}" + "," + "${dec_k}" + "," + "${dec_e}" + "," + "${dec_b}" + "," + "${dec_l}" + "," + "${dec_g}" + ")</p><p style='color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>Recovered: " + "${decoded}" + (if ok == 1 then " -- PERFECT RECOVERY" else " -- MISMATCH") + "</p></div>")
   )
@@ -1269,8 +1269,8 @@ fn demo_cdma_multi() = (
   mut channel_sum = 0;
   mut u = 0;
   while u < 6 do (
-    let spread = (data[u] * keys[u]) % 12612600 in
-    mut channel_sum = (channel_sum + spread) % 12612600;
+    let spread = (data[u] * keys[u]) % N_TRUE in
+    mut channel_sum = (channel_sum + spread) % N_TRUE;
     mut u = u + 1
   );
   /* Each user despreads with their own key */
@@ -1279,12 +1279,12 @@ fn demo_cdma_multi() = (
   while u2 < 6 do (
     let k = keys[u2] in
     let d = data[u2] in
-    let spread = (d * k) % 12612600 in
+    let spread = (d * k) % N_TRUE in
     /* Despread own signal: spread * k^(-1) per channel */
     let sd = spread % 8 in let sk = spread % 9 in let se = spread % 25 in let sb = spread % 49 in let sl = spread % 11 in let sg = spread % 13 in
     let id = cdma_modinv(k % 8, 8) in let ik = cdma_modinv(k % 9, 9) in let ie = cdma_modinv(k % 25, 25) in let ib = cdma_modinv(k % 49, 49) in let il = cdma_modinv(k % 11, 11) in let ig = cdma_modinv(k % 13, 13) in
     let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-    let rec = ((sd * id) % 8 * idem[0] + (sk * ik) % 9 * idem[1] + (se * ie) % 25 * idem[2] + (sb * ib) % 49 * idem[3] + (sl * il) % 11 * idem[4] + (sg * ig) % 13 * idem[5]) % 12612600 in
+    let rec = ((sd * id) % 8 * idem[0] + (sk * ik) % 9 * idem[1] + (se * ie) % 25 * idem[2] + (sb * ib) % 49 * idem[3] + (sl * il) % 11 * idem[4] + (sg * ig) % 13 * idem[5]) % N_TRUE in
     let ok = if rec == d then 1 else 0 in
     mut all_ok = all_ok + ok;
     let color = if ok == 1 then "#44ff88" else "#ff4444" in
@@ -1394,7 +1394,7 @@ fn ftn_recon5(d, k, e, b, l, g, skip) = (
   mut ch = 0;
   while ch < 6 do (
     if ch == skip then 0
-    else mut result = (result + vals[ch] * idem[ch]) % 12612600;
+    else mut result = (result + vals[ch] * idem[ch]) % N_TRUE;
     mut ch = ch + 1
   );
   result
@@ -1404,7 +1404,7 @@ fn demo_fountain_run() = (
   let n = parse_int_from("#dftn-input") in
   let drop = parse_int_from("#dftn-drop") in
   let result_el = dom_query("#dftn-result") in
-  let v = n % 12612600 in
+  let v = n % N_TRUE in
   let rd = v % 8 in let rk = v % 9 in let re = v % 25 in let rb = v % 49 in let rl = v % 11 in let rg = v % 13 in
   let ch_names = ["D(8)", "K(9)", "E(25)", "b(49)", "L(11)", "G(13)"] in
   let skip = drop % 6 in
@@ -1417,13 +1417,13 @@ fn demo_fountain_run() = (
   /* The full reconstruction actually needs the missing channel's contribution.
      But CRT with 5 of 6: the missing drop can be inferred if value < product of 5 remaining moduli */
   /* Actually for TRUE ring, the 5-of-6 reconstruction suffices if value < product of 5 channels */
-  /* Product of all 6 = 12612600. Drop one channel: remaining product = 12612600 / m_skip */
-  let recon_cap = 12612600 / mods[skip] in
+  /* Product of all 6 = N_TRUE. Drop one channel: remaining product = N_TRUE / m_skip */
+  let recon_cap = N_TRUE / mods[skip] in
   /* Try all possible values for the missing channel */
   mut found = 0 - 1;
   mut trial = 0;
   while trial < mods[skip] do (
-    let candidate = (partial + trial * ftn_idem(skip)) % 12612600 in
+    let candidate = (partial + trial * ftn_idem(skip)) % N_TRUE in
     /* Check if this candidate has correct residues in all 5 known channels */
     let ok_d = if skip == 0 then 1 else if candidate % 8 == rd then 1 else 0 in
     let ok_k = if skip == 1 then 1 else if candidate % 9 == rk then 1 else 0 in
@@ -1455,13 +1455,13 @@ fn demo_fountain_batch() = (
     mut ok_count = 0;
     mut i = 0;
     while i < 100 do (
-      let v = (i * 137 + i * i * 41 + 7) % 12612600 in
+      let v = (i * 137 + i * i * 41 + 7) % N_TRUE in
       let rd = v % 8 in let rk = v % 9 in let re = v % 25 in let rb = v % 49 in let rl = v % 11 in let rg = v % 13 in
       let partial = ftn_recon5(rd, rk, re, rb, rl, rg, skip) in
       mut found = 0 - 1;
       mut trial = 0;
       while trial < mods[skip] do (
-        let candidate = (partial + trial * ftn_idem(skip)) % 12612600 in
+        let candidate = (partial + trial * ftn_idem(skip)) % N_TRUE in
         let ok_d = if skip == 0 then 1 else if candidate % 8 == rd then 1 else 0 in
         let ok_k = if skip == 1 then 1 else if candidate % 9 == rk then 1 else 0 in
         let ok_e = if skip == 2 then 1 else if candidate % 25 == re then 1 else 0 in
@@ -1566,7 +1566,7 @@ fn page_fountain() = (
 fn demo_ofdm_run() = (
   let data = parse_int_from("#dofdm-input") in
   let result_el = dom_query("#dofdm-result") in
-  let d = data % 12612600 in
+  let d = data % N_TRUE in
   let mods = [8, 9, 25, 49, 11, 13] in
   let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in
   /* Bits per channel: log2(modulus) */
@@ -1581,7 +1581,7 @@ fn demo_ofdm_run() = (
   let rx_b = (rb + n_b) % 49 in let rx_l = (rl + n_l) % 11 in let rx_g = (rg + n_g) % 13 in
   /* CRT reconstruct from received */
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  let recon = (rx_d * idem[0] + rx_k * idem[1] + rx_e * idem[2] + rx_b * idem[3] + rx_l * idem[4] + rx_g * idem[5]) % 12612600 in
+  let recon = (rx_d * idem[0] + rx_k * idem[1] + rx_e * idem[2] + rx_b * idem[3] + rx_l * idem[4] + rx_g * idem[5]) % N_TRUE in
   /* Channel errors */
   let err_d = if rx_d == rd then 0 else 1 in let err_k = if rx_k == rk then 0 else 1 in
   let err_e = if rx_e == re then 0 else 1 in let err_b = if rx_b == rb then 0 else 1 in
@@ -1639,7 +1639,7 @@ fn page_ofdm() = (
 fn demo_gpu_run() = (
   let data = parse_int_from("#dgpu-input") in
   let result_el = dom_query("#dgpu-result") in
-  let d = data % 12612600 in
+  let d = data % N_TRUE in
   let mods = [8, 9, 25, 49, 11, 13] in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   /* Decompose into 6 channels */
@@ -1648,9 +1648,9 @@ fn demo_gpu_run() = (
   let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
   let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in
   /* CRT reconstruct the squared result */
-  let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % 12612600 in
+  let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE in
   /* Verify: direct computation */
-  let direct = (d * d) % 12612600 in
+  let direct = (d * d) % N_TRUE in
   let ok = if recon == direct then 1 else 0 in
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>6-CHANNEL PARALLEL COMPUTE: f(x) = x^2 mod 12612600</p><p style='color:#88ddaa;margin:4px 0'>Input: x = " + "${d}" + "</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Workgroup</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Mod</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>r = x mod m</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>r^2 mod m</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Type</th></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>D</td><td style='padding:3px;color:#888;font-size:12px'>8</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rd}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sd}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>K</td><td style='padding:3px;color:#888;font-size:12px'>9</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rk}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sk}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>E</td><td style='padding:3px;color:#888;font-size:12px'>25</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${re}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${se}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>b</td><td style='padding:3px;color:#888;font-size:12px'>49</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rb}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sb}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>L</td><td style='padding:3px;color:#888;font-size:12px'>11</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rl}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sl}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>G</td><td style='padding:3px;color:#888;font-size:12px'>13</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rg}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sg}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr></table><p style='color:#ffd700;margin:12px 0 4px'>RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Parallel (6 workgroups + CRT): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>Sequential (direct x^2 mod N): " + "${direct}" + "</p><p style='color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>" + (if ok == 1 then "MATCH — 6 independent computations, 1 correct answer" else "MISMATCH — bug") + "</p></div>")
 )
@@ -1662,12 +1662,12 @@ fn demo_gpu_batch() = (
   let mods = [8, 9, 25, 49, 11, 13] in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   while i[0] < 1000 do (
-    let d = (i[0] * 12637 + 41) % 12612600 in
+    let d = (i[0] * 12637 + 41) % N_TRUE in
     let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in
     let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
     let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in
-    let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % 12612600 in
-    let direct = (d * d) % 12612600 in
+    let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE in
+    let direct = (d * d) % N_TRUE in
     if recon == direct then set(ok_count, 0, ok_count[0] + 1) else 0;
     set(i, 0, i[0] + 1)
   );
@@ -1749,8 +1749,8 @@ fn demo_sched_run() = (
     let j = [0] in
     set(j, 0, i[0] + 1);
     while j[0] < n do (
-      let slot_i = (i[0] % 8 * idem[0] + i[0] % 9 * idem[1] + i[0] % 25 * idem[2] + i[0] % 49 * idem[3] + i[0] % 11 * idem[4] + i[0] % 13 * idem[5]) % 12612600 in
-      let slot_j = (j[0] % 8 * idem[0] + j[0] % 9 * idem[1] + j[0] % 25 * idem[2] + j[0] % 49 * idem[3] + j[0] % 11 * idem[4] + j[0] % 13 * idem[5]) % 12612600 in
+      let slot_i = (i[0] % 8 * idem[0] + i[0] % 9 * idem[1] + i[0] % 25 * idem[2] + i[0] % 49 * idem[3] + i[0] % 11 * idem[4] + i[0] % 13 * idem[5]) % N_TRUE in
+      let slot_j = (j[0] % 8 * idem[0] + j[0] % 9 * idem[1] + j[0] % 25 * idem[2] + j[0] % 49 * idem[3] + j[0] % 11 * idem[4] + j[0] % 13 * idem[5]) % N_TRUE in
       if slot_i == slot_j then set(collisions, 0, collisions[0] + 1) else 0;
       set(j, 0, j[0] + 1)
     );
@@ -1762,7 +1762,7 @@ fn demo_sched_run() = (
   let k = [0] in
   while k[0] < show_n do (
     let t = k[0] in
-    let s = (t % 8 * idem[0] + t % 9 * idem[1] + t % 25 * idem[2] + t % 49 * idem[3] + t % 11 * idem[4] + t % 13 * idem[5]) % 12612600 in
+    let s = (t % 8 * idem[0] + t % 9 * idem[1] + t % 25 * idem[2] + t % 49 * idem[3] + t % 11 * idem[4] + t % 13 * idem[5]) % N_TRUE in
     set(rows, 0, rows[0] + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${t}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 8}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 9}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 25}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 49}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 11}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 13}" + "</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${s}" + "</td></tr>");
     set(k, 0, k[0] + 1)
   );
@@ -1816,7 +1816,7 @@ fn page_scheduling() = (
 fn demo_db_run() = (
   let key = parse_int_from("#ddb-input") in
   let result_el = dom_query("#ddb-result") in
-  let k = key % 12612600 in
+  let k = key % N_TRUE in
   let mods = [8, 9, 25, 49, 11, 13] in
   /* 6 bucket addresses */
   let bd = k % 8 in let bk = k % 9 in let be = k % 25 in let bb = k % 49 in let bl = k % 11 in let bg = k % 13 in
@@ -1834,8 +1834,8 @@ fn demo_db_batch() = (
   let tested = [0] in
   let i = [0] in
   while i[0] < 500 do (
-    let k1 = (i[0] * 25717 + 67) % 12612600 in
-    let k2 = (i[0] * 25717 + 67 + 1) % 12612600 in
+    let k1 = (i[0] * 25717 + 67) % N_TRUE in
+    let k2 = (i[0] * 25717 + 67 + 1) % N_TRUE in
     /* Two adjacent keys — check if any channel collides */
     let same_d = if k1 % 8 == k2 % 8 then 1 else 0 in
     let same_k = if k1 % 9 == k2 % 9 then 1 else 0 in
@@ -1916,7 +1916,7 @@ fn page_db_index() = (
 fn demo_audio_run() = (
   let note = parse_int_from("#daudio-input") in
   let result_el = dom_query("#daudio-result") in
-  let n = note % 12612600 in
+  let n = note % N_TRUE in
   let mods = [8, 9, 25, 49, 11, 13] in
   /* Decompose note into 6 channel residues */
   let rd = n % 8 in let rk = n % 9 in let re = n % 25 in let rb = n % 49 in let rl = n % 11 in let rg = n % 13 in
