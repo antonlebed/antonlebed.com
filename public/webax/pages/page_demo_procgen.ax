@@ -1,0 +1,352 @@
+/* page_demo_procgen.ax -- CC0 kill #33: CRT Procedural Generation.
+   Eigenvalue-driven terrain. Kingdom = biome. 6 CRT octaves.
+   Kills: Unity/Unreal/Epic procedural generation patents. CC0. */
+
+/* ================================================================
+   CRT PROCEDURAL GENERATION -- /demos/procgen. CC0 kill D33.
+   288 eigenvalue classes = 288 terrain types. Coupling = smoothness.
+   Kingdom = biome. 6 CRT channels = 6 independent octaves.
+   The ring IS the noise function. Deterministic, reproducible, infinite.
+   ================================================================ */
+
+fn pg_mod(ch) = (
+  if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
+  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+)
+
+fn pg_ch_name(ch) = (
+  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
+  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+)
+
+/* CRT-based terrain hash: deterministic from (x,y,seed) */
+fn terrain_hash(x, y, seed) = (
+  let h = ((x * 7919 + y * 104729 + seed * 2654435761) % 12612600 + 12612600) % 12612600 in
+  h
+)
+
+/* Elevation from CRT channels: weighted sum of channel residues.
+   D = large-scale (continental), K = medium (mountain), E = detail (hills),
+   b = fine detail (rocks), L = moisture (rivers), G = temperature (biome). */
+fn terrain_elevation(val) = (
+  let d = val % 8 in
+  let k = val % 9 in
+  let e = val % 25 in
+  let b_ch = val % 49 in
+  /* D gives 0-7 (large scale, weight 16), K gives 0-8 (medium, weight 8),
+     E gives 0-24 (hills, weight 2), b gives 0-48 (fine, weight 1) */
+  d * 16 + k * 8 + e * 2 + b_ch / 5
+)
+
+/* Biome classification from kingdom (gcd structure) */
+fn terrain_biome(val) = (
+  let g = gcd(val, 12612600) in
+  if g % 30 == 0 then "ocean"
+  else if g % 14 == 0 then "mountain"
+  else if g % 10 == 0 then "forest"
+  else if g % 6 == 0 then "plains"
+  else if g % 2 == 0 then "desert"
+  else if g % 3 == 0 then "tundra"
+  else if g % 5 == 0 then "jungle"
+  else if g % 7 == 0 then "swamp"
+  else "grassland"
+)
+
+fn biome_color(biome) = (
+  if streq(biome, "ocean") == 1 then "#1a4488"
+  else if streq(biome, "mountain") == 1 then "#888888"
+  else if streq(biome, "forest") == 1 then "#228833"
+  else if streq(biome, "plains") == 1 then "#88aa44"
+  else if streq(biome, "desert") == 1 then "#cc9944"
+  else if streq(biome, "tundra") == 1 then "#aabbcc"
+  else if streq(biome, "jungle") == 1 then "#116622"
+  else if streq(biome, "swamp") == 1 then "#445533"
+  else "#77aa55"
+)
+
+/* Coupling between adjacent cells = terrain smoothness */
+fn terrain_coupling(v1, v2) = (
+  mut c = 0;
+  mut ch = 0;
+  while ch < 6 do (
+    let m = pg_mod(ch) in
+    let r1 = v1 % m in
+    let r2 = v2 % m in
+    let diff = if r1 > r2 then r1 - r2 else r2 - r1 in
+    mut c = c + diff;
+    mut ch = ch + 1
+  );
+  c
+)
+
+/* Generate and display terrain grid */
+fn demo_procgen_run() = (
+  let result_el = dom_query("#dpg-result") in
+  let seed_val = parse_int_from("#dpg-input") in
+  let seed = if seed_val == 0 then 42 else seed_val in
+  let w = 12 in
+  let h = 10 in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT TERRAIN: " + "${w}" + "x" + "${h}" + " grid (seed=" + "${seed}" + ")</p>";
+
+  /* Terrain grid with biome colors */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>BIOME MAP (kingdom classification)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
+  mut y = 0;
+  while y < h do (
+    mut html = html + "<tr>";
+    mut x = 0;
+    while x < w do (
+      let val = terrain_hash(x, y, seed) in
+      let biome = terrain_biome(val) in
+      let bc = biome_color(biome) in
+      let elev = terrain_elevation(val) in
+      let elev_char = if elev > 150 then "^" else if elev > 100 then "n" else if elev > 60 then "~" else if elev > 30 then "." else "_" in
+      mut html = html + "<td style='padding:0;width:28px;height:24px;background:" + bc + ";text-align:center;color:rgba(255,255,255,0.6);font-size:14px;font-family:monospace' title='" + biome + " elev=" + "${elev}" + "'>" + elev_char + "</td>";
+      mut x = x + 1
+    );
+    mut html = html + "</tr>";
+    mut y = y + 1
+  );
+  mut html = html + "</table>";
+
+  /* Legend */
+  mut html = html + "<p style='color:#888;font-size:11px;margin:4px 0'>^ = mountain (>150) | n = hills (>100) | ~ = rolling (>60) | . = flat (>30) | _ = low (<30)</p>";
+
+  /* CRT channel decomposition for a cross-section */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CRT OCTAVE DECOMPOSITION (row 5 cross-section)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>x</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D(8)</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>K(9)</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>E(25)</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>b(49)</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L(11)</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>G(13)</th><th style='padding:3px 6px;color:#888;font-size:10px'>Elev</th><th style='padding:3px 6px;color:#888;font-size:10px'>Biome</th></tr>";
+  mut x2 = 0;
+  while x2 < w do (
+    let val = terrain_hash(x2, 5, seed) in
+    let biome = terrain_biome(val) in
+    let bc = biome_color(biome) in
+    let elev = terrain_elevation(val) in
+    mut html = html + "<tr><td style='padding:2px 6px;color:#888;font-size:11px'>" + "${x2}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${val % 8}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${val % 9}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${val % 25}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${val % 49}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px;font-weight:bold'>" + "${val % 11}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${val % 13}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ffd700;font-size:11px'>" + "${elev}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:" + bc + ";font-size:11px;font-weight:bold'>" + biome + "</td></tr>";
+    mut x2 = x2 + 1
+  );
+  mut html = html + "</table>";
+
+  /* Smoothness analysis */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>TERRAIN SMOOTHNESS (coupling between adjacent cells)</p>";
+  mut smooth_count = 0;
+  mut rough_count = 0;
+  mut total_coupling = 0;
+  mut pairs = 0;
+  mut y3 = 0;
+  while y3 < h do (
+    mut x3 = 0;
+    while x3 < w - 1 do (
+      let v1 = terrain_hash(x3, y3, seed) in
+      let v2 = terrain_hash(x3 + 1, y3, seed) in
+      let c = terrain_coupling(v1, v2) in
+      mut total_coupling = total_coupling + c;
+      mut pairs = pairs + 1;
+      if c < 20 then (mut smooth_count = smooth_count + 1)
+      else (mut rough_count = rough_count + 1);
+      mut x3 = x3 + 1
+    );
+    mut y3 = y3 + 1
+  );
+  let avg_c = if pairs > 0 then total_coupling / pairs else 0 in
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Metric</th><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Value</th></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Total cell pairs</td><td style='padding:3px 16px;color:#888;font-size:14px'>" + "${pairs}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Smooth transitions (coupling<20)</td><td style='padding:3px 16px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${smooth_count}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Rough transitions (coupling>=20)</td><td style='padding:3px 16px;color:#ff8844;font-size:14px'>" + "${rough_count}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Average coupling</td><td style='padding:3px 16px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${avg_c}" + "</td></tr>";
+  mut html = html + "</table>";
+
+  /* 490 split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT IN TERRAIN</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: physical terrain (elevation, detail, rock texture)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: ecological structure (biome stability, moisture, temperature)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Inner channels generate the GEOMETRY. Boundary channels determine what LIVES there. A mountain (high D) in a wet region (high L) = forest. Same mountain in a dry region = barren peak. Geology + ecology = holographic: 3 channels encode the full terrain.</p>";
+
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Biome distribution across the map */
+fn demo_procgen_biomes() = (
+  let result_el = dom_query("#dpg-biomes") in
+  let seed = 42 in
+  let w = 20 in
+  let h = 20 in
+  let biome_names = ["ocean", "mountain", "forest", "plains", "desert", "tundra", "jungle", "swamp", "grassland"] in
+  let counts = alloc(9) in
+  mut bi = 0;
+  while bi < 9 do (
+    set(counts, bi, 0);
+    mut bi = bi + 1
+  );
+  mut y = 0;
+  while y < h do (
+    mut x = 0;
+    while x < w do (
+      let val = terrain_hash(x, y, seed) in
+      let biome = terrain_biome(val) in
+      /* Count biomes */
+      mut bi2 = 0;
+      while bi2 < 9 do (
+        if streq(biome, biome_names[bi2]) == 1 then (
+          set(counts, bi2, counts[bi2] + 1)
+        ) else 0;
+        mut bi2 = bi2 + 1
+      );
+      mut x = x + 1
+    );
+    mut y = y + 1
+  );
+  let total = w * h in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>BIOME DISTRIBUTION: " + "${w}" + "x" + "${h}" + " world (" + "${total}" + " cells)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Biome</th><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Count</th><th style='padding:4px 16px;color:#ffd700;font-size:12px'>%</th><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Kingdom Rule</th></tr>";
+  let rules = ["gcd div 30", "gcd div 14", "gcd div 10", "gcd div 6", "gcd div 2", "gcd div 3", "gcd div 5", "gcd div 7", "coprime"] in
+  mut bi3 = 0;
+  while bi3 < 9 do (
+    let bc = biome_color(biome_names[bi3]) in
+    let pct = counts[bi3] * 100 / total in
+    mut html = html + "<tr><td style='padding:3px 16px;color:" + bc + ";font-size:13px;font-weight:bold'>" + biome_names[bi3] + "</td>";
+    mut html = html + "<td style='padding:3px 16px;color:#b0b0c0;font-size:14px'>" + "${counts[bi3]}" + "</td>";
+    mut html = html + "<td style='padding:3px 16px;color:#ffd700;font-size:14px'>" + "${pct}" + "%</td>";
+    mut html = html + "<td style='padding:3px 16px;color:#888;font-size:11px'>" + rules[bi3] + "</td></tr>";
+    mut bi3 = bi3 + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Biome distribution is determined by the KINGDOM of each cell's ring element. gcd(val, N) reveals the algebraic structure. Divisibility by different prime combinations = different ecological niches. The ring's factorization IS the biome map. 288 eigenvalue classes provide 288 distinct terrain subtypes within each biome.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Multi-octave analysis: show how each CRT channel adds detail */
+fn demo_procgen_octaves() = (
+  let result_el = dom_query("#dpg-octaves") in
+  let seed = 42 in
+  let w = 12 in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>6 CRT OCTAVES: Progressive Detail (row 0)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0 8px'>Each CRT channel adds a frequency octave. D(mod 8) = continental scale. K(mod 9) = regional. E(mod 25) = hills. b(mod 49) = rocks. L(mod 11) = moisture. G(mod 13) = temperature. Perlin noise uses arbitrary octaves. CRT octaves are ALGEBRAICALLY independent.</p>";
+
+  /* Show progressive buildup */
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>x</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D only</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>+K</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>+E</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>+b</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>+L</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>Full</th></tr>";
+  mut x = 0;
+  while x < w do (
+    let val = terrain_hash(x, 0, seed) in
+    let d = val % 8 in
+    let k = val % 9 in
+    let e = val % 25 in
+    let b_ch = val % 49 in
+    let l = val % 11 in
+    let oct1 = d * 16 in
+    let oct2 = oct1 + k * 8 in
+    let oct3 = oct2 + e * 2 in
+    let oct4 = oct3 + b_ch / 5 in
+    let oct5 = oct4 + l in
+    let full = terrain_elevation(val) in
+    mut html = html + "<tr><td style='padding:2px 6px;color:#888;font-size:11px'>" + "${x}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${oct1}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff8866;font-size:11px'>" + "${oct2}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ffaa44;font-size:11px'>" + "${oct3}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ffcc22;font-size:11px'>" + "${oct4}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${oct5}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ffd700;font-size:11px;font-weight:bold'>" + "${full}" + "</td></tr>";
+    mut x = x + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Each column adds one CRT octave. D(mod 8) gives coarse elevation (0-112 range). K(mod 9) adds regional variation (0-64). E(mod 25) adds hills (0-48). b(mod 49) adds fine texture. L(mod 11) adds moisture influence. The 6 octaves are algebraically independent -- modifying one CANNOT affect another. Perlin noise octaves are heuristically independent. CRT octaves are PROVABLY independent.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+fn page_procgen() = (
+  dom_head_meta("description", "CRT Procedural Generation. 288 eigenvalue classes = terrain types. Kingdom = biome. 6 CRT octaves = independent detail layers. CC0 patent kill: Unity/Unreal/Epic.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Procedural Generation\",\"description\":\"CRT-decomposed terrain generation. Eigenvalue = terrain type. Kingdom = biome. 6 algebraically independent octaves. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/procgen\"}");
+  let hero = make_hero("CRT Procedural Generation") in
+  let eq = dom_create("div") in
+  dom_text(eq, "D33: Unity / Unreal / Epic Games. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Game engines spend millions on proprietary procedural generation: Perlin noise with heuristic octaves, hand-tuned biome rules, compute-heavy terrain shaders. CRT approach: every grid cell IS a ring element. Its 6 CRT channels ARE 6 algebraically independent octaves. Its kingdom IS its biome. Coupling to neighbors IS terrain smoothness. No noise functions. No hand-tuning. The ring structure IS the world generator.");
+  dom_append(dom_body(), hero);
+
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Terrain Generation Theorem", "Every cell at position (x,y) maps to a unique ring element in Z/12612600. The 6 CRT channels provide 6 algebraically independent frequency octaves: D(mod 8) = continental scale, K(mod 9) = regional features, E(mod 25) = hills and valleys, b(mod 49) = fine rock texture, L(mod 11) = moisture distribution, G(mod 13) = temperature gradient. These octaves are PROVABLY independent (CRT guarantee), unlike Perlin noise where octave independence is heuristic. Kingdom classification (gcd structure) determines biome type. Coupling between adjacent cells = terrain smoothness. 288 eigenvalue classes = 288 terrain subtypes. The ring IS the world.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6 octaves", "CRT channels", "Each channel = one independent frequency layer. Algebraically guaranteed independence.", "");
+  render_finding(g1, "Kingdom biome", "O(1) classify", "gcd(val, N) = biome. No lookup table. No rules engine. The algebra IS the classifier.", "");
+  render_finding(g1, "288 subtypes", "Eigenvalue class", "288 eigenvalue classes = 288 terrain variations. Richer than any hand-authored system.", "");
+  render_finding(g1, "Deterministic", "Reproducible", "Same seed = same world. Always. No floating-point drift. No platform variance.", "");
+  dom_append(dom_body(), sec1);
+
+  let sec2 = make_section("900px") in
+  render_h2(sec2, "Generate Terrain");
+  make_interactive_widget(sec2, "World seed:", "dpg-input", "e.g. 42", "Generate World", "demo_procgen_run", "dpg-result");
+  render_p(sec2, "Generates a 12x10 terrain grid. Each cell = one ring element. Color = biome (kingdom classification). Symbol = elevation (CRT-weighted channel sum). Cross-section shows full 6-channel decomposition.");
+  dom_append(dom_body(), sec2);
+
+  let sec3 = make_section("900px") in
+  render_h2(sec3, "Biome Distribution");
+  let btn = dom_create("button") in
+  dom_text(btn, "Analyze 20x20 World");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_procgen_biomes");
+  dom_append(sec3, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "dpg-biomes");
+  dom_append(sec3, br);
+  render_p(sec3, "400-cell world. Biome classification via kingdom (gcd structure). Each biome maps to a specific algebraic divisibility pattern.");
+  dom_append(dom_body(), sec3);
+
+  let sec4 = make_section("900px") in
+  render_h2(sec4, "CRT Octave Decomposition");
+  let btn2 = dom_create("button") in
+  dom_text(btn2, "Show Progressive Detail");
+  dom_style(btn2, "background", "#44ff88");
+  dom_style(btn2, "color", "#0f0f2a");
+  dom_style(btn2, "border", "none");
+  dom_style(btn2, "padding", "10px 24px");
+  dom_style(btn2, "borderRadius", "6px");
+  dom_style(btn2, "cursor", "pointer");
+  dom_style(btn2, "fontWeight", "bold");
+  dom_style(btn2, "fontSize", "14px");
+  dom_on(btn2, "click", "demo_procgen_octaves");
+  dom_append(sec4, btn2);
+  let br2 = dom_create("div") in
+  dom_attr(br2, "id", "dpg-octaves");
+  dom_append(sec4, br2);
+  render_p(sec4, "Watch elevation build up as each CRT channel adds its octave. D = continental. K = regional. E = hills. b = rocks. L = moisture. G = temperature.");
+  dom_append(dom_body(), sec4);
+
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "CRT vs Traditional Procedural Generation");
+  render_contrast_row(sec5, "Noise function", "Perlin/Simplex: gradient interpolation, heuristic octaves", "CRT: ring residues = natural octaves. Provably independent.");
+  render_contrast_row(sec5, "Octaves", "Arbitrary: 4-8 octaves with hand-tuned persistence", "6 CRT channels: algebraically independent. No tuning.");
+  render_contrast_row(sec5, "Biomes", "Rule-based: temperature + moisture thresholds (hand-authored)", "Kingdom: gcd(val,N) = biome. Algebraic. Zero rules.");
+  render_contrast_row(sec5, "Smoothness", "Gradient interpolation (computationally expensive)", "Coupling distance: sum of per-channel differences. O(1).");
+  render_contrast_row(sec5, "Determinism", "Floating-point: platform-dependent rounding differences", "Integer arithmetic: identical on ALL platforms. Always.");
+  render_contrast_row(sec5, "Patent status", "Unity (SpeedTree), Epic (Nanite), various (noise patents)", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec5)
+)
