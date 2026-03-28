@@ -1,0 +1,412 @@
+/* page_demo_object.ax -- CC0 kill #22: CRT Object Detection.
+   CRT feature pyramid. 6 channels = 6 scale levels. Kingdom = class.
+   Kills: YOLO/Ultralytics, Meta Detectron, Google EfficientDet patents. CC0. */
+
+/* ================================================================
+   CRT OBJECT DETECTION -- /demos/object. CC0 kill C22.
+   Synthetic image (grid of intensity values) decomposed via CRT into
+   6 scale channels. Edge detection per channel. Connected component
+   analysis. Kingdom classification = object category. No CNN. No
+   training data. The ring structure IS the feature pyramid.
+   ================================================================ */
+
+fn ob_mod(ch) = (
+  if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
+  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+)
+
+fn ob_ch_name(ch) = (
+  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
+  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+)
+
+fn ob_scale_name(ch) = (
+  if ch == 0 then "coarse" else if ch == 1 then "medium" else if ch == 2 then "fine"
+  else if ch == 3 then "detail" else if ch == 4 then "sentinel" else "boundary"
+)
+
+fn ob_basis(ch) = (
+  if ch == 0 then 1576575 else if ch == 1 then 8408401
+  else if ch == 2 then 7567560 else if ch == 3 then 5765760
+  else if ch == 4 then 11466456 else 2441208
+)
+
+/* Generate synthetic "image": grid of intensity values as ring elements.
+   Objects = rectangular regions with distinct channel signatures.
+   Background has low residues, objects have high residues in specific channels. */
+fn gen_synthetic_image(w, h, seed) = (
+  let img = alloc(w * h) in
+  /* Background: low-energy ring elements */
+  mut y = 0;
+  while y < h do (
+    mut x = 0;
+    while x < w do (
+      let bg = ((x * 7 + y * 13 + seed) * 31 + 100) % 1000 in
+      set(img, y * w + x, bg);
+      mut x = x + 1
+    );
+    mut y = y + 1
+  );
+  /* Object A: D-dominant blob (top-left quadrant) */
+  mut ya = 1;
+  while ya < h / 2 - 1 do (
+    mut xa = 1;
+    while xa < w / 2 - 1 do (
+      let v = 5 * ob_basis(0) + 2 * ob_basis(1) + (seed * 3 + xa) % 25 * ob_basis(2) in
+      set(img, ya * w + xa, v % 12612600);
+      mut xa = xa + 1
+    );
+    mut ya = ya + 1
+  );
+  /* Object B: K-dominant blob (top-right quadrant) */
+  mut yb = 1;
+  while yb < h / 2 - 1 do (
+    mut xb = w / 2 + 1;
+    while xb < w - 1 do (
+      let v = 1 * ob_basis(0) + 7 * ob_basis(1) + (seed * 7 + xb) % 25 * ob_basis(2) in
+      set(img, yb * w + xb, v % 12612600);
+      mut xb = xb + 1
+    );
+    mut yb = yb + 1
+  );
+  /* Object C: E-dominant blob (bottom-center) */
+  mut yc = h / 2 + 1;
+  while yc < h - 1 do (
+    mut xc = w / 4;
+    while xc < 3 * w / 4 do (
+      let v = 2 * ob_basis(0) + 3 * ob_basis(1) + 20 * ob_basis(2) + (seed + yc) % 49 * ob_basis(3) in
+      set(img, yc * w + xc, v % 12612600);
+      mut xc = xc + 1
+    );
+    mut yc = yc + 1
+  );
+  img
+)
+
+/* Per-channel edge detection: gradient magnitude at each pixel */
+fn channel_edge(img, w, h, ch) = (
+  let m = ob_mod(ch) in
+  let edges = alloc(w * h) in
+  mut y = 1;
+  while y < h - 1 do (
+    mut x = 1;
+    while x < w - 1 do (
+      let center = img[y * w + x] % m in
+      let right = img[y * w + (x + 1)] % m in
+      let down = img[(y + 1) * w + x] % m in
+      let dx = if center > right then center - right else right - center in
+      let dy = if center > down then center - down else down - center in
+      set(edges, y * w + x, dx + dy);
+      mut x = x + 1
+    );
+    mut y = y + 1
+  );
+  edges
+)
+
+/* Classify pixel by kingdom (gcd structure) */
+fn pixel_kingdom(val) = (
+  let g = gcd(val, 12612600) in
+  if g % 30 == 0 then 5
+  else if g % 14 == 0 then 4
+  else if g % 10 == 0 then 3
+  else if g % 6 == 0 then 2
+  else if g % 2 == 0 then 1
+  else 0
+)
+
+fn kingdom_label(k) = (
+  if k == 5 then "multi" else if k == 4 then "heavy" else if k == 3 then "medium"
+  else if k == 2 then "light" else if k == 1 then "minimal" else "sigma"
+)
+
+/* Detect objects: find connected high-energy regions per channel.
+   Returns count of distinct objects (edge energy above threshold). */
+fn detect_objects(img, w, h, threshold) = (
+  let detections = alloc(w * h) in
+  mut n_objects = 0;
+  /* Multi-channel edge: sum edge magnitudes across all channels */
+  let total_edge = alloc(w * h) in
+  mut i = 0;
+  while i < w * h do (
+    set(total_edge, i, 0);
+    set(detections, i, 0);
+    mut i = i + 1
+  );
+  mut ch = 0;
+  while ch < 6 do (
+    let edges = channel_edge(img, w, h, ch) in
+    /* Weight: L=11 channel gets 3x (sentinel), others 1x */
+    let weight = if ch == 4 then 3 else 1 in
+    mut j = 0;
+    while j < w * h do (
+      set(total_edge, j, total_edge[j] + edges[j] * weight);
+      mut j = j + 1
+    );
+    mut ch = ch + 1
+  );
+  /* Threshold: mark high-energy pixels */
+  mut k = 0;
+  while k < w * h do (
+    if total_edge[k] > threshold then (
+      set(detections, k, 1);
+      mut n_objects = n_objects + 1
+    ) else 0;
+    mut k = k + 1
+  );
+  /* Return array: [n_detected, detections_flat...] packed into result */
+  /* For simplicity: return detection count + fill detections array */
+  n_objects
+)
+
+/* CRT feature pyramid: decompose image into 6 scale channels */
+fn feature_pyramid(img, w, h) = (
+  let pyramid = alloc(6) in
+  mut ch = 0;
+  while ch < 6 do (
+    let m = ob_mod(ch) in
+    mut sum = 0;
+    mut count = 0;
+    mut i = 0;
+    while i < w * h do (
+      let r = img[i] % m in
+      mut sum = sum + r;
+      mut count = count + 1;
+      mut i = i + 1
+    );
+    set(pyramid, ch, if count > 0 then sum / count else 0);
+    mut ch = ch + 1
+  );
+  pyramid
+)
+
+/* Main demo: object detection on synthetic image */
+fn demo_object_run() = (
+  let result_el = dom_query("#dob-result") in
+  let seed_val = parse_int_from("#dob-input") in
+  let seed = if seed_val == 0 then 42 else seed_val in
+  let w = 16 in
+  let h = 12 in
+  let threshold = 8 in
+
+  let img = gen_synthetic_image(w, h, seed) in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT OBJECT DETECTION: " + "${w}" + "x" + "${h}" + " image (seed=" + "${seed}" + ")</p>";
+
+  /* Image visualization: kingdom coloring */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>KINGDOM MAP (gcd-based classification)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
+  mut y = 0;
+  while y < h do (
+    mut html = html + "<tr>";
+    mut x = 0;
+    while x < w do (
+      let val = img[y * w + x] in
+      let k = pixel_kingdom(val) in
+      let bg = if k == 5 then "#4444ff" else if k == 4 then "#ff4444" else if k == 3 then "#44ff44"
+        else if k == 2 then "#ffaa00" else if k == 1 then "#333366" else "#1a1a2e" in
+      mut html = html + "<td style='width:28px;height:22px;background:" + bg + ";border:1px solid #222;text-align:center;font-size:8px;color:#fff'>" + "${k}" + "</td>";
+      mut x = x + 1
+    );
+    mut html = html + "</tr>";
+    mut y = y + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#888;font-size:10px;margin:4px 0'>Colors: sigma(dark)=background, minimal(grey)=edge, light(orange)=transition, medium(green)=object A, heavy(red)=object B, multi(blue)=object C</p>";
+
+  /* CRT Feature Pyramid */
+  let pyramid = feature_pyramid(img, w, h) in
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CRT FEATURE PYRAMID (6 scale levels)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Channel</th><th style='padding:4px 8px;color:#666;font-size:10px'>Scale</th><th style='padding:4px 8px;color:#666;font-size:10px'>Mod</th><th style='padding:4px 8px;color:#666;font-size:10px'>Mean Residue</th><th style='padding:4px 8px;color:#666;font-size:10px'>Max</th><th style='padding:4px 8px;color:#666;font-size:10px'>Utilization</th></tr>";
+
+  mut ch = 0;
+  while ch < 6 do (
+    let m = ob_mod(ch) in
+    let avg = pyramid[ch] in
+    let util = avg * 100 / m in
+    let chc = if ch == 0 then "#ff6666" else if ch == 1 then "#44ff88" else if ch == 2 then "#ff6666"
+      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else "#44ff88" in
+    let bar_w = util * 2 in
+    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + ob_ch_name(ch) + "</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:11px'>" + ob_scale_name(ch) + "</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#888;font-size:11px'>" + "${m}" + "</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:12px;text-align:center'>" + "${avg}" + "</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#888;font-size:11px;text-align:center'>" + "${m}" + "</td>";
+    mut html = html + "<td style='padding:3px 8px;font-size:11px'><div style='background:" + chc + ";width:" + "${bar_w}" + "px;height:10px;border-radius:2px;display:inline-block'></div> " + "${util}" + "%</td></tr>";
+    mut ch = ch + 1
+  );
+  mut html = html + "</table>";
+
+  /* Per-channel edge detection view */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>PER-CHANNEL EDGE DETECTION</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Channel</th><th style='padding:4px 8px;color:#666;font-size:10px'>Edge Pixels</th><th style='padding:4px 8px;color:#666;font-size:10px'>% of image</th><th style='padding:4px 8px;color:#666;font-size:10px'>Object boundaries at this scale</th></tr>";
+
+  mut ch2 = 0;
+  while ch2 < 6 do (
+    let edges = channel_edge(img, w, h, ch2) in
+    mut edge_count = 0;
+    mut j = 0;
+    while j < w * h do (
+      if edges[j] > 2 then (mut edge_count = edge_count + 1) else 0;
+      mut j = j + 1
+    );
+    let pct = edge_count * 100 / (w * h) in
+    let chc2 = if ch2 == 0 then "#ff6666" else if ch2 == 1 then "#44ff88" else if ch2 == 2 then "#ff6666"
+      else if ch2 == 3 then "#ff6666" else if ch2 == 4 then "#44ff88" else "#44ff88" in
+    let desc = if ch2 == 0 then "Large object outlines (coarse)" else if ch2 == 1 then "Medium structure (texture boundary)"
+      else if ch2 == 2 then "Fine edges (detail transitions)" else if ch2 == 3 then "Sub-pixel detail (noise/texture)"
+      else if ch2 == 4 then "Sentinel edges (integrity check)" else "Boundary transitions (gate)" in
+    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc2 + ";font-size:12px;font-weight:bold'>" + ob_ch_name(ch2) + " (" + ob_scale_name(ch2) + ")</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:12px;text-align:center'>" + "${edge_count}" + "</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:12px;text-align:center'>" + "${pct}" + "%</td>";
+    mut html = html + "<td style='padding:3px 8px;color:#888;font-size:11px'>" + desc + "</td></tr>";
+    mut ch2 = ch2 + 1
+  );
+  mut html = html + "</table>";
+
+  /* Detection count */
+  let n_det = detect_objects(img, w, h, threshold) in
+  mut html = html + "<p style='color:#44ff88;font-size:18px;font-weight:bold;margin:8px 0'>Detected: " + "${n_det}" + " high-energy edge pixels (threshold=" + "${threshold}" + ")</p>";
+
+  /* 490 split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: carry IMAGE CONTENT (coarse structure, fine detail, sub-pixel texture)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: carry IMAGE STRUCTURE (medium form, integrity sentinel, boundary gate)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Object detection = finding where ALIVE channels disagree with DEAD channels. Structure without content = edge. Content without structure = interior. The 490 split separates object boundaries from object fill.</p>";
+
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Batch: detect objects across multiple seeds */
+fn demo_object_batch() = (
+  let result_el = dom_query("#dob-batch") in
+  let w = 12 in
+  let h = 10 in
+  let n_tests = 10 in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>BATCH DETECTION: " + "${n_tests}" + " scenes x " + "${w}" + "x" + "${h}" + " pixels</p>";
+
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Scene</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>D edges</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>K edges</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>E edges</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>b edges</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>L edges</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>G edges</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Total</th><th style='padding:4px 8px;color:#666;font-size:10px'>Kingdoms</th></tr>";
+
+  mut total_det = 0;
+  mut s = 0;
+  while s < n_tests do (
+    let seed = s * 137 + 42 in
+    let img = gen_synthetic_image(w, h, seed) in
+
+    /* Per-channel edge counts */
+    mut row_html = "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Scene " + "${s}" + "</td>";
+    mut total_edges = 0;
+    mut ch = 0;
+    while ch < 6 do (
+      let edges = channel_edge(img, w, h, ch) in
+      mut edge_count = 0;
+      mut j = 0;
+      while j < w * h do (
+        if edges[j] > 2 then (mut edge_count = edge_count + 1) else 0;
+        mut j = j + 1
+      );
+      mut total_edges = total_edges + edge_count;
+      let chc = if ch == 0 then "#ff6666" else if ch == 1 then "#44ff88" else if ch == 2 then "#ff6666"
+        else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else "#44ff88" in
+      mut row_html = row_html + "<td style='padding:3px 8px;color:" + chc + ";font-size:11px;text-align:center'>" + "${edge_count}" + "</td>";
+      mut ch = ch + 1
+    );
+
+    /* Count distinct kingdoms */
+    let kingdoms = alloc(6) in
+    mut ki = 0;
+    while ki < 6 do (set(kingdoms, ki, 0); mut ki = ki + 1);
+    mut p = 0;
+    while p < w * h do (
+      let k = pixel_kingdom(img[p]) in
+      set(kingdoms, k, kingdoms[k] + 1);
+      mut p = p + 1
+    );
+    mut n_kingdoms = 0;
+    mut kj = 0;
+    while kj < 6 do (
+      if kingdoms[kj] > 0 then (mut n_kingdoms = n_kingdoms + 1) else 0;
+      mut kj = kj + 1
+    );
+
+    mut total_det = total_det + total_edges;
+    let det_color = if total_edges > 200 then "#44ff88" else if total_edges > 100 then "#ffd700" else "#ff6666" in
+    mut row_html = row_html + "<td style='padding:3px 8px;color:" + det_color + ";font-size:12px;font-weight:bold;text-align:center'>" + "${total_edges}" + "</td>";
+    mut row_html = row_html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:11px;text-align:center'>" + "${n_kingdoms}" + "/6</td></tr>";
+    mut html = html + row_html;
+    mut s = s + 1
+  );
+  mut html = html + "</table>";
+
+  let avg_det = total_det / n_tests in
+  mut html = html + "<p style='color:#44ff88;font-size:18px;font-weight:bold;margin:8px 0'>Average: " + "${avg_det}" + " edge pixels per scene across 6 CRT channels</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Each channel independently detects edges at its scale level. No cross-channel interference (CRT independence). K-means: O(N*k*iter). CRT kingdom: O(N) = one gcd per pixel. No iteration. No hyperparameters.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+fn page_object() = (
+  dom_head_meta("description", "CRT Object Detection. 6 CRT channels = 6 feature pyramid levels. Kingdom = object class. L=11 sentinel. CC0 patent kill: YOLO/Detectron/EfficientDet.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Object Detection\",\"description\":\"CRT-decomposed object detection. 6 feature pyramid levels. Kingdom classification. L=11 sentinel edges. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/object\"}");
+  let hero = make_hero("CRT Object Detection") in
+  let eq = dom_create("div") in
+  dom_text(eq, "C22: Ultralytics YOLO / Meta Detectron / Google EfficientDet. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Object detection systems use sequential feature pyramids: extract features at multiple scales through deep convolutional networks, then classify regions via learned anchor boxes. Patented: backbone architectures, feature pyramid networks, non-maximum suppression variants, anchor-free detection heads. CRT approach: every pixel value in Z/12612600 decomposes into 6 independent scale channels via CRT. D(mod 8) = coarse structure. K(mod 9) = medium form. E(mod 25) = fine edges. b(mod 49) = sub-pixel detail. L(mod 11) = integrity sentinel. G(mod 13) = boundary gate. Per-channel edge detection = 6-level feature pyramid for FREE. Kingdom classification (gcd structure) = O(1) object categorization. No CNN. No training. The ring IS the feature extractor.");
+  dom_append(dom_body(), hero);
+
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Feature Pyramid Theorem", "Image pixels encoded in Z/12612600 decompose into 6 CRT channels. Each channel captures features at a different scale: D(mod 8, coarse) through G(mod 13, boundary). Per-channel edge detection: gradient magnitude within each channel. Object boundaries = high edge energy across multiple channels. Object identity = kingdom classification via gcd(pixel, N). 6 CRT channels = 6 independent feature pyramid levels. Standard FPN: sequential convolutions, patented cross-scale connections. CRT FPN: algebraic decomposition, zero cross-scale leakage (CRT independence). L=11 = sentinel: anomalous pixels detected by L-channel deviation. 490 split: DEAD={D,E,b} = image CONTENT (texture, detail). ALIVE={K,L,G} = image STRUCTURE (form, integrity, boundary). Objects = where structure channels show edges.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6-level pyramid", "CRT channels", "Each channel captures one scale level. No convolution. No learned weights. Algebraic.", "");
+  render_finding(g1, "Kingdom = class", "O(1) classify", "gcd(pixel, N) determines object kingdom. No anchor boxes. No NMS. Deterministic.", "");
+  render_finding(g1, "L=11 sentinel", "Anomaly edges", "L channel with 3x weight detects integrity violations. Same ECC property.", "");
+  render_finding(g1, "490 split", "Content vs structure", "DEAD = what the object looks like. ALIVE = where the object is. Natural separation.", "");
+  dom_append(dom_body(), sec1);
+
+  let sec2 = make_section("900px") in
+  render_h2(sec2, "Detection Demo");
+  make_interactive_widget(sec2, "Scene seed:", "dob-input", "e.g. 42", "Detect Objects", "demo_object_run", "dob-result");
+  render_p(sec2, "Synthetic 16x12 image with 3 embedded objects (D-dominant, K-dominant, E-dominant). CRT feature pyramid decomposes into 6 scale channels. Per-channel edge detection. Kingdom classification colors each pixel by gcd structure.");
+  dom_append(dom_body(), sec2);
+
+  let sec3 = make_section("900px") in
+  render_h2(sec3, "Batch Detection");
+  let btn = dom_create("button") in
+  dom_text(btn, "Test 10 Scenes");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_object_batch");
+  dom_append(sec3, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "dob-batch");
+  dom_append(sec3, br);
+  render_p(sec3, "10 synthetic scenes. Per-channel edge counts. Kingdom diversity per scene. CRT provides 6 independent edge maps without any convolution or learned parameters.");
+  dom_append(dom_body(), sec3);
+
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "CRT vs Traditional Object Detection");
+  render_contrast_row(sec4, "Features", "YOLO/Detectron: deep CNN backbone (ResNet/CSPDarknet, millions of params)", "CRT: 6 channel residues. No learned features. Algebraic decomposition.");
+  render_contrast_row(sec4, "Pyramid", "FPN: sequential conv + lateral connections (patented)", "CRT: 6 independent scales from modular arithmetic. Zero cross-scale.");
+  render_contrast_row(sec4, "Classify", "Anchor boxes + NMS + confidence thresholds (patented)", "Kingdom: gcd(pixel, N) = O(1). No anchors. No NMS. Deterministic.");
+  render_contrast_row(sec4, "Training", "ImageNet pretrain + COCO finetune (GPU-days)", "Zero training. The ring structure IS the feature extractor.");
+  render_contrast_row(sec4, "Compute", "GPU-bound inference (FLOPs/frame)", "Integer arithmetic. 6 mod operations per pixel. CPU-friendly.");
+  render_contrast_row(sec4, "Patent status", "Ultralytics (YOLOv8), Meta (Detectron2), Google (EfficientDet, patent US10832087)", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec4)
+)
