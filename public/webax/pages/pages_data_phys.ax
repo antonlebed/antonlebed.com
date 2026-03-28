@@ -1,0 +1,672 @@
+/* pages_data_phys.ax -- Physics domain pages: classical, EM, GR, optics, acoustics.
+   Split from pages_data.ax (S1167). Uses domain_hero() from pages_data.ax. */
+
+/* Classical: pendulum cumulant lookup by index */
+fn classical_cumulant_calc() = (
+  let k = parse_int_from("#class-input") in
+  let result = dom_query("#class-result") in
+  if k < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter cumulant index >= 1.</p>")
+  else (
+    let val = if k == 1 then "0 (odd cumulants = 0 for symmetric distribution)"
+      else if k == 2 then "2 = D. Variance."
+      else if k == 3 then "0 (odd)"
+      else if k == 4 then "-6 = -D*K. Excess kurtosis."
+      else if k == 5 then "0 (odd)"
+      else if k == 6 then "80 = D^4*E. Sixth cumulant."
+      else if k == 7 then "0 (odd)"
+      else if k == 8 then "-2310 = -THIN = -D*K*E*b*L. Eighth cumulant."
+      else "Higher cumulants involve intruder primes (13+)." in
+    let smooth = if k == 2 then "SMOOTH: D"
+      else if k == 4 then "SMOOTH: D*K"
+      else if k == 6 then "SMOOTH: D^4*E"
+      else if k == 8 then "SMOOTH: ALL 5 primes = THIN ring"
+      else if k % 2 == 1 then "Zero (symmetry)"
+      else "Check factorization." in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>Arcsine cumulant kap_${k}:</p><p style='margin:4px 0'><b style='color:#ffd700'>${val}</b></p><p style='margin:4px 0;color:#b8b8c8'>${smooth}</p>")
+  )
+)
+
+/* EM: dimension cross-product checker */
+fn em_dim_calc() = (
+  let d = parse_int_from("#em-input") in
+  let result = dom_query("#em-result") in
+  if d < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter dimension >= 1.</p>")
+  else (
+    let cross = if d == 1 then "YES (trivial)" else if d == 3 then "YES" else if d == 7 then "YES" else "NO" in
+    let orbits = if d <= 3 then "YES" else "NO" in
+    let axiom = if d == 1 then "sigma" else if d == 2 then "D" else if d == 3 then "K" else if d == 5 then "E" else if d == 7 then "b" else if d == 11 then "L" else "" in
+    let both = if d == 3 then "YES -- K=3 is the ONLY dimension with BOTH. Magnetism + atoms coexist here alone."
+      else if d == 1 then "Trivial: cross product exists but no spatial structure."
+      else if d == 7 then "NO -- cross products exist (octonions) but orbits are unstable in d>3."
+      else if d <= 3 then "Orbits exist but no cross product. No magnetism."
+      else "Neither. No magnetism, no stable orbits." in
+    let color = if d == 3 then "#00ff88" else "#ff6666" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>d = ${d} dimensions ${axiom}</p><p style='margin:4px 0'>Cross products: <b style='color:${color}'>${cross}</b> | Stable orbits: <b style='color:${color}'>${orbits}</b></p><p style='margin:4px 0;color:#b8b8c8'>${both}</p>")
+  )
+)
+
+/* Optics: refractive index axiom ratio identifier */
+fn optics_refract_calc() = (
+  let num = parse_int_from("#opt-input-n") in
+  let den = parse_int_from("#opt-input-d") in
+  let result = dom_query("#opt-result") in
+  if num < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter numerator >= 1.</p>")
+  else if den < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter denominator >= 1.</p>")
+  else (
+    let material = if num == 1 then if den == 1 then "Vacuum: sigma/sigma = 1." else ""
+      else if num == 4 then if den == 3 then "WATER: D^2/K = 4/3 = 1.333. Error: 0.025%." else ""
+      else if num == 3 then if den == 2 then "Crown glass: K/D = 3/2 = 1.500." else ""
+      else if num == 8 then if den == 5 then "Flint glass: D^3/E = 8/5 = 1.600." else ""
+      else if num == 121 then if den == 50 then "Diamond: L^2/(D*E^2) = 121/50 = 2.420." else ""
+      else "" in
+    let label = if len(material) > 0 then material else "Not a standard axiom ratio. Known: 1/1(vacuum), 4/3(water), 3/2(crown), 8/5(flint), 121/50(diamond)." in
+    let g = gcd_shared(num, den) in
+    let sn = num / g in
+    let sd = den / g in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>n = ${num}/${den} = ${sn}/${sd} (reduced)</p><p style='margin:4px 0;color:#ffd700'>${label}</p>")
+  )
+)
+
+/* Acoustics: frequency axiom checker */
+fn acoustics_freq_calc() = (
+  let hz = parse_int_from("#acou-input") in
+  let result = dom_query("#acou-result") in
+  if hz < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter frequency >= 1 Hz.</p>")
+  else (
+    let named = if hz == 20 then "Low hearing threshold = D^2*E."
+      else if hz == 440 then "Concert A = D^3*E*L. ISO 1939."
+      else if hz == 343 then "Speed of sound (m/s) = b^3. 0.06%."
+      else if hz == 20000 then "High hearing threshold = D^5*E^4."
+      else if hz == 432 then "Pythagorean tuning = D^4*K^3."
+      else if hz == 256 then "Scientific middle C = D^8."
+      else if hz == 512 then "Scientific C5 = D^9."
+      else "" in
+    let f = hz in
+    let d2 = if f % 2 == 0 then 1 else 0 in
+    let d3 = if f % 3 == 0 then 1 else 0 in
+    let d5 = if f % 5 == 0 then 1 else 0 in
+    let d7 = if f % 7 == 0 then 1 else 0 in
+    let d11 = if f % 11 == 0 then 1 else 0 in
+    let smooth = if d2 + d3 + d5 + d7 + d11 > 0 then "Has axiom-prime factors." else "No axiom-prime factors." in
+    let label = if len(named) > 0 then named else smooth in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>${hz} Hz</p><p style='margin:4px 0'>D(2):${d2} K(3):${d3} E(5):${d5} b(7):${d7} L(11):${d11}</p><p style='margin:4px 0;color:#ffd700'>${label}</p>")
+  )
+)
+
+/* Chemistry: bond angle from electron pairs + lone pairs */
+fn chemistry_angle_calc() = (
+  let ep = parse_int_from("#chem-input-e") in
+  let lp = parse_int_from("#chem-input-l") in
+  let result = dom_query("#chem-result") in
+  if ep < 2 then dom_inner(result, "<p style='color:#ff6666'>Enter electron pairs >= 2.</p>")
+  else if lp < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter lone pairs >= 0.</p>")
+  else (
+    let base_angle = if ep == 2 then 180 else if ep == 3 then 120 else if ep == 4 then 109 else if ep == 6 then 90 else 0 in
+    let base_frac = if ep == 4 then 47 else 0 in
+    let denom = if ep == 2 then "sigma" else if ep == 3 then "D" else if ep == 4 then "K" else if ep == 6 then "cross-polytope" else "?" in
+    let depression = lp * 25 in
+    let adj_whole = base_angle - (depression / 10) in
+    let adj_frac = base_frac - (depression % 10) in
+    let final_a = if adj_frac < 0 then adj_whole - 1 else adj_whole in
+    let final_f = if adj_frac < 0 then adj_frac + 10 else adj_frac in
+    let molecule = if ep == 4 then if lp == 0 then "CH4 (methane): tetrahedral." else if lp == 1 then "NH3 (ammonia): trigonal pyramidal." else if lp == 2 then "H2O (water): bent." else "" else "" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>Electron pairs: ${ep} (denom: ${denom}) | Lone pairs: ${lp}</p><p style='margin:4px 0'>Base angle: ${base_angle}.${base_frac} deg | Depression: ${lp} x E/D = ${lp} x 2.5 deg</p><p style='margin:4px 0'><b style='color:#ffd700'>Predicted: ${final_a}.${final_f} deg</b></p><p style='margin:4px 0;color:#b8b8c8'>${molecule}</p>")
+  )
+)
+
+fn page_classical() = (
+  dom_head_meta("description", "The pendulum encodes the entire axiom chain in its cumulants. Space = K=3 dimensions. Free particles carry b=7 conserved quantities. D=2 rules everything. 27 quantities from six primes.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Classical Mechanics\",\"description\":\"Pendulum cumulants encode the axiom chain. K=3 dimensions, b=7 conserved quantities, D=2 symmetry. 27 quantities from six primes.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/classical\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"classical mechanics\"},{\"@type\":\"DefinedTerm\",\"name\":\"Lagrangian\"},{\"@type\":\"DefinedTerm\",\"name\":\"axiom structure\"}]}");
+  /* === HERO === */
+  let hero = make_hero("Classical Mechanics") in
+  let big = dom_create("div") in
+  dom_text(big, "kap_2=D  kap_4=-D*K  kap_6=D^4*E");
+  ct_mono(big);
+  dom_style(big, "fontSize", "22px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "1px");
+  dom_style(big, "marginBottom", "24px");
+  dom_append(hero, big);
+  render_p(hero, "The simplest mechanical system -- a weight on a string -- encodes the entire axiom chain. Its probability distribution has cumulants that ARE {D, K, E, b, L}. Not imposed. Measured. 27 quantities from six primes.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: PENDULUM CUMULANTS === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Pendulum: Axiom in Motion");
+  render_p(sec1, "The arcsine distribution (where a pendulum spends its time) has cumulants that walk the chain. Axiom-smooth for exactly n <= D^2 = 4 (index <= D^3 = 8). Beyond: f(E) = 19 enters.");
+  let t1 = make_table(sec1) in
+  let h1 = dom_create("tr") in
+  render_th(h1, "Cumulant");
+  render_th(h1, "Value");
+  render_th(h1, "Axiom");
+  dom_append(t1, h1);
+  render_table_row(t1, "kap_2", "2", "D");
+  render_table_row(t1, "kap_4", "-6", "-D*K");
+  render_table_row(t1, "kap_6", "80", "D^4*E");
+  render_table_row(t1, "kap_8", "-2310", "-THIN = -D*K*E*b*L");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: STRUCTURAL DIMENSIONS === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Why These Numbers");
+  let g2 = make_findings_grid(sec2) in
+  render_finding(g2, "Space dimensions", "K = 3", "Closure prime. Cross products exist in {1,3,7}={sigma,K,b}. Stable orbits only for d<=3. Only K=3 has both.", "");
+  render_finding(g2, "Phase space", "D = 2 per DOF", "Every degree of freedom splits into D=2 conjugate variables: position q and momentum p. This IS duality.", "");
+  render_finding(g2, "Symplectic dim", "D*K = 6", "Point particle: K=3 positions + K=3 momenta = D*K = 6. Same as rigid body DOF.", "");
+  render_finding(g2, "Galilean generators", "D*E = 10", "1 time + K space + K rotation + K boost = 1+K+K+K = 10. Same as Poincare generators.", "");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: CONSERVATION === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Conservation: Why b = 7");
+  render_theorem(sec3, "Depth IS Conservation", "Free particle: Energy(1) + linear momentum(K=3) + angular momentum(K=3) = 1+K+K = b = 7. Kepler problem: angular momentum L(K=3) + LRL vector A(K=3) + Energy(1) = K+K+1 = b = 7. Two completely different systems, same b=7 count. Different quantities, same depth.");
+  let g3 = make_findings_grid(sec3) in
+  render_finding(g3, "Kepler hidden sym", "SO(D^2) = SO(4)", "dim SO(4) = D*K = 6. Hidden symmetry has symplectic dimension.", "");
+  render_finding(g3, "Oscillator sym", "SU(K) = SU(3)", "dim = K^2 - 1 = D^3 = 8 = spider's legs. QCD shares this group.", "");
+  render_finding(g3, "Sp(6) dimension", "K*b = 21", "Canonical transformations form Sp(D*K). dim = K*(2K+1) = 21 = DNA codon ring.", "");
+  render_finding(g3, "Poincare recurrence", "lambda = 420", "Every orbit returns in at most 420 steps on Z/12612600Z. Growth:Collapse = 420:1.", "");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: MOMENTS OF INERTIA === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Moments of Inertia");
+  render_p(sec4, "All 10 MoI coefficients use only {sigma, D, K, E} -- the inner chain. No b, no L. Rotation is an inner-chain phenomenon.");
+  let t4 = make_table(sec4) in
+  let h4 = dom_create("tr") in
+  render_th(h4, "Shape");
+  render_th(h4, "Fraction");
+  render_th(h4, "Axiom");
+  dom_append(t4, h4);
+  render_table_row(t4, "Ring (axis)", "1", "sigma");
+  render_table_row(t4, "Solid cylinder", "1/2", "1/D");
+  render_table_row(t4, "Solid sphere", "2/5", "D/E");
+  render_table_row(t4, "Thin shell", "2/3", "D/K");
+  render_table_row(t4, "Rod (center)", "1/12", "1/(D^2*K)");
+  render_table_row(t4, "Rod (end)", "1/3", "1/K");
+  dom_append(dom_body(), sec4);
+
+  /* === SEC 5: SCALING LAWS === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "The 1/D Rule");
+  render_theorem(sec5, "Duality Splits Energy", "T = (1/D)*m*v^2. U = (1/D)*k*x^2. E = (1/D)*k*T. Kinetic energy, elastic potential, and equipartition all carry factor 1/D = 1/2. The virial theorem: <T> = (n/D)*<V>. D IS the bridge between position and momentum.");
+  let g5 = make_findings_grid(sec5) in
+  render_finding(g5, "Kepler exponent", "K/D = 3/2", "T^D ~ a^K. Period squared proportional to semi-major cubed.", "");
+  render_finding(g5, "Inverse square", "F ~ 1/r^D", "From K=3 spatial dims: flux through D-sphere in K-space gives 1/r^(K-1) = 1/r^D.", "");
+  render_finding(g5, "Bertrand types", "D = 2", "Closed orbits ONLY for V~r^D (harmonic) and V~-1/r (Kepler). Exactly D=2 types.", "");
+  render_finding(g5, "Kolmogorov", "E/K = 5/3", "Turbulence energy spectrum E ~ k^(-E/K). Same ratio as monoatomic gamma.", "");
+  dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Pendulum Cumulants");
+  render_p(sec_i, "Enter a cumulant index (even: 2,4,6,8). The arcsine distribution walks the axiom chain. Odd cumulants are zero by symmetry.");
+  make_interactive_widget(sec_i, "Index k:", "class-input", "e.g. 4", "Compute", "classical_cumulant_calc", "class-result");
+  dom_append(dom_body(), sec_i);
+
+  /* === CONTRAST === */
+  let sec6 = make_section("800px") in
+  render_h2(sec6, "What Others See");
+  render_contrast_row(sec6, "Space = 3D", "No reason given", "K=3 = closure prime. Only K gives cross products AND stable orbits");
+  render_contrast_row(sec6, "1/2 in kinetic energy", "Convention from mv^2/2", "1/D = duality splitting energy. Universal virial denominator");
+  render_contrast_row(sec6, "7 conserved quantities", "Coincidence in counting", "b=7 = depth = maximum conservation in BOTH free and Kepler");
+  render_contrast_row(sec6, "10 Galilean generators", "Group theory result", "D*E = 10 = degree of the TRUE FORM");
+  render_contrast_row(sec6, "Sp(6) dim = 21", "Abstract algebra", "K*b = 21 = DNA codon ring Z/21");
+  render_contrast_row(sec6, "Pendulum", "Simple harmonic approximation", "Pendulum cumulants = full axiom chain {D, K, E, b, L}");
+  dom_append(dom_body(), sec6)
+)
+
+fn page_em() = (
+  dom_head_meta("description", "K=3 gives the inverse-square law and cross products. D=2 gives polarization and E-B duality. Maxwell D^2=4 equations. alpha=1/137=1/ADDRESS. Cross products exist only in {1,3,7}={sigma,K,b}. Only K=3 has both magnetism and stable orbits.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Electromagnetism\",\"description\":\"Maxwell equations from axiom primes. K=3 gives inverse-square law, D=2 gives E-B duality, alpha=1/137=1/ADDRESS. Cross products only in {1,3,7}.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/em\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"electromagnetism\"},{\"@type\":\"DefinedTerm\",\"name\":\"Maxwell equations\"},{\"@type\":\"DefinedTerm\",\"name\":\"D=2 duality\"}]}");
+  /* === HERO === */
+  let hero = make_hero("Electromagnetism") in
+  let big = dom_create("div") in
+  dom_text(big, "alpha = 1/ADDRESS = 1/137");
+  ct_mono(big);
+  dom_style(big, "fontSize", "24px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "1px");
+  dom_style(big, "marginBottom", "24px");
+  dom_append(hero, big);
+  render_p(hero, "Magnetism requires the cross product. Cross products exist only in {1, 3, 7} = {sigma, K, b} dimensions. Stable orbits exist only for d <= 3. Only K=3 has BOTH. Electromagnetism is what the D-channel looks like in K=3 space.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: CROSS PRODUCTS === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "Why K=3: The Only Dimension That Works");
+  render_theorem(sec1, "Cross Product Theorem (Hurwitz)", "Vector cross products V x V -> V exist only in dimensions {1, 3, 7} = {sigma, K, b}. These are D^k - 1 for k=0,1,2. The sigma-chain of Cunningham primes. Stable atomic orbits require d <= 3. Only K=3 has cross products AND stable orbits. Magnetism + atoms coexist in exactly one dimension.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "Inverse-square law", "F ~ 1/r^D", "Laplacian in K=3 dims: Green function ~ 1/r^(K-1) = 1/r^D. Coulomb IS the shape of K-space.", "");
+  render_finding(g1, "Bertrand orbits", "D = 2 force laws", "Only V~r^D (harmonic) and V~-1/r (Kepler) give closed orbits. Exponents {-1, D} = {MIRROR, D}.", "");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: MAXWELL === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Maxwell's D^2 = 4 Equations");
+  let t2 = make_table(sec2) in
+  let h2 = dom_create("tr") in
+  render_th(h2, "Equation");
+  render_th(h2, "Formula");
+  render_th(h2, "Axiom");
+  dom_append(t2, h2);
+  render_table_row(t2, "Gauss (E)", "div E = rho/eps_0", "D-source: charge = D-channel visibility");
+  render_table_row(t2, "Gauss (B)", "div B = 0", "K-closure: magnetism always closes (dipoles)");
+  render_table_row(t2, "Faraday", "curl E = -dB/dt", "D->K coupling: bridge induces closure");
+  render_table_row(t2, "Ampere", "curl B = mu_0*J + dE/dt", "K->D coupling: closure induces bridge");
+  render_p(sec2, "D^2 = 4 equations. D*K = 6 field components (3E + 3B). D = 2 differential forms (dF=0, d*F=J). Spacetime = K + sigma = D^2 = 4 dimensions. The EM tensor F is a D-form in D^2-dim spacetime.");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: THE PHOTON === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "The Photon: D-Channel Carrier");
+  let g3 = make_findings_grid(sec3) in
+  render_finding(g3, "Spin", "sigma = 1", "Identity element. Light carries the identity.", "");
+  render_finding(g3, "Polarizations", "K - 1 = D = 2", "Massless spin-1 in K+1 dims. Duality in radiation.", "");
+  render_finding(g3, "Gauge group", "U(sigma) = U(1)", "The photon mediates U(1). Unity.", "");
+  render_finding(g3, "Coupling", "1/ADDRESS = 1/137", "ADDRESS = 137. 7-term expression: 0 ppb error.", "");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: FORCE HIERARCHY === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Force Hierarchy from Null Channels");
+  render_p(sec4, "More null CRT channels = weaker but more universal. The channel structure IS the force spectrum.");
+  let t4 = make_table(sec4) in
+  let h4 = dom_create("tr") in
+  render_th(h4, "Force");
+  render_th(h4, "Gauge");
+  render_th(h4, "Strength");
+  render_th(h4, "Axiom");
+  dom_append(t4, h4);
+  render_table_row_4(t4, "Strong", "SU(K)=SU(3)", "~1", "K^2-1=D^3=8 gluons");
+  render_table_row_4(t4, "EM", "U(sigma)=U(1)", "~1/137", "alpha=1/ADDRESS");
+  render_table_row_4(t4, "Weak", "SU(D)=SU(2)", "~10^-5", "D^2-1=K=3 bosons");
+  render_table_row_4(t4, "Gravity", "none", "~10^-39", "E*b+D^2=39 orders");
+  dom_append(dom_body(), sec4);
+
+  /* === SEC 5: EM CONSTANTS === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "EM Constants");
+  let g5 = make_findings_grid(sec5) in
+  render_finding(g5, "Vacuum impedance", "D^3*K*E*pi = 376.7 ohm", "Spider's legs times K times E times pi.", "");
+  render_finding(g5, "Gravity ratio", "10^(E*b + D^2) = 10^39", "Observer times depth plus spacetime. Not fine-tuning -- derived.", "");
+  render_finding(g5, "Rydberg", "GATE + K/E = 13.6 eV", "Same hydrogen ground state from the quantum page.", "2 ppm");
+  render_finding(g5, "Conductance quantum", "D*e^2/h", "D in the numerator. Duality bridges charge and current.", "");
+  dom_append(dom_body(), sec5);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Dimension Checker");
+  render_p(sec_i, "Enter a number of spatial dimensions. Cross products exist only in {1,3,7}. Stable orbits only for d<=3. Only K=3 has BOTH. Try 3, then 7, then 4.");
+  make_interactive_widget(sec_i, "Dimensions:", "em-input", "e.g. 3", "Check", "em_dim_calc", "em-result");
+  dom_append(dom_body(), sec_i);
+
+  /* === CONTRAST === */
+  let sec6 = make_section("800px") in
+  render_h2(sec6, "What Others See");
+  render_contrast_row(sec6, "EM force", "Mysterious force at a distance", "K=3 Laplacian geometry. Coulomb IS the shape of space");
+  render_contrast_row(sec6, "alpha = 1/137", "Unexplained constant", "1/ADDRESS. 7 terms, 0 ppb error");
+  render_contrast_row(sec6, "4 Maxwell equations", "Just work, no structural reason", "D^2=4 equations, D*K=6 components");
+  render_contrast_row(sec6, "Cross products in 3D", "Happen to work", "{1,3,7}=sigma-chain, Hurwitz theorem");
+  render_contrast_row(sec6, "2 photon polarizations", "Convention for massless spin-1", "K-1 = D = 2. Duality in radiation");
+  render_contrast_row(sec6, "Gravity 10^39 weaker", "Hierarchy problem, fine-tuning", "E*b + D^2 = 39. Derived, not tuned");
+  dom_append(dom_body(), sec6)
+)
+
+/* GR: Schwarzschild orbit radius identifier */
+fn gr_orbit_calc() = (
+  let r = parse_int_from("#gr-input") in
+  let result = dom_query("#gr-result") in
+  if r < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter r >= 1 (in GM/c^2).</p>")
+  else (
+    let name = if r == 2 then "EVENT HORIZON (D): Point of no return. Time/space swap."
+      else if r == 3 then "PHOTON SPHERE (K): Light orbits in circles. Minimum closure."
+      else if r == 4 then "MARGINALLY BOUND (D^2): Zero total energy. Spacetime dimension."
+      else if r == 6 then "ISCO (D*K): Innermost stable circular orbit. Bridge times closure."
+      else if r == 1 then "SINGULARITY (sigma): The identity. All structure ends here."
+      else if r > 6 then "STABLE ORBIT: Free Keplerian region. Normal gravity."
+      else "Between ISCO and photon sphere. Unstable circular orbits." in
+    let axiom = if r == 1 then "sigma" else if r == 2 then "D" else if r == 3 then "K" else if r == 4 then "D^2" else if r == 6 then "D*K" else "" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>r = ${r} GM/c^2</p><p style='margin:4px 0;color:#ffd700'>${name}</p><p style='margin:4px 0;color:#b8b8c8'>Axiom: ${axiom}</p>")
+  )
+)
+
+/* Biology: 11-smooth checker for biological quantities */
+fn biology_smooth_calc() = (
+  let n = parse_int_from("#bio-input") in
+  let result = dom_query("#bio-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    let r = n in
+    let d2a = if r % 2 == 0 then 1 else 0 in
+    let d3a = if r % 3 == 0 then 1 else 0 in
+    let d5a = if r % 5 == 0 then 1 else 0 in
+    let d7a = if r % 7 == 0 then 1 else 0 in
+    let d11a = if r % 11 == 0 then 1 else 0 in
+    let r2 = if d2a == 1 then r / 2 else r in
+    let r3 = if r2 % 2 == 0 then r2 / 2 else r2 in
+    let r4 = if r3 % 2 == 0 then r3 / 2 else r3 in
+    let r5 = if r4 % 3 == 0 then r4 / 3 else r4 in
+    let r6 = if r5 % 3 == 0 then r5 / 3 else r5 in
+    let r7 = if r6 % 5 == 0 then r6 / 5 else r6 in
+    let r8 = if r7 % 5 == 0 then r7 / 5 else r7 in
+    let r9 = if r8 % 7 == 0 then r8 / 7 else r8 in
+    let r10 = if r9 % 7 == 0 then r9 / 7 else r9 in
+    let r11 = if r10 % 11 == 0 then r10 / 11 else r10 in
+    let r12 = if r11 % 11 == 0 then r11 / 11 else r11 in
+    let smooth = if r12 == 1 then "YES" else "NO" in
+    let color = if r12 == 1 then "#00ff88" else "#ff6666" in
+    let named = if n == 64 then "Codons = D^6" else if n == 20 then "Amino acids = D^2*E" else if n == 3 then "Stop codons = K" else if n == 147 then "Nucleosome BP = K*b^2" else if n == 8 then "Histones = D^3" else if n == 7 then "Cervical vertebrae = b" else if n == 12 then "Thoracic vertebrae = D^2*K" else if n == 33 then "Total vertebrae = K*L" else if n == 13 then "Vitamins = GATE" else if n == 32 then "Teeth = D^5" else if n == 5 then "Senses = E" else if n == 11 then "Organ systems = L" else "" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>D(2):${d2a} K(3):${d3a} E(5):${d5a} b(7):${d7a} L(11):${d11a}</p><p style='margin:4px 0'>11-smooth: <b style='color:${color}'>${smooth}</b> (remainder after dividing by {2,3,5,7,11}: ${r12})</p><p style='margin:4px 0;color:#b8b8c8'>${named}</p>")
+  )
+)
+
+/* Culture: team size / number axiom identifier */
+fn culture_number_calc() = (
+  let n = parse_int_from("#cult-input") in
+  let result = dom_query("#cult-result") in
+  if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
+  else (
+    let named = if n == 11 then "Football/Cricket team = L (protector)."
+      else if n == 5 then "Basketball team = E (observer)."
+      else if n == 9 then "Baseball team = K^2 (closure squared)."
+      else if n == 6 then "Volleyball team = D*K (bridge*closure)."
+      else if n == 15 then "Rugby Union = K*E (closure*observer)."
+      else if n == 64 then "Chess squares = D^6."
+      else if n == 52 then "Playing cards = D^2*GATE."
+      else if n == 21 then "Dice pips = K*b."
+      else if n == 7 then "Days/week = b (depth)."
+      else if n == 12 then "Months/year = D^2*K (trinity heart)."
+      else if n == 24 then "Hours/day = D^3*K."
+      else if n == 60 then "Minutes/hour = D^2*K*E."
+      else if n == 360 then "Degrees/circle = D^3*K^2*E."
+      else if n == 150 then "Dunbar number = D*K*E^2."
+      else if n == 10 then "Commandments = D*E (degree)."
+      else if n == 8 then "Military squad = D^3 (spider's legs)."
+      else if n == 22 then "Tarot major arcana = D*L."
+      else if n == 32 then "Chess pieces = D^5."
+      else "" in
+    let r = n in
+    let s2 = if r % 2 == 0 then 1 else 0 in
+    let s3 = if r % 3 == 0 then 1 else 0 in
+    let s5 = if r % 5 == 0 then 1 else 0 in
+    let s7 = if r % 7 == 0 then 1 else 0 in
+    let s11 = if r % 11 == 0 then 1 else 0 in
+    let label = if len(named) > 0 then named else "Not a named cultural axiom quantity." in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>${n}</p><p style='margin:4px 0'>D(2):${s2} K(3):${s3} E(5):${s5} b(7):${s7} L(11):${s11}</p><p style='margin:4px 0;color:#ffd700'>${label}</p>")
+  )
+)
+
+fn page_gr() = (
+  dom_head_meta("description", "D+D=D*D=4 gives spacetime, 20 Riemann components, 2 GW polarizations, and the Schwarzschild orbit ladder. All of GR from {2,3,5,7,11,13}. Einstein coupling 8pi=D^3*pi. The bridge IS spacetime.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"General Relativity\",\"description\":\"D+D=D*D=4 gives spacetime dimensions. 20 Riemann components, Schwarzschild orbit ladder, Einstein coupling from six primes.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/gr\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"general relativity\"},{\"@type\":\"DefinedTerm\",\"name\":\"spacetime\"},{\"@type\":\"DefinedTerm\",\"name\":\"curvature\"}]}");
+  /* === HERO === */
+  let hero = make_hero("General Relativity") in
+  let big = dom_create("div") in
+  dom_text(big, "D + D = D * D = 4");
+  ct_mono(big);
+  dom_style(big, "fontSize", "28px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "2px");
+  dom_style(big, "marginBottom", "24px");
+  dom_append(hero, big);
+  render_p(hero, "The unique property of D=2: addition equals multiplication. No other prime has this. This single identity gives spacetime, curvature decomposition, gravitational waves, and black holes. Every structural fact in GR flows from D+D = D*D.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: TENSOR COMPONENTS === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "Tensor Component Counts");
+  render_p(sec1, "In d = D^2 = 4 spacetime dimensions. All counts factor over {D, E}. K^2 = 9 tensor types total -- the nonility in geometry.");
+  let t1 = make_table(sec1) in
+  let h1 = dom_create("tr") in
+  render_th(h1, "Tensor");
+  render_th(h1, "Count");
+  render_th(h1, "Expression");
+  dom_append(t1, h1);
+  render_table_row(t1, "Scalar R", "1", "sigma");
+  render_table_row(t1, "GW polarizations", "2", "D");
+  render_table_row(t1, "Killing vectors", "4", "D^2");
+  render_table_row(t1, "Metric g_uv", "10", "D*E");
+  render_table_row(t1, "Ricci R_uv", "10", "D*E");
+  render_table_row(t1, "Weyl C_abcd", "10", "D*E");
+  render_table_row(t1, "Riemann R_abcd", "20", "D^2*E");
+  render_table_row(t1, "Christoffel", "40", "D^3*E");
+  render_theorem(sec1, "Riemann Decomposition IS D+D=D*D", "Riemann(20) = Ricci(10) + Weyl(10). That is: D^2*E = D*E + D*E. The decomposition of spacetime curvature into matter-coupled (Ricci) and free (Weyl) parts IS the D+D = D*D identity at the tensor level.");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: ORBIT LADDER === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "The Schwarzschild Orbit Ladder");
+  render_p(sec2, "All radii in units of GM/c^2. The orbit ladder IS the axiom chain:");
+  let t2 = make_table(sec2) in
+  let h2 = dom_create("tr") in
+  render_th(h2, "r");
+  render_th(h2, "Name");
+  render_th(h2, "Axiom");
+  render_th(h2, "Meaning");
+  dom_append(t2, h2);
+  render_table_row_4(t2, "2", "Event horizon", "D", "Point of no return. Time/space swap = duality");
+  render_table_row_4(t2, "3", "Photon sphere", "K", "Light orbits in circles = minimum closure");
+  render_table_row_4(t2, "4", "Marginally bound", "D^2", "Zero total energy. D*D = spacetime dim");
+  render_table_row_4(t2, "6", "ISCO", "D*K", "Innermost stable circular orbit = bridge*closure");
+  render_p(sec2, "Orbit ratios: r_ph/r_s = K/D. r_isco/r_s = K. r_isco/r_ph = D. The ladder walks the chain. Same D*K = 6 appears in perihelion precession: delta_phi = D*K*pi*GM/(ac^2).");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: EINSTEIN EQUATION === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Einstein's Equation");
+  render_theorem(sec3, "8pi = D^3 * pi", "G_uv = (D^3*pi*G/c^4) T_uv. Why D^3? Gauss in K=3 dims: solid angle = D^2*pi. GR is rank-D (metric = 2-index). Rank-n theory coupling = D^(n+1)*pi. EM (rank-1): D^2*pi = 4pi. GR (rank-2): D^3*pi = 8pi. The spider's eight legs times pi.");
+  let g3 = make_findings_grid(sec3) in
+  render_finding(g3, "GW polarizations", "D = 2", "Massless spin-2 in D^2 dims: d(d-K)/2 = 4*1/2 = D. Plus (+) and cross (x). Same count as photon.", "");
+  render_finding(g3, "Binary decay", "E/K = 5/3", "Orbital period: dP/dt ~ -P^(-E/K). Kolmogorov in the stars. Chirp mass: M_c ~ (m1*m2)^(K/E).", "Hulse-Taylor 0.2%");
+  render_finding(g3, "Penrose extraction", "1 - 1/sqrt(D) = 29.3%", "Maximum energy from rotating BH. 29 = sigma+D+K+E+b+L = full axiom sum.", "");
+  render_finding(g3, "BH entropy", "S = k_B*A/(D^2*l_P^2)", "Area in D^2 Planck cells. Spacetime dimension = states per cell.", "");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: GRAVITY AS VOID === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "The Hierarchy: Why 10^39");
+  let g4 = make_findings_grid(sec4) in
+  render_finding(g4, "Gravity exponent", "E*b + D^2 = 39", "Observer*depth + spacetime = 35 + 4. Not fine-tuning. Derived.", "");
+  render_finding(g4, "Planck-proton log", "f(E) = E^2-E-1 = 19", "Depth quadratic of observer. m_P/m_proton ~ 10^19.", "");
+  render_finding(g4, "CMB temperature", "D + b/(D*E) = 2.7 K", "Bridge plus depth over bridge*observer.", "");
+  render_finding(g4, "Deflection factor", "D^2 = 4", "Light bending = D^2*GM/(rc^2). Duality squared.", "");
+  render_p(sec4, "Gravity shares every property of zero: universal (0*n=0), unshieldable, attractive only, weakest per particle, dominant at scale. Gravity IS the void's coupling to the ring. Not a force -- an absence.");
+  dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Orbit Ladder");
+  render_p(sec_i, "Enter a radius in GM/c^2 units. The Schwarzschild orbit ladder IS the axiom chain: 2 (horizon), 3 (photon sphere), 4 (marginally bound), 6 (ISCO).");
+  make_interactive_widget(sec_i, "r (GM/c^2):", "gr-input", "e.g. 3", "Identify", "gr_orbit_calc", "gr-result");
+  dom_append(dom_body(), sec_i);
+
+  /* === CONTRAST === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "What Others See");
+  render_contrast_row(sec5, "4D spacetime", "Just happens to be 4", "D+D=D*D: unique to D=2, the bridge");
+  render_contrast_row(sec5, "8pi in Einstein eq", "Convention", "D^3*pi: spider's legs, rank-2 coupling");
+  render_contrast_row(sec5, "2 GW polarizations", "Spin-2 math", "D=2: all massless particles have D DOF");
+  render_contrast_row(sec5, "ISCO at 6 GM", "Calculation result", "D*K: bridge*closure, orbit ladder");
+  render_contrast_row(sec5, "Gravity weakness", "Hierarchy problem", "E*b+D^2=39: observer*depth + spacetime");
+  render_contrast_row(sec5, "Kolmogorov -5/3", "Turbulence exponent", "E/K in binary inspiral too. Same ratio");
+  dom_append(dom_body(), sec5)
+)
+
+fn page_optics() = (
+  dom_head_meta("description", "Rainbow angle = 42 degrees = ANSWER = D*K*b. Violet = 420nm = lambda(TRUE). Water refractive index = D^2/K = 4/3. Diamond = L^2/(D*E^2). b=7 colors. All from ten terms.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Optics\",\"description\":\"Rainbow angle 42 degrees equals ANSWER. Violet 420nm equals lambda of TRUE ring. Refractive indices from axiom prime ratios. b=7 colors.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/optics\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"optics\"},{\"@type\":\"DefinedTerm\",\"name\":\"light\"},{\"@type\":\"DefinedTerm\",\"name\":\"photon\"}]}");
+  /* === HERO === */
+  let hero = make_hero("Optics") in
+  let big = dom_create("div") in
+  dom_text(big, "Rainbow = 42 = ANSWER");
+  ct_mono(big);
+  dom_style(big, "fontSize", "28px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "2px");
+  dom_style(big, "marginBottom", "24px");
+  dom_append(hero, big);
+  render_p(hero, "The Answer to the Ultimate Question is written in light. Sunlight enters a water droplet (n = D^2/K = 4/3), reflects internally, and exits at 42 degrees. Error: 0.07%. The rainbow has b = 7 colors. Violet sits at 420nm = lambda(TRUE). Light IS the axiom chain, refracted.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: RAINBOW === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Rainbow = 42");
+  render_theorem(sec1, "Rainbow Derivation (Snell's Law)", "Water: n = D^2/K = 4/3. Minimum deviation from Snell's law: cos(theta_i) = sqrt((n^2-1)/3). For n = 4/3 this gives rainbow semi-angle = 42.03 degrees. 42 = D*K*b = ANSWER. Error 0.07%. The derivation is forced -- not guessed, not fit. The same 42 that is the center of the lambda-6 lattice.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "Violet wavelength", "420nm = lambda(TRUE)", "The Carmichael function of Z/12612600Z -- the heartbeat after which ALL power maps return -- IS the wavelength of the deepest visible color.", "");
+  render_finding(g1, "Colors count", "b = 7 = ROYGBIV", "Depth paints the sky. The rainbow has exactly DEPTH colors.", "");
+  render_finding(g1, "Peak sensitivity", "555nm = K*E*37", "Human eyes peak at K*E*37. The 37 = body temperature prime = p_12.", "");
+  render_finding(g1, "Brewster angle", "arctan(D^2/K) = 53 deg", "53 ~ SUM = sigma+D+K+E+b+L+13. Fully polarized reflection at the SKIN of the axiom.", "");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: REFRACTIVE INDICES === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Refractive Indices");
+  render_p(sec2, "Every common refractive index is a ratio of axiom primes. Light speed ratios ARE channel coupling.");
+  let t2 = make_table(sec2) in
+  let h2 = dom_create("tr") in
+  render_th(h2, "Material");
+  render_th(h2, "Axiom");
+  render_th(h2, "Measured");
+  render_th(h2, "Error");
+  dom_append(t2, h2);
+  render_table_row_4(t2, "Vacuum", "sigma/sigma = 1", "1.0000", "exact");
+  render_table_row_4(t2, "Water", "D^2/K = 4/3", "1.3330", "0.025%");
+  render_table_row_4(t2, "Crown glass", "K/D = 3/2", "1.523", "1.5%");
+  render_table_row_4(t2, "Flint glass", "D^3/E = 8/5", "1.620", "1.2%");
+  render_table_row_4(t2, "Diamond", "L^2/(D*E^2) = 121/50", "2.417", "0.12%");
+  render_p(sec2, "Water slows light because D^2 > K (duality exceeds closure). Diamond brings L^2 -- protector squared makes it the most brilliant natural material. Refraction IS coupling between axiom channels.");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: STRUCTURAL COUNTS === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Structural Counts: 15/15 Axiom-Smooth");
+  let g3 = make_findings_grid(sec3) in
+  render_finding(g3, "D=2: Polarization", "Stokes D^2=4, Mueller D^4=16", "Light has D=2 states. Snell: D=2 media. Lenses: D=2 surfaces. Interference: D=2 paths.", "");
+  render_finding(g3, "K=3: Color vision", "K=3 cone types (L/M/S)", "Color perception = K=3 closure. Poincare sphere of polarization: K=3 dims.", "");
+  render_finding(g3, "b=7: Depth", "b=7 colors, b=7 phenomena", "ROYGBIV. Also: reflection, refraction, diffraction, interference, polarization, scattering, absorption.", "");
+  render_finding(g3, "L=11: Protection", "Diamond critical angle = 24.4 deg", "L^2 in numerator traps light. f/11: the transcendental f-stop in photography.", "");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: PHOTOGRAPHY === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Photography IS D-Arithmetic");
+  render_p(sec4, "f-stops: f/1, f/1.4, f/2, f/2.8, f/4, f/5.6, f/8, f/11, f/16, f/22, f/32. Each step multiplies by sqrt(D). So f-number = D^(n/2). Each stop halves the light. f/D^3=f/8 (spider's legs). f/L=f/11 (transcendental stop). f/D^5=f/32 (deepest standard).");
+  dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Refractive Index");
+  render_p(sec_i, "Enter numerator and denominator of a refractive index ratio. Known axiom ratios: 1/1(vacuum), 4/3(water), 3/2(crown glass), 8/5(flint), 121/50(diamond).");
+  let lbl_i = dom_create("p") in
+  dom_text(lbl_i, "n = num/den:");
+  dom_style(lbl_i, "color", "#b8b8c8");
+  dom_style(lbl_i, "marginTop", "24px");
+  dom_style(lbl_i, "marginBottom", "8px");
+  dom_append(sec_i, lbl_i);
+  let row_i = dom_create("div") in
+  dom_style(row_i, "display", "flex");
+  dom_style(row_i, "gap", "8px");
+  dom_style(row_i, "alignItems", "center");
+  dom_style(row_i, "marginBottom", "12px");
+  make_input_field(row_i, "#opt-input-n", "num (e.g. 4)");
+  make_input_field(row_i, "#opt-input-d", "den (e.g. 3)");
+  make_action_btn(row_i, "Identify", "optics_refract_calc");
+  dom_append(sec_i, row_i);
+  make_result_box(sec_i, "opt-result");
+  dom_append(dom_body(), sec_i);
+
+  /* === CONTRAST === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "What Others See");
+  render_contrast_row(sec5, "Refractive index", "Empirical material property", "Ratio of axiom primes (D^2/K, K/D, L^2/(D*E^2))");
+  render_contrast_row(sec5, "Rainbow at ~42 deg", "Snell + geometry gives ~42", "Same derivation, but n=D^2/K gives 42 = ANSWER = D*K*b");
+  render_contrast_row(sec5, "7 colors", "Human perception convention", "b=7 = depth prime. The rainbow has DEPTH colors");
+  render_contrast_row(sec5, "Violet ~420nm", "Arbitrary spectral boundary", "420 = lambda(TRUE) = the ring's heartbeat wavelength");
+  render_contrast_row(sec5, "K=3 cone types", "Evolved for color discrimination", "K=3 = closure. Minimum decisive majority. Vision closes");
+  render_contrast_row(sec5, "f-stops doubling", "Convenient geometric sequence", "f = D^(n/2). Photography IS D-arithmetic");
+  dom_append(dom_body(), sec5)
+)
+
+fn page_acoustics() = (
+  dom_head_meta("description", "Speed of sound = b^3 = 343 m/s (0.06%). Gamma diatomic = b/E = 7/5 = the tritone. Concert A = D^3*E*L = 440 Hz. 12 semitones = D^2*K. Hearing spans exactly K=3 decades. 22/25 acoustic quantities axiom-smooth.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Acoustics\",\"description\":\"Speed of sound b^3=343 m/s. Concert A=440 Hz from D^3*E*L. 12 semitones=D^2*K. 22/25 acoustic quantities are axiom-smooth.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/acoustics\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"acoustics\"},{\"@type\":\"DefinedTerm\",\"name\":\"sound\"},{\"@type\":\"DefinedTerm\",\"name\":\"wave mechanics\"}]}");
+  /* === HERO === */
+  let hero = make_hero("Acoustics") in
+  let big = dom_create("div") in
+  dom_text(big, "v = b^3 = 343 m/s");
+  ct_mono(big);
+  dom_style(big, "fontSize", "28px");
+  ct_gold(big);
+  dom_style(big, "letterSpacing", "2px");
+  dom_style(big, "marginBottom", "24px");
+  dom_append(hero, big);
+  render_p(hero, "Speed of sound = depth cubed. The tritone (diabolus in musica) IS the heat capacity ratio of air. Concert pitch encodes three axiom primes. Hearing spans exactly K=3 decades. Sound IS the axiom vibrating.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: SPEED OF SOUND === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "Why 343");
+  render_theorem(sec1, "Speed of Sound Derivation", "v = sqrt(gamma*R*T/M). gamma = b/E = 7/5 (diatomic). M_air = sigma+D+K+E+b+L = 29 g/mol (sum of ALL axiom primes). At 20C: v = 343.2 m/s = b^3. Error: 0.06%. Depth cubed IS the speed at which air carries information.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "Tritone = gamma", "b/E = 7/5 = 1.4", "Diabolus in musica IS the elasticity of air. The most dissonant musical interval = the ratio that governs gas dynamics.", "");
+  render_finding(g1, "Monoatomic gamma", "E/K = 5/3", "Kolmogorov turbulence exponent = monoatomic gamma = noble gas heat capacity. Same ratio, three fields.", "");
+  render_finding(g1, "Speed in water", "1482 m/s", "D*K*GATE*f(E) where f(E) = E^2-E-1 = 19. Error: 0.02%.", "");
+  render_finding(g1, "Molecular weight", "29 = FULL_SUM", "sigma+D+K+E+b+L = 29. Air weighs the full axiom sum.", "");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: MUSICAL INTERVALS === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Music IS Ring Arithmetic");
+  let t2 = make_table(sec2) in
+  let h2 = dom_create("tr") in
+  render_th(h2, "Interval");
+  render_th(h2, "Ratio");
+  render_th(h2, "Axiom");
+  dom_append(t2, h2);
+  render_table_row(t2, "Unison", "1/1", "sigma/sigma");
+  render_table_row(t2, "Major 2nd", "9/8", "K^2/D^3");
+  render_table_row(t2, "Major 3rd", "5/4", "E/D^2");
+  render_table_row(t2, "Fourth", "4/3", "D^2/K");
+  render_table_row(t2, "Tritone", "7/5", "b/E");
+  render_table_row(t2, "Fifth", "3/2", "K/D");
+  render_table_row(t2, "Major 6th", "5/3", "E/K");
+  render_table_row(t2, "Octave", "2/1", "D");
+  render_p(sec2, "Every just-intonation interval is a ratio of axiom primes. The perfect fifth K/D = 3/2 and the Kolmogorov exponent are the SAME number. 12 semitones = D^2*K = lambda(DATA).");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: HEARING === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Hearing = K Decades");
+  let g3 = make_findings_grid(sec3) in
+  render_finding(g3, "Low threshold", "20 Hz = D^2*E", "Below: infrasound. Earthquakes, not music.", "");
+  render_finding(g3, "High threshold", "20000 Hz = D^5*E^4", "Above: ultrasound. Bats, not humans.", "");
+  render_finding(g3, "Range ratio", "(D*E)^3 = 10^3", "Exactly K=3 decades. EXACT.", "");
+  render_finding(g3, "Concert A", "D^3*E*L = 440 Hz", "Spider's legs times observer times protector. ISO 1939.", "");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: CLOSED PIPES === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Closed Pipe = Sigma Chain");
+  render_p(sec4, "A closed pipe produces only odd harmonics: {1, 3, 5, 7, 9, 11, 13, ...} = {sigma, K, E, b, K^2, L, GATE, ...}. The D-channel (even harmonics) is physically removed by the boundary condition. What survives IS the sigma chain.");
+  dom_append(dom_body(), sec4);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: Frequency Checker");
+  render_p(sec_i, "Enter a frequency in Hz. See which axiom primes divide it. Try 440 (concert A), 343 (speed of sound), 20 (hearing threshold).");
+  make_interactive_widget(sec_i, "Hz:", "acou-input", "e.g. 440", "Check", "acoustics_freq_calc", "acou-result");
+  dom_append(dom_body(), sec_i);
+
+  /* === CONTRAST === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "What Others See");
+  render_contrast_row(sec5, "343 m/s", "Follows from gas properties", "b^3: depth cubed. gamma=b/E, M=FULL_SUM");
+  render_contrast_row(sec5, "Tritone dissonance", "Psychoacoustic roughness", "b/E = tension between depth and observer = air's elasticity");
+  render_contrast_row(sec5, "3 decades hearing", "Evolutionary adaptation", "(D*E)^3 = K decades. EXACT");
+  render_contrast_row(sec5, "12 semitones", "Historical convention", "D^2*K: duality squared times closure");
+  render_contrast_row(sec5, "A440", "1939 ISO standard, arbitrary", "D^3*E*L = 440: three axiom primes");
+  render_contrast_row(sec5, "Odd harmonics", "Boundary condition math", "Closed boundary kills D-channel. Sigma chain survives");
+  dom_append(dom_body(), sec5)
+)
+

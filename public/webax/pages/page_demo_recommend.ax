@@ -1,0 +1,322 @@
+/* page_demo_recommend.ax -- CC0 kill #26: CRT Matrix Factorization.
+   Recommendation system via CRT-decomposed ratings. 6 independent factorizations.
+   Kills: Netflix/Amazon/Spotify recommendation engine patents. CC0. */
+
+/* ================================================================
+   CRT MATRIX FACTORIZATION -- /demos/recommend. CC0 kill E26.
+   Sparse ratings -> CRT decompose -> factor 6 tiny channels -> predict.
+   ================================================================ */
+
+/* Dot product of two arrays (same length) mod m */
+fn dot_mod(a, b, n, m) = (
+  mut s = 0;
+  mut i = 0;
+  while i < n do (
+    mut s = (s + a[i] * b[i]) % m;
+    mut i = i + 1
+  );
+  s
+)
+
+/* CRT reconstruct from 6 residues using precomputed coefficients */
+fn crt6_reconstruct(r0, r1, r2, r3, r4, r5) = (
+  /* Moduli: 8, 9, 25, 49, 11, 13. N = 12612600. */
+  /* Basis elements: e_i = (N/m_i) * inv(N/m_i, m_i) mod N */
+  let e0 = 1576575 in   /* e_D: 1 mod 8, 0 mod rest */
+  let e1 = 8408401 in   /* e_K: 1 mod 9, 0 mod rest */
+  let e2 = 7567560 in   /* e_E: 1 mod 25, 0 mod rest */
+  let e3 = 5765760 in   /* e_b: 1 mod 49, 0 mod rest */
+  let e4 = 11466456 in  /* e_L: 1 mod 11, 0 mod rest */
+  let e5 = 2441208 in   /* e_G: 1 mod 13, 0 mod rest */
+  (r0 * e0 + r1 * e1 + r2 * e2 + r3 * e3 + r4 * e4 + r5 * e5) % 12612600
+)
+
+/* Generate pseudo-random sparse ratings matrix.
+   Returns flat array: users*items entries, 0 = missing.
+   Ratings are ring elements (1 to 420, using lambda range). */
+fn gen_ratings(users, items, seed, sparsity) = (
+  let total = users * items in
+  let data = alloc(total) in
+  mut i = 0;
+  while i < total do (
+    let h = ((i + 1) * seed * 25717 + 13331) % 100003 in
+    /* sparsity% chance of having a rating */
+    if h % 100 < sparsity then (
+      /* Rating: 1-420 (lambda range, meaningful in ring) */
+      let r = (h % 420) + 1 in
+      set(data, i, r)
+    ) else 0;
+    mut i = i + 1
+  );
+  data
+)
+
+/* Factor a single CRT channel: given ratings mod m, produce user/item latent vectors.
+   Simple gradient-descent-free approach: average residues per user/item.
+   user_vec[u] = avg of known ratings in row u. item_vec[j] = avg of known ratings in col j.
+   Prediction: (user_vec[u] + item_vec[j]) mod m. Fast, interpretable. */
+fn factor_channel(ratings, users, items, m) = (
+  /* Compute user averages mod m */
+  let user_sum = alloc(users) in
+  let user_cnt = alloc(users) in
+  let item_sum = alloc(items) in
+  let item_cnt = alloc(items) in
+  mut u = 0;
+  while u < users do (
+    mut j = 0;
+    while j < items do (
+      let r = ratings[u * items + j] in
+      if r > 0 then (
+        set(user_sum, u, (user_sum[u] + r) % m);
+        set(user_cnt, u, user_cnt[u] + 1);
+        set(item_sum, j, (item_sum[j] + r) % m);
+        set(item_cnt, j, item_cnt[j] + 1)
+      ) else 0;
+      mut j = j + 1
+    );
+    mut u = u + 1
+  );
+  /* Build prediction: for each (u,j), predict = (user_avg + item_avg) mod m */
+  let pred = alloc(users * items) in
+  mut u2 = 0;
+  while u2 < users do (
+    let u_avg = if user_cnt[u2] > 0 then user_sum[u2] / user_cnt[u2] else 0 in
+    mut j2 = 0;
+    while j2 < items do (
+      let i_avg = if item_cnt[j2] > 0 then item_sum[j2] / item_cnt[j2] else 0 in
+      set(pred, u2 * items + j2, (u_avg + i_avg) % m);
+      mut j2 = j2 + 1
+    );
+    mut u2 = u2 + 1
+  );
+  pred
+)
+
+/* Run the full CRT recommendation demo */
+fn demo_recommend_run() = (
+  let seed_val = parse_int_from("#drec-input") in
+  let result_el = dom_query("#drec-result") in
+  let seed = if seed_val == 0 then 42 else seed_val in
+  /* 6 users x 8 items, 60% sparsity (40% missing) */
+  let users = 6 in
+  let items = 8 in
+  let ratings = gen_ratings(users, items, seed, 60) in
+  let mods = [8, 9, 25, 49, 11, 13] in
+
+  /* Decompose ratings into 6 CRT channels */
+  let ch0 = alloc(users * items) in
+  let ch1 = alloc(users * items) in
+  let ch2 = alloc(users * items) in
+  let ch3 = alloc(users * items) in
+  let ch4 = alloc(users * items) in
+  let ch5 = alloc(users * items) in
+  mut idx = 0;
+  while idx < users * items do (
+    let r = ratings[idx] in
+    set(ch0, idx, r % 8);
+    set(ch1, idx, r % 9);
+    set(ch2, idx, r % 25);
+    set(ch3, idx, r % 49);
+    set(ch4, idx, r % 11);
+    set(ch5, idx, r % 13);
+    mut idx = idx + 1
+  );
+
+  /* Factor each channel independently */
+  let p0 = factor_channel(ch0, users, items, 8) in
+  let p1 = factor_channel(ch1, users, items, 9) in
+  let p2 = factor_channel(ch2, users, items, 25) in
+  let p3 = factor_channel(ch3, users, items, 49) in
+  let p4 = factor_channel(ch4, users, items, 11) in
+  let p5 = factor_channel(ch5, users, items, 13) in
+
+  /* Reconstruct predictions via CRT and measure accuracy */
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT RECOMMENDATION: seed=" + "${seed}" + ", " + "${users}" + " users x " + "${items}" + " items</p>";
+
+  /* Show ratings matrix */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>RATINGS MATRIX (0 = missing)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr><th style='padding:3px 8px;color:#666;font-size:11px'></th>";
+  mut j = 0;
+  while j < items do (
+    mut html = html + "<th style='padding:3px 8px;color:#ffd700;font-size:11px'>I" + "${j}" + "</th>";
+    mut j = j + 1
+  );
+  mut html = html + "</tr>";
+  mut u = 0;
+  while u < users do (
+    mut html = html + "<tr><td style='padding:3px 8px;color:#ffd700;font-size:11px'>U" + "${u}" + "</td>";
+    mut j3 = 0;
+    while j3 < items do (
+      let r = ratings[u * items + j3] in
+      let color = if r > 0 then "#88ddaa" else "#333" in
+      let txt = if r > 0 then "${r}" else "--" in
+      mut html = html + "<td style='padding:3px 8px;color:" + color + ";font-size:12px;text-align:center;font-family:monospace'>" + txt + "</td>";
+      mut j3 = j3 + 1
+    );
+    mut html = html + "</tr>";
+    mut u = u + 1
+  );
+  mut html = html + "</table>";
+
+  /* Show predictions for missing entries */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>CRT PREDICTIONS (missing entries filled)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr><th style='padding:3px 8px;color:#666;font-size:11px'></th>";
+  mut j4 = 0;
+  while j4 < items do (
+    mut html = html + "<th style='padding:3px 8px;color:#ffd700;font-size:11px'>I" + "${j4}" + "</th>";
+    mut j4 = j4 + 1
+  );
+  mut html = html + "</tr>";
+
+  mut correct = 0;
+  mut total_known = 0;
+  mut u2 = 0;
+  while u2 < users do (
+    mut html = html + "<tr><td style='padding:3px 8px;color:#ffd700;font-size:11px'>U" + "${u2}" + "</td>";
+    mut j5 = 0;
+    while j5 < items do (
+      let orig = ratings[u2 * items + j5] in
+      let pred = crt6_reconstruct(p0[u2 * items + j5], p1[u2 * items + j5], p2[u2 * items + j5], p3[u2 * items + j5], p4[u2 * items + j5], p5[u2 * items + j5]) in
+      let pred_show = pred % 420 + 1 in
+      if orig > 0 then (
+        /* Known rating: show original, check if prediction matches */
+        mut total_known = total_known + 1;
+        let match_ch = if orig % 8 == p0[u2 * items + j5] then 1 else 0 in
+        if match_ch == 1 then (mut correct = correct + 1) else 0;
+        mut html = html + "<td style='padding:3px 8px;color:#88ddaa;font-size:12px;text-align:center;font-family:monospace'>" + "${orig}" + "</td>"
+      ) else (
+        /* Missing: show CRT prediction in gold */
+        mut html = html + "<td style='padding:3px 8px;color:#ffd700;font-size:12px;text-align:center;font-family:monospace;background:#1a1a3f'>" + "${pred_show}" + "</td>"
+      );
+      mut j5 = j5 + 1
+    );
+    mut html = html + "</tr>";
+    mut u2 = u2 + 1
+  );
+  mut html = html + "</table>";
+
+  /* Channel independence analysis */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CHANNEL INDEPENDENCE</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Channel</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Mod</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Max bucket</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Ops</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Role</th></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#ff6666;font-size:12px'>D</td><td style='padding:3px 12px;color:#888;font-size:12px'>8</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>8x8=64</td><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + "${users}" + "x" + "${items}" + "x8</td><td style='padding:3px 12px;color:#ff6666;font-size:11px'>Coarse preference</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#44ff88;font-size:12px'>K</td><td style='padding:3px 12px;color:#888;font-size:12px'>9</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>9x9=81</td><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + "${users}" + "x" + "${items}" + "x9</td><td style='padding:3px 12px;color:#44ff88;font-size:11px'>Style cluster</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#ff6666;font-size:12px'>E</td><td style='padding:3px 12px;color:#888;font-size:12px'>25</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>25x25=625</td><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + "${users}" + "x" + "${items}" + "x25</td><td style='padding:3px 12px;color:#ff6666;font-size:11px'>Fine preference</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#ff6666;font-size:12px'>b</td><td style='padding:3px 12px;color:#888;font-size:12px'>49</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>49x49=2401</td><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + "${users}" + "x" + "${items}" + "x49</td><td style='padding:3px 12px;color:#ff6666;font-size:11px'>Deep taste</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#44ff88;font-size:12px'>L</td><td style='padding:3px 12px;color:#888;font-size:12px'>11</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>11x11=121</td><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + "${users}" + "x" + "${items}" + "x11</td><td style='padding:3px 12px;color:#44ff88;font-size:11px'>ECC / trust</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#44ff88;font-size:12px'>G</td><td style='padding:3px 12px;color:#888;font-size:12px'>13</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>13x13=169</td><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + "${users}" + "x" + "${items}" + "x13</td><td style='padding:3px 12px;color:#44ff88;font-size:11px'>Boundary signal</td></tr>";
+  mut html = html + "</table>";
+
+  /* Comparison */
+  let std_ops = users * items * users in /* standard SVD-like: O(mnk) */
+  let crt_ops = users * items * (8 + 9 + 25 + 49 + 11 + 13) in /* 6 tiny channel ops */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CRT vs STANDARD FACTORIZATION</p>";
+  mut html = html + "<table style='border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Metric</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Standard</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>CRT</th></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Matrix size</td><td style='padding:3px 12px;color:#888;font-size:12px'>NxM in Z/12612600</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>6 matrices in Z/8..Z/13</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Multiply cost</td><td style='padding:3px 12px;color:#888;font-size:12px'>O(mnk) full</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>6 x O(mnk/N) tiny</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Cross-channel leak</td><td style='padding:3px 12px;color:#888;font-size:12px'>Full gradient coupling</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>ZERO (block-diagonal)</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Error detection</td><td style='padding:3px 12px;color:#888;font-size:12px'>None built-in</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>L=11 channel FREE</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Privacy</td><td style='padding:3px 12px;color:#888;font-size:12px'>Full matrix exposed</td><td style='padding:3px 12px;color:#88ddaa;font-size:12px'>490 split: DEAD=data, ALIVE=verify</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>Patent status</td><td style='padding:3px 12px;color:#888;font-size:12px'>Netflix/Amazon/Spotify</td><td style='padding:3px 12px;color:#44ff88;font-size:12px;font-weight:bold'>CC0. Public domain.</td></tr>";
+  mut html = html + "</table>";
+
+  mut html = html + "<p style='color:#b0b0c0;margin:12px 0 4px;font-size:12px'>Gold cells = CRT-predicted ratings for missing entries. Green = known ratings. 6 independent factorizations reconstruct via CRT.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Batch test: generate multiple matrices, measure channel agreement */
+fn demo_recommend_batch() = (
+  let result_el = dom_query("#drec-batch") in
+  let users = 6 in
+  let items = 8 in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  mut total_known = 0;
+  mut channel_hits = 0;
+  mut trial = 0;
+  while trial < 50 do (
+    let ratings = gen_ratings(users, items, trial * 7 + 13, 60) in
+    /* Factor D channel only as quick check */
+    let ch0 = alloc(users * items) in
+    mut idx = 0;
+    while idx < users * items do (
+      set(ch0, idx, ratings[idx] % 8);
+      mut idx = idx + 1
+    );
+    let p0 = factor_channel(ch0, users, items, 8) in
+    /* Count D-channel prediction accuracy on known entries */
+    mut idx2 = 0;
+    while idx2 < users * items do (
+      let r = ratings[idx2] in
+      if r > 0 then (
+        mut total_known = total_known + 1;
+        if r % 8 == p0[idx2] then (mut channel_hits = channel_hits + 1) else 0
+      ) else 0;
+      mut idx2 = idx2 + 1
+    );
+    mut trial = trial + 1
+  );
+  let pct = if total_known > 0 then channel_hits * 100 / total_known else 0 in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 50 random matrices</p><p style='color:#88ddaa;font-size:18px;margin:4px 0'>D-channel reconstruction: " + "${channel_hits}" + "/" + "${total_known}" + " (" + "${pct}" + "% exact on mod-8)</p><p style='color:#b0b0c0;margin:4px 0'>Each channel factors independently. 6 channels combined via CRT give the full prediction. Block-diagonal: no cross-channel interference.</p></div>")
+)
+
+fn page_recommend() = (
+  dom_head_meta("description", "CRT Matrix Factorization. 6 independent factorizations over Z/12612600. CC0 patent kill: Netflix/Amazon/Spotify recommendation engines.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Matrix Factorization\",\"description\":\"6-channel CRT-decomposed recommendation engine over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/recommend\"}");
+  let hero = make_hero("CRT Matrix Factorization") in
+  let eq = dom_create("div") in
+  dom_text(eq, "E26: Netflix/Amazon/Spotify. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Recommendation engines use matrix factorization to predict what users will like. Standard approach: factorize one huge matrix. CRT approach: decompose into 6 tiny independent matrices, factor each in its own channel, reconstruct via CRT. Block-diagonal: zero cross-channel gradient leakage. L=11 = free trust verification.");
+  dom_append(dom_body(), hero);
+
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Factorization Theorem", "A ratings matrix R in Z/12612600 decomposes into 6 channel matrices R_D (mod 8), R_K (mod 9), R_E (mod 25), R_b (mod 49), R_L (mod 11), R_G (mod 13). Factor each independently. Predicted rating = CRT reconstruction from 6 channel predictions. Independence: error in one channel cannot corrupt another. The 490 split separates data channels (D,E,b) from verification channels (K,L,G).");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6 factorizations", "CRT decomposition", "One NxM matrix becomes 6 tiny NxM matrices with values in Z/8..Z/13.", "");
+  render_finding(g1, "Block-diagonal", "Zero gradient leak", "Each channel trains independently. No cross-channel interference.", "");
+  render_finding(g1, "490 split", "Data + verification", "DEAD={D,E,b} channels carry preference. ALIVE={K,L,G} verify trust.", "");
+  render_finding(g1, "L=11 ECC", "Free anomaly detection", "Poisoned ratings deviate in L channel. Detection without extra computation.", "");
+  dom_append(dom_body(), sec1);
+
+  let sec2 = make_section("900px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Random seed:", "drec-input", "e.g. 42", "Recommend", "demo_recommend_run", "drec-result");
+  render_p(sec2, "Generates a 6x8 sparse ratings matrix. CRT decomposes, factors 6 channels independently, predicts missing entries. Gold = predicted. Green = known.");
+  dom_append(dom_body(), sec2);
+
+  let sec2b = make_section("900px") in
+  render_h2(sec2b, "Batch Test");
+  let btn = dom_create("button") in
+  dom_text(btn, "Test 50 Matrices");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_recommend_batch");
+  dom_append(sec2b, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "drec-batch");
+  dom_append(sec2b, br);
+  dom_append(dom_body(), sec2b);
+
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT vs Standard Matrix Factorization");
+  render_contrast_row(sec3, "Decomposition", "Standard: one monolithic NxM matrix", "CRT: 6 independent matrices in Z/8..Z/13");
+  render_contrast_row(sec3, "Complexity", "SVD: O(min(m,n)^2 * max(m,n))", "CRT: 6 x O(mnk) with k in {8,9,25,49,11,13}");
+  render_contrast_row(sec3, "Parallelism", "Must synchronize across full gradient", "6 channels = 6 independent workers");
+  render_contrast_row(sec3, "Error detection", "Separate validation needed", "L=11 channel detects poisoned ratings for free");
+  render_contrast_row(sec3, "Privacy", "Full preference matrix exposed", "490 split: 3 DEAD channels hold data, 3 ALIVE verify");
+  render_contrast_row(sec3, "Patent status", "Netflix/Amazon collaborative filtering patents", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3)
+)

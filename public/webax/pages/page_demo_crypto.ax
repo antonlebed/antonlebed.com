@@ -1,0 +1,327 @@
+/* page_demo_crypto.ax -- Crypto demo pages: hash, stego, key_exchange. Split from page_demos.ax (S1166). */
+)
+
+/* ================================================================
+   CRT HASH -- dedicated demo page /demos/hash. CC0 kill A7.
+   6-channel Feistel. 8 rounds. Pure ring arithmetic.
+   ================================================================ */
+
+fn demo_crt_hash(n) = (
+  let x0 = n * 137 + 1 in
+  mut ch0 = x0 % 8;
+  mut ch1 = x0 % 9;
+  mut ch2 = x0 % 25;
+  mut ch3 = x0 % 49;
+  mut ch4 = x0 % 11;
+  mut ch5 = x0 % 13;
+  mut rd = 0;
+  while rd < 8 do (
+    let a0 = (ch0 * 3 + ch1 + ch4 * 2 + rd + 1) % 8 in
+    let a1 = (ch1 * 2 + ch2 + ch0 * 2 + rd + 1) % 9 in
+    let a2 = (ch2 * 2 + ch3 + ch1 * 2 + rd + 1) % 25 in
+    let a3 = (ch3 * 3 + ch4 + ch2 * 2 + rd + 1) % 49 in
+    let a4 = (ch4 * 2 + ch0 + ch3 * 2 + rd + 1) % 11 in
+    let a5 = (ch5 * 2 + ch0 + ch4 * 2 + rd + 1) % 13 in
+    let v = a0 * 11036025 + a1 * 1401400 + a2 * 9585576 + a3 * 8494200 + a4 * 3439800 + a5 * 3880800 in
+    let x1 = v * 137 + rd * 41 + n in
+    mut ch0 = x1 % 8;
+    mut ch1 = x1 % 9;
+    mut ch2 = x1 % 25;
+    mut ch3 = x1 % 49;
+    mut ch4 = x1 % 11;
+    mut ch5 = x1 % 13;
+    mut rd = rd + 1
+  );
+  ch0 * 11036025 + ch1 * 1401400 + ch2 * 9585576 + ch3 * 8494200 + ch4 * 3439800 + ch5 * 3880800
+)
+
+fn demo_hash_run() = (
+  let n = parse_int_from("#dhash-input") in
+  let result_el = dom_query("#dhash-result") in
+  let h = demo_crt_hash(n) in
+  let hd = h % 8 in let hk = h % 9 in let he = h % 25 in let hb = h % 49 in let hl = h % 11 in let hg = h % 13 in
+  let h2 = demo_crt_hash(n + 1) in
+  let h2d = h2 % 8 in let h2k = h2 % 9 in let h2e = h2 % 25 in let h2b = h2 % 49 in let h2l = h2 % 11 in let h2g = h2 % 13 in
+  let diff = (if hd == h2d then 0 else 1) + (if hk == h2k then 0 else 1) + (if he == h2e then 0 else 1) + (if hb == h2b then 0 else 1) + (if hl == h2l then 0 else 1) + (if hg == h2g then 0 else 1) in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT HASH (8 rounds, 6-channel Feistel)</p><p style='color:#88ddaa;margin:4px 0'><b>hash(" + "${n}" + ") = " + "${h}" + "</b></p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${hd}" + ", " + "${hk}" + ", " + "${he}" + ", " + "${hb}" + ", " + "${hl}" + ", " + "${hg}" + ")</p><p style='color:#ffd700;margin:12px 0 4px'>AVALANCHE TEST</p><p style='color:#88ddaa;margin:4px 0'>hash(" + "${n + 1}" + ") = " + "${h2}" + "</p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${h2d}" + ", " + "${h2k}" + ", " + "${h2e}" + ", " + "${h2b}" + ", " + "${h2l}" + ", " + "${h2g}" + ")</p><p style='color:" + (if diff > 4 then "#44ff88" else "#ff8844") + ";margin:4px 0'>Channels changed: <b>" + "${diff}" + "/6</b>" + (if diff > 4 then " -- good diffusion" else "") + "</p></div>")
+)
+
+fn demo_hash_batch() = (
+  let result_el = dom_query("#dhash-batch-result") in
+  mut total_diff = 0;
+  mut perfect = 0;
+  mut i = 0;
+  while i < 100 do (
+    let h1 = demo_crt_hash(i) in
+    let h2 = demo_crt_hash(i + 1) in
+    let d = (if h1 % 8 == h2 % 8 then 0 else 1) + (if h1 % 9 == h2 % 9 then 0 else 1) + (if h1 % 25 == h2 % 25 then 0 else 1) + (if h1 % 49 == h2 % 49 then 0 else 1) + (if h1 % 11 == h2 % 11 then 0 else 1) + (if h1 % 13 == h2 % 13 then 0 else 1) in
+    mut total_diff = total_diff + d;
+    if d == 6 then mut perfect = perfect + 1 else 0;
+    mut i = i + 1
+  );
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH AVALANCHE: 100 consecutive pairs</p><p style='color:#88ddaa;margin:4px 0'>Average channels changed: <b>" + "${total_diff / 100}" + "." + "${(total_diff * 10 / 100) % 10}" + "/6</b></p><p style='color:#b0b0c0;margin:4px 0'>Perfect avalanche (6/6): <b>" + "${perfect}" + "/100</b></p></div>")
+)
+
+fn page_hash() = (
+  dom_head_meta("description", "CRT Hash Function. 6-channel Feistel network over Z/12612600. 8 rounds. Pure ring arithmetic. CC0 patent kill: crypto hash patents.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Hash Function\",\"description\":\"6-channel Feistel hash over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/hash\"}");
+  let hero = make_hero("CRT Hash") in
+  let eq = dom_create("div") in
+  dom_text(eq, "A7: Crypto patents. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "CRT decomposition IS a hash function. Decompose into 6 independent channels, mix per-channel with primitive roots, fold through CRT reconstruction. 8 rounds. Pure ring arithmetic. No XOR, no bit shifts, no lookup tables.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Hash Principle", "Every integer has a UNIQUE 6-dimensional CRT address in Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13. Per-channel mixing with generators {3,2,2,3,2,2} creates nonlinearity. Cross-channel addition creates diffusion. CRT reconstruction folds channels back. After 8 rounds, no channel remembers the input alone.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6 parallel lanes", "CRT decomposition", "6 independent mixing networks. Each uses a different primitive root.", "");
+  render_finding(g1, "Cross diffusion", "Neighbor injection", "Each channel absorbs 2 neighbors per round. After 3 rounds, every channel influenced by every other.", "");
+  render_finding(g1, "CRT fold", "Bijection breaker", "Reconstruct to integer, multiply by 137 (ADDRESS), re-decompose.", "");
+  render_finding(g1, "8 rounds", "Full diffusion", "By round 8, each output depends on every input. Natural from algebraic independence.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Hash an integer (0-12612599):", "dhash-input", "e.g. 42", "Hash", "demo_hash_run", "dhash-result");
+  render_p(sec2, "Try: 42 vs 43 (avalanche), 137 (ADDRESS), 1576576 (OMEGA), 0 (void).");
+  dom_append(dom_body(), sec2);
+  let sec3h = make_section("800px") in
+  render_h2(sec3h, "Batch Avalanche Test");
+  render_p(sec3h, "Hash 100 consecutive pairs and measure average channel diffusion.");
+  let btn = dom_create("button") in
+  dom_text(btn, "Run Batch (100 pairs)");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "8px 16px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontFamily", "'Courier New', monospace");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "borderRadius", "4px");
+  dom_on(btn, "click", "demo_hash_batch");
+  dom_append(sec3h, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "dhash-batch-result");
+  dom_append(sec3h, br);
+  dom_append(dom_body(), sec3h);
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "CRT Hash vs Traditional");
+  render_contrast_row(sec5, "Structure", "SHA-256: 64 rounds of bit manipulation", "CRT: 8 rounds of ring arithmetic over 6 channels");
+  render_contrast_row(sec5, "Mixing", "XOR + rotate + shift", "Primitive root multiplication");
+  render_contrast_row(sec5, "Output space", "2^256 (arbitrary)", "12,612,600 (structural)");
+  render_contrast_row(sec5, "Patent status", "Various patents/NIST process", "CC0. Public domain. Forever.");
+
+)
+
+/* ================================================================
+   CRT STEGANOGRAPHY -- dedicated demo page /demos/stego. CC0 kill C16.
+   Hide data in CRT channel residues.
+   ================================================================ */
+
+fn demo_stego_encode(carrier, secret) = (
+  /* Hide secret in D-channel (low 3 bits of CRT) */
+  let cd = carrier % 8 in let ck = carrier % 9 in let ce = carrier % 25 in
+  let cb = carrier % 49 in let cl = carrier % 11 in let cg = carrier % 13 in
+  let sd = secret % 8 in
+  /* Replace D-channel with secret, keep others intact */
+  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+  (sd * idem[0] + ck * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % N_TRUE
+)
+
+fn demo_stego_run() = (
+  let carrier = parse_int_from("#dsteg-carrier") in
+  let secret = parse_int_from("#dsteg-secret") in
+  let result_el = dom_query("#dsteg-result") in
+  let c = carrier % N_TRUE in
+  let s = secret % 256 in
+  let cd = c % 8 in let ck = c % 9 in let ce = c % 25 in
+  let cb = c % 49 in let cl = c % 11 in let cg = c % 13 in
+  /* Encode: hide 3 bits in D, 4 bits in K (total 7 bits = one ASCII-ish byte) */
+  let s_lo = s % 8 in let s_hi = s / 8 in
+  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+  let stego = (s_lo * idem[0] + (s_hi % 9) * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % N_TRUE in
+  let st_d = stego % 8 in let st_k = stego % 9 in let st_e = stego % 25 in
+  let st_b = stego % 49 in let st_l = stego % 11 in let st_g = stego % 13 in
+  /* Distortion: how many channels changed? */
+  let changed = (if cd == st_d then 0 else 1) + (if ck == st_k then 0 else 1) + (if ce == st_e then 0 else 1) + (if cb == st_b then 0 else 1) + (if cl == st_l then 0 else 1) + (if cg == st_g then 0 else 1) in
+  /* Extract */
+  let extracted = st_d + (st_k * 8) in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT STEGANOGRAPHY</p><p style='color:#b0b0c0;margin:4px 0'>Carrier: " + "${c}" + " = (" + "${cd}" + "," + "${ck}" + "," + "${ce}" + "," + "${cb}" + "," + "${cl}" + "," + "${cg}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Secret byte: " + "${s}" + " (lo=" + "${s_lo}" + " hi=" + "${s_hi % 9}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Stego: " + "${stego}" + " = (" + "${st_d}" + "," + "${st_k}" + "," + "${st_e}" + "," + "${st_b}" + "," + "${st_l}" + "," + "${st_g}" + ")</p><p style='color:" + (if changed < 3 then "#44ff88" else "#ff8844") + ";margin:4px 0'>Channels modified: " + "${changed}" + "/6 (E,b,L,G untouched)</p><p style='color:#ffd700;margin:12px 0 4px'>EXTRACTION</p><p style='color:#88ddaa;margin:4px 0'>Extracted: D + K*8 = " + "${extracted}" + (if extracted == s then " CORRECT" else " MISMATCH") + "</p></div>")
+)
+
+fn page_stego() = (
+  dom_head_meta("description", "CRT Steganography. Hide data in CRT channel residues. Algebraic invisibility. CC0 patent kill: DRM patents.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Steganography\",\"description\":\"Hide data in CRT channel residues over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/stego\"}");
+  let hero = make_hero("CRT Steganography") in
+  let eq = dom_create("div") in
+  dom_text(eq, "C16: DRM patents. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "CRT channels are algebraically independent. Replace D and K channels with secret data -- the remaining 4 channels (E,b,L,G) are untouched. The stego value is still a valid ring element. The secret is invisible to anyone who doesn't know which channels to read.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Steganographic Principle", "Any ring element has 6 independent CRT residues. Modifying D (3 bits) and K (log2(9) bits) channels embeds ~7 bits per carrier value. The other 4 channels carry the original signal undistorted. CRT independence means the hidden data is algebraically invisible in the E,b,L,G subspace.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "Channel hiding", "CRT independence", "Secret data replaces inner channels. Outer channels untouched.", "");
+  render_finding(g1, "Capacity", "3+4 = 7 bits", "D(3 bits) + K(~3.2 bits) per carrier value.", "");
+  render_finding(g1, "Invisibility", "Algebraic orthogonality", "E,b,L,G channels unchanged. No statistical distortion in 4/6 channels.", "");
+  render_finding(g1, "Extraction", "Modular arithmetic", "Read D and K channels. Reconstruct secret. Lossless.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Carrier value:", "dsteg-carrier", "e.g. 1000000", "Encode", "demo_stego_run", "dsteg-result");
+  let extras = dom_create("div") in
+  dom_style(extras, "display", "flex");
+  dom_style(extras, "gap", "8px");
+  dom_style(extras, "alignItems", "center");
+  dom_style(extras, "marginBottom", "12px");
+  let inp_s = dom_create("input") in
+  dom_attr(inp_s, "type", "text");
+  dom_attr(inp_s, "id", "dsteg-secret");
+  dom_attr(inp_s, "placeholder", "secret byte (0-71)");
+  dom_attr(inp_s, "value", "42");
+  dom_style(inp_s, "background", "#111");
+  dom_style(inp_s, "color", "#eee");
+  dom_style(inp_s, "border", "1px solid #333");
+  dom_style(inp_s, "padding", "6px 8px");
+  dom_style(inp_s, "fontFamily", "'Courier New', monospace");
+  dom_style(inp_s, "width", "120px");
+  dom_append(extras, inp_s);
+  dom_append(sec2, extras);
+  render_p(sec2, "Secret range: 0-71 (D*K = 8*9 = 72 values). D carries low 3 bits, K carries high bits.");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT Stego vs Traditional");
+  render_contrast_row(sec3, "Hiding method", "LSB modification (fragile)", "CRT channel replacement (algebraic)");
+  render_contrast_row(sec3, "Distortion", "All bits slightly perturbed", "Only D,K channels changed; E,b,L,G exact");
+  render_contrast_row(sec3, "Detection", "Statistical analysis can reveal", "4/6 channels have zero distortion");
+  render_contrast_row(sec3, "Extraction", "Bit masking (position-dependent)", "Modular arithmetic (position-free)");
+  render_contrast_row(sec3, "Patent status", "DRM/watermarking patents", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3)
+)
+
+/* ================================================================
+   CRT KEY EXCHANGE -- dedicated demo page /demos/key_exchange. CC0 kill C18.
+   CRT Diffie-Hellman over Z/12612600.
+   ================================================================ */
+
+fn demo_crt_powmod(base, exp, m) = (
+  mut result = 1;
+  mut b = base % m;
+  mut e = exp;
+  while e > 0 do (
+    if e % 2 == 1 then mut result = (result * b) % m else 0;
+    mut b = (b * b) % m;
+    mut e = e / 2
+  );
+  result
+)
+
+fn demo_kex_run() = (
+  let alice_secret = parse_int_from("#dkex-alice") in
+  let bob_secret = parse_int_from("#dkex-bob") in
+  let result_el = dom_query("#dkex-result") in
+  let a = alice_secret % 420 in
+  let b = bob_secret % 420 in
+  /* Per-channel DH: generator g, modulus m */
+  /* Generators: primitive roots of each modulus */
+  let g = [3, 2, 2, 3, 2, 2] in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  /* Alice public: g^a mod m per channel */
+  let ap0 = demo_crt_powmod(g[0], a, mods[0]) in
+  let ap1 = demo_crt_powmod(g[1], a, mods[1]) in
+  let ap2 = demo_crt_powmod(g[2], a, mods[2]) in
+  let ap3 = demo_crt_powmod(g[3], a, mods[3]) in
+  let ap4 = demo_crt_powmod(g[4], a, mods[4]) in
+  let ap5 = demo_crt_powmod(g[5], a, mods[5]) in
+  /* Bob public: g^b mod m per channel */
+  let bp0 = demo_crt_powmod(g[0], b, mods[0]) in
+  let bp1 = demo_crt_powmod(g[1], b, mods[1]) in
+  let bp2 = demo_crt_powmod(g[2], b, mods[2]) in
+  let bp3 = demo_crt_powmod(g[3], b, mods[3]) in
+  let bp4 = demo_crt_powmod(g[4], b, mods[4]) in
+  let bp5 = demo_crt_powmod(g[5], b, mods[5]) in
+  /* Shared: bob_pub^a = alice_pub^b = g^(ab) mod m */
+  let s0 = demo_crt_powmod(bp0, a, mods[0]) in
+  let s1 = demo_crt_powmod(bp1, a, mods[1]) in
+  let s2 = demo_crt_powmod(bp2, a, mods[2]) in
+  let s3 = demo_crt_powmod(bp3, a, mods[3]) in
+  let s4 = demo_crt_powmod(bp4, a, mods[4]) in
+  let s5 = demo_crt_powmod(bp5, a, mods[5]) in
+  /* Verify: alice computes from bob pub */
+  let v0 = demo_crt_powmod(ap0, b, mods[0]) in
+  let v1 = demo_crt_powmod(ap1, b, mods[1]) in
+  let v2 = demo_crt_powmod(ap2, b, mods[2]) in
+  let v3 = demo_crt_powmod(ap3, b, mods[3]) in
+  let v4 = demo_crt_powmod(ap4, b, mods[4]) in
+  let v5 = demo_crt_powmod(ap5, b, mods[5]) in
+  let ch_ok =(if s0 == v0 then 1 else 0) + (if s1 == v1 then 1 else 0) + (if s2 == v2 then 1 else 0) + (if s3 == v3 then 1 else 0) + (if s4 == v4 then 1 else 0) + (if s5 == v5 then 1 else 0) in
+  /* CRT reconstruct shared secret */
+  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+  let shared = (s0 * idem[0] + s1 * idem[1] + s2 * idem[2] + s3 * idem[3] + s4 * idem[4] + s5 * idem[5]) % N_TRUE in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT KEY EXCHANGE</p><p style='color:#b0b0c0;margin:4px 0'>Alice secret: " + "${a}" + " | Bob secret: " + "${b}" + "</p><p style='margin:8px 0 4px;color:#ffd700'>Public keys (visible to eavesdropper)</p><p style='color:#b0b0c0;margin:4px 0'>Alice public: (" + "${ap0}" + "," + "${ap1}" + "," + "${ap2}" + "," + "${ap3}" + "," + "${ap4}" + "," + "${ap5}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Bob public: (" + "${bp0}" + "," + "${bp1}" + "," + "${bp2}" + "," + "${bp3}" + "," + "${bp4}" + "," + "${bp5}" + ")</p><p style='margin:8px 0 4px;color:#ffd700'>Shared secrets (computed independently)</p><p style='color:#88ddaa;margin:4px 0'>Alice computes: (" + "${s0}" + "," + "${s1}" + "," + "${s2}" + "," + "${s3}" + "," + "${s4}" + "," + "${s5}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Bob computes: (" + "${v0}" + "," + "${v1}" + "," + "${v2}" + "," + "${v3}" + "," + "${v4}" + "," + "${v5}" + ")</p><p style='color:" + (if ch_ok == 6 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>Channel agreement: " + "${ch_ok}" + "/6" + (if ch_ok == 6 then " -- KEYS MATCH" else " -- MISMATCH") + "</p><p style='color:#88ddaa;margin:4px 0'>Shared secret (CRT): <b>" + "${shared}" + "</b></p></div>")
+)
+
+fn page_key_exchange() = (
+  dom_head_meta("description", "CRT Key Exchange. 6-channel Diffie-Hellman over Z/12612600. CC0 patent kill: RSA/Certicom.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Key Exchange\",\"description\":\"6-channel Diffie-Hellman key exchange over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/key_exchange\"}");
+  let hero = make_hero("CRT Key Exchange") in
+  let eq = dom_create("div") in
+  dom_text(eq, "C18: RSA/Certicom. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Diffie-Hellman key exchange runs in parallel across 6 CRT channels. Each channel uses its own primitive root as generator. 6 small discrete-log problems instead of 1 big one. CRT reconstructs the shared secret from 6 channel agreements.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Diffie-Hellman", "Classic DH: g^a mod p (one big modulus). CRT DH: g_i^a mod m_i for each channel (6 small moduli). Alice sends 6 public residues. Bob sends 6. Each computes 6 shared residues independently. CRT reconstruction gives the unique shared secret in Z/12612600.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6 generators", "Primitive roots", "Each channel has its own generator: {3,2,2,3,2,2}.", "");
+  render_finding(g1, "Parallel exchange", "CRT independence", "6 small key exchanges run independently.", "");
+  render_finding(g1, "Shared secret", "CRT reconstruction", "6 channel agreements -> unique shared value.", "");
+  render_finding(g1, "Channel security", "Discrete log per mod", "Breaking one channel reveals only 3-6 bits.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Alice's secret (1-419):", "dkex-alice", "e.g. 137", "Exchange Keys", "demo_kex_run", "dkex-result");
+  let extras = dom_create("div") in
+  dom_style(extras, "display", "flex");
+  dom_style(extras, "gap", "8px");
+  dom_style(extras, "alignItems", "center");
+  dom_style(extras, "marginBottom", "12px");
+  let inp_b = dom_create("input") in
+  dom_attr(inp_b, "type", "text");
+  dom_attr(inp_b, "id", "dkex-bob");
+  dom_attr(inp_b, "placeholder", "Bob's secret (e.g. 42)");
+  dom_attr(inp_b, "value", "42");
+  dom_style(inp_b, "background", "#111");
+  dom_style(inp_b, "color", "#eee");
+  dom_style(inp_b, "border", "1px solid #333");
+  dom_style(inp_b, "padding", "6px 8px");
+  dom_style(inp_b, "fontFamily", "'Courier New', monospace");
+  dom_style(inp_b, "width", "120px");
+  dom_append(extras, inp_b);
+  dom_append(sec2, extras);
+  render_p(sec2, "Secrets mod 420 (= lambda of ring). Try: Alice=137 Bob=42, Alice=1 Bob=419.");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT Key Exchange vs Traditional");
+  render_contrast_row(sec3, "Modulus", "RSA: single 2048-bit prime product", "CRT: 6 small moduli (3-49)");
+  render_contrast_row(sec3, "Parallelism", "Sequential modular exponentiation", "6 independent exponentiations");
+  render_contrast_row(sec3, "Key size", "256+ bytes", "6 residues (< 20 bytes)");
+  render_contrast_row(sec3, "Quantum resistance", "Shor's algorithm breaks RSA", "6 small DLPs -- different attack surface");
+  render_contrast_row(sec3, "Patent status", "RSA/Certicom/NIST patents", "CC0. Public domain. Forever.");

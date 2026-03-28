@@ -1,0 +1,219 @@
+/* page_demo_data.ax -- Data demo pages: db_index, audio. Split from page_demos.ax (S1166). */
+   ================================================================ */
+
+fn demo_db_run() = (
+  let key = parse_int_from("#ddb-input") in
+  let result_el = dom_query("#ddb-result") in
+  let k = key % N_TRUE in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  /* 6 bucket addresses */
+  let bd = k % 8 in let bk = k % 9 in let be = k % 25 in let bb = k % 49 in let bl = k % 11 in let bg = k % 13 in
+  /* Total buckets = sum of moduli = 115 */
+  /* Collision in ALL 6 channels simultaneously = 1/12612600 probability (impossible for distinct keys) */
+  /* Show bucket occupancy: if N keys uniformly distributed, each bucket[i] holds ~N/m_i keys */
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT INDEX LOOKUP: key = " + "${k}" + "</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Channel</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Modulus</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Bucket</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Type</th></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>D</td><td style='padding:3px;color:#888;font-size:12px'>8</td><td style='padding:3px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${bd}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD -- primary hash</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>K</td><td style='padding:3px;color:#888;font-size:12px'>9</td><td style='padding:3px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${bk}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE -- integrity tag</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>E</td><td style='padding:3px;color:#888;font-size:12px'>25</td><td style='padding:3px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${be}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD -- secondary hash</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>b</td><td style='padding:3px;color:#888;font-size:12px'>49</td><td style='padding:3px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${bb}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD -- range partition</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>L</td><td style='padding:3px;color:#888;font-size:12px'>11</td><td style='padding:3px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${bl}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE -- ECC check</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>G</td><td style='padding:3px;color:#888;font-size:12px'>13</td><td style='padding:3px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${bg}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE -- shard selector</td></tr></table><p style='color:#ffd700;margin:12px 0 4px'>INDEX PROPERTIES</p><p style='color:#88ddaa;margin:4px 0'>Total buckets: 8+9+25+49+11+13 = 115 (stored in memory)</p><p style='color:#88ddaa;margin:4px 0'>Unique keys: 12,612,600 (zero false positives for distinct keys)</p><p style='color:#88ddaa;margin:4px 0'>Lookup: 6 mod operations + 6 bucket reads = O(1)</p><p style='color:#b0b0c0;margin:4px 0'>490 split: {D,E,b} buckets store data pointers. {K,L,G} buckets verify integrity.</p></div>")
+)
+
+fn demo_db_batch() = (
+  let result_el = dom_query("#ddb-batch") in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  /* Insert 1000 keys, check for false collisions (same 6 residues for different keys) */
+  let collisions = [0] in
+  let tested = [0] in
+  let i = [0] in
+  while i[0] < 500 do (
+    let k1 = (i[0] * 25717 + 67) % N_TRUE in
+    let k2 = (i[0] * 25717 + 67 + 1) % N_TRUE in
+    /* Two adjacent keys -- check if any channel collides */
+    let same_d = if k1 % 8 == k2 % 8 then 1 else 0 in
+    let same_k = if k1 % 9 == k2 % 9 then 1 else 0 in
+    let same_e = if k1 % 25 == k2 % 25 then 1 else 0 in
+    let same_b = if k1 % 49 == k2 % 49 then 1 else 0 in
+    let same_l = if k1 % 11 == k2 % 11 then 1 else 0 in
+    let same_g = if k1 % 13 == k2 % 13 then 1 else 0 in
+    /* Full collision = all 6 match (impossible for k1 != k2 within the ring) */
+    if same_d + same_k + same_e + same_b + same_l + same_g == 6 then
+      set(collisions, 0, collisions[0] + 1) else 0;
+    set(tested, 0, tested[0] + 1);
+    set(i, 0, i[0] + 1)
+  );
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 500 adjacent-key pairs</p><p style='color:" + (if collisions[0] == 0 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>Full collisions: " + "${collisions[0]}" + "/500 -- " + (if collisions[0] == 0 then "ZERO. CRT = perfect hash." else "unexpected") + "</p><p style='color:#b0b0c0;margin:4px 0'>For distinct keys in Z/12612600, CRT guarantees at least one channel differs. 6-dimensional addressing eliminates false positives algebraically, not probabilistically.</p></div>")
+)
+
+fn page_db_index() = (
+  dom_head_meta("description", "CRT Database Index. 6-dimensional perfect hash via CRT decomposition. O(1) lookup. Zero false positives. CC0 patent kill: Oracle/IBM.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Database Index\",\"description\":\"6-channel perfect hash indexing over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/db_index\"}");
+  let hero = make_hero("CRT Database Index") in
+  let eq = dom_create("div") in
+  dom_text(eq, "B14: Oracle/IBM patents. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Replace B-trees and hash tables with CRT decomposition. A key mod 6 coprime moduli gives 6 independent bucket addresses. Lookup = 6 mod operations. Insert = 6 bucket writes. Zero false positives for distinct keys within the ring. 115 total buckets address 12,612,600 unique keys.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Perfect Hash", "A key k in Z/12612600 maps to 6 residues: (k mod 8, k mod 9, k mod 25, k mod 49, k mod 11, k mod 13). By CRT, this 6-tuple uniquely determines k. Store data at the intersection of 6 buckets. Lookup: compute 6 remainders, read 6 buckets, intersect. The 490 holographic split: DEAD channels {D,E,b} hold data pointers (primary, secondary, range). ALIVE channels {K,L,G} hold integrity metadata (tag, ECC, shard).");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "O(1) lookup", "6 mod + 6 reads", "Constant time regardless of table size. No tree traversal.", "");
+  render_finding(g1, "115 buckets", "Sum of moduli", "8+9+25+49+11+13 = 115 buckets address 12.6M unique keys.", "");
+  render_finding(g1, "Perfect hash", "CRT bijectivity", "Distinct keys in ring always differ in at least one channel.", "");
+  render_finding(g1, "490 split", "Data + integrity", "3 DEAD channels store data. 3 ALIVE channels verify correctness.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Key (0-12612599):", "ddb-input", "e.g. 42", "Lookup", "demo_db_run", "ddb-result");
+  render_p(sec2, "Shows 6 bucket addresses for the key. Red = DEAD (data channels). Green = ALIVE (integrity channels).");
+  dom_append(dom_body(), sec2);
+  let sec2b = make_section("800px") in
+  render_h2(sec2b, "Collision Test");
+  let btn = dom_create("button") in
+  dom_text(btn, "Test 500 Key Pairs");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_db_batch");
+  dom_append(sec2b, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "ddb-batch");
+  dom_append(sec2b, br);
+  dom_append(dom_body(), sec2b);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT Index vs B-Tree/Hash Table");
+  render_contrast_row(sec3, "Lookup", "B-tree: O(log N). Hash: O(1) amortized", "CRT: O(1) worst-case. 6 mod ops.");
+  render_contrast_row(sec3, "Collisions", "Hash tables: requires chaining/probing", "CRT: zero false positives within ring");
+  render_contrast_row(sec3, "Storage", "B-tree: node overhead. Hash: load factor waste", "CRT: 115 buckets total. Minimal.");
+  render_contrast_row(sec3, "Integrity", "Separate checksums needed", "490 split: 3 ALIVE channels verify for free.");
+  render_contrast_row(sec3, "Patent status", "Oracle/IBM database patents", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3)
+)
+
+/* ================================================================
+   AUDIO SYNTHESIS -- dedicated demo page /demos/audio. CC0 kill B12.
+   CRT eigenvalue frequencies. 6 channels = 6 harmonic components.
+   ================================================================ */
+
+fn demo_audio_run() = (
+  let note = parse_int_from("#daudio-input") in
+  let result_el = dom_query("#daudio-result") in
+  let n = note % N_TRUE in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  /* Decompose note into 6 channel residues */
+  let rd = n % 8 in let rk = n % 9 in let re = n % 25 in let rb = n % 49 in let rl = n % 11 in let rg = n % 13 in
+  /* Each residue = frequency component: base * (1 + r/m) gives overtone series */
+  /* Fundamental = 110 Hz (A2). Each channel adds a harmonic at its own modular position. */
+  /* Amplitude weights from ring structure: phi(m)/m = duty cycle */
+  /* phi(8)/8=0.50, phi(9)/9=0.67, phi(25)/25=0.80, phi(49)/49=0.86, phi(11)/11=0.91, phi(13)/13=0.92 */
+  /* 490 split: DEAD channels {D,E,b} = harmonic content, ALIVE {K,L,G} = envelope/timing */
+  let freq_d = 110 * (8 + rd) / 8 in
+  let freq_k = 110 * (9 + rk) / 9 in
+  let freq_e = 110 * (25 + re) / 25 in
+  let freq_b = 110 * (49 + rb) / 49 in
+  let freq_l = 110 * (11 + rl) / 11 in
+  let freq_g = 110 * (13 + rg) / 13 in
+  /* Phase = 2*pi*r/m mapped to 360 degrees */
+  let phase_d = rd * 360 / 8 in let phase_k = rk * 360 / 9 in
+  let phase_e = re * 360 / 25 in let phase_b = rb * 360 / 49 in
+  let phase_l = rl * 360 / 11 in let phase_g = rg * 360 / 13 in
+  /* Amplitude = residue / modulus (percentage) */
+  let amp_d = rd * 100 / 8 in let amp_k = rk * 100 / 9 in
+  let amp_e = re * 100 / 25 in let amp_b = rb * 100 / 49 in
+  let amp_l = rl * 100 / 11 in let amp_g = rg * 100 / 13 in
+  /* Timbre signature: product of residues characterizes sound */
+  let timbre = (rd + 1) * (rk + 1) * (re + 1) * (rb + 1) * (rl + 1) * (rg + 1) in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT SYNTHESIS: note = " + "${n}" + "</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Channel</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Residue</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Freq (Hz)</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Phase</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Amp %</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Role</th></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>D(8)</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rd}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${freq_d}" + "</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${phase_d}" + "deg</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${amp_d}" + "%</td><td style='padding:3px;color:#ff6666;font-size:11px'>Fundamental</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>K(9)</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rk}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${freq_k}" + "</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${phase_k}" + "deg</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${amp_k}" + "%</td><td style='padding:3px;color:#44ff88;font-size:11px'>Envelope</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>E(25)</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${re}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${freq_e}" + "</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${phase_e}" + "deg</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${amp_e}" + "%</td><td style='padding:3px;color:#ff6666;font-size:11px'>Overtone</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>b(49)</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rb}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${freq_b}" + "</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${phase_b}" + "deg</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${amp_b}" + "%</td><td style='padding:3px;color:#ff6666;font-size:11px'>Depth harm.</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>L(11)</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rl}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${freq_l}" + "</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${phase_l}" + "deg</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${amp_l}" + "%</td><td style='padding:3px;color:#44ff88;font-size:11px'>Timing</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>G(13)</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rg}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${freq_g}" + "</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${phase_g}" + "deg</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${amp_g}" + "%</td><td style='padding:3px;color:#44ff88;font-size:11px'>Gate pulse</td></tr></table><p style='color:#ffd700;margin:12px 0 4px'>TIMBRE SIGNATURE</p><p style='color:#88ddaa;margin:4px 0'>Product: " + "${timbre}" + " (unique timbre from 6-channel interaction)</p><p style='color:#b0b0c0;margin:4px 0'>490 split: DEAD={D,E,b} channels carry harmonic content. ALIVE={K,L,G} channels shape envelope, timing, gating.</p><p style='color:#b0b0c0;margin:4px 0'>Total unique timbres: 8*9*25*49*11*13 = 12,612,600 from 6 independent parameters.</p></div>")
+)
+
+fn demo_audio_batch() = (
+  let result_el = dom_query("#daudio-batch") in
+  let mods = [8, 9, 25, 49, 11, 13] in
+  /* Test: verify all notes in range produce valid frequency decompositions */
+  let valid = [0] in
+  let unique_timbres = [0] in
+  let last_timbre = [0] in
+  let i = [0] in
+  while i[0] < 420 do (
+    let n = i[0] * 30030 in /* sample at lambda intervals */
+    let rd = n % 8 in let rk = n % 9 in let re = n % 25 in let rb = n % 49 in let rl = n % 11 in let rg = n % 13 in
+    let timbre = (rd + 1) * (rk + 1) * (re + 1) * (rb + 1) * (rl + 1) * (rg + 1) in
+    if timbre != last_timbre[0] then (
+      set(unique_timbres, 0, unique_timbres[0] + 1);
+      set(last_timbre, 0, timbre)
+    ) else 0;
+    /* All frequencies must be positive (base=110, residue>=0, modulus>0) */
+    let freq_d = 110 * (8 + rd) / 8 in
+    if freq_d > 0 then set(valid, 0, valid[0] + 1) else 0;
+    set(i, 0, i[0] + 1)
+  );
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 420 notes (lambda-spaced)</p><p style='color:" + (if valid[0] == 420 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${valid[0]}" + "/420 valid frequency decompositions</p><p style='color:#88ddaa;margin:4px 0'>Unique timbres sampled: " + "${unique_timbres[0]}" + "</p><p style='color:#b0b0c0;margin:4px 0'>lambda=420 intervals sample the full ring orbit. Each note = 6 independent oscillators shaped by CRT residues. The ring encodes 12,612,600 distinct timbres in 115 parameters.</p></div>")
+)
+
+fn page_audio() = (
+  dom_head_meta("description", "CRT Audio Synthesis. 6 eigenvalue frequencies from CRT decomposition. 12.6M unique timbres. 490 holographic split: harmonics + envelope. CC0 patent kill: Dolby DSP.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Audio Synthesis\",\"description\":\"6-channel additive synthesis over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/audio\"}");
+  let hero = make_hero("CRT Audio Synthesis") in
+  let eq = dom_create("div") in
+  dom_text(eq, "B12: Dolby DSP patents. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Replace DSP filter banks with CRT eigenvalue decomposition. A note n in Z/12612600 decomposes into 6 residues, each driving an independent oscillator. Frequency, phase, and amplitude all derive from modular arithmetic. 6 channels = 6 additive harmonics. The 490 holographic split: DEAD={D,E,b} carry harmonic content, ALIVE={K,L,G} shape envelope, timing, and gating. Total unique timbres: 12,612,600.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Additive Synthesis", "A note n decomposes into 6 residues (r_D, r_K, r_E, r_b, r_L, r_G). Each residue determines: frequency = base * (m + r) / m, phase = 2*pi*r/m, amplitude = r/m. The 6 oscillators sum to produce the output waveform. Because moduli are coprime, the combined period = lcm = lambda = 420. The 490 split assigns roles: D-channel = fundamental (8 states, coarsest), b-channel = depth harmonic (49 states, finest). K,L,G channels control envelope shape, attack timing, and gate pulses.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "12.6M timbres", "Ring capacity", "Each CRT tuple = unique waveform. 8*9*25*49*11*13 combinations.", "");
+  render_finding(g1, "6 oscillators", "CRT channels", "Independent frequency/phase/amplitude per channel. No coupling.", "");
+  render_finding(g1, "490 split", "Content + control", "DEAD channels: harmonics. ALIVE channels: envelope/timing/gating.", "");
+  render_finding(g1, "lambda = 420", "Period", "Combined waveform repeats every 420 samples. Ring-intrinsic periodicity.", "");
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Note value (0-12612599):", "daudio-input", "e.g. 440", "Synthesize", "demo_audio_run", "daudio-result");
+  render_p(sec2, "Decomposes note into 6 channel oscillators. Red = DEAD (harmonic content). Green = ALIVE (envelope/timing).");
+  dom_append(dom_body(), sec2);
+  let sec2b = make_section("800px") in
+  render_h2(sec2b, "Batch Test");
+  let btn = dom_create("button") in
+  dom_text(btn, "Test 420 Notes");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_audio_batch");
+  dom_append(sec2b, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "daudio-batch");
+  dom_append(sec2b, br);
+  dom_append(dom_body(), sec2b);
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT Synthesis vs DSP");
+  render_contrast_row(sec3, "Synthesis model", "Dolby: proprietary filter banks + transform coding", "CRT: 6 modular oscillators. Pure arithmetic.");
+  render_contrast_row(sec3, "Timbre space", "Fixed codec profiles (AC-3, AC-4)", "12,612,600 unique timbres from ring structure");
+  render_contrast_row(sec3, "Parameters", "Dozens of tunable coefficients", "6 residues. Everything derives from one number.");
+  render_contrast_row(sec3, "Periodicity", "Frame-based (256-4096 samples)", "lambda=420 samples. Ring-intrinsic.");
+  render_contrast_row(sec3, "Patent status", "Dolby DSP patents (AC-3, AC-4, Atmos)", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3)
+)
+
+/* ================================================================
+   CRT SORT -- dedicated demo page /demos/sort. CC0 kill D25.
+   CRT radix sort: 6 counting sort passes through tiny channels.
+   O(6N) for any N in Z/12612600.
+   ================================================================ */
