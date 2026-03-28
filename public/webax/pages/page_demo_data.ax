@@ -101,6 +101,41 @@ fn page_db_index() = (
    CRT eigenvalue frequencies. 6 channels = 6 harmonic components.
    ================================================================ */
 
+/* Audio oscillator handles: [D, K, E, b, L, G] */
+let g_audio_oscs = [0 - 1, 0 - 1, 0 - 1, 0 - 1, 0 - 1, 0 - 1]
+
+fn demo_audio_play() = (
+  let note = parse_int_from("#daudio-input") in
+  let n = note % N_TRUE in
+  let rd = n % 8 in let rk = n % 9 in let re = n % 25 in
+  let rb = n % 49 in let rl = n % 11 in let rg = n % 13 in
+  let freqs = [110 * (8 + rd) / 8, 110 * (9 + rk) / 9, 110 * (25 + re) / 25,
+               110 * (49 + rb) / 49, 110 * (11 + rl) / 11, 110 * (13 + rg) / 13] in
+  let amps = [rd * 12 / 8, rk * 12 / 9, re * 12 / 25,
+              rb * 12 / 49, rl * 12 / 11, rg * 12 / 13] in
+  let i = [0] in
+  while i[0] < 6 do (
+    if g_audio_oscs[i[0]] < 0 then
+      set(g_audio_oscs, i[0], aud_osc(0))
+    else 0;
+    aud_freq(g_audio_oscs[i[0]], freqs[i[0]]);
+    aud_gain(g_audio_oscs[i[0]], if amps[i[0]] > 0 then amps[i[0]] else 1);
+    set(i, 0, i[0] + 1)
+  );
+  0
+)
+
+fn demo_audio_stop() = (
+  let i = [0] in
+  while i[0] < 6 do (
+    if g_audio_oscs[i[0]] >= 0 then
+      aud_gain(g_audio_oscs[i[0]], 0)
+    else 0;
+    set(i, 0, i[0] + 1)
+  );
+  0
+)
+
 fn demo_audio_run() = (
   let note = parse_int_from("#daudio-input") in
   let result_el = dom_query("#daudio-result") in
@@ -182,7 +217,34 @@ fn page_audio() = (
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Note value (0-12612599):", "daudio-input", "e.g. 440", "Synthesize", "demo_audio_run", "daudio-result");
-  render_p(sec2, "Decomposes note into 6 channel oscillators. Red = DEAD (harmonic content). Green = ALIVE (envelope/timing).");
+  let abtn = dom_create("div") in
+  dom_style(abtn, "display", "flex");
+  dom_style(abtn, "gap", "8px");
+  dom_style(abtn, "marginTop", "8px");
+  let pbtn = dom_create("button") in
+  dom_text(pbtn, "Play Sound");
+  dom_style(pbtn, "background", "#44ff88");
+  dom_style(pbtn, "color", "#0f0f2a");
+  dom_style(pbtn, "border", "none");
+  dom_style(pbtn, "padding", "8px 20px");
+  dom_style(pbtn, "borderRadius", "6px");
+  dom_style(pbtn, "cursor", "pointer");
+  dom_style(pbtn, "fontWeight", "bold");
+  dom_on(pbtn, "click", "demo_audio_play");
+  dom_append(abtn, pbtn);
+  let sbtn = dom_create("button") in
+  dom_text(sbtn, "Stop");
+  dom_style(sbtn, "background", "#ff4444");
+  dom_style(sbtn, "color", "#fff");
+  dom_style(sbtn, "border", "none");
+  dom_style(sbtn, "padding", "8px 20px");
+  dom_style(sbtn, "borderRadius", "6px");
+  dom_style(sbtn, "cursor", "pointer");
+  dom_style(sbtn, "fontWeight", "bold");
+  dom_on(sbtn, "click", "demo_audio_stop");
+  dom_append(abtn, sbtn);
+  dom_append(sec2, abtn);
+  render_p(sec2, "Decomposes note into 6 channel oscillators. Play Sound creates 6 Web Audio oscillators from CRT residues. Red = DEAD (harmonic content). Green = ALIVE (envelope/timing).");
   dom_append(dom_body(), sec2);
   let sec2b = make_section("800px") in
   render_h2(sec2b, "Batch Test");

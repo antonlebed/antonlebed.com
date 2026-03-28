@@ -31,6 +31,42 @@ fn sp_basis(ch) = (
   else if ch == 4 then 11466456 else 2441208
 )
 
+/* Band center frequencies (Hz): sub-bass, bass, midrange, presence, brilliance, air */
+fn sp_center_hz(ch) = (
+  if ch == 0 then 40 else if ch == 1 then 150 else if ch == 2 then 800
+  else if ch == 3 then 3000 else if ch == 4 then 8000 else 15000
+)
+
+let g_sp_oscs = [0 - 1, 0 - 1, 0 - 1, 0 - 1, 0 - 1, 0 - 1]
+
+fn demo_speech_play() = (
+  let spk = parse_int_from("#dsp-input") in
+  let frame = gen_speech_frame(spk, 0, 5) in
+  let i = [0] in
+  while i[0] < 6 do (
+    let m = sp_mod(i[0]) in
+    let r = frame % m in
+    let freq = sp_center_hz(i[0]) + r * sp_center_hz(i[0]) / m / 4 in
+    let gain = if r > 0 then r * 8 / m + 1 else 0 in
+    if g_sp_oscs[i[0]] < 0 then
+      set(g_sp_oscs, i[0], aud_osc(0))
+    else 0;
+    aud_freq(g_sp_oscs[i[0]], freq);
+    aud_gain(g_sp_oscs[i[0]], gain);
+    set(i, 0, i[0] + 1)
+  );
+  0
+)
+
+fn demo_speech_stop() = (
+  let i = [0] in
+  while i[0] < 6 do (
+    if g_sp_oscs[i[0]] >= 0 then aud_gain(g_sp_oscs[i[0]], 0) else 0;
+    set(i, 0, i[0] + 1)
+  );
+  0
+)
+
 /* Generate synthetic speech frame: 6 spectral band energies.
    Each frame is one 20ms time slice of speech.
    Channels: D=sub-bass(20-60Hz), K=bass(60-250Hz), E=midrange(250-2kHz),
@@ -388,7 +424,34 @@ fn page_speech() = (
   let sec2 = make_section("900px") in
   render_h2(sec2, "Codec Analysis");
   make_interactive_widget(sec2, "Speaker ID:", "dsp-input", "e.g. 42", "Encode/Decode", "demo_speech_run", "dsp-result");
-  render_p(sec2, "40-frame speech utterance (800ms at 20ms/frame). CRT spectral encoding. Three quantization levels compared: Q=1 (lossless), Q=2 (50% compression), Q=4 (75% compression). Per-channel SNR and frame-by-frame distortion analysis.");
+  let abtn2 = dom_create("div") in
+  dom_style(abtn2, "display", "flex");
+  dom_style(abtn2, "gap", "8px");
+  dom_style(abtn2, "marginTop", "8px");
+  let pb2 = dom_create("button") in
+  dom_text(pb2, "Play Spectral Bands");
+  dom_style(pb2, "background", "#44ff88");
+  dom_style(pb2, "color", "#0f0f2a");
+  dom_style(pb2, "border", "none");
+  dom_style(pb2, "padding", "8px 20px");
+  dom_style(pb2, "borderRadius", "6px");
+  dom_style(pb2, "cursor", "pointer");
+  dom_style(pb2, "fontWeight", "bold");
+  dom_on(pb2, "click", "demo_speech_play");
+  dom_append(abtn2, pb2);
+  let sb2 = dom_create("button") in
+  dom_text(sb2, "Stop");
+  dom_style(sb2, "background", "#ff4444");
+  dom_style(sb2, "color", "#fff");
+  dom_style(sb2, "border", "none");
+  dom_style(sb2, "padding", "8px 20px");
+  dom_style(sb2, "borderRadius", "6px");
+  dom_style(sb2, "cursor", "pointer");
+  dom_style(sb2, "fontWeight", "bold");
+  dom_on(sb2, "click", "demo_speech_stop");
+  dom_append(abtn2, sb2);
+  dom_append(sec2, abtn2);
+  render_p(sec2, "Play Spectral Bands synthesizes 6 oscillators at the CRT band center frequencies, with gain derived from each channel residue. 40-frame speech utterance (800ms at 20ms/frame). Three quantization levels compared.");
   dom_append(dom_body(), sec2);
 
   let sec3 = make_section("900px") in

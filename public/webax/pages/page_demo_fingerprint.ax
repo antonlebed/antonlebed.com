@@ -25,6 +25,43 @@ fn af_basis(ch) = (
   else if ch == 4 then 11466456 else 2441208
 )
 
+/* Play track as 6-oscillator CRT synthesis */
+let g_fp_oscs = [0 - 1, 0 - 1, 0 - 1, 0 - 1, 0 - 1, 0 - 1]
+
+fn af_band_hz(ch) = (
+  if ch == 0 then 80 else if ch == 1 then 200 else if ch == 2 then 1200
+  else if ch == 3 then 2400 else if ch == 4 then 6000 else 10000
+)
+
+fn demo_fp_play() = (
+  let tid = parse_int_from("#dfp-input") in
+  let track = gen_audio_track(tid % 8, 20) in
+  let fp = compute_fingerprint(track, 20) in
+  let i = [0] in
+  while i[0] < 6 do (
+    let m = af_mod(i[0]) in
+    let r = fp[i[0]] in
+    let freq = af_band_hz(i[0]) + r * af_band_hz(i[0]) / m / 3 in
+    let gain = if r > 0 then r * 6 / m + 1 else 0 in
+    if g_fp_oscs[i[0]] < 0 then
+      set(g_fp_oscs, i[0], aud_osc(0))
+    else 0;
+    aud_freq(g_fp_oscs[i[0]], freq);
+    aud_gain(g_fp_oscs[i[0]], gain);
+    set(i, 0, i[0] + 1)
+  );
+  0
+)
+
+fn demo_fp_stop() = (
+  let i = [0] in
+  while i[0] < 6 do (
+    if g_fp_oscs[i[0]] >= 0 then aud_gain(g_fp_oscs[i[0]], 0) else 0;
+    set(i, 0, i[0] + 1)
+  );
+  0
+)
+
 /* Simulate audio features: frequency bands + energy + zero crossings.
    Each "frame" produces a feature vector encoded as a ring element.
    Channels: D=bass energy, K=mid energy, E=treble energy,
@@ -265,7 +302,34 @@ fn page_fingerprint() = (
   let sec2 = make_section("900px") in
   render_h2(sec2, "Fingerprint Matching");
   make_interactive_widget(sec2, "Query track (0-7):", "dfp-input", "e.g. 3", "Match Fingerprint", "demo_fingerprint_run", "dfp-result");
-  render_p(sec2, "8-track database. Query = selected track with added noise. CRT fingerprint computed, then matched against all database entries via coupling distance. Lowest distance = best match.");
+  let afp = dom_create("div") in
+  dom_style(afp, "display", "flex");
+  dom_style(afp, "gap", "8px");
+  dom_style(afp, "marginTop", "8px");
+  let pfp = dom_create("button") in
+  dom_text(pfp, "Play Track");
+  dom_style(pfp, "background", "#44ff88");
+  dom_style(pfp, "color", "#0f0f2a");
+  dom_style(pfp, "border", "none");
+  dom_style(pfp, "padding", "8px 20px");
+  dom_style(pfp, "borderRadius", "6px");
+  dom_style(pfp, "cursor", "pointer");
+  dom_style(pfp, "fontWeight", "bold");
+  dom_on(pfp, "click", "demo_fp_play");
+  dom_append(afp, pfp);
+  let sfp = dom_create("button") in
+  dom_text(sfp, "Stop");
+  dom_style(sfp, "background", "#ff4444");
+  dom_style(sfp, "color", "#fff");
+  dom_style(sfp, "border", "none");
+  dom_style(sfp, "padding", "8px 20px");
+  dom_style(sfp, "borderRadius", "6px");
+  dom_style(sfp, "cursor", "pointer");
+  dom_style(sfp, "fontWeight", "bold");
+  dom_on(sfp, "click", "demo_fp_stop");
+  dom_append(afp, sfp);
+  dom_append(sec2, afp);
+  render_p(sec2, "Play Track synthesizes 6 oscillators from the CRT fingerprint. Each channel drives one frequency band. 8-track database. Query = selected track with noise. Coupling distance matching.");
   dom_append(dom_body(), sec2);
 
   let sec3 = make_section("900px") in
