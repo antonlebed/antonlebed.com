@@ -140,6 +140,7 @@ export default {
         dom_spa_init: function() { return 0; },
         dom_scroll: function() { return 0; },
         shell_exec: function() { return 0; },
+        readBinary: function() { return 0; },
         get_category: function() {
           var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
           var ptr = _catPtr, m = new Int32Array(mem.buffer);

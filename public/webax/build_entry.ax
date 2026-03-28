@@ -1,17 +1,17 @@
-/* build_entry.ax — Site builder. Reads .ax source, compiles to site.wasm.
+/* build_entry.ax -- Site builder. Reads .ax source, compiles to site.wasm.
    Compiled INTO deep_build.wasm (with tokenizer+parser+wasm_emit).
-   Run via: cd webax && node ../run_wasm.js ../anton/code/deep_build.wasm
+   Run via: wasmtime --dir . anton/code/_wasi_deep_build.wasm  (from repo root)
    58 source files (6 rings): core + page groups + individual pages + router.
    IMPORTANT: This file is baked into deep_build.wasm at bootstrap time.
-   Adding/removing readFile lines requires rebuilding deep_build.wasm — BUT build.wasm build
+   Adding/removing readFile lines requires rebuilding deep_build.wasm -- BUT build.wasm build
    is BLACKLISTED (>10s, OOM, 5x OS crash). DO NOT RUN IT. See CLAUDE.md INSTANTANEOUS.
    Editing existing .ax file CONTENTS works without rebuild (read at runtime). */
 
 /* js_alloc: exported wrapper for alloc(). Lets the JS host allocate WASM memory
-   for readFile results. Each call gets a unique arena block — no overwrites. */
+   for readFile results. Each call gets a unique arena block -- no overwrites. */
 fn js_alloc(n) = alloc(n)
 
-/* O(n) source assembly via wcat_all — avoids O(n^2) from chained + (S1144).
+/* O(n) source assembly via wcat_all -- avoids O(n^2) from chained + (S1144).
    68 concatenations created ~155MB of dead intermediate copies in bump allocator.
    wcat_all: one alloc for the final string. Same result, 68x less memory waste. */
 let src = wcat_all([
