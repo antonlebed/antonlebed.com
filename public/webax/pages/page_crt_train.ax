@@ -472,6 +472,11 @@ fn ct_nn_btn(btn) = (
 
 fn ct_ch_color(c) = if c == 0 then "#4488ff" else if c == 1 then "#33dd55" else if c == 2 then "#ff9900" else if c == 3 then "#cc44ff" else if c == 4 then "#44dddd" else "#ff4466"
 
+/* GPU benchmark handlers for CRT training operations */
+fn ct_gpu_add() = gpu_bench(0, 100000, dom_query("#ct-gpu-add"))
+fn ct_gpu_mul() = gpu_bench(1, 100000, dom_query("#ct-gpu-mul"))
+fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
+
 /* ===== PAGE ===== */
 fn page_crt_train() = (
   dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live XOR training. Fixed-point, no floats.");
@@ -682,6 +687,33 @@ fn page_crt_train() = (
   dom_append(sec5, ctbl);
   render_p(sec5, "CRT decomposition is EXACT. Not an approximation -- the Chinese Remainder Theorem guarantees unique reconstruction. The savings are algebraic.");
   dom_append(dom_body(), sec5);
+
+  /* === SEC 5b: GPU BLOCK-DIAGONAL BACKPROP (WebGPU) === */
+  let secg = make_section("800px") in
+  render_h2(secg, "GPU Block-Diagonal Backprop (WebGPU)");
+  if gpu_init() == 1 then (
+    render_p(secg, "WebGPU detected. CRT block-diagonal backprop maps directly to GPU compute shaders: 6 independent channels = 6 workgroups. Each benchmark dispatches 100,000 ring elements through the TRUE ring Z/12612600.");
+    let mk_btn = fn(label) = (
+      let b = dom_create("button") in
+      dom_text(b, label); ct_nn_btn(b);
+      dom_style(b, "marginRight", "8px"); dom_style(b, "marginBottom", "8px"); b
+    ) in
+    let b1 = mk_btn("Ring Add (forward pass)") in
+    let b2 = mk_btn("CRT Multiply (gradient)") in
+    let b3 = mk_btn("Eigenvalue (convergence)") in
+    let r1 = dom_create("div") in dom_attr(r1, "id", "ct-gpu-add");
+    let r2 = dom_create("div") in dom_attr(r2, "id", "ct-gpu-mul");
+    let r3 = dom_create("div") in dom_attr(r3, "id", "ct-gpu-eig");
+    dom_on(b1, "click", "ct_gpu_add");
+    dom_on(b2, "click", "ct_gpu_mul");
+    dom_on(b3, "click", "ct_gpu_eig");
+    dom_append(secg, b1); dom_append(secg, b2); dom_append(secg, b3);
+    dom_append(secg, r1); dom_append(secg, r2); dom_append(secg, r3);
+    render_p(secg, "Each operation runs as a WGSL compute shader with 6 CRT channels. Ring Add = forward pass accumulation. CRT Multiply = block-diagonal gradient step. Eigenvalue = convergence check. All verified against CPU.")
+  ) else (
+    render_p(secg, "WebGPU not available in this browser. Use Chrome 113+ or Edge 113+ to run real GPU-accelerated CRT backprop benchmarks. The CPU training demo above still works.")
+  );
+  dom_append(dom_body(), secg);
 
   /* === SEC 6: IMPLEMENTATION === */
   let sec6 = make_section("800px") in
