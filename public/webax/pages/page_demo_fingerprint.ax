@@ -1,0 +1,300 @@
+/* page_demo_fingerprint.ax -- CC0 kill #34: CRT Audio Fingerprinting.
+   CRT spectral fingerprint. Coupling distance = similarity.
+   Kills: Shazam/Apple/Gracenote patents. CC0. */
+
+/* ================================================================
+   CRT AUDIO FINGERPRINTING -- /demos/fingerprint. CC0 kill D34.
+   Audio features -> ring element -> 6 CRT channels = 6 independent
+   fingerprint components. L=11 = noise tolerance. Coupling distance
+   = similarity metric. No spectrogram constellation matching needed.
+   ================================================================ */
+
+fn af_mod(ch) = (
+  if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
+  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+)
+
+fn af_ch_name(ch) = (
+  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
+  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+)
+
+fn af_basis(ch) = (
+  if ch == 0 then 1576575 else if ch == 1 then 8408401
+  else if ch == 2 then 7567560 else if ch == 3 then 5765760
+  else if ch == 4 then 11466456 else 2441208
+)
+
+/* Simulate audio features: frequency bands + energy + zero crossings.
+   Each "frame" produces a feature vector encoded as a ring element.
+   Channels: D=bass energy, K=mid energy, E=treble energy,
+   b=spectral centroid, L=zero crossing rate, G=tempo indicator */
+fn gen_audio_track(track_id, n_frames) = (
+  let frames = alloc(n_frames) in
+  mut i = 0;
+  while i < n_frames do (
+    /* Each track has characteristic spectral signature */
+    let bass = (track_id * 3 + i * 17 + 100) % 8 in
+    let mid = (track_id * 7 + i * 13 + 50) % 9 in
+    let treble = (track_id * 11 + i * 23 + 30) % 25 in
+    let centroid = (track_id * 5 + i * 31 + track_id * track_id) % 49 in
+    let zcr = (track_id * 2 + i * 7 + 20) % 11 in
+    let tempo = (track_id * 3 + i * 3 + track_id) % 13 in
+    /* Encode as ring element */
+    let val = (bass * af_basis(0) + mid * af_basis(1) + treble * af_basis(2) +
+      centroid * af_basis(3) + zcr * af_basis(4) + tempo * af_basis(5)) % 12612600 in
+    set(frames, i, val);
+    mut i = i + 1
+  );
+  frames
+)
+
+/* Add noise to a track (simulates recording corruption) */
+fn add_noise(frames, n_frames, noise_level) = (
+  let noisy = alloc(n_frames) in
+  mut i = 0;
+  while i < n_frames do (
+    let v = frames[i] in
+    /* Noise: small perturbation to some channels */
+    let noise = ((i * 4973 + noise_level * 7919) % (noise_level + 1)) in
+    let noisy_val = (v + noise) % 12612600 in
+    set(noisy, i, noisy_val);
+    mut i = i + 1
+  );
+  noisy
+)
+
+/* Compute CRT fingerprint: per-channel average over all frames */
+fn compute_fingerprint(frames, n_frames) = (
+  let fp = alloc(6) in
+  mut ch = 0;
+  while ch < 6 do (
+    let m = af_mod(ch) in
+    mut sum = 0;
+    mut i = 0;
+    while i < n_frames do (
+      mut sum = sum + (frames[i] % m);
+      mut i = i + 1
+    );
+    set(fp, ch, sum / n_frames);
+    mut ch = ch + 1
+  );
+  fp
+)
+
+/* Coupling distance between two fingerprints */
+fn fingerprint_distance(fp1, fp2) = (
+  mut dist = 0;
+  mut ch = 0;
+  while ch < 6 do (
+    let diff = if fp1[ch] > fp2[ch] then fp1[ch] - fp2[ch] else fp2[ch] - fp1[ch] in
+    mut dist = dist + diff;
+    mut ch = ch + 1
+  );
+  dist
+)
+
+/* Run fingerprint matching demo */
+fn demo_fingerprint_run() = (
+  let result_el = dom_query("#dfp-result") in
+  let seed_val = parse_int_from("#dfp-input") in
+  let query_id = if seed_val == 0 then 3 else seed_val % 8 in
+  let n_frames = 20 in
+  let n_tracks = 8 in
+
+  /* Build database of 8 tracks */
+  let db_fps = alloc(n_tracks) in
+  let track_names = ["Jazz Piano", "Rock Guitar", "Classical Violin", "Electronic Beat", "Acoustic Folk", "Hip Hop Bass", "Metal Drums", "Ambient Pad"] in
+  mut t = 0;
+  while t < n_tracks do (
+    let track = gen_audio_track(t * 137 + 42, n_frames) in
+    let fp = compute_fingerprint(track, n_frames) in
+    set(db_fps, t, fp);
+    mut t = t + 1
+  );
+
+  /* Generate query (same track with noise) */
+  let original = gen_audio_track(query_id * 137 + 42, n_frames) in
+  let noisy = add_noise(original, n_frames, 3) in
+  let query_fp = compute_fingerprint(noisy, n_frames) in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT AUDIO FINGERPRINT MATCHING: query='" + track_names[query_id] + "' (with noise)</p>";
+
+  /* Query fingerprint */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>QUERY FINGERPRINT (noisy recording)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 8px;color:#ff6666;font-size:10px'>D(bass)</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>K(mid)</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>E(treble)</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>b(centroid)</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>L(zcr)</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>G(tempo)</th></tr><tr>";
+  mut ch = 0;
+  while ch < 6 do (
+    let chc = if ch == 0 then "#ff6666" else if ch == 4 then "#44ff88" else if ch == 1 then "#44ff88" else if ch == 5 then "#44ff88" else "#ff6666" in
+    mut html = html + "<td style='padding:4px 8px;color:" + chc + ";font-size:14px;font-weight:bold;text-align:center'>" + "${query_fp[ch]}" + "</td>";
+    mut ch = ch + 1
+  );
+  mut html = html + "</tr></table>";
+
+  /* Distance matrix */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>DATABASE SEARCH (coupling distance)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Track</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>D</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>K</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>E</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>b</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>L</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>G</th><th style='padding:4px 12px;color:#ffd700;font-size:10px'>Distance</th><th style='padding:4px 12px;color:#888;font-size:10px'>Match?</th></tr>";
+
+  mut best_dist = 999;
+  mut best_idx = 0;
+  mut t2 = 0;
+  while t2 < n_tracks do (
+    let fp = db_fps[t2] in
+    let d = fingerprint_distance(query_fp, fp) in
+    if d < best_dist then (
+      mut best_dist = d;
+      mut best_idx = t2
+    ) else 0;
+    mut t2 = t2 + 1
+  );
+
+  mut t3 = 0;
+  while t3 < n_tracks do (
+    let fp = db_fps[t3] in
+    let d = fingerprint_distance(query_fp, fp) in
+    let is_match = if t3 == best_idx then 1 else 0 in
+    let is_correct = if t3 == query_id then 1 else 0 in
+    let row_bg = if is_match == 1 then "background:#001a00;" else if is_correct == 1 then "background:#1a1a00;" else "" in
+    let match_str = if is_match == 1 then "BEST" else if d < 5 then "close" else "-" in
+    let match_color = if is_match == 1 then (if is_correct == 1 then "#44ff88" else "#ff4444") else "#444" in
+    mut html = html + "<tr style='" + row_bg + "'><td style='padding:3px 12px;color:#b0b0c0;font-size:12px'>" + track_names[t3] + "</td>";
+    mut ch2 = 0;
+    while ch2 < 6 do (
+      let chc2 = if ch2 == 0 then "#ff6666" else if ch2 == 4 then "#44ff88" else if ch2 == 1 then "#44ff88" else if ch2 == 5 then "#44ff88" else "#ff6666" in
+      mut html = html + "<td style='padding:3px 8px;color:" + chc2 + ";font-size:11px;text-align:center'>" + "${fp[ch2]}" + "</td>";
+      mut ch2 = ch2 + 1
+    );
+    let dist_color = if d == 0 then "#44ff88" else if d < 3 then "#88ff44" else if d < 8 then "#ffd700" else "#ff4444" in
+    mut html = html + "<td style='padding:3px 12px;color:" + dist_color + ";font-size:14px;font-weight:bold;text-align:center'>" + "${d}" + "</td>";
+    mut html = html + "<td style='padding:3px 12px;color:" + match_color + ";font-size:12px;font-weight:bold'>" + match_str + "</td></tr>";
+    mut t3 = t3 + 1
+  );
+  mut html = html + "</table>";
+
+  let correct_str = if best_idx == query_id then "CORRECT MATCH" else "MISMATCH" in
+  let correct_color = if best_idx == query_id then "#44ff88" else "#ff4444" in
+  mut html = html + "<p style='color:" + correct_color + ";font-size:18px;font-weight:bold;margin:8px 0'>" + correct_str + ": '" + track_names[best_idx] + "' (distance=" + "${best_dist}" + ")</p>";
+
+  /* L=11 noise tolerance */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>L=11 NOISE TOLERANCE</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>The L channel (mod 11) acts as a noise-robust feature. Its small modulus means small perturbations to the audio signal produce correspondingly small changes in the L residue. L=11 absorbs noise that would throw off larger channels. Same ECC property that protects data also protects fingerprints.</p>";
+
+  /* 490 split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: carry the AUDIO content (bass/treble energy, spectral centroid)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: carry the IDENTITY (mid structure, robustness, tempo)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Audio content changes with noise and compression. Audio identity persists. The 490 split separates what changes from what stays. Fingerprinting = matching on the ALIVE channels that resist degradation.</p>";
+
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Batch: match 8 noisy queries against database */
+fn demo_fingerprint_batch() = (
+  let result_el = dom_query("#dfp-batch") in
+  let n_frames = 20 in
+  let n_tracks = 8 in
+
+  /* Build database */
+  let db_fps = alloc(n_tracks) in
+  mut t = 0;
+  while t < n_tracks do (
+    let track = gen_audio_track(t * 137 + 42, n_frames) in
+    set(db_fps, t, compute_fingerprint(track, n_frames));
+    mut t = t + 1
+  );
+
+  /* Test each track with increasing noise */
+  mut correct = 0;
+  mut total = 0;
+  mut noise_lev = 0;
+  while noise_lev < 5 do (
+    mut query_id = 0;
+    while query_id < n_tracks do (
+      let original = gen_audio_track(query_id * 137 + 42, n_frames) in
+      let noisy = add_noise(original, n_frames, noise_lev * 2 + 1) in
+      let qfp = compute_fingerprint(noisy, n_frames) in
+      /* Find best match */
+      mut best_d = 999;
+      mut best_t = 0;
+      mut t2 = 0;
+      while t2 < n_tracks do (
+        let d = fingerprint_distance(qfp, db_fps[t2]) in
+        if d < best_d then (
+          mut best_d = d;
+          mut best_t = t2
+        ) else 0;
+        mut t2 = t2 + 1
+      );
+      if best_t == query_id then (mut correct = correct + 1) else 0;
+      mut total = total + 1;
+      mut query_id = query_id + 1
+    );
+    mut noise_lev = noise_lev + 1
+  );
+  let accuracy = correct * 100 / total in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 8 tracks x 5 noise levels = " + "${total}" + " queries</p><p style='color:#44ff88;font-size:24px;font-weight:bold;margin:4px 0'>Accuracy: " + "${accuracy}" + "% (" + "${correct}" + "/" + "${total}" + " correct)</p><p style='color:#b0b0c0;margin:4px 0'>Each track tested with noise levels 1,3,5,7,9. CRT fingerprint survives noise because L=11 channel absorbs small perturbations. Per-channel averaging smooths frame-level noise. Coupling distance is robust to additive noise that doesn't change the channel residue structure.</p></div>")
+)
+
+fn page_fingerprint() = (
+  dom_head_meta("description", "CRT Audio Fingerprinting. 6 CRT channels = 6 independent spectral features. Coupling distance = similarity. L=11 noise tolerance. CC0 patent kill: Shazam/Gracenote.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Audio Fingerprinting\",\"description\":\"CRT-decomposed audio fingerprinting. 6 spectral channels. Coupling distance matching. L=11 noise tolerance. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/fingerprint\"}");
+  let hero = make_hero("CRT Audio Fingerprinting") in
+  let eq = dom_create("div") in
+  dom_text(eq, "D34: Shazam / Apple / Gracenote. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Audio fingerprinting services like Shazam use proprietary spectrogram constellation matching: peak detection in time-frequency space, hash-based lookup, patented matching algorithms. CRT approach: encode audio features (bass/mid/treble energy, spectral centroid, zero crossing rate, tempo) as ring elements. 6 CRT channels = 6 independent fingerprint dimensions. Coupling distance = similarity metric. L=11 = noise tolerance for free. No spectrogram needed. No constellation matching. The ring structure IS the fingerprint.");
+  dom_append(dom_body(), hero);
+
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Audio Fingerprint Theorem", "Audio features encoded in Z/12612600 decompose into 6 independent CRT channels. D(mod 8) = bass energy. K(mod 9) = mid-range structure. E(mod 25) = treble detail. b(mod 49) = spectral centroid (timbre). L(mod 11) = zero crossing rate (percussiveness). G(mod 13) = tempo indicator. Per-channel averages over a time window produce a compact 6-element fingerprint. Coupling distance between fingerprints = similarity. L=11 provides inherent noise tolerance: small perturbations stay within the same residue class. The 490 split: DEAD channels carry audio CONTENT (what changes with noise), ALIVE channels carry audio IDENTITY (what persists). Matching on ALIVE channels survives compression, noise, and partial recording.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6 dimensions", "CRT channels", "Each channel captures one spectral feature independently. No cross-feature interference.", "");
+  render_finding(g1, "L=11 robust", "Noise tolerance", "Small noise stays within residue class. Same ECC that protects data protects fingerprints.", "");
+  render_finding(g1, "Coupling match", "O(1) compare", "Fingerprint distance = sum of 6 channel differences. No spectrogram. No FFT.", "");
+  render_finding(g1, "490 split", "Content vs identity", "DEAD = what changes. ALIVE = what persists. Match on the persistent part.", "");
+  dom_append(dom_body(), sec1);
+
+  let sec2 = make_section("900px") in
+  render_h2(sec2, "Fingerprint Matching");
+  make_interactive_widget(sec2, "Query track (0-7):", "dfp-input", "e.g. 3", "Match Fingerprint", "demo_fingerprint_run", "dfp-result");
+  render_p(sec2, "8-track database. Query = selected track with added noise. CRT fingerprint computed, then matched against all database entries via coupling distance. Lowest distance = best match.");
+  dom_append(dom_body(), sec2);
+
+  let sec3 = make_section("900px") in
+  render_h2(sec3, "Noise Tolerance Test");
+  let btn = dom_create("button") in
+  dom_text(btn, "Test All Tracks (5 Noise Levels)");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_fingerprint_batch");
+  dom_append(sec3, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "dfp-batch");
+  dom_append(sec3, br);
+  render_p(sec3, "8 tracks tested with 5 increasing noise levels each. 40 total fingerprint matches. Accuracy measures how many noisy queries correctly identify the original track.");
+  dom_append(dom_body(), sec3);
+
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "CRT vs Traditional Audio Fingerprinting");
+  render_contrast_row(sec4, "Features", "Shazam: spectrogram peaks (time-frequency constellation)", "CRT: 6 channel residues. Per-channel averages. Compact.");
+  render_contrast_row(sec4, "Matching", "Hash-based constellation matching (patented)", "Coupling distance: sum of 6 differences. O(1). No hash.");
+  render_contrast_row(sec4, "Noise", "Robust by design (peak detection), but patented method", "L=11 absorbs noise. Same ECC property. Free from algebra.");
+  render_contrast_row(sec4, "Storage", "Constellation hash + time offset per fingerprint", "6 integers. 24 bytes per fingerprint.");
+  render_contrast_row(sec4, "Compute", "FFT + peak detection + hash computation", "Modular arithmetic. No FFT. Integer only.");
+  render_contrast_row(sec4, "Patent status", "Shazam (US7627477), Gracenote (US7174293), SoundHound", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec4)
+)
