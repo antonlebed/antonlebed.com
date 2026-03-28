@@ -7,7 +7,9 @@
 <body>
 <script>
 /* [DEAD] DOM import handlers -- JS side of WASM DOM imports */
-var _domId = 0, _dom = {0: document.body}, _rafActive = false, _spaBase = 0, _qc = {}, _aud = null, _osc = [];
+var _domId = 0, _dom = {0: document.body}, _rafActive = false, _spaBase = 0, _qc = {}, _aud = null, _osc = [], _gpuDev = null, _gpuOk = false;
+var _gpuSh='const N:u32=12612600u;\nstruct P{count:u32,op:u32}\n@group(0)@binding(0) var<storage,read> A:array<u32>;\n@group(0)@binding(1) var<storage,read> B:array<u32>;\n@group(0)@binding(2) var<storage,read_write> O:array<u32>;\n@group(0)@binding(3) var<uniform> p:P;\nfn rec(r0:u32,r1:u32,r2:u32,r3:u32,r4:u32,r5:u32)->u32{var s:u32=0u;s=(s+(r0*11036025u)%N)%N;s=(s+(r1*1401400u)%N)%N;s=(s+(r2*9585576u)%N)%N;s=(s+(r3*8494200u)%N)%N;s=(s+(r4*3439800u)%N)%N;s=(s+(r5*3880800u)%N)%N;return s;}\n@compute @workgroup_size(256)\nfn main(@builtin(global_invocation_id) g:vec3<u32>){let i=g.x;if(i>=p.count){return;}let a=A[i];let b=B[i];let ad=a%8u;let ak=a%9u;let ae=a%25u;let ab=a%49u;let al=a%11u;let ag=a%13u;if(p.op==0u){O[i]=(a+b)%N;}else if(p.op==1u){let bd=b%8u;let bk=b%9u;let be=b%25u;let bb=b%49u;let bl=b%11u;let bg=b%13u;O[i]=rec((ad*bd)%8u,(ak*bk)%9u,(ae*be)%25u,(ab*bb)%49u,(al*bl)%11u,(ag*bg)%13u);}else{O[i]=ad+ak+ae+ab+al+ag;}}';
+if(navigator.gpu)(async function(){try{var a=await navigator.gpu.requestAdapter();if(a){_gpuDev=await a.requestDevice();_gpuOk=true;}}catch(e){}})();
 var _keys = {};
 window.addEventListener('keydown', function(e) { _keys[e.keyCode] = 1; if(e.keyCode>=37&&e.keyCode<=40||e.keyCode==32)e.preventDefault(); });
 window.addEventListener('keyup', function(e) { _keys[e.keyCode] = 0; });
@@ -118,6 +120,8 @@ function readStr(mem, ptr) {
     aud_osc: function(t) { if(!_aud)_aud=new AudioContext(); var o=_aud.createOscillator(),g=_aud.createGain(); o.type=['sine','square','sawtooth','triangle'][t&3]; o.connect(g);g.connect(_aud.destination);g.gain.value=0;o.start(); _osc.push({o:o,g:g});return _osc.length-1; },
     aud_freq: function(h,f) { if(_osc[h])_osc[h].o.frequency.value=f; return 0; },
     aud_gain: function(h,p) { if(_osc[h])_osc[h].g.gain.value=p/100; return 0; },
+    gpu_init: function() { return _gpuOk ? 1 : 0; },
+    gpu_bench: function(op,n,target) { var el=_dom[target];if(!el||!_gpuDev){if(el)el.innerHTML='<p style="color:#ff6666">WebGPU not available. Use Chrome 113+.</p>';return 0;}el.innerHTML='<p style="color:#888">Running GPU benchmark...</p>';(async function(){var d=_gpuDev,sz=n*4,N=12612600;var iA=new Uint32Array(n),iB=new Uint32Array(n);for(var i=0;i<n;i++){iA[i]=i%N;iB[i]=(i*137+42)%N;}var bA=d.createBuffer({size:sz,usage:0x88}),bB=d.createBuffer({size:sz,usage:0x88}),bO=d.createBuffer({size:sz,usage:0x84}),bR=d.createBuffer({size:sz,usage:0x09}),bP=d.createBuffer({size:8,usage:0x48});d.queue.writeBuffer(bA,0,iA);d.queue.writeBuffer(bB,0,iB);d.queue.writeBuffer(bP,0,new Uint32Array([n,op]));var sm=d.createShaderModule({code:_gpuSh}),pl=d.createComputePipeline({layout:'auto',compute:{module:sm,entryPoint:'main'}}),bg=d.createBindGroup({layout:pl.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:bA}},{binding:1,resource:{buffer:bB}},{binding:2,resource:{buffer:bO}},{binding:3,resource:{buffer:bP}}]});var e=d.createCommandEncoder(),p=e.beginComputePass();p.setPipeline(pl);p.setBindGroup(0,bg);p.dispatchWorkgroups(Math.ceil(n/256));p.end();d.queue.submit([e.finish()]);await d.queue.onSubmittedWorkDone();var t0=performance.now();e=d.createCommandEncoder();p=e.beginComputePass();p.setPipeline(pl);p.setBindGroup(0,bg);p.dispatchWorkgroups(Math.ceil(n/256));p.end();e.copyBufferToBuffer(bO,0,bR,0,sz);d.queue.submit([e.finish()]);await d.queue.onSubmittedWorkDone();var gpuMs=performance.now()-t0;await bR.mapAsync(1);var res=new Uint32Array(bR.getMappedRange().slice(0));bR.unmap();var ops=['Ring Add (6 channels)','CRT Multiply (6 channels)','Eigenvalue Proxy'];t0=performance.now();var cpuRes=new Uint32Array(n);var m=[8,9,25,49,11,13],c=[11036025,1401400,9585576,8494200,3439800,3880800];for(var i=0;i<n;i++){if(op==0)cpuRes[i]=(iA[i]+iB[i])%N;else if(op==1){var a=iA[i],b=iB[i],s=0;for(var j=0;j<6;j++){var ra=a%m[j],rb=b%m[j];s=(s+((ra*rb)%m[j]*c[j])%N)%N;}cpuRes[i]=s;}else{var a=iA[i];cpuRes[i]=a%8+a%9+a%25+a%49+a%11+a%13;}}var cpuMs=performance.now()-t0;var match=0;for(var i=0;i<Math.min(n,1000);i++)if(res[i]==cpuRes[i])match++;var pct=Math.round(match/Math.min(n,1000)*100);var spd=cpuMs>0?(cpuMs/gpuMs).toFixed(1):'inf';el.innerHTML='<div style="background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0"><p style="color:#ffd700;margin:0 0 8px">GPU BENCHMARK: '+ops[op]+' x '+n+'</p><p style="color:#88ddaa;margin:4px 0">GPU: '+gpuMs.toFixed(2)+'ms | CPU: '+cpuMs.toFixed(2)+'ms</p><p style="color:#ffd700;font-size:18px;margin:8px 0">'+spd+'x speedup</p><p style="color:'+(pct==100?'#44ff88':'#ff4444')+';margin:4px 0">Verification: '+pct+'% match (first 1000)</p><p style="color:#666;font-size:11px;margin:4px 0">6 CRT channels on Z/12612600. WGSL compute shader. CC0.</p></div>';bA.destroy();bB.destroy();bO.destroy();bR.destroy();bP.destroy();})();return 0; },
     get_category: function() {
       var parts = location.pathname.split('/').filter(Boolean);
       var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
@@ -262,6 +266,8 @@ async function _replRun(code, el) {
       aud_osc:function(){return 0;},
       aud_freq:function(){return 0;},
       aud_gain:function(){return 0;},
+      gpu_init:function(){return 0;},
+      gpu_bench:function(){return 0;},
       get_category:function(){return 0;}
     }});
     childMem = child.instance.exports.memory;

@@ -132,6 +132,10 @@ fn demo_gpu_batch() = (
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 1000 values x f(x)=x^2</p><p style='color:" + (if ok_count[0] == 1000 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${ok_count[0]}" + "/1000 MATCH</p><p style='color:#b0b0c0;margin:4px 0'>Each value decomposed into 6 channels, squared independently, reconstructed via CRT. All 6 workgroups run in parallel -- no cross-channel dependency.</p></div>")
 )
 
+fn demo_gpu_bench_add() = gpu_bench(0, 100000, dom_query("#gpu-res-add"))
+fn demo_gpu_bench_mul() = gpu_bench(1, 100000, dom_query("#gpu-res-mul"))
+fn demo_gpu_bench_eig() = gpu_bench(2, 100000, dom_query("#gpu-res-eig"))
+
 fn page_gpu_compute() = (
   dom_head_meta("description", "CRT GPU Compute. 6 independent workgroups via CRT decomposition. Block-diagonal parallelism kills CUDA patents. CC0.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"6-channel parallel compute over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
@@ -178,6 +182,47 @@ fn page_gpu_compute() = (
   dom_attr(br, "id", "dgpu-batch");
   dom_append(sec2b, br);
   dom_append(dom_body(), sec2b);
+  let secg = make_section("800px") in
+  render_h2(secg, "Real GPU Benchmark (WebGPU)");
+  if gpu_init() == 1 then (
+    render_p(secg, "WebGPU detected. Run real CRT compute shaders on your GPU. 6 channels of Z/12612600 in WGSL. Each operation dispatches 100,000 elements.");
+    let mk_gpu_btn = fn(label, op_code, res_id) = (
+      let b = dom_create("button") in
+      dom_text(b, label);
+      dom_style(b, "background", "#ffd700");
+      dom_style(b, "color", "#0f0f2a");
+      dom_style(b, "border", "none");
+      dom_style(b, "padding", "10px 20px");
+      dom_style(b, "borderRadius", "6px");
+      dom_style(b, "cursor", "pointer");
+      dom_style(b, "fontWeight", "bold");
+      dom_style(b, "fontSize", "13px");
+      dom_style(b, "marginRight", "8px");
+      dom_style(b, "marginBottom", "8px");
+      b
+    ) in
+    let btn_add = mk_gpu_btn("Ring Add", 0, "gpu-res-add") in
+    let btn_mul = mk_gpu_btn("CRT Multiply", 1, "gpu-res-mul") in
+    let btn_eig = mk_gpu_btn("Eigenvalue", 2, "gpu-res-eig") in
+    let r_add = dom_create("div") in
+    dom_attr(r_add, "id", "gpu-res-add");
+    let r_mul = dom_create("div") in
+    dom_attr(r_mul, "id", "gpu-res-mul");
+    let r_eig = dom_create("div") in
+    dom_attr(r_eig, "id", "gpu-res-eig");
+    dom_on(btn_add, "click", "demo_gpu_bench_add");
+    dom_on(btn_mul, "click", "demo_gpu_bench_mul");
+    dom_on(btn_eig, "click", "demo_gpu_bench_eig");
+    dom_append(secg, btn_add);
+    dom_append(secg, btn_mul);
+    dom_append(secg, btn_eig);
+    dom_append(secg, r_add);
+    dom_append(secg, r_mul);
+    dom_append(secg, r_eig)
+  ) else (
+    render_p(secg, "WebGPU not available in this browser. Use Chrome 113+ or Edge 113+ to run real GPU benchmarks. The CPU demonstrations above still work.")
+  );
+  dom_append(dom_body(), secg);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Compute vs CUDA");
   render_contrast_row(sec3, "Parallelism model", "CUDA: thread blocks + shared memory + barriers", "CRT: 6 independent channels. No sync needed.");

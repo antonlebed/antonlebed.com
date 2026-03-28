@@ -147,6 +147,8 @@ export default {
         aud_osc: function() { return 0; },
         aud_freq: function() { return 0; },
         aud_gain: function() { return 0; },
+        gpu_init: function() { return 0; },
+        gpu_bench: function() { return 0; },
         get_category: function() {
           var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
           var ptr = _catPtr, m = new Int32Array(mem.buffer);
