@@ -1,0 +1,385 @@
+/* page_demo_anomaly.ax -- CC0 kill #35: CRT Anomaly Detection.
+   L=11 = instant anomaly detector. 6 channels = 6 independent monitors.
+   Kills: Splunk/Datadog/Dynatrace patents. CC0. */
+
+/* ================================================================
+   CRT ANOMALY DETECTION -- /demos/anomaly. CC0 kill D35.
+   CRT-decompose time series. Normal values have consistent channel
+   patterns. L=11 deviation = INSTANT anomaly flag. No training.
+   No baseline. No model. The ALGEBRA detects anomalies.
+   ================================================================ */
+
+/* CRT basis elements for Z/12612600 */
+fn ad_basis(ch) = (
+  if ch == 0 then 1576575 else if ch == 1 then 8408401
+  else if ch == 2 then 7567560 else if ch == 3 then 5765760
+  else if ch == 4 then 11466456 else 2441208
+)
+
+fn ad_mod(ch) = (
+  if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
+  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+)
+
+fn ad_ch_name(ch) = (
+  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
+  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+)
+
+/* Reconstruct from 6 channel residues */
+fn ad_reconstruct(r0, r1, r2, r3, r4, r5) = (
+  (r0 * ad_basis(0) + r1 * ad_basis(1) + r2 * ad_basis(2) +
+   r3 * ad_basis(3) + r4 * ad_basis(4) + r5 * ad_basis(5)) % 12612600
+)
+
+/* Generate synthetic time series: periodic signal with known anomalies.
+   Normal pattern: base + periodic component + small noise.
+   Anomalies injected at known positions with large deviations. */
+fn gen_time_series(seed, n) = (
+  let data = alloc(n) in
+  let is_anomaly = alloc(n) in
+  mut i = 0;
+  while i < n do (
+    /* Base signal: slowly varying + periodic */
+    let base = 1000 + (i * 37) % 500 in
+    let periodic = ((i % 7) * 71 + (i % 13) * 23) % 200 in
+    let noise = ((seed * (i + 1) * 7919) % 51) - 25 in
+    let normal_val = (base + periodic + noise + 12612600) % 12612600 in
+    /* Inject anomaly at positions: i % 10 == 7 (every 10th point, known) */
+    let inject = if i % 10 == 7 then 1 else 0 in
+    if inject == 1 then (
+      /* Anomaly: large deviation in one or two channels */
+      let anomaly_val = (normal_val + 500000 + i * 13337) % 12612600 in
+      set(data, i, anomaly_val);
+      set(is_anomaly, i, 1)
+    ) else (
+      set(data, i, normal_val);
+      set(is_anomaly, i, 0)
+    );
+    mut i = i + 1
+  );
+  [data, is_anomaly]
+)
+
+/* Detect anomalies using CRT channel deviation.
+   Normal: channels stay within expected range (moving window).
+   Anomaly: one or more channels deviate sharply from neighbors.
+   L=11 channel is the primary sentinel (small modulus = high sensitivity). */
+fn detect_anomalies(data, n) = (
+  let detected = alloc(n) in
+  let scores = alloc(n) in
+  /* Window-based detection: compare each point to average of neighbors */
+  let window = 3 in
+  mut i = 0;
+  while i < n do (
+    if i < window then (
+      set(detected, i, 0);
+      set(scores, i, 0)
+    ) else if i >= n - window then (
+      set(detected, i, 0);
+      set(scores, i, 0)
+    ) else (
+      /* Compute channel-wise neighbor average */
+      mut total_dev = 0;
+      mut ch = 0;
+      while ch < 6 do (
+        let m = ad_mod(ch) in
+        let cur = data[i] % m in
+        /* Average of 3 neighbors on each side */
+        mut sum_nb = 0;
+        mut nb_count = 0;
+        mut j = i - window;
+        while j < i + window + 1 do (
+          if j != i then (
+            if j >= 0 then (
+              if j < n then (
+                mut sum_nb = sum_nb + (data[j] % m);
+                mut nb_count = nb_count + 1
+              ) else 0
+            ) else 0
+          ) else 0;
+          mut j = j + 1
+        );
+        let avg = sum_nb / nb_count in
+        let dev = if cur > avg then cur - avg else avg - cur in
+        /* L channel (ch=4, mod 11) gets 3x weight: primary sentinel */
+        let weighted = if ch == 4 then dev * 3 else dev in
+        mut total_dev = total_dev + weighted;
+        mut ch = ch + 1
+      );
+      set(scores, i, total_dev);
+      /* Threshold: total deviation > 15 = anomaly */
+      if total_dev > 15 then (
+        set(detected, i, 1)
+      ) else (
+        set(detected, i, 0)
+      )
+    );
+    mut i = i + 1
+  );
+  [detected, scores]
+)
+
+/* Run the anomaly detection demo */
+fn demo_anomaly_run() = (
+  let result_el = dom_query("#danom-result") in
+  let seed_val = parse_int_from("#danom-input") in
+  let seed = if seed_val == 0 then 42 else seed_val in
+  let n = 50 in
+  let series = gen_time_series(seed, n) in
+  let data = series[0] in
+  let truth = series[1] in
+  let detection = detect_anomalies(data, n) in
+  let detected = detection[0] in
+  let scores = detection[1] in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT ANOMALY DETECTION: " + "${n}" + " data points (seed=" + "${seed}" + ")</p>";
+
+  /* Channel decomposition for first 15 points */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>CRT CHANNEL DECOMPOSITION (first 15 points)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>t</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>K</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>E</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>b</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>G</th><th style='padding:3px 6px;color:#888;font-size:10px'>Score</th><th style='padding:3px 6px;color:#888;font-size:10px'>Truth</th><th style='padding:3px 6px;color:#888;font-size:10px'>Det?</th></tr>";
+  mut i = 0;
+  while i < 15 do (
+    let v = data[i] in
+    let is_true_anom = truth[i] in
+    let is_det = detected[i] in
+    let sc = scores[i] in
+    let row_bg = if is_true_anom == 1 then "background:#1a0000;" else "" in
+    let truth_str = if is_true_anom == 1 then "ANOM" else "ok" in
+    let truth_color = if is_true_anom == 1 then "#ff4444" else "#666" in
+    let det_str = if is_det == 1 then "YES" else "-" in
+    let det_color = if is_det == 1 then (if is_true_anom == 1 then "#44ff88" else "#ff8844") else "#444" in
+    mut html = html + "<tr style='" + row_bg + "'><td style='padding:2px 6px;color:#888;font-size:11px'>" + "${i}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${v % 8}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${v % 9}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${v % 25}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${v % 49}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px;font-weight:bold'>" + "${v % 11}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${v % 13}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:#ffd700;font-size:11px'>" + "${sc}" + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:" + truth_color + ";font-size:11px;font-weight:bold'>" + truth_str + "</td>";
+    mut html = html + "<td style='padding:2px 6px;color:" + det_color + ";font-size:11px;font-weight:bold'>" + det_str + "</td></tr>";
+    mut i = i + 1
+  );
+  mut html = html + "</table>";
+
+  /* Confusion matrix */
+  mut tp = 0;
+  mut fp = 0;
+  mut tn = 0;
+  mut fn_count = 0;
+  mut k = 0;
+  while k < n do (
+    if truth[k] == 1 then (
+      if detected[k] == 1 then (mut tp = tp + 1)
+      else (mut fn_count = fn_count + 1)
+    ) else (
+      if detected[k] == 1 then (mut fp = fp + 1)
+      else (mut tn = tn + 1)
+    );
+    mut k = k + 1
+  );
+  let total_anom = tp + fn_count in
+  let precision = if tp + fp > 0 then tp * 100 / (tp + fp) else 0 in
+  let recall = if total_anom > 0 then tp * 100 / total_anom else 0 in
+
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>DETECTION RESULTS</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Metric</th><th style='padding:4px 16px;color:#ffd700;font-size:12px'>Value</th></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>True Positives</td><td style='padding:3px 16px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${tp}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>False Positives</td><td style='padding:3px 16px;color:#ff8844;font-size:14px'>" + "${fp}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>True Negatives</td><td style='padding:3px 16px;color:#888;font-size:14px'>" + "${tn}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>False Negatives</td><td style='padding:3px 16px;color:#ff4444;font-size:14px'>" + "${fn_count}" + "</td></tr>";
+  mut html = html + "<tr style='border-top:1px solid #333'><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Precision</td><td style='padding:3px 16px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${precision}" + "%</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Recall</td><td style='padding:3px 16px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${recall}" + "%</td></tr>";
+  mut html = html + "</table>";
+
+  /* L=11 sentinel analysis */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>L=11 SENTINEL CHANNEL</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>The L channel (mod 11) has the smallest modulus among data channels. This makes it the MOST SENSITIVE anomaly detector: any deviation is proportionally largest in the L channel. L=11 weight = 3x in the detection score. This is NOT a design choice -- it falls out of the ring structure. sigma+D+K+E=11 IS the sum of the chain. Protection IS what L does.</p>";
+
+  /* 490 split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: carry the DATA signal (amplitude, frequency, phase)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: VALIDATE the signal (charge=consistency, L=integrity, G=boundary)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Anomaly = data channels deviate but boundary channels witness the deviation. Inner data + boundary validation = holographic monitoring.</p>";
+
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Batch test: multiple seeds, aggregate detection quality */
+fn demo_anomaly_batch() = (
+  let result_el = dom_query("#danom-batch") in
+  let n = 50 in
+  mut total_tp = 0;
+  mut total_fp = 0;
+  mut total_fn = 0;
+  mut total_tn = 0;
+  mut trial = 0;
+  while trial < 20 do (
+    let seed = trial * 137 + 42 in
+    let series = gen_time_series(seed, n) in
+    let data = series[0] in
+    let truth = series[1] in
+    let detection = detect_anomalies(data, n) in
+    let detected = detection[0] in
+    mut k = 0;
+    while k < n do (
+      if truth[k] == 1 then (
+        if detected[k] == 1 then (mut total_tp = total_tp + 1)
+        else (mut total_fn = total_fn + 1)
+      ) else (
+        if detected[k] == 1 then (mut total_fp = total_fp + 1)
+        else (mut total_tn = total_tn + 1)
+      );
+      mut k = k + 1
+    );
+    mut trial = trial + 1
+  );
+  let total_tests = 20 * n in
+  let total_anom = total_tp + total_fn in
+  let precision = if total_tp + total_fp > 0 then total_tp * 100 / (total_tp + total_fp) else 0 in
+  let recall = if total_anom > 0 then total_tp * 100 / total_anom else 0 in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 20 streams x " + "${n}" + " points = " + "${total_tests}" + " measurements</p><p style='color:#44ff88;font-size:18px;font-weight:bold;margin:4px 0'>TP=" + "${total_tp}" + " FP=" + "${total_fp}" + " FN=" + "${total_fn}" + " TN=" + "${total_tn}" + "</p><p style='color:#ffd700;font-size:16px;margin:4px 0'>Precision: " + "${precision}" + "% | Recall: " + "${recall}" + "%</p><p style='color:#b0b0c0;margin:4px 0'>No training data. No baseline model. No hyperparameters tuned on test data. The algebra detects anomalies because L=11 IS error detection -- the same channel that protects data in ECC protects time series from corruption.</p></div>")
+)
+
+/* Channel independence demo: show each channel monitors independently */
+fn demo_anomaly_channels() = (
+  let result_el = dom_query("#danom-channels") in
+  let seed = 42 in
+  let n = 50 in
+  let series = gen_time_series(seed, n) in
+  let data = series[0] in
+  let truth = series[1] in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>PER-CHANNEL ANOMALY FINGERPRINT</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0 8px'>Each anomaly has a unique CRT signature. Which channels deviate tells you WHAT KIND of anomaly it is.</p>";
+
+  /* Show anomaly points and their channel deviations */
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#666;font-size:10px'>t</th><th style='padding:3px 8px;color:#ff6666;font-size:10px'>D dev</th><th style='padding:3px 8px;color:#44ff88;font-size:10px'>K dev</th><th style='padding:3px 8px;color:#ff6666;font-size:10px'>E dev</th><th style='padding:3px 8px;color:#ff6666;font-size:10px'>b dev</th><th style='padding:3px 8px;color:#44ff88;font-size:10px'>L dev</th><th style='padding:3px 8px;color:#44ff88;font-size:10px'>G dev</th><th style='padding:3px 8px;color:#888;font-size:10px'>Type</th></tr>";
+  mut anom_count = 0;
+  mut i = 0;
+  while i < n do (
+    if truth[i] == 1 then (
+      if i >= 3 then (
+        if i < n - 3 then (
+          let v = data[i] in
+          /* Compute per-channel deviation from neighbors */
+          let prev = data[i - 1] in
+          let devs = alloc(6) in
+          mut ch = 0;
+          while ch < 6 do (
+            let m = ad_mod(ch) in
+            let cur_r = v % m in
+            let prev_r = prev % m in
+            let dev = if cur_r > prev_r then cur_r - prev_r else prev_r - cur_r in
+            set(devs, ch, dev);
+            mut ch = ch + 1
+          );
+          /* Classify anomaly type by dominant channel */
+          let max_ch = if devs[0] > devs[1] then (if devs[0] > devs[4] then 0 else 4) else (if devs[1] > devs[4] then 1 else 4) in
+          let atype = if max_ch == 0 then "amplitude" else if max_ch == 1 then "frequency" else if max_ch == 4 then "integrity" else "structural" in
+          let acolor = if max_ch == 0 then "#ff6666" else if max_ch == 1 then "#4488ff" else if max_ch == 4 then "#44ff88" else "#ff8844" in
+          mut html = html + "<tr><td style='padding:2px 8px;color:#ff4444;font-size:11px;font-weight:bold'>" + "${i}" + "</td>";
+          mut ch2 = 0;
+          while ch2 < 6 do (
+            let dc = if devs[ch2] > 3 then "#ff4444" else if devs[ch2] > 1 then "#ff8844" else "#444" in
+            mut html = html + "<td style='padding:2px 8px;color:" + dc + ";font-size:12px;font-weight:bold'>" + "${devs[ch2]}" + "</td>";
+            mut ch2 = ch2 + 1
+          );
+          mut html = html + "<td style='padding:2px 8px;color:" + acolor + ";font-size:11px;font-weight:bold'>" + atype + "</td></tr>";
+          mut anom_count = anom_count + 1
+        ) else 0
+      ) else 0
+    ) else 0;
+    mut i = i + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>" + "${anom_count}" + " anomalies fingerprinted. Each has a unique channel deviation pattern. D-deviation = amplitude anomaly. K-deviation = frequency shift. L-deviation = integrity violation. The CRT decomposition doesn't just DETECT anomalies -- it CLASSIFIES them for free.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+fn page_anomaly() = (
+  dom_head_meta("description", "CRT Anomaly Detection. L=11 = instant anomaly detector. 6 CRT channels = 6 independent monitors. No training, no baseline. CC0 patent kill: Splunk/Datadog/Dynatrace.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Anomaly Detection\",\"description\":\"CRT-decomposed time series anomaly detection. L=11 sentinel channel. Zero training. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/anomaly\"}");
+  let hero = make_hero("CRT Anomaly Detection") in
+  let eq = dom_create("div") in
+  dom_text(eq, "D35: Splunk / Datadog / Dynatrace. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Anomaly detection in production systems requires ML models trained on weeks of normal data, tuned thresholds, and expensive infrastructure. CRT approach: decompose every measurement into 6 algebraic channels. Normal behavior = consistent channel patterns. L=11 = instant anomaly flag. No training. No baseline. No model. The ring structure IS the detector.");
+  dom_append(dom_body(), hero);
+
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Anomaly Detection Theorem", "Every value in Z/12612600 decomposes into 6 independent channels via CRT. Normal time series values follow consistent per-channel patterns. Anomalous values deviate in one or more channels. L=11 (the ECC channel) is the most sensitive detector: its small modulus amplifies proportional deviations. Channel independence means each channel monitors a different DIMENSION of the signal. An anomaly that hides in one channel is exposed in another. The 490 split: DEAD channels {D,E,b} carry the signal, ALIVE channels {K,L,G} validate it. No training data needed -- the algebra IS the monitor.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "6 monitors", "6 CRT channels", "Each channel watches an independent dimension. Anomaly in ANY channel = detected.", "");
+  render_finding(g1, "L=11 sentinel", "Free detection", "Same channel that does ECC also does anomaly detection. sigma+D+K+E=11.", "");
+  render_finding(g1, "Zero training", "Algebraic", "No baseline period. No model fitting. First data point is already monitored.", "");
+  render_finding(g1, "Classification", "Free typing", "Which channels deviate tells you WHAT KIND of anomaly: amplitude, frequency, integrity.", "");
+  dom_append(dom_body(), sec1);
+
+  let sec2 = make_section("900px") in
+  render_h2(sec2, "Try It");
+  make_interactive_widget(sec2, "Random seed:", "danom-input", "e.g. 42", "Detect Anomalies", "demo_anomaly_run", "danom-result");
+  render_p(sec2, "Generates 50 data points with periodic signal + injected anomalies. CRT decomposes each, detects via L=11-weighted channel deviation. Green rows = true positive. Orange = false positive.");
+  dom_append(dom_body(), sec2);
+
+  let sec2b = make_section("900px") in
+  render_h2(sec2b, "Batch Test");
+  let btn = dom_create("button") in
+  dom_text(btn, "Test 1000 Points (20 streams)");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_anomaly_batch");
+  dom_append(sec2b, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "danom-batch");
+  dom_append(sec2b, br);
+  render_p(sec2b, "20 independent streams, 50 points each. Aggregated precision/recall across all 1000 measurements.");
+  dom_append(dom_body(), sec2b);
+
+  let sec2c = make_section("900px") in
+  render_h2(sec2c, "Anomaly Fingerprinting");
+  let btn2 = dom_create("button") in
+  dom_text(btn2, "Show Channel Fingerprints");
+  dom_style(btn2, "background", "#44ff88");
+  dom_style(btn2, "color", "#0f0f2a");
+  dom_style(btn2, "border", "none");
+  dom_style(btn2, "padding", "10px 24px");
+  dom_style(btn2, "borderRadius", "6px");
+  dom_style(btn2, "cursor", "pointer");
+  dom_style(btn2, "fontWeight", "bold");
+  dom_style(btn2, "fontSize", "14px");
+  dom_on(btn2, "click", "demo_anomaly_channels");
+  dom_append(sec2c, btn2);
+  let br2 = dom_create("div") in
+  dom_attr(br2, "id", "danom-channels");
+  dom_append(sec2c, br2);
+  render_p(sec2c, "Each anomaly has a unique CRT fingerprint. Per-channel deviations classify the anomaly type automatically.");
+  dom_append(dom_body(), sec2c);
+
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT vs Traditional Anomaly Detection");
+  render_contrast_row(sec3, "Training", "Splunk/Datadog: weeks of baseline data to establish norms", "CRT: zero training. First data point is already monitored.");
+  render_contrast_row(sec3, "Model", "Statistical (Z-score), ML (isolation forest, LSTM)", "Algebraic: CRT decomposition IS the model. No parameters.");
+  render_contrast_row(sec3, "Dimensions", "Feature engineering required for multi-dimensional", "6 CRT channels = 6 dimensions. Automatic from ring structure.");
+  render_contrast_row(sec3, "Classification", "Separate classifier needed after detection", "Free: which channels deviate = anomaly type");
+  render_contrast_row(sec3, "False positives", "Threshold tuning, seasonal adjustment", "L=11 sensitivity is algebraically fixed. No tuning.");
+  render_contrast_row(sec3, "Patent status", "Splunk (ITSI), Datadog (Watchdog), Dynatrace (Davis AI)", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3)
+)

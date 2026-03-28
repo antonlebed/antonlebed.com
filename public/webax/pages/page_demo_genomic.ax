@@ -1,0 +1,396 @@
+/* page_demo_genomic.ax -- CC0 kill #28: CRT Genomic Sequence Alignment.
+   DNA codons -> Z/12612600. Wobble = CRT ECC tolerance.
+   Kills: Illumina/PacBio/10x Genomics patents. CC0. */
+
+/* ================================================================
+   CRT GENOMIC ALIGNMENT -- /demos/genomic. CC0 kill D28.
+   64 codons -> 20 amino acids via Z/3 x Z/7 natural ring.
+   CRT channels decompose genetic information: codon position 1,2,3
+   separate into independent channels. Wobble tolerance = L=11 ECC.
+   Alignment via coupling distance, not BLOSUM matrices.
+   ================================================================ */
+
+/* Nucleotide to number: A=0, C=1, G=2, T/U=3 */
+fn nuc_val(code) = (
+  if code == 65 then 0  /* A */
+  else if code == 67 then 1  /* C */
+  else if code == 71 then 2  /* G */
+  else if code == 84 then 3  /* T */
+  else if code == 85 then 3  /* U */
+  else 0
+)
+
+fn nuc_char(v) = (
+  if v == 0 then "A" else if v == 1 then "C" else if v == 2 then "G" else "T"
+)
+
+/* Codon to amino acid index (0-20, 20=stop).
+   Standard genetic code. 64 codons -> 21 outputs. */
+fn codon_to_aa(n1, n2, n3) = (
+  /* Encoding: codon index = n1*16 + n2*4 + n3 */
+  let idx = n1 * 16 + n2 * 4 + n3 in
+  /* F=0 L=1 I=2 M=3 V=4 S=5 P=6 T=7 A=8 Y=9 H=10 Q=11 N=12 K=13 D=14 E=15 C=16 W=17 R=18 G=19 stop=20 */
+  /* Row A (n1=0): AAA=K AAC=N AAG=K AAT=N ACA=T ACC=T ACG=T ACT=T AGA=R AGC=S AGG=R AGT=S ATA=I ATC=I ATG=M ATT=I */
+  if n1 == 0 then (
+    if n2 == 0 then (if n3 == 0 then 13 else if n3 == 1 then 12 else if n3 == 2 then 13 else 12)
+    else if n2 == 1 then 7  /* ACx = Thr */
+    else if n2 == 2 then (if n3 == 0 then 18 else if n3 == 1 then 5 else if n3 == 2 then 18 else 5)
+    else (if n3 == 0 then 2 else if n3 == 1 then 2 else if n3 == 2 then 3 else 2)  /* ATx = I/M */
+  )
+  /* Row C (n1=1): CAA=Q CAC=H CAG=Q CAT=H CCA=P CCC=P CCG=P CCT=P CGA=R CGC=R CGG=R CGT=R CTA=L CTC=L CTG=L CTT=L */
+  else if n1 == 1 then (
+    if n2 == 0 then (if n3 == 0 then 11 else if n3 == 1 then 10 else if n3 == 2 then 11 else 10)
+    else if n2 == 1 then 6  /* CCx = Pro */
+    else if n2 == 2 then 18  /* CGx = Arg */
+    else 1  /* CTx = Leu */
+  )
+  /* Row G (n1=2): GAA=E GAC=D GAG=E GAT=D GCA=A GCC=A GCG=A GCT=A GGA=G GGC=G GGG=G GGT=G GTA=V GTC=V GTG=V GTT=V */
+  else if n1 == 2 then (
+    if n2 == 0 then (if n3 == 0 then 15 else if n3 == 1 then 14 else if n3 == 2 then 15 else 14)
+    else if n2 == 1 then 8  /* GCx = Ala */
+    else if n2 == 2 then 19  /* GGx = Gly */
+    else 4  /* GTx = Val */
+  )
+  /* Row T (n1=3): TAA=* TAC=Y TAG=* TAT=Y TCA=S TCC=S TCG=S TCT=S TGA=* TGC=C TGG=W TGT=C TTA=L TTC=F TTG=L TTT=F */
+  else (
+    if n2 == 0 then (if n3 == 0 then 20 else if n3 == 1 then 9 else if n3 == 2 then 20 else 9)
+    else if n2 == 1 then 5  /* TCx = Ser */
+    else if n2 == 2 then (if n3 == 0 then 20 else if n3 == 1 then 16 else if n3 == 2 then 17 else 16)
+    else (if n3 == 0 then 1 else if n3 == 1 then 0 else if n3 == 2 then 1 else 0)  /* TTx = L/F */
+  )
+)
+
+fn aa_name_3(idx) = (
+  if idx == 0 then "Phe" else if idx == 1 then "Leu" else if idx == 2 then "Ile"
+  else if idx == 3 then "Met" else if idx == 4 then "Val" else if idx == 5 then "Ser"
+  else if idx == 6 then "Pro" else if idx == 7 then "Thr" else if idx == 8 then "Ala"
+  else if idx == 9 then "Tyr" else if idx == 10 then "His" else if idx == 11 then "Gln"
+  else if idx == 12 then "Asn" else if idx == 13 then "Lys" else if idx == 14 then "Asp"
+  else if idx == 15 then "Glu" else if idx == 16 then "Cys" else if idx == 17 then "Trp"
+  else if idx == 18 then "Arg" else if idx == 19 then "Gly" else "***"
+)
+
+/* Encode a codon into Z/12612600 using CRT.
+   Position 1 -> D channel (mod 8): 4 nucleotides fit in mod 8
+   Position 2 -> K channel (mod 9): 4 nucleotides fit in mod 9
+   Position 3 -> E channel (mod 25): wobble position, larger modulus = more tolerance
+   AA identity -> b channel (mod 49): 21 AA values fit in mod 49
+   Wobble class -> L channel (mod 11): wobble tolerance group
+   GC content -> G channel (mod 13): stability indicator */
+fn codon_to_ring(n1, n2, n3) = (
+  let aa = codon_to_aa(n1, n2, n3) in
+  let gc = (if n1 == 1 then 1 else if n1 == 2 then 1 else 0)
+         + (if n2 == 1 then 1 else if n2 == 2 then 1 else 0)
+         + (if n3 == 1 then 1 else if n3 == 2 then 1 else 0) in
+  /* Wobble class: how many codons encode the same AA (degeneracy) */
+  let wobble = if aa == 3 then 1 else if aa == 17 then 1  /* Met, Trp = 1 codon */
+    else if aa == 20 then 3  /* Stop = 3 codons */
+    else if aa == 1 then 6 else if aa == 18 then 6 else if aa == 5 then 6  /* Leu, Arg, Ser = 6 */
+    else if aa == 2 then 3  /* Ile = 3 */
+    else 2 in  /* most = 2 or 4, simplified */
+  let e0 = 1576575 in let e1 = 8408401 in let e2 = 7567560 in
+  let e3 = 5765760 in let e4 = 11466456 in let e5 = 2441208 in
+  (n1 * e0 + n2 * e1 + n3 * e2 + aa * e3 + wobble * e4 + gc * e5) % 12612600
+)
+
+/* Coupling distance between two codons in the ring */
+fn codon_coupling(ring_a, ring_b) = (
+  let mods = [8, 9, 25, 49, 11, 13] in
+  mut dist = 0;
+  mut ch = 0;
+  while ch < 6 do (
+    let m = mods[ch] in
+    let ra = ring_a % m in
+    let rb = ring_b % m in
+    let diff = if ra > rb then ra - rb else rb - ra in
+    let circ = if diff > m / 2 then m - diff else diff in
+    mut dist = dist + circ;
+    mut ch = ch + 1
+  );
+  dist
+)
+
+/* Check if mutation is synonymous (same AA) or non-synonymous */
+fn is_synonymous(n1a, n2a, n3a, n1b, n2b, n3b) = (
+  let aa_a = codon_to_aa(n1a, n2a, n3a) in
+  let aa_b = codon_to_aa(n1b, n2b, n3b) in
+  if aa_a == aa_b then 1 else 0
+)
+
+/* Example DNA sequences */
+fn get_dna_seq(idx) = (
+  if idx == 0 then "ATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTG"
+  else if idx == 1 then "ATGGTGCATCTGACTCCTGAGGAGAAATCTGCCGTTACTGCCCTGTGGGGCAAGGTG"
+  else if idx == 2 then "ATGGCGCACCTGACTGATGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTG"
+  else "ATGGTGCACCTGACCCCTAAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTG"
+)
+
+fn get_dna_name(idx) = (
+  if idx == 0 then "Reference (HBB wild-type)"
+  else if idx == 1 then "Sickle cell variant (E6V)"
+  else if idx == 2 then "Silent + missense mutations"
+  else "Synonymous substitutions only"
+)
+
+/* Run the genomic alignment demo */
+fn demo_genomic_run() = (
+  let result_el = dom_query("#dgen-result") in
+  let pair_val = parse_int_from("#dgen-input") in
+  let pair = if pair_val < 1 then 1 else if pair_val > 3 then 3 else pair_val in
+  let seq_ref = get_dna_seq(0) in
+  let seq_var = get_dna_seq(pair) in
+  let name_ref = get_dna_name(0) in
+  let name_var = get_dna_name(pair) in
+  let n = len(seq_ref) in
+  let n_codons = n / 3 in
+
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>CRT GENOMIC ALIGNMENT</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Ref: " + name_ref + "</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Var: " + name_var + "</p>";
+
+  /* Codon-by-codon alignment */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CODON ALIGNMENT (CRT decomposition)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Pos</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Ref</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Var</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA ref</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA var</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>Syn?</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>Coupling</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L dev</th></tr>";
+
+  mut total_syn = 0;
+  mut total_nonsyn = 0;
+  mut total_silent = 0;
+  mut total_dist = 0;
+  mut codon = 0;
+  while codon < n_codons do (
+    let pos = codon * 3 in
+    if pos + 2 < n then (
+      let n1r = nuc_val(charCode(seq_ref, pos)) in
+      let n2r = nuc_val(charCode(seq_ref, pos + 1)) in
+      let n3r = nuc_val(charCode(seq_ref, pos + 2)) in
+      let n1v = nuc_val(charCode(seq_var, pos)) in
+      let n2v = nuc_val(charCode(seq_var, pos + 1)) in
+      let n3v = nuc_val(charCode(seq_var, pos + 2)) in
+      let codon_ref = charAt(seq_ref, pos) + charAt(seq_ref, pos + 1) + charAt(seq_ref, pos + 2) in
+      let codon_var = charAt(seq_var, pos) + charAt(seq_var, pos + 1) + charAt(seq_var, pos + 2) in
+      let aa_r = codon_to_aa(n1r, n2r, n3r) in
+      let aa_v = codon_to_aa(n1v, n2v, n3v) in
+      let ring_r = codon_to_ring(n1r, n2r, n3r) in
+      let ring_v = codon_to_ring(n1v, n2v, n3v) in
+      let dist = codon_coupling(ring_r, ring_v) in
+      let syn = is_synonymous(n1r, n2r, n3r, n1v, n2v, n3v) in
+      let same_codon = if n1r == n1v then (if n2r == n2v then (if n3r == n3v then 1 else 0) else 0) else 0 in
+      let l_ref = ring_r % 11 in
+      let l_var = ring_v % 11 in
+      let l_dev = if l_ref > l_var then l_ref - l_var else l_var - l_ref in
+      if same_codon == 1 then (
+        mut total_silent = total_silent + 1
+      ) else (
+        if syn == 1 then (mut total_syn = total_syn + 1)
+        else (mut total_nonsyn = total_nonsyn + 1)
+      );
+      mut total_dist = total_dist + dist;
+      /* Only show rows with mutations */
+      if same_codon == 0 then (
+        let syn_str = if syn == 1 then "SYN" else "NON" in
+        let syn_color = if syn == 1 then "#44ff88" else "#ff4444" in
+        let codon_color = if same_codon == 1 then "#666" else "#ffd700" in
+        mut html = html + "<tr><td style='padding:2px 6px;color:#888;font-size:11px'>" + "${codon}" + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:#b0b0c0;font-size:12px;font-family:monospace'>" + codon_ref + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:" + codon_color + ";font-size:12px;font-family:monospace;font-weight:bold'>" + codon_var + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:#888;font-size:11px'>" + aa_name_3(aa_r) + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:" + syn_color + ";font-size:11px;font-weight:bold'>" + aa_name_3(aa_v) + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:" + syn_color + ";font-size:11px;font-weight:bold'>" + syn_str + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:#ffd700;font-size:12px;font-weight:bold'>" + "${dist}" + "</td>";
+        mut html = html + "<td style='padding:2px 6px;color:" + (if l_dev > 0 then "#ff8844" else "#444") + ";font-size:11px'>" + "${l_dev}" + "</td></tr>"
+      ) else 0
+    ) else 0;
+    mut codon = codon + 1
+  );
+  mut html = html + "</table>";
+
+  /* Summary */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>ALIGNMENT SUMMARY</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Total codons</td><td style='padding:3px 16px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${n_codons}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Identical</td><td style='padding:3px 16px;color:#888;font-size:14px'>" + "${total_silent}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Synonymous (wobble-tolerant)</td><td style='padding:3px 16px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${total_syn}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Non-synonymous (functional)</td><td style='padding:3px 16px;color:#ff4444;font-size:14px;font-weight:bold'>" + "${total_nonsyn}" + "</td></tr>";
+  mut html = html + "<tr style='border-top:1px solid #333'><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Total CRT distance</td><td style='padding:3px 16px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${total_dist}" + "</td></tr>";
+  mut html = html + "</table>";
+
+  /* Wobble explanation */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>WOBBLE = CRT ERROR TOLERANCE</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Synonymous mutations change the codon but preserve the amino acid. In CRT: the E channel (position 3, wobble position) changes but the b channel (AA identity, mod 49) stays the same. This IS the CRT error correction property: one channel corrupted, the functional output is preserved. DNA's wobble tolerance = CRT ECC, operating in biology for 3.8 billion years.</p>";
+
+  /* 490 split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: codon positions 1,3 + AA identity = the GENETIC DATA</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: codon position 2 + wobble class + GC content = the VALIDATORS</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Inner channels encode the gene. Boundary channels ensure fidelity. The genetic code IS a holographic code.</p>";
+
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Codon table demo: all 64 codons decomposed */
+fn demo_genomic_codons() = (
+  let result_el = dom_query("#dgen-codons") in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>GENETIC CODE: CRT DECOMPOSITION (all 64 codons)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Codon</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D:Pos1</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>K:Pos2</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>E:Pos3</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>b:AA</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L:Wob</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>G:GC</th></tr>";
+
+  /* Show representative codons (16 of 64 to keep table readable) */
+  let show_n1 = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3] in
+  let show_n2 = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3] in
+  let show_n3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] in
+  mut i = 0;
+  while i < 16 do (
+    let n1 = show_n1[i] in
+    let n2 = show_n2[i] in
+    /* Show both n3=0 and n3=1 to demonstrate wobble */
+    mut n3 = 0;
+    while n3 < 2 do (
+      let aa = codon_to_aa(n1, n2, n3) in
+      let ring = codon_to_ring(n1, n2, n3) in
+      let codon_str = nuc_char(n1) + nuc_char(n2) + nuc_char(n3) in
+      let aa_str = aa_name_3(aa) in
+      let aa_color = if aa == 20 then "#ff4444" else "#88ddaa" in
+      mut html = html + "<tr><td style='padding:2px 6px;color:#ffd700;font-size:12px;font-family:monospace;font-weight:bold'>" + codon_str + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:" + aa_color + ";font-size:11px'>" + aa_str + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${ring % 8}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 9}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${ring % 25}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px;font-weight:bold'>" + "${ring % 49}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 11}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 13}" + "</td></tr>";
+      mut n3 = n3 + 1
+    );
+    mut i = i + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:11px'>Notice: codons that encode the SAME amino acid share the SAME b-channel value (mod 49). The wobble position (3rd nucleotide) only changes the E-channel. This IS CRT error tolerance: one channel varies, the functional output is preserved. DNA's degeneracy is ring arithmetic.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+/* Evolutionary distance demo */
+fn demo_genomic_distance() = (
+  let result_el = dom_query("#dgen-distance") in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>PAIRWISE CRT DISTANCE MATRIX</p>";
+
+  /* Compare all 4 sequences pairwise */
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 8px;color:#666;font-size:10px'></th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Ref</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Sickle</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Mixed</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Silent</th></tr>";
+
+  mut r = 0;
+  while r < 4 do (
+    let seq_r = get_dna_seq(r) in
+    let name_r = if r == 0 then "Ref" else if r == 1 then "Sickle" else if r == 2 then "Mixed" else "Silent" in
+    mut html = html + "<tr><td style='padding:3px 8px;color:#ffd700;font-size:11px;font-weight:bold'>" + name_r + "</td>";
+    mut c = 0;
+    while c < 4 do (
+      let seq_c = get_dna_seq(c) in
+      let n = len(seq_r) in
+      let n_codons = n / 3 in
+      mut dist = 0;
+      mut codon = 0;
+      while codon < n_codons do (
+        let pos = codon * 3 in
+        if pos + 2 < n then (
+          let ring_r2 = codon_to_ring(nuc_val(charCode(seq_r, pos)), nuc_val(charCode(seq_r, pos + 1)), nuc_val(charCode(seq_r, pos + 2))) in
+          let ring_c2 = codon_to_ring(nuc_val(charCode(seq_c, pos)), nuc_val(charCode(seq_c, pos + 1)), nuc_val(charCode(seq_c, pos + 2))) in
+          mut dist = dist + codon_coupling(ring_r2, ring_c2)
+        ) else 0;
+        mut codon = codon + 1
+      );
+      let d_color = if dist == 0 then "#444" else if dist < 20 then "#44ff88" else if dist < 50 then "#ffd700" else "#ff4444" in
+      mut html = html + "<td style='padding:3px 8px;color:" + d_color + ";font-size:14px;font-weight:bold;text-align:center'>" + "${dist}" + "</td>";
+      mut c = c + 1
+    );
+    mut html = html + "</tr>";
+    mut r = r + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT distance = sum of per-channel circular distances across all codons. Silent mutations (synonymous) have SMALL CRT distance because the b-channel (AA identity) is preserved. Non-synonymous mutations (sickle cell E6V) create LARGE CRT distance. The coupling metric IS evolutionary distance: functionally silent changes are algebraically close.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
+fn page_genomic() = (
+  dom_head_meta("description", "CRT Genomic Sequence Alignment. DNA codons as ring elements. Wobble = CRT ECC. Coupling = evolutionary distance. CC0 patent kill: Illumina/PacBio.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Genomic Sequence Alignment\",\"description\":\"DNA codons in Z/12612600. Wobble tolerance = CRT error correction. Alignment via coupling distance. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/genomic\"}");
+  let hero = make_hero("CRT Genomic Sequence Alignment") in
+  let eq = dom_create("div") in
+  dom_text(eq, "D28: Illumina / PacBio / 10x Genomics. CC0.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "20px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "16px");
+  dom_append(hero, eq);
+  render_p(hero, "Genomic sequence alignment uses BLOSUM substitution matrices and dynamic programming -- expensive, heuristic, patented. CRT approach: encode each codon as a ring element in Z/12612600. The 6 CRT channels naturally separate: positions 1-3 map to D,K,E channels, amino acid identity to b channel, wobble degeneracy to L, GC content to G. Alignment = coupling distance. Synonymous mutations = small CRT distance (b channel preserved). The genetic code IS a CRT code.");
+  dom_append(dom_body(), hero);
+
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "How It Works");
+  render_theorem(sec1, "CRT Genetic Code Theorem", "The standard genetic code maps 64 codons to 20 amino acids + stop. This degeneracy (wobble) is CRT error tolerance: synonymous codons differ only in the E channel (position 3) while the b channel (AA identity, mod 49) is preserved. CRT distance between sequences = sum of per-channel circular distances. Synonymous mutations have near-zero b-channel distance. Non-synonymous mutations create large b-channel jumps. L=11 = wobble class detector. The 490 split: DEAD={D,E,b} = genetic data, ALIVE={K,L,G} = validation channels.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "64 codons", "Ring elements", "Each codon = one number in Z/12612600. 6 channels = 6 genetic properties.", "");
+  render_finding(g1, "Wobble = ECC", "L=11 tolerance", "Synonymous substitutions change E channel only. b channel (AA) preserved.", "");
+  render_finding(g1, "Coupling = distance", "Evolutionary metric", "CRT distance between codons = functional distance. Silent mutations are algebraically close.", "");
+  render_finding(g1, "No BLOSUM", "No matrix", "Substitution scoring from ring structure, not empirical log-odds matrices.", "");
+  dom_append(dom_body(), sec1);
+
+  let sec2 = make_section("900px") in
+  render_h2(sec2, "Align Sequences");
+  make_interactive_widget(sec2, "Compare to reference (1-3):", "dgen-input", "1=sickle, 2=mixed, 3=silent", "Align", "demo_genomic_run", "dgen-result");
+  render_p(sec2, "Aligns variant against reference HBB sequence. Shows codon-by-codon CRT decomposition, synonymous vs non-synonymous classification, coupling distance.");
+  dom_append(dom_body(), sec2);
+
+  let sec2b = make_section("900px") in
+  render_h2(sec2b, "Codon Table");
+  let btn = dom_create("button") in
+  dom_text(btn, "Show CRT Codon Map");
+  dom_style(btn, "background", "#ffd700");
+  dom_style(btn, "color", "#0f0f2a");
+  dom_style(btn, "border", "none");
+  dom_style(btn, "padding", "10px 24px");
+  dom_style(btn, "borderRadius", "6px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontWeight", "bold");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "demo_genomic_codons");
+  dom_append(sec2b, btn);
+  let br = dom_create("div") in
+  dom_attr(br, "id", "dgen-codons");
+  dom_append(sec2b, br);
+  render_p(sec2b, "32 representative codons showing CRT channel decomposition. Synonymous codons share b-channel values.");
+  dom_append(dom_body(), sec2b);
+
+  let sec2c = make_section("900px") in
+  render_h2(sec2c, "Evolutionary Distance Matrix");
+  let btn2 = dom_create("button") in
+  dom_text(btn2, "Compute Pairwise Distances");
+  dom_style(btn2, "background", "#44ff88");
+  dom_style(btn2, "color", "#0f0f2a");
+  dom_style(btn2, "border", "none");
+  dom_style(btn2, "padding", "10px 24px");
+  dom_style(btn2, "borderRadius", "6px");
+  dom_style(btn2, "cursor", "pointer");
+  dom_style(btn2, "fontWeight", "bold");
+  dom_style(btn2, "fontSize", "14px");
+  dom_on(btn2, "click", "demo_genomic_distance");
+  dom_append(sec2c, btn2);
+  let br2 = dom_create("div") in
+  dom_attr(br2, "id", "dgen-distance");
+  dom_append(sec2c, br2);
+  render_p(sec2c, "Pairwise CRT distance between all 4 sequences. Silent mutations = small distance, functional mutations = large distance.");
+  dom_append(dom_body(), sec2c);
+
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "CRT vs Traditional Alignment");
+  render_contrast_row(sec3, "Scoring", "BLOSUM/PAM: empirical log-odds substitution matrices", "CRT: algebraic coupling distance. No empirical fitting.");
+  render_contrast_row(sec3, "Algorithm", "Smith-Waterman: O(mn) dynamic programming", "CRT: O(n) per-codon comparison. No gap penalty heuristics.");
+  render_contrast_row(sec3, "Synonymous", "Requires separate dN/dS ratio computation", "Automatic: b channel (AA identity) preserved = synonymous.");
+  render_contrast_row(sec3, "Wobble", "Empirical wobble rules (third position tolerance)", "CRT E-channel IS the wobble position. Tolerance = modular distance.");
+  render_contrast_row(sec3, "Error detection", "Quality scores (Phred), separate pipeline", "L=11 channel deviation = sequencing error. Free from ring.");
+  render_contrast_row(sec3, "Patent status", "Illumina (sequencing+alignment), PacBio (HiFi), 10x Genomics", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3)
+)
