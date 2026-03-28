@@ -180,6 +180,89 @@ fn feature_pyramid(img, w, h) = (
   pyramid
 )
 
+/* Kingdom -> packed 0xRRGGBB for canvas */
+fn ob_kingdom_rgb(k) = (
+  if k == 5 then 4473087 else if k == 4 then 16711680
+  else if k == 3 then 65280 else if k == 2 then 16755200
+  else if k == 1 then 3355494 else 1710638
+)
+
+/* Edge overlay: blend edge intensity into pixel */
+fn ob_edge_rgb(edge_val) = (
+  let v = if edge_val > 15 then 255 else edge_val * 17 in
+  v * 65536 + v * 256 + v
+)
+
+/* Canvas object detection: kingdom map + edge overlay at pixel resolution */
+fn demo_object_canvas_run() = (
+  let container = dom_query("#dob-cvs") in
+  let seed_val = parse_int_from("#dob-cvs-input") in
+  let seed = if seed_val == 0 then 42 else seed_val in
+  let w = 128 in
+  let h = 96 in
+
+  dom_inner(container, "");
+  let cvs = dom_create("canvas") in
+  let _s = cvs_setsize(cvs, w * 2, h) in
+  dom_style(cvs, "borderRadius", "8px");
+  dom_style(cvs, "imageRendering", "pixelated");
+  dom_style(cvs, "width", "768px");
+  dom_style(cvs, "height", "288px");
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "margin", "8px 0");
+  dom_style(cvs, "border", "1px solid #333");
+  let ctx = cvs_getctx(cvs) in
+  dom_append(container, cvs);
+
+  let img = gen_synthetic_image(w, h, seed) in
+  let buf = alloc(w * 2 * h) in
+
+  /* Left half: kingdom coloring */
+  mut y = 0;
+  while y < h do (
+    mut x = 0;
+    while x < w do (
+      let k = pixel_kingdom(img[y * w + x]) in
+      set(buf, y * w * 2 + x, ob_kingdom_rgb(k));
+      mut x = x + 1
+    );
+    mut y = y + 1
+  );
+
+  /* Right half: multi-channel edge detection */
+  let total_edge = alloc(w * h) in
+  mut i = 0;
+  while i < w * h do (set(total_edge, i, 0); mut i = i + 1);
+  mut ch = 0;
+  while ch < 6 do (
+    let edges = channel_edge(img, w, h, ch) in
+    let wt = if ch == 4 then 3 else 1 in
+    mut j = 0;
+    while j < w * h do (
+      set(total_edge, j, total_edge[j] + edges[j] * wt);
+      mut j = j + 1
+    );
+    mut ch = ch + 1
+  );
+  mut y2 = 0;
+  while y2 < h do (
+    mut x2 = 0;
+    while x2 < w do (
+      set(buf, y2 * w * 2 + w + x2, ob_edge_rgb(total_edge[y2 * w + x2]));
+      mut x2 = x2 + 1
+    );
+    mut y2 = y2 + 1
+  );
+
+  let _b = cvs_blit(ctx, buf, w * 2, h) in
+  let label = dom_create("p") in
+  dom_text(label, "128x96 image (seed=" + "${seed}" + "). Left: kingdom map. Right: multi-channel edge detection. L=11 sentinel at 3x weight. " + "${w * h}" + " pixels per panel.");
+  dom_style(label, "color", "#888");
+  dom_style(label, "fontSize", "12px");
+  dom_style(label, "margin", "4px 0");
+  dom_append(container, label)
+)
+
 /* Main demo: object detection on synthetic image */
 fn demo_object_run() = (
   let result_el = dom_query("#dob-result") in
@@ -374,8 +457,14 @@ fn page_object() = (
   render_finding(g1, "490 split", "Content vs structure", "DEAD = what the object looks like. ALIVE = where the object is. Natural separation.", "");
   dom_append(dom_body(), sec1);
 
+  let sec_cvs = make_section("900px") in
+  render_h2(sec_cvs, "Detection Map (Canvas)");
+  make_interactive_widget(sec_cvs, "Scene seed:", "dob-cvs-input", "e.g. 42", "Detect Objects", "demo_object_canvas_run", "dob-cvs");
+  render_p(sec_cvs, "128x96 pixel detection. Left: kingdom map (gcd-based classification). Right: multi-channel edge detection (L=11 sentinel at 3x weight). Side-by-side: content vs structure. Rendered in one cvs_blit call.");
+  dom_append(dom_body(), sec_cvs);
+
   let sec2 = make_section("900px") in
-  render_h2(sec2, "Detection Demo");
+  render_h2(sec2, "Detection Demo (Table)");
   make_interactive_widget(sec2, "Scene seed:", "dob-input", "e.g. 42", "Detect Objects", "demo_object_run", "dob-result");
   render_p(sec2, "Synthetic 16x12 image with 3 embedded objects (D-dominant, K-dominant, E-dominant). CRT feature pyramid decomposes into 6 scale channels. Per-channel edge detection. Kingdom classification colors each pixel by gcd structure.");
   dom_append(dom_body(), sec2);

@@ -141,6 +141,9 @@ export default {
         dom_scroll: function() { return 0; },
         shell_exec: function() { return 0; },
         readBinary: function() { return 0; },
+        cvs_put_pixel: function() { return 0; },
+        cvs_blit: function() { return 0; },
+        cvs_get_pixel: function() { return 0; },
         get_category: function() {
           var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
           var ptr = _catPtr, m = new Int32Array(mem.buffer);

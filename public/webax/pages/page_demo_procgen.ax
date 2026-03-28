@@ -65,6 +65,62 @@ fn biome_color(biome) = (
   else "#77aa55"
 )
 
+/* Biome color as packed 0xRRGGBB for pixel buffer rendering */
+fn biome_rgb(biome) = (
+  if streq(biome, "ocean") == 1 then 1721480
+  else if streq(biome, "mountain") == 1 then 8947848
+  else if streq(biome, "forest") == 1 then 2263091
+  else if streq(biome, "plains") == 1 then 8956484
+  else if streq(biome, "desert") == 1 then 13408580
+  else if streq(biome, "tundra") == 1 then 11189196
+  else if streq(biome, "jungle") == 1 then 1140258
+  else if streq(biome, "swamp") == 1 then 4478259
+  else 7842389
+)
+
+/* Canvas terrain renderer: 192x144 pixel map via cvs_blit */
+fn demo_procgen_canvas_run() = (
+  let container = dom_query("#dpg-cvs") in
+  let seed_val = parse_int_from("#dpg-cvs-input") in
+  let seed = if seed_val == 0 then 42 else seed_val in
+  let w = 192 in
+  let h = 144 in
+
+  dom_inner(container, "");
+  let cvs = dom_create("canvas") in
+  let _s = cvs_setsize(cvs, w, h) in
+  dom_style(cvs, "borderRadius", "8px");
+  dom_style(cvs, "imageRendering", "pixelated");
+  dom_style(cvs, "width", "576px");
+  dom_style(cvs, "height", "432px");
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "margin", "8px 0");
+  dom_style(cvs, "border", "1px solid #333");
+  let ctx = cvs_getctx(cvs) in
+  dom_append(container, cvs);
+
+  let buf = alloc(w * h) in
+  mut y = 0;
+  while y < h do (
+    mut x = 0;
+    while x < w do (
+      let val = terrain_hash(x, y, seed) in
+      let biome = terrain_biome(val) in
+      set(buf, y * w + x, biome_rgb(biome));
+      mut x = x + 1
+    );
+    mut y = y + 1
+  );
+  let _b = cvs_blit(ctx, buf, w, h) in
+
+  let label = dom_create("p") in
+  dom_text(label, "192x144 terrain (27648 pixels). Seed=" + "${seed}" + ". 9 biomes via kingdom classification. Rendered in one cvs_blit call.");
+  dom_style(label, "color", "#888");
+  dom_style(label, "fontSize", "12px");
+  dom_style(label, "margin", "4px 0");
+  dom_append(container, label)
+)
+
 /* Coupling between adjacent cells = terrain smoothness */
 fn terrain_coupling(v1, v2) = (
   mut c = 0;
@@ -300,6 +356,12 @@ fn page_procgen() = (
   make_interactive_widget(sec2, "World seed:", "dpg-input", "e.g. 42", "Generate World", "demo_procgen_run", "dpg-result");
   render_p(sec2, "Generates a 12x10 terrain grid. Each cell = one ring element. Color = biome (kingdom classification). Symbol = elevation (CRT-weighted channel sum). Cross-section shows full 6-channel decomposition.");
   dom_append(dom_body(), sec2);
+
+  let sec_cvs = make_section("900px") in
+  render_h2(sec_cvs, "Terrain Map (Canvas)");
+  make_interactive_widget(sec_cvs, "World seed:", "dpg-cvs-input", "e.g. 42", "Render Terrain", "demo_procgen_canvas_run", "dpg-cvs");
+  render_p(sec_cvs, "192x144 pixel terrain rendered to canvas via cvs_blit. Each pixel = one terrain cell. Color = biome from kingdom classification. Upscaled 3x with pixelated rendering. One bulk call paints 27,648 pixels.");
+  dom_append(dom_body(), sec_cvs);
 
   let sec3 = make_section("900px") in
   render_h2(sec3, "Biome Distribution");

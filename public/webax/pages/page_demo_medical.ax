@@ -172,6 +172,64 @@ fn channel_quality(original, processed, w, h, ch) = (
   if noise == 0 then 99 else signal / (noise + 1)
 )
 
+/* Phantom pixel -> packed RGB: organ color */
+fn md_organ_rgb(img, w, idx) = (
+  let v = img[idx] % 49 in
+  if v > 38 then 11141120 else if v > 20 then 1710678
+  else if v < 6 then 2236962 else 3355494
+)
+
+/* Canvas: original / noisy / denoised side-by-side */
+fn demo_medical_canvas_run() = (
+  let container = dom_query("#dmd-cvs") in
+  let seed_val = parse_int_from("#dmd-cvs-input") in
+  let noise = if seed_val == 0 then 3 else seed_val in
+  let w = 56 in
+  let h = 40 in
+  let pw = w * 3 in
+
+  dom_inner(container, "");
+  let cvs = dom_create("canvas") in
+  let _s = cvs_setsize(cvs, pw, h) in
+  dom_style(cvs, "borderRadius", "8px");
+  dom_style(cvs, "imageRendering", "pixelated");
+  dom_style(cvs, "width", "672px");
+  dom_style(cvs, "height", "160px");
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "margin", "8px 0");
+  dom_style(cvs, "border", "1px solid #333");
+  let ctx = cvs_getctx(cvs) in
+  dom_append(container, cvs);
+
+  let orig = gen_phantom(w, h, 42) in
+  let noisy = add_medical_noise(orig, w, h, noise) in
+  let clean = denoise_image(noisy, w, h) in
+  let flags = detect_corruption(noisy, w, h) in
+  let buf = alloc(pw * h) in
+
+  mut y = 0;
+  while y < h do (
+    mut x = 0;
+    while x < w do (
+      let i = y * w + x in
+      set(buf, y * pw + x, md_organ_rgb(orig, w, i));
+      let nr = md_organ_rgb(noisy, w, i) in
+      let nc = if flags[i] == 1 then 16711680 else nr in
+      set(buf, y * pw + w + x, nc);
+      set(buf, y * pw + w * 2 + x, md_organ_rgb(clean, w, i));
+      mut x = x + 1
+    );
+    mut y = y + 1
+  );
+  let _b = cvs_blit(ctx, buf, pw, h) in
+  let label = dom_create("p") in
+  dom_text(label, "56x40 phantom (noise=" + "${noise}" + "). Left: original. Center: noisy + L=11 corruption (red). Right: CRT denoised. " + "${w * h}" + " pixels per panel.");
+  dom_style(label, "color", "#888");
+  dom_style(label, "fontSize", "12px");
+  dom_style(label, "margin", "4px 0");
+  dom_append(container, label)
+)
+
 /* Main demo */
 fn demo_medical_run() = (
   let result_el = dom_query("#dmd-result") in
@@ -327,8 +385,14 @@ fn page_medical() = (
   render_finding(g1, "490 split", "Data vs integrity", "DEAD channels = noise-sensitive data. ALIVE channels = structural integrity. Selective denoising.", "");
   dom_append(dom_body(), sec1);
 
+  let sec_cvs = make_section("900px") in
+  render_h2(sec_cvs, "Phantom Visualization (Canvas)");
+  make_interactive_widget(sec_cvs, "Noise level (1-10):", "dmd-cvs-input", "e.g. 3", "Render Phantom", "demo_medical_canvas_run", "dmd-cvs");
+  render_p(sec_cvs, "Side-by-side: original phantom, noisy + L=11 corruption (red pixels), CRT denoised. Rendered in one cvs_blit call. Upscaled 4x with pixelated rendering.");
+  dom_append(dom_body(), sec_cvs);
+
   let sec2 = make_section("900px") in
-  render_h2(sec2, "Denoising Demo");
+  render_h2(sec2, "Denoising Demo (Table)");
   make_interactive_widget(sec2, "Noise level (1-10):", "dmd-input", "e.g. 3", "Denoise Phantom", "demo_medical_run", "dmd-result");
   render_p(sec2, "Synthetic medical phantom (chest cross-section: lungs, heart, spine, tissue). Add noise at specified level. L=11 detects corrupted pixels. Per-channel 3x3 averaging denoises. SNR improvement per channel measured.");
   dom_append(dom_body(), sec2);
