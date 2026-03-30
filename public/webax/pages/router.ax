@@ -11,12 +11,206 @@ fn page_404(hash) = (
   dom_append(dom_body(), sec)
 )
 
-/* CRT stats page - defined here to test if position matters */
+/* === CRT SIGNIFICANCE TESTING (all code here — separate file triggers S1183 corruption) === */
+
+fn cs_h(i) = if i==0 then 68 else if i==1 then 75 else if i==2 then 15 else if i==3 then 15 else if i==4 then 78 else if i==5 then 46 else if i==6 then 18 else if i==7 then 95 else if i==8 then 11 else if i==9 then 88 else if i==10 then 69 else if i==11 then 15 else if i==12 then 34 else if i==13 then 15 else if i==14 then 5 else if i==15 then 42 else if i==16 then 43 else if i==17 then 92 else if i==18 then 41 else if i==19 then 37 else 50
+
+fn cs_hs(i) = if i==0 then "+1.8" else if i==1 then "+2.5" else if i==2 then "-3.5" else if i==3 then "-3.5" else if i==4 then "+2.8" else if i==5 then "-0.4" else if i==6 then "-3.2" else if i==7 then "+4.5" else if i==8 then "-3.9" else if i==9 then "+3.8" else if i==10 then "+1.9" else if i==11 then "-3.5" else if i==12 then "-1.6" else if i==13 then "-3.5" else if i==14 then "-4.5" else if i==15 then "-0.8" else if i==16 then "-0.7" else if i==17 then "+4.2" else if i==18 then "-0.9" else if i==19 then "-1.3" else "+0.0"
+
+fn cs_aa(i) = if i==0 then "A" else if i==1 then "C" else if i==2 then "D" else if i==3 then "E" else if i==4 then "F" else if i==5 then "G" else if i==6 then "H" else if i==7 then "I" else if i==8 then "K" else if i==9 then "L" else if i==10 then "M" else if i==11 then "N" else if i==12 then "P" else if i==13 then "Q" else if i==14 then "R" else if i==15 then "S" else if i==16 then "T" else if i==17 then "V" else if i==18 then "W" else if i==19 then "Y" else "*"
+
+fn cs_hstat(arr, p) = (
+  let sums = alloc(p) in
+  mut j = 0;
+  while j < p do (sums[j] = 0; mut j = j + 1);
+  mut i = 0;
+  while i < 21 do (let g = i % p in sums[g] = sums[g] + arr[i]; mut i = i + 1);
+  mut h = 0;
+  mut k = 0;
+  while k < p do (h = h + sums[k] * sums[k]; mut k = k + 1);
+  h
+)
+
+fn cs_gsum(arr, p, g) = (
+  mut s = 0; mut i = g;
+  while i < 21 do (s = s + arr[i]; mut i = i + p);
+  s
+)
+
+fn cs_rng(s) = s * 137 + 73
+
+fn cs_perm_test() = (
+  let seed_in = parse_int_from("#cstats-input") in
+  let rel = dom_query("#cstats-result") in
+  let hydro = alloc(21) in
+  mut i = 0;
+  while i < 21 do (hydro[i] = cs_h(i); mut i = i + 1);
+  let h3 = cs_hstat(hydro, 3) in
+  let h7 = cs_hstat(hydro, 7) in
+  let g30 = cs_gsum(hydro, 3, 0) in
+  let g31 = cs_gsum(hydro, 3, 1) in
+  let g32 = cs_gsum(hydro, 3, 2) in
+  let np = 500 in
+  let perm = alloc(21) in
+  mut c3 = 0; mut c7 = 0; mut cb = 0;
+  mut seed = seed_in + 42;
+  mut p = 0;
+  while p < np do (
+    mut k = 0;
+    while k < 21 do (perm[k] = hydro[k]; mut k = k + 1);
+    mut si = 20;
+    while si > 0 do (
+      mut seed = cs_rng(seed);
+      let j = seed % (si + 1) in
+      let tmp = perm[si] in perm[si] = perm[j]; perm[j] = tmp;
+      mut si = si - 1
+    );
+    let ph3 = cs_hstat(perm, 3) in
+    let ph7 = cs_hstat(perm, 7) in
+    if ph3 >= h3 then mut c3 = c3 + 1 else 0;
+    if ph7 >= h7 then mut c7 = c7 + 1 else 0;
+    if ph3 >= h3 then (if ph7 >= h7 then mut cb = cb + 1 else 0) else 0;
+    mut p = p + 1
+  );
+  let obs_x_np = cb * np in
+  let exp_joint = c3 * c7 in
+  dom_inner(rel, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT Permutation Test (n=500, seed=${seed_in})</p><table style='width:100%;border-collapse:collapse;margin:8px 0'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>Channel</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>H observed</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>Exceedances</th></tr><tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#44cc44'>K (mod 3)</td><td style='padding:6px;color:#b0b0c0'>${h3}</td><td style='padding:6px;color:#b0b0c0'>${c3} / ${np}</td></tr><tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#4488ff'>b (mod 7)</td><td style='padding:6px;color:#b0b0c0'>${h7}</td><td style='padding:6px;color:#b0b0c0'>${c7} / ${np}</td></tr><tr><td style='padding:6px;color:#ffd700;font-weight:bold'>JOINT</td><td style='padding:6px;color:#b0b0c0'>--</td><td style='padding:6px;color:#ffd700;font-weight:bold'>${cb} / ${np}</td></tr></table><p style='color:#b0b0c0;margin:8px 0 4px;font-size:13px'>Group sums (mod 3, offset +50): ${g30}, ${g31}, ${g32}. Grand sum: 952.</p><p style='color:#b0b0c0;margin:4px 0;font-size:13px'>Independence: joint*500=${obs_x_np}, expected c3*c7=${exp_joint}. Similar = channels independent.</p><p style='color:#b0b0c0;margin:4px 0;font-size:13px'>Traditional: eigenvalue-hydrophobicity r=0.409, p=0.073 (marginal, S1208).</p></div>")
+)
+
+fn cs_synth(arr, seed, mode) = (
+  mut s = seed;
+  mut i = 0;
+  while i < 21 do (
+    mut s = cs_rng(s);
+    let noise = s % 30 in
+    let base = if mode == 3 then (i % 3) * 25 else if mode == 7 then (i % 7) * 10 else 0 in
+    arr[i] = 20 + base + noise;
+    mut i = i + 1
+  );
+  s
+)
+
+fn cs_trial(seed, mode, threshold) = (
+  let data = alloc(21) in
+  let perm = alloc(21) in
+  mut s = cs_synth(data, seed, mode);
+  let h3_obs = cs_hstat(data, 3) in
+  let h7_obs = cs_hstat(data, 7) in
+  mut c3 = 0; mut c7 = 0; mut cb = 0;
+  mut p = 0;
+  while p < 200 do (
+    mut k = 0;
+    while k < 21 do (perm[k] = data[k]; mut k = k + 1);
+    mut si = 20;
+    while si > 0 do (
+      mut s = cs_rng(s);
+      let j = s % (si + 1) in
+      let tmp = perm[si] in perm[si] = perm[j]; perm[j] = tmp;
+      mut si = si - 1
+    );
+    let ph3 = cs_hstat(perm, 3) in
+    let ph7 = cs_hstat(perm, 7) in
+    if ph3 >= h3_obs then mut c3 = c3 + 1 else 0;
+    if ph7 >= h7_obs then mut c7 = c7 + 1 else 0;
+    if ph3 >= h3_obs then (if ph7 >= h7_obs then mut cb = cb + 1 else 0) else 0;
+    mut p = p + 1
+  );
+  let d3 = if c3 < threshold then 1 else 0 in
+  let d7 = if c7 < threshold then 2 else 0 in
+  let dj = if cb < threshold then 4 else 0 in
+  d3 + d7 + dj
+)
+
+fn cs_validate() = (
+  let seed_in = parse_int_from("#csval-input") in
+  let rel = dom_query("#csval-result") in
+  let thr = 10 in
+  let n_trials = 100 in
+  mut det3_m3 = 0; mut det7_m3 = 0; mut detj_m3 = 0;
+  mut seed = seed_in + 1;
+  mut t = 0;
+  while t < n_trials do (
+    mut seed = cs_rng(seed);
+    let r = cs_trial(seed, 3, thr) in
+    if r % 2 == 1 then mut det3_m3 = det3_m3 + 1 else 0;
+    if (r / 2) % 2 == 1 then mut det7_m3 = det7_m3 + 1 else 0;
+    if (r / 4) % 2 == 1 then mut detj_m3 = detj_m3 + 1 else 0;
+    mut t = t + 1
+  );
+  mut det3_m7 = 0; mut det7_m7 = 0; mut detj_m7 = 0;
+  mut seed = seed_in + 1000;
+  mut t = 0;
+  while t < n_trials do (
+    mut seed = cs_rng(seed);
+    let r = cs_trial(seed, 7, thr) in
+    if r % 2 == 1 then mut det3_m7 = det3_m7 + 1 else 0;
+    if (r / 2) % 2 == 1 then mut det7_m7 = det7_m7 + 1 else 0;
+    if (r / 4) % 2 == 1 then mut detj_m7 = detj_m7 + 1 else 0;
+    mut t = t + 1
+  );
+  mut det3_n = 0; mut det7_n = 0; mut detj_n = 0;
+  mut seed = seed_in + 2000;
+  mut t = 0;
+  while t < n_trials do (
+    mut seed = cs_rng(seed);
+    let r = cs_trial(seed, 0, thr) in
+    if r % 2 == 1 then mut det3_n = det3_n + 1 else 0;
+    if (r / 2) % 2 == 1 then mut det7_n = det7_n + 1 else 0;
+    if (r / 4) % 2 == 1 then mut detj_n = detj_n + 1 else 0;
+    mut t = t + 1
+  );
+  dom_inner(rel, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 12px;font-size:16px'>Synthetic Validation (100 trials x 200 perms, p&lt;0.05)</p><table style='width:100%;border-collapse:collapse;margin:8px 0'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>Scenario</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>mod-3 detects</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>mod-7 detects</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>Joint detects</th></tr><tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#44cc44'>Signal in mod 3</td><td style='padding:6px;color:#44cc44;font-weight:bold'>${det3_m3}%</td><td style='padding:6px;color:#b0b0c0'>${det7_m3}%</td><td style='padding:6px;color:#b0b0c0'>${detj_m3}%</td></tr><tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#4488ff'>Signal in mod 7</td><td style='padding:6px;color:#b0b0c0'>${det3_m7}%</td><td style='padding:6px;color:#4488ff;font-weight:bold'>${det7_m7}%</td><td style='padding:6px;color:#b0b0c0'>${detj_m7}%</td></tr><tr><td style='padding:6px;color:#888'>Pure noise</td><td style='padding:6px;color:#888'>${det3_n}%</td><td style='padding:6px;color:#888'>${det7_n}%</td><td style='padding:6px;color:#888'>${detj_n}%</td></tr></table><p style='color:#b0b0c0;margin:8px 0 4px;font-size:13px'>Expected under null: ~5% detection (by definition of p&lt;0.05). Signal rows should be HIGH for the matching channel and ~5% for non-matching. Noise row should be ~5% across all.</p><p style='color:#b0b0c0;margin:4px 0;font-size:13px'>If CRT works: diagonal is high, off-diagonal is low, noise is ~5%. This validates the method.</p></div>")
+)
+
 fn page_crt_stats() = (
-  let sec = make_section("800px") in
-  render_h2(sec, "CRT Significance Testing");
-  render_p(sec, "If you see this, the page function works.");
-  dom_append(dom_body(), sec)
+  dom_head_meta("description", "CRT Significance Testing: replace p-values with reconstruction convergence. Z/21 = Z/3 x Z/7 decomposes amino acid hydrophobicity into independent channels. Permutation test on DNA spectral data. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Significance Testing\",\"description\":\"CRT channel decomposition as statistical test framework. Permutation test on amino acid hydrophobicity in Z/21.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/crt_stats\"}");
+  let hero = make_hero("CRT Significance Testing") in
+  let eq = dom_create("div") in
+  dom_text(eq, "Z/21 = Z/3 x Z/7");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "28px");
+  ct_gold(eq);
+  dom_style(eq, "marginBottom", "24px");
+  dom_append(hero, eq);
+  render_p(hero, "Replace p-values with CRT reconstruction convergence. Decompose data into algebraically independent channels via CRT. If both channels detect the signal, the effect is real. The ring IS the test design. No parameters. No model fitting.");
+  dom_append(dom_body(), hero);
+  let sec1 = make_section("900px") in
+  render_h2(sec1, "The Data: 21 Amino Acids in Z/21");
+  render_p(sec1, "Kyte-Doolittle hydrophobicity scale for 20 amino acids + Stop, indexed 0-20 alphabetically. Z/21 = Z/3 x Z/7 gives each index two independent coordinates: K-channel (mod 3) and b-channel (mod 7). Groups are equal-sized: 7 per mod-3 group, 3 per mod-7 group.");
+  let tbl = make_table(sec1) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Index"); render_th(hdr, "AA"); render_th(hdr, "Hydro"); render_th(hdr, "mod 3"); render_th(hdr, "mod 7");
+  dom_append(tbl, hdr);
+  mut i = 0;
+  while i < 21 do (
+    render_table_row_5(tbl, "${i}", cs_aa(i), cs_hs(i), "${i % 3}", "${i % 7}");
+    mut i = i + 1
+  );
+  dom_append(dom_body(), sec1);
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "CRT Channel Decomposition as Test Framework");
+  render_theorem(sec2, "CRT Test Theorem", "Given n data points in Z/N = Z/p1 x Z/p2, each CRT channel defines an independent grouping. Test statistic H = sum of squared group sums. Permutation null: shuffle data. Per-channel p-value: fraction of permutations with H >= observed. Joint p-value: fraction where ALL channels simultaneously exceed. CRT guarantees algebraic independence.");
+  let g2 = make_findings_grid(sec2) in
+  render_finding(g2, "Approach C", "Data chooses ring", "21 amino acids live in Z/21. No embedding parameter.", "");
+  render_finding(g2, "Two channels", "K=3, b=7", "mod-3: 3 groups of 7. mod-7: 7 groups of 3. Independent by CRT.", "");
+  render_finding(g2, "Joint power", "Multiplicative", "p_joint approaches p_K * p_b. Two weak signals combine.", "");
+  dom_append(dom_body(), sec2);
+  let sec3 = make_section("900px") in
+  render_h2(sec3, "Run the Permutation Test");
+  render_p(sec3, "500 random permutations. Shuffle hydrophobicity values, compute H for mod-3 and mod-7 groupings. Count exceedances. Try different seeds.");
+  make_interactive_widget(sec3, "Seed:", "cstats-input", "42", "Run CRT Test", "cs_perm_test", "cstats-result");
+  dom_append(dom_body(), sec3);
+  let sec4 = make_section("900px") in
+  render_h2(sec4, "Synthetic Validation");
+  render_p(sec4, "Does CRT find known signals? 3 scenarios: signal in mod-3, signal in mod-7, pure noise. 100 trials each, 200 permutations per trial.");
+  make_interactive_widget(sec4, "Seed:", "csval-input", "7", "Run Validation", "cs_validate", "csval-result");
+  dom_append(dom_body(), sec4);
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "What This Tests");
+  render_p(sec5, "Traditional: eigenvalue-hydrophobicity r=0.409, p=0.073 (marginal). CRT: decompose into independent channel tests. If both show signal, combined evidence is multiplicatively stronger. Reconstruction convergence: the pattern is real if it survives decomposition.");
+  render_p(sec5, "CAVEAT: Alphabetical index = one possible embedding. Other orderings (molecular weight, codon position) give different channel assignments. The method works for ANY embedding.");
+  dom_append(dom_body(), sec5)
 )
 
 /* Flat dispatch: all 128 deep/explorer routes in one function.
