@@ -1,3 +1,16 @@
+/* 404: unknown route. Show helpful message instead of silently falling to worldview. */
+fn page_404(hash) = (
+  let sec = make_section("600px") in
+  render_h2(sec, "Page Not Found");
+  render_p(sec, "No page matches this route. Try navigating from one of these:");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Home", "/", "Start here.", "");
+  render_finding(g, "Demos", "/demos", "40 CC0 demos.", "");
+  render_finding(g, "REPL", "/repl", "Try .ax live.", "");
+  render_finding(g, "Data", "/data", "The axiom maps to reality.", "");
+  dom_append(dom_body(), sec)
+)
+
 /* Flat dispatch: all 128 deep/explorer routes in one function.
    Was 10-level cascade (route_deep->deep2->...->explorer). Now 2 functions total. */
 fn route_page(hash) = (
@@ -155,13 +168,15 @@ fn route_page(hash) = (
   else if streq(hash, "bci") == 1 then page_bci()
   else if streq(hash, "pde") == 1 then page_pde()
   else if streq(hash, "crt_stats") == 1 then page_crt_stats()
-  else page_worldview()
+  else if streq(hash, "worldview") == 1 then page_worldview()
+  else page_404(hash)
 )
 
 fn route() = (
   let hash = get_hash() in
-  /* Home -- index of indexes */
+  /* Home -- root URL or explicit /home */
   if streq(hash, "home") == 1 then page_home()
+  else if streq(hash, "") == 1 then page_worldview()
   /* Tier index pages */
   else if streq(hash, "basics") == 1 then page_basics_index()
   else if streq(hash, "observe") == 1 then page_observe_index()
