@@ -15,7 +15,50 @@ fn page_404(hash) = (
    Was 10-level cascade (route_deep->deep2->...->explorer). Now 2 functions total. */
 fn route_page(hash) = (
   /* CRT stats: moved to top to dodge phantom error corruption (S1210) */
-  if streq(hash, "crt_stats") == 1 then render_crt_stats_page()
+  if streq(hash, "crt_stats") == 1 then (
+    dom_head_meta("description", "CRT Significance Testing: Z/21 = Z/3 x Z/7 decomposes amino acid hydrophobicity into independent channels. CC0.");
+    render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Significance Testing\",\"description\":\"CRT channel decomposition as statistical test framework.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/crt_stats\"}");
+    let hero = make_hero("CRT Significance Testing") in
+    let eq = dom_create("div") in
+    dom_text(eq, "Z/21 = Z/3 x Z/7");
+    ct_mono(eq); dom_style(eq, "fontSize", "28px"); ct_gold(eq); dom_style(eq, "marginBottom", "24px");
+    dom_append(hero, eq);
+    render_p(hero, "Replace p-values with CRT reconstruction convergence. Decompose data into algebraically independent channels via CRT. The ring IS the test design. No parameters. No model fitting.");
+    dom_append(dom_body(), hero);
+    let sec1 = make_section("900px") in
+    render_h2(sec1, "The Data: 21 Amino Acids in Z/21");
+    render_p(sec1, "Kyte-Doolittle hydrophobicity for 20 amino acids + Stop, indexed 0-20. Z/21 = Z/3 x Z/7 gives each index two independent coordinates: K-channel (mod 3) and b-channel (mod 7).");
+    let tbl = make_table(sec1) in
+    let hdr = dom_create("tr") in
+    render_th(hdr, "Index"); render_th(hdr, "AA"); render_th(hdr, "Hydro"); render_th(hdr, "mod 3"); render_th(hdr, "mod 7");
+    dom_append(tbl, hdr);
+    mut i = 0;
+    while i < 21 do (render_table_row_5(tbl, "${i}", cs_aa(i), cs_hs(i), "${i % 3}", "${i % 7}"); mut i = i + 1);
+    dom_append(dom_body(), sec1);
+    let sec2 = make_section("800px") in
+    render_h2(sec2, "CRT Channel Decomposition as Test Framework");
+    render_theorem(sec2, "CRT Test Theorem", "Given n data points in Z/N = Z/p1 x ... x Z/pk, each CRT channel defines an independent grouping. Test statistic H = sum of squared group sums. Permutation null: shuffle data. Per-channel p-value: fraction of permutations with H >= observed. CRT guarantees algebraic independence.");
+    let g2 = make_findings_grid(sec2) in
+    render_finding(g2, "Approach C", "Data chooses ring", "21 amino acids live in Z/21. No embedding parameter.", "");
+    render_finding(g2, "Two channels", "K=3, b=7", "mod-3: 3 groups of 7. mod-7: 7 groups of 3. Independent by CRT.", "");
+    render_finding(g2, "Joint power", "Multiplicative", "p_joint approaches p_K * p_b. Two weak signals combine.", "");
+    dom_append(dom_body(), sec2);
+    let sec3 = make_section("900px") in
+    render_h2(sec3, "Run the Permutation Test");
+    render_p(sec3, "500 random permutations. Shuffle hydrophobicity across 21 indices, compute H for mod-3 and mod-7. Count exceedances. Try different seeds.");
+    make_interactive_widget(sec3, "Seed:", "cstats-input", "42", "Run CRT Test", "cs_perm_test", "cstats-result");
+    dom_append(dom_body(), sec3);
+    let sec4 = make_section("900px") in
+    render_h2(sec4, "Synthetic Validation");
+    render_p(sec4, "Generate data WITH known channel structure and WITHOUT. Three scenarios: signal in mod-3, signal in mod-7, pure noise. 100 trials, 200 permutations each.");
+    make_interactive_widget(sec4, "Seed:", "csval-input", "7", "Run Validation", "cs_validate", "csval-result");
+    dom_append(dom_body(), sec4);
+    let sec5 = make_section("800px") in
+    render_h2(sec5, "What This Tests");
+    render_p(sec5, "Traditional: one correlation (r=0.409, p=0.073). CRT: decompose into independent channel tests. If both channels detect the signal, the combined evidence is multiplicatively stronger.");
+    render_p(sec5, "CAVEAT: Amino acid indexing is alphabetical. Other orderings (molecular weight, codon position) give different channel assignments. The method works for ANY embedding.");
+    dom_append(dom_body(), sec5)
+  )
   /* Deep: ring core */
   else if streq(hash, "bootstrap") == 1 then page_bootstrap()
   else if streq(hash, "septum") == 1 then page_septum()
