@@ -18,7 +18,41 @@ fn cs_aa(i) = if i==0 then "A" else if i==1 then "C" else if i==2 then "D" else 
 fn cs_hs(i) = if i==0 then "+1.8" else if i==1 then "+2.5" else if i==2 then "-3.5" else if i==3 then "-3.5" else if i==4 then "+2.8" else if i==5 then "-0.4" else if i==6 then "-3.2" else if i==7 then "+4.5" else if i==8 then "-3.9" else if i==9 then "+3.8" else if i==10 then "+1.9" else if i==11 then "-3.5" else if i==12 then "-1.6" else if i==13 then "-3.5" else if i==14 then "-4.5" else if i==15 then "-0.8" else if i==16 then "-0.7" else if i==17 then "+4.2" else if i==18 then "-0.9" else if i==19 then "-1.3" else "+0.0"
 
 fn cs_perm_test() = (
-  dom_inner(dom_query("#cstats-result"), "<p style='color:#ffd700'>Button works</p>")
+  let seed_in = parse_int_from("#cstats-input") in
+  let rel = dom_query("#cstats-result") in
+  let hydro = alloc(21) in
+  mut i = 0;
+  while i < 21 do (hydro[i] = cs_h(i); mut i = i + 1);
+  let h3 = cs_hstat_noalloc(hydro, 3) in
+  let h7 = cs_hstat_noalloc(hydro, 7) in
+  let g30 = cs_gsum(hydro, 3, 0) in
+  let g31 = cs_gsum(hydro, 3, 1) in
+  let g32 = cs_gsum(hydro, 3, 2) in
+  let np = 500 in
+  let perm = alloc(21) in
+  mut c3 = 0; mut c7 = 0; mut cb = 0;
+  mut seed = seed_in + 42;
+  mut p = 0;
+  while p < np do (
+    mut k = 0;
+    while k < 21 do (perm[k] = hydro[k]; mut k = k + 1);
+    mut si = 20;
+    while si > 0 do (
+      mut seed = cs_rng(seed);
+      let j = seed % (si + 1) in
+      let tmp = perm[si] in perm[si] = perm[j]; perm[j] = tmp;
+      mut si = si - 1
+    );
+    let ph3 = cs_hstat_noalloc(perm, 3) in
+    let ph7 = cs_hstat_noalloc(perm, 7) in
+    if ph3 >= h3 then mut c3 = c3 + 1 else 0;
+    if ph7 >= h7 then mut c7 = c7 + 1 else 0;
+    if ph3 >= h3 then (if ph7 >= h7 then mut cb = cb + 1 else 0) else 0;
+    mut p = p + 1
+  );
+  let obs_x_np = cb * np in
+  let exp_joint = c3 * c7 in
+  dom_inner(rel, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 12px'>CRT Permutation Test (n=500, seed=${seed_in})</p><p style='color:#b0b0c0;margin:4px 0'>mod-3: H=${h3}, exceeded by ${c3}/500</p><p style='color:#b0b0c0;margin:4px 0'>mod-7: H=${h7}, exceeded by ${c7}/500</p><p style='color:#ffd700;margin:4px 0'>JOINT: ${cb}/500. Independence: cb*500=${obs_x_np} vs c3*c7=${exp_joint}</p><p style='color:#b0b0c0;margin:4px 0;font-size:13px'>Groups (mod 3): ${g30}, ${g31}, ${g32}. Grand=952.</p></div>")
 )
 
 fn page_crt_stats() = (
