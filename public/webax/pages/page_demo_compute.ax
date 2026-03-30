@@ -5,7 +5,7 @@
    Decomposes into 6 channels, multiplies per-channel (max 48*48=2304), reconstructs. */
 fn ring_mul(a, b) = (
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  ((a%8)*(b%8)%8*idem[0] + (a%9)*(b%9)%9*idem[1] + (a%25)*(b%25)%25*idem[2] + (a%49)*(b%49)%49*idem[3] + (a%11)*(b%11)%11*idem[4] + (a%13)*(b%13)%13*idem[5]) % 12612600
+  ((a%8)*(b%8)%8*idem[0] + (a%9)*(b%9)%9*idem[1] + (a%25)*(b%25)%25*idem[2] + (a%49)*(b%49)%49*idem[3] + (a%11)*(b%11)%11*idem[4] + (a%13)*(b%13)%13*idem[5]) % N_TRUE
 )
 
 /* ================================================================
@@ -21,13 +21,13 @@ fn demo_pid_step(err, prev_err, integral, dt) = (
   let p_term = kp * err in
   let i_term = ki * new_int in
   let d_term = kd * deriv in
-  (p_term + i_term + d_term) % 12612600
+  (p_term + i_term + d_term) % N_TRUE
 )
 
 fn demo_pid_run() = (
   let setpoint = parse_int_from("#dpid-input") in
   let result_el = dom_query("#dpid-result") in
-  let sp = setpoint % 12612600 in
+  let sp = setpoint % N_TRUE in
   let sp_d = sp % 8 in let sp_k = sp % 9 in let sp_e = sp % 25 in
   let sp_b = sp % 49 in let sp_l = sp % 11 in let sp_g = sp % 13 in
   /* Simulate: start at 0, chase setpoint per-channel */
@@ -104,7 +104,7 @@ fn page_pid() = (
 fn demo_gpu_run() = (
   let data = parse_int_from("#dgpu-input") in
   let result_el = dom_query("#dgpu-result") in
-  let d = data % 12612600 in
+  let d = data % N_TRUE in
   let mods = [8, 9, 25, 49, 11, 13] in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   /* Decompose into 6 channels */
@@ -113,7 +113,7 @@ fn demo_gpu_run() = (
   let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
   let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in
   /* CRT reconstruct the squared result */
-  let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % 12612600 in
+  let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE in
   /* Verify: direct computation */
   let direct = ring_mul(d, d) in
   let ok = if recon == direct then 1 else 0 in
@@ -127,11 +127,11 @@ fn demo_gpu_batch() = (
   let mods = [8, 9, 25, 49, 11, 13] in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   while i[0] < 1000 do (
-    let d = (i[0] * 12637 + 41) % 12612600 in
+    let d = (i[0] * 12637 + 41) % N_TRUE in
     let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in
     let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
     let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in
-    let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % 12612600 in
+    let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE in
     let direct = ring_mul(d, d) in
     if recon == direct then set(ok_count, 0, ok_count[0] + 1) else 0;
     set(i, 0, i[0] + 1)
@@ -260,8 +260,8 @@ fn demo_sched_run() = (
     let j = [0] in
     set(j, 0, i[0] + 1);
     while j[0] < n do (
-      let slot_i = (i[0] % 8 * idem[0] + i[0] % 9 * idem[1] + i[0] % 25 * idem[2] + i[0] % 49 * idem[3] + i[0] % 11 * idem[4] + i[0] % 13 * idem[5]) % 12612600 in
-      let slot_j = (j[0] % 8 * idem[0] + j[0] % 9 * idem[1] + j[0] % 25 * idem[2] + j[0] % 49 * idem[3] + j[0] % 11 * idem[4] + j[0] % 13 * idem[5]) % 12612600 in
+      let slot_i = (i[0] % 8 * idem[0] + i[0] % 9 * idem[1] + i[0] % 25 * idem[2] + i[0] % 49 * idem[3] + i[0] % 11 * idem[4] + i[0] % 13 * idem[5]) % N_TRUE in
+      let slot_j = (j[0] % 8 * idem[0] + j[0] % 9 * idem[1] + j[0] % 25 * idem[2] + j[0] % 49 * idem[3] + j[0] % 11 * idem[4] + j[0] % 13 * idem[5]) % N_TRUE in
       if slot_i == slot_j then set(collisions, 0, collisions[0] + 1) else 0;
       set(j, 0, j[0] + 1)
     );
@@ -273,7 +273,7 @@ fn demo_sched_run() = (
   let k = [0] in
   while k[0] < show_n do (
     let t = k[0] in
-    let s = (t % 8 * idem[0] + t % 9 * idem[1] + t % 25 * idem[2] + t % 49 * idem[3] + t % 11 * idem[4] + t % 13 * idem[5]) % 12612600 in
+    let s = (t % 8 * idem[0] + t % 9 * idem[1] + t % 25 * idem[2] + t % 49 * idem[3] + t % 11 * idem[4] + t % 13 * idem[5]) % N_TRUE in
     set(rows, 0, rows[0] + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${t}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 8}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 9}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 25}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 49}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 11}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 13}" + "</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${s}" + "</td></tr>");
     set(k, 0, k[0] + 1)
   );
@@ -373,7 +373,7 @@ fn demo_sort_run() = (
   let arr = alloc(sz) in
   mut i = 0;
   while i < sz do (
-    set(arr, i, (i * 7919 + 104729) % 12612600);
+    set(arr, i, (i * 7919 + 104729) % N_TRUE);
     mut i = i + 1
   );
   let sorted = crt_sort(arr, sz) in
@@ -491,7 +491,7 @@ fn cl_gcd(a, b) = if b == 0 then a else cl_gcd(b, a % b)
 
 /* Kingdom index: 0=void, 1=sigma, 2=D, 3=K, 4=E, 5=b, 6=L, 7=GATE, 8=mixed */
 fn cl_kingdom(n) = (
-  let r = n % 12612600 in
+  let r = n % N_TRUE in
   if r == 0 then 0
   else (
     let g = cl_gcd(r, N_TRUE) in
@@ -542,7 +542,7 @@ fn demo_cluster_run() = (
   while j < 9 do (set(counts, j, 0); mut j = j + 1);
   mut i = 0;
   while i < sz do (
-    let val = (i * 7919 + 104729 + i * i * 13) % 12612600 in
+    let val = (i * 7919 + 104729 + i * i * 13) % N_TRUE in
     let k = cl_kingdom(val) in
     set(counts, k, counts[k] + 1);
     mut i = i + 1
@@ -568,7 +568,7 @@ fn demo_cluster_run() = (
   mut html = html + "<div style='display:flex;flex-wrap:wrap;gap:4px'>";
   mut i = 0;
   while i < show_n do (
-    let val = (i * 7919 + 104729 + i * i * 13) % 12612600 in
+    let val = (i * 7919 + 104729 + i * i * 13) % N_TRUE in
     let k = cl_kingdom(val) in
     let color = cl_color(k) in
     mut html = html + "<span style='background:" + color + "22;border:1px solid " + color + ";border-radius:4px;padding:2px 6px;font-size:10px;color:" + color + "'>" + "${val % 1000}" + "</span>";

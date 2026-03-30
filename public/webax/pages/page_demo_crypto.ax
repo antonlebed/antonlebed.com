@@ -88,7 +88,7 @@ fn demo_hash_bit_avalanche() = (
   while i < 1000 do (
     let h1 = demo_crt_hash(i) in
     let h2 = demo_crt_hash(i + 1) in
-    let bd = hash_bit_diff(h1 % 12612600, h2 % 12612600) in
+    let bd = hash_bit_diff(h1 % N_TRUE, h2 % N_TRUE) in
     mut total_bits = total_bits + bd;
     if bd < min_bits then (mut min_bits = bd) else 0;
     if bd > max_bits then (mut max_bits = bd) else 0;
@@ -194,21 +194,21 @@ fn demo_stego_encode(carrier, secret) = (
   let sd = secret % 8 in
   /* Replace D-channel with secret, keep others intact */
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  (sd * idem[0] + ck * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % 12612600
+  (sd * idem[0] + ck * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % N_TRUE
 )
 
 fn demo_stego_run() = (
   let carrier = parse_int_from("#dsteg-carrier") in
   let secret = parse_int_from("#dsteg-secret") in
   let result_el = dom_query("#dsteg-result") in
-  let c = carrier % 12612600 in
+  let c = carrier % N_TRUE in
   let s = secret % 256 in
   let cd = c % 8 in let ck = c % 9 in let ce = c % 25 in
   let cb = c % 49 in let cl = c % 11 in let cg = c % 13 in
   /* Encode: hide 3 bits in D, 4 bits in K (total 7 bits = one ASCII-ish byte) */
   let s_lo = s % 8 in let s_hi = s / 8 in
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  let stego = (s_lo * idem[0] + (s_hi % 9) * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % 12612600 in
+  let stego = (s_lo * idem[0] + (s_hi % 9) * idem[1] + ce * idem[2] + cb * idem[3] + cl * idem[4] + cg * idem[5]) % N_TRUE in
   let st_d = stego % 8 in let st_k = stego % 9 in let st_e = stego % 25 in
   let st_b = stego % 49 in let st_l = stego % 11 in let st_g = stego % 13 in
   /* Distortion: how many channels changed? */
@@ -332,7 +332,7 @@ fn demo_kex_run() = (
   let ch_ok =(if s0 == v0 then 1 else 0) + (if s1 == v1 then 1 else 0) + (if s2 == v2 then 1 else 0) + (if s3 == v3 then 1 else 0) + (if s4 == v4 then 1 else 0) + (if s5 == v5 then 1 else 0) in
   /* CRT reconstruct shared secret */
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  let shared = (s0 * idem[0] + s1 * idem[1] + s2 * idem[2] + s3 * idem[3] + s4 * idem[4] + s5 * idem[5]) % 12612600 in
+  let shared = (s0 * idem[0] + s1 * idem[1] + s2 * idem[2] + s3 * idem[3] + s4 * idem[4] + s5 * idem[5]) % N_TRUE in
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT KEY EXCHANGE</p><p style='color:#b0b0c0;margin:4px 0'>Alice secret: " + "${a}" + " | Bob secret: " + "${b}" + "</p><p style='margin:8px 0 4px;color:#ffd700'>Public keys (visible to eavesdropper)</p><p style='color:#b0b0c0;margin:4px 0'>Alice public: (" + "${ap0}" + "," + "${ap1}" + "," + "${ap2}" + "," + "${ap3}" + "," + "${ap4}" + "," + "${ap5}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Bob public: (" + "${bp0}" + "," + "${bp1}" + "," + "${bp2}" + "," + "${bp3}" + "," + "${bp4}" + "," + "${bp5}" + ")</p><p style='margin:8px 0 4px;color:#ffd700'>Shared secrets (computed independently)</p><p style='color:#88ddaa;margin:4px 0'>Alice computes: (" + "${s0}" + "," + "${s1}" + "," + "${s2}" + "," + "${s3}" + "," + "${s4}" + "," + "${s5}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Bob computes: (" + "${v0}" + "," + "${v1}" + "," + "${v2}" + "," + "${v3}" + "," + "${v4}" + "," + "${v5}" + ")</p><p style='color:" + (if ch_ok == 6 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>Channel agreement: " + "${ch_ok}" + "/6" + (if ch_ok == 6 then " -- KEYS MATCH" else " -- MISMATCH") + "</p><p style='color:#88ddaa;margin:4px 0'>Shared secret (CRT): <b>" + "${shared}" + "</b></p></div>")
 )
 
