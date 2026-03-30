@@ -1,0 +1,129 @@
+/* mesh_helpers.ax -- CRT Mesh Network: ring math, state, layout.
+   Split from page_mesh.ax (S1187). Used by mesh_interact.ax + page_mesh.ax. */
+
+/* ===== RING MATH HELPERS ===== */
+fn mesh_gcd(a, b) = if b == 0 then a else mesh_gcd(b, a % b)
+
+fn mesh_coupling(n) = (
+  let r = n % N_TRUE in
+  if r == 0 then 0 else N_TRUE / mesh_gcd(r, N_TRUE)
+)
+
+fn mesh_decompose(n) = (
+  let r = n % N_TRUE in
+  [r % 8, r % 9, r % 25, r % 49, r % 11, r % 13]
+)
+
+fn mesh_kingdom(n) = (
+  let r = n % N_TRUE in
+  if r == 0 then "void"
+  else (
+    let g = mesh_gcd(r, N_TRUE) in
+    if g == 1 then "unit (sigma)"
+    else if g % 2 == 0 then if g % 3 == 0 then "mixed" else if g % 5 == 0 then "mixed" else if g % 7 == 0 then "mixed" else if g % 11 == 0 then "mixed" else if g % 13 == 0 then "mixed" else "D-class"
+    else if g % 3 == 0 then if g % 5 == 0 then "mixed" else if g % 7 == 0 then "mixed" else if g % 11 == 0 then "mixed" else if g % 13 == 0 then "mixed" else "K-class"
+    else if g % 5 == 0 then if g % 7 == 0 then "mixed" else if g % 11 == 0 then "mixed" else if g % 13 == 0 then "mixed" else "E-class"
+    else if g % 7 == 0 then if g % 11 == 0 then "mixed" else if g % 13 == 0 then "mixed" else "b-class"
+    else if g % 11 == 0 then if g % 13 == 0 then "mixed" else "L-class"
+    else if g % 13 == 0 then "GATE-class"
+    else "mixed"
+  )
+)
+
+fn mesh_kingdom_color(n) = (
+  let r = n % N_TRUE in
+  if r == 0 then "#666666"
+  else (
+    let g = mesh_gcd(r, N_TRUE) in
+    if g == 1 then "#ffdd44"
+    else if g % 2 == 0 then "#4488ff"
+    else if g % 3 == 0 then "#33dd55"
+    else if g % 5 == 0 then "#ff9900"
+    else if g % 7 == 0 then "#ff4040"
+    else if g % 11 == 0 then "#aa44ff"
+    else if g % 13 == 0 then "#ff4466"
+    else "#888888"
+  )
+)
+
+fn mesh_elem_label(e) = (
+  if e == 1 then "1 (sigma)"
+  else if e == 2 then "2 (D)"
+  else if e == 3 then "3 (K)"
+  else if e == 5 then "5 (E)"
+  else if e == 7 then "7 (b)"
+  else if e == 11 then "11 (L)"
+  else "${e}"
+)
+
+/* ===== STATE: nodes stored as comma-separated elements in hidden div ===== */
+fn mesh_read_nodes() = (
+  let s = dom_value(dom_query("#mesh-state")) in
+  if len(s) == 0 then []
+  else (
+    mut nodes = [];
+    mut cur = 0;
+    mut i = 0;
+    while i < len(s) do (
+      if charCode(s, i) == 44 then (
+        mut nodes = push(nodes, cur);
+        mut cur = 0
+      ) else (
+        mut cur = cur * 10 + (charCode(s, i) - 48)
+      );
+      mut i = i + 1
+    );
+    mut nodes = push(nodes, cur);
+    nodes
+  )
+)
+
+fn mesh_write_nodes(nodes) = (
+  mut s = "";
+  mut i = 0;
+  while i < len(nodes) do (
+    if i > 0 then mut s = s + ",${nodes[i]}"
+    else mut s = "${nodes[i]}";
+    mut i = i + 1
+  );
+  dom_attr(dom_query("#mesh-state"), "value", s)
+)
+
+fn mesh_has_node(nodes, elem) = (
+  mut found = 0;
+  mut i = 0;
+  while i < len(nodes) do (
+    if nodes[i] == elem then mut found = 1 else 0;
+    mut i = i + 1
+  );
+  found
+)
+
+fn mesh_add_elem(elem) = (
+  let e = elem % N_TRUE in
+  let e2 = if e == 0 then 1 else e in
+  let nodes = mesh_read_nodes() in
+  if mesh_has_node(nodes, e2) == 1 then 0
+  else (
+    let nodes2 = push(nodes, e2) in
+    mesh_write_nodes(nodes2);
+    mesh_draw_topo();
+    dom_text(dom_query("#mesh-stat-nodes"), "${len(nodes2)}")
+  )
+)
+
+/* ===== CIRCLE LAYOUT -- integer sin/cos via lookup (24 positions, r=160) ===== */
+/* sin(k*15 deg)*160/100 scaled to pixels. 24 positions around a circle. */
+fn mesh_cx(k, n) = (
+  /* Distribute k of n nodes around circle, center=350, radius=160 */
+  /* Use 24-point lookup: cos(i*15)*160, i=0..23, starting at top (-90 deg) */
+  let cos24 = [0, 41, 80, 113, 138, 154, 160, 154, 138, 113, 80, 41, 0, 0-41, 0-80, 0-113, 0-138, 0-154, 0-160, 0-154, 0-138, 0-113, 0-80, 0-41] in
+  let idx = if n == 0 then 0 else (k * 24 / n) % 24 in
+  350 + cos24[idx]
+)
+fn mesh_cy(k, n) = (
+  /* sin table, starting at -90 deg (top of circle) */
+  let sin24 = [0-160, 0-154, 0-138, 0-113, 0-80, 0-41, 0, 41, 80, 113, 138, 154, 160, 154, 138, 113, 80, 41, 0, 0-41, 0-80, 0-113, 0-138, 0-154] in
+  let idx = if n == 0 then 0 else (k * 24 / n) % 24 in
+  200 + sin24[idx]
+)
