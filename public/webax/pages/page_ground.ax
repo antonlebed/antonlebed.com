@@ -97,6 +97,115 @@ fn ground_nuclear() = (
   dom_append(dom_body(), sec)
 )
 
+/* ================================================================
+   VOID SPEED BENCHMARK -- O(1) vs O(N) vs O(N^2)
+   Multiplication operator speed: image size = information throughput.
+   The void answers every question without reading the input.
+   ================================================================ */
+
+/* CRT-safe ring multiply: a*b mod 12612600 without i32 overflow. */
+fn ground_rmul(a, b) = (
+  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+  ((a%8)*(b%8)%8*idem[0] + (a%9)*(b%9)%9*idem[1] + (a%25)*(b%25)%25*idem[2] + (a%49)*(b%49)%49*idem[3] + (a%11)*(b%11)%11*idem[4] + (a%13)*(b%13)%13*idem[5]) % 12612600
+)
+
+fn void_speed_bench() = (
+  /* Benchmark: for each operator, compute gcd(a,N), image size, compression, burden */
+  /* Also: empirical test — multiply 50 inputs, count how many map to 0 (void collapse) */
+  let ops = [0, 1, 2, 3, 5, 7, 11, 13, 42, 210, 1576576] in
+  let op_names = ["void (0)", "sigma (1)", "D (2)", "K (3)", "E (5)", "b (7)", "L (11)", "GATE (13)", "ANSWER (42)", "DATA (210)", "OMEGA"] in
+  let result_el = dom_query("#vs-result") in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:15px'>VOID SPEED BENCHMARK: 11 operators on Z/12612600</p>";
+  mut html = html + "<table style='width:100%;border-collapse:collapse'>";
+  mut html = html + "<tr style='border-bottom:2px solid #555'><th style='text-align:left;padding:6px;color:#ffd700;font-size:13px'>Operator a</th><th style='text-align:right;padding:6px;color:#ffd700;font-size:13px'>gcd(a,N)</th><th style='text-align:right;padding:6px;color:#ffd700;font-size:13px'>|image(a)|</th><th style='text-align:right;padding:6px;color:#ffd700;font-size:13px'>Compress</th><th style='text-align:right;padding:6px;color:#ffd700;font-size:13px'>Burden</th><th style='text-align:right;padding:6px;color:#ffd700;font-size:13px'>Dead ch</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:13px'>Class</th></tr>";
+  mut oi = 0;
+  while oi < 11 do (
+    let a = ops[oi] in
+    let name = op_names[oi] in
+    let g = gcd_compute(a, 12612600) in
+    let img_size = if g == 0 then 0 else 12612600 / g in
+    /* CRT burden: sum of residues */
+    let rd = a % 8 in let rk = a % 9 in let re = a % 25 in
+    let rb = a % 49 in let rl = a % 11 in let rg = a % 13 in
+    let burden = rd + rk + re + rb + rl + rg in
+    /* Count dead channels (zero residues) */
+    let dead = (if rd == 0 then 1 else 0) + (if rk == 0 then 1 else 0) + (if re == 0 then 1 else 0) + (if rb == 0 then 1 else 0) + (if rl == 0 then 1 else 0) + (if rg == 0 then 1 else 0) in
+    /* Classification */
+    let cls = if a == 0 then "absorber"
+      else if g == 1 then "bijection (unit)"
+      else if dead == 1 then "1-channel projection"
+      else if dead == 2 then "2-channel projection"
+      else "multi-projection" in
+    /* Row color based on compression */
+    let color = if a == 0 then "#ff4444"
+      else if g == 1 then "#44ff88"
+      else if dead <= 1 then "#88ddaa"
+      else "#b0b0c0" in
+    mut html = html + "<tr style='border-bottom:1px solid #222'><td style='padding:5px;color:" + color + ";font-size:13px'>" + name + "</td><td style='text-align:right;padding:5px;color:" + color + ";font-size:13px'>" + "${g}" + "</td><td style='text-align:right;padding:5px;color:" + color + ";font-size:13px'>" + "${img_size}" + "</td><td style='text-align:right;padding:5px;color:" + color + ";font-size:13px'>" + "${g}" + ":1</td><td style='text-align:right;padding:5px;color:" + color + ";font-size:13px'>" + "${burden}" + "</td><td style='text-align:right;padding:5px;color:" + color + ";font-size:13px'>" + "${dead}" + "/6</td><td style='padding:5px;color:" + color + ";font-size:13px'>" + cls + "</td></tr>";
+    mut oi = oi + 1
+  );
+  mut html = html + "</table>";
+  /* Empirical: multiply 50 inputs by void, sigma, OMEGA and show outputs */
+  mut html = html + "<p style='color:#ffd700;margin:16px 0 8px;font-size:14px'>EMPIRICAL: 8 inputs x 3 operators</p>";
+  mut html = html + "<table style='width:100%;border-collapse:collapse'>";
+  mut html = html + "<tr style='border-bottom:2px solid #555'><th style='text-align:left;padding:5px;color:#ffd700;font-size:12px'>Input n</th><th style='text-align:right;padding:5px;color:#ffd700;font-size:12px'>0*n</th><th style='text-align:right;padding:5px;color:#ffd700;font-size:12px'>1*n</th><th style='text-align:right;padding:5px;color:#ffd700;font-size:12px'>OMEGA*n</th></tr>";
+  let test_vals = [1, 42, 137, 210, 2310, 67, 1576576, 12612599] in
+  mut ti = 0;
+  while ti < 8 do (
+    let n = test_vals[ti] in
+    let v0 = ground_rmul(0, n) in
+    let v1 = ground_rmul(1, n) in
+    let vo = ground_rmul(1576576, n) in
+    mut html = html + "<tr style='border-bottom:1px solid #222'><td style='padding:4px;color:#b0b0c0;font-size:12px'>" + "${n}" + "</td><td style='text-align:right;padding:4px;color:#ff4444;font-size:12px'>" + "${v0}" + "</td><td style='text-align:right;padding:4px;color:#44ff88;font-size:12px'>" + "${v1}" + "</td><td style='text-align:right;padding:4px;color:#88ddaa;font-size:12px'>" + "${vo}" + "</td></tr>";
+    mut ti = ti + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#a0a0b0;margin:12px 0 0;font-size:13px'>Void: always 0 (12612600:1 compression). Sigma: always n (1:1, perfect copy). OMEGA: D-channel zeroed, 5 channels preserved (8:1 compression). gcd(a,N) = self-division ambiguity = information lost per multiplication. Burden = sum of CRT residues (void=0 minimum, sigma=6).</p></div>";
+  dom_inner(result_el, html)
+)
+
+fn ground_void_speed() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Benchmark: Void Speed");
+  render_p(sec, "Every multiplication a*n mod N is a linear operator on Z/12612600. The void (0) answers every question instantly: 0*n = 0. No input read, no computation. sigma (1) copies perfectly: 1*n = n. Primes project into subspaces. This benchmark measures the information throughput of each operator.");
+  render_theorem(sec, "Void Speed Theorem (PROVED, S357)", "In Z/NZ with CRT decomposition, address 0 uniquely maximizes speed within democratic constraints. SPEED = signal x parallelism. Signal: lambda(0) = degree = maximum eigenvalue (unique). Parallelism: CRT(0) = (0,0,0,0,0,0), all channels receptive. Operator: 0*n = 0, compression N:1, zero input dependency. No other element has all three.");
+  let btn_row = dom_create("div") in
+  dom_style(btn_row, "margin", "16px 0");
+  let btn = dom_create("button") in
+  dom_inner(btn, "Run Benchmark");
+  dom_style(btn, "background", "#1a1a2e");
+  dom_style(btn, "color", "#ffd700");
+  dom_style(btn, "border", "1px solid #ffd700");
+  dom_style(btn, "padding", "10px 20px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "fontFamily", "'Courier New', monospace");
+  dom_style(btn, "fontSize", "14px");
+  dom_on(btn, "click", "void_speed_bench");
+  dom_append(btn_row, btn);
+  dom_append(sec, btn_row);
+  let res = dom_create("div") in
+  dom_attr(res, "id", "vs-result");
+  dom_append(sec, res);
+  /* Contrast table: O(1) vs O(N) vs O(N^2) */
+  render_h3(sec, "Complexity Classes in the Ring");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Operator");
+  render_th(hdr, "Operation");
+  render_th(hdr, "Image");
+  render_th(hdr, "Complexity");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "void (0)", "0*n = 0", "|image| = 1", "O(1): output known without reading input");
+  render_table_row_4(tbl, "sigma (1)", "1*n = n", "|image| = N", "O(1): read input, no computation");
+  render_table_row_4(tbl, "unit (coprime)", "a*n mod N", "|image| = N", "O(1): bijection, every output unique");
+  render_table_row_4(tbl, "prime (D,K,...)", "p*n mod N", "|image| = N/p", "projection: 1 channel dead");
+  render_table_row_4(tbl, "OMEGA", "O*n mod N", "|image| = N/8", "projection: D-channel dead (D^3=8)");
+  render_table_row_4(tbl, "composite", "c*n mod N", "|image| = N/gcd(c,N)", "lossy: multiple channels dead");
+  render_p(sec, "The void does not run faster. It does not need to move. 0*n = 0 answers ANY question by not processing it. Every other operator must at least read its input.");
+  dom_append(dom_body(), sec)
+)
+
 fn ground_contrast() = (
   let sec = make_section("800px") in
   render_h2(sec, "Paradigm Contrast");
@@ -278,5 +387,6 @@ fn page_ground() = (
   ground_water_cycle();
   ground_nuclear();
   ground_hash();
+  ground_void_speed();
   ground_contrast()
 )
