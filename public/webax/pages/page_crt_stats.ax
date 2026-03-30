@@ -208,79 +208,10 @@ fn cs_validate() = (
 )
 
 /* ========== PAGE RENDERING ========== */
+/* MINIMAL: isolate whether ANY new page function can render */
 fn page_crt_stats() = (
-  dom_head_meta("description", "CRT Significance Testing: replace p-values with reconstruction convergence. Z/21 = Z/3 x Z/7 decomposes amino acid hydrophobicity into independent channels. Permutation test on DNA spectral data. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Significance Testing\",\"description\":\"CRT channel decomposition as statistical test framework. Permutation test on amino acid hydrophobicity in Z/21.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/crt_stats\"}");
-
-  /* DIAGNOSTIC: does this page function even get called? */
-  let diag = dom_create("div") in
-  dom_text(diag, "PAGE LOADED - if you see this, routing works");
-  dom_style(diag, "color", "#ff4444");
-  dom_style(diag, "padding", "20px");
-  dom_style(diag, "fontSize", "18px");
-  dom_append(dom_body(), diag);
-
-  /* === HERO === */
-  let hero = make_hero("CRT Significance Testing") in
-  let eq = dom_create("div") in
-  dom_text(eq, "Z/21 = Z/3 x Z/7");
-  ct_mono(eq);
-  dom_style(eq, "fontSize", "28px");
-  ct_gold(eq);
-  dom_style(eq, "marginBottom", "24px");
-  dom_append(hero, eq);
-  render_p(hero, "Replace p-values with CRT reconstruction convergence. Decompose data into algebraically independent channels via CRT. If both channels detect the signal, the effect is real. The ring IS the test design. No parameters. No model fitting.");
-  dom_append(dom_body(), hero);
-
-  /* === SEC 1: THE DATA === */
-  let sec1 = make_section("900px") in
-  render_h2(sec1, "The Data: 21 Amino Acids in Z/21");
-  render_p(sec1, "Kyte-Doolittle hydrophobicity scale for 20 amino acids + Stop, indexed 0-20 alphabetically. Z/21 = Z/3 x Z/7 gives each index two independent coordinates: K-channel (mod 3) and b-channel (mod 7). Groups are equal-sized: 7 per mod-3 group, 3 per mod-7 group.");
-  let tbl = make_table(sec1) in
-  let hdr = dom_create("tr") in
-  render_th(hdr, "Index");
-  render_th(hdr, "AA");
-  render_th(hdr, "Hydro");
-  render_th(hdr, "mod 3");
-  render_th(hdr, "mod 7");
-  dom_append(tbl, hdr);
-  mut i = 0;
-  while i < 21 do (
-    render_table_row_5(tbl, "${i}", cs_aa(i), cs_hs(i), "${i % 3}", "${i % 7}");
-    mut i = i + 1
-  );
-  dom_append(dom_body(), sec1);
-
-  /* === SEC 2: METHOD === */
-  let sec2 = make_section("800px") in
-  render_h2(sec2, "CRT Channel Decomposition as Test Framework");
-  render_theorem(sec2, "CRT Test Theorem", "Given n data points in Z/N = Z/p1 x Z/p2 x ... x Z/pk, each CRT channel defines an independent grouping. Test statistic H = sum of squared group sums (higher = more between-group separation). Permutation null: shuffle data across indices. Per-channel p-value: fraction of permutations with H >= observed. Joint p-value: fraction where ALL channels simultaneously exceed. CRT guarantees algebraic independence between channels.");
-  let g2 = make_findings_grid(sec2) in
-  render_finding(g2, "Approach C", "Data chooses ring", "21 amino acids live in Z/21. No embedding parameter. The ring IS the test structure.", "");
-  render_finding(g2, "Two channels", "K=3, b=7", "mod-3 sorts into 3 groups of 7. mod-7 sorts into 7 groups of 3. Independent by CRT.", "");
-  render_finding(g2, "Joint power", "Multiplicative", "If channels are independent, p_joint approaches p_K * p_b. Two weak signals combine.", "");
-  render_finding(g2, "Embedding", "Open question", "Alphabetical index = one possible mapping. Molecular weight, codon order = alternatives to test.", "");
-  dom_append(dom_body(), sec2);
-
-  /* === SEC 3: INTERACTIVE TEST === */
-  let sec3 = make_section("900px") in
-  render_h2(sec3, "Run the Permutation Test");
-  render_p(sec3, "500 random permutations. For each, shuffle hydrophobicity values across the 21 indices, compute H for mod-3 and mod-7 groupings. Count how many exceed the observed values. Try different seeds to verify stability.");
-  make_interactive_widget(sec3, "Seed:", "cstats-input", "42", "Run CRT Test", "cs_perm_test", "cstats-result");
-  dom_append(dom_body(), sec3);
-
-  /* === SEC 4: SYNTHETIC VALIDATION === */
-  let sec4 = make_section("900px") in
-  render_h2(sec4, "Synthetic Validation: Does CRT Find Real Signals?");
-  render_p(sec4, "The acid test: generate data WITH known channel structure, and WITHOUT. CRT should detect the first and miss the second. Three scenarios per run: (1) signal in mod-3 channel only, (2) signal in mod-7 channel only, (3) pure noise. 100 trials each, 200 permutations per trial. Reports detection rate at p<0.05.");
-  make_interactive_widget(sec4, "Seed:", "csval-input", "7", "Run Validation", "cs_validate", "csval-result");
-  dom_append(dom_body(), sec4);
-
-  /* === SEC 5: INTERPRETATION === */
-  let sec5 = make_section("800px") in
-  render_h2(sec5, "What This Tests");
-  render_p(sec5, "The traditional approach tests one correlation (fat-ring eigenvalue vs hydrophobicity, r=0.409, p=0.073 after S1208 investigation). The CRT approach decomposes the question into independent channel tests. Each channel asks: does THIS grouping explain hydrophobicity variation?");
-  render_p(sec5, "If both K and b channels show significant separation, the combined evidence is multiplicatively stronger than either alone. If only one channel shows the effect, CRT reveals WHICH algebraic axis carries the signal. This is reconstruction convergence: the pattern is real if it survives decomposition into independent pieces.");
-  render_p(sec5, "CAVEAT: The amino acid indexing is alphabetical by 1-letter code. This is one possible ring embedding. Other orderings (molecular weight, codon position) give different channel assignments. The method works for ANY embedding -- the question is which reveals the most structure.");
-  dom_append(dom_body(), sec5)
+  let sec = make_section("800px") in
+  render_h2(sec, "CRT Significance Testing");
+  render_p(sec, "If you see this, the page function works.");
+  dom_append(dom_body(), sec)
 )
