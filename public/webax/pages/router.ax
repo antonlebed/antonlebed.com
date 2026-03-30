@@ -35,12 +35,49 @@ fn cs_gsum(arr, p, g) = (
   s
 )
 fn cs_rng(s) = s * 137 + 73
-fn cs_noop() = 0
+
+fn cs_perm_test() = (
+  let seed_in = parse_int_from("#cstats-input") in
+  let rel = dom_query("#cstats-result") in
+  let hydro = alloc(21) in
+  mut i = 0;
+  while i < 21 do (hydro[i] = cs_h(i); mut i = i + 1);
+  let h3 = cs_hstat(hydro, 3) in
+  let h7 = cs_hstat(hydro, 7) in
+  let g30 = cs_gsum(hydro, 3, 0) in
+  let g31 = cs_gsum(hydro, 3, 1) in
+  let g32 = cs_gsum(hydro, 3, 2) in
+  let np = 500 in
+  let perm = alloc(21) in
+  mut c3 = 0; mut c7 = 0; mut cb = 0;
+  mut seed = seed_in + 42;
+  mut p = 0;
+  while p < np do (
+    mut k = 0;
+    while k < 21 do (perm[k] = hydro[k]; mut k = k + 1);
+    mut si = 20;
+    while si > 0 do (
+      mut seed = cs_rng(seed);
+      let j = seed % (si + 1) in
+      let tmp = perm[si] in perm[si] = perm[j]; perm[j] = tmp;
+      mut si = si - 1
+    );
+    let ph3 = cs_hstat(perm, 3) in
+    let ph7 = cs_hstat(perm, 7) in
+    if ph3 >= h3 then mut c3 = c3 + 1 else 0;
+    if ph7 >= h7 then mut c7 = c7 + 1 else 0;
+    if ph3 >= h3 then (if ph7 >= h7 then mut cb = cb + 1 else 0) else 0;
+    mut p = p + 1
+  );
+  let obs_x_np = cb * np in
+  let exp_joint = c3 * c7 in
+  dom_inner(rel, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 12px'>CRT Permutation Test (n=500, seed=${seed_in})</p><p style='color:#b0b0c0;margin:4px 0'>mod-3: H=${h3}, exceeded by ${c3}/500</p><p style='color:#b0b0c0;margin:4px 0'>mod-7: H=${h7}, exceeded by ${c7}/500</p><p style='color:#ffd700;margin:4px 0'>JOINT: ${cb}/500. Independence: cb*500=${obs_x_np} vs c3*c7=${exp_joint}</p><p style='color:#b0b0c0;margin:4px 0;font-size:13px'>Groups (mod 3): ${g30}, ${g31}, ${g32}. Grand=952.</p></div>")
+)
 
 fn page_crt_stats() = (
   let sec = make_section("800px") in
   render_h2(sec, "CRT Significance Testing");
-  render_p(sec, "Z/21 = Z/3 x Z/7.");
+  render_p(sec, "Z/21 = Z/3 x Z/7. Permutation test on amino acid hydrophobicity.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "i"); render_th(hdr, "AA"); render_th(hdr, "Hydro");
@@ -52,8 +89,9 @@ fn page_crt_stats() = (
   );
   dom_append(dom_body(), sec);
   let sec2 = make_section("900px") in
-  render_h2(sec2, "Test Button");
-  make_interactive_widget(sec2, "Seed:", "cstats-input", "42", "Run", "cs_noop", "cstats-result");
+  render_h2(sec2, "Run the Permutation Test");
+  render_p(sec2, "500 permutations. Shuffle hydrophobicity across indices, test per-channel and joint.");
+  make_interactive_widget(sec2, "Seed:", "cstats-input", "42", "Run CRT Test", "cs_perm_test", "cstats-result");
   dom_append(dom_body(), sec2)
 )
 

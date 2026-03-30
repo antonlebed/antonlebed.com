@@ -223,7 +223,7 @@ fn sig_powmod(base, exp, m) = (
 fn demo_sig_sign(msg, priv_key) = (
   let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   /* Hash the message via CRT mixing */
-  let h = ((msg * 137 + 41) * 137 + priv_key) % N_TRUE in
+  let h = ((msg * 137 + 41) * 137 + priv_key) % 12612600 in
   let hd = h % 8 in let hk = h % 9 in let he = h % 25 in
   let hb = h % 49 in let hl = h % 11 in let hg = h % 13 in
   /* Sign: transform inner channels with private key */
@@ -234,27 +234,27 @@ fn demo_sig_sign(msg, priv_key) = (
   let sk = hk in
   let sl = hl in
   let sg = hg in
-  (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE
+  (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % 12612600
 )
 
 fn demo_sig_run() = (
   let msg = parse_int_from("#dsig-msg") in
   let priv = parse_int_from("#dsig-priv") in
   let result_el = dom_query("#dsig-result") in
-  let m = msg % N_TRUE in
+  let m = msg % 12612600 in
   let pk = (priv % 419) + 1 in
   let sig = demo_sig_sign(m, pk) in
   let sig_d = sig % 8 in let sig_k = sig % 9 in let sig_e = sig % 25 in
   let sig_b = sig % 49 in let sig_l = sig % 11 in let sig_g = sig % 13 in
   /* Verify: recompute hash boundary channels, check they match signature */
-  let h = ((m * 137 + 41) * 137 + pk) % N_TRUE in
+  let h = ((m * 137 + 41) * 137 + pk) % 12612600 in
   let hk = h % 9 in let hl = h % 11 in let hg = h % 13 in
   let k_ok = if sig_k == hk then 1 else 0 in
   let l_ok = if sig_l == hl then 1 else 0 in
   let g_ok = if sig_g == hg then 1 else 0 in
   let verify = k_ok + l_ok + g_ok in
   /* Tamper test: modify message by 1, check verification fails */
-  let tampered_h = (((m + 1) * 137 + 41) * 137 + pk) % N_TRUE in
+  let tampered_h = (((m + 1) * 137 + 41) * 137 + pk) % 12612600 in
   let tk = tampered_h % 9 in let tl = tampered_h % 11 in let tg = tampered_h % 13 in
   let t_ok = (if sig_k == tk then 1 else 0) + (if sig_l == tl then 1 else 0) + (if sig_g == tg then 1 else 0) in
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
@@ -278,13 +278,13 @@ fn demo_sig_batch() = (
   mut tamper_rejected = 0;
   mut i = 0;
   while i < 100 do (
-    let m = (i * 41 + 7) % N_TRUE in
+    let m = (i * 41 + 7) % 12612600 in
     let sig = demo_sig_sign(m, pk) in
-    let h = ((m * 137 + 41) * 137 + pk) % N_TRUE in
+    let h = ((m * 137 + 41) * 137 + pk) % 12612600 in
     let ok = (if sig % 9 == h % 9 then 1 else 0) + (if sig % 11 == h % 11 then 1 else 0) + (if sig % 13 == h % 13 then 1 else 0) in
     if ok == 3 then mut valid = valid + 1 else 0;
     /* Tamper: flip message by 1 */
-    let th = (((m + 1) * 137 + 41) * 137 + pk) % N_TRUE in
+    let th = (((m + 1) * 137 + 41) * 137 + pk) % 12612600 in
     let tok = (if sig % 9 == th % 9 then 1 else 0) + (if sig % 11 == th % 11 then 1 else 0) + (if sig % 13 == th % 13 then 1 else 0) in
     if tok < 3 then mut tamper_rejected = tamper_rejected + 1 else 0;
     mut i = i + 1
