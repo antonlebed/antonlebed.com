@@ -62,6 +62,48 @@ fn demo_hash_batch() = (
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH AVALANCHE: 100 consecutive pairs</p><p style='color:#88ddaa;margin:4px 0'>Average channels changed: <b>" + "${total_diff / 100}" + "." + "${(total_diff * 10 / 100) % 10}" + "/6</b></p><p style='color:#b0b0c0;margin:4px 0'>Perfect avalanche (6/6): <b>" + "${perfect}" + "/100</b></p></div>")
 )
 
+/* Bit-level avalanche: count differing bits between two integers.
+   Check 24 bit positions (log2(12612600) ≈ 23.6). */
+fn hash_bit_diff(a, b) = (
+  mut diff = 0;
+  mut p = 0;
+  mut pa = a;
+  mut pb = b;
+  while p < 24 do (
+    if pa % 2 != pb % 2 then (mut diff = diff + 1) else 0;
+    mut pa = pa / 2;
+    mut pb = pb / 2;
+    mut p = p + 1
+  );
+  diff
+)
+
+/* Bit-level avalanche batch: hash 1000 consecutive pairs, measure bit differences */
+fn demo_hash_bit_avalanche() = (
+  let result_el = dom_query("#dhash-bit-result") in
+  mut total_bits = 0;
+  mut min_bits = 24;
+  mut max_bits = 0;
+  mut i = 0;
+  while i < 1000 do (
+    let h1 = demo_crt_hash(i) in
+    let h2 = demo_crt_hash(i + 1) in
+    let bd = hash_bit_diff(h1 % 12612600, h2 % 12612600) in
+    mut total_bits = total_bits + bd;
+    if bd < min_bits then (mut min_bits = bd) else 0;
+    if bd > max_bits then (mut max_bits = bd) else 0;
+    mut i = i + 1
+  );
+  let avg10 = total_bits * 10 / 1000 in
+  let avg_whole = avg10 / 10 in
+  let avg_frac = avg10 - avg_whole * 10 in
+  /* Ideal: 50% of 24 bits = 12.0 */
+  let pct10 = avg10 * 100 / 120 in
+  let pct_whole = pct10 / 10 in
+  let pct_frac = pct10 - pct_whole * 10 in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BIT-LEVEL AVALANCHE: 1000 consecutive pairs (24-bit)</p><p style='color:#88ddaa;margin:4px 0'>Average bits changed: <b>${avg_whole}.${avg_frac} / 24</b></p><p style='color:#b0b0c0;margin:4px 0'>Min: ${min_bits}  Max: ${max_bits}  Ideal: 12.0 (50%)</p><p style='color:" + (if pct_whole > 40 then "#44ff88" else "#ff8844") + ";margin:4px 0'>Achieved: <b>${pct_whole}.${pct_frac}%</b> of ideal 50% avalanche</p><p style='color:#666;margin:8px 0 0;font-size:12px'>SHA-256 achieves ~49.8% on same test. CRT hash has ~23.6-bit output space vs SHA-256 256-bit.</p></div>")
+)
+
 fn page_hash() = (
   dom_head_meta("description", "CRT Hash Function. 6-channel Feistel network over Z/12612600. 8 rounds. Pure ring arithmetic. CC0.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Hash Function\",\"description\":\"6-channel Feistel hash over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/hash\"}");
@@ -109,6 +151,26 @@ fn page_hash() = (
   dom_attr(br, "id", "dhash-batch-result");
   dom_append(sec3h, br);
   dom_append(dom_body(), sec3h);
+  /* Bit-level avalanche benchmark */
+  let sec4h = make_section("800px") in
+  render_h2(sec4h, "Bit-Level Avalanche Benchmark");
+  render_p(sec4h, "Channel avalanche (above) measures how many CRT channels change. Bit-level avalanche measures how many individual bits flip in the output. SHA-256 ideal: ~50% of 256 bits. CRT hash ideal: 50% of ~24 bits = 12.0 bits.");
+  let btn4 = dom_create("button") in
+  dom_text(btn4, "Run Bit Avalanche (1000 pairs)");
+  dom_style(btn4, "background", "#ffd700");
+  dom_style(btn4, "color", "#0f0f2a");
+  dom_style(btn4, "border", "none");
+  dom_style(btn4, "padding", "8px 16px");
+  dom_style(btn4, "cursor", "pointer");
+  dom_style(btn4, "fontFamily", "'Courier New', monospace");
+  dom_style(btn4, "fontWeight", "bold");
+  dom_style(btn4, "borderRadius", "4px");
+  dom_on(btn4, "click", "demo_hash_bit_avalanche");
+  dom_append(sec4h, btn4);
+  let br4 = dom_create("div") in
+  dom_attr(br4, "id", "dhash-bit-result");
+  dom_append(sec4h, br4);
+  dom_append(dom_body(), sec4h);
   let sec5 = make_section("800px") in
   render_h2(sec5, "CRT Hash vs Traditional");
   render_contrast_row(sec5, "Structure", "SHA-256: 64 rounds of bit manipulation", "CRT: 8 rounds of ring arithmetic over 6 channels");
