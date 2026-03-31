@@ -1,10 +1,63 @@
 /* [DEAD] SCAFFOLDING -- Cloudflare Worker: SPA routing + SSR.
    Browser -> _app.html (WASM + DOM imports).
-   Crawler -> SSR: same site.wasm, string-based imports -> full HTML.
+   Crawler -> SSR: per-module WASM, string-based imports -> full HTML.
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM. */
 
-import siteWasm from './public/site.wasm';
+var _routeMap = {
+  '':'home','home':'home','worldview':'home','basics':'home','observe':'home',
+  'data':'home','teach':'home','deep':'home','living':'home',
+  'numbers_clocks':'home','rings_channels':'home','waves_shadows':'home',
+  'story':'home','derive':'home','death':'home',
+  'bootstrap':'deep','septum':'deep','mirror':'deep','sacrifice':'deep',
+  'decality':'deep','lattice':'deep','heart':'deep','watercycle':'deep',
+  'consciousness':'deep','neuro':'deep','carousel':'deep','omega':'deep',
+  'language':'deep','observer':'deep','ground':'deep','duality':'deep',
+  'depth':'deep','transcend':'deep','genesis':'deep',
+  'algebra':'structure','spectrum':'structure','closure':'structure',
+  'geometry':'structure','lambda':'structure','symbiosis':'structure',
+  'music':'structure','fields':'structure','constants':'structure',
+  'sandpile':'structure','swim':'structure','eigenvalue_swim':'structure',
+  'cunningham':'teach','heegner':'teach','bernoulli':'teach',
+  'k_squared_stop':'teach','pell_twins':'teach','universal_boundary':'teach',
+  'depth_return':'teach','depth_quad':'teach','mirror_cost':'teach',
+  'lambda_chain':'teach','golden_ratio':'teach','smooth_census':'teach',
+  'stormer_pairs':'teach','gap_pairs':'teach','goldbach':'teach',
+  'equator':'teach','shadow_eval':'teach','d_power_gaussian':'teach',
+  'cyclotomic_fibonacci':'teach','fano_e8':'teach','arcsine_cumulant':'teach',
+  'figurate_bridge':'teach',
+  'turbulence':'data','sleep':'data','kingdoms':'data','alpha':'data',
+  'ecc':'data','cosmo':'data','thermo':'data','sm':'data','quantum':'data',
+  'classical':'data','em':'data','gr':'data','optics':'data',
+  'acoustics':'data','chemistry':'data','biology':'data','culture':'data',
+  'condensed':'data','statmech':'data','nuclear':'data','particles':'data',
+  'dna':'data','pmns':'data','human_shape':'data','blackhole':'data',
+  'gravastar':'data','neutron_star':'data','force_hierarchy':'data',
+  'gravity':'data','dimension':'data','braid':'data','ouroboros':'data',
+  'boson_fermion':'data','modular_forms':'data','lie_algebra':'data',
+  'mutual_holography':'data','scale_relativity':'data','eta_bridge':'data',
+  'monster_moonshine':'data','photon':'data','eternal_sun':'data',
+  'freewill':'data','conscious':'data','infinity':'data','noxan':'data',
+  'crt_stats':'data',
+  'chain':'living','ai':'living','curriculum':'living','scaling':'living',
+  'cc0':'living','revolution':'living','repl':'living','tutorial':'living',
+  'crt_train':'living','coupling':'living','crt_anatomy':'living',
+  'emergence':'living','omega_emergence':'living','omega_watercycle':'living',
+  'ecc_live':'living','ouroboros_compiler':'living','egg':'living',
+  'demos':'demos','hash':'demos','consensus':'demos','rng':'demos',
+  'compression':'demos','pid':'demos','stego':'demos','key_exchange':'demos',
+  'timetabling':'demos','cdma':'demos','fountain':'demos','ofdm':'demos',
+  'gpu_compute':'demos','scheduling':'demos','db_index':'demos',
+  'audio':'demos','sort':'demos','cluster':'demos','verify':'demos',
+  'signature':'demos','compiler':'demos','recommend':'demos',
+  'federated':'demos','protein':'demos','quantum_ecc':'demos',
+  'anomaly':'demos','genomic':'demos','finance':'demos','procgen':'demos',
+  'fingerprint':'demos','speech':'demos','object':'demos','medical':'demos',
+  'video':'demos','bci':'demos','pde':'demos','ax_games':'demos',
+  'arc':'demos','mesh':'demos','image_filter':'demos'
+};
+var _currentModule = '';
+function _routeMod(r) { return _routeMap[r] || 'home'; }
 
 export default {
   async fetch(request, env) {
@@ -36,8 +89,11 @@ export default {
         return s;
       }
 
-      /* instantiate: Module -> Instance, BufferSource -> {module, instance} */
-      var result = await WebAssembly.instantiate(siteWasm, { env: {
+      /* Fetch the right module WASM based on route, fallback to monolith */
+      var _mod = _routeMod(route);
+      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());
+      if (!_wr.ok) _wr = await env.ASSETS.fetch(new URL('/site.wasm', url.origin).toString());
+      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },

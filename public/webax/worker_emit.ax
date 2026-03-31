@@ -10,11 +10,11 @@
 fn worker_head() =
   "/* [DEAD] SCAFFOLDING -- Cloudflare Worker: SPA routing + SSR.\n"
   + "   Browser -> _app.html (WASM + DOM imports).\n"
-  + "   Crawler -> SSR: same site.wasm, string-based imports -> full HTML.\n"
+  + "   Crawler -> SSR: per-module WASM, string-based imports -> full HTML.\n"
   + "   Same .ax code, two surfaces. WYSIWYG by construction.\n"
   + "   Dies when WASI provides native server-side DOM. */\n"
   + "\n"
-  + "import siteWasm from './public/site.wasm';\n"
+  + boot_route_map()
   + "\n"
   + "export default {\n"
   + "  async fetch(request, env) {\n"
@@ -48,8 +48,11 @@ fn worker_ssr_setup() =
   + "        return s;\n"
   + "      }\n"
   + "\n"
-  + "      /* instantiate: Module -> Instance, BufferSource -> {module, instance} */\n"
-  + "      var result = await WebAssembly.instantiate(siteWasm, { env: {\n"
+  + "      /* Fetch the right module WASM based on route, fallback to monolith */\n"
+  + "      var _mod = _routeMod(route);\n"
+  + "      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());\n"
+  + "      if (!_wr.ok) _wr = await env.ASSETS.fetch(new URL('/site.wasm', url.origin).toString());\n"
+  + "      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {\n"
 
 fn worker_imports_a() =
   "        show_int: function(v) { return v; },\n"

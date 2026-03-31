@@ -35,7 +35,13 @@ fn boot_loader_a() =
   "(async function() {\n"
   + "  var mem = null, _hashPtr = 0, _valuePtr = 0, _catPtr = 0;\n"
   + "  function rs(p) { return readStr(mem, p); }\n"
-  + "  var wasm = await WebAssembly.instantiate(await (await fetch('/site.wasm')).arrayBuffer(), { env: {\n"
+  + "  var _p = location.pathname.split('/').filter(Boolean);\n"
+  + "  var _r = _p.length >= 2 ? _p[_p.length - 1] : (_p[0] || 'home');\n"
+  + "  if (location.hash.length > 1) _r = location.hash.slice(1);\n"
+  + "  _currentModule = _routeMod(_r);\n"
+  + "  var _wr = await fetch('/site_' + _currentModule + '.wasm');\n"
+  + "  if (!_wr.ok) _wr = await fetch('/site.wasm');\n"
+  + "  var wasm = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {\n"
   + "    show_int: function(v) { console.log(v); return v; },\n"
   + "    show_str: function(p) { console.log(rs(p)); return p; },\n"
   + "    show_float: function(v) { console.log(v); return 0; },\n"
@@ -173,6 +179,9 @@ fn boot_loader_c() =
   + "        if (!a) return;\n"
   + "        var href = a.getAttribute('href');\n"
   + "        if (!href || href.charAt(0) !== '/' || href.indexOf('//') === 0) return;\n"
+  + "        var _np = href.split('/').filter(Boolean);\n"
+  + "        var _nr = _np.length >= 2 ? _np[_np.length - 1] : (_np[0] || 'home');\n"
+  + "        if (_routeMod(_nr) !== _currentModule) { window.location = href; return; }\n"
   + "        e.preventDefault();\n"
   + "        history.pushState(null, '', href);\n"
   + "        window.scrollTo(0, 0);\n"
@@ -322,7 +331,73 @@ fn boot_repl_c() =
   + "  }\n"
   + "}\n"
 
+/* Route -> module mapping for multi-module loading.
+   Generated from router_*.ax route tables. Used by both bootstrap and worker.
+   Format: JS object literal, route string -> module name string. */
+fn boot_route_map() =
+  "var _routeMap = {\n"
+  /* HOME: landing, narrative, index pages, prerequisites */
+  + "  '':'home','home':'home','worldview':'home','basics':'home','observe':'home',\n"
+  + "  'data':'home','teach':'home','deep':'home','living':'home',\n"
+  + "  'numbers_clocks':'home','rings_channels':'home','waves_shadows':'home',\n"
+  + "  'story':'home','derive':'home','death':'home',\n"
+  /* DEEP: philosophy, kingdom, genesis */
+  + "  'bootstrap':'deep','septum':'deep','mirror':'deep','sacrifice':'deep',\n"
+  + "  'decality':'deep','lattice':'deep','heart':'deep','watercycle':'deep',\n"
+  + "  'consciousness':'deep','neuro':'deep','carousel':'deep','omega':'deep',\n"
+  + "  'language':'deep','observer':'deep','ground':'deep','duality':'deep',\n"
+  + "  'depth':'deep','transcend':'deep','genesis':'deep',\n"
+  /* STRUCTURE: algebra, geometry, music, etc. */
+  + "  'algebra':'structure','spectrum':'structure','closure':'structure',\n"
+  + "  'geometry':'structure','lambda':'structure','symbiosis':'structure',\n"
+  + "  'music':'structure','fields':'structure','constants':'structure',\n"
+  + "  'sandpile':'structure','swim':'structure','eigenvalue_swim':'structure',\n"
+  /* TEACH: number theory explorations */
+  + "  'cunningham':'teach','heegner':'teach','bernoulli':'teach',\n"
+  + "  'k_squared_stop':'teach','pell_twins':'teach','universal_boundary':'teach',\n"
+  + "  'depth_return':'teach','depth_quad':'teach','mirror_cost':'teach',\n"
+  + "  'lambda_chain':'teach','golden_ratio':'teach','smooth_census':'teach',\n"
+  + "  'stormer_pairs':'teach','gap_pairs':'teach','goldbach':'teach',\n"
+  + "  'equator':'teach','shadow_eval':'teach','d_power_gaussian':'teach',\n"
+  + "  'cyclotomic_fibonacci':'teach','fano_e8':'teach','arcsine_cumulant':'teach',\n"
+  + "  'figurate_bridge':'teach',\n"
+  /* DATA: physics, biology, constants data */
+  + "  'turbulence':'data','sleep':'data','kingdoms':'data','alpha':'data',\n"
+  + "  'ecc':'data','cosmo':'data','thermo':'data','sm':'data','quantum':'data',\n"
+  + "  'classical':'data','em':'data','gr':'data','optics':'data',\n"
+  + "  'acoustics':'data','chemistry':'data','biology':'data','culture':'data',\n"
+  + "  'condensed':'data','statmech':'data','nuclear':'data','particles':'data',\n"
+  + "  'dna':'data','pmns':'data','human_shape':'data','blackhole':'data',\n"
+  + "  'gravastar':'data','neutron_star':'data','force_hierarchy':'data',\n"
+  + "  'gravity':'data','dimension':'data','braid':'data','ouroboros':'data',\n"
+  + "  'boson_fermion':'data','modular_forms':'data','lie_algebra':'data',\n"
+  + "  'mutual_holography':'data','scale_relativity':'data','eta_bridge':'data',\n"
+  + "  'monster_moonshine':'data','photon':'data','eternal_sun':'data',\n"
+  + "  'freewill':'data','conscious':'data','infinity':'data','noxan':'data',\n"
+  + "  'crt_stats':'data',\n"
+  /* LIVING: AI, REPL, observe, interactive */
+  + "  'chain':'living','ai':'living','curriculum':'living','scaling':'living',\n"
+  + "  'cc0':'living','revolution':'living','repl':'living','tutorial':'living',\n"
+  + "  'crt_train':'living','coupling':'living','crt_anatomy':'living',\n"
+  + "  'emergence':'living','omega_emergence':'living','omega_watercycle':'living',\n"
+  + "  'ecc_live':'living','ouroboros_compiler':'living','egg':'living',\n"
+  /* DEMOS: all CC0 demos + interactive tools */
+  + "  'demos':'demos','hash':'demos','consensus':'demos','rng':'demos',\n"
+  + "  'compression':'demos','pid':'demos','stego':'demos','key_exchange':'demos',\n"
+  + "  'timetabling':'demos','cdma':'demos','fountain':'demos','ofdm':'demos',\n"
+  + "  'gpu_compute':'demos','scheduling':'demos','db_index':'demos',\n"
+  + "  'audio':'demos','sort':'demos','cluster':'demos','verify':'demos',\n"
+  + "  'signature':'demos','compiler':'demos','recommend':'demos',\n"
+  + "  'federated':'demos','protein':'demos','quantum_ecc':'demos',\n"
+  + "  'anomaly':'demos','genomic':'demos','finance':'demos','procgen':'demos',\n"
+  + "  'fingerprint':'demos','speech':'demos','object':'demos','medical':'demos',\n"
+  + "  'video':'demos','bci':'demos','pde':'demos','ax_games':'demos',\n"
+  + "  'arc':'demos','mesh':'demos','image_filter':'demos'\n"
+  + "};\n"
+  + "var _currentModule = '';\n"
+  + "function _routeMod(r) { return _routeMap[r] || 'home'; }\n"
+
 fn emit_bootstrap() =
-  boot_head() + boot_loader_a() + boot_loader_b() + boot_loader_c()
+  boot_head() + boot_route_map() + boot_loader_a() + boot_loader_b() + boot_loader_c()
   + boot_repl_a() + boot_repl_b() + boot_repl_c()
   + "</script>\n</body>\n</html>\n"

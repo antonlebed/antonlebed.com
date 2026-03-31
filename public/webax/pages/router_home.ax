@@ -1,0 +1,75 @@
+/* router_home.ax -- Module router for HOME (basics + narrative + indices).
+   Routes: home, basics, observe, data, teach, deep, living, demos, egg,
+   numbers_clocks, rings_channels, waves_shadows, tutorial, worldview,
+   story, derive, death, prerequisites. */
+
+fn page_404(hash) = (
+  let sec = make_section("600px") in
+  render_h2(sec, "Page Not Found");
+  render_p(sec, "No page matches this route. Try navigating from one of these:");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Home", "/", "Start here.", "");
+  render_finding(g, "Demos", "/demos", "40 CC0 demos.", "");
+  render_finding(g, "REPL", "/repl", "Try .ax live.", "");
+  render_finding(g, "Data", "/data", "The axiom maps to reality.", "");
+  dom_append(dom_body(), sec)
+)
+
+fn route_page(hash) = page_404(hash)
+
+fn route() = (
+  let hash = get_hash() in
+  if streq(hash, "home") == 1 then page_home()
+  else if streq(hash, "") == 1 then page_worldview()
+  else if streq(hash, "basics") == 1 then page_basics_index()
+  else if streq(hash, "observe") == 1 then page_observe_index()
+  else if streq(hash, "data") == 1 then page_data_index()
+  else if streq(hash, "teach") == 1 then page_teach_index()
+  else if streq(hash, "deep") == 1 then page_deep_index()
+  else if streq(hash, "living") == 1 then page_living_index()
+  else if streq(hash, "numbers_clocks") == 1 then page_numbers_clocks()
+  else if streq(hash, "rings_channels") == 1 then page_rings_channels()
+  else if streq(hash, "waves_shadows") == 1 then page_waves_shadows()
+  else if streq(hash, "worldview") == 1 then page_worldview()
+  else if streq(hash, "story") == 1 then page_story()
+  else if streq(hash, "derive") == 1 then page_derive()
+  else if streq(hash, "death") == 1 then page_death()
+  else page_404(hash)
+)
+
+let arena_mark = [0]
+fn get_hp() = hp()
+fn reset_hp(v) = set_hp(v)
+
+fn on_navigate() = (
+  set_hp(arena_mark[0]);
+  close_nav_dd();
+  dom_inner(dom_body(), "");
+  ct_moon(dom_body());
+  route();
+  highlight_nav();
+  render_vow(dom_body());
+  render_footer()
+)
+
+ct_body(dom_body());
+ct_starfield(dom_body());
+ct_clouds(dom_body());
+ct_wave(dom_body());
+render_nav();
+
+let spa_root = dom_create("div") in
+dom_style(spa_root, "position", "relative");
+dom_style(spa_root, "zIndex", "1");
+dom_style(spa_root, "paddingTop", "52px");
+dom_append(dom_body(), spa_root);
+dom_set_root(spa_root);
+set(arena_mark, 0, hp());
+
+ct_moon(dom_body());
+route();
+highlight_nav();
+render_vow(dom_body());
+render_footer();
+
+dom_spa_init("on_navigate")
