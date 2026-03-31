@@ -80,7 +80,8 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
   _currentModule = _routeMod(_r);
   var _wr = await fetch('/site_' + _currentModule + '.wasm');
   if (!_wr.ok) _wr = await fetch('/site.wasm');
-  var wasm = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {
+  var _wasmBytes = await _wr.arrayBuffer();
+  var _imports = { env: {
     show_int: function(v) { console.log(v); return v; },
     show_str: function(p) { console.log(rs(p)); return p; },
     show_float: function(v) { console.log(v); return 0; },
@@ -199,24 +200,46 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
         if (!href || href.charAt(0) !== '/' || href.indexOf('//') === 0) return;
         var _np = href.split('/').filter(Boolean);
         var _nr = _np.length >= 2 ? _np[_np.length - 1] : (_np[0] || 'home');
-        if (_routeMod(_nr) !== _currentModule) { window.location = href; return; }
         e.preventDefault();
         history.pushState(null, '', href);
         window.scrollTo(0, 0);
         _spaClean();
+        if (_routeMod(_nr) !== _currentModule) {
+          _swapModule(_routeMod(_nr)).then(function() { _fixRL(); _fixTitle(); }).catch(function(e) { console.error('swap:', e); window.location.reload(); });
+          return;
+        }
         try { if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); } } catch(e) { console.error('nav:', e); }
       });
       window.addEventListener('popstate', function() {
+        var _pp = location.pathname.split('/').filter(Boolean);
+        var _pr = _pp.length >= 2 ? _pp[_pp.length - 1] : (_pp[0] || 'home');
         _spaClean();
+        if (_routeMod(_pr) !== _currentModule) {
+          _swapModule(_routeMod(_pr)).then(function() { _fixRL(); _fixTitle(); }).catch(function(e) { console.error('swap:', e); window.location.reload(); });
+          return;
+        }
         try { if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _fixRL(); _fixTitle(); } } catch(e) { console.error('nav:', e); }
       });
       return 0;
     }
-  }});
+  }};
+  var wasm = await WebAssembly.instantiate(_wasmBytes, _imports);
   mem = wasm.instance.exports.memory;
   _hashPtr = wasm.instance.exports.js_alloc(1024);
   _valuePtr = wasm.instance.exports.js_alloc(1024);
   _catPtr = wasm.instance.exports.js_alloc(256);
+  /* Cross-module SPA: fetch new module, swap instance, call on_navigate */
+  async function _swapModule(mod) {
+    var wr = await fetch('/site_' + mod + '.wasm');
+    if (!wr.ok) wr = await fetch('/site.wasm');
+    var nw = await WebAssembly.instantiate(await wr.arrayBuffer(), _imports);
+    wasm = nw; mem = nw.instance.exports.memory;
+    _hashPtr = nw.instance.exports.js_alloc(1024);
+    _valuePtr = nw.instance.exports.js_alloc(1024);
+    _catPtr = nw.instance.exports.js_alloc(256);
+    _currentModule = mod;
+    if (nw.instance.exports.on_navigate) nw.instance.exports.on_navigate();
+  }
   /* Clear SSR content before WASM re-renders (SSR = crawler snapshot, browser = live) */
   document.body.innerHTML = '';
   _dom = {0: document.body};
