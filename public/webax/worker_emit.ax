@@ -2,7 +2,7 @@
    .ax IS the worker. True SSOT for worker.js.
    Generates the Cloudflare Worker: SPA routing + SSR.
    Browser -> _app.html (WASM + DOM imports).
-   Crawler -> SSR: same site.wasm, string-based imports -> full HTML.
+   Crawler -> SSR: per-module site_*.wasm, string-based imports -> full HTML.
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM.
    8 sections: head, ssr_setup, imports(a,b,c), serialize, inject, close. */
@@ -48,10 +48,9 @@ fn worker_ssr_setup() =
   + "        return s;\n"
   + "      }\n"
   + "\n"
-  + "      /* Fetch the right module WASM based on route, fallback to monolith */\n"
+  + "      /* Fetch the right module WASM based on route */\n"
   + "      var _mod = _routeMod(route);\n"
   + "      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());\n"
-  + "      if (!_wr.ok) _wr = await env.ASSETS.fetch(new URL('/site.wasm', url.origin).toString());\n"
   + "      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {\n"
 
 fn worker_imports_a() =

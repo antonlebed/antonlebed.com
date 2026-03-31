@@ -89,10 +89,9 @@ export default {
         return s;
       }
 
-      /* Fetch the right module WASM based on route, fallback to monolith */
+      /* Fetch the right module WASM based on route */
       var _mod = _routeMod(route);
       var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());
-      if (!_wr.ok) _wr = await env.ASSETS.fetch(new URL('/site.wasm', url.origin).toString());
       var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },

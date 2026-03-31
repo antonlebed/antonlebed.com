@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- [DEAD] SCAFFOLDING -- dies when WASI DOM access ships in browsers.
-     ~30L JS bootstrap: loads site.wasm, provides DOM import handlers.
+     ~30L JS bootstrap: loads per-module site_*.wasm, provides DOM import handlers.
      This is the LAST non-.ax code. .ax talks to browser directly via these imports. -->
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>antonlebed.com</title><link rel="icon" href="/favicon.png"><meta property="og:image" content="https://antonlebed.com/og-image.jpg"><meta property="og:type" content="website"><meta property="og:site_name" content="antonlebed.com"></head>
@@ -79,7 +79,6 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
   if (location.hash.length > 1) _r = location.hash.slice(1);
   _currentModule = _routeMod(_r);
   var _wr = await fetch('/site_' + _currentModule + '.wasm');
-  if (!_wr.ok) _wr = await fetch('/site.wasm');
   var _wasmBytes = await _wr.arrayBuffer();
   var _imports = { env: {
     show_int: function(v) { console.log(v); return v; },
@@ -231,7 +230,6 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
   /* Cross-module SPA: fetch new module, swap instance, call on_navigate */
   async function _swapModule(mod) {
     var wr = await fetch('/site_' + mod + '.wasm');
-    if (!wr.ok) wr = await fetch('/site.wasm');
     var nw = await WebAssembly.instantiate(await wr.arrayBuffer(), _imports);
     wasm = nw; mem = nw.instance.exports.memory;
     _hashPtr = nw.instance.exports.js_alloc(1024);

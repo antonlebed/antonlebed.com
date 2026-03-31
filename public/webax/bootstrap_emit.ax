@@ -1,6 +1,6 @@
 /* bootstrap_emit.ax -- [DEAD] SCAFFOLDING
    .ax IS the bootstrap. True SSOT for _app.html.
-   Generates the HTML+JS that loads site.wasm in browser.
+   Generates the HTML+JS that loads per-module site_*.wasm in browser.
    Dies when WASI DOM access ships in browsers.
    7 sections: head, loader(a,b,c), repl(a,b,c). */
 
@@ -13,7 +13,7 @@ fn js_ring_ps() = "[2,3,5,7,11,13]"
 fn boot_head() =
   "<!DOCTYPE html>\n"
   + "<!-- [DEAD] SCAFFOLDING -- dies when WASI DOM access ships in browsers.\n"
-  + "     ~30L JS bootstrap: loads site.wasm, provides DOM import handlers.\n"
+  + "     ~30L JS bootstrap: loads per-module site_*.wasm, provides DOM import handlers.\n"
   + "     This is the LAST non-.ax code. .ax talks to browser directly via these imports. -->\n"
   + "<html lang=\"en\">\n"
   + "<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>antonlebed.com</title><link rel=\"icon\" href=\"/favicon.png\"><meta property=\"og:image\" content=\"https://antonlebed.com/og-image.jpg\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:site_name\" content=\"antonlebed.com\"></head>\n"
@@ -40,7 +40,6 @@ fn boot_loader_a() =
   + "  if (location.hash.length > 1) _r = location.hash.slice(1);\n"
   + "  _currentModule = _routeMod(_r);\n"
   + "  var _wr = await fetch('/site_' + _currentModule + '.wasm');\n"
-  + "  if (!_wr.ok) _wr = await fetch('/site.wasm');\n"
   + "  var _wasmBytes = await _wr.arrayBuffer();\n"
   + "  var _imports = { env: {\n"
   + "    show_int: function(v) { console.log(v); return v; },\n"
@@ -213,7 +212,6 @@ fn boot_loader_c() =
   + "  /* Cross-module SPA: fetch new module, swap instance, call on_navigate */\n"
   + "  async function _swapModule(mod) {\n"
   + "    var wr = await fetch('/site_' + mod + '.wasm');\n"
-  + "    if (!wr.ok) wr = await fetch('/site.wasm');\n"
   + "    var nw = await WebAssembly.instantiate(await wr.arrayBuffer(), _imports);\n"
   + "    wasm = nw; mem = nw.instance.exports.memory;\n"
   + "    _hashPtr = nw.instance.exports.js_alloc(1024);\n"
