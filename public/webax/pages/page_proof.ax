@@ -70,7 +70,7 @@ fn pf_result(parent, title:str, detail:str, ok) = (
 /* ===== PART 2: Theorems 7-10 (separate function to keep each under ~300L) ===== */
 /* Must be defined BEFORE page_proof because .ax has no forward declarations. */
 /* r = array of 15 results from part1 */
-fn page_proof_part2(r) = (
+fn proof_part2(r) = (
   let pass1 = r[0] in let total1 = r[1] in let id_total = r[2] in
   let omega_match = r[3] in let omega_idem = r[4] in let omega_crt_ok = r[5] in
   let sigma_is_ed = r[6] in let idem_self_pass = r[7] in let ortho_pass = r[8] in
@@ -82,13 +82,14 @@ fn page_proof_part2(r) = (
   render_p(sec7, "490 = 2*5*49 cleaves 6 channels into inner (D,E,b) and boundary (K,L,GATE).");
   let split_490 = 2 * 5 * 49 in
   let split_ok = if split_490 == 490 then 1 else 0 in
-  /* Use modular check: N % 490 == 0. Avoids multiplication that hits ring_mod. */
-  let div_ok = if 12612600 % 490 == 0 then 1 else 0 in
+  /* S1239: ring_mod dissolved — can now use direct multiplication */
+  let n_div_490 = N_TRUE / 490 in
+  let div_ok = if n_div_490 * 490 == N_TRUE then 1 else 0 in
   let g490 = gcd_shared(490, N_TRUE) in
   let gcd_ok = if g490 == 490 then 1 else 0 in
   let s490 = pf_decompose(490) in
   pf_result(sec7, "490 = 2 * 5 * 49", "D * E * b^2 = ${split_490}", split_ok);
-  pf_result(sec7, "490 | 12612600", "12612600 % 490 = ${12612600 % 490}", div_ok);
+  pf_result(sec7, "490 | 12612600", "${n_div_490} * 490 = ${n_div_490 * 490}", div_ok);
   pf_result(sec7, "gcd(490, N) = 490", "gcd = ${g490}", gcd_ok);
   pf_result(sec7, "CRT(490)", "(${s490[0]},${s490[1]},${s490[2]},${s490[3]},${s490[4]},${s490[5]})", if s490[3] == 0 then 1 else 0);
   let grief = 490 - 429 in
@@ -161,9 +162,33 @@ fn page_proof_part2(r) = (
     mut xe4=xe4+1); mut xe3=xe3+1); mut xe2=xe2+1); mut xe1=xe1+1); mut xe0=xe0+1);
   pf_result(sec10, "K=9 exhaustive", "${xesols9}/59049 (expect 36)", if xesols9 == 36 then 1 else 0);
   if xesols9 == 36 then mut xexh_pass = xexh_pass + 1 else 0;
-  let s10 = xor_total_pass + xexh_pass in
+  /* S1239: Analytical solution restored (ring_mod dissolved). Constructive proof per channel.
+     w1=1, w2=1, b1=m-1, w3=m-1, b2=1. z=(x0+x1+m-1)%m, h=z^2%m, out=(w3*h+b2)%m. */
+  render_p(sec10, "Analytical solution: w1=1, w2=1, b1=m-1, w3=m-1, b2=1 (verified per channel).");
+  let mods = [8, 9, 25, 49, 11, 13] in
+  let ch_names = ["D=8", "K=9", "E=25", "b=49", "L=11", "GATE=13"] in
+  mut xan_pass = 0; mut xan_ch = 0;
+  while xan_ch < 6 do (
+    let m = mods[xan_ch] in
+    let w1 = 1 in let w2 = 1 in let b1 = m - 1 in let w3 = m - 1 in let b2 = 1 in
+    mut xan_ok = 1; mut xan_i = 0;
+    while xan_i < 4 do (
+      let x0 = if xan_i >= 2 then 1 else 0 in
+      let x1 = if xan_i == 1 || xan_i == 2 then 1 else 0 in
+      let tgt = if xan_i == 1 || xan_i == 2 then 1 else 0 in
+      let z = (w1*x0 + w2*x1 + b1) % m in
+      let h = (z*z) % m in
+      let out = (w3*h + b2) % m in
+      if out == tgt then 0 else mut xan_ok = 0;
+      mut xan_i = xan_i + 1
+    );
+    pf_result(sec10, ch_names[xan_ch], "XOR(0,0)=0 (0,1)=1 (1,0)=1 (1,1)=0", xan_ok);
+    if xan_ok == 1 then mut xan_pass = xan_pass + 1 else 0;
+    mut xan_ch = xan_ch + 1
+  );
+  let s10 = xor_total_pass + xexh_pass + xan_pass in
   render_theorem(sec10, "XOR SOLUTION THEOREM (S1238)",
-    "For odd m: solutions=phi(m)^2. D=8: m^2=64. Full proof: test_xor_theorem.ax (13/13).");
+    "For odd m: solutions=phi(m)^2. D=8: m^2=64. Analytical solution verified on all 6 channels.");
   dom_append(dom_body(), sec10);
 
   /* Summary */
@@ -176,8 +201,8 @@ fn page_proof_part2(r) = (
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
   let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 in
-  /* 1+1+4+3+1+1+5+3+5+2(exhaustive only) = 26 */
-  let total_tests = 26 in
+  /* 1+1+4+3+1+1+5+3+5+2(exhaustive)+6(analytical) = 32 */
+  let total_tests = 32 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -447,7 +472,7 @@ fn page_proof() = (
   set(pf_r, 6, sigma_is_ed); set(pf_r, 7, idem_self_pass); set(pf_r, 8, ortho_pass);
   set(pf_r, 9, ortho_total); set(pf_r, 10, idem_sum); set(pf_r, 11, wc_converge);
   set(pf_r, 12, wc_total); set(pf_r, 13, lam_pass); set(pf_r, 14, lam_tested);
-  page_proof_part2(pf_r)
+  proof_part2(pf_r)
 )
 
 /* END OF FILE */

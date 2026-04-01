@@ -3,6 +3,12 @@
    Data-driven: pages are content declarations, not DOM call sequences.
    [DEAD] SCAFFOLDING (grows until all 108 pages live here). */
 
+/* S1239: raw_mode dissolves ring_mod bug. All site arithmetic is plain i32.
+   Ring operations use explicit % N_TRUE (already done in all CRT code).
+   Without this: compiler wraps ALL mul/add/sub with % 12612600,
+   breaking general-purpose arithmetic (25740*490 → 0). */
+raw_mode(1)
+
 /* js_alloc: exported wrapper for alloc(). Lets the JS host allocate WASM memory
    for get_hash/dom_value/get_category buffers at init time. */
 fn js_alloc(n) = alloc(n)
@@ -34,6 +40,18 @@ let CLR_L = "#aa44ff"
 let CLR_G = "#ff4466"
 let CLR_GOLD = "#ffd700"
 let CLR_DIM = "#aaa"
+
+/* Ring multiply via CRT: safe for any a,b (no i32 overflow).
+   Per-channel max: 48*48=2304. Reconstruction sum max: ~807M < 2^31. */
+fn ring_mul(a, b) = (
+  let d = (a%8)*(b%8)%8 in
+  let k = (a%9)*(b%9)%9 in
+  let e = (a%25)*(b%25)%25 in
+  let bb = (a%49)*(b%49)%49 in
+  let l = (a%11)*(b%11)%11 in
+  let g = (a%13)*(b%13)%13 in
+  (d * 11036025 + k * 1401400 + e * 9585576 + bb * 8494200 + l * 3439800 + g * 3880800) % N_TRUE
+)
 
 /* ================================================================
    CELESTIAL THEATRE -- CSS Keyframe Generation
