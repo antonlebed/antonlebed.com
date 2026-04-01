@@ -22,7 +22,7 @@ fn pf_count_idem(m) = (
 )
 
 /* CRT reconstruct from 6 channels.
-   Each ri*ei < 49*11036025 = 540M < i32 max. Sum < N = 12612600. Safe. */
+   Max per-term: 48*8494200=407M. Sum of all 6 < 808M < i32 max (2147M). Safe. */
 fn pf_reconstruct(d, k, e, b, l, g) =
   (d * PF_ED + k * PF_EK + e * PF_EE + b * PF_EB + l * PF_EL + g * PF_EG) % N_TRUE
 
@@ -40,7 +40,6 @@ fn pf_mul(a, b) = (
 /* Ring add (simple mod) */
 fn pf_add(a, b) = (a + b) % N_TRUE
 
-/* Helper: display a proof result card */
 /* Theorem summary card with PASS/FAIL indicator. pass=checks passed, total=checks expected. */
 fn pf_theorem(parent, title:str, detail:str, pass, total) = (
   let card = dom_create("div") in
@@ -298,14 +297,14 @@ fn proof_part2(r) = (
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
   let s1 = if pass1 == total1 then 1 else 0 in
-  let s2 = if id_total == 64 then 1 else 0 in
+  let s2 = (if id_d == 2 then 1 else 0) + (if id_k == 2 then 1 else 0) + (if id_e == 2 then 1 else 0) + (if id_b == 2 then 1 else 0) + (if id_l == 2 then 1 else 0) + (if id_g == 2 then 1 else 0) + (if id_total == 64 then 1 else 0) in
   let s3 = omega_match + omega_idem + omega_crt_ok + sigma_is_ed in
   let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
   let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 in
-  /* 1+1+4+3+1+1+5+3+5+8+6+8 = 46 */
-  let total_tests = 46 in
+  /* 1+7+4+3+1+1+5+3+5+8+6+8 = 52 */
+  let total_tests = 52 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -409,8 +408,9 @@ fn page_proof() = (
   pf_result(sec2, "Z/13 (GATE-channel)", "${id_g} idempotents in 13 elements", if id_g == 2 then 1 else 0);
   pf_result(sec2, "Total: ${id_total}", "${id_d} x ${id_k} x ${id_e} x ${id_b} x ${id_l} x ${id_g} = ${id_total}", if id_total == 64 then 1 else 0);
 
+  let s2_pass = (if id_d == 2 then 1 else 0) + (if id_k == 2 then 1 else 0) + (if id_e == 2 then 1 else 0) + (if id_b == 2 then 1 else 0) + (if id_l == 2 then 1 else 0) + (if id_g == 2 then 1 else 0) + (if id_total == 64 then 1 else 0) in
   pf_theorem(sec2, "BODY PROJECTION THEOREM",
-    "Z/12612600 has exactly 2^6 = 64 idempotents. Each channel Z/p^k contributes exactly 2 (0 and 1). Exhaustive verification on all 115 channel elements.", if id_total == 64 then 1 else 0, 1);
+    "Z/12612600 has exactly 2^6 = 64 idempotents. Each channel Z/p^k contributes exactly 2 (0 and 1). Exhaustive verification on all 115 channel elements.", s2_pass, 7);
   dom_append(dom_body(), sec2);
 
   /* ============================================================
