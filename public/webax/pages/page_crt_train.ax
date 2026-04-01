@@ -60,7 +60,8 @@ fn ct_to_csv(arr) = (
 )
 
 fn ct_read_w() = ct_parse_csv(dom_value(dom_query("#ct-w")))
-fn ct_write_w(w) = dom_attr(dom_query("#ct-w"), "value", ct_to_csv(w))
+/* S1233: dom_text (not dom_attr) for textarea — setAttribute("value") doesn't set .value */
+fn ct_write_w(w) = dom_text(dom_query("#ct-w"), ct_to_csv(w))
 fn ct_read_kills() = ct_parse_csv(dom_value(dom_query("#ct-kills")))
 
 /* ===== NEURAL NETWORK: GENERALIZED =====
@@ -376,8 +377,8 @@ fn on_ct_init() = (
     );
     mut c = c + 1
   );
-  dom_attr(dom_query("#ct-kills"), "value", "0,0,0,0,0,0");
-  dom_attr(dom_query("#ct-epoch-n"), "value", "0");
+  dom_text(dom_query("#ct-kills"), "0,0,0,0,0,0");
+  dom_text(dom_query("#ct-epoch-n"), "0");
   ct_write_w(w);
   ct_draw_all(w);
   dom_text(dom_query("#ct-epoch"), "Epoch: 0")
@@ -391,7 +392,7 @@ fn on_ct_train() = (
   ct_write_w(w);
   let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
   let new_e = if len(old_e) > 0 then old_e[0] + 200 else 200 in
-  dom_attr(dom_query("#ct-epoch-n"), "value", "${new_e}");
+  dom_text(dom_query("#ct-epoch-n"), "${new_e}");
   dom_text(dom_query("#ct-epoch"), "Epoch: ${new_e}");
   ct_draw_all(w)
 )
@@ -401,7 +402,7 @@ fn ct_toggle_kill(ch) = (
   if len(kills) < 6 then 0
   else (
     set(kills, ch, if kills[ch] == 0 then 1 else 0);
-    dom_attr(dom_query("#ct-kills"), "value", ct_to_csv(kills));
+    dom_text(dom_query("#ct-kills"), ct_to_csv(kills));
     let w = ct_read_w() in
     if len(w) >= 135 then (
       ct_draw_crt_heatmap(w, kills);
