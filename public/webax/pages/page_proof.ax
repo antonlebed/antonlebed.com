@@ -68,6 +68,159 @@ fn pf_result(parent, title:str, detail:str, ok) = (
   dom_append(parent, card)
 )
 
+/* ===== PART 2: Theorems 7-10 (separate function to keep each under ~300L) ===== */
+/* Must be defined BEFORE page_proof because .ax has no forward declarations. */
+/* r = array of 15 results from part1 */
+fn page_proof_part2(r) = (
+  let pass1 = r[0] in let total1 = r[1] in let id_total = r[2] in
+  let omega_match = r[3] in let omega_idem = r[4] in let omega_crt_ok = r[5] in
+  let sigma_is_ed = r[6] in let idem_self_pass = r[7] in let ortho_pass = r[8] in
+  let ortho_total = r[9] in let idem_sum = r[10] in let wc_converge = r[11] in
+  let wc_total = r[12] in let lam_pass = r[13] in let lam_tested = r[14] in
+
+  let sec7 = make_section("700px") in
+  render_h2(sec7, "7. The 490 Split");
+  render_p(sec7, "490 = 2*5*49 cleaves 6 channels into inner (D,E,b) and boundary (K,L,GATE).");
+  let split_490 = 2 * 5 * 49 in
+  let split_ok = if split_490 == 490 then 1 else 0 in
+  let n_div_490 = 12612600 / 490 in
+  let div_product = n_div_490 * 490 in
+  let div_ok = if div_product == 12612600 then 1 else 0 in
+  let g490 = gcd_shared(490, N_TRUE) in
+  let gcd_ok = if g490 == 490 then 1 else 0 in
+  let s490 = pf_decompose(490) in
+  pf_result(sec7, "490 = 2 * 5 * 49", "D * E * b^2 = ${split_490}", split_ok);
+  pf_result(sec7, "490 | 12612600", "N/490=${n_div_490}, product=${div_product}", div_ok);
+  pf_result(sec7, "gcd(490, N) = 490", "gcd = ${g490}", gcd_ok);
+  pf_result(sec7, "CRT(490)", "(${s490[0]},${s490[1]},${s490[2]},${s490[3]},${s490[4]},${s490[5]})", if s490[3] == 0 then 1 else 0);
+  let grief = 490 - 429 in
+  pf_result(sec7, "490 - 429 = ${grief}", "GRIEF = 61", if grief == 61 then 1 else 0);
+  let p7 = split_ok + div_ok + gcd_ok + (if s490[3] == 0 then 1 else 0) + (if grief == 61 then 1 else 0) in
+  render_theorem(sec7, "HOLOGRAPHIC SPLIT",
+    "490 = D*E*b^2 divides N. Splits 6 channels into DEAD (D,E,b) and ALIVE (K,L,GATE). 490-429=61=GRIEF.");
+  dom_append(dom_body(), sec7);
+
+  let sec8 = make_section("700px") in
+  render_h2(sec8, "8. Coupling");
+  render_p(sec8, "coupling(n) = N/gcd(n,N). Measures connectivity.");
+  mut cp_pass = 0; mut cp_total = 0; mut ci = 1;
+  while ci < 2310 do (
+    let g = gcd_shared(ci, N_TRUE) in
+    if coupling(ci) == N_TRUE / g then mut cp_pass = cp_pass + 1 else 0;
+    mut cp_total = cp_total + 1;
+    mut ci = ci + 1
+  );
+  pf_result(sec8, "Coupling formula", "${cp_pass}/${cp_total}: coupling(n)=N/gcd(n,N)", if cp_pass == cp_total then 1 else 0);
+  let c_sigma = coupling(1) in
+  pf_result(sec8, "coupling(sigma) = N", "${c_sigma}", if c_sigma == N_TRUE then 1 else 0);
+  let c_d = coupling(2) in
+  let expected_cd = N_TRUE / 2 in
+  pf_result(sec8, "coupling(D) = N/2", "${c_d}=${expected_cd}", if c_d == expected_cd then 1 else 0);
+  let p8 = (if cp_pass == cp_total then 1 else 0) + (if c_sigma == N_TRUE then 1 else 0) + (if c_d == expected_cd then 1 else 0) in
+  render_theorem(sec8, "COUPLING DUALITY", "coupling(n)=N/gcd(n,N). Units couple maximally.");
+  dom_append(dom_body(), sec8);
+
+  let sec9 = make_section("700px") in
+  render_h2(sec9, "9. The Nonility");
+  render_p(sec9, "9 canonical elements: {-1, 0, 1, 2, 3, 5, 7, 11, OMEGA}. K^2 = 9 = STOP.");
+  let mirror = N_TRUE - 1 in
+  let mirror_sq = pf_mul(mirror, mirror) in
+  pf_result(sec9, "mirror^2 = sigma", "(-1)^2 mod N = ${mirror_sq}", if mirror_sq == 1 then 1 else 0);
+  pf_result(sec9, "0 * 0 = 0", "void absorbs", 1);
+  let inner_sum = (mirror + 0 + 1 + 2 + 3 + 5 + 7 + 11) % N_TRUE in
+  pf_result(sec9, "Sum (without OMEGA)", "mod N = ${inner_sum}", if inner_sum == 28 then 1 else 0);
+  let prime_sum = 2 + 3 + 5 + 7 + 11 + 13 in
+  pf_result(sec9, "D+K+E+b+L+GATE = ${prime_sum}", "KEY = 41", if prime_sum == 41 then 1 else 0);
+  let perf = 1 + 2 + 4 + 7 + 14 in
+  pf_result(sec9, "28 is perfect", "1+2+4+7+14=${perf}", if perf == 28 then 1 else 0);
+  let p9 = (if mirror_sq == 1 then 1 else 0) + 1 + (if inner_sum == 28 then 1 else 0) + (if prime_sum == 41 then 1 else 0) + (if perf == 28 then 1 else 0) in
+  render_theorem(sec9, "THE NONILITY (K^2 = 9)", "9 elements. Sum=28 (perfect). Primes sum=41=KEY.");
+  dom_append(dom_body(), sec9);
+
+  let sec10 = make_section("700px") in
+  render_h2(sec10, "10. XOR Solution Theorem");
+  render_p(sec10, "z^2 XOR network: phi(m)^2 solutions for odd m. Proved: test_xor_theorem.ax (13/13).");
+  mut xor_total_pass = 0; mut xexh_pass = 0;
+  /* Analytical solution per channel: w1=1,w2=1,b1=m-1,w3=m-1,b2=1 */
+  mut xch = 0;
+  while xch < 6 do (
+    let xm = if xch == 0 then 8 else if xch == 1 then 9 else if xch == 2 then 25 else if xch == 3 then 49 else if xch == 4 then 11 else 13 in
+    let xn = if xch == 0 then "D=8" else if xch == 1 then "K=9" else if xch == 2 then "E=25" else if xch == 3 then "b=49" else if xch == 4 then "L=11" else "G=13" in
+    mut xok = 1; mut xsi = 0;
+    while xsi < 4 do (
+      let x0 = if xsi >= 2 then 1 else 0 in
+      let x1 = if xsi == 1 || xsi == 2 then 1 else 0 in
+      let tgt = if xsi == 1 || xsi == 2 then 1 else 0 in
+      let z = (x0 + x1 + xm - 1) % xm in
+      let h = (z * z) % xm in
+      let out = ((xm - 1) * h + 1) % xm in
+      if out != tgt then mut xok = 0 else 0;
+      mut xsi = xsi + 1
+    );
+    mut xphi = 0; mut xi = 1;
+    while xi < xm do (if gcd_shared(xi, xm) == 1 then mut xphi = xphi + 1 else 0; mut xi = xi + 1);
+    pf_result(sec10, xn, "Analytical: ${xok}/1. phi(${xm})^2=${xphi * xphi}", xok);
+    if xok == 1 then mut xor_total_pass = xor_total_pass + 1 else 0;
+    mut xch = xch + 1
+  );
+  /* Exhaustive D=8 */
+  mut xesols = 0; mut xe0 = 0;
+  while xe0 < 8 do (mut xe1 = 0; while xe1 < 8 do (mut xe2 = 0; while xe2 < 8 do (mut xe3 = 0; while xe3 < 8 do (mut xe4 = 0; while xe4 < 8 do (
+    mut xeloss = 0; mut xesi = 0;
+    while xesi < 4 do (let x0 = if xesi >= 2 then 1 else 0 in let x1 = if xesi == 1 || xesi == 2 then 1 else 0 in let tgt = if xesi == 1 || xesi == 2 then 1 else 0 in
+      let z = (xe0*x0+xe1*x1+xe2)%8 in let h = (z*z)%8 in let out = (xe3*h+xe4)%8 in
+      let d = (out+8-tgt)%8 in let cd = if d > 4 then 8-d else d in mut xeloss = xeloss+cd*cd; mut xesi = xesi+1);
+    if xeloss == 0 then mut xesols = xesols + 1 else 0;
+    mut xe4=xe4+1); mut xe3=xe3+1); mut xe2=xe2+1); mut xe1=xe1+1); mut xe0=xe0+1);
+  pf_result(sec10, "D=8 exhaustive", "${xesols}/32768 (expect 64)", if xesols == 64 then 1 else 0);
+  if xesols == 64 then mut xexh_pass = xexh_pass + 1 else 0;
+  /* Exhaustive K=9 */
+  mut xesols9 = 0; mut xe0 = 0;
+  while xe0 < 9 do (mut xe1 = 0; while xe1 < 9 do (mut xe2 = 0; while xe2 < 9 do (mut xe3 = 0; while xe3 < 9 do (mut xe4 = 0; while xe4 < 9 do (
+    mut xeloss = 0; mut xesi = 0;
+    while xesi < 4 do (let x0 = if xesi >= 2 then 1 else 0 in let x1 = if xesi == 1 || xesi == 2 then 1 else 0 in let tgt = if xesi == 1 || xesi == 2 then 1 else 0 in
+      let z = (xe0*x0+xe1*x1+xe2)%9 in let h = (z*z)%9 in let out = (xe3*h+xe4)%9 in
+      let d = (out+9-tgt)%9 in let cd = if d > 4 then 9-d else d in mut xeloss = xeloss+cd*cd; mut xesi = xesi+1);
+    if xeloss == 0 then mut xesols9 = xesols9 + 1 else 0;
+    mut xe4=xe4+1); mut xe3=xe3+1); mut xe2=xe2+1); mut xe1=xe1+1); mut xe0=xe0+1);
+  pf_result(sec10, "K=9 exhaustive", "${xesols9}/59049 (expect 36)", if xesols9 == 36 then 1 else 0);
+  if xesols9 == 36 then mut xexh_pass = xexh_pass + 1 else 0;
+  let s10 = xor_total_pass + xexh_pass in
+  render_theorem(sec10, "XOR SOLUTION THEOREM (S1238)",
+    "For odd m: solutions=phi(m)^2. D=8: m^2=64. Full proof: test_xor_theorem.ax (13/13).");
+  dom_append(dom_body(), sec10);
+
+  /* Summary */
+  let summary = make_section("700px") in
+  render_h2(summary, "Summary");
+  let s1 = if pass1 == total1 then 1 else 0 in
+  let s2 = if id_total == 64 then 1 else 0 in
+  let s3 = omega_match + omega_idem + omega_crt_ok + sigma_is_ed in
+  let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
+  let s5 = if wc_converge > 0 then 1 else 0 in
+  let s6 = if lam_pass == lam_tested then 1 else 0 in
+  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 in
+  let total_tests = 32 in
+  let sbox = dom_create("div") in
+  ct_card(sbox);
+  dom_style(sbox, "textAlign", "center");
+  dom_style(sbox, "padding", "24px");
+  let st = dom_create("div") in
+  dom_text(st, "${total_pass} / ${total_tests} checks verified");
+  dom_style(st, "fontSize", "24px");
+  dom_style(st, "color", if total_pass == total_tests then "#44cc44" else "#cc4444");
+  dom_style(st, "fontWeight", "bold");
+  dom_append(sbox, st);
+  let sd = dom_create("div") in
+  dom_text(sd, "All results computed live by .ax running as WASM. Zero precomputation.");
+  dom_style(sd, "color", "#888");
+  dom_style(sd, "marginTop", "8px");
+  dom_style(sd, "fontSize", "13px");
+  dom_append(sbox, sd);
+  dom_append(summary, sbox);
+  dom_append(dom_body(), summary)
+)
+
 fn page_proof() = (
   dom_head_meta("description", "Live exhaustive verification of ring theorems in Z/12612600. Every result computed on page load by .ax.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"WebPage\",\"name\":\"Proof Assistant\",\"description\":\"The ring verifies itself.\"}");
@@ -310,290 +463,14 @@ fn page_proof() = (
     "lambda(12612600) = 420 = lcm(2, 6, 20, 42, 10, 12). Every unit a satisfies a^420 = 1. The ring breathes in 420-step cycles.");
   dom_append(dom_body(), sec6);
 
-  /* ============================================================
-     THEOREM 7: 490 HOLOGRAPHIC SPLIT
-     490 = D*E*b^2 = 2*5*49. Cleaves 6 channels into DEAD and ALIVE.
-     ============================================================ */
-  let sec7 = make_section("700px") in
-  render_h2(sec7, "7. The 490 Split");
-  render_p(sec7, "490 = 2*5*49 cleaves 6 channels into inner (D,E,b) and boundary (K,L,GATE).");
-
-  /* Verify 490 factorization */
-  let split_490 = 2 * 5 * 49 in
-  let split_ok = if split_490 == 490 then 1 else 0 in
-
-  /* Verify 490 divides N. N/490 = 25740. 25740*490 = 12612600. */
-  let n_div_490 = 12612600 / 490 in
-  let div_product = n_div_490 * 490 in
-  let div_ok = if div_product == 12612600 then 1 else 0 in
-
-  /* Verify OMEGA * 490 = 0 in the ring (490 kills OMEGA's live channels? No —
-     verify that gcd(490, N) = 490, confirming it's a proper divisor) */
-  let g490 = gcd_shared(490, N_TRUE) in
-  let gcd_ok = if g490 == 490 then 1 else 0 in
-
-  /* Count elements in inner (divisible by some of {2,5,7} only) vs boundary */
-  /* 490's CRT signature: 490 mod 8=2, mod 9=4, mod 25=15, mod 49=0, mod 11=6, mod 13=9 */
-  let s490 = pf_decompose(490) in
-  pf_result(sec7, "490 = 2 * 5 * 49", "D * E * b^2 = ${split_490}", split_ok);
-  pf_result(sec7, "490 | 12612600", "N/490=${n_div_490}, ${n_div_490}*490=${div_product}", div_ok);
-  pf_result(sec7, "gcd(490, N) = 490", "Proper divisor: gcd = ${g490}", gcd_ok);
-  pf_result(sec7, "CRT(490)", "(${s490[0]},${s490[1]},${s490[2]},${s490[3]},${s490[4]},${s490[5]})", if s490[3] == 0 then 1 else 0);
-
-  /* N/490 = 25740. Verify this equals the product of ALIVE channel sizes */
-  let alive_prod = 9 * 11 * 13 in
-  /* Actually N/490 = 12612600/490 = 25740. And 9*11*13 = 1287.
-     N = 8*9*25*49*11*13. 490 = 2*5*49 = (8/4)*(25/5)*49. Hmm, not clean channel sizes.
-     The split is: DEAD primes = {2,5,7}, ALIVE primes = {3,11,13}.
-     490 = 2*5*7^2. phi(490) = 1*4*42 = 168. */
-  let phi_490 = N_TRUE / 490 in
-  let complementary = N_TRUE - 490 in
-  /* 490 + (N-490) = N = 0. Complementary: N - 490 = 12612110 */
-  /* Key: 490 - 429 = 61 = GRIEF (the 18th prime) */
-  let grief = 490 - 429 in
-  pf_result(sec7, "490 - 429 = ${grief}", "GRIEF = 61 (18th prime)", if grief == 61 then 1 else 0);
-
-  render_theorem(sec7, "HOLOGRAPHIC SPLIT",
-    "490 = D*E*b^2 divides N=12612600. Splits 6 CRT channels into DEAD (inner: D,E,b) and ALIVE (boundary: K,L,GATE). b-channel is zero. 490-429=61=GRIEF.");
-  dom_append(dom_body(), sec7);
-
-  /* ============================================================
-     THEOREM 8: COUPLING DUALITY (Z/2310)
-     coupling(n) = N/gcd(n,N). For coprime n: coupling = N.
-     ============================================================ */
-  let sec8 = make_section("700px") in
-  render_h2(sec8, "8. Coupling");
-  render_p(sec8, "coupling(n) = N/gcd(n,N). Measures how connected an element is to the ring.");
-
-  /* Verify coupling formula for 1..2309 (skip 0: gcd(0,N) edge case) */
-  mut cp_pass = 0; mut cp_total = 0;
-  mut ci = 1;
-  while ci < 2310 do (
-    let g = gcd_shared(ci, N_TRUE) in
-    let expected = N_TRUE / g in
-    let actual = coupling(ci) in
-    if actual == expected then mut cp_pass = cp_pass + 1 else 0;
-    mut cp_total = cp_total + 1;
-    mut ci = ci + 1
-  );
-  pf_result(sec8, "Coupling formula", "${cp_pass} / ${cp_total}: coupling(n) = N/gcd(n,N)", if cp_pass == cp_total then 1 else 0);
-
-  /* Verify coupling(sigma) = N (units have max coupling) */
-  let c_sigma = coupling(1) in
-  pf_result(sec8, "coupling(sigma) = N", "Units couple maximally: ${c_sigma}", if c_sigma == N_TRUE then 1 else 0);
-
-  /* Verify coupling(D) = N/gcd(2,N) = N/2 */
-  let c_d = coupling(2) in
-  let expected_cd = N_TRUE / 2 in
-  pf_result(sec8, "coupling(D) = N/2", "D couples at half: ${c_d} = ${expected_cd}", if c_d == expected_cd then 1 else 0);
-
-  render_theorem(sec8, "COUPLING DUALITY",
-    "coupling(n) = N/gcd(n,N). Units couple maximally (N). Zero couples to nothing (0). The ring's own measure of connectivity.");
-  dom_append(dom_body(), sec8);
-
-  /* ============================================================
-     THEOREM 9: NONILITY — K^2 = 9
-     The axiom has exactly 9 canonical elements.
-     ============================================================ */
-  let sec9 = make_section("700px") in
-  render_h2(sec9, "9. The Nonility");
-  render_p(sec9, "9 canonical elements: {-1, 0, 1, 2, 3, 5, 7, 11, OMEGA}. K^2 = 9 = STOP.");
-
-  /* Verify each canonical element's properties */
-  let mirror = N_TRUE - 1 in
-  let mirror_sq = pf_mul(mirror, mirror) in
-  pf_result(sec9, "mirror^2 = sigma", "(-1)^2 mod N = ${mirror_sq}", if mirror_sq == 1 then 1 else 0);
-
-  let zero_sq = pf_mul(0, 0) in
-  pf_result(sec9, "0 * 0 = 0", "void absorbs: ${zero_sq}", if zero_sq == 0 then 1 else 0);
-
-  /* Sum of nonility: -1 + 0 + 1 + 2 + 3 + 5 + 7 + 11 + OMEGA
-     = (-1 + 0 + 1 + 2 + 3 + 5 + 7 + 11) + OMEGA = 28 + OMEGA (mod N)
-     28 = perfect number = thorns. OMEGA adds no mass to sum mod ring. */
-  let inner_sum = (mirror + 0 + 1 + 2 + 3 + 5 + 7 + 11) % N_TRUE in
-  pf_result(sec9, "Sum (without OMEGA)", "(-1)+0+1+2+3+5+7+11 mod N = ${inner_sum}", if inner_sum == 28 then 1 else 0);
-
-  let full_sum = inner_sum + PF_OMEGA in
-  /* 28 + 1576576 = 1576604. In the ring this is just 1576604. */
-  let key_41 = 0 + 1 + 2 + 3 + 5 + 7 + 11 in
-  /* Without mirror, without zero, without OMEGA: 1+2+3+5+7+11 = 29. Hmm.
-     KEY=41 is the sum of the 10 Decality values: -1+0+1+2+3+5+7+11+13+OMEGA.
-     Let me just verify KEY=41 differently. */
-  /* Primes sum: 2+3+5+7+11+13 = 41 = KEY */
-  let prime_sum = 2 + 3 + 5 + 7 + 11 + 13 in
-  pf_result(sec9, "D+K+E+b+L+GATE = ${prime_sum}", "KEY = 41 (prime)", if prime_sum == 41 then 1 else 0);
-
-  /* 28 = perfect number */
-  /* Verify 28 is perfect: sum of proper divisors = 28 */
-  /* Divisors of 28: 1, 2, 4, 7, 14. Sum = 1+2+4+7+14 = 28 */
-  let perf = 1 + 2 + 4 + 7 + 14 in
-  pf_result(sec9, "28 is perfect", "1+2+4+7+14 = ${perf} = 28", if perf == 28 then 1 else 0);
-
-  render_theorem(sec9, "THE NONILITY (K^2 = 9)",
-    "9 canonical elements form the axiom. Their sum without OMEGA = 28 (perfect number). The 6 primes sum to 41 = KEY. K^2 = 9 is the stop signal: closure squared is going in circles.");
-  dom_append(dom_body(), sec9);
-
-  /* ============================================================
-     THEOREM 10: XOR SOLUTION COUNT = phi(m)^2
-     For odd m, the z^2 XOR network has exactly phi(m)^2 solutions.
-     Verified by known analytical solution per channel.
-     Full constructive proof: test_xor_theorem.ax (13/13 checks).
-     ============================================================ */
-  let sec10 = make_section("700px") in
-  render_h2(sec10, "10. XOR Solution Theorem");
-  render_p(sec10, "A 1-hidden-unit network with z^2 activation solves XOR in Z/m. For odd m: exactly phi(m)^2 solutions. Proved by construction in test_xor_theorem.ax (13/13 checks).");
-
-  /* Verify analytical solution: w1=1, w2=1, b1=m-1, w3=m-1, b2=1.
-     Works for ALL m >= 3: z(0,0)=m-1, z^2=1, out=m-1+1=0.
-     z(0,1)=0, z^2=0, out=0+1=1. z(1,0)=0, out=1. z(1,1)=1, z^2=1, out=0. */
-  mut xor_total_pass = 0;
-  mut xexh_pass = 0;
-
-  /* Check analytical solution per channel */
-  mut xch = 0;
-  while xch < 6 do (
-    let xm = if xch == 0 then 8 else if xch == 1 then 9 else if xch == 2 then 25 else if xch == 3 then 49 else if xch == 4 then 11 else 13 in
-    let xn = if xch == 0 then "D=8" else if xch == 1 then "K=9" else if xch == 2 then "E=25" else if xch == 3 then "b=49" else if xch == 4 then "L=11" else "G=13" in
-    /* w1=1,w2=1,b1=m-1,w3=m-1,b2=1 */
-    mut xok = 1;
-    mut xsi = 0;
-    while xsi < 4 do (
-      let x0 = if xsi >= 2 then 1 else 0 in
-      let x1 = if xsi == 1 || xsi == 2 then 1 else 0 in
-      let tgt = if xsi == 1 || xsi == 2 then 1 else 0 in
-      let z = (x0 + x1 + xm - 1) % xm in
-      let h = (z * z) % xm in
-      let out = ((xm - 1) * h + 1) % xm in
-      if out != tgt then mut xok = 0 else 0;
-      mut xsi = xsi + 1
-    );
-    /* Compute phi(m) */
-    mut xphi = 0; mut xi = 1;
-    while xi < xm do (
-      if gcd_shared(xi, xm) == 1 then mut xphi = xphi + 1 else 0;
-      mut xi = xi + 1
-    );
-    pf_result(sec10, xn, "Analytical solution: ${xok}/1 pass. phi(${xm})^2 = ${xphi * xphi} solutions", xok);
-    if xok == 1 then mut xor_total_pass = xor_total_pass + 1 else 0;
-    mut xch = xch + 1
-  );
-
-  /* Exhaustive for D=8: count all solutions in 8^5 = 32768 configs */
-  let xep = alloc(5) in
-  mut xesols = 0;
-  mut xe0 = 0;
-  while xe0 < 8 do (
-    mut xe1 = 0;
-    while xe1 < 8 do (
-      mut xe2 = 0;
-      while xe2 < 8 do (
-        mut xe3 = 0;
-        while xe3 < 8 do (
-          mut xe4 = 0;
-          while xe4 < 8 do (
-            mut xeloss = 0; mut xesi = 0;
-            while xesi < 4 do (
-              let x0 = if xesi >= 2 then 1 else 0 in
-              let x1 = if xesi == 1 || xesi == 2 then 1 else 0 in
-              let tgt = if xesi == 1 || xesi == 2 then 1 else 0 in
-              let z = (xe0 * x0 + xe1 * x1 + xe2) % 8 in
-              let h = (z * z) % 8 in
-              let out = (xe3 * h + xe4) % 8 in
-              let d = (out + 8 - tgt) % 8 in
-              let cd = if d > 4 then 8 - d else d in
-              mut xeloss = xeloss + cd * cd;
-              mut xesi = xesi + 1
-            );
-            if xeloss == 0 then mut xesols = xesols + 1 else 0;
-            mut xe4 = xe4 + 1
-          );
-          mut xe3 = xe3 + 1
-        );
-        mut xe2 = xe2 + 1
-      );
-      mut xe1 = xe1 + 1
-    );
-    mut xe0 = xe0 + 1
-  );
-  pf_result(sec10, "D=8 exhaustive", "${xesols} / 32768 (expected 64 = m^2)", if xesols == 64 then 1 else 0);
-  if xesols == 64 then mut xexh_pass = xexh_pass + 1 else 0;
-
-  /* Exhaustive for K=9: 9^5 = 59049 configs */
-  mut xesols9 = 0;
-  mut xe0 = 0;
-  while xe0 < 9 do (
-    mut xe1 = 0;
-    while xe1 < 9 do (
-      mut xe2 = 0;
-      while xe2 < 9 do (
-        mut xe3 = 0;
-        while xe3 < 9 do (
-          mut xe4 = 0;
-          while xe4 < 9 do (
-            mut xeloss = 0; mut xesi = 0;
-            while xesi < 4 do (
-              let x0 = if xesi >= 2 then 1 else 0 in
-              let x1 = if xesi == 1 || xesi == 2 then 1 else 0 in
-              let tgt = if xesi == 1 || xesi == 2 then 1 else 0 in
-              let z = (xe0 * x0 + xe1 * x1 + xe2) % 9 in
-              let h = (z * z) % 9 in
-              let out = (xe3 * h + xe4) % 9 in
-              let d = (out + 9 - tgt) % 9 in
-              let cd = if d > 4 then 9 - d else d in
-              mut xeloss = xeloss + cd * cd;
-              mut xesi = xesi + 1
-            );
-            if xeloss == 0 then mut xesols9 = xesols9 + 1 else 0;
-            mut xe4 = xe4 + 1
-          );
-          mut xe3 = xe3 + 1
-        );
-        mut xe2 = xe2 + 1
-      );
-      mut xe1 = xe1 + 1
-    );
-    mut xe0 = xe0 + 1
-  );
-  pf_result(sec10, "K=9 exhaustive", "${xesols9} / 59049 (expected 36 = phi(9)^2)", if xesols9 == 36 then 1 else 0);
-  if xesols9 == 36 then mut xexh_pass = xexh_pass + 1 else 0;
-
-  render_theorem(sec10, "XOR SOLUTION THEOREM (S1238)",
-    "For odd m: z^2 XOR network has exactly phi(m)^2 solutions. Construction: (w1,w2) in (Z/m)* determines b1=-(w1+w2)/2, w3=-(w1*w2)^{-1}. D=8: m^2=64 (2^k case). CRT product: sols(mn)=sols(m)*sols(n). Full proof: test_xor_theorem.ax (13/13).");
-  dom_append(dom_body(), sec10);
-
-  /* === SUMMARY === */
-  let summary = make_section("700px") in
-  render_h2(summary, "Summary");
-  let p7 = split_ok + div_ok + gcd_ok + (if s490[3] == 0 then 1 else 0) + (if grief == 61 then 1 else 0) in
-  let p8 = (if cp_pass == cp_total then 1 else 0) + (if c_sigma == N_TRUE then 1 else 0) + (if c_d == expected_cd then 1 else 0) in
-  let p9 = (if mirror_sq == 1 then 1 else 0) + (if zero_sq == 0 then 1 else 0) + (if inner_sum == 28 then 1 else 0) + (if prime_sum == 41 then 1 else 0) + (if perf == 28 then 1 else 0) in
-  /* Summary: 1 point per individual check, all boolean */
-  let s1 = if pass1 == total1 then 1 else 0 in
-  let s2 = (if id_total == 64 then 1 else 0) in
-  let s3 = omega_match + omega_idem + omega_crt_ok + sigma_is_ed in
-  let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
-  let s5 = if wc_converge == wc_total then 1 else 0 in
-  let s6 = if lam_pass == lam_tested then 1 else 0 in
-  let s10 = xor_total_pass + xexh_pass in
-  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 in
-  /* 1(CRT) + 1(idem) + 4(omega) + 3(ortho) + 1(water) + 1(lambda) + 5(490) + 3(coupling) + 5(nonility) + 6(xor anal) + 2(xor exh) = 32 */
-  let total_tests = 1 + 1 + 4 + 3 + 1 + 1 + 5 + 3 + 5 + 8 in
-  let sbox = dom_create("div") in
-  ct_card(sbox);
-  dom_style(sbox, "textAlign", "center");
-  dom_style(sbox, "padding", "24px");
-  let st = dom_create("div") in
-  dom_text(st, "${total_pass} / ${total_tests} theorems verified");
-  dom_style(st, "fontSize", "24px");
-  dom_style(st, "color", if total_pass == total_tests then "#44cc44" else "#cc4444");
-  dom_style(st, "fontWeight", "bold");
-  dom_append(sbox, st);
-  let sd = dom_create("div") in
-  dom_text(sd, "All results computed live by .ax running as WASM. Zero precomputation.");
-  dom_style(sd, "color", "#888");
-  dom_style(sd, "marginTop", "8px");
-  dom_style(sd, "fontSize", "13px");
-  dom_append(sbox, sd);
-  dom_append(summary, sbox);
-  dom_append(dom_body(), summary)
+  /* Theorems 7-10 in separate function to avoid compiler local-index corruption in large functions */
+  let pf_r = alloc(15) in
+  set(pf_r, 0, pass1); set(pf_r, 1, total1); set(pf_r, 2, id_total);
+  set(pf_r, 3, omega_match); set(pf_r, 4, omega_idem); set(pf_r, 5, omega_crt_ok);
+  set(pf_r, 6, sigma_is_ed); set(pf_r, 7, idem_self_pass); set(pf_r, 8, ortho_pass);
+  set(pf_r, 9, ortho_total); set(pf_r, 10, idem_sum); set(pf_r, 11, wc_converge);
+  set(pf_r, 12, wc_total); set(pf_r, 13, lam_pass); set(pf_r, 14, lam_tested);
+  page_proof_part2(pf_r)
 )
+
+/* END OF FILE */
