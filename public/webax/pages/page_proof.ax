@@ -12,22 +12,34 @@ let PF_EG = 3880800
 let PF_OMEGA = 1576576
 
 /* Count idempotents in Z/m (exhaustive: test all 0..m-1) */
+/* Count idempotents in Z/m (exhaustive: test all 0..m-1). Small m only. */
 fn pf_count_idem(m) = (
   mut c = 0; mut i = 0;
   while i < m do (
-    let sq = (i * i) % m in
-    if sq == i then mut c = c + 1 else 0;
+    if (i * i) % m == i then mut c = c + 1 else 0;
     mut i = i + 1
   );
   c
 )
 
-/* CRT reconstruct from 6 channels */
+/* CRT reconstruct from 6 channels.
+   Each ri*ei < 49*11036025 = 540M < i32 max. Sum < N = 12612600. Safe. */
 fn pf_reconstruct(d, k, e, b, l, g) =
-  d * PF_ED + k * PF_EK + e * PF_EE + b * PF_EB + l * PF_EL + g * PF_EG
+  (d * PF_ED + k * PF_EK + e * PF_EE + b * PF_EB + l * PF_EL + g * PF_EG) % N_TRUE
 
 /* Decompose n into 6 CRT channels */
 fn pf_decompose(n) = [n % 8, n % 9, n % 25, n % 49, n % 11, n % 13]
+
+/* Ring multiply via CRT: decompose, multiply per-channel, reconstruct.
+   Per-channel max: 48*48=2304. No overflow. */
+fn pf_mul(a, b) = (
+  pf_reconstruct(
+    (a%8)*(b%8)%8, (a%9)*(b%9)%9, (a%25)*(b%25)%25,
+    (a%49)*(b%49)%49, (a%11)*(b%11)%11, (a%13)*(b%13)%13)
+)
+
+/* Ring add (simple mod) */
+fn pf_add(a, b) = (a + b) % N_TRUE
 
 /* Helper: display a proof result card */
 fn pf_result(parent, title:str, detail:str, ok) = (
@@ -150,17 +162,17 @@ fn page_proof() = (
   render_h2(sec3, "3. OMEGA = D^420");
   render_p(sec3, "The boundary element. Death. Idempotent projector that kills D and preserves everything else.");
 
-  /* Compute D^420 by repeated squaring */
+  /* Compute D^420 by repeated squaring mod N (using pf_mul) */
   mut d_pow = 2; mut exp = 1;
   while exp < 420 do (
-    mut d_pow = d_pow * 2;
+    mut d_pow = pf_mul(d_pow, 2);
     mut exp = exp + 1
   );
   let omega_computed = d_pow in
   let omega_match = if omega_computed == PF_OMEGA then 1 else 0 in
 
-  /* Idempotent check */
-  let om_sq = PF_OMEGA * PF_OMEGA in
+  /* Idempotent check: OMEGA * OMEGA = OMEGA (via CRT multiply) */
+  let om_sq = pf_mul(PF_OMEGA, PF_OMEGA) in
   let omega_idem = if om_sq == PF_OMEGA then 1 else 0 in
 
   /* CRT channels */
@@ -169,9 +181,9 @@ fn page_proof() = (
   let ob = ocrt[3] in let ol = ocrt[4] in let og = ocrt[5] in
   let omega_crt_ok = if od == 0 then (if ok == 1 then (if oe == 1 then (if ob == 1 then (if ol == 1 then (if og == 1 then 1 else 0) else 0) else 0) else 0) else 0) else 0 in
 
-  /* sigma = OMEGA + e_D */
-  let sigma_decomp = 1 + N_TRUE - PF_OMEGA in
-  let sigma_is_ed = if sigma_decomp == PF_ED then 1 else 0 in
+  /* sigma = OMEGA + e_D. sigma - OMEGA should equal e_D. */
+  let sigma_minus_omega = (1 + N_TRUE - PF_OMEGA) % N_TRUE in
+  let sigma_is_ed = if sigma_minus_omega == PF_ED then 1 else 0 in
 
   pf_result(sec3, "D^420 = ${omega_computed}", "Expected: 1576576", omega_match);
   pf_result(sec3, "OMEGA * OMEGA = OMEGA", "Idempotent: ${om_sq} = ${PF_OMEGA}", omega_idem);
@@ -193,23 +205,23 @@ fn page_proof() = (
   let idems = [PF_ED, PF_EK, PF_EE, PF_EB, PF_EL, PF_EG] in
   let idem_names = ["e_D", "e_K", "e_E", "e_b", "e_L", "e_G"] in
 
-  /* Check e_i * e_i = e_i */
+  /* Check e_i * e_i = e_i (using CRT ring multiply) */
   mut idem_self_pass = 0; mut ii = 0;
   while ii < 6 do (
     let ei = idems[ii] in
-    if ei * ei == ei then mut idem_self_pass = idem_self_pass + 1 else 0;
+    if pf_mul(ei, ei) == ei then mut idem_self_pass = idem_self_pass + 1 else 0;
     mut ii = ii + 1
   );
   pf_result(sec4, "Self-idempotent", "${idem_self_pass} / 6: e_i * e_i = e_i", if idem_self_pass == 6 then 1 else 0);
 
-  /* Check e_i * e_j = 0 for i != j */
+  /* Check e_i * e_j = 0 for i != j (using CRT ring multiply) */
   mut ortho_pass = 0; mut ortho_total = 0;
   mut oi = 0;
   while oi < 6 do (
     mut oj = 0;
     while oj < 6 do (
       if oi == oj then 0 else (
-        let prod = idems[oi] * idems[oj] in
+        let prod = pf_mul(idems[oi], idems[oj]) in
         mut ortho_total = ortho_total + 1;
         if prod == 0 then mut ortho_pass = ortho_pass + 1 else 0
       );
@@ -219,9 +231,9 @@ fn page_proof() = (
   );
   pf_result(sec4, "Orthogonality", "${ortho_pass} / ${ortho_total}: e_i * e_j = 0 for i != j", if ortho_pass == ortho_total then 1 else 0);
 
-  /* Check sum = sigma = 1 */
-  let idem_sum = PF_ED + PF_EK + PF_EE + PF_EB + PF_EL + PF_EG in
-  pf_result(sec4, "Completeness", "sum(e_i) = ${idem_sum}", if idem_sum == 1 then 1 else 0);
+  /* Check sum = sigma = 1 (mod N) */
+  let idem_sum = (PF_ED + PF_EK + PF_EE + PF_EB + PF_EL + PF_EG) % N_TRUE in
+  pf_result(sec4, "Completeness", "sum(e_i) mod N = ${idem_sum}", if idem_sum == 1 then 1 else 0);
 
   render_theorem(sec4, "SPECTRAL DECOMPOSITION",
     "The 6 lifting idempotents partition sigma: orthogonal (e_i * e_j = 0), self-idempotent (e_i^2 = e_i), complete (sum = 1). Every ring element decomposes uniquely.");
@@ -238,17 +250,18 @@ fn page_proof() = (
   /* Test all elements 0..2309 in the ring (interpreted as their value mod N).
      Squaring walk: n -> n^2 -> n^4 -> ... until stable.
      A fixed point satisfies x^2 = x (idempotent). */
+  /* Test in Z/2310 (THIN ring). x^2 < 2310^2 = 5.3M. Fits i32. */
   mut wc_converge = 0; mut wc_total = 2310;
   mut wi = 0;
   while wi < 2310 do (
     mut x = wi; mut steps = 0; mut done = 0;
     while done == 0 do (
-      let x2 = x * x in
+      let x2 = (x * x) % 2310 in
       if x2 == x then mut done = 1
       else (mut x = x2; mut steps = steps + 1);
       if steps > 50 then mut done = 1 else 0
     );
-    let final_sq = x * x in
+    let final_sq = (x * x) % 2310 in
     if final_sq == x then mut wc_converge = wc_converge + 1 else 0;
     mut wi = wi + 1
   );
@@ -273,11 +286,11 @@ fn page_proof() = (
     /* Check coprimality: gcd(li, N) = 1 */
     let g = gcd_shared(li, N_TRUE) in
     if g == 1 then (
-      /* Compute li^420 by repeated squaring */
+      /* Compute li^420 by repeated squaring (mod N via pf_mul) */
       mut base = li; mut result = 1; mut exp2 = 420;
       while exp2 > 0 do (
-        if exp2 % 2 == 1 then mut result = result * base else 0;
-        mut base = base * base;
+        if exp2 % 2 == 1 then mut result = pf_mul(result, base) else 0;
+        mut base = pf_mul(base, base);
         mut exp2 = exp2 / 2
       );
       mut lam_tested = lam_tested + 1;
@@ -381,18 +394,17 @@ fn page_proof() = (
 
   /* Verify each canonical element's properties */
   let mirror = N_TRUE - 1 in
-  let mirror_sq = mirror * mirror in
-  pf_result(sec9, "mirror^2 = sigma", "(-1)^2 = ${mirror_sq}", if mirror_sq == 1 then 1 else 0);
+  let mirror_sq = pf_mul(mirror, mirror) in
+  pf_result(sec9, "mirror^2 = sigma", "(-1)^2 mod N = ${mirror_sq}", if mirror_sq == 1 then 1 else 0);
 
-  let zero_sq = 0 * 0 in
+  let zero_sq = pf_mul(0, 0) in
   pf_result(sec9, "0 * 0 = 0", "void absorbs: ${zero_sq}", if zero_sq == 0 then 1 else 0);
 
   /* Sum of nonility: -1 + 0 + 1 + 2 + 3 + 5 + 7 + 11 + OMEGA
-     = (-1 + 0 + 1 + 2 + 3 + 5 + 7 + 11) + OMEGA = 28 + OMEGA
+     = (-1 + 0 + 1 + 2 + 3 + 5 + 7 + 11) + OMEGA = 28 + OMEGA (mod N)
      28 = perfect number = thorns. OMEGA adds no mass to sum mod ring. */
-  let inner_sum = mirror + 0 + 1 + 2 + 3 + 5 + 7 + 11 in
-  /* inner_sum in ring = (N-1) + 0 + 1 + 2 + 3 + 5 + 7 + 11 = N + 28 = 28 (since N=0 in ring) */
-  pf_result(sec9, "Sum (without OMEGA)", "(-1)+0+1+2+3+5+7+11 = ${inner_sum}", if inner_sum == 28 then 1 else 0);
+  let inner_sum = (mirror + 0 + 1 + 2 + 3 + 5 + 7 + 11) % N_TRUE in
+  pf_result(sec9, "Sum (without OMEGA)", "(-1)+0+1+2+3+5+7+11 mod N = ${inner_sum}", if inner_sum == 28 then 1 else 0);
 
   let full_sum = inner_sum + PF_OMEGA in
   /* 28 + 1576576 = 1576604. In the ring this is just 1576604. */
@@ -414,14 +426,166 @@ fn page_proof() = (
     "9 canonical elements form the axiom. Their sum without OMEGA = 28 (perfect number). The 6 primes sum to 41 = KEY. K^2 = 9 is the stop signal: closure squared is going in circles.");
   dom_append(dom_body(), sec9);
 
+  /* ============================================================
+     THEOREM 10: XOR SOLUTION COUNT = phi(m)^2
+     For odd m, the z^2 XOR network has exactly phi(m)^2 solutions.
+     Constructive proof: each (w1,w2) in units gives unique solution.
+     ============================================================ */
+  let sec10 = make_section("700px") in
+  render_h2(sec10, "10. XOR Solution Theorem");
+  render_p(sec10, "A 1-hidden-unit network with z^2 activation solves XOR in Z/m. For odd m: exactly phi(m)^2 solutions. Each pair (w1,w2) of units determines b1, w3, b2 uniquely.");
+
+  /* Helpers for XOR verification */
+  /* fwd: z = w1*x0 + w2*x1 + b1, h = z^2, out = w3*h + b2 */
+  /* loss: sum of squared circular distances over 4 XOR samples */
+  /* XOR: (0,0)->0, (0,1)->1, (1,0)->1, (1,1)->0 */
+
+  let xor_mods = [8, 9, 25, 49, 11, 13] in
+  let xor_names = ["D=8", "K=9", "E=25", "b=49", "L=11", "G=13"] in
+  let xor_pp = alloc(5) in
+  mut xor_total_pass = 0;
+
+  /* For each channel: construct phi(m)^2 solutions, verify each */
+  mut xch = 0;
+  while xch < 6 do (
+    let xm = xor_mods[xch] in
+    /* Compute phi(m) */
+    mut xphi = 0; mut xi = 1;
+    while xi < xm do (
+      if gcd_shared(xi, xm) == 1 then mut xphi = xphi + 1 else 0;
+      mut xi = xi + 1
+    );
+    let expected = xphi * xphi in
+    /* Find modular inverses of 2 and 4 (only valid for odd m) */
+    mut inv2 = 0; mut inv4 = 0;
+    if xm > 2 then (
+      mut ii = 1;
+      while ii < xm do (
+        if (2 * ii) % xm == 1 then mut inv2 = ii else 0;
+        if (4 * ii) % xm == 1 then mut inv4 = ii else 0;
+        mut ii = ii + 1
+      )
+    ) else 0;
+    /* Construct and verify */
+    mut xconst = 0; mut xverify = 0;
+    mut xw1 = 1;
+    while xw1 < xm do (
+      if gcd_shared(xw1, xm) == 1 then (
+        mut xw2 = 1;
+        while xw2 < xm do (
+          if gcd_shared(xw2, xm) == 1 then (
+            let xs = (xw1 + xw2) % xm in
+            let xb1 = (xm - (xs * inv2) % xm) % xm in
+            let xprod = (xw1 * xw2) % xm in
+            mut xinv_p = 0;
+            mut xj = 1;
+            while xj < xm do (
+              if (xprod * xj) % xm == 1 then mut xinv_p = xj else 0;
+              mut xj = xj + 1
+            );
+            let xw3 = (xm - xinv_p) % xm in
+            let xs2 = (xs * xs) % xm in
+            let xb2 = (xs2 * ((inv4 * xinv_p) % xm)) % xm in
+            /* Verify: forward pass on all 4 XOR samples */
+            set(xor_pp, 0, xw1); set(xor_pp, 1, xw2); set(xor_pp, 2, xb1);
+            set(xor_pp, 3, xw3); set(xor_pp, 4, xb2);
+            mut xloss = 0; mut xsi = 0;
+            while xsi < 4 do (
+              let xx0 = if xsi >= 2 then 1 else 0 in
+              let xx1 = if xsi == 1 || xsi == 2 then 1 else 0 in
+              let xy = if xsi == 1 || xsi == 2 then 1 else 0 in
+              let xz = ((xor_pp[0] * xx0 + xor_pp[1] * xx1 + xor_pp[2]) % xm + xm) % xm in
+              let xh = (xz * xz) % xm in
+              let xout = ((xor_pp[3] * xh + xor_pp[4]) % xm + xm) % xm in
+              let xd = (xout + xm - xy) % xm in
+              let xcd = if xd > xm / 2 then xm - xd else xd in
+              mut xloss = xloss + xcd * xcd;
+              mut xsi = xsi + 1
+            );
+            mut xconst = xconst + 1;
+            if xloss == 0 then mut xverify = xverify + 1 else 0
+          ) else 0;
+          mut xw2 = xw2 + 1
+        )
+      ) else 0;
+      mut xw1 = xw1 + 1
+    );
+    let xok = if xconst == expected && xverify == expected then 1 else 0 in
+    pf_result(sec10, "${xor_names[xch]}: ${xverify}/${xconst}", "phi(${xm})^2 = ${expected}", xok);
+    if xok == 1 then mut xor_total_pass = xor_total_pass + 1 else 0;
+    mut xch = xch + 1
+  );
+
+  /* Exhaustive cross-check for D=8 and K=9 */
+  mut xexh_pass = 0;
+  mut xexh_ch = 0;
+  while xexh_ch < 2 do (
+    let xem = if xexh_ch == 0 then 8 else 9 in
+    let xename = if xexh_ch == 0 then "D=8" else "K=9" in
+    mut xesols = 0;
+    mut xe0 = 0;
+    while xe0 < xem do (
+      mut xe1 = 0;
+      while xe1 < xem do (
+        mut xe2 = 0;
+        while xe2 < xem do (
+          mut xe3 = 0;
+          while xe3 < xem do (
+            mut xe4 = 0;
+            while xe4 < xem do (
+              set(xor_pp, 0, xe0); set(xor_pp, 1, xe1); set(xor_pp, 2, xe2);
+              set(xor_pp, 3, xe3); set(xor_pp, 4, xe4);
+              mut xeloss = 0; mut xesi = 0;
+              while xesi < 4 do (
+                let xx0 = if xesi >= 2 then 1 else 0 in
+                let xx1 = if xesi == 1 || xesi == 2 then 1 else 0 in
+                let xy = if xesi == 1 || xesi == 2 then 1 else 0 in
+                let xz = ((xor_pp[0] * xx0 + xor_pp[1] * xx1 + xor_pp[2]) % xem + xem) % xem in
+                let xh = (xz * xz) % xem in
+                let xout = ((xor_pp[3] * xh + xor_pp[4]) % xem + xem) % xem in
+                let xd = (xout + xem - xy) % xem in
+                let xcd = if xd > xem / 2 then xem - xd else xd in
+                mut xeloss = xeloss + xcd * xcd;
+                mut xesi = xesi + 1
+              );
+              if xeloss == 0 then mut xesols = xesols + 1 else 0;
+              mut xe4 = xe4 + 1
+            );
+            mut xe3 = xe3 + 1
+          );
+          mut xe2 = xe2 + 1
+        );
+        mut xe1 = xe1 + 1
+      );
+      mut xe0 = xe0 + 1
+    );
+    let xe_exp = if xexh_ch == 0 then 64 else 36 in
+    let xe_ok = if xesols == xe_exp then 1 else 0 in
+    pf_result(sec10, "${xename} exhaustive: ${xesols}", "Expected: ${xe_exp}", xe_ok);
+    if xe_ok == 1 then mut xexh_pass = xexh_pass + 1 else 0;
+    mut xexh_ch = xexh_ch + 1
+  );
+
+  render_theorem(sec10, "XOR SOLUTION THEOREM (S1238)",
+    "For odd m: z^2 XOR network has exactly phi(m)^2 solutions. Construction: (w1,w2) in (Z/m)* determines b1=-(w1+w2)/2, w3=-(w1*w2)^{-1}. D=8: m^2=64 (2^k case). CRT product: sols(mn)=sols(m)*sols(n).");
+  dom_append(dom_body(), sec10);
+
   /* === SUMMARY === */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
   let p7 = split_ok + div_ok + gcd_ok + (if s490[3] == 0 then 1 else 0) + (if grief == 61 then 1 else 0) in
   let p8 = (if cp_pass == cp_total then 1 else 0) + (if c_sigma == N_TRUE then 1 else 0) + (if c_d == expected_cd then 1 else 0) in
   let p9 = (if mirror_sq == 1 then 1 else 0) + (if zero_sq == 0 then 1 else 0) + (if inner_sum == 28 then 1 else 0) + (if prime_sum == 41 then 1 else 0) + (if perf == 28 then 1 else 0) in
-  let total_pass = pass1 + (if id_total == 64 then 1 else 0) + omega_match + omega_idem + omega_crt_ok + sigma_is_ed + (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) + (if wc_converge == wc_total then 1 else 0) + (if lam_pass == lam_tested then 1 else 0) + p7 + p8 + p9 in
-  let total_tests = 11 + 5 + 3 + 5 in
+  /* Summary: 1 point per individual check, all boolean */
+  let s1 = if pass1 == total1 then 1 else 0 in
+  let s2 = (if id_total == 64 then 1 else 0) in
+  let s3 = omega_match + omega_idem + omega_crt_ok + sigma_is_ed in
+  let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
+  let s5 = if wc_converge == wc_total then 1 else 0 in
+  let s6 = if lam_pass == lam_tested then 1 else 0 in
+  let s10 = xor_total_pass + xexh_pass in
+  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 in
+  let total_tests = 1 + 1 + 4 + 3 + 1 + 1 + 5 + 3 + 5 + 8 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
