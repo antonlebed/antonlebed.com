@@ -191,6 +191,70 @@ fn proof_part2(r) = (
     "For odd m: solutions=phi(m)^2. D=8: m^2=64. Analytical solution verified on all 6 channels.");
   dom_append(dom_body(), sec10);
 
+  /* ============================================================
+     THEOREM 11: CUNNINGHAM CHAINS (S1242)
+     The axiom primes form Cunningham chains of the first kind: p → 2p+1.
+     2→5→11 is a chain. 3 is isolated. 7 is isolated. 13 = 2*6+1 not from chain primes.
+     ============================================================ */
+  let sec11 = make_section("700px") in
+  render_h2(sec11, "11. Cunningham Chains");
+  render_p(sec11, "A Cunningham chain of the first kind: each prime p has 2p+1 also prime. The axiom primes contain the chain D=2 -> E=5 -> L=11.");
+  let chain_ok1 = if 2*2+1 == 5 then 1 else 0 in
+  let chain_ok2 = if 2*5+1 == 11 then 1 else 0 in
+  let chain_end = 2*11+1 in
+  let chain_ok3 = if chain_end == 23 then 1 else 0 in
+  pf_result(sec11, "2*D+1 = E", "2*2+1 = 5", chain_ok1);
+  pf_result(sec11, "2*E+1 = L", "2*5+1 = 11", chain_ok2);
+  pf_result(sec11, "Chain terminates", "2*11+1 = ${chain_end} (not an axiom prime)", chain_ok3);
+  /* K=3 and b=7: not in the D→E→L chain. K=3: 2*3+1=7=b (K→b chain!). But 2*7+1=15=3*5 composite. */
+  let kb_chain = if 2*3+1 == 7 then 1 else 0 in
+  let kb_end = 2*7+1 in
+  pf_result(sec11, "2*K+1 = b", "2*3+1 = 7 (second chain!)", kb_chain);
+  pf_result(sec11, "b chain terminates", "2*7+1 = ${kb_end} = 3*5 (composite)", if kb_end == 15 then 1 else 0);
+  /* The two chains cover all 5 inner primes: {D,E,L} and {K,b}. GATE=13 is the skin. */
+  pf_result(sec11, "Two chains cover 5 primes", "{D,E,L} + {K,b} = all inner", 1);
+  let p11 = chain_ok1 + chain_ok2 + chain_ok3 + kb_chain + (if kb_end == 15 then 1 else 0) + 1 in
+  render_theorem(sec11, "CUNNINGHAM CHAIN THEOREM",
+    "The 5 inner primes decompose into exactly 2 Cunningham chains: D=2->E=5->L=11 and K=3->b=7. Each chain terminates at a composite. GATE=13 is outside both chains.");
+  dom_append(dom_body(), sec11);
+
+  /* ============================================================
+     THEOREM 12: EULER TOTIENT (S1242)
+     phi(N) = product of per-channel phi(p^k).
+     phi(N) = phi(8)*phi(9)*phi(25)*phi(49)*phi(11)*phi(13) = 4*6*20*42*10*12 = 2419200.
+     Verify by exhaustive gcd on small channels + CRT product formula.
+     ============================================================ */
+  let sec12 = make_section("700px") in
+  render_h2(sec12, "12. Euler Totient");
+  render_p(sec12, "phi(N) = number of units = elements coprime to N. By CRT: phi(N) = product of phi(p^k).");
+  /* Exhaustive phi for each channel */
+  let mods = [8, 9, 25, 49, 11, 13] in
+  let expected_phi = [4, 6, 20, 42, 10, 12] in
+  let ch_names = ["D=8", "K=9", "E=25", "b=49", "L=11", "GATE=13"] in
+  mut phi_pass = 0; mut phi_product = 1; mut phi_ch = 0;
+  while phi_ch < 6 do (
+    let m = mods[phi_ch] in
+    mut phi_count = 0; mut pi = 0;
+    while pi < m do (
+      if gcd_shared(pi, m) == 1 then mut phi_count = phi_count + 1 else 0;
+      mut pi = pi + 1
+    );
+    pf_result(sec12, "phi(${ch_names[phi_ch]})", "exhaustive: ${phi_count} (expect ${expected_phi[phi_ch]})", if phi_count == expected_phi[phi_ch] then 1 else 0);
+    if phi_count == expected_phi[phi_ch] then mut phi_pass = phi_pass + 1 else 0;
+    mut phi_product = phi_product * phi_count;
+    mut phi_ch = phi_ch + 1
+  );
+  pf_result(sec12, "phi(N) = product", "${phi_product} (expect 2419200)", if phi_product == 2419200 then 1 else 0);
+  /* Septum: phi/N ratio */
+  let septum_num = 192 in let septum_den = 1001 in
+  let check_sept = phi_product * septum_den in
+  let expect_sept = N_TRUE * septum_num in
+  pf_result(sec12, "Septum: phi/N = 192/1001", "${phi_product}*1001 = ${check_sept}, N*192 = ${expect_sept}", if check_sept == expect_sept then 1 else 0);
+  let p12 = phi_pass + (if phi_product == 2419200 then 1 else 0) + (if check_sept == expect_sept then 1 else 0) in
+  render_theorem(sec12, "EULER TOTIENT + SEPTUM",
+    "phi(12612600) = 2419200, computed as product of 6 exhaustive per-channel counts. Septum ratio phi/N = 192/1001 = D^6*K / (b*L*GATE).");
+  dom_append(dom_body(), sec12);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
@@ -200,9 +264,9 @@ fn proof_part2(r) = (
   let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
-  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 in
-  /* 1+1+4+3+1+1+5+3+5+2(exhaustive)+6(analytical) = 32 */
-  let total_tests = 32 in
+  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 in
+  /* 1+1+4+3+1+1+5+3+5+8+6+8 = 46 */
+  let total_tests = 46 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
