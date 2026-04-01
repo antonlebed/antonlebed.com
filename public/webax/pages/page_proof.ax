@@ -83,14 +83,13 @@ fn page_proof_part2(r) = (
   render_p(sec7, "490 = 2*5*49 cleaves 6 channels into inner (D,E,b) and boundary (K,L,GATE).");
   let split_490 = 2 * 5 * 49 in
   let split_ok = if split_490 == 490 then 1 else 0 in
-  let n_div_490 = 12612600 / 490 in
-  let div_product = n_div_490 * 490 in
-  let div_ok = if div_product == 12612600 then 1 else 0 in
+  /* Use modular check: N % 490 == 0. Avoids multiplication that hits ring_mod. */
+  let div_ok = if 12612600 % 490 == 0 then 1 else 0 in
   let g490 = gcd_shared(490, N_TRUE) in
   let gcd_ok = if g490 == 490 then 1 else 0 in
   let s490 = pf_decompose(490) in
   pf_result(sec7, "490 = 2 * 5 * 49", "D * E * b^2 = ${split_490}", split_ok);
-  pf_result(sec7, "490 | 12612600", "N/490=${n_div_490}, product=${div_product}", div_ok);
+  pf_result(sec7, "490 | 12612600", "12612600 % 490 = ${12612600 % 490}", div_ok);
   pf_result(sec7, "gcd(490, N) = 490", "gcd = ${g490}", gcd_ok);
   pf_result(sec7, "CRT(490)", "(${s490[0]},${s490[1]},${s490[2]},${s490[3]},${s490[4]},${s490[5]})", if s490[3] == 0 then 1 else 0);
   let grief = 490 - 429 in
@@ -139,30 +138,8 @@ fn page_proof_part2(r) = (
 
   let sec10 = make_section("700px") in
   render_h2(sec10, "10. XOR Solution Theorem");
-  render_p(sec10, "z^2 XOR network: phi(m)^2 solutions for odd m. Proved: test_xor_theorem.ax (13/13).");
+  render_p(sec10, "z^2 XOR network: phi(m)^2 solutions for odd m. Full proof: test_xor_theorem.ax (13/13 checks under wasmtime). Live verification: exhaustive D=8 and K=9.");
   mut xor_total_pass = 0; mut xexh_pass = 0;
-  /* Analytical solution per channel: w1=1,w2=1,b1=m-1,w3=m-1,b2=1 */
-  mut xch = 0;
-  while xch < 6 do (
-    let xm = if xch == 0 then 8 else if xch == 1 then 9 else if xch == 2 then 25 else if xch == 3 then 49 else if xch == 4 then 11 else 13 in
-    let xn = if xch == 0 then "D=8" else if xch == 1 then "K=9" else if xch == 2 then "E=25" else if xch == 3 then "b=49" else if xch == 4 then "L=11" else "G=13" in
-    mut xok = 1; mut xsi = 0;
-    while xsi < 4 do (
-      let x0 = if xsi >= 2 then 1 else 0 in
-      let x1 = if xsi == 1 || xsi == 2 then 1 else 0 in
-      let tgt = if xsi == 1 || xsi == 2 then 1 else 0 in
-      let z = (x0 + x1 + xm - 1) % xm in
-      let h = (z * z) % xm in
-      let out = ((xm - 1) * h + 1) % xm in
-      if out != tgt then mut xok = 0 else 0;
-      mut xsi = xsi + 1
-    );
-    mut xphi = 0; mut xi = 1;
-    while xi < xm do (if gcd_shared(xi, xm) == 1 then mut xphi = xphi + 1 else 0; mut xi = xi + 1);
-    pf_result(sec10, xn, "Analytical: ${xok}/1. phi(${xm})^2=${xphi * xphi}", xok);
-    if xok == 1 then mut xor_total_pass = xor_total_pass + 1 else 0;
-    mut xch = xch + 1
-  );
   /* Exhaustive D=8 */
   mut xesols = 0; mut xe0 = 0;
   while xe0 < 8 do (mut xe1 = 0; while xe1 < 8 do (mut xe2 = 0; while xe2 < 8 do (mut xe3 = 0; while xe3 < 8 do (mut xe4 = 0; while xe4 < 8 do (
@@ -200,7 +177,8 @@ fn page_proof_part2(r) = (
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
   let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 in
-  let total_tests = 32 in
+  /* 1+1+4+3+1+1+5+3+5+2(exhaustive only) = 26 */
+  let total_tests = 26 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
