@@ -1,10 +1,333 @@
-/* page_arc.ax -- ARC-AGI Solver (STRIPPED S1210).
-   ARC-AGI is BACKBURNER (S1200). Stripped 565L/32fns -> stub.
-   Full code in git ea8383ea. Restores when Cloudflare limit relaxed. */
+/* page_arc.ax -- ARC-AGI Solver. CC0 demo kill.
+   32 primitives + composition search. Canvas grid rendering.
+   Absorbed from arc_demo.html (565L JS scaffolding).
+   RESTORED S1240 from git ea8383ea (was stripped S1210 for monolith size). */
 
-fn page_arc() = (
-  dom_head_meta("description", "ARC-AGI Solver. CRT composition search. 32 primitives. Zero training. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"ARC-AGI Solver\",\"description\":\"ARC-AGI puzzle solver using CRT composition search. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/arc\"}");
+/* ===== ARC COLOR PALETTE (10 standard colors) ===== */
+fn arc_color(v) = (
+  if v == 0 then "#000000"
+  else if v == 1 then "#0074D9"
+  else if v == 2 then "#FF4136"
+  else if v == 3 then "#2ECC40"
+  else if v == 4 then "#FFDC00"
+  else if v == 5 then "#AAAAAA"
+  else if v == 6 then "#F012BE"
+  else if v == 7 then "#FF851B"
+  else if v == 8 then "#7FDBFF"
+  else "#B10DC9"
+)
+
+/* ===== CELL SIZE from max grid dimension ===== */
+fn arc_cell_sz(t) = (
+  let m1 = if t[0] > t[1] then t[0] else t[1] in
+  let m2 = if t[2] > t[3] then t[2] else t[3] in
+  let maxd = if m1 > m2 then m1 else m2 in
+  if maxd < 4 then 28 else if maxd < 7 then 20 else 14
+)
+
+/* ===== DRAW GRID on a new canvas element, append to parent ===== */
+fn arc_draw_el(parent, g, rows, cols, sz) = (
+  let cvs = dom_create("canvas") in
+  let _s = cvs_setsize(cvs, cols * sz, rows * sz) in
+  dom_style(cvs, "borderRadius", "3px");
+  let ctx = cvs_getctx(cvs) in
+  mut r = 0;
+  while r < rows do (
+    mut c = 0;
+    while c < cols do (
+      let _fs = cvs_fillstyle(ctx, arc_color(g[r * cols + c])) in
+      let _fr = cvs_fillrect(ctx, c * sz, r * sz, sz, sz) in
+      let _ss = cvs_strokestyle(ctx, "#333333") in
+      let _sr = cvs_strokerect(ctx, c * sz, r * sz, sz, sz) in
+      mut c = c + 1
+    );
+    mut r = r + 1
+  );
+  dom_append(parent, cvs)
+)
+
+/* ===== ARRAY HELPERS ===== */
+fn arc_slice(arr, off, n) = (
+  mut out = [];
+  mut i = 0;
+  while i < n do (
+    mut out = push(out, arr[off + i]);
+    mut i = i + 1
+  );
+  out
+)
+
+fn arc_eq(a, b) = (
+  if len(a) == len(b) then (
+    mut ok = 1;
+    mut i = 0;
+    while i < len(a) do (
+      if a[i] == b[i] then 0 else mut ok = 0;
+      mut i = i + 1
+    );
+    ok
+  ) else 0
+)
+
+/* ===== GRID TRANSFORMS (flat arrays, row-major) ===== */
+fn arc_hflip(g, rows, cols) = (
+  mut out = [];
+  mut r = 0;
+  while r < rows do (
+    mut c = 0;
+    while c < cols do (
+      mut out = push(out, g[r * cols + (cols - 1 - c)]);
+      mut c = c + 1
+    );
+    mut r = r + 1
+  );
+  out
+)
+
+fn arc_vflip(g, rows, cols) = (
+  mut out = [];
+  mut r = 0;
+  while r < rows do (
+    mut c = 0;
+    while c < cols do (
+      mut out = push(out, g[(rows - 1 - r) * cols + c]);
+      mut c = c + 1
+    );
+    mut r = r + 1
+  );
+  out
+)
+
+fn arc_rot90(g, rows, cols) = (
+  /* CW: output[c][rows-1-r] = input[r][c]. Output dims: cols x rows */
+  mut out = [];
+  mut nr = 0;
+  while nr < cols do (
+    mut nc = 0;
+    while nc < rows do (
+      mut out = push(out, g[(rows - 1 - nc) * cols + nr]);
+      mut nc = nc + 1
+    );
+    mut nr = nr + 1
+  );
+  out
+)
+
+fn arc_tile(g, rows, cols, nr, nc) = (
+  mut out = [];
+  mut tr = 0;
+  while tr < rows * nr do (
+    mut tc = 0;
+    while tc < cols * nc do (
+      mut out = push(out, g[(tr % rows) * cols + (tc % cols)]);
+      mut tc = tc + 1
+    );
+    mut tr = tr + 1
+  );
+  out
+)
+
+fn arc_mirror4(g, rows, cols) = (
+  let h = arc_hflip(g, rows, cols) in
+  let v = arc_vflip(g, rows, cols) in
+  let vh = arc_hflip(v, rows, cols) in
+  mut out = [];
+  mut r = 0;
+  while r < rows * 2 do (
+    let lr = r % rows in
+    mut c = 0;
+    while c < cols * 2 do (
+      let lc = c % cols in
+      let val = if r < rows then (
+        if c < cols then vh[lr * cols + lc] else v[lr * cols + lc]
+      ) else (
+        if c < cols then h[lr * cols + lc] else g[lr * cols + lc]
+      ) in
+      mut out = push(out, val);
+      mut c = c + 1
+    );
+    mut r = r + 1
+  );
+  out
+)
+
+fn arc_cmap(g, from, to) = (
+  mut out = [];
+  mut i = 0;
+  while i < len(g) do (
+    mut out = push(out, if g[i] == from then to else g[i]);
+    mut i = i + 1
+  );
+  out
+)
+
+/* ===== TASK DATA [ir, ic, or, oc, n_train, grids...] ===== */
+/* Grid order per task: train_0_in, train_0_out, ..., test_in, test_out */
+
+fn arc_t0() = [3,3,3,3,2, 1,0,0,0,2,0,0,0,3, 0,0,1,0,2,0,3,0,0, 4,5,0,0,0,6,7,0,0, 0,5,4,6,0,0,0,0,7, 8,0,1,0,3,0,2,0,0, 1,0,8,0,3,0,0,0,2]
+
+fn arc_t1() = [2,2,2,2,2, 1,2,3,4, 3,1,4,2, 5,6,7,8, 7,5,8,6, 9,1,2,3, 2,9,3,1]
+
+fn arc_t2() = [2,2,4,4,2, 1,2,3,4, 1,2,1,2,3,4,3,4,1,2,1,2,3,4,3,4, 5,6,7,8, 5,6,5,6,7,8,7,8,5,6,5,6,7,8,7,8, 9,1,2,3, 9,1,9,1,2,3,2,3,9,1,9,1,2,3,2,3]
+
+fn arc_t3() = [3,3,3,3,2, 1,1,0,0,1,0,0,0,0, 3,3,0,0,3,0,0,0,0, 0,0,1,1,1,1,0,1,0, 0,0,3,3,3,3,0,3,0, 1,0,1,0,0,0,1,0,0, 3,0,3,0,0,0,3,0,0]
+
+fn arc_t4() = [3,4,6,8,2, 6,2,4,2,2,2,6,6,6,4,2,4, 4,2,4,6,6,4,2,4,6,6,2,2,2,2,6,6,2,4,2,6,6,2,4,2,2,4,2,6,6,2,4,2,6,6,2,2,2,2,6,6,4,2,4,6,6,4,2,4, 5,5,9,9,9,5,5,5,5,7,5,7, 7,5,7,5,5,7,5,7,5,5,5,9,9,5,5,5,9,9,5,5,5,5,9,9,9,9,5,5,5,5,9,9,5,5,5,9,9,5,5,5,7,5,7,5,5,7,5,7, 8,5,7,8,7,7,8,8,5,5,8,5, 5,8,5,5,5,5,8,5,8,8,7,7,7,7,8,8,8,7,5,8,8,5,7,8,8,7,5,8,8,5,7,8,8,8,7,7,7,7,8,8,5,8,5,5,5,5,8,5]
+
+fn arc_t5() = [2,2,6,6,2, 8,6,6,4, 8,6,8,6,8,6,6,4,6,4,6,4,6,8,6,8,6,8,4,6,4,6,4,6,8,6,8,6,8,6,6,4,6,4,6,4, 7,9,4,3, 7,9,7,9,7,9,4,3,4,3,4,3,9,7,9,7,9,7,3,4,3,4,3,4,7,9,7,9,7,9,4,3,4,3,4,3, 3,2,7,8, 3,2,3,2,3,2,7,8,7,8,7,8,2,3,2,3,2,3,8,7,8,7,8,7,3,2,3,2,3,2,7,8,7,8,7,8]
+
+fn arc_t6() = [3,3,3,3,3, 4,4,4,0,0,0,0,0,0, 4,4,5,5,5,5,5,5,5, 0,0,0,0,4,0,0,0,0, 5,5,5,5,4,5,5,5,5, 0,0,0,0,0,0,4,4,4, 5,5,5,5,5,5,5,4,4, 0,0,4,0,0,0,0,0,0, 5,5,4,5,5,5,5,5,5]
+
+fn arc_task_data(n) = (
+  if n == 0 then arc_t0() else if n == 1 then arc_t1() else if n == 2 then arc_t2()
+  else if n == 3 then arc_t3() else if n == 4 then arc_t4() else if n == 5 then arc_t5()
+  else arc_t6()
+)
+
+fn arc_task_name(n) = (
+  if n == 0 then "Horizontal Flip"
+  else if n == 1 then "Rotate 90 CW"
+  else if n == 2 then "2x2 Tile"
+  else if n == 3 then "Color Swap (1 to 3)"
+  else if n == 4 then "Mirror 4-Fold"
+  else if n == 5 then "Alternating Tile"
+  else "Fill Expand"
+)
+
+/* ===== SOLVER ===== */
+fn arc_apply(g, ir, ic, prim) = (
+  if prim == 0 then g
+  else if prim == 1 then arc_hflip(g, ir, ic)
+  else if prim == 2 then arc_vflip(g, ir, ic)
+  else if prim == 3 then arc_rot90(g, ir, ic)
+  else arc_hflip(arc_vflip(g, ir, ic), ir, ic)
+)
+
+fn arc_check_prim(t, prim) = (
+  let ir = t[0] in let ic = t[1] in let orow = t[2] in let oc = t[3] in
+  let pr = if prim == 3 then ic else ir in
+  let pc = if prim == 3 then ir else ic in
+  if pr == orow then if pc == oc then (
+    let nt = t[4] in let isz = ir * ic in let osz = orow * oc in let stride = isz + osz in
+    mut ok = 1;
+    mut i = 0;
+    while i < nt do (
+      let inp = arc_slice(t, 5 + i * stride, isz) in
+      let expected = arc_slice(t, 5 + i * stride + isz, osz) in
+      if arc_eq(arc_apply(inp, ir, ic, prim), expected) == 0 then mut ok = 0 else 0;
+      mut i = i + 1
+    );
+    ok
+  ) else 0 else 0
+)
+
+fn arc_check_big(t, mode) = (
+  let ir = t[0] in let ic = t[1] in let orow = t[2] in let oc = t[3] in
+  if orow > ir then if oc > ic then (
+    let nr = orow / ir in let nc = oc / ic in
+    if nr * ir == orow then if nc * ic == oc then (
+      if mode == 2 then (if nr == 2 then if nc == 2 then 1 else 0 else 0)
+      else (
+        let nt = t[4] in let isz = ir * ic in let osz = orow * oc in let stride = isz + osz in
+        mut ok = 1;
+        mut i = 0;
+        while i < nt do (
+          let inp = arc_slice(t, 5 + i * stride, isz) in
+          let expected = arc_slice(t, 5 + i * stride + isz, osz) in
+          let pred = if mode == 0 then arc_tile(inp, ir, ic, nr, nc) else inp in
+          if arc_eq(pred, expected) == 0 then mut ok = 0 else 0;
+          mut i = i + 1
+        );
+        ok
+      )
+    ) else 0 else 0
+  ) else 0 else 0
+)
+
+fn arc_check_m4(t) = (
+  let ir = t[0] in let ic = t[1] in let orow = t[2] in let oc = t[3] in
+  if orow == ir * 2 then if oc == ic * 2 then (
+    let nt = t[4] in let isz = ir * ic in let osz = orow * oc in let stride = isz + osz in
+    mut ok = 1;
+    mut i = 0;
+    while i < nt do (
+      let inp = arc_slice(t, 5 + i * stride, isz) in
+      let expected = arc_slice(t, 5 + i * stride + isz, osz) in
+      if arc_eq(arc_mirror4(inp, ir, ic), expected) == 0 then mut ok = 0 else 0;
+      mut i = i + 1
+    );
+    ok
+  ) else 0 else 0
+)
+
+fn arc_check_cmap(t) = (
+  let ir = t[0] in let ic = t[1] in let orow = t[2] in let oc = t[3] in
+  if ir == orow then if ic == oc then (
+    let nt = t[4] in let isz = ir * ic in let osz = orow * oc in let stride = isz + osz in
+    mut found = 99;
+    mut from = 0;
+    while from < 10 do (
+      mut to = 0;
+      while to < 10 do (
+        if from == to then 0 else if found < 99 then 0 else (
+          mut ok = 1;
+          mut i = 0;
+          while i < nt do (
+            let inp = arc_slice(t, 5 + i * stride, isz) in
+            let expected = arc_slice(t, 5 + i * stride + isz, osz) in
+            if arc_eq(arc_cmap(inp, from, to), expected) == 0 then mut ok = 0 else 0;
+            mut i = i + 1
+          );
+          if ok == 1 then mut found = from * 10 + to else 0
+        );
+        mut to = to + 1
+      );
+      mut from = from + 1
+    );
+    found
+  ) else 99 else 99
+)
+
+fn arc_solve(tidx) = (
+  let t = arc_task_data(tidx) in
+  mut found = 99;
+  mut p = 0;
+  while p < 5 do (
+    if found < 99 then 0
+    else if arc_check_prim(t, p) == 1 then mut found = p else 0;
+    mut p = p + 1
+  );
+  if found < 99 then found
+  else if arc_check_big(t, 0) == 1 then 10
+  else if arc_check_m4(t) == 1 then 12
+  else (
+    let cm = arc_check_cmap(t) in
+    if cm < 99 then 20 + cm else 99
+  )
+)
+
+fn arc_predict(tidx, sr) = (
+  let t = arc_task_data(tidx) in
+  let ir = t[0] in let ic = t[1] in let nt = t[4] in
+  let isz = ir * ic in let osz = t[2] * t[3] in
+  let test_in = arc_slice(t, 5 + nt * (isz + osz), isz) in
+  if sr < 5 then arc_apply(test_in, ir, ic, sr)
+  else if sr == 10 then arc_tile(test_in, ir, ic, t[2] / ir, t[3] / ic)
+  else if sr == 12 then arc_mirror4(test_in, ir, ic)
+  else if sr > 19 then arc_cmap(test_in, (sr - 20) / 10, (sr - 20) % 10)
+  else []
+)
+
+fn arc_solver_name(r) = (
+  if r == 0 then "identity" else if r == 1 then "hflip" else if r == 2 then "vflip"
+  else if r == 3 then "rot90" else if r == 4 then "rot180" else if r == 10 then "tile"
+  else if r == 12 then "mirror 4-fold" else if r > 19 then "color map" else "UNSOLVED"
+)
+
+/* ===== HERO ===== */
+fn arc_hero() = (
+  dom_head_meta("description", "ARC-AGI puzzle solver. 32 primitives + composition search. Zero training. Zero neural nets. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"ARC-AGI Solver\",\"description\":\"Solve abstract reasoning puzzles with 32 primitives and composition search. Zero training. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/arc\"}");
   let hero = make_hero("ARC-AGI Solver") in
   let eq = dom_create("div") in
   dom_text(eq, "32 primitives vs 175 billion parameters");
@@ -12,11 +335,232 @@ fn page_arc() = (
   dom_style(eq, "fontSize", "18px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "ARC-AGI work is currently on hold. The CRT composition search scored 0.0045 (2/183 levels). The ring shows promise but needs deeper exploration before competing on general intelligence benchmarks.");
-  dom_append(dom_body(), hero);
+  render_p(hero, "ARC-AGI: 800 abstract reasoning puzzles. Each has training examples showing input grids mapped to output grids. Given a new input, predict the output. No two puzzles use the same rule. This page runs a real solver in your browser, using canvas to render the colored grids.");
+  dom_append(dom_body(), hero)
+)
+
+/* ===== PIPELINE ===== */
+fn arc_pipeline() = (
   let sec = make_section("800px") in
-  render_h2(sec, "Prior Art");
-  render_p(sec, "32 primitives + composition search. Zero training data. Zero neural networks. CRT decompose handled 77% of solvable eval tasks. Score: 61/800 (7.6%) on the public set. CC0 1.0 Universal.");
-  render_theorem(sec, "Preserved", "Full solver (565L, 32 functions, interactive canvas, GPU benchmarks, 7 embedded tasks) preserved in git history. Will be restored.");
+  render_h2(sec, "The Pipeline");
+  render_theorem(sec, "Structure vs Scale", "The scaling approach: train a billion-parameter model on millions of examples. Cost: hundreds of millions in compute. The axiom approach: 32 simple primitives + composition search. Cost: zero. Runs in your browser. No training data. Current score: 61/800 (7.6%). CRT decompose+recombine alone gets 77% of eval correct tasks.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Stage"); render_th(hdr, "Method"); render_th(hdr, "Search Space");
+  dom_append(tbl, hdr);
+  render_table_row(tbl, "1. SANDPILE", "32 primitives, depth-2", "~1024 compositions");
+  render_table_row(tbl, "2. SPLIT+XOR", "CRT decompose-recombine", "Binary layer ops");
+  render_table_row(tbl, "3. LEVEL-K", "Neighborhood patterns", "Local rules");
+  render_table_row(tbl, "4. CONSTANT", "Output = fixed", "1 check");
+  render_p(sec, "This demo implements Stage 1 with 7 primitives (flip, rotate, tile, mirror, color map). Tasks 5-6 show the solver's limits: they need specialized transforms not in our basic set.");
   dom_append(dom_body(), sec)
+)
+
+/* ===== TASK LIST ===== */
+fn arc_tasks_list() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Embedded Tasks");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "#"); render_th(hdr, "Name"); render_th(hdr, "Size"); render_th(hdr, "Status");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "0", "Horizontal Flip", "3x3 to 3x3", "Solvable");
+  render_table_row_4(tbl, "1", "Rotate 90 CW", "2x2 to 2x2", "Solvable");
+  render_table_row_4(tbl, "2", "2x2 Tile", "2x2 to 4x4", "Solvable");
+  render_table_row_4(tbl, "3", "Color Swap", "3x3 to 3x3", "Solvable");
+  render_table_row_4(tbl, "4", "Mirror 4-Fold", "3x4 to 6x8", "Solvable");
+  render_table_row_4(tbl, "5", "Alternating Tile", "2x2 to 6x6", "Unsolvable");
+  render_table_row_4(tbl, "6", "Fill Expand", "3x3 to 3x3", "Unsolvable");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== SHOW GRID PAIR: label + input -> output ===== */
+fn arc_show_pair(parent, label, in_g, ir, ic, out_g, orow, oc, sz) = (
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "alignItems", "center");
+  dom_style(row, "gap", "8px");
+  dom_style(row, "margin", "6px 0");
+  let lbl = dom_create("span") in
+  dom_text(lbl, label); dom_style(lbl, "color", "#888");
+  dom_style(lbl, "minWidth", "65px"); ct_mono(lbl);
+  dom_append(row, lbl);
+  arc_draw_el(row, in_g, ir, ic, sz);
+  let arr = dom_create("span") in
+  dom_text(arr, " => "); ct_gold(arr); ct_mono(arr);
+  dom_append(row, arr);
+  arc_draw_el(row, out_g, orow, oc, sz);
+  dom_append(parent, row)
+)
+
+/* ===== LOAD TASK CALLBACK ===== */
+fn arc_load() = (
+  let tidx = parse_int_from("#arc-inp") in
+  if tidx > 6 then dom_inner(dom_query("#arc-display"), "<p style='color:#ff6666'>Enter 0-6.</p>")
+  else (
+    let t = arc_task_data(tidx) in
+    let ir = t[0] in let ic = t[1] in let orow = t[2] in let oc = t[3] in
+    let nt = t[4] in let isz = ir * ic in let osz = orow * oc in let stride = isz + osz in
+    let sz = arc_cell_sz(t) in
+    let display = dom_query("#arc-display") in
+    dom_inner(display, "");
+    /* Task name */
+    let nm = dom_create("div") in
+    dom_text(nm, "Task ${tidx}: " + arc_task_name(tidx));
+    ct_gold(nm); ct_mono(nm); dom_style(nm, "marginBottom", "8px");
+    dom_append(display, nm);
+    /* Training examples */
+    mut i = 0;
+    while i < nt do (
+      let in_g = arc_slice(t, 5 + i * stride, isz) in
+      let out_g = arc_slice(t, 5 + i * stride + isz, osz) in
+      arc_show_pair(display, "Train ${i + 1}:", in_g, ir, ic, out_g, orow, oc, sz);
+      mut i = i + 1
+    );
+    /* Test row */
+    let trow = dom_create("div") in
+    dom_style(trow, "display", "flex"); dom_style(trow, "alignItems", "center");
+    dom_style(trow, "gap", "8px"); dom_style(trow, "marginTop", "12px");
+    let tlbl = dom_create("span") in
+    dom_text(tlbl, "Test:"); dom_style(tlbl, "color", "#fb0");
+    dom_style(tlbl, "minWidth", "65px"); ct_mono(tlbl);
+    dom_append(trow, tlbl);
+    arc_draw_el(trow, arc_slice(t, 5 + nt * stride, isz), ir, ic, sz);
+    let ta = dom_create("span") in
+    dom_text(ta, " => "); ct_gold(ta); ct_mono(ta);
+    dom_append(trow, ta);
+    let pred = dom_create("span") in
+    dom_attr(pred, "id", "arc-pred"); dom_text(pred, "?");
+    dom_style(pred, "color", "#555"); dom_style(pred, "fontSize", "28px"); ct_mono(pred);
+    dom_append(trow, pred);
+    let eqs = dom_create("span") in
+    dom_text(eqs, " ?= "); dom_style(eqs, "color", "#666"); ct_mono(eqs);
+    dom_append(trow, eqs);
+    arc_draw_el(trow, arc_slice(t, 5 + nt * stride + isz, osz), orow, oc, sz);
+    dom_append(display, trow);
+    dom_inner(dom_query("#arc-result"), "")
+  )
+)
+
+/* ===== SOLVE CALLBACK ===== */
+fn arc_do_solve() = (
+  let tidx = parse_int_from("#arc-inp") in
+  if tidx > 6 then 0
+  else (
+    let sr = arc_solve(tidx) in
+    let pred_el = dom_query("#arc-pred") in
+    let result_el = dom_query("#arc-result") in
+    if sr == 99 then (
+      dom_inner(pred_el, ""); dom_text(pred_el, "X");
+      dom_style(pred_el, "color", "#ff4444"); dom_style(pred_el, "fontSize", "28px");
+      dom_inner(result_el, "<div style='color:#ff4444;font-family:monospace;margin:8px 0'>UNSOLVED. Basic primitives cannot crack this task. Needs the full 32-primitive pipeline.</div>")
+    ) else (
+      let t = arc_task_data(tidx) in
+      let orow = t[2] in let oc = t[3] in let sz = arc_cell_sz(t) in
+      let pred_g = arc_predict(tidx, sr) in
+      let nt = t[4] in let isz = t[0] * t[1] in let osz = orow * oc in
+      let test_out = arc_slice(t, 5 + nt * (isz + osz) + isz, osz) in
+      let correct = arc_eq(pred_g, test_out) in
+      dom_inner(pred_el, "");
+      arc_draw_el(pred_el, pred_g, orow, oc, sz);
+      let clr = if correct == 1 then "#2ECC40" else "#ff4444" in
+      let msg = if correct == 1 then "CORRECT" else "WRONG" in
+      dom_inner(result_el, "<div style='color:" + clr + ";font-family:monospace;margin:8px 0'>" + msg + " (solver: " + arc_solver_name(sr) + ")</div>")
+    )
+  )
+)
+
+/* ===== INTERACTIVE SECTION ===== */
+fn arc_interactive() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Live Solver");
+  render_p(sec, "Enter a task number (0-6). Load to see the puzzle. Solve to watch the solver try primitives. Each colored grid is rendered on HTML5 Canvas via .ax WASM imports.");
+  let ctrl = dom_create("div") in
+  dom_style(ctrl, "display", "flex"); dom_style(ctrl, "alignItems", "center");
+  dom_style(ctrl, "gap", "8px"); dom_style(ctrl, "margin", "12px 0");
+  let inp = dom_create("input") in
+  dom_attr(inp, "id", "arc-inp"); dom_attr(inp, "value", "0"); dom_attr(inp, "type", "text");
+  dom_style(inp, "width", "40px"); dom_style(inp, "padding", "6px");
+  dom_style(inp, "background", "#1a1a2e"); dom_style(inp, "color", "#eee");
+  dom_style(inp, "border", "1px solid #333"); dom_style(inp, "borderRadius", "4px");
+  ct_mono(inp); dom_append(ctrl, inp);
+  let lb = dom_create("button") in
+  dom_text(lb, "Load Task"); dom_style(lb, "padding", "6px 16px"); dom_style(lb, "cursor", "pointer");
+  dom_on(lb, "click", "arc_load"); dom_append(ctrl, lb);
+  let sb = dom_create("button") in
+  dom_text(sb, "Solve"); dom_style(sb, "padding", "6px 16px"); dom_style(sb, "cursor", "pointer");
+  dom_on(sb, "click", "arc_do_solve"); dom_append(ctrl, sb);
+  dom_append(sec, ctrl);
+  let display = dom_create("div") in
+  dom_attr(display, "id", "arc-display"); dom_append(sec, display);
+  let result = dom_create("div") in
+  dom_attr(result, "id", "arc-result"); dom_append(sec, result);
+  dom_append(dom_body(), sec);
+  arc_load()
+)
+
+/* ===== GPU BENCHMARK HANDLERS ===== */
+fn arc_gpu_add() = gpu_bench(0, 100000, dom_query("#arc-gpu-add"))
+fn arc_gpu_mul() = gpu_bench(1, 100000, dom_query("#arc-gpu-mul"))
+fn arc_gpu_eig() = gpu_bench(2, 100000, dom_query("#arc-gpu-eig"))
+
+/* ===== GPU SEARCH SECTION ===== */
+fn arc_gpu_section() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "GPU-Accelerated Composition Search (WebGPU)");
+  if gpu_init() == 1 then (
+    render_p(sec, "WebGPU detected. CRT composition search maps to GPU: each primitive's effect on a grid can be computed per-channel independently. 100,000 ring elements dispatched per benchmark.");
+    let mk_btn = fn(label) = (
+      let b = dom_create("button") in
+      dom_text(b, label);
+      dom_style(b, "background", "#ffd700"); dom_style(b, "color", "#0f0f2a");
+      dom_style(b, "border", "none"); dom_style(b, "padding", "10px 20px");
+      dom_style(b, "borderRadius", "6px"); dom_style(b, "cursor", "pointer");
+      dom_style(b, "fontWeight", "bold"); dom_style(b, "fontSize", "13px");
+      dom_style(b, "marginRight", "8px"); dom_style(b, "marginBottom", "8px"); b
+    ) in
+    let b1 = mk_btn("Ring Add (grid ops)") in
+    let b2 = mk_btn("CRT Multiply (composition)") in
+    let b3 = mk_btn("Eigenvalue (scoring)") in
+    let r1 = dom_create("div") in dom_attr(r1, "id", "arc-gpu-add");
+    let r2 = dom_create("div") in dom_attr(r2, "id", "arc-gpu-mul");
+    let r3 = dom_create("div") in dom_attr(r3, "id", "arc-gpu-eig");
+    dom_on(b1, "click", "arc_gpu_add");
+    dom_on(b2, "click", "arc_gpu_mul");
+    dom_on(b3, "click", "arc_gpu_eig");
+    dom_append(sec, b1); dom_append(sec, b2); dom_append(sec, b3);
+    dom_append(sec, r1); dom_append(sec, r2); dom_append(sec, r3);
+    render_p(sec, "CRT decomposition turns each 1024-composition search into 6 independent sub-searches. GPU parallelism × CRT channel independence = multiplicative speedup. Ring Add = grid transform accumulation. CRT Multiply = composition scoring. Eigenvalue = solution ranking.")
+  ) else (
+    render_p(sec, "WebGPU not available in this browser. Use Chrome 113+ or Edge 113+ to run GPU-accelerated composition search benchmarks. The CPU solver above still works.")
+  );
+  dom_append(dom_body(), sec)
+)
+
+/* ===== CONTRAST TABLE ===== */
+fn arc_contrast() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Structure vs Scale");
+  let ctbl = make_table(sec) in
+  let chdr = dom_create("tr") in
+  render_th(chdr, "Aspect"); render_th(chdr, "Neural Scaling"); render_th(chdr, "Axiom Approach");
+  dom_append(ctbl, chdr);
+  render_contrast_row(ctbl, "Parameters", "175B+ (GPT-4)", "32 primitives");
+  render_contrast_row(ctbl, "Training data", "Millions of examples", "Zero");
+  render_contrast_row(ctbl, "Compute cost", "$100M+", "$0 (runs in browser)");
+  render_contrast_row(ctbl, "Best public ARC", "~50%", "7.6% (61/800)");
+  render_contrast_row(ctbl, "Key insight", "Pattern matching at scale", "CRT decompose = 77% of eval");
+  render_contrast_row(ctbl, "License", "Proprietary", "CC0 public domain");
+  render_p(sec, "CC0 1.0 Universal. No Rights Reserved. ARC-AGI solver is public domain prior art. 32 primitives. Composition search. Zero training data. Zero neural networks.");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== MAIN ===== */
+fn page_arc() = (
+  arc_hero();
+  arc_pipeline();
+  arc_tasks_list();
+  arc_interactive();
+  arc_gpu_section();
+  arc_contrast()
 )
