@@ -176,9 +176,9 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
     cvs_put_pixel: function(c,x,y,rgb) { var C=_dom[c]; if(C){C.fillStyle='#'+('000000'+(rgb>>>0).toString(16)).slice(-6);C.fillRect(x,y,1,1);} return 0; },
     cvs_blit: function(h,p,w,h2) { var c=_dom[h]; if(!c)return 0; var d=c.createImageData(w,h2),D=d.data,M=new Int32Array(mem.buffer),B=p/4+1; for(var i=0;i<w*h2;i++){var r=M[B+i],j=i*4;D[j]=r>>16&255;D[j+1]=r>>8&255;D[j+2]=r&255;D[j+3]=255;}c.putImageData(d,0,0);return 0; },
     cvs_get_pixel: function(c,x,y) { var C=_dom[c]; if(!C)return 0; var d=C.getImageData(x,y,1,1).data; return(d[0]<<16)|(d[1]<<8)|d[2]; },
-    aud_osc: function(t) { if(!_aud){_aud=new AudioContext();_aud.resume();} var o=_aud.createOscillator(),g=_aud.createGain(); o.type=['sine','square','sawtooth','triangle'][t&3]; o.connect(g);g.connect(_aud.destination);g.gain.value=0;o.start(); _osc.push({o:o,g:g});return _osc.length-1; },
-    aud_freq: function(h,f) { if(_osc[h])_osc[h].o.frequency.value=f; return 0; },
-    aud_gain: function(h,p) { if(_osc[h])_osc[h].g.gain.value=p/100; return 0; },
+    aud_osc: function(t) { if(!_aud){_aud=new AudioContext();_aud.resume();} var o=_aud.createOscillator(),g=_aud.createGain(); o.type=['sine','square','sawtooth','triangle'][t&3]; o.connect(g);g.connect(_aud.destination);g.gain.value=0;o.start(); _osc.push({o:o,g:g});return _osc.length; },
+    aud_freq: function(h,f) { if(_osc[h-1])_osc[h-1].o.frequency.value=f; return 0; },
+    aud_gain: function(h,p) { if(_osc[h-1])_osc[h-1].g.gain.value=p/100; return 0; },
     gpu_init: function() { return _gpuOk; },
     gpu_bench: function(op,count,tgt) { if(!_gpuD){var e=_dom[tgt];if(e)e.innerHTML='<p style="color:#ff6666">No WebGPU</p>';return 0;} (async function(){var N=count,d=_gpuD,M=12612600;var a=new Uint32Array(N),b=new Uint32Array(N);for(var i=0;i<N;i++){a[i]=(i*12637+41)%M;b[i]=(i*7919+137)%M;}var ws='@group(0)@binding(0)var<storage,read>A:array<u32>;@group(0)@binding(1)var<storage,read>B:array<u32>;@group(0)@binding(2)var<storage,read_write>O:array<u32>;@compute@workgroup_size(256)fn main(@builtin(global_invocation_id)g:vec3u){let i=g.x;if(i>=arrayLength(&A)){return;}';if(op==0)ws+='O[i]=(A[i]+B[i])%12612600u;';else if(op==1)ws+='let r0=(A[i]%8u)*(B[i]%8u)%8u;let r1=(A[i]%9u)*(B[i]%9u)%9u;let r2=(A[i]%25u)*(B[i]%25u)%25u;let r3=(A[i]%49u)*(B[i]%49u)%49u;let r4=(A[i]%11u)*(B[i]%11u)%11u;let r5=(A[i]%13u)*(B[i]%13u)%13u;O[i]=(r0*11036025u+r1*1401400u+r2*9585576u+r3*8494200u+r4*3439800u+r5*3880800u)%12612600u;';else ws+='O[i]=((A[i]%8u)*(A[i]%8u)+(A[i]%9u)*(A[i]%9u)+(A[i]%25u)*(A[i]%25u))%12612600u;';ws+='}';var sm=d.createShaderModule({code:ws});var bg=d.createBindGroupLayout({entries:[{binding:0,visibility:4,buffer:{type:'read-only-storage'}},{binding:1,visibility:4,buffer:{type:'read-only-storage'}},{binding:2,visibility:4,buffer:{type:'storage'}}]});var pl=d.createComputePipeline({layout:d.createPipelineLayout({bindGroupLayouts:[bg]}),compute:{module:sm,entryPoint:'main'}});var bA=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bA.getMappedRange()).set(a);bA.unmap();var bB=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bB.getMappedRange()).set(b);bB.unmap();var bO=d.createBuffer({size:N*4,usage:140});var bR=d.createBuffer({size:N*4,usage:9});var grp=d.createBindGroup({layout:bg,entries:[{binding:0,resource:{buffer:bA}},{binding:1,resource:{buffer:bB}},{binding:2,resource:{buffer:bO}}]});var e2=d.createCommandEncoder();var p2=e2.beginComputePass();p2.setPipeline(pl);p2.setBindGroup(0,grp);p2.dispatchWorkgroups(Math.ceil(N/256));p2.end();d.queue.submit([e2.finish()]);await d.queue.onSubmittedWorkDone();var t0=performance.now();e2=d.createCommandEncoder();p2=e2.beginComputePass();p2.setPipeline(pl);p2.setBindGroup(0,grp);p2.dispatchWorkgroups(Math.ceil(N/256));p2.end();e2.copyBufferToBuffer(bO,0,bR,0,N*4);d.queue.submit([e2.finish()]);await d.queue.onSubmittedWorkDone();var gms=performance.now()-t0;await bR.mapAsync(1);var res=new Uint32Array(bR.getMappedRange().slice(0));bR.unmap();t0=performance.now();var cpu=new Uint32Array(N);for(var i=0;i<N;i++){if(op==0)cpu[i]=(a[i]+b[i])%M;else if(op==1)cpu[i]=Number(BigInt(a[i])*BigInt(b[i])%BigInt(M));else{var v=a[i];cpu[i]=((v%8)*(v%8)+(v%9)*(v%9)+(v%25)*(v%25))%M;}}var cms=performance.now()-t0;var ok=0;for(var i=0;i<Math.min(N,1000);i++)if(res[i]==cpu[i])ok++;var el=_dom[tgt];if(el)el.innerHTML='<div style="background:#0a0a18;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0"><p style="color:#ffd700;margin:0 0 4px">'+['Ring Add','CRT Multiply','Eigenvalue'][op]+': '+N+' elements</p><p style="color:#88ddaa;margin:2px 0">GPU: '+gms.toFixed(2)+'ms | CPU: '+cms.toFixed(2)+'ms | Speedup: '+(cms/gms).toFixed(1)+'x</p><p style="color:'+(ok>=1000?'#44ff88':'#ff4444')+';margin:2px 0">Verified: '+ok+'/1000</p></div>';bA.destroy();bB.destroy();bO.destroy();bR.destroy();})();return 0; },
     get_category: function() {
@@ -193,7 +193,7 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
       if (_spaInited) return 0;
       _spaInited = true;
       var f = rs(fnp);
-      function _spaClean() { _rafActive = false; for (var i = _spaBase + 1; i <= _domId; i++) delete _dom[i]; _domId = _spaBase; _qc = {}; }
+      function _spaClean() { _rafActive = false; for(var j=0;j<_osc.length;j++){try{_osc[j].o.stop();}catch(e){}} _osc=[]; if(_aud){_aud.close();_aud=null;} for (var i = _spaBase + 1; i <= _domId; i++) delete _dom[i]; _domId = _spaBase; _qc = {}; }
       document.addEventListener('click', function(e) {
         var a = e.target.closest('a[href]');
         if (!a) return;
@@ -238,7 +238,9 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
     _valuePtr = nw.instance.exports.js_alloc(1024);
     _catPtr = nw.instance.exports.js_alloc(256);
     _currentModule = mod;
-    if (nw.instance.exports.route_only) nw.instance.exports.route_only();
+    document.body.innerHTML = '';
+    _dom = {0: document.body}; _domId = 0; _spaBase = 0;
+    nw.instance.exports._main();
     _arenaSave();
   }
   /* Arena allocator: reset heap before each handler call (S1233).
