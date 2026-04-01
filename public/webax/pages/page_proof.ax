@@ -41,6 +41,43 @@ fn pf_mul(a, b) = (
 fn pf_add(a, b) = (a + b) % N_TRUE
 
 /* Helper: display a proof result card */
+/* Theorem summary card with PASS/FAIL indicator. pass=checks passed, total=checks expected. */
+fn pf_theorem(parent, title:str, detail:str, pass, total) = (
+  let card = dom_create("div") in
+  ct_card(card);
+  dom_style(card, "marginBottom", "16px");
+  let ok = if pass == total then 1 else 0 in
+  dom_style(card, "borderLeft", if ok == 1 then "3px solid #44cc44" else "3px solid #cc4444");
+  let st = dom_create("span") in
+  dom_text(st, if ok == 1 then "PASS  " else "FAIL  ");
+  dom_style(st, "color", if ok == 1 then "#44cc44" else "#cc4444");
+  dom_style(st, "fontFamily", "Courier New, monospace");
+  dom_style(st, "fontWeight", "bold");
+  dom_append(card, st);
+  let cnt = dom_create("span") in
+  dom_text(cnt, "${pass}/${total}  ");
+  dom_style(cnt, "color", "#888");
+  dom_style(cnt, "fontFamily", "Courier New, monospace");
+  dom_style(cnt, "fontSize", "13px");
+  dom_append(card, cnt);
+  let t = dom_create("div") in
+  dom_text(t, title);
+  ct_gold(t);
+  dom_style(t, "fontSize", "14px");
+  dom_style(t, "textTransform", "uppercase");
+  dom_style(t, "letterSpacing", "2px");
+  dom_style(t, "marginTop", "6px");
+  dom_style(t, "marginBottom", "8px");
+  dom_append(card, t);
+  let b = dom_create("div") in
+  dom_text(b, detail);
+  dom_style(b, "color", "#a0a0b0");
+  dom_style(b, "fontSize", "13px");
+  dom_style(b, "lineHeight", "1.6");
+  dom_append(card, b);
+  dom_append(parent, card)
+)
+
 fn pf_result(parent, title:str, detail:str, ok) = (
   let card = dom_create("div") in
   ct_card(card);
@@ -95,8 +132,8 @@ fn proof_part2(r) = (
   let grief = 490 - 429 in
   pf_result(sec7, "490 - 429 = ${grief}", "GRIEF = 61", if grief == 61 then 1 else 0);
   let p7 = split_ok + div_ok + gcd_ok + (if s490[3] == 0 then 1 else 0) + (if grief == 61 then 1 else 0) in
-  render_theorem(sec7, "HOLOGRAPHIC SPLIT",
-    "490 = D*E*b^2 divides N. Splits 6 channels into DEAD (D,E,b) and ALIVE (K,L,GATE). 490-429=61=GRIEF.");
+  pf_theorem(sec7, "HOLOGRAPHIC SPLIT",
+    "490 = D*E*b^2 divides N. Splits 6 channels into DEAD (D,E,b) and ALIVE (K,L,GATE). 490-429=61=GRIEF.", p7, 5);
   dom_append(dom_body(), sec7);
 
   let sec8 = make_section("700px") in
@@ -116,7 +153,7 @@ fn proof_part2(r) = (
   let expected_cd = N_TRUE / 2 in
   pf_result(sec8, "coupling(D) = N/2", "${c_d}=${expected_cd}", if c_d == expected_cd then 1 else 0);
   let p8 = (if cp_pass == cp_total then 1 else 0) + (if c_sigma == N_TRUE then 1 else 0) + (if c_d == expected_cd then 1 else 0) in
-  render_theorem(sec8, "COUPLING DUALITY", "coupling(n)=N/gcd(n,N). Units couple maximally.");
+  pf_theorem(sec8, "COUPLING DUALITY", "coupling(n)=N/gcd(n,N). Units couple maximally.", p8, 3);
   dom_append(dom_body(), sec8);
 
   let sec9 = make_section("700px") in
@@ -133,7 +170,7 @@ fn proof_part2(r) = (
   let perf = 1 + 2 + 4 + 7 + 14 in
   pf_result(sec9, "28 is perfect", "1+2+4+7+14=${perf}", if perf == 28 then 1 else 0);
   let p9 = (if mirror_sq == 1 then 1 else 0) + 1 + (if inner_sum == 28 then 1 else 0) + (if prime_sum == 41 then 1 else 0) + (if perf == 28 then 1 else 0) in
-  render_theorem(sec9, "THE NONILITY (K^2 = 9)", "9 elements. Sum=28 (perfect). Primes sum=41=KEY.");
+  pf_theorem(sec9, "THE NONILITY (K^2 = 9)", "9 elements. Sum=28 (perfect). Primes sum=41=KEY.", p9, 5);
   dom_append(dom_body(), sec9);
 
   let sec10 = make_section("700px") in
@@ -187,8 +224,8 @@ fn proof_part2(r) = (
     mut xan_ch = xan_ch + 1
   );
   let s10 = xor_total_pass + xexh_pass + xan_pass in
-  render_theorem(sec10, "XOR SOLUTION THEOREM (S1238)",
-    "For odd m: solutions=phi(m)^2. D=8: m^2=64. Analytical solution verified on all 6 channels.");
+  pf_theorem(sec10, "XOR SOLUTION THEOREM (S1238)",
+    "For odd m: solutions=phi(m)^2. D=8: m^2=64. Analytical solution verified on all 6 channels.", s10, 8);
   dom_append(dom_body(), sec10);
 
   /* ============================================================
@@ -214,8 +251,8 @@ fn proof_part2(r) = (
   /* The two chains cover all 5 inner primes: {D,E,L} and {K,b}. GATE=13 is the skin. */
   pf_result(sec11, "Two chains cover 5 primes", "{D,E,L} + {K,b} = all inner", 1);
   let p11 = chain_ok1 + chain_ok2 + chain_ok3 + kb_chain + (if kb_end == 15 then 1 else 0) + 1 in
-  render_theorem(sec11, "CUNNINGHAM CHAIN THEOREM",
-    "The 5 inner primes decompose into exactly 2 Cunningham chains: D=2->E=5->L=11 and K=3->b=7. Each chain terminates at a composite. GATE=13 is outside both chains.");
+  pf_theorem(sec11, "CUNNINGHAM CHAIN THEOREM",
+    "The 5 inner primes decompose into exactly 2 Cunningham chains: D=2->E=5->L=11 and K=3->b=7. Each chain terminates at a composite. GATE=13 is outside both chains.", p11, 6);
   dom_append(dom_body(), sec11);
 
   /* ============================================================
@@ -253,8 +290,8 @@ fn proof_part2(r) = (
   let sept_ok = if sept_a == sept_b then (if sept_rem_a == 0 then (if sept_rem_b == 0 then 1 else 0) else 0) else 0 in
   pf_result(sec12, "Septum: phi/N = 192/1001", "phi/192 = ${sept_a}, N/1001 = ${sept_b} (both = 12600, exact)", sept_ok);
   let p12 = phi_pass + (if phi_product == 2419200 then 1 else 0) + sept_ok in
-  render_theorem(sec12, "EULER TOTIENT + SEPTUM",
-    "phi(12612600) = 2419200, computed as product of 6 exhaustive per-channel counts. Septum ratio phi/N = 192/1001 = D^6*K / (b*L*GATE).");
+  pf_theorem(sec12, "EULER TOTIENT + SEPTUM",
+    "phi(12612600) = 2419200, computed as product of 6 exhaustive per-channel counts. Septum ratio phi/N = 192/1001 = D^6*K / (b*L*GATE).", p12, 8);
   dom_append(dom_body(), sec12);
 
   /* Summary */
@@ -345,8 +382,8 @@ fn page_proof() = (
   let total1 = n_test + 10 in
   pf_result(sec1, "CRT Round-Trip", "${pass1} / ${total1} elements: decompose -> reconstruct = identity", if pass1 == total1 then 1 else 0);
 
-  render_theorem(sec1, "CRT RECONSTRUCTION THEOREM",
-    "For all n in Z/12612600: n = sum(n mod p_i^k_i * e_i) mod N, where e_i are the 6 lifting idempotents. Verified on 2000 consecutive + 10 strategic elements.");
+  pf_theorem(sec1, "CRT RECONSTRUCTION THEOREM",
+    "For all n in Z/12612600: n = sum(n mod p_i^k_i * e_i) mod N, where e_i are the 6 lifting idempotents. Verified on 2000 consecutive + 10 strategic elements.", if pass1 == total1 then 1 else 0, 1);
   dom_append(dom_body(), sec1);
 
   /* ============================================================
@@ -372,8 +409,8 @@ fn page_proof() = (
   pf_result(sec2, "Z/13 (GATE-channel)", "${id_g} idempotents in 13 elements", if id_g == 2 then 1 else 0);
   pf_result(sec2, "Total: ${id_total}", "${id_d} x ${id_k} x ${id_e} x ${id_b} x ${id_l} x ${id_g} = ${id_total}", if id_total == 64 then 1 else 0);
 
-  render_theorem(sec2, "BODY PROJECTION THEOREM",
-    "Z/12612600 has exactly 2^6 = 64 idempotents. Each channel Z/p^k contributes exactly 2 (0 and 1). Exhaustive verification on all 115 channel elements.");
+  pf_theorem(sec2, "BODY PROJECTION THEOREM",
+    "Z/12612600 has exactly 2^6 = 64 idempotents. Each channel Z/p^k contributes exactly 2 (0 and 1). Exhaustive verification on all 115 channel elements.", if id_total == 64 then 1 else 0, 1);
   dom_append(dom_body(), sec2);
 
   /* ============================================================
@@ -411,8 +448,9 @@ fn page_proof() = (
   pf_result(sec3, "CRT(OMEGA) = (${od},${ok},${oe},${ob},${ol},${og})", "Expected: (0,1,1,1,1,1)", omega_crt_ok);
   pf_result(sec3, "sigma - OMEGA = e_D", "${sigma_decomp} = ${PF_ED}", sigma_is_ed);
 
-  render_theorem(sec3, "OMEGA THEOREM",
-    "OMEGA = D^420 = 1576576. CRT = (0,1,1,1,1,1). Kills D-channel, preserves rest. sigma = OMEGA + e_D: existence = terminal + duality.");
+  let s3_ok = omega_match + omega_idem + omega_crt_ok + sigma_is_ed in
+  pf_theorem(sec3, "OMEGA THEOREM",
+    "OMEGA = D^420 = 1576576. CRT = (0,1,1,1,1,1). Kills D-channel, preserves rest. sigma = OMEGA + e_D: existence = terminal + duality.", s3_ok, 4);
   dom_append(dom_body(), sec3);
 
   /* ============================================================
@@ -456,8 +494,9 @@ fn page_proof() = (
   let idem_sum = (PF_ED + PF_EK + PF_EE + PF_EB + PF_EL + PF_EG) % N_TRUE in
   pf_result(sec4, "Completeness", "sum(e_i) mod N = ${idem_sum}", if idem_sum == 1 then 1 else 0);
 
-  render_theorem(sec4, "SPECTRAL DECOMPOSITION",
-    "The 6 lifting idempotents partition sigma: orthogonal (e_i * e_j = 0), self-idempotent (e_i^2 = e_i), complete (sum = 1). Every ring element decomposes uniquely.");
+  let s4_ok = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
+  pf_theorem(sec4, "SPECTRAL DECOMPOSITION",
+    "The 6 lifting idempotents partition sigma: orthogonal (e_i * e_j = 0), self-idempotent (e_i^2 = e_i), complete (sum = 1). Every ring element decomposes uniquely.", s4_ok, 3);
   dom_append(dom_body(), sec4);
 
   /* ============================================================
@@ -494,8 +533,8 @@ fn page_proof() = (
   );
   pf_result(sec5, "Fixed points", "${wc_converge} / ${wc_total} converge to idempotent (${wc_idem} idempotents in Z/2310)", if wc_converge > 0 then 1 else 0);
 
-  render_theorem(sec5, "WATER CYCLE",
-    "In Z/2310 (THIN ring): repeated squaring sends every element into a cycle. ${wc_converge} of ${wc_total} elements reach an idempotent fixed point. ${wc_idem} idempotents exist (2^5=32 for squarefree 2310). Rest enter periodic orbits.");
+  pf_theorem(sec5, "WATER CYCLE",
+    "In Z/2310 (THIN ring): repeated squaring sends every element into a cycle. ${wc_converge} of ${wc_total} elements reach an idempotent fixed point.", if wc_converge > 0 then 1 else 0, 1);
   dom_append(dom_body(), sec5);
 
   /* ============================================================
@@ -527,8 +566,8 @@ fn page_proof() = (
   );
   pf_result(sec6, "a^420 = 1", "${lam_pass} / ${lam_tested} units verified", if lam_pass == lam_tested then 1 else 0);
 
-  render_theorem(sec6, "UNIVERSAL HEARTBEAT",
-    "lambda(12612600) = 420 = lcm(2, 6, 20, 42, 10, 12). Every unit a satisfies a^420 = 1. The ring breathes in 420-step cycles.");
+  pf_theorem(sec6, "UNIVERSAL HEARTBEAT",
+    "lambda(12612600) = 420 = lcm(2, 6, 20, 42, 10, 12). Every unit a satisfies a^420 = 1. The ring breathes in 420-step cycles.", if lam_pass == lam_tested then 1 else 0, 1);
   dom_append(dom_body(), sec6);
 
   /* Theorems 7-10 in separate function to avoid compiler local-index corruption in large functions */
