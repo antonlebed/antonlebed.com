@@ -245,12 +245,14 @@ fn proof_part2(r) = (
     mut phi_ch = phi_ch + 1
   );
   pf_result(sec12, "phi(N) = product", "${phi_product} (expect 2419200)", if phi_product == 2419200 then 1 else 0);
-  /* Septum: phi/N ratio */
-  let septum_num = 192 in let septum_den = 1001 in
-  let check_sept = phi_product * septum_den in
-  let expect_sept = N_TRUE * septum_num in
-  pf_result(sec12, "Septum: phi/N = 192/1001", "${phi_product}*1001 = ${check_sept}, N*192 = ${expect_sept}", if check_sept == expect_sept then 1 else 0);
-  let p12 = phi_pass + (if phi_product == 2419200 then 1 else 0) + (if check_sept == expect_sept then 1 else 0) in
+  /* Septum: phi/N = 192/1001. Verify via division (overflow-safe, phi*1001 > i32 max). */
+  let sept_a = phi_product / 192 in
+  let sept_b = N_TRUE / 1001 in
+  let sept_rem_a = phi_product - sept_a * 192 in
+  let sept_rem_b = N_TRUE - sept_b * 1001 in
+  let sept_ok = if sept_a == sept_b then (if sept_rem_a == 0 then (if sept_rem_b == 0 then 1 else 0) else 0) else 0 in
+  pf_result(sec12, "Septum: phi/N = 192/1001", "phi/192 = ${sept_a}, N/1001 = ${sept_b} (both = 12600, exact)", sept_ok);
+  let p12 = phi_pass + (if phi_product == 2419200 then 1 else 0) + sept_ok in
   render_theorem(sec12, "EULER TOTIENT + SEPTUM",
     "phi(12612600) = 2419200, computed as product of 6 exhaustive per-channel counts. Septum ratio phi/N = 192/1001 = D^6*K / (b*L*GATE).");
   dom_append(dom_body(), sec12);
