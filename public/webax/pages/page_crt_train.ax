@@ -715,17 +715,34 @@ fn page_crt_train() = (
   render_p(secg, "Each operation runs as a WGSL compute shader with 6 CRT channels. Ring Add = forward pass accumulation. CRT Multiply = block-diagonal gradient step. Eigenvalue = convergence check. All verified against CPU.");
   dom_append(dom_body(), secg);
 
-  /* === SEC 6: IMPLEMENTATION === */
+  /* === SEC 6: f64 TRAINING (S1244) === */
   let sec6 = make_section("800px") in
-  render_h2(sec6, "Implementation");
-  render_p(sec6, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 118 parameters (33 standard + 85 CRT). Training: SGD, lr=0.15, ReLU activation. All math fits in 32-bit integers.");
+  render_h2(sec6, "f64 Training: Beyond Fixed-Point");
+  render_p(sec6, "The demo above uses fixed-point integer arithmetic (scale 1000). With native WASI f64 support (S1243), .ax now supports real floating-point training: sigmoid activation, MSE loss, batch gradient descent.");
+  let pre6 = dom_create("pre") in
+  dom_text(pre6, "NETWORK: 2 -> 2 -> 1 (sigmoid, 9 parameters)\nACTIVATION: sigmoid(x) = 1/(1+exp(-x)) -- Taylor series, native WASM\nLOSS: MSE = sum((output - target)^2)\nOPTIMIZER: batch SGD, lr=2.0\n\nRESULT (test_float_xor.ax):\n  epoch 0     loss = 1.029\n  epoch 2000  loss = 0.001\n  epoch 6000  loss = 0.000\n\n  (0,0) -> 0.009  pred=0  target=0\n  (0,1) -> 0.992  pred=1  target=1\n  (1,0) -> 0.992  pred=1  target=1\n  (1,1) -> 0.008  pred=0  target=0\n  Accuracy: 4/4");
+  dom_style(pre6, "background", "#0a0a1a");
+  dom_style(pre6, "padding", "16px");
+  dom_style(pre6, "borderRadius", "4px");
+  dom_style(pre6, "overflow", "auto");
+  dom_style(pre6, "fontSize", "0.85em");
+  dom_style(pre6, "lineHeight", "1.6");
+  dom_style(pre6, "color", "#ccc");
+  dom_append(sec6, pre6);
+  render_p(sec6, "Two paradigms, same problem. Fixed-point (above): integer arithmetic, ring-native, CRT-decomposable into 6 independent channels. f64: standard ML, sigmoid activation, continuous gradients. Both solve XOR. The CRT approach adds channel independence and L=11 ECC for free. The f64 approach enables standard activations (sigmoid, tanh) and real-valued optimization. MNIST training is blocked by WASI arena (no free); XOR proves the f64 path works.");
+  dom_append(dom_body(), sec6);
+
+  /* === SEC 7: IMPLEMENTATION === */
+  let sec7 = make_section("800px") in
+  render_h2(sec7, "Implementation");
+  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 118 parameters (33 standard + 85 CRT). Training: SGD, lr=0.15, ReLU activation. All math fits in 32-bit integers. f64 training verified separately under WASI (test_float_xor.ax).");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/living/ai");
   dom_style(link, "color", "#ff9900");
   dom_style(link, "display", "block");
   dom_style(link, "marginTop", "16px");
-  dom_append(sec6, link);
-  dom_append(dom_body(), sec6);
+  dom_append(sec7, link);
+  dom_append(dom_body(), sec7);
   0
 )
