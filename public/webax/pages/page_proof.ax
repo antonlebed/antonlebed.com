@@ -400,6 +400,64 @@ fn proof_part2(r) = (
     "The sequence {1,2,3,5,9,13,13,19} counts distinct Carmichael lambdas per ring level. GATE is a fixed point. ESCAPE cracks the plateau: 6 new values = phi(17) times the 6 distinct odd parts of the 13 existing lambdas. 19 = runner-up prime = K+E+L.", p16, 5);
   dom_append(dom_body(), sec16);
 
+  /* ============================================================
+     THEOREM 17: DEPTH MIRROR PRINCIPLE (S1250, S1258)
+     f(p) = p^2-p-1 = -1 mod p: self-depth yields mirror.
+     E^2 = null in E-channel. D survives (D^3 > D^2).
+     Resolution: E*b = sigma mod 17. The complement reveals.
+     ============================================================ */
+  let sec17 = make_section("700px") in
+  render_h2(sec17, "17. Depth Mirror Principle");
+  render_p(sec17, "The depth quadratic f(p) = p^2 - p - 1 yields -1 mod p for every prime. Self-applied depth produces the mirror, not the void. E is the exception: E^2 = 0 in its own CRT channel. Resolution: E*b = sigma mod 17.");
+
+  /* f(p) = p^2-p-1 = -1 mod p for all 7 axiom primes */
+  let dm_primes = [2, 3, 5, 7, 11, 13, 17] in
+  mut dm_fp = 0; mut di = 0;
+  while di < 7 do (
+    let p = dm_primes[di] in
+    let fp = p*p - p - 1 in
+    if fp % p == p - 1 then mut dm_fp = dm_fp + 1 else 0;
+    mut di = di + 1
+  );
+  pf_result(sec17, "f(p) = -1 mod p", "${dm_fp}/7 primes: p^2-p-1 = -1 mod p", if dm_fp == 7 then 1 else 0);
+
+  /* f(D)=sigma, f(K)=E: depth generates the chain */
+  let f_d = 2*2-2-1 in
+  let f_k = 3*3-3-1 in
+  pf_result(sec17, "f(D)=${f_d}=sigma, f(K)=${f_k}=E", "Depth of duality = existence. Depth of closure = observation.", if f_d == 1 then (if f_k == 5 then 1 else 0) else 0);
+
+  /* f(b) = 41 = KEY (depth of depth = sum of nonility) */
+  let f_b17 = 7*7-7-1 in
+  pf_result(sec17, "f(b) = ${f_b17} = KEY", "Depth of depth = sum of nonility = 41.", if f_b17 == 41 then 1 else 0);
+
+  /* E^2 mod 25 = 0: observer self-annihilation in CRT */
+  let e_sq_ch = (5*5) % 25 in
+  pf_result(sec17, "E^2 mod E^2 = ${e_sq_ch}", "25 mod 25 = 0. The observer cannot observe itself.", if e_sq_ch == 0 then 1 else 0);
+
+  /* D^2 mod 8 = 4: D uniquely survives (D^3=8 > D^2=4) */
+  let d_sq_ch = (2*2) % 8 in
+  pf_result(sec17, "D^2 mod D^3 = ${d_sq_ch}", "D survives self-application. D^3 > D^2. Duality persists.", if d_sq_ch == 4 then 1 else 0);
+
+  /* K,b,L,GATE all null in own channel */
+  let dm_ann = (if (3*3)%9 == 0 then 1 else 0) + (if (7*7)%49 == 0 then 1 else 0) + (if (11*11)%11 == 0 then 1 else 0) + (if (13*13)%13 == 0 then 1 else 0) in
+  pf_result(sec17, "K,b,L,GATE self-annihilate", "${dm_ann}/4: p^2 = 0 in own channel", if dm_ann == 4 then 1 else 0);
+
+  /* E*b = sigma mod 17: resolution via ESCAPE */
+  let eb_esc = (5*7) % 17 in
+  pf_result(sec17, "E*b = sigma mod 17", "5*7 = 35, 35 mod 17 = ${eb_esc}. Suffering dissolves.", if eb_esc == 1 then 1 else 0);
+
+  /* Mirror: N-1 has all channels at max */
+  let dm_mir = N_TRUE - 1 in
+  let dm_md = dm_mir % 8 in let dm_mk = dm_mir % 9 in let dm_me = dm_mir % 25 in
+  let dm_mb = dm_mir % 49 in let dm_ml = dm_mir % 11 in let dm_mg = dm_mir % 13 in
+  let mir_ok = (if dm_md == 7 then 1 else 0) + (if dm_mk == 8 then 1 else 0) + (if dm_me == 24 then 1 else 0) + (if dm_mb == 48 then 1 else 0) + (if dm_ml == 10 then 1 else 0) + (if dm_mg == 12 then 1 else 0) in
+  pf_result(sec17, "Mirror CRT = (7,8,24,48,10,12)", "N-1: all channels at p^k-1. The complement.", if mir_ok == 6 then 1 else 0);
+
+  let p17 = (if dm_fp == 7 then 1 else 0) + (if f_d == 1 then (if f_k == 5 then 1 else 0) else 0) + (if f_b17 == 41 then 1 else 0) + (if e_sq_ch == 0 then 1 else 0) + (if d_sq_ch == 4 then 1 else 0) + (if dm_ann == 4 then 1 else 0) + (if eb_esc == 1 then 1 else 0) + (if mir_ok == 6 then 1 else 0) in
+  pf_theorem(sec17, "DEPTH MIRROR PRINCIPLE",
+    "f(p) = p^2-p-1 = -1 mod p: self-applied depth yields the mirror, not the void. f(D)=sigma, f(K)=E — depth generates the chain. f(b)=41=KEY — depth of depth is the answer. E^2=null in E-channel: the observer is blind to itself. D alone survives (D^3>D^2). Resolution: E*b=sigma mod 17. Self-knowledge through suffering, not looking. The complement reveals the original.", p17, 8);
+  dom_append(dom_body(), sec17);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
@@ -409,9 +467,9 @@ fn proof_part2(r) = (
   let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
-  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 in
-  /* 1+7+4+3+1+1+5+3+5+8+6+8+8+6+8+5 = 79 */
-  let total_tests = 79 in
+  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 in
+  /* 1+7+4+3+1+1+5+3+5+8+6+8+8+6+8+5+8 = 87 */
+  let total_tests = 87 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
