@@ -26,7 +26,7 @@ fn mesh_draw_topo() = (
         /* Count shared channels */
         mut shared = 0;
         mut ch = 0;
-        while ch < 6 do (
+        while ch < 7 do (
           if ci[ch] == cj[ch] then mut shared = shared + 1 else 0;
           mut ch = ch + 1
         );
@@ -144,14 +144,14 @@ fn mesh_send_pkt() = (
     dom_style(hdr, "marginBottom", "6px");
     dom_append(pv, hdr);
     /* CRT channels */
-    let chNames = ["D^3=8", "K^2=9", "E^2=25", "b^2=49", "L=11"] in
+    let chNames = ["D^3=8", "K^2=9", "E^2=25", "b^2=49", "L=11", "G=13", "ESC=17"] in
     let grid = dom_create("div") in
     dom_style(grid, "display", "grid");
     dom_style(grid, "gridTemplateColumns", "repeat(auto-fill, minmax(55px, 1fr))");
     dom_style(grid, "gap", "6px");
     dom_style(grid, "marginBottom", "8px");
     mut ci = 0;
-    while ci < 6 do (
+    while ci < 7 do (
       let box = dom_create("div") in
       dom_style(box, "backgroundColor", "#16213e");
       dom_style(box, "padding", "8px");
@@ -230,14 +230,14 @@ fn mesh_send_corrupt() = (
     dom_style(hdr, "color", "#ff4444");
     dom_style(hdr, "marginBottom", "6px");
     dom_append(pv, hdr);
-    let chNames = ["D^3=8", "K^2=9", "E^2=25", "b^2=49", "L=11"] in
+    let chNames = ["D^3=8", "K^2=9", "E^2=25", "b^2=49", "L=11", "G=13", "ESC=17"] in
     let grid = dom_create("div") in
     dom_style(grid, "display", "grid");
     dom_style(grid, "gridTemplateColumns", "repeat(auto-fill, minmax(55px, 1fr))");
     dom_style(grid, "gap", "6px");
     dom_style(grid, "marginBottom", "8px");
     mut ci = 0;
-    while ci < 6 do (
+    while ci < 7 do (
       let box = dom_create("div") in
       if ci == 0 then (
         dom_style(box, "backgroundColor", "#3a1a1a");
@@ -282,24 +282,24 @@ fn mesh_privacy() = (
   );
   if elem == 0 then mut elem = 137 else 0;
   let crt = mesh_decompose(elem) in
-  let moduli = [8, 9, 25, 49, 11, 13] in
-  let relays = ["D-relay", "K-relay", "E-relay", "b-relay", "L-relay", "GATE-relay"] in
+  let moduli = [8, 9, 25, 49, 11, 13, 17] in
+  let relays = ["D-relay", "K-relay", "E-relay", "b-relay", "L-relay", "GATE-relay", "ESCAPE-relay"] in
   let pv = dom_query("#mesh-priv-view") in
   dom_inner(pv, "");
   /* Header */
   let hd = dom_create("div") in
-  dom_text(hd, "Element ${elem} decomposes to 6 independent residues:");
+  dom_text(hd, "Element ${elem} decomposes to 7 independent residues:");
   dom_style(hd, "marginBottom", "8px");
   dom_append(pv, hd);
   /* CRT grid */
-  let chNames = ["D^3=8", "K^2=9", "E^2=25", "b^2=49", "L=11", "GATE=13"] in
+  let chNames = ["D^3=8", "K^2=9", "E^2=25", "b^2=49", "L=11", "GATE=13", "ESC=17"] in
   let grid = dom_create("div") in
   dom_style(grid, "display", "grid");
   dom_style(grid, "gridTemplateColumns", "repeat(auto-fill, minmax(55px, 1fr))");
   dom_style(grid, "gap", "6px");
   dom_style(grid, "marginBottom", "12px");
   mut ci = 0;
-  while ci < 6 do (
+  while ci < 7 do (
     let box = dom_create("div") in
     dom_style(box, "backgroundColor", "#16213e");
     dom_style(box, "padding", "8px");
@@ -326,19 +326,20 @@ fn mesh_privacy() = (
   dom_style(hd2, "marginBottom", "6px");
   dom_append(pv, hd2);
   mut ri = 0;
-  while ri < 6 do (
+  while ri < 7 do (
     let row = dom_create("div") in
     dom_style(row, "display", "flex");
     dom_style(row, "gap", "8px");
     dom_style(row, "margin", "4px 0");
     dom_style(row, "alignItems", "center");
+    dom_style(row, "flexWrap", "wrap");
     let rl = dom_create("span") in
     dom_text(rl, relays[ri]);
     dom_style(rl, "color", "#888");
-    dom_style(rl, "width", "70px");
+    dom_style(rl, "width", "85px");
     dom_append(row, rl);
     mut ci2 = 0;
-    while ci2 < 6 do (
+    while ci2 < 7 do (
       let ch = dom_create("div") in
       dom_style(ch, "padding", "4px 8px");
       dom_style(ch, "borderRadius", "4px");
@@ -413,7 +414,7 @@ fn mesh_route() = (
             let crt = mesh_decompose(candidate) in
             mut dist = 0;
             mut ch = 0;
-            while ch < 6 do (
+            while ch < 7 do (
               let d = crt[ch] - dstCrt[ch] in
               let ad = if d < 0 then 0 - d else d in
               mut dist = dist + ad;
@@ -548,7 +549,7 @@ fn mesh_coupling_table() = (
     let crt = mesh_decompose(e) in
     let c = mesh_coupling(e) in
     let role =
-      if c == N_TRUE then "BACKBONE (sigma)"
+      if c == N_TRANS then "BACKBONE (sigma)"
       else if c >= 485100 then "REGIONAL HUB"
       else if c >= 88200 then "LOCAL CLUSTER"
       else if c >= 1000 then "EDGE SERVER"
@@ -560,7 +561,7 @@ fn mesh_coupling_table() = (
     dom_style(td1, "color", mesh_kingdom_color(e));
     dom_append(tr, td1);
     let td2 = dom_create("td") in
-    dom_text(td2, "(${crt[0]}, ${crt[1]}, ${crt[2]}, ${crt[3]}, ${crt[4]})");
+    dom_text(td2, "(${crt[0]},${crt[1]},${crt[2]},${crt[3]},${crt[4]},${crt[5]},${crt[6]})");
     dom_append(tr, td2);
     let td3 = dom_create("td") in
     dom_text(td3, "${c}");
