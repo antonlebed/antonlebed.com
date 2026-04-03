@@ -59,6 +59,27 @@ fn ring_mul(a, b) = (
   (d * 11036025 + k * 1401400 + e * 9585576 + bb * 8494200 + l * 3439800 + g * 3880800) % N_TRUE
 )
 
+/* TRANS ring two-level CRT reconstruction: 7 channel residues → element of Z/214414200.
+   Step 1: reconstruct TRUE value from channels 0-5 using TRUE idempotents.
+   Step 2: lift to TRANS via ESCAPE channel (inv(12612600 mod 17, 17) = inv(11,17) = 14).
+   Max intermediate: 12612599 + 12612600*16 = 214414199 < 2^31. Safe i32. */
+fn ring_recon_trans(rd, rk, re, rb, rl, rg, r17) = (
+  let xt = (rd * 11036025 + rk * 1401400 + re * 9585576 + rb * 8494200 + rl * 3439800 + rg * 3880800) % N_TRUE in
+  xt + N_TRUE * ((r17 + 17 - xt % 17) % 17 * 14 % 17)
+)
+
+/* TRANS ring multiply: 7-channel CRT multiply in Z/214414200. */
+fn ring_mul_trans(a, b) = (
+  let d = (a%8)*(b%8)%8 in
+  let k = (a%9)*(b%9)%9 in
+  let e = (a%25)*(b%25)%25 in
+  let bb = (a%49)*(b%49)%49 in
+  let l = (a%11)*(b%11)%11 in
+  let g = (a%13)*(b%13)%13 in
+  let r17 = (a%17)*(b%17)%17 in
+  ring_recon_trans(d, k, e, bb, l, g, r17)
+)
+
 /* ================================================================
    CELESTIAL THEATRE -- CSS Keyframe Generation
    Generate all CSS from structured .ax data. No opaque string blobs.

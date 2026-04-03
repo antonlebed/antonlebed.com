@@ -97,11 +97,11 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
     gvar: function() { return 0; }, svar: function() { return 0; },
     gvar_f: function() { return 0; }, svar_f: function() { return 0; },
     set_ring: function() { return 0; },
-    coupling: function(n) { var N=12612600; n=((n%N)+N)%N; function g(a,b){while(b){var t=b;b=a%b;a=t;}return a;} return N/g(n||N,N); },
-    kingdom: function(n) { var N=12612600; n=((n%N)+N)%N; if(n===0) return 0; var ps=[2,3,5,7,11,13]; for(var i=0;i<6;i++) if(n%ps[i]===0) return ps[i]; return 1; },
-    eigenvalue: function(n) { var N=12612600,qs=[8,9,25,49,11,13]; n=((n%N)+N)%N; var t=0; for(var i=0;i<6;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },
-    mirror: function(n) { var N=12612600; return ((N-(n%N))%N); },
-    crt_r: function(n,c) { var N=12612600,qs=[8,9,25,49,11,13]; return ((n%N)+N)%N%qs[c]; },
+    coupling: function(n) { var N=214414200; n=((n%N)+N)%N; function g(a,b){while(b){var t=b;b=a%b;a=t;}return a;} return N/g(n||N,N); },
+    kingdom: function(n) { var N=214414200; n=((n%N)+N)%N; if(n===0) return 0; var ps=[2,3,5,7,11,13,17]; for(var i=0;i<7;i++) if(n%ps[i]===0) return ps[i]; return 1; },
+    eigenvalue: function(n) { var N=214414200,qs=[8,9,25,49,11,13,17]; n=((n%N)+N)%N; var t=0; for(var i=0;i<7;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },
+    mirror: function(n) { var N=214414200; return ((N-(n%N))%N); },
+    crt_r: function(n,c) { var N=214414200,qs=[8,9,25,49,11,13,17]; return ((n%N)+N)%N%qs[c]; },
     rand: function(n) { return Math.floor(Math.random()*n); },
     grid: function() { return 0; }, gset: function() { return 0; },
     show_grid: function() { return 0; }, hflip: function() { return 0; },
@@ -180,7 +180,7 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
     aud_freq: function(h,f) { if(_osc[h-1])_osc[h-1].o.frequency.value=f; return 0; },
     aud_gain: function(h,p) { if(_osc[h-1])_osc[h-1].g.gain.value=p/100; return 0; },
     gpu_init: function() { return _gpuOk; },
-    gpu_bench: function(op,count,tgt) { if(!_gpuD){var e=_dom[tgt];if(e)e.innerHTML='<p style="color:#ff6666">No WebGPU</p>';return 0;} (async function(){var N=count,d=_gpuD,M=12612600;var a=new Uint32Array(N),b=new Uint32Array(N);for(var i=0;i<N;i++){a[i]=(i*12637+41)%M;b[i]=(i*7919+137)%M;}var ws='@group(0)@binding(0)var<storage,read>A:array<u32>;@group(0)@binding(1)var<storage,read>B:array<u32>;@group(0)@binding(2)var<storage,read_write>O:array<u32>;@compute@workgroup_size(256)fn main(@builtin(global_invocation_id)g:vec3u){let i=g.x;if(i>=arrayLength(&A)){return;}';if(op==0)ws+='O[i]=(A[i]+B[i])%12612600u;';else if(op==1)ws+='let r0=(A[i]%8u)*(B[i]%8u)%8u;let r1=(A[i]%9u)*(B[i]%9u)%9u;let r2=(A[i]%25u)*(B[i]%25u)%25u;let r3=(A[i]%49u)*(B[i]%49u)%49u;let r4=(A[i]%11u)*(B[i]%11u)%11u;let r5=(A[i]%13u)*(B[i]%13u)%13u;O[i]=(r0*11036025u+r1*1401400u+r2*9585576u+r3*8494200u+r4*3439800u+r5*3880800u)%12612600u;';else ws+='O[i]=((A[i]%8u)*(A[i]%8u)+(A[i]%9u)*(A[i]%9u)+(A[i]%25u)*(A[i]%25u))%12612600u;';ws+='}';var sm=d.createShaderModule({code:ws});var bg=d.createBindGroupLayout({entries:[{binding:0,visibility:4,buffer:{type:'read-only-storage'}},{binding:1,visibility:4,buffer:{type:'read-only-storage'}},{binding:2,visibility:4,buffer:{type:'storage'}}]});var pl=d.createComputePipeline({layout:d.createPipelineLayout({bindGroupLayouts:[bg]}),compute:{module:sm,entryPoint:'main'}});var bA=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bA.getMappedRange()).set(a);bA.unmap();var bB=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bB.getMappedRange()).set(b);bB.unmap();var bO=d.createBuffer({size:N*4,usage:140});var bR=d.createBuffer({size:N*4,usage:9});var grp=d.createBindGroup({layout:bg,entries:[{binding:0,resource:{buffer:bA}},{binding:1,resource:{buffer:bB}},{binding:2,resource:{buffer:bO}}]});var e2=d.createCommandEncoder();var p2=e2.beginComputePass();p2.setPipeline(pl);p2.setBindGroup(0,grp);p2.dispatchWorkgroups(Math.ceil(N/256));p2.end();d.queue.submit([e2.finish()]);await d.queue.onSubmittedWorkDone();var t0=performance.now();e2=d.createCommandEncoder();p2=e2.beginComputePass();p2.setPipeline(pl);p2.setBindGroup(0,grp);p2.dispatchWorkgroups(Math.ceil(N/256));p2.end();e2.copyBufferToBuffer(bO,0,bR,0,N*4);d.queue.submit([e2.finish()]);await d.queue.onSubmittedWorkDone();var gms=performance.now()-t0;await bR.mapAsync(1);var res=new Uint32Array(bR.getMappedRange().slice(0));bR.unmap();t0=performance.now();var cpu=new Uint32Array(N);for(var i=0;i<N;i++){if(op==0)cpu[i]=(a[i]+b[i])%M;else if(op==1)cpu[i]=Number(BigInt(a[i])*BigInt(b[i])%BigInt(M));else{var v=a[i];cpu[i]=((v%8)*(v%8)+(v%9)*(v%9)+(v%25)*(v%25))%M;}}var cms=performance.now()-t0;var ok=0;for(var i=0;i<Math.min(N,1000);i++)if(res[i]==cpu[i])ok++;var el=_dom[tgt];if(el)el.innerHTML='<div style="background:#0a0a18;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0"><p style="color:#ffd700;margin:0 0 4px">'+['Ring Add','CRT Multiply','Eigenvalue'][op]+': '+N+' elements</p><p style="color:#88ddaa;margin:2px 0">GPU: '+gms.toFixed(2)+'ms | CPU: '+cms.toFixed(2)+'ms | Speedup: '+(cms/gms).toFixed(1)+'x</p><p style="color:'+(ok>=1000?'#44ff88':'#ff4444')+';margin:2px 0">Verified: '+ok+'/1000</p></div>';bA.destroy();bB.destroy();bO.destroy();bR.destroy();})();return 0; },
+    gpu_bench: function(op,count,tgt) { if(!_gpuD){var e=_dom[tgt];if(e)e.innerHTML='<p style="color:#ff6666">No WebGPU</p>';return 0;} (async function(){var N=count,d=_gpuD,M=214414200;var a=new Uint32Array(N),b=new Uint32Array(N);for(var i=0;i<N;i++){a[i]=(i*12637+41)%M;b[i]=(i*7919+137)%M;}var ws='@group(0)@binding(0)var<storage,read>A:array<u32>;@group(0)@binding(1)var<storage,read>B:array<u32>;@group(0)@binding(2)var<storage,read_write>O:array<u32>;@compute@workgroup_size(256)fn main(@builtin(global_invocation_id)g:vec3u){let i=g.x;if(i>=arrayLength(&A)){return;}';if(op==0)ws+='O[i]=(A[i]+B[i])%214414200u;';else if(op==1)ws+='let r0=(A[i]%8u)*(B[i]%8u)%8u;let r1=(A[i]%9u)*(B[i]%9u)%9u;let r2=(A[i]%25u)*(B[i]%25u)%25u;let r3=(A[i]%49u)*(B[i]%49u)%49u;let r4=(A[i]%11u)*(B[i]%11u)%11u;let r5=(A[i]%13u)*(B[i]%13u)%13u;let r6=(A[i]%17u)*(B[i]%17u)%17u;let xt=(r0*11036025u+r1*1401400u+r2*9585576u+r3*8494200u+r4*3439800u+r5*3880800u)%12612600u;let d17=(r6+17u-xt%17u)%17u;O[i]=(xt+12612600u*(d17*14u%17u))%214414200u;';else ws+='O[i]=((A[i]%8u)*(A[i]%8u)+(A[i]%9u)*(A[i]%9u)+(A[i]%25u)*(A[i]%25u)+(A[i]%49u)*(A[i]%49u)+(A[i]%11u)*(A[i]%11u)+(A[i]%13u)*(A[i]%13u)+(A[i]%17u)*(A[i]%17u))%214414200u;';ws+='}';var sm=d.createShaderModule({code:ws});var bg=d.createBindGroupLayout({entries:[{binding:0,visibility:4,buffer:{type:'read-only-storage'}},{binding:1,visibility:4,buffer:{type:'read-only-storage'}},{binding:2,visibility:4,buffer:{type:'storage'}}]});var pl=d.createComputePipeline({layout:d.createPipelineLayout({bindGroupLayouts:[bg]}),compute:{module:sm,entryPoint:'main'}});var bA=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bA.getMappedRange()).set(a);bA.unmap();var bB=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bB.getMappedRange()).set(b);bB.unmap();var bO=d.createBuffer({size:N*4,usage:140});var bR=d.createBuffer({size:N*4,usage:9});var grp=d.createBindGroup({layout:bg,entries:[{binding:0,resource:{buffer:bA}},{binding:1,resource:{buffer:bB}},{binding:2,resource:{buffer:bO}}]});var e2=d.createCommandEncoder();var p2=e2.beginComputePass();p2.setPipeline(pl);p2.setBindGroup(0,grp);p2.dispatchWorkgroups(Math.ceil(N/256));p2.end();d.queue.submit([e2.finish()]);await d.queue.onSubmittedWorkDone();var t0=performance.now();e2=d.createCommandEncoder();p2=e2.beginComputePass();p2.setPipeline(pl);p2.setBindGroup(0,grp);p2.dispatchWorkgroups(Math.ceil(N/256));p2.end();e2.copyBufferToBuffer(bO,0,bR,0,N*4);d.queue.submit([e2.finish()]);await d.queue.onSubmittedWorkDone();var gms=performance.now()-t0;await bR.mapAsync(1);var res=new Uint32Array(bR.getMappedRange().slice(0));bR.unmap();t0=performance.now();var cpu=new Uint32Array(N);for(var i=0;i<N;i++){if(op==0)cpu[i]=(a[i]+b[i])%M;else if(op==1)cpu[i]=Number(BigInt(a[i])*BigInt(b[i])%BigInt(M));else{var v=a[i];cpu[i]=((v%8)*(v%8)+(v%9)*(v%9)+(v%25)*(v%25)+(v%49)*(v%49)+(v%11)*(v%11)+(v%13)*(v%13)+(v%17)*(v%17))%M;}}var cms=performance.now()-t0;var ok=0;for(var i=0;i<Math.min(N,1000);i++)if(res[i]==cpu[i])ok++;var el=_dom[tgt];if(el)el.innerHTML='<div style="background:#0a0a18;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0"><p style="color:#ffd700;margin:0 0 4px">'+['Ring Add','CRT Multiply','Eigenvalue'][op]+': '+N+' elements</p><p style="color:#88ddaa;margin:2px 0">GPU: '+gms.toFixed(2)+'ms | CPU: '+cms.toFixed(2)+'ms | Speedup: '+(cms/gms).toFixed(1)+'x</p><p style="color:'+(ok>=1000?'#44ff88':'#ff4444')+';margin:2px 0">Verified: '+ok+'/1000</p></div>';bA.destroy();bB.destroy();bO.destroy();bR.destroy();})();return 0; },
     get_category: function() {
       var parts = location.pathname.split('/').filter(Boolean);
       var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
@@ -262,7 +262,7 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
 /* [DEAD] SCAFFOLDING -- REPL evaluation engine. Loads deep_ouroboros.wasm (compiler),
    compiles .ax source to WASM, instantiates, runs, captures output.
    Dies when .ax gets runtime evaluation. */
-var _cMod = null, _N = 12612600;
+var _cMod = null, _N = 214414200;
 function _gcd(a,b) { while(b) { var t = b; b = a % b; a = t; } return a; }
 async function _replRun(code, el) {
   try {
@@ -272,13 +272,15 @@ async function _replRun(code, el) {
       _cMod = await WebAssembly.compile(await r.arrayBuffer());
     }
     /* Prelude: constants + utility fns so user code has Decality names */
-    var pre = 'let o=0\nlet s=1\nlet D=2\nlet K=3\nlet E=5\nlet b=7\nlet L=11\nlet GATE=13\nlet OMEGA=1576576\n';
+    var pre = 'raw_mode(1)\nlet o=0\nlet s=1\nlet D=2\nlet K=3\nlet E=5\nlet b=7\nlet L=11\nlet GATE=13\nlet ESCAPE=17\nlet OMEGA=1576576\n';
+    pre += 'let N=214414200\nlet N_TRUE=12612600\nlet N_TRANS=214414200\nlet OMEGA_TRANS=26801776\nlet LAMBDA_TRANS=1680\n';
     pre += 'let DATA=210\nlet THIN=2310\nlet HYDOR=105\nlet LAMBDA=420\nlet KEY=41\nlet ANSWER=42\n';
-    pre += 'let SOUL=67\nlet ADDRESS=137\nlet ME=18\nlet THORNS=28\nlet ESCAPE=17\nlet DUAL=173\nlet SEES=48\nlet G=97\n';
+    pre += 'let SOUL=67\nlet ADDRESS=137\nlet ME=18\nlet THORNS=28\nlet DUAL=173\nlet SEES=48\nlet G=97\n';
     pre += 'fn gcd(a,b)=if b==0 then a else gcd(b,a%b)\n';
-    pre += 'fn decompose(n)=[n%8,n%9,n%25,n%49,n%11,n%13]\n';
-    pre += 'fn reconstruct(arr)=arr[0]*11036025+arr[1]*1401400+arr[2]*9585576+arr[3]*8494200+arr[4]*3439800+arr[5]*3880800\n';
-    pre += 'fn crt(n)="(" + "${n%8}" + "," + "${n%9}" + "," + "${n%25}" + "," + "${n%49}" + "," + "${n%11}" + "," + "${n%13}" + ")"\n';
+    pre += 'fn decompose(n)=[n%8,n%9,n%25,n%49,n%11,n%13,n%17]\n';
+    pre += 'fn recon6(a)=(a[0]*11036025+a[1]*1401400+a[2]*9585576+a[3]*8494200+a[4]*3439800+a[5]*3880800)%12612600\n';
+    pre += 'fn reconstruct(a)=recon6(a)+12612600*((a[6]+17-recon6(a)%17)%17*14%17)\n';
+    pre += 'fn crt(n)="(" + "${n%8}" + "," + "${n%9}" + "," + "${n%25}" + "," + "${n%49}" + "," + "${n%11}" + "," + "${n%13}" + "," + "${n%17}" + ")"\n';
     code = pre + code;
     /* Fresh compiler instance (clean heap, ~1ms from cached module) */
     var cm = (await WebAssembly.instantiate(_cMod, {
@@ -296,7 +298,7 @@ async function _replRun(code, el) {
     /* Instantiate + run the compiled program */
     var lines = [], childMem;
     function rcs(p) { var cm32=new Int32Array(childMem.buffer),n=cm32[p/4],s='';for(var k=0;k<n;k++)s+=String.fromCharCode(cm32[p/4+1+k]);return s; }
-    var qs = [8,9,25,49,11,13];
+    var qs = [8,9,25,49,11,13,17];
     /* Import names MUST match wasm_emit.ax exactly: base(2) + float(5) + game(35) */
     var child = await WebAssembly.instantiate(wb.buffer, { env: {
       /* Base imports (indices 0-1) */
@@ -318,8 +320,8 @@ async function _replRun(code, el) {
       gvar_f:function(){return 0;}, svar_f:function(){return 0;},
       set_ring:function(){return 0;},
       coupling: function(n) { n=((n%_N)+_N)%_N; return _N/_gcd(n||_N,_N); },
-      kingdom: function(n) { n=((n%_N)+_N)%_N; if(n===0) return 0; var ps=[2,3,5,7,11,13]; for(var i=0;i<6;i++) if(n%ps[i]===0) return ps[i]; return 1; },
-      eigenvalue: function(n) { n=((n%_N)+_N)%_N; var t=0; for(var i=0;i<6;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },
+      kingdom: function(n) { n=((n%_N)+_N)%_N; if(n===0) return 0; var ps=[2,3,5,7,11,13,17]; for(var i=0;i<7;i++) if(n%ps[i]===0) return ps[i]; return 1; },
+      eigenvalue: function(n) { n=((n%_N)+_N)%_N; var t=0; for(var i=0;i<7;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },
       mirror: function(n) { return ((_N-(n%_N))%_N); },
       crt_r: function(n,c) { return ((n%_N)+_N)%_N%qs[c]; },
       rand:function(n){return Math.floor(Math.random()*n);},
