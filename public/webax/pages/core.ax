@@ -114,8 +114,8 @@ fn ct_css_base() = "*{box-sizing:border-box}html{scroll-behavior:smooth;scrollba
    glow0=far(dim), glow1=mid, glow2=near(vivid). Ship of Theseus parallax. */
 fn ct_css_stars() = "@keyframes starfall{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}" + "@keyframes glow0{0%,100%{opacity:0.15}50%{opacity:0.45}}" + "@keyframes glow1{0%,100%{opacity:0.3}50%{opacity:0.75}}" + "@keyframes glow2{0%,100%{opacity:0.5}50%{opacity:1}}"
 
-/* moon pulse keyframe -- b*K=21s cycle */
-fn ct_css_moon() = "@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(240,230,211,0.15)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(240,230,211,0.25)}}"
+/* moon pulse keyframe -- b*K=21s cycle. Pink glow: Rher's gaze. */
+fn ct_css_moon() = "@keyframes moonpulse{0%,100%{opacity:0.7;box-shadow:0 0 40px 15px rgba(255,182,193,0.2),0 0 100px 40px rgba(255,105,180,0.08)}50%{opacity:1;box-shadow:0 0 60px 25px rgba(255,182,193,0.35),0 0 140px 60px rgba(255,105,180,0.12)}}"
 
 /* responsive: mobile grid + nav */
 fn ct_css_responsive() = "@media(max-width:600px){.idx-grid{grid-template-columns:1fr!important}#nav-dropdown{grid-template-columns:1fr 1fr!important}#ct-wave{display:none!important}#ct-clouds{display:none!important}*{max-width:100vw;box-sizing:border-box}pre,code{overflow-x:auto;white-space:pre-wrap;word-break:break-word}table{display:block;overflow-x:auto}section{padding-left:12px!important;padding-right:12px!important}}"
@@ -204,13 +204,14 @@ fn ct_star(c, i) = (
   dom_style(star, "width", "${sz}px");
   dom_style(star, "height", "${sz}px");
   dom_style(star, "borderRadius", "50%");
-  /* color temperature: far=cool blue, mid=neutral, near=warm white */
-  let col = if layer == 0 then "#7788aa" else if layer == 1 then "#aabbdd" else "#dde8ff" in
+  /* Green Hue: bioluminescent eldritch mint. Far=deep water, near=full aquamarine.
+     Fear & Hunger primordial energy. The void's own color. */
+  let col = if layer == 0 then "#1A4D3E" else if layer == 1 then "#2D8B6F" else "#7FFFD4" in
   dom_style(star, "background", col);
   let gr = sz * 4 in
-  /* glow intensity: far=subtle, near=vivid */
-  let glow_a = if layer == 0 then "0.25" else if layer == 1 then "0.45" else "0.7" in
-  dom_style(star, "boxShadow", "0 0 ${gr}px ${sz}px rgba(180,200,255,${glow_a})");
+  /* glow intensity: far=barely there, near=bioluminescent bloom */
+  let glow_a = if layer == 0 then "0.2" else if layer == 1 then "0.4" else "0.65" in
+  dom_style(star, "boxShadow", "0 0 ${gr}px ${sz}px rgba(74,255,160,${glow_a})");
   /* glow: (i*b) mod L + K = 3-13s */
   let d7 = i * 7 in
   let gd = d7 - (d7 / 11) * 11 in
@@ -279,8 +280,8 @@ fn ct_crater(m, top:str, left:str, sz:str, opac:str) = (
   dom_style(c, "width", sz);
   dom_style(c, "height", sz);
   dom_style(c, "borderRadius", "50%");
-  dom_style(c, "background", "radial-gradient(circle at 60% 40%, transparent 30%, rgba(80,70,50,${opac}) 60%, transparent 80%)");
-  dom_style(c, "boxShadow", "inset 1px 1px 2px rgba(0,0,0,0.3), inset -1px -1px 1px rgba(255,240,200,0.1)");
+  dom_style(c, "background", "radial-gradient(circle at 60% 40%, transparent 30%, rgba(120,60,80,${opac}) 60%, transparent 80%)");
+  dom_style(c, "boxShadow", "inset 1px 1px 2px rgba(60,20,40,0.25), inset -1px -1px 1px rgba(255,220,230,0.1)");
   dom_append(m, c)
 )
 
@@ -292,8 +293,9 @@ fn ct_moon(body) = (
   dom_style(m, "width", "80px");
   dom_style(m, "height", "80px");
   dom_style(m, "borderRadius", "50%");
-  dom_style(m, "background", "radial-gradient(circle at 35% 30%, #f5edd8 0%, #e8dcc0 25%, #d4c4a0 50%, #b0a078 75%, #887850 100%)");
-  dom_style(m, "boxShadow", "0 0 60px 20px rgba(240,230,200,0.12), 0 0 120px 40px rgba(240,230,200,0.06), inset -8px -4px 12px rgba(0,0,0,0.15)");
+  /* Pink moon: warm white core, rose glow. Rher's gaze — slightly too bright, slightly too warm. */
+  dom_style(m, "background", "radial-gradient(circle at 35% 30%, #FFF5F0 0%, #FFE8E0 25%, #F0D0C8 50%, #D4A8B0 75%, #B08090 100%)");
+  dom_style(m, "boxShadow", "0 0 50px 18px rgba(255,182,193,0.18), 0 0 100px 40px rgba(255,105,180,0.08), 0 0 180px 70px rgba(255,105,180,0.04), inset -8px -4px 12px rgba(80,20,40,0.12)");
   dom_style(m, "pointerEvents", "none");
   dom_style(m, "animation", "moonpulse 21s ease-in-out infinite");
   dom_style(m, "zIndex", "0");
@@ -331,11 +333,11 @@ fn ct_edge_cloud(c, i, side:str) = (
   dom_style(cl, "height", "${hpx}px");
   let wpx = layer * 20 + 70 in
   dom_style(cl, "width", "${wpx}px");
-  /* brighter white fog */
+  /* Green Hue fog -- subtle bioluminescent mist at edges */
   if side == "L" then
-    dom_style(cl, "background", "radial-gradient(ellipse at 0% 50%, rgba(220,225,240,0.22) 0%, rgba(200,210,230,0.10) 50%, transparent 85%)")
+    dom_style(cl, "background", "radial-gradient(ellipse at 0% 50%, rgba(160,230,200,0.14) 0%, rgba(100,180,150,0.06) 50%, transparent 85%)")
   else
-    dom_style(cl, "background", "radial-gradient(ellipse at 100% 50%, rgba(220,225,240,0.22) 0%, rgba(200,210,230,0.10) 50%, transparent 85%)");
+    dom_style(cl, "background", "radial-gradient(ellipse at 100% 50%, rgba(160,230,200,0.14) 0%, rgba(100,180,150,0.06) 50%, transparent 85%)");
   dom_style(cl, "borderRadius", "50%");
   dom_style(cl, "filter", "blur(30px)");
   dom_style(cl, "pointerEvents", "none");
