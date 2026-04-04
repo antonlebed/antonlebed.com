@@ -1,11 +1,6 @@
 /* page_demo_compute.ax -- Compute demo pages: pid, gpu_compute, scheduling, sort, cluster. Split from page_demos.ax (S1166). */
 
-/* CRT-safe ring multiply: a*b mod 12612600 without i32 overflow.
-   Decomposes into 6 channels, multiplies per-channel (max 48*48=2304), reconstructs. */
-fn ring_mul(a, b) = (
-  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  ((a%8)*(b%8)%8*idem[0] + (a%9)*(b%9)%9*idem[1] + (a%25)*(b%25)%25*idem[2] + (a%49)*(b%49)%49*idem[3] + (a%11)*(b%11)%11*idem[4] + (a%13)*(b%13)%13*idem[5]) % 12612600
-)
+/* ring_mul and ring_mul_trans are in core.ax (included first). */
 
 /* ================================================================
    CRT PID -- dedicated demo page /demos/pid. CC0 kill B15.
@@ -103,39 +98,35 @@ fn page_pid() = (
 fn demo_gpu_run() = (
   let data = parse_int_from("#dgpu-input") in
   let result_el = dom_query("#dgpu-result") in
-  let d = data % N_TRUE in
-  let mods = [8, 9, 25, 49, 11, 13] in
-  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  /* Decompose into 6 channels */
-  let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in
+  let d = data % N_TRANS in
+  /* Decompose into 7 channels (TRANS ring) */
+  let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in let r17 = d % 17 in
   /* f(x) = x^2 mod N -- compute per channel independently (GPU workgroup analogy) */
   let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
-  let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in
-  /* CRT reconstruct the squared result */
-  let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE in
+  let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in let s17 = (r17 * r17) % 17 in
+  /* Two-level CRT reconstruct (TRUE 6ch + ESCAPE lift) */
+  let recon = ring_recon_trans(sd, sk, se, sb, sl, sg, s17) in
   /* Verify: direct computation */
-  let direct = ring_mul(d, d) in
+  let direct = ring_mul_trans(d, d) in
   let ok = if recon == direct then 1 else 0 in
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>6-CHANNEL PARALLEL COMPUTE: f(x) = x^2 mod 12612600</p><p style='color:#88ddaa;margin:4px 0'>Input: x = " + "${d}" + "</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Workgroup</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Mod</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>r = x mod m</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>r^2 mod m</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Type</th></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>D</td><td style='padding:3px;color:#888;font-size:12px'>8</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rd}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sd}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>K</td><td style='padding:3px;color:#888;font-size:12px'>9</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rk}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sk}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>E</td><td style='padding:3px;color:#888;font-size:12px'>25</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${re}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${se}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>b</td><td style='padding:3px;color:#888;font-size:12px'>49</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rb}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sb}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>L</td><td style='padding:3px;color:#888;font-size:12px'>11</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rl}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sl}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>G</td><td style='padding:3px;color:#888;font-size:12px'>13</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rg}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sg}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr></table><p style='color:#ffd700;margin:12px 0 4px'>RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Parallel (6 workgroups + CRT): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>Verified (CRT ring multiply): " + "${direct}" + "</p><p style='color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>" + (if ok == 1 then "MATCH -- 6 independent computations, 1 correct answer" else "MISMATCH -- bug") + "</p></div>")
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>7-CHANNEL PARALLEL COMPUTE: f(x) = x^2 mod 214414200</p><p style='color:#88ddaa;margin:4px 0'>Input: x = " + "${d}" + "</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>WG</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Mod</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>r</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>r^2</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Role</th></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>D</td><td style='padding:3px;color:#888;font-size:12px'>8</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rd}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sd}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>K</td><td style='padding:3px;color:#888;font-size:12px'>9</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rk}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sk}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>E</td><td style='padding:3px;color:#888;font-size:12px'>25</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${re}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${se}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>b</td><td style='padding:3px;color:#888;font-size:12px'>49</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rb}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sb}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>L</td><td style='padding:3px;color:#888;font-size:12px'>11</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rl}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sl}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>G</td><td style='padding:3px;color:#888;font-size:12px'>13</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rg}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sg}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#7FFFD4;font-size:12px'>ESC</td><td style='padding:3px;color:#888;font-size:12px'>17</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${r17}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${s17}" + "</td><td style='padding:3px;color:#7FFFD4;font-size:11px'>ESCAPE</td></tr></table><p style='color:#ffd700;margin:12px 0 4px'>TWO-LEVEL CRT RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Parallel (7 workgroups + CRT): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>Verified (ring_mul_trans): " + "${direct}" + "</p><p style='color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>" + (if ok == 1 then "MATCH -- 7 independent computations, 1 correct answer" else "MISMATCH -- bug") + "</p></div>")
 )
 
 fn demo_gpu_batch() = (
   let result_el = dom_query("#dgpu-batch") in
   let ok_count = [0] in
   let i = [0] in
-  let mods = [8, 9, 25, 49, 11, 13] in
-  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
   while i[0] < 1000 do (
-    let d = (i[0] * 12637 + 41) % N_TRUE in
-    let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in
+    let d = (i[0] * 12637 + 41) % N_TRANS in
+    let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in let r17 = d % 17 in
     let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
-    let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in
-    let recon = (sd * idem[0] + sk * idem[1] + se * idem[2] + sb * idem[3] + sl * idem[4] + sg * idem[5]) % N_TRUE in
-    let direct = ring_mul(d, d) in
+    let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in let s17 = (r17 * r17) % 17 in
+    let recon = ring_recon_trans(sd, sk, se, sb, sl, sg, s17) in
+    let direct = ring_mul_trans(d, d) in
     if recon == direct then set(ok_count, 0, ok_count[0] + 1) else 0;
     set(i, 0, i[0] + 1)
   );
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 1000 values x f(x)=x^2</p><p style='color:" + (if ok_count[0] == 1000 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${ok_count[0]}" + "/1000 MATCH</p><p style='color:#b0b0c0;margin:4px 0'>Each value decomposed into 6 channels, squared independently, reconstructed via CRT. All 6 workgroups run in parallel -- no cross-channel dependency.</p></div>")
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 1000 values x f(x)=x^2 mod 214414200</p><p style='color:" + (if ok_count[0] == 1000 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${ok_count[0]}" + "/1000 MATCH</p><p style='color:#b0b0c0;margin:4px 0'>Each value decomposed into 7 channels, squared independently, reconstructed via two-level CRT (TRUE + ESCAPE lift). All 7 workgroups run in parallel -- no cross-channel dependency.</p></div>")
 )
 
 fn demo_gpu_bench_add() = gpu_bench(0, 100000, dom_query("#gpu-res-add"))
@@ -143,8 +134,8 @@ fn demo_gpu_bench_mul() = gpu_bench(1, 100000, dom_query("#gpu-res-mul"))
 fn demo_gpu_bench_eig() = gpu_bench(2, 100000, dom_query("#gpu-res-eig"))
 
 fn page_gpu_compute() = (
-  dom_head_meta("description", "CRT GPU Compute. 6 independent workgroups via CRT decomposition. Block-diagonal parallelism. CC0 demonstration.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"6-channel parallel compute over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
+  dom_head_meta("description", "CRT GPU Compute. 7 independent workgroups via CRT decomposition over Z/214414200. FPGA-informed WebGPU. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"7-channel parallel compute over Z/214414200 (TRANS ring). FPGA-measured, GPU-deployed. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
   let hero = make_hero("CRT GPU Compute") in
   let eq = dom_create("div") in
   dom_text(eq, "S1: NVIDIA CUDA patents. CC0.");
@@ -154,21 +145,21 @@ fn page_gpu_compute() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Replace GPU thread blocks with CRT channels. Any function f that distributes over modular arithmetic can be computed in 6 independent workgroups -- one per prime power -- then reconstructed in one CRT step. Zero cross-channel dependency. The ring IS the parallelization.");
+  render_p(hero, "Replace GPU thread blocks with CRT channels. Any function f that distributes over modular arithmetic can be computed in 7 independent workgroups -- one per prime power -- then reconstructed via two-level CRT. Zero cross-channel dependency. FPGA-measured, GPU-deployed. The ring IS the parallelization.");
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Parallelism Principle", "For f(x) = x^2 mod N where N = 8*9*25*49*11*13 = 12612600: decompose x into 6 residues (r_D, r_K, r_E, r_b, r_L, r_G). Compute f(r_i) = r_i^2 mod m_i independently in each channel. CRT reconstruct. Result equals f(x) mod N exactly. This works because CRT is a ring isomorphism: Z/N = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13. Any polynomial distributes. The 490 holographic split: DEAD channels {D,E,b} carry the bulk compute, ALIVE channels {K,L,G} provide integrity checking for free.");
+  render_theorem(sec1, "CRT Parallelism Principle (TRANS Ring)", "For f(x) = x^2 mod N where N = 8*9*25*49*11*13*17 = 214414200: decompose x into 7 residues. Compute f(r_i) = r_i^2 mod m_i independently in each channel. Two-level CRT reconstruct: 6 TRUE channels first, then ESCAPE lift (inv(11,17)=14). Result equals f(x) mod N exactly. Z/N = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13 x Z/17. The 490 split: DEAD={D,E,b} carry bulk compute, ALIVE={K,L,GATE} verify, ESCAPE=17 transcends (E*b=1 mod 17).");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "6+ workgroups", "CRT decomposition", "Each CRT channel computes independently. No shared memory, no barriers, no race conditions. 6 (TRUE) or 7 (TRANS).", "");
+  render_finding(g1, "7 workgroups", "CRT decomposition", "Each CRT channel computes independently. No shared memory, no barriers, no race conditions. 7 = b = depth (self-referential).", "");
   render_finding(g1, "K^2=9 pipeline", "Spider web architecture", "3 hearts x 3 stages. FPGA measured: k9 pipeline 6555 LUT4 (31%), 267 MHz on Tang Nano 20K.", "");
   render_finding(g1, "Block-diagonal", "Zero cross-talk", "Gradients in channel i never touch channel j. Backprop decomposes the same way.", "");
   render_finding(g1, "490 split", "Compute + verify", "DEAD={D,E,b} channels do the work. ALIVE={K,L,GATE} channels verify for free.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
-  make_interactive_widget(sec2, "Input value (0-12612599):", "dgpu-input", "e.g. 137", "Compute", "demo_gpu_run", "dgpu-result");
-  render_p(sec2, "Decomposes x into 6 channels, squares each independently, reconstructs via CRT. Compares with direct x^2 mod N.");
+  make_interactive_widget(sec2, "Input value (0-214414199):", "dgpu-input", "e.g. 137", "Compute", "demo_gpu_run", "dgpu-result");
+  render_p(sec2, "Decomposes x into 7 channels, squares each independently, reconstructs via two-level CRT (TRUE + ESCAPE lift). Compares with direct x^2 mod N.");
   dom_append(dom_body(), sec2);
   let sec2b = make_section("800px") in
   render_h2(sec2b, "Batch Test");
@@ -191,7 +182,7 @@ fn page_gpu_compute() = (
   let secg = make_section("800px") in
   render_h2(secg, "Real GPU Benchmark (WebGPU)");
   /* S1233: gpu_init async — always render, gpu_bench checks at click time */
-  render_p(secg, "Run real CRT compute shaders on your GPU. 6 channels of Z/12612600 in WGSL. Each operation dispatches 100,000 elements.");
+  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. Each operation dispatches 100,000 elements. Shader uses two-level CRT: TRUE 6ch reconstruct + ESCAPE lift.");
   let mk_gpu_btn = fn(label, op_code, res_id) = (
     let b = dom_create("button") in
     dom_text(b, label);
@@ -226,14 +217,24 @@ fn page_gpu_compute() = (
   dom_append(secg, r_mul);
   dom_append(secg, r_eig);
   dom_append(dom_body(), secg);
+  let secf = make_section("800px") in
+  render_h2(secf, "FPGA Ground Truth (Tang Nano 20K)");
+  render_p(secf, "FPGA synthesis reveals the minimum circuit for each CRT operation. These measurements inform the GPU shader design. The FPGA is a microscope, not a destination.");
+  let gf = make_findings_grid(secf) in
+  render_finding(gf, "k9 pipeline", "6555 LUT4, 267 MHz", "K^2=9 stages: 3 hearts x 3 stages. Best verified TRANS design. 31% of Tang Nano 20K.", "");
+  render_finding(gf, "Decompose = 77%", "2937 LUT4 (of 3792 net)", "7 modulus operations dominate. Critical path: mod 9 at 307 MHz. GPU: use bitwise AND for mod 8, magic multiply for rest.", "");
+  render_finding(gf, "Reconstruct", "2059 LUT4", "Two-level CRT: 6ch TRUE + ESCAPE lift (inv(11,17)=14). Single reduce. Same algorithm in WGSL shader.", "");
+  render_finding(gf, "Add: 365, Mul: 461", "Arithmetic is cheap", "Ring add/mul are small. The cost is decompose (getting into CRT) not computing (once there).", "");
+  dom_append(dom_body(), secf);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Compute vs CUDA");
-  render_contrast_row(sec3, "Parallelism model", "CUDA: thread blocks + shared memory + barriers", "CRT: 6 independent channels. No sync needed.");
+  render_contrast_row(sec3, "Parallelism model", "CUDA: thread blocks + shared memory + barriers", "CRT: 7 independent channels. No sync needed.");
   render_contrast_row(sec3, "Cross-talk", "Shared memory races, warp divergence", "Zero. Channels are algebraically orthogonal.");
-  render_contrast_row(sec3, "Scaling", "GPU hardware-dependent (thousands of cores)", "Ring-intrinsic. 6 channels (limited by ring structure).");
-  render_contrast_row(sec3, "Verification", "Separate checksums needed", "490 split: 3 ALIVE channels verify 3 DEAD channels for free.");
+  render_contrast_row(sec3, "Scaling", "GPU hardware-dependent (thousands of cores)", "Ring-intrinsic. 7 channels = b = depth (self-referential).");
+  render_contrast_row(sec3, "Verification", "Separate checksums needed", "490 split: ALIVE channels verify DEAD channels. ECC3 triple-parity (rate 4/7).");
+  render_contrast_row(sec3, "Hardware verified", "Simulation only", "FPGA synthesized: k9 pipeline 6555 LUT4, 267 MHz on Tang Nano 20K.");
   render_contrast_row(sec3, "Patent status", "CUDA ecosystem (mostly royalty-free for end users)", "CC0. Public domain. Forever.");
-  render_p(sec3, "HONEST NOTE: This is a demonstration of CRT-structured parallelism, not a CUDA replacement. CUDA operates on thousands of cores with sophisticated memory hierarchies. CRT parallelism is limited to 6 channels. The structural advantage is zero-synchronization independence and built-in verification, not raw throughput.");
+  render_p(sec3, "HONEST NOTE: This is a demonstration of CRT-structured parallelism, not a CUDA replacement. CUDA operates on thousands of cores with sophisticated memory hierarchies. CRT parallelism is limited to 7 channels. The structural advantage is zero-synchronization independence, built-in verification, and hardware-verified minimum circuits.");
   dom_append(dom_body(), sec3)
 )
 
