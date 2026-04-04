@@ -144,10 +144,11 @@ fn demo_gpu_bench_idem() = gpu_bench(7, gpu_bench_n(), dom_query("#gpu-res-idem"
 fn demo_gpu_bench_nil() = gpu_bench(8, gpu_bench_n(), dom_query("#gpu-res-nil"))
 fn demo_gpu_bench_unit() = gpu_bench(9, gpu_bench_n(), dom_query("#gpu-res-unit"))
 fn demo_gpu_bench_invol() = gpu_bench(10, gpu_bench_n(), dom_query("#gpu-res-invol"))
+fn demo_gpu_bench_sq0() = gpu_bench(11, gpu_bench_n(), dom_query("#gpu-res-sq0"))
 
 fn page_gpu_compute() = (
-  dom_head_meta("description", "CRT GPU Compute. 11 operations over Z/214414200. FPGA-informed WebGPU. GPU ring census (idempotent, nilpotent, unit, involution). CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"11-op parallel compute over Z/214414200 (TRANS ring). FPGA-measured, GPU-deployed. GPU ring census. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
+  dom_head_meta("description", "CRT GPU Compute. 12 operations over Z/214414200. FPGA-informed WebGPU. GPU ring census (idempotent, nilpotent, unit, involution, square-zero). CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"12-op parallel compute over Z/214414200 (TRANS ring). FPGA-measured, GPU-deployed. GPU ring census. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
   let hero = make_hero("CRT GPU Compute") in
   let eq = dom_create("div") in
   dom_text(eq, "S1: NVIDIA CUDA patents. CC0.");
@@ -194,7 +195,7 @@ fn page_gpu_compute() = (
   let secg = make_section("800px") in
   render_h2(secg, "Real GPU Benchmark (WebGPU)");
   /* S1233: gpu_init async — always render, gpu_bench checks at click time */
-  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. 11 operations from basic arithmetic to ML passes to ring census. Ring Census: x^2=x (128=D^7 idempotents), x^2=1 (256=D^8 involutions), rad(N)|x (420=lambda nilpotents), gcd(x,N)=1 (38707200=phi units). Full verification needs N=214414200 (~860MB GPU buffer).");
+  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. 12 operations from basic arithmetic to ML passes to ring census. Ring Census: x^2=x (128=D^7 idempotents), x^2=1 (256=D^8 involutions), x^2=0 (210=DATA square-zeros), rad(N)|x (420=lambda nilpotents), gcd(x,N)=1 (38707200=phi units). Full verification needs N=214414200 (~860MB GPU buffer).");
   let cnt_label = dom_create("span") in
   dom_text(cnt_label, "Elements (1K-250M): ");
   dom_style(cnt_label, "color", "#b0b0c0");
@@ -243,6 +244,7 @@ fn page_gpu_compute() = (
   let btn_nil = mk_gpu_btn("Nilpotent Count", 8, "gpu-res-nil") in
   let btn_unit = mk_gpu_btn("Unit Count", 9, "gpu-res-unit") in
   let btn_invol = mk_gpu_btn("Involution Count", 10, "gpu-res-invol") in
+  let btn_sq0 = mk_gpu_btn("Square-Zero Count", 11, "gpu-res-sq0") in
   let r_add = dom_create("div") in
   dom_attr(r_add, "id", "gpu-res-add");
   let r_mul = dom_create("div") in
@@ -265,6 +267,8 @@ fn page_gpu_compute() = (
   dom_attr(r_unit, "id", "gpu-res-unit");
   let r_invol = dom_create("div") in
   dom_attr(r_invol, "id", "gpu-res-invol");
+  let r_sq0 = dom_create("div") in
+  dom_attr(r_sq0, "id", "gpu-res-sq0");
   dom_on(btn_add, "click", "demo_gpu_bench_add");
   dom_on(btn_mul, "click", "demo_gpu_bench_mul");
   dom_on(btn_eig, "click", "demo_gpu_bench_eig");
@@ -276,6 +280,7 @@ fn page_gpu_compute() = (
   dom_on(btn_nil, "click", "demo_gpu_bench_nil");
   dom_on(btn_unit, "click", "demo_gpu_bench_unit");
   dom_on(btn_invol, "click", "demo_gpu_bench_invol");
+  dom_on(btn_sq0, "click", "demo_gpu_bench_sq0");
   dom_append(secg, btn_add);
   dom_append(secg, btn_mul);
   dom_append(secg, btn_eig);
@@ -287,6 +292,7 @@ fn page_gpu_compute() = (
   dom_append(secg, btn_nil);
   dom_append(secg, btn_unit);
   dom_append(secg, btn_invol);
+  dom_append(secg, btn_sq0);
   dom_append(secg, r_add);
   dom_append(secg, r_mul);
   dom_append(secg, r_eig);
@@ -298,6 +304,7 @@ fn page_gpu_compute() = (
   dom_append(secg, r_nil);
   dom_append(secg, r_unit);
   dom_append(secg, r_invol);
+  dom_append(secg, r_sq0);
   dom_append(dom_body(), secg);
   let secf = make_section("800px") in
   render_h2(secf, "FPGA Ground Truth (Tang Nano 20K)");
@@ -328,7 +335,7 @@ fn page_gpu_compute() = (
   render_finding(gml, "Backward pass", "Chain rule per channel", "g = w2 * 2h * w1 mod q. Recompute forward activations, then 3 multiplies for gradient. More per-element work than forward -- higher GPU speedup.", "");
   render_finding(gml, "MNIST proved", "S1267", "5-class 25->10->5 classifier in .ax. 25/25 accuracy. f64 arrays + arena reset + softmax. The pipeline works.", "");
   render_finding(gml, ".ax->WGSL", "Transpiler (S1271)", "Write GPU kernels in .ax, compile to WGSL compute shaders. Same language for CPU (WASM) and GPU (WGSL). All 11 benchmarks have .ax source equivalents.", "");
-  render_finding(gml, "GPU Ring Census", "4 invariants verified", "Idempotents: 128=D^7 (x^2=x). Involutions: 256=D^8 (x^2=1). Nilpotents: 420=lambda (rad(N)|x). Units: phi(N)=38707200. D^7->D^8: each idempotent has D involutory companions.", "");
+  render_finding(gml, "GPU Ring Census", "5 invariants verified", "Idempotents: 128=D^7 (x^2=x). Involutions: 256=D^8 (x^2=1). Square-zeros: 210=DATA (x^2=0). Nilpotents: 420=lambda (rad(N)|x). Units: phi(N)=38707200. Three squaring invariants: D^7, D^8, DATA.", "");
   dom_append(dom_body(), secml);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Compute vs CUDA");
