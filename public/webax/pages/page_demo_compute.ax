@@ -129,11 +129,15 @@ fn demo_gpu_batch() = (
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 1000 values x f(x)=x^2 mod 214414200</p><p style='color:" + (if ok_count[0] == 1000 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${ok_count[0]}" + "/1000 MATCH</p><p style='color:#b0b0c0;margin:4px 0'>Each value decomposed into 7 channels, squared independently, reconstructed via two-level CRT (TRUE + ESCAPE lift). All 7 workgroups run in parallel -- no cross-channel dependency.</p></div>")
 )
 
-fn demo_gpu_bench_add() = gpu_bench(0, 100000, dom_query("#gpu-res-add"))
-fn demo_gpu_bench_mul() = gpu_bench(1, 100000, dom_query("#gpu-res-mul"))
-fn demo_gpu_bench_eig() = gpu_bench(2, 100000, dom_query("#gpu-res-eig"))
-fn demo_gpu_bench_dec() = gpu_bench(3, 100000, dom_query("#gpu-res-dec"))
-fn demo_gpu_bench_rtt() = gpu_bench(4, 100000, dom_query("#gpu-res-rtt"))
+fn gpu_bench_n() = (
+  let v = parse_int_from("#gpu-count") in
+  if v < 1000 then 1000 else if v > 10000000 then 10000000 else v
+)
+fn demo_gpu_bench_add() = gpu_bench(0, gpu_bench_n(), dom_query("#gpu-res-add"))
+fn demo_gpu_bench_mul() = gpu_bench(1, gpu_bench_n(), dom_query("#gpu-res-mul"))
+fn demo_gpu_bench_eig() = gpu_bench(2, gpu_bench_n(), dom_query("#gpu-res-eig"))
+fn demo_gpu_bench_dec() = gpu_bench(3, gpu_bench_n(), dom_query("#gpu-res-dec"))
+fn demo_gpu_bench_rtt() = gpu_bench(4, gpu_bench_n(), dom_query("#gpu-res-rtt"))
 
 fn page_gpu_compute() = (
   dom_head_meta("description", "CRT GPU Compute. 7 independent workgroups via CRT decomposition over Z/214414200. FPGA-informed WebGPU. CC0.");
@@ -184,7 +188,29 @@ fn page_gpu_compute() = (
   let secg = make_section("800px") in
   render_h2(secg, "Real GPU Benchmark (WebGPU)");
   /* S1233: gpu_init async — always render, gpu_bench checks at click time */
-  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. Each operation dispatches 100,000 elements. 5 operations isolate per-op cost: add, multiply, eigenvalue, decompose-only, and full round-trip (decompose + reconstruct). Compare with FPGA ground truth below.");
+  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. 5 operations isolate per-op cost. At small N (~100K), dispatch overhead dominates and all ops look equal. At 1M+, actual compute becomes visible. Try different sizes to see GPU scaling.");
+  let cnt_label = dom_create("span") in
+  dom_text(cnt_label, "Elements (1K-10M): ");
+  dom_style(cnt_label, "color", "#b0b0c0");
+  dom_style(cnt_label, "marginRight", "8px");
+  dom_style(cnt_label, "fontSize", "14px");
+  let cnt_input = dom_create("input") in
+  dom_attr(cnt_input, "type", "number");
+  dom_attr(cnt_input, "id", "gpu-count");
+  dom_attr(cnt_input, "value", "1000000");
+  dom_style(cnt_input, "width", "120px");
+  dom_style(cnt_input, "padding", "6px 10px");
+  dom_style(cnt_input, "borderRadius", "4px");
+  dom_style(cnt_input, "border", "1px solid #555");
+  dom_style(cnt_input, "background", "#1a1a2e");
+  dom_style(cnt_input, "color", "#ffd700");
+  dom_style(cnt_input, "fontSize", "14px");
+  dom_style(cnt_input, "marginBottom", "12px");
+  dom_append(secg, cnt_label);
+  dom_append(secg, cnt_input);
+  let cnt_br = dom_create("div") in
+  dom_style(cnt_br, "marginBottom", "8px");
+  dom_append(secg, cnt_br);
   let mk_gpu_btn = fn(label, op_code, res_id) = (
     let b = dom_create("button") in
     dom_text(b, label);
