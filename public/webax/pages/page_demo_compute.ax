@@ -191,7 +191,7 @@ fn page_gpu_compute() = (
   let secg = make_section("800px") in
   render_h2(secg, "Real GPU Benchmark (WebGPU)");
   /* S1233: gpu_init async — always render, gpu_bench checks at click time */
-  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. 8 operations from basic arithmetic to ML backward pass to theorem verification. At small N (~100K), dispatch overhead dominates. At 1M+, actual compute becomes visible. Idempotent Count: set N to 12612600 for exhaustive TRUE ring verification (expect 64).");
+  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. 8 operations from basic arithmetic to ML backward pass to theorem verification. At small N (~100K), dispatch overhead dominates. At 1M+, actual compute becomes visible. Idempotent Count checks all 7 TRANS channels — 128 total idempotents (2^7). At 1M: finds 2 (0 and 1). Full verification needs N=214414200 (~860MB GPU buffer).");
   let cnt_label = dom_create("span") in
   dom_text(cnt_label, "Elements (1K-10M): ");
   dom_style(cnt_label, "color", "#b0b0c0");
@@ -307,7 +307,7 @@ fn page_gpu_compute() = (
   render_finding(gml, "Backward pass", "Chain rule per channel", "g = w2 * 2h * w1 mod q. Recompute forward activations, then 3 multiplies for gradient. More per-element work than forward -- higher GPU speedup.", "");
   render_finding(gml, "MNIST proved", "S1267", "5-class 25->10->5 classifier in .ax. 25/25 accuracy. f64 arrays + arena reset + softmax. The pipeline works.", "");
   render_finding(gml, ".ax->WGSL", "Transpiler (S1271)", "Write GPU kernels in .ax, compile to WGSL compute shaders. Same language for CPU (WASM) and GPU (WGSL). All 8 benchmarks have .ax source equivalents.", "");
-  render_finding(gml, "GPU Proof", "Idempotent Count", "Set N=12612600: GPU checks x^2=x mod q for ALL elements of the TRUE ring. Expected: exactly 64 idempotents (2^6 for 6 prime factors). First GPU-verified ring theorem.", "");
+  render_finding(gml, "GPU Proof", "Idempotent Count", "GPU checks x^2=x mod q for all 7 TRANS channels. 128 = 2^7 idempotents in Z/214414200. At 1M: finds 2 (trivial). At 12.6M: finds 9. Full exhaustive: N=214414200. First GPU-verified ring theorem.", "");
   dom_append(dom_body(), secml);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Compute vs CUDA");
