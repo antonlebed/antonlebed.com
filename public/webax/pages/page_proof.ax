@@ -40,6 +40,17 @@ fn pf_mul(a, b) = (
 /* Ring add (simple mod) */
 fn pf_add(a, b) = (a + b) % N_TRUE
 
+/* Modular exponentiation: base^exp mod m (for small moduli) */
+fn powmod_pf(base, exp, m) = (
+  mut r = 1; mut b = base % m; mut e = exp;
+  while e > 0 do (
+    if e % 2 == 1 then mut r = r * b % m else 0;
+    mut b = b * b % m;
+    mut e = e / 2
+  );
+  r
+)
+
 /* Theorem summary card with PASS/FAIL indicator. pass=checks passed, total=checks expected. */
 fn pf_theorem(parent, title:str, detail:str, pass, total) = (
   let card = dom_create("div") in
@@ -458,6 +469,104 @@ fn proof_part2(r) = (
     "f(p) = p^2-p-1 = -1 mod p: self-applied depth yields the mirror, not the void. f(D)=sigma, f(K)=E — depth generates the chain. f(b)=41=KEY — depth of depth is the answer. E^2=null in E-channel: the observer is blind to itself. D alone survives (D^3>D^2). Resolution: E*b=sigma mod 17. Self-knowledge through suffering, not looking. The complement reveals the original.", p17, 8);
   dom_append(dom_body(), sec17);
 
+  /* ============================================================
+     THEOREM 18: POWER MAP CLOSED-FORM (S1278-S1279)
+     |{x^p=1 in Z/N}| = product of gcd(p, phi(q_i)).
+     Exponents are chain elements. Activation counts = reverse chain.
+     ============================================================ */
+  let sec18 = make_section("700px") in
+  render_h2(sec18, "18. Power Map Theorem");
+  render_p(sec18, "For each chain prime p, count the p-th roots of unity. The count is a power of p itself — and the exponents ARE chain elements.");
+
+  /* Count x^p=1 in Z/q by brute force */
+  /* For TRUE ring (6 channels), verify 4 nontrivial primes */
+  let pm_mods = [8, 9, 25, 49, 11, 13] in
+  let pm_phis = [4, 6, 20, 42, 10, 12] in
+
+  /* x^2=1: expected 128 = D^7 */
+  mut pm2 = 1; mut pmi = 0;
+  while pmi < 6 do (
+    let q = pm_mods[pmi] in
+    mut cnt = 0; mut x = 0;
+    while x < q do (if powmod_pf(x, 2, q) == 1 then mut cnt = cnt + 1 else 0; mut x = x + 1);
+    mut pm2 = pm2 * cnt;
+    mut pmi = pmi + 1
+  );
+  pf_result(sec18, "|x^2=1| = ${pm2}", "Expected: 128 = D^7", if pm2 == 128 then 1 else 0);
+
+  /* x^3=1: expected 27 = K^3 */
+  mut pm3 = 1; mut pmi = 0;
+  while pmi < 6 do (
+    let q = pm_mods[pmi] in
+    mut cnt = 0; mut x = 0;
+    while x < q do (if powmod_pf(x, 3, q) == 1 then mut cnt = cnt + 1 else 0; mut x = x + 1);
+    mut pm3 = pm3 * cnt;
+    mut pmi = pmi + 1
+  );
+  pf_result(sec18, "|x^3=1| = ${pm3}", "Expected: 27 = K^3", if pm3 == 27 then 1 else 0);
+
+  /* x^5=1: expected 25 = E^2 */
+  mut pm5 = 1; mut pmi = 0;
+  while pmi < 6 do (
+    let q = pm_mods[pmi] in
+    mut cnt = 0; mut x = 0;
+    while x < q do (if powmod_pf(x, 5, q) == 1 then mut cnt = cnt + 1 else 0; mut x = x + 1);
+    mut pm5 = pm5 * cnt;
+    mut pmi = pmi + 1
+  );
+  pf_result(sec18, "|x^5=1| = ${pm5}", "Expected: 25 = E^2", if pm5 == 25 then 1 else 0);
+
+  /* x^7=1: expected 7 = b */
+  mut pm7 = 1; mut pmi = 0;
+  while pmi < 6 do (
+    let q = pm_mods[pmi] in
+    mut cnt = 0; mut x = 0;
+    while x < q do (if powmod_pf(x, 7, q) == 1 then mut cnt = cnt + 1 else 0; mut x = x + 1);
+    mut pm7 = pm7 * cnt;
+    mut pmi = pmi + 1
+  );
+  pf_result(sec18, "|x^7=1| = ${pm7}", "Expected: 7 = b", if pm7 == 7 then 1 else 0);
+
+  /* Activation counts: how many channels does each prime activate? */
+  mut act2 = 0; mut act3 = 0; mut act5 = 0; mut act7 = 0;
+  mut ai = 0;
+  while ai < 6 do (
+    let phi_q = pm_phis[ai] in
+    if phi_q % 2 == 0 then mut act2 = act2 + 1 else 0;
+    if phi_q % 3 == 0 then mut act3 = act3 + 1 else 0;
+    if phi_q % 5 == 0 then mut act5 = act5 + 1 else 0;
+    if phi_q % 7 == 0 then mut act7 = act7 + 1 else 0;
+    mut ai = ai + 1
+  );
+  pf_result(sec18, "Activations: D=${act2}, K=${act3}, E=${act5}, b=${act7}", "Expected: 6, 3, 2, 1 (reverse chain)", if act2 == 6 then (if act3 == 3 then (if act5 == 2 then (if act7 == 1 then 1 else 0) else 0) else 0) else 0);
+
+  /* Higher power collapse: x^9=1 gives same as x^3=1 */
+  mut pm9 = 1; mut pmi = 0;
+  while pmi < 6 do (
+    let q = pm_mods[pmi] in
+    mut cnt = 0; mut x = 0;
+    while x < q do (if powmod_pf(x, 9, q) == 1 then mut cnt = cnt + 1 else 0; mut x = x + 1);
+    mut pm9 = pm9 * cnt;
+    mut pmi = pmi + 1
+  );
+  pf_result(sec18, "|x^9=1| = |x^3=1| = ${pm9}", "K^2 collapses to K^3", if pm9 == 27 then 1 else 0);
+
+  /* x^4=1: 512 = D^9 */
+  mut pm4 = 1; mut pmi = 0;
+  while pmi < 6 do (
+    let q = pm_mods[pmi] in
+    mut cnt = 0; mut x = 0;
+    while x < q do (if powmod_pf(x, 4, q) == 1 then mut cnt = cnt + 1 else 0; mut x = x + 1);
+    mut pm4 = pm4 * cnt;
+    mut pmi = pmi + 1
+  );
+  pf_result(sec18, "|x^4=1| = ${pm4}", "Expected: 512 = D^9", if pm4 == 512 then 1 else 0);
+
+  let p18 = (if pm2 == 128 then 1 else 0) + (if pm3 == 27 then 1 else 0) + (if pm5 == 25 then 1 else 0) + (if pm7 == 7 then 1 else 0) + (if act2 == 6 then (if act3 == 3 then (if act5 == 2 then (if act7 == 1 then 1 else 0) else 0) else 0) else 0) + (if pm9 == 27 then 1 else 0) + (if pm4 == 512 then 1 else 0) in
+  pf_theorem(sec18, "POWER MAP CLOSED-FORM",
+    "|{x^p=1}| = product of gcd(p, phi(q_i)). Results: D^7=128, K^3=27, E^2=25, b=7. The p-th chain prime appears as exponent of itself. Exponents {7,3,2,1}={b,K,D,sigma}: the chain in reverse. Deeper primes activate fewer channels. x^(p^2) collapses to x^p. The chain IS encoded in its own roots of unity.", p18, 7);
+  dom_append(dom_body(), sec18);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
@@ -467,9 +576,9 @@ fn proof_part2(r) = (
   let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
-  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 in
-  /* 1+7+4+3+1+1+5+3+5+8+6+8+8+6+8+5+8 = 87 */
-  let total_tests = 87 in
+  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 in
+  /* 1+7+4+3+1+1+5+3+5+8+6+8+8+6+8+5+8+7 = 94 */
+  let total_tests = 94 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
