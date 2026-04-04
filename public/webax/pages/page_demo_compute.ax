@@ -132,6 +132,8 @@ fn demo_gpu_batch() = (
 fn demo_gpu_bench_add() = gpu_bench(0, 100000, dom_query("#gpu-res-add"))
 fn demo_gpu_bench_mul() = gpu_bench(1, 100000, dom_query("#gpu-res-mul"))
 fn demo_gpu_bench_eig() = gpu_bench(2, 100000, dom_query("#gpu-res-eig"))
+fn demo_gpu_bench_dec() = gpu_bench(3, 100000, dom_query("#gpu-res-dec"))
+fn demo_gpu_bench_rtt() = gpu_bench(4, 100000, dom_query("#gpu-res-rtt"))
 
 fn page_gpu_compute() = (
   dom_head_meta("description", "CRT GPU Compute. 7 independent workgroups via CRT decomposition over Z/214414200. FPGA-informed WebGPU. CC0.");
@@ -182,7 +184,7 @@ fn page_gpu_compute() = (
   let secg = make_section("800px") in
   render_h2(secg, "Real GPU Benchmark (WebGPU)");
   /* S1233: gpu_init async — always render, gpu_bench checks at click time */
-  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. Each operation dispatches 100,000 elements. Shader uses two-level CRT: TRUE 6ch reconstruct + ESCAPE lift.");
+  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. Each operation dispatches 100,000 elements. 5 operations isolate per-op cost: add, multiply, eigenvalue, decompose-only, and full round-trip (decompose + reconstruct). Compare with FPGA ground truth below.");
   let mk_gpu_btn = fn(label, op_code, res_id) = (
     let b = dom_create("button") in
     dom_text(b, label);
@@ -201,21 +203,33 @@ fn page_gpu_compute() = (
   let btn_add = mk_gpu_btn("Ring Add", 0, "gpu-res-add") in
   let btn_mul = mk_gpu_btn("CRT Multiply", 1, "gpu-res-mul") in
   let btn_eig = mk_gpu_btn("Eigenvalue", 2, "gpu-res-eig") in
+  let btn_dec = mk_gpu_btn("Decompose", 3, "gpu-res-dec") in
+  let btn_rtt = mk_gpu_btn("Round-trip", 4, "gpu-res-rtt") in
   let r_add = dom_create("div") in
   dom_attr(r_add, "id", "gpu-res-add");
   let r_mul = dom_create("div") in
   dom_attr(r_mul, "id", "gpu-res-mul");
   let r_eig = dom_create("div") in
   dom_attr(r_eig, "id", "gpu-res-eig");
+  let r_dec = dom_create("div") in
+  dom_attr(r_dec, "id", "gpu-res-dec");
+  let r_rtt = dom_create("div") in
+  dom_attr(r_rtt, "id", "gpu-res-rtt");
   dom_on(btn_add, "click", "demo_gpu_bench_add");
   dom_on(btn_mul, "click", "demo_gpu_bench_mul");
   dom_on(btn_eig, "click", "demo_gpu_bench_eig");
+  dom_on(btn_dec, "click", "demo_gpu_bench_dec");
+  dom_on(btn_rtt, "click", "demo_gpu_bench_rtt");
   dom_append(secg, btn_add);
   dom_append(secg, btn_mul);
   dom_append(secg, btn_eig);
+  dom_append(secg, btn_dec);
+  dom_append(secg, btn_rtt);
   dom_append(secg, r_add);
   dom_append(secg, r_mul);
   dom_append(secg, r_eig);
+  dom_append(secg, r_dec);
+  dom_append(secg, r_rtt);
   dom_append(dom_body(), secg);
   let secf = make_section("800px") in
   render_h2(secf, "FPGA Ground Truth (Tang Nano 20K)");
@@ -226,6 +240,16 @@ fn page_gpu_compute() = (
   render_finding(gf, "Reconstruct", "2059 LUT4", "Two-level CRT: 6ch TRUE + ESCAPE lift (inv(11,17)=14). Single reduce. Same algorithm in WGSL shader.", "");
   render_finding(gf, "Add: 365, Mul: 461", "Arithmetic is cheap", "Ring add/mul are small. The cost is decompose (getting into CRT) not computing (once there).", "");
   dom_append(dom_body(), secf);
+  let secd = make_section("800px") in
+  render_h2(secd, "Per-Op Cost Distribution: FPGA vs GPU");
+  render_p(secd, "FPGA measures gate area (LUT4). GPU measures time (ms). Run all 5 benchmarks above, then compare where cost lives on each substrate:");
+  render_theorem(secd, "Cost Decomposition", "Decompose cost = T_decompose. Reconstruct cost = T_roundtrip - T_decompose. Per-channel compute = T_eigenvalue - T_decompose. Full CRT multiply overhead = T_multiply - T_add. FPGA ground truth: decompose = 50% of per-op gate area (ALU divider chains). On GPU, integer modulus is a single ALU instruction -- expect decompose to be proportionally cheaper.");
+  let gd = make_findings_grid(secd) in
+  render_finding(gd, "FPGA: Decompose", "50% (2937 LUT4)", "7 modulus ops via combinational dividers. Dominates circuit area. Critical path: mod 9.", "");
+  render_finding(gd, "FPGA: Reconstruct", "35% (2059 LUT4)", "6 idempotent multiplies + sum + mod 12612600 + ESCAPE lift. Second largest cost.", "");
+  render_finding(gd, "GPU: Decompose", "Run benchmark", "GPU has hardware integer ALU. Expect mod ops to be fast. Decompose should NOT dominate on GPU.", "");
+  render_finding(gd, "GPU: Reconstruct", "Run benchmark", "T_roundtrip - T_decompose isolates CRT reconstruction cost on GPU.", "");
+  dom_append(dom_body(), secd);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Compute vs CUDA");
   render_contrast_row(sec3, "Parallelism model", "CUDA: thread blocks + shared memory + barriers", "CRT: 7 independent channels. No sync needed.");
