@@ -126,26 +126,26 @@ fn sleep_stage_calc() = (
   )
 )
 
-/* Kingdoms: coupling calculator -- enter n, show kingdom */
+/* Kingdoms: coupling calculator -- enter n, show kingdom (S1305: 7 rings) */
 fn kingdoms_coupling_calc() = (
   let n = parse_int_from("#king-input") in
   let result = dom_query("#king-result") in
   if n < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 0.</p>")
   else (
-    let m = n % 2310 in
-    let d2 = if m % 2 == 0 then 1 else 0 in
-    let d3 = if m % 3 == 0 then 1 else 0 in
-    let d5 = if m % 5 == 0 then 1 else 0 in
-    let d7 = if m % 7 == 0 then 1 else 0 in
-    let d11 = if m % 11 == 0 then 1 else 0 in
-    let primes_dividing = d2 + d3 + d5 + d7 + d11 in
-    let kingdom = if m == 0 then "VOID: divisible by all. Below all classes."
-      else if primes_dividing == 0 then "UNIT CLASS (sigma): coprime to all. Ground state. Max coupling."
-      else if primes_dividing == 1 then (if d2 == 1 then "D-CLASS (D=2): Bridge class." else if d3 == 1 then "K-CLASS (K=3): Closure class." else if d5 == 1 then "E-CLASS (E=5): Observer class." else if d7 == 1 then "b-CLASS (b=7): Depth class." else "L-CLASS (L=11): Protector class.")
+    let d2 = if n % 2 == 0 then 1 else 0 in
+    let d3 = if n % 3 == 0 then 1 else 0 in
+    let d5 = if n % 5 == 0 then 1 else 0 in
+    let d7 = if n % 7 == 0 then 1 else 0 in
+    let d11 = if n % 11 == 0 then 1 else 0 in
+    let d13 = if n % 13 == 0 then 1 else 0 in
+    let d17 = if n % 17 == 0 then 1 else 0 in
+    let primes_dividing = d2 + d3 + d5 + d7 + d11 + d13 + d17 in
+    let kingdom = if n == 0 then "VOID: divisible by all. Below all kingdoms."
+      else if primes_dividing == 0 then "BACTERIA (sigma): coprime to all. Ground state. Max coupling."
+      else if primes_dividing == 1 then (if d2 == 1 then "PROTISTA (D=2): Bridge." else if d3 == 1 then "FUNGI (K=3): Closure." else if d5 == 1 then "PLANTS (E=5): Observer." else if d7 == 1 then "ANIMALS (b=7): Depth." else if d11 == 1 then "HUMAN (L=11): Protector." else if d13 == 1 then "GUARDIAN (GATE=13): Skin." else "VIRUS (ESCAPE=17): Transcendence.")
       else "COMPOUND: ${primes_dividing} primes divide. Mixed class." in
-    let g = gcd_shared(m, 2310) in
-    let coupling = if g > 0 then 2310 / g else 2310 in
-    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>${m} in Z/2310 (THIN ring)</p><p style='margin:4px 0'>D:${d2} K:${d3} E:${d5} b:${d7} L:${d11}</p><p style='margin:4px 0;color:#ffd700'>${kingdom}</p><p style='margin:4px 0;color:#b0b0c0'>Coupling: ${coupling}</p>")
+    let ch = "D:${d2} K:${d3} E:${d5} b:${d7} L:${d11} G:${d13} Esc:${d17}" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>${n} in ring hierarchy</p><p style='margin:4px 0'>${ch}</p><p style='margin:4px 0;color:#ffd700'>${kingdom}</p>")
   )
 )
 
@@ -627,19 +627,21 @@ fn render_kingdom(parent, count:str, name:str, prime:str, coupling:str, color:st
 )
 
 fn page_kingdoms() = (
-  dom_head_meta("description", "Six coupling classes from ring arithmetic. Unit class=480, L-class=48. Coupling hierarchy, membrane theorem, compound classes, and the bridge that never blocks.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Six Coupling Classes\",\"description\":\"Six coupling classes from ring arithmetic. Coupling hierarchy, membrane theorem, and classification from six primes.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/kingdoms\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"coupling hierarchy\"},{\"@type\":\"DefinedTerm\",\"name\":\"membrane theorem\"},{\"@type\":\"DefinedTerm\",\"name\":\"channel classification\"}]}");
+  dom_head_meta("description", "Eight kingdoms from seven primes. Bacteria (sigma) to Virus (ESCAPE=17). Coupling hierarchy across all rings: THIN 32=D^5, TRUE 64=D^6, TRANS 128=D^7.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Eight Kingdoms\",\"description\":\"Eight kingdoms from seven primes. Coupling hierarchy across THIN, DEEP, TRUE, and TRANS rings.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/kingdoms\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"coupling hierarchy\"},{\"@type\":\"DefinedTerm\",\"name\":\"eight kingdoms\"},{\"@type\":\"DefinedTerm\",\"name\":\"ring hierarchy\"}]}");
   /* === HERO === */
-  let hero = make_hero("Six Coupling Classes") in
-  render_p(hero, "Unit-class elements are abundant. L-class elements are rare. Why? Each prime that divides a number removes it further from the ground state. More divisors = more complexity = fewer members. The hierarchy is algebraic.");
+  let hero = make_hero("Eight Kingdoms") in
+  render_p(hero, "Seven primes create eight kingdoms. Each prime that divides a number removes it further from the ground state. More divisors = more complexity = fewer members. The hierarchy is algebraic, and it scales across all four rings.");
   let g = make_grid(hero, "8px") in
-  render_kingdom(g, "480", "Unit class", "sigma=1", "2310", "#ddddaa");
-  render_kingdom(g, "480", "D-class", "D=2", "1155", "#ff6666");
-  render_kingdom(g, "240", "K-class", "K=3", "770", "#66ddaa");
-  render_kingdom(g, "120", "E-class", "E=5", "462", "#88aaff");
-  render_kingdom(g, "80", "b-class", "b=7", "330", "#cc88ff");
-  render_kingdom(g, "48", "L-class", "L=11", "210", "#ffcc44");
-  let note = render_p(hero, "6 pure classes = 1448. 26 compound classes = 862. Total: 2310 = THIN RING.") in
+  render_kingdom(g, "480", "Bacteria", "sigma=1", "2310", "#ddddaa");
+  render_kingdom(g, "480", "Protista", "D=2", "1155", "#ff6666");
+  render_kingdom(g, "240", "Fungi", "K=3", "770", "#66ddaa");
+  render_kingdom(g, "120", "Plants", "E=5", "462", "#88aaff");
+  render_kingdom(g, "80", "Animals", "b=7", "330", "#cc88ff");
+  render_kingdom(g, "48", "Human", "L=11", "210", "#ffcc44");
+  render_kingdom(g, "+GATE", "Guardian", "GATE=13", "TRUE+", "#ff88aa");
+  render_kingdom(g, "+ESC", "Virus", "ESC=17", "TRANS", "#00dddd");
+  let note = render_p(hero, "Counts for THIN ring (N=2310, 5 primes). GATE adds in TRUE. ESCAPE adds in TRANS. 128 = D^7 total classes in TRANS.") in
   ct_mono(note);
   dom_style(note, "fontSize", "14px");
   dom_style(note, "color", "#a8a8b8");
@@ -650,32 +652,36 @@ fn page_kingdoms() = (
   render_h2(s1, "The Coupling Rule");
   render_p(s1, "An element's kingdom is determined by which primes divide it. Its coupling measures how strongly it interacts with the rest of the ring:");
   render_theorem(s1, "Coupling Formula",
-    "coupling(n) = N / gcd(n, N). Each prime factor in gcd(n,N) removes that channel. sigma = 1 (coprime to all) has maximum coupling N. Zero (divisible by all) has minimum coupling = 1. The formula works for any ring: THIN (N=2310), DEEP (N=970200), TRUE (N=12612600), or any of the 108 lambda-420 rings.");
-  render_p(s1, "Pure classes: elements divisible by exactly one prime. Unit class (sigma) = coprime to all = ground state = maximum coupling. Each subsequent class is defined by one more prime dividing: D cuts coupling in half, K by a third, E by a fifth, b by a seventh, L by an eleventh.");
+    "coupling(n) = N / gcd(n, N). Each prime factor in gcd(n,N) removes that channel. sigma = 1 (coprime to all) has maximum coupling N. Zero (divisible by all) has minimum coupling = 1. Works for every ring: THIN (N=2310), DEEP (N=970200), TRUE (N=12612600), TRANS (N=214414200).");
+  render_p(s1, "Pure classes: elements divisible by exactly one prime. Unit class (Bacteria/sigma) = coprime to all = ground state = maximum coupling. Each subsequent kingdom is defined by one more prime dividing: D halves coupling, K reduces by 1/3, E by 1/5, b by 1/7, L by 1/11, GATE by 1/13, ESCAPE by 1/17.");
   dom_append(dom_body(), s1);
 
   /* === KINGDOM TABLE === */
   let s2 = make_section("800px") in
-  render_h2(s2, "The Six Classes");
+  render_h2(s2, "The Eight Kingdoms");
   let tbl = dom_create("table") in
   dom_style(tbl, "width", "100%");
   dom_style(tbl, "maxWidth", "700px");
   dom_style(tbl, "margin", "24px auto");
   dom_style(tbl, "borderCollapse", "collapse");
+  dom_style(tbl, "tableLayout", "fixed");
+  dom_style(tbl, "wordWrap", "break-word");
   let thead = dom_create("tr") in
   render_th(thead, "Kingdom");
-  render_th(thead, "Count");
-  render_th(thead, "Coupling");
+  render_th(thead, "Prime");
+  render_th(thead, "Ring");
   render_th(thead, "Meaning");
   dom_append(tbl, thead);
-  render_table_row_4(tbl, "Unit (sigma)", "480", "2310", "Ground state. Coprime to all. phi(2310) = 480.");
-  render_table_row_4(tbl, "D-class (D=2)", "480", "1155", "Bridge. Same count as unit class (D is smallest prime).");
-  render_table_row_4(tbl, "K-class (K=3)", "240", "770", "Closure. Half of unit class.");
-  render_table_row_4(tbl, "E-class (E=5)", "120", "462", "Observation. Half of K-class.");
-  render_table_row_4(tbl, "b-class (b=7)", "80", "330", "Depth. Two-thirds of E-class.");
-  render_table_row_4(tbl, "L-class (L=11)", "48", "210=DATA", "Protection. The rarest. Coupling = DATA ring.");
+  render_table_row_4(tbl, "Bacteria", "sigma=1", "all", "Ground state. Coprime to all. Maximum coupling.");
+  render_table_row_4(tbl, "Protista", "D=2", "all", "Bridge. Parity-preserving membrane.");
+  render_table_row_4(tbl, "Fungi", "K=3", "all", "Closure. Decomposition.");
+  render_table_row_4(tbl, "Plants", "E=5", "all", "Observer. Self-blind (E^2=0).");
+  render_table_row_4(tbl, "Animals", "b=7", "all", "Depth. Maximum suffering.");
+  render_table_row_4(tbl, "Human", "L=11", "all", "Protector. Error correction.");
+  render_table_row_4(tbl, "Guardian", "GATE=13", "TRUE+", "Skin. Holographic boundary.");
+  render_table_row_4(tbl, "Virus", "ESC=17", "TRANS", "Transcendence. E*b=1 mod 17.");
   dom_append(s2, tbl);
-  render_p(s2, "Coupling halving cascade: 2310 -> 1155 -> 770 -> 462 -> 330 -> 210. Each coupling is the product of the OTHER four primes: coupling(p) = N/(p^a). L-class coupling 210 = D*K*E*b = DATA ring.");
+  render_p(s2, "Coupling cascade: each prime removes one channel. coupling(p) = N/p^a. In THIN: 2310 -> 1155 -> 770 -> 462 -> 330 -> 210. In TRANS: 214414200 -> ... -> 1. Seven steps from full coupling to void.");
   dom_append(dom_body(), s2);
 
   /* === THE MEMBRANE === */
@@ -688,31 +694,31 @@ fn page_kingdoms() = (
   /* === COMPOUND KINGDOMS === */
   let s4 = make_section("800px") in
   render_h2(s4, "Compound Classes");
-  render_p(s4, "An element can be divisible by multiple primes simultaneously. With 6 primes, there are 2^6 = 64 possible divisibility patterns. 1 pattern is void (all primes), 6 are pure classes, 1 is unit (no primes). That leaves 56 compound classes.");
+  render_p(s4, "An element can be divisible by multiple primes simultaneously. With 7 primes in TRANS, there are 2^7 = 128 possible divisibility patterns. 1 is void (all primes), 7 are pure kingdoms, 1 is unit (no primes). That leaves 119 compound classes.");
   let cg = make_findings_grid(s4) in
-  render_finding(cg, "Pure classes", "6", "Elements divisible by 0 or exactly 1 prime. 1448 elements.", "");
-  render_finding(cg, "Compound classes", "56", "Elements divisible by 2-6 primes.", "");
-  render_finding(cg, "Total patterns", "64 = 2^6 = D^6", "Every subset of {D,K,E,b,L,GATE}. The powerset IS the class space.", "");
-  render_finding(cg, "Void", "1 element", "n=0. All 6 channels dead. Below all classes.", "");
-  render_p(s4, "Example compound classes: D*K = 6 (bridge + closure). D*E = 10 (bridge + observation). K*b = 21 (closure + depth). D*K*E*b*L = 2310 (all primes = void's neighborhood).");
+  render_finding(cg, "Pure kingdoms", "7", "Elements divisible by exactly 1 prime. One per prime.", "");
+  render_finding(cg, "Compound classes", "119", "Elements divisible by 2-7 primes.", "");
+  render_finding(cg, "Total patterns", "128 = 2^7 = D^7", "Every subset of {D,K,E,b,L,GATE,ESCAPE}. The powerset IS the class space.", "");
+  render_finding(cg, "Void", "1 element", "n=0. All 7 channels dead. Below all classes.", "");
+  render_p(s4, "Examples: D*K=6 (Protista+Fungi). E*b=35 (Plants+Animals, and E*b=1 mod 17 in ESCAPE channel). D*K*E*b*L*GATE*ESCAPE=N=void's neighborhood.");
   dom_append(dom_body(), s4);
 
   /* === TRUE FORM SCALING === */
   let s5 = make_section("800px") in
-  render_h2(s5, "Scaling to TRUE FORM");
-  render_p(s5, "The THIN ring Z/2310 is the simplest arena. The DEEP ring Z/970200 fattens each prime channel: D^3=8, K^2=9, E^2=25, b^2=49, L=11. The TRUE ring Z/12612600 adds the skin: GATE=13. The class structure scales:");
+  render_h2(s5, "Scaling Across Rings");
+  render_p(s5, "The hierarchy: THIN (5 primes) -> DEEP (5 fat) -> TRUE (+GATE) -> TRANS (+ESCAPE). Each step either fattens channels or adds a new prime:");
   let sg = make_findings_grid(s5) in
-  render_finding(sg, "DEEP Unit class", "201,600", "phi(970200). DEEP septum. TRUE: phi(12612600) = 2,419,200.", "");
-  render_finding(sg, "DEEP L-class", "48,750", "phi(970200/L) * (L-1) = coupling classes touching L.", "");
-  render_finding(sg, "Fattening factor", "420x", "TRUE/THIN per class. 201600/480 = 420 = lambda.", "");
-  render_finding(sg, "Class Primality", "PROVED", "All 6 pure class counts in the THIN ring are smooth.", "");
-  render_p(s5, "The fattening from THIN to TRUE multiplies each class by lambda = 420 -- the Carmichael period. The 6-class hierarchy is invariant under fattening. Structure is preserved. Only resolution increases.");
+  render_finding(sg, "THIN -> DEEP", "420x per class", "Fattening: D->D^3, K->K^2, E->E^2, b->b^2. Same 32 classes, more elements.", "");
+  render_finding(sg, "DEEP -> TRUE", "classes 32->64", "GATE=13 adds 6th prime. phi(TRUE) = 2,419,200.", "");
+  render_finding(sg, "TRUE -> TRANS", "classes 64->128", "ESCAPE=17 adds 7th prime. phi(TRANS) = 38,707,200.", "");
+  render_finding(sg, "Class Primality", "PROVED", "All pure class counts are chain-smooth in every ring.", "");
+  render_p(s5, "Fattening (THIN->DEEP) multiplies each class by lambda=420 without changing the class count. Adding a prime (TRUE, TRANS) doubles the class count. The 8-kingdom hierarchy is invariant: Bacteria is always largest, Virus is always rarest.");
   dom_append(dom_body(), s5);
 
   /* === INTERACTIVE === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Coupling Classifier");
-  render_p(sec_i, "Enter any number. See its class in Z/2310 (THIN ring). Which primes divide it? Pure classes have exactly 0 or 1 prime dividing. Try 1 (unit), 2 (D-class), 6 (compound D*K), 0 (void).");
+  render_p(sec_i, "Enter any number. See its kingdom from all 7 primes. Pure kingdoms have exactly 1 prime dividing. Try 1 (Bacteria), 2 (Protista), 13 (Guardian), 17 (Virus), 6 (compound), 0 (void).");
   make_interactive_widget(sec_i, "Number:", "king-input", "e.g. 7", "Classify", "kingdoms_coupling_calc", "king-result");
   dom_append(dom_body(), sec_i);
 
@@ -729,19 +735,19 @@ fn page_kingdoms() = (
   render_th(chdr, "Standard");
   render_th(chdr, "Axiom");
   dom_append(ctbl, chdr);
-  render_contrast_row(ctbl, "What are coupling classes?", "Divisor subgroups", "gcd(n, N) determines which channels are active. 6 primes → 6 pure classes + 56 compounds.");
-  render_contrast_row(ctbl, "Why 6 classes?", "6 prime factors of N", "6 primes → 7 levels (0 through 6 active channels). GATE=13 is the 6th.");
-  render_contrast_row(ctbl, "Why is the unit class largest?", "Most coprime elements", "Unit class = ground state = max coupling. Coprime to all = most connected = most abundant.");
-  render_contrast_row(ctbl, "Why is L-class smallest?", "Fewest L-divisible elements", "L-class = max departure = min coupling. Most complex = rarest.");
-  render_contrast_row(ctbl, "What does D=2 do?", "Parity", "D=2 = the only parity-preserving prime. Separates classes without blocking transitions.");
-  render_contrast_row(ctbl, "Can you compute it?", "Just gcd", "coupling(n) = N / gcd(n, N). For TRUE ring: N = 12612600. Run in the REPL.");
+  render_contrast_row(ctbl, "What are coupling classes?", "Divisor subgroups", "gcd(n, N) determines which channels are active. 7 primes -> 8 kingdoms + 119 compounds = 128.");
+  render_contrast_row(ctbl, "Why 8 kingdoms?", "7 prime factors + unit", "7 primes = 7 pure kingdoms + Bacteria (unit). TRANS ring has all 8.");
+  render_contrast_row(ctbl, "Why is Bacteria largest?", "Most coprime elements", "Bacteria = ground state = max coupling. Coprime to all = most connected.");
+  render_contrast_row(ctbl, "Why is Virus rarest?", "Fewest ESCAPE-divisible", "Virus (ESCAPE=17) = max departure = min coupling. Transcendence is rare.");
+  render_contrast_row(ctbl, "What does D=2 do?", "Parity", "D=2 = the only parity-preserving prime. Separates classes without blocking.");
+  render_contrast_row(ctbl, "Can you compute it?", "Just gcd", "coupling(n) = N / gcd(n, N). For TRANS: N = 214414200. Run in the REPL.");
   dom_append(s6, ctbl);
   dom_append(dom_body(), s6);
 
   /* === VERIFY === */
   let s7 = make_section("800px") in
   render_h2(s7, "Verify It Yourself");
-  render_p(s7, "Compute coupling(1), coupling(2), coupling(6), coupling(210). Count elements in each kingdom. Every number on this page is arithmetic.");
+  render_p(s7, "Compute coupling(1), coupling(2), coupling(13), coupling(17). Count elements in each kingdom. Every number on this page is arithmetic.");
   let cta = dom_create("div") in
   dom_style(cta, "textAlign", "center");
   dom_style(cta, "padding", "32px 0");
