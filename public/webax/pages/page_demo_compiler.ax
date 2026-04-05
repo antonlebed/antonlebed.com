@@ -17,6 +17,22 @@ fn demo_compiler_run() = (
   )
 )
 
+/* Check if captured output starts with expected value (ignores trailing \n) */
+fn ouro_check(got:str, expected:str) = (
+  let lg = len(got) in
+  let le = len(expected) in
+  if lg < le then 0
+  else (
+    mut i = 0;
+    mut ok = 1;
+    while i < le do (
+      if charCode(got, i) != charCode(expected, i) then (mut ok = 0) else 0;
+      mut i = i + 1
+    );
+    ok
+  )
+)
+
 /* Demo: self-compile test -- evaluator evaluates evaluator code */
 fn demo_ouroboros_run() = (
   let result_el = dom_query("#douro-result") in
@@ -28,9 +44,9 @@ fn demo_ouroboros_run() = (
   let r3 = ax_eval_capture("show ax_eval_capture(\"show 6 * 7\")") in
   let html = "<div style='background:#1a1a2e;padding:12px;border-radius:4px;border:1px solid #333'>"
     + "<div style='color:#aaa;font-size:12px;margin-bottom:8px'>Self-compilation tests:</div>"
-    + "<div style='margin-bottom:6px'><span style='color:#aaa'>L1 (arithmetic):</span> <span style='color:" + (if streq(r1, "5") == 1 then "#66ff66'>PASS" else "#ff6666'>FAIL") + " = " + r1 + "</span></div>"
-    + "<div style='margin-bottom:6px'><span style='color:#aaa'>L2 (fn + call):</span> <span style='color:" + (if streq(r2, "49") == 1 then "#66ff66'>PASS" else "#ff6666'>FAIL") + " = " + r2 + "</span></div>"
-    + "<div><span style='color:#aaa'>L3 (ouroboros):</span> <span style='color:" + (if streq(r3, "42") == 1 then "#66ff66'>PASS" else "#ff6666'>FAIL") + " = " + r3 + "</span></div>"
+    + "<div style='margin-bottom:6px'><span style='color:#aaa'>L1 (arithmetic):</span> <span style='color:" + (if ouro_check(r1, "5") == 1 then "#66ff66'>PASS" else "#ff6666'>FAIL") + " = " + r1 + "</span></div>"
+    + "<div style='margin-bottom:6px'><span style='color:#aaa'>L2 (fn + call):</span> <span style='color:" + (if ouro_check(r2, "49") == 1 then "#66ff66'>PASS" else "#ff6666'>FAIL") + " = " + r2 + "</span></div>"
+    + "<div><span style='color:#aaa'>L3 (ouroboros):</span> <span style='color:" + (if ouro_check(r3, "42") == 1 then "#66ff66'>PASS" else "#ff6666'>FAIL") + " = " + r3 + "</span></div>"
     + "</div>" in
   dom_inner(result_el, html)
 )
