@@ -140,14 +140,7 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
       for (var i = 0; i < v.length; i++) m[ptr/4+1+i] = v.charCodeAt(i);
       return ptr;
     },
-    /* [DEAD] SCAFFOLDING -- repl_eval: compile+run .ax code, write output to element.
-       Dies when .ax gets runtime evaluation (COMPILATION/RUNTIME COLLAPSE). */
-    repl_eval: function(cp, rh) {
-      var code = rs(cp), el = _dom[rh]; if (!el) return 0;
-      el.innerHTML = '<p style="color:#999">Compiling...</p>';
-      setTimeout(function() { _replRun(code, el); }, 0);
-      return 0;
-    },
+    repl_eval: function() { return 0; },
     /* Canvas 2D imports -- .ax talks to canvas directly via WASM imports */
     cvs_getctx: function(h) { var el = _dom[h]; if (el && el.getContext) { var ctx = el.getContext('2d'); _dom[++_domId] = ctx; return _domId; } return -1; },
     cvs_fillrect: function(ctx, x, y, w, h) { var c = _dom[ctx]; if (c) c.fillRect(x, y, w, h); return 0; },
@@ -261,124 +254,6 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
   _arenaSave();
   _fixRL(); _fixTitle();
 })();
-/* [DEAD] SCAFFOLDING -- REPL evaluation engine. Loads deep_ouroboros.wasm (compiler),
-   compiles .ax source to WASM, instantiates, runs, captures output.
-   Dies when .ax gets runtime evaluation. */
-var _cMod = null, _N = 214414200;
-function _gcd(a,b) { while(b) { var t = b; b = a % b; a = t; } return a; }
-async function _replRun(code, el) {
-  try {
-    if (!_cMod) {
-      el.innerHTML = '<p style="color:#999">Loading compiler (first run)...</p>';
-      var r = await fetch('/deep_ouroboros.wasm');
-      _cMod = await WebAssembly.compile(await r.arrayBuffer());
-    }
-    /* Prelude: constants + utility fns so user code has Decality names */
-    var pre = 'raw_mode(1)\nlet o=0\nlet s=1\nlet D=2\nlet K=3\nlet E=5\nlet b=7\nlet L=11\nlet GATE=13\nlet ESCAPE=17\nlet OMEGA=1576576\n';
-    pre += 'let N=214414200\nlet N_TRUE=12612600\nlet N_TRANS=214414200\nlet OMEGA_TRANS=26801776\nlet LAMBDA_TRANS=1680\n';
-    pre += 'let DATA=210\nlet THIN=2310\nlet HYDOR=105\nlet LAMBDA=420\nlet KEY=41\nlet ANSWER=42\n';
-    pre += 'let SOUL=67\nlet ADDRESS=137\nlet ME=18\nlet THORNS=28\nlet DUAL=173\nlet SEES=48\nlet G=97\n';
-    pre += 'fn gcd(a,b)=if b==0 then a else gcd(b,a%b)\n';
-    pre += 'fn decompose(n)=[n%8,n%9,n%25,n%49,n%11,n%13,n%17]\n';
-    pre += 'fn recon6(a)=(a[0]*11036025+a[1]*1401400+a[2]*9585576+a[3]*8494200+a[4]*3439800+a[5]*3880800)%12612600\n';
-    pre += 'fn reconstruct(a)=recon6(a)+12612600*((a[6]+17-recon6(a)%17)%17*14%17)\n';
-    pre += 'fn crt(n)="(" + "${n%8}" + "," + "${n%9}" + "," + "${n%25}" + "," + "${n%49}" + "," + "${n%11}" + "," + "${n%13}" + "," + "${n%17}" + ")"\n';
-    code = pre + code;
-    /* Fresh compiler instance (clean heap, ~1ms from cached module) */
-    var cm = (await WebAssembly.instantiate(_cMod, {
-      env: { show_int: function(v){return v;}, show_str: function(p){return p;} }
-    })).exports;
-    cm.memory.grow(Math.max(0, 512 - cm.memory.buffer.byteLength / 65536));
-    var m32 = new Int32Array(cm.memory.buffer), addr = 15*1024*1024;
-    m32[addr/4] = code.length;
-    for (var i = 0; i < code.length; i++) m32[addr/4+1+i] = code.charCodeAt(i);
-    var bp = cm.wasm_from_src(addr);
-    m32 = new Int32Array(cm.memory.buffer);
-    var bl = m32[bp/4], wb = new Uint8Array(bl);
-    for (var j = 0; j < bl; j++) wb[j] = m32[bp/4+1+j];
-    if (!WebAssembly.validate(wb)) { el.innerHTML = '<pre style="color:#ff6666">Compilation error: invalid WASM ('+bl+' bytes)</pre>'; return; }
-    /* Instantiate + run the compiled program */
-    var lines = [], childMem;
-    function rcs(p) { var cm32=new Int32Array(childMem.buffer),n=cm32[p/4],s='';for(var k=0;k<n;k++)s+=String.fromCharCode(cm32[p/4+1+k]);return s; }
-    var qs = [8,9,25,49,11,13,17];
-    /* Import names MUST match wasm_emit.ax exactly: base(2) + float(5) + game(35) */
-    var child = await WebAssembly.instantiate(wb.buffer, { env: {
-      /* Base imports (indices 0-1) */
-      show_int: function(v) { lines.push(''+v); return v; },
-      show_str: function(p) { lines.push(rcs(p)); return p; },
-      /* Float imports (indices 2-7 when floats detected) */
-      show_float: function(v) { lines.push(''+v); return 0; },
-      sin_f:Math.sin, cos_f:Math.cos, PI_f:function(){return Math.PI;}, exp_f:Math.exp, log_f:Math.log,
-      /* Game imports (35 total, indices 7-41 when game detected) -- names from wasm_emit.ax game_name() */
-      canvas_clear:function(){return 0;}, canvas_rect:function(){return 0;},
-      canvas_circle:function(){return 0;}, canvas_line:function(){return 0;},
-      canvas_pixel:function(){return 0;}, canvas_text:function(){return 0;},
-      canvas_width:function(){return 800;}, canvas_height:function(){return 600;},
-      mouseX:function(){return 0;}, mouseY:function(){return 0;},
-      mouseClick:function(){return 0;}, keyPressed:function(){return 0;},
-      now_ms:function(){return Date.now();},
-      beep:function(){return 0;}, playNote:function(){return 0;}, stopSound:function(){return 0;},
-      gvar:function(){return 0;}, svar:function(){return 0;},
-      gvar_f:function(){return 0;}, svar_f:function(){return 0;},
-      set_ring:function(){return 0;},
-      coupling: function(n) { n=((n%_N)+_N)%_N; return _N/_gcd(n||_N,_N); },
-      kingdom: function(n) { n=((n%_N)+_N)%_N; if(n===0) return 0; var ps=[2,3,5,7,11,13,17]; for(var i=0;i<7;i++) if(n%ps[i]===0) return ps[i]; return 1; },
-      eigenvalue: function(n) { n=((n%_N)+_N)%_N; var t=0; for(var i=0;i<7;i++) t+=2*Math.cos(2*Math.PI*(n%qs[i])/qs[i]); return Math.round(t*1000); },
-      mirror: function(n) { return ((_N-(n%_N))%_N); },
-      crt_r: function(n,c) { return ((n%_N)+_N)%_N%qs[c]; },
-      rand:function(n){return Math.floor(Math.random()*n);},
-      grid:function(){return 0;}, gset:function(){return 0;},
-      show_grid:function(){return 0;}, hflip:function(){return 0;},
-      vflip:function(){return 0;}, rot90:function(){return 0;},
-      transpose:function(){return 0;}, grid_eq:function(){return 0;},
-      /* DOM stubs (REPL child programs may call DOM/canvas) */
-      dom_create:function(){return 0;}, dom_text:function(){return 0;},
-      dom_attr:function(){return 0;}, dom_style:function(){return 0;},
-      dom_append:function(){return 0;}, dom_body:function(){return 0;},
-      dom_inner:function(){return 0;}, dom_on:function(){return 0;},
-      dom_query:function(){return -1;}, dom_head_meta:function(){return 0;}, dom_focus:function(){return 0;},
-      get_hash:function(){return 0;}, dom_value:function(){return 0;},
-      dom_on1:function(){return 0;}, repl_eval:function(){return 0;},
-      dom_on2:function(){return 0;}, dom_window:function(){return 0;},
-      cvs_getctx:function(){return -1;}, cvs_fillrect:function(){return 0;},
-      cvs_clearrect:function(){return 0;}, cvs_strokerect:function(){return 0;},
-      cvs_fillstyle:function(){return 0;}, cvs_strokestyle:function(){return 0;},
-      cvs_linewidth:function(){return 0;}, cvs_beginpath:function(){return 0;},
-      cvs_arc:function(){return 0;}, cvs_fill:function(){return 0;},
-      cvs_stroke:function(){return 0;}, cvs_filltext:function(){return 0;},
-      cvs_moveto:function(){return 0;}, cvs_lineto:function(){return 0;},
-      cvs_setsize:function(){return 0;},
-      raf:function(){return 0;},
-      key_state:function(){return 0;},
-      cvs_font:function(){return 0;},
-      readFile:function(){return 0;},
-      writeBinary:function(){return 0;},
-      cliArgs:function(){return 0;},
-      dom_set_root:function(){return 0;},
-      dom_spa_init:function(){return 0;},
-      dom_scroll:function(){return 0;},
-      shell_exec:function(){return 0;},
-      readBinary:function(){return 0;},
-      cvs_put_pixel:function(){return 0;},
-      cvs_blit:function(){return 0;},
-      cvs_get_pixel:function(){return 0;},
-      aud_osc:function(){return 0;},
-      aud_freq:function(){return 0;},
-      aud_gain:function(){return 0;},
-      gpu_init:function(){return 0;},
-      gpu_bench:function(){return 0;},
-      get_category:function(){return 0;}
-    }});
-    childMem = child.instance.exports.memory;
-    child.instance.exports._main();
-    var out = lines.join('\n').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    el.innerHTML = lines.length ? '<pre style="color:#88ddaa;white-space:pre-wrap;margin:0">'+out+'</pre>'
-      : '<p style="color:#999;margin:0">No output (use show to display values)</p>';
-  } catch(e) {
-    var msg = (e.message||''+e).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    el.innerHTML = '<pre style="color:#ff6666;margin:0">Error: '+msg+'</pre>';
-  }
-}
 </script>
 </body>
 </html>
