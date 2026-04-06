@@ -43,7 +43,7 @@ var _routeMap = {
   'cc0':'living','revolution':'living','repl':'living','tutorial':'living',
   'crt_train':'living','coupling':'living','crt_anatomy':'living',
   'emergence':'living','omega_emergence':'living','omega_watercycle':'living',
-  'ecc_live':'living','ouroboros_compiler':'living','compiler':'living','egg':'living','ax_games':'living',
+  'ecc_live':'living','ouroboros_compiler':'living','compiler':'living','egg':'living','ax_games':'living','lambda_rlm':'living',
   'demos':'demos','hash':'demos','consensus':'demos','rng':'demos',
   'compression':'demos','pid':'demos','stego':'demos','key_exchange':'demos',
   'timetabling':'demos','cdma':'demos','fountain':'demos','ofdm':'demos',
