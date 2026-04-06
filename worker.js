@@ -5,7 +5,7 @@
    Dies when WASI provides native server-side DOM. */
 
 var _routeMap = {
-  '':'home','home':'home','worldview':'home','basics':'home','observe':'home',
+  '':'home','home':'home','worldview':'home','basics':'home',
   'data':'home','teach':'home','deep':'home','living':'home',
   'numbers_clocks':'home','rings_channels':'home','waves_shadows':'home',
   'story':'home','derive':'home','death':'home',
