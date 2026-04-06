@@ -17,7 +17,7 @@ var _routeMap = {
   'algebra':'structure','spectrum':'structure','closure':'structure',
   'geometry':'structure','lambda':'structure','symbiosis':'structure',
   'music':'structure','fields':'structure','constants':'structure',
-  'sandpile':'structure','swim':'structure','eigenvalue_swim':'structure',
+  'sandpile':'structure','swim':'structure','eigenvalue_swim':'structure','ring_stacking':'structure',
   'cunningham':'teach','heegner':'teach','bernoulli':'teach',
   'k_squared_stop':'teach','pell_twins':'teach','universal_boundary':'teach',
   'depth_return':'teach','depth_quad':'teach','mirror_cost':'teach',
