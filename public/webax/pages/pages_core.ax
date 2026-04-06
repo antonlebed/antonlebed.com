@@ -1069,11 +1069,11 @@ fn page_ecc() = (
   render_p(sec1, "Every number in Z/214414200Z decomposes into 7 channels via CRT: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). The first four inner channels carry data. L (mod 11), GATE (mod 13), and ESCAPE (mod 17) provide triple-parity ECC -- rate 4/7, 100% correction. Error correction is structural, automatic, free.");
   render_p(sec1, "Encode: take any element n in the ring. CRT gives 5 residues. The first four determine n uniquely (CRT for Z/8 x Z/9 x Z/25 x Z/49 = Z/88200). The fifth residue n mod 11 is the syndrome.");
   render_p(sec1, "Detect: reconstruct n from the first 4 channels. Compute n mod 11. If it matches channel 5: intact. If not: corruption detected. 100% for thin channels (mod < 11). Fat channels (mod 25, 49): ~92% -- errors at multiples of 11 are invisible to L alone. Dual-check with GATE closes the gap.");
-  render_p(sec1, "Correct: if you know which channel was hit, try all values in that channel (at most 49 trials for the b-channel). The unique value that passes the L-check is the original. If you do not know which channel: try all 5, brute-force each. Single-channel errors always have a unique fix.");
+  render_p(sec1, "Correct: if you know which channel was hit, try all values in that channel (at most 49 trials for the b-channel). For thin channels (mod < 11): exactly one value passes the L-check. For fat channels: multiple candidates may pass. Dual-check with L+GATE narrows to exactly one (lcm(11,13) = 143 > 49).");
   let g = make_findings_grid(sec1) in
   render_finding(g, "Detection", "100% thin, ~92% fat", "Thin channels (mod<11): perfect. Fat channels: delta=11k invisible. Dual-check L+GATE: 100%.", "CRT Detection Theorem");
   render_finding(g, "Overhead", "0 bits", "No extra storage needed. Protection IS the number system.", "Structural");
-  render_finding(g, "Correction", "100% known-loc", "If you know which channel was hit: unique fix guaranteed.", "Brute-force search");
+  render_finding(g, "Correction", "100% with dual", "L+GATE dual-check: unique fix for ALL channels. L alone: thin 100%, fat 22-84%.", "Brute-force search");
   render_finding(g, "Cost", "9.1%", "Adding L costs 1/L of unit density. Bargain: full protection for 9.1%.", "phi analysis");
   dom_append(dom_body(), sec1);
 
