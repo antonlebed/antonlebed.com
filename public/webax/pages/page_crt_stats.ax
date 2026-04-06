@@ -188,6 +188,103 @@ fn cs_synth(arr, seed, mode) = (
   s
 )
 
+/* Generate synthetic data with parameterized signal strength.
+   str=0: pure noise. str=30: strong signal. Signal = group_index * str.
+   mode=3: signal in mod-3 groups. mode=7: signal in mod-7 groups. */
+fn cs_synth_str(arr, seed, mode, str) = (
+  mut s = seed;
+  mut i = 0;
+  while i < 21 do (
+    mut s = cs_rng(s);
+    let noise = s % 30 in
+    let base = if mode == 3 then (i % 3) * str
+      else if mode == 7 then (i % 7) * str
+      else 0 in
+    set(arr, i, 20 + base + noise);
+    mut i = i + 1
+  );
+  s
+)
+
+/* Run one power-curve trial at given signal strength. Returns detection bits. */
+fn cs_power_trial(seed, mode, str, threshold) = (
+  let data = alloc(21) in
+  let perm = alloc(21) in
+  mut s = cs_synth_str(data, seed, mode, str);
+  let h3_obs = cs_hstat3(data) in
+  let h7_obs = cs_hstat7(data) in
+  mut c3 = 0; mut c7 = 0; mut cb = 0;
+  mut p = 0;
+  while p < 50 do (
+    mut s = cs_copy_shuffle(perm, data, s);
+    let ph3 = cs_hstat3(perm) in
+    let ph7 = cs_hstat7(perm) in
+    if ph3 >= h3_obs then mut c3 = c3 + 1 else 0;
+    if ph7 >= h7_obs then mut c7 = c7 + 1 else 0;
+    if ph3 >= h3_obs then (if ph7 >= h7_obs then mut cb = cb + 1 else 0) else 0;
+    mut p = p + 1
+  );
+  let d3 = if c3 < threshold then 1 else 0 in
+  let d7 = if c7 < threshold then 2 else 0 in
+  let dj = if cb < threshold then 4 else 0 in
+  d3 + d7 + dj
+)
+
+/* Run power sweep at one strength level. 15 trials. Results in out[0..2]. */
+fn cs_power_at(seed_base, mode, str, thr, out) = (
+  mut det3 = 0; mut det7 = 0; mut detj = 0;
+  mut seed = seed_base;
+  mut t = 0;
+  while t < 15 do (
+    mut seed = cs_rng(seed);
+    let r = cs_power_trial(seed, mode, str, thr) in
+    if r % 2 == 1 then mut det3 = det3 + 1 else 0;
+    if (r / 2) % 2 == 1 then mut det7 = det7 + 1 else 0;
+    if (r / 4) % 2 == 1 then mut detj = detj + 1 else 0;
+    mut t = t + 1
+  );
+  set(out, 0, det3); set(out, 1, det7); set(out, 2, detj);
+  0
+)
+
+/* Power curve callback: sweep signal strength 0..30 for mod-3 signal.
+   Shows detection rate vs effect size — the S-curve of statistical power. */
+fn cs_power_curve() = (
+  let seed_in = parse_int_from("#cspower-input") in
+  let rel = dom_query("#cspower-result") in
+  let thr = 2 in
+  let r = alloc(3) in
+  /* 7 strength levels: 0, 5, 10, 15, 20, 25, 30 — signal in mod-3 */
+  cs_power_at(seed_in + 100, 3, 0, thr, r);
+  let d30 = r[0] in let d70 = r[1] in let dj0 = r[2] in
+  cs_power_at(seed_in + 200, 3, 5, thr, r);
+  let d35 = r[0] in let d75 = r[1] in let dj5 = r[2] in
+  cs_power_at(seed_in + 300, 3, 10, thr, r);
+  let d310 = r[0] in let d710 = r[1] in let dj10 = r[2] in
+  cs_power_at(seed_in + 400, 3, 15, thr, r);
+  let d315 = r[0] in let d715 = r[1] in let dj15 = r[2] in
+  cs_power_at(seed_in + 500, 3, 20, thr, r);
+  let d320 = r[0] in let d720 = r[1] in let dj20 = r[2] in
+  cs_power_at(seed_in + 600, 3, 25, thr, r);
+  let d325 = r[0] in let d725 = r[1] in let dj25 = r[2] in
+  cs_power_at(seed_in + 700, 3, 30, thr, r);
+  let d330 = r[0] in let d730 = r[1] in let dj30 = r[2] in
+  dom_inner(rel, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>" +
+    "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>Power Curve: mod-3 signal (15 trials x 50 perms, seed ${seed_in})</p>" +
+    "<table style='width:100%;border-collapse:collapse;margin:8px 0;table-layout:fixed;word-wrap:break-word'>" +
+    "<tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>Strength</th><th style='text-align:left;padding:6px;color:#44cc44;font-size:12px'>mod-3 (signal)</th><th style='text-align:left;padding:6px;color:#4488ff;font-size:12px'>mod-7 (null)</th><th style='text-align:left;padding:6px;color:#ffd700;font-size:12px'>Joint</th></tr>" +
+    "<tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#888'>0 (noise)</td><td style='padding:6px;color:#b0b0c0'>${d30}/15</td><td style='padding:6px;color:#b0b0c0'>${d70}/15</td><td style='padding:6px;color:#b0b0c0'>${dj0}/15</td></tr>" +
+    "<tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#888'>5</td><td style='padding:6px;color:#b0b0c0'>${d35}/15</td><td style='padding:6px;color:#b0b0c0'>${d75}/15</td><td style='padding:6px;color:#b0b0c0'>${dj5}/15</td></tr>" +
+    "<tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#888'>10</td><td style='padding:6px;color:#b0b0c0'>${d310}/15</td><td style='padding:6px;color:#b0b0c0'>${d710}/15</td><td style='padding:6px;color:#b0b0c0'>${dj10}/15</td></tr>" +
+    "<tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#888'>15</td><td style='padding:6px;color:#b0b0c0'>${d315}/15</td><td style='padding:6px;color:#b0b0c0'>${d715}/15</td><td style='padding:6px;color:#b0b0c0'>${dj15}/15</td></tr>" +
+    "<tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#888'>20</td><td style='padding:6px;color:#b0b0c0'>${d320}/15</td><td style='padding:6px;color:#b0b0c0'>${d720}/15</td><td style='padding:6px;color:#b0b0c0'>${dj20}/15</td></tr>" +
+    "<tr style='border-bottom:1px solid #222'><td style='padding:6px;color:#888'>25</td><td style='padding:6px;color:#b0b0c0'>${d325}/15</td><td style='padding:6px;color:#b0b0c0'>${d725}/15</td><td style='padding:6px;color:#b0b0c0'>${dj25}/15</td></tr>" +
+    "<tr><td style='padding:6px;color:#888'>30</td><td style='padding:6px;color:#b0b0c0'>${d330}/15</td><td style='padding:6px;color:#b0b0c0'>${d730}/15</td><td style='padding:6px;color:#b0b0c0'>${dj30}/15</td></tr></table>" +
+    "<p style='color:#b0b0c0;margin:8px 0 4px;font-size:13px'>At strength 0 (noise), expect ~1/15 detection (~5%). As strength grows, the signal channel (mod-3) should rise toward 15/15 while the null channel (mod-7) stays near ~1/15. This S-curve is the power function.</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0;font-size:13px'>CRT channel independence means the non-signal channel acts as a built-in negative control. No separate control group needed.</p>" +
+    "</div>")
+)
+
 /* Run one trial: generate data, compute H, run permutation test, return 1 if p<threshold */
 fn cs_trial(seed, mode, threshold) = (
   let data = alloc(21) in
@@ -335,11 +432,19 @@ fn page_crt_stats() = (
   make_interactive_widget(sec4, "Seed:", "csval-input", "7", "Run Validation", "cs_validate", "csval-result");
   dom_append(dom_body(), sec4);
 
-  /* === SEC 5: INTERPRETATION === */
-  let sec5 = make_section("800px") in
-  render_h2(sec5, "What This Tests");
-  render_p(sec5, "The traditional approach tests one correlation (fat-ring eigenvalue vs hydrophobicity, r=0.409, p=0.073 after S1208 investigation). The CRT approach produces a structured evidence tuple: per-channel p-values reveal WHICH algebraic axis carries the signal, and R-squared measures how much the decomposition explains.");
-  render_p(sec5, "The evidence tuple replaces a single p-value with structured information. Per-channel p-values show which channels detect the signal. R-squared above the null baseline (37% for Z/21) shows genuine explanatory power beyond what grouping alone provides. The joint p-value handles multiplicity directly: it measures the fraction of permutations where ALL channels exceed simultaneously.");
-  render_p(sec5, "CAVEAT: The amino acid indexing is alphabetical by 1-letter code. This is one possible ring embedding. Other orderings (molecular weight, codon position) give different channel assignments. The method works for ANY embedding -- the question is which reveals the most structure.");
-  dom_append(dom_body(), sec5)
+  /* === SEC 5: POWER CURVE === */
+  let sec5 = make_section("900px") in
+  render_h2(sec5, "Power Curve: Detection vs Effect Size");
+  render_p(sec5, "How strong must a signal be before CRT detects it? Sweep signal strength from 0 (noise) to 30 (strong). At each level, inject signal into the mod-3 channel only and run 15 trials. The S-shaped power curve shows the transition from chance (~5%) to reliable detection (~100%). The non-signal channel (mod-7) acts as a built-in negative control.");
+  make_interactive_widget(sec5, "Seed:", "cspower-input", "42", "Run Power Curve", "cs_power_curve", "cspower-result");
+  dom_append(dom_body(), sec5);
+
+  /* === SEC 6: INTERPRETATION === */
+  let sec6 = make_section("800px") in
+  render_h2(sec6, "What This Tests");
+  render_p(sec6, "The traditional approach tests one correlation (fat-ring eigenvalue vs hydrophobicity, r=0.409, p=0.073 after S1208 investigation). The CRT approach produces a structured evidence tuple: per-channel p-values reveal WHICH algebraic axis carries the signal, and R-squared measures how much the decomposition explains.");
+  render_p(sec6, "The evidence tuple replaces a single p-value with structured information. Per-channel p-values show which channels detect the signal. R-squared above the null baseline (37% for Z/21) shows genuine explanatory power beyond what grouping alone provides. The joint p-value handles multiplicity directly: it measures the fraction of permutations where ALL channels exceed simultaneously.");
+  render_p(sec6, "CAVEAT: The amino acid indexing is alphabetical by 1-letter code. This is one possible ring embedding. Other orderings (molecular weight, codon position) give different channel assignments. The method works for ANY embedding -- the question is which reveals the most structure.");
+  render_p(sec6, "The power curve (Section 5) shows CRT's minimum detectable effect size empirically. Channel independence means each non-signal channel is a free negative control -- no separate control group needed. This structural advantage grows with the number of CRT channels.");
+  dom_append(dom_body(), sec6)
 )
