@@ -54,21 +54,21 @@ fn cs_r2_build(arr, gm3, gm7) = (
   gm3[0] + gm3[1] + gm3[2]
 )
 
-/* R^2 x 1000 from CRT reconstruction. Predicted: 21*y_hat = 3*g3[i%3] + 7*g7[i%7] - S.
+/* R^2 x 1000 from CRT reconstruction via f64 (S1324, dissolves integer overflow workaround).
+   Predicted: 21*y_hat = 3*g3[i%3] + 7*g7[i%7] - S.
    Residual: 21*(y - y_hat) = 21*x - 3*g3 - 7*g7 + S. Separated loop for H2.11. */
 fn cs_r2_loop(arr, gm3, gm7, grand) = (
-  mut ss_tot = 0; mut ss_res = 0;
+  mut ss_tot = toFloat(0); mut ss_res = toFloat(0);
   mut i = 0;
   while i < 21 do (
-    let dev = 21 * arr[i] - grand in
-    let res = 21 * arr[i] - 3 * gm3[i % 3] - 7 * gm7[i % 7] + grand in
+    let dev = toFloat(21 * arr[i] - grand) in
+    let res = toFloat(21 * arr[i] - 3 * gm3[i % 3] - 7 * gm7[i % 7] + grand) in
     mut ss_tot = ss_tot + dev * dev;
     mut ss_res = ss_res + res * res;
     mut i = i + 1
   );
-  if ss_tot == 0 then 1000
-  else if ss_tot < 2000000 then 1000 - 1000 * ss_res / ss_tot
-  else (ss_tot - ss_res) / (ss_tot / 1000)
+  if ss_tot == toFloat(0) then 1000
+  else toInt(toFloat(1000) * (toFloat(1) - ss_res / ss_tot))
 )
 
 /* Compute R^2 x 1000 for 21 elements in Z/3 x Z/7. */
