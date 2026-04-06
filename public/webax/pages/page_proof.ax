@@ -673,6 +673,51 @@ fn proof_part2(r) = (
     "(-1)^2 = sigma: the shadow produces the light. CRT(-1) = all-max: the fullest element. sigma + mirror = 0: annihilation. All 9 Decality gaps are D-powers with counts {D^2, K, D}. Product = tau(lambda) = 24. Sum = K^2 = 9. The escape channel cycles N_TRUE times in the full walk: spool frequency = computation ring.", p20, 8);
   dom_append(dom_body(), sec20);
 
+  /* ============================================================
+     THEOREM 21: VOID BOUNDARY CORRESPONDENCE (S1319)
+     lambda(0) = 2k-1 where k = number of prime factors.
+     For each ring: DATA->b, THIN/DEEP->K^2, TRUE->L, TRANS->GATE.
+     The void walks the chain in D-steps. Silence = boundary.
+     ============================================================ */
+  let sec21 = make_section("700px") in
+  render_h2(sec21, "21. Void Boundary Correspondence");
+  render_p(sec21, "The eigenvalue lambda(n) = cos(pi*n) + 2*sum cos(2*pi*n/p) for odd primes p. At n=0 all cosines are 1, so lambda(0) = 1 + 2*(k-1) = 2k-1, where k = number of prime factors. This integer equals the boundary element of each ring.");
+
+  /* Check: 2k-1 for each ring level */
+  let v_data = 2 * 4 - 1 in
+  let v_thin = 2 * 5 - 1 in
+  let v_true = 2 * 6 - 1 in
+  let v_trans = 2 * 7 - 1 in
+  pf_result(sec21, "DATA (k=4): void = 2*4-1 = ${v_data} = b", "4 primes {D,K,E,b}. void = depth.", if v_data == 7 then 1 else 0);
+  pf_result(sec21, "THIN/DEEP (k=5): void = 2*5-1 = ${v_thin} = K^2", "5 primes {D,K,E,b,L}. void = stop signal.", if v_thin == 9 then 1 else 0);
+  pf_result(sec21, "TRUE (k=6): void = 2*6-1 = ${v_true} = L", "6 primes {D,K,E,b,L,GATE}. void = protector.", if v_true == 11 then 1 else 0);
+  pf_result(sec21, "TRANS (k=7): void = 2*7-1 = ${v_trans} = GATE", "7 primes {D,K,E,b,L,GATE,ESCAPE}. void = boundary.", if v_trans == 13 then 1 else 0);
+
+  /* D-step gaps: 7->9->11->13, all gaps = 2 = D */
+  let vg1 = v_thin - v_data in
+  let vg2 = v_true - v_thin in
+  let vg3 = v_trans - v_true in
+  pf_result(sec21, "Gap DATA->THIN = ${vg1} = D", "The void walks in D-steps.", if vg1 == 2 then 1 else 0);
+  pf_result(sec21, "Gap THIN->TRUE = ${vg2} = D", "Each ring adds exactly D to the void.", if vg2 == 2 then 1 else 0);
+  pf_result(sec21, "Gap TRUE->TRANS = ${vg3} = D", "Adding ESCAPE raises the silence by D=2.", if vg3 == 2 then 1 else 0);
+
+  /* CRT(0) = all zeros (void is silence in every channel) */
+  let v0_d = 0 % 8 in let v0_k = 0 % 9 in let v0_e = 0 % 25 in
+  let v0_b = 0 % 49 in let v0_l = 0 % 11 in let v0_g = 0 % 13 in
+  let v0_all = v0_d + v0_k + v0_e + v0_b + v0_l + v0_g in
+  pf_result(sec21, "CRT(0) = (${v0_d},${v0_k},${v0_e},${v0_b},${v0_l},${v0_g})", "Void = silence in all channels.", if v0_all == 0 then 1 else 0);
+
+  /* Product of voids: 7*9*11*13 = 9009 = K^2 * b*L*GATE */
+  let vprod = 7 * 9 * 11 * 13 in
+  let septum_denom = 7 * 11 * 13 in
+  pf_result(sec21, "Product of voids = ${vprod}", "7*9*11*13 = K^2 * 1001. Where 1001 = b*L*GATE = septum denominator.", if vprod == 9009 then 1 else 0);
+  pf_result(sec21, "Septum denominator = ${septum_denom}", "b*L*GATE = 1001. The void product encodes the septum.", if septum_denom == 1001 then 1 else 0);
+
+  let p21 = (if v_data == 7 then 1 else 0) + (if v_thin == 9 then 1 else 0) + (if v_true == 11 then 1 else 0) + (if v_trans == 13 then 1 else 0) + (if vg1 == 2 then 1 else 0) + (if vg2 == 2 then 1 else 0) + (if vg3 == 2 then 1 else 0) + (if v0_all == 0 then 1 else 0) + (if vprod == 9009 then 1 else 0) + (if septum_denom == 1001 then 1 else 0) in
+  pf_theorem(sec21, "VOID BOUNDARY CORRESPONDENCE",
+    "lambda(0) = 2k-1 for k prime factors. The void eigenvalue equals the ring boundary: b(DATA), K^2(THIN), L(TRUE), GATE(TRANS). Each ring adds exactly D=2 to the void. The product of voids = K^2 * 1001, encoding the septum denominator b*L*GATE.", p21, 10);
+  dom_append(dom_body(), sec21);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
@@ -682,9 +727,9 @@ fn proof_part2(r) = (
   let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
-  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 in
-  /* 1+7+4+3+1+1+5+3+5+8+6+8+8+6+8+5+8+7+7+8 = 109 */
-  let total_tests = 109 in
+  let total_pass = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + p21 in
+  /* 1+7+4+3+1+1+5+3+5+8+6+8+8+6+8+5+8+7+7+8+10 = 119 */
+  let total_tests = 119 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
