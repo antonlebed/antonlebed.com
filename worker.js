@@ -168,7 +168,6 @@ export default {
           return ptr;
         },
         dom_value: function() { return 0; },
-        repl_eval: function() { return 0; },
         /* Canvas 2D stubs -- no-op for SSR (canvas is browser-only) */
         cvs_getctx: function() { return -1; },
         cvs_fillrect: function() { return 0; },
