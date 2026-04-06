@@ -533,6 +533,7 @@ fn nav_dd_card(dd, href:str, tid:str, name:str, ring:str, desc:str) = (
 )
 
 fn toggle_nav_dd() = (
+  close_search();
   let state = dom_query("#nav-dd-state") in
   let dd = dom_query("#nav-dropdown") in
   let arrow = dom_query("#nav-dd-arrow") in
@@ -556,6 +557,373 @@ fn close_nav_dd() = (
   dom_attr(state, "value", "0");
   if arrow then dom_text(arrow, " \u25BE") else 0
 )
+
+/* ===== SEARCH ===== */
+let g_srch_t = [0]
+let g_srch_h = [0]
+let g_srch_n = [0]
+let g_srch_panel = [0]
+let g_srch_inp = [0]
+let g_srch_la = [0]
+let g_srch_ta = [0]
+let g_srch_sa = [0]
+
+fn _to_lower(c) = if c > 64 then (if c < 91 then c + 32 else c) else c
+
+fn search_ci_match(hay:str, need:str):int = (
+  let hl = len(hay) in
+  let nl = len(need) in
+  if nl == 0 then 1
+  else if nl > hl then 0
+  else (
+    mut found = 0;
+    mut i = 0;
+    while i <= hl - nl do (
+      mut j = 0;
+      mut ok = 1;
+      while j < nl do (
+        if _to_lower(charCode(hay, i + j)) != _to_lower(charCode(need, j)) then
+          mut ok = 0
+        else 0;
+        mut j = j + 1
+      );
+      if ok == 1 then (mut found = 1; mut i = hl) else 0;
+      mut i = i + 1
+    );
+    found
+  )
+)
+
+fn _si(t, h, i, title:str, href:str) = (set(t, i, title); set(h, i, href); i + 1)
+
+fn search_build_index() = (
+  let t = alloc(180) in
+  let h = alloc(180) in
+  set(g_srch_t, 0, t);
+  set(g_srch_h, 0, h);
+  mut i = 0;
+  /* Home */
+  mut i = _si(t, h, i, "Home", "/");
+  mut i = _si(t, h, i, "Worldview", "/worldview");
+  mut i = _si(t, h, i, "Basics", "/basics");
+  mut i = _si(t, h, i, "Observe", "/observe");
+  mut i = _si(t, h, i, "Data", "/data");
+  mut i = _si(t, h, i, "Teach", "/teach");
+  mut i = _si(t, h, i, "Deep", "/deep");
+  mut i = _si(t, h, i, "Living", "/living");
+  mut i = _si(t, h, i, "Numbers and Clocks", "/numbers_clocks");
+  mut i = _si(t, h, i, "Rings and Channels", "/rings_channels");
+  mut i = _si(t, h, i, "Waves and Shadows", "/waves_shadows");
+  mut i = _si(t, h, i, "Derive the Chain", "/derive");
+  mut i = _si(t, h, i, "The Story", "/story");
+  mut i = _si(t, h, i, "Death and OMEGA", "/death");
+  mut i = _si(t, h, i, "Tutorial", "/tutorial");
+  /* Deep */
+  mut i = _si(t, h, i, "Bootstrap", "/deep/bootstrap");
+  mut i = _si(t, h, i, "Septum", "/deep/septum");
+  mut i = _si(t, h, i, "Mirror", "/deep/mirror");
+  mut i = _si(t, h, i, "Sacrifice", "/deep/sacrifice");
+  mut i = _si(t, h, i, "Decality", "/deep/decality");
+  mut i = _si(t, h, i, "Lattice", "/deep/lattice");
+  mut i = _si(t, h, i, "Heart", "/deep/heart");
+  mut i = _si(t, h, i, "Water Cycle", "/deep/watercycle");
+  mut i = _si(t, h, i, "Consciousness", "/deep/consciousness");
+  mut i = _si(t, h, i, "Neuro", "/deep/neuro");
+  mut i = _si(t, h, i, "Carousel", "/deep/carousel");
+  mut i = _si(t, h, i, "OMEGA", "/deep/omega");
+  mut i = _si(t, h, i, "Language", "/deep/language");
+  mut i = _si(t, h, i, "Observer", "/deep/observer");
+  mut i = _si(t, h, i, "Ground", "/deep/ground");
+  mut i = _si(t, h, i, "Duality", "/deep/duality");
+  mut i = _si(t, h, i, "Depth", "/deep/depth");
+  mut i = _si(t, h, i, "Transcend", "/deep/transcend");
+  mut i = _si(t, h, i, "Genesis", "/deep/genesis");
+  /* Structure */
+  mut i = _si(t, h, i, "Algebra", "/structure/algebra");
+  mut i = _si(t, h, i, "Spectrum", "/structure/spectrum");
+  mut i = _si(t, h, i, "Closure", "/structure/closure");
+  mut i = _si(t, h, i, "Geometry", "/structure/geometry");
+  mut i = _si(t, h, i, "Lambda", "/structure/lambda");
+  mut i = _si(t, h, i, "Symbiosis", "/structure/symbiosis");
+  mut i = _si(t, h, i, "Music", "/structure/music");
+  mut i = _si(t, h, i, "Fields", "/structure/fields");
+  mut i = _si(t, h, i, "Constants", "/structure/constants");
+  mut i = _si(t, h, i, "Sandpile", "/structure/sandpile");
+  mut i = _si(t, h, i, "Swim", "/structure/swim");
+  mut i = _si(t, h, i, "Eigenvalue Swim", "/structure/eigenvalue_swim");
+  /* Teach */
+  mut i = _si(t, h, i, "Cunningham Chains", "/teach/cunningham");
+  mut i = _si(t, h, i, "Heegner Numbers", "/teach/heegner");
+  mut i = _si(t, h, i, "Bernoulli Numbers", "/teach/bernoulli");
+  mut i = _si(t, h, i, "K Squared Stop", "/teach/k_squared_stop");
+  mut i = _si(t, h, i, "Pell Twins", "/teach/pell_twins");
+  mut i = _si(t, h, i, "Universal Boundary", "/teach/universal_boundary");
+  mut i = _si(t, h, i, "Depth Return", "/teach/depth_return");
+  mut i = _si(t, h, i, "Depth Quadratic", "/teach/depth_quad");
+  mut i = _si(t, h, i, "Mirror Cost", "/teach/mirror_cost");
+  mut i = _si(t, h, i, "Lambda Chain", "/teach/lambda_chain");
+  mut i = _si(t, h, i, "Golden Ratio", "/teach/golden_ratio");
+  mut i = _si(t, h, i, "Smooth Census", "/teach/smooth_census");
+  mut i = _si(t, h, i, "Stormer Pairs", "/teach/stormer_pairs");
+  mut i = _si(t, h, i, "Gap Pairs", "/teach/gap_pairs");
+  mut i = _si(t, h, i, "Goldbach", "/teach/goldbach");
+  mut i = _si(t, h, i, "Equator", "/teach/equator");
+  mut i = _si(t, h, i, "Shadow Evaluation", "/teach/shadow_eval");
+  mut i = _si(t, h, i, "D-Power Gaussian", "/teach/d_power_gaussian");
+  mut i = _si(t, h, i, "Cyclotomic Fibonacci", "/teach/cyclotomic_fibonacci");
+  mut i = _si(t, h, i, "Fano and E8", "/teach/fano_e8");
+  mut i = _si(t, h, i, "Arcsine Cumulant", "/teach/arcsine_cumulant");
+  mut i = _si(t, h, i, "Figurate Bridge", "/teach/figurate_bridge");
+  /* Data */
+  mut i = _si(t, h, i, "Turbulence", "/data/turbulence");
+  mut i = _si(t, h, i, "Sleep", "/data/sleep");
+  mut i = _si(t, h, i, "Kingdoms", "/data/kingdoms");
+  mut i = _si(t, h, i, "Fine Structure Alpha", "/data/alpha");
+  mut i = _si(t, h, i, "Error Correction", "/data/ecc");
+  mut i = _si(t, h, i, "Cosmology", "/data/cosmo");
+  mut i = _si(t, h, i, "Thermodynamics", "/data/thermo");
+  mut i = _si(t, h, i, "Standard Model", "/data/sm");
+  mut i = _si(t, h, i, "Quantum Mechanics", "/data/quantum");
+  mut i = _si(t, h, i, "Classical Mechanics", "/data/classical");
+  mut i = _si(t, h, i, "Electromagnetism", "/data/em");
+  mut i = _si(t, h, i, "General Relativity", "/data/gr");
+  mut i = _si(t, h, i, "Optics", "/data/optics");
+  mut i = _si(t, h, i, "Acoustics", "/data/acoustics");
+  mut i = _si(t, h, i, "Chemistry", "/data/chemistry");
+  mut i = _si(t, h, i, "Biology", "/data/biology");
+  mut i = _si(t, h, i, "Culture", "/data/culture");
+  mut i = _si(t, h, i, "Condensed Matter", "/data/condensed");
+  mut i = _si(t, h, i, "Statistical Mechanics", "/data/statmech");
+  mut i = _si(t, h, i, "Nuclear Physics", "/data/nuclear");
+  mut i = _si(t, h, i, "Particles", "/data/particles");
+  mut i = _si(t, h, i, "DNA Codons", "/data/dna");
+  mut i = _si(t, h, i, "PMNS Matrix", "/data/pmns");
+  mut i = _si(t, h, i, "Human Shape", "/data/human_shape");
+  mut i = _si(t, h, i, "Black Hole", "/data/blackhole");
+  mut i = _si(t, h, i, "Gravastar", "/data/gravastar");
+  mut i = _si(t, h, i, "Neutron Star", "/data/neutron_star");
+  mut i = _si(t, h, i, "Force Hierarchy", "/data/force_hierarchy");
+  mut i = _si(t, h, i, "Gravity", "/data/gravity");
+  mut i = _si(t, h, i, "Dimension", "/data/dimension");
+  mut i = _si(t, h, i, "Braid Groups", "/data/braid");
+  mut i = _si(t, h, i, "Ouroboros", "/data/ouroboros");
+  mut i = _si(t, h, i, "Boson Fermion", "/data/boson_fermion");
+  mut i = _si(t, h, i, "Modular Forms", "/data/modular_forms");
+  mut i = _si(t, h, i, "Lie Algebra", "/data/lie_algebra");
+  mut i = _si(t, h, i, "Mutual Holography", "/data/mutual_holography");
+  mut i = _si(t, h, i, "Scale Relativity", "/data/scale_relativity");
+  mut i = _si(t, h, i, "Eta Bridge", "/data/eta_bridge");
+  mut i = _si(t, h, i, "Monster Moonshine", "/data/monster_moonshine");
+  mut i = _si(t, h, i, "Photon", "/data/photon");
+  mut i = _si(t, h, i, "Eternal Sun", "/data/eternal_sun");
+  mut i = _si(t, h, i, "Free Will", "/data/freewill");
+  mut i = _si(t, h, i, "Conscious Experience", "/data/conscious");
+  mut i = _si(t, h, i, "Infinity", "/data/infinity");
+  mut i = _si(t, h, i, "Noxan", "/data/noxan");
+  mut i = _si(t, h, i, "CRT Statistics", "/data/crt_stats");
+  mut i = _si(t, h, i, "Theorem Proofs", "/data/proof");
+  /* Living */
+  mut i = _si(t, h, i, "Chain Walk", "/living/chain");
+  mut i = _si(t, h, i, "AI and CRT", "/living/ai");
+  mut i = _si(t, h, i, "Curriculum", "/living/curriculum");
+  mut i = _si(t, h, i, "Scaling Laws", "/living/scaling");
+  mut i = _si(t, h, i, "CC0 Manifesto", "/living/cc0");
+  mut i = _si(t, h, i, "AX Revolution", "/living/revolution");
+  mut i = _si(t, h, i, "REPL", "/repl");
+  mut i = _si(t, h, i, "CRT Training", "/living/crt_train");
+  mut i = _si(t, h, i, "Coupling Classes", "/living/coupling");
+  mut i = _si(t, h, i, "CRT Anatomy", "/living/crt_anatomy");
+  mut i = _si(t, h, i, "Emergence", "/living/emergence");
+  mut i = _si(t, h, i, "OMEGA Emergence", "/living/omega_emergence");
+  mut i = _si(t, h, i, "OMEGA Water Cycle", "/living/omega_watercycle");
+  mut i = _si(t, h, i, "ECC Live", "/living/ecc_live");
+  mut i = _si(t, h, i, "Ouroboros Compiler", "/living/ouroboros_compiler");
+  mut i = _si(t, h, i, "Compiler Demo", "/demos/compiler");
+  mut i = _si(t, h, i, ".ax Games", "/demos/ax_games");
+  /* Demos */
+  mut i = _si(t, h, i, "Demos Index", "/demos");
+  mut i = _si(t, h, i, "CRT Hash Function", "/demos/hash");
+  mut i = _si(t, h, i, "Byzantine Consensus", "/demos/consensus");
+  mut i = _si(t, h, i, "Random Number Generator", "/demos/rng");
+  mut i = _si(t, h, i, "CRT Compression", "/demos/compression");
+  mut i = _si(t, h, i, "PID Controller", "/demos/pid");
+  mut i = _si(t, h, i, "Steganography", "/demos/stego");
+  mut i = _si(t, h, i, "Key Exchange", "/demos/key_exchange");
+  mut i = _si(t, h, i, "Timetabling", "/demos/timetabling");
+  mut i = _si(t, h, i, "CDMA", "/demos/cdma");
+  mut i = _si(t, h, i, "Fountain Codes", "/demos/fountain");
+  mut i = _si(t, h, i, "OFDM", "/demos/ofdm");
+  mut i = _si(t, h, i, "GPU Compute", "/demos/gpu_compute");
+  mut i = _si(t, h, i, "Scheduling", "/demos/scheduling");
+  mut i = _si(t, h, i, "Database Index", "/demos/db_index");
+  mut i = _si(t, h, i, "Audio Synthesis", "/demos/audio");
+  mut i = _si(t, h, i, "CRT Sort", "/demos/sort");
+  mut i = _si(t, h, i, "Clustering", "/demos/cluster");
+  mut i = _si(t, h, i, "Zero Knowledge Verify", "/demos/verify");
+  mut i = _si(t, h, i, "Digital Signature", "/demos/signature");
+  mut i = _si(t, h, i, "Recommender", "/demos/recommend");
+  mut i = _si(t, h, i, "Federated Learning", "/demos/federated");
+  mut i = _si(t, h, i, "Protein Folding", "/demos/protein");
+  mut i = _si(t, h, i, "Quantum Error Correction", "/demos/quantum_ecc");
+  mut i = _si(t, h, i, "Anomaly Detection", "/demos/anomaly");
+  mut i = _si(t, h, i, "Genomic Alignment", "/demos/genomic");
+  mut i = _si(t, h, i, "Market Finance", "/demos/finance");
+  mut i = _si(t, h, i, "Procedural Generation", "/demos/procgen");
+  mut i = _si(t, h, i, "Audio Fingerprint", "/demos/fingerprint");
+  mut i = _si(t, h, i, "Speech Codec", "/demos/speech");
+  mut i = _si(t, h, i, "Object Detection", "/demos/object");
+  mut i = _si(t, h, i, "Medical Denoising", "/demos/medical");
+  mut i = _si(t, h, i, "Video Codec", "/demos/video");
+  mut i = _si(t, h, i, "BCI Signal Processing", "/demos/bci");
+  mut i = _si(t, h, i, "PDE Simulation", "/demos/pde");
+  mut i = _si(t, h, i, "ARC-AGI", "/demos/arc");
+  mut i = _si(t, h, i, "Mesh Network", "/demos/mesh");
+  mut i = _si(t, h, i, "Image Filter", "/demos/image_filter");
+  set(g_srch_n, 0, i)
+)
+
+fn search_build_ui() = (
+  let panel = dom_create("div") in
+  dom_attr(panel, "id", "search-panel");
+  dom_style(panel, "display", "none");
+  dom_style(panel, "position", "fixed");
+  dom_style(panel, "top", "48px");
+  dom_style(panel, "left", "50%");
+  dom_style(panel, "transform", "translateX(-50%)");
+  dom_style(panel, "width", "min(480px, 90vw)");
+  dom_style(panel, "maxHeight", "60vh");
+  dom_style(panel, "overflowY", "auto");
+  dom_style(panel, "background", "rgba(8,8,14,0.97)");
+  dom_style(panel, "border", "1px solid #2a2a5f");
+  dom_style(panel, "borderRadius", "10px");
+  dom_style(panel, "padding", "12px");
+  dom_style(panel, "zIndex", "300");
+  dom_style(panel, "backdropFilter", "blur(12px)");
+  dom_style(panel, "boxSizing", "border-box");
+  set(g_srch_panel, 0, panel);
+  let inp = dom_create("input") in
+  dom_attr(inp, "type", "text");
+  dom_attr(inp, "id", "search-input");
+  dom_attr(inp, "placeholder", "Search pages...");
+  dom_style(inp, "width", "100%");
+  dom_style(inp, "boxSizing", "border-box");
+  dom_style(inp, "background", "#0a0a1a");
+  dom_style(inp, "color", "#ffd700");
+  dom_style(inp, "border", "1px solid #333");
+  dom_style(inp, "borderRadius", "6px");
+  dom_style(inp, "padding", "10px 12px");
+  dom_style(inp, "fontSize", "16px");
+  dom_style(inp, "fontFamily", "'Courier New', monospace");
+  dom_style(inp, "outline", "none");
+  dom_style(inp, "marginBottom", "8px");
+  dom_on(inp, "input", "search_update");
+  dom_on1(inp, "keydown", "search_keydown");
+  dom_append(panel, inp);
+  set(g_srch_inp, 0, inp);
+  let box = dom_create("div") in
+  set(g_srch_la, 0, alloc(12));
+  set(g_srch_ta, 0, alloc(12));
+  set(g_srch_sa, 0, alloc(12));
+  mut ri = 0;
+  while ri < 12 do (
+    let a = dom_create("a") in
+    dom_style(a, "display", "none");
+    dom_style(a, "padding", "8px 12px");
+    dom_style(a, "borderBottom", "1px solid #1a1a3f");
+    dom_style(a, "textDecoration", "none");
+    dom_style(a, "cursor", "pointer");
+    let tt = dom_create("div") in
+    dom_style(tt, "color", "#ffd700");
+    dom_style(tt, "fontSize", "14px");
+    dom_append(a, tt);
+    let ss = dom_create("div") in
+    dom_style(ss, "color", "#555");
+    dom_style(ss, "fontSize", "11px");
+    dom_style(ss, "marginTop", "2px");
+    dom_append(a, ss);
+    dom_append(box, a);
+    let la = g_srch_la[0] in
+    let ta = g_srch_ta[0] in
+    let sa = g_srch_sa[0] in
+    set(la, ri, a);
+    set(ta, ri, tt);
+    set(sa, ri, ss);
+    mut ri = ri + 1
+  );
+  dom_append(panel, box);
+  dom_append(dom_body(), panel)
+)
+
+fn search_update() = (
+  let q = dom_value(g_srch_inp[0]) in
+  let ql = len(q) in
+  let n = g_srch_n[0] in
+  let t = g_srch_t[0] in
+  let h = g_srch_h[0] in
+  let la = g_srch_la[0] in
+  let ta = g_srch_ta[0] in
+  let sa = g_srch_sa[0] in
+  mut shown = 0;
+  if ql > 0 then (
+    mut idx = 0;
+    while idx < n do (
+      if shown < 12 then (
+        let title = t[idx] in
+        let href = h[idx] in
+        if search_ci_match(title, q) == 1 then (
+          dom_attr(la[shown], "href", href);
+          dom_style(la[shown], "display", "block");
+          dom_text(ta[shown], title);
+          dom_text(sa[shown], href);
+          mut shown = shown + 1
+        ) else if search_ci_match(href, q) == 1 then (
+          dom_attr(la[shown], "href", href);
+          dom_style(la[shown], "display", "block");
+          dom_text(ta[shown], title);
+          dom_text(sa[shown], href);
+          mut shown = shown + 1
+        ) else 0
+      ) else 0;
+      mut idx = idx + 1
+    )
+  ) else 0;
+  mut hi = shown;
+  while hi < 12 do (
+    dom_style(la[hi], "display", "none");
+    mut hi = hi + 1
+  )
+)
+
+fn toggle_search() = (
+  let panel = g_srch_panel[0] in
+  let state = dom_query("#nav-dd-state") in
+  let v = dom_value(state) in
+  if streq(v, "1") == 1 then close_nav_dd() else 0;
+  let vis = dom_query("#search-panel") in
+  let cv = dom_value(vis) in
+  /* Toggle: use a hidden input for state, or just check display */
+  let inp = g_srch_inp[0] in
+  /* Read current display from a state tracker */
+  let st = dom_query("#search-state") in
+  let sv = dom_value(st) in
+  if streq(sv, "1") == 1 then (
+    dom_style(panel, "display", "none");
+    dom_attr(st, "value", "0")
+  ) else (
+    dom_style(panel, "display", "block");
+    dom_attr(st, "value", "1");
+    dom_focus(inp)
+  )
+)
+
+fn close_search() = (
+  let panel = g_srch_panel[0] in
+  dom_style(panel, "display", "none");
+  let st = dom_query("#search-state") in
+  dom_attr(st, "value", "0")
+)
+
+fn search_keydown(key) = if key == 27 then close_search() else 0
 
 fn render_nav() = (
   let nav = dom_create("nav") in
@@ -697,8 +1065,34 @@ fn render_nav() = (
   dom_style(repl, "whiteSpace", "nowrap");
   dom_style(repl, "marginLeft", "4px");
   dom_append(nav, repl);
-  /* Demos link removed — now in Explore grid as 7th kingdom (Virus) */
-  dom_append(dom_body(), nav)
+  /* Search */
+  let srch = dom_create("button") in
+  dom_attr(srch, "id", "nav-search-btn");
+  dom_style(srch, "color", "#ffd700");
+  dom_style(srch, "fontWeight", "bold");
+  dom_style(srch, "background", "#1a1a3f");
+  dom_style(srch, "border", "none");
+  dom_style(srch, "padding", "4px clamp(6px, 2vw, 12px)");
+  dom_style(srch, "borderRadius", "6px");
+  dom_style(srch, "cursor", "pointer");
+  dom_style(srch, "fontSize", "clamp(12px, 3.5vw, 18px)");
+  dom_style(srch, "fontFamily", "'Courier New', monospace");
+  dom_style(srch, "lineHeight", "1.2");
+  dom_style(srch, "whiteSpace", "nowrap");
+  dom_style(srch, "marginLeft", "4px");
+  dom_text(srch, "Find");
+  dom_on(srch, "click", "toggle_search");
+  dom_append(nav, srch);
+  /* Search hidden state */
+  let srch_state = dom_create("input") in
+  dom_attr(srch_state, "id", "search-state");
+  dom_attr(srch_state, "type", "hidden");
+  dom_attr(srch_state, "value", "0");
+  dom_append(nav, srch_state);
+  dom_append(dom_body(), nav);
+  /* Build search panel + index (permanent, survives SPA navigation) */
+  search_build_ui();
+  search_build_index()
 )
 
 fn make_hero(title:str) = (
