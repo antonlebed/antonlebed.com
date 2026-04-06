@@ -16,11 +16,11 @@ fn imgf_reconstruct(r0, r1, r2, r3, r4, r5) =
   (r0 * 11036025 + r1 * 1401400 + r2 * 9585576 + r3 * 8494200 + r4 * 3439800 + r5 * 3880800) % 12612600
 
 /* L=11 parity prediction from DATA subring Z/1146600 (S1324).
-   Idempotent residues mod 11: e'_D%11=8, e'_K%11=7, e'_E%11=1, e'_b%11=5, e'_G%11=10.
+   Reconstruct from 5 DATA channels {D,K,E,b,GATE} using DATA idempotents, then mod 11.
+   Cannot shortcut via (sum of residue*coeff) mod 11 because 1146600%11=4 (not 0).
    Detects b-channel corruption: CRT independence means e_b%11=0, so 6-channel
-   reconstruct mod 11 always equals original L. This function computes L from
-   DATA channels only, making corruption visible. */
-fn imgf_predict_L(r0, r1, r2, r3, r5) = (r0 * 8 + r1 * 7 + r2 + r3 * 5 + r5 * 10) % 11
+   reconstruct mod 11 always equals original L. This function bypasses that. */
+fn imgf_predict_L(r0, r1, r2, r3, r5) = ((r0 * 716625 + r1 * 254800 + r2 * 412776 + r3 * 468000 + r5 * 441000) % 1146600) % 11
 
 /* ===== IMAGE READ/WRITE via WASM global (no DOM serialization) ===== */
 /* S1240: eliminated string concat in loop — was 33MB of dead copies (quadratic disease).
