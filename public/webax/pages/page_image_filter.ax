@@ -15,6 +15,13 @@ let g_imgf_valid = [0]
 fn imgf_reconstruct(r0, r1, r2, r3, r4, r5) =
   (r0 * 11036025 + r1 * 1401400 + r2 * 9585576 + r3 * 8494200 + r4 * 3439800 + r5 * 3880800) % 12612600
 
+/* L=11 parity prediction from DATA subring Z/1146600 (S1324).
+   Idempotent residues mod 11: e'_D%11=8, e'_K%11=7, e'_E%11=1, e'_b%11=5, e'_G%11=10.
+   Detects b-channel corruption: CRT independence means e_b%11=0, so 6-channel
+   reconstruct mod 11 always equals original L. This function computes L from
+   DATA channels only, making corruption visible. */
+fn imgf_predict_L(r0, r1, r2, r3, r5) = (r0 * 8 + r1 * 7 + r2 + r3 * 5 + r5 * 10) % 11
+
 /* ===== IMAGE READ/WRITE via WASM global (no DOM serialization) ===== */
 /* S1240: eliminated string concat in loop — was 33MB of dead copies (quadratic disease).
    Image lives in g_imgf_data[0..4095]. No DOM hidden input needed. */
@@ -391,27 +398,28 @@ fn imgf_denoise() = (
     );
     /* Draw noisy */
     imgf_draw_gray(cvs_getctx(dom_query("#imgf-noisy")), noisy_img);
-    /* L=11 detect + correct */
+    /* L=11 detect + correct (S1324 fix: predict L from DATA subring, not from 6ch recon).
+       CRT channels are independent: e_b%11=0, so corrupting b never changes recon%11.
+       FIX: imgf_predict_L computes L from DATA channels only, making corruption visible. */
     mut detected = 0;
     mut corrected = 0;
     let denoised = alloc(4096) in
     mut i = 0;
     while i < 4096 do (
-      let noisy_L = noisy_img[i] % 11 in
+      let predicted_L = imgf_predict_L(ch0[i], ch1[i], ch2[i], noisy3[i], ch5[i]) in
       let orig_L = ch4[i] in
-      if noisy_L == orig_L then (
+      if predicted_L == orig_L then (
         set(denoised, i, noisy_img[i])
       ) else (
         mut detected = detected + 1;
-        /* Try all b-values, find consistent with original L */
+        /* Try all b-values, find one consistent with original L */
         mut best = noisy_img[i];
         mut found = 0;
         mut bt = 0;
         while bt < 49 do (
           if found == 0 then (
-            let tv = imgf_reconstruct(ch0[i], ch1[i], ch2[i], bt, ch4[i], ch5[i]) in
-            if tv % 11 == ch4[i] then (
-              mut best = tv;
+            if imgf_predict_L(ch0[i], ch1[i], ch2[i], bt, ch5[i]) == ch4[i] then (
+              mut best = imgf_reconstruct(ch0[i], ch1[i], ch2[i], bt, ch4[i], ch5[i]);
               mut found = 1;
               mut corrected = corrected + 1
             ) else 0
