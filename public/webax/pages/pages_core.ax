@@ -218,7 +218,7 @@ fn page_derive() = (
     "c(K) = c(3) = 7 = b. Sigma-chain: {sigma, K, b}. D-chain: {D, E, L}.");
 
   render_derive_step(sec, "L", "The Protector Seals the Ring",
-    "L = 11. Generated from E: c(5) = 11. But L = sigma + D + K + E -- the SUM of all previous primes. The protector. With 5 channels, L enables 100% single-channel error detection. And then the gate CLOSES: c(b) = 15 = K*E. Not prime. c(L) = 23 but the fattening formula gives e = K - 3 = 0 at depth 3. Both chains stop. The axiom's own products create its boundary.",
+    "L = 11. Generated from E: c(5) = 11. But L = sigma + D + K + E -- the SUM of all previous primes. The protector. In THIN ring (5 channels, all mods < 11), L enables 100% error detection. And then the gate CLOSES: c(b) = 15 = K*E. Not prime. c(L) = 23 but the fattening formula gives e = K - 3 = 0 at depth 3. Both chains stop. The axiom's own products create its boundary.",
     "c(E) = c(5) = 11 = L = sigma+D+K+E. c(b) = 15 = K*E [composite: STOP]. Self-closing.");
 
   let d3 = D * D * D in
@@ -1050,8 +1050,8 @@ fn ecc_syndrome_calc() = (
 )
 
 fn page_ecc() = (
-  dom_head_meta("description", "L=11 gives 100% single-channel error detection for free. The protector IS the sum: 1+2+3+5=11. CRT detection theorem, dual-check with GATE=13, three-ring progression, byte recovery, selfless norm. Zero free parameters.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Error Correction\",\"description\":\"L=11 gives 100% single-channel error detection for free. CRT detection theorem, three-ring progression, selfless norm.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/ecc\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protector\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT detection\"}]}");
+  dom_head_meta("description", "L=11 error detection: 100% for thin channels, ~92% for fat. Dual-check L+GATE: 100%. The protector IS the sum: 1+2+3+5=11. CRT detection theorem, three-ring progression, byte recovery. Zero free parameters.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Error Correction\",\"description\":\"L=11 detection: 100% for thin channels (mod<11), ~92% for fat. Dual-check L+GATE: 100%. Triple-parity ECC3: 100% correction.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/ecc\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protector\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT detection\"}]}");
   let hero = make_hero("Error Correction for Free") in
   let big = dom_create("div") in
   dom_text(big, "L = 11");
@@ -1068,10 +1068,10 @@ fn page_ecc() = (
   render_h2(sec1, "How It Works");
   render_p(sec1, "Every number in Z/214414200Z decomposes into 7 channels via CRT: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). The first four inner channels carry data. L (mod 11), GATE (mod 13), and ESCAPE (mod 17) provide triple-parity ECC -- rate 4/7, 100% correction. Error correction is structural, automatic, free.");
   render_p(sec1, "Encode: take any element n in the ring. CRT gives 5 residues. The first four determine n uniquely (CRT for Z/8 x Z/9 x Z/25 x Z/49 = Z/88200). The fifth residue n mod 11 is the syndrome.");
-  render_p(sec1, "Detect: reconstruct n from the first 4 channels. Compute n mod 11. If it matches channel 5: intact. If not: corruption detected. 100% certainty for any single-channel error.");
+  render_p(sec1, "Detect: reconstruct n from the first 4 channels. Compute n mod 11. If it matches channel 5: intact. If not: corruption detected. 100% for thin channels (mod < 11). Fat channels (mod 25, 49): ~92% -- errors at multiples of 11 are invisible to L alone. Dual-check with GATE closes the gap.");
   render_p(sec1, "Correct: if you know which channel was hit, try all values in that channel (at most 49 trials for the b-channel). The unique value that passes the L-check is the original. If you do not know which channel: try all 5, brute-force each. Single-channel errors always have a unique fix.");
   let g = make_findings_grid(sec1) in
-  render_finding(g, "Detection", "100%", "Any single-channel corruption detected with certainty. Proved for all rings.", "CRT Detection Theorem");
+  render_finding(g, "Detection", "100% thin, ~92% fat", "Thin channels (mod<11): perfect. Fat channels: delta=11k invisible. Dual-check L+GATE: 100%.", "CRT Detection Theorem");
   render_finding(g, "Overhead", "0 bits", "No extra storage needed. Protection IS the number system.", "Structural");
   render_finding(g, "Correction", "100% known-loc", "If you know which channel was hit: unique fix guaranteed.", "Brute-force search");
   render_finding(g, "Cost", "9.1%", "Adding L costs 1/L of unit density. Bargain: full protection for 9.1%.", "phi analysis");
@@ -1080,8 +1080,8 @@ fn page_ecc() = (
   /* === THE DETECTION THEOREM === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "The Detection Theorem");
-  render_theorem(sec2, "CRT Detection Theorem", "Let R = Z/q1 x ... x Z/qk x Z/L where L does not divide any qi. If exactly one channel ci is corrupted by delta != 0 (mod qi), then the reconstructed value n' satisfies n' mod L != original L-residue. Detection probability = 1.");
-  render_p(sec2, "Proof sketch: CRT reconstruction is unique. If exactly one channel changes, the reconstructed integer changes. The change delta propagates through the CRT lifting idempotents to a non-zero shift in the L-channel. Since gcd(qi, L) = 1 for all data primes qi, no data-channel corruption can be invisible to L.");
+  render_theorem(sec2, "CRT Detection Theorem", "Let R = Z/q1 x ... x Z/qk x Z/L where gcd(qi, L) = 1 for all i. If exactly one channel ci is corrupted by delta != 0 (mod qi), detection succeeds iff delta is not divisible by L. For qi < L (thin channels): 100% -- no such delta exists. For qi > L (fat channels): ~92% -- deltas at multiples of L are invisible.");
+  render_p(sec2, "Proof sketch: CRT lifting idempotent ei satisfies ei mod L != 0 (from gcd condition). Corruption delta in channel i shifts the L-residue by delta * (ei mod L). Since ei mod L != 0, the shift vanishes iff delta = 0 mod L. Thin channels have max delta < L, so no blind spot. Fat channels (mod 25, 49) have some deltas divisible by 11. Dual-check with GATE=13 eliminates these: lcm(11,13) = 143 > 49.");
   render_theorem(sec2, "L = Sum of Chain", "L = sigma + D + K + E = 1 + 2 + 3 + 5 = 11. Forced by the Cunningham chain c(n) = 2n+1: c(5) = 11. The protector is not arbitrary -- it is the sum of everything it protects. The chain BUILDS the protector from the chain itself.");
   render_theorem(sec2, "L-Selflessness", "|L|^2 = D^8 - sigma = 256 - 1 = 255. The protector's CRT squared norm equals the spider's legs (D^3=8 dimensions worth of power) minus THE SELF. L gives up exactly sigma = 1 to protect the web. Selfless by algebra.");
   dom_append(dom_body(), sec2);
@@ -1144,8 +1144,8 @@ fn page_ecc() = (
   render_th(chdr, "Standard (INT8)");
   render_th(chdr, "Axiom (CRT + L=11)");
   dom_append(ctbl, chdr);
-  render_contrast_row(ctbl, "Error detection", "0% -- bit flips are silent", "100% single-channel (proved)");
-  render_contrast_row(ctbl, "Error correction", "0% -- no mechanism exists", "100% known-location correction");
+  render_contrast_row(ctbl, "Error detection", "0% -- bit flips are silent", "100% with dual parity L+GATE (proved)");
+  render_contrast_row(ctbl, "Error correction", "0% -- no mechanism exists", "100% known-location with dual parity");
   render_contrast_row(ctbl, "Levels", "256 (8 bits, arbitrary)", "210 or 970200 (structured)");
   render_contrast_row(ctbl, "Cost", "0 overhead, 0 protection", "0.3 bits SQNR -- free protection");
   render_contrast_row(ctbl, "On corruption", "Wrong value, no warning", "Detected -> located -> corrected");
