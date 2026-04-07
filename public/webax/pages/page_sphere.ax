@@ -1,0 +1,281 @@
+/* ================================================================
+   PAGE: SPINNING SPHERES -- 7 concentric circles rotating at CRT rates.
+   Phase S step S6. A ring spinning fast = sphere. 7 nested = machine.
+   Each channel's marker dot orbits at angular velocity 2*pi/q_i.
+   At step = lambda = 1680, all markers realign. The heartbeat.
+   ================================================================ */
+
+/* ===== INTEGER TRIG (fixed-point *1000, 64ths of full circle) ===== */
+fn _sph_sq(k) = if k == 0 then 0 else if k == 1 then 98 else if k == 2 then 195 else if k == 3 then 290 else if k == 4 then 383 else if k == 5 then 471 else if k == 6 then 556 else if k == 7 then 634 else if k == 8 then 707 else if k == 9 then 773 else if k == 10 then 831 else if k == 11 then 882 else if k == 12 then 924 else if k == 13 then 957 else if k == 14 then 981 else 996
+
+fn sph_sin64(a) = (
+  let a2 = ((a % 64) + 64) % 64 in
+  if a2 < 16 then _sph_sq(a2)
+  else if a2 < 32 then _sph_sq(32 - a2)
+  else if a2 < 48 then 0 - _sph_sq(a2 - 32)
+  else 0 - _sph_sq(64 - a2)
+)
+fn sph_cos64(a) = sph_sin64(a + 16)
+
+/* ===== GLOBAL STATE ===== */
+let sph_ctx = [0]
+let sph_step = [0]
+let sph_playing = [0]
+let sph_speed = [1]
+
+/* 7 channel moduli in DATA-first order: D, K, E, b, L, GATE, ESCAPE */
+let sph_q = [8, 9, 25, 49, 11, 13, 17]
+/* Radii: inner DATA shells, outer ALIVE shells */
+let sph_r = [30, 50, 70, 90, 110, 130, 150]
+/* Colors: warm for DATA (D,K,E,b), cool for ALIVE (L,GATE,ESCAPE) */
+
+fn sph_color(i) = (
+  if i == 0 then "#ff4444"
+  else if i == 1 then "#ff8800"
+  else if i == 2 then "#ffcc00"
+  else if i == 3 then "#ff6688"
+  else if i == 4 then "#44ff88"
+  else if i == 5 then "#44aaff"
+  else "#aa88ff"
+)
+
+fn sph_ring_color(i) = (
+  if i == 0 then "#441111"
+  else if i == 1 then "#442200"
+  else if i == 2 then "#443300"
+  else if i == 3 then "#441122"
+  else if i == 4 then "#114422"
+  else if i == 5 then "#112244"
+  else "#221144"
+)
+
+fn sph_label(i) = (
+  if i == 0 then "D"
+  else if i == 1 then "K"
+  else if i == 2 then "E"
+  else if i == 3 then "b"
+  else if i == 4 then "L"
+  else if i == 5 then "G"
+  else "17"
+)
+
+/* ===== DRAW ONE FRAME ===== */
+fn sph_draw() = (
+  let ctx = sph_ctx[0] in
+  let t = sph_step[0] in
+  let cx = 175 in let cy = 185 in
+  /* Clear */
+  cvs_fillstyle(ctx, "#0a0a18");
+  cvs_fillrect(ctx, 0, 0, 350, 370);
+  /* Draw concentric orbit rings */
+  mut i = 0;
+  while i < 7 do (
+    let r = sph_r[i] in
+    cvs_strokestyle(ctx, sph_ring_color(i));
+    cvs_linewidth(ctx, 1);
+    cvs_beginpath(ctx);
+    cvs_arc(ctx, cx, cy, r, 0, 36000);
+    cvs_stroke(ctx);
+    mut i = i + 1
+  );
+  /* Draw void at center */
+  cvs_fillstyle(ctx, "#222244");
+  cvs_beginpath(ctx);
+  cvs_arc(ctx, cx, cy, 8, 0, 36000);
+  cvs_fill(ctx);
+  cvs_fillstyle(ctx, "#ffd700");
+  cvs_font(ctx, "8px monospace");
+  cvs_filltext(ctx, "0", cx - 3, cy + 3);
+  /* Draw marker dots on each orbit */
+  mut j = 0;
+  while j < 7 do (
+    let q = sph_q[j] in
+    let r = sph_r[j] in
+    /* Angle in 64ths: (t mod q) * 64 / q. Negative direction = clockwise. */
+    let residue = t % q in
+    let angle64 = (residue * 64) / q in
+    let mx = cx + r * sph_cos64(angle64) / 1000 in
+    let my = cy - r * sph_sin64(angle64) / 1000 in
+    /* Marker dot */
+    cvs_fillstyle(ctx, sph_color(j));
+    cvs_beginpath(ctx);
+    cvs_arc(ctx, mx, my, 6, 0, 36000);
+    cvs_fill(ctx);
+    /* Label */
+    cvs_fillstyle(ctx, "#ffffff");
+    cvs_font(ctx, "9px monospace");
+    cvs_filltext(ctx, sph_label(j), mx - 4, my + 3);
+    mut j = j + 1
+  );
+  /* Alignment line from void to 12-o'clock when all aligned */
+  let phase = t % 1680 in
+  if phase == 0 then (
+    cvs_strokestyle(ctx, "#ffd700");
+    cvs_linewidth(ctx, 2);
+    cvs_beginpath(ctx);
+    cvs_moveto(ctx, cx, cy - 8);
+    cvs_lineto(ctx, cx, cy - 150);
+    cvs_stroke(ctx)
+  ) else 0;
+  /* HUD: step counter + lambda progress */
+  cvs_fillstyle(ctx, "#b0b0c0");
+  cvs_font(ctx, "11px monospace");
+  cvs_filltext(ctx, "step ${t}", 8, 14);
+  let pct = (phase * 100) / 1680 in
+  cvs_filltext(ctx, "heartbeat: ${pct}%", 200, 14);
+  /* Progress bar */
+  cvs_fillstyle(ctx, "#1a1a2e");
+  cvs_fillrect(ctx, 8, 354, 334, 8);
+  let barW = (phase * 334) / 1680 in
+  let barClr = if phase < 840 then "#44ff88" else "#ffd700" in
+  cvs_fillstyle(ctx, barClr);
+  cvs_fillrect(ctx, 8, 354, barW, 8)
+)
+
+/* ===== ANIMATION TICK ===== */
+fn sph_tick() = (
+  if sph_playing[0] == 1 then (
+    let spd = sph_speed[0] in
+    set(sph_step, 0, sph_step[0] + spd);
+    sph_draw()
+  ) else 0
+)
+
+/* ===== CONTROLS ===== */
+fn sph_play() = (
+  set(sph_playing, 0, 1)
+)
+
+fn sph_pause() = (
+  set(sph_playing, 0, 0)
+)
+
+fn sph_step_fwd() = (
+  set(sph_step, 0, sph_step[0] + 1);
+  sph_draw()
+)
+
+fn sph_reset() = (
+  set(sph_step, 0, 0);
+  sph_draw()
+)
+
+fn sph_jump_lambda() = (
+  let t = sph_step[0] in
+  let phase = t % 1680 in
+  let next = t + (1680 - phase) in
+  set(sph_step, 0, next);
+  sph_draw()
+)
+
+fn sph_speed_up() = (
+  let s = sph_speed[0] in
+  if s < 32 then set(sph_speed, 0, s * 2) else 0;
+  let el = dom_query("#sph-speed-lbl") in
+  dom_inner(el, "x${sph_speed[0]}")
+)
+
+fn sph_speed_down() = (
+  let s = sph_speed[0] in
+  if s > 1 then set(sph_speed, 0, s / 2) else 0;
+  let el = dom_query("#sph-speed-lbl") in
+  dom_inner(el, "x${sph_speed[0]}")
+)
+
+/* ===== HERO ===== */
+fn sph_hero() = (
+  let hero = make_hero("Spinning Spheres") in
+  render_p(hero, "A ring spinning fast enough looks like a sphere. An address orbiting fast enough fills its channel. Stack 7 such spheres concentrically: inner DATA layers spin fast, outer ALIVE layers wrap as parity. The void at the center pilots everything.");
+  render_p(hero, "Below: 7 concentric orbits, one per CRT channel. Each dot's angular velocity is 2*pi/q where q is the channel modulus. At step 1680 (lambda), ALL dots realign. That is the heartbeat.");
+  dom_append(dom_body(), hero)
+)
+
+/* ===== CANVAS + CONTROLS SECTION ===== */
+fn sph_canvas_section() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "The Machine");
+  /* Canvas */
+  let cvs = dom_create("canvas") in
+  dom_attr(cvs, "id", "sph-canvas");
+  cvs_setsize(cvs, 350, 370);
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "background", "#0a0a18");
+  dom_style(cvs, "maxWidth", "100%");
+  dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_style(cvs, "margin", "0 auto 12px");
+  dom_append(sec, cvs);
+  let ctx = cvs_getctx(cvs) in
+  set(sph_ctx, 0, ctx);
+  /* Control buttons — string literals for test scanner */
+  let ctrls = dom_create("div") in
+  dom_style(ctrls, "display", "flex");
+  dom_style(ctrls, "gap", "6px");
+  dom_style(ctrls, "flexWrap", "wrap");
+  dom_style(ctrls, "justifyContent", "center");
+  dom_style(ctrls, "marginBottom", "12px");
+  let bs = "6px 12px" in let br = "4px" in let fs = "12px" in
+  let b1 = dom_create("button") in dom_text(b1, "Play"); dom_style(b1, "padding", bs); dom_style(b1, "cursor", "pointer"); dom_style(b1, "background", "#228833"); dom_style(b1, "color", "#fff"); dom_style(b1, "border", "none"); dom_style(b1, "borderRadius", br); dom_style(b1, "fontSize", fs); dom_on(b1, "click", "sph_play"); dom_append(ctrls, b1);
+  let b2 = dom_create("button") in dom_text(b2, "Pause"); dom_style(b2, "padding", bs); dom_style(b2, "cursor", "pointer"); dom_style(b2, "background", "#884422"); dom_style(b2, "color", "#fff"); dom_style(b2, "border", "none"); dom_style(b2, "borderRadius", br); dom_style(b2, "fontSize", fs); dom_on(b2, "click", "sph_pause"); dom_append(ctrls, b2);
+  let b3 = dom_create("button") in dom_text(b3, "Step"); dom_style(b3, "padding", bs); dom_style(b3, "cursor", "pointer"); dom_style(b3, "background", "#336688"); dom_style(b3, "color", "#fff"); dom_style(b3, "border", "none"); dom_style(b3, "borderRadius", br); dom_style(b3, "fontSize", fs); dom_on(b3, "click", "sph_step_fwd"); dom_append(ctrls, b3);
+  let b4 = dom_create("button") in dom_text(b4, "Reset"); dom_style(b4, "padding", bs); dom_style(b4, "cursor", "pointer"); dom_style(b4, "background", "#663344"); dom_style(b4, "color", "#fff"); dom_style(b4, "border", "none"); dom_style(b4, "borderRadius", br); dom_style(b4, "fontSize", fs); dom_on(b4, "click", "sph_reset"); dom_append(ctrls, b4);
+  let b5 = dom_create("button") in dom_text(b5, "Jump to lambda"); dom_style(b5, "padding", bs); dom_style(b5, "cursor", "pointer"); dom_style(b5, "background", "#886622"); dom_style(b5, "color", "#fff"); dom_style(b5, "border", "none"); dom_style(b5, "borderRadius", br); dom_style(b5, "fontSize", fs); dom_on(b5, "click", "sph_jump_lambda"); dom_append(ctrls, b5);
+  let b6 = dom_create("button") in dom_text(b6, "Slower"); dom_style(b6, "padding", bs); dom_style(b6, "cursor", "pointer"); dom_style(b6, "background", "#444466"); dom_style(b6, "color", "#fff"); dom_style(b6, "border", "none"); dom_style(b6, "borderRadius", br); dom_style(b6, "fontSize", fs); dom_on(b6, "click", "sph_speed_down"); dom_append(ctrls, b6);
+  let spd_lbl = dom_create("span") in dom_attr(spd_lbl, "id", "sph-speed-lbl"); dom_text(spd_lbl, "x1"); dom_style(spd_lbl, "color", "#ffd700"); dom_style(spd_lbl, "fontSize", fs); dom_style(spd_lbl, "padding", "6px 4px"); dom_append(ctrls, spd_lbl);
+  let b7 = dom_create("button") in dom_text(b7, "Faster"); dom_style(b7, "padding", bs); dom_style(b7, "cursor", "pointer"); dom_style(b7, "background", "#444466"); dom_style(b7, "color", "#fff"); dom_style(b7, "border", "none"); dom_style(b7, "borderRadius", br); dom_style(b7, "fontSize", fs); dom_on(b7, "click", "sph_speed_up"); dom_append(ctrls, b7);
+  dom_append(sec, ctrls);
+  dom_append(dom_body(), sec);
+  /* Initial draw + start animation loop */
+  sph_draw();
+  raf("sph_tick")
+)
+
+/* ===== CHANNEL LEGEND ===== */
+fn sph_legend() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Channel Rates");
+  render_p(sec, "Each channel completes a full orbit in q steps. Smaller modulus = faster orbit. In one heartbeat (1680 steps):");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Channel");
+  render_th(hdr, "Modulus");
+  render_th(hdr, "Orbits/heartbeat");
+  render_th(hdr, "Role");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "D (bridge)", "8", "210", "Fastest. Coarsest resolution.");
+  render_table_row_4(tbl, "K (closure)", "9", "186", "K^2=9 stop signal.");
+  render_table_row_4(tbl, "E (observer)", "25", "67", "Self-blind (E^2=0 mod 25).");
+  render_table_row_4(tbl, "b (depth)", "49", "34", "Slowest DATA. Finest resolution.");
+  render_table_row_4(tbl, "L (protector)", "11", "152", "ECC parity field.");
+  render_table_row_4(tbl, "GATE (skin)", "13", "129", "ECC parity field.");
+  render_table_row_4(tbl, "ESCAPE (17)", "17", "98", "Transcendence. ECC parity field.");
+  render_p(sec, "DATA channels {D, K, E, b} carry information (warm colors, inner orbits). ALIVE channels {L, GATE, ESCAPE} carry parity (cool colors, outer orbits). The fat DATA channels have more positions but complete fewer orbits. The thin ALIVE channels are fields -- arithmetic is exact.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Heartbeat = 7", "1680 / 240 = b", "Fat channels buy exactly one factor of depth in heartbeat period. The ratio of TRANS to THIN lambda is the depth prime.", "S1331");
+  render_finding(g, "Angular momentum", "Between heartbeats", "The mismatch in orbit rates between channels IS the available bandwidth. Communication = timing differences. CRT gives the schedule.", "S1331");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== PHYSICS SECTION ===== */
+fn sph_physics() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Why Spheres");
+  render_p(sec, "A point orbiting a circle at constant speed traces the circle. But viewed from outside -- averaged over time -- it fills a disc. At higher dimensions, a point orbiting a torus fills the torus surface. The spinning ring IS the sphere, experienced over time.");
+  render_p(sec, "The FPGA implementation makes this literal: a counter cycles 0 to 214,414,199 at 267 MHz. Full orbit in 0.8 seconds. Each clock tick, the CRT decomposition gives 7 independent channel coordinates -- the point's position on T^7. The spinning counter IS the ring made physical.");
+  render_p(sec, "The ESP32 mesh implements the same dynamics across 3 distributed boards. Each board is one element in the ring. Communication via ESP-NOW at 3-second heartbeat. Round-trip cancellation (the -1 theorem) recovers timing offsets at O(1) per channel.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "FPGA: 267 MHz orbit", "crt_k9_pipeline.v", "9-stage pipeline, 7 channels decomposed in parallel. 6555 LUT4 (31% of Tang Nano 20K). The counter IS the spinning address.", "S1265");
+  render_finding(g, "ESP32: 3-board mesh", "crt_mesh.c", "K=3 boards, algebraic addressing, L=11 ECC per packet. CAL_PROBE/CAL_ECHO auto-calibrate via round-trip.", "S1329");
+  render_finding(g, "Void pilots", "0 mod q = 0 for all q", "Element 0 (void) has residue 0 in every channel. It sees every layer simultaneously. Void is the natural hub of the spinning structure.", "S1331");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== MAIN PAGE ===== */
+fn page_sphere() = (
+  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. The axiom as a machine.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Angular velocity 2*pi/q per channel. Lambda=1680 heartbeat realignment. Interactive visualization.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"heartbeat\"}]}");
+  sph_hero();
+  sph_canvas_section();
+  sph_legend();
+  sph_physics()
+)
