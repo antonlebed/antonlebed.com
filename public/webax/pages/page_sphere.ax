@@ -342,10 +342,24 @@ fn sph_hardware() = (
   render_table_row(tbl, "S7: 30-min stability", "540/540 ang_mom=47", "Zero drift over 1801 seconds. 0 natural ECC failures.");
   render_p(sec, "S5b is the key result. D board injects L-channel error (+1 mod 11) on every 5th packet. Void detects ECC failure, mirrors the corrupted integer (N - corrupted), and sends it back. D applies the same error on the return path, then mirrors again. The algebra: x + eL becomes (N - x - eL) + eL = N - x becomes x. Two errors, two mirrors, perfect cancellation.");
   render_p(sec, "S7 confirms long-term stability. Over 30 minutes of continuous operation, the angular momentum between void and sigma stayed at exactly 47 for all 540 observations. Zero clock drift at 3-second resolution. 840 clean packets, zero natural ECC failures.");
+  render_h3(sec, "S8: Stride Experiments");
+  render_p(sec, "When two boards spin at different strides, angular momentum becomes time-varying. The theory predicts the average should equal sum(q_i/4) = 33 (uniform phase mixing). Three stride ratios tested on hardware, 90 packets each:");
+  let t2 = make_table(sec) in
+  let h2 = dom_create("tr") in
+  render_th(h2, "Stride");
+  render_th(h2, "avg ang_mom");
+  render_th(h2, "delta from 33");
+  render_th(h2, "range");
+  dom_append(t2, h2);
+  render_table_row_4(t2, "1:2", "33.00", "0.00", "14-47");
+  render_table_row_4(t2, "1:7 (depth)", "33.22", "+0.22", "16-53");
+  render_table_row_4(t2, "1:17 (ESCAPE)", "35.08", "+2.08", "14-53");
+  render_p(sec, "Stride 1:2 matches the prediction exactly. Stride 1:7 is near-exact. Stride 1:17 shows a +2.08 anomaly: the ESCAPE channel (mod 17) is frozen when stride equals the modulus, breaking uniform mixing. This is a measurable algebraic effect on real radio.");
   /* Findings */
   let g = make_findings_grid(sec) in
   render_finding(g, "Detect + Recover + Clock", "One ring, one protocol", "L=11 detects corruption. The -1 mirror recovers the original. Angular momentum measures clock drift. All three from the same algebraic structure. All CC0.", "S1339");
   render_finding(g, "corrupted = 116953202", "mirror = 97460998", "Element 2 with L+1 error reconstructs to 2 + e_L = 116953202. Void mirrors to N - 116953202 = 97460998. Return-path L+1 plus final mirror yields 2. Exact.", "S1339");
+  render_finding(g, "ESCAPE anomaly +2.08", "stride=17 breaks mixing", "When stride equals a channel modulus, that channel is frozen: (2 + 17k) mod 17 = 2 always. The frozen channel contributes a fixed offset instead of averaging to q/4. Stride 1:2 (coprime to all moduli) shows zero anomaly.", "S1340");
   dom_append(dom_body(), sec)
 )
 
