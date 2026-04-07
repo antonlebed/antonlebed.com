@@ -21,7 +21,8 @@ fn sph_cos64(a) = sph_sin64(a + 16)
 let sph_ctx = [0]
 let sph_step = [0]
 let sph_playing = [0]
-let sph_speed = [1]
+let sph_speed = [4]
+let sph_frame = [0]
 
 /* 7 channel moduli in DATA-first order: D, K, E, b, L, GATE, ESCAPE */
 let sph_q = [8, 9, 25, 49, 11, 13, 17]
@@ -133,11 +134,25 @@ fn sph_draw() = (
 )
 
 /* ===== ANIMATION TICK ===== */
+/* sph_speed: 1=x0.25, 2=x0.5, 4=x1, 8=x2, 16=x4, 32=x8, 64=x16, 128=x32.
+   Base rate: 1 step per 4 frames (~15 steps/sec at 60fps).
+   speed>=4: advance speed/4 steps per frame.
+   speed<4: advance 1 step every 4/speed frames. */
 fn sph_tick() = (
   if sph_playing[0] == 1 then (
     let spd = sph_speed[0] in
-    set(sph_step, 0, sph_step[0] + spd);
-    sph_draw()
+    let f = sph_frame[0] + 1 in
+    set(sph_frame, 0, f);
+    if spd >= 4 then (
+      set(sph_step, 0, sph_step[0] + spd / 4);
+      sph_draw()
+    ) else (
+      let div = 4 / spd in
+      if f % div == 0 then (
+        set(sph_step, 0, sph_step[0] + 1);
+        sph_draw()
+      ) else 0
+    )
   ) else 0
 )
 
@@ -168,18 +183,29 @@ fn sph_jump_lambda() = (
   sph_draw()
 )
 
+fn sph_speed_label(s) = (
+  if s == 1 then "x0.25"
+  else if s == 2 then "x0.5"
+  else if s == 4 then "x1"
+  else if s == 8 then "x2"
+  else if s == 16 then "x4"
+  else if s == 32 then "x8"
+  else if s == 64 then "x16"
+  else "x32"
+)
+
 fn sph_speed_up() = (
   let s = sph_speed[0] in
-  if s < 32 then set(sph_speed, 0, s * 2) else 0;
+  if s < 128 then set(sph_speed, 0, s * 2) else 0;
   let el = dom_query("#sph-speed-lbl") in
-  dom_inner(el, "x${sph_speed[0]}")
+  dom_inner(el, sph_speed_label(sph_speed[0]))
 )
 
 fn sph_speed_down() = (
   let s = sph_speed[0] in
   if s > 1 then set(sph_speed, 0, s / 2) else 0;
   let el = dom_query("#sph-speed-lbl") in
-  dom_inner(el, "x${sph_speed[0]}")
+  dom_inner(el, sph_speed_label(sph_speed[0]))
 )
 
 /* ===== HERO ===== */
