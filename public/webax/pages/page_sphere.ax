@@ -278,7 +278,7 @@ fn sph_legend() = (
   render_p(sec, "DATA channels {D, K, E, b} carry information (warm colors, inner orbits). ALIVE channels {L, GATE, ESCAPE} carry parity (cool colors, outer orbits). The fat DATA channels have more positions but complete fewer orbits. The thin ALIVE channels are fields -- arithmetic is exact.");
   let g = make_findings_grid(sec) in
   render_finding(g, "Heartbeat = 7", "1680 / 240 = b", "Fat channels buy exactly one factor of depth in heartbeat period. The ratio of TRANS to THIN lambda is the depth prime.", "S1331");
-  render_finding(g, "Angular momentum", "Between heartbeats", "The mismatch in orbit rates between channels IS the available bandwidth. Communication = timing differences. CRT gives the schedule.", "S1331");
+  render_finding(g, "Angular momentum = b", "7 = depth prime", "Between sigma and D, the sum of phase differences across all 7 channels is always 7. Angular momentum IS CRT distance -- a static invariant measured dynamically. See section below.", "S1334");
   dom_append(dom_body(), sec)
 )
 
@@ -296,12 +296,40 @@ fn sph_physics() = (
   dom_append(dom_body(), sec)
 )
 
+/* ===== ANGULAR MOMENTUM SECTION (S1334) ===== */
+fn sph_angmom() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Angular Momentum");
+  render_p(sec, "When two elements spin at the same stride, the sum of their phase differences across all 7 channels is constant. It never changes -- the step cancels out. This constant IS the CRT distance between the two elements.");
+  render_p(sec, "For sigma(1) and D(2), the angular momentum is 7 -- the depth prime b. They differ by 1 in every channel, and 1+1+1+1+1+1+1 = 7. This was measured on ESP32 hardware: every SPIN packet between the sigma board and D board shows ang_mom = 7. Consistent across all observations.");
+  /* Distance examples */
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Pair");
+  render_th(hdr, "CRT Distance");
+  render_th(hdr, "Note");
+  dom_append(tbl, hdr);
+  render_table_row(tbl, "sigma(1), D(2)", "7", "Differ by 1 on all 7 channels.");
+  render_table_row(tbl, "sigma(1), K(3)", "14", "Differ by 2 on all channels.");
+  render_table_row(tbl, "D(2), K(3)", "7", "Differ by 1 on all channels.");
+  render_table_row(tbl, "void(0), K(3)", "21", "Void is 3 steps from K.");
+  render_table_row(tbl, "Maximum possible", "63", "All channels antipodal.");
+  render_p(sec, "The angular momentum depends on which two elements you compare, not on how long the ring has been spinning. It is a static invariant disguised as a dynamic measurement. The rotation contributes nothing -- the structure was already there.");
+  /* Findings */
+  let g = make_findings_grid(sec) in
+  render_finding(g, "ang_mom = 7 = b", "Measured on ESP32", "Between sigma and D boards, the sum of phase differences is always 7 = depth prime. CRT distance IS angular momentum. Proved: dist(a+s, b+s) = dist(a, b) because step s cancels.", "S1334");
+  render_finding(g, "Clock drift detector", "Quantized by CRT", "If clocks drift by delta, ang_mom shifts: drift 0 gives 7, drift 1 gives 0, drift 5 gives 28. Any deviation from the expected constant = drift detected. No GPS needed.", "S1334");
+  render_finding(g, "Different strides", "Pseudo-random mixing", "When elements step at different rates, angular momentum becomes step-dependent and averages to about 33 over a lambda cycle. The rotation IS the mixing.", "S1334");
+  dom_append(dom_body(), sec)
+)
+
 /* ===== MAIN PAGE ===== */
 fn page_sphere() = (
-  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. The axiom as a machine.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Angular velocity 2*pi/q per channel. Lambda=1680 heartbeat realignment. Interactive visualization.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"heartbeat\"}]}");
+  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. Angular momentum = 7 = b (depth prime). The axiom as a machine.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Angular velocity 2*pi/q per channel. Lambda=1680 heartbeat realignment. Angular momentum equals CRT distance. Interactive visualization.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"angular momentum\"},{\"@type\":\"DefinedTerm\",\"name\":\"heartbeat\"}]}");
   sph_hero();
   sph_canvas_section();
   sph_legend();
+  sph_angmom();
   sph_physics()
 )
