@@ -323,13 +323,38 @@ fn sph_angmom() = (
   dom_append(dom_body(), sec)
 )
 
+/* ===== HARDWARE VALIDATION SECTION (S1337-S1339) ===== */
+fn sph_hardware() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Hardware Validation");
+  render_p(sec, "Three ESP32 boards form a CRT mesh: void(0), sigma(1), D(2). Communication via ESP-NOW broadcast at 3-second heartbeat. Each board sends its SPIN phase vector. The receiver computes angular momentum, checks ECC, and verifies the -1 round-trip theorem.");
+  render_p(sec, "The validation builds in stages. Each stage proves a stronger property of the spinning structure:");
+  /* Results table */
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Stage");
+  render_th(hdr, "Result");
+  render_th(hdr, "What it proves");
+  dom_append(tbl, hdr);
+  render_table_row(tbl, "S4: Void-as-hub", "162+ RX, 0 ECC fail", "Void receives from all peers. Natural hub.");
+  render_table_row(tbl, "S5: Error detection", "100% detect rate", "L=11 parity catches every injected error.");
+  render_table_row(tbl, "S5b: Error recovery", "100% recovery (4/4)", "-1 mirror round-trip recovers original value.");
+  render_p(sec, "S5b is the key result. D board injects L-channel error (+1 mod 11) on every 5th packet. Void detects ECC failure, mirrors the corrupted integer (N - corrupted), and sends it back. D applies the same error on the return path, then mirrors again. The algebra: x + eL becomes (N - x - eL) + eL = N - x becomes x. Two errors, two mirrors, perfect cancellation.");
+  /* Findings */
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Detect + Recover + Clock", "One ring, one protocol", "L=11 detects corruption. The -1 mirror recovers the original. Angular momentum measures clock drift. All three from the same algebraic structure. All CC0.", "S1339");
+  render_finding(g, "corrupted = 116953202", "mirror = 97460998", "Element 2 with L+1 error reconstructs to 2 + e_L = 116953202. Void mirrors to N - 116953202 = 97460998. Return-path L+1 plus final mirror yields 2. Exact.", "S1339");
+  dom_append(dom_body(), sec)
+)
+
 /* ===== MAIN PAGE ===== */
 fn page_sphere() = (
-  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. Angular momentum = 7 = b (depth prime). The axiom as a machine.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Angular velocity 2*pi/q per channel. Lambda=1680 heartbeat realignment. Angular momentum equals CRT distance. Interactive visualization.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"angular momentum\"},{\"@type\":\"DefinedTerm\",\"name\":\"heartbeat\"}]}");
+  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. Angular momentum = 7 = b (depth prime). Hardware-validated: detection, recovery, clock drift.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Lambda=1680 heartbeat. Angular momentum equals CRT distance. Hardware-validated on 3 ESP32 boards: ECC detection 100%, round-trip recovery 100%, clock drift measurement.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"angular momentum\"},{\"@type\":\"DefinedTerm\",\"name\":\"hardware validation\"},{\"@type\":\"DefinedTerm\",\"name\":\"error recovery\"}]}");
   sph_hero();
   sph_canvas_section();
   sph_legend();
   sph_angmom();
+  sph_hardware();
   sph_physics()
 )
