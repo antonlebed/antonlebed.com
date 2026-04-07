@@ -576,3 +576,115 @@ fn mesh_coupling_table() = (
     mut i = i + 1
   )
 )
+
+/* ===== ROUND-TRIP CALIBRATION ===== */
+
+fn mesh_rt_mirror(x, n) = (n - (x % n)) % n
+
+fn mesh_ch_name(i) = (
+  if i == 0 then "D^3"
+  else if i == 1 then "K^2"
+  else if i == 2 then "E^2"
+  else if i == 3 then "b^2"
+  else if i == 4 then "L"
+  else if i == 5 then "GATE"
+  else "ESCAPE"
+)
+
+fn mesh_ch_mod(i) = (
+  if i == 0 then 8
+  else if i == 1 then 9
+  else if i == 2 then 25
+  else if i == 3 then 49
+  else if i == 4 then 11
+  else if i == 5 then 13
+  else 17
+)
+
+fn mesh_rt_ch_row(trace, xn, en, ci) = (
+  let q = mesh_ch_mod(ci) in
+  let chname = mesh_ch_name(ci) in
+  let r = xn % q in
+  let e = en % q in
+  let cs1 = (r + e) % q in
+  let cs2 = (q - cs1) % q in
+  let cs3 = (cs2 + e) % q in
+  let cs4 = (q - cs3) % q in
+  let ok = cs4 == r in
+  let row = dom_create("div") in
+  dom_text(row, "  ${chname} (mod ${q}): ${r} -> ${cs1} -> ${cs2} -> ${cs3} -> ${cs4}  ${if ok then \"ok\" else \"FAIL\"}");
+  dom_style(row, "color", if ok then "#4a4" else "#f44");
+  dom_append(trace, row)
+)
+
+fn mesh_roundtrip() = (
+  let hp = hp() in
+  let out = dom_query("#mesh-rt-out") in
+  dom_inner(out, "");
+  let x = dom_value(dom_query("#mesh-rt-x")) in
+  let eps = dom_value(dom_query("#mesh-rt-eps")) in
+  let nn = N_TRANS in
+  let xn = ((x % nn) + nn) % nn in
+  let en = ((eps % nn) + nn) % nn in
+  let s1 = (xn + en) % nn in
+  let s2 = mesh_rt_mirror(s1, nn) in
+  let s3 = (s2 + en) % nn in
+  let s4 = mesh_rt_mirror(s3, nn) in
+  let pass = if s4 == xn then 1 else 0 in
+  /* Summary */
+  let hdr = dom_create("div") in
+  dom_style(hdr, "padding", "8px");
+  dom_style(hdr, "marginBottom", "8px");
+  dom_style(hdr, "backgroundColor", if pass then "#0a2a0a" else "#2a0a0a");
+  dom_style(hdr, "borderRadius", "4px");
+  dom_text(hdr, if pass then "PASS: sent ${xn}, recovered ${s4}. Error ${en} cancelled." else "FAIL: sent ${xn}, got ${s4}.");
+  dom_style(hdr, "color", if pass then "#4f4" else "#f44");
+  dom_style(hdr, "fontFamily", "monospace");
+  dom_append(out, hdr);
+  /* Step trace */
+  let trace = dom_create("div") in
+  dom_style(trace, "backgroundColor", "#0a0a1a");
+  dom_style(trace, "padding", "8px");
+  dom_style(trace, "borderRadius", "4px");
+  dom_style(trace, "fontFamily", "monospace");
+  dom_style(trace, "fontSize", "0.9em");
+  dom_style(trace, "lineHeight", "1.6");
+  let t1 = dom_create("div") in
+  dom_text(t1, "Step 1: ${xn} + ${en} = ${s1}  (send + error)");
+  dom_style(t1, "color", "#ccc");
+  dom_append(trace, t1);
+  let t2 = dom_create("div") in
+  dom_text(t2, "Step 2: mirror(${s1}) = ${s2}  (receiver mirrors)");
+  dom_style(t2, "color", "#88f");
+  dom_append(trace, t2);
+  let t3 = dom_create("div") in
+  dom_text(t3, "Step 3: ${s2} + ${en} = ${s3}  (return + error)");
+  dom_style(t3, "color", "#ccc");
+  dom_append(trace, t3);
+  let t4 = dom_create("div") in
+  dom_text(t4, "Step 4: mirror(${s3}) = ${s4}  (sender mirrors)");
+  dom_style(t4, "color", "#ffd700");
+  dom_append(trace, t4);
+  /* Per-channel breakdown */
+  let ch_hdr = dom_create("div") in
+  dom_text(ch_hdr, "Per-channel independence:");
+  dom_style(ch_hdr, "color", "#888");
+  dom_style(ch_hdr, "marginTop", "8px");
+  dom_append(trace, ch_hdr);
+  mesh_rt_ch_row(trace, xn, en, 0);
+  mesh_rt_ch_row(trace, xn, en, 1);
+  mesh_rt_ch_row(trace, xn, en, 2);
+  mesh_rt_ch_row(trace, xn, en, 3);
+  mesh_rt_ch_row(trace, xn, en, 4);
+  mesh_rt_ch_row(trace, xn, en, 5);
+  mesh_rt_ch_row(trace, xn, en, 6);
+  /* Theorem note */
+  let note = dom_create("div") in
+  dom_text(note, "Algebra: u(u+1)*eps. Only u=-1: u+1=0. Residual vanishes for ANY error.");
+  dom_style(note, "color", "#666");
+  dom_style(note, "marginTop", "8px");
+  dom_style(note, "fontStyle", "italic");
+  dom_append(trace, note);
+  dom_append(out, trace);
+  set_hp(hp)
+)
