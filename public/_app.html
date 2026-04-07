@@ -72,7 +72,7 @@ var _routeMap = {
 var _currentModule = '';
 function _routeMod(r) { return _routeMap[r] || 'home'; }
 (async function() {
-  var mem = null, _hashPtr = 0, _valuePtr = 0, _catPtr = 0;
+  var mem = null, _hashPtr = 0, _catPtr = 0;
   function rs(p) { return readStr(mem, p); }
   var _p = location.pathname.split('/').filter(Boolean);
   var _r = _p.length >= 2 ? _p[_p.length - 1] : (_p[0] || 'home');
@@ -135,7 +135,8 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
     },
     dom_value: function(h) {
       var v = (_dom[h] && (_dom[h].value || _dom[h].textContent)) || '';
-      var ptr = _valuePtr, m = new Int32Array(mem.buffer);
+      var ptr = wasm.instance.exports.js_alloc(4 + v.length * 4);
+      var m = new Int32Array(mem.buffer);
       m[ptr/4] = v.length;
       for (var i = 0; i < v.length; i++) m[ptr/4+1+i] = v.charCodeAt(i);
       return ptr;
@@ -221,7 +222,6 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
   var wasm = await WebAssembly.instantiate(_wasmBytes, _imports);
   mem = wasm.instance.exports.memory;
   _hashPtr = wasm.instance.exports.js_alloc(1024);
-  _valuePtr = wasm.instance.exports.js_alloc(1024);
   _catPtr = wasm.instance.exports.js_alloc(256);
   /* Cross-module SPA: fetch new module, swap instance, call on_navigate */
   async function _swapModule(mod) {
@@ -229,7 +229,6 @@ function _routeMod(r) { return _routeMap[r] || 'home'; }
     var nw = await WebAssembly.instantiate(await wr.arrayBuffer(), _imports);
     wasm = nw; mem = nw.instance.exports.memory;
     _hashPtr = nw.instance.exports.js_alloc(1024);
-    _valuePtr = nw.instance.exports.js_alloc(1024);
     _catPtr = nw.instance.exports.js_alloc(256);
     _currentModule = mod;
     document.body.innerHTML = '';
