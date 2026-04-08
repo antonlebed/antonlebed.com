@@ -25,15 +25,49 @@ fn circle_y(i) = (
   if dx * dx + dy * dy < 122500 then 1000 else 0
 )
 
+/* ===== INTEGER SIN/COS (32-step full circle, quarter-wave lookup) =====
+   isin32(k) returns sin(2*pi*k/32) * 1000. icos32(k) = cos. */
+fn isin_q(k) = (
+  if k == 0 then 0 else if k == 1 then 195 else if k == 2 then 383
+  else if k == 3 then 556 else if k == 4 then 707 else if k == 5 then 831
+  else if k == 6 then 924 else if k == 7 then 981 else 1000
+)
+fn isin32(a) = (
+  let k = a % 32 in
+  let k = if k < 0 then k + 32 else k in
+  if k <= 8 then isin_q(k)
+  else if k <= 16 then isin_q(16 - k)
+  else if k <= 24 then 0 - isin_q(k - 16)
+  else 0 - isin_q(32 - k)
+)
+fn icos32(a) = isin32(a + 8)
+
+/* ===== SPIRAL TRAINING DATA (200 cases) =====
+   Two interleaving Archimedean spirals, 100 pts each. ~3 full turns.
+   Class 0: angle = idx, class 1: angle = idx + 16 (pi offset). */
+fn spiral_x0(i) = (
+  let cls = i / 100 in let idx = i % 100 in
+  let angle = idx + cls * 16 in
+  let r = 40 + idx * 4 in
+  500 + r * icos32(angle) / 1000
+)
+fn spiral_x1(i) = (
+  let cls = i / 100 in let idx = i % 100 in
+  let angle = idx + cls * 16 in
+  let r = 40 + idx * 4 in
+  500 + r * isin32(angle) / 1000
+)
+fn spiral_y(i) = if i < 100 then 0 else 1000
+
 /* ===== TASK DISPATCH ===== */
 fn ct_task() = (
   let v = ct_parse_csv(dom_value(dom_query("#ct-task"))) in
   if len(v) > 0 then v[0] else 0
 )
-fn ct_data_n() = if ct_task() == 0 then 4 else 50
-fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else circle_x0(i)
-fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else circle_x1(i)
-fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else circle_y(i)
+fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else 200
+fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else spiral_x0(i)
+fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then circle_x1(i) else spiral_x1(i)
+fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then circle_y(i) else spiral_y(i)
 
 /* ===== STATE: weights as comma-separated i32s in hidden textarea =====
    135 values total:
@@ -528,6 +562,7 @@ fn ct_toggle_kill(ch) = (
 
 fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); on_ct_init())
 fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); on_ct_init())
+fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); on_ct_init())
 
 fn on_kill_d() = ct_toggle_kill(0)
 fn on_kill_k() = ct_toggle_kill(1)
@@ -697,6 +732,12 @@ fn page_crt_train() = (
   dom_style(b_circle, "marginLeft", "8px");
   dom_on(b_circle, "click", "on_ct_set_circle");
   dom_append(task_row, b_circle);
+  let b_spiral = dom_create("button") in
+  dom_text(b_spiral, "Spiral (200 pts)");
+  ct_nn_btn(b_spiral);
+  dom_style(b_spiral, "marginLeft", "8px");
+  dom_on(b_spiral, "click", "on_ct_set_spiral");
+  dom_append(task_row, b_spiral);
   dom_append(sec2, task_row);
 
   /* Buttons */
