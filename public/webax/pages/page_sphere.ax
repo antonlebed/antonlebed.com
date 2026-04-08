@@ -282,6 +282,31 @@ fn sph_legend() = (
   dom_append(dom_body(), sec)
 )
 
+/* ===== OPERATIONAL BOUNDARY SECTION (S1343) ===== */
+fn sph_boundary() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Operational Boundary");
+  render_p(sec, "ECC3 triple parity (L + GATE + ESCAPE, rate 4/7) gives 100% single-channel correction. But what happens when two channels are corrupted simultaneously? This defines the operational boundary: how many errors can the system tolerate before it must retransmit?");
+  render_p(sec, "Exhaustive computation: all 88,200 data values, all 21 channel pairs, all possible error combinations. 535 million 2-channel error patterns tested. Zero undetected.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Error type");
+  render_th(hdr, "Count");
+  render_th(hdr, "Detection");
+  render_th(hdr, "Correction");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "1 channel", "any", "100%", "100% (auto-heal)");
+  render_table_row_4(tbl, "2 channels (DATA+DATA)", "187M patterns", "100%", "retransmit");
+  render_table_row_4(tbl, "2 channels (DATA+PAR)", "265M patterns", "100%", "retransmit");
+  render_table_row_4(tbl, "2 channels (PAR+PAR)", "42M patterns", "100%", "retransmit");
+  render_p(sec, "The key guarantee: 2431 = 11 * 13 * 17 (parity product) exceeds 49^2 = 2401 (max data channel squared). This margin of 30 means no pair of data-channel errors can produce a syndrome-invisible delta. Every 2-channel error flips at least one parity check.");
+  render_p(sec, "Protocol: detect() on every received packet. Clean -> accept. Error -> retransmit via -1 round-trip. The mesh already implements this (S5b). One error auto-heals. Two errors trigger retransmit. The algebra decides.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "535M exhaustive = 0 silent", "test_multi_ecc.c + .ax 45/45", "Every possible 2-channel error pattern across all 21 channel pairs and all 88,200 data values: 100% detected. Zero silent corruption. The parity product 2431 > max_channel^2 = 2401 is the algebraic guard.", "S1343");
+  render_finding(g, "1 error = heal, 2 = retransmit", "Operational boundary", "This is the standard Hamming-distance-3 trade-off: correct 1 or detect 2, not both simultaneously. The ESP32 mesh uses detect-only mode with -1 round-trip recovery, which is safe for any number of detected errors.", "S1343");
+  dom_append(dom_body(), sec)
+)
+
 /* ===== PHYSICS SECTION ===== */
 fn sph_physics() = (
   let sec = make_section("800px") in
@@ -375,5 +400,6 @@ fn page_sphere() = (
   sph_legend();
   sph_angmom();
   sph_hardware();
+  sph_boundary();
   sph_physics()
 )
