@@ -10,11 +10,30 @@
    mul: (a * b) / 1000. Division order matters for overflow avoidance.
    i32 max = 2.1B. Worst case: lr(150) * delta(2000) * h(2000) = 600M. Safe. */
 
-/* ===== XOR TRAINING DATA =====
-   4 cases: (0,0)->0, (0,1)->1, (1,0)->1, (1,1)->0 */
+/* ===== XOR TRAINING DATA (4 cases) ===== */
 fn xor_x0(i) = if i >= 2 then 1000 else 0
 fn xor_x1(i) = if i == 1 then 1000 else if i == 2 then 1000 else 0
 fn xor_y(i) = if i == 1 then 1000 else if i == 2 then 1000 else 0
+
+/* ===== CIRCLE TRAINING DATA (50 cases) =====
+   Deterministic pseudo-random points. Inside circle (r<0.35) = 1, outside = 0. */
+fn circle_x0(i) = ((i * 137 + 41) % 100) * 10
+fn circle_x1(i) = ((i * 213 + 67) % 100) * 10
+fn circle_y(i) = (
+  let dx = circle_x0(i) - 500 in
+  let dy = circle_x1(i) - 500 in
+  if dx * dx + dy * dy < 122500 then 1000 else 0
+)
+
+/* ===== TASK DISPATCH ===== */
+fn ct_task() = (
+  let v = ct_parse_csv(dom_value(dom_query("#ct-task"))) in
+  if len(v) > 0 then v[0] else 0
+)
+fn ct_data_n() = if ct_task() == 0 then 4 else 50
+fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else circle_x0(i)
+fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else circle_x1(i)
+fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else circle_y(i)
 
 /* ===== STATE: weights as comma-separated i32s in hidden textarea =====
    135 values total:
@@ -142,14 +161,15 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
 /* ===== TRAINING ===== */
 fn ct_train_epochs(w, epochs) = (
   let lr = 150 in
+  let nd = ct_data_n() in
   mut e = 0;
   while e < epochs do (
     mut i = 0;
-    while i < 4 do (
-      nn_bkwd(w, 0, 8, xor_x0(i), xor_x1(i), xor_y(i), lr);
+    while i < nd do (
+      nn_bkwd(w, 0, 8, ct_data_x0(i), ct_data_x1(i), ct_data_y(i), lr);
       mut c = 0;
       while c < 6 do (
-        nn_bkwd(w, 33 + c * 17, 4, xor_x0(i), xor_x1(i), xor_y(i), lr);
+        nn_bkwd(w, 33 + c * 17, 4, ct_data_x0(i), ct_data_x1(i), ct_data_y(i), lr);
         mut c = c + 1
       );
       mut i = i + 1
@@ -161,40 +181,43 @@ fn ct_train_epochs(w, epochs) = (
 
 /* ===== ACCURACY + LOSS ===== */
 fn ct_accuracy(w, base, nh) = (
+  let nd = ct_data_n() in
   mut correct = 0;
   mut i = 0;
-  while i < 4 do (
-    let out = nn_fwd(w, base, nh, xor_x0(i), xor_x1(i)) in
-    if (out > 500) == (xor_y(i) > 500) then mut correct = correct + 1 else 0;
+  while i < nd do (
+    let out = nn_fwd(w, base, nh, ct_data_x0(i), ct_data_x1(i)) in
+    if (out > 500) == (ct_data_y(i) > 500) then mut correct = correct + 1 else 0;
     mut i = i + 1
   );
   correct
 )
 
 fn ct_loss(w, base, nh) = (
+  let nd = ct_data_n() in
   mut total = 0;
   mut i = 0;
-  while i < 4 do (
-    let out = nn_fwd(w, base, nh, xor_x0(i), xor_x1(i)) in
-    let d = out - xor_y(i) in
+  while i < nd do (
+    let out = nn_fwd(w, base, nh, ct_data_x0(i), ct_data_x1(i)) in
+    let d = out - ct_data_y(i) in
     mut total = total + d * d / 1000;
     mut i = i + 1
   );
-  total / 4
+  total / nd
 )
 
 /* ===== CRT COMBINED LOSS (average of channel losses) ===== */
 fn ct_crt_loss(w) = (
   let kills = ct_parse_csv(dom_value(dom_query("#ct-kills"))) in
+  let nd = ct_data_n() in
   mut total = 0;
   mut i = 0;
-  while i < 4 do (
-    let out = ct_crt_fwd(w, xor_x0(i), xor_x1(i), kills) in
-    let d = out - xor_y(i) in
+  while i < nd do (
+    let out = ct_crt_fwd(w, ct_data_x0(i), ct_data_x1(i), kills) in
+    let d = out - ct_data_y(i) in
     mut total = total + d * d / 1000;
     mut i = i + 1
   );
-  total / 4
+  total / nd
 )
 
 /* ===== LOSS CURVE ===== */
@@ -364,48 +387,53 @@ fn ct_draw_crt_heatmap(w, kills) = (
 /* ===== XOR DATA POINTS ON HEATMAP ===== */
 fn ct_draw_points(cvs_id) = (
   let ctx = cvs_getctx(dom_query(cvs_id)) in
+  let nd = ct_data_n() in
   let _fs = cvs_fillstyle(ctx, "#ffffff") in
   mut i = 0;
-  while i < 4 do (
-    let px = xor_x0(i) * 300 / 1000 + 10 in
-    let py = xor_x1(i) * 180 / 1000 + 10 in
-    let sz = if xor_y(i) > 500 then 8 else 6 in
+  while i < nd do (
+    let px = ct_data_x0(i) * 300 / 1000 + 10 in
+    let py = ct_data_x1(i) * 180 / 1000 + 10 in
+    let sz = if ct_data_y(i) > 500 then 6 else 4 in
     cvs_fillrect(ctx, px - sz / 2, py - sz / 2, sz, sz);
     mut i = i + 1
   );
-  let _fs2 = cvs_fillstyle(ctx, "#ffff00") in
-  mut i = 0;
-  while i < 4 do (
-    let px = xor_x0(i) * 300 / 1000 + 16 in
-    let py = xor_x1(i) * 180 / 1000 + 14 in
-    cvs_filltext(ctx, if xor_y(i) > 500 then "1" else "0", px, py);
-    mut i = i + 1
-  );
-  0
+  /* Labels only for small datasets */
+  if nd <= 8 then (
+    let _fs2 = cvs_fillstyle(ctx, "#ffff00") in
+    mut i = 0;
+    while i < nd do (
+      let px = ct_data_x0(i) * 300 / 1000 + 16 in
+      let py = ct_data_x1(i) * 180 / 1000 + 14 in
+      cvs_filltext(ctx, if ct_data_y(i) > 500 then "1" else "0", px, py);
+      mut i = i + 1
+    );
+    0
+  ) else 0
 )
 
 /* ===== STATS DISPLAY ===== */
 fn ct_show_stats(w) = (
+  let nd = ct_data_n() in
   let std_acc = ct_accuracy(w, 0, 8) in
   let std_l = ct_loss(w, 0, 8) in
-  dom_text(dom_query("#ct-std-stats"), "Accuracy: ${std_acc}/4 | Loss: ${std_l}");
+  dom_text(dom_query("#ct-std-stats"), "Accuracy: ${std_acc}/${nd} | Loss: ${std_l}");
   let kills = ct_read_kills() in
   mut crt_correct = 0;
   mut i = 0;
-  while i < 4 do (
-    let out = ct_crt_fwd(w, xor_x0(i), xor_x1(i), kills) in
-    if (out > 500) == (xor_y(i) > 500) then mut crt_correct = crt_correct + 1 else 0;
+  while i < nd do (
+    let out = ct_crt_fwd(w, ct_data_x0(i), ct_data_x1(i), kills) in
+    if (out > 500) == (ct_data_y(i) > 500) then mut crt_correct = crt_correct + 1 else 0;
     mut i = i + 1
   );
   let active = 6 - kills[0] - kills[1] - kills[2] - kills[3] - kills[4] - kills[5] in
-  dom_text(dom_query("#ct-crt-stats"), "Accuracy: ${crt_correct}/4 | Active: ${active}/6");
+  dom_text(dom_query("#ct-crt-stats"), "Accuracy: ${crt_correct}/${nd} | Active: ${active}/6");
   mut c = 0;
   while c < 6 do (
     let acc = ct_accuracy(w, 33 + c * 17, 4) in
     let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else if c == 4 then "L" else "G" in
     let dead = kills[c] in
-    dom_text(dom_query("#ct-ch${c}"), "${name}: ${if dead == 1 then "DEAD" else "${acc}/4"}");
-    dom_style(dom_query("#ct-ch${c}"), "color", if dead == 1 then "#ff4444" else if acc == 4 then "#44ff44" else "#ffbb00");
+    dom_text(dom_query("#ct-ch${c}"), "${name}: ${if dead == 1 then "DEAD" else "${acc}/${nd}"}");
+    dom_style(dom_query("#ct-ch${c}"), "color", if dead == 1 then "#ff4444" else if acc == nd then "#44ff44" else "#ffbb00");
     mut c = c + 1
   );
   0
@@ -497,6 +525,9 @@ fn ct_toggle_kill(ch) = (
   )
 )
 
+fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); on_ct_init())
+fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); on_ct_init())
+
 fn on_kill_d() = ct_toggle_kill(0)
 fn on_kill_k() = ct_toggle_kill(1)
 fn on_kill_e() = ct_toggle_kill(2)
@@ -520,15 +551,16 @@ fn on_ct_corrupt() = (
       mut j = j + 1
     );
     /* Check: L detects corruption */
+    let nd = ct_data_n() in
     mut detected = 0;
     mut i = 0;
-    while i < 4 do (
-      let l_out = nn_fwd(w, 33 + 4 * 17, 4, xor_x0(i), xor_x1(i)) in
+    while i < nd do (
+      let l_out = nn_fwd(w, 33 + 4 * 17, 4, ct_data_x0(i), ct_data_x1(i)) in
       mut non_l = 0;
       mut c = 0;
       while c < 6 do (
         if c == 4 then 0
-        else (mut non_l = non_l + nn_fwd(w, 33 + c * 17, 4, xor_x0(i), xor_x1(i)));
+        else (mut non_l = non_l + nn_fwd(w, 33 + c * 17, 4, ct_data_x0(i), ct_data_x1(i)));
         mut c = c + 1
       );
       let avg = non_l / 5 in
@@ -541,7 +573,7 @@ fn on_ct_corrupt() = (
     while j < 17 do (set(w, b_base + j, saved[j]); mut j = j + 1);
     ct_write_w(w);
     dom_text(dom_query("#ct-corrupt-out"),
-      "b-channel corrupted (+/-1.0 random noise on all 17 weights). L=11 detected anomaly in ${detected}/4 test cases. ${if detected > 0 then "Corruption found!" else "Train more epochs for stronger channel separation."}")
+      "b-channel corrupted (+/-1.0 random noise on all 17 weights). L=11 detected anomaly in ${detected}/${nd} test cases. ${if detected > 0 then "Corruption found!" else "Train more epochs for stronger channel separation."}")
   )
 )
 
@@ -592,6 +624,9 @@ fn page_crt_train() = (
   dom_style(en, "display", "none"); dom_append(dom_body(), en);
   let lh = dom_create("textarea") in dom_attr(lh, "id", "ct-loss-hist");
   dom_style(lh, "display", "none"); dom_append(dom_body(), lh);
+  let tk = dom_create("textarea") in dom_attr(tk, "id", "ct-task");
+  dom_attr(tk, "value", "0");
+  dom_style(tk, "display", "none"); dom_append(dom_body(), tk);
 
   /* === SEC 1: HOW IT WORKS === */
   let sec1 = make_section("800px") in
@@ -610,8 +645,28 @@ fn page_crt_train() = (
 
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
-  render_h2(sec2, "Live Training: XOR");
-  render_p(sec2, "XOR: the classic non-linear test. Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Same task, different architecture.");
+  render_h2(sec2, "Live Training");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Select a task and train.");
+
+  /* Task selector */
+  let task_row = dom_create("div") in
+  dom_style(task_row, "margin", "12px 0");
+  let task_lbl = dom_create("span") in
+  dom_text(task_lbl, "Task: ");
+  dom_style(task_lbl, "color", "#888");
+  dom_append(task_row, task_lbl);
+  let b_xor = dom_create("button") in
+  dom_text(b_xor, "XOR (4 pts)");
+  ct_nn_btn(b_xor);
+  dom_on(b_xor, "click", "on_ct_set_xor");
+  dom_append(task_row, b_xor);
+  let b_circle = dom_create("button") in
+  dom_text(b_circle, "Circle (50 pts)");
+  ct_nn_btn(b_circle);
+  dom_style(b_circle, "marginLeft", "8px");
+  dom_on(b_circle, "click", "on_ct_set_circle");
+  dom_append(task_row, b_circle);
+  dom_append(sec2, task_row);
 
   /* Buttons */
   let btns = dom_create("div") in
