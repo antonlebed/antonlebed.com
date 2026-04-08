@@ -194,8 +194,19 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
 fn ct_train_epochs(w, epochs) = (
   let lr = 150 in
   let nd = ct_data_n() in
-  /* Pre-allocate temp arrays ONCE (max nh=8). Reuse across all backward passes.
-     DISSOLVED: 280K allocs → 3 allocs. Bump allocator never frees. */
+  /* Pre-cache training data ONCE. ct_data_x0 calls ct_task() which parses DOM
+     each time — 120K DOM reads for 200pts × 200ep × 3. Cache dissolves this. */
+  let dx0 = alloc(nd) in
+  let dx1 = alloc(nd) in
+  let dy = alloc(nd) in
+  mut i = 0;
+  while i < nd do (
+    set(dx0, i, ct_data_x0(i));
+    set(dx1, i, ct_data_x1(i));
+    set(dy, i, ct_data_y(i));
+    mut i = i + 1
+  );
+  /* Pre-allocate temp arrays (max nh=8). Reuse across all backward passes. */
   let tmp_hr = alloc(8) in
   let tmp_h = alloc(8) in
   let tmp_dh = alloc(8) in
@@ -203,11 +214,10 @@ fn ct_train_epochs(w, epochs) = (
   while e < epochs do (
     mut i = 0;
     while i < nd do (
-      let x0 = ct_data_x0(i) in let x1 = ct_data_x1(i) in let y = ct_data_y(i) in
-      nn_bkwd(w, 0, 8, x0, x1, y, lr, tmp_hr, tmp_h, tmp_dh);
+      nn_bkwd(w, 0, 8, dx0[i], dx1[i], dy[i], lr, tmp_hr, tmp_h, tmp_dh);
       mut c = 0;
       while c < 6 do (
-        nn_bkwd(w, 33 + c * 17, 4, x0, x1, y, lr, tmp_hr, tmp_h, tmp_dh);
+        nn_bkwd(w, 33 + c * 17, 4, dx0[i], dx1[i], dy[i], lr, tmp_hr, tmp_h, tmp_dh);
         mut c = c + 1
       );
       mut i = i + 1
