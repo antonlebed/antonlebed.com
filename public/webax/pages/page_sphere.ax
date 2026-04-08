@@ -319,6 +319,7 @@ fn sph_physics() = (
   render_finding(g, "FPGA: 267 MHz orbit", "crt_k9_pipeline.v", "9-stage pipeline, 7 channels decomposed in parallel. 6555 LUT4 (31% of Tang Nano 20K). The counter IS the spinning address.", "S1265");
   render_finding(g, "FPGA: ECC3 on silicon", "crt_k9_ecc.v V2", "88,200 syndrome checks at 27 MHz. 1696 LUT4 (8%). Inject b+1, compute d+27000 mod 88200, check all 3 parity channels. 0 false negatives. All 6 LEDs ON.", "S1344");
   render_finding(g, "FPGA: CRT polyrhythm", "crt_polyrhythm.v", "6 LEDs = 6 TRUE channels. Each LED shows cos(2*pi*r/q) sign at human-visible rate. D blinks at ~3.2 Hz, b at ~0.5 Hz -- the depth prime IS the slowest orbit. No mod operations: 6 independent wrap-around counters (CRT isomorphism). 196 cells. The spinning sphere, made audible to the eyes.", "S1345");
+  render_finding(g, "FPGA: Angular momentum", "crt_ang_mom.v", "Two spinning addresses (stride 1:2) on TRANS torus. 14 wrap-around counters compute circular CRT distance every cycle. Proof phase sweeps all 214M addresses in ~8 seconds: verifies min=0 (alignment at t=N-1) and max=63 (all channels antipodal). Display phase shows live ang_mom as 6-bit binary on LEDs. Matches ESP32 stride 1:2 measurement: avg about 33.", "S1350");
   render_finding(g, "ESP32: 3-board mesh", "crt_mesh.c", "K=3 boards, algebraic addressing, L=11 ECC per packet. CAL_PROBE/CAL_ECHO auto-calibrate via round-trip.", "S1329");
   render_finding(g, "Void pilots", "0 mod q = 0 for all q", "Element 0 (void) has residue 0 in every channel. It sees every layer simultaneously. Void is the natural hub of the spinning structure.", "S1331");
   dom_append(dom_body(), sec)
@@ -347,7 +348,7 @@ fn sph_angmom() = (
   let g = make_findings_grid(sec) in
   render_finding(g, "ang_mom = 7 = b", "Measured on ESP32", "Between sigma and D boards, the sum of phase differences is always 7 = depth prime. CRT distance IS angular momentum. Proved: dist(a+s, b+s) = dist(a, b) because step s cancels.", "S1334");
   render_finding(g, "Clock drift detector", "Quantized by CRT", "If clocks drift by delta, ang_mom shifts: drift 0 gives 7, drift 1 gives 0, drift 5 gives 28. Any deviation from the expected constant = drift detected. No GPS needed.", "S1334");
-  render_finding(g, "Different strides", "Pseudo-random mixing", "When elements step at different rates, angular momentum becomes step-dependent and averages to about 33 over a lambda cycle. The rotation IS the mixing.", "S1334");
+  render_finding(g, "Different strides", "Pseudo-random mixing", "When elements step at different rates, angular momentum becomes step-dependent. Per-channel: E[circ_dist in Z/q] = q/4 (even q) or (q^2-1)/(4q) (odd q). Total: sum of 7 channel averages = 32.9. Measured on ESP32: 33.00 (stride 1:2, 90 packets). Verified in software: 55205/1680 = 32.86 (1680-step sweep, test_ang_mom.ax 41/41). The rotation IS the mixing.", "S1350");
   dom_append(dom_body(), sec)
 )
 
