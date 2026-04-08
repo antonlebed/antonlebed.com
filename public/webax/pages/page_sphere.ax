@@ -355,12 +355,12 @@ fn sph_hardware() = (
   render_table_row_4(t2, "1:2", "33.00", "0.00", "14-47");
   render_table_row_4(t2, "1:7 (depth)", "33.22", "+0.22", "16-53");
   render_table_row_4(t2, "1:17 (ESCAPE)", "35.08", "+2.08", "14-53");
-  render_p(sec, "Stride 1:2 matches the prediction exactly. Stride 1:7 is near-exact. Stride 1:17 shows a +2.08 anomaly: the ESCAPE channel (mod 17) is frozen when stride equals the modulus, breaking uniform mixing. This is a measurable algebraic effect on real radio.");
+  render_p(sec, "Stride 1:2 matches the prediction exactly. Stride 1:7 is near-exact. Stride 1:17 shows a +2.08 bias. Analysis (S1342) reveals the mechanism: the stride DIFFERENCE 16 = 0 mod 8 freezes the D channel, not ESCAPE. The D-channel angular momentum becomes constant at circ_dist((2+delta)%8, 0, 8) where delta is the boot offset. With delta=2, D contributes 4 instead of the average 2, explaining the +2 bias exactly. General rule: gcd(stride_diff, q_i) = q_i freezes channel i.");
   /* Findings */
   let g = make_findings_grid(sec) in
   render_finding(g, "Detect + Recover + Clock", "One ring, one protocol", "L=11 detects corruption. The -1 mirror recovers the original. Angular momentum measures clock drift. All three from the same algebraic structure. All CC0.", "S1339");
   render_finding(g, "corrupted = 116953202", "mirror = 97460998", "Element 2 with L+1 error reconstructs to 2 + e_L = 116953202. Void mirrors to N - 116953202 = 97460998. Return-path L+1 plus final mirror yields 2. Exact.", "S1339");
-  render_finding(g, "ESCAPE anomaly +2.08", "stride=17 breaks mixing", "When stride equals a channel modulus, that channel is frozen: (2 + 17k) mod 17 = 2 always. The frozen channel contributes a fixed offset instead of averaging to q/4. Stride 1:2 (coprime to all moduli) shows zero anomaly.", "S1340");
+  render_finding(g, "D-channel lock +2.08", "stride_diff mod 8 = 0", "Stride 1:17 has stride difference 16. Since 16 mod 8 = 0, the D-channel angular momentum freezes. Boot offset delta=2 gives D-contribution = 4 (max). Analytic prediction: 34.89. Hardware: 35.08. Corrects S1340 ESCAPE attribution: ESCAPE phase IS frozen on sender, but ang_mom contribution still varies.", "S1342");
   render_finding(g, "Phase-independent ECC", "72/72 across all phases", "Time-domain injection: corrupt b-channel (54 packets) and L-channel (18 packets) across lambda progress 5-109. 100% detection at every phase, including all 7 channel wrap points. Triple parity makes any single-channel error always detectable.", "S1342");
   dom_append(dom_body(), sec)
 )
