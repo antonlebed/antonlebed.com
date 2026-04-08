@@ -541,7 +541,9 @@ fn on_ct_train() = (
   let check = ct_read_w() in
   if len(check) < 135 then on_ct_init() else 0;
   let w = ct_read_w() in
+  let t0 = time_ms() in
   ct_train_epochs(w, 200);
+  let dt = time_ms() - t0 in
   ct_write_w(w);
   let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
   let new_e = if len(old_e) > 0 then old_e[0] + 200 else 200 in
@@ -555,7 +557,13 @@ fn on_ct_train() = (
   let new_hist = if len(hist_str) == 0 then "${std_l},${crt_l}"
                  else "${hist_str},${std_l},${crt_l}" in
   dom_text(dom_query("#ct-loss-hist"), new_hist);
-  ct_draw_loss_curve()
+  ct_draw_loss_curve();
+  /* Display CPU timing */
+  let nd = ct_data_n() in
+  dom_text(dom_query("#ct-cpu-result"),
+    "CPU: ${dt}ms | 200 epochs on ${nd} pts (online SGD) | Loss: std=${std_l} crt=${crt_l}");
+  /* Store CPU ms for comparison */
+  dom_text(dom_query("#ct-cpu-ms"), "${dt}")
 )
 
 fn ct_toggle_kill(ch) = (
@@ -653,6 +661,19 @@ fn on_ct_gpu_done() = (
     dom_text(dom_query("#ct-epoch"), "Epoch: ${e_n}");
     ct_draw_all(w);
     ct_draw_loss_curve()
+  ) else 0
+)
+
+/* Show GPU vs CPU timing comparison when both have been measured */
+fn ct_show_timing_compare() = (
+  let cpu_str = dom_value(dom_query("#ct-cpu-ms")) in
+  let cpu_vals = ct_parse_csv(cpu_str) in
+  if len(cpu_vals) > 0 then (
+    let cpu = cpu_vals[0] in
+    if cpu > 0 then
+      dom_text(dom_query("#ct-timing-compare"),
+        "Last CPU: ${cpu}ms vs GPU timing shown above. Train both to compare.")
+    else 0
   ) else 0
 )
 
@@ -774,6 +795,18 @@ fn page_crt_train() = (
   dom_style(ep, "color", "#888");
   dom_append(btns, ep);
   dom_append(sec2, btns);
+  /* CPU timing result */
+  let cpu_res = dom_create("div") in
+  dom_attr(cpu_res, "id", "ct-cpu-result");
+  dom_style(cpu_res, "color", "#88ddaa");
+  dom_style(cpu_res, "fontSize", "0.9em");
+  dom_style(cpu_res, "marginBottom", "8px");
+  dom_append(sec2, cpu_res);
+  /* Hidden CPU ms storage for comparison */
+  let cpu_ms = dom_create("span") in
+  dom_attr(cpu_ms, "id", "ct-cpu-ms");
+  dom_style(cpu_ms, "display", "none");
+  dom_append(sec2, cpu_ms);
 
   /* Side-by-side canvases */
   let row = dom_create("div") in
