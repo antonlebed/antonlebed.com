@@ -578,6 +578,36 @@ fn on_ct_corrupt() = (
   )
 )
 
+/* ===== GPU TRAINING ===== */
+fn on_ct_gpu_train() = (
+  let check = ct_read_w() in
+  if len(check) < 135 then on_ct_init() else 0;
+  let w = ct_read_w() in
+  let nd = ct_data_n() in
+  let buf = alloc(135 + nd * 3) in
+  mut i = 0;
+  while i < 135 do (set(buf, i, w[i]); mut i = i + 1);
+  mut i = 0;
+  while i < nd do (
+    set(buf, 135 + i * 3, ct_data_x0(i));
+    set(buf, 135 + i * 3 + 1, ct_data_x1(i));
+    set(buf, 135 + i * 3 + 2, ct_data_y(i));
+    mut i = i + 1
+  );
+  gpu_train(buf, nd, 200, dom_query("#ct-gpu-result"))
+)
+
+fn on_ct_gpu_done() = (
+  let w = ct_read_w() in
+  if len(w) >= 135 then (
+    let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
+    let e_n = if len(old_e) > 0 then old_e[0] else 0 in
+    dom_text(dom_query("#ct-epoch"), "Epoch: ${e_n}");
+    ct_draw_all(w);
+    ct_draw_loss_curve()
+  ) else 0
+)
+
 /* ===== STYLE HELPERS ===== */
 fn ct_nn_btn(btn) = (
   dom_style(btn, "background", "#1a1a2e");
@@ -895,6 +925,30 @@ fn page_crt_train() = (
   dom_append(secg, b1); dom_append(secg, b2); dom_append(secg, b3);
   dom_append(secg, r1); dom_append(secg, r2); dom_append(secg, r3);
   render_p(secg, "Each operation runs as a WGSL compute shader with 6 CRT channels. Ring Add = forward pass accumulation. CRT Multiply = block-diagonal gradient step. Eigenvalue = convergence check. All verified against CPU.");
+
+  /* GPU Training */
+  let gpu_sep = dom_create("div") in
+  dom_style(gpu_sep, "borderTop", "1px solid #333");
+  dom_style(gpu_sep, "marginTop", "24px");
+  dom_style(gpu_sep, "paddingTop", "16px");
+  dom_append(secg, gpu_sep);
+  let gpu_lbl = dom_create("div") in
+  dom_text(gpu_lbl, "GPU Training (WebGPU compute)");
+  dom_style(gpu_lbl, "color", "#ffd700");
+  dom_style(gpu_lbl, "fontWeight", "bold");
+  dom_style(gpu_lbl, "marginBottom", "8px");
+  dom_append(secg, gpu_lbl);
+  render_p(secg, "Train the same CRT network on GPU. Batch SGD: all data points in parallel, 7 networks (1 standard + 6 CRT channels) in a single WGSL compute dispatch. Atomic gradient accumulation in workgroup shared memory.");
+  let b_gpu = dom_create("button") in
+  dom_text(b_gpu, "GPU Train 200 epochs");
+  ct_nn_btn(b_gpu);
+  dom_on(b_gpu, "click", "on_ct_gpu_train");
+  dom_append(secg, b_gpu);
+  let gpu_res = dom_create("div") in
+  dom_attr(gpu_res, "id", "ct-gpu-result");
+  dom_style(gpu_res, "marginTop", "8px");
+  dom_append(secg, gpu_res);
+
   dom_append(dom_body(), secg);
 
   /* === SEC 6: f64 TRAINING (S1244) === */
