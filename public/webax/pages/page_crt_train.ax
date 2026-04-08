@@ -132,46 +132,44 @@ fn nn_fwd(w, base, nh, x0, x1) = (
   out
 )
 
-/* Backward pass. Returns loss (delta^2/1000). Modifies w in-place via set(). */
-fn nn_bkwd(w, base, nh, x0, x1, target, lr) = (
+/* Backward pass. Returns loss (delta^2/1000). Modifies w in-place via set().
+   tmp_hr, tmp_h, tmp_dh = pre-allocated arrays of size >= nh (reuse across calls). */
+fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   /* Forward: recompute hidden activations */
-  mut h_raw = alloc(nh);
-  mut h = alloc(nh);
   mut j = 0;
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
-    set(h_raw, j, raw);
-    set(h, j, if raw > 0 then raw else 0);
+    set(tmp_hr, j, raw);
+    set(tmp_h, j, if raw > 0 then raw else 0);
     mut j = j + 1
   );
   mut out = w[base + nh * 4];
   mut j = 0;
   while j < nh do (
-    mut out = out + w[base + nh * 3 + j] * h[j] / 1000;
+    mut out = out + w[base + nh * 3 + j] * tmp_h[j] / 1000;
     mut j = j + 1
   );
   let delta = out - target in
   /* Hidden deltas (using current output weights before update) */
-  mut dh = alloc(nh);
   mut j = 0;
   while j < nh do (
-    set(dh, j, if h_raw[j] > 0 then w[base + nh * 3 + j] * delta / 1000 else 0);
+    set(tmp_dh, j, if tmp_hr[j] > 0 then w[base + nh * 3 + j] * delta / 1000 else 0);
     mut j = j + 1
   );
   /* Update output layer */
   mut j = 0;
   while j < nh do (
-    set(w, base + nh * 3 + j, w[base + nh * 3 + j] - (lr * delta / 1000) * h[j] / 1000);
+    set(w, base + nh * 3 + j, w[base + nh * 3 + j] - (lr * delta / 1000) * tmp_h[j] / 1000);
     mut j = j + 1
   );
   set(w, base + nh * 4, w[base + nh * 4] - lr * delta / 1000);
   /* Update hidden layer */
   mut j = 0;
   while j < nh do (
-    let lrd = lr * dh[j] / 1000 in
+    let lrd = lr * tmp_dh[j] / 1000 in
     set(w, base + j * 2, w[base + j * 2] - lrd * x0 / 1000);
     set(w, base + j * 2 + 1, w[base + j * 2 + 1] - lrd * x1 / 1000);
-    set(w, base + nh * 2 + j, w[base + nh * 2 + j] - lr * dh[j] / 1000);
+    set(w, base + nh * 2 + j, w[base + nh * 2 + j] - lr * tmp_dh[j] / 1000);
     mut j = j + 1
   );
   delta * delta / 1000
@@ -196,15 +194,20 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
 fn ct_train_epochs(w, epochs) = (
   let lr = 150 in
   let nd = ct_data_n() in
+  /* Pre-allocate temp arrays ONCE (max nh=8). Reuse across all backward passes.
+     DISSOLVED: 280K allocs → 3 allocs. Bump allocator never frees. */
+  let tmp_hr = alloc(8) in
+  let tmp_h = alloc(8) in
+  let tmp_dh = alloc(8) in
   mut e = 0;
   while e < epochs do (
     mut i = 0;
     while i < nd do (
       let x0 = ct_data_x0(i) in let x1 = ct_data_x1(i) in let y = ct_data_y(i) in
-      nn_bkwd(w, 0, 8, x0, x1, y, lr);
+      nn_bkwd(w, 0, 8, x0, x1, y, lr, tmp_hr, tmp_h, tmp_dh);
       mut c = 0;
       while c < 6 do (
-        nn_bkwd(w, 33 + c * 17, 4, x0, x1, y, lr);
+        nn_bkwd(w, 33 + c * 17, 4, x0, x1, y, lr, tmp_hr, tmp_h, tmp_dh);
         mut c = c + 1
       );
       mut i = i + 1
