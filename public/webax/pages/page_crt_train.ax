@@ -250,13 +250,12 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
     set(w, base + nh * 2 + j, w[base + nh * 2 + j] - lr * tmp_dh[j] / 1000);
     mut j = j + 1
   );
-  /* Weight clipping: prevent ALL i32 overflow paths (w*h, lr*dh, etc).
-     ±10000 = ±10.0 real. Keeps w*h < 300M, lr*dh < 5M. (S1361 fix) */
+  /* Weight clipping: ±5000 keeps outputs bounded, prevents overflow. (S1361 R7) */
   mut j = 0;
   while j < nh * 4 + 1 do (
     let v = w[base + j] in
-    if v > 10000 then set(w, base + j, 10000)
-    else if v < 0 - 10000 then set(w, base + j, 0 - 10000)
+    if v > 5000 then set(w, base + j, 5000)
+    else if v < 0 - 5000 then set(w, base + j, 0 - 5000)
     else 0;
     mut j = j + 1
   );
@@ -282,10 +281,9 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
 fn ct_train_epochs(w, epochs) = (
   let lr_raw = ct_get_lr() in
   let nd = ct_data_n() in
-  /* LR scaling: online SGD applies lr per-sample, so effective per-epoch LR
-     scales with nd. Circle (50 pts) works; normalize larger datasets to match.
-     nd<=50: unchanged. nd>50: lr * 50/nd. Prevents divergence on 200-500 pt sets. (S1361 R6) */
-  let lr = if nd <= 50 then lr_raw else lr_raw * 50 / nd in
+  /* LR scaling: online SGD effective per-epoch LR = lr * nd. Normalize larger
+     datasets to prevent divergence. 20/nd keeps Std+CRT stable. (S1361 R7) */
+  let lr = if nd <= 20 then lr_raw else lr_raw * 20 / nd in
   /* Pre-cache training data ONCE. ct_data_x0 calls ct_task() which parses DOM
      each time — 120K DOM reads for 200pts × 200ep × 3. Cache dissolves this. */
   let dx0 = alloc(nd) in
@@ -338,7 +336,9 @@ fn ct_loss(w, base, nh) = (
   mut i = 0;
   while i < nd do (
     let out = nn_fwd(w, base, nh, ct_data_x0(i), ct_data_x1(i)) in
-    let d = out - ct_data_y(i) in
+    let d_raw = out - ct_data_y(i) in
+    /* Clamp delta for loss display: d*d overflow at |d|>46340 (sqrt i32_max). (S1361 R7) */
+    let d = if d_raw > 2000 then 2000 else if d_raw < 0 - 2000 then 0 - 2000 else d_raw in
     mut total = total + d * d / 1000;
     mut i = i + 1
   );
@@ -353,7 +353,8 @@ fn ct_crt_loss(w) = (
   mut i = 0;
   while i < nd do (
     let out = ct_crt_fwd(w, ct_data_x0(i), ct_data_x1(i), kills) in
-    let d = out - ct_data_y(i) in
+    let d_raw = out - ct_data_y(i) in
+    let d = if d_raw > 2000 then 2000 else if d_raw < 0 - 2000 then 0 - 2000 else d_raw in
     mut total = total + d * d / 1000;
     mut i = i + 1
   );
