@@ -216,7 +216,7 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
     set(tmp_hr, j, raw);
-    set(tmp_h, j, if raw > 0 then raw else raw / 2);
+    set(tmp_h, j, if raw > 0 then raw else raw / 4);
     mut j = j + 1
   );
   mut out = w[base + nh * 4];
@@ -228,7 +228,7 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   let raw_delta = out - target in
   /* Gradient clipping: cap delta at ±1000 to prevent i32 overflow in lr*delta. (S1361 R3) */
   let delta = if raw_delta > 1000 then 1000 else if raw_delta < 0 - 1000 then 0 - 1000 else raw_delta in
-  /* Hidden deltas — leaky ReLU: dead neurons get 1% gradient, can recover. (S1361 R5) */
+  /* Hidden deltas — leaky ReLU 25%: dead neurons get gradient/4, can recover. (S1362 fix) */
   mut j = 0;
   while j < nh do (
     let grad = w[base + nh * 3 + j] * delta / 1000 in
@@ -271,7 +271,7 @@ fn nn_grad(w, dw, base, nh, x0, x1, target, tmp_hr, tmp_h, tmp_dh) = (
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
     set(tmp_hr, j, raw);
-    set(tmp_h, j, if raw > 0 then raw else raw / 2);
+    set(tmp_h, j, if raw > 0 then raw else raw / 4);
     mut j = j + 1
   );
   mut out = w[base + nh * 4];
