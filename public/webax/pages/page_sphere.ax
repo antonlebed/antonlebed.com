@@ -352,7 +352,7 @@ fn sph_angmom() = (
   dom_append(dom_body(), sec)
 )
 
-/* ===== HARDWARE VALIDATION SECTION (S1337-S1339) ===== */
+/* ===== HARDWARE VALIDATION SECTION (S1337-S1351) ===== */
 fn sph_hardware() = (
   let sec = make_section("800px") in
   render_h2(sec, "Hardware Validation");
@@ -370,6 +370,7 @@ fn sph_hardware() = (
   render_table_row(tbl, "S5b: Error recovery", "100% recovery (4/4)", "-1 mirror round-trip recovers original value.");
   render_table_row(tbl, "S7: 30-min stability", "540/540 ang_mom=47", "Zero drift over 1801 seconds. 0 natural ECC failures.");
   render_table_row(tbl, "S9: Time-domain injection", "72/72 = 100% detect", "Phase-independent: b-channel and L-channel injection detected at all rotation phases.");
+  render_table_row(tbl, "S10: 24-hour drift test", "ang_mom=34 constant", "Zero clock drift over 24 hours. 0 ECC failures. All calibration delta=0.");
   render_p(sec, "S5b is the key result. D board injects L-channel error (+1 mod 11) on every 5th packet. Void detects ECC failure, mirrors the corrupted integer (N - corrupted), and sends it back. D applies the same error on the return path, then mirrors again. The algebra: x + eL becomes (N - x - eL) + eL = N - x becomes x. Two errors, two mirrors, perfect cancellation.");
   render_p(sec, "S7 confirms long-term stability. Over 30 minutes of continuous operation, the angular momentum between void and sigma stayed at exactly 47 for all 540 observations. Zero clock drift at 3-second resolution. 840 clean packets, zero natural ECC failures.");
   render_h3(sec, "S8: Stride Experiments");
@@ -385,6 +386,10 @@ fn sph_hardware() = (
   render_table_row_4(t2, "1:7 (depth)", "33.22", "+0.22", "16-53");
   render_table_row_4(t2, "1:17", "35.08", "+2.08 (D lock)", "14-53");
   render_p(sec, "Stride 1:2 matches the prediction exactly. Stride 1:7 is near-exact. Stride 1:17 shows a +2.08 bias. Analysis (S1342) reveals the mechanism: the stride DIFFERENCE 16 = 0 mod 8 freezes the D channel, not ESCAPE. The D-channel angular momentum becomes constant at circ_dist((2+delta)%8, 0, 8) where delta is the boot offset. With delta=2, D contributes 4 instead of the average 2, explaining the +2 bias exactly. General rule: gcd(stride_diff, q_i) = q_i freezes channel i.");
+  render_h3(sec, "S10: 24-Hour Drift Test");
+  render_p(sec, "The ultimate stability test: 3 boards spinning continuously for 24 hours. All at stride=1. Void captures angular momentum from both sigma and D every 3 seconds. Over 28,000 packets per peer. Result: ang_mom = 34 for every single observation. Zero drift. Zero ECC failures. All calibration deltas = 0.");
+  render_p(sec, "The value 34 has a clean algebraic explanation. With boot offset d between void and sigma, the effective element difference is 1 + d. Both peers show ang_mom = 34 = am_of(7) = am_of(b). The depth prime appears because sigma started 6 beats (18 seconds) before void, and D started 5 beats (15 seconds) before void. CRT(7) = (7,7,7,7,7,7,7). Per-channel circular distances: (1, 2, 7, 7, 4, 6, 7) = 34.");
+  render_p(sec, "Drift sensitivity: a single-beat drift (3 seconds) would change ang_mom from 34 to 33. Over 24 hours (28,800 beats), ang_mom stayed exactly 34. ESP32 clocks are stable to within 3 seconds per 24 hours, which is less than 35 ppm. The CRT structure provides free clock monitoring with zero protocol overhead.");
   /* Findings */
   let g = make_findings_grid(sec) in
   render_finding(g, "Detect + Recover + Clock", "One ring, one protocol", "L=11 detects corruption. The -1 mirror recovers the original. Angular momentum measures clock drift. All three from the same algebraic structure. All CC0.", "S1339");
@@ -392,12 +397,13 @@ fn sph_hardware() = (
   render_finding(g, "D-channel lock +2.08", "stride_diff mod 8 = 0", "Stride 1:17 has stride difference 16. Since 16 mod 8 = 0, the D-channel angular momentum freezes. Boot offset delta=2 gives D-contribution = 4 (max). Analytic prediction: 34.89. Hardware: 35.08. Corrects S1340 ESCAPE attribution: ESCAPE phase IS frozen on sender, but ang_mom contribution still varies.", "S1342");
   render_finding(g, "Phase-independent ECC", "72/72 across all phases", "Time-domain injection: corrupt b-channel (54 packets) and L-channel (18 packets) across lambda progress 5-109. 100% detection at every phase, including all 7 channel wrap points. Triple parity makes any single-channel error always detectable.", "S1342");
   render_finding(g, "Ring = isolation hierarchy", "stride N/q isolates channel", "Isolation stride for channel i = N/q_i. To observe only ESCAPE: spin at TRUE = N/17. To observe only D: spin at OMEGA = N/8. Each sub-ring isolates the channel it excludes. The ring hierarchy IS the channel isolation hierarchy.", "S1342");
+  render_finding(g, "24h zero drift", "ang_mom=34 = am_of(b)", "Over 24 hours and 28,000+ packets: ang_mom constant at 34 for both peers. Effective element difference = 7 = b (depth prime). Clock stability < 35 ppm. Zero ECC failures. Zero calibration delta. Free clock monitoring from ring algebra.", "S1351");
   dom_append(dom_body(), sec)
 )
 
 /* ===== MAIN PAGE ===== */
 fn page_sphere() = (
-  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. Angular momentum = 7 = b (depth prime). Hardware-validated: detection, recovery, clock drift.");
+  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. Hardware: 24-hour drift test, zero drift, ang_mom=34=am_of(b). ECC detection, recovery, clock monitoring.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Lambda=1680 heartbeat. Angular momentum equals CRT distance. Hardware-validated on 3 ESP32 boards: ECC detection 100%, round-trip recovery 100%, clock drift measurement.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"angular momentum\"},{\"@type\":\"DefinedTerm\",\"name\":\"hardware validation\"},{\"@type\":\"DefinedTerm\",\"name\":\"error recovery\"}]}");
   sph_hero();
   sph_canvas_section();
