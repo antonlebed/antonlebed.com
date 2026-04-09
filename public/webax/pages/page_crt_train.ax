@@ -200,7 +200,7 @@ fn nn_fwd(w, base, nh, x0, x1) = (
   mut j = 0;
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
-    let h = if raw > 0 then raw else 0 in
+    let h = if raw > 0 then raw else raw / 100 in
     mut out = out + w[base + nh * 3 + j] * h / 1000;
     mut j = j + 1
   );
@@ -215,7 +215,7 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
     set(tmp_hr, j, raw);
-    set(tmp_h, j, if raw > 0 then raw else 0);
+    set(tmp_h, j, if raw > 0 then raw else raw / 100);
     mut j = j + 1
   );
   mut out = w[base + nh * 4];
@@ -225,14 +225,13 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
     mut j = j + 1
   );
   let raw_delta = out - target in
-  /* Gradient clipping: cap delta at ±1000 to prevent i32 overflow in lr*delta.
-     Without this, weights grow → delta grows → lr*delta > 2^31 → corruption → 50% accuracy.
-     ±1000 = full output range. Larger delta = meaningless overshoot. (S1361 fix) */
+  /* Gradient clipping: cap delta at ±1000 to prevent i32 overflow in lr*delta. (S1361 R3) */
   let delta = if raw_delta > 1000 then 1000 else if raw_delta < 0 - 1000 then 0 - 1000 else raw_delta in
-  /* Hidden deltas (using current output weights before update) */
+  /* Hidden deltas — leaky ReLU: dead neurons get 1% gradient, can recover. (S1361 R5) */
   mut j = 0;
   while j < nh do (
-    set(tmp_dh, j, if tmp_hr[j] > 0 then w[base + nh * 3 + j] * delta / 1000 else 0);
+    let grad = w[base + nh * 3 + j] * delta / 1000 in
+    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 100);
     mut j = j + 1
   );
   /* Update output layer */
