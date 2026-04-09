@@ -79,15 +79,34 @@ fn moons_x1(i) = (
 )
 fn moons_y(i) = if i < 50 then 0 else 1000
 
+/* ===== BLOBS TRAINING DATA (500 cases) =====
+   Two overlapping Gaussian-ish clusters. 250 pts each.
+   Cluster 0 center: (300, 350). Cluster 1 center: (700, 650).
+   Pseudo-random scatter ±150 per coordinate. Overlap zone tests generalization.
+   Largest dataset: makes GPU training advantage visible (CPU slow, GPU parallel). */
+fn blobs_x0(i) = (
+  let cls = i / 250 in let idx = i % 250 in
+  let cx = if cls == 0 then 300 else 700 in
+  let n1 = ((idx * 137 + i * 41 + 7) % 300) - 150 in
+  cx + n1
+)
+fn blobs_x1(i) = (
+  let cls = i / 250 in let idx = i % 250 in
+  let cy = if cls == 0 then 350 else 650 in
+  let n2 = ((idx * 213 + i * 67 + 13) % 300) - 150 in
+  cy + n2
+)
+fn blobs_y(i) = if i < 250 then 0 else 1000
+
 /* ===== TASK DISPATCH ===== */
 fn ct_task() = (
   let v = ct_parse_csv(dom_value(dom_query("#ct-task"))) in
   if len(v) > 0 then v[0] else 0
 )
-fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else if ct_task() == 2 then 200 else 100
-fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else if ct_task() == 2 then spiral_x0(i) else moons_x0(i)
-fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then circle_x1(i) else if ct_task() == 2 then spiral_x1(i) else moons_x1(i)
-fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then circle_y(i) else if ct_task() == 2 then spiral_y(i) else moons_y(i)
+fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else if ct_task() == 2 then 200 else if ct_task() == 3 then 100 else 500
+fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else if ct_task() == 2 then spiral_x0(i) else if ct_task() == 3 then moons_x0(i) else blobs_x0(i)
+fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then circle_x1(i) else if ct_task() == 2 then spiral_x1(i) else if ct_task() == 3 then moons_x1(i) else blobs_x1(i)
+fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then circle_y(i) else if ct_task() == 2 then spiral_y(i) else if ct_task() == 3 then moons_y(i) else blobs_y(i)
 
 /* ===== STATE: weights as comma-separated i32s in hidden textarea =====
    135 values total:
@@ -711,6 +730,7 @@ fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); on_ct_init())
 fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); on_ct_init())
 fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); on_ct_init())
 fn on_ct_set_moons() = (dom_text(dom_query("#ct-task"), "3"); on_ct_init())
+fn on_ct_set_blobs() = (dom_text(dom_query("#ct-task"), "4"); on_ct_init())
 
 fn on_ct_ep200() = (dom_text(dom_query("#ct-epc"), "200"); ct_highlight_ep(200))
 fn on_ct_ep400() = (dom_text(dom_query("#ct-epc"), "400"); ct_highlight_ep(400))
@@ -784,7 +804,7 @@ fn on_ct_export() = (
     let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
     let ep = if len(old_e) > 0 then old_e[0] else 0 in
     let task = ct_task() in
-    let task_name = if task == 0 then "XOR" else if task == 1 then "Circle" else if task == 2 then "Spiral" else "Moons" in
+    let task_name = if task == 0 then "XOR" else if task == 1 then "Circle" else if task == 2 then "Spiral" else if task == 3 then "Moons" else "Blobs" in
     dom_text(dom_query("#ct-export-out"),
       "Task: ${task_name} (${nd} pts) | Epoch: ${ep} | Std: ${std_acc}/${nd} | CRT: ${crt_correct}/${nd}\nScale: 1000 (1.0=1000). Layout: std[0..32] (nh=8) + 6xCRT[33..134] (nh=4 each).\n${ct_to_csv(w)}")
   )
@@ -852,8 +872,8 @@ fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
 
 /* ===== PAGE ===== */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on XOR, Circle, Spiral, and Moons. GPU training via WebGPU. Loss and accuracy curves. Fixed-point, no floats.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. Live training on XOR, Circle, Spiral, Moons. GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
+  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on XOR, Circle, Spiral, Moons, and Blobs (500 pts). GPU training via WebGPU. Loss and accuracy curves. Fixed-point, no floats.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. 5 datasets (XOR, Circle, Spiral, Moons, Blobs). GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
 
   /* === HERO === */
   let hero = make_hero("CRT Neural Network") in
@@ -906,7 +926,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training");
-  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Four tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hardest).");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale).");
 
   /* Task selector */
   let task_row = dom_create("div") in
@@ -939,6 +959,11 @@ fn page_crt_train() = (
   ct_nn_btn(b_moons);
   dom_on(b_moons, "click", "on_ct_set_moons");
   dom_append(task_row, b_moons);
+  let b_blobs = dom_create("button") in
+  dom_text(b_blobs, "Blobs (500 pts)");
+  ct_nn_btn(b_blobs);
+  dom_on(b_blobs, "click", "on_ct_set_blobs");
+  dom_append(task_row, b_blobs);
   dom_append(sec2, task_row);
 
   /* Epoch selector */
