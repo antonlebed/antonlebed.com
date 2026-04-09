@@ -224,7 +224,11 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
     mut out = out + w[base + nh * 3 + j] * tmp_h[j] / 1000;
     mut j = j + 1
   );
-  let delta = out - target in
+  let raw_delta = out - target in
+  /* Gradient clipping: cap delta at ±1000 to prevent i32 overflow in lr*delta.
+     Without this, weights grow → delta grows → lr*delta > 2^31 → corruption → 50% accuracy.
+     ±1000 = full output range. Larger delta = meaningless overshoot. (S1361 fix) */
+  let delta = if raw_delta > 1000 then 1000 else if raw_delta < 0 - 1000 then 0 - 1000 else raw_delta in
   /* Hidden deltas (using current output weights before update) */
   mut j = 0;
   while j < nh do (
@@ -759,7 +763,11 @@ fn on_ct_train() = (
   let epc = ct_get_epc() in
   let chunks = epc / 200 in
   let t0 = time_ms() in
-  /* Train in 200-epoch chunks, recording loss after each for curve resolution */
+  /* Train in 200-epoch chunks, recording loss after each for curve resolution.
+     Arena reset per chunk: ct_loss/ct_accuracy call ct_task() per data point,
+     each allocating a parse array. 500pts * 3 * 10 metrics * 10 chunks = 150K dead arrays.
+     hp()/set_hp() reclaims these. w lives below mark, survives. (S1361 fix) */
+  let mark = hp() in
   mut chunk = 0;
   while chunk < chunks do (
     ct_train_epochs(w, 200);
@@ -786,6 +794,7 @@ fn on_ct_train() = (
     let new_ch = if len(ch_str) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}"
                  else "${ch_str},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}" in
     dom_text(dom_query("#ct-ch-loss-hist"), new_ch);
+    set_hp(mark);
     mut chunk = chunk + 1
   );
   let dt = time_ms() - t0 in
