@@ -246,20 +246,24 @@ fn on_sn_corrupt() = (
 
 /* ===== LIVE DATA HANDLERS ===== */
 
-/* Parse integer from string starting at position pos. Returns value. Sets sn_parse_pos. */
+/* Parse integer from JSON string starting at position pos. Returns value. Sets sn_parse_pos. */
 let sn_parse_pos = [0]
 fn sn_parse_int(s, pos) = (
   let n = len(s) in
   mut val = 0;
   mut sign = 1;
-  mut i = pos;
-  /* skip to next digit or minus */
+  mut i = if pos < 0 then 0 else pos;
+  /* skip non-digit, non-minus characters (whitespace, quotes, colons) */
+  mut scanning = 1;
   while i < n do (
-    let c = charCode(s, i) in
-    if c == 45 then (mut sign = 0 - 1; mut i = i + 1; mut i = i)  /* '-' */
-    else if c >= 48 then (if c <= 57 then (mut i = i) else (mut i = i + 1))
-    else (mut i = i + 1)
+    if scanning == 1 then (
+      let c = charCode(s, i) in
+      if c == 45 then (mut sign = 0 - 1; mut i = i + 1; mut scanning = 0)
+      else if c >= 48 then (if c <= 57 then (mut scanning = 0) else (mut i = i + 1))
+      else (mut i = i + 1)
+    ) else (mut i = n)
   );
+  /* collect digits */
   while i < n do (
     let c = charCode(s, i) in
     if c >= 48 then (
