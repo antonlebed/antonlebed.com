@@ -63,6 +63,25 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    /* ===== Sensor API: bridge writes, page reads ===== */
+    if (url.pathname === '/api/sensor') {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST', 'Access-Control-Allow-Headers': 'Authorization,Content-Type' } });
+      }
+      if (request.method === 'POST') {
+        var auth = request.headers.get('Authorization') || '';
+        if (auth !== 'Bearer crt7-sensor-214414200') {
+          return new Response('Unauthorized', { status: 401 });
+        }
+        var body = await request.text();
+        if (env.SENSOR_DATA) { await env.SENSOR_DATA.put('latest', body); }
+        return new Response('OK', { status: 200, headers: { 'Access-Control-Allow-Origin': '*' } });
+      }
+      var data = '{}';
+      if (env.SENSOR_DATA) { data = await env.SENSOR_DATA.get('latest') || '{}'; }
+      return new Response(data, { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-cache' } });
+    }
+
     /* Static assets (.html, .js, .wasm, .png, .jpg, .css) */
     if (url.pathname.includes('.')) {
       return env.ASSETS.fetch(request);
@@ -203,6 +222,8 @@ export default {
         aud_gain: function() { return 0; },
         gpu_init: function() { return 0; },
         gpu_bench: function() { return 0; },
+        dom_fetch: function() { return 0; },
+        dom_timeout: function() { return 0; },
         get_category: function() {
           var c = parts.length >= 2 ? parts[0] : (parts[0] || 'home');
           var ptr = _catPtr, m = new Int32Array(mem.buffer);

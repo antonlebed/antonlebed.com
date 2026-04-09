@@ -57,6 +57,11 @@ let sn_temp = [2350]     /* temperature * 100 (23.50 C) */
 let sn_hum = [4500]      /* humidity * 100 (45.00%) */
 let sn_press = [10132]   /* pressure * 10 (1013.2 hPa) */
 let sn_reading = [0]     /* reading count */
+let sn_live = [0]        /* 1 = live polling active */
+let sn_fetch_el = [0]    /* hidden element for fetch results */
+let sn_timer_el = [0]    /* hidden element for timeout trigger */
+let sn_am = [0]          /* angular momentum from latest packet */
+let sn_ecc_hw = [0]      /* ECC status from hardware (1=OK) */
 
 /* Residues for each measurement (3 x 7) */
 let sn_t_res = alloc(7)
@@ -239,6 +244,116 @@ fn on_sn_corrupt() = (
   dom_inner(sn_table_el[0], html)
 )
 
+/* ===== LIVE DATA HANDLERS ===== */
+
+/* Parse integer from string starting at position pos. Returns value. Sets sn_parse_pos. */
+let sn_parse_pos = [0]
+fn sn_parse_int(s, pos) = (
+  let n = len(s) in
+  mut val = 0;
+  mut sign = 1;
+  mut i = pos;
+  /* skip to next digit or minus */
+  while i < n do (
+    let c = charCode(s, i) in
+    if c == 45 then (mut sign = 0 - 1; mut i = i + 1; mut i = i)  /* '-' */
+    else if c >= 48 then (if c <= 57 then (mut i = i) else (mut i = i + 1))
+    else (mut i = i + 1)
+  );
+  while i < n do (
+    let c = charCode(s, i) in
+    if c >= 48 then (
+      if c <= 57 then (mut val = val * 10 + c - 48; mut i = i + 1)
+      else (mut i = n)
+    ) else (mut i = n)
+  );
+  set(sn_parse_pos, 0, i);
+  val * sign
+)
+
+/* Find position after a key like "t": in JSON string */
+fn sn_find_key(s, key) = (
+  let kl = len(key) in
+  let sl = len(s) in
+  mut i = 0;
+  mut found = 0 - 1;
+  while i < sl - kl do (
+    if found < 0 then (
+      if charCode(s, i) == 34 then (  /* '"' */
+        mut match = 1;
+        mut j = 0;
+        while j < kl do (
+          if charCode(s, i + 1 + j) == charCode(key, j) then (mut j = j + 1)
+          else (mut match = 0; mut j = kl)
+        );
+        if match == 1 then (
+          if charCode(s, i + 1 + kl) == 34 then (  /* closing '"' */
+            /* skip past '":' */
+            mut found = i + kl + 3
+          ) else 0
+        ) else 0
+      ) else 0;
+      mut i = i + 1
+    ) else (mut i = sl)
+  );
+  found
+)
+
+fn on_sn_fetch_done() = (
+  let raw = dom_value(sn_fetch_el[0]) in
+  if len(raw) > 2 then (
+    /* Parse JSON: {"t":2350,"h":4500,"p":10132,"am":34,"ecc":"OK","ts":...} */
+    let p_t = sn_find_key(raw, "t") in
+    let p_h = sn_find_key(raw, "h") in
+    let p_p = sn_find_key(raw, "p") in
+    let p_am = sn_find_key(raw, "am") in
+
+    if p_t >= 0 then (
+      set(sn_temp, 0, sn_parse_int(raw, p_t));
+      set(sn_hum, 0, sn_parse_int(raw, p_h));
+      set(sn_press, 0, sn_parse_int(raw, p_p));
+      set(sn_am, 0, sn_parse_int(raw, p_am));
+
+      /* Check for "ecc":"OK" */
+      let p_ecc = sn_find_key(raw, "ecc") in
+      if p_ecc >= 0 then (
+        if charCode(raw, p_ecc + 1) == 79 then  /* 'O' */
+          set(sn_ecc_hw, 0, 1)
+        else
+          set(sn_ecc_hw, 0, 0)
+      ) else 0;
+
+      dom_inner(sn_status_el[0], "<span style='color:#44ff88'>LIVE</span> am=${sn_am[0]} ecc=${if sn_ecc_hw[0] == 1 then \"OK\" else \"FAIL\"}");
+      sn_update()
+    ) else (
+      dom_inner(sn_status_el[0], "<span style='color:#ff6666'>No data yet</span> (waiting for bridge)")
+    )
+  ) else (
+    dom_inner(sn_status_el[0], "<span style='color:#ff6666'>No data</span> (bridge not running or KV empty)")
+  );
+  /* Schedule next fetch after 3 seconds */
+  if sn_live[0] == 1 then
+    dom_timeout(sn_timer_el[0], 3000)
+  else 0
+)
+
+fn on_sn_timer() = (
+  if sn_live[0] == 1 then
+    dom_fetch("/api/sensor", sn_fetch_el[0])
+  else 0
+)
+
+fn on_sn_go_live() = (
+  if sn_live[0] == 0 then (
+    set(sn_live, 0, 1);
+    dom_inner(sn_status_el[0], "<span style='color:#ffaa44'>Connecting...</span>");
+    dom_fetch("/api/sensor", sn_fetch_el[0])
+  ) else (
+    set(sn_live, 0, 0);
+    dom_inner(sn_status_el[0], "<span style='color:#888'>Live polling stopped</span>")
+  )
+)
+
 /* ===== PAGE LAYOUT ===== */
 
 fn page_sensor() = (
@@ -358,6 +473,17 @@ fn page_sensor() = (
   dom_on(b_sim, "click", "on_sn_simulate");
   dom_append(btns, b_sim);
 
+  let b_live = dom_create("button") in
+  dom_inner(b_live, "Go Live");
+  dom_style(b_live, "background", "#1a1a2e");
+  dom_style(b_live, "color", "#44ff88");
+  dom_style(b_live, "border", "1px solid #44ff88");
+  dom_style(b_live, "padding", "8px 16px");
+  dom_style(b_live, "cursor", "pointer");
+  dom_style(b_live, "fontFamily", "'Courier New', monospace");
+  dom_on(b_live, "click", "on_sn_go_live");
+  dom_append(btns, b_live);
+
   let b_corrupt = dom_create("button") in
   dom_inner(b_corrupt, "Corrupt Channel");
   dom_style(b_corrupt, "background", "#1a1a2e");
@@ -419,10 +545,23 @@ fn page_sensor() = (
   render_finding(g, "SPIN Packet", "14 bytes", "Step counter + lambda progress + sensor data. ESP-NOW broadcast. 3-second heartbeat.", "");
   render_finding(g, "ECC3", "100% detect", "Any single-channel corruption detected by triple parity. Two errors: 100% detect (535M exhaustive). Correction: Hamming-3 lookup.", "");
   render_finding(g, "Angular Momentum", "Clock sync", "Phase difference between sender and receiver = distance on 7-torus. Deviation from static CRT distance = clock drift. Free on every packet.", "");
-  render_finding(g, "Gateway", "Coming soon", "Void ESP32 connects to WiFi. HTTP POST to Cloudflare Worker. This page reads from KV store. Fully autonomous.", "");
+  render_finding(g, "Gateway", "PC bridge", "Python script reads void ESP32 serial, POSTs sensor JSON to Cloudflare Worker. Worker stores in KV. This page fetches every 3 seconds. Click Go Live.", "");
 
   render_theorem(sec4, "Why CRT for Sensors?", "A temperature reading is just a number. But through CRT, it becomes 7 independent residues traveling on 7 independent channels. If any channel is corrupted by noise, the other 6 are unaffected. The parity channels detect it. The round-trip mirror cancels systematic offsets. The angular momentum monitors clock drift. All of this is FREE — it falls out of the algebra. No protocol overhead. No error-correction codec. Just arithmetic in Z/214414200.");
 
   dom_append(dom_body(), sec4);
+
+  /* Hidden elements for live fetch/timer chain */
+  let hfetch = dom_create("div") in
+  dom_style(hfetch, "display", "none");
+  dom_on(hfetch, "click", "on_sn_fetch_done");
+  set(sn_fetch_el, 0, hfetch);
+  dom_append(dom_body(), hfetch);
+
+  let htimer = dom_create("div") in
+  dom_style(htimer, "display", "none");
+  dom_on(htimer, "click", "on_sn_timer");
+  set(sn_timer_el, 0, htimer);
+  dom_append(dom_body(), htimer);
   0
 )
