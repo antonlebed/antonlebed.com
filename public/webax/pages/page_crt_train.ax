@@ -8,7 +8,7 @@
 /* ===== FIXED-POINT CONSTANTS =====
    S=1000 scale. 1.0 = 1000, 0.5 = 500, -1.0 = -1000.
    mul: (a * b) / 1000. Division order matters for overflow avoidance.
-   i32 max = 2.1B. Worst case: lr(500) * delta(2000) = 1M, /1000 * h(2000) = 2M. Safe. */
+   i32 max = 2.1B. delta clipped ±1000, weights clamped ±5000. Batch SGD (S1361). */
 
 /* ===== XOR TRAINING DATA (4 cases) ===== */
 fn xor_x0(i) = if i >= 2 then 1000 else 0
@@ -215,7 +215,7 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
     set(tmp_hr, j, raw);
-    set(tmp_h, j, if raw > 0 then raw else raw / 100);
+    set(tmp_h, j, if raw > 0 then raw else raw / 2);
     mut j = j + 1
   );
   mut out = w[base + nh * 4];
@@ -1064,7 +1064,7 @@ fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
 
 /* ===== PAGE ===== */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). Adjustable learning rate. GPU batch vs CPU online SGD. Loss, accuracy, and per-channel convergence curves. Fixed-point, no floats.");
+  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). Adjustable learning rate. CPU and GPU batch SGD. Loss, accuracy, and per-channel convergence curves. Fixed-point, no floats.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. 5 datasets (XOR, Circle, Spiral, Moons, Blobs). GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
 
   /* === HERO === */
@@ -1123,7 +1123,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training");
-  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. CPU trains online (one sample at a time). GPU trains batch (all points, then update).");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. Both CPU and GPU use batch SGD (average gradients over all points, then update).");
 
   /* Task selector */
   let task_row = dom_create("div") in
@@ -1384,7 +1384,7 @@ fn page_crt_train() = (
   dom_append(sec2, ch_hint);
 
   let spiral_note = dom_create("div") in
-  dom_text(spiral_note, "XOR (4 pts) converges in ~200 epochs. Circle (50 pts) and Moons (100 pts) need ~1000. Spiral (200 pts) and Blobs (500 pts) need 1000+. Learning rate matters: 0.05 = stable but slow, 0.50 = fast but may overshoot on hard tasks. GPU uses batch SGD (mean gradient), CPU uses online SGD (per-sample update). At same LR, GPU converges slower on large datasets because it averages gradients over all points.");
+  dom_text(spiral_note, "XOR (4 pts) converges in ~200 epochs. Blobs (500 pts) in ~3000. Circle and Moons need 3000+. Spiral (200 pts) is hard -- 8 hidden units may be insufficient for 3-turn boundary. Learning rate: 0.05 = stable but slow, 0.50 = fast but may overshoot. Both CPU and GPU use batch SGD (average gradients, then update).");
   dom_style(spiral_note, "color", "#666");
   dom_style(spiral_note, "fontSize", "0.85em");
   dom_style(spiral_note, "marginTop", "8px");
@@ -1594,7 +1594,7 @@ fn page_crt_train() = (
   /* === SEC 7: IMPLEMENTATION === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "Implementation");
-  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: SGD with selectable learning rate (0.05-0.50), ReLU activation. All math fits in 32-bit integers. f64 training verified separately under WASI (test_float_xor.ax).");
+  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: batch SGD with selectable learning rate (0.05-0.50), leaky ReLU activation. All math fits in 32-bit integers. f64 training verified separately under WASI (test_float_xor.ax).");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/living/ai");
