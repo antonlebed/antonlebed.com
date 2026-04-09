@@ -251,6 +251,16 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
     set(w, base + nh * 2 + j, w[base + nh * 2 + j] - lr * tmp_dh[j] / 1000);
     mut j = j + 1
   );
+  /* Weight clipping: prevent ALL i32 overflow paths (w*h, lr*dh, etc).
+     ±10000 = ±10.0 real. Keeps w*h < 300M, lr*dh < 5M. (S1361 fix) */
+  mut j = 0;
+  while j < nh * 4 + 1 do (
+    let v = w[base + j] in
+    if v > 10000 then set(w, base + j, 10000)
+    else if v < 0 - 10000 then set(w, base + j, 0 - 10000)
+    else 0;
+    mut j = j + 1
+  );
   delta * delta / 1000
 )
 
