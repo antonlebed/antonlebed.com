@@ -117,6 +117,23 @@ fn ct_read_w() = ct_parse_csv(dom_value(dom_query("#ct-w")))
 fn ct_write_w(w) = dom_text(dom_query("#ct-w"), ct_to_csv(w))
 fn ct_read_kills() = ct_parse_csv(dom_value(dom_query("#ct-kills")))
 
+/* ===== EPOCH SELECTOR ===== */
+fn ct_get_epc() = (
+  let v = ct_parse_csv(dom_value(dom_query("#ct-epc"))) in
+  if len(v) > 0 then v[0] else 200
+)
+
+fn ct_highlight_ep(n) = (
+  dom_style(dom_query("#ct-ep200"), "background", if n == 200 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-ep200"), "borderColor", if n == 200 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-ep500"), "background", if n == 500 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-ep500"), "borderColor", if n == 500 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-ep1000"), "background", if n == 1000 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-ep1000"), "borderColor", if n == 1000 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-ep2000"), "background", if n == 2000 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-ep2000"), "borderColor", if n == 2000 then "#88ddaa" else "#555")
+)
+
 /* ===== NEURAL NETWORK: GENERALIZED =====
    Forward pass for network with nh hidden units starting at w[base].
    Inputs: x0, x1 (fixed-point, scale 1000). Returns: output (scale 1000). */
@@ -541,27 +558,34 @@ fn on_ct_train() = (
   let check = ct_read_w() in
   if len(check) < 135 then on_ct_init() else 0;
   let w = ct_read_w() in
+  let epc = ct_get_epc() in
+  let chunks = epc / 200 in
   let t0 = time_ms() in
-  ct_train_epochs(w, 200);
+  /* Train in 200-epoch chunks, recording loss after each for curve resolution */
+  mut chunk = 0;
+  while chunk < chunks do (
+    ct_train_epochs(w, 200);
+    let std_l = ct_loss(w, 0, 8) in
+    let crt_l = ct_crt_loss(w) in
+    let hist_str = dom_value(dom_query("#ct-loss-hist")) in
+    let new_hist = if len(hist_str) == 0 then "${std_l},${crt_l}"
+                   else "${hist_str},${std_l},${crt_l}" in
+    dom_text(dom_query("#ct-loss-hist"), new_hist);
+    mut chunk = chunk + 1
+  );
   let dt = time_ms() - t0 in
   ct_write_w(w);
   let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
-  let new_e = if len(old_e) > 0 then old_e[0] + 200 else 200 in
+  let new_e = if len(old_e) > 0 then old_e[0] + epc else epc in
   dom_text(dom_query("#ct-epoch-n"), "${new_e}");
   dom_text(dom_query("#ct-epoch"), "Epoch: ${new_e}");
   ct_draw_all(w);
-  /* Record loss and draw curve */
+  ct_draw_loss_curve();
+  let nd = ct_data_n() in
   let std_l = ct_loss(w, 0, 8) in
   let crt_l = ct_crt_loss(w) in
-  let hist_str = dom_value(dom_query("#ct-loss-hist")) in
-  let new_hist = if len(hist_str) == 0 then "${std_l},${crt_l}"
-                 else "${hist_str},${std_l},${crt_l}" in
-  dom_text(dom_query("#ct-loss-hist"), new_hist);
-  ct_draw_loss_curve();
-  /* Display CPU timing */
-  let nd = ct_data_n() in
   dom_text(dom_query("#ct-cpu-result"),
-    "CPU: ${dt}ms | 200 epochs on ${nd} pts (online SGD) | Loss: std=${std_l} crt=${crt_l}")
+    "CPU: ${dt}ms | ${epc} epochs on ${nd} pts (online SGD) | Loss: std=${std_l} crt=${crt_l}")
 )
 
 fn ct_toggle_kill(ch) = (
@@ -582,6 +606,11 @@ fn ct_toggle_kill(ch) = (
 fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); on_ct_init())
 fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); on_ct_init())
 fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); on_ct_init())
+
+fn on_ct_ep200() = (dom_text(dom_query("#ct-epc"), "200"); ct_highlight_ep(200))
+fn on_ct_ep500() = (dom_text(dom_query("#ct-epc"), "500"); ct_highlight_ep(500))
+fn on_ct_ep1000() = (dom_text(dom_query("#ct-epc"), "1000"); ct_highlight_ep(1000))
+fn on_ct_ep2000() = (dom_text(dom_query("#ct-epc"), "2000"); ct_highlight_ep(2000))
 
 fn on_kill_d() = ct_toggle_kill(0)
 fn on_kill_k() = ct_toggle_kill(1)
@@ -632,6 +661,30 @@ fn on_ct_corrupt() = (
   )
 )
 
+/* ===== MODEL EXPORT ===== */
+fn on_ct_export() = (
+  let w = ct_read_w() in
+  if len(w) < 135 then dom_text(dom_query("#ct-export-out"), "No model. Train first.")
+  else (
+    let nd = ct_data_n() in
+    let std_acc = ct_accuracy(w, 0, 8) in
+    let kills = ct_read_kills() in
+    mut crt_correct = 0;
+    mut i = 0;
+    while i < nd do (
+      let out = ct_crt_fwd(w, ct_data_x0(i), ct_data_x1(i), kills) in
+      if (out > 500) == (ct_data_y(i) > 500) then mut crt_correct = crt_correct + 1 else 0;
+      mut i = i + 1
+    );
+    let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
+    let ep = if len(old_e) > 0 then old_e[0] else 0 in
+    let task = ct_task() in
+    let task_name = if task == 0 then "XOR" else if task == 1 then "Circle" else "Spiral" in
+    dom_text(dom_query("#ct-export-out"),
+      "Task: ${task_name} (${nd} pts) | Epoch: ${ep} | Std: ${std_acc}/${nd} | CRT: ${crt_correct}/${nd}\nScale: 1000 (1.0=1000). Layout: std[0..32] (nh=8) + 6xCRT[33..134] (nh=4 each).\n${ct_to_csv(w)}")
+  )
+)
+
 /* ===== GPU TRAINING ===== */
 fn on_ct_gpu_train() = (
   let check = ct_read_w() in
@@ -648,7 +701,7 @@ fn on_ct_gpu_train() = (
     set(buf, 135 + i * 3 + 2, ct_data_y(i));
     mut i = i + 1
   );
-  gpu_train(buf, nd, 200, dom_query("#ct-gpu-result"))
+  gpu_train(buf, nd, ct_get_epc(), dom_query("#ct-gpu-result"))
 )
 
 fn on_ct_gpu_done() = (
@@ -712,6 +765,9 @@ fn page_crt_train() = (
   let tk = dom_create("textarea") in dom_attr(tk, "id", "ct-task");
   dom_attr(tk, "value", "0");
   dom_style(tk, "display", "none"); dom_append(dom_body(), tk);
+  let epc = dom_create("textarea") in dom_attr(epc, "id", "ct-epc");
+  dom_attr(epc, "value", "200");
+  dom_style(epc, "display", "none"); dom_append(dom_body(), epc);
 
   /* === SEC 1: HOW IT WORKS === */
   let sec1 = make_section("800px") in
@@ -759,6 +815,40 @@ fn page_crt_train() = (
   dom_append(task_row, b_spiral);
   dom_append(sec2, task_row);
 
+  /* Epoch selector */
+  let ep_row = dom_create("div") in
+  dom_style(ep_row, "margin", "12px 0");
+  let ep_lbl = dom_create("span") in
+  dom_text(ep_lbl, "Epochs/click: ");
+  dom_style(ep_lbl, "color", "#888");
+  dom_append(ep_row, ep_lbl);
+  let be200 = dom_create("button") in
+  dom_attr(be200, "id", "ct-ep200");
+  dom_text(be200, "200"); ct_nn_btn(be200);
+  dom_style(be200, "background", "#2a3a4e");
+  dom_style(be200, "borderColor", "#88ddaa");
+  dom_on(be200, "click", "on_ct_ep200");
+  dom_append(ep_row, be200);
+  let be500 = dom_create("button") in
+  dom_attr(be500, "id", "ct-ep500");
+  dom_text(be500, "500"); ct_nn_btn(be500);
+  dom_style(be500, "marginLeft", "8px");
+  dom_on(be500, "click", "on_ct_ep500");
+  dom_append(ep_row, be500);
+  let be1000 = dom_create("button") in
+  dom_attr(be1000, "id", "ct-ep1000");
+  dom_text(be1000, "1000"); ct_nn_btn(be1000);
+  dom_style(be1000, "marginLeft", "8px");
+  dom_on(be1000, "click", "on_ct_ep1000");
+  dom_append(ep_row, be1000);
+  let be2000 = dom_create("button") in
+  dom_attr(be2000, "id", "ct-ep2000");
+  dom_text(be2000, "2000"); ct_nn_btn(be2000);
+  dom_style(be2000, "marginLeft", "8px");
+  dom_on(be2000, "click", "on_ct_ep2000");
+  dom_append(ep_row, be2000);
+  dom_append(sec2, ep_row);
+
   /* Buttons */
   let btns = dom_create("div") in
   dom_style(btns, "margin", "16px 0");
@@ -768,7 +858,7 @@ fn page_crt_train() = (
   dom_on(b_init, "click", "on_ct_init");
   dom_append(btns, b_init);
   let b_train = dom_create("button") in
-  dom_text(b_train, "Train 200 epochs");
+  dom_text(b_train, "CPU Train");
   ct_nn_btn(b_train);
   dom_style(b_train, "marginLeft", "8px");
   dom_on(b_train, "click", "on_ct_train");
@@ -854,7 +944,7 @@ fn page_crt_train() = (
   dom_style(loss_cvs, "maxWidth", "100%");
   dom_append(sec2, loss_cvs);
   let loss_hint = dom_create("div") in
-  dom_text(loss_hint, "Each dot = loss after 200 epochs. Red = standard, green = CRT.");
+  dom_text(loss_hint, "Each dot = loss after 200 epochs of training. Red = standard, green = CRT.");
   dom_style(loss_hint, "color", "#666");
   dom_style(loss_hint, "fontSize", "0.85em");
   dom_style(loss_hint, "marginTop", "4px");
@@ -1014,7 +1104,7 @@ fn page_crt_train() = (
   dom_append(secg, gpu_lbl);
   render_p(secg, "Train the same CRT network on GPU. Batch SGD: all data points in parallel, 7 networks (1 standard + 6 CRT channels) in a single WGSL compute dispatch. Atomic gradient accumulation in workgroup shared memory.");
   let b_gpu = dom_create("button") in
-  dom_text(b_gpu, "GPU Train 200 epochs");
+  dom_text(b_gpu, "GPU Train");
   ct_nn_btn(b_gpu);
   dom_on(b_gpu, "click", "on_ct_gpu_train");
   dom_append(secg, b_gpu);
@@ -1024,6 +1114,31 @@ fn page_crt_train() = (
   dom_append(secg, gpu_res);
 
   dom_append(dom_body(), secg);
+
+  /* === SEC 5c: MODEL EXPORT === */
+  let secx = make_section("800px") in
+  render_h2(secx, "Export Model");
+  render_p(secx, "Export trained weights as 135 comma-separated i32 values (scale 1000). Copy and reuse in .ax programs or external tools.");
+  let b_exp = dom_create("button") in
+  dom_text(b_exp, "Export Weights");
+  ct_nn_btn(b_exp);
+  dom_on(b_exp, "click", "on_ct_export");
+  dom_append(secx, b_exp);
+  let exp_out = dom_create("pre") in
+  dom_attr(exp_out, "id", "ct-export-out");
+  dom_style(exp_out, "background", "#0a0a1a");
+  dom_style(exp_out, "padding", "12px");
+  dom_style(exp_out, "borderRadius", "4px");
+  dom_style(exp_out, "marginTop", "12px");
+  dom_style(exp_out, "fontSize", "0.8em");
+  dom_style(exp_out, "color", "#aaa");
+  dom_style(exp_out, "whiteSpace", "pre-wrap");
+  dom_style(exp_out, "wordBreak", "break-all");
+  dom_style(exp_out, "maxHeight", "200px");
+  dom_style(exp_out, "overflow", "auto");
+  dom_text(exp_out, "Train a model, then export.");
+  dom_append(secx, exp_out);
+  dom_append(dom_body(), secx);
 
   /* === SEC 6: f64 TRAINING (S1244) === */
   let sec6 = make_section("800px") in
