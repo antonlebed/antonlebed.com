@@ -305,6 +305,20 @@ fn ct_crt_loss(w) = (
   total / nd
 )
 
+/* ===== CRT COMBINED ACCURACY ===== */
+fn ct_crt_accuracy(w) = (
+  let nd = ct_data_n() in
+  let kills = ct_read_kills() in
+  mut correct = 0;
+  mut i = 0;
+  while i < nd do (
+    let out = ct_crt_fwd(w, ct_data_x0(i), ct_data_x1(i), kills) in
+    if (out > 500) == (ct_data_y(i) > 500) then mut correct = correct + 1 else 0;
+    mut i = i + 1
+  );
+  correct
+)
+
 /* ===== LOSS CURVE ===== */
 fn ct_draw_loss_curve() = (
   let data = ct_parse_csv(dom_value(dom_query("#ct-loss-hist"))) in
@@ -349,6 +363,63 @@ fn ct_draw_loss_curve() = (
     while i < n do (
       let x = 28 + i * (cw - 36) / (if n > 1 then n - 1 else 1) in
       let y = ch - 8 - data[i * 2 + 1] * (ch - 18) / mx in
+      cvs_fillrect(ctx, x, if y < 5 then 5 else y, 3, 3);
+      mut i = i + 1
+    );
+    /* Legend */
+    let _fl1 = cvs_fillstyle(ctx, "#ff6666") in
+    cvs_fillrect(ctx, cw - 110, 8, 8, 8);
+    cvs_filltext(ctx, "Std", cw - 98, 16);
+    let _fl2 = cvs_fillstyle(ctx, "#44ff88") in
+    cvs_fillrect(ctx, cw - 60, 8, 8, 8);
+    cvs_filltext(ctx, "CRT", cw - 48, 16);
+    0
+  )
+)
+
+/* ===== ACCURACY CURVE ===== */
+fn ct_draw_acc_curve() = (
+  let data = ct_parse_csv(dom_value(dom_query("#ct-acc-hist"))) in
+  let n = len(data) / 2 in
+  let ctx = cvs_getctx(dom_query("#ct-acc-cvs")) in
+  let cw = 320 in let ch = 120 in
+  let _c = cvs_clearrect(ctx, 0, 0, cw, ch) in
+  let _bg = cvs_fillstyle(ctx, "#0a0a18") in
+  cvs_fillrect(ctx, 0, 0, cw, ch);
+  if n == 0 then (
+    let _fs = cvs_fillstyle(ctx, "#555") in
+    cvs_filltext(ctx, "Train to see accuracy curve", 70, 65);
+    0
+  ) else (
+    let nd = ct_data_n() in
+    /* Axes */
+    let _fa = cvs_fillstyle(ctx, "#333") in
+    cvs_fillrect(ctx, 30, 5, 1, ch - 10);
+    cvs_fillrect(ctx, 30, ch - 6, cw - 36, 1);
+    /* Y-axis labels (0% to 100%) */
+    let _fy = cvs_fillstyle(ctx, "#555") in
+    cvs_filltext(ctx, "100%", 0, 14);
+    cvs_filltext(ctx, "50%", 4, ch / 2);
+    cvs_filltext(ctx, "0%", 8, ch - 8);
+    /* 50% gridline */
+    cvs_fillrect(ctx, 30, ch / 2 - 1, cw - 36, 1);
+    /* Standard accuracy (red dots) */
+    let _fs = cvs_fillstyle(ctx, "#ff6666") in
+    mut i = 0;
+    while i < n do (
+      let x = 34 + i * (cw - 42) / (if n > 1 then n - 1 else 1) in
+      let pct = if nd > 0 then data[i * 2] * 100 / nd else 0 in
+      let y = ch - 8 - pct * (ch - 18) / 100 in
+      cvs_fillrect(ctx, x, if y < 5 then 5 else y, 3, 3);
+      mut i = i + 1
+    );
+    /* CRT accuracy (green dots) */
+    let _fs2 = cvs_fillstyle(ctx, "#44ff88") in
+    mut i = 0;
+    while i < n do (
+      let x = 34 + i * (cw - 42) / (if n > 1 then n - 1 else 1) in
+      let pct = if nd > 0 then data[i * 2 + 1] * 100 / nd else 0 in
+      let y = ch - 8 - pct * (ch - 18) / 100 in
       cvs_fillrect(ctx, x, if y < 5 then 5 else y, 3, 3);
       mut i = i + 1
     );
@@ -567,11 +638,15 @@ fn on_ct_init() = (
   ct_write_w(w);
   ct_draw_all(w);
   dom_text(dom_query("#ct-epoch"), "Epoch: 0");
-  /* Record initial loss */
+  /* Record initial loss + accuracy */
   let std_l = ct_loss(w, 0, 8) in
   let crt_l = ct_crt_loss(w) in
   dom_text(dom_query("#ct-loss-hist"), "${std_l},${crt_l}");
-  ct_draw_loss_curve()
+  let std_a = ct_accuracy(w, 0, 8) in
+  let crt_a = ct_crt_accuracy(w) in
+  dom_text(dom_query("#ct-acc-hist"), "${std_a},${crt_a}");
+  ct_draw_loss_curve();
+  ct_draw_acc_curve()
 )
 
 fn on_ct_train() = (
@@ -591,6 +666,12 @@ fn on_ct_train() = (
     let new_hist = if len(hist_str) == 0 then "${std_l},${crt_l}"
                    else "${hist_str},${std_l},${crt_l}" in
     dom_text(dom_query("#ct-loss-hist"), new_hist);
+    let std_a = ct_accuracy(w, 0, 8) in
+    let crt_a = ct_crt_accuracy(w) in
+    let acc_str = dom_value(dom_query("#ct-acc-hist")) in
+    let new_acc = if len(acc_str) == 0 then "${std_a},${crt_a}"
+                  else "${acc_str},${std_a},${crt_a}" in
+    dom_text(dom_query("#ct-acc-hist"), new_acc);
     mut chunk = chunk + 1
   );
   let dt = time_ms() - t0 in
@@ -601,11 +682,14 @@ fn on_ct_train() = (
   dom_text(dom_query("#ct-epoch"), "Epoch: ${new_e}");
   ct_draw_all(w);
   ct_draw_loss_curve();
+  ct_draw_acc_curve();
   let nd = ct_data_n() in
   let std_l = ct_loss(w, 0, 8) in
   let crt_l = ct_crt_loss(w) in
+  let std_a = ct_accuracy(w, 0, 8) in
+  let crt_a = ct_crt_accuracy(w) in
   dom_text(dom_query("#ct-cpu-result"),
-    "CPU: ${dt}ms | ${epc} epochs on ${nd} pts (online SGD) | Loss: std=${std_l} crt=${crt_l}")
+    "CPU: ${dt}ms | ${epc} ep on ${nd} pts | Std: ${std_a}/${nd} loss=${std_l} | CRT: ${crt_a}/${nd} loss=${crt_l}")
 )
 
 fn ct_toggle_kill(ch) = (
@@ -732,7 +816,8 @@ fn on_ct_gpu_done() = (
     let e_n = if len(old_e) > 0 then old_e[0] else 0 in
     dom_text(dom_query("#ct-epoch"), "Epoch: ${e_n}");
     ct_draw_all(w);
-    ct_draw_loss_curve()
+    ct_draw_loss_curve();
+    ct_draw_acc_curve()
   ) else 0
 )
 
@@ -783,6 +868,8 @@ fn page_crt_train() = (
   dom_style(en, "display", "none"); dom_append(dom_body(), en);
   let lh = dom_create("textarea") in dom_attr(lh, "id", "ct-loss-hist");
   dom_style(lh, "display", "none"); dom_append(dom_body(), lh);
+  let ah = dom_create("textarea") in dom_attr(ah, "id", "ct-acc-hist");
+  dom_style(ah, "display", "none"); dom_append(dom_body(), ah);
   let tk = dom_create("textarea") in dom_attr(tk, "id", "ct-task");
   dom_attr(tk, "value", "0");
   dom_style(tk, "display", "none"); dom_append(dom_body(), tk);
@@ -973,11 +1060,34 @@ fn page_crt_train() = (
   dom_style(loss_cvs, "maxWidth", "100%");
   dom_append(sec2, loss_cvs);
   let loss_hint = dom_create("div") in
-  dom_text(loss_hint, "Each dot = loss after 200 epochs of training. Red = standard, green = CRT.");
+  dom_text(loss_hint, "Each dot = loss after 200 epochs. Red = standard, green = CRT.");
   dom_style(loss_hint, "color", "#666");
   dom_style(loss_hint, "fontSize", "0.85em");
   dom_style(loss_hint, "marginTop", "4px");
   dom_append(sec2, loss_hint);
+
+  /* Accuracy curve */
+  let acc_lbl = dom_create("div") in
+  dom_text(acc_lbl, "Accuracy Curve");
+  dom_style(acc_lbl, "color", "#ffd700");
+  dom_style(acc_lbl, "fontWeight", "bold");
+  dom_style(acc_lbl, "marginTop", "16px");
+  dom_style(acc_lbl, "marginBottom", "8px");
+  dom_append(sec2, acc_lbl);
+  let acc_cvs = dom_create("canvas") in
+  dom_attr(acc_cvs, "id", "ct-acc-cvs");
+  cvs_setsize(acc_cvs, 320, 120);
+  dom_style(acc_cvs, "border", "1px solid #444");
+  dom_style(acc_cvs, "borderRadius", "4px");
+  dom_style(acc_cvs, "maxWidth", "100%");
+  dom_append(sec2, acc_cvs);
+  let acc_hint = dom_create("div") in
+  dom_text(acc_hint, "Each dot = accuracy (%) after 200 epochs. 50% gridline = random chance.");
+  dom_style(acc_hint, "color", "#666");
+  dom_style(acc_hint, "fontSize", "0.85em");
+  dom_style(acc_hint, "marginTop", "4px");
+  dom_append(sec2, acc_hint);
+
   let spiral_note = dom_create("div") in
   dom_text(spiral_note, "Moons (100 pts) = two interleaving half-circles (classic make_moons benchmark). Spiral (200 pts) = two interleaving Archimedean spirals. Both have complex decision boundaries -- expect 1000+ epochs for convergence. GPU uses batch SGD (all points per update), CPU uses online SGD (one point per update) -- they converge at different rates.");
   dom_style(spiral_note, "color", "#666");
@@ -1198,6 +1308,7 @@ fn page_crt_train() = (
   dom_style(link, "marginTop", "16px");
   dom_append(sec7, link);
   dom_append(dom_body(), sec7);
-  /* Draw initial loss curve placeholder */
-  ct_draw_loss_curve()
+  /* Draw initial curve placeholders */
+  ct_draw_loss_curve();
+  ct_draw_acc_curve()
 )
