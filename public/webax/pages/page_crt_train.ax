@@ -59,15 +59,35 @@ fn spiral_x1(i) = (
 )
 fn spiral_y(i) = if i < 100 then 0 else 1000
 
+/* ===== MOONS TRAINING DATA (100 cases) =====
+   Two interleaving half-circles (classic make_moons benchmark).
+   Moon 1 (class 0): upper arc at (350, 300). Moon 2 (class 1): lower arc at (650, 600).
+   Pseudo-random noise ±40 per coordinate for boundary challenge. */
+fn moons_x0(i) = (
+  let idx = i % 50 in
+  let step = idx * 16 / 50 in
+  let noise = ((i * 137 + 41) % 80) - 40 in
+  if i < 50 then 350 + 250 * icos32(step) / 1000 + noise
+  else 650 - 250 * icos32(step) / 1000 + noise
+)
+fn moons_x1(i) = (
+  let idx = i % 50 in
+  let step = idx * 16 / 50 in
+  let noise = ((i * 213 + 67) % 80) - 40 in
+  if i < 50 then 300 + 250 * isin32(step) / 1000 + noise
+  else 600 - 250 * isin32(step) / 1000 + noise
+)
+fn moons_y(i) = if i < 50 then 0 else 1000
+
 /* ===== TASK DISPATCH ===== */
 fn ct_task() = (
   let v = ct_parse_csv(dom_value(dom_query("#ct-task"))) in
   if len(v) > 0 then v[0] else 0
 )
-fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else 200
-fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else spiral_x0(i)
-fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then circle_x1(i) else spiral_x1(i)
-fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then circle_y(i) else spiral_y(i)
+fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else if ct_task() == 2 then 200 else 100
+fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else if ct_task() == 2 then spiral_x0(i) else moons_x0(i)
+fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then circle_x1(i) else if ct_task() == 2 then spiral_x1(i) else moons_x1(i)
+fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then circle_y(i) else if ct_task() == 2 then spiral_y(i) else moons_y(i)
 
 /* ===== STATE: weights as comma-separated i32s in hidden textarea =====
    135 values total:
@@ -606,6 +626,7 @@ fn ct_toggle_kill(ch) = (
 fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); on_ct_init())
 fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); on_ct_init())
 fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); on_ct_init())
+fn on_ct_set_moons() = (dom_text(dom_query("#ct-task"), "3"); on_ct_init())
 
 fn on_ct_ep200() = (dom_text(dom_query("#ct-epc"), "200"); ct_highlight_ep(200))
 fn on_ct_ep400() = (dom_text(dom_query("#ct-epc"), "400"); ct_highlight_ep(400))
@@ -679,7 +700,7 @@ fn on_ct_export() = (
     let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
     let ep = if len(old_e) > 0 then old_e[0] else 0 in
     let task = ct_task() in
-    let task_name = if task == 0 then "XOR" else if task == 1 then "Circle" else "Spiral" in
+    let task_name = if task == 0 then "XOR" else if task == 1 then "Circle" else if task == 2 then "Spiral" else "Moons" in
     dom_text(dom_query("#ct-export-out"),
       "Task: ${task_name} (${nd} pts) | Epoch: ${ep} | Std: ${std_acc}/${nd} | CRT: ${crt_correct}/${nd}\nScale: 1000 (1.0=1000). Layout: std[0..32] (nh=8) + 6xCRT[33..134] (nh=4 each).\n${ct_to_csv(w)}")
   )
@@ -735,7 +756,7 @@ fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
 
 /* ===== PAGE ===== */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on XOR, Circle, and Spiral (200 pts). GPU training via WebGPU. Loss curve. Fixed-point, no floats.");
+  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on XOR, Circle, Spiral, and Moons. GPU training via WebGPU. Loss curve. Fixed-point, no floats.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. Live training with loss curve.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
 
   /* === HERO === */
@@ -787,7 +808,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training");
-  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Select a task and train.");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Four tasks: XOR (trivial), Circle (linear boundary), Moons (interleaving crescents), Spiral (hardest).");
 
   /* Task selector */
   let task_row = dom_create("div") in
@@ -813,6 +834,12 @@ fn page_crt_train() = (
   dom_style(b_spiral, "marginLeft", "8px");
   dom_on(b_spiral, "click", "on_ct_set_spiral");
   dom_append(task_row, b_spiral);
+  let b_moons = dom_create("button") in
+  dom_text(b_moons, "Moons (100 pts)");
+  ct_nn_btn(b_moons);
+  dom_style(b_moons, "marginLeft", "8px");
+  dom_on(b_moons, "click", "on_ct_set_moons");
+  dom_append(task_row, b_moons);
   dom_append(sec2, task_row);
 
   /* Epoch selector */
@@ -951,7 +978,7 @@ fn page_crt_train() = (
   dom_style(loss_hint, "marginTop", "4px");
   dom_append(sec2, loss_hint);
   let spiral_note = dom_create("div") in
-  dom_text(spiral_note, "Spiral (200 pts) is a non-linearly separable two-class problem -- harder than XOR or Circle. Expect 1000+ epochs for convergence. GPU uses batch SGD (all points per update), CPU uses online SGD (one point per update) -- they converge at different rates. This is expected, not a bug.");
+  dom_text(spiral_note, "Spiral (200 pts) and Moons (100 pts) are non-linearly separable problems -- harder than XOR or Circle. Moons = two interleaving half-circles (classic make_moons benchmark). Expect 1000+ epochs for convergence. GPU uses batch SGD (all points per update), CPU uses online SGD (one point per update) -- they converge at different rates.");
   dom_style(spiral_note, "color", "#666");
   dom_style(spiral_note, "fontSize", "0.85em");
   dom_style(spiral_note, "marginTop", "8px");
