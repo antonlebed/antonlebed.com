@@ -200,7 +200,7 @@ fn nn_fwd(w, base, nh, x0, x1) = (
   mut j = 0;
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
-    let h = if raw > 0 then raw else raw / 100 in
+    let h = if raw > 0 then raw else raw / 10 in
     mut out = out + w[base + nh * 3 + j] * h / 1000;
     mut j = j + 1
   );
@@ -231,7 +231,7 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   mut j = 0;
   while j < nh do (
     let grad = w[base + nh * 3 + j] * delta / 1000 in
-    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 100);
+    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 10);
     mut j = j + 1
   );
   /* Update output layer */
@@ -280,8 +280,12 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
 
 /* ===== TRAINING ===== */
 fn ct_train_epochs(w, epochs) = (
-  let lr = ct_get_lr() in
+  let lr_raw = ct_get_lr() in
   let nd = ct_data_n() in
+  /* LR scaling: online SGD applies lr per-sample, so effective per-epoch LR
+     scales with nd. Circle (50 pts) works; normalize larger datasets to match.
+     nd<=50: unchanged. nd>50: lr * 50/nd. Prevents divergence on 200-500 pt sets. (S1361 R6) */
+  let lr = if nd <= 50 then lr_raw else lr_raw * 50 / nd in
   /* Pre-cache training data ONCE. ct_data_x0 calls ct_task() which parses DOM
      each time — 120K DOM reads for 200pts × 200ep × 3. Cache dissolves this. */
   let dx0 = alloc(nd) in
