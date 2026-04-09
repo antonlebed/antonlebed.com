@@ -8,7 +8,8 @@
 /* ===== FIXED-POINT CONSTANTS =====
    S=1000 scale. 1.0 = 1000, 0.5 = 500, -1.0 = -1000.
    mul: (a * b) / 1000. Division order matters for overflow avoidance.
-   i32 max = 2.1B. delta clipped ±1000, weights clamped ±5000. Batch SGD (S1361). */
+   i32 max = 2.1B. delta clipped ±1000, weights clamped ±5000.
+   Mini-batch SGD (S1362): ~5 batches/epoch. Leaky ReLU 25% (raw/4). */
 
 /* ===== XOR TRAINING DATA (4 cases) ===== */
 fn xor_x0(i) = if i >= 2 then 1000 else 0
@@ -200,7 +201,7 @@ fn nn_fwd(w, base, nh, x0, x1) = (
   mut j = 0;
   while j < nh do (
     let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
-    let h = if raw > 0 then raw else raw / 2 in
+    let h = if raw > 0 then raw else raw / 4 in
     mut out = out + w[base + nh * 3 + j] * h / 1000;
     mut j = j + 1
   );
@@ -231,7 +232,7 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   mut j = 0;
   while j < nh do (
     let grad = w[base + nh * 3 + j] * delta / 1000 in
-    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 2);
+    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 4);
     mut j = j + 1
   );
   /* Update output layer */
@@ -284,7 +285,7 @@ fn nn_grad(w, dw, base, nh, x0, x1, target, tmp_hr, tmp_h, tmp_dh) = (
   mut j = 0;
   while j < nh do (
     let grad = w[base + nh * 3 + j] * delta / 1000 in
-    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 2);
+    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 4);
     mut j = j + 1
   );
   /* Accumulate output layer gradients */
@@ -320,10 +321,10 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
   if n > 0 then sum / n else 0
 )
 
-/* ===== TRAINING (BATCH SGD) =====
-   Accumulate gradients over all samples, apply averaged update once per epoch.
-   Online SGD is unstable in fixed-point i32: per-sample updates either overflow
-   or truncate to 0. Batch SGD averages first, then applies — stable. (S1361 R10) */
+/* ===== TRAINING (MINI-BATCH SGD) =====
+   ~5 mini-batches per epoch: preserves per-sample gradient diversity.
+   Full-batch SGD collapses to majority-class prediction on imbalanced datasets.
+   Mini-batch: accumulate gradients over batch_sz samples, apply, repeat. (S1362 fix) */
 fn ct_train_epochs(w, epochs) = (
   let lr = ct_get_lr() in
   let nd = ct_data_n() in
@@ -341,30 +342,37 @@ fn ct_train_epochs(w, epochs) = (
   let tmp_h = alloc(8) in
   let tmp_dh = alloc(8) in
   let dw = alloc(135) in
+  let batch_sz = if nd <= 10 then nd else nd / 5 in
   mut e = 0;
   while e < epochs do (
-    /* Zero gradient accumulator */
-    mut j = 0;
-    while j < 135 do (set(dw, j, 0); mut j = j + 1);
-    /* Accumulate gradients over all samples */
-    mut i = 0;
-    while i < nd do (
-      nn_grad(w, dw, 0, 8, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
-      mut c = 0;
-      while c < 6 do (
-        nn_grad(w, dw, 33 + c * 17, 4, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
-        mut c = c + 1
+    mut b_start = 0;
+    while b_start < nd do (
+      let b_end = if b_start + batch_sz < nd then b_start + batch_sz else nd in
+      let b_n = b_end - b_start in
+      /* Zero gradient accumulator */
+      mut j = 0;
+      while j < 135 do (set(dw, j, 0); mut j = j + 1);
+      /* Accumulate gradients over mini-batch */
+      mut i = b_start;
+      while i < b_end do (
+        nn_grad(w, dw, 0, 8, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
+        mut c = 0;
+        while c < 6 do (
+          nn_grad(w, dw, 33 + c * 17, 4, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
+          mut c = c + 1
+        );
+        mut i = i + 1
       );
-      mut i = i + 1
-    );
-    /* Apply averaged gradients: w -= lr * (dw/nd) / 1000 + weight clamp */
-    mut j = 0;
-    while j < 135 do (
-      let avg_g = dw[j] / nd in
-      let update = lr * avg_g / 1000 in
-      let nw = w[j] - update in
-      set(w, j, if nw > 5000 then 5000 else if nw < 0 - 5000 then 0 - 5000 else nw);
-      mut j = j + 1
+      /* Apply averaged gradients: w -= lr * (dw/b_n) / 1000 + weight clamp */
+      mut j = 0;
+      while j < 135 do (
+        let avg_g = dw[j] / b_n in
+        let update = lr * avg_g / 1000 in
+        let nw = w[j] - update in
+        set(w, j, if nw > 5000 then 5000 else if nw < 0 - 5000 then 0 - 5000 else nw);
+        mut j = j + 1
+      );
+      mut b_start = b_end
     );
     mut e = e + 1
   );
@@ -774,17 +782,17 @@ fn ct_draw_all(w) = (
 /* ===== CALLBACKS ===== */
 fn on_ct_init() = (
   mut w = alloc(135);
-  /* Standard: nh=8, 33 params. He init: w2 scaled by 1/sqrt(8)≈0.35. (S1361 R8) */
+  /* Standard: nh=8, 33 params. He init: w2 = U(-500,500) ≈ sqrt(6/8)*1000. (S1362 fix) */
   mut i = 0;
   while i < 33 do (
     let v = if i < 16 then rand(1414) - 707
             else if i < 24 then 0
-            else if i < 32 then rand(354) - 177
+            else if i < 32 then rand(1000) - 500
             else 0 in
     set(w, i, v);
     mut i = i + 1
   );
-  /* CRT: 6 channels x 17 params. He init: w2 scaled by 1/sqrt(4)=0.5. (S1361 R8) */
+  /* CRT: 6 channels x 17 params. He init: w2 = U(-500,500) ≈ sqrt(6/4)*1000. (S1362 fix) */
   mut c = 0;
   while c < 6 do (
     let base = 33 + c * 17 in
@@ -792,7 +800,7 @@ fn on_ct_init() = (
     while j < 17 do (
       let v = if j < 8 then rand(1414) - 707
               else if j < 12 then 0
-              else if j < 16 then rand(500) - 250
+              else if j < 16 then rand(1000) - 500
               else 0 in
       set(w, base + j, v);
       mut j = j + 1
