@@ -108,7 +108,9 @@ fn sn_update() = (
   sn_decompose(p, sn_p_res);
 
   /* Update big numbers (zero-pad fractional: 3 → "03") */
+  /* Handle -0.xx: t/100=0 loses sign. Prefix minus when t<0 and t>-100. */
   let t_i = t / 100 in
+  let t_neg0 = if t < 0 then (if t_i == 0 then 1 else 0) else 0 in
   let t_f = sn_frac2(t) in
   let t_fs = if t_f < 10 then "0${t_f}" else "${t_f}" in
   let h_i = h / 100 in
@@ -117,7 +119,8 @@ fn sn_update() = (
   let p_i = p / 10 in
   let p_f = p % 10 in
 
-  dom_inner(sn_temp_el[0], "<span style='font-size:48px;color:#ff8844'>${t_i}</span><span style='font-size:28px;color:#cc6633'>.${t_fs} C</span>");
+  let t_sign = if t_neg0 == 1 then "-" else "" in
+  dom_inner(sn_temp_el[0], "<span style='font-size:48px;color:#ff8844'>${t_sign}${t_i}</span><span style='font-size:28px;color:#cc6633'>.${t_fs} C</span>");
   dom_inner(sn_hum_el[0], "<span style='font-size:48px;color:#4488ff'>${h_i}</span><span style='font-size:28px;color:#3366cc'>.${h_fs} %</span>");
   dom_inner(sn_press_el[0], "<span style='font-size:48px;color:#88cc44'>${p_i}</span><span style='font-size:28px;color:#66aa33'>.${p_f} hPa</span>");
 
