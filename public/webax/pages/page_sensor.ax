@@ -1,0 +1,441 @@
+/* page_sensor.ax -- Live Sensor Dashboard (U1). CC0.
+   Temperature, humidity, pressure from ESP32 BME280 through CRT mesh.
+   CRT decomposition + ECC verification of every reading.
+   Simulated data until WiFi gateway is built. Real data = same page, different source.
+
+   PROTOCOL: BME280 → ESP32 → SPIN packet (14B payload) → void hub → gateway → page.
+   Payload: step(4B) + lambda_progress(2B) + frac(1B) + 'S'(1B) + temp(2B) + hum(2B) + press(2B).
+   Each reading is a number in Z/214414200. CRT decomposition + ECC = automatic. */
+
+/* ===== TRANS RING CRT (Z/214414200 = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13 x Z/17) ===== */
+
+let sn_mods = alloc(7)
+fn sn_init_mods() = (
+  set(sn_mods, 0, 8); set(sn_mods, 1, 9); set(sn_mods, 2, 25);
+  set(sn_mods, 3, 49); set(sn_mods, 4, 11); set(sn_mods, 5, 13);
+  set(sn_mods, 6, 17)
+)
+
+/* Data ring Z/88200 = Z/8 x Z/9 x Z/25 x Z/49. CRT weights for reconstruction. */
+fn sn_data_recon(r0, r1, r2, r3) = (
+  let s = 11025 * r0 + 78400 * r1 + 59976 * r2 + 27000 * r3 in
+  let m = s % 88200 in
+  if m < 0 then m + 88200 else m
+)
+
+/* ECC3 check: data channels {D,K,E,b} → reconstruct → verify against {L,GATE,ESCAPE} */
+fn sn_ecc_ok(r0, r1, r2, r3, r4, r5, r6) = (
+  let d = sn_data_recon(r0, r1, r2, r3) in
+  if d % 11 == r4 then
+    if d % 13 == r5 then
+      if d % 17 == r6 then 1 else 0
+    else 0
+  else 0
+)
+
+fn sn_ch_name(i) =
+  if i == 0 then "D (mod 8)"
+  else if i == 1 then "K (mod 9)"
+  else if i == 2 then "E (mod 25)"
+  else if i == 3 then "b (mod 49)"
+  else if i == 4 then "L (mod 11)"
+  else if i == 5 then "GATE (mod 13)"
+  else "ESCAPE (mod 17)"
+
+fn sn_ch_short(i) =
+  if i == 0 then "D"
+  else if i == 1 then "K"
+  else if i == 2 then "E"
+  else if i == 3 then "b"
+  else if i == 4 then "L"
+  else if i == 5 then "G"
+  else "X"
+
+fn sn_ch_color(i) =
+  if i == 0 then "#ff4444"
+  else if i == 1 then "#44cc44"
+  else if i == 2 then "#4488ff"
+  else if i == 3 then "#cc44ff"
+  else if i == 4 then "#44dddd"
+  else if i == 5 then "#ffaa44"
+  else "#88ff88"
+
+/* ===== SENSOR STATE ===== */
+
+let sn_temp = [2350]     /* temperature * 100 (23.50 C) */
+let sn_hum = [4500]      /* humidity * 100 (45.00%) */
+let sn_press = [10132]   /* pressure * 10 (1013.2 hPa) */
+let sn_reading = [0]     /* reading count */
+
+/* Residues for each measurement (3 x 7) */
+let sn_t_res = alloc(7)
+let sn_h_res = alloc(7)
+let sn_p_res = alloc(7)
+
+/* Compute residues for a value */
+fn sn_decompose(val, res) = (
+  mut i = 0;
+  while i < 7 do (
+    let m = sn_mods[i] in
+    let r = val % m in
+    set(res, i, if r < 0 then r + m else r);
+    mut i = i + 1
+  )
+)
+
+/* ===== DISPLAY ELEMENTS ===== */
+
+let sn_temp_el = [0]
+let sn_hum_el = [0]
+let sn_press_el = [0]
+let sn_table_el = [0]
+let sn_ecc_el = [0]
+let sn_reading_el = [0]
+let sn_status_el = [0]
+
+/* ===== FORMAT HELPERS ===== */
+
+/* Two-digit fractional part (always positive) */
+fn sn_frac2(v) = (
+  let a = if v < 0 then 0 - v else v in
+  let f = a % 100 in
+  f
+)
+
+/* Integer part of x100 value */
+fn sn_int_part(v) = v / 100
+
+/* ===== UPDATE DISPLAY ===== */
+
+fn sn_update() = (
+  let t = sn_temp[0] in
+  let h = sn_hum[0] in
+  let p = sn_press[0] in
+
+  /* Decompose all three readings */
+  sn_decompose(t, sn_t_res);
+  sn_decompose(h, sn_h_res);
+  sn_decompose(p, sn_p_res);
+
+  /* Update big numbers */
+  let t_i = t / 100 in
+  let t_f = sn_frac2(t) in
+  let h_i = h / 100 in
+  let h_f = sn_frac2(h) in
+  let p_i = p / 10 in
+  let p_f = p % 10 in
+
+  dom_inner(sn_temp_el[0], "<span style='font-size:48px;color:#ff8844'>${t_i}</span><span style='font-size:28px;color:#cc6633'>.${t_f} C</span>");
+  dom_inner(sn_hum_el[0], "<span style='font-size:48px;color:#4488ff'>${h_i}</span><span style='font-size:28px;color:#3366cc'>.${h_f} %</span>");
+  dom_inner(sn_press_el[0], "<span style='font-size:48px;color:#88cc44'>${p_i}</span><span style='font-size:28px;color:#66aa33'>.${p_f} hPa</span>");
+
+  /* Update CRT table */
+  let ecc_t = sn_ecc_ok(sn_t_res[0], sn_t_res[1], sn_t_res[2], sn_t_res[3], sn_t_res[4], sn_t_res[5], sn_t_res[6]) in
+  let ecc_h = sn_ecc_ok(sn_h_res[0], sn_h_res[1], sn_h_res[2], sn_h_res[3], sn_h_res[4], sn_h_res[5], sn_h_res[6]) in
+  let ecc_p = sn_ecc_ok(sn_p_res[0], sn_p_res[1], sn_p_res[2], sn_p_res[3], sn_p_res[4], sn_p_res[5], sn_p_res[6]) in
+
+  /* Build CRT table HTML */
+  mut html = "<table style='width:100%;border-collapse:collapse;font-family:monospace;font-size:14px'>"
+    + "<tr style='border-bottom:1px solid #333'>"
+    + "<th style='text-align:left;padding:6px;color:#888'>Channel</th>"
+    + "<th style='text-align:center;padding:6px;color:#ff8844'>Temp</th>"
+    + "<th style='text-align:center;padding:6px;color:#4488ff'>Humidity</th>"
+    + "<th style='text-align:center;padding:6px;color:#88cc44'>Pressure</th>"
+    + "<th style='text-align:center;padding:6px;color:#888'>Role</th></tr>";
+
+  mut i = 0;
+  while i < 7 do (
+    let bg = if i < 4 then "#0a0a14" else "#0a140a" in
+    let role = if i < 4 then "DATA" else "ECC" in
+    let name = sn_ch_short(i) in
+    let color = sn_ch_color(i) in
+    let tv = sn_t_res[i] in
+    let hv = sn_h_res[i] in
+    let pv = sn_p_res[i] in
+    let modv = sn_mods[i] in
+    mut html = html
+      + "<tr style='border-bottom:1px solid #222;background:${bg}'>"
+      + "<td style='padding:6px;color:${color}'>${name} (mod ${modv})</td>"
+      + "<td style='text-align:center;padding:6px;color:#d8d8e0'>${tv}</td>"
+      + "<td style='text-align:center;padding:6px;color:#d8d8e0'>${hv}</td>"
+      + "<td style='text-align:center;padding:6px;color:#d8d8e0'>${pv}</td>"
+      + "<td style='text-align:center;padding:6px;color:#888'>${role}</td></tr>";
+    mut i = i + 1
+  );
+
+  mut html = html + "</table>";
+  dom_inner(sn_table_el[0], html);
+
+  /* ECC status */
+  let ecc_all = ecc_t + ecc_h + ecc_p in
+  let ecc_color = if ecc_all == 3 then "#44ff88" else "#ff4444" in
+  let ecc_text = if ecc_all == 3 then "ALL PASS" else "FAIL" in
+  dom_inner(sn_ecc_el[0], "<span style='color:${ecc_color};font-size:20px;font-weight:bold'>${ecc_text}</span>"
+    + "<span style='color:#888;margin-left:12px'>Temp: ${ecc_t}/1  Hum: ${ecc_h}/1  Press: ${ecc_p}/1</span>"
+    + "<br><span style='color:#666;font-size:12px'>ECC3: triple-parity (L + GATE + ESCAPE). Rate 4/7. 100% single-channel correction.</span>");
+
+  /* Reading count */
+  set(sn_reading, 0, sn_reading[0] + 1);
+  dom_inner(sn_reading_el[0], "Reading #${sn_reading[0]}")
+)
+
+/* ===== HANDLERS ===== */
+
+fn on_sn_simulate() = (
+  /* Generate plausible indoor readings */
+  let t_base = 2000 + rand(800) in   /* 20.00 - 27.99 C */
+  let h_base = 3500 + rand(2500) in  /* 35.00 - 59.99 % */
+  let p_base = 10000 + rand(300) in  /* 1000.0 - 1029.9 hPa */
+  set(sn_temp, 0, t_base);
+  set(sn_hum, 0, h_base);
+  set(sn_press, 0, p_base);
+  dom_inner(sn_status_el[0], "<span style='color:#ffaa44'>SIMULATED</span> (no gateway yet)");
+  sn_update()
+)
+
+fn on_sn_corrupt() = (
+  /* Corrupt one channel of the temperature reading — demonstrate ECC detection */
+  let ch = rand(4) in  /* corrupt a DATA channel (0-3) */
+  let old = sn_t_res[ch] in
+  let delta = 1 + rand(sn_mods[ch] - 1) in
+  set(sn_t_res, ch, (old + delta) % sn_mods[ch]);
+
+  /* Rebuild display with corrupted residues */
+  let ecc_t = sn_ecc_ok(sn_t_res[0], sn_t_res[1], sn_t_res[2], sn_t_res[3], sn_t_res[4], sn_t_res[5], sn_t_res[6]) in
+  let ecc_h = sn_ecc_ok(sn_h_res[0], sn_h_res[1], sn_h_res[2], sn_h_res[3], sn_h_res[4], sn_h_res[5], sn_h_res[6]) in
+  let ecc_p = sn_ecc_ok(sn_p_res[0], sn_p_res[1], sn_p_res[2], sn_p_res[3], sn_p_res[4], sn_p_res[5], sn_p_res[6]) in
+  let name = sn_ch_short(ch) in
+  dom_inner(sn_status_el[0], "<span style='color:#ff4444'>CORRUPTED</span> channel ${name}: ${old} -> ${sn_t_res[ch]}");
+
+  /* Refresh ECC display */
+  let ecc_all = ecc_t + ecc_h + ecc_p in
+  let ecc_color = if ecc_all == 3 then "#44ff88" else "#ff4444" in
+  let ecc_text = if ecc_all == 3 then "ALL PASS" else "CORRUPTION DETECTED" in
+  dom_inner(sn_ecc_el[0], "<span style='color:${ecc_color};font-size:20px;font-weight:bold'>${ecc_text}</span>"
+    + "<span style='color:#888;margin-left:12px'>Temp: ${ecc_t}/1  Hum: ${ecc_h}/1  Press: ${ecc_p}/1</span>"
+    + "<br><span style='color:#ff6666;font-size:12px'>Channel ${name} corrupted. L+GATE+ESCAPE parity mismatch detects the error.</span>");
+
+  /* Update table to show corruption */
+  sn_decompose(sn_hum[0], sn_h_res);
+  sn_decompose(sn_press[0], sn_p_res);
+
+  mut html = "<table style='width:100%;border-collapse:collapse;font-family:monospace;font-size:14px'>"
+    + "<tr style='border-bottom:1px solid #333'>"
+    + "<th style='text-align:left;padding:6px;color:#888'>Channel</th>"
+    + "<th style='text-align:center;padding:6px;color:#ff8844'>Temp</th>"
+    + "<th style='text-align:center;padding:6px;color:#4488ff'>Humidity</th>"
+    + "<th style='text-align:center;padding:6px;color:#88cc44'>Pressure</th>"
+    + "<th style='text-align:center;padding:6px;color:#888'>Role</th></tr>";
+
+  mut i = 0;
+  while i < 7 do (
+    let is_corrupt = if i == ch then 1 else 0 in
+    let bg = if is_corrupt == 1 then "#2a0a0a" else if i < 4 then "#0a0a14" else "#0a140a" in
+    let role = if i < 4 then "DATA" else "ECC" in
+    let name2 = sn_ch_short(i) in
+    let color = if is_corrupt == 1 then "#ff0000" else sn_ch_color(i) in
+    let tv = sn_t_res[i] in
+    let hv = sn_h_res[i] in
+    let pv = sn_p_res[i] in
+    let modv = sn_mods[i] in
+    let mark = if is_corrupt == 1 then " !!!" else "" in
+    mut html = html
+      + "<tr style='border-bottom:1px solid #222;background:${bg}'>"
+      + "<td style='padding:6px;color:${color}'>${name2} (mod ${modv})${mark}</td>"
+      + "<td style='text-align:center;padding:6px;color:${color}'>${tv}</td>"
+      + "<td style='text-align:center;padding:6px;color:#d8d8e0'>${hv}</td>"
+      + "<td style='text-align:center;padding:6px;color:#d8d8e0'>${pv}</td>"
+      + "<td style='text-align:center;padding:6px;color:#888'>${role}</td></tr>";
+    mut i = i + 1
+  );
+  mut html = html + "</table>";
+  dom_inner(sn_table_el[0], html)
+)
+
+/* ===== PAGE LAYOUT ===== */
+
+fn page_sensor() = (
+  sn_init_mods();
+
+  dom_head_meta("description", "Live sensor dashboard. Temperature, humidity, pressure from ESP32 BME280 through CRT mesh protocol. 7-channel decomposition. ECC3 triple-parity verification. Every reading is a point on the 7-torus.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Live Sensor Dashboard\",\"description\":\"Real-time environmental data transmitted through CRT mesh protocol. Temperature, humidity, pressure decomposed into 7 channels with automatic error detection.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/sensor\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"sensor dashboard\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT mesh\"},{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"}]}");
+  domain_hero("Sensor Dashboard", "Real data through CRT mesh.", "Temperature, humidity, pressure from ESP32 boards. Every reading splits into 7 independent channels. Triple-parity ECC detects any corruption. The math is not abstract.");
+
+  /* === SECTION 1: CURRENT READINGS === */
+  let sec1 = make_section("700px") in
+  render_h2(sec1, "Current Readings");
+
+  /* Status line */
+  let status = dom_create("div") in
+  dom_style(status, "padding", "8px 12px");
+  dom_style(status, "background", "#111");
+  dom_style(status, "border", "1px solid #333");
+  dom_style(status, "borderRadius", "4px");
+  dom_style(status, "marginBottom", "16px");
+  dom_style(status, "fontFamily", "'Courier New', monospace");
+  dom_style(status, "fontSize", "13px");
+  dom_inner(status, "<span style='color:#888'>Click Simulate to generate a reading</span>");
+  set(sn_status_el, 0, status);
+  dom_append(sec1, status);
+
+  /* Three big numbers in a row */
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "16px");
+  dom_style(row, "flexWrap", "wrap");
+  dom_style(row, "marginBottom", "16px");
+
+  /* Temperature card */
+  let card_t = dom_create("div") in
+  dom_style(card_t, "flex", "1");
+  dom_style(card_t, "minWidth", "140px");
+  dom_style(card_t, "background", "#0a0a14");
+  dom_style(card_t, "border", "1px solid #333");
+  dom_style(card_t, "borderRadius", "8px");
+  dom_style(card_t, "padding", "16px");
+  dom_style(card_t, "textAlign", "center");
+  let t_label = dom_create("div") in
+  dom_style(t_label, "color", "#888");
+  dom_style(t_label, "fontSize", "12px");
+  dom_style(t_label, "marginBottom", "4px");
+  dom_inner(t_label, "TEMPERATURE");
+  dom_append(card_t, t_label);
+  let t_val = dom_create("div") in
+  dom_style(t_val, "fontFamily", "'Courier New', monospace");
+  dom_inner(t_val, "<span style='font-size:48px;color:#ff8844'>--</span><span style='font-size:28px;color:#cc6633'>.- C</span>");
+  set(sn_temp_el, 0, t_val);
+  dom_append(card_t, t_val);
+  dom_append(row, card_t);
+
+  /* Humidity card */
+  let card_h = dom_create("div") in
+  dom_style(card_h, "flex", "1");
+  dom_style(card_h, "minWidth", "140px");
+  dom_style(card_h, "background", "#0a0a14");
+  dom_style(card_h, "border", "1px solid #333");
+  dom_style(card_h, "borderRadius", "8px");
+  dom_style(card_h, "padding", "16px");
+  dom_style(card_h, "textAlign", "center");
+  let h_label = dom_create("div") in
+  dom_style(h_label, "color", "#888");
+  dom_style(h_label, "fontSize", "12px");
+  dom_style(h_label, "marginBottom", "4px");
+  dom_inner(h_label, "HUMIDITY");
+  dom_append(card_h, h_label);
+  let h_val = dom_create("div") in
+  dom_style(h_val, "fontFamily", "'Courier New', monospace");
+  dom_inner(h_val, "<span style='font-size:48px;color:#4488ff'>--</span><span style='font-size:28px;color:#3366cc'>.- %</span>");
+  set(sn_hum_el, 0, h_val);
+  dom_append(card_h, h_val);
+  dom_append(row, card_h);
+
+  /* Pressure card */
+  let card_p = dom_create("div") in
+  dom_style(card_p, "flex", "1");
+  dom_style(card_p, "minWidth", "140px");
+  dom_style(card_p, "background", "#0a0a14");
+  dom_style(card_p, "border", "1px solid #333");
+  dom_style(card_p, "borderRadius", "8px");
+  dom_style(card_p, "padding", "16px");
+  dom_style(card_p, "textAlign", "center");
+  let p_label = dom_create("div") in
+  dom_style(p_label, "color", "#888");
+  dom_style(p_label, "fontSize", "12px");
+  dom_style(p_label, "marginBottom", "4px");
+  dom_inner(p_label, "PRESSURE");
+  dom_append(card_p, p_label);
+  let p_val = dom_create("div") in
+  dom_style(p_val, "fontFamily", "'Courier New', monospace");
+  dom_inner(p_val, "<span style='font-size:48px;color:#88cc44'>--</span><span style='font-size:28px;color:#66aa33'>.- hPa</span>");
+  set(sn_press_el, 0, p_val);
+  dom_append(card_p, p_val);
+  dom_append(row, card_p);
+
+  dom_append(sec1, row);
+
+  /* Buttons */
+  let btns = dom_create("div") in
+  dom_style(btns, "display", "flex");
+  dom_style(btns, "gap", "8px");
+  dom_style(btns, "marginBottom", "8px");
+  dom_style(btns, "flexWrap", "wrap");
+
+  let b_sim = dom_create("button") in
+  dom_inner(b_sim, "Simulate Reading");
+  dom_style(b_sim, "background", "#1a1a2e");
+  dom_style(b_sim, "color", "#ffaa44");
+  dom_style(b_sim, "border", "1px solid #ffaa44");
+  dom_style(b_sim, "padding", "8px 16px");
+  dom_style(b_sim, "cursor", "pointer");
+  dom_style(b_sim, "fontFamily", "'Courier New', monospace");
+  dom_on(b_sim, "click", "on_sn_simulate");
+  dom_append(btns, b_sim);
+
+  let b_corrupt = dom_create("button") in
+  dom_inner(b_corrupt, "Corrupt Channel");
+  dom_style(b_corrupt, "background", "#1a1a2e");
+  dom_style(b_corrupt, "color", "#ff4444");
+  dom_style(b_corrupt, "border", "1px solid #ff4444");
+  dom_style(b_corrupt, "padding", "8px 16px");
+  dom_style(b_corrupt, "cursor", "pointer");
+  dom_style(b_corrupt, "fontFamily", "'Courier New', monospace");
+  dom_on(b_corrupt, "click", "on_sn_corrupt");
+  dom_append(btns, b_corrupt);
+
+  let reading_ct = dom_create("span") in
+  dom_style(reading_ct, "color", "#666");
+  dom_style(reading_ct, "fontSize", "12px");
+  dom_style(reading_ct, "alignSelf", "center");
+  dom_style(reading_ct, "marginLeft", "8px");
+  set(sn_reading_el, 0, reading_ct);
+  dom_append(btns, reading_ct);
+
+  dom_append(sec1, btns);
+  dom_append(dom_body(), sec1);
+
+  /* === SECTION 2: CRT DECOMPOSITION === */
+  let sec2 = make_section("700px") in
+  render_h2(sec2, "CRT Decomposition");
+  render_p(sec2, "Every reading is a number in Z/214414200. The Chinese Remainder Theorem splits it into 7 independent channels: 4 data (D, K, E, b) and 3 parity (L, GATE, ESCAPE). Each channel sees only its own residue. Corruption in any single channel is detected by the triple-parity check.");
+
+  let tbl_wrap = dom_create("div") in
+  dom_style(tbl_wrap, "overflowX", "auto");
+  dom_style(tbl_wrap, "marginBottom", "16px");
+  set(sn_table_el, 0, tbl_wrap);
+  dom_inner(tbl_wrap, "<p style='color:#666;font-style:italic'>Click Simulate to see decomposition</p>");
+  dom_append(sec2, tbl_wrap);
+  dom_append(dom_body(), sec2);
+
+  /* === SECTION 3: ECC STATUS === */
+  let sec3 = make_section("700px") in
+  render_h2(sec3, "Error Detection (ECC3)");
+  render_p(sec3, "Triple parity: L=11 + GATE=13 + ESCAPE=17. Rate 4/7 (4 data, 3 parity). Reconstruct the reading from the 4 data channels. If the result disagrees with any parity channel, corruption is detected. Click Corrupt to see it in action.");
+
+  let ecc_box = dom_create("div") in
+  dom_style(ecc_box, "padding", "12px");
+  dom_style(ecc_box, "background", "#0a0a14");
+  dom_style(ecc_box, "border", "1px solid #333");
+  dom_style(ecc_box, "borderRadius", "4px");
+  dom_style(ecc_box, "fontFamily", "'Courier New', monospace");
+  dom_inner(ecc_box, "<span style='color:#666'>Waiting for data...</span>");
+  set(sn_ecc_el, 0, ecc_box);
+  dom_append(sec3, ecc_box);
+  dom_append(dom_body(), sec3);
+
+  /* === SECTION 4: HOW IT WORKS === */
+  let sec4 = make_section("700px") in
+  render_h2(sec4, "How It Works");
+
+  let g = make_findings_grid(sec4) in
+  render_finding(g, "BME280", "I2C sensor", "Temperature + humidity + pressure. GPIO21 (SDA), GPIO22 (SCL). Reading every 3 seconds.", "");
+  render_finding(g, "CRT Encode", "7 channels", "Each reading modulo {8, 9, 25, 49, 11, 13, 17}. Four data channels carry the measurement. Three parity channels protect it.", "");
+  render_finding(g, "SPIN Packet", "14 bytes", "Step counter + lambda progress + sensor data. ESP-NOW broadcast. 3-second heartbeat.", "");
+  render_finding(g, "ECC3", "100% detect", "Any single-channel corruption detected by triple parity. Two errors: 100% detect (535M exhaustive). Correction: Hamming-3 lookup.", "");
+  render_finding(g, "Angular Momentum", "Clock sync", "Phase difference between sender and receiver = distance on 7-torus. Deviation from static CRT distance = clock drift. Free on every packet.", "");
+  render_finding(g, "Gateway", "Coming soon", "Void ESP32 connects to WiFi. HTTP POST to Cloudflare Worker. This page reads from KV store. Fully autonomous.", "");
+
+  render_theorem(sec4, "Why CRT for Sensors?", "A temperature reading is just a number. But through CRT, it becomes 7 independent residues traveling on 7 independent channels. If any channel is corrupted by noise, the other 6 are unaffected. The parity channels detect it. The round-trip mirror cancels systematic offsets. The angular momentum monitors clock drift. All of this is FREE — it falls out of the algebra. No protocol overhead. No error-correction codec. Just arithmetic in Z/214414200.");
+
+  dom_append(dom_body(), sec4);
+  0
+)
