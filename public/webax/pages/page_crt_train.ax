@@ -262,6 +262,49 @@ fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
   delta * delta / 1000
 )
 
+/* ===== GRADIENT ACCUMULATOR (batch SGD) =====
+   Same forward/backward as nn_bkwd, but accumulates raw gradients in dw
+   instead of modifying w. Applied once per epoch after all samples. (S1361 R10) */
+fn nn_grad(w, dw, base, nh, x0, x1, target, tmp_hr, tmp_h, tmp_dh) = (
+  mut j = 0;
+  while j < nh do (
+    let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
+    set(tmp_hr, j, raw);
+    set(tmp_h, j, if raw > 0 then raw else raw / 2);
+    mut j = j + 1
+  );
+  mut out = w[base + nh * 4];
+  mut j = 0;
+  while j < nh do (
+    mut out = out + w[base + nh * 3 + j] * tmp_h[j] / 1000;
+    mut j = j + 1
+  );
+  let raw_delta = out - target in
+  let delta = if raw_delta > 1000 then 1000 else if raw_delta < 0 - 1000 then 0 - 1000 else raw_delta in
+  mut j = 0;
+  while j < nh do (
+    let grad = w[base + nh * 3 + j] * delta / 1000 in
+    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 2);
+    mut j = j + 1
+  );
+  /* Accumulate output layer gradients */
+  mut j = 0;
+  while j < nh do (
+    set(dw, base + nh * 3 + j, dw[base + nh * 3 + j] + delta * tmp_h[j] / 1000);
+    mut j = j + 1
+  );
+  set(dw, base + nh * 4, dw[base + nh * 4] + delta);
+  /* Accumulate hidden layer gradients */
+  mut j = 0;
+  while j < nh do (
+    set(dw, base + j * 2, dw[base + j * 2] + tmp_dh[j] * x0 / 1000);
+    set(dw, base + j * 2 + 1, dw[base + j * 2 + 1] + tmp_dh[j] * x1 / 1000);
+    set(dw, base + nh * 2 + j, dw[base + nh * 2 + j] + tmp_dh[j]);
+    mut j = j + 1
+  );
+  0
+)
+
 /* ===== CRT FORWARD: AVERAGE OF ACTIVE CHANNELS ===== */
 fn ct_crt_fwd(w, x0, x1, kills) = (
   mut sum = 0;
@@ -277,15 +320,13 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
   if n > 0 then sum / n else 0
 )
 
-/* ===== TRAINING ===== */
+/* ===== TRAINING (BATCH SGD) =====
+   Accumulate gradients over all samples, apply averaged update once per epoch.
+   Online SGD is unstable in fixed-point i32: per-sample updates either overflow
+   or truncate to 0. Batch SGD averages first, then applies — stable. (S1361 R10) */
 fn ct_train_epochs(w, epochs) = (
-  let lr_raw = ct_get_lr() in
+  let lr = ct_get_lr() in
   let nd = ct_data_n() in
-  /* LR scaling: online SGD effective per-epoch LR = lr * nd. Normalize larger
-     datasets to prevent divergence. 20/nd keeps Std+CRT stable. (S1361 R7) */
-  let lr = if nd <= 20 then lr_raw else lr_raw * 20 / nd in
-  /* Pre-cache training data ONCE. ct_data_x0 calls ct_task() which parses DOM
-     each time — 120K DOM reads for 200pts × 200ep × 3. Cache dissolves this. */
   let dx0 = alloc(nd) in
   let dx1 = alloc(nd) in
   let dy = alloc(nd) in
@@ -296,21 +337,34 @@ fn ct_train_epochs(w, epochs) = (
     set(dy, i, ct_data_y(i));
     mut i = i + 1
   );
-  /* Pre-allocate temp arrays (max nh=8). Reuse across all backward passes. */
   let tmp_hr = alloc(8) in
   let tmp_h = alloc(8) in
   let tmp_dh = alloc(8) in
+  let dw = alloc(135) in
   mut e = 0;
   while e < epochs do (
+    /* Zero gradient accumulator */
+    mut j = 0;
+    while j < 135 do (set(dw, j, 0); mut j = j + 1);
+    /* Accumulate gradients over all samples */
     mut i = 0;
     while i < nd do (
-      nn_bkwd(w, 0, 8, dx0[i], dx1[i], dy[i], lr, tmp_hr, tmp_h, tmp_dh);
+      nn_grad(w, dw, 0, 8, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
       mut c = 0;
       while c < 6 do (
-        nn_bkwd(w, 33 + c * 17, 4, dx0[i], dx1[i], dy[i], lr, tmp_hr, tmp_h, tmp_dh);
+        nn_grad(w, dw, 33 + c * 17, 4, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
         mut c = c + 1
       );
       mut i = i + 1
+    );
+    /* Apply averaged gradients: w -= lr * (dw/nd) / 1000 + weight clamp */
+    mut j = 0;
+    while j < 135 do (
+      let avg_g = dw[j] / nd in
+      let update = lr * avg_g / 1000 in
+      let nw = w[j] - update in
+      set(w, j, if nw > 5000 then 5000 else if nw < 0 - 5000 then 0 - 5000 else nw);
+      mut j = j + 1
     );
     mut e = e + 1
   );
