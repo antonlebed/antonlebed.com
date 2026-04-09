@@ -8,7 +8,7 @@
 /* ===== FIXED-POINT CONSTANTS =====
    S=1000 scale. 1.0 = 1000, 0.5 = 500, -1.0 = -1000.
    mul: (a * b) / 1000. Division order matters for overflow avoidance.
-   i32 max = 2.1B. Worst case: lr(150) * delta(2000) * h(2000) = 600M. Safe. */
+   i32 max = 2.1B. Worst case: lr(500) * delta(2000) = 1M, /1000 * h(2000) = 2M. Safe. */
 
 /* ===== XOR TRAINING DATA (4 cases) ===== */
 fn xor_x0(i) = if i >= 2 then 1000 else 0
@@ -173,6 +173,25 @@ fn ct_highlight_ep(n) = (
   dom_style(dom_query("#ct-ep2000"), "borderColor", if n == 2000 then "#88ddaa" else "#555")
 )
 
+/* ===== LEARNING RATE SELECTOR ===== */
+fn ct_get_lr() = (
+  let v = ct_parse_csv(dom_value(dom_query("#ct-lr"))) in
+  if len(v) > 0 then v[0] else 150
+)
+
+fn ct_highlight_lr(n) = (
+  dom_style(dom_query("#ct-lr50"), "background", if n == 50 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-lr50"), "borderColor", if n == 50 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-lr100"), "background", if n == 100 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-lr100"), "borderColor", if n == 100 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-lr150"), "background", if n == 150 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-lr150"), "borderColor", if n == 150 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-lr300"), "background", if n == 300 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-lr300"), "borderColor", if n == 300 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-lr500"), "background", if n == 500 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-lr500"), "borderColor", if n == 500 then "#88ddaa" else "#555")
+)
+
 /* ===== NEURAL NETWORK: GENERALIZED =====
    Forward pass for network with nh hidden units starting at w[base].
    Inputs: x0, x1 (fixed-point, scale 1000). Returns: output (scale 1000). */
@@ -248,7 +267,7 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
 
 /* ===== TRAINING ===== */
 fn ct_train_epochs(w, epochs) = (
-  let lr = 150 in
+  let lr = ct_get_lr() in
   let nd = ct_data_n() in
   /* Pre-cache training data ONCE. ct_data_x0 calls ct_task() which parses DOM
      each time — 120K DOM reads for 200pts × 200ep × 3. Cache dissolves this. */
@@ -707,8 +726,9 @@ fn on_ct_train() = (
   let crt_l = ct_crt_loss(w) in
   let std_a = ct_accuracy(w, 0, 8) in
   let crt_a = ct_crt_accuracy(w) in
+  let lr_v = ct_get_lr() in
   dom_text(dom_query("#ct-cpu-result"),
-    "CPU: ${dt}ms | ${epc} ep on ${nd} pts | Std: ${std_a}/${nd} loss=${std_l} | CRT: ${crt_a}/${nd} loss=${crt_l}")
+    "CPU: ${dt}ms | ${epc} ep, lr=${lr_v/1000}.${(lr_v%1000)/100}${(lr_v%100)/10} on ${nd} pts | Std: ${std_a}/${nd} loss=${std_l} | CRT: ${crt_a}/${nd} loss=${crt_l}")
 )
 
 fn ct_toggle_kill(ch) = (
@@ -736,6 +756,12 @@ fn on_ct_ep200() = (dom_text(dom_query("#ct-epc"), "200"); ct_highlight_ep(200))
 fn on_ct_ep400() = (dom_text(dom_query("#ct-epc"), "400"); ct_highlight_ep(400))
 fn on_ct_ep1000() = (dom_text(dom_query("#ct-epc"), "1000"); ct_highlight_ep(1000))
 fn on_ct_ep2000() = (dom_text(dom_query("#ct-epc"), "2000"); ct_highlight_ep(2000))
+
+fn on_ct_lr50() = (dom_text(dom_query("#ct-lr"), "50"); ct_highlight_lr(50))
+fn on_ct_lr100() = (dom_text(dom_query("#ct-lr"), "100"); ct_highlight_lr(100))
+fn on_ct_lr150() = (dom_text(dom_query("#ct-lr"), "150"); ct_highlight_lr(150))
+fn on_ct_lr300() = (dom_text(dom_query("#ct-lr"), "300"); ct_highlight_lr(300))
+fn on_ct_lr500() = (dom_text(dom_query("#ct-lr"), "500"); ct_highlight_lr(500))
 
 fn on_kill_d() = ct_toggle_kill(0)
 fn on_kill_k() = ct_toggle_kill(1)
@@ -907,6 +933,9 @@ fn page_crt_train() = (
   let epc = dom_create("textarea") in dom_attr(epc, "id", "ct-epc");
   dom_attr(epc, "value", "200");
   dom_style(epc, "display", "none"); dom_append(dom_body(), epc);
+  let lrs = dom_create("textarea") in dom_attr(lrs, "id", "ct-lr");
+  dom_attr(lrs, "value", "150");
+  dom_style(lrs, "display", "none"); dom_append(dom_body(), lrs);
 
   /* === SEC 1: HOW IT WORKS === */
   let sec1 = make_section("800px") in
@@ -926,7 +955,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training");
-  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). CPU trains online (one sample at a time). GPU trains batch (all points, then update). For Blobs, use GPU Train -- 500 points makes the parallel advantage visible.");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. CPU trains online (one sample at a time). GPU trains batch (all points, then update).");
 
   /* Task selector */
   let task_row = dom_create("div") in
@@ -1000,6 +1029,46 @@ fn page_crt_train() = (
   dom_on(be2k, "click", "on_ct_ep2000");
   dom_append(ep_row, be2k);
   dom_append(sec2, ep_row);
+
+  /* Learning rate selector */
+  let lr_row = dom_create("div") in
+  dom_style(lr_row, "margin", "12px 0");
+  dom_style(lr_row, "display", "flex");
+  dom_style(lr_row, "flexWrap", "wrap");
+  dom_style(lr_row, "alignItems", "center");
+  dom_style(lr_row, "gap", "8px");
+  let lr_lbl = dom_create("span") in
+  dom_text(lr_lbl, "Learning rate: ");
+  dom_style(lr_lbl, "color", "#888");
+  dom_append(lr_row, lr_lbl);
+  let blr50 = dom_create("button") in
+  dom_attr(blr50, "id", "ct-lr50");
+  dom_text(blr50, "0.05"); ct_nn_btn(blr50);
+  dom_on(blr50, "click", "on_ct_lr50");
+  dom_append(lr_row, blr50);
+  let blr100 = dom_create("button") in
+  dom_attr(blr100, "id", "ct-lr100");
+  dom_text(blr100, "0.10"); ct_nn_btn(blr100);
+  dom_on(blr100, "click", "on_ct_lr100");
+  dom_append(lr_row, blr100);
+  let blr150 = dom_create("button") in
+  dom_attr(blr150, "id", "ct-lr150");
+  dom_text(blr150, "0.15"); ct_nn_btn(blr150);
+  dom_style(blr150, "background", "#2a3a4e");
+  dom_style(blr150, "borderColor", "#88ddaa");
+  dom_on(blr150, "click", "on_ct_lr150");
+  dom_append(lr_row, blr150);
+  let blr300 = dom_create("button") in
+  dom_attr(blr300, "id", "ct-lr300");
+  dom_text(blr300, "0.30"); ct_nn_btn(blr300);
+  dom_on(blr300, "click", "on_ct_lr300");
+  dom_append(lr_row, blr300);
+  let blr500 = dom_create("button") in
+  dom_attr(blr500, "id", "ct-lr500");
+  dom_text(blr500, "0.50"); ct_nn_btn(blr500);
+  dom_on(blr500, "click", "on_ct_lr500");
+  dom_append(lr_row, blr500);
+  dom_append(sec2, lr_row);
 
   /* Buttons */
   let btns = dom_create("div") in
@@ -1335,7 +1404,7 @@ fn page_crt_train() = (
   /* === SEC 7: IMPLEMENTATION === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "Implementation");
-  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: SGD, lr=0.15, ReLU activation. All math fits in 32-bit integers. f64 training verified separately under WASI (test_float_xor.ax).");
+  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: SGD with selectable learning rate (0.05-0.50), ReLU activation. All math fits in 32-bit integers. f64 training verified separately under WASI (test_float_xor.ax).");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/living/ai");
