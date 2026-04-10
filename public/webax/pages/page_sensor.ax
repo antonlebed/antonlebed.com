@@ -304,28 +304,82 @@ fn sn_find_key(s, key) = (
 
 fn on_sn_fetch_done() = (
   let raw = dom_value(sn_fetch_el[0]) in
-  if len(raw) > 2 then (
-    /* Parse JSON: {"t":2350,"h":4500,"p":10132,"am":34,"ecc":"OK","ts":...} */
-    let p_t = sn_find_key(raw, "t") in
-    let p_h = sn_find_key(raw, "h") in
-    let p_p = sn_find_key(raw, "p") in
-    let p_am = sn_find_key(raw, "am") in
+  if len(raw) > 5 then (
+    /* Parse JSON by scanning for each key's comma-delimited value.
+       Format: {"t":NNNN,"h":NNNN,"p":NNNN,"am":NN,"ecc":"OK",...}
+       Strategy: find each key as substring, then parse the integer after it. */
+    let rl = len(raw) in
+    let _found = [0] in
+    /* Find "t": — char codes 34,116,34,58 = "t": */
+    set(_found, 0, 0);
+    for i in range(0, rl - 3) do (
+      if charCode(raw, i) == 34 then (
+        if charCode(raw, i + 1) == 116 then (
+          if charCode(raw, i + 2) == 34 then (
+            if charCode(raw, i + 3) == 58 then (
+              set(sn_temp, 0, sn_parse_int(raw, i + 4));
+              set(_found, 0, 1); break
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0
+    );
+    /* Find "h": — 34,104,34,58 */
+    for i in range(0, rl - 3) do (
+      if charCode(raw, i) == 34 then (
+        if charCode(raw, i + 1) == 104 then (
+          if charCode(raw, i + 2) == 34 then (
+            if charCode(raw, i + 3) == 58 then (
+              set(sn_hum, 0, sn_parse_int(raw, i + 4)); break
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0
+    );
+    /* Find "p": — 34,112,34,58 */
+    for i in range(0, rl - 3) do (
+      if charCode(raw, i) == 34 then (
+        if charCode(raw, i + 1) == 112 then (
+          if charCode(raw, i + 2) == 34 then (
+            if charCode(raw, i + 3) == 58 then (
+              set(sn_press, 0, sn_parse_int(raw, i + 4)); break
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0
+    );
+    /* Find "am": — 34,97,109,34,58 */
+    for i in range(0, rl - 4) do (
+      if charCode(raw, i) == 34 then (
+        if charCode(raw, i + 1) == 97 then (
+          if charCode(raw, i + 2) == 109 then (
+            if charCode(raw, i + 3) == 34 then (
+              if charCode(raw, i + 4) == 58 then (
+                set(sn_am, 0, sn_parse_int(raw, i + 5)); break
+              ) else 0
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0
+    );
+    /* Find "ecc":"OK" — check for 'O' after "ecc":" */
+    for i in range(0, rl - 7) do (
+      if charCode(raw, i) == 34 then (
+        if charCode(raw, i + 1) == 101 then (
+          if charCode(raw, i + 2) == 99 then (
+            if charCode(raw, i + 3) == 99 then (
+              if charCode(raw, i + 6) == 79 then (
+                set(sn_ecc_hw, 0, 1); break
+              ) else (
+                set(sn_ecc_hw, 0, 0); break
+              )
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0
+    );
 
-    if p_t >= 0 then (
-      set(sn_temp, 0, sn_parse_int(raw, p_t));
-      set(sn_hum, 0, sn_parse_int(raw, p_h));
-      set(sn_press, 0, sn_parse_int(raw, p_p));
-      set(sn_am, 0, sn_parse_int(raw, p_am));
-
-      /* Check for "ecc":"OK" */
-      let p_ecc = sn_find_key(raw, "ecc") in
-      if p_ecc >= 0 then (
-        if charCode(raw, p_ecc + 1) == 79 then  /* 'O' */
-          set(sn_ecc_hw, 0, 1)
-        else
-          set(sn_ecc_hw, 0, 0)
-      ) else 0;
-
+    if _found[0] > 0 then (
       let ecc_s = if sn_ecc_hw[0] == 1 then "OK" else "FAIL" in
       dom_inner(sn_status_el[0], "<span style='color:#44ff88'>LIVE</span> am=${sn_am[0]} ecc=${ecc_s}");
       sn_update()
