@@ -1,9 +1,8 @@
 /* page_crt_train.ax -- CRT Neural Network Training. CC0 demo kill.
-   Fixed-point neural network: standard vs CRT, side by side on canvas.
-   Absorbed from crt_train_demo.html (689L JS scaffolding).
-   NO float arrays needed -- fixed-point (scale 1000) in i32 arrays.
-   NO pixel I/O needed -- fillrect draws decision boundary at 4px resolution.
-   Blocker dissolved: "needs pixel I/O" -> fillrect heatmap at 4px. Zero new imports. */
+   Two modes: i32 fixed-point (scale 1000) and f64 native float (S1371).
+   i32: leaky ReLU 25%, gradient clipping, weight clamping.
+   f64: leaky ReLU 1%, sigmoid output, cross-entropy gradient. falloc/fget/fset.
+   Fillrect heatmap at 4px resolution. Zero new imports. */
 
 /* ===== FIXED-POINT CONSTANTS =====
    S=1000 scale. 1.0 = 1000, 0.5 = 500, -1.0 = -1000.
@@ -311,9 +310,10 @@ fn toF(n) = toFloat(n)
 fn neg_f64(x) = toF(0) - x
 fn sigmoid_f64(x) = toF(1) / (toF(1) + exp_f(neg_f64(x)))
 
-/* leaky ReLU avoiding f64-returning if-then-else */
+/* leaky ReLU avoiding f64-returning if-then-else.
+   Sign test: toInt(x*10000) > 0. Dead zone [0, 0.0001) = negligible for NN. */
 fn leaky_f64(x) = (
-  let pos = if toInt(x * toF(100)) > 0 then 1 else 0 in
+  let pos = if toInt(x * toF(10000)) > 0 then 1 else 0 in
   toF(pos) * x + toF(1 - pos) * (x / toF(100))
 )
 
@@ -351,7 +351,7 @@ fn nn_grad_f64(w, dw, base, nh, x0, x1, target, tmp_h) = (
   mut j = 0;
   while j < nh do (
     let z_j = fget(tmp_h, j) in
-    let zpos = if toInt(z_j * toF(100)) > 0 then 1 else 0 in
+    let zpos = if toInt(z_j * toF(10000)) > 0 then 1 else 0 in
     let drelu = toF(99 * zpos + 1) / toF(100) in
     let dh = delta * fget(w, base + nh * 3 + j) * drelu in
     fset(dw, base + j * 2, fget(dw, base + j * 2) + dh * x0);
@@ -1141,6 +1141,7 @@ fn on_ct_init() = (
   );
   dom_text(dom_query("#ct-kills"), "0,0,0,0,0,0");
   dom_text(dom_query("#ct-epoch-n"), "0");
+  dom_text(dom_query("#ct-wf"), "");
   ct_write_w(w);
   ct_draw_all(w);
   dom_text(dom_query("#ct-epoch"), "Epoch: 0");
@@ -1972,7 +1973,7 @@ fn page_crt_train() = (
   /* === SEC 5c: MODEL EXPORT === */
   let secx = make_section("800px") in
   render_h2(secx, "Export Model");
-  render_p(secx, "Export trained weights as 135 comma-separated i32 values (scale 1000). Copy and reuse in .ax programs or external tools.");
+  render_p(secx, "Export trained weights as 135 comma-separated i32 values (scale 1000) from CPU Train mode. Copy and reuse in .ax programs or external tools. (f64 weights stored separately.)");
   let b_exp = dom_create("button") in
   dom_text(b_exp, "Export Weights");
   ct_nn_btn(b_exp);
