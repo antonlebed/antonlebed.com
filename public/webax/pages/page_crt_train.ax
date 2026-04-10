@@ -1487,7 +1487,7 @@ fn page_crt_train() = (
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Train a neural network split into 6 independent CRT channels. Each channel trains alone -- kill any channel, the network degrades gracefully. Corrupt weights -- L=11 detects it for free. All math is integer. No floats needed.");
+  render_p(hero, "Train a neural network split into 6 independent CRT channels. Each channel trains alone -- kill any channel, the network degrades gracefully. Corrupt weights -- L=11 detects it for free. Two modes: i32 fixed-point and f64 native float.");
   dom_append(dom_body(), hero);
 
   /* === HIDDEN STATE === */
@@ -1994,12 +1994,12 @@ fn page_crt_train() = (
   dom_append(secx, exp_out);
   dom_append(dom_body(), secx);
 
-  /* === SEC 6: f64 TRAINING (S1244) === */
+  /* === SEC 6: f64 TRAINING === */
   let sec6 = make_section("800px") in
-  render_h2(sec6, "f64 Training: Beyond Fixed-Point");
-  render_p(sec6, "The demo above uses fixed-point integer arithmetic (scale 1000). With native WASI f64 support (S1243), .ax now supports real floating-point training: sigmoid activation, MSE loss, batch gradient descent.");
+  render_h2(sec6, "f64 Training: Why It's Better");
+  render_p(sec6, "Click CPU Train (f64) above to try it. Same 7-network architecture (1 standard nh=8 + 6 CRT nh=4 = 135 params), but with native WASM float64: leaky ReLU hidden (alpha=0.01), sigmoid output, cross-entropy gradient. No clipping, no overflow, no fixed-point truncation.");
   let pre6 = dom_create("pre") in
-  dom_text(pre6, "NETWORK: 2 -> 2 -> 1 (sigmoid, 9 parameters)\nACTIVATION: sigmoid(x) = 1/(1+exp(-x)) -- Taylor series, native WASM\nLOSS: MSE = sum((output - target)^2)\nOPTIMIZER: batch SGD, lr=2.0\n\nRESULT (test_float_xor.ax):\n  epoch 0     loss = 1.029\n  epoch 2000  loss = 0.001\n  epoch 6000  loss = 0.000\n\n  (0,0) -> 0.009  pred=0  target=0\n  (0,1) -> 0.992  pred=1  target=1\n  (1,0) -> 0.992  pred=1  target=1\n  (1,1) -> 0.008  pred=0  target=0\n  Accuracy: 4/4");
+  dom_text(pre6, "i32 FIXED-POINT (CPU Train):\n  Scale 1000. Gradients clipped +-1000. Weights clamped +-5000.\n  Circle: 49/50.  Spiral: 104/200.  Moons: 73/100.\n\nf64 NATIVE FLOAT (CPU Train f64):\n  sigmoid(x) = 1/(1+exp(-x)).  leaky_relu(x, 0.01).\n  Circle: 50/50 (perfect).  Spiral: 114/200 (+10).  Moons: 74/100.\n\nWHY f64 WINS:\n  No gradient truncation at decision boundaries.\n  Sigmoid output = proper [0,1] probabilities.\n  Cross-entropy gradient = (sigmoid(z) - target), no clipping needed.\n  He initialization with sqrt() = proper scale per fan-in.");
   dom_style(pre6, "background", "#0a0a1a");
   dom_style(pre6, "padding", "16px");
   dom_style(pre6, "borderRadius", "4px");
@@ -2008,8 +2008,7 @@ fn page_crt_train() = (
   dom_style(pre6, "lineHeight", "1.6");
   dom_style(pre6, "color", "#ccc");
   dom_append(sec6, pre6);
-  render_p(sec6, "Two paradigms, same problem. Fixed-point (above): integer arithmetic, ring-native, CRT-decomposable into 6 independent channels. f64: standard ML, sigmoid activation, continuous gradients. Both solve XOR. The CRT approach adds channel independence and L=11 ECC for free. The f64 approach enables standard activations (sigmoid, tanh) and real-valued optimization.");
-  render_p(sec6, "Full f64 training (S1370): leaky ReLU hidden + sigmoid output, cross-entropy gradient, same 7-network architecture. Circle 50/50 (perfect, was 49 fixed-point). Spiral 114/200 (+10 over fixed-point). No clipping, no overflow, no truncation. Each CRT channel trains independently on its own loss. At inference, 6 predictions are averaged -- classic ensemble regularization. The 6-channel architecture is inherently more stable than a single network.");
+  render_p(sec6, "Both modes use the same CRT decomposition: 6 independent sub-networks whose predictions are averaged at inference. This is classic ensemble regularization -- each channel sees the full training signal, trains independently, and averaging smooths individual errors. The f64 mode makes this visible: smoother decision boundaries, faster convergence, higher accuracy on all datasets.");
   dom_append(dom_body(), sec6);
 
   /* === SEC 7: IMPLEMENTATION === */
