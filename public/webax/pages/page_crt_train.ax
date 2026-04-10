@@ -343,6 +343,12 @@ fn ct_train_epochs(w, epochs) = (
   let tmp_dh = alloc(8) in
   let dw = alloc(135) in
   let batch_sz = if nd <= 10 then nd else nd / 5 in
+  /* Deterministic interleave: breaks class-ordered data (Spiral, Moons, Blobs).
+     perm[i] = (i * 137) % nd visits all indices in class-mixed order.
+     Without this, pure-class batches cancel gradients → Spiral stuck at 50%. */
+  let perm = alloc(nd) in
+  mut si = 0;
+  while si < nd do (set(perm, si, (si * 137) % nd); mut si = si + 1);
   mut e = 0;
   while e < epochs do (
     mut b_start = 0;
@@ -352,13 +358,14 @@ fn ct_train_epochs(w, epochs) = (
       /* Zero gradient accumulator */
       mut j = 0;
       while j < 135 do (set(dw, j, 0); mut j = j + 1);
-      /* Accumulate gradients over mini-batch */
+      /* Accumulate gradients over mini-batch (interleaved indices) */
       mut i = b_start;
       while i < b_end do (
-        nn_grad(w, dw, 0, 8, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
+        let pi = perm[i] in
+        nn_grad(w, dw, 0, 8, dx0[pi], dx1[pi], dy[pi], tmp_hr, tmp_h, tmp_dh);
         mut c = 0;
         while c < 6 do (
-          nn_grad(w, dw, 33 + c * 17, 4, dx0[i], dx1[i], dy[i], tmp_hr, tmp_h, tmp_dh);
+          nn_grad(w, dw, 33 + c * 17, 4, dx0[pi], dx1[pi], dy[pi], tmp_hr, tmp_h, tmp_dh);
           mut c = c + 1
         );
         mut i = i + 1
