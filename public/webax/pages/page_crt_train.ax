@@ -1414,7 +1414,7 @@ fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
 
 /* ===== PAGE ===== */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). i32 fixed-point and f64 float modes. Adjustable learning rate. CPU and GPU batch SGD. Loss, accuracy, and per-channel convergence curves.");
+  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). i32 fixed-point and f64 float modes. Adjustable learning rate. CPU and GPU mini-batch SGD with leaky ReLU and golden interleave. Loss, accuracy, and per-channel convergence curves.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. 5 datasets (XOR, Circle, Spiral, Moons, Blobs). GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
 
   /* === HERO === */
@@ -1896,7 +1896,7 @@ fn page_crt_train() = (
   dom_style(gpu_lbl, "fontWeight", "bold");
   dom_style(gpu_lbl, "marginBottom", "8px");
   dom_append(secg, gpu_lbl);
-  render_p(secg, "Train the same CRT network on GPU. Batch SGD: all data points in parallel, 7 networks (1 standard + 6 CRT channels) in a single WGSL compute dispatch. Uses the selected learning rate and epoch count. Atomic gradient accumulation in workgroup shared memory.");
+  render_p(secg, "Train the same CRT network on GPU. Mini-batch SGD with leaky ReLU 25% and golden interleave (stride 137), matching CPU training. 7 networks (1 standard + 6 CRT channels) in a single WGSL compute dispatch. Uses the selected learning rate and epoch count. Atomic gradient accumulation in workgroup shared memory.");
   let b_gpu = dom_create("button") in
   dom_text(b_gpu, "GPU Train");
   ct_nn_btn(b_gpu);
@@ -1948,7 +1948,7 @@ fn page_crt_train() = (
   dom_style(pre6, "lineHeight", "1.6");
   dom_style(pre6, "color", "#ccc");
   dom_append(sec6, pre6);
-  render_p(sec6, "Both modes use the same CRT decomposition: 6 independent sub-networks whose predictions are averaged at inference. This is classic ensemble regularization -- each channel sees the full training signal, trains independently, and averaging smooths individual errors. The f64 mode makes this visible: smoother decision boundaries, faster convergence, higher accuracy on all datasets. Tested: momentum SGD helps the standard network (Moons 71 to 83 at beta=0.9) but HURTS CRT (74 to 69). The ensemble averaging already provides the gradient smoothing that momentum gives to a single network. CRT does not need external regularization -- the structure IS the regularizer.");
+  render_p(sec6, "Both modes use the same CRT decomposition: 6 independent sub-networks whose predictions are averaged at inference. This is classic ensemble regularization -- each channel sees the full training signal, trains independently, and averaging smooths individual errors. The f64 mode makes this visible: smoother decision boundaries, faster convergence, higher accuracy on all datasets. Tested: momentum SGD helps the standard network (Moons 71 to 83 at beta=0.9) but HURTS CRT (74 to 69). Similarly, adding a second hidden layer helps standard (Moons 71 to 84) but NOT CRT (74 to 72). Both momentum and depth add regularization that a single large network needs, but CRT's ensemble averaging already provides it. CRT does not need external regularization -- the structure IS the regularizer.");
   dom_append(dom_body(), sec6);
 
   /* === SEC 7: IMPLEMENTATION === */
