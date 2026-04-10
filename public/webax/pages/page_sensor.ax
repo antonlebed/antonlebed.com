@@ -275,33 +275,6 @@ fn sn_parse_int(s, pos) = (
   val * sign
 )
 
-/* Find position after a key like "t": in JSON string.
-   Returns position after '":' or -1. Uses array for result (mut scoping bug workaround). */
-let _fk_result = [0]
-fn sn_find_key(s, key) = (
-  let kl = len(key) in
-  let sl = len(s) in
-  set(_fk_result, 0, 0 - 1);
-  mut i = 0;
-  while i < sl - kl do (
-    if charCode(s, i) == 34 then (
-      mut match = 1;
-      mut j = 0;
-      while j < kl do (
-        if charCode(s, i + 1 + j) == charCode(key, j) then (mut j = j + 1)
-        else (mut match = 0; mut j = kl)
-      );
-      if match == 1 then (
-        if charCode(s, i + 1 + kl) == 34 then (
-          set(_fk_result, 0, i + kl + 3);
-          mut i = sl
-        ) else (mut i = i + 1)
-      ) else (mut i = i + 1)
-    ) else (mut i = i + 1)
-  );
-  _fk_result[0]
-)
-
 fn on_sn_fetch_done() = (
   let raw = dom_value(sn_fetch_el[0]) in
   if len(raw) > 5 then (
