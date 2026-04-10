@@ -306,6 +306,186 @@ fn nn_grad(w, dw, base, nh, x0, x1, target, tmp_hr, tmp_h, tmp_dh) = (
   0
 )
 
+/* ===== F64 NEURAL NETWORK (S1371) ===== */
+fn toF(n) = toFloat(n)
+fn neg_f64(x) = toF(0) - x
+fn sigmoid_f64(x) = toF(1) / (toF(1) + exp_f(neg_f64(x)))
+
+/* leaky ReLU avoiding f64-returning if-then-else */
+fn leaky_f64(x) = (
+  let pos = if toInt(x * toF(100)) > 0 then 1 else 0 in
+  toF(pos) * x + toF(1 - pos) * (x / toF(100))
+)
+
+fn nn_fwd_f64(w, base, nh, x0, x1) = (
+  mut out_z = fget(w, base + nh * 4);
+  mut j = 0;
+  while j < nh do (
+    let z = fget(w, base + j * 2) * x0 + fget(w, base + j * 2 + 1) * x1 + fget(w, base + nh * 2 + j) in
+    let h = leaky_f64(z) in
+    mut out_z = out_z + fget(w, base + nh * 3 + j) * h;
+    mut j = j + 1
+  );
+  sigmoid_f64(out_z)
+)
+
+fn nn_grad_f64(w, dw, base, nh, x0, x1, target, tmp_h) = (
+  mut out_z = fget(w, base + nh * 4);
+  mut j = 0;
+  while j < nh do (
+    let z = fget(w, base + j * 2) * x0 + fget(w, base + j * 2 + 1) * x1 + fget(w, base + nh * 2 + j) in
+    let h = leaky_f64(z) in
+    fset(tmp_h, j, z);
+    fset(tmp_h, nh + j, h);
+    mut out_z = out_z + fget(w, base + nh * 3 + j) * h;
+    mut j = j + 1
+  );
+  let out = sigmoid_f64(out_z) in
+  let delta = out - target in
+  mut j = 0;
+  while j < nh do (
+    fset(dw, base + nh * 3 + j, fget(dw, base + nh * 3 + j) + delta * fget(tmp_h, nh + j));
+    mut j = j + 1
+  );
+  fset(dw, base + nh * 4, fget(dw, base + nh * 4) + delta);
+  mut j = 0;
+  while j < nh do (
+    let z_j = fget(tmp_h, j) in
+    let zpos = if toInt(z_j * toF(100)) > 0 then 1 else 0 in
+    let drelu = toF(99 * zpos + 1) / toF(100) in
+    let dh = delta * fget(w, base + nh * 3 + j) * drelu in
+    fset(dw, base + j * 2, fget(dw, base + j * 2) + dh * x0);
+    fset(dw, base + j * 2 + 1, fget(dw, base + j * 2 + 1) + dh * x1);
+    fset(dw, base + nh * 2 + j, fget(dw, base + nh * 2 + j) + dh);
+    mut j = j + 1
+  );
+  0
+)
+
+fn ct_crt_fwd_f64(w, x0, x1) = (
+  mut sum = toF(0);
+  mut c = 0;
+  while c < 6 do (
+    mut sum = sum + nn_fwd_f64(w, 33 + c * 17, 4, x0, x1);
+    mut c = c + 1
+  );
+  sum / toF(6)
+)
+
+fn ct_init_f64_w(w) = (
+  let a_w1 = sqrt_f(toF(3)) in
+  let a_w2s = sqrt_f(toF(6) / toF(8)) in
+  mut i = 0;
+  while i < 16 do (
+    fset(w, i, (toF(rand(10000)) / toF(5000) - toF(1)) * a_w1);
+    mut i = i + 1
+  );
+  mut i = 16;
+  while i < 24 do (fset(w, i, toF(0)); mut i = i + 1);
+  mut i = 24;
+  while i < 32 do (
+    fset(w, i, (toF(rand(10000)) / toF(5000) - toF(1)) * a_w2s);
+    mut i = i + 1
+  );
+  fset(w, 32, toF(0));
+  let a_w2c = sqrt_f(toF(6) / toF(4)) in
+  mut c = 0;
+  while c < 6 do (
+    let base = 33 + c * 17 in
+    mut j = 0;
+    while j < 8 do (
+      fset(w, base + j, (toF(rand(10000)) / toF(5000) - toF(1)) * a_w1);
+      mut j = j + 1
+    );
+    mut j = 8;
+    while j < 12 do (fset(w, base + j, toF(0)); mut j = j + 1);
+    mut j = 12;
+    while j < 16 do (
+      fset(w, base + j, (toF(rand(10000)) / toF(5000) - toF(1)) * a_w2c);
+      mut j = j + 1
+    );
+    fset(w, base + 16, toF(0));
+    mut c = c + 1
+  );
+  0
+)
+
+fn ct_train_f64(w, epochs, lr, nd, dx0, dx1, dy) = (
+  let tmp_h = falloc(16) in
+  let dw = falloc(135) in
+  let batch_sz = if nd <= 10 then nd else nd / 5 in
+  let perm = alloc(nd) in
+  mut si = 0;
+  while si < nd do (set(perm, si, (si * 137) % nd); mut si = si + 1);
+  mut e = 0;
+  while e < epochs do (
+    mut b_start = 0;
+    while b_start < nd do (
+      let b_end = if b_start + batch_sz < nd then b_start + batch_sz else nd in
+      let b_n_f = toF(b_end - b_start) in
+      mut j = 0;
+      while j < 135 do (fset(dw, j, toF(0)); mut j = j + 1);
+      mut i = b_start;
+      while i < b_end do (
+        let pi = perm[i] in
+        let x0 = fget(dx0, pi) in
+        let x1 = fget(dx1, pi) in
+        let tgt = fget(dy, pi) in
+        nn_grad_f64(w, dw, 0, 8, x0, x1, tgt, tmp_h);
+        mut c = 0;
+        while c < 6 do (
+          nn_grad_f64(w, dw, 33 + c * 17, 4, x0, x1, tgt, tmp_h);
+          mut c = c + 1
+        );
+        mut i = i + 1
+      );
+      mut j = 0;
+      while j < 135 do (
+        fset(w, j, fget(w, j) - lr * fget(dw, j) / b_n_f);
+        mut j = j + 1
+      );
+      mut b_start = b_end
+    );
+    mut e = e + 1
+  );
+  0
+)
+
+fn ct_write_wf(w) = (
+  mut s = "";
+  mut i = 0;
+  while i < 135 do (
+    let v = toInt(fget(w, i) * toF(10000)) in
+    if i > 0 then mut s = s + ",${v}"
+    else mut s = "${v}";
+    mut i = i + 1
+  );
+  dom_text(dom_query("#ct-wf"), s)
+)
+
+fn ct_read_wf(w) = (
+  let csv = ct_parse_csv(dom_value(dom_query("#ct-wf"))) in
+  if len(csv) >= 135 then (
+    mut i = 0;
+    while i < 135 do (
+      fset(w, i, toF(csv[i]) / toF(10000));
+      mut i = i + 1
+    );
+    1
+  ) else 0
+)
+
+fn ct_load_f64_data(dx0, dx1, dy, nd) = (
+  mut i = 0;
+  while i < nd do (
+    fset(dx0, i, toF(ct_data_x0(i)) / toF(1000));
+    fset(dx1, i, toF(ct_data_x1(i)) / toF(1000));
+    fset(dy, i, toF(ct_data_y(i)) / toF(1000));
+    mut i = i + 1
+  );
+  0
+)
+
 /* ===== CRT FORWARD: AVERAGE OF ACTIVE CHANNELS ===== */
 fn ct_crt_fwd(w, x0, x1, kills) = (
   mut sum = 0;
@@ -776,6 +956,151 @@ fn ct_show_stats(w) = (
   0
 )
 
+/* ===== F64 HEATMAP + STATS ===== */
+fn ct_f64_level(out_f) = (
+  let v = toInt(out_f * toF(10)) in
+  if v < 0 then 0 else if v > 10 then 10 else v
+)
+
+fn ct_draw_std_heatmap_f64(w) = (
+  let ctx = cvs_getctx(dom_query("#ct-std-cvs")) in
+  let _c = cvs_clearrect(ctx, 0, 0, 320, 200) in
+  mut levels = alloc(4000);
+  mut idx = 0;
+  mut py = 0;
+  while py < 50 do (
+    mut px = 0;
+    while px < 80 do (
+      let x0 = toF(px) / toF(80) in
+      let x1 = toF(py) / toF(50) in
+      set(levels, idx, ct_f64_level(nn_fwd_f64(w, 0, 8, x0, x1)));
+      mut idx = idx + 1;
+      mut px = px + 1
+    );
+    mut py = py + 1
+  );
+  mut lv = 0;
+  while lv <= 10 do (
+    let _fs = cvs_fillstyle(ctx, ct_red(lv)) in
+    mut idx = 0;
+    mut py = 0;
+    while py < 50 do (
+      mut px = 0;
+      while px < 80 do (
+        if levels[idx] == lv then cvs_fillrect(ctx, px * 4, py * 4, 4, 4) else 0;
+        mut idx = idx + 1;
+        mut px = px + 1
+      );
+      mut py = py + 1
+    );
+    mut lv = lv + 1
+  );
+  0
+)
+
+fn ct_draw_crt_heatmap_f64(w) = (
+  let ctx = cvs_getctx(dom_query("#ct-crt-cvs")) in
+  let _c = cvs_clearrect(ctx, 0, 0, 320, 200) in
+  mut levels = alloc(4000);
+  mut idx = 0;
+  mut py = 0;
+  while py < 50 do (
+    mut px = 0;
+    while px < 80 do (
+      let x0 = toF(px) / toF(80) in
+      let x1 = toF(py) / toF(50) in
+      set(levels, idx, ct_f64_level(ct_crt_fwd_f64(w, x0, x1)));
+      mut idx = idx + 1;
+      mut px = px + 1
+    );
+    mut py = py + 1
+  );
+  mut lv = 0;
+  while lv <= 10 do (
+    let _fs = cvs_fillstyle(ctx, ct_green(lv)) in
+    mut idx = 0;
+    mut py = 0;
+    while py < 50 do (
+      mut px = 0;
+      while px < 80 do (
+        if levels[idx] == lv then cvs_fillrect(ctx, px * 4, py * 4, 4, 4) else 0;
+        mut idx = idx + 1;
+        mut px = px + 1
+      );
+      mut py = py + 1
+    );
+    mut lv = lv + 1
+  );
+  0
+)
+
+fn ct_f64_accuracy(w, base, nh, nd, dx0, dx1, dy) = (
+  mut correct = 0;
+  mut i = 0;
+  while i < nd do (
+    let out = nn_fwd_f64(w, base, nh, fget(dx0, i), fget(dx1, i)) in
+    let tgt = fget(dy, i) in
+    if (toInt(out * toF(1000)) > 500) == (toInt(tgt * toF(1000)) > 500)
+      then mut correct = correct + 1 else 0;
+    mut i = i + 1
+  );
+  correct
+)
+
+fn ct_f64_crt_accuracy(w, nd, dx0, dx1, dy) = (
+  mut correct = 0;
+  mut i = 0;
+  while i < nd do (
+    let out = ct_crt_fwd_f64(w, fget(dx0, i), fget(dx1, i)) in
+    let tgt = fget(dy, i) in
+    if (toInt(out * toF(1000)) > 500) == (toInt(tgt * toF(1000)) > 500)
+      then mut correct = correct + 1 else 0;
+    mut i = i + 1
+  );
+  correct
+)
+
+fn ct_f64_loss(w, base, nh, nd, dx0, dx1, dy) = (
+  mut total_i = 0;
+  mut i = 0;
+  while i < nd do (
+    let out = nn_fwd_f64(w, base, nh, fget(dx0, i), fget(dx1, i)) in
+    let d = out - fget(dy, i) in
+    mut total_i = total_i + toInt(d * d * toF(1000));
+    mut i = i + 1
+  );
+  total_i / nd
+)
+
+fn ct_f64_crt_loss(w, nd, dx0, dx1, dy) = (
+  mut total_i = 0;
+  mut i = 0;
+  while i < nd do (
+    let out = ct_crt_fwd_f64(w, fget(dx0, i), fget(dx1, i)) in
+    let d = out - fget(dy, i) in
+    mut total_i = total_i + toInt(d * d * toF(1000));
+    mut i = i + 1
+  );
+  total_i / nd
+)
+
+fn ct_f64_show_stats(w, nd, dx0, dx1, dy) = (
+  let std_acc = ct_f64_accuracy(w, 0, 8, nd, dx0, dx1, dy) in
+  let std_l = ct_f64_loss(w, 0, 8, nd, dx0, dx1, dy) in
+  dom_text(dom_query("#ct-std-stats"), "f64 | Acc: ${std_acc}/${nd} | Loss: ${std_l}");
+  let crt_acc = ct_f64_crt_accuracy(w, nd, dx0, dx1, dy) in
+  dom_text(dom_query("#ct-crt-stats"), "f64 | Acc: ${crt_acc}/${nd} | Active: 6/6");
+  mut c = 0;
+  while c < 6 do (
+    let acc = ct_f64_accuracy(w, 33 + c * 17, 4, nd, dx0, dx1, dy) in
+    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else if c == 4 then "L" else "G" in
+    dom_text(dom_query("#ct-ch${c}"), "${name}: ${acc}/${nd}");
+    dom_style(dom_query("#ct-ch${c}"), "color", if acc == nd then "#44ff44" else "#ffbb00");
+    mut c = c + 1
+  );
+  0
+)
+
 /* ===== DRAW ALL ===== */
 fn ct_draw_all(w) = (
   let kills = ct_read_kills() in
@@ -915,11 +1240,81 @@ fn ct_toggle_kill(ch) = (
   )
 )
 
-fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); on_ct_init())
-fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); on_ct_init())
-fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); on_ct_init())
-fn on_ct_set_moons() = (dom_text(dom_query("#ct-task"), "3"); on_ct_init())
-fn on_ct_set_blobs() = (dom_text(dom_query("#ct-task"), "4"); on_ct_init())
+/* ===== F64 TRAINING CALLBACK (S1371) ===== */
+fn on_ct_train_f64() = (
+  let nd = ct_data_n() in
+  let epc = ct_get_epc() in
+  let lr_i = ct_get_lr() in
+  let lr = toF(lr_i) / toF(1000) in
+  let w = falloc(135) in
+  let loaded = ct_read_wf(w) in
+  if loaded == 0 then ct_init_f64_w(w) else 0;
+  let dx0 = falloc(nd) in
+  let dx1 = falloc(nd) in
+  let dy = falloc(nd) in
+  ct_load_f64_data(dx0, dx1, dy, nd);
+  let t0 = time_ms() in
+  let chunks = epc / 200 in
+  let mark = hp() in
+  mut chunk = 0;
+  while chunk < chunks do (
+    ct_train_f64(w, 200, lr, nd, dx0, dx1, dy);
+    let std_l = ct_f64_loss(w, 0, 8, nd, dx0, dx1, dy) in
+    let crt_l = ct_f64_crt_loss(w, nd, dx0, dx1, dy) in
+    let lh = dom_value(dom_query("#ct-loss-hist")) in
+    dom_text(dom_query("#ct-loss-hist"),
+      if len(lh) == 0 then "${std_l},${crt_l}" else "${lh},${std_l},${crt_l}");
+    let std_a = ct_f64_accuracy(w, 0, 8, nd, dx0, dx1, dy) in
+    let crt_a = ct_f64_crt_accuracy(w, nd, dx0, dx1, dy) in
+    let ah = dom_value(dom_query("#ct-acc-hist")) in
+    dom_text(dom_query("#ct-acc-hist"),
+      if len(ah) == 0 then "${std_a},${crt_a}" else "${ah},${std_a},${crt_a}");
+    let cl0 = ct_f64_loss(w, 33, 4, nd, dx0, dx1, dy) in
+    let cl1 = ct_f64_loss(w, 50, 4, nd, dx0, dx1, dy) in
+    let cl2 = ct_f64_loss(w, 67, 4, nd, dx0, dx1, dy) in
+    let cl3 = ct_f64_loss(w, 84, 4, nd, dx0, dx1, dy) in
+    let cl4 = ct_f64_loss(w, 101, 4, nd, dx0, dx1, dy) in
+    let cl5 = ct_f64_loss(w, 118, 4, nd, dx0, dx1, dy) in
+    let ch_s = dom_value(dom_query("#ct-ch-loss-hist")) in
+    dom_text(dom_query("#ct-ch-loss-hist"),
+      if len(ch_s) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}"
+      else "${ch_s},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}");
+    set_hp(mark);
+    mut chunk = chunk + 1
+  );
+  let dt = time_ms() - t0 in
+  ct_write_wf(w);
+  let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
+  let new_e = if len(old_e) > 0 then old_e[0] + epc else epc in
+  dom_text(dom_query("#ct-epoch-n"), "${new_e}");
+  dom_text(dom_query("#ct-epoch"), "Epoch: ${new_e}");
+  let dx0b = falloc(nd) in
+  let dx1b = falloc(nd) in
+  let dyb = falloc(nd) in
+  ct_load_f64_data(dx0b, dx1b, dyb, nd);
+  let w2 = falloc(135) in
+  ct_read_wf(w2);
+  ct_draw_std_heatmap_f64(w2);
+  ct_draw_points("#ct-std-cvs");
+  ct_draw_crt_heatmap_f64(w2);
+  ct_draw_points("#ct-crt-cvs");
+  ct_f64_show_stats(w2, nd, dx0b, dx1b, dyb);
+  ct_draw_loss_curve();
+  ct_draw_acc_curve();
+  ct_draw_ch_loss_curve();
+  let std_l = ct_f64_loss(w2, 0, 8, nd, dx0b, dx1b, dyb) in
+  let crt_l = ct_f64_crt_loss(w2, nd, dx0b, dx1b, dyb) in
+  let std_a = ct_f64_accuracy(w2, 0, 8, nd, dx0b, dx1b, dyb) in
+  let crt_a = ct_f64_crt_accuracy(w2, nd, dx0b, dx1b, dyb) in
+  dom_text(dom_query("#ct-cpu-result"),
+    "f64 CPU: ${dt}ms | ${epc} ep, lr=${lr_i/1000}.${(lr_i%1000)/100}${(lr_i%100)/10} on ${nd} pts | Std: ${std_a}/${nd} loss=${std_l} | CRT: ${crt_a}/${nd} loss=${crt_l}")
+)
+
+fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
+fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
+fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
+fn on_ct_set_moons() = (dom_text(dom_query("#ct-task"), "3"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
+fn on_ct_set_blobs() = (dom_text(dom_query("#ct-task"), "4"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
 
 fn on_ct_ep200() = (dom_text(dom_query("#ct-epc"), "200"); ct_highlight_ep(200))
 fn on_ct_ep400() = (dom_text(dom_query("#ct-epc"), "400"); ct_highlight_ep(400))
@@ -1079,7 +1474,7 @@ fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
 
 /* ===== PAGE ===== */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). Adjustable learning rate. CPU and GPU batch SGD. Loss, accuracy, and per-channel convergence curves. Fixed-point, no floats.");
+  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). i32 fixed-point and f64 float modes. Adjustable learning rate. CPU and GPU batch SGD. Loss, accuracy, and per-channel convergence curves.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. 5 datasets (XOR, Circle, Spiral, Moons, Blobs). GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
 
   /* === HERO === */
@@ -1119,6 +1514,8 @@ fn page_crt_train() = (
   let lrs = dom_create("textarea") in dom_attr(lrs, "id", "ct-lr");
   dom_attr(lrs, "value", "150");
   dom_style(lrs, "display", "none"); dom_append(dom_body(), lrs);
+  let wfs = dom_create("textarea") in dom_attr(wfs, "id", "ct-wf");
+  dom_style(wfs, "display", "none"); dom_append(dom_body(), wfs);
 
   /* === SEC 1: HOW IT WORKS === */
   let sec1 = make_section("800px") in
@@ -1138,7 +1535,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training");
-  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. CPU uses mini-batch SGD with deterministic interleave. GPU uses full-batch SGD.");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params), outputs averaged. Five tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. CPU Train = fixed-point i32. CPU Train (f64) = native float with leaky ReLU + sigmoid + cross-entropy. GPU uses full-batch SGD.");
 
   /* Task selector */
   let task_row = dom_create("div") in
@@ -1267,6 +1664,14 @@ fn page_crt_train() = (
   dom_style(b_train, "marginLeft", "8px");
   dom_on(b_train, "click", "on_ct_train");
   dom_append(btns, b_train);
+  let b_f64 = dom_create("button") in
+  dom_text(b_f64, "CPU Train (f64)");
+  ct_nn_btn(b_f64);
+  dom_style(b_f64, "marginLeft", "8px");
+  dom_style(b_f64, "background", "#1a2a1e");
+  dom_style(b_f64, "borderColor", "#66bb88");
+  dom_on(b_f64, "click", "on_ct_train_f64");
+  dom_append(btns, b_f64);
   let ep = dom_create("span") in
   dom_attr(ep, "id", "ct-epoch");
   dom_text(ep, "Epoch: 0");
@@ -1399,7 +1804,7 @@ fn page_crt_train() = (
   dom_append(sec2, ch_hint);
 
   let spiral_note = dom_create("div") in
-  dom_text(spiral_note, "XOR (4 pts) converges in ~200 epochs. Blobs (500 pts) in ~3000. Circle and Moons need 3000+. Spiral (200 pts) is hardest -- the 3-turn boundary stretches 8 hidden units. Learning rate: 0.05 = stable but slow, 0.50 = fast but may overshoot. CPU: mini-batch SGD with class-mixing interleave. GPU: full-batch SGD.");
+  dom_text(spiral_note, "XOR (4 pts) converges in ~200 epochs. Blobs (500 pts) in ~3000. Circle and Moons need 3000+. Spiral (200 pts) is hardest -- the 3-turn boundary stretches 8 hidden units. Learning rate: 0.05 = stable but slow, 0.50 = fast but may overshoot. CPU Train: i32 mini-batch SGD. CPU Train (f64): native float, leaky ReLU + sigmoid -- Circle 50/50, Spiral 114/200 (+10 over i32). GPU: full-batch SGD.");
   dom_style(spiral_note, "color", "#666");
   dom_style(spiral_note, "fontSize", "0.85em");
   dom_style(spiral_note, "marginTop", "8px");
@@ -1610,7 +2015,7 @@ fn page_crt_train() = (
   /* === SEC 7: IMPLEMENTATION === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "Implementation");
-  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as CRT mixing schedule. 137 = floor(golden angle in degrees). Maximizes class spread across all channel residues simultaneously. Selectable learning rate (0.05-0.50), leaky ReLU activation. All math fits in 32-bit integers. f64 training verified under WASI (test_crt_train_f64.ax, 10/10 all 5 datasets).");
+  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. Two training modes: i32 fixed-point (scale 1000) and f64 native float (leaky ReLU hidden + sigmoid output + cross-entropy). 135 parameters (33 standard + 102 CRT). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as CRT mixing schedule. 137 = floor(golden angle in degrees). Selectable learning rate (0.05-0.50). f64 uses WASM f64 arrays (falloc/fget/fset) and native math (exp, sqrt). CRT = 6 independent small networks averaged at inference = built-in ensemble regularization.");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/living/ai");
