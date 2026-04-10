@@ -207,64 +207,8 @@ fn nn_fwd(w, base, nh, x0, x1) = (
   out
 )
 
-/* Backward pass. Returns loss (delta^2/1000). Modifies w in-place via set().
-   tmp_hr, tmp_h, tmp_dh = pre-allocated arrays of size >= nh (reuse across calls). */
-fn nn_bkwd(w, base, nh, x0, x1, target, lr, tmp_hr, tmp_h, tmp_dh) = (
-  /* Forward: recompute hidden activations */
-  mut j = 0;
-  while j < nh do (
-    let raw = w[base + j * 2] * x0 / 1000 + w[base + j * 2 + 1] * x1 / 1000 + w[base + nh * 2 + j] in
-    set(tmp_hr, j, raw);
-    set(tmp_h, j, if raw > 0 then raw else raw / 4);
-    mut j = j + 1
-  );
-  mut out = w[base + nh * 4];
-  mut j = 0;
-  while j < nh do (
-    mut out = out + w[base + nh * 3 + j] * tmp_h[j] / 1000;
-    mut j = j + 1
-  );
-  let raw_delta = out - target in
-  /* Gradient clipping: cap delta at ±1000 to prevent i32 overflow in lr*delta. (S1361 R3) */
-  let delta = if raw_delta > 1000 then 1000 else if raw_delta < 0 - 1000 then 0 - 1000 else raw_delta in
-  /* Hidden deltas — leaky ReLU 25%: dead neurons get gradient/4, can recover. (S1362 fix) */
-  mut j = 0;
-  while j < nh do (
-    let grad = w[base + nh * 3 + j] * delta / 1000 in
-    set(tmp_dh, j, if tmp_hr[j] > 0 then grad else grad / 4);
-    mut j = j + 1
-  );
-  /* Update output layer */
-  mut j = 0;
-  while j < nh do (
-    set(w, base + nh * 3 + j, w[base + nh * 3 + j] - (lr * delta / 1000) * tmp_h[j] / 1000);
-    mut j = j + 1
-  );
-  set(w, base + nh * 4, w[base + nh * 4] - lr * delta / 1000);
-  /* Update hidden layer */
-  mut j = 0;
-  while j < nh do (
-    let lrd = lr * tmp_dh[j] / 1000 in
-    set(w, base + j * 2, w[base + j * 2] - lrd * x0 / 1000);
-    set(w, base + j * 2 + 1, w[base + j * 2 + 1] - lrd * x1 / 1000);
-    set(w, base + nh * 2 + j, w[base + nh * 2 + j] - lr * tmp_dh[j] / 1000);
-    mut j = j + 1
-  );
-  /* Weight clipping: ±5000 keeps outputs bounded, prevents overflow. (S1361 R7) */
-  mut j = 0;
-  while j < nh * 4 + 1 do (
-    let v = w[base + j] in
-    if v > 5000 then set(w, base + j, 5000)
-    else if v < 0 - 5000 then set(w, base + j, 0 - 5000)
-    else 0;
-    mut j = j + 1
-  );
-  delta * delta / 1000
-)
-
 /* ===== GRADIENT ACCUMULATOR (mini-batch SGD) =====
-   Same forward/backward as nn_bkwd, but accumulates raw gradients in dw
-   instead of modifying w. Applied per mini-batch in ct_train_epochs. (S1361→S1363) */
+   Accumulates raw gradients in dw, applied per mini-batch in ct_train_epochs. (S1361→S1363) */
 fn nn_grad(w, dw, base, nh, x0, x1, target, tmp_hr, tmp_h, tmp_dh) = (
   mut j = 0;
   while j < nh do (
@@ -310,12 +254,8 @@ fn toF(n) = toFloat(n)
 fn neg_f64(x) = toF(0) - x
 fn sigmoid_f64(x) = toF(1) / (toF(1) + exp_f(neg_f64(x)))
 
-/* leaky ReLU avoiding f64-returning if-then-else.
-   Sign test: toInt(x*10000) > 0. Dead zone [0, 0.0001) = negligible for NN. */
-fn leaky_f64(x) = (
-  let pos = if toInt(x * toF(10000)) > 0 then 1 else 0 in
-  toF(pos) * x + toF(1 - pos) * (x / toF(100))
-)
+/* leaky ReLU: f64 if-then-else. Compiler emits (result f64) correctly (S1372). */
+fn leaky_f64(x) = if x > toF(0) then x else x / toF(100)
 
 fn nn_fwd_f64(w, base, nh, x0, x1) = (
   mut out_z = fget(w, base + nh * 4);
@@ -351,8 +291,7 @@ fn nn_grad_f64(w, dw, base, nh, x0, x1, target, tmp_h) = (
   mut j = 0;
   while j < nh do (
     let z_j = fget(tmp_h, j) in
-    let zpos = if toInt(z_j * toF(10000)) > 0 then 1 else 0 in
-    let drelu = toF(99 * zpos + 1) / toF(100) in
+    let drelu = if z_j > toF(0) then toF(1) else toF(1) / toF(100) in
     let dh = delta * fget(w, base + nh * 3 + j) * drelu in
     fset(dw, base + j * 2, fget(dw, base + j * 2) + dh * x0);
     fset(dw, base + j * 2 + 1, fget(dw, base + j * 2 + 1) + dh * x1);
