@@ -1603,13 +1603,14 @@ fn page_crt_train() = (
   dom_style(pre6, "lineHeight", "1.6");
   dom_style(pre6, "color", "#ccc");
   dom_append(sec6, pre6);
-  render_p(sec6, "Two paradigms, same problem. Fixed-point (above): integer arithmetic, ring-native, CRT-decomposable into 6 independent channels. f64: standard ML, sigmoid activation, continuous gradients. Both solve XOR. The CRT approach adds channel independence and L=11 ECC for free. The f64 approach enables standard activations (sigmoid, tanh) and real-valued optimization. MNIST training is blocked by WASI arena (no free); XOR proves the f64 path works.");
+  render_p(sec6, "Two paradigms, same problem. Fixed-point (above): integer arithmetic, ring-native, CRT-decomposable into 6 independent channels. f64: standard ML, sigmoid activation, continuous gradients. Both solve XOR. The CRT approach adds channel independence and L=11 ECC for free. The f64 approach enables standard activations (sigmoid, tanh) and real-valued optimization.");
+  render_p(sec6, "Full f64 training (S1370): leaky ReLU hidden + sigmoid output, cross-entropy gradient, same 7-network architecture. Circle 50/50 (perfect, was 49 fixed-point). Spiral 114/200 (+10 over fixed-point). No clipping, no overflow, no truncation. FINDING: CRT channels learn ~6x slower than standard (averaging divides gradient signal). This is built-in regularization -- the 6-channel architecture is inherently more stable.");
   dom_append(dom_body(), sec6);
 
   /* === SEC 7: IMPLEMENTATION === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "Implementation");
-  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as CRT mixing schedule. 137 = floor(golden angle in degrees). Maximizes class spread across all channel residues simultaneously. Selectable learning rate (0.05-0.50), leaky ReLU activation. All math fits in 32-bit integers. f64 training verified separately under WASI (test_float_xor.ax).");
+  render_p(sec7, "This demo runs in .ax compiled to WebAssembly. The neural network uses fixed-point arithmetic (scale 1000) -- no floating-point arrays needed. Decision boundary: canvas fillRect at 4px resolution. 135 parameters (33 standard + 102 CRT). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as CRT mixing schedule. 137 = floor(golden angle in degrees). Maximizes class spread across all channel residues simultaneously. Selectable learning rate (0.05-0.50), leaky ReLU activation. All math fits in 32-bit integers. f64 training verified under WASI (test_crt_train_f64.ax, 10/10 all 5 datasets).");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/living/ai");
