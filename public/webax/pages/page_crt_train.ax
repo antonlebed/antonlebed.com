@@ -103,6 +103,11 @@ fn ct_task() = (
   let v = ct_parse_csv(dom_value(dom_query("#ct-task"))) in
   if len(v) > 0 then v[0] else 0
 )
+fn ct_task_label() = if ct_task() == 0 then "XOR (4 pts)" else if ct_task() == 1 then "Circle (50 pts)" else if ct_task() == 2 then "Spiral (200 pts)" else if ct_task() == 3 then "Moons (100 pts)" else "Blobs (500 pts)"
+fn ct_update_task_indicators() = (
+  let el = dom_query("#ct-gpu-task") in
+  if el > 0 then dom_text(el, "Dataset: ${ct_task_label()}") else 0
+)
 fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else if ct_task() == 2 then 200 else if ct_task() == 3 then 100 else 500
 fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else if ct_task() == 2 then spiral_x0(i) else if ct_task() == 3 then moons_x0(i) else blobs_x0(i)
 fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then circle_x1(i) else if ct_task() == 2 then spiral_x1(i) else if ct_task() == 3 then moons_x1(i) else blobs_x1(i)
@@ -1250,11 +1255,11 @@ fn on_ct_train_f64() = (
     "f64 CPU: ${dt}ms | ${epc} ep, lr=${lr_i/1000}.${(lr_i%1000)/100}${(lr_i%100)/10} on ${nd} pts | Std: ${std_a}/${nd} loss=${std_l} | CRT: ${crt_a}/${nd} loss=${crt_l}")
 )
 
-fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
-fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
-fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
-fn on_ct_set_moons() = (dom_text(dom_query("#ct-task"), "3"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
-fn on_ct_set_blobs() = (dom_text(dom_query("#ct-task"), "4"); dom_text(dom_query("#ct-wf"), ""); on_ct_init())
+fn on_ct_set_xor() = (dom_text(dom_query("#ct-task"), "0"); dom_text(dom_query("#ct-wf"), ""); on_ct_init(); ct_update_task_indicators())
+fn on_ct_set_circle() = (dom_text(dom_query("#ct-task"), "1"); dom_text(dom_query("#ct-wf"), ""); on_ct_init(); ct_update_task_indicators())
+fn on_ct_set_spiral() = (dom_text(dom_query("#ct-task"), "2"); dom_text(dom_query("#ct-wf"), ""); on_ct_init(); ct_update_task_indicators())
+fn on_ct_set_moons() = (dom_text(dom_query("#ct-task"), "3"); dom_text(dom_query("#ct-wf"), ""); on_ct_init(); ct_update_task_indicators())
+fn on_ct_set_blobs() = (dom_text(dom_query("#ct-task"), "4"); dom_text(dom_query("#ct-wf"), ""); on_ct_init(); ct_update_task_indicators())
 
 fn on_ct_ep200() = (dom_text(dom_query("#ct-epc"), "200"); ct_highlight_ep(200))
 fn on_ct_ep400() = (dom_text(dom_query("#ct-epc"), "400"); ct_highlight_ep(400))
@@ -1897,6 +1902,13 @@ fn page_crt_train() = (
   dom_style(gpu_lbl, "marginBottom", "8px");
   dom_append(secg, gpu_lbl);
   render_p(secg, "Train the same CRT network on GPU. Mini-batch SGD with leaky ReLU 25% and golden interleave (stride 137), matching CPU training. 7 networks (1 standard + 6 CRT channels) in a single WGSL compute dispatch. Uses the selected learning rate and epoch count. Atomic gradient accumulation in workgroup shared memory.");
+  let gpu_task = dom_create("div") in
+  dom_attr(gpu_task, "id", "ct-gpu-task");
+  dom_text(gpu_task, "Dataset: ${ct_task_label()}");
+  dom_style(gpu_task, "color", "#aaa");
+  dom_style(gpu_task, "marginBottom", "8px");
+  dom_style(gpu_task, "fontSize", "14px");
+  dom_append(secg, gpu_task);
   let b_gpu = dom_create("button") in
   dom_text(b_gpu, "GPU Train");
   ct_nn_btn(b_gpu);
