@@ -106,7 +106,28 @@ fn ct_task() = (
 fn ct_task_label() = if ct_task() == 0 then "XOR (4 pts)" else if ct_task() == 1 then "Circle (50 pts)" else if ct_task() == 2 then "Spiral (200 pts)" else if ct_task() == 3 then "Moons (100 pts)" else "Blobs (500 pts)"
 fn ct_update_task_indicators() = (
   let el = dom_query("#ct-gpu-task") in
-  if el > 0 then dom_text(el, "Dataset: ${ct_task_label()}") else 0
+  (if el > 0 then dom_text(el, "Dataset: ${ct_task_label()}") else 0);
+  let t = ct_task() in
+  dom_style(dom_query("#ct-task-xor"),     "background",  if t == 0 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task-xor"),     "borderColor", if t == 0 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task-circle"),  "background",  if t == 1 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task-circle"),  "borderColor", if t == 1 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task-spiral"),  "background",  if t == 2 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task-spiral"),  "borderColor", if t == 2 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task-moons"),   "background",  if t == 3 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task-moons"),   "borderColor", if t == 3 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task-blobs"),   "background",  if t == 4 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task-blobs"),   "borderColor", if t == 4 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task2-xor"),    "background",  if t == 0 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task2-xor"),    "borderColor", if t == 0 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task2-circle"), "background",  if t == 1 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task2-circle"), "borderColor", if t == 1 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task2-spiral"), "background",  if t == 2 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task2-spiral"), "borderColor", if t == 2 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task2-moons"),  "background",  if t == 3 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task2-moons"),  "borderColor", if t == 3 then "#88ddaa" else "#555");
+  dom_style(dom_query("#ct-task2-blobs"),  "background",  if t == 4 then "#2a3a4e" else "#1a1a2e");
+  dom_style(dom_query("#ct-task2-blobs"),  "borderColor", if t == 4 then "#88ddaa" else "#555")
 )
 fn ct_data_n() = if ct_task() == 0 then 4 else if ct_task() == 1 then 50 else if ct_task() == 2 then 200 else if ct_task() == 3 then 100 else 500
 fn ct_data_x0(i) = if ct_task() == 0 then xor_x0(i) else if ct_task() == 1 then circle_x0(i) else if ct_task() == 2 then spiral_x0(i) else if ct_task() == 3 then moons_x0(i) else blobs_x0(i)
@@ -1494,26 +1515,33 @@ fn page_crt_train() = (
   dom_style(task_lbl, "color", "#888");
   dom_append(task_row, task_lbl);
   let b_xor = dom_create("button") in
+  dom_attr(b_xor, "id", "ct-task-xor");
   dom_text(b_xor, "XOR (4 pts)");
   ct_nn_btn(b_xor);
+  dom_style(b_xor, "background", "#2a3a4e");
+  dom_style(b_xor, "borderColor", "#88ddaa");
   dom_on(b_xor, "click", "on_ct_set_xor");
   dom_append(task_row, b_xor);
   let b_circle = dom_create("button") in
+  dom_attr(b_circle, "id", "ct-task-circle");
   dom_text(b_circle, "Circle (50 pts)");
   ct_nn_btn(b_circle);
   dom_on(b_circle, "click", "on_ct_set_circle");
   dom_append(task_row, b_circle);
   let b_spiral = dom_create("button") in
+  dom_attr(b_spiral, "id", "ct-task-spiral");
   dom_text(b_spiral, "Spiral (200 pts)");
   ct_nn_btn(b_spiral);
   dom_on(b_spiral, "click", "on_ct_set_spiral");
   dom_append(task_row, b_spiral);
   let b_moons = dom_create("button") in
+  dom_attr(b_moons, "id", "ct-task-moons");
   dom_text(b_moons, "Moons (100 pts)");
   ct_nn_btn(b_moons);
   dom_on(b_moons, "click", "on_ct_set_moons");
   dom_append(task_row, b_moons);
   let b_blobs = dom_create("button") in
+  dom_attr(b_blobs, "id", "ct-task-blobs");
   dom_text(b_blobs, "Blobs (500 pts)");
   ct_nn_btn(b_blobs);
   dom_on(b_blobs, "click", "on_ct_set_blobs");
@@ -1902,13 +1930,50 @@ fn page_crt_train() = (
   dom_style(gpu_lbl, "marginBottom", "8px");
   dom_append(secg, gpu_lbl);
   render_p(secg, "Train the same CRT network on GPU. Mini-batch SGD with leaky ReLU 25% and golden interleave (stride 137), matching CPU training. 7 networks (1 standard + 6 CRT channels) in a single WGSL compute dispatch. Uses the selected learning rate and epoch count. Atomic gradient accumulation in workgroup shared memory.");
-  let gpu_task = dom_create("div") in
-  dom_attr(gpu_task, "id", "ct-gpu-task");
-  dom_text(gpu_task, "Dataset: ${ct_task_label()}");
-  dom_style(gpu_task, "color", "#aaa");
-  dom_style(gpu_task, "marginBottom", "8px");
-  dom_style(gpu_task, "fontSize", "14px");
-  dom_append(secg, gpu_task);
+  /* GPU-section task selector (mirrors top selector; shares state via ct_update_task_indicators) */
+  let gpu_task_row = dom_create("div") in
+  dom_style(gpu_task_row, "margin", "12px 0");
+  dom_style(gpu_task_row, "display", "flex");
+  dom_style(gpu_task_row, "flexWrap", "wrap");
+  dom_style(gpu_task_row, "alignItems", "center");
+  dom_style(gpu_task_row, "gap", "8px");
+  let gpu_task_lbl = dom_create("span") in
+  dom_text(gpu_task_lbl, "Task: ");
+  dom_style(gpu_task_lbl, "color", "#888");
+  dom_append(gpu_task_row, gpu_task_lbl);
+  let b2_xor = dom_create("button") in
+  dom_attr(b2_xor, "id", "ct-task2-xor");
+  dom_text(b2_xor, "XOR (4 pts)");
+  ct_nn_btn(b2_xor);
+  dom_style(b2_xor, "background", "#2a3a4e");
+  dom_style(b2_xor, "borderColor", "#88ddaa");
+  dom_on(b2_xor, "click", "on_ct_set_xor");
+  dom_append(gpu_task_row, b2_xor);
+  let b2_circle = dom_create("button") in
+  dom_attr(b2_circle, "id", "ct-task2-circle");
+  dom_text(b2_circle, "Circle (50 pts)");
+  ct_nn_btn(b2_circle);
+  dom_on(b2_circle, "click", "on_ct_set_circle");
+  dom_append(gpu_task_row, b2_circle);
+  let b2_spiral = dom_create("button") in
+  dom_attr(b2_spiral, "id", "ct-task2-spiral");
+  dom_text(b2_spiral, "Spiral (200 pts)");
+  ct_nn_btn(b2_spiral);
+  dom_on(b2_spiral, "click", "on_ct_set_spiral");
+  dom_append(gpu_task_row, b2_spiral);
+  let b2_moons = dom_create("button") in
+  dom_attr(b2_moons, "id", "ct-task2-moons");
+  dom_text(b2_moons, "Moons (100 pts)");
+  ct_nn_btn(b2_moons);
+  dom_on(b2_moons, "click", "on_ct_set_moons");
+  dom_append(gpu_task_row, b2_moons);
+  let b2_blobs = dom_create("button") in
+  dom_attr(b2_blobs, "id", "ct-task2-blobs");
+  dom_text(b2_blobs, "Blobs (500 pts)");
+  ct_nn_btn(b2_blobs);
+  dom_on(b2_blobs, "click", "on_ct_set_blobs");
+  dom_append(gpu_task_row, b2_blobs);
+  dom_append(secg, gpu_task_row);
   let b_gpu = dom_create("button") in
   dom_text(b_gpu, "GPU Train");
   ct_nn_btn(b_gpu);
