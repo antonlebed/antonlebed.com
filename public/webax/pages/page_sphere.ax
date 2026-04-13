@@ -1,8 +1,14 @@
 /* ================================================================
-   PAGE: SPINNING SPHERES -- 7 concentric circles rotating at CRT rates.
-   Phase S step S6. A ring spinning fast = sphere. 7 nested = machine.
+   PAGE: SPINNING SPHERES — seven orbits through the tower lens.
+   A ring spinning fast = sphere. 7 nested = the Septilix machine.
    Each channel's marker dot orbits at angular velocity 2*pi/q_i.
-   At step = lambda = 1680, all markers realign. The heartbeat.
+   Full return: lcm(8,9,25,49,11,13,17) = TRANS = 214,414,200.
+   Lambda = 1680 is the multiplicative exponent, not the additive
+   return. Only D (mod 8) returns to 0 at step 1680.
+   Tower-organized: hero, machine (canvas), seven orbits (tower
+   inventory), angular momentum (cross-tower), detection (Tower_L),
+   recovery (Tower_D), boundary (Tower_GATE), heartbeat (Tower_C),
+   isolation (Tower_ESCAPE), silicon (Tower_K).
    ================================================================ */
 
 /* ===== INTEGER TRIG (fixed-point *1000, 64ths of full circle) ===== */
@@ -108,7 +114,7 @@ fn sph_draw() = (
     cvs_filltext(ctx, sph_label(j), mx - 4, my + 3);
     mut j = j + 1
   );
-  /* Alignment line from void to 12-o'clock when all aligned */
+  /* Gold line at lambda=1680 cycle boundary (multiplicative exponent marker) */
   let phase = t % 1680 in
   if phase == 0 then (
     cvs_strokestyle(ctx, "#ffd700");
@@ -118,13 +124,13 @@ fn sph_draw() = (
     cvs_lineto(ctx, cx, cy - 150);
     cvs_stroke(ctx)
   ) else 0;
-  /* HUD: step counter + lambda progress */
+  /* HUD: step counter + lambda cycle progress */
   cvs_fillstyle(ctx, "#b0b0c0");
   cvs_font(ctx, "11px monospace");
   cvs_filltext(ctx, "step ${t}", 8, 14);
   let pct = (phase * 100) / 1680 in
-  cvs_filltext(ctx, "heartbeat: ${pct}%", 200, 14);
-  /* Progress bar */
+  cvs_filltext(ctx, "lambda: ${pct}%", 220, 14);
+  /* Progress bar: lambda cycle */
   cvs_fillstyle(ctx, "#1a1a2e");
   cvs_fillrect(ctx, 8, 354, 334, 8);
   let barW = (phase * 334) / 1680 in
@@ -211,8 +217,8 @@ fn sph_speed_down() = (
 /* ===== HERO ===== */
 fn sph_hero() = (
   let hero = make_hero("Spinning Spheres") in
-  render_p(hero, "A ring spinning fast enough looks like a sphere. An address orbiting fast enough fills its channel. Stack 7 such spheres concentrically: inner DATA layers spin fast, outer ALIVE layers wrap as parity. The void at the center pilots everything.");
-  render_p(hero, "Below: 7 concentric orbits, one per CRT channel. Each dot's angular velocity is 2*pi/q where q is the channel modulus. At step 1680 (lambda), ALL dots realign. That is the heartbeat.");
+  render_p(hero, "A ring spinning fast enough looks like a sphere. An address orbiting fast enough fills its channel. Stack 7 such spheres concentrically: inner rings carry DATA (D, K, E, b), outer rings carry parity (L, GATE, ESCAPE). D is the fastest orbit (period 8). b is the slowest (period 49).");
+  render_p(hero, "Below: 7 concentric orbits, one per CRT channel. Each dot orbits at angular velocity proportional to 1/q where q is the channel modulus. D (mod 8) is the fastest. b (mod 49) is the slowest. Full realignment requires lcm(8,9,25,49,11,13,17) = TRANS = 214,414,200 steps. The gold line marks lambda = 1680, the multiplicative exponent of the ring.");
   dom_append(dom_body(), hero)
 )
 
@@ -233,7 +239,7 @@ fn sph_canvas_section() = (
   dom_append(sec, cvs);
   let ctx = cvs_getctx(cvs) in
   set(sph_ctx, 0, ctx);
-  /* Control buttons — string literals for test scanner */
+  /* Control buttons */
   let ctrls = dom_create("div") in
   dom_style(ctrls, "display", "flex");
   dom_style(ctrls, "gap", "6px");
@@ -256,38 +262,85 @@ fn sph_canvas_section() = (
   raf("sph_tick")
 )
 
-/* ===== CHANNEL LEGEND ===== */
-fn sph_legend() = (
+/* ===== SEVEN ORBITS (tower inventory) ===== */
+fn sph_orbits() = (
   let sec = make_section("800px") in
-  render_h2(sec, "Channel Rates");
-  render_p(sec, "Each channel completes a full orbit in q steps. Smaller modulus = faster orbit. In one heartbeat (1680 steps):");
+  render_h2(sec, "Seven Orbits");
+  render_p(sec, "Each orbit IS a micro tower made visible. The modulus q is the tower top. The orbit period is q steps. The number of complete orbits in one lambda cycle (1680 steps) = floor(1680/q). Only D divides 1680 evenly.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
-  render_th(hdr, "Channel");
-  render_th(hdr, "Modulus");
-  render_th(hdr, "Orbits/heartbeat");
+  render_th(hdr, "Orbit");
+  render_th(hdr, "q");
+  render_th(hdr, "Tower depth");
+  render_th(hdr, "Orbits/lambda");
   render_th(hdr, "Role");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "D (bridge)", "8", "210", "Fastest. Coarsest resolution.");
-  render_table_row_4(tbl, "K (closure)", "9", "186", "K^2=9 stop signal.");
-  render_table_row_4(tbl, "E (observer)", "25", "67", "Self-blind (E^2=0 mod 25).");
-  render_table_row_4(tbl, "b (depth)", "49", "34", "Slowest DATA. Finest resolution.");
-  render_table_row_4(tbl, "L (protector)", "11", "152", "ECC parity field.");
-  render_table_row_4(tbl, "GATE (skin)", "13", "129", "ECC parity field.");
-  render_table_row_4(tbl, "ESCAPE (17)", "17", "98", "Transcendence. ECC parity field.");
-  render_p(sec, "DATA channels {D, K, E, b} carry information (warm colors, inner orbits). ALIVE channels {L, GATE, ESCAPE} carry parity (cool colors, outer orbits). The fat DATA channels have more positions but complete fewer orbits. The thin ALIVE channels are fields -- arithmetic is exact.");
+  render_table_row_5(tbl, "D", "8", "3 (unique)", "210 (exact)", "Fastest. Bridge instrument.");
+  render_table_row_5(tbl, "K", "9", "2", "186 (+6/9)", "Closure engine.");
+  render_table_row_5(tbl, "E", "25", "2", "67 (+5/25)", "Observer. E^2=0 mod 25.");
+  render_table_row_5(tbl, "b", "49", "2", "34 (+14/49)", "Slowest DATA. Depth prime.");
+  render_table_row_5(tbl, "L", "11", "1", "152 (+8/11)", "Protector. ECC parity.");
+  render_table_row_5(tbl, "GATE", "13", "1", "129 (+3/13)", "Boundary. ECC parity.");
+  render_table_row_5(tbl, "ESCAPE", "17", "1", "98 (+14/17)", "Transcendence. ECC parity.");
+  render_p(sec, "DATA channels {D, K, E, b} carry information (warm colors, inner orbits). ALIVE channels {L, GATE, ESCAPE} carry parity (cool colors, outer orbits). Fat DATA channels (exponent >= 2) have more positions per orbit but complete fewer orbits per lambda cycle.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Heartbeat = 7", "1680 / 240 = b", "Fat channels buy exactly one factor of depth in heartbeat period. The ratio of TRANS to THIN lambda is the depth prime.", "S1331");
-  render_finding(g, "Angular momentum = b", "7 = depth prime", "Between sigma and D, the sum of phase differences across all 7 channels is always 7. Angular momentum IS CRT distance -- a static invariant measured dynamically. See section below.", "S1334");
+  render_finding(g, "Lambda = b * 240", "1680 = 7 * lcm(2,6,20,10,12,16)", "The depth prime b=7 contributes exactly one factor to the multiplicative exponent. Remove b-fattening (lambda(49)=42) and the remaining channel lambdas give lcm = 240. The ratio lambda/240 = b.", "S1331");
+  render_finding(g, "Full return = TRANS", "lcm(8,9,...,17) = 214414200", "The additive orbit period (when all 7 dots return to start simultaneously) equals the product of all moduli, which is TRANS itself. Lambda = 1680 is the multiplicative exponent (a^1680 = a for coprime a), not the additive return.", "TT29");
   dom_append(dom_body(), sec)
 )
 
-/* ===== OPERATIONAL BOUNDARY SECTION (S1343) ===== */
+/* ===== ANGULAR MOMENTUM (cross-tower) ===== */
+fn sph_angmom() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Angular Momentum");
+  render_p(sec, "When two elements spin at the same stride, the sum of their circular phase differences across all 7 channels is constant. The step cancels out. This constant IS the CRT distance between the two elements, measured dynamically.");
+  render_p(sec, "For sigma(1) and D(2): differ by 1 in every channel. circ_dist(1, q) = 1 for all q >= 3. Sum = 7 * 1 = 7 = b. Measured on ESP32 hardware: every SPIN packet between the sigma board and D board shows ang_mom = 7.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Pair");
+  render_th(hdr, "CRT distance");
+  render_th(hdr, "Why");
+  dom_append(tbl, hdr);
+  render_table_row(tbl, "sigma(1), D(2)", "7 = b", "Differ by 1 on all 7 channels.");
+  render_table_row(tbl, "sigma(1), K(3)", "14 = D*b", "Differ by 2 on all channels.");
+  render_table_row(tbl, "D(2), K(3)", "7 = b", "Differ by 1 on all channels.");
+  render_table_row(tbl, "void(0), K(3)", "21 = K*b", "Differ by 3 on all channels.");
+  render_table_row(tbl, "Maximum", "63", "All channels antipodal: sum floor(q/2).");
+  render_p(sec, "The angular momentum depends on which elements you compare, not on how long the ring has been spinning. Rotation contributes nothing -- the structure was already there. A dynamic measurement revealing a static invariant.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "ang_mom(1,2) = 7 = b", "ESP32 S1334", "CRT distance IS angular momentum. Proved: dist(a+s, b+s) = dist(a, b) because stride s cancels in every channel. Same-stride constancy is algebraic, not empirical.", "S1334");
+  render_finding(g, "Different strides: avg 33", "ESP32 + test 40/40", "When elements step at different rates, angular momentum varies. Per-channel expectation: E[circ_dist in Z/q] = q/4 (even) or (q^2-1)/(4q) (odd). Total: 32.86. Hardware: 33.00 (stride 1:2, 90 packets). Verified: test_ang_mom.ax 40/40, FPGA crt_ang_mom.v 710 cells.", "S1350");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== DETECTION (Tower_L — the protector) ===== */
+fn sph_detect() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Detection");
+  render_p(sec, "Tower_L = the protector. L = 11 = sigma + D + K + E. ECC3 triple parity uses all three ALIVE channels (L + GATE + ESCAPE, rate 4/7). Any single-channel corruption is 100% detectable and correctable.");
+  render_p(sec, "Measured on ESP32 (S5, S9): L-channel injection detected at 100% rate. Phase-independent: 72/72 tests across all rotation phases, including all 7 channel wrap points. Time does not affect ECC detectability.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "100% single-channel detect", "S5: every injected error caught", "L=11 parity catches every single-channel error. The parity product 11*13*17 = 2431 exceeds max_data^2 = 49^2 = 2401. Margin of 30 means no data-channel error can hide.", "S1334");
+  render_finding(g, "Phase-independent ECC", "72/72, S9", "b-channel (54 tests) and L-channel (18 tests) injection across lambda progress 5-109. 100% detection at every phase, including all 7 channel wrap points. Triple parity makes any single-channel error always detectable.", "S1342");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== RECOVERY (Tower_D — the bridge) ===== */
+fn sph_recover() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Recovery");
+  render_p(sec, "Tower_D = the bridge. D = 2 = duality, involution, the -1 mirror. When corruption is detected, the -1 round-trip cancels it. The algebra: x + e becomes (N - x - e) + e = N - x becomes x. Two errors, two mirrors, perfect cancellation.");
+  render_p(sec, "Measured on ESP32 (S5b): D board injects L-channel error (+1 mod 11) on every 5th packet. Void detects, mirrors the corrupted value (N - corrupted), sends back. D applies same error on return, mirrors again. Result: 100% recovery (4/4 targeted tests).");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Round-trip recovery 4/4", "S5b: -1 theorem on radio", "corrupted = 116953202 (element 2 + e_L). mirror = 97460998. Return L+1 plus final mirror yields 2. Exact.", "S1339");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== OPERATIONAL BOUNDARY (Tower_GATE — the skin) ===== */
 fn sph_boundary() = (
   let sec = make_section("800px") in
   render_h2(sec, "Operational Boundary");
-  render_p(sec, "ECC3 triple parity (L + GATE + ESCAPE, rate 4/7) gives 100% single-channel correction. But what happens when two channels are corrupted simultaneously? This defines the operational boundary: how many errors can the system tolerate before it must retransmit?");
-  render_p(sec, "Exhaustive computation: all 88,200 data values, all 21 channel pairs, all possible error combinations. 535 million 2-channel error patterns tested. Zero undetected.");
+  render_p(sec, "Tower_GATE = the boundary between inside and outside. GATE = 13 = skin. Here: the boundary between auto-heal (1 error) and retransmit (2 errors). Exhaustive computation: 535 million 2-channel error patterns tested. Zero undetected.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Error type");
@@ -296,120 +349,95 @@ fn sph_boundary() = (
   render_th(hdr, "Correction");
   dom_append(tbl, hdr);
   render_table_row_4(tbl, "1 channel", "any", "100%", "100% (auto-heal)");
-  render_table_row_4(tbl, "2 channels (DATA+DATA)", "202M patterns", "100%", "retransmit");
-  render_table_row_4(tbl, "2 channels (DATA+PAR)", "292M patterns", "100%", "retransmit");
-  render_table_row_4(tbl, "2 channels (PAR+PAR)", "42M patterns", "100%", "retransmit");
-  render_p(sec, "The key guarantee: 2431 = 11 * 13 * 17 (parity product) exceeds 49^2 = 2401 (max data channel squared). This margin of 30 means no pair of data-channel errors can produce a syndrome-invisible delta. Every 2-channel error flips at least one parity check.");
-  render_p(sec, "Protocol: detect() on every received packet. Clean -> accept. Error -> retransmit via -1 round-trip. The mesh already implements this (S5b). One error auto-heals. Two errors trigger retransmit. The algebra decides.");
+  render_table_row_4(tbl, "2 ch (DATA+DATA)", "202M", "100%", "retransmit");
+  render_table_row_4(tbl, "2 ch (DATA+PAR)", "292M", "100%", "retransmit");
+  render_table_row_4(tbl, "2 ch (PAR+PAR)", "42M", "100%", "retransmit");
+  render_p(sec, "The algebraic guard: parity product 2431 = 11*13*17 exceeds 49^2 = 2401. Margin of 30 means no pair of data-channel errors can produce a syndrome-invisible delta. Protocol: detect() on every packet. Clean = accept. Error = retransmit via -1 round-trip.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "535M exhaustive = 0 silent", "test_multi_ecc.c + .ax 45/45", "Every possible 2-channel error pattern across all 21 channel pairs and all 88,200 data values: 100% detected. Zero silent corruption. The parity product 2431 > max_channel^2 = 2401 is the algebraic guard.", "S1343");
-  render_finding(g, "1 error = heal, 2 = retransmit", "Operational boundary", "This is the standard Hamming-distance-3 trade-off: correct 1 or detect 2, not both simultaneously. The ESP32 mesh uses detect-only mode with -1 round-trip recovery, which is safe for any number of detected errors.", "S1343");
-  render_finding(g, "FPGA: 88200 ECC proof on silicon", "crt_k9_ecc.v V2, 1696 LUT4 (8%)", "All 88,200 data values tested with b-channel +1 corruption on Tang Nano 20K at 27 MHz. 0 false negatives. Syndrome: d + 27000 mod 88200 via comparison+subtraction, then triple parity check (mod 11/13/17). All 6 LEDs ON = proof. Software validation covers all 49 deltas: test_fpga_ecc.c (4.3M) + .ax (410/410).", "S1344");
+  render_finding(g, "535M exhaustive = 0 silent", "test_multi_ecc 45/45", "Every possible 2-channel error pattern across all 21 channel pairs and all 88,200 data values: 100% detected. The parity product exceeding max_data^2 is the algebraic proof.", "S1343");
+  render_finding(g, "FPGA: 88200 ECC on silicon", "crt_k9_ecc.v V2, 1696 LUT4", "All 88,200 data values tested with b-channel +1 corruption on Tang Nano 20K at 27 MHz. 0 false negatives. Syndrome: d + 27000 mod 88200, then triple parity check. All 6 LEDs ON = proof.", "S1344");
   dom_append(dom_body(), sec)
 )
 
-/* ===== PHYSICS SECTION ===== */
-fn sph_physics() = (
+/* ===== HEARTBEAT STABILITY (Tower_C) ===== */
+fn sph_heartbeat() = (
   let sec = make_section("800px") in
-  render_h2(sec, "Why Spheres");
-  render_p(sec, "A point orbiting a circle at constant speed traces the circle. But viewed from outside -- averaged over time -- it fills a disc. At higher dimensions, a point orbiting a torus fills the torus surface. The spinning ring IS the sphere, experienced over time.");
-  render_p(sec, "The FPGA implementation makes this literal: a counter cycles 0 to 214,414,199 at 267 MHz. Full orbit in 0.8 seconds. Each clock tick, the CRT decomposition gives 7 independent channel coordinates -- the point's position on T^7. The spinning counter IS the ring made physical.");
-  render_p(sec, "The ESP32 mesh implements the same dynamics across 3 distributed boards. Each board is one element in the ring. Communication via ESP-NOW at 3-second heartbeat. Round-trip cancellation (the -1 theorem) recovers timing offsets at O(1) per channel.");
+  render_h2(sec, "Heartbeat Stability");
+  render_p(sec, "Tower_C = the heartbeat fiber. Lambda = 1680 = the multiplicative exponent (a^1680 = a for all a coprime to TRANS). The heartbeat is not the spin period (that is TRANS) but the algebraic pulse of the unit group.");
+  render_p(sec, "The 24-hour drift test (S10): 3 boards spinning continuously, stride=1. Void captures angular momentum from both sigma and D every 3 seconds. 51,738 packets total. Result: ang_mom = 34 for every single observation. Zero drift. Zero ECC failures.");
+  render_p(sec, "The value 34 depends on boot timing: boards power on at different moments, creating a fixed CRT distance between their spinning phases. Same-stride constancy means this is provably step-independent: any boot offset giving 34 stays at 34 forever. Verified: test_drift.ax 62/62.");
+  render_p(sec, "Drift sensitivity: a single-beat drift (3 seconds) would change ang_mom from 34 to 33. Over 24 hours (28,800 beats), ang_mom stayed exactly 34. ESP32 clocks stable to within 3 seconds per 24 hours (< 35 ppm). CRT provides free clock monitoring with zero protocol overhead.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "FPGA: 267 MHz orbit", "crt_k9_pipeline.v", "9-stage pipeline, 7 channels decomposed in parallel. 6555 LUT4 (31% of Tang Nano 20K). The counter IS the spinning address.", "S1265");
-  render_finding(g, "FPGA: ECC3 on silicon", "crt_k9_ecc.v V2", "88,200 syndrome checks at 27 MHz. 1696 LUT4 (8%). Inject b+1, compute d+27000 mod 88200, check all 3 parity channels. 0 false negatives. All 6 LEDs ON.", "S1344");
-  render_finding(g, "FPGA: CRT polyrhythm", "crt_polyrhythm.v", "6 LEDs = 6 TRUE channels. Each LED shows cos(2*pi*r/q) sign at human-visible rate. D blinks at ~3.2 Hz, b at ~0.5 Hz -- the depth prime IS the slowest orbit. No mod operations: 6 independent wrap-around counters (CRT isomorphism). 196 cells. The spinning sphere, made audible to the eyes.", "S1345");
-  render_finding(g, "FPGA: Angular momentum", "crt_ang_mom.v, 710 cells (2.4%)", "Two spinning addresses (stride 1:2) on TRANS torus. 14 wrap-around counters compute circular CRT distance every cycle. Proof phase sweeps all 214M addresses in ~8 seconds: verifies min=0 (alignment at t=N-1) and max=63 (all channels antipodal). Display phase shows live ang_mom as 6-bit binary on LEDs. Exact lambda-cycle sum: 55205/1680 = 32.86, matching ESP32 S8: 33.00.", "S1350");
-  render_finding(g, "ESP32: 3-board mesh", "crt_mesh.c", "K=3 boards, algebraic addressing, L=11 ECC per packet. CAL_PROBE/CAL_ECHO auto-calibrate via round-trip.", "S1329");
-  render_finding(g, "Void pilots", "0 mod q = 0 for all q", "Element 0 (void) has residue 0 in every channel. It sees every layer simultaneously. Void is the natural hub of the spinning structure.", "S1331");
+  render_finding(g, "24h zero drift", "ang_mom=34, 51738 pkts", "25,827 from sigma, 25,911 from D. All at ang_mom = 34. Zero ECC failures. Zero calibration delta. The CRT structure IS the clock monitor.", "S1357");
+  render_finding(g, "30-min stability", "540/540 ang_mom=47", "Earlier 30-minute test: 1801 seconds, 840 clean packets, 0 natural ECC failures. Angular momentum constant at 47 throughout.", "S1337");
+  render_finding(g, "Free clock monitoring", "ang_mom drift detector", "If clocks drift by delta beats, ang_mom shifts. Drift 0 gives 7, drift 1 gives 0, drift 5 gives 28. Any deviation from expected constant = drift detected. No GPS, no protocol overhead.", "S1334");
   dom_append(dom_body(), sec)
 )
 
-/* ===== ANGULAR MOMENTUM SECTION (S1334) ===== */
-fn sph_angmom() = (
+/* ===== STRIDE AND ISOLATION (Tower_ESCAPE) ===== */
+fn sph_isolation() = (
   let sec = make_section("800px") in
-  render_h2(sec, "Angular Momentum");
-  render_p(sec, "When two elements spin at the same stride, the sum of their phase differences across all 7 channels is constant. It never changes -- the step cancels out. This constant IS the CRT distance between the two elements.");
-  render_p(sec, "For sigma(1) and D(2), the angular momentum is 7 -- the depth prime b. They differ by 1 in every channel, and 1+1+1+1+1+1+1 = 7. This was measured on ESP32 hardware: every SPIN packet between the sigma board and D board shows ang_mom = 7. Consistent across all observations.");
-  /* Distance examples */
+  render_h2(sec, "Stride and Isolation");
+  render_p(sec, "Tower_ESCAPE = transcendence. ESCAPE = 17, the only field among all 7 TRANS channels. When boards spin at different strides, angular momentum becomes step-dependent. The stride DIFFERENCE determines which channels are frozen.");
+  render_h3(sec, "Stride Lock Theorem");
+  render_p(sec, "gcd(stride_diff, q_i) = q_i freezes channel i. The D-channel has modulus 8. Any stride difference divisible by 8 locks D at a constant angular momentum contribution. Three stride ratios tested on hardware (90 packets each):");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
-  render_th(hdr, "Pair");
-  render_th(hdr, "CRT Distance");
-  render_th(hdr, "Note");
+  render_th(hdr, "Stride");
+  render_th(hdr, "avg ang_mom");
+  render_th(hdr, "delta from 33");
+  render_th(hdr, "mechanism");
   dom_append(tbl, hdr);
-  render_table_row(tbl, "sigma(1), D(2)", "7", "Differ by 1 on all 7 channels.");
-  render_table_row(tbl, "sigma(1), K(3)", "14", "Differ by 2 on all channels.");
-  render_table_row(tbl, "D(2), K(3)", "7", "Differ by 1 on all channels.");
-  render_table_row(tbl, "void(0), K(3)", "21", "Void is 3 steps from K.");
-  render_table_row(tbl, "Maximum possible", "63", "All channels antipodal.");
-  render_p(sec, "The angular momentum depends on which two elements you compare, not on how long the ring has been spinning. It is a static invariant disguised as a dynamic measurement. The rotation contributes nothing -- the structure was already there.");
-  /* Findings */
-  let g = make_findings_grid(sec) in
-  render_finding(g, "ang_mom = 7 = b", "Measured on ESP32", "Between sigma and D boards, the sum of phase differences is always 7 = depth prime. CRT distance IS angular momentum. Proved: dist(a+s, b+s) = dist(a, b) because step s cancels.", "S1334");
-  render_finding(g, "Clock drift detector", "Quantized by CRT", "If clocks drift by delta, ang_mom shifts: drift 0 gives 7, drift 1 gives 0, drift 5 gives 28. Any deviation from the expected constant = drift detected. No GPS needed.", "S1334");
-  render_finding(g, "Different strides", "Pseudo-random mixing", "When elements step at different rates, angular momentum becomes step-dependent. Per-channel: E[circ_dist in Z/q] = q/4 (even q) or (q^2-1)/(4q) (odd q). Total: sum of 7 channel averages = 32.9. Measured on ESP32: 33.00 (stride 1:2, 90 packets). Verified in software: 55205/1680 = 32.86 (1680-step sweep, test_ang_mom.ax 40/40). The rotation IS the mixing.", "S1350");
-  dom_append(dom_body(), sec)
-)
-
-/* ===== HARDWARE VALIDATION SECTION (S1337-S1351) ===== */
-fn sph_hardware() = (
-  let sec = make_section("800px") in
-  render_h2(sec, "Hardware Validation");
-  render_p(sec, "Three ESP32 boards form a CRT mesh: void(0), sigma(1), D(2). Communication via ESP-NOW broadcast at 3-second heartbeat. Each board sends its SPIN phase vector. The receiver computes angular momentum, checks ECC, and verifies the -1 round-trip theorem.");
-  render_p(sec, "The validation builds in stages. Each stage proves a stronger property of the spinning structure:");
-  /* Results table */
-  let tbl = make_table(sec) in
-  let hdr = dom_create("tr") in
-  render_th(hdr, "Stage");
-  render_th(hdr, "Result");
-  render_th(hdr, "What it proves");
-  dom_append(tbl, hdr);
-  render_table_row(tbl, "S4: Void-as-hub", "162+ RX, 0 ECC fail", "Void receives from all peers. Natural hub.");
-  render_table_row(tbl, "S5: Error detection", "100% detect rate", "L=11 parity catches every injected error.");
-  render_table_row(tbl, "S5b: Error recovery", "100% recovery (4/4)", "-1 mirror round-trip recovers original value.");
-  render_table_row(tbl, "S7: 30-min stability", "540/540 ang_mom=47", "Zero drift over 1801 seconds. 0 natural ECC failures.");
-  render_table_row(tbl, "S9: Time-domain injection", "72/72 = 100% detect", "Phase-independent: b-channel and L-channel injection detected at all rotation phases.");
-  render_table_row(tbl, "S10: 24-hour drift test", "ang_mom=34 constant", "Zero clock drift over 24 hours. 0 ECC failures. All calibration delta=0.");
-  render_p(sec, "S5b is the key result. D board injects L-channel error (+1 mod 11) on every 5th packet. Void detects ECC failure, mirrors the corrupted integer (N - corrupted), and sends it back. D applies the same error on the return path, then mirrors again. The algebra: x + eL becomes (N - x - eL) + eL = N - x becomes x. Two errors, two mirrors, perfect cancellation.");
-  render_p(sec, "S7 confirms long-term stability. Over 30 minutes of continuous operation, the angular momentum between void and sigma stayed at exactly 47 for all 540 observations. Zero clock drift at 3-second resolution. 840 clean packets, zero natural ECC failures.");
-  render_h3(sec, "S8: Stride Experiments");
-  render_p(sec, "When two boards spin at different strides, angular momentum becomes time-varying. The theory predicts the average should equal sum(q_i/4) = 33 (uniform phase mixing). Three stride ratios tested on hardware, 90 packets each:");
+  render_table_row_4(tbl, "1:2", "33.00", "0.00", "No channel locked.");
+  render_table_row_4(tbl, "1:7 (depth)", "33.22", "+0.22", "Near-uniform mixing.");
+  render_table_row_4(tbl, "1:17", "35.08", "+2.08", "D locked (16 mod 8=0).");
+  render_h3(sec, "Channel Isolation Hierarchy");
+  render_p(sec, "Isolation stride for channel i = N/q_i. To observe ONLY one channel, spin at the stride that makes all others period-1. The ring hierarchy IS the isolation hierarchy:");
   let t2 = make_table(sec) in
   let h2 = dom_create("tr") in
-  render_th(h2, "Stride");
-  render_th(h2, "avg ang_mom");
-  render_th(h2, "delta from 33");
-  render_th(h2, "range");
+  render_th(h2, "Isolate");
+  render_th(h2, "Stride = N/q");
+  render_th(h2, "Ring");
   dom_append(t2, h2);
-  render_table_row_4(t2, "1:2", "33.00", "0.00", "14-47");
-  render_table_row_4(t2, "1:7 (depth)", "33.22", "+0.22", "16-53");
-  render_table_row_4(t2, "1:17", "35.08", "+2.08 (D lock)", "14-53");
-  render_p(sec, "Stride 1:2 matches the prediction exactly. Stride 1:7 is near-exact. Stride 1:17 shows a +2.08 bias. Analysis (S1342) reveals the mechanism: the stride DIFFERENCE 16 = 0 mod 8 freezes the D channel, not ESCAPE. The D-channel angular momentum becomes constant at circ_dist((2+delta)%8, 0, 8) where delta is the boot offset. With delta=2, D contributes 4 instead of the average 2, explaining the +2 bias exactly. General rule: gcd(stride_diff, q_i) = q_i freezes channel i.");
-  render_h3(sec, "S10: 24-Hour Drift Test");
-  render_p(sec, "The ultimate stability test: 3 boards spinning continuously for 24 hours. All at stride=1. Void captures angular momentum from both sigma and D every 3 seconds. 51,738 packets total (25,827 from sigma, 25,911 from D). Result: ang_mom = 34 for every single observation. Zero drift. Zero ECC failures. All calibration deltas = 0.");
-  render_p(sec, "The value 34 depends on boot timing: each board starts at a different step, so the effective CRT distance between spinning phases is fixed by when they powered on. Same-stride constancy means this is provably step-independent. Any boot offset that gives 34 will stay at 34 forever. Verified algebraically in test_drift.ax (62/62 tests).");
-  render_p(sec, "Drift sensitivity: a single-beat drift (3 seconds) would change ang_mom from 34 to 33. Over 24 hours (28,800 beats), ang_mom stayed exactly 34. ESP32 clocks are stable to within 3 seconds per 24 hours, which is less than 35 ppm. The CRT structure provides free clock monitoring with zero protocol overhead.");
-  /* Findings */
+  render_table_row(t2, "ESCAPE (q=17)", "12612600", "TRUE");
+  render_table_row(t2, "GATE (q=13)", "16493400", "");
+  render_table_row(t2, "L (q=11)", "19492200", "");
+  render_table_row(t2, "b (q=49)", "4375800", "");
+  render_table_row(t2, "E (q=25)", "8576568", "");
+  render_table_row(t2, "K (q=9)", "23823800", "");
+  render_table_row(t2, "D (q=8)", "26801775", "OMEGA");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Detect + Recover + Clock", "One ring, one protocol", "L=11 detects corruption. The -1 mirror recovers the original. Angular momentum measures clock drift. All three from the same algebraic structure. All CC0.", "S1339");
-  render_finding(g, "corrupted = 116953202", "mirror = 97460998", "Element 2 with L+1 error reconstructs to 2 + e_L = 116953202. Void mirrors to N - 116953202 = 97460998. Return-path L+1 plus final mirror yields 2. Exact.", "S1339");
-  render_finding(g, "D-channel lock +2.08", "stride_diff mod 8 = 0", "Stride 1:17 has stride difference 16. Since 16 mod 8 = 0, the D-channel angular momentum freezes. Boot offset delta=2 gives D-contribution = 4 (max). Analytic prediction: 34.89. Hardware: 35.08. Corrects S1340 ESCAPE attribution: ESCAPE phase IS frozen on sender, but ang_mom contribution still varies.", "S1342");
-  render_finding(g, "Phase-independent ECC", "72/72 across all phases", "Time-domain injection: corrupt b-channel (54 packets) and L-channel (18 packets) across lambda progress 5-109. 100% detection at every phase, including all 7 channel wrap points. Triple parity makes any single-channel error always detectable.", "S1342");
-  render_finding(g, "Ring = isolation hierarchy", "stride N/q isolates channel", "Isolation stride for channel i = N/q_i. To observe only ESCAPE: spin at TRUE = N/17. To observe only D: spin at OMEGA = N/8. Each sub-ring isolates the channel it excludes. The ring hierarchy IS the channel isolation hierarchy.", "S1342");
-  render_finding(g, "24h zero drift", "ang_mom=34 constant", "Over 24 hours and 51,738 packets: ang_mom constant at 34 for both peers. Clock stability < 35 ppm. Zero ECC failures. Zero calibration delta. Free clock monitoring from CRT algebra with zero protocol overhead.", "S1357");
+  render_finding(g, "D-channel lock +2.08", "stride_diff 16 mod 8 = 0", "Stride 1:17 has stride difference 16. Since 16 mod 8 = 0, D-channel freezes. Boot offset delta=2 gives D-contribution = 4 (max). Corrects S1340 ESCAPE attribution: ESCAPE phase IS frozen on sender, but ang_mom contribution still varies.", "S1342");
+  render_finding(g, "Ring = isolation", "N/q hierarchy", "Each sub-ring isolates the channel it excludes. Stride at TRUE = N/17 isolates ESCAPE. Stride at OMEGA = N/8 isolates D.", "S1342");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== SILICON PROOF (Tower_K — K^2=9 pipeline) ===== */
+fn sph_silicon() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Silicon");
+  render_p(sec, "Tower_K = closure. K^2 = 9 = the parallelism unit. The FPGA implementations prove the spinning structure on silicon, where the ring physically orbits at clock speed.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "K^2=9 pipeline at 267 MHz", "crt_k9_pipeline.v, 6555 LUT4 (31%)", "9-stage pipeline, 7 channels decomposed in parallel. Counter cycles 0 to 214,414,199 at 267 MHz. Full orbit in 0.8 seconds. The spinning counter IS the ring made physical on Tang Nano 20K.", "S1265");
+  render_finding(g, "ECC3 on silicon", "crt_k9_ecc.v V2, 1696 LUT4 (8%)", "88,200 syndrome checks at 27 MHz. Inject b+1, compute d+27000 mod 88200, check all 3 parity channels. 0 false negatives. All 6 LEDs ON = proof.", "S1344");
+  render_finding(g, "CRT polyrhythm", "crt_polyrhythm.v, 196 cells", "6 LEDs = 6 TRUE channels. Each LED shows cos(2*pi*r/q) sign at human-visible rate. D blinks at ~3.2 Hz, b at ~0.5 Hz. The depth prime IS the slowest orbit. 6 independent wrap-around counters (CRT isomorphism). The spinning sphere, visible to the eyes.", "S1345");
+  render_finding(g, "Angular momentum on FPGA", "crt_ang_mom.v, 710 cells (2.4%)", "Two spinning addresses (stride 1:2) on TRANS torus. 14 wrap-around counters compute circular CRT distance every cycle. Proof phase sweeps all 214M addresses in ~8 seconds: min=0 (alignment), max=63 (all antipodal). Lambda-cycle sum: 55205/1680 = 32.86, matching ESP32.", "S1350");
+  render_finding(g, "Void pilots all layers", "0 mod q = 0 for all q", "Element 0 (void) has residue 0 in every channel. It sees every layer simultaneously. Void is the natural hub of the spinning structure.", "S1331");
   dom_append(dom_body(), sec)
 )
 
 /* ===== MAIN PAGE ===== */
 fn page_sphere() = (
-  dom_head_meta("description", "Spinning Spheres: 7 concentric orbits visualizing CRT channel dynamics. Each channel spins at its own rate. At lambda=1680, all realign. Interactive animation with play/pause/step controls. Hardware: 24-hour drift test, zero drift, ang_mom=34=am_of(b). ECC detection, recovery, clock monitoring.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits. Lambda=1680 heartbeat. Angular momentum equals CRT distance. Hardware-validated on 3 ESP32 boards: ECC detection 100%, round-trip recovery 100%, clock drift measurement.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"angular momentum\"},{\"@type\":\"DefinedTerm\",\"name\":\"hardware validation\"},{\"@type\":\"DefinedTerm\",\"name\":\"error recovery\"}]}");
+  dom_head_meta("description", "Spinning Spheres: 7 concentric CRT orbits through the tower lens. Each channel spins at its own rate. Full realignment at TRANS = 214414200. Lambda = 1680 = multiplicative exponent. Angular momentum = CRT distance. Hardware: 24-hour drift test, ECC detection and recovery, stride lock theorem. FPGA K^2=9 pipeline at 267 MHz.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Spinning Spheres\",\"description\":\"7 concentric CRT channel orbits through the tower lens. Angular momentum equals CRT distance. Hardware-validated on 3 ESP32 boards and FPGA: ECC detection 100%, round-trip recovery 100%, 24-hour drift test.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/sphere\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"spinning spheres\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT dynamics\"},{\"@type\":\"DefinedTerm\",\"name\":\"angular momentum\"},{\"@type\":\"DefinedTerm\",\"name\":\"hardware validation\"},{\"@type\":\"DefinedTerm\",\"name\":\"error recovery\"}]}");
   sph_hero();
   sph_canvas_section();
-  sph_legend();
+  sph_orbits();
   sph_angmom();
-  sph_hardware();
+  sph_detect();
+  sph_recover();
   sph_boundary();
-  sph_physics()
+  sph_heartbeat();
+  sph_isolation();
+  sph_silicon()
 )
