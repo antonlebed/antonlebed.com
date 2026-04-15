@@ -78,8 +78,12 @@ export default {
         return new Response('OK', { status: 200, headers: { 'Access-Control-Allow-Origin': '*' } });
       }
       var data = '{}';
-      if (env.SENSOR_DATA) { data = await env.SENSOR_DATA.get('latest') || '{}'; }
-      return new Response(data, { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-cache' } });
+      /* cacheTtl: 600 -- Cloudflare edge-caches KV value 10 min (no KV read cost); */
+      /* Cache-Control max-age=600 -- browser + CDN cache response 10 min (no Worker invocation). */
+      /* Bridge POST naturally invalidates by overwriting the key. Cache TTL matches */
+      /* sensor_bridge.py INTERVAL_SEC = 600. Free-tier safe at any viewer count. */
+      if (env.SENSOR_DATA) { data = await env.SENSOR_DATA.get('latest', { cacheTtl: 600 }) || '{}'; }
+      return new Response(data, { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=600' } });
     }
 
     /* Static assets (.html, .js, .wasm, .png, .jpg, .css) */
