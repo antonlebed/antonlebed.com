@@ -362,9 +362,12 @@ fn on_sn_fetch_done() = (
   ) else (
     dom_inner(sn_status_el[0], "<span style='color:#ff6666'>No data</span> (bridge not running or KV empty)")
   );
-  /* Schedule next fetch after 3 seconds */
+  /* Schedule next fetch after 60s. Bridge POSTs at most every 10min
+     (S1433 KV throttle fix), so polling faster gets stale repeats and
+     burns Worker request quota (100k/day free, was 28800/day per viewer
+     at 3s polling). 60s = 1440/day per viewer, plenty under quota. */
   if sn_live[0] == 1 then
-    dom_timeout(sn_timer_el[0], 3000)
+    dom_timeout(sn_timer_el[0], 60000)
   else 0
 )
 
