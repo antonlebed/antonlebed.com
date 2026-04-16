@@ -73,6 +73,125 @@ fn tor_landscape() = (
   dom_append(dom_body(), sec)
 )
 
+/* === SECTION 2.1: Landscape Plot — interactive 7-channel highlight (TO.8, S1446) === */
+/* Promotion of tor_landscape into an interactive canvas. Seven micro towers =
+   seven cosines. Click a channel button to isolate that tower's contribution;
+   ALL shows the full landscape. Integer trig via 64ths-of-circle table (*1000),
+   mirrored from page_sphere sph_sin64 pattern for self-contained compile. */
+fn _tlp_sq(k) = if k == 0 then 0 else if k == 1 then 98 else if k == 2 then 195 else if k == 3 then 290 else if k == 4 then 383 else if k == 5 then 471 else if k == 6 then 556 else if k == 7 then 634 else if k == 8 then 707 else if k == 9 then 773 else if k == 10 then 831 else if k == 11 then 882 else if k == 12 then 924 else if k == 13 then 957 else if k == 14 then 981 else 996
+
+fn tlp_sin64(a) = (
+  let a2 = ((a % 64) + 64) % 64 in
+  if a2 < 16 then _tlp_sq(a2)
+  else if a2 < 32 then _tlp_sq(32 - a2)
+  else if a2 < 48 then 0 - _tlp_sq(a2 - 32)
+  else 0 - _tlp_sq(64 - a2)
+)
+fn tlp_cos64(a) = tlp_sin64(a + 16)
+
+/* g_tlp_hi: 0..6 = highlighted channel index; 7 = ALL. Array wrapper per S1140
+   (top-level `let` = IMMUTABLE WASM global; array indirection makes it mutable). */
+let g_tlp_hi = [7]
+let g_tlp_q = [8, 9, 25, 49, 11, 13, 17]
+
+fn tlp_col(ci) = (
+  if ci == 0 then "#ffd700" else if ci == 1 then "#ff9900"
+  else if ci == 2 then "#33dd55" else if ci == 3 then "#4488ff"
+  else if ci == 4 then "#aa44ff" else if ci == 5 then "#ff4466" else "#00dddd"
+)
+fn tlp_label(ci) = (
+  if ci == 0 then "D (Z/8)" else if ci == 1 then "K (Z/9)"
+  else if ci == 2 then "E (Z/25)" else if ci == 3 then "b (Z/49)"
+  else if ci == 4 then "L (Z/11)" else if ci == 5 then "GATE (Z/13)" else "ESCAPE (Z/17)"
+)
+
+/* Redraw on 700x280 canvas: y=140 is eigenvalue 0; amplitude 2 at peaks → 60 px.
+   Per channel, plot 2*cos(2*pi*x/q) with x = pixel = element index in [0, 700). */
+fn tlp_redraw() = (
+  let cvs = dom_query("#tlp-cvs") in
+  let ctx = cvs_getctx(cvs) in
+  let hi = g_tlp_hi[0] in
+  let _b0 = cvs_fillstyle(ctx, "#0a0a18") in
+  let _b1 = cvs_fillrect(ctx, 0, 0, 700, 280) in
+  let _a0 = cvs_strokestyle(ctx, "#2a2a3a") in
+  let _a1 = cvs_linewidth(ctx, 1) in
+  let _a2 = cvs_beginpath(ctx) in
+  let _a3 = cvs_moveto(ctx, 0, 140) in
+  let _a4 = cvs_lineto(ctx, 700, 140) in
+  let _a5 = cvs_stroke(ctx) in
+  mut ci = 0;
+  while ci < 7 do (
+    let q = g_tlp_q[ci] in
+    let dim = if hi == 7 then 0 else if hi == ci then 0 else 1 in
+    let w = if hi == 7 then 2 else if hi == ci then 3 else 1 in
+    let _s0 = cvs_strokestyle(ctx, if dim == 1 then "#2a2a3a" else tlp_col(ci)) in
+    let _s1 = cvs_linewidth(ctx, w) in
+    let _s2 = cvs_beginpath(ctx) in
+    mut x = 0;
+    while x < 700 do (
+      let a64 = (x * 64) / q in
+      let c = tlp_cos64(a64) in
+      let y = 140 - (c * 60) / 1000 in
+      if x == 0 then (let _mv = cvs_moveto(ctx, x, y) in 0)
+      else (let _ln = cvs_lineto(ctx, x, y) in 0);
+      mut x = x + 1
+    );
+    let _s3 = cvs_stroke(ctx);
+    mut ci = ci + 1
+  );
+  let _f0 = cvs_font(ctx, "13px Courier New") in
+  let _f1 = cvs_fillstyle(ctx, "#ffd700") in
+  let lbl = if hi == 7 then "ALL 7 CHANNELS" else "HIGHLIGHT: " + tlp_label(hi) in
+  let _f2 = cvs_filltext(ctx, lbl, 16, 22) in
+  let _f3 = cvs_fillstyle(ctx, "#606070") in
+  let _f4 = cvs_filltext(ctx, "+2", 670, 85) in
+  let _f5 = cvs_filltext(ctx, " 0", 672, 144) in
+  let _f6 = cvs_filltext(ctx, "-2", 672, 208) in
+  cvs_filltext(ctx, "x = 0 .. 700  (element index, pixel = 1 element)", 16, 270)
+)
+
+fn tlp_hi_d() = ( set(g_tlp_hi, 0, 0); tlp_redraw() )
+fn tlp_hi_k() = ( set(g_tlp_hi, 0, 1); tlp_redraw() )
+fn tlp_hi_e() = ( set(g_tlp_hi, 0, 2); tlp_redraw() )
+fn tlp_hi_b() = ( set(g_tlp_hi, 0, 3); tlp_redraw() )
+fn tlp_hi_l() = ( set(g_tlp_hi, 0, 4); tlp_redraw() )
+fn tlp_hi_g() = ( set(g_tlp_hi, 0, 5); tlp_redraw() )
+fn tlp_hi_17() = ( set(g_tlp_hi, 0, 6); tlp_redraw() )
+fn tlp_hi_all() = ( set(g_tlp_hi, 0, 7); tlp_redraw() )
+
+fn tor_landscape_plot() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Landscape Plot -- Interactive");
+  render_p(sec, "The eigenvalue landscape on T^7 is a sum of seven independent cosines -- one per micro tower. Click a channel button to isolate that tower's contribution; click ALL to see the landscape as a whole. Each curve is 2*cos(2*pi*x/q_i) for element index x in [0, 700). Tower_b's Z/49 curve is the slowest: its k=1 Fourier mode carries the lowest non-zero Laplacian eigenvalue gap = 4*sin^2(pi/49) ~ 0.01644, the b^2-forced floor that controls BOTH STRUCTURAL Clay-Millennium analogs (Thm 33 + Thm 34).");
+  let cvs = dom_create("canvas") in
+  dom_attr(cvs, "id", "tlp-cvs");
+  dom_attr(cvs, "width", "700");
+  dom_attr(cvs, "height", "280");
+  dom_style(cvs, "background", "#0a0a18");
+  dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_style(cvs, "maxWidth", "100%");
+  dom_style(cvs, "display", "block");
+  dom_append(sec, cvs);
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "6px");
+  dom_style(row, "flexWrap", "wrap");
+  dom_style(row, "marginTop", "12px");
+  make_action_btn(row, "D (Z/8)", "tlp_hi_d");
+  make_action_btn(row, "K (Z/9)", "tlp_hi_k");
+  make_action_btn(row, "E (Z/25)", "tlp_hi_e");
+  make_action_btn(row, "b (Z/49)", "tlp_hi_b");
+  make_action_btn(row, "L (Z/11)", "tlp_hi_l");
+  make_action_btn(row, "GATE (Z/13)", "tlp_hi_g");
+  make_action_btn(row, "ESC (Z/17)", "tlp_hi_17");
+  make_action_btn(row, "ALL", "tlp_hi_all");
+  dom_append(sec, row);
+  render_p(sec, "Bold curve = highlighted channel. Dim grey = others. Tower_D (Z/8) has only 8 distinct cosine values (period 8 px); Tower_b (Z/49) has 49 (period 49 px, the finest resolution and slowest fall-off). The b-axis k=1 Fourier mode IS the Laplacian gap floor on all 108 lambda=420 heartbeat-lattice rings (Thm 33, S1436).");
+  dom_append(dom_body(), sec);
+  tlp_redraw()
+)
+
 /* === SECTION 2.5: The Capped Horn — Gabriel-Horn anchor (MP.4 + GH.2) === */
 fn tor_horn_cap() = (
   let sec = make_section("800px") in
@@ -318,6 +437,7 @@ fn page_torus() = (
   tor_hero();
   tor_towers();
   tor_landscape();
+  tor_landscape_plot();
   tor_horn_cap();
   tor_skeleton();
   tor_pareto();
