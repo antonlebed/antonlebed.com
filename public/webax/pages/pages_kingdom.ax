@@ -30,15 +30,20 @@ fn spiral_channel_color(val, modulus) = (
 )
 
 fn spiral_update(k) = (
-  let val = 2 ^ k in
-  let d = val % 8 in
-  let kc = val % 9 in
-  let e = val % 25 in
-  let bc = val % 49 in
-  let l = val % 11 in
-  let g = val % 13 in
+  /* per-channel D^k (avoids i32 overflow for k>=31) */
+  mut d = 1; mut kc = 1; mut e = 1; mut bc = 1; mut l = 1; mut g = 1;
+  mut i = 0;
+  while i < k do (
+    mut d = (d * 2) % 8;
+    mut kc = (kc * 2) % 9;
+    mut e = (e * 2) % 25;
+    mut bc = (bc * 2) % 49;
+    mut l = (l * 2) % 11;
+    mut g = (g * 2) % 13;
+    mut i = i + 1
+  );
   dom_text(dom_query("#sp-k"), "k = ${k}");
-  dom_text(dom_query("#sp-val"), "D^${k} = ${val}");
+  dom_text(dom_query("#sp-val"), "D^${k}");
   /* CRT channel display */
   dom_text(dom_query("#sp-d"), "${d}");
   dom_style(dom_query("#sp-d"), "color", if d == 0 then "#ff4444" else if d == 1 then "#ffd700" else "#88ddaa");

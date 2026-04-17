@@ -717,20 +717,18 @@ fn dpower_explore() = (
     let r = k % 420 in
     if r < 3 then r + 420 else r
   ) else k in
-  /* Compute 2^k_eff mod N via repeated multiplication */
-  mut p = 1;
+  /* per-channel D^k (avoids i32 overflow for k>=31) */
+  mut d = 1; mut kc = 1; mut e = 1; mut b_ch = 1; mut l = 1; mut g = 1;
   mut i = 0;
   while i < k_eff do (
-    mut p = p * 2;
+    mut d = (d * 2) % 8;
+    mut kc = (kc * 2) % 9;
+    mut e = (e * 2) % 25;
+    mut b_ch = (b_ch * 2) % 49;
+    mut l = (l * 2) % 11;
+    mut g = (g * 2) % 13;
     mut i = i + 1
   );
-  /* CRT decomposition of D^k */
-  let d = p % 8 in
-  let kc = p % 9 in
-  let e = p % 25 in
-  let b_ch = p % 49 in
-  let l = p % 11 in
-  let g = p % 13 in
   /* Channel status */
   let ch_d = if d == 0 then "DEAD" else if d == 1 then "home" else "${d}" in
   let ch_k = if kc == 1 then "home" else "${kc}" in
