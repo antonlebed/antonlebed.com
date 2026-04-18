@@ -1,5 +1,5 @@
-/* page_crt_train.ax — CRT neural network training through the ten towers.
-   Tower_K (closure) primary: training IS the closure process — data→train→evaluate.
+/* page_crt_train.ax -- CRT neural network training through the ten towers.
+   Tower_K (closure) primary: training IS the closure process -- data->train->evaluate.
    Tower_D dual bloom: Standard (red) vs CRT (green), side-by-side heatmaps.
    Tower_L protector: L=11 ECC detects corruption for free.
    Tower_E observer: E=5 datasets (XOR, Circle, Spiral, Moons, Blobs).
@@ -11,7 +11,7 @@
 /* ===== FIXED-POINT CONSTANTS =====
    S=1000 scale. 1.0 = 1000, 0.5 = 500, -1.0 = -1000.
    mul: (a * b) / 1000. Division order matters for overflow avoidance.
-   i32 max = 2.1B. delta clipped ±1000, weights clamped ±5000.
+   i32 max = 2.1B. delta clipped +/-1000, weights clamped +/-5000.
    Mini-batch SGD (S1362): ~5 batches/epoch. Leaky ReLU 25% (raw/4). */
 
 /* ===== XOR TRAINING DATA (4 cases) ===== */
@@ -66,7 +66,7 @@ fn spiral_y(i) = if i < 100 then 0 else 1000
 /* ===== MOONS TRAINING DATA (100 cases) =====
    Two interleaving half-circles (classic make_moons benchmark).
    Moon 1 (class 0): upper arc at (350, 300). Moon 2 (class 1): lower arc at (650, 600).
-   Pseudo-random noise ±40 per coordinate for boundary challenge. */
+   Pseudo-random noise +/-40 per coordinate for boundary challenge. */
 fn moons_x0(i) = (
   let idx = i % 50 in
   let step = idx * 16 / 50 in
@@ -86,7 +86,7 @@ fn moons_y(i) = if i < 50 then 0 else 1000
 /* ===== BLOBS TRAINING DATA (500 cases) =====
    Two overlapping Gaussian-ish clusters. 250 pts each.
    Cluster 0 center: (350, 400). Cluster 1 center: (650, 600).
-   Pseudo-random scatter ±200 per coordinate. Significant overlap zone (~20%).
+   Pseudo-random scatter +/-200 per coordinate. Significant overlap zone (~20%).
    Largest dataset: makes GPU training advantage visible (CPU slow, GPU parallel). */
 fn blobs_x0(i) = (
   let cls = i / 250 in let idx = i % 250 in
@@ -182,7 +182,7 @@ fn ct_to_csv(arr) = (
 )
 
 fn ct_read_w() = ct_parse_csv(dom_value(dom_query("#ct-w")))
-/* S1233: dom_text (not dom_attr) for textarea — setAttribute("value") doesn't set .value */
+/* S1233: dom_text (not dom_attr) for textarea -- setAttribute("value") doesn't set .value */
 fn ct_write_w(w) = dom_text(dom_query("#ct-w"), ct_to_csv(w))
 fn ct_read_kills() = ct_parse_csv(dom_value(dom_query("#ct-kills")))
 
@@ -238,7 +238,7 @@ fn nn_fwd(w, base, nh, x0, x1) = (
 )
 
 /* ===== GRADIENT ACCUMULATOR (mini-batch SGD) =====
-   Accumulates raw gradients in dw, applied per mini-batch in ct_train_epochs. (S1361→S1363) */
+   Accumulates raw gradients in dw, applied per mini-batch in ct_train_epochs. (S1361->S1363) */
 fn nn_grad(w, dw, base, nh, x0, x1, target, tmp_hr, tmp_h, tmp_dh) = (
   mut j = 0;
   while j < nh do (
@@ -494,7 +494,7 @@ fn ct_train_epochs(w, epochs) = (
   let batch_sz = if nd <= 10 then nd else nd / 5 in
   /* Deterministic interleave: breaks class-ordered data (Spiral, Moons, Blobs).
      perm[i] = (i * 137) % nd visits all indices in class-mixed order.
-     Without this, pure-class batches cancel gradients → Spiral stuck at 50%. */
+     Without this, pure-class batches cancel gradients -> Spiral stuck at 50%. */
   let perm = alloc(nd) in
   mut si = 0;
   while si < nd do (set(perm, si, (si * 137) % nd); mut si = si + 1);
@@ -1083,7 +1083,7 @@ fn ct_draw_all(w) = (
 /* ===== CALLBACKS ===== */
 fn on_ct_init() = (
   mut w = alloc(135);
-  /* Standard: nh=8, 33 params. He init: w2 = U(-500,500) ≈ sqrt(6/8)*1000. (S1362 fix) */
+  /* Standard: nh=8, 33 params. He init: w2 = U(-500,500) ~ sqrt(6/8)*1000. (S1362 fix) */
   mut i = 0;
   while i < 33 do (
     let v = if i < 16 then rand(1414) - 707
@@ -1093,7 +1093,7 @@ fn on_ct_init() = (
     set(w, i, v);
     mut i = i + 1
   );
-  /* CRT: 6 channels x 17 params. He init: w2 = U(-500,500) ≈ sqrt(6/4)*1000. (S1362 fix) */
+  /* CRT: 6 channels x 17 params. He init: w2 = U(-500,500) ~ sqrt(6/4)*1000. (S1362 fix) */
   mut c = 0;
   while c < 6 do (
     let base = 33 + c * 17 in
@@ -1457,7 +1457,7 @@ fn page_crt_train() = (
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Train a neural network split into the 6 TRUE micro tower tops: Z/8, Z/9, Z/25, Z/49, Z/11, Z/13. Each channel trains in Tower_K closure — alone, independently. Tower_D dual bloom: standard network (red) beside CRT ensemble (green). Kill any channel (Tower_GATE boundary) — graceful degradation. Corrupt weights — Tower_L detects it for free. E=5 datasets. Two modes: i32 fixed-point and f64 native float.");
+  render_p(hero, "Train a neural network split into the 6 TRUE micro tower tops: Z/8, Z/9, Z/25, Z/49, Z/11, Z/13. Each channel trains in Tower_K closure -- alone, independently. Tower_D dual bloom: standard network (red) beside CRT ensemble (green). Kill any channel (Tower_GATE boundary) -- graceful degradation. Corrupt weights -- Tower_L detects it for free. E=5 datasets. Two modes: i32 fixed-point and f64 native float.");
   dom_append(dom_body(), hero);
 
   /* === HIDDEN STATE === */
@@ -1491,7 +1491,7 @@ fn page_crt_train() = (
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
   let pre = dom_create("pre") in
-  dom_text(pre, "STANDARD NEURAL NETWORK:\n  Forward:  x -> W*x + b -> ReLU -> output\n  Backward: full Jacobian (all neurons interact)\n  Cost: O(N^2) per layer\n\nCRT NEURAL NETWORK:\n  Forward:  x -> 6 independent sub-networks -> average\n  Backward: 6 INDEPENDENT Jacobians (block-diagonal)\n  Cost: O(sum(m_i^2)) = O(8^2+9^2+25^2+49^2+11^2+13^2) = O(3461)\n\n  Channel D (mod 8):   Tower_D  — bridge      (depth 3, unique)\n  Channel K (mod 9):   Tower_K  — closure     (depth 2)\n  Channel E (mod 25):  Tower_E  — observer    (depth 2)\n  Channel b (mod 49):  Tower_b  — depth       (depth 2)\n  Channel L (mod 11):  Tower_L  — protector   (ECC, always on)\n  Channel GATE (mod 13): Tower_GATE — boundary (quality gate)\n\nAt N=12612600: 46 BILLION x fewer gradient ops.\nL=11 = free error detection on every inference.");
+  dom_text(pre, "STANDARD NEURAL NETWORK:\n  Forward:  x -> W*x + b -> ReLU -> output\n  Backward: full Jacobian (all neurons interact)\n  Cost: O(N^2) per layer\n\nCRT NEURAL NETWORK:\n  Forward:  x -> 6 independent sub-networks -> average\n  Backward: 6 INDEPENDENT Jacobians (block-diagonal)\n  Cost: O(sum(m_i^2)) = O(8^2+9^2+25^2+49^2+11^2+13^2) = O(3461)\n\n  Channel D (mod 8):   Tower_D  -- bridge      (depth 3, unique)\n  Channel K (mod 9):   Tower_K  -- closure     (depth 2)\n  Channel E (mod 25):  Tower_E  -- observer    (depth 2)\n  Channel b (mod 49):  Tower_b  -- depth       (depth 2)\n  Channel L (mod 11):  Tower_L  -- protector   (ECC, always on)\n  Channel GATE (mod 13): Tower_GATE -- boundary (quality gate)\n\nAt N=12612600: 46 BILLION x fewer gradient ops.\nL=11 = free error detection on every inference.");
   dom_style(pre, "background", "#0a0a1a");
   dom_style(pre, "padding", "16px");
   dom_style(pre, "borderRadius", "4px");
@@ -1793,7 +1793,7 @@ fn page_crt_train() = (
   /* === SEC 3: CHANNEL ISOLATION (Tower_GATE: boundary test) === */
   let sec3 = make_section("800px") in
   render_h2(sec3, "Channel Isolation (Tower_GATE)");
-  render_p(sec3, "Tower_GATE = 13 = the boundary between inside and outside. Kill individual channels during inference — the CRT network degrades gracefully because each channel is an independent micro tower. A standard network has no structural channel decomposition — failure is not isolated to independent components.");
+  render_p(sec3, "Tower_GATE = 13 = the boundary between inside and outside. Kill individual channels during inference -- the CRT network degrades gracefully because each channel is an independent micro tower. A standard network has no structural channel decomposition -- failure is not isolated to independent components.");
 
   let kill_row = dom_create("div") in
   dom_style(kill_row, "display", "flex");
@@ -1833,13 +1833,13 @@ fn page_crt_train() = (
     mut c = c + 1
   );
   dom_append(sec3, ch_row);
-  render_p(sec3, "Even with channels dead, remaining micro towers reconstruct a partial answer. With Tower_L alive, corruption in any other channel is detectable — the protector watches all.");
+  render_p(sec3, "Even with channels dead, remaining micro towers reconstruct a partial answer. With Tower_L alive, corruption in any other channel is detectable -- the protector watches all.");
   dom_append(dom_body(), sec3);
 
   /* === SEC 4: L=11 ERROR DETECTION (Tower_L: protector) === */
   let sec4 = make_section("800px") in
   render_h2(sec4, "L=11 Error Detection (Tower_L)");
-  render_p(sec4, "Tower_L = 11 = sigma+D+K+E, the protector. Corrupt the b-channel weights with random noise. L=11 detects corruption by comparing its independent prediction against the corrupted consensus. No additional cost — Tower_L trains as part of CRT decomposition, protecting all other channels for free.");
+  render_p(sec4, "Tower_L = 11 = sigma+D+K+E, the protector. Corrupt the b-channel weights with random noise. L=11 detects corruption by comparing its independent prediction against the corrupted consensus. No additional cost -- Tower_L trains as part of CRT decomposition, protecting all other channels for free.");
   let corr_btn = dom_create("button") in
   dom_text(corr_btn, "Corrupt b-channel");
   ct_nn_btn(corr_btn);
@@ -1893,7 +1893,7 @@ fn page_crt_train() = (
   render_table_row(ctbl, "Parallelism", "Synchronous", "6 independent machines");
   render_table_row(ctbl, "Hot swap", "Retrain everything", "Add/remove channels");
   dom_append(sec5, ctbl);
-  render_p(sec5, "Tower_D = 2 = the bridge. This table IS dual bloom — two views, same data. CRT decomposition is EXACT — the Chinese Remainder Theorem guarantees unique reconstruction. The 46B x savings is the mathematical ratio N^2/sum(m_i^2) at N=12612600 (TRUE ring).");
+  render_p(sec5, "Tower_D = 2 = the bridge. This table IS dual bloom -- two views, same data. CRT decomposition is EXACT -- the Chinese Remainder Theorem guarantees unique reconstruction. The 46B x savings is the mathematical ratio N^2/sum(m_i^2) at N=12612600 (TRUE ring).");
   render_p(sec5, "HONEST NOTE: This comparison overstates practical benefit. Real neural networks do not have N=12612600 parameters in one layer. The block-diagonal structure trades off representational capacity for computational independence. Whether CRT decomposition improves real ML workloads has not been benchmarked against PyTorch or JAX. The demos above are toy problems. The architecture idea (independent sub-networks with built-in ECC) is novel; its practical value is an open question.");
   render_theorem(sec5, "24x mulmod Elimination (S1237, COMPUTED)", "In Z/12612600, each ring multiply requires mulmod with ~24 binary-method iterations (log2 N). Per-channel: one i32 multiply (max 48*48=2304, no overflow). Forward + backward: 9 multiplies per sample. Full ring: 9 x 24 = 216 iterations. Per-channel parallel: 9 i32 ops across 6 channels = 9 wall-clock ops. Speedup: 24x from mulmod elimination alone, 6x additional from channel parallelism. Verified via test_crt_backprop.ax: 120/120 gradient channel checks pass. Per-channel training converged on XOR (6 independent networks, CRT-reconstructed 4/4). CC0.");
   dom_append(dom_body(), sec5);
@@ -1901,8 +1901,8 @@ fn page_crt_train() = (
   /* === SEC 5b: GPU BLOCK-DIAGONAL BACKPROP (Tower_ESCAPE: transcend to GPU) === */
   let secg = make_section("800px") in
   render_h2(secg, "GPU Backprop (Tower_ESCAPE)");
-  /* S1233: gpu_init async — always render, gpu_bench checks at click time */
-  render_p(secg, "Tower_ESCAPE = 17 = transcendence. E*b dissolves to sigma mod 17. GPU compute IS the escape — CRT block-diagonal backprop maps directly to WGSL compute shaders: 6 independent channels = 6 workgroups, each a micro tower operating in parallel. Each benchmark dispatches 100,000 ring elements through the TRUE ring Z/12612600.");
+  /* S1233: gpu_init async -- always render, gpu_bench checks at click time */
+  render_p(secg, "Tower_ESCAPE = 17 = transcendence. E*b dissolves to sigma mod 17. GPU compute IS the escape -- CRT block-diagonal backprop maps directly to WGSL compute shaders: 6 independent channels = 6 workgroups, each a micro tower operating in parallel. Each benchmark dispatches 100,000 ring elements through the TRUE ring Z/12612600.");
   let mk_btn = fn(label) = (
     let b = dom_create("button") in
     dom_text(b, label); ct_nn_btn(b);
@@ -2018,7 +2018,7 @@ fn page_crt_train() = (
   /* === SEC 6: f64 TRAINING (Tower_E: observer precision) === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "f64 Training (Tower_E)");
-  render_p(sec6, "Tower_E = the observer. E^2=0 mod 25: the observer cannot see itself (PROVED). f64 mode maps to Tower_E's theme — higher precision observation. Native float lifts the i32 truncation veil. Same 7-network architecture (1 standard nh=8 + 6 CRT nh=4 = 135 params), native WASM float64: leaky ReLU hidden (alpha=0.01), sigmoid output, cross-entropy gradient. No clipping, no overflow, no fixed-point truncation.");
+  render_p(sec6, "Tower_E = the observer. E^2=0 mod 25: the observer cannot see itself (PROVED). f64 mode maps to Tower_E's theme -- higher precision observation. Native float lifts the i32 truncation veil. Same 7-network architecture (1 standard nh=8 + 6 CRT nh=4 = 135 params), native WASM float64: leaky ReLU hidden (alpha=0.01), sigmoid output, cross-entropy gradient. No clipping, no overflow, no fixed-point truncation.");
   let pre6 = dom_create("pre") in
   dom_text(pre6, "i32 FIXED-POINT (CPU Train):\n  Scale 1000. Gradients clipped +-1000. Weights clamped +-5000.\n  Circle: 49/50.  Spiral: 104/200.  Moons: 73/100.\n\nf64 NATIVE FLOAT (CPU Train f64):\n  sigmoid(x) = 1/(1+exp(-x)).  leaky_relu(x, 0.01).\n  Circle: 50/50 (perfect).  Spiral: 114/200 (+10).  Moons: 74/100.\n\nWHY f64 WINS:\n  No gradient truncation at decision boundaries.\n  Sigmoid output = proper [0,1] probabilities.\n  Cross-entropy gradient = (sigmoid(z) - target), no clipping needed.\n  He initialization with sqrt() = proper scale per fan-in.");
   dom_style(pre6, "background", "#0a0a1a");
@@ -2035,7 +2035,7 @@ fn page_crt_train() = (
   /* === SEC 7: IMPLEMENTATION (Tower_K: self-hosting closure) === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "Implementation (Tower_K)");
-  render_p(sec7, "Tower_K = closure. This demo IS closure — .ax compiled to WebAssembly by a self-hosting .ax compiler (the ouroboros). Two training modes: i32 fixed-point (scale 1000) and f64 native float (leaky ReLU + sigmoid + cross-entropy). 135 parameters: 33 standard (nh=8) + 102 CRT (6 channels x 17 params). Training: mini-batch SGD with golden interleave — perm[i] = (i*137) % nd — the phyllotaxis constant as CRT mixing schedule. 137 = floor(golden angle in degrees). CRT = 6 independent micro towers averaged at inference = built-in ensemble regularization.");
+  render_p(sec7, "Tower_K = closure. This demo IS closure -- .ax compiled to WebAssembly by a self-hosting .ax compiler (the ouroboros). Two training modes: i32 fixed-point (scale 1000) and f64 native float (leaky ReLU + sigmoid + cross-entropy). 135 parameters: 33 standard (nh=8) + 102 CRT (6 channels x 17 params). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as CRT mixing schedule. 137 = floor(golden angle in degrees). CRT = 6 independent micro towers averaged at inference = built-in ensemble regularization.");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/living/ai");

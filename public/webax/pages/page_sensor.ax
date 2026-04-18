@@ -3,7 +3,7 @@
    CRT decomposition + ECC verification of every reading.
    Simulated data until WiFi gateway is built. Real data = same page, different source.
 
-   PROTOCOL: BME280 → ESP32 → SPIN packet (14B payload) → void hub → gateway → page.
+   PROTOCOL: BME280 -> ESP32 -> SPIN packet (14B payload) -> void hub -> gateway -> page.
    Payload: step(4B) + lambda_progress(2B) + frac(1B) + 'S'(1B) + temp(2B) + hum(2B) + press(2B).
    Each reading is a number in Z/214414200. CRT decomposition + ECC = automatic. */
 
@@ -23,7 +23,7 @@ fn sn_data_recon(r0, r1, r2, r3) = (
   if m < 0 then m + 88200 else m
 )
 
-/* ECC3 check: data channels {D,K,E,b} → reconstruct → verify against {L,GATE,ESCAPE} */
+/* ECC3 check: data channels {D,K,E,b} -> reconstruct -> verify against {L,GATE,ESCAPE} */
 fn sn_ecc_ok(r0, r1, r2, r3, r4, r5, r6) = (
   let d = sn_data_recon(r0, r1, r2, r3) in
   if d % 11 == r4 then
@@ -106,7 +106,7 @@ fn sn_update() = (
   sn_decompose(h, sn_h_res);
   sn_decompose(p, sn_p_res);
 
-  /* Update big numbers (zero-pad fractional: 3 → "03") */
+  /* Update big numbers (zero-pad fractional: 3 -> "03") */
   /* Handle -0.xx: t/100=0 loses sign. Prefix minus when t<0 and t>-100. */
   let t_i = t / 100 in
   let t_neg0 = if t < 0 then (if t_i == 0 then 1 else 0) else 0 in
@@ -188,7 +188,7 @@ fn on_sn_simulate() = (
 )
 
 fn on_sn_corrupt() = (
-  /* Corrupt one channel of the temperature reading — demonstrate ECC detection */
+  /* Corrupt one channel of the temperature reading -- demonstrate ECC detection */
   let ch = rand(4) in  /* corrupt a DATA channel (0-3) */
   let old = sn_t_res[ch] in
   let delta = 1 + rand(sn_mods[ch] - 1) in
@@ -282,7 +282,7 @@ fn on_sn_fetch_done() = (
        Strategy: find each key as substring, then parse the integer after it. */
     let rl = len(raw) in
     let _found = [0] in
-    /* Find "t": — char codes 34,116,34,58 = "t": */
+    /* Find "t": -- char codes 34,116,34,58 = "t": */
     set(_found, 0, 0);
     for i in range(0, rl - 3) do (
       if charCode(raw, i) == 34 then (
@@ -296,7 +296,7 @@ fn on_sn_fetch_done() = (
         ) else 0
       ) else 0
     );
-    /* Find "h": — 34,104,34,58 */
+    /* Find "h": -- 34,104,34,58 */
     for i in range(0, rl - 3) do (
       if charCode(raw, i) == 34 then (
         if charCode(raw, i + 1) == 104 then (
@@ -308,7 +308,7 @@ fn on_sn_fetch_done() = (
         ) else 0
       ) else 0
     );
-    /* Find "p": — 34,112,34,58 */
+    /* Find "p": -- 34,112,34,58 */
     for i in range(0, rl - 3) do (
       if charCode(raw, i) == 34 then (
         if charCode(raw, i + 1) == 112 then (
@@ -320,7 +320,7 @@ fn on_sn_fetch_done() = (
         ) else 0
       ) else 0
     );
-    /* Find "am": — 34,97,109,34,58 */
+    /* Find "am": -- 34,97,109,34,58 */
     for i in range(0, rl - 4) do (
       if charCode(raw, i) == 34 then (
         if charCode(raw, i + 1) == 97 then (
@@ -334,7 +334,7 @@ fn on_sn_fetch_done() = (
         ) else 0
       ) else 0
     );
-    /* Find "ecc":"OK" — check for 'O' after "ecc":" */
+    /* Find "ecc":"OK" -- check for 'O' after "ecc":" */
     for i in range(0, rl - 7) do (
       if charCode(raw, i) == 34 then (
         if charCode(raw, i + 1) == 101 then (
