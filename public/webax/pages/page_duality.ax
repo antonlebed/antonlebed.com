@@ -237,30 +237,32 @@ fn duality_keyexchange() = (
   render_h2(sec, "CRT Key Exchange");
   render_p(sec, "Diffie-Hellman naturally decomposes via CRT. Alice and Bob = D=2 pair. g = 137 (ADDRESS). g^a splits into 6 independent exponentiations, one per channel. The shared secret is the CRT reconstruction of 6 independent DH exchanges. L=11 + GATE=13 = dual authentication.");
   render_theorem(sec, "CRT-DH Decomposition", "g^a mod N = CRT(g_D^a mod 8, g_K^a mod 9, g_E^a mod 25, g_b^a mod 49, g_L^a mod 11, g_G^a mod 13). Each channel computes DH independently. An attacker must solve discrete log in ALL 6 channels. The 6-channel structure is not a security improvement (Pohlig-Hellman already does this) -- it is a STRUCTURAL insight: key exchange IS CRT decomposition.");
-  make_interactive_widget(sec, "Alice secret (1-419):", "dh-alice", "e.g. 137", "Exchange Keys", "keyex_run", "dh-result");
-  /* Add Bob's input field */
-  let extras = dom_create("div") in
-  dom_style(extras, "display", "flex");
-  dom_style(extras, "gap", "8px");
-  dom_style(extras, "alignItems", "center");
-  dom_style(extras, "marginBottom", "12px");
-  let lbl = dom_create("span") in
-  dom_text(lbl, "Bob secret:");
-  dom_style(lbl, "color", "#b0b0c0");
-  dom_append(extras, lbl);
-  let inp_b = dom_create("input") in
-  dom_attr(inp_b, "type", "text");
-  dom_attr(inp_b, "id", "dh-bob");
-  dom_attr(inp_b, "placeholder", "e.g. 42");
-  dom_attr(inp_b, "value", "42");
-  dom_style(inp_b, "background", "#111");
-  dom_style(inp_b, "color", "#eee");
-  dom_style(inp_b, "border", "1px solid #333");
-  dom_style(inp_b, "padding", "6px 8px");
-  dom_style(inp_b, "fontFamily", "'Courier New', monospace");
-  dom_style(inp_b, "width", "100px");
-  dom_append(extras, inp_b);
-  dom_append(sec, extras);
+  /* Alice + Bob inputs on same row */
+  let klbl = dom_create("p") in
+  dom_text(klbl, "Enter secrets (1-419):");
+  dom_style(klbl, "color", "#b8b8c8");
+  dom_style(klbl, "marginTop", "24px");
+  dom_style(klbl, "marginBottom", "8px");
+  dom_append(sec, klbl);
+  let krow = dom_create("div") in
+  dom_style(krow, "display", "flex");
+  dom_style(krow, "gap", "8px");
+  dom_style(krow, "alignItems", "center");
+  dom_style(krow, "flexWrap", "wrap");
+  dom_style(krow, "marginBottom", "12px");
+  let albl = dom_create("span") in
+  dom_text(albl, "Alice:");
+  dom_style(albl, "color", "#b0b0c0");
+  dom_append(krow, albl);
+  make_input_field(krow, "dh-alice", "137");
+  let blbl = dom_create("span") in
+  dom_text(blbl, "Bob:");
+  dom_style(blbl, "color", "#b0b0c0");
+  dom_append(krow, blbl);
+  make_input_field(krow, "dh-bob", "42");
+  make_action_btn(krow, "Exchange Keys", "keyex_run");
+  dom_append(sec, krow);
+  make_result_box(sec, "dh-result");
   render_p(sec, "Try: Alice=137 Bob=42 | Alice=210 Bob=210 (HYDOR half-cycle) | Alice=1 Bob=419 (boundary).");
   render_contrast_row(sec, "Key structure", "Single opaque integer", "5 independent CRT channel keys");
   render_contrast_row(sec, "Authentication", "Separate MAC required", "L=11 channel = FREE auth tag (1/11 false positive)");
