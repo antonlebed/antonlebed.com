@@ -7,7 +7,7 @@
 var _routeMap = {
   '':'home','home':'home','worldview':'home','basics':'home',
   'data':'home','teach':'home','deep':'home','living':'home',
-  'numbers_clocks':'home','rings_channels':'home','waves_shadows':'home',
+  'crt':'home','numbers_clocks':'home','rings_channels':'home','waves_shadows':'home',
   'story':'home','derive':'home','death':'home',
   'bootstrap':'deep','septum':'deep','mirror':'deep','sacrifice':'deep',
   'decality':'deep','lattice':'deep','heart':'deep','watercycle':'deep',
