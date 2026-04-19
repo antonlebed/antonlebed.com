@@ -1,0 +1,184 @@
+/* page_dark_energy.ax -- Compression Cosmology (S1153).
+   1-parameter model: uniform compression + light-speed lag = apparent expansion.
+   Dark energy as observation artifact. Interactive redshift calculator. */
+
+/* Helper: add one row to the compression vs Hubble table. */
+fn de_row_v(tbl, r, d, v, S) = (
+  let zp = (v - S) * 100 / S in
+  let hp = r * d in
+  render_table_row_4(tbl, "${d}", "${hp}%", "${zp}%", "+${zp - hp}%")
+)
+
+fn dark_energy_calc() = (
+  let r = parse_int_from("#de-input") in
+  let result = dom_query("#de-result") in
+  if r < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter a rate from 1 to 20.</p>")
+  else if r > 20 then dom_inner(result, "<p style='color:#ff6666'>Maximum rate is 20.</p>")
+  else (
+    dom_inner(result, "");
+    let S = 10000 in
+    let base = 100 - r in
+
+    /* Summary */
+    let desc = dom_create("p") in
+    dom_inner(desc, "Compression rate: <b style='color:#ffd700'>${r}%</b> per epoch. At short distances both predictions agree. At large distances, compression diverges exponentially -- that excess is what Lambda-CDM calls <em>dark energy</em>.");
+    dom_style(desc, "color", "#d8d8e0");
+    dom_style(desc, "marginBottom", "16px");
+    dom_append(result, desc);
+
+    /* Table */
+    let tbl = dom_create("table") in
+    dom_style(tbl, "width", "100%");
+    dom_style(tbl, "maxWidth", "600px");
+    dom_style(tbl, "margin", "0 auto");
+    dom_style(tbl, "borderCollapse", "collapse");
+    let hdr = dom_create("tr") in
+    render_th(hdr, "Distance");
+    render_th(hdr, "Linear z");
+    render_th(hdr, "Compress z");
+    render_th(hdr, "Excess");
+    dom_append(tbl, hdr);
+
+    /* d=1: 1 step */
+    let v = S * 100 / base in
+    de_row_v(tbl, r, 1, v, S);
+    /* d=2..3 */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 3, v, S);
+    /* d=4..5 */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 5, v, S);
+    /* d=6..10: 5 steps */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 10, v, S);
+    /* d=11..15 */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 15, v, S);
+    /* d=16..20 */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 20, v, S);
+    /* d=21..25 */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 25, v, S);
+    /* d=26..30 */
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    let v = v * 100 / base in
+    de_row_v(tbl, r, 30, v, S);
+
+    dom_append(result, tbl);
+
+    /* Footnote */
+    let note = dom_create("p") in
+    dom_style(note, "color", "#b8b8c8");
+    dom_style(note, "marginTop", "16px");
+    dom_style(note, "fontSize", "14px");
+    dom_inner(note, "The Excess column is what standard cosmology attributes to dark energy. In the compression model it arises from exponential growth of (1-r)^(-d) vs linear r*d. No additional parameter needed.");
+    dom_append(result, note)
+  )
+)
+
+fn page_dark_energy() = (
+  dom_head_meta("description", "Dark energy as observation artifact. Universal compression model with 1 free parameter vs 6 in Lambda-CDM. Interactive redshift calculator.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Dark Energy: Compression Cosmology\",\"description\":\"A 1-parameter compression model where dark energy emerges as observation artifact of uniform compression viewed through light-speed lag.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/dark_energy\"}");
+
+  /* === HERO === */
+  let hero = make_hero("Dark Energy") in
+  render_p(hero, "What if everything compresses uniformly -- atoms, stars, rulers, photons? What if distant objects appear to recede only because our ruler is shorter now than theirs was then?");
+  let stats = make_findings_grid(hero) in
+  render_finding(stats, "Free Parameters", "1", "Compression rate r. That is all.", "");
+  render_finding(stats, "Lambda-CDM", "6", "H0, Omega_b, Omega_DM, Omega_Lambda, n_s, tau.", "");
+  render_finding(stats, "Eliminates", "Dark Energy", "Geometric artifact of compression-lag.", "");
+  dom_append(dom_body(), hero);
+
+  /* === THE MODEL === */
+  let sm = make_section("800px") in
+  render_h2(sm, "Universal Compression");
+  render_p(sm, "Suppose everything compresses at rate r per unit time. No exceptions. Atoms, stars, rulers, light -- all shrink by the same factor. Because compression is uniform, no local measurement detects it. Your ruler shrinks at the same rate as everything around you.");
+  render_p(sm, "But distant objects tell a different story. Light from a galaxy d units away left when that galaxy was less compressed. We observe it with our current ruler, which is more compressed. The galaxy appears larger than expected. The further we look, the older the light, the bigger the apparent discrepancy.");
+  dom_append(dom_body(), sm);
+
+  /* === DERIVATION === */
+  let sd = make_section("800px") in
+  render_h2(sd, "The Derivation");
+  render_theorem(sd, "Compression Redshift", "True size at time t: S(t) = S0 * (1-r)^t. Observed at distance d: S_obs = S0 * (1-r)^(t - d/c). Our ruler now: R(t) = R0 * (1-r)^t. Apparent ratio: S_obs / R(t) = (1-r)^(-d/c). Redshift: z = (1-r)^(-d/c) - 1. One free parameter: r.");
+  render_theorem(sd, "Hubble's Law Emerges", "For small distances, Taylor expansion gives z = r * d / c. This IS Hubble's Law: v = H0 * d, with H0 = r. The Hubble constant is not a speed of recession -- it is a compression rate.");
+  render_theorem(sd, "Dark Energy Emerges", "For large distances, the exponential dominates: z grows faster than r * d / c. This excess looks like acceleration -- exactly what Type Ia supernovae showed in 1998. The compression model produces the same curve with no dark energy parameter.");
+  dom_append(dom_body(), sd);
+
+  /* === INTERACTIVE === */
+  let si = make_section("800px") in
+  render_h2(si, "Explore: Compression vs Hubble");
+  render_p(si, "Enter a compression rate (1-20% per epoch). The table compares linear redshift (Hubble) to compression redshift. The Excess column is what Lambda-CDM calls dark energy.");
+  make_interactive_widget(si, "Compression rate, percent:", "de-input", "e.g. 5", "Compute", "dark_energy_calc", "de-result");
+  dom_append(dom_body(), si);
+
+  /* === WHAT THIS ELIMINATES === */
+  let se = make_section("800px") in
+  render_h2(se, "What This Eliminates");
+  let etbl = dom_create("table") in
+  dom_style(etbl, "width", "100%");
+  dom_style(etbl, "maxWidth", "700px");
+  dom_style(etbl, "margin", "24px auto");
+  dom_style(etbl, "borderCollapse", "collapse");
+  let ehdr = dom_create("tr") in
+  render_th(ehdr, "Problem");
+  render_th(ehdr, "Standard Answer");
+  render_th(ehdr, "Compression Answer");
+  dom_append(etbl, ehdr);
+  render_table_row(etbl, "Dark energy", "Unknown substance (68.5%)", "Observation artifact of lag");
+  render_table_row(etbl, "Acceleration", "Omega_Lambda > 0 required", "Exponential > linear at large d");
+  render_table_row(etbl, "Atom exemption", "Atoms exempt from expansion", "Everything compresses uniformly");
+  render_table_row(etbl, "Hubble tension", "Two incompatible H0", "Depth-dependent rate (speculative)");
+  dom_append(se, etbl);
+  dom_append(dom_body(), se);
+
+  /* === PARADIGM CONTRAST === */
+  let sc = make_section("800px") in
+  render_h2(sc, "Paradigm Contrast");
+  let ctbl = dom_create("table") in
+  dom_style(ctbl, "width", "100%");
+  dom_style(ctbl, "maxWidth", "700px");
+  dom_style(ctbl, "margin", "24px auto");
+  dom_style(ctbl, "borderCollapse", "collapse");
+  let chdr = dom_create("tr") in
+  render_th(chdr, "");
+  render_th(chdr, "Lambda-CDM");
+  render_th(chdr, "Compression");
+  dom_append(ctbl, chdr);
+  render_contrast_row(ctbl, "Free parameters", "6", "1");
+  render_contrast_row(ctbl, "Dark energy", "Unknown substance", "Observation artifact");
+  render_contrast_row(ctbl, "Hubble's Law", "Space expansion", "Compression-lag");
+  render_contrast_row(ctbl, "Acceleration", "Requires Omega_Lambda", "Natural exponential");
+  render_contrast_row(ctbl, "Distinguishable?", "Standard cosmology", "Same data, fewer params");
+  dom_append(sc, ctbl);
+  dom_append(dom_body(), sc);
+
+  /* === AXIOM CONNECTION === */
+  let sa = make_section("800px") in
+  render_h2(sa, "Connection to the Ring");
+  render_p(sa, "The axiom ring Z/12612600 is finite. Nothing in it expands -- everything wraps. The water cycle 0 -> sigma -> OMEGA -> 0 completes in 420 steps. The ratio 420:1 governs the lifecycle: growth, collapse, return.");
+  render_p(sa, "If the compression interpretation holds, the Hubble constant H0 = r is the ring's compression rate. The ring needs no dark energy because it needs no expansion. It compresses uniformly, and observation lag does the rest.");
+  render_p(sa, "This is a mathematical model, not a proven physical theory. Its advantage is parsimony: one parameter does the work of six. If the models are observationally degenerate, Occam's razor favors compression.");
+  dom_append(dom_body(), sa)
+)
