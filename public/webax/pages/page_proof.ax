@@ -208,6 +208,17 @@ fn pf_is_pow2(n) = (
   )
 )
 
+/* Cyclotomic Phi_p(x) for prime p: x^{p-1}+x^{p-2}+...+1 = (x^p-1)/(x-1) */
+fn pf_phi_prime(x, p) = (
+  mut s = 0; mut pw = 1; mut i = 0;
+  while i < p do (
+    mut s = s + pw;
+    mut pw = pw * x;
+    mut i = i + 1
+  );
+  s
+)
+
 /* Count primes p in [lo,hi] where E*b = 1 mod p (Thm 53 helper) */
 fn pf_finality_scan(lo, hi) = (
   mut count = 0; mut p = lo;
@@ -303,7 +314,7 @@ fn pf_ord(a, m) = (
   )
 )
 
-/* ===== PART 3: Theorems 35-71, Falsifications F1-F2 + Summary ===== */
+/* ===== PART 3: Theorems 35-72, Falsifications F1-F2 + Summary ===== */
 /* S1508: forward references work (collect_fns gathers all fns before emit). Order is convention. */
 /* r3 = array: [0]=sum of checks from parts 1+2 */
 fn proof_part3(r3) = (
@@ -1513,11 +1524,39 @@ fn proof_part3(r3) = (
     "The lambda-420 exponent grid has D^2*K^2*E = 180 candidates. Exactly D^2*K^3 = 108 achieve lambda=420; D^3*K^2 = 72 do not. Ratio = K:D, forced by E = K + D. Grid dimensions (E,K,K,D,D) ARE the axiom primes. The rejection count 72 = |Z/8|*|Z/9| = (Tower_D top)*(Tower_K top): the two most-structured micro towers jointly gate which exponent vectors produce the heartbeat. Proved S543+S1517, ALGEBRA.md.", p71, 5);
   dom_append(dom_body(), sec71);
 
+  /* ============================================================
+     THEOREM 72: CYCLOTOMIC AXIOM THEOREM (S1518)
+     Cyclotomic polynomials Phi_p evaluated at axiom primes produce
+     axiom structure: K consecutive primes, Mersenne exclusion at L,
+     observer-protector square, Wieferich emergence at depth.
+     ============================================================ */
+  let sec72 = make_section("700px") in
+  render_h2(sec72, "72. Cyclotomic Axiom (Cross-Tower, S1518)");
+  render_p(sec72, "The closure cyclotomic Phi_K(x)=x^2+x+1 evaluated at axiom chain primes {D,K,E} produces K=3 consecutive primes: Phi_K(D)=b=7, Phi_K(K)=GATE=13, Phi_K(E)=31. Breaks at Phi_K(b)=57=K*f(E). Mersenne numbers M_p=2^p-1 are prime for 6 of 7 axiom primes -- L=11 is the unique exclusion (M_L=2047=23*89). The observer cyclotomic Phi_E(K) = L^2 = 121. The depth cyclotomic Phi_b(K) = 1093, one of only two known Wieferich primes. Proved S1518, FIELDS.md.");
+  /* Check 1: Phi_K chain produces K=3 primes */
+  let c72_pk = pf_is_prime(pf_phi_prime(D, K)) + pf_is_prime(pf_phi_prime(K, K)) + pf_is_prime(pf_phi_prime(E, K)) in
+  pf_result(sec72, "Phi_K chain: K=3 primes", "Phi_K(D)=${pf_phi_prime(D, K)}, Phi_K(K)=${pf_phi_prime(K, K)}, Phi_K(E)=${pf_phi_prime(E, K)}. All prime, break at Phi_K(b)=${pf_phi_prime(b, K)}.", if c72_pk == 3 then (if pf_is_prime(pf_phi_prime(b, K)) == 0 then 1 else 0) else 0);
+  /* Check 2: Mersenne exclusion -- 6/7 axiom primes are Mersenne exponents */
+  let c72_mp = pf_is_prime(pf_phi_prime(D, D)) + pf_is_prime(pf_phi_prime(D, K)) + pf_is_prime(pf_phi_prime(D, E)) + pf_is_prime(pf_phi_prime(D, b)) + pf_is_prime(pf_phi_prime(D, L)) + pf_is_prime(pf_phi_prime(D, GATE)) + pf_is_prime(pf_phi_prime(D, ESCAPE)) in
+  pf_result(sec72, "Mersenne: 6 of 7 prime", "M_L=${pf_phi_prime(D, L)}=23*89 (composite). ${c72_mp}/7 axiom Mersennes prime.", if c72_mp == 6 then 1 else 0);
+  /* Check 3: Observer square Phi_E(K) = L^2 = 121 */
+  let c72_obs = pf_phi_prime(K, E) in
+  pf_result(sec72, "Phi_E(K) = L^2", "${c72_obs} = ${L*L}.", if c72_obs == L * L then 1 else 0);
+  /* Check 4: Wieferich emergence Phi_b(K) = 1093 prime */
+  let c72_wie = pf_phi_prime(K, b) in
+  pf_result(sec72, "Phi_b(K) = 1093 (Wieferich)", "${c72_wie} prime: ${pf_is_prime(c72_wie)}.", if c72_wie == 1093 then (if pf_is_prime(c72_wie) == 1 then 1 else 0) else 0);
+  /* Check 5: D-b resonance: Phi_K(D)+1 = D^3 (Catalan) */
+  pf_result(sec72, "Phi_K(D)+1 = D^3 (Catalan)", "${pf_phi_prime(D, K)}+1 = ${D*D*D}. f(D)=${D*D-D-1}=sigma.", if pf_phi_prime(D, K) + 1 == D * D * D then 1 else 0);
+  let p72 = (if c72_pk == 3 then (if pf_is_prime(pf_phi_prime(b, K)) == 0 then 1 else 0) else 0) + (if c72_mp == 6 then 1 else 0) + (if c72_obs == L * L then 1 else 0) + (if c72_wie == 1093 then (if pf_is_prime(c72_wie) == 1 then 1 else 0) else 0) + (if pf_phi_prime(D, K) + 1 == D * D * D then 1 else 0) in
+  pf_theorem(sec72, "CYCLOTOMIC AXIOM THEOREM",
+    "Cyclotomic polynomials evaluated at axiom primes produce axiom structure with four-part coherence: (a) Phi_K generates exactly K=3 primes from the chain. (b) 6 of 7 axiom primes are Mersenne exponents; L=11 is the unique exclusion. (c) Phi_E(K)=L^2: observer at closure = protector squared. (d) Phi_b(K)=1093: one of only two known Wieferich primes emerges from depth at closure. Proved S1518, FIELDS.md.", p72, 5);
+  dom_append(dom_body(), sec72);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 in
-  let total_tests = 444 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 in
+  let total_tests = 449 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -1529,7 +1568,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "71 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "72 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
