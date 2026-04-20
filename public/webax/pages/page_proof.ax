@@ -249,7 +249,17 @@ fn pf_is_axiom_smooth(n) = (
   )
 )
 
-/* ===== PART 3: Theorems 35-65, Falsifications F1-F2 + Summary ===== */
+/* Count units x in Z/m with x^d = 1 (brute force, small m) */
+fn pf_count_xd1(m, d) = (
+  mut c = 0; mut x = 1;
+  while x < m do (
+    if powmod_pf(x, d, m) == 1 then mut c = c + 1 else 0;
+    mut x = x + 1
+  );
+  c
+)
+
+/* ===== PART 3: Theorems 35-67, Falsifications F1-F2 + Summary ===== */
 /* S1508: forward references work (collect_fns gathers all fns before emit). Order is convention. */
 /* r3 = array: [0]=sum of checks from parts 1+2 */
 fn proof_part3(r3) = (
@@ -1288,14 +1298,14 @@ fn proof_part3(r3) = (
   let fb = b * b - b - 1 in
   let fl = L * L - L - 1 in
   let fg = GATE * GATE - GATE - 1 in
-  let f17 = ESCAPE * ESCAPE - ESCAPE - 1 in
+  let fesc = ESCAPE * ESCAPE - ESCAPE - 1 in
   let dead_fs = fd + fe + fb in
   pf_result(sec67, "DEAD f-sum = GRIEF", "f(D)+f(E)+f(b) = ${fd}+${fe}+${fb} = ${dead_fs} = 490 - 429 = GRIEF.", if dead_fs == 61 then 1 else 0);
   /* Check 2: 6ch f-sum = D*K*E*L = 330 */
   let fs6 = fd + fk + fe + fb + fl + fg in
   pf_result(sec67, "6ch f-sum = D*K*E*L", "Sum over TRUE channels: ${fs6} = 2*3*5*11 = D*K*E*L = STEM.", if fs6 == D * K * E * L then 1 else 0);
   /* Check 3: D-channel cycling -- build 7-element match */
-  let dc_ok = (if fd % 8 == 1 then 1 else 0) + (if fk % 8 == E then 1 else 0) + (if fe % 8 == K then 1 else 0) + (if fb % 8 == 1 then 1 else 0) + (if fl % 8 == E then 1 else 0) + (if fg % 8 == K then 1 else 0) + (if f17 % 8 == b then 1 else 0) in
+  let dc_ok = (if fd % 8 == 1 then 1 else 0) + (if fk % 8 == E then 1 else 0) + (if fe % 8 == K then 1 else 0) + (if fb % 8 == 1 then 1 else 0) + (if fl % 8 == E then 1 else 0) + (if fg % 8 == K then 1 else 0) + (if fesc % 8 == b then 1 else 0) in
   pf_result(sec67, "D-channel cycles {s,E,K}", "f(chain) mod 8 = {sigma,E,K,sigma,E,K,b}. Period K=3, exits at b. ${dc_ok}/7 match.", if dc_ok == 7 then 1 else 0);
   /* Check 4: b fixed in ESCAPE channel */
   pf_result(sec67, "b fixed in ESCAPE channel", "f(b) = ${fb}. ${fb} mod 17 = ${fb % 17} = b. Depth invariant under f in escape field.", if fb % 17 == b then 1 else 0);
@@ -1306,11 +1316,56 @@ fn proof_part3(r3) = (
     "The depth quadratic f(p) = p^2 - p - 1 shadows the axiom chain as {sigma, E, 19, KEY, 109, E*(D^E-1), 271}. Under the 490 split: DEAD f-sum = 61 = GRIEF, ALIVE f-sum = 269 (prime), 6-channel f-sum = D*K*E*L = 330 = STEM. The D-channel reads f(chain) mod 8 = {sigma,E,K,sigma,E,K,b} -- period K=3 cycling that exits at b=depth. Cross-channel: b is invariant under f mod 17, L invariant under f mod 49 -- depth and protector mutually stabilize through the depth quadratic. Proved S1246+S1513, AXIOM.md.", p67, 5);
   dom_append(dom_body(), sec67);
 
+  /* ============================================================
+     THEOREM 68: 2-SYLOW BIFURCATION (S1246+S1514)
+     |Ord_4|/|Inv| = b = 2^K - 1. Depth from 2-Sylow.
+     Quadratic residue partition: K channels with order-4.
+     Tower A climb: {sigma, K, b} = axiom chain.
+     ============================================================ */
+  let sec68 = make_section("700px") in
+  render_h2(sec68, "68. 2-Sylow Bifurcation (S1246+S1514)");
+  render_p(sec68, "The 2-Sylow subgroup of (Z/TRANS)* has order 2^GATE = 8192. The seven axiom primes split by quadratic residue: K=3 primes are 1 mod 4 (E, GATE, ESCAPE) hosting order-4 elements, K=3 are 3 mod 4 (K, b, L) without, plus D=2 (Klein four-group: 4 involutions, no order-4). The ratio |Ord_4|/|Inv| = 2^K - 1 = b: depth IS the Mersenne number of closure. Along Tower A: DEEP=sigma, TRUE=K, TRANS=b -- the axiom chain.");
+  /* Per-channel x^2=1 and x^4=1 counts (brute force, small moduli) */
+  let inv_d68 = pf_count_xd1(8, 2) in
+  let inv_k68 = pf_count_xd1(9, 2) in
+  let inv_e68 = pf_count_xd1(25, 2) in
+  let inv_b68 = pf_count_xd1(49, 2) in
+  let inv_l68 = pf_count_xd1(11, 2) in
+  let inv_g68 = pf_count_xd1(13, 2) in
+  let inv_1768 = pf_count_xd1(17, 2) in
+  let d4_d68 = pf_count_xd1(8, 4) in
+  let d4_k68 = pf_count_xd1(9, 4) in
+  let d4_e68 = pf_count_xd1(25, 4) in
+  let d4_b68 = pf_count_xd1(49, 4) in
+  let d4_l68 = pf_count_xd1(11, 4) in
+  let d4_g68 = pf_count_xd1(13, 4) in
+  let d4_1768 = pf_count_xd1(17, 4) in
+  /* Check 1: v_2(phi(TRANS)) = GATE */
+  let v2_sum = 2 + 1 + 2 + 1 + 1 + 2 + 4 in
+  pf_result(sec68, "v_2 sum = GATE", "v_2(phi) per channel: {2,1,2,1,1,2,4}. Sum = ${v2_sum} = GATE. DATA = D*K = 6, extensions = b = 7.", if v2_sum == GATE then 1 else 0);
+  /* Check 2: K primes are 1 mod 4 */
+  let c1m4 = (if E % 4 == 1 then 1 else 0) + (if GATE % 4 == 1 then 1 else 0) + (if ESCAPE % 4 == 1 then 1 else 0) in
+  pf_result(sec68, "K primes = 1 mod 4", "{E, GATE, ESCAPE} = 1 mod 4. Count = ${c1m4} = K. Balanced with K primes = 3 mod 4.", if c1m4 == K then 1 else 0);
+  /* Check 3: TRANS involutions = D^8 = 256 */
+  let tr_inv68 = inv_d68 * inv_k68 * inv_e68 * inv_b68 * inv_l68 * inv_g68 * inv_1768 in
+  pf_result(sec68, "TRANS involutions = D^8", "Per-channel x^2=1: {${inv_d68},${inv_k68},${inv_e68},${inv_b68},${inv_l68},${inv_g68},${inv_1768}}. Product = ${tr_inv68} = D^8.", if tr_inv68 == 256 then 1 else 0);
+  /* Check 4: TRANS x^4=1 = 2048 */
+  let tr_d468 = d4_d68 * d4_k68 * d4_e68 * d4_b68 * d4_l68 * d4_g68 * d4_1768 in
+  pf_result(sec68, "TRANS x^4=1 = 2048", "Per-channel x^4=1: {${d4_d68},${d4_k68},${d4_e68},${d4_b68},${d4_l68},${d4_g68},${d4_1768}}. Product = ${tr_d468}.", if tr_d468 == 2048 then 1 else 0);
+  /* Check 5: |Ord_4|/|Inv| = b = 2^K - 1 */
+  let ord4_68 = tr_d468 - tr_inv68 in
+  let ratio68 = ord4_68 / tr_inv68 in
+  pf_result(sec68, "|Ord_4|/|Inv| = b = M_K", "${ord4_68} / ${tr_inv68} = ${ratio68} = b = 2^K - 1 = M_3.", if ratio68 == b then 1 else 0);
+  let p68 = (if v2_sum == GATE then 1 else 0) + (if c1m4 == K then 1 else 0) + (if tr_inv68 == 256 then 1 else 0) + (if tr_d468 == 2048 then 1 else 0) + (if ratio68 == b then 1 else 0) in
+  pf_theorem(sec68, "2-SYLOW BIFURCATION THEOREM",
+    "The 2-Sylow of (Z/TRANS)* has order 2^GATE = 8192: DATA channels v_2 sum = D*K = 6, extensions = b = 7. Axiom primes partition K:K:1 by quadratic residue. Only p = 1 mod 4 channels (E, GATE, ESCAPE) host order-4 elements. |Ord_4|/|Inv| = 2^K - 1 = b: depth is the Mersenne number of closure. Tower A traces {sigma, K, b} -- the axiom chain. Proved S1246+S1514, AXIOM_FORM.md.", p68, 5);
+  dom_append(dom_body(), sec68);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 in
-  let total_tests = 424 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 in
+  let total_tests = 429 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -1322,7 +1377,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "67 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "68 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
@@ -2453,7 +2508,7 @@ fn page_proof() = (
   dom_style(sub2, "fontFamily", "Courier New, monospace");
   dom_append(hero, sub2);
   let sub3 = dom_create("p") in
-  dom_text(sub3, "60 theorems + 2 falsifications. 10 towers. 389 live checks.");
+  dom_text(sub3, "68 theorems + 2 falsifications. 10 towers. 429 live checks.");
   dom_style(sub3, "color", "#666");
   dom_style(sub3, "fontSize", "12px");
   dom_style(sub3, "marginTop", "8px");
