@@ -628,10 +628,51 @@ fn ecc3_double_demo() = (
     "<p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Overall: 989/2288 = 43.2% of double errors uniquely correctable via ECC3. Hamming(7,4): 0%. Exhaustive (S1493). CC0.</p></div>")
 )
 
+fn ecc_void_chain() = (
+  let result_el = dom_query("#void-chain-result") in
+  let k_in = parse_int_from("#void-chain-input") in
+  let k = if k_in < 2 then 2 else if k_in > 12 then 12 else k_in in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>VOID CHAIN: lambda(0) = 2k - 1 for k channels</p>";
+  mut html = html + "<table style='border-collapse:collapse;width:100%;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#666;font-size:10px;text-align:left'>k</th><th style='padding:3px 8px;color:#ffd700;font-size:10px;text-align:left'>lambda(0)</th><th style='padding:3px 8px;color:#44ff88;font-size:10px;text-align:left'>Ring</th><th style='padding:3px 8px;color:#ff9900;font-size:10px;text-align:left'>Axiom Name</th><th style='padding:3px 8px;color:#888;font-size:10px;text-align:left'>Gap</th></tr>";
+  mut prev = 0;
+  mut prod = 1;
+  mut total = 0;
+  mut axiom_hits = 0;
+  mut i = 2;
+  while i <= k do (
+    let lam = 2 * i - 1 in
+    let gap = if prev == 0 then 0 else lam - prev in
+    let ring_name = if i == 4 then "DATA" else if i == 5 then "DEEP" else if i == 6 then "TRUE" else if i == 7 then "TRANS" else "" in
+    let ax_name = if lam == 3 then "K" else if lam == 5 then "E" else if lam == 7 then "b" else if lam == 9 then "K^2" else if lam == 11 then "L" else if lam == 13 then "GATE" else if lam == 17 then "ESCAPE" else "" in
+    let is_ax = if len(ax_name) > 0 then 1 else 0 in
+    let a_clr = if is_ax == 1 then "#ffd700" else "#555" in
+    let r_clr = if len(ring_name) > 0 then "#44ff88" else "#555" in
+    mut html = html + "<tr><td style='padding:2px 8px;color:#888;font-size:12px'>" + "${i}" + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${lam}" + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:" + r_clr + ";font-size:12px'>" + ring_name + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:" + a_clr + ";font-size:12px;font-weight:bold'>" + ax_name + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:#888;font-size:12px'>" + (if prev == 0 then "--" else "${gap}") + "</td></tr>";
+    if is_ax == 1 then mut axiom_hits = axiom_hits + 1 else 0;
+    if i >= 4 then (if i <= 7 then (mut prod = prod * lam; mut total = total + lam) else 0) else 0;
+    mut prev = lam;
+    mut i = i + 1
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Axiom hits: " + "${axiom_hits}" + "/" + "${k - 1}" + " values name axiom elements.</p>";
+  if k >= 7 then (
+    mut html = html + "<p style='color:#88ddaa;margin:4px 0;font-size:12px'>Tower A product (k=4..7): " + "${prod}" + " = 7*9*11*13 = K^2*b*L*GATE = 9009. Sum: " + "${total}" + " = 40 = D^3*E.</p>";
+    mut html = html + "<p style='color:#88ddaa;margin:4px 0;font-size:12px'>All gaps = 2 = D. The void walks the axiom at D-spaced intervals.</p>"
+  ) else 0;
+  mut html = html + "<p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Void Chain Theorem (Thm 49, S1319/S1494). lambda(0) = 2k-1. At Tower A rings DATA/DEEP/TRUE/TRANS, the void eigenvalue names b, K^2, L, GATE. L=11 = void eigenvalue of TRUE = the ring where ECC operates. CC0.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
 /* ===== PAGE CONSTRUCTION ===== */
 fn page_ecc_live() = (
-  dom_head_meta("description", "Live Error Correction. L=11 detects, CRT heals. 100% single-error correction. ECC3 triple-parity (L+GATE+ESCAPE): 43.2% double-error correction vs Hamming 0%. Fountain codes. Spread spectrum. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Live Error Correction\",\"description\":\"CRT error correction: L=11 single-error (100%), ECC3 triple-parity double-error (43.2% vs Hamming 0%). Interactive demo with live corruption and healing.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ecc_live\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protection\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT reconstruction\"},{\"@type\":\"DefinedTerm\",\"name\":\"double-error correction\"}]}");
+  dom_head_meta("description", "Live Error Correction. L=11 detects, CRT heals. 100% single-error correction. ECC3 triple-parity: 43.2% double-error vs Hamming 0%. Void Chain Theorem: lambda(0) at TRUE = L = the ECC prime. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Live Error Correction\",\"description\":\"CRT error correction: L=11 single-error (100%), ECC3 triple-parity double-error (43.2% vs Hamming 0%). Void Chain Theorem: void eigenvalue at TRUE = L=11 = the ECC prime.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ecc_live\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protection\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT reconstruction\"},{\"@type\":\"DefinedTerm\",\"name\":\"double-error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"void chain theorem\"}]}");
   domain_hero("Error Correction", "L = 11 detects. CRT heals.", "Type a message. Click any channel cell to corrupt it. Watch L=11 catch the error. Click again or Heal All to restore. 100% recovery.");
 
   /* === SEC 1: LIVE MESSAGE ECC (NEW -- canvas-based, absorbed from ecc_live.html) === */
@@ -1001,5 +1042,32 @@ fn page_ecc_live() = (
   render_contrast_row(sec9, "Error detection", "None -- Viterbi always outputs bits, CRC-32 adds overhead", "Built-in -- invalid CRT values (>210) flag errors for free");
   render_contrast_row(sec9, "Channel fading", "Entire signal degrades uniformly", "Individual channels fade independently -- 4 survive if 1 dies");
   render_contrast_row(sec9, "Paradigm", "Add redundancy to fight noise", "Structure IS the code -- arithmetic provides detection");
-  dom_append(dom_body(), sec9)
+  dom_append(dom_body(), sec9);
+
+  /* === SEC 10: VOID CHAIN THEOREM (Theorem 49, S1319/S1494) === */
+  let sec10 = make_section("800px") in
+  render_h2(sec10, "Void Chain: Detection Across Rings");
+  render_p(sec10, "The void element (0) has an eigenvalue lambda(0) = 2k-1 where k is the number of CRT channels. At each Tower A ring level, this void eigenvalue names an axiom element: DATA(4ch)=7=b, DEEP(5ch)=9=K^2, TRUE(6ch)=11=L, TRANS(7ch)=13=GATE. Gaps are always D=2. The void walks the axiom chain at constant intervals.");
+  render_theorem(sec10, "Void Chain Theorem (Theorem 49, S1319/S1494, PROVED)", "lambda(0) = 2k-1 for k CRT channels. At Tower A rings: DATA=b(7), DEEP=K^2(9), TRUE=L(11), TRANS=GATE(13). Constant gap = D = 2. Product = 9009 = K^2*b*L*GATE (septum denominator 1001 * K^2). Sum = 40 = D^3*E. The void eigenvalue at TRUE is L=11 -- the ring where ECC operates IS the ring whose void eigenvalue IS the ECC protector prime.");
+  render_p(sec10, "Explore: enter a channel count (2-12). See the void chain extend and verify axiom element hits.");
+  make_interactive_widget(sec10, "Channels (2-12):", "void-chain-input", "e.g. 7", "Show Void Chain", "ecc_void_chain", "void-chain-result");
+  let g10 = make_findings_grid(sec10) in
+  render_finding(g10, "DATA void = b", "lambda(0) = 7 = depth", "The void sees depth. 4-channel ring.", "");
+  render_finding(g10, "TRUE void = L", "lambda(0) = 11 = protector", "The ECC ring's void IS the ECC prime. Self-referential.", "");
+  render_finding(g10, "TRANS void = GATE", "lambda(0) = 13 = boundary", "7-channel ring. Void = the gatekeeper.", "");
+  render_finding(g10, "Product = 9009", "K^2 * b * L * GATE", "Septum denominator times K^2. All four = axiom chain.", "");
+  render_contrast_row(sec10, "Traditional ECC", "Parity bits chosen by designer", "CRT: L=11 chosen by the void itself");
+  render_contrast_row(sec10, "Ring growth", "Each channel adds arbitrary complexity", "Each channel adds exactly D=2 to void eigenvalue");
+  render_contrast_row(sec10, "Error detection", "Bolted on from outside", "Structural: the void eigenvalue AT TRUE = the detection prime");
+  let note10 = dom_create("div") in
+  dom_style(note10, "background", "#1a1a0a");
+  dom_style(note10, "border", "1px solid #665500");
+  dom_style(note10, "borderRadius", "8px");
+  dom_style(note10, "padding", "12px 16px");
+  dom_style(note10, "marginTop", "12px");
+  dom_style(note10, "fontSize", "14px");
+  dom_style(note10, "color", "#ccbb88");
+  dom_inner(note10, "HONEST NOTE: The void eigenvalue lambda(0) = 2k-1 is a formula for ALL squarefree moduli with k distinct prime factors. The axiom claim is not the formula (which is general) but the coincidence that at exactly the four Tower A levels (k=4,5,6,7), the resulting odd numbers happen to be axiom elements {b, K^2, L, GATE}. This is a structural observation, not a proof of necessity.");
+  dom_append(sec10, note10);
+  dom_append(dom_body(), sec10)
 )
