@@ -51,9 +51,65 @@ fn demo_ouroboros_run() = (
   dom_inner(result_el, html)
 )
 
+/* Trial division primality for small numbers */
+fn cc_is_prime(x) = (
+  if x < 2 then 0
+  else if x == 2 then 1
+  else if x % 2 == 0 then 0
+  else (
+    mut d = 3;
+    let found = while d * d <= x do (
+      if x % d == 0 then break 1 else 0;
+      mut d = d + 2
+    ) in
+    if found == 1 then 0 else 1
+  )
+)
+
+/* Cunningham filtration: c(x)=2x+1 from any seed, showing chain generation */
+fn demo_cunningham_run() = (
+  let result_el = dom_query("#dcunn-result") in
+  let seed_val = parse_int_from("#dcunn-input") in
+  let s = if seed_val < 1 then 1 else seed_val in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>CUNNINGHAM CHAIN c(x) = 2x + 1 from " + "${s}" + "</p>";
+  mut html = html + "<table style='border-collapse:collapse;width:100%;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#666;font-size:10px;text-align:left'>Step</th><th style='padding:3px 8px;color:#ffd700;font-size:10px;text-align:left'>Value</th><th style='padding:3px 8px;color:#888;font-size:10px;text-align:left'>Formula</th><th style='padding:3px 8px;color:#44ff88;font-size:10px;text-align:left'>Prime?</th><th style='padding:3px 8px;color:#ff9900;font-size:10px;text-align:left'>Axiom</th></tr>";
+  mut x = s;
+  mut step = 0;
+  while step < 8 do (
+    let ip = cc_is_prime(x) in
+    let name = if x == 1 then "sigma"
+      else if x == 2 then "D"
+      else if x == 3 then "K"
+      else if x == 5 then "E"
+      else if x == 7 then "b"
+      else if x == 11 then "L"
+      else if x == 13 then "GATE"
+      else if x == 17 then "ESCAPE"
+      else "" in
+    let is_ax = if len(name) > 0 then 1 else 0 in
+    let p_clr = if ip == 1 then "#44ff88" else "#ff4444" in
+    let a_clr = if is_ax == 1 then "#ffd700" else "#666" in
+    let formula = if step == 0 then "seed" else ("2*" + "${(x - 1) / 2}" + " + 1") in
+    mut html = html + "<tr><td style='padding:2px 8px;color:#888;font-size:12px'>" + "${step}" + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${x}" + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:#888;font-size:11px'>" + formula + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:" + p_clr + ";font-size:12px;font-weight:bold'>" + (if ip == 1 then "PRIME" else "composite") + "</td>";
+    mut html = html + "<td style='padding:2px 8px;color:" + a_clr + ";font-size:12px;font-weight:bold'>" + name + "</td></tr>";
+    let stop = if ip == 0 then (if x > 1 then 1 else 0) else 0 in
+    mut x = 2 * x + 1;
+    mut step = step + 1;
+    if stop == 1 then break else 0
+  );
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>c(x) = 2x + 1 (twin Cunningham map). Chain terminates at first composite. Try seeds 1 and 2 to see the axiom chain generated.</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
 fn page_compiler() = (
-  dom_head_meta("description", "The .ax Compiler: self-hosting, self-compiling, CC0. Kill #42 = D*K*b = ANSWER. The tool that built 41 CC0 demos compiles itself to WASM. Zero dependencies. Public domain forever.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The .ax Compiler (CC0 Kill #42)\",\"description\":\"Self-hosting .ax compiler. Compiles itself to WASM. Fixed point. Zero dependencies. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/compiler\"}");
+  dom_head_meta("description", "The .ax Compiler: self-hosting, self-compiling, CC0. Kill #42 = D*K*b = ANSWER. Cunningham Filtration: twin chains from {1,2} generate seven primes. The compiler compiles itself to WASM. Zero dependencies. Public domain forever.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The .ax Compiler (CC0 Kill #42)\",\"description\":\"Self-hosting .ax compiler. Cunningham Filtration Theorem: twin chains from seeds {1,2} generate seven primes. Compiles itself to WASM. CC0.\",\"about\":[\"Cunningham chains\",\"self-hosting compiler\",\"Theorem 53\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/compiler\"}");
   let hero = make_hero("The Compiler") in
   let eq = dom_create("div") in
   dom_text(eq, "G42: D*K*b = 42 = ANSWER. CC0.");
@@ -89,6 +145,19 @@ fn page_compiler() = (
   render_p(sec2, "Source-level include directive expands files before tokenization. Test prelude dissolves boilerplate: one line replaces twelve.");
   render_p(sec2, "The compiler has K^2=9 analysis passes: the spider IS the web. Each pass tightens type information.");
   dom_append(dom_body(), sec2);
+
+  /* Section 2b: Cunningham Filtration (Theorem 53) */
+  let sec2b = make_section("800px") in
+  render_h2(sec2b, "The Cunningham Filtration");
+  render_theorem(sec2b, "Cunningham Filtration (Theorem 53, PROVED S1308/S1498)", "Twin Cunningham map c(x) = 2x + 1 from seeds {sigma=1, D=2} generates {1, 2, 3, 5, 7, 11} -- the first six chain elements. Closure conditions complete the rest: D^2 + K^2 = 13 = GATE, D + K + E + b = 17 = ESCAPE. ESCAPE is the unique prime p > 13 satisfying finality (E*b = 1 mod p), Fermat (phi(p) = D^4), and chain sum (D+K+E+b = p). Fermat triple: K=3, E=5, ESCAPE=17.");
+  let g2b = make_findings_grid(sec2b) in
+  render_finding(g2b, "c(1) = 3", "Chain from sigma", "1 -> 3 -> 7 -> 15 (composite). Generates K, b.", "");
+  render_finding(g2b, "c(2) = 5", "Chain from D", "2 -> 5 -> 11 -> 23 -> 47 -> 95. Generates E, L.", "");
+  render_finding(g2b, "13 = D^2+K^2", "GATE = convergence", "Sum of squares of first two chain primes.", "");
+  render_finding(g2b, "17 = D+K+E+b", "ESCAPE = chain sum", "E*b = 1 mod 17 (finality). phi(17) = D^4.", "");
+  render_p(sec2b, "The compiler that compiles itself is built on the chain that generates itself. Twin Cunningham chains from just two seeds produce six primes. Two closure conditions complete the seven. The ouroboros reflects this: .ax compiles .ax because the chain closes.");
+  make_interactive_widget(sec2b, "Seed (try 1 or 2):", "dcunn-input", "1", "Run Chain", "demo_cunningham_run", "dcunn-result");
+  dom_append(dom_body(), sec2b);
 
   /* Section 3: Try It */
   let sec3 = make_section("800px") in

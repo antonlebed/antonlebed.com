@@ -313,9 +313,63 @@ fn demo_genomic_distance() = (
   dom_inner(result_el, html)
 )
 
+/* Wobble partition: classify 16 codon groups into pure-wobble and position-dependent */
+fn demo_genomic_wobble() = (
+  let result_el = dom_query("#dgen-wobble") in
+  /* alloc(22): slots 0-20 = AA flags, slot 21 = pure group counter */
+  let pure_aa = alloc(22) in
+  mut ai = 0;
+  while ai < 22 do (pure_aa[ai] = 0; mut ai = ai + 1);
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>WOBBLE PARTITION: 20 = D^3 + D^2*K = D^2*E</p>";
+  mut html = html + "<table style='border-collapse:collapse;width:100%;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px;text-align:left'>Group</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=A</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=C</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=G</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=T</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Pure?</th></tr>";
+  mut n1 = 0;
+  while n1 < 4 do (
+    mut n2 = 0;
+    while n2 < 4 do (
+      let aa0 = codon_to_aa(n1, n2, 0) in
+      let aa1 = codon_to_aa(n1, n2, 1) in
+      let aa2 = codon_to_aa(n1, n2, 2) in
+      let aa3 = codon_to_aa(n1, n2, 3) in
+      let is_pure = if aa0 == aa1 then (if aa1 == aa2 then (if aa2 == aa3 then 1 else 0) else 0) else 0 in
+      if is_pure == 1 then (pure_aa[21] = pure_aa[21] + 1; pure_aa[aa0] = 1) else 0;
+      let group_str = nuc_char(n1) + nuc_char(n2) + "x" in
+      let clr = if is_pure == 1 then "#44ff88" else "#ff8844" in
+      mut html = html + "<tr><td style='padding:2px 6px;color:#ffd700;font-size:12px;font-family:monospace;font-weight:bold'>" + group_str + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#b0b0c0;font-size:11px'>" + aa_name_3(aa0) + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#b0b0c0;font-size:11px'>" + aa_name_3(aa1) + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#b0b0c0;font-size:11px'>" + aa_name_3(aa2) + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#b0b0c0;font-size:11px'>" + aa_name_3(aa3) + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:" + clr + ";font-size:12px;font-weight:bold'>" + (if is_pure == 1 then "YES" else "no") + "</td></tr>";
+      mut n2 = n2 + 1
+    );
+    mut n1 = n1 + 1
+  );
+  mut html = html + "</table>";
+  /* Count pure-wobble AAs (skip stop=20) */
+  mut pure_aa_count = 0;
+  mut pi = 0;
+  while pi < 20 do (
+    if pure_aa[pi] == 1 then (mut pure_aa_count = pure_aa_count + 1) else 0;
+    mut pi = pi + 1
+  );
+  let pure_count = pure_aa[21] in
+  let non_wobble = 20 - pure_aa_count in
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>RESULT</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:8px'>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Pure wobble groups</td><td style='padding:3px 12px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${pure_count}" + " = D^3 = 8</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Wobble-tolerant AAs</td><td style='padding:3px 12px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${pure_aa_count}" + "</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Position-dependent AAs</td><td style='padding:3px 12px;color:#ff8844;font-size:14px;font-weight:bold'>" + "${non_wobble}" + " = D^2*K = 12</td></tr>";
+  mut html = html + "<tr style='border-top:1px solid #333'><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Total amino acids</td><td style='padding:3px 12px;color:#ffd700;font-size:14px;font-weight:bold'>20 = D^2*E = D^3 + D^2*K</td></tr>";
+  mut html = html + "</table>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>D^3 = 8 amino acids are fully wobble-tolerant: any nucleotide at position 3 preserves the amino acid. The remaining D^2*K = 12 are position-dependent. D^3 + D^2*K = D^2*(D+K) = D^2*E = 4*5 = 20 (chain equation D+K=E). OBSERVED: whether this partition reflects ring structure is an open question (Theorem 51).</p>";
+  mut html = html + "</div>";
+  dom_inner(result_el, html)
+)
+
 fn page_genomic() = (
-  dom_head_meta("description", "CRT Genomic Sequence Alignment. DNA codons as ring elements. Wobble = CRT ECC. Coupling = evolutionary distance. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Genomic Sequence Alignment\",\"description\":\"DNA codons in Z/12612600. Wobble tolerance = CRT error correction. Alignment via coupling distance. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/genomic\"}");
+  dom_head_meta("description", "CRT Genomic Sequence Alignment. DNA codons as ring elements. Wobble Decomposition: 20 AAs = D^3 + D^2*K. Coupling = evolutionary distance. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Genomic Sequence Alignment\",\"description\":\"DNA codons in Z/12612600. Wobble Decomposition Theorem: 20 AAs = D^3 + D^2*K = D^2*E. Alignment via coupling distance. CC0.\",\"about\":[\"wobble hypothesis\",\"genetic code\",\"Theorem 51\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/genomic\"}");
   let hero = make_hero("CRT Genomic Sequence Alignment") in
   let eq = dom_create("div") in
   dom_text(eq, "D28: Illumina / PacBio / 10x Genomics. CC0.");
@@ -383,6 +437,33 @@ fn page_genomic() = (
   dom_append(sec2c, br2);
   render_p(sec2c, "Pairwise CRT distance between all 4 sequences. Silent mutations = small distance, functional mutations = large distance.");
   dom_append(dom_body(), sec2c);
+
+  /* Section: Wobble Decomposition (Theorem 51) */
+  let sec2d = make_section("900px") in
+  render_h2(sec2d, "Wobble Decomposition");
+  render_theorem(sec2d, "Wobble-AA Partition (Theorem 51, OBSERVED S1172/S1496)", "20 amino acids = D^3 + D^2*K = D^2*(D+K) = D^2*E. 8 amino acids (D^3) are fully wobble-tolerant: any nucleotide at position 3 preserves the amino acid. 12 amino acids (D^2*K) are position-dependent. The chain equation D + K = E gives 8 + 12 = 4*5 = 20. 64 codons = D^6. Whether this partition reflects ring structure in the genetic code is an open question.");
+  let g2d = make_findings_grid(sec2d) in
+  render_finding(g2d, "D^3 = 8", "Wobble-tolerant AAs", "Ala, Gly, Pro, Thr, Val, Leu*, Arg*, Ser*. All pos-3 variants give same AA.", "");
+  render_finding(g2d, "D^2*K = 12", "Position-dependent AAs", "Phe, Ile, Met, Tyr, His, Gln, Asn, Lys, Asp, Glu, Cys, Trp.", "");
+  render_finding(g2d, "D^2*E = 20", "Total amino acids", "8 + 12 = D^2*(D+K) = D^2*E. Chain equation D+K=E.", "");
+  render_finding(g2d, "D^6 = 64", "Total codons", "4^3 = 64. Three positions, four nucleotides each.", "");
+  let btn3 = dom_create("button") in
+  dom_text(btn3, "Compute Wobble Partition");
+  dom_style(btn3, "background", "#44ff88");
+  dom_style(btn3, "color", "#0f0f2a");
+  dom_style(btn3, "border", "none");
+  dom_style(btn3, "padding", "10px 24px");
+  dom_style(btn3, "borderRadius", "6px");
+  dom_style(btn3, "cursor", "pointer");
+  dom_style(btn3, "fontWeight", "bold");
+  dom_style(btn3, "fontSize", "14px");
+  dom_on(btn3, "click", "demo_genomic_wobble");
+  dom_append(sec2d, btn3);
+  let br3 = dom_create("div") in
+  dom_attr(br3, "id", "dgen-wobble");
+  dom_append(sec2d, br3);
+  render_p(sec2d, "Exhaustive classification of all 16 codon groups. * = AA also encoded by a non-pure group. Theorem 51 is OBSERVED: the partition is exact, but causal mechanism is unproved.");
+  dom_append(dom_body(), sec2d);
 
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT vs Traditional Alignment");
