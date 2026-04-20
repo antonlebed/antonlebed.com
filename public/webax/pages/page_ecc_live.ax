@@ -578,6 +578,56 @@ fn holo_calc() = (
   )
 )
 
+/* ===== ECC3 TRIPLE-PARITY (Theorem 48, S1493) ===== */
+/* Z/88200 = Z/8 x Z/9 x Z/25 x Z/49. CRT idempotents: 11025, 78400, 59976, 27000.
+   Max intermediate: 11025*7+78400*8+59976*24+27000*48 = 3439799 < 2^31. Safe i32. */
+fn ecc3_recon(rd, rk, re, rb) = (11025 * rd + 78400 * rk + 59976 * re + 27000 * rb) % 88200
+
+/* Double-error correction demo: corrupt D(+1) and K(+1), use L+GATE+ESCAPE syndrome.
+   Try all 72 D x K combinations. Unique match = corrected. Multiple = detect-only. */
+fn ecc3_double_demo() = (
+  let n = parse_int_from("#ecc3-input") in
+  let result_el = dom_query("#ecc3-result") in
+  let v = n % 88200 in
+  let rd = v % 8 in let rk = v % 9 in let re = v % 25 in let rb = v % 49 in
+  let rl = v % 11 in let rg = v % 13 in let rx = v % 17 in
+  let rd_bad = (rd + 1) % 8 in
+  let rk_bad = (rk + 1) % 9 in
+  let v_bad = ecc3_recon(rd_bad, rk_bad, re, rb) in
+  let sl = (rl + 11 - v_bad % 11) % 11 in
+  let sg = (rg + 13 - v_bad % 13) % 13 in
+  let sx = (rx + 17 - v_bad % 17) % 17 in
+  mut matches = 0; mut fixed_val = 0 - 1;
+  mut ti = 0;
+  while ti < 8 do (
+    mut tj = 0;
+    while tj < 9 do (
+      let w = ecc3_recon(ti, tj, re, rb) in
+      if w % 11 == rl then if w % 13 == rg then if w % 17 == rx then
+        (mut matches = matches + 1; mut fixed_val = w) else 0 else 0 else 0;
+      mut tj = tj + 1
+    );
+    mut ti = ti + 1
+  );
+  let ok = if matches == 1 then if fixed_val == v then 1 else 0 else 0 in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>" +
+    "<p style='color:#ffd700;margin:0 0 8px'>ECC3 TRIPLE-PARITY DEMO</p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>Value: ${v} in Z/88200 (data ring D^3 x K^2 x E^2 x b^2)</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>Data: D=${rd}/8, K=${rk}/9, E=${re}/25, b=${rb}/49</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>Parity: L=${rl}/11, GATE=${rg}/13, ESCAPE=${rx}/17</p>" +
+    "<p style='color:#ff6666;margin:12px 0 4px'>DOUBLE CORRUPTION: D(+1 mod 8) and K(+1 mod 9)</p>" +
+    "<p style='color:#ff8888;margin:4px 0'>Corrupted: D=${rd_bad}, K=${rk_bad} -- decoded to ${v_bad}</p>" +
+    "<p style='color:#ffd700;margin:12px 0 4px'>TRIPLE-PARITY SYNDROME</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>L: ${sl} | GATE: ${sg} | ESCAPE: ${sx}</p>" +
+    "<p style='color:#ffd700;margin:12px 0 4px'>CORRECTION (72 trials: 8 x 9)</p>" +
+    "<p style='color:" + (if ok == 1 then "#44ff88" else "#ffaa44") + ";margin:4px 0'>" +
+    (if ok == 1 then "UNIQUE MATCH: ${fixed_val} = ORIGINAL. DOUBLE ERROR CORRECTED."
+     else if matches > 1 then "${matches} matches -- syndrome collision. DETECTED but ambiguous."
+     else "No match. Error not correctable.") +
+    "</p>" +
+    "<p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Overall: 989/2288 = 43.2% of double errors uniquely correctable via ECC3. Hamming(7,4): 0%. Exhaustive (S1493). CC0.</p></div>")
+)
+
 /* ===== PAGE CONSTRUCTION ===== */
 fn page_ecc_live() = (
   dom_head_meta("description", "Live Error Correction in Z/210. Type a message, corrupt any channel, watch L=11 detect and heal. 100% detection in thin ring (all mods < 11). Interactive demo. Fountain codes. Spread spectrum. CC0.");
@@ -875,6 +925,33 @@ fn page_ecc_live() = (
   dom_inner(note6b, "HONEST NOTE: These error models are not identical. Hamming corrects bit-level errors (hardware faults, transmission noise). CRT corrects channel-level errors (an entire residue changes). In practice, a bit flip inside a CRT channel corrupts that channel's residue, which CRT can then detect and correct. But a multi-bit error within one channel looks the same as a single-channel error to CRT. The comparison is architectural, not drop-in. CRT ECC is most natural where data already lives in modular residue form (IoT sensors, ring-structured computation).");
   dom_append(sec6b, note6b);
   dom_append(dom_body(), sec6b);
+
+  /* === SEC 6c: ECC3 DOUBLE-ERROR CORRECTION (Theorem 48, S1493) === */
+  let sec6c = make_section("800px") in
+  render_h2(sec6c, "ECC3: Triple-Parity Double Correction");
+  render_theorem(sec6c, "ECC3 Double Correction (Theorem 48, S1493, PROVED)", "Upgrade from L=11 alone to the full triple: L + GATE + ESCAPE. 4 data channels {D=8, K=9, E=25, b=49} encode values in Z/88200. 3 parity channels {L=11, GATE=13, ESCAPE=17} create a 3-component syndrome. Syndrome space: 11 x 13 x 17 = 2431. Single errors: 87/87 unique syndromes = 100% correctable. Double errors: 989/2288 = 43.2% uniquely correctable. Hamming(7,4) double-error correction: 0%. Exhaustive verification.");
+  render_p(sec6c, "Try it: enter any value mod 88200. Both D and K channels are corrupted (+1 each). The triple-parity syndrome identifies the error. If the syndrome is unique among all possible D x K error pairs, the value is corrected. Otherwise the error is detected but requires retransmission.");
+  make_interactive_widget(sec6c, "Value (0-88199):", "ecc3-input", "e.g. 42", "Corrupt D + K", "ecc3_double_demo", "ecc3-result");
+  let g6c = make_findings_grid(sec6c) in
+  render_finding(g6c, "Single errors", "87/87 = 100%", "Every single-channel error has a unique 3-component syndrome.", "");
+  render_finding(g6c, "Double errors", "989/2288 = 43.2%", "Nearly half of 2-channel errors uniquely correctable.", "");
+  render_finding(g6c, "Hamming double", "0%", "Hamming(7,4) detects double errors but corrects none.", "");
+  render_finding(g6c, "Syndrome space", "2431", "L x GATE x ESCAPE = 11 x 13 x 17. Three independent checks.", "");
+  render_contrast_row(sec6c, "Single correction", "Hamming(7,4): 100%", "CRT ECC3: 100% (87/87 unique syndromes)");
+  render_contrast_row(sec6c, "Double correction", "Hamming(7,4): 0%", "CRT ECC3: 43.2% (989/2288 unique syndromes)");
+  render_contrast_row(sec6c, "Parity channels", "3 bits (constructed)", "L=11, GATE=13, ESCAPE=17 (structural)");
+  render_contrast_row(sec6c, "Data capacity", "16 values", "88,200 values");
+  let note6c = dom_create("div") in
+  dom_style(note6c, "background", "#1a1a0a");
+  dom_style(note6c, "border", "1px solid #665500");
+  dom_style(note6c, "borderRadius", "8px");
+  dom_style(note6c, "padding", "12px 16px");
+  dom_style(note6c, "marginTop", "12px");
+  dom_style(note6c, "fontSize", "14px");
+  dom_style(note6c, "color", "#ccbb88");
+  dom_inner(note6c, "HONEST NOTE: The 43.2% is the average across all 6 channel pairs. Smaller channels (D x K = 56 patterns) have higher correction rates than larger channels (E x b = 1152 patterns) due to syndrome space saturation. The result is exhaustive -- every error pattern was checked.");
+  dom_append(sec6c, note6c);
+  dom_append(dom_body(), sec6c);
 
   /* === SEC 7: CRT FOUNTAIN CODES === */
   let sec7 = make_section("800px") in
