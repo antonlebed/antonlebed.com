@@ -1232,11 +1232,51 @@ fn proof_part3(r3) = (
     "KEY(41) + SOUL(67) + GATE(13) = 121 = L^2 = 11^2. Overdetermined system: sum=L^2, diff=D^2*b=THORNS, centroid=K^3, spread=D*b. All three vertices algebraically forced with zero free parameters. SOUL is the unique prime completing the identity. KEY+GATE=54=D*K^3 (antisum). Symmetric about K^3=27 with spread D*b=14. Proved S576+S589, ALGEBRA_DEEP.md.", p65, 5);
   dom_append(dom_body(), sec65);
 
+  /* ============================================================
+     THEOREM 66: TRANS FINALITY (S1246)
+     ESCAPE=17 is the unique terminal extension prime.
+     Five obstructions block any 8th channel.
+     ============================================================ */
+  let sec66 = make_section("700px") in
+  render_h2(sec66, "66. TRANS Finality (S1246)");
+  render_p(sec66, "Five independent obstructions prove no prime p > 17 can extend TRANS = 214414200 while preserving axiom coherence. (F1) E*b - 1 = 34 = D*17: only p dividing 34 gives E*b = 1 mod p, and p > D forces p = 17. (F2) The next Fermat prime 257 has phi = 256, which does not divide 1680 -- lambda-incompatible. (F3) 7 channels = b = depth prime; adding an 8th breaks the self-referential identity. (F4) All 12 lambda-compatible primes fail finality. (F5) The depth quadratic f(17) = 271 is prime and lambda-incompatible: it exits the lattice.");
+  /* F1: E*b - 1 = 34 = D * ESCAPE */
+  let fin_prod = E * b - 1 in
+  pf_result(sec66, "E*b - 1 = D*ESCAPE", "E*b - 1 = 35 - 1 = ${fin_prod} = 2*17 = D*ESCAPE", if fin_prod == D * ESCAPE then 1 else 0);
+  /* F4: Lambda-compatible count = 12 */
+  mut lc_count = 0;
+  mut lc_d = 17;
+  while lc_d <= 1680 do (
+    if 1680 % lc_d == 0 then (
+      let lc_p = lc_d + 1 in
+      if lc_p > 17 then (
+        if pf_is_prime(lc_p) == 1 then mut lc_count = lc_count + 1 else 0
+      ) else 0
+    ) else 0;
+    mut lc_d = lc_d + 1
+  );
+  pf_result(sec66, "Lambda-compatible = 12", "Primes p > 17 with (p-1)|1680: count = ${lc_count}. All have E*b mod p != 1.", if lc_count == 12 then 1 else 0);
+  /* F1+F4: Finality scan [19, 1700] */
+  let fin66 = pf_finality_scan(19, 1700) in
+  pf_result(sec66, "Finality scan = 0", "Primes p in [19,1700] with E*b = 1 mod p: count = ${fin66}. Only p=17 satisfies finality.", if fin66 == 0 then 1 else 0);
+  /* F2: Fermat gap: 256 does not divide 1680 */
+  let ferm_rem = 1680 % 256 in
+  pf_result(sec66, "Fermat gap", "F_3=257: phi=256. 1680 mod 256 = ${ferm_rem} != 0. Lambda-incompatible.", if ferm_rem != 0 then 1 else 0);
+  /* F5: Depth quadratic exit: f(17)=271 prime, 270 does not divide 1680 */
+  let f17 = 17*17 - 17 - 1 in
+  let f17_p = pf_is_prime(f17) in
+  let f17_rem = 1680 % (f17 - 1) in
+  pf_result(sec66, "Depth quad exit", "f(17) = ${f17}, prime=${f17_p}. 1680 mod 270 = ${f17_rem} != 0. Lattice exit.", if f17_p == 1 then (if f17_rem != 0 then 1 else 0) else 0);
+  let p66 = (if fin_prod == D * ESCAPE then 1 else 0) + (if lc_count == 12 then 1 else 0) + (if fin66 == 0 then 1 else 0) + (if ferm_rem != 0 then 1 else 0) + (if f17_p == 1 then (if f17_rem != 0 then 1 else 0) else 0) in
+  pf_theorem(sec66, "TRANS FINALITY THEOREM",
+    "ESCAPE=17 is the unique terminal extension prime. E*b - 1 = 34 = D*17 makes the finality condition algebraically exclusive. All 12 lambda-compatible candidates beyond 17 fail. The next Fermat prime (257) is lambda-incompatible. The depth quadratic f(17)=271 exits the lattice. Five independent obstructions close the axiom at 7 channels = b. Proved S1246+S1512, AXIOM_FORM.md.", p66, 5);
+  dom_append(dom_body(), sec66);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 in
-  let total_tests = 414 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 in
+  let total_tests = 419 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -1248,7 +1288,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "65 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "66 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
