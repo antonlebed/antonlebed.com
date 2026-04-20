@@ -1442,10 +1442,81 @@ fn ct_gpu_add() = gpu_bench(0, 100000, dom_query("#ct-gpu-add"))
 fn ct_gpu_mul() = gpu_bench(1, 100000, dom_query("#ct-gpu-mul"))
 fn ct_gpu_eig() = gpu_bench(2, 100000, dom_query("#ct-gpu-eig"))
 
+/* D-Ratio Bridge: per-channel nil/sq0/idem/invol exhaustive count.
+   Arena reset between compute and display to bound memory. */
+fn ct_ch_sq0(q) = (mut c = 0; mut x = 0; while x < q do (if x*x%q == 0 then mut c = c+1 else 0; mut x = x+1); c)
+fn ct_ch_idem(q) = (mut c = 0; mut x = 0; while x < q do (if x*x%q == x then mut c = c+1 else 0; mut x = x+1); c)
+fn ct_ch_invol(q) = (mut c = 0; mut x = 0; while x < q do (if x*x%q == 1 then mut c = c+1 else 0; mut x = x+1); c)
+fn ct_ch_nil(q) = (
+  /* nilpotent in Z/p^a: p | x. Count = q/p. For prime powers: just count x where x^q=0. */
+  mut c = 0; mut x = 0;
+  while x < q do (
+    mut v = 1; mut e = 0;
+    while e < q do (mut v = v * x % q; mut e = e + 1);
+    if v == 0 then mut c = c + 1 else 0;
+    mut x = x + 1
+  );
+  c
+)
+
+fn ct_d_ratio() = (
+  let result_el = dom_query("#ct-dratio-result") in
+  /* Phase 1: compute all counts into a flat array, then arena-reset */
+  let mark = hp() in
+  let dat = alloc(28) in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
+  mut i = 0;
+  while i < 7 do (
+    let m = mods[i] in
+    dat[i*4] = ct_ch_nil(m);
+    dat[i*4+1] = ct_ch_sq0(m);
+    dat[i*4+2] = ct_ch_idem(m);
+    dat[i*4+3] = ct_ch_invol(m);
+    mut i = i + 1
+  );
+  /* CRT products */
+  mut np = 1; mut sp = 1; mut dp = 1; mut vp = 1;
+  mut i = 0;
+  while i < 7 do (
+    mut np = np * dat[i*4]; mut sp = sp * dat[i*4+1];
+    mut dp = dp * dat[i*4+2]; mut vp = vp * dat[i*4+3];
+    mut i = i + 1
+  );
+  /* Save products before reset (dat survives since allocated before mark... wait,
+     dat is allocated AFTER mark. Need to save to globals or pre-mark array.) */
+  /* Actually: just save the 4 products + 28 channel values as locals (scalars survive reset). */
+  let n0=dat[0] in let s0=dat[1] in let d0=dat[2] in let v0=dat[3] in
+  let n1=dat[4] in let s1=dat[5] in let d1=dat[6] in let v1=dat[7] in
+  let n2=dat[8] in let s2=dat[9] in let d2=dat[10] in let v2=dat[11] in
+  let n3=dat[12] in let s3=dat[13] in let d3=dat[14] in let v3=dat[15] in
+  let n4=dat[16] in let s4=dat[17] in let d4=dat[18] in let v4=dat[19] in
+  let n5=dat[20] in let s5=dat[21] in let d5=dat[22] in let v5=dat[23] in
+  let n6=dat[24] in let s6=dat[25] in let d6=dat[26] in let v6=dat[27] in
+  let r1 = np / sp in let r2 = vp / dp in
+  set_hp(mark);
+  /* Phase 2: build HTML from saved scalars */
+  let h = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>D-RATIO BRIDGE: per-channel exhaustive counts (TRANS)</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Ch</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Nil</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Sq0</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Idem</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Invol</th></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>D=Z/8</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v0}</td></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>K=Z/9</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v1}</td></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>E=Z/25</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v2}</td></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>b=Z/49</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v3}</td></tr>"
+    + "<tr><td style='padding:3px;color:#44ff88;font-size:12px'>L=Z/11</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v4}</td></tr>"
+    + "<tr><td style='padding:3px;color:#44ff88;font-size:12px'>G=Z/13</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v5}</td></tr>"
+    + "<tr><td style='padding:3px;color:#7FFFD4;font-size:12px'>X=Z/17</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v6}</td></tr>"
+    + "</table><p style='color:#ffd700;margin:12px 0 4px'>CRT PRODUCTS (TRANS)</p>"
+    + "<p style='color:#b0b0c0;margin:4px 0'>|Nil| = ${np} = lambda.  |Sq0| = ${sp} = DATA.  |Idem| = ${dp} = D^7.  |Invol| = ${vp} = D^8.</p>"
+    + "<p style='color:#ffd700;margin:12px 0 4px'>D-RATIO BRIDGE</p>"
+    + "<p style='color:#44ff88;margin:4px 0;font-size:16px'>Nil / Sq0 = ${np} / ${sp} = ${r1} = D</p>"
+    + "<p style='color:#44ff88;margin:4px 0;font-size:16px'>Invol / Idem = ${vp} / ${dp} = ${r2} = D</p>"
+    + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Both ratios = D = 2 because Tower_D is the ONLY micro tower with Pareto depth 3. Z/8 has 4 involutions (Klein four-group) while all odd Z/p^k have exactly 2.</p></div>"
+  in
+  dom_inner(result_el, h)
+)
+
 /* ===== PAGE ===== */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets (4-500 pts). i32 fixed-point and f64 float modes. Adjustable learning rate. CPU and GPU mini-batch SGD with leaky ReLU and golden interleave. Loss, accuracy, and per-channel convergence curves.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. 5 datasets (XOR, Circle, Spiral, Moons, Blobs). GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT neural network\"},{\"@type\":\"DefinedTerm\",\"name\":\"block-diagonal backprop\"}]}");
+  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, L=11 error detection. Live training on 5 datasets. D-Ratio Bridge: Nil/Sq0 = Invol/Idem = D=2 from Tower_D depth 3. i32 and f64 modes. CPU and GPU SGD.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, L=11 ECC. D-Ratio Bridge Theorem: Nil/Sq0 = Invol/Idem = D=2. 5 datasets. GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/crt_train\",\"about\":[\"CRT neural network\",\"block-diagonal backprop\",\"D-Ratio Bridge Theorem\"]}");
 
   /* === HERO (Tower_K: training = closure) === */
   let hero = make_hero("CRT Neural Network") in
@@ -2031,6 +2102,29 @@ fn page_crt_train() = (
   dom_append(sec6, pre6);
   render_p(sec6, "Both modes use the same CRT decomposition: 6 independent sub-networks whose predictions are averaged at inference. This is classic ensemble regularization -- each channel sees the full training signal, trains independently, and averaging smooths individual errors. The f64 mode makes this visible: smoother decision boundaries, faster convergence, higher accuracy on all datasets. Tested: momentum SGD helps the standard network (Moons 71 to 83 at beta=0.9) but HURTS CRT (74 to 69). Similarly, adding a second hidden layer helps standard (Moons 71 to 84) but NOT CRT (74 to 72). Both momentum and depth add regularization that a single large network needs, but CRT's ensemble averaging already provides it. LR robustness: sweeping 7 learning rates (0.10 to 2.00), CRT accuracy varies by only 7 points on Moons vs 13 for standard -- 46 percent less sensitive. CRT works well with any LR in the 0.25 to 1.50 range without per-task tuning. CRT does not need external regularization -- the structure IS the regularizer.");
   dom_append(dom_body(), sec6);
+
+  /* === SEC 6b: D-RATIO BRIDGE (Theorem 47, S1493) === */
+  let sec6b = make_section("800px") in
+  render_h2(sec6b, "D-Ratio Bridge (Theorem 47)");
+  render_theorem(sec6b, "D-Ratio Bridge (Theorem 47, S1493, PROVED)", "Two independent structural ratios of the TRANS ring both equal D=2: |Nil|/|Sq0| = 420/210 = 2 and |Invol|/|Idem| = 256/128 = 2. Both trace to a single source: Tower_D is the only micro tower with Pareto depth 3. In Z/8 (depth 3): nil=4, sq0=2, idem=2, invol=4. For every odd Z/p^k: nil/sq0=1, invol/idem=1. Only the D-channel contribution differs -- and it contributes exactly D=2 to both ratios. The bridge IS the involution count theorem. Exhaustive on all 7 TRANS channels.");
+  render_p(sec6b, "Run the exhaustive per-channel count: nilpotent, square-zero, idempotent, involution for all 7 TRANS channels.");
+  let dr_btn = dom_create("button") in
+  dom_text(dr_btn, "Run D-Ratio Census");
+  ct_nn_btn(dr_btn);
+  dom_on(dr_btn, "click", "ct_d_ratio");
+  dom_append(sec6b, dr_btn);
+  let dr_out = dom_create("div") in
+  dom_attr(dr_out, "id", "ct-dratio-result");
+  dom_append(sec6b, dr_out);
+  let gdr = make_findings_grid(sec6b) in
+  render_finding(gdr, "Nil / Sq0 = D", "420 / 210 = 2", "Nilpotents = lambda = 420. Square-zeros = DATA = 210. Ratio = D. Only Z/8 contributes the extra factor (nil=4 vs sq0=2).", "");
+  render_finding(gdr, "Invol / Idem = D", "256 / 128 = 2", "Involutions = D^8 = 256. Idempotents = D^7 = 128. Ratio = D. Only Z/8 has 4 involutions (Klein four-group) vs 2 for all odd channels.", "");
+  render_finding(gdr, "Tower_D depth 3", "Sole source", "All 6 other micro towers contribute ratio 1 to both. The bridge IS a fingerprint of D=2's unique Pareto depth.", "");
+  render_finding(gdr, "Klein four-group", "{1, 3, 5, 7}", "Z/8 involutions form the Klein four-group V_4. Z/9: {1, 8}. Z/25: {1, 24}. Z/49: {1, 48}. Only D doubles.", "");
+  render_contrast_row(sec6b, "Nil/Sq0 ratio", "Any single channel: 1 (odd) or 2 (D-only)", "Full TRANS product: exactly D=2");
+  render_contrast_row(sec6b, "Invol/Idem ratio", "Any single channel: 1 (odd) or 2 (D-only)", "Full TRANS product: exactly D=2");
+  render_contrast_row(sec6b, "Tower_D unique", "Other towers: depth 1 or 2", "Tower_D: depth 3. The involution doubling IS the Pareto justification.");
+  dom_append(dom_body(), sec6b);
 
   /* === SEC 7: IMPLEMENTATION (Tower_K: self-hosting closure) === */
   let sec7 = make_section("800px") in
