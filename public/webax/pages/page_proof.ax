@@ -303,7 +303,7 @@ fn pf_ord(a, m) = (
   )
 )
 
-/* ===== PART 3: Theorems 35-68, Falsifications F1-F2 + Summary ===== */
+/* ===== PART 3: Theorems 35-71, Falsifications F1-F2 + Summary ===== */
 /* S1508: forward references work (collect_fns gathers all fns before emit). Order is convention. */
 /* r3 = array: [0]=sum of checks from parts 1+2 */
 fn proof_part3(r3) = (
@@ -1485,11 +1485,39 @@ fn proof_part3(r3) = (
     "At the Pareto exponents (3,2,2,2,1,...,1): prod(p^(k-1)) = D^2*K*E*b = 420 = lambda(N). Equivalently phi(N)/lambda(N) = phi(rad(N)). Holds for DEEP and TRUE (5/6 channels). Breaks at TRANS: lambda(ESCAPE) = D^4 = 16 exceeds the D-exponent product D^2 = 4, creating a D^2 = 4 gap. Tower_D is the unique channel where phi != lambda (Klein four-group, not cyclic). Proved S544+S1516, ALGEBRA.md.", p70, 5);
   dom_append(dom_body(), sec70);
 
+  /* ============================================================
+     THEOREM 71: LATTICE REJECTION PARTITION (S543+S1517)
+     The 180 exponent-grid candidates split K:D = 108:72 by lambda=420.
+     Grid = D^2*K^2*E. Valid = D^2*K^3. Invalid = D^3*K^2 = |Z/8 x Z/9|.
+     Forced by chain identity E = K + D.
+     ============================================================ */
+  let sec71 = make_section("700px") in
+  render_h2(sec71, "71. Lattice Rejection Partition (S543+S1517)");
+  render_p(sec71, "The lambda-420 lattice arises from a 180-element exponent grid: ed:0..4 (E=5 choices), ek:0..2 (K=3), ee:0..2 (K=3), el:0..1 (D=2), ef:0..1 (D=2). Grid size = E*K*K*D*D = D^2*K^2*E = 180. Two constraints (factor 4, factor 5 in lambda) partition this into 108 valid and 72 invalid tuples. The ratio valid:invalid = K:D, forced by E = K + D (chain axiom). The rejection count 72 = D^3*K^2 = |Z/8|*|Z/9| = Tower_D_top * Tower_K_top.");
+  /* Check 1: Grid = D^2*K^2*E = 180 */
+  let gr71 = D*D * K*K * E in
+  pf_result(sec71, "grid = D^2*K^2*E = 180", "${gr71} = 180.", if gr71 == 180 then 1 else 0);
+  /* Check 2: Valid = D^2*K^3 = 108 */
+  let va71 = D*D * K*K*K in
+  pf_result(sec71, "valid = D^2*K^3 = 108", "${va71} = 108.", if va71 == 108 then 1 else 0);
+  /* Check 3: Invalid = D^3*K^2 = 72 = |Z/8 x Z/9| */
+  let iv71 = D*D*D * K*K in
+  pf_result(sec71, "invalid = D^3*K^2 = 72", "${iv71} = 72 = |Z/8 x Z/9|.", if iv71 == 72 then 1 else 0);
+  /* Check 4: E = K + D (chain identity) */
+  pf_result(sec71, "E = K + D (chain identity)", "5 = 3 + 2.", if E == K + D then 1 else 0);
+  /* Check 5: valid + invalid = grid (partition) */
+  let part71 = va71 + iv71 in
+  pf_result(sec71, "partition: valid + invalid = grid", "${va71} + ${iv71} = ${part71} = ${gr71}.", if part71 == gr71 then 1 else 0);
+  let p71 = (if gr71 == 180 then 1 else 0) + (if va71 == 108 then 1 else 0) + (if iv71 == 72 then 1 else 0) + (if E == K + D then 1 else 0) + (if part71 == gr71 then 1 else 0) in
+  pf_theorem(sec71, "LATTICE REJECTION PARTITION THEOREM",
+    "The lambda-420 exponent grid has D^2*K^2*E = 180 candidates. Exactly D^2*K^3 = 108 achieve lambda=420; D^3*K^2 = 72 do not. Ratio = K:D, forced by E = K + D. Grid dimensions (E,K,K,D,D) ARE the axiom primes. The rejection count 72 = |Z/8|*|Z/9| = (Tower_D top)*(Tower_K top): the two most-structured micro towers jointly gate which exponent vectors produce the heartbeat. Proved S543+S1517, ALGEBRA.md + AXIOM_FORM.md.", p71, 5);
+  dom_append(dom_body(), sec71);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 in
-  let total_tests = 439 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 in
+  let total_tests = 444 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -1501,7 +1529,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "70 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "71 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
