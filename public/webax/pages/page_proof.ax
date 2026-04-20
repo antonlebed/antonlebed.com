@@ -259,7 +259,51 @@ fn pf_count_xd1(m, d) = (
   c
 )
 
-/* ===== PART 3: Theorems 35-67, Falsifications F1-F2 + Summary ===== */
+/* Cunningham map c(n) = 2n+1 (Thm 69 helper) */
+fn pf_cunn(n) = 2 * n + 1
+
+/* LCM (Thm 70 helper) */
+fn pf_lcm(a, b) = a / gcd_shared(a, b) * b
+
+/* Carmichael lambda for prime power p^k (Thm 70 helper) */
+fn pf_lambda_pk(p, k) = (
+  if k == 0 then 1
+  else if p == 2 then (
+    if k == 1 then 1
+    else if k == 2 then 2
+    else powmod_pf(2, k - 2, 1000000000)
+  )
+  else (
+    mut r = p - 1; mut i = 1;
+    while i < k do (mut r = r * p; mut i = i + 1);
+    r
+  )
+)
+
+/* Euler phi for prime power p^k (Thm 70 helper) */
+fn pf_phi_pk(p, k) = (
+  if k == 0 then 1
+  else (
+    mut r = p - 1; mut i = 1;
+    while i < k do (mut r = r * p; mut i = i + 1);
+    r
+  )
+)
+
+/* Multiplicative order of a mod m (Thm 69 helper) */
+fn pf_ord(a, m) = (
+  if gcd_shared(a, m) > 1 then 0
+  else (
+    mut k = 1; mut p = a % m;
+    while p > 1 do (
+      mut p = p * a % m;
+      mut k = k + 1
+    );
+    k
+  )
+)
+
+/* ===== PART 3: Theorems 35-68, Falsifications F1-F2 + Summary ===== */
 /* S1508: forward references work (collect_fns gathers all fns before emit). Order is convention. */
 /* r3 = array: [0]=sum of checks from parts 1+2 */
 fn proof_part3(r3) = (
@@ -1361,11 +1405,91 @@ fn proof_part3(r3) = (
     "The 2-Sylow of (Z/TRANS)* has order 2^GATE = 8192: DATA channels v_2 sum = D*K = 6, extensions = b = 7. Axiom primes partition K:K:1 by quadratic residue. Only p = 1 mod 4 channels (E, GATE, ESCAPE) host order-4 elements. |Ord_4|/|Inv| = 2^K - 1 = b: depth is the Mersenne number of closure. Tower A traces {sigma, K, b} -- the axiom chain. Proved S1246+S1514, AXIOM_FORM.md.", p68, 5);
   dom_append(dom_body(), sec68);
 
+  /* ============================================================
+     THEOREM 69: CUNNINGHAM E-TERMINATION (S548+S1516)
+     The Cunningham map c(n)=2n+1 in Z/E has cycle length D^2=4.
+     Chain lengths |CC1(sigma)|=K, |CC1(D)|=E from mod-E orbit.
+     E-channel is the universal Cunningham terminator.
+     ============================================================ */
+  let sec69 = make_section("700px") in
+  render_h2(sec69, "69. Cunningham E-Termination (S548+S1516)");
+  render_p(sec69, "The Cunningham map c(n)=2n+1 in Z/E=Z/5 has cycle (0,1,3,2) of length D^2=4, because D is a primitive root mod E (ord_5(2)=4=phi(5)). A Cunningham chain dies when c(p) is divisible by E with p>D. CC1(sigma) reaches the kill residue D mod E in D=2 steps: length K=D+1=3. CC1(D) starts at the kill residue but c(D)=E is prime (free pass), completing a full D^2=4 cycle: length E=D^2+1=5. Each chain's length IS the other's first descendant.");
+  /* Check 1: ord_5(2) = 4 = D^2 */
+  let ord52 = pf_ord(D, E) in
+  pf_result(sec69, "ord_E(D) = D^2", "ord_5(2) = ${ord52} = D^2 = ${D*D}. D is primitive root mod E.", if ord52 == D*D then 1 else 0);
+  /* Check 2: c(n) mod E cycle: 0->1->3->2->0 */
+  let cm0 = 0 in
+  let cm1 = pf_cunn(cm0) % E in
+  let cm2 = pf_cunn(cm1) % E in
+  let cm3 = pf_cunn(cm2) % E in
+  let cm4 = pf_cunn(cm3) % E in
+  let cyc69 = if cm1 == 1 then (if cm2 == K then (if cm3 == D then (if cm4 == 0 then 1 else 0) else 0) else 0) else 0 in
+  pf_result(sec69, "c(n) mod E cycle", "(${cm0},${cm1},${cm2},${cm3},${cm4}) = (0,sigma,K,D,0). Length D^2.", cyc69);
+  /* Check 3: CC1(sigma) length = K */
+  let cs1 = pf_cunn(1) in
+  let cs2 = pf_cunn(cs1) in
+  let cs3 = pf_cunn(cs2) in
+  let cc1s = if pf_is_prime(cs1) == 1 then (if pf_is_prime(cs2) == 1 then (if pf_is_prime(cs3) == 0 then K else 0) else 0) else 0 in
+  pf_result(sec69, "CC1(sigma) length = K", "1->${cs1}->${cs2}->${cs3}(dead). Length ${cc1s} = K = ${K}.", if cc1s == K then 1 else 0);
+  /* Check 4: CC1(D) length = E */
+  let cd1 = pf_cunn(D) in
+  let cd2 = pf_cunn(cd1) in
+  let cd3 = pf_cunn(cd2) in
+  let cd4 = pf_cunn(cd3) in
+  let cd5 = pf_cunn(cd4) in
+  let pr5 = pf_is_prime(D) + pf_is_prime(cd1) + pf_is_prime(cd2) + pf_is_prime(cd3) + pf_is_prime(cd4) in
+  let cc1d = if pr5 == E then (if pf_is_prime(cd5) == 0 then E else 0) else 0 in
+  pf_result(sec69, "CC1(D) length = E", "${D}->${cd1}->${cd2}->${cd3}->${cd4}->${cd5}(dead). Length ${cc1d} = E = ${E}.", if cc1d == E then 1 else 0);
+  /* Check 5: E-termination: both dead values divisible by E */
+  let c69_5 = if cs3 % E == 0 then (if cd5 % E == 0 then 1 else 0) else 0 in
+  pf_result(sec69, "E-termination", "${cs3} mod E = ${cs3%E}, ${cd5} mod E = ${cd5%E}. E kills both chains.", c69_5);
+  let p69 = (if ord52 == D*D then 1 else 0) + cyc69 + (if cc1s == K then 1 else 0) + (if cc1d == E then 1 else 0) + c69_5 in
+  pf_theorem(sec69, "CUNNINGHAM E-TERMINATION THEOREM",
+    "The Cunningham map c(n)=2n+1 has cycle length D^2=4 in Z/E=Z/5 (D is primitive root mod E). CC1(sigma): 1->3->7->15, length K=3. CC1(D): 2->5->11->23->47->95, length E=5. Both die by E-divisibility. D starts at the kill residue but gets a free pass (c(D)=E is prime). Chain length = orbit distance + 1 = D+1=K and D^2+1=E. Each length IS c applied to the other seed: |CC1(sigma)|=c(sigma)=K, |CC1(D)|=c(D)=E. Proved S548+S1516, ALGEBRA.md.", p69, 5);
+  dom_append(dom_body(), sec69);
+
+  /* ============================================================
+     THEOREM 70: PRODUCT-LAMBDA COINCIDENCE (S544+S1516)
+     prod(p^(k-1)) = lambda(N) at Pareto exponents (3,2,2,2,1,...).
+     Equivalently: phi(N)/lambda(N) = phi(rad(N)).
+     Breaks at TRANS because lambda(ESCAPE) = D^4 > D^2.
+     ============================================================ */
+  let sec70 = make_section("700px") in
+  render_h2(sec70, "70. Product-Lambda Coincidence (S544+S1516)");
+  render_p(sec70, "For the Pareto exponents (3,2,2,2,1,...,1), the product of p^(k-1) over all channels equals lambda(N). Equivalently, phi(N)/lambda(N) = phi(rad(N)): the health ratio equals the radical's totient. This holds for DEEP (5ch) and TRUE (6ch) but breaks at TRANS, where lambda(ESCAPE)=D^4=16 exceeds D^2=4, creating a D^2 gap. The D-channel is the unique source of phi!=lambda asymmetry.");
+  /* Check 1: prod = lambda for DEEP */
+  let pr_deep = D*D * K * E * b in
+  let la_deep = pf_lcm(pf_lcm(pf_lcm(pf_lcm(pf_lambda_pk(D,3), pf_lambda_pk(K,2)), pf_lambda_pk(E,2)), pf_lambda_pk(b,2)), pf_lambda_pk(L,1)) in
+  pf_result(sec70, "prod = lambda (DEEP)", "D^2*K*E*b = ${pr_deep} = lambda(DEEP) = ${la_deep}.", if pr_deep == la_deep then 1 else 0);
+  /* Check 2: prod = lambda for TRUE */
+  let la_true = pf_lcm(la_deep, pf_lambda_pk(GATE, 1)) in
+  pf_result(sec70, "prod = lambda (TRUE)", "D^2*K*E*b = ${pr_deep} = lambda(TRUE) = ${la_true}.", if pr_deep == la_true then 1 else 0);
+  /* Check 3: TRANS breaks with gap D^2 */
+  let la_trans = pf_lcm(la_true, pf_lambda_pk(ESCAPE, 1)) in
+  let gap70 = la_trans / pr_deep in
+  pf_result(sec70, "TRANS breaks: gap D^2", "lambda(TRANS) = ${la_trans}, prod = ${pr_deep}, gap = ${gap70} = D^2.", if gap70 == D*D then 1 else 0);
+  /* Check 4: phi(DEEP)/lambda = phi(THIN) */
+  let phid = pf_phi_pk(D,3) * pf_phi_pk(K,2) * pf_phi_pk(E,2) * pf_phi_pk(b,2) * pf_phi_pk(L,1) in
+  let phit = pf_phi_pk(D,1) * pf_phi_pk(K,1) * pf_phi_pk(E,1) * pf_phi_pk(b,1) * pf_phi_pk(L,1) in
+  let hd = phid / la_deep in
+  pf_result(sec70, "phi/lambda DEEP = phi(THIN)", "${phid}/${la_deep} = ${hd} = phi(2310) = ${phit}.", if hd == phit then 1 else 0);
+  /* Check 5: D-channel unique split: phi/lambda = D for D^3, = 1 for odd */
+  let dr70 = pf_phi_pk(D,3) / pf_lambda_pk(D,3) in
+  let kr70 = pf_phi_pk(K,2) / pf_lambda_pk(K,2) in
+  let er70 = pf_phi_pk(E,2) / pf_lambda_pk(E,2) in
+  let br70 = pf_phi_pk(b,2) / pf_lambda_pk(b,2) in
+  let c70_5 = if dr70 == D then (if kr70 == 1 then (if er70 == 1 then (if br70 == 1 then 1 else 0) else 0) else 0) else 0 in
+  pf_result(sec70, "D unique split", "phi/lambda per channel: D=${dr70}, K=${kr70}, E=${er70}, b=${br70}. Only D splits.", c70_5);
+  let p70 = (if pr_deep == la_deep then 1 else 0) + (if pr_deep == la_true then 1 else 0) + (if gap70 == D*D then 1 else 0) + (if hd == phit then 1 else 0) + c70_5 in
+  pf_theorem(sec70, "PRODUCT-LAMBDA COINCIDENCE THEOREM",
+    "At the Pareto exponents (3,2,2,2,1,...,1): prod(p^(k-1)) = D^2*K*E*b = 420 = lambda(N). Equivalently phi(N)/lambda(N) = phi(rad(N)). Holds for DEEP and TRUE (5/6 channels). Breaks at TRANS: lambda(ESCAPE) = D^4 = 16 exceeds the D-exponent product D^2 = 4, creating a D^2 = 4 gap. Tower_D is the unique channel where phi != lambda (Klein four-group, not cyclic). Proved S544+S1516, ALGEBRA.md.", p70, 5);
+  dom_append(dom_body(), sec70);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 in
-  let total_tests = 429 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 in
+  let total_tests = 439 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -1377,7 +1501,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "68 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "70 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
