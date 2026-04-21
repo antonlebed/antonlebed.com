@@ -2165,11 +2165,51 @@ fn proof_part3(r3) = (
     "DEEP+1 = 970201 is prime, with phi = DEEP = D^3*K^2*E^2*b^2*L. Among the 7 axiom primes, GATE=13 is the smallest primitive root of 970201 -- the unique axiom primitive root. All DATA+L primes are quadratic residues (order divides DEEP/2); GATE and ESCAPE are the two QNR primes; ESCAPE=17 has index b=7 (fails at b-channel: 17^(DEEP/7)=1). Indices: D=66=DKL, K=6=DK, E=8=D^3, b=24=D^3K, L=22=DL, GATE=1=sigma, ESCAPE=7=b. Sum=134=D*SOUL. Tower A progression: smallest PR of DATA+1=211 is D=2, of THIN+1=2311 is K=3, of DEEP+1=970201 is GATE=13. 48/48 test_r3_deep_prime.ax. Proved S1535, ALGEBRA.md.", p90, 7);
   dom_append(dom_body(), sec90);
 
+  /* ============================================================
+     THEOREM 91: CRT LIFTING INVERSE SUM (S1537)
+     Define inv_sum(N) = sum over channels qi of inv(N/qi mod qi, qi).
+     Tower B (thin primorials): K, K, K^2, D^3, f(E)=19, K^3.
+     Tower A (fat rings): DEEP=D^3*K^2=72, TRUE=SOUL=67, TRANS=D^2*ESCAPE=68.
+     TRUE->TRANS: delta=sigma. DEEP->TRUE: delta=-E.
+     GATE inv collapses 4->1 when ESCAPE joins. ESCAPE inv=D*b=14.
+     S566 "basis sum=N*k+1" FALSIFIED.
+     test_r4_basis_sum.ax 53/53. Proved S1537, ALGEBRA.md.
+     ============================================================ */
+  fn mi91(a, m) = (let am = a % m in let i = 1 in while i < m do (if (am * i) % m == 1 then break i else mut i = i + 1));
+  fn li91(n, qi) = mi91(n / qi, qi);
+  let sec91 = make_section("700px") in
+  render_h3(sec91, "Theorem 91: CRT Lifting Inverse Sum");
+  -- Tower B: thin primorials
+  let tb6 = li91(6,2) + li91(6,3) in
+  let tb30 = li91(30,2) + li91(30,3) + li91(30,5) in
+  let tb210 = li91(210,2) + li91(210,3) + li91(210,5) + li91(210,7) in
+  let tb2310 = li91(2310,2) + li91(2310,3) + li91(2310,5) + li91(2310,7) + li91(2310,11) in
+  let tb510 = li91(510510,2) + li91(510510,3) + li91(510510,5) + li91(510510,7) + li91(510510,11) + li91(510510,13) + li91(510510,17) in
+  -- Tower A: fat rings
+  let taD = li91(970200,8) + li91(970200,9) + li91(970200,25) + li91(970200,49) + li91(970200,11) in
+  let taT = li91(12612600,8) + li91(12612600,9) + li91(12612600,25) + li91(12612600,49) + li91(12612600,11) + li91(12612600,13) in
+  let taX = li91(214414200,8) + li91(214414200,9) + li91(214414200,25) + li91(214414200,49) + li91(214414200,11) + li91(214414200,13) + li91(214414200,17) in
+  pf_result(sec91, "Tower B Z/6: inv_sum = K = 3", "${tb6}", if tb6 == 3 then 1 else 0);
+  pf_result(sec91, "Tower B Z/30: inv_sum = K = 3", "${tb30}", if tb30 == 3 then 1 else 0);
+  pf_result(sec91, "Tower B Z/210: inv_sum = K^2 = 9", "${tb210}", if tb210 == 9 then 1 else 0);
+  pf_result(sec91, "Tower B Z/2310: inv_sum = D^3 = 8", "${tb2310}", if tb2310 == 8 then 1 else 0);
+  pf_result(sec91, "Tower B Z/510510: inv_sum = K^3 = 27", "${tb510}", if tb510 == 27 then 1 else 0);
+  pf_result(sec91, "Tower A DEEP: inv_sum = D^3*K^2 = 72", "${taD}", if taD == 72 then 1 else 0);
+  pf_result(sec91, "Tower A TRUE: inv_sum = SOUL = 67", "${taT}", if taT == 67 then 1 else 0);
+  pf_result(sec91, "Tower A TRANS: inv_sum = D^2*ESCAPE = 68", "${taX}", if taX == 68 then 1 else 0);
+  pf_result(sec91, "DEEP->TRUE: delta = -E = -5", "${taD - taT}", if taD - taT == 5 then 1 else 0);
+  pf_result(sec91, "TRUE->TRANS: delta = sigma = 1", "${taX - taT}", if taX - taT == 1 then 1 else 0);
+  pf_result(sec91, "ESCAPE inv = D*b = 14", "${li91(214414200, 17)}", if li91(214414200, 17) == 14 then 1 else 0);
+  let p91 = (if tb6 == 3 then 1 else 0) + (if tb30 == 3 then 1 else 0) + (if tb210 == 9 then 1 else 0) + (if tb2310 == 8 then 1 else 0) + (if tb510 == 27 then 1 else 0) + (if taD == 72 then 1 else 0) + (if taT == 67 then 1 else 0) + (if taX == 68 then 1 else 0) + (if taD - taT == 5 then 1 else 0) + (if taX - taT == 1 then 1 else 0) + (if li91(214414200, 17) == 14 then 1 else 0) in
+  pf_theorem(sec91, "CRT LIFTING INVERSE SUM",
+    "Define inv_sum(N) = sum of inv(N/qi mod qi, qi) across CRT channels. Tower B (thin primorials): Z/6=K, Z/30=K, Z/210=K^2, Z/2310=D^3, Z/510510=K^3. Tower A (fat rings): DEEP=72=D^3*K^2, TRUE=67=SOUL, TRANS=68=D^2*ESCAPE. TRUE->TRANS delta=sigma=1; DEEP->TRUE delta=-E=-5. GATE inverse collapses 4->1 when ESCAPE joins (sigma at the skin). ESCAPE inv=14=D*b. S566 basis-sum=N*k+1 FALSIFIED. 53/53 test_r4_basis_sum.ax. Proved S1537, ALGEBRA.md.", p91, 11);
+  dom_append(dom_body(), sec91);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 + p73 + p74 + p75 + p76 + p77 + p78 + p79 + p80 + p81 + p82 + p83 + p84 + p85 + p86 + p87 + p88 + p89 + p90 in
-  let total_tests = 571 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 + p73 + p74 + p75 + p76 + p77 + p78 + p79 + p80 + p81 + p82 + p83 + p84 + p85 + p86 + p87 + p88 + p89 + p90 + p91 in
+  let total_tests = 582 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -2181,7 +2221,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "90 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "91 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
