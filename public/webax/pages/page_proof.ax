@@ -314,6 +314,60 @@ fn pf_ord(a, m) = (
   )
 )
 
+/* Class number h(-d) for imaginary quadratic field Q(sqrt(-d)).
+   Counts reduced positive definite binary quadratic forms of discriminant -d.
+   Reduced: -a < b <= a <= c, and b >= 0 when |b|=a or a=c. */
+fn pf_class_number(d) = (
+  mut h = 0
+  mut a = 1
+  while a * a * 3 <= d do (
+    mut bb = 0
+    while bb <= a do (
+      let t = bb * bb + d in
+      if t % (4 * a) == 0 then (
+        let c = t / (4 * a) in
+        if c >= a then (
+          mut h = h + 1;
+          if bb > 0 then (
+            if bb < a then (
+              if c > a then mut h = h + 1 else 0
+            ) else 0
+          ) else 0
+        ) else 0
+      ) else 0;
+      mut bb = bb + 1
+    );
+    mut a = a + 1
+  );
+  h
+)
+
+/* Is d such that -d is a fundamental discriminant?
+   -d fundamental iff: d == 3 mod 4 and d squarefree, or
+   d == 0 mod 4 and d/4 squarefree and d/4 == 1 or 2 mod 4. */
+fn pf_is_sqfree(n) = (
+  mut i = 2
+  mut ok = 1
+  while i * i <= n do (
+    if n % (i * i) == 0 then (mut ok = 0; mut i = n)
+    else mut i = i + 1
+  );
+  ok
+)
+
+fn pf_is_fund(d) = (
+  if d <= 0 then 0
+  else if d % 4 == 3 then pf_is_sqfree(d)
+  else if d % 8 == 4 then pf_is_sqfree(d / 4)
+  else if d % 4 == 0 then (
+    let q = d / 4 in
+    if q % 4 == 2 then pf_is_sqfree(q)
+    else if q % 4 == 3 then pf_is_sqfree(q)
+    else 0
+  )
+  else 0
+)
+
 /* ===== PART 3: Theorems 35-74, Falsifications F1-F2 + Summary ===== */
 /* S1508: forward references work (collect_fns gathers all fns before emit). Order is convention. */
 /* r3 = array: [0]=sum of checks from parts 1+2 */
@@ -1800,11 +1854,41 @@ fn proof_part3(r3) = (
     "For the axiom-prime lattice at each rhythm level, OR-constraint counts are {1,2,3,2,2,1}. Sum = L = 11. Peak = K = 3 at THIN heartbeat (lambda=60). Ring counts: D^4, D^2*K*b, D^3*c(L), D^2*K^3, D^6*K, D^2*K*E -- all axiom-smooth. MECHANISM: factor 7 forces b^2 (unique axiom source), providing factors {2,3,7} free. At lambda=5460, factor 13 forces GATE^2, absorbing factor 4. Total 644 = D^2*b*c(L). 32/32 test_r1_constraint.ax. Proved S1525, AXIOM_FORM.md.", p80, 7);
   dom_append(dom_body(), sec80);
 
+  /* ============================================================
+     THEOREM 81: CLASS NUMBER GATE (S1526)
+     h(-191) = GATE = 13 is the first non-DATA-smooth class number.
+     h(-167) = L = 11 is the max for d < 191. 12 = D^2*K skipped.
+     First h=12 at d=231=K*b*L. h(-164)=D^3=8 (KEY discriminant).
+     ============================================================ */
+  let sec81 = make_section("700px") in
+  render_h3(sec81, "Theorem 81: Class Number Gate");
+  pf_result(sec81, "h(-191) = GATE = 13", "${pf_class_number(191)}", if pf_class_number(191) == 13 then 1 else 0);
+  pf_result(sec81, "h(-167) = L = 11", "${pf_class_number(167)}", if pf_class_number(167) == 11 then 1 else 0);
+  pf_result(sec81, "h(-231) = 12 = D^2*K", "${pf_class_number(231)}", if pf_class_number(231) == 12 then 1 else 0);
+  pf_result(sec81, "231 = K*b*L", "${K*b*L}", if K*b*L == 231 then 1 else 0);
+  pf_result(sec81, "h(-163) = 1 (Heegner)", "${pf_class_number(163)}", if pf_class_number(163) == 1 then 1 else 0);
+  pf_result(sec81, "h(-164) = D^3 = 8 (KEY disc)", "${pf_class_number(164)}", if pf_class_number(164) == 8 then 1 else 0);
+  /* Scan: verify no h >= 13 for any fundamental d < 191 */
+  mut max_h_pre = 0
+  mut d81 = 3
+  while d81 < 191 do (
+    if pf_is_fund(d81) == 1 then (
+      let hv = pf_class_number(d81) in
+      if hv > max_h_pre then mut max_h_pre = hv else 0
+    ) else 0;
+    mut d81 = d81 + 1
+  );
+  pf_result(sec81, "max h for d < 191 = L", "${max_h_pre}", if max_h_pre == 11 then 1 else 0);
+  let p81 = (if pf_class_number(191) == 13 then 1 else 0) + (if pf_class_number(167) == 11 then 1 else 0) + (if pf_class_number(231) == 12 then 1 else 0) + (if K*b*L == 231 then 1 else 0) + (if pf_class_number(163) == 1 then 1 else 0) + (if pf_class_number(164) == 8 then 1 else 0) + (if max_h_pre == 11 then 1 else 0) in
+  pf_theorem(sec81, "CLASS NUMBER GATE",
+    "Among imaginary quadratic fields Q(sqrt(-d)), the first non-DATA-smooth class number is h(-191) = GATE = 13. Maximum for d < 191 is h(-167) = L = 11 (protector). Class numbers skip 12 = D^2*K: first h=12 at d = K*b*L = 231, AFTER the gate. h(-164) = D^3 = 8 at discriminant -4*KEY. GATE guards the DATA-smoothness boundary in class number space. 103/103 test_r1_class.ax. Proved S1526, FIELDS.md.", p81, 7);
+  dom_append(dom_body(), sec81);
+
   /* Summary */
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 + p73 + p74 + p75 + p76 + p77 + p78 + p79 + p80 in
-  let total_tests = 501 in
+  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 + p73 + p74 + p75 + p76 + p77 + p78 + p79 + p80 + p81 in
+  let total_tests = 508 in
   let sbox = dom_create("div") in
   ct_card(sbox);
   dom_style(sbox, "textAlign", "center");
@@ -1816,7 +1900,7 @@ fn proof_part3(r3) = (
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
-  dom_text(sd, "80 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+  dom_text(sd, "81 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
   dom_style(sd, "color", "#888");
   dom_style(sd, "marginTop", "8px");
   dom_style(sd, "fontSize", "13px");
