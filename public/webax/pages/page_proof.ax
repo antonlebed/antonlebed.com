@@ -1868,14 +1868,13 @@ fn proof_part3(r3) = (
   pf_result(sec81, "231 = K*b*L", "${K*b*L}", if K*b*L == 231 then 1 else 0);
   pf_result(sec81, "h(-163) = 1 (Heegner)", "${pf_class_number(163)}", if pf_class_number(163) == 1 then 1 else 0);
   pf_result(sec81, "h(-164) = D^3 = 8 (KEY disc)", "${pf_class_number(164)}", if pf_class_number(164) == 8 then 1 else 0);
-  /* Scan: verify no h >= 13 for any fundamental d < 191 */
+  /* Scan: verify no h >= 13 for any fundamental d < 191.
+     Flatten nesting to avoid mut scoping bug (S1377: 3+ levels). */
   mut max_h_pre = 0
   mut d81 = 3
   while d81 < 191 do (
-    if pf_is_fund(d81) == 1 then (
-      let hv = pf_class_number(d81) in
-      if hv > max_h_pre then mut max_h_pre = hv else 0
-    ) else 0;
+    let hv81 = if pf_is_fund(d81) == 1 then pf_class_number(d81) else 0 in
+    if hv81 > max_h_pre then mut max_h_pre = hv81 else 0;
     mut d81 = d81 + 1
   );
   pf_result(sec81, "max h for d < 191 = L", "${max_h_pre}", if max_h_pre == 11 then 1 else 0);
