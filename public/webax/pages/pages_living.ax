@@ -940,6 +940,18 @@ fn page_ai() = (
   render_finding(gcfp, "Shared basis", "5 params all layers", "k layers = k*102 + 5 params. 2-layer: 209 params = 4642x vs N.", "S1555");
   dom_append(dom_body(), sec_cfp);
 
+  /* === SEC 9n: BACKWARD PASS (S1556 Phase A) === */
+  let sec_bwd = make_section("800px") in
+  render_h2(sec_bwd, "Backward Pass");
+  render_p(sec_bwd, "The forward path is complete (S1538-S1555). S1556 makes it trainable. CRT backward pass decomposes into independent per-channel backward passes. Each weight W[r] in channel ch has gradient 2*(W[r] - target(r)) -- no coupling to other channels. The Jacobian is block-diagonal by construction: per-channel loss functions share no parameters.");
+  render_p(sec_bwd, "Key contrast: per-channel loss decouples channels completely (block-diagonal), while full-ring reconstruction loss COUPLES them through the shared CRT reconstruction error. Per-channel training avoids this coupling while converging to the same optimum for CRT-decomposable targets. This is the Backward Decomposition Theorem.");
+  let gbwd = make_findings_grid(sec_bwd) in
+  render_finding(gbwd, "Block-diagonal", "Gradient ch K = 0", "Perturb ch D weights. Per-channel gradient in ch K is exactly zero.", "S1556");
+  render_finding(gbwd, "Full-ring coupling", "Gradient ch K != 0", "Same perturbation. Full-ring reconstruction gradient couples channels.", "S1556");
+  render_finding(gbwd, "SGD convergence", "1000/1000 in 5 epochs", "Random init -> per-channel gradient descent -> perfect accuracy on x^2.", "S1556");
+  render_finding(gbwd, "Crossing table SGD", "1000/1000 in 10 epochs", "72-entry D*K product table learned from random init via gradient descent.", "S1556");
+  dom_append(dom_body(), sec_bwd);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "What Others See");
