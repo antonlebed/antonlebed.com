@@ -1048,6 +1048,18 @@ fn page_ai() = (
   render_finding(gbs, "SGD bridges baselines", "mode + mean", "Soft bigram = mode (count-based S1561). Mean-delta = mean (coupling S1563). SGD = unified.", "S1564");
   dom_append(dom_body(), sec_bs);
 
+  /* === SEC 9w: CHAR REMAP (S1565 Phase A) === */
+  let sec_cr = make_section("800px") in
+  render_h2(sec_cr, "Character Remapping");
+  render_p(sec_cr, "ASCII codes create CRT collisions: consecutive characters have correlated residues across all 7 channels. Space (32) and h (104) share residues in BOTH D and K channels (diff=72, 72 mod 8=0, 72 mod 9=0). Golden-ratio remapping assigns each character CRT residues via per-channel multipliers near q*phi, coprime to q: [5,7,16,30,4,8,11] for [D,K,E,b,L,GATE,ESCAPE]. This decorrelates channels: multi-channel collision requires index diff divisible by lcm(q1,q2) >= 72, impossible for 23 characters.");
+  render_p(sec_cr, "Result: multi-channel collisions drop from 1 pair to 0. Same-char attention weight: 64% (remap) vs 63% (raw) -- marginal improvement. Per-channel accuracy: 86 vs 80 -- 7.5% improvement. But CRT reconstruction: 1 vs 3 exact matches. The remapping improves per-channel prediction but degrades full reconstruction, because remapped deltas span wider value ranges, making CRT reconstruction from rounded averages less precise.");
+  let gcr = make_findings_grid(sec_cr) in
+  render_finding(gcr, "Collision elimination", "1 -> 0 pairs", "Golden remapping eliminates multi-channel CRT collisions. No pair shares residues in >= 2 channels.", "S1565");
+  render_finding(gcr, "Per-channel gain", "86 vs 80", "Remapped per-channel accuracy exceeds raw ASCII. ALIVE gains +6 (57 vs 51).", "S1565");
+  render_finding(gcr, "Reconstruction loss", "1 vs 3 exact", "Better channels, worse reconstruction. Wider remapped deltas reduce CRT reconstruction precision.", "S1565");
+  render_finding(gcr, "Encoding vs content", "64% vs 63%", "Remapping changes encoding, not content. The text's bigram statistics are fixed -- encoding determines which channels contribute.", "S1565");
+  dom_append(dom_body(), sec_cr);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "What Others See");
