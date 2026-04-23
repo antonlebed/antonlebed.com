@@ -928,6 +928,18 @@ fn page_ai() = (
   render_finding(glbc, "Exact coverage", "50/72 -> 69%", "Partial accuracy = coverage * N/table_size. CRT structure, not statistics.", "S1554");
   dom_append(dom_body(), sec_lbc);
 
+  /* === SEC 9m: COMPOSED FORWARD PASS (S1555 Phase A) === */
+  let sec_cfp = make_section("800px") in
+  render_h2(sec_cfp, "Composed Forward Pass");
+  render_p(sec_cfp, "S1538-S1554 proved each piece independently: per-channel perceptrons, bloom mixing, wall crossing, learned crossing. This session composes them into a single end-to-end pipeline. Each CRT layer (decompose -> per-channel lookup -> CRT reconstruct) is a ring endomorphism. Ring endomorphisms compose. Therefore multi-layer CRT pipelines produce correct function compositions -- verified on the full 970200-element ring.");
+  render_p(sec_cfp, "Key result: composition is non-commutative. compose(sq, mir)(x) = N - x^2 but compose(mir, sq)(x) = x^2. Squaring absorbs negation: (-x)^2 = x^2 in any ring. Layer order matters -- just like in standard neural networks. Mirror is an involution (mir o mir = identity). Three layers compose correctly: sq o mir o sq = x^4. The cross-channel pipeline chains a per-channel layer with a learned crossing table in one forward pass.");
+  let gcfp = make_findings_grid(sec_cfp) in
+  render_finding(gcfp, "2-layer compose", "970200/970200", "sq then mir = N-x^2. Full ring verified. Ring endomorphisms compose.", "S1555");
+  render_finding(gcfp, "Non-commutative", "sq o mir != mir o sq", "compose(sq,mir)(1)=970199. compose(mir,sq)(1)=1. Order matters.", "S1555");
+  render_finding(gcfp, "Cross pipeline", "970200/970200", "Per-ch sq -> CRT reconstruct -> learned D*K table. 179 params.", "S1555");
+  render_finding(gcfp, "Shared basis", "5 params all layers", "k layers = k*102 + 5 params. 2-layer: 209 params = 4642x vs N.", "S1555");
+  dom_append(dom_body(), sec_cfp);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "What Others See");
