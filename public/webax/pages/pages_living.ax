@@ -1012,6 +1012,18 @@ fn page_ai() = (
   render_finding(gte, "Compression", "3750 vs 16384", "Per-channel bigrams: sum(q^2) = 3750. Monolithic: 128^2. 4x fewer.", "S1561");
   dom_append(dom_body(), sec_te);
 
+  /* === SEC 9t: COUPLING-ATTENTION SEQUENCE (S1562 Phase A) === */
+  let sec_cs = make_section("800px") in
+  render_h2(sec_cs, "Coupling-Attention Sequence");
+  render_p(sec_cs, "Coupling IS the attention kernel. Softmax(coupling(query, key)/T) as sequence prediction. For periodic sequences, attention concentrates on same-phase positions, retrieving the correct conditional delta per CRT channel. Uniform attention averages all deltas, losing phase information. Period-3: 14/14 coupling vs 0/14 uniform. Period-5: 14/14 with sign-flip elements (each differing from the base in exactly one channel phase, producing orthogonal eigenvalue signatures).");
+  render_p(sec_cs, "Per-channel delta: the prediction decomposes into 5 independent channel predictions. Each channel's weighted average rounds to the correct modular delta when attention weight on matching positions exceeds ~97%. Temperature T controls sharpness: T=1 suffices for period-3 (3 element discrimination), T=0.5 needed for period-5 (5 elements on 5 channels). Weight on matching positions: 99% at T=1. K^2=9 heads attend to different positions. Arithmetic sequences (constant delta) work for both coupling and uniform. No learned Q/K: coupling IS the kernel. 0 learned parameters. 9511x compression.");
+  let gcs = make_findings_grid(sec_cs) in
+  render_finding(gcs, "Period-3", "14/14 coupling, 0/14 uniform", "Periodic sequence [1,210,420,...]. Coupling selects same-phase positions.", "S1562");
+  render_finding(gcs, "Period-5", "14/14 with sign-flip elements", "Each element flips one channel eigenvalue sign. Orthogonal coupling signatures.", "S1562");
+  render_finding(gcs, "Per-channel delta", "5/5 channels correct", "Weighted average rounds to exact modular delta. Block-diagonal per-channel.", "S1562");
+  render_finding(gcs, "Matching weight", "99% at T=1", "Softmax concentrates on same-CRT-signature positions. 9511x compression.", "S1562");
+  dom_append(dom_body(), sec_cs);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "What Others See");
