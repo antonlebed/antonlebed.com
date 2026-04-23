@@ -964,6 +964,18 @@ fn page_ai() = (
   render_finding(gmlt, "Channel parallel", "1 epoch each", "5 channels converge independently. Block-diagonal = embarrassingly parallel.", "S1557");
   dom_append(dom_body(), sec_mlt);
 
+  /* === SEC 9p: COUPLING-ATTENTION LAYER (S1558 Phase A) === */
+  let sec_ca = make_section("800px") in
+  render_h2(sec_ca, "Coupling-Attention");
+  render_p(sec_ca, "Standard transformers learn attention via softmax(QK^T / sqrt(d)). CRT coupling provides Q and K algebraically -- no learned projection matrices. Per-channel eigenvalue eig(n, q) = 2*cos(2*pi*(n mod q)/q). Coupling(a,b) = dot product of eigenvalue vectors = sum over channels of eig(a)*eig(b). This is a symmetric, positive-definite kernel on the ring. 102 precomputed f64 entries encode all pairwise coupling for 970200 elements (9511x compression).");
+  render_p(sec_ca, "K^2=9 attention heads emerge from the channel structure: 5 single-channel heads (one per CRT channel) + 4 pair-channel heads (D,K), (D,E), (K,E), (D,b) -- the inner chain pairs. Each head captures a different algebraic perspective. All 9 produce distinct attention scores. Cross-coupling averages to zero by character orthogonality -- self-coupling is strongly positive. Signal and noise are separated by algebra, not by learning.");
+  let gca = make_findings_grid(sec_ca) in
+  render_finding(gca, "Positive-definite", "1000/1000", "coupling(x,x) = ||eig(x)||^2 > 0 for all nonzero elements. Proper kernel.", "S1558");
+  render_finding(gca, "Orthogonality", "E[cross]=0", "Random coupling averages to zero. Self-coupling avg=10. Signal/noise algebraic.", "S1558");
+  render_finding(gca, "K^2=9 heads", "9/9 distinct", "5 single-channel + 4 pair-channel heads. All produce different attention.", "S1558");
+  render_finding(gca, "Block-diagonal", "Per-channel independent", "D-channel coupling depends only on D-residue. Independent of K,E,b,L.", "S1558");
+  dom_append(dom_body(), sec_ca);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "What Others See");
