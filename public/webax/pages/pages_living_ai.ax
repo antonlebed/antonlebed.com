@@ -508,5 +508,18 @@ fn page_ai_phase_a() = (
   render_finding(gbp, "Generalization gap", "33 vs 76 ppt (-57%)", "NN overfits less. Bottleneck acts as implicit regularizer: fewer parameters, more robust predictions on unseen transitions.", "S1581");
   render_finding(gbp, "CRT reconstruction", "8/103 vs 5/103 (+60%)", "Per-channel improvements compound under CRT. NN predictions are more coherent across channels.", "S1581");
   render_finding(gbp, "490 split", "ALIVE(95) > DEAD(74)", "Strategy channels outperform data channels. Consistent with all prior Phase A models.", "S1581");
-  dom_append(dom_body(), sec_bp)
+  dom_append(dom_body(), sec_bp);
+
+  /* === SEC 9an: 3-LAYER DEPTH TEST (S1582 Phase A) === */
+  let sec_dt = make_section("800px") in
+  render_h3(sec_dt, "9an. Shallow Channel Theorem (S1582)");
+  render_p(sec_dt, "Does depth help per-channel CRT prediction? A 3-layer perceptron (q->4->4->q, two relu hidden layers) compared against the 2-layer bottleneck (S1581) and count-based bigrams on the same 504-char corpus. The 3-layer adds a 4x4 middle transform (16 params/channel, 1168 total vs 1056). Result: depth HURTS. 2-layer wins 5/7 channels. 3-layer regresses to count-level accuracy (210 ppt = count). The 4x4 middle layer compounds information loss through two successive narrow bottlenecks.");
+  render_theorem(sec_dt, "CRT Shallow Channel Theorem (S1582)", "Per-channel CRT bigram prediction is inherently shallow. A 2-layer bottleneck (q->4->q) outperforms 3-layer (q->4->4->q) by 10.3% (234->210 ppt test) across 5/7 channels. The 4x4 middle layer adds capacity but not useful structure for flat conditional distributions. Depth preferentially degrades DEAD channels (-13.5%) over ALIVE (-7.4%): perception channels (D,E,b) need direct shallow mapping. GATE (boundary, q=13) is the sole depth-tolerant channel (+1). K retains partial advantage over count (24 vs 14 = +71%) even in 3-layer -- algebraic structure survives depth damage. 3L total = Count total (210 ppt) but different per-channel profiles. Gen gap widens: 50 vs 33 ppt. CRT recon: 5 vs 8 vs 5. 1168 params, 183573x compression.");
+  let gdt = make_findings_grid(sec_dt) in
+  render_finding(gdt, "Depth hurts", "3L=210 vs 2L=234 ppt (-10.3%)", "Adding a hidden layer with h=4 compounds the bottleneck. Two successive 4-wide layers create a double information barrier that gradient descent cannot overcome.", "S1582");
+  render_finding(gdt, "2L wins 5/7", "Only GATE tolerates depth", "GATE (q=13, boundary) is the sole 3L winner (+1). The boundary channel benefits from compositional depth. All other channels regress.", "S1582");
+  render_finding(gdt, "490 depth asymmetry", "DEAD -13.5% vs ALIVE -7.4%", "Perception channels (D,E,b) lose more from depth than strategy channels (K,L,G,ESC). DEAD needs direct mapping; ALIVE tolerates transforms.", "S1582");
+  render_finding(gdt, "K survives", "+71% over count in 3L", "K-channel (closure, q=9) retains its structural advantage (24 vs 14) even when overall model regresses. The algebraic structure is robust to architectural damage.", "S1582");
+  render_finding(gdt, "3L = Count total", "Both 210 ppt, different profiles", "3L and count achieve identical totals but with reversed channel profiles. Bottleneck still structures the solution even when depth hurts.", "S1582");
+  dom_append(dom_body(), sec_dt)
 )
