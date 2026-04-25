@@ -654,6 +654,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bl();
   /* === SEC 9bm: BLOOM-AGREEMENT SELECTION (S1607 Phase A) === */
   page_ai_sec_9bm();
+  /* === SEC 9bn: DISTRIBUTION DECODING (S1608 Phase A) === */
+  page_ai_sec_9bn();
   0
 )
 
@@ -876,4 +878,17 @@ fn page_ai_sec_9bm() = (
   render_finding(gas, "Hard CRT: 47 vs 46 vs 15", "best of both worlds", "Selection preserves bloom's hard CRT advantage (47 vs bloom 46, per-ch 15) because the >= 2 agreement positions include most hard CRT successes. The 16 full-agreement (7/7) positions contribute 10 hard CRT hits. Medium agreement (2-6) contributes 32. Low agreement (<2) contributes 5 via per-ch. Hard CRT success concentrates in moderate-to-high agreement, exactly where the selection trusts bloom.", "S1607");
   render_finding(gas, "8 populated buckets", "non-trivial distribution", "All 8 agreement levels (0-7) have positions. Agree=1 is largest (49 positions, 25%). Agree=7 smallest populated (16, 8%). 183/199 positions have bloom diverging from per-ch on at least 1 channel. The distribution is left-skewed: bloom changes more channels than it keeps (median agreement ~2). The heavy left tail (80 positions at agree<2) provides the selection leverage.", "S1607");
   dom_append(dom_body(), sec_as)
+)
+
+fn page_ai_sec_9bn() = (
+  let sec_dd = make_section("800px") in
+  render_h3(sec_dd, "9bn. Distribution Decoding (S1608)");
+  render_p(sec_dd, "The CRT nearest-neighbor decoder (S1595) uses binary matching: for each candidate character, score = number of channels where c mod q equals the predicted residue. This discards confidence -- a channel with 99% support on its prediction contributes the same +1 as one with 30% support. And a candidate matching the 2nd-best residue in 3 channels gets 0. Three decoders compared: C0 binary NN (baseline), C1 confidence-weighted NN (weight matches by best_count/total), C2 full distribution (Bayesian scoring with Laplace smoothing over all residue counts).");
+  render_p(sec_dd, "CRT Distribution Decoding Theorem: confidence-weighted CRT decoding improves binary NN by 5.2% (58 to 61 out of 199) with zero additional parameters. Full distribution decode also improves (+3.4%, 58 to 60) but less than confidence weighting. The argmax IS the right prediction -- its confidence is the missing metadata. Oracle of binary + distribution reaches 68/199, showing complementary errors. Binary finds 8 chars distribution misses; distribution finds 10 chars binary misses. 14/14 WASI, 3882 base params (improvement is free).");
+  let gdd = make_findings_grid(sec_dd) in
+  render_finding(gdd, "C1 conf-weighted: 61", "+5.2%, zero additional params", "Confidence-weighted NN scores each channel match by best_count*100/(total+1). High-confidence channels contribute more to the NN score. For dense channels (D at 100% trigram coverage), confidence ranges 20-80, adding discrimination. For sparse channels with bigram fallback, default confidence=50. This is the sweet spot between information loss (binary: ignores confidence) and noise (full distribution: considers all residues). The improvement is FREE: confidence is derived from existing count data.", "S1608");
+  render_finding(gdd, "C2 distribution: 60", "Bayesian + Laplace", "Full distribution scoring: for each candidate c, sum (count[context, c mod q] + 1) * 1000 / (total + q) across 7 channels. Laplace smoothing ensures every candidate gets nonzero score from every channel. Sparse channels (b at 14% trigram coverage) give near-uniform scores (1000/49 = 20 per candidate), effectively zero signal. This honest uncertainty avoids the noisy bigram fallback that binary NN uses. But considering all residues also considers noise, slightly hurting relative to confidence-only.", "S1608");
+  render_finding(gdd, "Oracle(C0|C2): 68", "complementary errors", "Binary NN and distribution decode make different errors. 132/199 positions have the same prediction. Of the 67 differing positions: 8 are C0-only correct, 10 are C2-only correct, 50 are both correct (from the 132 agreeing). The 10 C2-only positions: distribution finds characters where the correct residue was 2nd-best in several channels (binary scores 0 for these, distribution scores proportional to count). The 8 C0-only positions: binary benefits from its bigram fallback on sparse channels where C2 gives uniform.", "S1608");
+  render_finding(gdd, "Confidence > distribution", "argmax is the right choice", "C1 (confidence-weighted, using argmax) beats C2 (full distribution) by 1 character. The argmax prediction is almost always correct when it has high confidence. The full distribution diffuses credit across multiple residues, which helps in ambiguous cases but adds noise in clear cases. The optimal strategy: use the argmax prediction but weight it by confidence. This captures the key metadata (how sure is this channel?) without the noise of considering non-argmax residues.", "S1608");
+  dom_append(dom_body(), sec_dd)
 )
