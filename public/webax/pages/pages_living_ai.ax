@@ -636,6 +636,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bc();
   /* === SEC 9bd: TRIGRAM CONTEXT (S1598 Phase A) === */
   page_ai_sec_9bd();
+  /* === SEC 9be: TRIGRAM JOINT (S1599 Phase A) === */
+  page_ai_sec_9be();
   0
 )
 
@@ -741,4 +743,17 @@ fn page_ai_sec_9bd() = (
   render_finding(gtc, "Voting drops: L6v 27->24", "decorrelation mechanism", "The voting pipeline mixes per-channel predictions with joint bigram predictions (DK, DL, etc.). When per-channel predictions improve via trigrams but joints stay bigram-based, they DISAGREE more. Voting averaging amplifies the disagreement. Same decorrelation mechanism as S1589 (2x data). Fix: trigram joint predictions (joint trigram tables), or NN-only pipeline.", "S1598");
   render_finding(gtc, "Coverage modulus-ordered", "D:100% K:100% b:14%", "Trigram coverage is modulus-determined: 806 training trigrams fill q^2 pairs. D (64 pairs) = 100%, K (81) = 100%, E (625) = 50%, b (2401) = 14%, L (121) = 92%, G (169) = 88%, ESC (289) = 66%. Coverage hierarchy follows the ring: small moduli have complete trigram data, large moduli are sparse. But even sparse coverage helps because high-frequency transitions are covered first.", "S1598");
   dom_append(dom_body(), sec_tc)
+)
+
+fn page_ai_sec_9be() = (
+  let sec_tj = make_section("800px") in
+  render_h3(sec_tj, "9be. Trigram Joint (S1599)");
+  render_p(sec_tj, "S1598 improved per-channel predictions to 293 ppt but voting L6v REGRESSED from 27 to 24 due to decorrelation between trigram per-channel and bigram joint predictions. This test extends 3 joint tables (DK, DL, KL) from bigram to trigram context, aligning context depth across prediction sources. DG, KG, DE keep bigram (count buffers too large). Side-by-side comparison of method A (bigram joints) vs method B (trigram joints).");
+  render_p(sec_tj, "CRT Trigram Joint Theorem: extending joint predictions to trigram context produces marginal voting recovery (L6v 24 to 25, +4%) but reveals CONDITIONAL DECORRELATION: L_ctx drops from 36 to 32 (-11%). CRT nearest-neighbor bypasses ALL decorrelation layers: B+NN L6v 45 to 62 (+38%), B+NN L_ctx 47 to 58 (+23%). Three-level decorrelation hierarchy discovered: (1) per-ch/joint at voting, (2) voting/conditional at conditioning, (3) compound. NN is structurally immune because it searches the CRT codebook directly. 14/14 WASI, 27819 params.");
+  let gtj = make_findings_grid(sec_tj) in
+  render_finding(gtj, "NN L6v: 45->62", "+38% (NN bypasses decorrelation)", "Method B voting feeds better-aligned D/K/L predictions to the CRT nearest-neighbor search. NN L6v jumps from 45 to 62. This is the largest single-step NN improvement in Phase A. The joint trigram alignment improves the CRT tuple that NN searches over, and NN converts that improvement directly into character accuracy without any cross-source averaging.", "S1599");
+  render_finding(gtj, "Decorrelation hierarchy", "3 levels discovered", "Level 1: per-ch trigram vs joint bigram (S1598 voting regression). Level 2: voted trigram vs conditional bigram (THIS session, L_ctx drops). Level 3: compound cross-layer. Each alignment fix at one level can expose decorrelation at the next. Voting and conditioning are inherently cross-source averagers. NN is the only mechanism that avoids all levels simultaneously.", "S1599");
+  render_finding(gtj, "Joint trigram usage: 79%", "477/597 predictions", "Despite sparse coverage (DK 6%, DL 4%, KL 3% of joint pairs), 79% of test-time predictions use at least one joint trigram table. High-frequency joint pairs dominate: the training data visits a concentrated set of joint residue transitions. DK used 162/199, DL 158/199, KL 157/199 test positions.", "S1599");
+  render_finding(gtj, "L_ctx: 36->32", "conditional decorrelation", "Conditional tables (b|D, ESC|D) are trained with bigram-depth data. When voted D improves via trigram alignment, the conditional lookup changes, creating a new context-depth mismatch. Hard L_ctx drops from 36 to 32. But NN L_ctx improves: 47 to 58. The conditional path has structural decorrelation that NN bypasses.", "S1599");
+  dom_append(dom_body(), sec_tj)
 )
