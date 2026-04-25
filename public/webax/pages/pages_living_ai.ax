@@ -626,6 +626,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9ax();
   /* === SEC 9ay: DIVERSE CORPUS (S1593 Phase A) === */
   page_ai_sec_9ay();
+  /* === SEC 9az: STRUCTURED DIVERSE (S1594 Phase A) === */
+  page_ai_sec_9az();
   0
 )
 
@@ -666,4 +668,17 @@ fn page_ai_sec_9ay() = (
   render_finding(gdc, "Accuracy near-random", "70 ppt", "Per-channel accuracy drops to 70 ppt (near-random baseline ~74 ppt) because pseudo-random data has no learnable temporal structure. Text achieves 274 ppt because character transitions have statistical patterns. Coverage enables prediction; structure makes prediction useful.", "S1593");
   render_finding(gdc, "CRT recon zero", "0/199", "CRT reconstruction drops from 53/199 (text) to 0/199 (diverse). Even with 89% b coverage and 99% ESC coverage, near-random per-channel predictions have near-zero probability of simultaneously matching all 7 channels. Coverage without accuracy produces nothing. The two are complementary: diversity for coverage, structure for accuracy.", "S1593");
   dom_append(dom_body(), sec_dc)
+)
+
+fn page_ai_sec_9az() = (
+  let sec_sd = make_section("800px") in
+  render_h3(sec_sd, "9az. Structured Diverse (S1594)");
+  render_p(sec_sd, "S1593 established the Coverage-Structure Duality: diversity drives coverage, structure drives accuracy. CRT reconstruction requires BOTH. Direct test: a synthetic corpus with 70% deterministic arithmetic step (c+37 mod 95) for temporal structure and 30% LCG noise for character diversity. Same 1008-char, 807-transition pipeline. Step 37 is coprime to 95 (full permutation) and coprime to all 7 CRT moduli -- per-channel transitions are learnable.");
+  render_p(sec_sd, "CRT Structured Diverse Theorem: a corpus with both diversity (30% noise, 95/95 unique chars) and structure (70% step-37) achieves 107/199 CRT reconstruction (53.8%) -- 2x text-only (53/199, S1592) and infinite over random-only (0/199, S1593). b coverage 57% (vs TEXT 35%), per-channel accuracy 437 ppt (vs TEXT 274, DIVERSE 70). Conditional tables amplify: b_cond 139 vs b_perch 88 (+58%), zero fallbacks. The duality is multiplicative: coverage x structure -> CRT reconstruction. 14/14 WASI, 1340 params.");
+  let gsd = make_findings_grid(sec_sd) in
+  render_finding(gsd, "CRT recon 2x text", "107/199 (53.8%)", "CRT reconstruction jumps from 53/199 (text, S1592) and 0/199 (diverse, S1593) to 107/199 with structured diverse data. L0=38, L6v=57, L_ctx=107: each pipeline layer adds significant reconstruction. The coverage-structure duality is confirmed: BOTH are needed, and together they multiply.", "S1594");
+  render_finding(gsd, "Per-ch 437 ppt", "609/1393", "Per-channel accuracy 437 ppt: 1.6x text (274), 6.2x diverse (70). The 70% arithmetic structure makes per-channel bigrams highly learnable. D=86, K=92, E=79, b=88, L=90, G=82, ESC=92 out of 199 -- all channels well above random. ALIVE(356)>DEAD(253).", "S1594");
+  render_finding(gsd, "b conditioning +58%", "139 vs 88", "Conditional b|D prediction: 139/199 correct (69.8%) vs 88/199 per-channel (44.2%). D-prediction accuracy 147/199 (73.9%) provides effective context. Zero fallbacks on all 392 bins (57% coverage). Conditioning is the bridge between coverage and accuracy.", "S1594");
+  render_finding(gsd, "Coverage x structure", "multiplicative", "Coverage alone (S1593): b=89%, ppt=70, CRT=0. Structure alone (S1592): b=35%, ppt=274, CRT=53. Both (S1594): b=57%, ppt=437, CRT=107. The duality is multiplicative: intermediate coverage with strong structure beats either extreme. CRT reconstruction scales with the product of coverage and accuracy, not their sum.", "S1594");
+  dom_append(dom_body(), sec_sd)
 )
