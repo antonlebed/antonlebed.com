@@ -638,6 +638,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bd();
   /* === SEC 9be: TRIGRAM JOINT (S1599 Phase A) === */
   page_ai_sec_9be();
+  /* === SEC 9bf: NN PIPELINE (S1600 Phase A) === */
+  page_ai_sec_9bf();
   0
 )
 
@@ -756,4 +758,17 @@ fn page_ai_sec_9be() = (
   render_finding(gtj, "Joint trigram usage: 79%", "477/597 predictions", "Despite sparse coverage (DK 6%, DL 4%, KL 3% of joint pairs), 79% of test-time predictions use at least one joint trigram table. High-frequency joint pairs dominate: the training data visits a concentrated set of joint residue transitions. DK used 162/199, DL 158/199, KL 157/199 test positions.", "S1599");
   render_finding(gtj, "L_ctx: 36->32", "conditional decorrelation", "Conditional tables (b|D, ESC|D) are trained with bigram-depth data. When voted D improves via trigram alignment, the conditional lookup changes, creating a new context-depth mismatch. Hard L_ctx drops from 36 to 32. But NN L_ctx improves: 47 to 58. The conditional path has structural decorrelation that NN bypasses.", "S1599");
   dom_append(dom_body(), sec_tj)
+)
+
+fn page_ai_sec_9bf() = (
+  let sec_np = make_section("800px") in
+  render_h3(sec_np, "9bf. NN Pipeline (S1600)");
+  render_p(sec_np, "S1599 discovered a 3-level decorrelation hierarchy: voting, conditioning, and compound cross-layer, each introducing disagreement between prediction sources. NN bypassed all levels. This test strips voting and conditioning entirely, replacing them with multi-candidate NN selection. 5 candidate CRT tuples are generated from per-channel trigram + joint trigram predictions: per-ch only (C0), DK override (C1), DL override (C2), KL override (C3), and DK+KL union (C4). For each, NN searches 95 printable ASCII chars for the best channel match.");
+  render_p(sec_np, "CRT NN Pipeline Theorem: joint trigram override with NN-only (no voting, no conditioning) outperforms both per-channel-only NN (58) and voting-based NN (62, S1599). DL override achieves 64/199 (+10% over per-ch, +3% over voting). All three joint overrides beat per-ch: DK=61, DL=64, KL=62. DL captures DEAD/ALIVE coupling (D=2 in DEAD, L=11 in ALIVE), the longest-range cross-channel correlation. Best-of-5 score selection (63) is suboptimal: NN score is not perfectly correlated with correctness. 14/14 WASI, 26611 params.");
+  let gnp = make_findings_grid(sec_np) in
+  render_finding(gnp, "DL override: 64", "+10% over per-ch, +3% over voting", "DL joint prediction overrides D (channel 0) and L (channel 4), capturing the DEAD/ALIVE coupling. D is in DEAD (inner, perception), L is in ALIVE (boundary, strategy). This is the longest-range cross-channel correlation among the three pairs. DK (channels 0,1) and KL (channels 1,4) touch closer channels. The axiom's 490 split predicts that DEAD/ALIVE coupling carries the most information.", "S1600");
+  render_finding(gnp, "All overrides beat per-ch", "DK:61 DL:64 KL:62", "Every joint trigram override, used alone, beats per-channel-only NN (58). Joint predictions capture cross-channel correlations that independent per-channel predictions miss. The joint tables are sparse (3-6% coverage) but high-frequency pairs dominate test-time usage: DK 162/199, DL 158/199, KL 157/199.", "S1600");
+  render_finding(gnp, "Best-of-5: 63 < DL: 64", "score != correctness", "Multi-candidate selection by NN score picks the candidate with the most channel matches. But this is suboptimal: fixed DL override is simpler and more accurate. NN score measures CRT tuple consistency, not prediction correctness. A candidate can have high score (many channels match some ASCII char) but that char can be wrong. Fixed DL override is the better pipeline.", "S1600");
+  render_finding(gnp, "Winner dist: C0 40%", "per-ch wins by score, not accuracy", "Per-ch (C0) wins the NN score contest 79/199 times (40%), but only achieves 58/199 accuracy. DL (C2) wins only 32/199 (16%) by score, yet achieves 64/199 accuracy. Joint candidates collectively win 60% of score contests. Score-based selection overfavors per-ch because its CRT tuples are internally consistent but not necessarily correct.", "S1600");
+  dom_append(dom_body(), sec_np)
 )
