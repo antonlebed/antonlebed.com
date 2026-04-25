@@ -632,6 +632,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9ba();
   /* === SEC 9bb: NN TEXT GENERALIZATION (S1596 Phase A) === */
   page_ai_sec_9bb();
+  /* === SEC 9bc: RESTRICTED NN (S1597 Phase A) === */
+  page_ai_sec_9bc();
   0
 )
 
@@ -711,4 +713,17 @@ fn page_ai_sec_9bb() = (
   render_finding(gnt, "Search not correction", "230 vs 229 ppt", "On text, NN barely changes per-channel accuracy (230 vs 229 ppt). Compare S1595: 503 vs 437 ppt (+15%). When chars are sparse, the CRT codebook cannot correct channels -- but it CAN search: finding the valid char that best explains the predicted tuple. Two different mechanisms, same effect: better reconstruction.", "S1596");
   render_finding(gnt, "Score floor at 3", "min=3, no 0/1/2", "Every position has at least 3 matching channels (vs S1595 minimum of 2). Text chars concentrate in ASCII 32-122, making CRT tuples close together. Mean score 4.6 (vs 4.7 S1595). Score-3 largest bucket (69 positions) instead of score-7 (S1595: 60). ALIVE(188)>DEAD(131).", "S1596");
   dom_append(dom_body(), sec_nt)
+)
+
+fn page_ai_sec_9bc() = (
+  let sec_rn = make_section("800px") in
+  render_h3(sec_rn, "9bc. Restricted NN (S1597)");
+  render_p(sec_rn, "S1596 ghost match phenomenon: 43 positions have score-7 (some char matches all 7 predicted channels) but only 37 are correct. 95 printable ASCII candidates but only 27 unique chars appear in the text corpus. Hypothesis: restricting NN search to training-observed characters eliminates ghost CRT matches where a never-seen char coincidentally matches the predicted tuple.");
+  render_p(sec_rn, "CRT Restricted NN Theorem: restricting CRT nearest-neighbor to the 27 training-observed characters improves L0 from 37 to 40 (+8%, 3.33x over hard) and halves ghost matches from 6 to 3. Per-channel accuracy improves: 230 to 242 ppt (+5%), driven by strategy channels (ALIVE +16, DEAD +1). However, L6v and L_ctx are unchanged (45, 46) -- voting already subsumes the restriction. Ghost matches are NOT the primary bottleneck: only 6/43 score-7 were wrong. The bottleneck is prediction quality (229 ppt input). 14/14 WASI, 1340 params, zero added.");
+  let grn = make_findings_grid(sec_rn) in
+  render_finding(grn, "L0: 37->40 (+8%)", "333% over hard", "Restricting NN search from 95 to 27 observed characters improves L0 from 37 to 40. Modest but real. The mechanism: among score-7 candidates, restriction removes non-observed chars, so the NN selects the correct observed char instead of a ghost. Codebook shrinks 3.5x (95->27), accuracy up 8%. Zero additional parameters.", "S1597");
+  render_finding(grn, "Ghosts halved: 6->3", "not eliminated", "Full NN: 43 score-7, 37 correct, 6 ghosts. Restricted NN: 43 score-7, 40 correct, 3 ghosts. Ghost matches halved but 3 remain -- these are observed chars that match the predicted tuple but are not the actual character. Score-7 count identical in both (43): restriction changes WHICH char is selected, not how many positions have perfect matches.", "S1597");
+  render_finding(grn, "Per-ch ppt: 230->242", "ALIVE +16", "Restricted NN chooses from fewer candidates, yielding chars closer to actual on average. ALIVE channels gain +16 (191->207), DEAD only +1 (130->131). Strategy channels (K, L, GATE, ESCAPE) benefit disproportionately from restriction -- consistent with 490 split: strategy is more sensitive to codebook quality.", "S1597");
+  render_finding(grn, "Voting subsumes", "L6v=45, L_ctx=46", "At L6v (joint voting) and L_ctx (contextual conditioning), restricted and unrestricted NN give identical results. The voting pipeline already disambiguates at positions where restriction would help. Restriction is a pure L0-stage optimization, subsumed by deeper pipeline layers. The bottleneck is per-channel prediction quality (229 ppt), not codebook size.", "S1597");
+  dom_append(dom_body(), sec_rn)
 )
