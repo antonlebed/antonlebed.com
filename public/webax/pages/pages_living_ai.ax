@@ -640,6 +640,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9be();
   /* === SEC 9bf: NN PIPELINE (S1600 Phase A) === */
   page_ai_sec_9bf();
+  /* === SEC 9bg: CONTEXT CROSSING (S1601 Phase A) === */
+  page_ai_sec_9bg();
   0
 )
 
@@ -771,4 +773,17 @@ fn page_ai_sec_9bf() = (
   render_finding(gnp, "Best-of-5: 63 < DL: 64", "score != correctness", "Multi-candidate selection by NN score picks the candidate with the most channel matches. But this is suboptimal: fixed DL override is simpler and more accurate. NN score measures CRT tuple consistency, not prediction correctness. A candidate can have high score (many channels match some ASCII char) but that char can be wrong. Fixed DL override is the better pipeline.", "S1600");
   render_finding(gnp, "Winner dist: C0 40%", "per-ch wins by score, not accuracy", "Per-ch (C0) wins the NN score contest 79/199 times (40%), but only achieves 58/199 accuracy. DL (C2) wins only 32/199 (16%) by score, yet achieves 64/199 accuracy. Joint candidates collectively win 60% of score contests. Score-based selection overfavors per-ch because its CRT tuples are internally consistent but not necessarily correct.", "S1600");
   dom_append(dom_body(), sec_np)
+)
+
+fn page_ai_sec_9bg() = (
+  let sec_ao = make_section("800px") in
+  render_h3(sec_ao, "9bg. Context Crossing (S1601)");
+  render_p(sec_ao, "S1600 found DL override best (64/199) with trigram joints: DL > KL > DK. Is L special, or does any DEAD/ALIVE pair work? This test expands to 6 pairs with bigram joint overrides for a controlled comparison: DK, DL, KL (existing) + DG, DESC, DE (new). 4 cross pairs (DEAD+ALIVE) vs 2 same-half controls (KL=ALIVE+ALIVE, DE=DEAD+DEAD). All pairs use bigram for fairness.");
+  render_p(sec_ao, "CRT Context Crossing Theorem: at bigram context, ALIVE+ALIVE pair (KL=63) dominates over all DEAD+ALIVE cross pairs (best DK=61). This REVERSES S1600's trigram result (DL=64 best). The 490 split advantage is context-dependent: ALIVE-pair dominance at bigram crosses to DEAD/ALIVE dominance at trigram. 4/6 overrides beat per-ch (58). DG(57) and DE(57) fall below -- they override high-accuracy channels (G=61ppt, E=64ppt), losing more from context reduction than gaining from correlation. KL succeeds because K(57ppt) and L(55ppt) have LOW per-ch accuracy -- less to lose. 14/14 WASI, 4581 params.");
+  let gao = make_findings_grid(sec_ao) in
+  render_finding(gao, "KL=63 best (bigram)", "reverses trigram DL=64", "At 1-step (bigram) context, ALIVE+ALIVE pair KL dominates. At 2-step (trigram, S1600), DEAD+ALIVE pair DL dominates. The pair ranking reverses between context depths. This means the 490 split advantage is not absolute -- it emerges only with sufficient temporal context. Cross-channel DEAD/ALIVE correlations are deeper structure that requires more context to exploit.", "S1601");
+  render_finding(gao, "H1 FALSIFIED at bigram", "cross avg 59.25 < same avg 60.0", "The 490 split does NOT predict pair quality at bigram level. 4 cross pairs average 59.25/199. 2 same-half pairs average 60.0/199. ALIVE+ALIVE (KL=63) outperforms all cross pairs. Context depth is the moderating variable: insufficient context prevents cross-channel advantage from manifesting.", "S1601");
+  render_finding(gao, "Override quality = inverse", "of per-ch accuracy", "DG and DE override high-accuracy channels (G:61, E:64 per-ch ppt) and fall BELOW per-ch NN (57 vs 58). KL overrides low-accuracy channels (K:57, L:55 per-ch ppt) and rises to 63. Bigram override helps when the replaced channels have weak trigram predictions -- less to lose. Override gain = correlation gain minus context loss.", "S1601");
+  render_finding(gao, "Coverage: 26-27 distinct", "limited by 27-char alphabet", "All 6 bigram joint tables cover 26-27 distinct prev values out of 72-200 possible. This is capped by the 27 unique characters in the corpus: each char maps to exactly one joint residue pair. Override usage is 100% (199/199 for all pairs) because the 26-27 covered values capture the entire character distribution.", "S1601");
+  dom_append(dom_body(), sec_ao)
 )
