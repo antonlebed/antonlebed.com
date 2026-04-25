@@ -650,6 +650,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bj();
   /* === SEC 9bk: BLOOM TEXT (S1605 Phase A) === */
   page_ai_sec_9bk();
+  /* === SEC 9bl: STRICT BLOOM (S1606 Phase A) === */
+  page_ai_sec_9bl();
   0
 )
 
@@ -846,4 +848,17 @@ fn page_ai_sec_9bk() = (
   render_finding(gbt, "Oracle: 70/199", "complementary information", "If an oracle could pick the correct answer from per-ch or bloom predictions, it would achieve 70/199 (35.2%). Per-ch=58, bloom=46, overlap=34. So 24 positions are uniquely correct for per-ch and 12 are uniquely correct for bloom. The 12 bloom-only positions represent transitions where cross-channel coherence reveals the correct answer that independent channels miss. Combining both approaches optimally could yield a 21% improvement over per-ch alone.", "S1605");
   render_finding(gbt, "Weight invariant", "w=1,3,5 all give 46", "Weighting the per-channel trigram vote (w=1: equal, w=3: triple, w=5: heavy) produces identical NN and hard CRT results. The 6 joint pair predictions are strongly correlated (all conditioned on aspects of the same previous character), so they form a bloc that outvotes the per-channel prediction at any tested weight. Only w>=7 would give per-channel enough votes to break the bloc. The correlation of joint predictions is itself a structural property: CRT decomposition of the same character produces correlated residues.", "S1605");
   dom_append(dom_body(), sec_bt)
+)
+
+fn page_ai_sec_9bl() = (
+  let sec_sb = make_section("800px") in
+  render_h3(sec_sb, "9bl. Strict Bloom (S1606)");
+  render_p(sec_sb, "S1605 showed bloom voting triples hard CRT but costs 21% NN accuracy. Root cause hypothesis: each joint pair votes on ALL 7 channels, but only 2 are meaningful. DK knows nothing about b -- its b-channel vote is noise extracted from a full-character prediction. Strict bloom: each pair votes only on its own 2 channels. Coverage: D has 5 pairs (strong consensus), K and L have 2 each (moderate), E/G/ESC have 1 each (light), b has NONE (pure per-channel, protected).");
+  render_p(sec_sb, "CRT Strict Bloom Theorem: restricting bloom votes to pair-owned channels protects b-channel accuracy (62 vs 46, +35% recovery) but FAILS to improve NN (45 vs 46) and loses most hard CRT gain (20 vs 46). The coherence mechanism requires ALL-channel consensus -- partial consensus is insufficient. Full bloom's power comes from forcing all 7 channels toward the SAME character, creating correlated noise that aligns channels. Removing irrelevant votes removes the correlation. The coherence-accuracy trade-off is structural. 14/14 WASI, 4581 params.");
+  let gsb = make_findings_grid(sec_sb) in
+  render_finding(gsb, "b-channel: 62 vs 46", "structural protection", "b has zero pair coverage in strict bloom, so it keeps its per-channel trigram prediction. Per-ch b=62, full bloom b=46 (-26%), strict b=62 (0% loss). This is the ONLY channel where strict bloom unambiguously helps. The b-channel is the deepest data channel (mod 49) with the most information per residue -- protecting it preserves the most per-channel accuracy.", "S1606");
+  render_finding(gsb, "NN: 45 vs 46 vs 58", "strict WORSE than full", "Strict bloom NN (45) is slightly WORSE than full bloom (46), not better. Both far below per-ch (58). Protecting b (+16 correct residues) is offset by G (-6) and ESC (-5) degradation. G and ESC each have only 1 pair coverage under strict -- the single pair prediction is worse than the smoothed 6-vote average in full bloom. Correlated noise across all pairs helps more than restricting to relevant pairs.", "S1606");
+  render_finding(gsb, "Hard CRT: 20 vs 46 vs 15", "partial consensus insufficient", "Strict hard CRT (20) is modestly above per-ch (15) but far below full bloom (46). Hard CRT requires ALL 7 channels correct simultaneously. Under strict, only D gets strong consensus (5 pairs). b stays decorrelated. Without all-channel agreement, P(all 7 correct) remains low. Full bloom forces agreement by making all channels vote on the same character, which is exactly what hard CRT needs.", "S1606");
+  render_finding(gsb, "Divergence: 572 vs 867", "strict touches fewer channels", "Strict bloom changes 572 channel predictions vs 867 for full bloom (34% fewer). This is expected: strict bloom only modifies channels with pair coverage. b is never changed (0 pairs). But LESS divergence means LESS coherence, and less coherence means less hard CRT gain. The divergence count IS the coherence mechanism.", "S1606");
+  dom_append(dom_body(), sec_sb)
 )
