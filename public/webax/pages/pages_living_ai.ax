@@ -634,6 +634,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bb();
   /* === SEC 9bc: RESTRICTED NN (S1597 Phase A) === */
   page_ai_sec_9bc();
+  /* === SEC 9bd: TRIGRAM CONTEXT (S1598 Phase A) === */
+  page_ai_sec_9bd();
   0
 )
 
@@ -726,4 +728,17 @@ fn page_ai_sec_9bc() = (
   render_finding(grn, "Per-ch ppt: 230->242", "ALIVE +16", "Restricted NN chooses from fewer candidates, yielding chars closer to actual on average. ALIVE channels gain +16 (191->207), DEAD only +1 (130->131). Strategy channels (K, L, GATE, ESCAPE) benefit disproportionately from restriction -- consistent with 490 split: strategy is more sensitive to codebook quality.", "S1597");
   render_finding(grn, "Voting subsumes", "L6v=45, L_ctx=46", "At L6v (joint voting) and L_ctx (contextual conditioning), restricted and unrestricted NN give identical results. The voting pipeline already disambiguates at positions where restriction would help. Restriction is a pure L0-stage optimization, subsumed by deeper pipeline layers. The bottleneck is per-channel prediction quality (229 ppt), not codebook size.", "S1597");
   dom_append(dom_body(), sec_rn)
+)
+
+fn page_ai_sec_9bd() = (
+  let sec_tc = make_section("800px") in
+  render_h3(sec_tc, "9bd. Trigram Context (S1598)");
+  render_p(sec_tc, "S1597 identified per-channel prediction quality (229 ppt) as the bottleneck. Bigrams use 1-step context: given prev residue, predict next. Trigrams use 2-step context: given prev-2 and prev-1 residues, predict next. q^2 entries per channel. Coverage feasible for small moduli (D:100%, K:100%), sparse for large (b:14%). Hybrid: trigram when covered, bigram fallback. Same text corpus (cyclic English + 30% noise, 1008 chars).");
+  render_p(sec_tc, "CRT Trigram Context Theorem: two-step per-channel predictions improve ppt from 229 to 293 (+28%), with ALL 7 channels improving. D +26%, K +14%, E +45%, b +38%, L +25%, G +15%, ESC +39%. CRT NN reconstruction improves dramatically: L0 37 to 58 (+57%). However, voting pipeline REGRESSES: L6v drops from 27 to 24 (-11%). This is the decorrelation mechanism from S1589: improved per-channel predictions disagree with bigram-based joint predictions used in voting. NN bypasses this because it searches the codebook directly from the CRT tuple. 14/14 WASI, 5090 params (1340 base + 3750 trigram).");
+  let gtc = make_findings_grid(sec_tc) in
+  render_finding(gtc, "Per-ch ppt: 229->293", "+28% all 7 channels", "Trigram context improves every channel. Surprise: E (+45%) and b (+38%) gain MORE than D (+26%) despite sparser coverage. Even 14% b-coverage (339/2401 pairs) beats bigram by 38% because the covered pairs are high-frequency. The coverage-accuracy tradeoff favors trigrams across the board. 92% of predictions use trigram, only 8% fall back to bigram.", "S1598");
+  render_finding(gtc, "NN L0: 37->58", "+57% (largest Phase A lift)", "Better per-channel predictions produce CRT tuples closer to valid characters. The 95-char NN codebook search benefits dramatically: 37 to 58 correct. This is the largest single-step improvement in Phase A. No added parameters -- the improvement is FREE from better predictions feeding into the same NN search.", "S1598");
+  render_finding(gtc, "Voting drops: L6v 27->24", "decorrelation mechanism", "The voting pipeline mixes per-channel predictions with joint bigram predictions (DK, DL, etc.). When per-channel predictions improve via trigrams but joints stay bigram-based, they DISAGREE more. Voting averaging amplifies the disagreement. Same decorrelation mechanism as S1589 (2x data). Fix: trigram joint predictions (joint trigram tables), or NN-only pipeline.", "S1598");
+  render_finding(gtc, "Coverage modulus-ordered", "D:100% K:100% b:14%", "Trigram coverage is modulus-determined: 806 training trigrams fill q^2 pairs. D (64 pairs) = 100%, K (81) = 100%, E (625) = 50%, b (2401) = 14%, L (121) = 92%, G (169) = 88%, ESC (289) = 66%. Coverage hierarchy follows the ring: small moduli have complete trigram data, large moduli are sparse. But even sparse coverage helps because high-frequency transitions are covered first.", "S1598");
+  dom_append(dom_body(), sec_tc)
 )
