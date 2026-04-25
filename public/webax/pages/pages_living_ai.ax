@@ -594,5 +594,46 @@ fn page_ai_phase_a() = (
   render_finding(gcc, "DK near-saturated", "221->231 ppt (+5%)", "490-crossing pair DK (q=72) gains only 2 correct predictions from 2x data. The crossing signal between perception (D) and strategy (K) channels saturates faster. DEAD-ALIVE pairs require qualitatively different data, not just more of the same.", "S1588");
   render_finding(gcc, "CRT reconstruction degrades", "21->10 enhanced", "More data improves per-channel and pair accuracy but HURTS full CRT reconstruction. Better individual predictions don't compose into better full-ring reconstruction -- the encoding tradeoff (S1565) applies to data scaling too.", "S1588");
   render_finding(gcc, "490 split = data efficiency", "sm:DK>KL fl:KL>DK", "The 490 split reverses with data size: DK leads at small data, KL leads at full. The split is not an accuracy difference but a data efficiency difference. Same-side channels reach their ceiling faster with less data.", "S1588");
-  dom_append(dom_body(), sec_cc)
+  dom_append(dom_body(), sec_cc);
+
+  /* === SEC 9au: RECONSTRUCTION COHERENCE (S1589 Phase A) === */
+  let sec_rc = make_section("800px") in
+  render_h3(sec_rc, "9au. Reconstruction Coherence (S1589)");
+  render_p(sec_rc, "S1588 detected Probe 3: CRT reconstruction DEGRADES when per-channel predictions IMPROVE with more data (base 10->5, DK enhanced 21->10, KL 17->7). Why? This session investigates the mechanism. 1008-char corpus, 7 per-channel NN models at small (399 transitions) vs full (807 transitions) data.");
+  render_theorem(sec_rc, "CRT Reconstruction Coherence Theorem (S1589)", "Per-channel prediction DECORRELATION is the mechanism behind the CRT reconstruction paradox. With more data, each channel's mode prediction shifts to a locally-better mode, but different channels shift at different transitions. The 7-way conjunction P(all correct) drops because channels that were correlated (ratio 792x expected) become less correlated (ratio 230x expected) -- a 71% correlation drop. The k-correct distribution shifts mass from k=7 (10->5) to k=6 (12->19) and k=3 (16->23): each channel improves individually but they no longer all agree on the SAME transitions. CRT reconstruction requires ALL 7 channels correct simultaneously, making it exponentially sensitive to decorrelation. Pairwise coherence IMPROVES (DK 20->30, KL 22->30), proving the issue is 7-way conjunction, not 2-way. Better components compose WORSE because independent improvements are combinatorially harder to align than correlated ones.");
+  let grc = make_findings_grid(sec_rc) in
+  render_finding(grc, "71% decorrelation", "ratio 792x->230x", "The actual/expected CRT ratio (measuring positive correlation between channels) drops 71% with more data. Channels that were correct together at small data become correct independently at full data. Per-channel improves (+8%), CRT degrades (-50%).", "S1589");
+  render_finding(grc, "k-correct mass shift", "k=7: 10->5, k=6: 12->19", "The distribution of how many channels are correct per transition shifts from the extremes (all-or-nothing) toward almost-all. k=3 rises (16->23). Mean correct channels improves (1.7->1.9) but the critical k=7 bin shrinks.", "S1589");
+  render_finding(grc, "Pairwise coherence UP", "DK 20->30, KL 22->30", "Pairwise coherence INCREASES with more data, proving the issue is specific to 7-way conjunction, not 2-way. Cross-channel pairs (DK,KE,EL) gain 30% while DEAD pairs (DE,Db) drop 10%. The 490 boundary benefits from data at pair level but hurts at full-ring level.", "S1589");
+  render_finding(grc, "Mode validity drops", "21->11 valid ASCII", "Only 11/199 CRT reconstructions at full data produce valid ASCII characters (vs 21 at small). 94% of reconstructions point to non-characters, confirming that independently-shifted predictions combine to algebraic noise.", "S1589");
+  dom_append(dom_body(), sec_rc);
+
+  /* === SEC 9av: FRACTAL STACKING (S1590 Phase A) === */
+  let sec_fs = make_section("800px") in
+  render_h3(sec_fs, "9av. Fractal Stacking (S1590)");
+  render_p(sec_fs, "The axiom is fractal. Every solution is a module. Instead of solving N-way jointly (exponential parameters), stack pairwise crossings (linear parameters). Walk from center outward: per-channel -> pairwise -> full coherence. S1589 showed 7-way conjunction is the tax while pairwise coherence improves. The fix is not flat N-way joint prediction -- it is stacked pairwise crossings, each adding one channel of coherence.");
+  render_theorem(sec_fs, "CRT Fractal Stacking Theorem (S1590)", "Stacking multiple pairwise crossings simultaneously improves CRT reconstruction beyond any single crossing. Per-channel baseline: 5/103. Single DK crossing: 6/103. Stacked DK+DL+DG (3 D-centered crossings): 12/103 -- a 2.4x improvement over baseline and 2x over the best single crossing. D-agreement across 3 crossings: 98% (101/103). Each crossing adds a NEW channel of joint prediction: DK covers D+K, DL adds L, DG adds GATE. Four of seven channels become jointly predicted. The remaining channels (b, ESCAPE) lack crossings at this corpus size and cap the improvement. 812 stacked parameters vs 1800 for flat DKE joint -- fractal stacking uses fewer parameters for broader coverage.");
+  let gfs = make_findings_grid(sec_fs) in
+  render_finding(gfs, "Stacking 2.4x", "5->12/103 CRT recon", "Three D-centered crossings stacked simultaneously achieve 12/103 CRT reconstruction, 2.4x the per-channel baseline of 5/103. Each additional crossing that covers a NEW channel improves CRT recon. Adding crossings for already-covered channels has zero marginal effect.", "S1590");
+  render_finding(gfs, "D-agreement 98%", "101/103 agree", "Three crossings (DK, DL, DG) agree on the D-channel prediction 98% of the time. D participates in the most crossings and becomes the most reliable channel. This is the fractal center -- the channel with the most connections is the most robust.", "S1590");
+  render_finding(gfs, "Voting = single-pick", "L6v=L6=12/103", "Multi-crossing voting produces the same CRT recon as single-pick (best coverage per channel). At 98% D-agreement, voting adds no information -- the crossings are already coherent. The fractal benefit is in BREADTH (covering more channels) not consensus (refining covered channels).", "S1590");
+  render_finding(gfs, "b+ESCAPE bottleneck", "2 uncovered channels", "b (49 residues) and ESCAPE (17 residues) have no affordable pairwise crossings at this corpus size (Db=392, bESC=833). These uncovered channels cap CRT reconstruction. Next fractal layer: use stacked predictions as context for b/ESCAPE.", "S1590");
+  dom_append(dom_body(), sec_fs);
+
+  /* === SEC 9aw: CONTEXTUAL STACKING (S1591 Phase A) === */
+  page_ai_sec_9aw();
+  0
+)
+
+fn page_ai_sec_9aw() = (
+  let sec_cs = make_section("800px") in
+  render_h3(sec_cs, "9aw. Contextual Stacking (S1591)");
+  render_p(sec_cs, "The fractal stacks upward: the output of one layer is the input for the next. S1590 bottleneck: b(49) and ESCAPE(17) have no affordable pairwise crossings. Solution: condition their bigram predictions on the stacked D-prediction from voting. Table: cond_b[d_pred * 49 + b_prev] maps to mode of b_next. Training uses actual d-truth values; inference uses the stacked d-prediction. Fallback to per-channel when a (d, prev) bin has no training data.");
+  render_p(sec_cs, "CRT Contextual Stacking Theorem: conditioning uncovered channels on stacked predictions from covered channels improves CRT reconstruction beyond flat stacking. L0(5) to L6v(12) to L_ctx(19) -- each fractal layer improves, 3.8x total over baseline. The improvement is driven by ESCAPE conditioning (+55%, from 18 to 28/103). b conditioning is sparsity-limited at 29% coverage (-8%, from 24 to 22/103). The modulus-coverage tradeoff: smaller target channels benefit more from conditioning because their tables have better coverage. 14/14 WASI, 1340 params.");
+  let gcs = make_findings_grid(sec_cs) in
+  render_finding(gcs, "Contextual +58%", "19 vs 12/103 CRT", "CRT reconstruction improves from 12/103 (stacked voting) to 19/103 (contextual) -- a 58% improvement. The fractal: per-channel (5) to pairwise stacking (12) to contextual conditioning (19). Each layer feeds the next. 3.8x total improvement over per-channel baseline.", "S1591");
+  render_finding(gcs, "ESCAPE +55%", "28 vs 18/103", "ESCAPE conditioning is the star: 28/103 vs 18/103 per-channel (+55%). With 17 residues, the conditional table (136 entries) achieves 67% coverage -- enough for reliable mode predictions. The modulus-coverage tradeoff: smaller channels benefit more from conditioning because their conditional tables have better data density.", "S1591");
+  render_finding(gcs, "b sparsity-limited", "22 vs 24/103", "b conditioning slightly hurts: 22/103 vs 24/103 per-channel (-8%). With 49 residues, the conditional table (392 entries) has only 29% coverage at 399 training transitions. Despite this, the overall CRT recon improves because ESCAPE's gain more than compensates. Fix: more training data (Option C).", "S1591");
+  render_finding(gcs, "Agreement != accuracy", "D-pred 23%", "D-prediction accuracy from voting is 23% (24/103), NOT the 98% agreement from S1590. Agreement measures internal consistency; accuracy measures truth-matching. D has 8 residues so 23% is 1.85x random. Despite low D-accuracy, contextual conditioning still works -- the conditional tables capture structural relationships that transfer.", "S1591");
+  dom_append(dom_body(), sec_cs)
 )
