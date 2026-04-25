@@ -648,6 +648,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bi();
   /* === SEC 9bj: DATA SCALING (S1604 Phase A) === */
   page_ai_sec_9bj();
+  /* === SEC 9bk: BLOOM TEXT (S1605 Phase A) === */
+  page_ai_sec_9bk();
   0
 )
 
@@ -831,4 +833,17 @@ fn page_ai_sec_9bj() = (
   render_finding(gds, "Hard CRT reverses: 10 to 7", "decorrelation amplified by data", "Hard CRT per-ch DECREASES from 10 (A) to 7 (B) despite better per-channel predictions (220 to 247 ppt). This is the S1589 decorrelation mechanism: improved per-channel predictions become more diverse across channels, reducing the probability that all 7 channels are simultaneously correct. Hard DL is stable (21 to 20) because joint DL predictions maintain inter-channel coherence. NN bypasses decorrelation entirely: 73 to 93 per-ch improvement.", "S1604");
   render_finding(gds, "Coverage sub-linear: b 14% to 20%", "diversity limits large-modulus channels", "b trigram coverage: 356 to 493 out of 2401 (14% to 20%, +38%). E coverage: 329 to 444 (52% to 71%). D and K already at 100%. ESC: 69% to 85%. 2x data improves coverage everywhere but sub-linearly for large-modulus channels. The 252-char seed uses 27 unique chars whose mod-49 residues cluster. Corpus diversity, not size, remains the binding constraint for b.", "S1604");
   dom_append(dom_body(), sec_ds)
+)
+
+fn page_ai_sec_9bk() = (
+  let sec_bt = make_section("800px") in
+  render_h3(sec_bt, "9bk. Bloom Text (S1605)");
+  render_p(sec_bt, "S1589 proved: per-channel predictions decorrelate with more data -- pairwise accuracy rises but 7-way CRT reconstruction FALLS. S1604 confirmed decorrelation amplifies with 2x data (hard CRT 10 to 7). Root cause: channels become independently accurate on DIFFERENT transitions, so P(all 7 correct) drops. Bloom mixing is the principled fix: use cross-channel joint predictions to force per-channel consensus. 6 joint bigram pairs (DK, DL, KL, DG, DESC, DE), each storing the most common FULL next character. For each channel: majority vote across per-channel trigram + 6 full-character pair extractions.");
+  render_p(sec_bt, "CRT Bloom Text Theorem: bloom voting triples hard CRT reconstruction (15 to 46 out of 199, +207%) while reducing NN accuracy (58 to 46, -21%). Bloom is a COHERENCE mechanism: it forces per-channel predictions toward consistent full-character tuples, making NN score approximately equal hard CRT (46 and 46). Weighting per-channel trigram (w=1,3,5) does not change the result because 6 correlated joint votes always dominate. Oracle (best-of per-ch or bloom) reaches 70/199, showing the two approaches capture COMPLEMENTARY information. 14/14 WASI, 4581 params.");
+  let gbt = make_findings_grid(sec_bt) in
+  render_finding(gbt, "Hard CRT: 15 to 46", "+207%, 3.07x", "Per-channel trigram produces 15/199 exact CRT reconstructions. Bloom voting produces 46/199 -- a 3.07x improvement. Best single-pair override (DL) gives only 17 hard CRT. Bloom outperforms the best individual override by 2.7x. The mechanism: 6 joint pairs predict correlated full characters, and per-channel majority voting forces all 7 channels toward the consensus character. When that character is correct, all channels match simultaneously.", "S1605");
+  render_finding(gbt, "NN: 58 to 46", "coherence-accuracy trade-off", "NN accuracy drops from 58 to 46 with bloom voting. NN is forgiving -- it finds the nearest match even with imperfect channels. Bloom degrades E (64 to 48) and b (62 to 46), the large-modulus channels where joint pairs have weakest coverage. But bloom improves D (53 to 59). The trade-off: bloom sacrifices per-channel accuracy for cross-channel coherence, which helps hard CRT (all-or-nothing) but hurts NN (partial matches count).", "S1605");
+  render_finding(gbt, "Oracle: 70/199", "complementary information", "If an oracle could pick the correct answer from per-ch or bloom predictions, it would achieve 70/199 (35.2%). Per-ch=58, bloom=46, overlap=34. So 24 positions are uniquely correct for per-ch and 12 are uniquely correct for bloom. The 12 bloom-only positions represent transitions where cross-channel coherence reveals the correct answer that independent channels miss. Combining both approaches optimally could yield a 21% improvement over per-ch alone.", "S1605");
+  render_finding(gbt, "Weight invariant", "w=1,3,5 all give 46", "Weighting the per-channel trigram vote (w=1: equal, w=3: triple, w=5: heavy) produces identical NN and hard CRT results. The 6 joint pair predictions are strongly correlated (all conditioned on aspects of the same previous character), so they form a bloc that outvotes the per-channel prediction at any tested weight. Only w>=7 would give per-channel enough votes to break the bloc. The correlation of joint predictions is itself a structural property: CRT decomposition of the same character produces correlated residues.", "S1605");
+  dom_append(dom_body(), sec_bt)
 )
