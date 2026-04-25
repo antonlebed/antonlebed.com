@@ -652,6 +652,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bk();
   /* === SEC 9bl: STRICT BLOOM (S1606 Phase A) === */
   page_ai_sec_9bl();
+  /* === SEC 9bm: BLOOM-AGREEMENT SELECTION (S1607 Phase A) === */
+  page_ai_sec_9bm();
   0
 )
 
@@ -861,4 +863,17 @@ fn page_ai_sec_9bl() = (
   render_finding(gsb, "Hard CRT: 20 vs 46 vs 15", "partial consensus insufficient", "Strict hard CRT (20) is modestly above per-ch (15) but far below full bloom (46). Hard CRT requires ALL 7 channels correct simultaneously. Under strict, only D gets strong consensus (5 pairs). b stays decorrelated. Without all-channel agreement, P(all 7 correct) remains low. Full bloom forces agreement by making all channels vote on the same character, which is exactly what hard CRT needs.", "S1606");
   render_finding(gsb, "Divergence: 572 vs 867", "strict touches fewer channels", "Strict bloom changes 572 channel predictions vs 867 for full bloom (34% fewer). This is expected: strict bloom only modifies channels with pair coverage. b is never changed (0 pairs). But LESS divergence means LESS coherence, and less coherence means less hard CRT gain. The divergence count IS the coherence mechanism.", "S1606");
   dom_append(dom_body(), sec_sb)
+)
+
+fn page_ai_sec_9bm() = (
+  let sec_as = make_section("800px") in
+  render_h3(sec_as, "9bm. Bloom-Agreement Selection (S1607)");
+  render_p(sec_as, "S1605 proved bloom and per-ch capture COMPLEMENTARY information: oracle 70/199 vs per-ch 58 and bloom 46. The question: can we SELECT between them WITHOUT the oracle? Candidate signal: bloom-agreement count -- how many of 7 channels match between bloom and per-ch predictions. When bloom changes many channels, it has made a strong (possibly wrong) commitment. When bloom agrees, the joint pairs are consistent with per-channel predictions.");
+  render_p(sec_as, "CRT Bloom-Agreement Selection Theorem: agreement count partitions test positions into 8 buckets with dramatically different accuracy profiles. COUNTER-INTUITIVE: when bloom strongly disagrees (0-1 channels matching), trust PER-CH, not bloom. Bloom's confident disagreement means the joint pairs converged on a coherent-but-wrong character. The reversed threshold (per-ch when agree<2, bloom when agree>=2) achieves NN 64/199 -- closing 50% of the gap from per-ch (58) to oracle (70) with ZERO additional parameters. Hard CRT: 47/199 (preserving bloom's 3x advantage). 14/14 WASI, 4581 params.");
+  let gas = make_findings_grid(sec_as) in
+  render_finding(gas, "Selection NN: 64/199", "+10% over per-ch, gap to oracle 6", "Best rule: trust per-ch when agreement < 2 (80 positions, 40%), trust bloom when agreement >= 2 (119 positions, 60%). Per-ch contributes 22/80 correct in low-agreement (28%), bloom contributes 42/119 in high-agreement (35%). The 80 low-agreement positions are where bloom changes 6-7 channels -- a strong prediction that is wrong 96% of the time for bloom but 28% correct for per-ch. Zero additional parameters: the selection signal is derived from the model itself.", "S1607");
+  render_finding(gas, "Counter-intuitive direction", "high divergence = per-ch wins", "Naive expectation: when bloom strongly disagrees, bloom has unique information. Reality: agree=0 (31 positions) has per-ch 11 correct, bloom 3. Agree=1 (49 positions) has per-ch 11, bloom 1. The mechanism: 6 joint pairs agree on a WRONG full character, forcing all channels to match. All-wrong coherence (coherent-but-wrong) is worse than independent partial correctness (some channels right, NN exploits them).", "S1607");
+  render_finding(gas, "Hard CRT: 47 vs 46 vs 15", "best of both worlds", "Selection preserves bloom's hard CRT advantage (47 vs bloom 46, per-ch 15) because the >= 2 agreement positions include most hard CRT successes. The 16 full-agreement (7/7) positions contribute 10 hard CRT hits. Medium agreement (2-6) contributes 36. Low agreement (<2) contributes 1. Hard CRT success concentrates in moderate-to-high agreement, exactly where the selection trusts bloom.", "S1607");
+  render_finding(gas, "8 populated buckets", "non-trivial distribution", "All 8 agreement levels (0-7) have positions. Agree=1 is largest (49 positions, 25%). Agree=7 smallest populated (16, 8%). 183/199 positions have bloom diverging from per-ch on at least 1 channel. The distribution is left-skewed: bloom changes more channels than it keeps (median agreement ~2). The heavy left tail (80 positions at agree<2) provides the selection leverage.", "S1607");
+  dom_append(dom_body(), sec_as)
 )
