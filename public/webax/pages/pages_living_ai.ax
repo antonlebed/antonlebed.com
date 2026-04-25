@@ -624,6 +624,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9aw();
   /* === SEC 9ax: DATA SCALING (S1592 Phase A) === */
   page_ai_sec_9ax();
+  /* === SEC 9ay: DIVERSE CORPUS (S1593 Phase A) === */
+  page_ai_sec_9ay();
   0
 )
 
@@ -651,4 +653,17 @@ fn page_ai_sec_9ax() = (
   render_finding(gds, "ESC near-saturation", "101/136 (74%)", "ESCAPE coverage reaches 74% at 2x data (up from 67%). ESC conditioning: 65 vs 56 per-ch (+16%). Small-modulus channels benefit because their tables fill faster. The modulus-coverage tradeoff confirmed: ESCAPE(17) saturates while b(49) remains sparse.", "S1592");
   render_finding(gds, "No NN decorrelation", "L0=17/199 (85 ppt)", "S1589 showed NN-based per-channel CRT recon DEGRADES with 2x data (decorrelation from soft predictions). Count-based bigrams avoid this: L0=17/199 (85 ppt) on the 808-1007 test set. Mode predictions are inherently more stable than soft probabilities for CRT reconstruction. Note: different test set from S1591 (400-503).", "S1592");
   dom_append(dom_body(), sec_ds)
+)
+
+fn page_ai_sec_9ay() = (
+  let sec_dc = make_section("800px") in
+  render_h3(sec_dc, "9ay. Diverse Corpus (S1593)");
+  render_p(sec_dc, "S1592 claimed corpus diversity, not data size, limits b coverage. Direct test: replace the 1008-char text corpus with a pseudo-random LCG corpus (printable ASCII 32-126, 95 unique chars vs ~30 for text). Same pipeline, same data size (807 training transitions). If b coverage jumps, diversity is confirmed as the bottleneck.");
+  render_p(sec_dc, "CRT Diverse Corpus Theorem: uniform character distribution achieves 89% b coverage (352/392 bins) vs 35% for text (141/392) -- a 249% increase confirming corpus diversity as the coverage bottleneck. ESC reaches 99% (135/136). However, per-channel accuracy drops to near-random (70 ppt vs 274 ppt) and CRT reconstruction drops to 0/199 because pseudo-random data has no temporal structure to learn. Coverage is necessary but not sufficient: structure drives prediction, diversity drives coverage. 14/14 WASI, 1340 params.");
+  let gdc = make_findings_grid(sec_dc) in
+  render_finding(gdc, "b coverage 249%", "352/392 (89%)", "b|D coverage jumps from 35% (text) to 89% (diverse) with the same 807 training transitions -- a 249% increase. The 95 printable ASCII chars spread mod-49 residues across all 49 classes roughly uniformly. Text concentrates on ~30 chars that cluster in mod-49 space. Diversity, not size, is the bottleneck.", "S1593");
+  render_finding(gdc, "ESC near-complete", "135/136 (99%)", "ESC|D coverage reaches 99% on diverse data (vs 74% on text). With only 17 residues and 8 D-contexts, 136 bins fill almost completely from 807 uniform transitions. ESC fallback: 0 (vs varied for text). Small-modulus channels saturate first.", "S1593");
+  render_finding(gdc, "Accuracy near-random", "70 ppt", "Per-channel accuracy drops to 70 ppt (near-random baseline ~74 ppt) because pseudo-random data has no learnable temporal structure. Text achieves 274 ppt because character transitions have statistical patterns. Coverage enables prediction; structure makes prediction useful.", "S1593");
+  render_finding(gdc, "CRT recon zero", "0/199", "CRT reconstruction drops from 53/199 (text) to 0/199 (diverse). Even with 89% b coverage and 99% ESC coverage, near-random per-channel predictions have near-zero probability of simultaneously matching all 7 channels. Coverage without accuracy produces nothing. The two are complementary: diversity for coverage, structure for accuracy.", "S1593");
+  dom_append(dom_body(), sec_dc)
 )
