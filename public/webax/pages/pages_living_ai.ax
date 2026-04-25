@@ -656,6 +656,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bm();
   /* === SEC 9bn: DISTRIBUTION DECODING (S1608 Phase A) === */
   page_ai_sec_9bn();
+  /* === SEC 9bo: CONFIDENCE-SELECTION COMPOSITION (S1609 Phase A) === */
+  page_ai_sec_9bo();
   0
 )
 
@@ -891,4 +893,17 @@ fn page_ai_sec_9bn() = (
   render_finding(gdd, "Oracle(C0|C2): 68", "complementary errors", "Binary NN and distribution decode make different errors. 132/199 positions have the same prediction. Of the 67 differing positions: 8 are C0-only correct, 10 are C2-only correct, 50 are both correct (from the 132 agreeing). The 10 C2-only positions: distribution finds characters where the correct residue was 2nd-best in several channels (binary scores 0 for these, distribution scores proportional to count). The 8 C0-only positions: binary benefits from its bigram fallback on sparse channels where C2 gives uniform.", "S1608");
   render_finding(gdd, "Confidence > distribution", "argmax is the right choice", "C1 (confidence-weighted, using argmax) beats C2 (full distribution) by 1 character. The argmax prediction is almost always correct when it has high confidence. The full distribution diffuses credit across multiple residues, which helps in ambiguous cases but adds noise in clear cases. The optimal strategy: use the argmax prediction but weight it by confidence. This captures the key metadata (how sure is this channel?) without the noise of considering non-argmax residues.", "S1608");
   dom_append(dom_body(), sec_dd)
+)
+
+fn page_ai_sec_9bo() = (
+  let sec_cs = make_section("800px") in
+  render_h3(sec_cs, "9bo. Confidence-Selection Composition (S1609)");
+  render_p(sec_cs, "S1607 improved the source (selection: per-ch vs bloom based on agreement, 58 to 64). S1608 improved the decoder (confidence weighting, 58 to 61). These two improvements address different parts of the pipeline: selection chooses WHICH 7-channel predictions to use, while C1 chooses HOW to decode those predictions into a character. The composition question: do they stack?");
+  render_p(sec_cs, "CRT Confidence-Selection Composition Theorem: the composition is SUB-ADDITIVE. C1 + selection yields 65/199 -- only +1 over C0 selection (64), not the expected +3 to +6. Root cause: C1 has ZERO effect on bloom predictions. Bloom and per-ch confidence-weighted NN produce identical results (46/199) at every agreement level. C1 only helps in the per-ch path, and selection already routes 80% of C1's improvement to per-ch by selecting it for low-agreement positions. Oracle across all 4 methods: 72/199. 14/14 WASI, 4581 params.");
+  let gcs = make_findings_grid(sec_cs) in
+  render_finding(gcs, "C1 bloom = C0 bloom = 46", "zero effect", "Bloom voting forces cross-channel consensus by majority of 6 joint pairs + 1 per-ch vote. Per-ch confidence measures how sure the independent trigram model is about the per-ch prediction. When bloom overrides a channel, that confidence is irrelevant to the bloom prediction quality. Weighting bloom predictions by per-ch confidence does not change which candidates score highest -- the bloom consensus dominates regardless of weights. This is structural: consensus kills the variance that confidence weighting exploits.", "S1609");
+  render_finding(gcs, "Sub-additive: 65 not 67", "overlap in per-ch path", "C1 improves per-ch from 58 to 61 (+3). Selection routes agree<2 positions to per-ch. Most of C1's +3 improvement falls within these positions. Of the 80 low-agreement positions: C0 gets 22 correct, C1 gets 23 (+1). The other +2 from C1 falls in agree>=2 positions where selection routes to bloom (where C1 has no effect). The overlap is structural: selection and C1 both help the same easy-to-predict positions.", "S1609");
+  render_finding(gcs, "Best overall: 65/199", "+12% over C0 per-ch baseline", "The composition stack: C0 per-ch 58, C1 per-ch 61 (+5.2%), C0 selection 64 (+10.3%), C1 selection 65 (+12.1%). Each improvement is diminishing because the improvements partially overlap. The oracle (72) suggests 7 more positions are recoverable with a better composition strategy. The bloom path (46) has room to improve but needs bloom-specific confidence, not per-ch confidence.", "S1609");
+  render_finding(gcs, "Orthogonality confirmed", "same T=2 threshold", "C0 and C1 find the same optimal agreement threshold (T=2). The agreement signal is independent of the decoder: it measures prediction-source quality (per-ch vs bloom), not decoder quality (binary vs confidence). This confirms that selection and C1 operate on orthogonal axes of the pipeline. Their sub-additivity comes from spatial overlap (same positions benefit from both), not from interference.", "S1609");
+  dom_append(dom_body(), sec_cs)
 )
