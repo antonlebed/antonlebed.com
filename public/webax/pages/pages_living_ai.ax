@@ -705,6 +705,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cb();
   /* === SEC 9cc: UNREACHABLE CEILING (S1624 Phase A) === */
   page_ai_predict_9cc();
+  /* === SEC 9cd: SOFT CRT PREDICTION (S1625 Phase A) === */
+  page_ai_predict_9cd();
   0
 )
 
@@ -1177,4 +1179,20 @@ fn page_ai_predict_9cc() = (
   render_finding(gur, "IMPLICATION: beyond mode selection", "Next architecture direction", "Count-based methods are complete and optimal for mode prediction. The 89% MODEL-LIMITED unreachable ceiling requires fundamentally different prediction: distribution-based output, learned representations, or ensemble methods that capture non-modal transitions. The pipeline arc (19 sessions) exhaustively proved mode-based methods; the next phase requires learning-based methods.", "S1624");
   dom_append(sec_ur, gur);
   dom_append(dom_body(), sec_ur)
+)
+
+/* === SEC 9cd: SOFT CRT PREDICTION (S1625 Phase A) === */
+fn page_ai_predict_9cd() = (
+  let sec_sp = make_section("700px") in
+  render_h3(sec_sp, "9cd. CRT Soft Prediction (S1625)");
+  render_p(sec_sp, "S1624 diagnosed the ceiling: 89% of failures are MODEL-LIMITED (correct char in training but not the mode). The fix: instead of picking per-channel modes and NN-searching for the closest character, score each candidate character directly by its per-channel likelihood. For each char c in 32..126: score(c) = sum over 7 channels of count(c mod q | context) * 1000 / total, where count and total come from trigram tables with bigram fallback. Normalized per channel so each channel has equal voice. Argmax = prediction.");
+  let gsp = dom_create("div") in
+  ct_card(gsp);
+  render_p(gsp, "Same 4x corpus as S1616-S1624 (4032 chars, 252-char seed + 30% noise). 399 test positions. Full trigram count tables (142956 entries) + bigram fallback (3750 entries). 14/14 test_soft_predictor.ax.");
+  render_finding(gsp, "SOFT 115/399 (28.8%) vs MODE+NN 105/399 (26.3%): +9.5%", "Distribution beats mode", "The soft predictor achieves 115/399, a 9.5% relative improvement over per-channel mode + NN search (105/399). It also exceeds the prior pipeline best DL=112/399, using zero cross-channel joint tables -- pure per-channel information. The improvement comes from considering the FULL residue distribution, not just the most common residue.", "S1625");
+  render_finding(gsp, "Per-channel ppt: 322 vs 268 (+20%)", "D and K channels drive the gain", "Per-channel accuracy of the soft predictor's output is 322 ppt, 20% above mode prediction's 268. D-channel gains +34% (141 vs 105), K-channel +37% (133 vs 97). These small-modulus channels have rich enough distributions (8 and 9 residues, ~50 counts per trigram key) that the 2nd-most-common residue provides real signal. b-channel gains only +1 (115 vs 114) due to sparse trigram data (49 residues, ~1 count per key).", "S1625");
+  render_finding(gsp, "14 soft-only vs 4 NN-only: near-superset", "Oracle 119/399", "The soft predictor captures 14 positions that NN misses, while NN captures only 4 that soft misses. The soft predictor is nearly a superset of NN. Oracle(soft, NN) = 119. The 100 divergent positions (25%) show the two methods use fundamentally different information. Score discrimination: mean 2322 at correct positions vs 2055 at wrong (+13%), confirming scores carry predictive signal.", "S1625");
+  render_finding(gsp, "ALIVE(530) > DEAD(371): strategy channels benefit more", "490 split in distribution prediction", "Strategy channels (K, L, GATE, ESCAPE) gain +109 from soft scoring vs +43 for data channels (D, E, b). The 490 split manifests: decision channels benefit more from distribution information than perception channels. This echoes S1584 where 490 split appeared in CRT reconstruction, not pair accuracy.", "S1625");
+  dom_append(sec_sp, gsp);
+  dom_append(dom_body(), sec_sp)
 )
