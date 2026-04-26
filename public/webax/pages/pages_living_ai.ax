@@ -707,6 +707,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cc();
   /* === SEC 9cd: SOFT CRT PREDICTION (S1625 Phase A) === */
   page_ai_predict_9cd();
+  /* === SEC 9ce: MULTIPLICATIVE CRT PREDICTION (S1626 Phase A) === */
+  page_ai_predict_9ce();
   0
 )
 
@@ -1195,4 +1197,20 @@ fn page_ai_predict_9cd() = (
   render_finding(gsp, "ALIVE(530) > DEAD(371): strategy channels benefit more", "490 split in distribution prediction", "Strategy channels (K, L, GATE, ESCAPE) gain +109 from soft scoring vs +43 for data channels (D, E, b). The 490 split manifests: decision channels benefit more from distribution information than perception channels. This echoes S1584 where 490 split appeared in CRT reconstruction, not pair accuracy.", "S1625");
   dom_append(sec_sp, gsp);
   dom_append(dom_body(), sec_sp)
+)
+
+/* === SEC 9ce: MULTIPLICATIVE CRT PREDICTION (S1626 Phase A) === */
+fn page_ai_predict_9ce() = (
+  let sec_mp = make_section("700px") in
+  render_h3(sec_mp, "9ce. CRT Multiplicative Prediction (S1626)");
+  render_p(sec_mp, "S1625 proved additive soft scoring (115/399). Natural question: does MULTIPLICATIVE scoring -- the true maximum-likelihood estimator under channel independence -- beat additive? P(c) = product over 7 channels of P(c mod q | context), with Laplace smoothing (alpha=1) to handle zero counts. Uses f64 arithmetic for products. Same corpus, same trigram tables, head-to-head comparison.");
+  let gmp = dom_create("div") in
+  ct_card(gmp);
+  render_p(gmp, "Same 4x corpus (4032 chars). 399 test positions. Trigram + bigram tables. Three predictors: MODE+NN (105), ADD (115), MUL (new). 14/14 test_soft_multiply.ax.");
+  render_finding(gmp, "MUL 114/399 vs ADD 115/399: near-identical (-0.9%)", "Channel independence confirmed", "The multiplicative predictor achieves 114/399 (28.6%), matching additive 115/399 (28.8%) within one position. Under true channel independence, sum of normalized counts and product of probabilities should produce the same ranking -- and they do. The normalized sum is a log-linear approximation of the product, and the approximation is accurate because no single channel dominates. No conjunction effect detected.", "S1626");
+  render_finding(gmp, "Per-ch ppt 321 vs 322: same information", "Aggregation method redundant", "Both methods select characters with identical per-channel accuracy (321 vs 322 ppt). 490 split preserved: MUL ALIVE(526) > DEAD(371), ADD ALIVE(530) > DEAD(371). The tiny ALIVE gap (526 vs 530) comes from ESC: 127 vs 130. Multiplicative Laplace smoothing slightly dilutes ESC (mod 17, sparse data) -- the uniform Laplace prior has more relative weight in small channels.", "S1626");
+  render_finding(gmp, "40/399 (10%) divergent, 3+2 exclusive", "Oracle(3) = 120", "Despite near-identical totals, the methods diverge on 40 positions (10%). Add-only: 3 positions. Mul-only: 2 positions. Both correct: 112 positions. Oracle(ADD,MUL,NN) = 120. The gap from best (115) is only 5, meaning 115 of 120 oracle positions are captured by additive alone. The three methods are highly correlated at this data scale.", "S1626");
+  render_finding(gmp, "Additive normalization IS sufficient", "Practical implication", "The additive sum count/total is a sufficient statistic for candidate ranking. The multiplicative product adds no information beyond the sum. This validates S1625: additive soft prediction IS the correct architecture for CRT-factored text prediction. Next steps: not aggregation improvements (this path is closed) but prediction quality -- better count models, learned distributions, or larger context.", "S1626");
+  dom_append(sec_mp, gmp);
+  dom_append(dom_body(), sec_mp)
 )
