@@ -691,6 +691,8 @@ fn page_ai_predict() = (
   page_ai_predict_9bu();
   /* === SEC 9bv: WEIGHTED NN CEILING BREAK (S1617 Phase A) === */
   page_ai_predict_9bv();
+  /* === SEC 9bw: C1 SELECTION COMPOSITION (S1618 Phase A) === */
+  page_ai_predict_9bw();
   0
 )
 
@@ -1051,4 +1053,20 @@ fn page_ai_predict_9bv() = (
   render_finding(gwn, "Zero-cost improvement", "same model, same params (11626)", "Confidence metadata is already computed during trigram table construction (best_count / total). The only change is in the NN search loop: multiply by confidence instead of adding 1. Zero parameters added. This makes C1 a strictly superior decoder to C0 for per-channel predictions at all data scales (A: +5, B: +1, C: +5).", "S1617");
   dom_append(sec_wn, gwn);
   dom_append(dom_body(), sec_wn)
+)
+
+/* === SEC 9bw: C1 SELECTION COMPOSITION (S1618 Phase A) === */
+fn page_ai_predict_9bw() = (
+  let sec_cs = make_section("700px") in
+  render_h3(sec_cs, "9bw. C1 Selection Composition (S1618)");
+  render_p(sec_cs, "S1617 proved C1 breaks the binary ceiling (110 at 4x). S1607 proved bloom-agreement selection adds +6 at 1x. Do they compose at 4x? If C1 + selection exceeds C0 DL (112), a new pipeline record.");
+  let gcs = dom_create("div") in
+  ct_card(gcs);
+  render_p(gcs, "Full pipeline: trigram per-ch + DL joint + 6 full-char pair bigrams + bloom voting + agreement selection. Both C0 and C1 decoders on per-ch, bloom, DL, and selected predictions. 3 conditions (1x/2x/4x), 4032-char corpus. 14/14 test_c1_select.ax.");
+  render_finding(gcs, "C1 sel = 111: MARGINAL composition", "C1 sel: 84->107->111 (1x->2x->4x)", "Selection adds +1 to C1 at 4x (111 vs 110). Non-zero but sub-additive: standalone effects (C1: +5, selection: +6 at 1x) far exceed their combined lift at 4x. The per-ch path is so strong at 4x that bloom's complementary information adds minimal value.", "S1618");
+  render_finding(gcs, "C0 DL still wins", "C0 DL=112 > C1 sel=111", "The cross-channel DL joint path remains the pipeline maximum at 4x. DL exploits D-L channel correlation directly while selection routes between per-ch and bloom per position. DL's advantage: joint context is structurally richer than bloom voting.", "S1618");
+  render_finding(gcs, "Bloom data-resistant and C1-immune", "Bloom: 66->69->68 (1x->2x->4x). C1 bloom = C0 bloom = 68", "Bloom NN accuracy is nearly constant across 2x-4x data. Confidence weighting has zero effect on bloom predictions (68=68). Root cause: bloom voting already selects the mode residue per channel -- confidence per individual source is not tracked. Bloom's data resistance is both its weakness (can't improve with data) and its insurance (never degrades).", "S1618");
+  render_finding(gcs, "95% divergence but per-ch dominates", "380/399 diverge, oracle=132", "Bloom disagrees with per-ch on 95% of positions -- more divergence than at 1x (1008-char corpus). Yet selection gains only +1 because per-ch is almost always right when it disagrees with bloom. Oracle gap = 20 (132-112) confirms headroom exists but is not accessible through selection routing.", "S1618");
+  dom_append(sec_cs, gcs);
+  dom_append(dom_body(), sec_cs)
 )
