@@ -687,6 +687,8 @@ fn page_ai_predict() = (
   page_ai_predict_9bs();
   /* === SEC 9bt: PER-CHANNEL-NATIVE BLOOM (S1615 Phase A) === */
   page_ai_predict_9bt();
+  /* === SEC 9bu: DATA SCALING CEILING (S1616 Phase A) === */
+  page_ai_predict_9bu();
   0
 )
 
@@ -1013,4 +1015,21 @@ fn page_ai_predict_9bt() = (
   render_finding(gnb, "SIX paths now CLOSED", "bloom IS coherence", "Decoder (S1607-S1610), weighting (S1611), strict bloom (S1606), hyperring mask (S1613), crossmodal single-source (S1614), and per-channel-native (S1615) are all closed. The fundamental insight: bloom is a COHERENCE mechanism, not an accuracy mechanism. Making sources more independent makes them less coherent. The only way to improve bloom is to find sources that are BOTH accurate AND coherent -- which means predicting full characters, not per-channel residues. 14/14 test_perch_bloom.ax.", "S1615");
   dom_append(sec_nb, gnb);
   dom_append(dom_body(), sec_nb)
+)
+
+/* === SEC 9bu: DATA SCALING CEILING (S1616 Phase A) === */
+fn page_ai_predict_9bu() = (
+  let sec_sc = make_section("700px") in
+  render_h3(sec_sc, "9bu. Data Scaling Ceiling (S1616)");
+  render_p(sec_sc, "S1604 showed +27% NN from 2x training data. S1610 attributed 69% of total gain to data. The bloom arc (S1605-S1615, 11 sessions) exhausted all modification paths. The next question: does scaling continue at 4x? Internal A/B/C comparison: 808 (1x) / 1616 (2x) / 3232 (4x) training chars, same 399-position test set.");
+  let gsc = dom_create("div") in
+  ct_card(gsc);
+  render_p(gsc, "Pipeline: trigram per-channel + DL joint trigram + CRT nearest-neighbor. 4032-char corpus (252-char English seed + 30% noise, LCG-extended). Positions 0-3231 for training, 3632-4031 for testing.");
+  render_finding(gsc, "Per-ch ppt: 223->256->268", "sub-linear scaling", "Per-channel prediction accuracy improves monotonically but with diminishing returns: 1x->2x lifts +33 ppt, 2x->4x lifts only +12 ppt (64% diminishing factor). Each data doubling yields less than half the previous improvement. All 7 channels improve from A to C, but the marginal gain per additional training character decreases.", "S1616");
+  render_finding(gsc, "NN CEILING at 2x: 105=105", "search resolution bottleneck", "CRT nearest-neighbor accuracy is IDENTICAL at 2x and 4x: 105/399 in both conditions. Per-channel predictions improve (268 vs 256 ppt) but the improvement does not translate to better CRT tuple matches in the 95-char codebook. The bottleneck shifts from DATA to SEARCH RESOLUTION: with 7 binary-match channels, the codebook search has fixed granularity regardless of prediction quality.", "S1616");
+  render_finding(gsc, "DL keeps climbing: 81->109->112", "cross-channel path open", "DL joint override is the only mechanism that continues to improve at 4x: lift +5 (A), +4 (B), +7 (C). Cross-channel correlation exploits transition diversity that per-channel NN cannot. DL substitution is CORPUS-DEPENDENT (S1604): it re-emerges with more data because additional transitions populate sparse regions of the joint DL table.", "S1616");
+  render_finding(gsc, "b coverage: 14->20->25%", "still sub-linear", "b-channel trigram coverage (mod 49, 2401 possible pairs) grows sub-linearly: +6pp from 1x->2x, +5pp from 2x->4x. The 252-char English seed concentrates on ~27 unique characters whose mod-49 residues cluster. E: 52->71->87%, ESC: 69->85->94%, L and G near saturation. D and K: 100% at all scales (small moduli).", "S1616");
+  render_finding(gsc, "Hard CRT: 12->12->16", "decorrelation persists", "Hard CRT reconstruction (exact match across all 7 channels) shows no improvement from 1x to 2x (both 12), then a small gain at 4x (16). Better per-channel predictions increase agreement but also increase correlation between errors. The decorrelation mechanism (S1589) still dominates. ALIVE > DEAD stable at all scales. 14/14 test_4x_data.ax.", "S1616");
+  dom_append(sec_sc, gsc);
+  dom_append(dom_body(), sec_sc)
 )
