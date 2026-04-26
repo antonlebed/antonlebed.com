@@ -709,6 +709,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cd();
   /* === SEC 9ce: MULTIPLICATIVE CRT PREDICTION (S1626 Phase A) === */
   page_ai_predict_9ce();
+  /* === SEC 9cf: SOFT+DL JOINT CROSS-CHANNEL (S1627 Phase A) === */
+  page_ai_predict_9cf();
   0
 )
 
@@ -1213,4 +1215,20 @@ fn page_ai_predict_9ce() = (
   render_finding(gmp, "Additive normalization IS sufficient", "Practical implication", "The additive sum count/total is a sufficient statistic for candidate ranking. The multiplicative product adds no information beyond the sum. This validates S1625: additive soft prediction IS the correct architecture for CRT-factored text prediction. Next steps: not aggregation improvements (this path is closed) but prediction quality -- better count models, learned distributions, or larger context.", "S1626");
   dom_append(sec_mp, gmp);
   dom_append(dom_body(), sec_mp)
+)
+
+/* === SEC 9cf: SOFT+DL JOINT CROSS-CHANNEL (S1627 Phase A) === */
+fn page_ai_predict_9cf() = (
+  let sec_jt = make_section("700px") in
+  render_h3(sec_jt, "9cf. Soft + DL Joint Cross-Channel (S1627)");
+  render_p(sec_jt, "S1626 closed the aggregation path. Can CROSS-CHANNEL information help? The DL joint bigram treats (D,L) as a composite channel: DL(c) = (c%8)*11 + (c%11) with 88 values, nearly unique per printable ASCII character (26 distinct in lowercase+space corpus). The joint table captures which CHARACTER preceded, not just which per-channel residues -- denser context than independent trigrams.");
+  let gjt = dom_create("div") in
+  ct_card(gjt);
+  render_p(gjt, "Same 4x corpus (4032 chars). 399 test positions. Three predictors: SOFT (7 per-ch trigram, 115), SOFT+DL (7 per-ch + DL joint bigram, new), DL-ONLY (control). 14/14 test_soft_dl.ax.");
+  render_finding(gjt, "SOFT+DL 116 vs SOFT 115: marginal (+0.9%)", "Joint SUBSUMED by trigrams", "Adding DL joint bigram to the soft score lifts by exactly 1 position (115->116). The 7 independent per-channel trigrams already capture the information that the cross-channel joint provides. Per-channel trigrams use 2 previous residues per channel (deeper context); DL joint uses 1 previous character identity (wider context). Depth beats width for this corpus.", "S1627");
+  render_finding(gjt, "DL-ONLY 67/399: real structure, subsumed", "Character-level bigram through CRT", "The DL joint alone achieves 67/399 (16.8%) -- well above random (~1%). This proves the joint table captures meaningful bigram structure. But all 67 positions are ALREADY captured by per-channel soft. The joint adds nothing the independent channels don't already know. Information decomposition: joint = D + L + correlation. The correlation term is negligible.", "S1627");
+  render_finding(gjt, "18/399 (4.5%) divergent, oracle 117", "Gap = 1 from best", "Soft and soft+DL agree on 95.5% of predictions. Among divergent positions: 2 SDL-only correct, 1 soft-only correct. The oracle (117) is just 1 above the best method (116). Cross-channel joint information is nearly completely redundant with per-channel trigram information at this scale.", "S1627");
+  render_finding(gjt, "13th CLOSED PATH: cross-channel joint soft", "Pipeline arc continues", "Path closed: cross-channel joint tables are redundant with independent per-channel trigrams in the soft scoring framework. This extends S1626 (sum~product = aggregation redundant) to joint~marginals (cross-channel context redundant). Channel independence holds at every level tested: reconstruction, aggregation, scoring context. The ceiling remains prediction quality.", "S1627");
+  dom_append(sec_jt, gjt);
+  dom_append(dom_body(), sec_jt)
 )
