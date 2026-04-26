@@ -699,8 +699,10 @@ fn page_ai_predict() = (
   page_ai_predict_9by();
   /* === SEC 9bz: TWO-PASS COHERENCE (S1621 Phase A) === */
   page_ai_predict_9bz();
-
+  /* === SEC 9ca: FULL-CHARACTER COHERENCE (S1622 Phase A) === */
   page_ai_predict_9ca();
+  /* === SEC 9cb: COUPLING PIPELINE (S1623 Phase A) === */
+  page_ai_predict_9cb();
   0
 )
 
@@ -1142,4 +1144,19 @@ fn page_ai_predict_9ca() = (
   render_finding(gfc, "Oracle(P1,FC)=127: 22 complementary positions", "Complementary but non-substitutable", "FC finds 22 correct characters that P1 NN misses. But P1 finds 33 that FC misses. Oracle gap = 22 (21% of P1). The methods extract DIFFERENT information from the same data: P1 via per-channel residues, FC via character-level patterns. Neither subsumes the other, but per-channel search is dominant.", "S1622");
   dom_append(sec_fc, gfc);
   dom_append(dom_body(), sec_fc)
+)
+
+/* === SEC 9cb: COUPLING PIPELINE (S1623 Phase A) === */
+fn page_ai_predict_9cb() = (
+  let sec_cp = make_section("700px") in
+  render_h3(sec_cp, "9cb. Coupling-Attention Pipeline (S1623)");
+  render_p(sec_cp, "S1562-S1563 showed coupling-attention concentrates on same-character positions (63% on 122-char corpus). Never composed into the count-based pipeline. Genuinely different info source: eigenvalue inner product (zero parameters) vs count-based bigrams/trigrams. Does it provide complementary signal?");
+  let gcp = dom_create("div") in
+  ct_card(gcp);
+  render_p(gcp, "Coupling-attention: query = text[p], context = train[0..3230]. score_j = eigenvalue inner product (7 channels). Softmax(scores/T=2) -> attention weights. Per-ch: weighted avg of deltas. NN search on coupling predictions vs trigram predictions. 4032-char corpus, 399 test, 4x training. 14/14 test_coupling_pipeline.ax.");
+  render_finding(gcp, "Coupling NN(6) << Trigram NN(105)", "Zero-parameter attention is noise-dominated", "Coupling-attention achieves 6/399 NN accuracy (1.5%) vs trigram 105/399 (26.3%). Per-channel: coupling ppt = 70, essentially RANDOM (expected ~75). Despite 48% same-char attention, the weighted-average delta prediction produces near-random per-channel residues. Count-based mode selection crushes smooth averaging.", "S1623");
+  render_finding(gcp, "Same-char attention 48% but signal lost in averaging", "Mean != mode at skewed distributions", "Coupling correctly identifies same-character positions (48% attention weight, well above the ~3% random baseline). But the 52% weight on non-matching characters adds noise to the weighted average. Count-based methods select the MODE (most common). Coupling computes the MEAN. For skewed transition distributions, mean and mode diverge sharply.", "S1623");
+  render_finding(gcp, "Oracle(tri,coup) = 108: lift +3 (0.75%)", "Consistent with random coincidence", "The 3 coupling-only positions represent 0.75% of test positions -- consistent with the ~1% expected from random NN guessing (1/95 = 1.05%). The coupling signal is not exploitably complementary. Divergence is 96% (384/399), confirming the two methods predict different characters at nearly every position, but coupling's predictions are random.", "S1623");
+  dom_append(sec_cp, gcp);
+  dom_append(dom_body(), sec_cp)
 )
