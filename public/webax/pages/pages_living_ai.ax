@@ -679,6 +679,8 @@ fn page_ai_predict() = (
   page_ai_sec_9bo();
   /* === SEC 9bp: DATA SELECTION (S1610 Phase A) === */
   page_ai_sec_9bp();
+  /* === SEC 9bq: LEARNED BLOOM (S1611 Phase A) === */
+  page_ai_sec_9bq();
   0
 )
 
@@ -940,4 +942,17 @@ fn page_ai_sec_9bp() = (
   render_finding(gds, "Hard CRT: bloom 70 vs per-ch 7", "decorrelation amplified", "Hard CRT per-channel DECREASES with more data (10 to 7, -30%) even though per-channel accuracy improves (220 to 247 ppt). More data makes per-channel predictions more accurate but also more decorrelated across channels (S1589 mechanism amplified). Bloom hard CRT stays stable (68 to 70) because consensus forces coherence. The decorrelation tax on hard CRT grows with data quality.", "S1610");
   render_finding(gds, "Full stack: data is king", "+29 from 73 to 102", "Attribution: data accounts for +20 of +29 total improvement (69%), confidence +4 (14%), selection +5 (17%). The three improvements are roughly additive with no interaction. Decoder improvements (C1 + selection) should always be applied -- they are free positive lift with zero additional parameters. But the bottleneck is prediction quality, which scales with data.", "S1610");
   dom_append(dom_body(), sec_ds)
+)
+
+fn page_ai_sec_9bq() = (
+  let sec_lb = make_section("800px") in
+  render_h3(sec_lb, "9bq. Learned Bloom (S1611)");
+  render_p(sec_lb, "S1610 closed the decoder path. Bloom is data-resistant: majority vote (equal weight to all 6 joint pair sources) plateaus with more data. Hypothesis: per-source per-channel quality weights improve bloom by directing consensus toward the most reliable information sources for each channel. Method: split training data into learn-set (build tables) and validation-set (evaluate per-source per-channel accuracy to learn weights). 49 learned weights (7 sources x 7 channels).");
+  render_p(sec_lb, "CRT Learned Bloom Theorem (FALSIFIED): per-source per-channel quality weights have zero effect on bloom voting when sources predict full characters. Learned bloom NN = equal bloom NN = 70/399. Zero delta. Root cause: the 6 joint pairs produce nearly identical per-channel weights because they predict FULL characters whose residues are deterministic. Sources 2-6 have D-weight 104-105, b-weight 70-71. Majority vote on correlated sources is already optimal (Condorcet). The bloom bottleneck is source DIVERSITY, not source WEIGHTING. 14/14 WASI, 4630 params.");
+  let glb = make_findings_grid(sec_lb) in
+  render_finding(glb, "Learned = Equal = 70", "ZERO EFFECT", "Learned-weight bloom NN = 70/399. Equal-weight bloom NN = 70/399. Identical result across C0, C1, hard CRT, and selection. The 49 learned weights (7 sources x 7 channels) add zero information because the per-channel residues extracted from full-character predictions are deterministic functions of the same underlying predictions.", "S1611");
+  render_finding(glb, "Source correlation", "weights 68..105", "Weight matrix range is 68 (b from DK) to 105 (D from per-ch). But sources 2-6 (DL, KL, DG, DESC, DE) are nearly identical within each channel. Full-char predictions from overlapping pair bases are correlated: DK and DL share the D conditioning. When sources agree (which they mostly do), weighting is irrelevant. When they disagree, the disagreement pattern is not aligned with the quality-weight structure.", "S1611");
+  render_finding(glb, "DK proximity structure", "D=99, b=68", "The DK pair predicts D-channel (99 correct) better than b-channel (68 correct) on 403 val positions. This confirms channel proximity (pairs predict their own channels better) but this structural signal cannot help bloom because the predictions are already full characters. Proximity structure would help if sources predicted per-channel residues independently.", "S1611");
+  render_finding(glb, "Bloom bottleneck = diversity", "not weighting", "Equal-weight majority vote is optimal for correlated sources. To improve bloom, the sources themselves must be diversified: different conditioning bases, different prediction granularity, or different information sources entirely. The decoder path (S1607-S1610) and the weighting path (S1611) are both closed. Future improvement requires either more data or structurally different predictors.", "S1611");
+  dom_append(dom_body(), sec_lb)
 )
