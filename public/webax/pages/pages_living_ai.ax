@@ -689,6 +689,8 @@ fn page_ai_predict() = (
   page_ai_predict_9bt();
   /* === SEC 9bu: DATA SCALING CEILING (S1616 Phase A) === */
   page_ai_predict_9bu();
+  /* === SEC 9bv: WEIGHTED NN CEILING BREAK (S1617 Phase A) === */
+  page_ai_predict_9bv();
   0
 )
 
@@ -1032,4 +1034,21 @@ fn page_ai_predict_9bu() = (
   render_finding(gsc, "Hard CRT: 12->12->16", "decorrelation persists", "Hard CRT reconstruction (exact match across all 7 channels) shows no improvement from 1x to 2x (both 12), then a small gain at 4x (16). Better per-channel predictions increase agreement but also increase correlation between errors. The decorrelation mechanism (S1589) still dominates. ALIVE > DEAD stable at all scales. 14/14 test_4x_data.ax.", "S1616");
   dom_append(sec_sc, gsc);
   dom_append(dom_body(), sec_sc)
+)
+
+/* === SEC 9bv: WEIGHTED NN CEILING BREAK (S1617 Phase A) === */
+fn page_ai_predict_9bv() = (
+  let sec_wn = make_section("700px") in
+  render_h3(sec_wn, "9bv. Weighted NN Ceiling Break (S1617)");
+  render_p(sec_wn, "S1616 identified the NN ceiling: binary scoring saturates at 105/399 from 2x to 4x data, while per-channel ppt continues to improve (256->268). The bottleneck: binary NN scores candidate characters by counting matching channels (0/1), discarding prediction confidence. Can confidence-weighted scoring break the ceiling?");
+  let gwn = dom_create("div") in
+  ct_card(gwn);
+  render_p(gwn, "Two decoders on identical predictions: C0 binary (score = #matching channels) and C1 weighted (score = sum of confidence where match). Confidence = best_count * 100 / (total + 1) per trigram context. Same 4032-char corpus, 3 conditions (1x/2x/4x). 14/14 test_weighted_nn.ax.");
+  render_finding(gwn, "C1 BREAKS THE CEILING", "C0: 76->105->105. C1: 81->106->110.", "Binary NN saturates at 105 from 2x to 4x. Confidence-weighted NN continues to improve: +4 from 2x to 4x where binary gains nothing. At 4x, C1=110 vs C0=105 (+4.8%). The ceiling was a DECODER bottleneck, not an information bottleneck. Channels contain more information at 4x that binary scoring discards.", "S1617");
+  render_finding(gwn, "New scaling path", "2x->4x lift: C0=0, C1=+4", "Confidence-weighted NN opens a new scaling dimension. Binary scoring has a fixed resolution (~128 patterns from 7 binary channels). Confidence adds continuous resolution: a 90% confident 5-channel match beats a 40% confident 5-channel match. At 4x data with better predictions (268 ppt), the confidence gap between correct and incorrect predictions is wider, giving the weighted scorer more to work with.", "S1617");
+  render_finding(gwn, "DL joint REGRESSES under C1 at 4x", "C0 DL=112, C1 DL=110 (-2)", "DL joint predictions are already high-confidence (the joint table has fewer but more certain entries). Applying confidence weighting to already-confident predictions adds noise: the weight variance hurts more than the weight information helps. C1 improves per-ch path (+5) but not DL path (-2). The optimal strategy: C1 for per-channel, C0 for DL joint.", "S1617");
+  render_finding(gwn, "Mean confidence DROPS with data", "A=34, B=32, C=31", "Counter-intuitive: more data lowers mean confidence. Root cause: additional data populates previously empty trigram contexts. New contexts tend to be SPARSE (few observations), contributing LOW confidence predictions. The fallback confidence (50 for bigram) is replaced by real but low trigram confidence (10-30). This is correct behavior: honest uncertainty over coverage is better than false confidence from fallback.", "S1617");
+  render_finding(gwn, "Zero-cost improvement", "same model, same params (11626)", "Confidence metadata is already computed during trigram table construction (best_count / total). The only change is in the NN search loop: multiply by confidence instead of adding 1. Zero parameters added. This makes C1 a strictly superior decoder to C0 for per-channel predictions at all data scales (A: +5, B: +1, C: +5).", "S1617");
+  dom_append(sec_wn, gwn);
+  dom_append(dom_body(), sec_wn)
 )
