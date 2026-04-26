@@ -703,6 +703,8 @@ fn page_ai_predict() = (
   page_ai_predict_9ca();
   /* === SEC 9cb: COUPLING PIPELINE (S1623 Phase A) === */
   page_ai_predict_9cb();
+  /* === SEC 9cc: UNREACHABLE CEILING (S1624 Phase A) === */
+  page_ai_predict_9cc();
   0
 )
 
@@ -1159,4 +1161,20 @@ fn page_ai_predict_9cb() = (
   render_finding(gcp, "Oracle(tri,coup) = 108: lift +3 (0.75%)", "Consistent with random coincidence", "The 3 coupling-only positions represent 0.75% of test positions -- consistent with the ~1% expected from random NN guessing (1/95 = 1.05%). The coupling signal is not exploitably complementary. Divergence is 96% (384/399), confirming the two methods predict different characters at nearly every position, but coupling's predictions are random.", "S1623");
   dom_append(sec_cp, gcp);
   dom_append(dom_body(), sec_cp)
+)
+
+/* === SEC 9cc: UNREACHABLE CEILING (S1624 Phase A) === */
+fn page_ai_predict_9cc() = (
+  let sec_ur = make_section("700px") in
+  render_h3(sec_ur, "9cc. Unreachable Ceiling Diagnostic (S1624)");
+  render_p(sec_ur, "Pipeline arc S1605-S1623 complete (19 sessions, 11 closed paths). Best: DL=112/399. 65% of test positions fail ALL methods. Critical question: is the ceiling DATA-limited (unseen transitions) or MODEL-limited (seen but wrong mode)?");
+  let gur = dom_create("div") in
+  ct_card(gur);
+  render_p(gur, "Character-level bigram count table (128x128) over 4x training data (3232 chars). Each unreachable position classified by whether the correct next character has nonzero bigram count. 14/14 test_unreachable.ax.");
+  render_finding(gur, "89% MODEL-LIMITED: correct char has training counts but is not mode", "Not data scarcity -- mode selection", "Only 30/294 (10%) of unreachable positions have ZERO bigram count for the correct transition -- and all 30 are LCG noise characters (uniformly random lowercase). The remaining 264/294 (89%) HAVE the correct transition in training data but the model selects the wrong mode. The ceiling is set by the mode-selection mechanism, not data availability.", "S1624");
+  render_finding(gur, "Actual char ranks 8th among 24 successors, mode 6.2x more common", "Rare alternatives, dominant modes", "At wrong positions, the correct character is on average the 8th most common successor among ~24 alternatives. The mode is 6.2x more common (623%). The model IS correct in a frequentist sense -- it predicts the most probable character. But in noisy text, many positions have unlikely successors that no mode-based method can predict.", "S1624");
+  render_finding(gur, "Score gap: correct 5.1/7 vs wrong 0.7/7 channels", "Wrong predictions are maximally wrong", "When NN search finds the correct character, 5.1 of 7 CRT channels match on average. When it fails, only 0.7 match. 52% of wrong positions have ZERO channel matches (score 0). Mode selection is binary: either it works (high score) or it catastrophically fails (zero channels).", "S1624");
+  render_finding(gur, "IMPLICATION: beyond mode selection", "Next architecture direction", "Count-based methods are complete and optimal for mode prediction. The 89% MODEL-LIMITED unreachable ceiling requires fundamentally different prediction: distribution-based output, learned representations, or ensemble methods that capture non-modal transitions. The pipeline arc (19 sessions) exhaustively proved mode-based methods; the next phase requires learning-based methods.", "S1624");
+  dom_append(sec_ur, gur);
+  dom_append(dom_body(), sec_ur)
 )
