@@ -259,8 +259,8 @@ fn page_ai_phase_a() = (
 /* page_ai_predict: CRT text prediction pipeline (S1561-S1610+).
    Split from page_ai S1610. Text encoder through data selection. */
 fn page_ai_predict() = (
-  dom_head_meta("description", "CRT text prediction pipeline: per-channel trigrams, bloom voting, agreement selection, confidence decoding. 102/399 at 2x data. DATA IS KING.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Prediction\",\"description\":\"CRT text prediction: per-channel trigrams, bloom voting, NN decoding. 73 Phase A experiments.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ai_predict\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT prediction\"},{\"@type\":\"DefinedTerm\",\"name\":\"text bigram\"},{\"@type\":\"DefinedTerm\",\"name\":\"bloom voting\"}]}");
+  dom_head_meta("description", "CRT text prediction pipeline: per-channel trigrams, bloom voting, agreement selection, hyperring context analysis. 74 Phase A experiments.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Prediction\",\"description\":\"CRT text prediction: per-channel trigrams, bloom voting, NN decoding, hyperring confidence. 74 Phase A experiments.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ai_predict\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT prediction\"},{\"@type\":\"DefinedTerm\",\"name\":\"text bigram\"},{\"@type\":\"DefinedTerm\",\"name\":\"bloom voting\"}]}");
   let hero = make_hero("CRT Prediction") in
   let big = dom_create("div") in
   dom_text(big, "7 channels predict text independently");
@@ -270,7 +270,7 @@ fn page_ai_predict() = (
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Per-channel bigram and trigram models predict text transitions in 7 independent CRT channels. Bloom voting forces cross-channel coherence. Nearest-neighbor soft decoding reconstructs characters. Agreement selection bridges per-channel accuracy and bloom coherence. 73 experiments from S1561 to S1610.");
+  render_p(hero, "Per-channel bigram and trigram models predict text transitions in 7 independent CRT channels. Bloom voting forces cross-channel coherence. Nearest-neighbor soft decoding reconstructs characters. Agreement selection bridges per-channel accuracy and bloom coherence. Hyperring confidence links algebraic regularity to prediction accuracy. 74 experiments from S1561 to S1613.");
   dom_append(dom_body(), hero);
 
   /* === SEC 9s: TEXT ENCODER (S1561 Phase A) === */
@@ -681,6 +681,8 @@ fn page_ai_predict() = (
   page_ai_sec_9bp();
   /* === SEC 9bq: LEARNED BLOOM (S1611 Phase A) === */
   page_ai_sec_9bq();
+  /* === SEC 9br: HYPERRING CONTEXT (S1613 Phase A) === */
+  page_ai_predict_9br();
   0
 )
 
@@ -955,4 +957,22 @@ fn page_ai_sec_9bq() = (
   render_finding(glb, "DK proximity structure", "D=99, b=68", "The DK pair predicts D-channel (99 correct) better than b-channel (68 correct) on 403 val positions. This confirms channel proximity (pairs predict their own channels better) but this structural signal cannot help bloom because the predictions are already full characters. Proximity structure would help if sources predicted per-channel residues independently.", "S1611");
   render_finding(glb, "Bloom bottleneck = diversity", "not weighting", "Equal-weight majority vote is optimal for correlated sources. To improve bloom, the sources themselves must be diversified: different conditioning bases, different prediction granularity, or different information sources entirely. The decoder path (S1607-S1610) and the weighting path (S1611) are both closed. Future improvement requires either more data or structurally different predictors.", "S1611");
   dom_append(dom_body(), sec_lb)
+)
+
+/* === SEC 9br: HYPERRING CONTEXT (S1613 Phase A) === */
+fn page_ai_predict_9br() = (
+  let sec_hr = make_section("700px") in
+  render_h3(sec_hr, "9br. Hyperring Context (S1613)");
+  render_p(sec_hr, "Probe 6: does the hyperring confidence gcd(char, N_TRANS) predict accuracy?");
+  let ghr = dom_create("div") in
+  ct_card(ghr);
+  render_p(ghr, "S1612 proved: hyperring division |a/a| = gcd(a, N) classifies each ring element by algebraic regularity. Units (gcd=1) have clean CRT fingerprints. Zero divisors (gcd>1) are algebraically ambiguous -- some channels carry no information. Test: split prediction accuracy by context character class.");
+  render_finding(ghr, "Census: 19/95 units", "20% of printable ASCII", "Characters coprime to all 7 axiom primes {2,3,5,7,11,13,17} form the unit group. Common units: 'a'=97, 'e'=101, 'g'=103, 'k'=107, 'm'=109. Common ZDs: space=32 (gcd=8), 't'=116 (gcd=4), 'h'=104 (gcd=104=D^3*GATE), 'i'=105 (gcd=105=HYDOR=K*E*b). The character 'i' is maximally degenerate: zero residue in K, E, and b channels simultaneously.", "S1613");
+  render_finding(ghr, "Unit context: 311 ppt", "vs ZD: 227 ppt (+37%)", "Prediction accuracy is 37% higher when the context (previous) character is a unit. This is NOT a corpus-frequency effect -- it reflects algebraic information content. A unit has independent non-zero residues in all 7 channels. A zero divisor has some channels mapping to zero, creating degenerate bigram conditioning.", "S1613");
+  render_finding(ghr, "Channel-size dependence", "D:+146, K:+85, E:-54", "The unit-vs-ZD effect is CHANNEL-SIZE DEPENDENT. Small moduli (D=8: +146 ppt, K=9: +85, L=11: +94) see zero-residue context as degenerate: 12 diverse characters share residue-0 in D-channel. Large moduli (E=25: -54, ESCAPE=17: -49) see zero-residue as specific: only 4 chars share residue-0 in E-channel. The crossover is around modulus 11-13.", "S1613");
+  render_finding(ghr, "Naive masking: NEUTRAL", "92 vs 93 baseline", "Channel masking (ignore channels where context residue = 0) is neutral overall. It helps for D and K (removing degenerate predictions) but hurts for E and ESCAPE (removing informative predictions from small specific groups). The non-uniform effect across channels means uniform masking cancels itself.", "S1613");
+  render_finding(ghr, "Statistical subsumes algebraic", "C1=combined=99", "Combining algebraic masking with statistical confidence (C1) yields no improvement over C1 alone. The trigram confidence score already captures the information quality that the hyperring classification measures. The algebraic signal is REAL but redundant given statistical confidence.", "S1613");
+  render_finding(ghr, "Hyperring confirmed", "observable but not exploitable via uniform mask", "The probe CONFIRMS the hyperring structure is computationally observable: unit contexts genuinely produce better predictions. But FALSIFIES the simple masking approach: the correct exploitation requires per-channel-size-dependent masking (mask small channels, keep large channels), which statistical confidence already approximates. 14/14 test_hyperring_attn.ax.", "S1613");
+  dom_append(sec_hr, ghr);
+  dom_append(dom_body(), sec_hr)
 )
