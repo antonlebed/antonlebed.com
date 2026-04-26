@@ -699,6 +699,8 @@ fn page_ai_predict() = (
   page_ai_predict_9by();
   /* === SEC 9bz: TWO-PASS COHERENCE (S1621 Phase A) === */
   page_ai_predict_9bz();
+
+  page_ai_predict_9ca();
   0
 )
 
@@ -1124,4 +1126,20 @@ fn page_ai_predict_9bz() = (
   render_finding(gtp, "CRT coherence is holistic", "Confirms S1615 from opposite direction", "S1615 showed per-ch-native bloom predictions decorrelate and lose coherence. Here, mixed-source tuples (3 channels from P2 + 4 from P1) are incoherent. CRT prediction requires ALL channels to agree on the SAME character. Independent per-channel refinement violates this. Any multi-pass approach must refine JOINTLY, not per-channel.", "S1621");
   dom_append(sec_tp, gtp);
   dom_append(dom_body(), sec_tp)
+)
+
+/* === SEC 9ca: FULL-CHARACTER COHERENCE (S1622 Phase A) === */
+fn page_ai_predict_9ca() = (
+  let sec_fc = make_section("700px") in
+  render_h3(sec_fc, "9ca. Full-Character Coherence (S1622)");
+  render_p(sec_fc, "S1621 showed per-channel pass-2 creates incoherent CRT tuples. Natural fix: predict FULL CHARACTERS in pass 2. T[prev_char*8 + p1_D] -> next_char. 760 entries. Each prediction IS a character = coherent by construction. Does coherence solve the problem?");
+  let gfc = dom_create("div") in
+  ct_card(gfc);
+  render_p(gfc, "Full-char pass-2: 760 entries (95 prev chars x 8 D predictions). Also: character bigram ablation (95 entries, no D). 4032-char corpus, 399 test, 4x training. 14/14 test_fullchar_pass2.ax.");
+  render_finding(gfc, "FC(92) < P1 NN(105): coherence NOT SUFFICIENT", "Search beats coherence", "Full-character pass-2 achieves 92/397 (23.2%) where covered -- LESS than per-channel NN at 105/399 (26.3%). Per-channel NN searches 95 candidates per position against 7 channel predictions. FC commits to 1 table entry per context. The 95-candidate SEARCH provides more value than the coherence guarantee. Override (FC where covered, else P1 NN) gives 94/399 -- WORSE than P1 alone.", "S1622");
+  render_finding(gfc, "D conditioning +35% over char bigram (92 vs 68)", "Cross-channel info IS valuable", "Character bigram (95 entries, no D) gives 68/399. FC (760 entries, conditioned on pass-1 D prediction) gives 92/397. The +35% improvement proves that cross-channel information from pass-1 predictions IS useful for character-level prediction. But it does not close the gap with per-channel NN search.", "S1622");
+  render_finding(gfc, "Modulus commensurability persists despite coherence", "Same pattern as S1621", "Override per-ch: D(+21), K(+17) improve; E(-14), b(-20) degrade. Same channels as S1621's per-ch pass-2, despite full coherence. The commensurability pattern is a FEATURE of D-conditioning, not a symptom of incoherence. D's coarse buckets help small channels but confuse large ones.", "S1622");
+  render_finding(gfc, "Oracle(P1,FC)=127: 22 complementary positions", "Complementary but non-substitutable", "FC finds 22 correct characters that P1 NN misses. But P1 finds 33 that FC misses. Oracle gap = 22 (21% of P1). The methods extract DIFFERENT information from the same data: P1 via per-channel residues, FC via character-level patterns. Neither subsumes the other, but per-channel search is dominant.", "S1622");
+  dom_append(sec_fc, gfc);
+  dom_append(dom_body(), sec_fc)
 )
