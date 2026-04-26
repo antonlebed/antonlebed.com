@@ -697,6 +697,8 @@ fn page_ai_predict() = (
   page_ai_predict_9bx();
   /* === SEC 9by: BLOOM PHANTOM COHERENCE (S1620 Phase A) === */
   page_ai_predict_9by();
+  /* === SEC 9bz: TWO-PASS COHERENCE (S1621 Phase A) === */
+  page_ai_predict_9bz();
   0
 )
 
@@ -1106,4 +1108,20 @@ fn page_ai_predict_9by() = (
   render_finding(gpc, "Routing path CLOSED", "8th closed path, gap requires new mechanism", "This joins 7 previously closed paths (decoder, weighting, strict bloom, hyperring, crossmodal, per-ch native, selection). The pipeline has reached its ceiling for count-based single-pass prediction. The oracle gap is real but requires a fundamentally new prediction mechanism -- not better routing between existing methods.", "S1620");
   dom_append(sec_pc, gpc);
   dom_append(dom_body(), sec_pc)
+)
+
+/* === SEC 9bz: TWO-PASS COHERENCE (S1621 Phase A) === */
+fn page_ai_predict_9bz() = (
+  let sec_tp = make_section("700px") in
+  render_h3(sec_tp, "9bz. Two-Pass Coherence (S1621)");
+  render_p(sec_tp, "S1620 closed 8 bloom paths. Pipeline at single-pass ceiling. The compiler uses K^2=9 analysis passes -- we had 1. This is pass 2: refine per-channel predictions using pass-1's cross-channel output. D refined by K, all others by D. Belief propagation on the CRT factor graph.");
+  let gtp = dom_create("div") in
+  ct_card(gtp);
+  render_p(gtp, "Pass 2: T[prev_c * q_src + p1_source] -> actual_c. 1064 params (72+72+200+392+88+104+136). 4032-char corpus, 399 test, 4x training. 14/14 test_two_pass.ax.");
+  render_finding(gtp, "Per-ch improves but NN degrades: 105->85", "PER-CH != NN", "Pass 2 improves per-channel accuracy for 3 of 7 channels (D:+11, K:+4, ESC:+12 = +27 total). But NN accuracy drops from 105 to 85 (-19%). Even selective refinement (P2 for D,K,ESC only; P1 for rest) gives 99 (-6%). BETTER per-channel predictions create WORSE CRT tuples.", "S1621");
+  render_finding(gtp, "Modulus commensurability", "Small refines small; large degrades", "D(q=8) refined by K(q=9): +11. K(q=9) by D(q=8): +4. ESC(q=17) by D(q=8): +12. All commensurate. But E(q=25) by D(q=8): -20. b(q=49) by D(q=8): -22. D's 8 buckets are too coarse for b's 49 residues. Source modulus must match target.", "S1621");
+  render_finding(gtp, "Oracle(P1,P2,Sel) = 121", "16 complementary positions exist", "The oracle across all three methods (P1, P2, Selective) is 121/399 = 30.3%, up from P1's 105 (26.3%). Pass 2 IS correct at 16 positions where pass 1 fails. The information exists but is inseparable from noise at the CRT tuple level.", "S1621");
+  render_finding(gtp, "CRT coherence is holistic", "Confirms S1615 from opposite direction", "S1615 showed per-ch-native bloom predictions decorrelate and lose coherence. Here, mixed-source tuples (3 channels from P2 + 4 from P1) are incoherent. CRT prediction requires ALL channels to agree on the SAME character. Independent per-channel refinement violates this. Any multi-pass approach must refine JOINTLY, not per-channel.", "S1621");
+  dom_append(sec_tp, gtp);
+  dom_append(dom_body(), sec_tp)
 )
