@@ -658,6 +658,8 @@ fn page_ai_phase_a() = (
   page_ai_sec_9bn();
   /* === SEC 9bo: CONFIDENCE-SELECTION COMPOSITION (S1609 Phase A) === */
   page_ai_sec_9bo();
+  /* === SEC 9bp: DATA SELECTION (S1610 Phase A) === */
+  page_ai_sec_9bp();
   0
 )
 
@@ -906,4 +908,17 @@ fn page_ai_sec_9bo() = (
   render_finding(gcs, "Best overall: 65/199", "+12% over C0 per-ch baseline", "The composition stack: C0 per-ch 58, C1 per-ch 61 (+5.2%), C0 selection 64 (+10.3%), C1 selection 65 (+12.1%). Each improvement is diminishing because the improvements partially overlap. The oracle (72) suggests 7 more positions are recoverable with a better composition strategy. The bloom path (46) has room to improve but needs bloom-specific confidence, not per-ch confidence.", "S1609");
   render_finding(gcs, "Orthogonality confirmed", "same T=2 threshold", "C0 and C1 find the same optimal agreement threshold (T=2). The agreement signal is independent of the decoder: it measures prediction-source quality (per-ch vs bloom), not decoder quality (binary vs confidence). This confirms that selection and C1 operate on orthogonal axes of the pipeline. Their sub-additivity comes from spatial overlap (same positions benefit from both), not from interference.", "S1609");
   dom_append(dom_body(), sec_cs)
+)
+
+fn page_ai_sec_9bp() = (
+  let sec_ds = make_section("800px") in
+  render_h3(sec_ds, "9bp. Data Selection (S1610)");
+  render_p(sec_ds, "S1604 showed 2x training data lifts per-channel NN from 73 to 93 (+27%). S1607-S1609 developed bloom-agreement selection (+10%) and confidence-weighted decoding (+4%). The composition question: do these decoder improvements scale with data, or does more data make them redundant?");
+  render_p(sec_ds, "CRT Data Selection Theorem: bloom-agreement selection retains positive lift at 2x training data but the relative improvement diminishes from +20% (1x: 73 to 88) to +10% (2x: 93 to 102). Bloom NN is data-resistant (68 to 70, +3%) while per-channel NN scales strongly (73 to 93, +27%). The full stack attribution is roughly additive: data +20 (69%), confidence +4 (14%), selection +5 (17%). Data is king -- decoder improvements are free positive lift but account for only 31% of the total improvement. 14/14 WASI, 4581 params.");
+  let gds = make_findings_grid(sec_ds) in
+  render_finding(gds, "Selection still helps at 2x", "B sel=102 vs B pch=93", "At 2x data, the best selection (C1+agreement) achieves 102/399 (25.6%) vs per-channel-only 93/399 (23.3%). The +9 lift is real but diminished from +15 at 1x data. As per-channel quality improves, fewer positions benefit from bloom's coherent alternative. The marginal value of selection is inversely proportional to per-channel accuracy.", "S1610");
+  render_finding(gds, "Bloom is data-resistant", "68 to 70 (+3%)", "Bloom NN barely moves with 2x data (68 to 70) while per-channel scales +27% (73 to 93). Bloom's full-character bigram tables have limited coverage: DK=72 entries, DE=200. Even with 2x data, many joint bigrams remain sparse. Per-channel trigrams benefit much more because individual channel transitions are much more likely to be covered. At very high data levels, per-ch will dominate and selection converges toward per-ch-only.", "S1610");
+  render_finding(gds, "Hard CRT: bloom 70 vs per-ch 7", "decorrelation amplified", "Hard CRT per-channel DECREASES with more data (10 to 7, -30%) even though per-channel accuracy improves (220 to 247 ppt). More data makes per-channel predictions more accurate but also more decorrelated across channels (S1589 mechanism amplified). Bloom hard CRT stays stable (68 to 70) because consensus forces coherence. The decorrelation tax on hard CRT grows with data quality.", "S1610");
+  render_finding(gds, "Full stack: data is king", "+29 from 73 to 102", "Attribution: data accounts for +20 of +29 total improvement (69%), confidence +4 (14%), selection +5 (17%). The three improvements are roughly additive with no interaction. Decoder improvements (C1 + selection) should always be applied -- they are free positive lift with zero additional parameters. But the bottleneck is prediction quality, which scales with data.", "S1610");
+  dom_append(dom_body(), sec_ds)
 )
