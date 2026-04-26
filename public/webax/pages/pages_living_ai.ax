@@ -693,6 +693,8 @@ fn page_ai_predict() = (
   page_ai_predict_9bv();
   /* === SEC 9bw: C1 SELECTION COMPOSITION (S1618 Phase A) === */
   page_ai_predict_9bw();
+  /* === SEC 9bx: ORACLE GAP STRUCTURE (S1619 Phase A) === */
+  page_ai_predict_9bx();
   0
 )
 
@@ -1069,4 +1071,21 @@ fn page_ai_predict_9bw() = (
   render_finding(gcs, "95% divergence but per-ch dominates", "380/399 diverge, oracle=132", "Bloom disagrees with per-ch on 95% of positions -- more divergence than at 1x (1008-char corpus). Yet selection gains only +1 because per-ch is almost always right when it disagrees with bloom. Oracle gap = 20 (132-112) confirms headroom exists but is not accessible through selection routing.", "S1618");
   dom_append(sec_cs, gcs);
   dom_append(dom_body(), sec_cs)
+)
+
+/* === SEC 9bx: ORACLE GAP STRUCTURE (S1619 Phase A) === */
+fn page_ai_predict_9bx() = (
+  let sec_og = make_section("700px") in
+  render_h3(sec_og, "9bx. Oracle Gap Structure (S1619)");
+  render_p(sec_og, "The pipeline maturation arc closed with S1618. Seven modification paths exhausted. C0 DL=112 is the best single method. Oracle=132 across 4 methods. The frontier question: WHAT characterizes the gap positions? Are they exploitable or fundamental? This session runs all 6 methods at 4x and diagnoses every oracle-only position.");
+  let gog = dom_create("div") in
+  ct_card(gog);
+  render_p(gog, "6 methods: C0 per-ch, C1 per-ch, C0 bloom, C1 bloom, C0 DL, C1 DL. 4032-char corpus, 399 test positions, 4x training. Per-position recording of correctness, NN score, agreement, DL near-miss. 14/14 test_oracle_gap.ax.");
+  render_finding(gog, "Oracle(6) = 139: DL adds 7 unique", "4-method oracle=132, 6-method=139", "Adding C0 DL and C1 DL to the oracle expands it by 7 positions. DL captures patterns that no per-ch or bloom method catches. The full signal in the system exceeds what any subset of methods reveals.", "S1619");
+  render_finding(gog, "BLOOM DOMINATES THE GAP: 21/27 (78%)", "Bloom correct at 78% of gap positions", "Despite bloom being 39% worse overall (68 vs 112), bloom succeeds at 78% of positions where DL fails. The coherence-accuracy trade-off made precise: bloom makes DIFFERENT errors. Bloom finds the right answer via cross-channel majority voting when ALL per-channel predictions are poor.", "S1619");
+  render_finding(gog, "Per-ch completely wrong at gap", "Max NN score = 4/7, mean 2.3", "At gap positions, per-channel predictions match the actual character on at most 4 of 7 channels (vs up to 7 at DL-correct positions). DL is even worse: mean 1.6/7 channels at gap positions vs 5.7 at DL-correct. These are positions where the trigram context gives the wrong answer in most channels.", "S1619");
+  render_finding(gog, "Low agreement = bloom opportunity", "81% of gap positions have agreement < 3", "Bloom and per-ch strongly disagree at gap positions. Current selection (S1607) uses per-ch at low agreement. But bloom is 3x more accurate at these positions (21/27 vs 7/27). The routing is backwards for the gap. Smart routing (compare bloom vs per-ch NN scores) could capture up to 21 additional positions.", "S1619");
+  render_finding(gog, "8 distinct chars, 89% multi-method", "Concentrated, redundant, systematic", "Only 8 distinct characters appear across 27 gap positions (concentrated). 24/27 have multiple methods correct (redundant). The gap is NOT random noise -- it has a clear signature: specific character transitions where bloom's full-character voting recovers what per-channel trigrams miss.", "S1619");
+  dom_append(sec_og, gog);
+  dom_append(dom_body(), sec_og)
 )
