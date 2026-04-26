@@ -259,7 +259,7 @@ fn page_ai_phase_a() = (
 /* page_ai_predict: CRT text prediction pipeline (S1561-S1610+).
    Split from page_ai S1610. Text encoder through data selection. */
 fn page_ai_predict() = (
-  dom_head_meta("description", "CRT text prediction pipeline: per-channel trigrams, bloom voting, agreement selection, crossmodal bloom immunity. 75 Phase A experiments.");
+  dom_head_meta("description", "CRT text prediction pipeline: per-channel trigrams, bloom voting, agreement selection, crossmodal bloom immunity. 76 Phase A experiments.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Prediction\",\"description\":\"CRT text prediction: per-channel trigrams, bloom voting, NN decoding, hyperring confidence. 74 Phase A experiments.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/living/ai_predict\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT prediction\"},{\"@type\":\"DefinedTerm\",\"name\":\"text bigram\"},{\"@type\":\"DefinedTerm\",\"name\":\"bloom voting\"}]}");
   let hero = make_hero("CRT Prediction") in
   let big = dom_create("div") in
@@ -270,7 +270,7 @@ fn page_ai_predict() = (
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Per-channel bigram and trigram models predict text transitions in 7 independent CRT channels. Bloom voting forces cross-channel coherence. Nearest-neighbor soft decoding reconstructs characters. Agreement selection bridges per-channel accuracy and bloom coherence. Crossmodal bloom immunity: single-source addition provably zero effect. 75 experiments from S1561 to S1614.");
+  render_p(hero, "Per-channel bigram and trigram models predict text transitions in 7 independent CRT channels. Bloom voting forces cross-channel coherence. Nearest-neighbor soft decoding reconstructs characters. Agreement selection bridges per-channel accuracy and bloom coherence. Bloom IS coherence: decorrelation removes it. 76 experiments from S1561 to S1615.");
   dom_append(dom_body(), hero);
 
   /* === SEC 9s: TEXT ENCODER (S1561 Phase A) === */
@@ -685,6 +685,8 @@ fn page_ai_predict() = (
   page_ai_predict_9br();
   /* === SEC 9bs: CROSSMODAL BLOOM IMMUNITY (S1614 Phase A) === */
   page_ai_predict_9bs();
+  /* === SEC 9bt: PER-CHANNEL-NATIVE BLOOM (S1615 Phase A) === */
+  page_ai_predict_9bt();
   0
 )
 
@@ -994,4 +996,21 @@ fn page_ai_predict_9bs() = (
   render_finding(gcm, "Five paths now CLOSED", "decoder+weighting+strict+hyperring+crossmodal", "Decoder engineering (S1607-S1610), learned weighting (S1611), strict bloom (S1606), hyperring masking (S1613), and single-source crossmodal addition (S1614) are all closed. The bloom plateau is immune to single-source modifications. Breaking it requires either replacing correlated sources with per-channel-native predictors, or providing enough uncorrelated sources to outvote the correlated majority. 14/14 test_crossmodal_select.ax.", "S1614");
   dom_append(sec_cm, gcm);
   dom_append(dom_body(), sec_cm)
+)
+
+/* === SEC 9bt: PER-CHANNEL-NATIVE BLOOM (S1615 Phase A) === */
+fn page_ai_predict_9bt() = (
+  let sec_nb = make_section("700px") in
+  render_h3(sec_nb, "9bt. Per-Channel-Native Bloom (S1615)");
+  render_p(sec_nb, "S1614 proved single-source addition is immune. The root cause: 6 full-character joint pairs predict the SAME character, creating correlated residues in ALL channels. Can we break this correlation by predicting per-channel residues DIRECTLY from pair conditioning?");
+  let gnb = dom_create("div") in
+  ct_card(gnb);
+  render_p(gnb, "Per-channel-native: for each pair (DK, DL, KL, DG, DESC, DE) and each target channel, build a separate prediction table: joint_residue(prev) -> argmax(target_ch_residue(next)). 6 pairs x 7 channels = 42 tables. Each channel gets 6 independent native predictions plus 1 trigram = 7 sources. Native sources predict residues from DIFFERENT conditioning (DK uses K-context, DL uses L-context for D-channel), so they decorrelate by construction.");
+  render_finding(gnb, "59% divergence", "118/199 positions", "Per-channel-native bloom diverges from full-char bloom at 118 of 199 test positions (59%). The sources ARE decorrelated: native bloom produces different per-channel residues than full-char bloom. D-channel: 81/199 divergent (highest). E-channel: 0/199 (zero divergence -- small modulus dominated by few residues). Decorrelation is real and measurable.", "S1615");
+  render_finding(gnb, "NN: native 45 = FC 46", "within noise", "Despite 59% bloom divergence, NN soft decoding accuracy is essentially identical: native 45/199 vs full-char 46/199. Decorrelation changes the bloom predictions but does not improve the character those predictions reconstruct to. The NN ceiling is a property of the DATA, not of which bloom method generates the CRT tuple.", "S1615");
+  render_finding(gnb, "Hard CRT: 26 vs 46 (-43%)", "coherence loss", "Hard CRT reconstruction drops massively: native 26/199 vs full-char 46/199 (-43%). Root cause: full-char sources produce residues that form a VALID CRT tuple (all from the same character). Native sources produce residues from independent per-channel predictors -- the 7 residues may not correspond to ANY character. Bloom's value IS cross-channel coherence, and decorrelation removes it.", "S1615");
+  render_finding(gnb, "Selection: native 58 = per-ch", "bloom bypassed", "Selection (T=2) with native bloom achieves 58/199 = per-ch baseline exactly. Native bloom disagrees with per-ch more than FC bloom does, so the selection mechanism routes nearly ALL positions to per-ch. Native bloom adds nothing over the per-ch trigram alone. FC selection achieves 64/199 (bloom contributes +6).", "S1615");
+  render_finding(gnb, "SIX paths now CLOSED", "bloom IS coherence", "Decoder (S1607-S1610), weighting (S1611), strict bloom (S1606), hyperring mask (S1613), crossmodal single-source (S1614), and per-channel-native (S1615) are all closed. The fundamental insight: bloom is a COHERENCE mechanism, not an accuracy mechanism. Making sources more independent makes them less coherent. The only way to improve bloom is to find sources that are BOTH accurate AND coherent -- which means predicting full characters, not per-channel residues. 14/14 test_perch_bloom.ax.", "S1615");
+  dom_append(sec_nb, gnb);
+  dom_append(dom_body(), sec_nb)
 )
