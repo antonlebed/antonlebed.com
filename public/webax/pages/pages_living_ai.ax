@@ -725,6 +725,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cl();
   /* === SEC 9cm: PER-CHANNEL ENSEMBLE (S1640 Phase A) === */
   page_ai_predict_9cm();
+  /* === SEC 9cn: THRESHOLD TUNING (S1641 Phase A) === */
+  page_ai_predict_9cn();
   0
 )
 
@@ -1345,4 +1347,18 @@ fn page_ai_predict_9cm() = (
   render_finding(gens, "Per-ch oracle ceiling: +98 (vs full-char +130)", "873/2799 vs 905/2799", "Per-channel oracle (use count if mode matches truth residue, else neural) gives +98. Lower than full-char oracle (+130) because channel-level correctness doesn't guarantee full-char reconstruction. The 6/98 capture rate (6%) proves the mechanism works; threshold tuning and adaptive gating are the path to higher capture.", "S1640");
   dom_append(sec_pce, gens);
   dom_append(dom_body(), sec_pce)
+)
+
+/* === SEC 9cn: THRESHOLD TUNING (S1641 Phase A) === */
+fn page_ai_predict_9cn() = (
+  let sec_tt = make_section("800px") in
+  render_h3(sec_tt, "9cn. Threshold Tuning + Adaptive Sparse Gating (S1641)");
+  render_p(sec_tt, "S1640 found +6 at threshold=10. This session sweeps 7 global thresholds {0,3,5,10,15,20,30}, 2 per-channel adaptive {q, 2q}, and a bigram backoff diagnostic. 10 strategies + per-ch oracle. 14/14 test_threshold_tune.ax.");
+  let gtt = make_findings_grid(sec_tt) in
+  render_finding(gtt, "Optimal threshold = 15, not 10: +17 (3x S1640)", "S4: 792/2799 vs S0: 775/2799", "The threshold sweep reveals a non-monotonic curve: thr=3 (+5), thr=5 (+5), thr=10 (+6), thr=15 (+17 PEAK), thr=20 (+14), thr=30 (-20). Too little gating misses sparse contexts. Too much injects noise from unreliable neural estimates. Captures 17% of oracle gap (up from 6%). The sweet spot targets contexts with 10-15 observations -- enough for trigrams to be partially informative but not reliable.", "S1641");
+  render_finding(gtt, "Bigram > neural at sparse contexts", "S9(bigram): 782 (+7) vs S3(neural): 781 (+6)", "COUNTER-INTUITIVE: when trigram count < 10, bigram count distributions outperform neural distributions. The gain from sparse gating is NOT embedding generalization -- it is count table SMOOTHING. Bigrams have larger bins (q^2 vs q^3 contexts), so more data per bin. The mechanism is data pooling, not neural pattern completion. This reframes the entire sparse gating result: it is a statistical smoothing technique, not an AI technique.", "S1641");
+  render_finding(gtt, "Adaptive per-ch thresholds LOSE", "S7(q): 757 (-18), S8(2q): 706 (-69)", "Per-channel thresholds proportional to modulus (q or 2q) HURT badly. At q=49 threshold, b-channel gets gated 740/2799 times (26% of positions), injecting too much noise. The uniform threshold works because it targets a consistent severity of sparsity regardless of channel. Channel-specific tuning overreacts to high-q channels where even moderate trigram counts are sufficient.", "S1641");
+  render_finding(gtt, "Non-monotonic: narrow sweet spot around 15", "Rise: 0 to +17. Crash: -20 at thr=30", "The gain curve has a sharp peak. Below threshold 10: under-gating (missing 7 sparse positions that need smoothing). Above 20: over-gating (replacing reliable count evidence with less reliable smoothed estimates). At 30: net negative because most gated positions have adequate trigram data that count handles better. The optimal threshold 15 corresponds to approximately 1-2 observations per residue bin on average.", "S1641");
+  dom_append(sec_tt, gtt);
+  dom_append(dom_body(), sec_tt)
 )
