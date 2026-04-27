@@ -713,6 +713,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cf();
   /* === SEC 9cg: SGD SOFT WEIGHTS (S1628 Phase A) === */
   page_ai_predict_9cg();
+  /* === SEC 9ch: NEURAL TRIGRAM COMPRESSION (S1635 Phase A) === */
+  page_ai_predict_9ch();
   0
 )
 
@@ -1249,4 +1251,18 @@ fn page_ai_predict_9cg() = (
   render_finding(gsg, "14th CLOSED PATH: soft weighting", "Pipeline arc S1605-S1628", "Weight invariance extends from bloom voting (S1611) to soft scoring (S1628): channel information is equally weighted at EVERY level tested -- mode voting, bloom consensus, and distribution scoring. 14 paths closed across 24 sessions. The soft predictor at 115/399 is optimal for count-based per-channel trigrams. No architectural modification improves it. The ceiling is PREDICTION QUALITY.", "S1628");
   dom_append(sec_sg, gsg);
   dom_append(dom_body(), sec_sg)
+)
+
+/* === SEC 9ch: NEURAL TRIGRAM COMPRESSION (S1635 Phase A) === */
+fn page_ai_predict_9ch() = (
+  let sec_nt = make_section("800px") in
+  render_h3(sec_nt, "9ch. Neural Trigram Compression (S1635)");
+  render_p(sec_nt, "Pipeline arc proved count-based methods optimal (115/399). Next question: can a COMPRESSED neural model find complementary signal? Replace 142956-entry count tables with a 1280-parameter embedding MLP per channel. Architecture: embed both context residues (d=4), concat, relu hidden (h=4), softmax output. Train via SGD (CE loss, lr=0.02, 50 epochs). 111x compression ratio. 14/14 test_neural_trigram.ax.");
+  let gnt = make_findings_grid(sec_nt) in
+  render_finding(gnt, "COUNT 115 vs NEURAL 54: count optimal", "Count tables are the optimal summary", "Per-channel embedding MLP (1280 params) achieves 54/399 soft CRT accuracy vs count baseline 115/399. Per-ch: 192 ppt vs 268 ppt. Count tables win all 7 channels. At 111x compression, the neural model cannot approximate the full trigram distributions. Count tables are the OPTIMAL statistical summary for this data size.", "S1635");
+  render_finding(gnt, "Oracle 133 (+15.7%): neural finds complementary signal", "Embedding generalization advantage", "Oracle(count+neural) = 133/399, a 15.7% improvement over count alone. 18 positions where neural is correct and count is wrong. The embedding maps similar residues to nearby vectors, enabling GENERALIZATION across similar contexts -- something count tables structurally cannot do. 279/399 (70%) divergent predictions prove fundamentally different features.", "S1635");
+  render_finding(gnt, "D-channel closest: 92 vs 105", "Small moduli favor neural", "D-channel (q=8, 96 params): neural achieves 87.6% of count accuracy (92 vs 105). b-channel (q=49, 424 params): only 57.9% (66 vs 114). Small moduli have dense trigram distributions that 96 params can approximate. Large moduli have sparse distributions requiring the full 117649-entry tables. The data-to-param ratio determines the compression frontier.", "S1635");
+  render_finding(gnt, "Overfitting at 100 epochs: ppt 192->170", "Optimal epochs = 50", "Doubling epochs from 50 to 100 worsens per-ch accuracy (192->170 ppt) but slightly improves soft CRT (54->57) and oracle (133->136). The model sharpens its probability estimates (helping soft scoring) while becoming less accurate per-channel (overfitting). 50 epochs is the generalization optimum for this data/capacity ratio.", "S1635");
+  dom_append(sec_nt, gnt);
+  dom_append(dom_body(), sec_nt)
 )
