@@ -729,6 +729,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cn();
   /* === SEC 9co: BIGRAM SMOOTHING (S1642 Phase A) === */
   page_ai_predict_9co();
+  /* === SEC 9cp: DEEPER ARCHITECTURE (S1643 Phase A) === */
+  page_ai_predict_9cp();
   0
 )
 
@@ -1363,6 +1365,20 @@ fn page_ai_predict_9co() = (
   render_finding(gbs, "Oracle gap: 104. Captures 19%", "Best: 795/2799. Oracle: 879/2799", "The bigram oracle (per-ch best of count vs bigram mode) ceiling is 879 (+104). Interpolation captures 19% (up from 17% at S1641). Still 81% unreachable by smoothing alone. The remaining gap requires fundamentally different mechanisms -- likely deeper architecture to close the accuracy gap between per-channel modes and full-character prediction.", "S1642");
   dom_append(sec_bs, gbs);
   dom_append(dom_body(), sec_bs)
+)
+
+/* === SEC 9cp: DEEPER ARCHITECTURE (S1643 Phase A) === */
+fn page_ai_predict_9cp() = (
+  let sec_da = make_section("800px") in
+  render_h3(sec_da, "9cp. Deeper Architecture (S1643)");
+  render_p(sec_da, "S1642 saturated smoothing at +20 (JM k=5). 81% of oracle gap unreachable. Does a wider/deeper neural model close the accuracy gap? 3 models: shallow (d=4,h=4,1L), wide (d=8,h=8,1L), deep (d=8,h=8,2L). 7 strategies including JM+neural combined sparse gate. 14/14 test_deep_architecture.ax.");
+  let gda = make_findings_grid(sec_da) in
+  render_finding(gda, "Wide +16% per-ch, depth adds ZERO", "Wide 214 ppt vs shallow 184 ppt. Deep 212 ppt.", "Doubling embedding and hidden dimensions (d=4,h=4 to d=8,h=8) improves per-channel mode accuracy by 16% (214 vs 184 ppt). The b-channel shows the largest gain: 542 vs 356 (+52%), consistent with larger embeddings capturing more of the 49-residue space. But adding a second hidden layer (deep 2L) provides ZERO improvement over 1-layer at the same width (212 vs 214). The bottleneck is data representation, not model depth.", "S1643");
+  render_finding(gda, "Combined WORSE than JM alone", "S5(JM+wide): +14 vs S1(JM): +20 (-6 penalty)", "Replacing JM interpolation with neural predictions at sparse channels (tri_total<15) HURTS overall accuracy by -6 compared to pure JM. Neural at sparse contexts is LESS ACCURATE than JM bigram smoothing. JM pools statistical evidence from the bigram space; neural must generalize from limited embeddings. The smoothing mechanism is strictly superior for sparse-context correction.", "S1643");
+  render_finding(gda, "Oracle 957 (+182): 78% unexploitable", "S0: 775. S1 (JM): 795. Oracle: 957.", "The all-method oracle is dramatically larger than S1642's 879: the wider neural model finds many unique correct positions. But 78% of the oracle gap (162/182 between JM and oracle) remains UNEXPLOITABLE -- no tested routing mechanism can identify when to trust neural over count. 23 closed paths: decoder, weighting, strict bloom, hyperring, crossmodal, per-ch-native, data-scaling, neural-over-bigram, smoothing, architecture, and 13 more.", "S1643");
+  render_finding(gda, "PREDICTION ARC CEILING: 795/2799", "28.4%. Count-based pipeline saturated.", "The prediction pipeline has reached its practical ceiling. Count-based: 775 (pure), 795 (JM smoothed). Neural-only: 511 (wide, best). Combined: 789 (sub-additive). All 23 routing mechanisms fail. The oracle ceiling (957) confirms the signal EXISTS in wider models but requires fundamentally different integration -- not routing between two systems but a unified architecture that learns to combine count and neural representations.", "S1643");
+  dom_append(sec_da, gda);
+  dom_append(dom_body(), sec_da)
 )
 
 /* === SEC 9cn: THRESHOLD TUNING (S1641 Phase A) === */
