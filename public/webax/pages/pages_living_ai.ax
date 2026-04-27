@@ -727,6 +727,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cm();
   /* === SEC 9cn: THRESHOLD TUNING (S1641 Phase A) === */
   page_ai_predict_9cn();
+  /* === SEC 9co: BIGRAM SMOOTHING (S1642 Phase A) === */
+  page_ai_predict_9co();
   0
 )
 
@@ -1347,6 +1349,20 @@ fn page_ai_predict_9cm() = (
   render_finding(gens, "Per-ch oracle ceiling: +98 (vs full-char +130)", "873/2799 vs 905/2799", "Per-channel oracle (use count if mode matches truth residue, else neural) gives +98. Lower than full-char oracle (+130) because channel-level correctness doesn't guarantee full-char reconstruction. The 6/98 capture rate (6%) proves the mechanism works; threshold tuning and adaptive gating are the path to higher capture.", "S1640");
   dom_append(sec_pce, gens);
   dom_append(dom_body(), sec_pce)
+)
+
+/* === SEC 9co: BIGRAM SMOOTHING (S1642 Phase A) === */
+fn page_ai_predict_9co() = (
+  let sec_bs = make_section("800px") in
+  render_h3(sec_bs, "9co. Bigram Smoothing Optimization (S1642)");
+  render_p(sec_bs, "S1641 showed gain is SMOOTHING not neural generalization. This session optimizes the smoothing: bigram hard backoff at thr=15 + Jelinek-Mercer interpolation (blend tri+bi weighted by evidence). Interpolation alpha = tri_total/(tri_total+k). 10 strategies + bigram oracle. 14/14 test_bigram_smooth.ax.");
+  let gbs = make_findings_grid(sec_bs) in
+  render_finding(gbs, "Interpolation BEATS hard backoff: +20 vs +14", "S4(k=5): 795/2799 vs S1(thr=15): 789/2799", "Jelinek-Mercer interpolation with k=5 (aggressive blending: alpha=0.5 at tri_total=5) achieves +20, beating hard bigram backoff at thr=15 (+14) and S1641's neural backoff (+17). The mechanism: instead of SWITCHING entirely to bigram when sparse, BLEND trigram and bigram proportionally. Retains trigram signal while regularizing with bigram. Soft smoothing > hard switching.", "S1642");
+  render_finding(gbs, "Optimal k=5: aggressive blend, non-monotonic", "k=5(+20), k=10(+15), k=15(+2), k=20(-8), k=30(-6)", "The smoothing bandwidth k has a sharp optimum at k=5, meaning 50% bigram blend when only 5 trigram observations exist. Higher k over-smooths: at k=20, bigram dominates too heavily and destroys trigram specificity. Non-monotonic curve mirrors threshold sweep. Both smoothing mechanisms (hard backoff and interpolation) share the same structure: narrow sweet spot, sharp crash from over-correction.", "S1642");
+  render_finding(gbs, "Bigram smoothing BEATS neural: +20 > +17", "No neural model required", "The best interpolation (+20) exceeds S1641's neural backoff (+17) without any neural network training or inference. Definitively CONFIRMS that the sparse-gating gain mechanism is count table smoothing, not neural embedding generalization. Neural models are unnecessary for this gain channel. The 3-point improvement over neural comes from retaining partial trigram information (interpolation) vs discarding it entirely (backoff).", "S1642");
+  render_finding(gbs, "Oracle gap: 104. Captures 19%", "Best: 795/2799. Oracle: 879/2799", "The bigram oracle (per-ch best of count vs bigram mode) ceiling is 879 (+104). Interpolation captures 19% (up from 17% at S1641). Still 81% unreachable by smoothing alone. The remaining gap requires fundamentally different mechanisms -- likely deeper architecture to close the accuracy gap between per-channel modes and full-character prediction.", "S1642");
+  dom_append(sec_bs, gbs);
+  dom_append(dom_body(), sec_bs)
 )
 
 /* === SEC 9cn: THRESHOLD TUNING (S1641 Phase A) === */
