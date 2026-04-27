@@ -723,6 +723,8 @@ fn page_ai_predict() = (
   page_ai_predict_9ck();
   /* === SEC 9cl: ENSEMBLE INTEGRATION (S1639 Phase A) === */
   page_ai_predict_9cl();
+  /* === SEC 9cm: PER-CHANNEL ENSEMBLE (S1640 Phase A) === */
+  page_ai_predict_9cm();
   0
 )
 
@@ -1329,4 +1331,18 @@ fn page_ai_predict_9cl() = (
   render_finding(gens, "18th closed path: NAIVE ENSEMBLE ROUTING", "Per-channel mixing or stronger model needed", "Score-level blending cannot work when accuracy gap is 1.64x (775 vs 472). The neural model would need to approach count accuracy for blending to help. Alternatively: per-CHANNEL ensemble (mix per-channel predictions, then CRT decode) might preserve channel independence and avoid full-char dilution. Or deeper architecture (d=8, h=8) to close the accuracy gap first.", "S1639");
   dom_append(sec_ens, gens);
   dom_append(dom_body(), sec_ens)
+)
+
+/* === SEC 9cm: PER-CHANNEL ENSEMBLE (S1640 Phase A) === */
+fn page_ai_predict_9cm() = (
+  let sec_pce = make_section("800px") in
+  render_h3(sec_pce, "9cm. Per-Channel Ensemble (S1640)");
+  render_p(sec_pce, "S1639 proved score-level blending fails. Key insight: fixed-weight blending is DISTRIBUTIVE -- sum_ch(cnt+nn) = sum_ch(cnt) + sum_ch(nn). The only way per-channel routing can differ from full-char blending is with VARYING weights per position per channel. 6 strategies tested: pure count (S0=775), pure neural (S1=472), per-ch confidence routing (S2), static per-ch routing (S3), per-ch oracle (S4=873, ceiling +98), sparse-count gating (S5=781, +6). 14/14 test_perch_ensemble.ax.");
+  let gens = make_findings_grid(sec_pce) in
+  render_finding(gens, "FIRST POSITIVE GAIN: sparse-count gating +6", "S5: 781/2799 vs S0: 775/2799", "Use neural distribution for a channel only when trigram count < 10 (sparse context). Otherwise trust count. This targets count's actual weakness: contexts with too few observations for reliable statistics. Neural's embedding-based generalization fills the gap. First strategy to beat count alone in 19+ experiments.", "S1640");
+  render_finding(gens, "Confidence routing FAILS at per-ch level too", "S2: 771/2799 (-4 vs count)", "Per-ch confidence (max_prob vs max_count/total) is the WRONG signal. Neural softmax is systematically peakier (learned peakiness) regardless of accuracy. High confidence != high accuracy. Same lesson as S1639 but confirmed at per-channel level.", "S1640");
+  render_finding(gens, "Sparsity concentrates in DEAD channels", "E(354 sel) + b(461 sel) >> D(0) + K(0)", "Large-modulus channels (E:q=25, b:q=49) have many sparse trigram contexts (q^3 = 15625, 117649). Small channels (D:q=8, K:q=9) have dense counts everywhere (q^3=512, 729). Neural selected almost exclusively for perception channels. The 490 split manifests: DEAD={D,E,b} perception channels benefit from neural generalization.", "S1640");
+  render_finding(gens, "Per-ch oracle ceiling: +98 (vs full-char +130)", "873/2799 vs 905/2799", "Per-channel oracle (use count if mode matches truth residue, else neural) gives +98. Lower than full-char oracle (+130) because channel-level correctness doesn't guarantee full-char reconstruction. The 6/98 capture rate (6%) proves the mechanism works; threshold tuning and adaptive gating are the path to higher capture.", "S1640");
+  dom_append(sec_pce, gens);
+  dom_append(dom_body(), sec_pce)
 )
