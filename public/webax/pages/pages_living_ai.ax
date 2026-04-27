@@ -717,6 +717,8 @@ fn page_ai_predict() = (
   page_ai_predict_9ch();
   /* === SEC 9ci: NEURAL-COUNT ORACLE CHARACTERIZATION (S1636 Phase A) === */
   page_ai_predict_9ci();
+  /* === SEC 9cj: SPACE DETECTOR (S1637 Phase A) === */
+  page_ai_predict_9cj();
   0
 )
 
@@ -1281,4 +1283,18 @@ fn page_ai_predict_9ci() = (
   render_finding(goc, "Neural score 5.8x at nn-only positions", "Confidence tracks correctness", "Mean soft score at nn-only: neural 11814 vs count 2039 (5.8x). At cnt-only: neural 10392 vs count 2271 (4.6x). The neural model is MORE confident at nn-only positions relative to count -- the space signal is strong in embedding space. Score gap (9775) is a potential routing signal.", "S1636");
   dom_append(sec_oc, goc);
   dom_append(dom_body(), sec_oc)
+)
+
+/* === SEC 9cj: SPACE DETECTOR — ZERO-PARAM RULES CLOSED (S1637 Phase A) === */
+fn page_ai_predict_9cj() = (
+  let sec_sd = make_section("800px") in
+  render_h3(sec_sd, "9cj. Space Detector (S1637)");
+  render_p(sec_sd, "Probe 8 found 89% of oracle gap = SPACE. Can zero-param rules capture it? Overlay 4 space detection strategies on the soft predictor: rank-based, letter-context, per-channel voting, score-ratio. Target: capture >80% of 18-position lift. Result: ALL strategies NEGATIVE net gain. 14/14 test_space_detector.ax.");
+  let gsd = make_findings_grid(sec_sd) in
+  render_finding(gsd, "All 4 strategies NEGATIVE: best -6 net", "Rules cannot profitably detect space", "S1 (rank<=1): -19 net. S2 (letter+rank<=1): -19. S3 (letter+ch_top3>=5): -21. S4 (letter+score/2): -6. Best strategy S4 captures 12/20 missed spaces (60%) but loses 18 correct predictions. Precision 40%. False override ratio 1.5:1 for S4, 4.8:1 for S1. The count tables cannot distinguish space-correct from space-incorrect positions.", "S1637");
+  render_finding(gsd, "Missed-space ranks BIMODAL: 10 close, 5 far", "Two populations of missed spaces", "Missed-space rank histogram: 10/20 have rank<=5 (space nearly wins in soft scoring). 5/20 have rank>20 (space is invisible in count tables, e.g. rank 43, 59). The easy half is capturable but at unacceptable false-override cost. The hard half is structurally unreachable -- count tables provide almost no evidence for space at these contexts.", "S1637");
+  render_finding(gsd, "Neural advantage IRREDUCIBLE by rules", "Embedding generalization is the mechanism", "The 5 high-rank misses (rank 24-59) have space scores of 374-653 vs max 2108-3300. No count-table-derived threshold can detect these. The neural model succeeds because embeddings map similar residue contexts to nearby vectors, enabling generalization that count-based methods structurally lack. Count+neural ensemble is the ONLY path past 115/399.", "S1637");
+  render_finding(gsd, "16th closed path: ZERO-PARAM SPACE DETECTION", "Pipeline arc extended to 16 paths", "Space detector joins 15 prior closed paths (decoder, weighting, strict bloom, hyperring, crossmodal, per-ch-native, data scaling, weighted NN, selection, phantom coherence, two-pass, fullchar, coupling, aggregation, sparsity). Every non-neural approach to exceeding 115/399 has been falsified. The remaining oracle gap (133-115=18) requires learned features.", "S1637");
+  dom_append(sec_sd, gsd);
+  dom_append(dom_body(), sec_sd)
 )
