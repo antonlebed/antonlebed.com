@@ -715,6 +715,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cg();
   /* === SEC 9ch: NEURAL TRIGRAM COMPRESSION (S1635 Phase A) === */
   page_ai_predict_9ch();
+  /* === SEC 9ci: NEURAL-COUNT ORACLE CHARACTERIZATION (S1636 Phase A) === */
+  page_ai_predict_9ci();
   0
 )
 
@@ -1265,4 +1267,18 @@ fn page_ai_predict_9ch() = (
   render_finding(gnt, "Overfitting at 100 epochs: ppt 192->170", "Optimal epochs = 50", "Doubling epochs from 50 to 100 worsens per-ch accuracy (192->170 ppt) but slightly improves soft CRT (54->57) and oracle (133->136). The model sharpens its probability estimates (helping soft scoring) while becoming less accurate per-channel (overfitting). 50 epochs is the generalization optimum for this data/capacity ratio.", "S1635");
   dom_append(sec_nt, gnt);
   dom_append(dom_body(), sec_nt)
+)
+
+/* === SEC 9ci: NEURAL-COUNT ORACLE CHARACTERIZATION (S1636 Phase A) === */
+fn page_ai_predict_9ci() = (
+  let sec_oc = make_section("800px") in
+  render_h3(sec_oc, "9ci. Oracle Characterization (S1636)");
+  render_p(sec_oc, "Oracle 133 = count 115 + 18 neural-only. WHAT are those 18 positions? Same model, same corpus. Per-position diagnostics: category (both/count/neural/neither), trigram context density, per-channel correctness, character identity, position distribution. 14/14 test_oracle_char.ax.");
+  let goc = make_findings_grid(sec_oc) in
+  render_finding(goc, "89% SPACE: 16/18 neural-only are char 32", "Neural is a space detector", "16 of 18 neural-only correct positions predict SPACE (char 32). The remaining 2 predict 'a' and 'h'. The neural model's complementary advantage is almost entirely concentrated on detecting word boundaries. Count tables predict common letters (e, r, o, s, a, t) at these positions -- wrong because the actual character is space.", "S1636");
+  render_finding(goc, "Sparsity hypothesis FALSIFIED", "Dense contexts, not sparse", "Zero nn-only positions have zero-trigram channels. Mean trigram density: nn-only 241 vs cnt-only 265. Both dense. Zero bigram fallback for nn-only. The neural advantage is NOT generalization across rare unseen contexts. The mechanism is different: count tables pick the WRONG residue at dense contexts.", "S1636");
+  render_finding(goc, "Residue minority: b=0/18, E=1/18 count correct", "Count blind to space residues in large channels", "At nn-only positions, count per-ch correct: D:7 K:7 E:1 b:0 L:4 G:5 ESC:2. Neural: D:16 K:9 E:17 b:15 L:16 G:17 ESC:16. The large-modulus channels (E=25, b=49) are where count fails hardest. Space's residue (7 mod 25, 32 mod 49) is in the MINORITY -- not the mode. Neural embeddings learn the minority residue from context similarity.", "S1636");
+  render_finding(goc, "Neural score 5.8x at nn-only positions", "Confidence tracks correctness", "Mean soft score at nn-only: neural 11814 vs count 2039 (5.8x). At cnt-only: neural 10392 vs count 2271 (4.6x). The neural model is MORE confident at nn-only positions relative to count -- the space signal is strong in embedding space. Score gap (9775) is a potential routing signal.", "S1636");
+  dom_append(sec_oc, goc);
+  dom_append(dom_body(), sec_oc)
 )
