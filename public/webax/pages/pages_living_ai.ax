@@ -721,6 +721,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cj();
   /* === SEC 9ck: BIGGER CORPUS NEURAL SCALING (S1638 Phase A) === */
   page_ai_predict_9ck();
+  /* === SEC 9cl: ENSEMBLE INTEGRATION (S1639 Phase A) === */
+  page_ai_predict_9cl();
   0
 )
 
@@ -1313,4 +1315,18 @@ fn page_ai_predict_9ck() = (
   render_finding(gbn, "Space-specificity is SIZE-DEPENDENT", "Ensemble path confirmed", "S1636's 89% space was a small-sample effect: space is the most FREQUENT minority-residue character, so it dominates at small corpus. At 4x data, neural learns minority patterns for t, e, h, n, p, r too. The mechanism is universal (residue minority in high-q channels) but which characters benefit depends on corpus diversity and size. Ensemble = the path forward.", "S1638");
   dom_append(sec_bn, gbn);
   dom_append(dom_body(), sec_bn)
+)
+
+/* === SEC 9cl: ENSEMBLE INTEGRATION (S1639 Phase A) === */
+fn page_ai_predict_9cl() = (
+  let sec_ens = make_section("800px") in
+  render_h3(sec_ens, "9cl. Ensemble Integration (S1639)");
+  render_p(sec_ens, "S1638 confirmed neural provides complementary signal: oracle 905/2799 = count 775 + 130 nn_only (+16.8%). Can ensembling capture this gap? 4 strategies tested: E1 (equal-weight score blend), E2 (count-heavy 3:1 blend), E3 (margin routing at disagreement), E4 (strict 2x-margin routing). All use the same 4x corpus and models. Both count and neural scores normalized to *10000 scale for fair blending. 14/14 test_ensemble.ax.");
+  let gens = make_findings_grid(sec_ens) in
+  render_finding(gens, "ALL ensembles fail: 0% of oracle gap captured", "Best = count itself (775)", "E1 (equal blend): 753 (-22 vs count). E2 (count-heavy 3:1): 775 (=count). E3 (margin routing): 736 (-39). E4 (strict 2x routing): 751 (-24). No strategy improves on count alone. Count-heavy blending converges to count; equal blending actively hurts. The oracle gap of 130 is REAL but UNCAPTURABLE by naive score-level ensembling.", "S1639");
+  render_finding(gens, "Confidence signal: EXISTS but overwhelmed", "29% vs 17% (+12pp)", "At disagreement positions (1645/2799 = 59%), count wins 433 vs neural wins 130 (3.3:1 base rate). Neural margin exceeds count margin at 29% of nn_only but also 17% of cnt_only. The +12pp separation exists but is dwarfed by the 3.3:1 base rate. To break even, the signal would need ~3.3x discrimination.", "S1639");
+  render_finding(gens, "E1 routing detail: 491 overrides, 62 correct", "12.6% precision", "Equal blending overrides count at 491/1645 disagreement positions. Only 62 overrides pick the correct character (12.6% precision). The neural signal is spread across too many candidates: softmax gives non-trivial mass to wrong residues, which maps to wrong characters that dilute the count signal. Net from overrides: -367.", "S1639");
+  render_finding(gens, "18th closed path: NAIVE ENSEMBLE ROUTING", "Per-channel mixing or stronger model needed", "Score-level blending cannot work when accuracy gap is 1.64x (775 vs 472). The neural model would need to approach count accuracy for blending to help. Alternatively: per-CHANNEL ensemble (mix per-channel predictions, then CRT decode) might preserve channel independence and avoid full-char dilution. Or deeper architecture (d=8, h=8) to close the accuracy gap first.", "S1639");
+  dom_append(sec_ens, gens);
+  dom_append(dom_body(), sec_ens)
 )
