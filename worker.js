@@ -212,7 +212,13 @@ export default {
 
     /* Static assets (.html, .js, .wasm, .png, .jpg, .css) */
     if (url.pathname.includes('.')) {
-      return env.ASSETS.fetch(request);
+      var _ar = await env.ASSETS.fetch(request);
+      if (url.pathname.endsWith('.wasm') || url.pathname.endsWith('.html')) {
+        var _ah = new Headers(_ar.headers);
+        _ah.set('Cache-Control', 'no-cache');
+        return new Response(_ar.body, { status: _ar.status, headers: _ah });
+      }
+      return _ar;
     }
 
     /* ===== SSR: render body via WASM, inject into _app.html template ===== */
