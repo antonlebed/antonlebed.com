@@ -141,7 +141,7 @@ var _routeMap = {
   'omega_journey':'living',
   'ax_games':'living',
   'sensor':'living',
-  'compiler':'demos',
+  'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
   'rng':'demos',
