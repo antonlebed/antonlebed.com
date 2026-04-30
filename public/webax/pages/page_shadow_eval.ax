@@ -19,10 +19,10 @@ fn shadow_calc() = (
   let result = dom_query("#sp-result") in
   /* P(x) = (x-1)(x-2)(x-3)(x-5) in ring */
   let a = x + 970199 in
-  let b = x + 970198 in
+  let bv = x + 970198 in
   let c = x + 970197 in
   let d = x + 970195 in
-  let pv = a * b * c * d in
+  let pv = a * bv * c * d in
   let name = sp_name(pv) in
   /* Check if x is a root */
   let root_note = if x == 1 then " (ROOT: x = sigma)"
@@ -34,12 +34,12 @@ fn shadow_calc() = (
   let ptag = if smooth > 0 then " <b style='color:#ffd700'>(PRIME)</b>" else "" in
   dom_inner(result,
     "<p style='color:#88ddaa;margin:4px 0'><b>P(" + "${x}" + ") = " + "${pv}" + "</b>" + name + root_note + ptag + "</p>" +
-    "<p style='color:#b8b8c8;margin:4px 0'>= (" + "${x}" + "-1)(" + "${x}" + "-2)(" + "${x}" + "-3)(" + "${x}" + "-5) = " + "${a}" + " * " + "${b}" + " * " + "${c}" + " * " + "${d}" + "</p>")
+    "<p style='color:#b8b8c8;margin:4px 0'>= (" + "${x}" + "-1)(" + "${x}" + "-2)(" + "${x}" + "-3)(" + "${x}" + "-5) = " + "${a}" + " * " + "${bv}" + " * " + "${c}" + " * " + "${d}" + "</p>")
 )
 
 fn page_shadow_eval() = (
-  dom_head_meta("description", "The shadow polynomial P(x) = (x-1)(x-2)(x-3)(x-5) at chain positions. P(b)=240=|roots(E8)|. P(K^2)=1344=8*|PSL(2,7)|. E-Opacity Theorem. Mirror-Light Identity. Primorial and Factorial Theorems.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Shadow Polynomial\",\"description\":\"Shadow polynomial P(x)=(x-1)(x-2)(x-3)(x-5) evaluated at chain positions. P(b)=240=|roots(E8)|. E-Opacity and Mirror-Light theorems.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/teach/shadow_eval\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"shadow function\"},{\"@type\":\"DefinedTerm\",\"name\":\"polynomial evaluation\"},{\"@type\":\"DefinedTerm\",\"name\":\"chain\"}]}");
+  dom_head_meta("description", "The shadow polynomial P(x) = (x-1)(x-2)(x-3)(x-5) at chain positions. P(b)=240=|roots(E8)|. P(K^2)=1344=8*|PSL(2,7)|. CRT Root Anatomy: 5 roots mod D^3 and K^2, root sum=P(0). D-Power Staircase: cofactors sum to 42. E-Opacity. Mirror-Light. Primorial and Factorial Theorems.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Shadow Polynomial\",\"description\":\"Shadow polynomial P(x)=(x-1)(x-2)(x-3)(x-5) evaluated at chain positions. CRT Root Anatomy (Thm 139): 5 roots mod D^3 and K^2, root sum=P(0)=30. D-Power Staircase (Thm 149): cofactors sum to 42. E-Opacity and Mirror-Light theorems.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/teach/shadow_eval\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"shadow function\"},{\"@type\":\"DefinedTerm\",\"name\":\"polynomial evaluation\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT root anatomy\"},{\"@type\":\"DefinedTerm\",\"name\":\"D-power staircase\"}]}");
   /* === HERO === */
   let hero = make_hero("The Shadow Evaluations") in
   let big = dom_create("div") in
@@ -129,6 +129,68 @@ fn page_shadow_eval() = (
   render_finding(g6, "Universal Entry", "p | P(x) iff x = {1,2,3,5} mod p", "For any prime p > 5. Shadow chain = universal entry pattern.", "S712");
   dom_append(dom_body(), sec6);
 
+  /* === SEC 7: CRT ROOT ANATOMY (Thm 139) === */
+  let sec_crt = make_section("800px") in
+  render_h2(sec_crt, "CRT Root Anatomy");
+  render_theorem(sec_crt, "Shadow CRT Root Theorem (S1688, PROVED)", "P(x) has 5 roots mod D^3=8 and K^2=9 (extra root: mirror -1). Exactly 4 roots mod all other TRANS channels. Root sum across 7 channels = 30 = D*K*E = P(0). Non-root sum = 102 = D*K*ESCAPE. Discriminant disc(P) = D^8*K^2 = phi(DATA)^2.");
+  render_p(sec_crt, "P(-1) = 144 = D^4*K^2. Divisible by D^3=8 and K^2=9 but NOT by E^2=25 or b^2=49. So -1 is a root in only the D and K channels -- the two fattened DATA channels whose Pareto exponents exceed 1.");
+  let rtbl = make_table(sec_crt) in
+  let rhdr = dom_create("tr") in
+  render_th(rhdr, "Channel");
+  render_th(rhdr, "Modulus");
+  render_th(rhdr, "Roots");
+  render_th(rhdr, "Non-roots");
+  dom_append(rtbl, rhdr);
+  render_table_row_4(rtbl, "D", "D^3 = 8", "5 (+mirror)", "K = 3");
+  render_table_row_4(rtbl, "K", "K^2 = 9", "5 (+mirror)", "D^2 = 4");
+  render_table_row_4(rtbl, "E", "E^2 = 25", "4", "K*b = 21");
+  render_table_row_4(rtbl, "b", "b^2 = 49", "4", "K^2*E = 45");
+  render_table_row_4(rtbl, "L", "L = 11", "4", "b = 7");
+  render_table_row_4(rtbl, "GATE", "GATE = 13", "4", "K^2 = 9");
+  render_table_row_4(rtbl, "ESCAPE", "ESC = 17", "4", "GATE = 13");
+  let g_crt = make_findings_grid(sec_crt) in
+  render_finding(g_crt, "Root sum", "5+5+4+4+4+4+4 = 30", "= D*K*E = P(0). Root count across all channels equals the polynomial at the void.", "S1688");
+  render_finding(g_crt, "Non-root sum", "3+4+21+45+7+9+13 = 102", "= D*K*ESCAPE. Complement of roots governed by the escape prime.", "S1688");
+  render_finding(g_crt, "Discriminant", "disc(P) = D^8*K^2 = 2304", "= phi(DATA)^2 = 48^2. Only D and K appear in both disc and P(-1).", "S1688");
+  dom_append(dom_body(), sec_crt);
+
+  /* === SEC 8: D-POWER STAIRCASE (Thm 149) === */
+  let sec_stair = make_section("800px") in
+  render_h2(sec_stair, "The D-Power Staircase");
+  render_theorem(sec_stair, "Shadow Ratio Staircase Theorem (S1698, PROVED)", "P(p)/P(0) = D^(chain_pos-1) * cofactor for each non-root axiom element. Cofactors {sigma, K^2, L, K*b} sum to ANSWER = 42. Extension cofactors sum to KEY = 41. D-power sum D^3+D^4+D^5+D^6 = E! = 120. P(ESC)/P(b) = 168 = |Aut(Fano)|.");
+  let stbl = make_table(sec_stair) in
+  let shdr = dom_create("tr") in
+  render_th(shdr, "p");
+  render_th(shdr, "P(p)/P(0)");
+  render_th(shdr, "D-power");
+  render_th(shdr, "Cofactor");
+  dom_append(stbl, shdr);
+  render_table_row_4(stbl, "b (pos 4)", "8", "D^3", "sigma = 1");
+  render_table_row_4(stbl, "L (pos 5)", "144", "D^4", "K^2 = 9");
+  render_table_row_4(stbl, "GATE (pos 6)", "352", "D^5", "L = 11");
+  render_table_row_4(stbl, "ESCAPE (pos 7)", "1344", "D^6", "K*b = 21");
+  let g_stair = make_findings_grid(sec_stair) in
+  render_finding(g_stair, "Cofactor sum", "1 + 9 + 11 + 21 = 42", "= ANSWER. The universal constant emerges from the shadow staircase.", "S1698");
+  render_finding(g_stair, "Cofactor pairs", "{sigma,L}->12, {K^2,K*b}->30", "12 = lambda(DATA). 30 = P(0). Grand: 12+30 = 42.", "S1698");
+  render_finding(g_stair, "P(ESC)/P(b)", "40320 / 240 = 168", "= |GL(3,F_2)| = |Aut(Fano)|. Escape over depth = Fano automorphisms.", "S1698");
+  render_finding(g_stair, "D-power sum", "D^3+D^4+D^5+D^6 = 120", "= E! = 5!. The duality powers sum to the observer's factorial.", "S1698");
+  dom_append(dom_body(), sec_stair);
+
+  /* === THEOREM POINTERS === */
+  let sec_tp = make_section("800px") in
+  render_h2(sec_tp, "Theorem Pointers");
+  render_p(sec_tp, "Computationally verified on the <a href='/proof'>Proof</a> page:");
+  let ttbl = make_table(sec_tp) in
+  let thdr = dom_create("tr") in
+  render_th(thdr, "#");
+  render_th(thdr, "Name");
+  render_th(thdr, "Key result");
+  render_th(thdr, "Session");
+  dom_append(ttbl, thdr);
+  render_table_row_4(ttbl, "139", "Shadow CRT Root", "Root sum = 30 = P(0); disc = phi(DATA)^2", "S1688");
+  render_table_row_4(ttbl, "149", "Shadow Ratio Staircase", "Cofactors sum to ANSWER = 42", "S1698");
+  dom_append(dom_body(), sec_tp);
+
   /* === INTERACTIVE: SHADOW POLYNOMIAL EVALUATOR === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: P(x) Evaluator");
@@ -150,5 +212,7 @@ fn page_shadow_eval() = (
   render_contrast_row(ctbl7, "P(7) = 240", "A product of four differences", "|roots(E8)| = rank * Coxeter = D^3 * D*K*E");
   render_contrast_row(ctbl7, "P(9) = 1344", "Just 2^6 * 3 * 7", "D^3 * |PSL(2,7)|. E absent: self-blindness");
   render_contrast_row(ctbl7, "P(17) = 8!", "Numerical coincidence?", "= |E8| * |PSL(2,7)|. Three pillars of algebra in one polynomial");
+  render_contrast_row(ctbl7, "Root count", "Degree 4: at most 4 roots per prime", "5 roots mod D^3 and K^2 (mirror -1). Root sum = P(0)");
+  render_contrast_row(ctbl7, "Ratios P(p)/P(0)", "Grow with p. No structure expected", "D-power staircase. Cofactors {1,9,11,21} sum to 42");
   dom_append(dom_body(), sec7)
 )
