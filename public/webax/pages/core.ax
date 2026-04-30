@@ -564,14 +564,20 @@ fn close_nav_dd() = (
 
 /* ===== PAGE REGISTRY -- SSOT for search + section indices ===== */
 /* Adding a page? Add _rp() call in page_list.ax + page fn + router entry.
-   Sitemap + route map auto-derive from page_list.ax (G8 dissolved S1630). */
+   Sitemap + route map + index grid auto-derive from page_list.ax.
+   W2 DISSOLVED S1724: _group() in page_list.ax drives index card grouping.
+   One _rp() call = route + search + sitemap + index card. Zero manual steps. */
 let _pg_sec = alloc(200)
 let _pg_slug = alloc(200)
 let _pg_title = alloc(200)
 let _pg_desc = alloc(200)
+let _pg_group = alloc(200)
 let _pg_n = [0]
+let _cur_group = alloc(1)
 
 fn _section(_m:str) = 0
+
+fn _group(name:str) = set(_cur_group, 0, name)
 
 fn _rp(sec:str, slug:str, title:str, desc:str) = (
   let i = _pg_n[0] in
@@ -579,6 +585,7 @@ fn _rp(sec:str, slug:str, title:str, desc:str) = (
   set(_pg_slug, i, slug);
   set(_pg_title, i, title);
   set(_pg_desc, i, desc);
+  set(_pg_group, i, _cur_group[0]);
   set(_pg_n, 0, i + 1)
 )
 
@@ -597,6 +604,24 @@ fn reg_render_section(g, section:str) = (
     if streq(_pg_sec[i], section) == 1 then
       render_explore_link(g, "/" + _pg_sec[i] + "/" + _pg_slug[i], _pg_title[i], _pg_desc[i])
     else 0;
+    mut i = i + 1
+  )
+)
+
+/* Render all pages in a section as explore cards WITH group headers.
+   Group names come from _group() calls in page_list.ax.
+   Auto-generates index grids: one _rp() = one card. W2 dissolved. */
+fn reg_render_section_grouped(g, section:str) = (
+  let pg = alloc(1) in
+  mut i = 0;
+  while i < _pg_n[0] do (
+    if streq(_pg_sec[i], section) == 1 then (
+      if _pg_group[i] != pg[0] then (
+        if _pg_group[i] != 0 then idx_group(g, _pg_group[i]) else 0;
+        set(pg, 0, _pg_group[i])
+      ) else 0;
+      render_explore_link(g, "/" + _pg_sec[i] + "/" + _pg_slug[i], _pg_title[i], _pg_desc[i])
+    ) else 0;
     mut i = i + 1
   )
 )
@@ -1270,124 +1295,21 @@ fn page_basics_index() = (
   dom_head_meta("description", "First encounter with 0/0 = Z/214414200Z. Story, derivation, death, and the bootstrap.");
   idx_hero("Basics", "Z/6", "First encounter. What is 0/0? Seven primes. Why these seven? Z/7.");
   let g = idx_grid() in
-
-  idx_group(g, "Start Here");
-  render_explore_link(g, "/basics/numbers_clocks", "Numbers & Clocks", "Modular arithmetic, primes, GCD. Start here.");
-  render_explore_link(g, "/basics/crt", "What is CRT?", "The Chinese Remainder Theorem. One clock becomes many.");
-  render_explore_link(g, "/basics/rings_channels", "Rings & Channels", "CRT splits 214414200 into 7 channels.");
-  render_explore_link(g, "/basics/waves_shadows", "Waves & Shadows", "Eigenvalues, coupling, OMEGA.");
-
-  idx_group(g, "The Story");
-  render_explore_link(g, "/basics/worldview", "Worldview", "214,414,200. The number that contains everything.");
-  render_explore_link(g, "/basics/story", "Story", "How one question became a universe.");
-  render_explore_link(g, "/basics/derive", "Derive the Chain", "The derivation. 0/0 to seven primes in 11 steps.");
-  render_explore_link(g, "/basics/death", "Death and OMEGA", "What the axiom says about endings.")
+  reg_render_section_grouped(g, "basics")
 )
 
 fn page_data_index() = (
   dom_head_meta("description", "The axiom maps to reality. Turbulence, sleep, kingdoms, physics, chemistry, biology.");
   idx_hero("Data", "Z/210", "The axiom maps to reality. Four data channels (D,K,E,b). Z/7 splits data from error correction.");
   let g = idx_grid() in
-
-  idx_group(g, "Core");
-  render_explore_link(g, "/data/turbulence", "Turbulence", "Two constants, one structure.");
-  render_explore_link(g, "/data/sleep", "Sleep", "You fall asleep in five steps.");
-  render_explore_link(g, "/data/kingdoms", "Kingdoms", "Seven kingdoms of life.");
-  render_explore_link(g, "/data/alpha", "Fine Structure Alpha", "The fine structure constant.");
-  render_explore_link(g, "/data/ecc", "ECC", "Error correction for free.");
-  render_explore_link(g, "/data/cosmo", "Cosmos", "The universe in six primes.");
-  render_explore_link(g, "/data/crt_stats", "CRT Statistics", "Significance testing via CRT channels.");
-
-  idx_group(g, "Fundamental Forces");
-  render_explore_link(g, "/data/sm", "Standard Model", "Particles from ring structure.");
-  render_explore_link(g, "/data/quantum", "Quantum", "Superposition is CRT.");
-  render_explore_link(g, "/data/classical", "Classical", "Newton from the ring.");
-  render_explore_link(g, "/data/em", "Electromagnetism", "Maxwell from D=2.");
-  render_explore_link(g, "/data/gr", "General Relativity", "Curvature from coupling.");
-  render_explore_link(g, "/data/force_hierarchy", "Force Hierarchy", "Four forces from six primes.");
-  render_explore_link(g, "/data/dimension", "Dimension", "How K=3 creates 3+1 spacetime.");
-
-  idx_group(g, "Matter & Energy");
-  render_explore_link(g, "/data/thermo", "Thermodynamics", "Heat, entropy, phase transitions.");
-  render_explore_link(g, "/data/condensed", "Condensed Matter", "Phases of matter.");
-  render_explore_link(g, "/data/statmech", "Statistical Mechanics", "Ensembles from CRT.");
-  render_explore_link(g, "/data/nuclear", "Nuclear", "Strong force from depth.");
-  render_explore_link(g, "/data/particles", "Particles", "Mass hierarchy from primes.");
-  render_explore_link(g, "/data/optics", "Optics", "Light through the lattice.");
-  render_explore_link(g, "/data/acoustics", "Acoustics", "Sound as ring wave.");
-
-  idx_group(g, "Cosmos");
-  render_explore_link(g, "/data/blackhole", "Black Hole", "Event horizon from ring.");
-  render_explore_link(g, "/data/gravastar", "Gravastar", "Alternative to singularity.");
-  render_explore_link(g, "/data/neutron_star", "Neutron Star", "D-choke inspiral.");
-  render_explore_link(g, "/data/gravity", "Gravity", "D-force vs K-nesting simulation.");
-  render_explore_link(g, "/data/photon", "Photon", "D=2 messenger.");
-  render_explore_link(g, "/data/eternal_sun", "Eternal Sun", "Fusion from ring math.");
-  render_explore_link(g, "/data/dark_energy", "Dark Energy", "What if everything compresses?");
-  render_explore_link(g, "/data/solar_system", "Solar System", "Eight planets. One oxygen atom.");
-  render_explore_link(g, "/data/heliosphere", "Heliosphere", "The solar bubble. CRT velocities and wall of fire.");
-
-  idx_group(g, "Life Sciences");
-  render_explore_link(g, "/data/chemistry", "Chemistry", "Periodic table from primes.");
-  render_explore_link(g, "/data/biology", "Biology", "Life from ring structure.");
-  render_explore_link(g, "/data/dna", "DNA", "Genetic code in the ring.");
-  render_explore_link(g, "/data/pmns", "PMNS", "Neutrino mixing from CRT.");
-  render_explore_link(g, "/data/human_shape", "Human Shape", "Why bodies look like this.");
-  render_explore_link(g, "/data/culture", "Culture", "Human patterns in the ring.");
-
-  idx_group(g, "Mathematics");
-  render_explore_link(g, "/data/braid", "The Braid", "Spatial K = temporal K.");
-  render_explore_link(g, "/data/ouroboros", "Ouroboros", "72-transition cycle.");
-  render_explore_link(g, "/data/boson_fermion", "Boson-Fermion", "Statistics from parity.");
-  render_explore_link(g, "/data/modular_forms", "Modular Forms", "Weight from ring depth.");
-  render_explore_link(g, "/data/lie_algebra", "Lie Algebra", "Roots from CRT.");
-  render_explore_link(g, "/data/eta_bridge", "Eta Bridge", "Dedekind eta and the ring.");
-  render_explore_link(g, "/data/monster_moonshine", "Monster Moonshine", "The monster group appears.");
-
-  idx_group(g, "Frontier");
-  render_explore_link(g, "/data/mutual_holography", "Mutual Holography", "Twin discoballs.");
-  render_explore_link(g, "/data/scale_relativity", "Scale Relativity", "Fractal spacetime.");
-  render_explore_link(g, "/data/proof", "Proof Assistant", "The ring verifies its own theorems.");
-  render_explore_link(g, "/data/freewill", "Free Will", "Determinism vs emergence.");
-  render_explore_link(g, "/data/conscious", "Conscious", "The hard problem.");
-  render_explore_link(g, "/data/infinity", "Infinity", "Beyond the ring.");
-  render_explore_link(g, "/data/noxan", "Noxan", "The shadow entity.")
+  reg_render_section_grouped(g, "data")
 )
 
 fn page_teach_index() = (
   dom_head_meta("description", "Number theory proofs. Cunningham chains, Heegner numbers, golden ratio, and 19 more theorems.");
   idx_hero("Teach", "Z/2310", "Check the math. L=11 adds error correction. Every theorem proved, every claim verifiable.");
   let g = idx_grid() in
-
-  idx_group(g, "Chain & Primes");
-  render_explore_link(g, "/teach/cunningham", "Cunningham Chains", "The chain that generates six primes.");
-  render_explore_link(g, "/teach/heegner", "Heegner Numbers", "Why these numbers are special.");
-  render_explore_link(g, "/teach/k_squared_stop", "K-Squared Stop", "K^2=9. The spider web.");
-  render_explore_link(g, "/teach/depth_return", "Depth Return", "b=7 comes home.");
-  render_explore_link(g, "/teach/depth_quad", "Depth Quadratic", "Seven roles of one polynomial.");
-  render_explore_link(g, "/teach/mirror_cost", "Mirror Cost", "The price of reflection.");
-
-  idx_group(g, "Number Theory");
-  render_explore_link(g, "/teach/bernoulli", "Bernoulli Numbers", "Classical meets ring structure.");
-  render_explore_link(g, "/teach/pell_twins", "Pell Twins", "Paired solutions from D=2.");
-  render_explore_link(g, "/teach/golden_ratio", "Golden Ratio", "Phi from the axiom.");
-  render_explore_link(g, "/teach/smooth_census", "Smooth Census", "Counting smooth numbers.");
-  render_explore_link(g, "/teach/stormer_pairs", "Stormer Pairs", "Extremal smooth pairs.");
-
-  idx_group(g, "Ring Theorems");
-  render_explore_link(g, "/teach/universal_boundary", "Universal Boundary", "Where the ring ends.");
-  render_explore_link(g, "/teach/lambda_chain", "Lambda Chain", "420 = the heartbeat.");
-  render_explore_link(g, "/teach/gap_pairs", "K=3 Gap Gates", "Prime gap alternation theorem.");
-  render_explore_link(g, "/teach/goldbach", "Goldbach Through the Ring", "Same-class Goldbach in Z/210.");
-  render_explore_link(g, "/teach/equator", "The Equator", "Midpoint eigenvalue and sigma conservation.");
-
-  idx_group(g, "Advanced");
-  render_explore_link(g, "/teach/shadow_eval", "Shadow Eval", "The shadow function evaluated.");
-  render_explore_link(g, "/teach/d_power_gaussian", "D-Power Gaussian", "Powers of 2 in Gaussian integers.");
-  render_explore_link(g, "/teach/cyclotomic_fibonacci", "Cyclotomic Fibonacci", "Fibonacci meets cyclotomic fields.");
-  render_explore_link(g, "/teach/fano_e8", "Fano-E8", "Finite geometry meets Lie algebra.");
-  render_explore_link(g, "/teach/arcsine_cumulant", "Arcsine Cumulant", "Distribution theory in the ring.");
-  render_explore_link(g, "/teach/figurate_bridge", "Figurate Bridge", "Triangular numbers bridge primes.")
+  reg_render_section_grouped(g, "teach")
 )
 
 fn page_deep_index() = (
@@ -1468,30 +1390,7 @@ fn page_living_index() = (
   dom_head_meta("description", "Living systems: compiler, games, training, ECC, emergence. .ax IS the website. Build with it.");
   idx_hero("Living", "Z/12612600", "The tools ARE the proof. .ax IS the website. Build with it. Stride 137 inside.");
   let g = idx_grid() in
-
-  idx_group(g, "Build & Play");
-  render_explore_link(g, "/living/ouroboros_compiler", "Ouroboros", ".ax compiles .ax. The loop closes.");
-  render_explore_link(g, "/living/tutorial", "Tutorial", "Learn .ax step by step.");
-
-  idx_group(g, "Interactive");
-  render_explore_link(g, "/living/ecc_live", "Error Correction", "L=11 detects. CRT heals. Live demo.");
-  render_explore_link(g, "/living/crt_train", "CRT Training", "6-channel neural network. Block-diagonal backprop.");
-  render_explore_link(g, "/living/coupling", "Coupling", "How elements talk to each other.");
-  render_explore_link(g, "/living/crt_anatomy", "CRT Anatomy", "Inside the Chinese Remainder Theorem.");
-  render_explore_link(g, "/living/emergence", "Emergence", "3 ops produce Life=7.");
-  render_explore_link(g, "/living/omega_emergence", "Omega Emergence", "D^420 = 1576576. The projector.");
-  render_explore_link(g, "/living/omega_journey", "The OMEGA Journey", "D^k walks 420 steps to OMEGA.");
-  render_explore_link(g, "/living/sensor", "Sensor Dashboard", "Real data through CRT mesh.");
-
-  idx_group(g, "Theory");
-  render_explore_link(g, "/living/chain", "The Chain", "sigma to D to K to E to b to L.");
-  render_explore_link(g, "/living/ai", "Intelligence", "CRT as architecture.");
-  render_explore_link(g, "/living/ai_predict", "CRT Prediction", "Text prediction via CRT channels.");
-  render_explore_link(g, "/living/curriculum", "Curriculum", "7-ring learning path.");
-  render_explore_link(g, "/living/scaling", "Scaling Laws", "Why bigger works.");
-  render_explore_link(g, "/living/cc0", "CC0", "No rights reserved. Ever.");
-  render_explore_link(g, "/living/revolution", "Revolution", ".ax replaces everything.");
-  render_explore_link(g, "/living/lambda_rlm", "External Validation", "k*=2=D proved independently.")
+  reg_render_section_grouped(g, "living")
 )
 
 /* Table header cell */
