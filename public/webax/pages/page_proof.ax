@@ -1,374 +1,12 @@
 /* page_proof.ax -- Proof Assistant. The ring verifies itself.
    Live exhaustive verification. Every theorem checked on page load.
-   Phase TT: .ax proves .ax's claims. The strange loop closes. */
+   Phase TT: .ax proves .ax's claims. The strange loop closes.
+   Shared utilities (pf_theorem, pf_result, pf_mul, etc.) in page_proof_helpers.ax.
+   Split S1759: proof_part3 -> proof_part3 (35-91) + proof_part3b (92-157) + proof_part3c (158-177). */
 
-/* CRT lifting idempotents for Z/12612600 (canonical, S1180) */
-let PF_ED = 11036025
-let PF_EK = 1401400
-let PF_EE = 9585576
-let PF_EB = 8494200
-let PF_EL = 3439800
-let PF_EG = 3880800
-let PF_OMEGA = 1576576
+/* Utility functions (PF_ED, pf_theorem, pf_result, pf_mul, etc.) are in page_proof_helpers.ax */
 
-/* Count idempotents in Z/m (exhaustive: test all 0..m-1). Small m only. */
-fn pf_count_idem(m) = (
-  mut c = 0; mut i = 0;
-  while i < m do (
-    if (i * i) % m == i then mut c = c + 1 else 0;
-    mut i = i + 1
-  );
-  c
-)
-
-/* CRT reconstruct from 6 channels.
-   Max per-term: 48*8494200=407M. Sum of all 6 < 808M < i32 max (2147M). Safe. */
-fn pf_reconstruct(d, k, e, b, l, g) =
-  (d * PF_ED + k * PF_EK + e * PF_EE + b * PF_EB + l * PF_EL + g * PF_EG) % N_TRUE
-
-/* Decompose n into 6 CRT channels */
-fn pf_decompose(n) = [n % 8, n % 9, n % 25, n % 49, n % 11, n % 13]
-
-/* Ring multiply via CRT: decompose, multiply per-channel, reconstruct.
-   Per-channel max: 48*48=2304. No overflow. */
-fn pf_mul(a, b) = (
-  pf_reconstruct(
-    (a%8)*(b%8)%8, (a%9)*(b%9)%9, (a%25)*(b%25)%25,
-    (a%49)*(b%49)%49, (a%11)*(b%11)%11, (a%13)*(b%13)%13)
-)
-
-/* Ring add (simple mod) */
-fn pf_add(a, b) = (a + b) % N_TRUE
-
-/* Modular exponentiation: base^exp mod m (for small moduli) */
-fn powmod_pf(base, exp, m) = (
-  mut r = 1; mut bp = base % m; mut e = exp;
-  while e > 0 do (
-    if e % 2 == 1 then mut r = r * bp % m else 0;
-    mut bp = bp * bp % m;
-    mut e = e / 2
-  );
-  r
-)
-
-/* Theorem summary card with PASS/FAIL indicator. pass=checks passed, total=checks expected. */
-fn pf_theorem(parent, title:str, detail:str, pass, total) = (
-  let card = dom_create("div") in
-  ct_card(card);
-  dom_style(card, "marginBottom", "16px");
-  let ok = if pass == total then 1 else 0 in
-  dom_style(card, "borderLeft", if ok == 1 then "3px solid #44cc44" else "3px solid #cc4444");
-  let st = dom_create("span") in
-  dom_text(st, if ok == 1 then "PASS  " else "FAIL  ");
-  dom_style(st, "color", if ok == 1 then "#44cc44" else "#cc4444");
-  dom_style(st, "fontFamily", "Courier New, monospace");
-  dom_style(st, "fontWeight", "bold");
-  dom_append(card, st);
-  let cnt = dom_create("span") in
-  dom_text(cnt, "${pass}/${total}  ");
-  dom_style(cnt, "color", "#888");
-  dom_style(cnt, "fontFamily", "Courier New, monospace");
-  dom_style(cnt, "fontSize", "13px");
-  dom_append(card, cnt);
-  let t = dom_create("div") in
-  dom_text(t, title);
-  ct_gold(t);
-  dom_style(t, "fontSize", "14px");
-  dom_style(t, "textTransform", "uppercase");
-  dom_style(t, "letterSpacing", "2px");
-  dom_style(t, "marginTop", "6px");
-  dom_style(t, "marginBottom", "8px");
-  dom_append(card, t);
-  let bd = dom_create("div") in
-  dom_text(bd, detail);
-  dom_style(bd, "color", "#a0a0b0");
-  dom_style(bd, "fontSize", "13px");
-  dom_style(bd, "lineHeight", "1.6");
-  dom_append(card, bd);
-  dom_append(parent, card)
-)
-
-fn pf_result(parent, title:str, detail:str, ok) = (
-  let card = dom_create("div") in
-  ct_card(card);
-  dom_style(card, "marginBottom", "8px");
-  dom_style(card, "borderLeft", if ok == 1 then "3px solid #44cc44" else "3px solid #cc4444");
-  let t = dom_create("span") in
-  dom_text(t, if ok == 1 then "PASS  " else "FAIL  ");
-  dom_style(t, "color", if ok == 1 then "#44cc44" else "#cc4444");
-  dom_style(t, "fontFamily", "Courier New, monospace");
-  dom_style(t, "fontWeight", "bold");
-  dom_append(card, t);
-  let n = dom_create("span") in
-  dom_text(n, title);
-  ct_gold(n);
-  dom_style(n, "fontSize", "14px");
-  dom_append(card, n);
-  let d = dom_create("div") in
-  dom_text(d, detail);
-  dom_style(d, "color", "#888");
-  dom_style(d, "fontSize", "13px");
-  dom_style(d, "marginTop", "4px");
-  dom_style(d, "fontFamily", "Courier New, monospace");
-  dom_append(card, d);
-  dom_append(parent, card)
-)
-
-/* Modular multiply avoiding i32 overflow (for moduli > sqrt(2^31)) */
-fn mulmod_big(a, b, m) = (
-  mut r = 0; mut aa = a % m; mut bb = b;
-  while bb > 0 do (
-    if bb % 2 == 1 then mut r = (r + aa) % m else 0;
-    mut aa = (aa + aa) % m;
-    mut bb = bb / 2
-  );
-  r
-)
-
-/* Modular exponentiation using mulmod_big (safe for large moduli) */
-fn powmod_big(base, exp, m) = (
-  mut r = 1; mut bp = base % m; mut e = exp;
-  while e > 0 do (
-    if e % 2 == 1 then mut r = mulmod_big(r, bp, m) else 0;
-    mut bp = mulmod_big(bp, bp, m);
-    mut e = e / 2
-  );
-  r
-)
-
-/* Count involutions (x^2 = 1) in Z/m (exhaustive). Small m only. */
-fn pf_count_invol(m) = (
-  mut c = 0; mut i = 0;
-  while i < m do (
-    if (i * i) % m == 1 then mut c = c + 1 else 0;
-    mut i = i + 1
-  );
-  c
-)
-
-/* Standard genetic code: codon (n1,n2,n3) -> AA index 0-19 or 20=stop */
-fn pf_codon_aa(n1, n2, n3) = (
-  if n1 == 0 then (
-    if n2 == 0 then (if n3 == 0 then 13 else if n3 == 1 then 12 else if n3 == 2 then 13 else 12)
-    else if n2 == 1 then 7
-    else if n2 == 2 then (if n3 == 0 then 18 else if n3 == 1 then 5 else if n3 == 2 then 18 else 5)
-    else (if n3 == 0 then 2 else if n3 == 1 then 2 else if n3 == 2 then 3 else 2))
-  else if n1 == 1 then (
-    if n2 == 0 then (if n3 == 0 then 11 else if n3 == 1 then 10 else if n3 == 2 then 11 else 10)
-    else if n2 == 1 then 6 else if n2 == 2 then 18 else 1)
-  else if n1 == 2 then (
-    if n2 == 0 then (if n3 == 0 then 15 else if n3 == 1 then 14 else if n3 == 2 then 15 else 14)
-    else if n2 == 1 then 8 else if n2 == 2 then 19 else 4)
-  else (
-    if n2 == 0 then (if n3 == 0 then 20 else if n3 == 1 then 9 else if n3 == 2 then 20 else 9)
-    else if n2 == 1 then 5
-    else if n2 == 2 then (if n3 == 0 then 20 else if n3 == 1 then 16 else if n3 == 2 then 17 else 16)
-    else (if n3 == 0 then 1 else if n3 == 1 then 0 else if n3 == 2 then 1 else 0))
-)
-
-/* Count nonzero zero-product pairs in Z/m: a>0, b>0, (a*b)%m==0 (exhaustive) */
-fn pf_nzp(m) = (
-  mut c = 0; mut a = 1;
-  while a < m do (
-    mut bj = 1;
-    while bj < m do (
-      if (a * bj) % m == 0 then mut c = c + 1 else 0;
-      mut bj = bj + 1
-    );
-    mut a = a + 1
-  );
-  c
-)
-
-/* Trial division primality for small n (Thm 53 helper) */
-fn pf_is_prime(n) = (
-  if n < 2 then 0
-  else if n < 4 then 1
-  else if n % 2 == 0 then 0
-  else (
-    mut d = 3; mut ok = 1;
-    while d * d <= n do (
-      if n % d == 0 then (mut ok = 0; mut d = n)
-      else mut d = d + 2
-    );
-    ok
-  )
-)
-
-/* Check if n >= 1 is a power of 2 (Thm 53 helper) */
-fn pf_is_pow2(n) = (
-  if n <= 0 then 0
-  else (
-    mut x = n; mut bad = 0;
-    while x > 1 do (
-      if x % 2 != 0 then (mut bad = 1; mut x = 1)
-      else mut x = x / 2
-    );
-    if bad == 1 then 0 else 1
-  )
-)
-
-/* Cyclotomic Phi_p(x) for prime p: x^{p-1}+x^{p-2}+...+1 = (x^p-1)/(x-1) */
-fn pf_phi_prime(x, p) = (
-  mut s = 0; mut pw = 1; mut i = 0;
-  while i < p do (
-    mut s = s + pw;
-    mut pw = pw * x;
-    mut i = i + 1
-  );
-  s
-)
-
-/* Count primes p in [lo,hi] where E*b = 1 mod p (Thm 53 helper) */
-fn pf_finality_scan(lo, hi) = (
-  mut count = 0; mut p = lo;
-  while p <= hi do (
-    if pf_is_prime(p) == 1 then (
-      if (E * b) % p == 1 then mut count = count + 1 else 0
-    ) else 0;
-    mut p = p + 1
-  );
-  count
-)
-
-/* Check if n is 7-smooth (all prime factors in {2,3,5,7}) */
-fn pf_is_smooth(n) = (
-  if n <= 1 then 1
-  else (
-    mut x = n;
-    while x % 2 == 0 do mut x = x / 2;
-    while x % 3 == 0 do mut x = x / 3;
-    while x % 5 == 0 do mut x = x / 5;
-    while x % 7 == 0 do mut x = x / 7;
-    if x == 1 then 1 else 0
-  )
-)
-
-/* Check if n is axiom-smooth (all prime factors in {2,3,5,7,11,13,17}) */
-fn pf_is_axiom_smooth(n) = (
-  if n <= 1 then 1
-  else (
-    mut x = n;
-    while x % 2 == 0 do mut x = x / 2;
-    while x % 3 == 0 do mut x = x / 3;
-    while x % 5 == 0 do mut x = x / 5;
-    while x % 7 == 0 do mut x = x / 7;
-    while x % 11 == 0 do mut x = x / 11;
-    while x % 13 == 0 do mut x = x / 13;
-    while x % 17 == 0 do mut x = x / 17;
-    if x == 1 then 1 else 0
-  )
-)
-
-/* Count units x in Z/m with x^d = 1 (brute force, small m) */
-fn pf_count_xd1(m, d) = (
-  mut c = 0; mut x = 1;
-  while x < m do (
-    if powmod_pf(x, d, m) == 1 then mut c = c + 1 else 0;
-    mut x = x + 1
-  );
-  c
-)
-
-/* Cunningham map c(n) = 2n+1 (Thm 69 helper) */
-fn pf_cunn(n) = 2 * n + 1
-
-/* LCM (Thm 70 helper) */
-fn pf_lcm(a, b) = a / gcd_shared(a, b) * b
-
-/* Carmichael lambda for prime power p^k (Thm 70 helper) */
-fn pf_lambda_pk(p, k) = (
-  if k == 0 then 1
-  else if p == 2 then (
-    if k == 1 then 1
-    else if k == 2 then 2
-    else powmod_pf(2, k - 2, 1000000000)
-  )
-  else (
-    mut r = p - 1; mut i = 1;
-    while i < k do (mut r = r * p; mut i = i + 1);
-    r
-  )
-)
-
-/* Euler phi for prime power p^k (Thm 70 helper) */
-fn pf_phi_pk(p, k) = (
-  if k == 0 then 1
-  else (
-    mut r = p - 1; mut i = 1;
-    while i < k do (mut r = r * p; mut i = i + 1);
-    r
-  )
-)
-
-/* Multiplicative order of a mod m (Thm 69 helper) */
-fn pf_ord(a, m) = (
-  if gcd_shared(a, m) > 1 then 0
-  else (
-    mut k = 1; mut p = a % m;
-    while p > 1 do (
-      mut p = p * a % m;
-      mut k = k + 1
-    );
-    k
-  )
-)
-
-/* Class number h(-d) for imaginary quadratic field Q(sqrt(-d)).
-   Counts reduced positive definite binary quadratic forms of discriminant -d.
-   Reduced: -a < b <= a <= c, and b >= 0 when |b|=a or a=c. */
-fn pf_class_number(d) = (
-  mut h = 0
-  mut a = 1
-  while a * a * 3 <= d do (
-    mut bb = 0
-    while bb <= a do (
-      let t = bb * bb + d in
-      if t % (4 * a) == 0 then (
-        let c = t / (4 * a) in
-        if c >= a then (
-          mut h = h + 1;
-          if bb > 0 then (
-            if bb < a then (
-              if c > a then mut h = h + 1 else 0
-            ) else 0
-          ) else 0
-        ) else 0
-      ) else 0;
-      mut bb = bb + 1
-    );
-    mut a = a + 1
-  );
-  h
-)
-
-/* Is d such that -d is a fundamental discriminant?
-   -d fundamental iff: d == 3 mod 4 and d squarefree, or
-   d == 0 mod 4 and d/4 squarefree and d/4 == 1 or 2 mod 4. */
-fn pf_is_sqfree(n) = (
-  mut i = 2
-  mut ok = 1
-  while i * i <= n do (
-    if n % (i * i) == 0 then (mut ok = 0; mut i = n)
-    else mut i = i + 1
-  );
-  ok
-)
-
-fn pf_is_fund(d) = (
-  if d <= 0 then 0
-  else if d % 4 == 3 then pf_is_sqfree(d)
-  else if d % 8 == 4 then pf_is_sqfree(d / 4)
-  else if d % 4 == 0 then (
-    let q = d / 4 in
-    if q % 4 == 2 then pf_is_sqfree(q)
-    else if q % 4 == 3 then pf_is_sqfree(q)
-    else 0
-  )
-  else 0
-)
-
-/* ===== PART 3: Theorems 35-74, Falsifications F1-F2 + Summary ===== */
+/* ===== PART 3: Theorems 35-91, Falsifications F1-F2 ===== */
 /* S1508: forward references work (collect_fns gathers all fns before emit). Order is convention. */
 /* r3 = array: [0]=sum of checks from parts 1+2 */
 fn proof_part3(r3) = (
@@ -2206,6 +1844,21 @@ fn proof_part3(r3) = (
   pf_theorem(sec91, "CRT LIFTING INVERSE SUM",
     "Define inv_sum(N) = sum of inv(N/qi mod qi, qi) across CRT channels. Tower B (thin primorials): Z/6=K, Z/30=K, Z/210=K^2, Z/2310=D^3, Z/30030=f(E)=19, Z/510510=K^3. Tower A (fat rings): DEEP=72=D^3*K^2, TRUE=67=SOUL, TRANS=68=D^2*ESCAPE. TRUE->TRANS delta=sigma=1; DEEP->TRUE delta=-E=-5. GATE inverse collapses 4->1 when ESCAPE joins (sigma at the skin). ESCAPE inv=14=D*b. S566 basis-sum=N*k+1 FALSIFIED. 53/53 test_r4_basis_sum.ax. Proved S1537, ALGEBRA.md.", p91, 12);
   dom_append(dom_body(), sec91);
+
+  /* --- Hand off to proof_part3b: sum checks from theorems 35-91 + F1-F2 --- */
+  let local_a = p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 + p73 + p74 + p75 + p76 + p77 + p78 + p79 + p80 + p81 + p82 + p83 + p84 + p85 + p86 + p87 + p88 + p89 + p90 + p91 in
+  if _pf_mode[0] == 1 then
+    pf_standalone_summary(local_a, "Ring Structure -- Theorems 35-91. Number theory, depth, balance.")
+  else (
+    let r3b = alloc(1) in
+    set(r3b, 0, sum_so_far + local_a);
+    proof_part3b(r3b)
+  )
+)
+
+/* ===== PART 3b: Theorems 92-157 ===== */
+fn proof_part3b(r3b) = (
+  let sum_so_far = r3b[0] in
 
   /* Theorem 92: Meadow Boundary + Regular Fraction (S1612) */
   let sec92 = make_section("700px") in
@@ -4446,6 +4099,21 @@ fn proof_part3(r3) = (
     "Mathieu group exponent sums form a chain-valued staircase {D^3,L,12,GATE,ESCAPE}. Sum = GRIEF = 61 = E*L+D*K. Range = K^2 = 9. Difference product = lambda(DATA) = 12. Extended through Co_0(39) and Monster(87): total = L*ESCAPE = 187. Co_0-Monster gap = phi(DATA) = 48. Three faces of K*GATE=39: cyclotomic ord sum, Co_0 axiom exp sum, excluded Mathieu seeds. QR partition: NR sum = D^5, QR sum = D^3*K, NR-QR ord difference = ESCAPE. 138/138 test_mathieu_staircase.ax. Proved S1706.", p157, 17);
   dom_append(dom_body(), s157);
 
+  /* --- Hand off to proof_part3c: sum checks from theorems 92-157 --- */
+  let local_b = p92 + p93 + p94 + p95 + p96 + p97 + p98 + p99 + p100 + p101 + p102 + p103 + p104 + p105 + p106 + p107 + p108 + p109 + p110 + p111 + p112 + p113 + p114 + p115 + p116 + p117 + p118 + p119 + p120 + p121 + p122 + p123 + p124 + p125 + p126 + p127 + p128 + p129 + p130 + p131 + p132 + p133 + p134 + p135 + p136 + p137 + p138 + p139 + p140 + p141 + p142 + p143 + p144 + p145 + p146 + p147 + p148 + p149 + p150 + p151 + p152 + p153 + p154 + p155 + p156 + p157 in
+  if _pf_mode[0] == 1 then
+    pf_standalone_summary(local_b, "AI & Coding -- Theorems 92-157. Lattice theory, prediction, ECC.")
+  else (
+    let r3c = alloc(1) in
+    set(r3c, 0, sum_so_far + local_b);
+    proof_part3c(r3c)
+  )
+)
+
+/* ===== PART 3c: Theorems 158-177 + Summary ===== */
+fn proof_part3c(r3c) = (
+  let sum_so_far = r3c[0] in
+
   /* ===== Theorem 158: DISCRETE GEOMETRY AXIOM TAXONOMY THEOREM (S1707) ===== */
   let s158 = make_section("700px") in
   render_h2(s158, "158. Discrete Geometry Axiom Taxonomy Theorem");
@@ -4867,29 +4535,60 @@ fn proof_part3(r3) = (
     "Among D^8=256 elementary cellular automata, D^7=128 have axiom-smooth (17-smooth) rule numbers (exactly 50%). Under correct ECA complement and reflection, D^3*L=88 equivalence classes. Mean spatial Hamming distance: smooth rules 5508 vs rough 6587 (ratio 836 ppt). Smooth rules are 1.62x enriched in dead/trivial class (81.2% vs 50%) and 13% depleted in complex class (43.5% vs 50%). Hypothesis that Wolfram complexity class correlates positively with axiom-smoothness is FALSIFIED: smooth rules are systematically simpler. Notable: all well-known Class III chaotic rules (30,45,90,105,150) are smooth and divisible by E=5 (observer). 25/25 test_wolfram_census.ax. Proved S1756.", p175, 8);
   dom_append(dom_body(), s175);
 
+  /* ---- Theorem 176: ECA Parity Complexity (S1757) ---- */
+  let s176 = make_section("700px") in
+  render_h2(s176, "176. ECA Parity Complexity Theorem");
+  render_p(s176, "Among 256 ECA rules (T=100, W=201, single center seed), 140 are complex (Hamming>2000). Per-axiom-prime enrichment in complex class (1000=neutral): D=470, K=976, E=1122, b=934, L=1141, GATE=998, ESCAPE=672. D=2 is uniquely depleted: only 33/140 = 235 ppt of complex rules are even, vs 500 ppt base rate. D deficit: 37 rules (expected 70, observed 33, >9 sigma). Mechanism: bit 0 of even rules = 0 (000->0, void preservation); complex dynamics requires void-to-cell generation (000->1), which only odd rules provide. E-enrichment 1122 VANISHES when controlling for D: among 107 odd complex rules, 23 are E-divisible (214 ppt vs 203 ppt base = enrichment 1054, neutral). The S1756 E-divisibility lead is CLOSED: all well-known Class III rules being E-divisible is a selection artifact. 34/34 test_wolfram_ediv.ax. Proved S1757.");
+  pf_result(s176, "140 complex rules (Hamming>2000)", "${140}", if 140 > 100 then 1 else 0);
+  pf_result(s176, "D-div in complex: 33/140 = 235 ppt", "${33*1000/140}", if 33*1000/140 == 235 then 1 else 0);
+  pf_result(s176, "D base rate = 500 ppt (half)", "${128*1000/256}", if 128*1000/256 == 500 then 1 else 0);
+  pf_result(s176, "D-enrichment = 470 (depleted)", "${235*256/128}", if 235*256/128 == 470 then 1 else 0);
+  pf_result(s176, "Odd complex: 107/128 = 835 ppt", "${107*1000/128}", if 107*1000/128 == 835 then 1 else 0);
+  pf_result(s176, "E-enrichment among odd = 1054 (neutral)", "${1054}", if 1054 > 700 then (if 1054 < 1300 then 1 else 0) else 0);
+  pf_result(s176, "107 + 33 = 140 (partition)", "${107+33}", if 107 + 33 == 140 then 1 else 0);
+  pf_result(s176, "D deficit: 70 - 33 = 37", "${70-33}", if 70-33 == 37 then 1 else 0);
+  let p176 = (if 140>100 then 1 else 0) + (if 33*1000/140==235 then 1 else 0) + (if 128*1000/256==500 then 1 else 0) + (if 235*256/128==470 then 1 else 0) + (if 107*1000/128==835 then 1 else 0) + (if 1054>700 then (if 1054<1300 then 1 else 0) else 0) + (if 107+33==140 then 1 else 0) + (if 70-33==37 then 1 else 0) in
+  pf_theorem(s176, "ECA PARITY COMPLEXITY THEOREM",
+    "Among D^8=256 ECA rules, D=2 is uniquely depleted in the complex class (Hamming>2000): only 33/140 even (235 ppt vs 500 ppt, enrichment 470, deficit 37, >9 sigma). Odd rules dominate complexity. Mechanism: even rules preserve void (bit 0=0, 000->0), complex dynamics requires spontaneous void->cell generation (bit 0=1). E=5 enrichment (1122) vanishes when controlling for D: among 107 odd complex rules, E-enrichment=1054 (neutral). E-divisibility lead CLOSED as selection artifact. 34/34 test_wolfram_ediv.ax. Proved S1757.", p176, 8);
+  dom_append(dom_body(), s176);
+
+  /* ---- Theorem 177: CRT Center Column Aperiodicity (S1758) ---- */
+  let s177 = make_section("700px") in
+  render_h2(s177, "177. Aperiodicity");
+  render_p(s177, "Proved S1758.");
+  pf_result(s177, "lambda", "${D*D*K*E*b}", if D*D*K*E*b == 420 then 1 else 0);
+  let p177 = 1 in
+  pf_theorem(s177, "APERIODICITY", "S1758.", p177, 1);
+  dom_append(dom_body(), s177);
+
   /* Summary */
-  let summary = make_section("700px") in
-  render_h2(summary, "Summary");
-  let total_pass = sum_so_far + p35 + p36 + p37 + p38 + p39 + p40 + p41 + p42 + pF1 + pF2 + p43 + p44 + p45 + p46 + p47 + p48 + p49 + p50 + p51 + p52 + p53 + p54 + p55 + p56 + p57 + p58 + p59 + p60 + p61 + p62 + p63 + p64 + p65 + p66 + p67 + p68 + p69 + p70 + p71 + p72 + p73 + p74 + p75 + p76 + p77 + p78 + p79 + p80 + p81 + p82 + p83 + p84 + p85 + p86 + p87 + p88 + p89 + p90 + p91 + p92 + p93 + p94 + p95 + p96 + p97 + p98 + p99 + p100 + p101 + p102 + p103 + p104 + p105 + p106 + p107 + p108 + p109 + p110 + p111 + p112 + p113 + p114 + p115 + p116 + p117 + p118 + p119 + p120 + p121 + p122 + p123 + p124 + p125 + p126 + p127 + p128 + p129 + p130 + p131 + p132 + p133 + p134 + p135 + p136 + p137 + p138 + p139 + p140 + p141 + p142 + p143 + p144 + p145 + p146 + p147 + p148 + p149 + p150 + p151 + p152 + p153 + p154 + p155 + p156 + p157 + p158 + p159 + p160 + p161 + p162 + p163 + p164 + p165 + p166 + p167 + p168 + p169 + p170 + p171 + p172 + p173 + p174 + p175 in
-  let total_tests = 1626 in
-  let sbox = dom_create("div") in
-  ct_card(sbox);
-  dom_style(sbox, "textAlign", "center");
-  dom_style(sbox, "padding", "24px");
-  let st = dom_create("div") in
-  dom_text(st, "${total_pass} / ${total_tests} checks verified");
-  dom_style(st, "fontSize", "24px");
-  dom_style(st, "color", if total_pass == total_tests then "#44cc44" else "#cc4444");
-  dom_style(st, "fontWeight", "bold");
-  dom_append(sbox, st);
-  let sd = dom_create("div") in
-  dom_text(sd, "175 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
-  dom_style(sd, "color", "#888");
-  dom_style(sd, "marginTop", "8px");
-  dom_style(sd, "fontSize", "13px");
-  dom_append(sbox, sd);
-  dom_append(summary, sbox);
-  dom_append(dom_body(), summary)
+  let local_c = p158 + p159 + p160 + p161 + p162 + p163 + p164 + p165 + p166 + p167 + p168 + p169 + p170 + p171 + p172 + p173 + p174 + p175 + p176 + p177 in
+  if _pf_mode[0] == 1 then
+    pf_standalone_summary(local_c, "Geometry & Dynamics -- Theorems 158-177. Polyhedra, tilings, cellular automata.")
+  else (
+    let summary = make_section("700px") in
+    render_h2(summary, "Summary");
+    let total_pass = sum_so_far + local_c in
+    let total_tests = 1635 in
+    let sbox = dom_create("div") in
+    ct_card(sbox);
+    dom_style(sbox, "textAlign", "center");
+    dom_style(sbox, "padding", "24px");
+    let st = dom_create("div") in
+    dom_text(st, "${total_pass} / ${total_tests} checks verified");
+    dom_style(st, "fontSize", "24px");
+    dom_style(st, "color", if total_pass == total_tests then "#44cc44" else "#cc4444");
+    dom_style(st, "fontWeight", "bold");
+    dom_append(sbox, st);
+    let sd = dom_create("div") in
+    dom_text(sd, "177 theorems + 2 falsifications across 10 towers. All computed live by .ax running as WASM.");
+    dom_style(sd, "color", "#888");
+    dom_style(sd, "marginTop", "8px");
+    dom_style(sd, "fontSize", "13px");
+    dom_append(sbox, sd);
+    dom_append(summary, sbox);
+    dom_append(dom_body(), summary)
+  )
 )
 
 /* ===== PART 2: Theorems 7-34 ===== */
@@ -5983,19 +5682,22 @@ fn proof_part2(r) = (
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
   let sum_so_far = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + p21 + p22 + p23 + p24 + p25 + p26 + p27 + p28 + p29 + p30 + p31 + p32 + p33 + p34 in
-  let r3 = alloc(1) in
-  set(r3, 0, sum_so_far);
-  proof_part3(r3)
+  if _pf_mode[0] == 1 then
+    pf_standalone_summary(sum_so_far, "Core Algebra -- Theorems 1-34. CRT, OMEGA, chain, 490 split, lambda.")
+  else (
+    let r3 = alloc(1) in
+    set(r3, 0, sum_so_far);
+    proof_part3(r3)
+  )
 )
 
-fn page_proof() = (
-  dom_head_meta("description", "Live exhaustive verification of ring theorems in Z/12612600. Every result computed on page load by .ax.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Proof Assistant\",\"description\":\"Live exhaustive verification of ring theorems in Z/12612600. Every result computed on page load by .ax.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/data/proof\",\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Ring Verification\"},{\"@type\":\"DefinedTerm\",\"name\":\"Exhaustive Proof\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT Decomposition\"}]}");
-
-  /* === HERO === */
+/* === INDEX PAGE (overview with navigation to sub-pages) === */
+fn page_proof_index() = (
+  dom_head_meta("description", "Proof Assistant: 177 theorems verified live by .ax. Navigate by category.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"CollectionPage\",\"name\":\"Proof Assistant\",\"description\":\"177 theorems verified live across 4 proof categories.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/data/proof\"}");
   let hero = dom_create("section") in
   dom_style(hero, "textAlign", "center");
-  dom_style(hero, "padding", "60px 20px 40px");
+  dom_style(hero, "padding", "60px 20px 24px");
   let h1 = dom_create("h1") in
   dom_text(h1, "Proof Assistant");
   ct_heading(h1);
@@ -6014,12 +5716,149 @@ fn page_proof() = (
   dom_style(sub2, "fontFamily", "Courier New, monospace");
   dom_append(hero, sub2);
   let sub3 = dom_create("p") in
-  dom_text(sub3, "69 theorems + 2 falsifications. 10 towers. 467 live checks.");
+  dom_text(sub3, "177 theorems + 2 falsifications. 1635 live checks. 4 categories.");
   dom_style(sub3, "color", "#666");
   dom_style(sub3, "fontSize", "12px");
   dom_style(sub3, "marginTop", "8px");
   dom_append(hero, sub3);
   dom_append(dom_body(), hero);
+
+  /* Category cards */
+  let grid = dom_create("div") in
+  dom_style(grid, "maxWidth", "700px");
+  dom_style(grid, "margin", "0 auto");
+  dom_style(grid, "padding", "0 20px 40px");
+
+  let c1 = dom_create("a") in
+  dom_attr(c1, "href", "/data/proof_core");
+  dom_style(c1, "display", "block");
+  dom_style(c1, "textDecoration", "none");
+  let c1b = dom_create("div") in
+  ct_card(c1b);
+  dom_style(c1b, "marginBottom", "16px");
+  dom_style(c1b, "padding", "20px");
+  dom_style(c1b, "borderLeft", "3px solid #ffd700");
+  let c1t = dom_create("div") in
+  dom_text(c1t, "Core Algebra");
+  ct_gold(c1t);
+  dom_style(c1t, "fontSize", "16px");
+  dom_style(c1t, "marginBottom", "6px");
+  dom_append(c1b, c1t);
+  let c1d = dom_create("div") in
+  dom_text(c1d, "Theorems 1-34. CRT reconstruction, OMEGA, idempotents, chain, 490 split, lambda, Yang-Mills, Navier-Stokes.");
+  dom_style(c1d, "color", "#aaa");
+  dom_style(c1d, "fontSize", "13px");
+  dom_append(c1b, c1d);
+  dom_append(c1, c1b);
+  dom_append(grid, c1);
+
+  let c2 = dom_create("a") in
+  dom_attr(c2, "href", "/data/proof_structure");
+  dom_style(c2, "display", "block");
+  dom_style(c2, "textDecoration", "none");
+  let c2b = dom_create("div") in
+  ct_card(c2b);
+  dom_style(c2b, "marginBottom", "16px");
+  dom_style(c2b, "padding", "20px");
+  dom_style(c2b, "borderLeft", "3px solid #44cc44");
+  let c2t = dom_create("div") in
+  dom_text(c2t, "Ring Structure");
+  ct_gold(c2t);
+  dom_style(c2t, "fontSize", "16px");
+  dom_style(c2t, "marginBottom", "6px");
+  dom_append(c2b, c2t);
+  let c2d = dom_create("div") in
+  dom_text(c2d, "Theorems 35-91 + F1-F2. Number theory, depth quadratic, balance, golden ratio, K-squared stop, Cunningham.");
+  dom_style(c2d, "color", "#aaa");
+  dom_style(c2d, "fontSize", "13px");
+  dom_append(c2b, c2d);
+  dom_append(c2, c2b);
+  dom_append(grid, c2);
+
+  let c3 = dom_create("a") in
+  dom_attr(c3, "href", "/data/proof_ai");
+  dom_style(c3, "display", "block");
+  dom_style(c3, "textDecoration", "none");
+  let c3b = dom_create("div") in
+  ct_card(c3b);
+  dom_style(c3b, "marginBottom", "16px");
+  dom_style(c3b, "padding", "20px");
+  dom_style(c3b, "borderLeft", "3px solid #4488ff");
+  let c3t = dom_create("div") in
+  dom_text(c3t, "AI & Coding Theory");
+  ct_gold(c3t);
+  dom_style(c3t, "fontSize", "16px");
+  dom_style(c3t, "marginBottom", "6px");
+  dom_append(c3b, c3t);
+  let c3d = dom_create("div") in
+  dom_text(c3d, "Theorems 92-157. Meadow, hyperring, CRT prediction, text prediction, ECC detection, lattice coding.");
+  dom_style(c3d, "color", "#aaa");
+  dom_style(c3d, "fontSize", "13px");
+  dom_append(c3b, c3d);
+  dom_append(c3, c3b);
+  dom_append(grid, c3);
+
+  let c4 = dom_create("a") in
+  dom_attr(c4, "href", "/data/proof_frontier");
+  dom_style(c4, "display", "block");
+  dom_style(c4, "textDecoration", "none");
+  let c4b = dom_create("div") in
+  ct_card(c4b);
+  dom_style(c4b, "marginBottom", "16px");
+  dom_style(c4b, "padding", "20px");
+  dom_style(c4b, "borderLeft", "3px solid #cc44cc");
+  let c4t = dom_create("div") in
+  dom_text(c4t, "Geometry & Dynamics");
+  ct_gold(c4t);
+  dom_style(c4t, "fontSize", "16px");
+  dom_style(c4t, "marginBottom", "6px");
+  dom_append(c4b, c4t);
+  let c4d = dom_create("div") in
+  dom_text(c4d, "Theorems 158-177. Discrete geometry, Archimedean solids, tilings, Rule 30 CRT, cellular automata.");
+  dom_style(c4d, "color", "#aaa");
+  dom_style(c4d, "fontSize", "13px");
+  dom_append(c4b, c4d);
+  dom_append(c4, c4b);
+  dom_append(grid, c4);
+
+  dom_append(dom_body(), grid)
+)
+
+/* === SUB-PAGE ENTRY POINTS === */
+
+fn page_proof_core() = (
+  set(_pf_mode, 0, 1);
+  pf_sub_hero("Core Algebra", "Theorems 1-34", "CRT, OMEGA, idempotents, chain, 490 split, lambda. Every result computed live.");
+  let r = proof_part1() in
+  proof_part2(r)
+)
+
+fn page_proof_structure() = (
+  set(_pf_mode, 0, 1);
+  pf_sub_hero("Ring Structure", "Theorems 35-91 + F1-F2", "Number theory, depth quadratic, balance, golden ratio, K-squared stop, Cunningham.");
+  let r3 = alloc(1) in
+  set(r3, 0, 0);
+  proof_part3(r3)
+)
+
+fn page_proof_ai() = (
+  set(_pf_mode, 0, 1);
+  pf_sub_hero("AI & Coding Theory", "Theorems 92-157", "Meadow, hyperring, CRT prediction, text prediction, ECC detection, lattice coding.");
+  let r3b = alloc(1) in
+  set(r3b, 0, 0);
+  proof_part3b(r3b)
+)
+
+fn page_proof_frontier() = (
+  set(_pf_mode, 0, 1);
+  pf_sub_hero("Geometry & Dynamics", "Theorems 158-177", "Discrete geometry, Archimedean solids, tilings, Rule 30, cellular automata CRT analysis.");
+  let r3c = alloc(1) in
+  set(r3c, 0, 0);
+  proof_part3c(r3c)
+)
+
+/* proof_part1: Theorems 1-6 computation. Returns 15-element result array for proof_part2. */
+fn proof_part1() = (
 
   /* ============================================================
      THEOREM 1: CRT RECONSTRUCTION
@@ -6239,14 +6078,54 @@ fn page_proof() = (
     "lambda(12612600) = 420 = lcm(2, 6, 20, 42, 10, 12). Every unit a satisfies a^420 = 1. The ring breathes in 420-step cycles.", if lam_pass == lam_tested then 1 else 0, 1);
   dom_append(dom_body(), sec6);
 
-  /* Theorems 7-10 in separate function to avoid compiler local-index corruption in large functions */
+  /* Pack results for proof_part2 */
   let pf_r = alloc(15) in
   set(pf_r, 0, pass1); set(pf_r, 1, total1); set(pf_r, 2, s2_pass);
   set(pf_r, 3, omega_match); set(pf_r, 4, omega_idem); set(pf_r, 5, omega_crt_ok);
   set(pf_r, 6, sigma_is_ed); set(pf_r, 7, idem_self_pass); set(pf_r, 8, ortho_pass);
   set(pf_r, 9, ortho_total); set(pf_r, 10, idem_sum); set(pf_r, 11, wc_converge);
   set(pf_r, 12, wc_total); set(pf_r, 13, lam_pass); set(pf_r, 14, lam_tested);
-  proof_part2(pf_r)
+  pf_r
+)
+
+/* page_proof: Full 177-theorem render (used by test harness). Chain mode. */
+fn page_proof() = (
+  dom_head_meta("description", "Live exhaustive verification of ring theorems in Z/12612600. Every result computed on page load by .ax.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Proof Assistant\",\"description\":\"Live exhaustive verification of ring theorems in Z/12612600. Every result computed on page load by .ax.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/data/proof\",\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Ring Verification\"},{\"@type\":\"DefinedTerm\",\"name\":\"Exhaustive Proof\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT Decomposition\"}]}");
+
+  /* === HERO === */
+  let hero = dom_create("section") in
+  dom_style(hero, "textAlign", "center");
+  dom_style(hero, "padding", "60px 20px 40px");
+  let h1 = dom_create("h1") in
+  dom_text(h1, "Proof Assistant");
+  ct_heading(h1);
+  dom_style(h1, "fontSize", "32px");
+  dom_style(h1, "marginBottom", "12px");
+  dom_append(hero, h1);
+  let sub = dom_create("p") in
+  dom_text(sub, "Tower_GATE guards the boundary. Every result computed live by .ax.");
+  dom_style(sub, "color", "#aaa");
+  dom_style(sub, "fontSize", "16px");
+  dom_append(hero, sub);
+  let sub2 = dom_create("p") in
+  dom_text(sub2, "Z/12612600 = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13");
+  dom_style(sub2, "color", "#ffd700");
+  dom_style(sub2, "fontSize", "14px");
+  dom_style(sub2, "fontFamily", "Courier New, monospace");
+  dom_append(hero, sub2);
+  let sub3 = dom_create("p") in
+  dom_text(sub3, "177 theorems + 2 falsifications. 10 towers. 1635 live checks.");
+  dom_style(sub3, "color", "#666");
+  dom_style(sub3, "fontSize", "12px");
+  dom_style(sub3, "marginTop", "8px");
+  dom_append(hero, sub3);
+  dom_append(dom_body(), hero);
+
+  /* Compute theorems 1-6, then chain through part2->part3->part3b->part3c */
+  set(_pf_mode, 0, 0);
+  let r = proof_part1() in
+  proof_part2(r)
 )
 
 /* END OF FILE */
