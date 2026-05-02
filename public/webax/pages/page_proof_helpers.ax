@@ -6,6 +6,10 @@
 /* Mode flag: 0=chain (full page render), 1=standalone (sub-page mode) */
 let _pf_mode = [0]
 
+/* Global check counters (reset per sub-page, used by pf_standalone_summary) */
+let _pf_total = [0]
+let _pf_pass = [0]
+
 /* Sub-page navigation bar (renders links to all proof sub-pages) */
 fn pf_sub_nav(parent) = (
   let nav = dom_create("div") in
@@ -64,8 +68,10 @@ fn pf_sub_hero(title:str, subtitle:str, desc:str) = (
   pf_sub_nav(dom_body())
 )
 
-/* Standalone summary (for sub-pages, shows local checks only) */
+/* Standalone summary (for sub-pages, shows pass/total with red/green) */
 fn pf_standalone_summary(local_pass, section_name:str) = (
+  let total = _pf_total[0] in
+  let pass = _pf_pass[0] in
   let summary = make_section("700px") in
   render_h2(summary, "Summary");
   let sbox = dom_create("div") in
@@ -73,9 +79,9 @@ fn pf_standalone_summary(local_pass, section_name:str) = (
   dom_style(sbox, "textAlign", "center");
   dom_style(sbox, "padding", "24px");
   let st = dom_create("div") in
-  dom_text(st, "${local_pass} checks verified");
+  dom_text(st, "${pass} / ${total} checks verified");
   dom_style(st, "fontSize", "24px");
-  dom_style(st, "color", "#44cc44");
+  dom_style(st, "color", if pass == total then "#44cc44" else "#cc4444");
   dom_style(st, "fontWeight", "bold");
   dom_append(sbox, st);
   let sd = dom_create("div") in
@@ -175,6 +181,8 @@ fn pf_theorem(parent, title:str, detail:str, pass, total) = (
 )
 
 fn pf_result(parent, title:str, detail:str, ok) = (
+  set(_pf_total, 0, _pf_total[0] + 1);
+  if ok == 1 then set(_pf_pass, 0, _pf_pass[0] + 1) else 0;
   let card = dom_create("div") in
   ct_card(card);
   dom_style(card, "marginBottom", "8px");
