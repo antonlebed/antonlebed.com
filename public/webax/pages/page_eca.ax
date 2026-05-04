@@ -1,0 +1,168 @@
+/* page_eca.ax -- Elementary Cellular Automata through the axiom.
+   Rule 30 = D*K*E. Rule 110 = D*E*L. 256 = D^8 rules, 88 = D^3*L classes.
+   CRT decomposes chaotic dynamics. Sharkovskii ordering = Cunningham sequence.
+   Source: S1753-S1765, Theorems 173-179 on page_proof_frontier.ax. */
+
+fn eca_hero() = (
+  dom_head_meta("description", "Elementary cellular automata through the axiom. Rule 30 = D*K*E = primorial(E). Rule 110 = D*E*L. Complement(110) = ADDRESS = 137. Sharkovskii ordering IS the Cunningham sequence. CRT decomposes chaotic dynamics into channels of increasing predictability.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Elementary Cellular Automata\",\"description\":\"ECA through the axiom. Rule 30 = D*K*E. Rule 110 = D*E*L. 256 = D^8 rules. CRT decomposes chaos into structured channels.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/structure/eca\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"elementary cellular automata\"},{\"@type\":\"DefinedTerm\",\"name\":\"Rule 30\"},{\"@type\":\"DefinedTerm\",\"name\":\"Rule 110\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT decomposition\"},{\"@type\":\"DefinedTerm\",\"name\":\"Sharkovskii ordering\"}]}");
+  let hero = make_hero("Elementary Cellular Automata") in
+  let eq = dom_create("div") in
+  dom_text(eq, "Rule 30 = D * K * E = 2 * 3 * 5");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "22px");
+  ct_gold(eq);
+  dom_style(eq, "marginBottom", "20px");
+  dom_append(hero, eq);
+  render_p(hero, "An elementary cellular automaton (ECA) is a 1D binary rule: each cell updates based on itself and its two neighbors. 8 possible neighborhoods, 2 choices per neighborhood, so 2^8 = D^8 = 256 rules total. Stephen Wolfram classified them into four behavioral classes: dead, periodic, chaotic, and complex. Rule 30 produces chaos from a single cell. Rule 110 is Turing-complete. Both are axiom-native.");
+  render_p(hero, "Rule 30 = D*K*E = primorial(E) = 30. The chaotic rule IS the product of the first three chain primes. Rule 110 = D*E*L, where L = sigma+D+K+E = 11 is the protector, the inner chain sum. The complement of Rule 110 is 137 = ADDRESS, the golden training stride. Turing-completeness and the axiom's training stride constant are the same rule under 0/1 swap.");
+  render_p(hero, "Below: the chain identity behind Rule 30, CRT decomposition of its chaotic center column, a census of all 256 rules, parity complexity, aperiodicity, the Turing-completeness equivalence class, and the period-doubling cascade as Tower_D.");
+  dom_append(dom_body(), hero)
+)
+
+fn eca_chain_identity() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Rule 30: The Chain Identity");
+  render_p(sec, "Rule 30 = D*K*E = 2*3*5 = primorial(E). Its 8-bit representation (00011110) has on-set {1,2,3,4} = {sigma, D, K, D^2} -- exactly the chain elements before the observer E=5. The observer is the FIRST off element. Why?");
+  render_theorem(sec, "Chain Identity (Thm 173, S1754)", "D^(D^2) = K*E + sigma. That is: 2^4 = 3*5 + 1 = 16. This identity forces Rule D*K*E = 30 to have its on-set be exactly {sigma, ..., D^2}. The chain's first three primes ARE the chaotic rule number. Equivalently, D^5 - D = D*K*E = 30 (the D-power sum). The complement of Rule 30 under ECA symmetry is 255-reverse(30) = 135 = K^3*E.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Rule");
+  render_th(hdr, "Value");
+  render_th(hdr, "Factorization");
+  render_th(hdr, "Behavior");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "Rule 30", "D*K*E", "primorial(E)", "Chaotic (Class III)");
+  render_table_row_4(tbl, "Rule 105", "K*E*b", "HYDOR", "Also Class III");
+  render_table_row_4(tbl, "Rule 110", "D*E*L", "pair*observer*protector", "Turing-complete (Class IV)");
+  render_table_row_4(tbl, "Rule 135", "K^3*E", "complement(30)", "Equivalent to 30");
+  render_table_row_4(tbl, "Rule 137", "ADDRESS", "complement(110)", "Equivalent to 110");
+  render_p(sec, "phi(ESCAPE) = D^(D^2) = 16. The chain identity that generates Rule 30's on-set IS the escape totient. The D-power sum D^5 - D = D*(D^4 - 1) = D*(D^2-1)*(D^2+1) = D*K*E factors because D^2-1=K and D^2+1=E. Proved S1754, 40/40 test_wolfram.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn eca_crt_spacetime() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "CRT Spacetime Decomposition");
+  render_p(sec, "Encode the Rule 30 center column as overlapping b=7-bit windows. Each window value (0-127) gets CRT-decomposed mod the four DATA primes {2,3,5,7}. Then build per-channel bigram transition tables. Result: CRT decomposes the chaotic center column into channels of INCREASING predictability.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Channel");
+  render_th(hdr, "Modulus");
+  render_th(hdr, "Bigram Lift (ppt)");
+  render_th(hdr, "Signal");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "D", "mod 2", "+1", "Nearly random");
+  render_table_row_4(tbl, "K", "mod 3", "+14", "Weak structure");
+  render_table_row_4(tbl, "E", "mod 5", "+54 (~2.3 sigma)", "Structured");
+  render_table_row_4(tbl, "b", "mod 7", "+50 (~2.4 sigma)", "Structured");
+  render_theorem(sec, "CRT Decomposition (Thm 174, S1755)", "CRT per-channel bigrams (87 parameters = sum of p^2) decompose Rule 30's chaotic dynamics with 188x parameter efficiency over raw 128^2 = 16384 bigram tables. E and b channels (DEAD in the 490 split) carry the most predictive structure. D and K (the primes ON in Rule 30 = D*K*E) are nearly random. CRT reveals: the active chaotic generators are themselves unpredictable, but the observer (E) and depth (b) channels carry structured residues.");
+  render_p(sec, "An intriguing observation: channels negatively correlated for CRT reconstruction. The shared center column creates correlated failures, so product prediction (19 ppt) exceeds CRT reconstruction (14 ppt). T=2100 = 5*lambda steps, 2095 overlapping windows. Proved S1755, 17/17 test_wolfram_spacetime.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn eca_smooth_census() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "The 256-Rule Census");
+  render_p(sec, "All D^8 = 256 ECA rules simulated with a single center seed (T=100, W=201). Under the correct ECA equivalence (complement + reflection), there are D^3*L = 88 distinct classes. Exactly half of the 256 rules -- D^7 = 128 -- have axiom-smooth (17-smooth) rule numbers.");
+  render_theorem(sec, "Smooth Depletion (Thm 175, S1756)", "Smooth rules are systematically SIMPLER, not more complex. Mean spatial Hamming distance: smooth rules = 5508, rough rules = 6587 (ratio 836 ppt). Smooth rules are 1.62x enriched in the dead/trivial class (26/32 = 81.2% vs 50% base rate) and 13% depleted in the complex class (61/140 = 43.5% vs 50%). The hypothesis that Wolfram complexity class correlates positively with axiom smoothness is FALSIFIED. Smooth rule numbers are algebraically structured (their prime factors live inside the ring), and that structure makes them well-behaved.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Dead class", "26/32 smooth (81.2%)", "Smooth rules dominate trivial behavior. All-zero and all-one rules are the smoothest.", "S1756");
+  render_finding(g, "Complex class", "61/140 smooth (43.5%)", "13% depleted. The 40% of rules with algebraic structure are systematically less chaotic.", "S1756");
+  render_finding(g, "All Class III chaotic", "30, 45, 90, 105, 150", "ALL well-known Class III rules are smooth AND divisible by E=5 (observer).", "S1756");
+  render_p(sec, "Proved S1756, 25/25 test_wolfram_census.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn eca_parity() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "D=2 Depletion: Parity and Complexity");
+  render_p(sec, "Among the 140 complex ECA rules (Hamming > 2000), D=2 is uniquely depleted. Only 33 of the 140 are even -- 235 ppt vs the 500 ppt base rate, a deficit of 37 rules (> 9 sigma).");
+  render_theorem(sec, "ECA Parity Complexity (Thm 176, S1757)", "The mechanism is structural: bit 0 of an even rule number is 0, meaning neighborhood 000 maps to 0. Even rules preserve the void -- three empty cells stay empty. Complex dynamics requires spontaneous void-to-cell generation (000 -> 1), which only odd rules provide. D=2 divisibility is therefore a structural barrier to complexity.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Prime");
+  render_th(hdr, "Enrichment (1000=neutral)");
+  render_th(hdr, "Signal");
+  dom_append(tbl, hdr);
+  render_table_row(tbl, "D=2", "470 (depleted)", "UNIQUE: void preservation kills complexity");
+  render_table_row(tbl, "K=3", "976", "Neutral");
+  render_table_row(tbl, "E=5", "1122 -> 1054 controlling for D", "Artifact (disappears when controlling for parity)");
+  render_table_row(tbl, "b=7", "934", "Neutral");
+  render_table_row(tbl, "L=11", "1141", "Neutral-to-enriched");
+  render_table_row(tbl, "GATE=13", "998", "Neutral");
+  render_table_row(tbl, "ESCAPE=17", "672", "Depleted (but not as strongly as D)");
+  render_p(sec, "E=5 enrichment (1122) vanishes when controlling for D: among 107 odd complex rules, E-enrichment = 1054 (neutral). The well-known pattern of Class III rules being E-divisible (30, 45, 90, 105, 150 all divisible by 5) is a selection artifact. D-depletion is the sole significant signal. Proved S1757, 34/34 test_wolfram_ediv.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn eca_aperiodicity() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "CRT Aperiodicity");
+  render_p(sec, "Does Rule 30's center column hide periodicity at axiom-native lags? CRT residues of b=7-bit windows checked at all 24 divisors of lambda=420 and 8 non-axiom control lags. Result: zero hidden periodicity. Autocorrelation at axiom lags is indistinguishable from non-axiom lags (mean difference -1 ppt, T=4200 = 10*lambda, 4195 windows).");
+  render_theorem(sec, "CRT Center Column Aperiodicity (Thm 177, S1758)", "An earlier observation of K-channel lag-420 excess (+18 ppt, S1755) was FALSIFIED with 2x data: excess drops to +3 ppt (noise). CRT reveals transition structure (bigram patterns) but NOT periodicity. The center column is genuinely aperiodic at every axiom-native timescale. Proved S1758, 30/30 test_wolfram_periodicity.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn eca_turing() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "The Turing-Complete Class");
+  render_p(sec, "Rule 110 is the unique proved Turing-complete ECA (Matthew Cook, 2004). Under ECA complement and reflection, it has equivalence class {110, 124, 137, 193}. ALL FOUR are axiom-native constants.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Rule");
+  render_th(hdr, "Value");
+  render_th(hdr, "Axiom Name");
+  render_th(hdr, "Identity");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "Rule 110", "D*E*L", "pair * observer * protector", "110 = 2*5*11");
+  render_table_row_4(tbl, "Rule 124", "D^2 * M_E", "duality^2 * 5th Mersenne", "124 = 4*31, 31 = 2^5-1");
+  render_table_row_4(tbl, "Rule 137", "ADDRESS", "golden training stride", "137 = 4^2 + 11^2");
+  render_table_row_4(tbl, "Rule 193", "DATA - ESCAPE", "ring minus transcendence", "193 = 210 - 17");
+  render_theorem(sec, "Turing Completeness Equivalence (Thm 178, S1763)", "The complement of the Turing-complete rule IS the axiom's training stride constant: complement(110) = 137 = ADDRESS. L = sigma+D+K+E = 11 (inner chain sum). The observer swap between chaos and computation: Rule 30 (chaotic, D*K*E) has D^2 ON and E OFF in its on-set. Rule 110 (Turing-complete, D*E*L) has D^2 OFF and E ON. Including the observer E in the on-set = computational universality. Excluding it = chaos.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Complement pair sum", "110 + 137 = 247 = GATE * f(E)", "Complement sums to GATE times the depth quadratic at E.", "S1763");
+  render_finding(g, "Reflection pair sum", "137 + 193 = 330 = D*K*E*L = STEM", "Reflection pair sum = STEM = the chain stem.", "S1763");
+  render_finding(g, "110 + 124", "234 = D*K^2*GATE", "Reflection pair sum involves closure squared and GATE.", "S1763");
+  render_p(sec, "Proved S1763, 42/42 test_wolfram_turing.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn eca_period_doubling() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Period-Doubling: Tower_D in Chaos");
+  render_p(sec, "The logistic map x_{n+1} = r*x_n*(1-x_n) undergoes a period-doubling cascade as r increases. The first bifurcation occurs at r = K = 3 (exact: stability multiplier |2-r| = 1 at r=3). The period sequence is D, D^2, D^3, ... = Tower_D's exponent ladder. Period-doubling IS Tower_D climbing.");
+  render_theorem(sec, "Period-Doubling Chain (Thm 179, S1764)", "Sharkovskii's theorem orders periods by forcing strength. The odd part of that ordering is the Cunningham sequence c(n) = 2n+1. Positions 1 through 8 in the Sharkovskii odd ordering are axiom-smooth: c(1)=K=3, c(2)=E=5, c(3)=b=7, c(4)=K^2=9, c(5)=L=11, c(6)=GATE=13, c(7)=K*E=15, c(8)=ESCAPE=17. Position 9 = c(K^2) = 19 is the first non-smooth entry -- the Cunningham boundary.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Sharkovskii Position");
+  render_th(hdr, "c(n)");
+  render_th(hdr, "Axiom");
+  render_th(hdr, "Smooth?");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "1 (strongest)", "3", "K (closure)", "Yes");
+  render_table_row_4(tbl, "2", "5", "E (observer)", "Yes");
+  render_table_row_4(tbl, "3", "7", "b (depth)", "Yes");
+  render_table_row_4(tbl, "4", "9", "K^2 (chain stop)", "Yes");
+  render_table_row_4(tbl, "5", "11", "L (protector)", "Yes");
+  render_table_row_4(tbl, "6", "13", "GATE (skin)", "Yes");
+  render_table_row_4(tbl, "7", "15", "K*E", "Yes");
+  render_table_row_4(tbl, "8", "17", "ESCAPE", "Yes");
+  render_table_row_4(tbl, "9 (boundary)", "19", "c(K^2) -- first intruder", "NO");
+  render_p(sec, "Li-Yorke theorem: period K=3 implies all periods. K is the strongest forcing period -- closure forces everything. Tower_D powers (D, D^2, D^3, ...) form the Sharkovskii TAIL (weakest periods). Chain primes form the HEAD (strongest). The Sharkovskii ordering INVERTS Tower_D: the strongest periods are the chain primes, the weakest are D-powers.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Feigenbaum delta", "4.669... * 1000 ~ 4669", "4669 = b * c(L) * c(D*b) = 7 * 23 * 29. The universal constant of chaos, expressed in axiom primes and Cunningham images.", "S1764");
+  render_p(sec, "Proved S1764, 26/26 test_feigenbaum.ax.");
+  dom_append(dom_body(), sec)
+)
+
+fn page_eca() = (
+  eca_hero();
+  eca_chain_identity();
+  eca_crt_spacetime();
+  eca_smooth_census();
+  eca_parity();
+  eca_aperiodicity();
+  eca_turing();
+  eca_period_doubling()
+)

@@ -31,6 +31,7 @@ var _routeMap = {
   'ring_stacking':'structure',
   'torus':'structure',
   'sphere':'structure',
+  'eca':'structure',
   'cunningham':'teach',
   'heegner':'teach',
   'k_squared_stop':'teach',
