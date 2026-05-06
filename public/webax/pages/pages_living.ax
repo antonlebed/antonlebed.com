@@ -947,6 +947,18 @@ fn page_ai() = (
   render_finding(g7l, "CRT-GPT-1", "~25M params", "12-layer, d=448, 7 channels. vs 117M standard GPT-1. 4.7x compression.", "S1832");
   dom_append(dom_body(), sec7l);
 
+  /* === SEC 7m: MATRIX LIBRARY (Phase B2 S1834) === */
+  let sec7m = make_section("800px") in
+  render_h2(sec7m, "Matrix Library");
+  render_p(sec7m, "CRT-GPT-1 forward pass implemented in .ax. Block-diagonal matrix operations: per-channel matmul, matvec, layer norm, squaring activation (h^2 -- ring-native nonlinearity), and 7 independent softmaxes. Full pipeline: character embedding via CRT residues, block-diagonal FFN, per-channel softmax, CRT reconstruction of predicted character. 53 checks pass.");
+  render_theorem(sec7m, "CRT-GPT Forward Pass (S1834, VERIFIED)", "Input char 'A' (65) decomposes to (1,2,15,16,10,0,14) mod (8,9,25,49,11,13,17). 7 per-channel embeddings. Layer norm per channel (mean=0, var=1). Block-diagonal FFN: W1*x+b1, squaring, W2*h+b2. Per-channel softmax (132 total classes). CRT reconstruction recovers 65. End-to-end .ax, WASI-verified, no JS.");
+  let g7m = make_findings_grid(sec7m) in
+  render_finding(g7m, "Block-diagonal matmul", "7 independent", "bd_matmul, bd_matvec: per-channel matrix ops. Zero cross-channel weights.", "S1834");
+  render_finding(g7m, "Layer norm", "Per-channel", "Mean=0, var=1 independently for each of 7 channels.", "S1834");
+  render_finding(g7m, "Squaring activation", "h^2", "Ring-native nonlinearity. All activations non-negative. Forced positivity.", "S1834");
+  render_finding(g7m, "CRT softmax", "132 classes total", "7 small softmaxes (8+9+25+49+11+13+17) vs 1 giant 50K. Sums to 1 per channel.", "S1834");
+  dom_append(dom_body(), sec7m);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "Contrast Table");
