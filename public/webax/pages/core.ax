@@ -81,6 +81,113 @@ fn ring_mul_trans(a, b) = (
 )
 
 /* ================================================================
+   RING MATH — .ax SSOT (U2.4 split-brain dissolution, S1822)
+   coupling, kingdom, mirror, crt_r, eigenvalue as pure .ax.
+   Replaces game imports from JS. Stdlib = sole API.
+   All use N_TRANS = 214414200, 7 channels.
+   ================================================================ */
+
+fn _gcd(a, b) = if b == 0 then a else _gcd(b, a % b)
+
+fn coupling(n) = (
+  let nn = ((n % N_TRANS) + N_TRANS) % N_TRANS in
+  if nn == 0 then 1
+  else N_TRANS / _gcd(nn, N_TRANS)
+)
+
+fn kingdom(n) = (
+  let nn = ((n % N_TRANS) + N_TRANS) % N_TRANS in
+  if nn == 0 then 0
+  else if nn % 2 == 0 then 2
+  else if nn % 3 == 0 then 3
+  else if nn % 5 == 0 then 5
+  else if nn % 7 == 0 then 7
+  else if nn % 11 == 0 then 11
+  else if nn % 13 == 0 then 13
+  else if nn % 17 == 0 then 17
+  else 1
+)
+
+fn mirror(n) = (
+  let nn = ((n % N_TRANS) + N_TRANS) % N_TRANS in
+  (N_TRANS - nn) % N_TRANS
+)
+
+fn crt_r(n, c) = (
+  let nn = ((n % N_TRANS) + N_TRANS) % N_TRANS in
+  if c == 0 then nn % 8
+  else if c == 1 then nn % 9
+  else if c == 2 then nn % 25
+  else if c == 3 then nn % 49
+  else if c == 4 then nn % 11
+  else if c == 5 then nn % 13
+  else nn % 17
+)
+
+/* Eigenvalue: sum of 2*cos(2*pi*(n%q)/q) over 7 channels, x1000.
+   Precomputed cos tables at x2000000 precision, symmetry-folded.
+   Final sum /1000 with rounding matches JS Math.round(t*1000). */
+fn _evc8(k) = (
+  let k2 = if k > 4 then 8 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1414214
+  else if k2 == 2 then 0 else if k2 == 3 then -1414214 else -2000000
+)
+fn _evc9(k) = (
+  let k2 = if k > 4 then 9 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1532089
+  else if k2 == 2 then 347296 else if k2 == 3 then -1000000 else -1879385
+)
+fn _evc25(k) = (
+  let k2 = if k > 12 then 25 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1937166
+  else if k2 == 2 then 1752613 else if k2 == 3 then 1457937
+  else if k2 == 4 then 1071654 else if k2 == 5 then 618034
+  else if k2 == 6 then 125581 else if k2 == 7 then -374763
+  else if k2 == 8 then -851559 else if k2 == 9 then -1274848
+  else if k2 == 10 then -1618034 else if k2 == 11 then -1859553 else -1984229
+)
+fn _evc49(k) = (
+  let k2 = if k > 24 then 49 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1983580
+  else if k2 == 2 then 1934590 else if k2 == 3 then 1853834
+  else if k2 == 4 then 1742637 else if k2 == 5 then 1602827
+  else if k2 == 6 then 1436699 else if k2 == 7 then 1246980
+  else if k2 == 8 then 1036785 else if k2 == 9 then 809567
+  else if k2 == 10 then 569055 else if k2 == 11 then 319200
+  else if k2 == 12 then 64103 else if k2 == 13 then -192046
+  else if k2 == 14 then -445042 else if k2 == 15 then -690730
+  else if k2 == 16 then -925077 else if k2 == 17 then -1144233
+  else if k2 == 18 then -1344602 else if k2 == 19 then -1522892
+  else if k2 == 20 then -1676176 else if k2 == 21 then -1801938
+  else if k2 == 22 then -1898111 else if k2 == 23 then -1963118 else -1995891
+)
+fn _evc11(k) = (
+  let k2 = if k > 5 then 11 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1682507
+  else if k2 == 2 then 830830 else if k2 == 3 then -284630
+  else if k2 == 4 then -1309721 else -1918986
+)
+fn _evc13(k) = (
+  let k2 = if k > 6 then 13 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1770912
+  else if k2 == 2 then 1136129 else if k2 == 3 then 241073
+  else if k2 == 4 then -709210 else if k2 == 5 then -1497021 else -1941884
+)
+fn _evc17(k) = (
+  let k2 = if k > 8 then 17 - k else k in
+  if k2 == 0 then 2000000 else if k2 == 1 then 1864944
+  else if k2 == 2 then 1478018 else if k2 == 3 then 891477
+  else if k2 == 4 then 184537 else if k2 == 5 then -547326
+  else if k2 == 6 then -1205269 else if k2 == 7 then -1700434 else -1965946
+)
+
+fn eigenvalue(n) = (
+  let nn = ((n % N_TRANS) + N_TRANS) % N_TRANS in
+  let ev_sum = _evc8(nn%8) + _evc9(nn%9) + _evc25(nn%25) + _evc49(nn%49) + _evc11(nn%11) + _evc13(nn%13) + _evc17(nn%17) in
+  (ev_sum + (if ev_sum >= 0 then 500 else 0 - 500)) / 1000
+)
+
+/* ================================================================
    CELESTIAL THEATRE -- CSS Keyframe Generation
    Generate all CSS from structured .ax data. No opaque string blobs.
    Cloud drifts: E=5 per side, 10 independent trajectories.
