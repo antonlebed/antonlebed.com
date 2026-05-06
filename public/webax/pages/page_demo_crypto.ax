@@ -51,6 +51,23 @@ fn native_hash_batch() = (
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#00dddd;margin:0 0 8px'>CRT-NATIVE BATCH: 100 consecutive pairs (7 channels)</p><p style='color:#88ddaa;margin:4px 0'>Average channels changed: <b>" + "${total_diff / 100}" + "." + "${(total_diff * 10 / 100) % 10}" + "/7</b></p><p style='color:#b0b0c0;margin:4px 0'>Perfect avalanche (7/7): <b>" + "${perfect}" + "/100</b></p></div>")
 )
 
+/* CRT-NATIVE KEY EXCHANGE (L18) — 7-channel Diffie-Hellman in Z/214414200.
+   Generator 44755427: CRT = (3,2,2,3,2,2,3) — primitive roots in all channels.
+   Z/9(2), Z/25(2), Z/49(3), Z/11(2), Z/13(2), Z/17(3). Z/8(3, order 2).
+   With crt_mode(1), binary exponentiation does per-channel powmod automatically.
+   10 lines replace 44 lines of manual per-channel DH. Lambda = 1680 (TRANS). */
+fn crt_kex_pow(base, exp) = (
+  mut result = 1;
+  mut bp = base;
+  mut e = exp;
+  while e > 0 do (
+    if e % 2 == 1 then mut result = result * bp else 0;
+    mut bp = bp * bp;
+    mut e = e / 2
+  );
+  result
+)
+
 /* ================================================================
    MANUAL CRT HASH — original 6-channel Feistel (34 lines).
    Kept for comparison. CC0 kill A7.
@@ -179,7 +196,7 @@ fn page_hash() = (
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
-  make_interactive_widget(sec2, "Hash an integer (0-12612599):", "dhash-input", "e.g. 42", "Hash", "demo_hash_run", "dhash-result");
+  make_interactive_widget(sec2, "Hash an integer, 0-12612599:", "dhash-input", "e.g. 42", "Hash", "demo_hash_run", "dhash-result");
   render_p(sec2, "Try: 42 vs 43 (avalanche), 137 (ADDRESS), 1576576 (OMEGA), 0 (void).");
   dom_append(dom_body(), sec2);
   let sec3h = make_section("800px") in
@@ -230,7 +247,7 @@ fn page_hash() = (
   render_finding(gn, "New: 6 lines", "CRT-native", "fn crt_hash(n) = ( mut x = n*29+1; while rd<8 do x=x*29+rd*43+n ). Ring arithmetic. Period.", "");
   render_finding(gn, "7 vs 6 channels", "TRANS > TRUE", "CRT-native uses Z/214414200 (7 channels) vs manual Z/12612600 (6 channels). More diffusion for free.", "");
   render_finding(gn, "Multiplier 29", "(5,2,4,29,7,3,12)", "Non-trivial residue in ALL 7 CRT channels. Every channel gets mixed per round.", "");
-  make_interactive_widget(sec_native, "CRT-native hash (0-214414199):", "dhash-native-input", "e.g. 42", "Hash (native)", "native_hash_run", "dhash-native-result");
+  make_interactive_widget(sec_native, "CRT-native hash, 0-214414199:", "dhash-native-input", "e.g. 42", "CRT Hash", "native_hash_run", "dhash-native-result");
   let btn_nb = dom_create("button") in
   dom_text(btn_nb, "Run Native Batch (100 pairs)");
   dom_style(btn_nb, "background", "#00dddd");
@@ -356,6 +373,31 @@ fn page_stego() = (
    CRT Diffie-Hellman over Z/12612600.
    ================================================================ */
 
+/* Handler: CRT-native Diffie-Hellman (L18 S1821). 7 channels. */
+fn native_kex_run() = (
+  let alice_secret = parse_int_from("#dkex-native-alice") in
+  let bob_secret = parse_int_from("#dkex-native-bob") in
+  let result_el = dom_query("#dkex-native-result") in
+  let a = alice_secret % 1680 in
+  let bsec = bob_secret % 1680 in
+  let g = 44755427 in
+  let alice_pub = crt_kex_pow(g, a) in
+  let bob_pub = crt_kex_pow(g, bsec) in
+  let shared_a = crt_kex_pow(bob_pub, a) in
+  let shared_b = crt_kex_pow(alice_pub, bsec) in
+  let ad = alice_pub % 8 in let ak = alice_pub % 9 in let ae = alice_pub % 25 in
+  let abt = alice_pub % 49 in let al = alice_pub % 11 in let ag = alice_pub % 13 in
+  let a17 = alice_pub % 17 in
+  let bbd = bob_pub % 8 in let bbk = bob_pub % 9 in let bbe = bob_pub % 25 in
+  let bbt = bob_pub % 49 in let bbl = bob_pub % 11 in let bbg = bob_pub % 13 in
+  let bb17 = bob_pub % 17 in
+  let sd = shared_a % 8 in let sk = shared_a % 9 in let se = shared_a % 25 in
+  let sbt = shared_a % 49 in let sl = shared_a % 11 in let sgt = shared_a % 13 in
+  let s17 = shared_a % 17 in
+  let ch_ok = (if sd == shared_b % 8 then 1 else 0) + (if sk == shared_b % 9 then 1 else 0) + (if se == shared_b % 25 then 1 else 0) + (if sbt == shared_b % 49 then 1 else 0) + (if sl == shared_b % 11 then 1 else 0) + (if sgt == shared_b % 13 then 1 else 0) + (if s17 == shared_b % 17 then 1 else 0) in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#00dddd;margin:0 0 8px'>CRT-NATIVE KEY EXCHANGE (7-channel DH in Z/214414200)</p><p style='color:#b0b0c0;margin:4px 0'>Alice secret: " + "${a}" + " | Bob secret: " + "${bsec}" + " (mod 1680 = lambda_TRANS)</p><p style='margin:8px 0 4px;color:#00dddd'>Public keys (7-channel CRT)</p><p style='color:#b0b0c0;margin:4px 0'>Alice: " + "${alice_pub}" + " = (" + "${ad}" + "," + "${ak}" + "," + "${ae}" + "," + "${abt}" + "," + "${al}" + "," + "${ag}" + "," + "${a17}" + ")</p><p style='color:#b0b0c0;margin:4px 0'>Bob: " + "${bob_pub}" + " = (" + "${bbd}" + "," + "${bbk}" + "," + "${bbe}" + "," + "${bbt}" + "," + "${bbl}" + "," + "${bbg}" + "," + "${bb17}" + ")</p><p style='margin:8px 0 4px;color:#00dddd'>Shared secret</p><p style='color:#88ddaa;margin:4px 0'>Shared: " + "${shared_a}" + " = (" + "${sd}" + "," + "${sk}" + "," + "${se}" + "," + "${sbt}" + "," + "${sl}" + "," + "${sgt}" + "," + "${s17}" + ")</p><p style='color:" + (if ch_ok == 7 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>Channel agreement: " + "${ch_ok}" + "/7" + (if ch_ok == 7 then " -- KEYS MATCH" else " -- MISMATCH") + "</p></div>")
+)
+
 fn demo_crt_powmod(base, exp, m) = (
   mut result = 1;
   mut bp = base % m;
@@ -438,7 +480,7 @@ fn page_key_exchange() = (
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
-  make_interactive_widget(sec2, "Alice's secret (1-419):", "dkex-alice", "e.g. 137", "Exchange Keys", "demo_kex_run", "dkex-result");
+  make_interactive_widget(sec2, "Alice's secret, 1-419:", "dkex-alice", "e.g. 137", "Exchange Keys", "demo_kex_run", "dkex-result");
   let extras = dom_create("div") in
   dom_style(extras, "display", "flex");
   dom_style(extras, "gap", "8px");
@@ -466,4 +508,35 @@ fn page_key_exchange() = (
   render_contrast_row(sec3, "Key size", "256+ bytes", "6 residues (< 20 bytes)");
   render_contrast_row(sec3, "Quantum resistance", "Shor's algorithm breaks RSA", "6 small DLPs -- different attack surface");
   render_contrast_row(sec3, "Patent status", "RSA/Certicom/NIST patents", "CC0. Public domain. Forever.");
+  dom_append(dom_body(), sec3);
+  /* CRT-Native Key Exchange (L18) */
+  let sec_native = make_section("800px") in
+  render_h2(sec_native, "CRT-Native: 44 Lines to 10 Lines");
+  render_theorem(sec_native, "Language Revolution", "With crt_mode(1), the .ax compiler decomposes * into 7 per-channel CRT operations. Binary exponentiation becomes per-channel powmod AUTOMATICALLY. One call to crt_kex_pow replaces 6 manual powmod calls. 7 channels (TRANS ring, 214414200, lambda=1680) vs 6 channels (TRUE ring, lambda=420). 4x key space, 17x output space.");
+  let gn = make_findings_grid(sec_native) in
+  render_finding(gn, "Old: 44 lines", "Manual per-channel", "6 calls to demo_crt_powmod per party. 24 total. Explicit generator array, modulus array, CRT reconstruction.", "");
+  render_finding(gn, "New: 10 lines", "CRT-native", "crt_kex_pow(g, secret). Per-channel powmod automatic. Generator 44755427: CRT = (3,2,2,3,2,2,3).", "");
+  render_finding(gn, "7 vs 6 channels", "TRANS > TRUE", "ESCAPE=17 adds one channel of security. Lambda 1680 vs 420 = 4x key space.", "");
+  render_finding(gn, "Generator 44755427", "(3,2,2,3,2,2,3)", "Primitive roots in Z/9, Z/25, Z/49, Z/11, Z/13, Z/17. Order-2 element in Z/8.", "");
+  make_interactive_widget(sec_native, "Alice's secret, 1-1679:", "dkex-native-alice", "e.g. 137", "CRT Exchange", "native_kex_run", "dkex-native-result");
+  let extras_n = dom_create("div") in
+  dom_style(extras_n, "display", "flex");
+  dom_style(extras_n, "gap", "8px");
+  dom_style(extras_n, "alignItems", "center");
+  dom_style(extras_n, "marginBottom", "12px");
+  let inp_bn = dom_create("input") in
+  dom_attr(inp_bn, "type", "text");
+  dom_attr(inp_bn, "id", "dkex-native-bob");
+  dom_attr(inp_bn, "placeholder", "Bob's secret (e.g. 42)");
+  dom_attr(inp_bn, "value", "42");
+  dom_style(inp_bn, "background", "#111");
+  dom_style(inp_bn, "color", "#eee");
+  dom_style(inp_bn, "border", "1px solid #333");
+  dom_style(inp_bn, "padding", "6px 8px");
+  dom_style(inp_bn, "fontFamily", "'Courier New', monospace");
+  dom_style(inp_bn, "width", "120px");
+  dom_append(extras_n, inp_bn);
+  dom_append(sec_native, extras_n);
+  render_p(sec_native, "Secrets mod 1680 (= lambda of TRANS ring). Try: Alice=137 Bob=42, Alice=1 Bob=1679.");
+  dom_append(dom_body(), sec_native)
 )
