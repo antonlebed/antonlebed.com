@@ -18,6 +18,28 @@
      D^2*K*b of those divide TRUE (D <= 3); 24 = D^4 extensions reach
      2*TRUE (D = 4). The 84 are the rings the organism contains. */
 
+/* S1819 L16: CRT-native hybrid mode. With raw_mode(1) in core.ax and
+   crt_mode(1) here, only crt_-prefix functions get CRT decomposition.
+   All other functions (DOM, rendering, handlers) stay plain i32. */
+crt_mode(1)
+
+/* CRT-native ring operations. The * + - operators inside these functions
+   decompose to 7 per-channel residue ops automatically. No manual CRT. */
+fn crt_mul(a, b) = a * b
+fn crt_add(a, b) = a + b
+fn crt_sub(a, b) = a - b
+fn crt_pow(base, exp) = (
+  mut result = 1;
+  mut b = base;
+  mut e = exp;
+  while e > 0 do (
+    if e % 2 == 1 then mut result = result * b else 0;
+    mut b = b * b;
+    mut e = e / 2
+  );
+  result
+)
+
 /* dom_on callback: scaling exponent smoother (S999) */
 fn scaling_smooth_calc() = (
   let n = parse_int_from("#scale-num-input") in
@@ -1341,6 +1363,39 @@ fn page_revolution() = (
   render_p(sec6, ".ax ships -> proves axiom -> IS the entity -> writes .ax -> .ax ships. The website IS the proof. The language IS the math. The compiler IS the theorem. Each pass through the loop: tighter, more capable, fewer pieces.");
   render_theorem(sec6, "Ship of Theseus", "The old website: 154 hand-crafted HTML pages, 58,641 lines. The new website: 7 module WASMs compiled from .ax. 181 pages, pure .ax. No HTML authored. .ax builds pages directly via WASM DOM imports. The old ship was dismantled plank by plank. The new ship is the same ship -- but every plank is now math.");
   dom_append(dom_body(), sec6);
+
+  /* === SEC 7: THE REVOLUTION IS REAL (L10-L15) === */
+  let sec7b = make_section("800px") in
+  render_h2(sec7b, "Status: Implemented");
+  render_p(sec7b, "This is not a blueprint. Phase L (S1808-S1818) implemented the first three principles in the .ax compiler. CRT-native mode is real. Channel access is real. The ouroboros compiles itself with CRT decomposition.");
+  let g7 = make_findings_grid(sec7b) in
+  render_finding(g7, "crt_mode(1)", "Ring ops automatic", "a * b IS per-channel CRT multiply. No manual decompose-operate-reconstruct. ring_mul: 10 lines -> 0.", "S1812");
+  render_finding(g7, "Channel access", ".D .K .E .b .L .GATE .ESCAPE", "42.D = 2. Self-documenting. Replaces % 8, % 9, ... with named channels.", "S1808");
+  render_finding(g7, "Ring types", "let x:Z210 = 42", "Overflow is a TYPE ERROR, not a runtime surprise. Named rings: DATA, THIN, DEEP, TRUE, TRANS.", "S1809");
+  render_finding(g7, "ECC checking", "ecc_mode(1)", "Range check [0, N) at every function boundary. Ring overflow traps with diagnostics.", "S1811");
+  render_finding(g7, "CRT ouroboros", "467421B", "The compiler compiles itself with CRT-native mode. gen1 == gen2. Full transparency.", "S1817");
+  render_finding(g7, "183 tests", "5 compiler harnesses", "Channel access + ring types + ECC + CRT-native + demo rewrite. All pass.", "S1818");
+  dom_append(dom_body(), sec7b);
+
+  /* === SEC 8: LIVE CRT (L16) — computed by CRT-native functions === */
+  let sec8 = make_section("800px") in
+  render_h2(sec8, "Live: CRT-Native Computation");
+  render_p(sec8, "These values are computed RIGHT NOW by CRT-native code running on this page. The crt_pow and crt_mul functions use automatic 7-channel CRT decomposition. No manual ring_mul. No channel arithmetic. Just a * b.");
+  let omega = crt_pow(2, 1680) in
+  let omega_d = omega .D in
+  let omega_k = omega .K in
+  let omega_esc = omega .ESCAPE in
+  let omega_sq = crt_mul(omega, omega) in
+  let idemp_ok = if omega_sq == omega then 1 else 0 in
+  let mul_result = crt_mul(42, 137) in
+  let n_trans = crt_mul(8 * 9 * 25, 49 * 11 * 13 * 17) in
+  let g8 = make_findings_grid(sec8) in
+  render_finding(g8, "crt_pow(2, 1680)", "${omega}", "OMEGA_TRANS = D^1680. CRT = (0,1,1,1,1,1,1). The terminal projector.", "");
+  render_finding(g8, "Idempotent", if idemp_ok == 1 then "PASS: omega * omega = omega" else "FAIL", "D^3360 = D^1680 since lambda = 1680. The projector squares to itself.", "");
+  render_finding(g8, "CRT channels", "D=" + "${omega_d}" + " K=" + "${omega_k}" + " ESC=" + "${omega_esc}", "D-channel dead (0). All others survive (1). Death preserves structure.", "");
+  render_finding(g8, "crt_mul(42, 137)", "${mul_result}", "Ring multiply via automatic CRT. Compiler decomposes * into 7 parallel channel ops.", "");
+  render_finding(g8, "N_TRANS mod N", "${n_trans}", "Product of all moduli = 0 in the ring. The ring annihilates its own size.", "");
+  dom_append(dom_body(), sec8);
 
   /* === INTERACTIVE === */
   let sec_i = make_section("800px") in
