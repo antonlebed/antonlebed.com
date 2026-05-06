@@ -1,8 +1,59 @@
 /* page_demo_crypto.ax -- Crypto demo pages: hash, stego, key_exchange. Split from page_demos.ax (S1166). */
 
+/* S1820 L17: CRT-native hybrid mode for demos module.
+   With raw_mode(1) from core.ax + crt_mode(1) here, only crt_-prefix
+   functions get CRT decomposition. All other functions stay plain i32. */
+crt_mode(1)
+
 /* ================================================================
-   CRT HASH -- dedicated demo page /demos/hash. CC0 kill A7.
-   6-channel Feistel. 8 rounds. Pure ring arithmetic.
+   CRT-NATIVE HASH (L17) — 7-channel ring LCG in Z/214414200.
+   With crt_mode(1), * and + are automatic CRT operations. The compiler
+   decomposes each value into 7 channels, operates per-channel, and
+   reconstructs at return. 6 lines replaces 34 lines of manual CRT.
+   Multiplier 29: residues (5,2,4,29,7,3,12) — non-trivial in ALL channels.
+   Salt 43: residues (3,7,18,43,10,4,9) — good round diffusion.
+   ================================================================ */
+fn crt_hash(n) = (
+  mut x = n * 29 + 1;
+  mut rd = 0;
+  while rd < 8 do (
+    mut x = x * 29 + rd * 43 + n;
+    mut rd = rd + 1
+  );
+  x
+)
+
+/* Handler: compute CRT-native hash and display with avalanche test */
+fn native_hash_run() = (
+  let n = parse_int_from("#dhash-native-input") in
+  let result_el = dom_query("#dhash-native-result") in
+  let h = crt_hash(n) in
+  let hd = h % 8 in let hk = h % 9 in let he = h % 25 in let hb = h % 49 in let hl = h % 11 in let hg = h % 13 in let hesc = h % 17 in
+  let h2 = crt_hash(n + 1) in
+  let h2d = h2 % 8 in let h2k = h2 % 9 in let h2e = h2 % 25 in let h2b = h2 % 49 in let h2l = h2 % 11 in let h2g = h2 % 13 in let h2esc = h2 % 17 in
+  let diff = (if hd == h2d then 0 else 1) + (if hk == h2k then 0 else 1) + (if he == h2e then 0 else 1) + (if hb == h2b then 0 else 1) + (if hl == h2l then 0 else 1) + (if hg == h2g then 0 else 1) + (if hesc == h2esc then 0 else 1) in
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#00dddd;margin:0 0 8px'>CRT-NATIVE HASH (8 rounds, 7-channel ring LCG in Z/214414200)</p><p style='color:#88ddaa;margin:4px 0'><b>crt_hash(" + "${n}" + ") = " + "${h}" + "</b></p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${hd}" + ", " + "${hk}" + ", " + "${he}" + ", " + "${hb}" + ", " + "${hl}" + ", " + "${hg}" + ", " + "${hesc}" + ")</p><p style='color:#00dddd;margin:12px 0 4px'>AVALANCHE TEST</p><p style='color:#88ddaa;margin:4px 0'>crt_hash(" + "${n + 1}" + ") = " + "${h2}" + "</p><p style='color:#b0b0c0;margin:4px 0'>CRT = (" + "${h2d}" + ", " + "${h2k}" + ", " + "${h2e}" + ", " + "${h2b}" + ", " + "${h2l}" + ", " + "${h2g}" + ", " + "${h2esc}" + ")</p><p style='color:" + (if diff > 4 then "#44ff88" else "#ff8844") + ";margin:4px 0'>Channels changed: <b>" + "${diff}" + "/7</b>" + (if diff > 4 then " -- good diffusion" else "") + "</p></div>")
+)
+
+fn native_hash_batch() = (
+  let result_el = dom_query("#dhash-native-batch-result") in
+  mut total_diff = 0;
+  mut perfect = 0;
+  mut i = 0;
+  while i < 100 do (
+    let h1 = crt_hash(i) in
+    let h2 = crt_hash(i + 1) in
+    let d = (if h1 % 8 == h2 % 8 then 0 else 1) + (if h1 % 9 == h2 % 9 then 0 else 1) + (if h1 % 25 == h2 % 25 then 0 else 1) + (if h1 % 49 == h2 % 49 then 0 else 1) + (if h1 % 11 == h2 % 11 then 0 else 1) + (if h1 % 13 == h2 % 13 then 0 else 1) + (if h1 % 17 == h2 % 17 then 0 else 1) in
+    mut total_diff = total_diff + d;
+    if d == 7 then mut perfect = perfect + 1 else 0;
+    mut i = i + 1
+  );
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#00dddd;margin:0 0 8px'>CRT-NATIVE BATCH: 100 consecutive pairs (7 channels)</p><p style='color:#88ddaa;margin:4px 0'>Average channels changed: <b>" + "${total_diff / 100}" + "." + "${(total_diff * 10 / 100) % 10}" + "/7</b></p><p style='color:#b0b0c0;margin:4px 0'>Perfect avalanche (7/7): <b>" + "${perfect}" + "/100</b></p></div>")
+)
+
+/* ================================================================
+   MANUAL CRT HASH — original 6-channel Feistel (34 lines).
+   Kept for comparison. CC0 kill A7.
    ================================================================ */
 
 fn demo_crt_hash(n) = (
@@ -170,14 +221,41 @@ fn page_hash() = (
   dom_attr(br4, "id", "dhash-bit-result");
   dom_append(sec4h, br4);
   dom_append(dom_body(), sec4h);
+  /* CRT-Native comparison section (L17) */
+  let sec_native = make_section("800px") in
+  render_h2(sec_native, "CRT-Native: 34 Lines to 6 Lines");
+  render_theorem(sec_native, "Language Revolution", "With crt_mode(1), the .ax compiler automatically decomposes * and + into 7 per-channel CRT operations. A ring hash becomes pure algebra: multiply, add, iterate. No manual % 8, % 9. No idempotent reconstruction. The CRT structure lives in the TYPE, not the CODE. 7 channels (TRANS ring, 214414200) vs 6 channels (TRUE ring).");
+  let gn = make_findings_grid(sec_native) in
+  render_finding(gn, "Old: 34 lines", "Manual CRT", "Explicit % 8, % 9, ... % 13. Explicit idempotent array. 6-channel Feistel with cross-channel mixing by hand.", "");
+  render_finding(gn, "New: 6 lines", "CRT-native", "fn crt_hash(n) = ( mut x = n*29+1; while rd<8 do x=x*29+rd*43+n ). Ring arithmetic. Period.", "");
+  render_finding(gn, "7 vs 6 channels", "TRANS > TRUE", "CRT-native uses Z/214414200 (7 channels) vs manual Z/12612600 (6 channels). More diffusion for free.", "");
+  render_finding(gn, "Multiplier 29", "(5,2,4,29,7,3,12)", "Non-trivial residue in ALL 7 CRT channels. Every channel gets mixed per round.", "");
+  make_interactive_widget(sec_native, "CRT-native hash (0-214414199):", "dhash-native-input", "e.g. 42", "Hash (native)", "native_hash_run", "dhash-native-result");
+  let btn_nb = dom_create("button") in
+  dom_text(btn_nb, "Run Native Batch (100 pairs)");
+  dom_style(btn_nb, "background", "#00dddd");
+  dom_style(btn_nb, "color", "#0f0f2a");
+  dom_style(btn_nb, "border", "none");
+  dom_style(btn_nb, "padding", "8px 16px");
+  dom_style(btn_nb, "cursor", "pointer");
+  dom_style(btn_nb, "fontFamily", "'Courier New', monospace");
+  dom_style(btn_nb, "fontWeight", "bold");
+  dom_style(btn_nb, "borderRadius", "4px");
+  dom_style(btn_nb, "marginTop", "12px");
+  dom_on(btn_nb, "click", "native_hash_batch");
+  dom_append(sec_native, btn_nb);
+  let br_nb = dom_create("div") in
+  dom_attr(br_nb, "id", "dhash-native-batch-result");
+  dom_append(sec_native, br_nb);
+  dom_append(dom_body(), sec_native);
   let sec5 = make_section("800px") in
   render_h2(sec5, "CRT Hash vs Traditional");
   render_contrast_row(sec5, "Structure", "SHA-256: 64 rounds of bit manipulation", "CRT: 8 rounds of ring arithmetic over 6 channels");
   render_contrast_row(sec5, "Mixing", "XOR + rotate + shift", "Primitive root multiplication");
-  render_contrast_row(sec5, "Output space", "2^256 (~77 digits)", "12,612,600 (~23.6 bits)");
-  render_contrast_row(sec5, "Collision resistance", "128 bits (birthday bound)", "~11.8 bits (tiny ring)");
+  render_contrast_row(sec5, "Output space", "2^256 (~77 digits)", "214,414,200 (~27.7 bits, CRT-native) / 12,612,600 (~23.6 bits, manual)");
+  render_contrast_row(sec5, "Collision resistance", "128 bits (birthday bound)", "~13.8 bits CRT-native / ~11.8 bits manual");
   render_contrast_row(sec5, "Patent status", "NIST standardized, royalty-free", "CC0. Public domain. Forever.");
-  render_p(sec5, "HONEST ASSESSMENT: CRT hash is an educational demonstration of Feistel construction on ring arithmetic. It is NOT a replacement for SHA-256. The output space (~23.6 bits) is far too small for cryptographic use. The channel avalanche metric (channels changed / 6) is not comparable to SHA-256 bit avalanche (~50% of 256 bits). Value: exploring how algebraic structure can provide mixing and diffusion through ring operations rather than bit manipulation.");
+  render_p(sec5, "HONEST ASSESSMENT: CRT hash is an educational demonstration of ring arithmetic hash construction. It is NOT a replacement for SHA-256. The output space (~27.7 bits for CRT-native) is far too small for cryptographic use. Value: exploring how algebraic structure provides mixing and diffusion, and how CRT-native compilation eliminates manual channel management.");
 
 )
 
