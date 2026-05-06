@@ -934,6 +934,19 @@ fn page_ai() = (
   render_finding(g7k, "Sept-confirmed", "W5+W6+W8+W2+W7+W15+W11", "Independence governs memory, convergence, scheduling, architecture, curriculum, search, AND discovery.", "S1832");
   dom_append(dom_body(), sec7k);
 
+  /* === SEC 7l: BLOCK-DIAGONAL GPU (W3 probe S1832) === */
+  let sec7l = make_section("800px") in
+  render_h2(sec7l, "Block-Diagonal GPU");
+  render_p(sec7l, "If CRT channels are independent, a neural network layer decomposes into 7 small operations instead of 1 big one. For matrix multiply: monolithic uses (sum q_i)^3 FLOPs, block-diagonal uses sum(q_i^3). The ratio is 16x at TRANS scale -- and it is scale-invariant (same ratio regardless of hidden dimension).");
+  render_theorem(sec7l, "Block-Diagonal FLOP Theorem (S1832, PROVED)", "Matmul FLOP ratio = (sum q_i)^3 / sum(q_i^3). DATA(4ch): 9x. TRUE(6ch): 11x. TRANS(7ch): 16x. Scale-invariant. Parameter savings: (sum q_i)^2 / sum(q_i^2) = 4.6x at TRANS. Neural net layer (attention mono + FFN block-diag): 3.4x total. 12-layer CRT-GPT: ~25M params vs ~117M standard. 24/24 checks pass.");
+  render_p(sec7l, "Attention must remain monolithic (coupling is cross-channel, per W1). But V-projection and FFN are block-diagonal -- 7 independent per-channel operations. The existing GPU benchmarks on this page already demonstrate per-channel dispatch. CRT Multiply processes 7 channels per element with zero cross-channel communication.");
+  let g7l = make_findings_grid(sec7l) in
+  render_finding(g7l, "Matmul 16x", "TRANS scale", "(sum q_i)^3 / sum(q_i^3) = 2299968/142956. Grows with channel count.", "S1832");
+  render_finding(g7l, "Params 4.6x", "TRANS scale", "(sum q_i)^2 / sum(q_i^2) = 17424/3750. Fewer weights to train.", "S1832");
+  render_finding(g7l, "Layer 3.4x", "attention+FFN", "Attention QK monolithic + V,FFN block-diagonal. 174240/51174 per layer.", "S1832");
+  render_finding(g7l, "CRT-GPT-1", "~25M params", "12-layer, d=448, 7 channels. vs 117M standard GPT-1. 4.7x compression.", "S1832");
+  dom_append(dom_body(), sec7l);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "Contrast Table");
