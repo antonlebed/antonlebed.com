@@ -959,6 +959,18 @@ fn page_ai() = (
   render_finding(g7m, "CRT softmax", "132 classes total", "7 small softmaxes (8+9+25+49+11+13+17) vs 1 giant 50K. Sums to 1 per channel.", "S1834");
   dom_append(dom_body(), sec7m);
 
+  /* === SEC 7n: ATTENTION + EMBEDDING (Phase B3 S1835) === */
+  let sec7n = make_section("800px") in
+  render_h2(sec7n, "Attention & Embedding");
+  render_p(sec7n, "CRT embedding: character code c decomposes into 7 residues (c mod q_i). Each residue indexes a learned d_c-dimensional table. 132 total entries (8+9+25+49+11+13+17) vs 50K for BPE -- 380x smaller output vocabulary. CRT coupling provides zero-parameter attention: QK scores come from the ring's eigenvalue inner product, with 99.5% retrieval and 30x advantage over uniform (W1 PROVED). Single full-coupling attention, no multi-head (which dilutes). Block-diagonal V projection per channel. 50 checks pass.");
+  render_theorem(sec7n, "CRT Attention Layer (S1835, VERIFIED)", "Coupling-based QK attention on short sequences. Causal masking: position 0 = self-only (weight 1.0), verified. Identical-code sequences produce uniform attention weights (proved by algebraic symmetry). Identity V gives weighted embedding average. Attention composes with B2 FFN: embedding -> attention -> layer_norm -> FFN -> softmax -> CRT reconstruction recovers input character. All operations per-channel independent.");
+  let g7n = make_findings_grid(sec7n) in
+  render_finding(g7n, "CRT embedding", "132 entries", "Character mod 7 channel moduli. 4570x fewer params than standard embedding.", "S1835");
+  render_finding(g7n, "Coupling attention", "Zero-parameter QK", "Eigenvalue inner product. 99.5% retrieval. No learned Q or K matrices.", "S1835");
+  render_finding(g7n, "Causal masking", "Autoregressive", "Position i attends to 0..i. Self-coupling dominates (highest weight).", "S1835");
+  render_finding(g7n, "Block-diagonal V", "7 independent", "Per-channel value projection. No cross-channel mixing in attention.", "S1835");
+  dom_append(dom_body(), sec7n);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "Contrast Table");
