@@ -782,6 +782,8 @@ fn page_ai_predict() = (
   page_ai_predict_9db();
   /* === SEC 9dc: WATER CYCLE LR + 2-LAYER (S1841 Phase B6 session 3) === */
   page_ai_predict_9dc();
+  /* === SEC 9dd: DEPTH-SCALED WC + 2-LAYER (S1842 Phase B6 session 4) === */
+  page_ai_predict_9dd();
   0
 )
 
@@ -1614,6 +1616,19 @@ fn page_ai_predict_9dc() = (
   render_finding(g, "Water cycle LR CONFIRMED", "b recovered 56% -> 73.9% (+17.9pp)", "Per-channel LR = base * 2/lambda(q^e). D(lambda=2): lr=0.030. K(6): 0.010. E(20): 0.003. b(42): 0.00143. L(10): 0.006. G(12): 0.005. X(16): 0.00375. Result: b jumped from 56% (uniform S1840) to 73.9%. D unchanged at 75.0%. Loss convergence smooth (no oscillation). The Carmichael function IS the correct per-channel LR scaling.", "S1841");
   render_finding(g, "2-layer stack helps data channels", "D: 69.6% -> 77.2% (+7.6pp)", "2-layer CRT-GPT-1 at d_c=16: D improved to 77.2% (highest ever). E +4.4pp. K +1.6pp. Extension channels L and G stable. X dropped 7pp. Data channels (higher modulus, more states) benefit from capacity. Extensions already saturated at 1 layer.", "S1841");
   render_finding(g, "Water cycle > multi-layer for b", "WC: b=73.9%, 2L: b=65.2%", "Per-channel LR at 1 layer (d_c=32) outperforms 2 layers (d_c=16) for the fattest channel. The learning rate fix is more impactful than adding depth for channels with many classes. Optimal next step: combine both (water cycle LR + 2 layers).", "S1841");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9dd: DEPTH-SCALED WC + 2-LAYER (S1842 Phase B6 session 4) === */
+fn page_ai_predict_9dd() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9dd. Depth-Scaled Water Cycle (S1842)");
+  render_p(sec, "Phase B6 session 4: combining water cycle LR with 2-layer stack. The 1-layer WC formula (2/lambda) creates a 21x ratio between D and b -- too aggressive for multi-layer models where gradient magnification amplifies the scaling. Depth-scaled formula: lr_ch = base * 2/lambda^(1/n_layers). For 2 layers: 2/sqrt(lambda). Ratio 21x -> 4.6x. 10/10 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Depth scaling theorem CONFIRMED", "D=77.2% + b=73.9% simultaneously", "At d_c=32 with 2 layers and sqrt-WC (base=0.01): D matches its 2-layer record (77.2%) and b matches its WC record (73.9%). Both individual records achieved simultaneously. G=73.9%. Three prior attempts: 2/lambda base=0.03 failed D (68.5%), 2/lambda base=0.01 starved b (52.2%), uniform lr=0.01 starved b (65.2%). Only sqrt scaling succeeds.", "S1842");
+  render_finding(g, "Gradient magnification absorbed by sqrt", "D/b ratio: 21x -> 4.6x", "Each transformer layer multiplies gradient signal. The 1/n_layers exponent on lambda absorbs this: orbit period in the loss landscape scales as lambda^(1/n) because n layers each contribute one multiplicative factor. At n=1: full WC (2/lambda). As n grows: approaches uniform. The formula interpolates between per-channel and universal.", "S1842");
+  render_finding(g, "L and X slightly depressed at 2 layers", "L=66.8%, X=64.7% (vs 73% at 1L)", "Extension channels L(11) and X(17) underperform relative to their 1-layer values. phi(17)=D^4 and phi(11)=D*E may interact differently with depth than the data channels. Hypothesis: capacity (d_c=64 target) will resolve as these channels have fewer classes.", "S1842");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
