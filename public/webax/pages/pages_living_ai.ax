@@ -776,6 +776,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cy();
   /* === SEC 9cz: SEQUENCE TRAINING (S1838 Phase B5) === */
   page_ai_predict_9cz();
+  /* === SEC 9da: TEXT TRAINING AT SCALE (S1839 Phase B6) === */
+  page_ai_predict_9da();
   0
 )
 
@@ -1568,6 +1570,19 @@ fn page_ai_predict_9cz() = (
   render_finding(g, "ABCD -> BCDE learned", "Multi-position next-char prediction", "4-position sequence training: embed -> 1-layer transformer block -> per-position output projection -> per-channel softmax -> cross-entropy loss -> full backward through transformer block -> embedding gradient. Loss decreases in 40 Adam steps. Gradients nonzero across all 7 parameter groups (embedding, V, W1, b1, W2, b2, W_out).", "S1838");
   render_finding(g, "Full transformer backprop verified", "Norm + attention V + FFN", "xfm_block_bwd recomputes forward intermediates (normed1, attn_out, res1, normed2), then backprops through FFN (per-position), norm (chain rule), attention (V only, coupling QK is zero-param), and norm again. Residual connections correctly split gradients. FD checks pass for norm_bwd and attn_v_bwd.", "S1838");
   render_finding(g, "Architecture: 7 param groups", "Embedding + 5 block + output", "emb_tbl(528), V(112), W1(224), b1(56), W2(224), b2(28), W_out(528) = 1700 total params at d_c=4, d_ff=8. Each with independent Adam optimizer state. Arena reset (hp/set_hp) per training step. L8+L9 gotchas respected throughout.", "S1838");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9da: TEXT TRAINING AT SCALE (S1839 Phase B6 session 1) === */
+fn page_ai_predict_9da() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9da. Text Training at Scale (S1839)");
+  render_p(sec, "Phase B6 session 1: scale from toy (d_c=4, seq_len=4) to operational (d_c=16, d_ff=64, seq_len=16). 1-layer CRT-GPT-1 trained on 'THE CAT SAT ON THE MAT' (23 chars, wrap-around). 80 Adam steps, lr=0.01, golden interleave (stride 137). 21K params (20912 f64). 10/10 WASI in 0.12s.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Loss 307.7 -> 68.6 in 80 steps", "Text training works at d_c=16", "Initial loss matches uniform prediction (16 pos x sum(log(q_i)) = 307). 78% reduction in 80 steps. Model learns character-level patterns from a 23-char corpus. Per-position loss: 19.2 -> 4.3. Full transformer backprop: embed -> 1-layer block -> per-position output -> per-channel softmax -> CE loss -> backward through all 7 parameter groups.", "S1839");
+  render_finding(g, "All 7 channels above chance", "D=69.6%, K=67.4%, E=65.2%, b=65.2%", "Per-channel accuracy on 368 predictions (23 windows x 16 positions). All channels above their chance level (D: 12.5%, K: 11.1%, E: 4%, b: 2%, L: 9.1%, G: 7.7%, X: 5.9%). D > b confirms water cycle core prediction (W6). 31% full CRT reconstruction (114/368).", "S1839");
+  render_finding(g, "Extension channels outperform data", "L=73.4%, G=73.9%, X=71.7%", "Thin depth-1 channels {L(11),GATE(13),ESCAPE(17)} converge faster than fat depth-2 channels {D(8),K(9),E(25),b(49)} in neural gradient dynamics. This differs from count-based W6 ordering (modulus-driven). Neural backprop favors channels where gradient signal is concentrated in fewer parameters (thin channels have simpler embedding structure).", "S1839");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
