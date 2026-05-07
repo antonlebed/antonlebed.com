@@ -788,6 +788,8 @@ fn page_ai_predict() = (
   page_ai_predict_9de();
   /* === SEC 9df: LARGER CORPUS AT d_c=64 (S1844 Phase B6 session 6) === */
   page_ai_predict_9df();
+  /* === SEC 9dg: TRAINING STAGE INVERSION (S1845 Phase B6 session 7) === */
+  page_ai_predict_9dg();
   0
 )
 
@@ -1656,9 +1658,22 @@ fn page_ai_predict_9df() = (
   render_h3(sec, "9df. Larger Corpus at d_c=64 (S1844)");
   render_p(sec, "Phase B6 session 6: D overfitting resolved by data, not LR. S1843 showed D collapsed to 43.5% at base=0.01 on 23-char corpus. Two experiments at d_c=64, base=0.01, 2L sqrt-WC, 80 steps: (A) 95-char scrambled ASCII (full coverage), (B) 85-char natural text. D overfitting vanishes with larger corpus. 10/10 WASI.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "D overfitting resolved by data", "95-char: D=56.4% (was 43.5% collapsed)", "At base=0.01 with 95-char ASCII, D recovers to 56.4% and all 7 channels equalize in 50-59% range. The 30pp gap from S1843 (D=43.5% vs G=73.9%) shrinks to 9pp. Corpus diversity, not LR reduction, is the cure for D overfitting at d_c=64.", "S1844");
+  render_finding(g, "D overfitting resolved by data", "95-char: D=56.4% (was 43.5% collapsed)", "At base=0.01 with 95-char ASCII, D recovers to 56.4% and all 7 channels equalize in 50-59% range. S1843 gap (D=43.5% vs G=73.9%=30pp) vanishes: D now EXCEEDS G (56.4% vs 54.3%). Total spread 8pp. Corpus diversity, not LR reduction, cures D overfitting.", "S1844");
   render_finding(g, "Channels equalize at full coverage", "50.7%-59.0% on 95-char ASCII", "With full residue coverage, per-channel accuracies equalize: b=59.0%, E=56.5%, D=56.4%, G=54.3%, K=53.3%, X=52.7%, L=50.7%. Ordering roughly follows modulus. Lower absolute accuracy than 23-char (harder task) but healthier distribution.", "S1844");
   render_finding(g, "Natural text: modulus-ordered", "b=55.4%, D=33.3% on 85 chars", "On natural text, ordering follows modulus: b(55.4%) > E(52.7%) > G(48.2%) > X(43.7%) > L(38.8%) > K(38.3%) > D(33.3%). Fat channels with more residue classes learn more patterns. All 7 above chance. D is NOT collapsed -- just learning a harder task.", "S1844");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9dg: TRAINING STAGE INVERSION (S1845 Phase B6 session 7) === */
+fn page_ai_predict_9dg() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9dg. Training Stage Inversion (S1845)");
+  render_p(sec, "Phase B6 session 7: 401-char natural text (9 pangrams). Two experiments at d_c=64, 2L sqrt-WC, base=0.01: 80 steps and 240 steps. Training steps must scale with corpus size: 80 steps on 401 chars gives only 3.2 passes per char (vs 15 at 85 chars). At 240 steps (9.6 passes), accuracy ordering INVERTS: fat channels overtake thin. 10/10 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Training stage inversion", "80 steps: G>X>E. 240 steps: b>E>K", "At 80 steps, thin channels lead (G=32.6%, X=30.6%). At 240 steps, fat channels overtake (b=35.2%, E=32.4%, K=28.9%). b gains +16.5pp, K +10.3pp, E +6.4pp. G drops -4.2pp, X -5.3pp. The water cycle convergence dynamics from W6 appear directly in neural training.", "S1845");
+  render_finding(g, "Above-chance ratio stays modulus-ordered", "b(17.6x) > E(8.1x) > X(4.3x) > G(3.7x)", "Despite the absolute accuracy inversion, the above-chance ratio maintains modulus ordering at BOTH training stages. Fat channels always learn proportionally more relative to their chance level. The CRT decomposition is validated for natural language at all training stages.", "S1845");
+  render_finding(g, "Training coverage scaling", "steps must scale with corpus size", "80 steps on 85 chars: 15 passes per char, 33-55% accuracy. 80 steps on 401 chars: 3.2 passes, 19-33% accuracy. 240 steps on 401 chars: 9.6 passes, 24-35% accuracy. The scaling: n_steps proportional to text_len * 15 / seq_len. Standard for neural networks, now confirmed for CRT architecture.", "S1845");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
