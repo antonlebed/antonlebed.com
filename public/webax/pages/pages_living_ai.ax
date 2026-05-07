@@ -772,6 +772,10 @@ fn page_ai_predict() = (
   page_ai_predict_9cw();
   /* === SEC 9cx: TRANSFORMER BLOCK (S1836 Phase B4) === */
   page_ai_predict_9cx();
+  /* === SEC 9cy: TRAINING LOOP (S1837 Phase B5) === */
+  page_ai_predict_9cy();
+  /* === SEC 9cz: SEQUENCE TRAINING (S1838 Phase B5) === */
+  page_ai_predict_9cz();
   0
 )
 
@@ -1538,6 +1542,32 @@ fn page_ai_predict_9cx() = (
   render_finding(g, "12-layer forward pass verified", "All outputs finite and non-degenerate", "End-to-end: char -> CRT decompose -> 7-channel embed -> 12 transformer blocks (pre-norm attention + residual + pre-norm FFN + residual) -> layer norm -> per-channel softmax -> CRT reconstruct. Coupling-based QK attention (zero params), block-diagonal V projection, squaring activation.", "S1836");
   render_finding(g, "4 ECC checkpoints computed", "Syndrome at layers 3, 6, 9, 12", "H_ecc matrix (3x4) maps 4 data channel means to 3 expected parity means. Syndrome = sum |actual - expected| across L, GATE, ESCAPE. Training objective (W9: not emergent). All 4 syndromes finite and non-negative.", "S1836");
   render_finding(g, "Gotcha: mut vs let scoping", "mut requires ; not in", "Discovered that mut x = val uses semicolon continuation while let x = val uses in. Using in after mut corrupts the parser -- all subsequent function parameters become undefined. Resolved by strict ; for mut, in only for let.", "S1836");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9cy: TRAINING LOOP (S1837 Phase B5) === */
+fn page_ai_predict_9cy() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9cy. Training Loop (S1837)");
+  render_p(sec, "CRT-GPT-1 block-diagonal backpropagation and Adam optimizer. train.ax stdlib: output projection forward/backward, per-channel cross-entropy loss, combined softmax+CE gradient (p-y), FFN backward with squaring activation gradient (d/dx(x^2)=2x), Adam with water-cycle per-channel LR. 17/17 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Loss 19.18 -> 0.00005 in 10 steps", "1-layer FFN training verified", "End-to-end: embed char A -> FFN -> output projection -> per-channel softmax -> cross-entropy loss -> backward -> Adam update. Loss decreases from near-uniform (19.18) to near-perfect (0.00005) in 10 Adam steps with lr=0.1. Block-diagonal gradients: 7 independent channels.", "S1837");
+  render_finding(g, "Water cycle LR confirmed", "D converges faster than b (W6)", "D channel (q=8, lr=0.1): loss 2.08 -> 0.68 (67% decrease). b channel (q=49, lr=0.0048): loss 3.89 -> 3.80 (2.4% decrease). Per-channel learning rate proportional to 1/lambda(q_i) matches natural convergence staircase. D fastest, b slowest.", "S1837");
+  render_finding(g, "Gotcha: falloc returns uninitialized memory", "Adam m/v must be zeroed", "Discovered that falloc (bump allocator) returns memory with previous contents when arena has been partially used. Adam optimizer momentum and variance accumulators read garbage, causing NaN weights and divergence. Fix: explicit zero_f after falloc for all optimizer state arrays.", "S1837");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9cz: SEQUENCE TRAINING (S1838 Phase B5 session 2) === */
+fn page_ai_predict_9cz() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9cz. Sequence Training (S1838)");
+  render_p(sec, "Multi-position sequence training through full transformer block. train.ax extended (204->487L) with 7 new backward functions: norm_bwd_pos (layer norm backward), attn_v_bwd_ch (per-channel V projection backward), attn_bwd (full attention backward with recomputed coupling weights), emb_bwd (embedding lookup backward), xfm_block_bwd (complete pre-norm transformer block backward), norm_bwd_seq (sequence wrapper), seq_train_fwd_bwd (full pipeline). 28/28 WASI (17+11).");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "ABCD -> BCDE learned", "Multi-position next-char prediction", "4-position sequence training: embed -> 1-layer transformer block -> per-position output projection -> per-channel softmax -> cross-entropy loss -> full backward through transformer block -> embedding gradient. Loss decreases in 40 Adam steps. Gradients nonzero across all 7 parameter groups (embedding, V, W1, b1, W2, b2, W_out).", "S1838");
+  render_finding(g, "Full transformer backprop verified", "Norm + attention V + FFN", "xfm_block_bwd recomputes forward intermediates (normed1, attn_out, res1, normed2), then backprops through FFN (per-position), norm (chain rule), attention (V only, coupling QK is zero-param), and norm again. Residual connections correctly split gradients. FD checks pass for norm_bwd and attn_v_bwd.", "S1838");
+  render_finding(g, "Architecture: 7 param groups", "Embedding + 5 block + output", "emb_tbl(528), V(112), W1(224), b1(56), W2(224), b2(28), W_out(528) = 1700 total params at d_c=4, d_ff=8. Each with independent Adam optimizer state. Arena reset (hp/set_hp) per training step. L8+L9 gotchas respected throughout.", "S1838");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
