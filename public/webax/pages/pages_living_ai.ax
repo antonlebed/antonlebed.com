@@ -780,6 +780,8 @@ fn page_ai_predict() = (
   page_ai_predict_9da();
   /* === SEC 9db: SCALE + COVERAGE (S1840 Phase B6 session 2) === */
   page_ai_predict_9db();
+  /* === SEC 9dc: WATER CYCLE LR + 2-LAYER (S1841 Phase B6 session 3) === */
+  page_ai_predict_9dc();
   0
 )
 
@@ -1599,6 +1601,19 @@ fn page_ai_predict_9db() = (
   render_finding(g, "D benefits most from scaling", "D: 69.6% -> 75.0% at d_c=32", "At d_c=32 (4x capacity), D(8) jumped from 4th to 1st place (75.0%). More hidden dimensions help channels with fewer classes (D=8 classes, simple decision boundary). b(49) dropped 65% -> 56% due to lr sensitivity. Extension channels L and X also dropped. Suggests D is capacity-limited at small d_c.", "S1840");
   render_finding(g, "LR sensitivity is per-channel", "lr=0.03 oscillation damages b, helps D", "At lr=0.03 (3x S1839), loss oscillated: 118 -> 138 -> 77 (overshoot at step 20-40). D(8 classes) recovered and improved. b(49 classes) degraded. Fat channels with more classes need finer gradient steps -- confirms water-cycle per-channel LR is practically necessary, not just theoretical.", "S1840");
   render_finding(g, "Above-chance ratio follows modulus", "b(28x) > E(14x) > X(10x) > G(7x) > L(6x) > K(5x) > D(4.5x)", "At full coverage (Exp B), normalizing accuracy by chance level reveals: larger modulus = more relative improvement. The signal-to-noise ratio per channel is proportional to class count. This is INVERSE of the small-corpus ordering. Water cycle convergence dynamics are modulus-driven at equal coverage.", "S1840");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9dc: WATER CYCLE LR + 2-LAYER (S1841 Phase B6 session 3) === */
+fn page_ai_predict_9dc() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9dc. Water Cycle LR + Multi-Layer (S1841)");
+  render_p(sec, "Phase B6 session 3: two experiments implementing the water cycle learning rate and scaling to 2 transformer layers. Exp A: per-channel LR scaled by 2/lambda(q^e) where lambda is the Carmichael function of each CRT modulus power. b's LR is 21x smaller than D's -- the fat channel needs fine steps. Exp B: first 2-layer CRT-GPT-1 training. 10/10 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Water cycle LR CONFIRMED", "b recovered 56% -> 73.9% (+17.9pp)", "Per-channel LR = base * 2/lambda(q^e). D(lambda=2): lr=0.030. K(6): 0.010. E(20): 0.003. b(42): 0.00143. L(10): 0.006. G(12): 0.005. X(16): 0.00375. Result: b jumped from 56% (uniform S1840) to 73.9%. D unchanged at 75.0%. Loss convergence smooth (no oscillation). The Carmichael function IS the correct per-channel LR scaling.", "S1841");
+  render_finding(g, "2-layer stack helps data channels", "D: 69.6% -> 77.2% (+7.6pp)", "2-layer CRT-GPT-1 at d_c=16: D improved to 77.2% (highest ever). E +4.4pp. K +1.6pp. Extension channels L and G stable. X dropped 7pp. Data channels (higher modulus, more states) benefit from capacity. Extensions already saturated at 1 layer.", "S1841");
+  render_finding(g, "Water cycle > multi-layer for b", "WC: b=73.9%, 2L: b=65.2%", "Per-channel LR at 1 layer (d_c=32) outperforms 2 layers (d_c=16) for the fattest channel. The learning rate fix is more impactful than adding depth for channels with many classes. Optimal next step: combine both (water cycle LR + 2 layers).", "S1841");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
