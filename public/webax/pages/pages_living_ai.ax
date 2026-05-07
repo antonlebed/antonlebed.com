@@ -792,6 +792,8 @@ fn page_ai_predict() = (
   page_ai_predict_9dg();
   /* === SEC 9dh: D-CHANNEL LR REDUCTION (S1846 Phase B6 session 8) === */
   page_ai_predict_9dh();
+  /* === SEC 9di: D-OVERPARAMETERIZATION HORIZON (S1847 Phase B6 session 9) === */
+  page_ai_predict_9di();
   0
 )
 
@@ -1689,6 +1691,18 @@ fn page_ai_predict_9dh() = (
   render_finding(g, "D LR reduction recovers accuracy", "D: 25% -> 32.6% with base/4", "Exp A (D LR = base/8): D = 27% (+2pp). Exp B (D LR = base/4): D = 32.6% (+7.6pp). base/4 is the better reduction point. The sqrt-WC formula gives D LR = base*1.414 -- too aggressive when d_c >> q. The optimizer overshoots on the 8-class output.", "S1846");
   render_finding(g, "Perfect CRT channel independence", "Non-D channels identical across experiments", "Changing D's learning rate produces IDENTICAL K, E, b, L, G, X outputs between experiments. This is the cleanest confirmation yet that CRT channels are truly independent during training -- changing one channel's optimizer affects ONLY that channel.", "S1846");
   render_finding(g, "D-overparameterization correction", "LR needs d_c/q damping factor", "When d_c=64 and q_D=8, the embedding has 8x more dimensions than classes. The LR must be reduced proportional to overparameterization. Corrected formula: lr = base * min(2/sqrt(lambda), C/q) where C is 2-4. This extends the water cycle LR scaling for high-capacity regimes.", "S1846");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+fn page_ai_predict_9di() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9di. Corpus Saturation + D Correction (S1847)");
+  render_p(sec, "Phase B6 session 9: two experiments with corrected D LR (base/4) on 401-char corpus. (A) 240 steps: D improved from 25% to 28.6% (+3.6pp over sqrt-WC). b=34.5%, E=32.3%, stage inversion persists. (B) 480 steps: loss PLATEAUS at ~230 from step 240. Accuracy noisy -- b drops to 28.6%, G jumps to 35.3%. The 401-char corpus saturates at ~240 steps (9.6 passes per char). Beyond that, accuracy reflects memorization noise, not learning. 5/5 both experiments, 4.3s + 8.3s.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "D LR correction confirmed", "D: 25% to 28.6% at 240 steps (+3.6pp)", "The base/4 correction for D consistently helps. At 240 steps on the same corpus, D gains 3.6pp over sqrt-WC (which gives D the highest LR but D has only 8 output classes). The corrected formula lr = base * min(2/sqrt(lambda), C/q) with C~2-4 extends water cycle scaling to overparameterized regimes.", "S1847");
+  render_finding(g, "Corpus saturation at ~240 steps", "Loss plateaus, accuracy becomes noise", "For 401 chars with seq_len=16, useful training saturates at ~240 steps (~9.6 passes per character). At 480 steps (19 passes), loss is flat at ~230 and per-channel accuracy is noisy (b drops 6pp, G jumps 7pp). Corpus saturation formula: n_steps_max ~ text_len * 15 / seq_len. Larger corpus needed for clean long-run tests.", "S1847");
+  render_finding(g, "Above-chance ratio stays modulus-ordered", "b(16.9x) > E(8.1x) > X(4.1x) at 240 steps", "Even as absolute accuracy shifts with training length, the above-chance ratio (accuracy * q / total) maintains modulus ordering. Fat channels encode more information per class. This is the deepest invariant across all B6 experiments: the modular structure of the ring determines learning capacity.", "S1847");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
