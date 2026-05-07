@@ -790,6 +790,8 @@ fn page_ai_predict() = (
   page_ai_predict_9df();
   /* === SEC 9dg: TRAINING STAGE INVERSION (S1845 Phase B6 session 7) === */
   page_ai_predict_9dg();
+  /* === SEC 9dh: D-CHANNEL LR REDUCTION (S1846 Phase B6 session 8) === */
+  page_ai_predict_9dh();
   0
 )
 
@@ -1672,8 +1674,21 @@ fn page_ai_predict_9dg() = (
   render_p(sec, "Phase B6 session 7: 401-char natural text (9 pangrams). Two experiments at d_c=64, 2L sqrt-WC, base=0.01: 80 steps and 240 steps. Training steps must scale with corpus size: 80 steps on 401 chars gives only 3.2 passes per char (vs 15 at 85 chars). At 240 steps (9.6 passes), accuracy ordering INVERTS: fat channels overtake thin. 10/10 WASI.");
   let g = make_findings_grid(sec) in
   render_finding(g, "Training stage inversion", "80 steps: G>X>E. 240 steps: b>E>K", "At 80 steps, thin channels lead (G=32.6%, X=30.6%). At 240 steps, fat channels overtake (b=35.2%, E=32.4%, K=28.9%). b gains +16.5pp, K +10.3pp, E +6.4pp. G drops -4.2pp, X -5.3pp. The water cycle convergence dynamics from W6 appear directly in neural training.", "S1845");
-  render_finding(g, "Above-chance ratio stays modulus-ordered", "b(17.6x) > E(8.1x) > X(4.3x) > G(3.7x)", "Despite the absolute accuracy inversion, the above-chance ratio maintains modulus ordering at BOTH training stages. Fat channels always learn proportionally more relative to their chance level. The CRT decomposition is validated for natural language at all training stages.", "S1845");
+  render_finding(g, "Above-chance ratio stays modulus-ordered", "b(17.8x) > E(8.2x) > X(4.3x) > G(3.7x)", "Despite the absolute accuracy inversion, the above-chance ratio maintains modulus ordering at BOTH training stages. Fat channels always learn proportionally more relative to their chance level. The CRT decomposition is validated for natural language at all training stages.", "S1845");
   render_finding(g, "Training coverage scaling", "steps must scale with corpus size", "80 steps on 85 chars: 15 passes per char, 33-55% accuracy. 80 steps on 401 chars: 3.2 passes, 19-33% accuracy. 240 steps on 401 chars: 9.6 passes, 24-35% accuracy. The scaling: n_steps proportional to text_len * 15 / seq_len. Standard for neural networks, now confirmed for CRT architecture.", "S1845");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9dh: D-CHANNEL LR REDUCTION (S1846 Phase B6 session 8) === */
+fn page_ai_predict_9dh() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9dh. D-Channel LR Reduction (S1846)");
+  render_p(sec, "Phase B6 session 8: D stuck at 25% on 401-char corpus with sqrt-WC LR. D gets the HIGHEST LR (base*1.414) but has only 8 output classes with 64-dim embeddings -- 8x overparameterized. Two experiments reducing D's LR only, all other channels unchanged. Perfect CRT independence: non-D channels produce IDENTICAL outputs. 10/10 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "D LR reduction recovers accuracy", "D: 25% -> 32.6% with base/4", "Exp A (D LR = base/8): D = 27% (+2pp). Exp B (D LR = base/4): D = 32.6% (+7.6pp). base/4 is the better reduction point. The sqrt-WC formula gives D LR = base*1.414 -- too aggressive when d_c >> q. The optimizer overshoots on the 8-class output.", "S1846");
+  render_finding(g, "Perfect CRT channel independence", "Non-D channels identical across experiments", "Changing D's learning rate produces IDENTICAL K, E, b, L, G, X outputs between experiments. This is the cleanest confirmation yet that CRT channels are truly independent during training -- changing one channel's optimizer affects ONLY that channel.", "S1846");
+  render_finding(g, "D-overparameterization correction", "LR needs d_c/q damping factor", "When d_c=64 and q_D=8, the embedding has 8x more dimensions than classes. The LR must be reduced proportional to overparameterization. Corrected formula: lr = base * min(2/sqrt(lambda), C/q) where C is 2-4. This extends the water cycle LR scaling for high-capacity regimes.", "S1846");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
