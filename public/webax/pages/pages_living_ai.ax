@@ -778,6 +778,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cz();
   /* === SEC 9da: TEXT TRAINING AT SCALE (S1839 Phase B6) === */
   page_ai_predict_9da();
+  /* === SEC 9db: SCALE + COVERAGE (S1840 Phase B6 session 2) === */
+  page_ai_predict_9db();
   0
 )
 
@@ -1583,6 +1585,20 @@ fn page_ai_predict_9da() = (
   render_finding(g, "Loss 307.7 -> 68.6 in 80 steps", "Text training works at d_c=16", "Initial loss matches uniform prediction (16 pos x sum(log(q_i)) = 307). 78% reduction in 80 steps. Model learns character-level patterns from a 23-char corpus. Per-position loss: 19.2 -> 4.3. Full transformer backprop: embed -> 1-layer block -> per-position output -> per-channel softmax -> CE loss -> backward through all 7 parameter groups.", "S1839");
   render_finding(g, "All 7 channels above chance", "D=69.6%, K=67.4%, E=65.2%, b=65.2%", "Per-channel accuracy on 368 predictions (23 windows x 16 positions). All channels above their chance level (D: 12.5%, K: 11.1%, E: 4%, b: 2%, L: 9.1%, G: 7.7%, X: 5.9%). D > b confirms water cycle core prediction (W6). 31% full CRT reconstruction (114/368).", "S1839");
   render_finding(g, "Extension channels outperform data", "L=73.4%, G=73.9%, X=71.7%", "Thin depth-1 channels {L(11),GATE(13),ESCAPE(17)} converge faster than fat depth-2 channels {D(8),K(9),E(25),b(49)} in neural gradient dynamics. This differs from count-based W6 ordering (modulus-driven). Neural backprop favors channels where gradient signal is concentrated in fewer parameters (thin channels have simpler embedding structure).", "S1839");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9db: SCALE + COVERAGE (S1840 Phase B6 session 2) === */
+fn page_ai_predict_9db() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9db. Scale + Coverage Dynamics (S1840)");
+  render_p(sec, "Phase B6 session 2: two experiments resolving the S1839 extension > data mystery. Exp A: d_c=32 (4x params) on same 23-char corpus. Exp B: d_c=16 on 95 printable ASCII chars (all channels at 100% residue coverage). Together they reveal: channel ordering is corpus-dependent, not intrinsic. 11/11 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Coverage hypothesis CONFIRMED", "95-char corpus equalizes channels", "With 95 unique chars, all 7 CRT channels reach 100% residue coverage (every modulus < 95). Result: per-channel accuracy equalizes at 54-58%. The S1839 extension advantage was corpus-specific -- thin channels (L=11, G=13, X=17) had 100% coverage with 23 chars while b(49) had only 47%. With full coverage, no channel type dominates. Validates CRT design for real text (thousands of unique tokens).", "S1840");
+  render_finding(g, "D benefits most from scaling", "D: 69.6% -> 75.0% at d_c=32", "At d_c=32 (4x capacity), D(8) jumped from 4th to 1st place (75.0%). More hidden dimensions help channels with fewer classes (D=8 classes, simple decision boundary). b(49) dropped 65% -> 56% due to lr sensitivity. Extension channels L and X also dropped. Suggests D is capacity-limited at small d_c.", "S1840");
+  render_finding(g, "LR sensitivity is per-channel", "lr=0.03 oscillation damages b, helps D", "At lr=0.03 (3x S1839), loss oscillated: 118 -> 138 -> 77 (overshoot at step 20-40). D(8 classes) recovered and improved. b(49 classes) degraded. Fat channels with more classes need finer gradient steps -- confirms water-cycle per-channel LR is practically necessary, not just theoretical.", "S1840");
+  render_finding(g, "Above-chance ratio follows modulus", "b(28x) > E(14x) > X(10x) > G(7x) > L(6x) > K(5x) > D(4.5x)", "At full coverage (Exp B), normalizing accuracy by chance level reveals: larger modulus = more relative improvement. The signal-to-noise ratio per channel is proportional to class count. This is INVERSE of the small-corpus ordering. Water cycle convergence dynamics are modulus-driven at equal coverage.", "S1840");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
