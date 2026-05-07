@@ -794,6 +794,8 @@ fn page_ai_predict() = (
   page_ai_predict_9dh();
   /* === SEC 9di: D-OVERPARAMETERIZATION HORIZON (S1847 Phase B6 session 9) === */
   page_ai_predict_9di();
+  /* === SEC 9dj: D MONOTONICITY CONFIRMED (S1848 Phase B6 session 10) === */
+  page_ai_predict_9dj();
   0
 )
 
@@ -1703,6 +1705,18 @@ fn page_ai_predict_9di() = (
   render_finding(g, "D LR correction confirmed", "D: 25% to 28.6% at 240 steps (+3.6pp)", "The base/4 correction for D consistently helps. At 240 steps on the same corpus, D gains 3.6pp over sqrt-WC (which gives D the highest LR but D has only 8 output classes). The corrected formula lr = base * min(2/sqrt(lambda), C/q) with C~2-4 extends water cycle scaling to overparameterized regimes.", "S1847");
   render_finding(g, "Corpus saturation at ~240 steps", "Loss plateaus, accuracy becomes noise", "For 401 chars with seq_len=16, useful training saturates at ~240 steps (~9.6 passes per character). At 480 steps (19 passes), loss is flat at ~230 and per-channel accuracy is noisy (b drops 6pp, G jumps 7pp). Corpus saturation formula: n_steps_max ~ text_len * 15 / seq_len. Larger corpus needed for clean long-run tests.", "S1847");
   render_finding(g, "Above-chance ratio stays modulus-ordered", "b(16.9x) > E(8.1x) > X(4.1x) at 240 steps", "Even as absolute accuracy shifts with training length, the above-chance ratio (accuracy * q / total) maintains modulus ordering. Fat channels encode more information per class. This is the deepest invariant across all B6 experiments: the modular structure of the ring determines learning capacity.", "S1847");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+fn page_ai_predict_9dj() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9dj. D Monotonicity Confirmed -- B6 Complete (S1848)");
+  render_p(sec, "Phase B6 session 10: 1142-char corpus (61 unique chars, 9 pangrams + numbers + punctuation). Saturation ceiling: 1070 steps. At 480 steps (44% of saturation), the corpus is NOT saturated -- loss still declining. Two checkpoints on the same corpus: 240 steps then 480 steps. D improved monotonically from 23% to 29% (+6pp). The S1847 D ceiling was corpus saturation, not D-overparameterization. 5/5 + 5/5 both experiments.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "D monotonicity confirmed", "D: 23% at 240 -> 29% at 480 (+6pp)", "On unsaturated corpus (480 steps at 44% of ceiling), D accuracy improves monotonically with corrected LR (base/4). The D-overparameterization hypothesis is falsified: D's apparent ceiling in S1847 was corpus saturation, not a training horizon. CRT channel independence means D's dynamics depend only on LR correctness and corpus diversity.", "S1848");
+  render_finding(g, "G-surge at 480 steps", "G: 22% at 240 -> 34% at 480 (+12pp)", "GATE channel surges between 240 and 480 steps while L declines (30% to 23%). Training stage inversion operates on larger corpus too: thin extensions (G, q=13) can overshoot before data channels equilibrate. The phenomenon is not corpus-size-dependent but training-dynamics-dependent.", "S1848");
+  render_finding(g, "B6 COMPLETE -- ready for B7", "D LR correction sufficient", "Ten B6 sessions established: water cycle LR (S1841), 2-layer composition (S1842), d_c=64 scaling (S1843), coverage (S1844), stage inversion (S1845), D LR (S1846), corpus saturation (S1847), D monotonicity (S1848). All channel dynamics understood. Next: B7 -- scaling from 2 to 12 layers.", "S1848");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
