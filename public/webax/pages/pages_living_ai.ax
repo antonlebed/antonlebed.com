@@ -770,6 +770,8 @@ fn page_ai_predict() = (
   page_ai_predict_9cv();
   /* === SEC 9cw: ECC ABLATION (S1751) === */
   page_ai_predict_9cw();
+  /* === SEC 9cx: TRANSFORMER BLOCK (S1836 Phase B4) === */
+  page_ai_predict_9cx();
   0
 )
 
@@ -1523,6 +1525,19 @@ fn page_ai_predict_9cw() = (
   render_finding(g, "All 12 ECC-DATA lifts = 0", "d_{t+1} is independent of ECC_t given d_t", "12 pairwise lifts: {L, GATE, ESC} x {D, K, E, b}. All within noise of zero. Adding ECC channel information to a DATA channel prediction yields no improvement when the DATA channel's own history is already known. Channels are CONDITIONALLY INDEPENDENT.", "S1751");
   render_finding(g, "ECC = parity, not prediction", "Classical ECC analogy exact", "For prediction: cosmetic (zero lift). For error correction: structural (Fano syndrome decoder S1695, Phase A statistical detection S1649). Parity channels detect errors but don't carry data. Same as classical coding theory.", "S1751");
   render_finding(g, "30th closed path", "H.5 partially confirmed", "Detection is structural (S1649: 100% for DATA). Prediction is cosmetic (S1751: zero lift). ECC channels serve exactly one purpose: detecting inconsistency. They do not improve prediction accuracy. The classical analogy is exact, not approximate.", "S1751");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9cx: TRANSFORMER BLOCK (S1836 Phase B4) === */
+fn page_ai_predict_9cx() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9cx. Transformer Block (S1836)");
+  render_p(sec, "CRT-GPT-1 transformer block and 12-layer stack. Pre-norm architecture: out = x + sublayer(norm(x)). Block-diagonal FFN: 7 independent per-channel d_c -> 4*d_c -> d_c MLPs with squaring activation. ECC parity check (L+GATE+ESCAPE syndrome via H matrix) every K=3 layers. 32/32 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "12-layer forward pass verified", "All outputs finite and non-degenerate", "End-to-end: char -> CRT decompose -> 7-channel embed -> 12 transformer blocks (pre-norm attention + residual + pre-norm FFN + residual) -> layer norm -> per-channel softmax -> CRT reconstruct. Coupling-based QK attention (zero params), block-diagonal V projection, squaring activation.", "S1836");
+  render_finding(g, "4 ECC checkpoints computed", "Syndrome at layers 3, 6, 9, 12", "H_ecc matrix (3x4) maps 4 data channel means to 3 expected parity means. Syndrome = sum |actual - expected| across L, GATE, ESCAPE. Training objective (W9: not emergent). All 4 syndromes finite and non-negative.", "S1836");
+  render_finding(g, "Gotcha: mut vs let scoping", "mut requires ; not in", "Discovered that mut x = val uses semicolon continuation while let x = val uses in. Using in after mut corrupts the parser -- all subsequent function parameters become undefined. Resolved by strict ; for mut, in only for let.", "S1836");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
