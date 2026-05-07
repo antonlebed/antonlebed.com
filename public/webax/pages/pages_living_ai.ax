@@ -786,6 +786,8 @@ fn page_ai_predict() = (
   page_ai_predict_9dd();
   /* === SEC 9de: SCALE TO d_c=64 (S1843 Phase B6 session 5) === */
   page_ai_predict_9de();
+  /* === SEC 9df: LARGER CORPUS AT d_c=64 (S1844 Phase B6 session 6) === */
+  page_ai_predict_9df();
   0
 )
 
@@ -1644,6 +1646,19 @@ fn page_ai_predict_9de() = (
   render_finding(g, "L+X capacity hypothesis CONFIRMED", "L=73.4%, X=73.4% at d_c=64", "At d_c=32: L=66.8%, X=64.7% (depressed). At d_c=64: L=73.4%, X=73.4% (matching G=73.9%). The extension channels were capacity-limited, not structurally disadvantaged. With adequate dimension per channel, all 7 channels achieve comparable accuracy.", "S1843");
   render_finding(g, "D overfits at d_c=64 with base=0.01", "D: 43.5% (collapsed from 66% at 40 steps)", "D-channel has only 8 residue classes but 64-dim embeddings (8x over-parameterized). At base=0.01 the model memorizes then oscillates. Halving LR to 0.005 recovers D to 75.5%. Thin channels need LOWER LR at high d_c. The water cycle must account for capacity-modulus mismatch.", "S1843");
   render_finding(g, "LR scales as 1/sqrt(d_model)", "d_c=32: base=0.01, d_c=64: base=0.005-0.007", "Optimal base LR scales inversely with sqrt(d_c), consistent with Vaswani et al 1/sqrt(d_model) scaling law. The CRT architecture follows the same LR scaling as standard transformers despite block-diagonal structure. At d_c=64: 0.01/sqrt(2) = 0.007 predicted, 0.005 works.", "S1843");
+  dom_append(sec, g);
+  dom_append(dom_body(), sec)
+)
+
+/* === SEC 9df: LARGER CORPUS AT d_c=64 (S1844 Phase B6 session 6) === */
+fn page_ai_predict_9df() = (
+  let sec = make_section("800px") in
+  render_h3(sec, "9df. Larger Corpus at d_c=64 (S1844)");
+  render_p(sec, "Phase B6 session 6: D overfitting resolved by data, not LR. S1843 showed D collapsed to 43.5% at base=0.01 on 23-char corpus. Two experiments at d_c=64, base=0.01, 2L sqrt-WC, 80 steps: (A) 95-char scrambled ASCII (full coverage), (B) 85-char natural text. D overfitting vanishes with larger corpus. 10/10 WASI.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "D overfitting resolved by data", "95-char: D=56.4% (was 43.5% collapsed)", "At base=0.01 with 95-char ASCII, D recovers to 56.4% and all 7 channels equalize in 50-59% range. The 30pp gap from S1843 (D=43.5% vs G=73.9%) shrinks to 9pp. Corpus diversity, not LR reduction, is the cure for D overfitting at d_c=64.", "S1844");
+  render_finding(g, "Channels equalize at full coverage", "50.7%-59.0% on 95-char ASCII", "With full residue coverage, per-channel accuracies equalize: b=59.0%, E=56.5%, D=56.4%, G=54.3%, K=53.3%, X=52.7%, L=50.7%. Ordering roughly follows modulus. Lower absolute accuracy than 23-char (harder task) but healthier distribution.", "S1844");
+  render_finding(g, "Natural text: modulus-ordered", "b=55.4%, D=33.3% on 85 chars", "On natural text, ordering follows modulus: b(55.4%) > E(52.7%) > G(48.2%) > X(43.7%) > L(38.8%) > K(38.3%) > D(33.3%). Fat channels with more residue classes learn more patterns. All 7 above chance. D is NOT collapsed -- just learning a harder task.", "S1844");
   dom_append(sec, g);
   dom_append(dom_body(), sec)
 )
