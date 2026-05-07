@@ -971,20 +971,25 @@ fn page_ai() = (
   render_finding(g7n, "Block-diagonal V", "7 independent", "Per-channel value projection. No cross-channel mixing in attention.", "S1835");
   dom_append(dom_body(), sec7n);
 
-  /* === SEC 7o: DEPTH SCALING (Phase B5-B7 S1837-S1851) === */
+  /* === SEC 7o: DEPTH SCALING (Phase B5-B8 S1837-S1855) === */
   let sec7o = make_section("800px") in
   render_h2(sec7o, "Depth Scaling");
-  render_p(sec7o, "CRT-GPT-1 trains at 2, 4, and 8 layers. Block-diagonal backprop propagates gradients through all layers with zero cross-channel mixing. Per-channel water cycle learning rates (Carmichael-scaled) compose with a depth correction factor of 1/sqrt(n_layers). All 7 CRT channels learn above chance at every depth tested. 8-layer CRT-GPT beats 2-layer (loss 249 vs 253) on unsaturated corpus, confirming depth scaling works.");
-  render_theorem(sec7o, "Depth Scaling Theorem (S1842+S1852, VERIFIED)", "Learning rate formula: lr_ch = (base/sqrt(n_layers)) * 2/lambda(q^e)^(1/n_layers). Water cycle per-channel rates compose multiplicatively with depth correction. D channel correction and depth correction are multiplicatively redundant: at 8L, D LR=base/2 recovers D from 15% to 27% with zero effect on non-D channels. Confirmed at 2L, 4L, 8L. Corpus Sensitivity: channel ordering shifts with corpus size -- X(ESCAPE) regression at 480 steps is a corpus saturation artifact (recovers from 12% to 25% on unsaturated corpus).");
+  render_p(sec7o, "CRT-GPT-1 trains at 2, 4, 8, and 12 layers. Block-diagonal backprop propagates gradients through all layers with zero cross-channel mixing. Per-channel water cycle learning rates (Carmichael-scaled) compose with a depth correction factor of 1/sqrt(n_layers). All 7 CRT channels learn above chance at every depth tested. On a 10286-char real corpus, 12-layer CRT-GPT (3.14M params) achieves loss 250 at 19 percent saturation -- matching 8-layer loss 249 on 2066-char at 49 percent saturation. The larger corpus eliminates saturation resonance: oscillation amplitude is stable, not amplifying. Corpus was the bottleneck, not model capacity.");
+  render_theorem(sec7o, "Depth Scaling Theorem (S1842+S1852, VERIFIED)", "Learning rate formula: lr_ch = (base/sqrt(n_layers)) * 2/lambda(q^e)^(1/n_layers). Water cycle per-channel rates compose multiplicatively with depth correction. D channel correction and depth correction are multiplicatively redundant: at 8L, D LR=base/2 recovers D from 15% to 27% with zero effect on non-D channels. Confirmed at 2L, 4L, 8L, 12L. Corpus Sensitivity: channel ordering shifts with corpus size -- X(ESCAPE) regression at 480 steps is a corpus saturation artifact (recovers from 12% to 25% on unsaturated corpus).");
+  render_theorem(sec7o, "Multi-Cycle Convergence (S1853+S1854, OBSERVED)", "On the same corpus, spike timing is identical across depths (both 8L and 12L spike at steps 479-639 on 2066-char). Depth determines the number of oscillation cycles before convergence, not the period. 8L converges in one cycle (by step 959). 12L needs two or more cycles. BELOW saturation: attenuating amplitude (cycle 1: +23, cycle 2: +11). NEAR saturation (at 99 percent of ceiling): amplitude AMPLIFIES (cycle 3: +50). The multi-cycle theorem holds only below the saturation regime. Engineering guideline: stop at roughly 75 percent of saturation ceiling.");
+  render_theorem(sec7o, "Saturation Resonance (S1854, OBSERVED)", "Near corpus saturation (more than 85 percent of n_steps_max), oscillation amplitude amplifies rather than damping. 12-layer at 1920 steps (99 percent saturation): third spike amplitude +50, exceeding cycles 1 (+23) and 2 (+11). Final loss 276 worse than 12L/1440 (251). The optimizer re-encounters exhausted patterns, causing resonant gradient spikes. Fat data channels (b, G) degrade while observer (E) and escape (X) channels improve -- saturation inverts the channel ordering.");
   let g7o = make_findings_grid(sec7o) in
   render_finding(g7o, "2-layer", "537K params", "D=29%, G=34% at 480 steps. Loss 797->253. B6 complete (10 sessions).", "S1848");
   render_finding(g7o, "4-layer", "1.06M params", "D=31%, b=28% at 480 steps. Loss recovered 293->269. Gradient flows.", "S1850");
-  render_finding(g7o, "8-layer (480)", "2.1M params", "Loss 312->269. Recovery confirmed. D=23%, G=31% (stage inversion). K=28%.", "S1851");
-  render_finding(g7o, "8-layer D LR", "base/2 vs base/4", "D: 15%->24% (+9pp). Non-D channels identical. Corrections are redundant.", "S1851");
-  render_finding(g7o, "Dip-spike universal", "Steps ~159/239", "Same loss oscillation at 2L, 4L, 8L. Normal Adam dynamics, not depth-specific.", "S1850");
-  render_finding(g7o, "8L combined fix", "D=base/2 + 480", "D=27% (+4pp). Non-D identical. Loss same plateau (270). Fixes are compositionally independent.", "S1852");
+  render_finding(g7o, "8-layer (960)", "2.1M params", "Loss 249 < 253 (2L). Plateau broken. Channels equalize: 4pp spread.", "S1852");
+  render_finding(g7o, "12-layer (960)", "3.14M params", "Loss 264, still declining. Spike at steps 479-639 (phase-shifted). All 7 above chance.", "S1853");
+  render_finding(g7o, "12-layer (1440)", "3.14M params", "Loss 251 < 253 (beats 2L). Second oscillation: amplitude attenuates 23->11. Still declining.", "S1853");
+  render_finding(g7o, "12-layer (1920)", "3.14M params", "Loss 276 > 251 (1440). Saturation resonance: 3rd spike +50 (>>+23, +11). Training past saturation worsens loss.", "S1854");
+  render_finding(g7o, "Saturation resonance", "99% saturation", "Near corpus ceiling oscillation amplifies. b(30->24%), G(28->23%) degrade. E(23->29%), X(25->32%) improve.", "S1854");
+  render_finding(g7o, "Multi-cycle convergence", "Corpus-timed", "Spike timing identical across depths on same corpus. Depth increases cycles needed: 8L=1, 12L=2+.", "S1853");
   render_finding(g7o, "Corpus sensitivity", "2066-char corpus", "X recovers 12%->25% (+13pp). b surges 23%->30%. K drops 28%->18%. X regression was saturation artifact.", "S1852");
-  render_finding(g7o, "PLATEAU BROKEN", "8L/960 steps", "Loss 249 < 253 (2L). 8L beats 2L on unsaturated corpus. K recovers 18%->24%. Channels equalize: 4pp spread.", "S1852");
+  render_finding(g7o, "12L on 10K corpus", "3.14M params", "Loss 250 at 19% saturation. Resonance DISSOLVED. Matches 8L/249 on 5x harder task. All 7 above chance.", "S1855");
+  render_finding(g7o, "Oscillation period scaling", "10286-char corpus", "Oscillation period ~960 steps on 10K vs ~320 steps on 2K. Period scales with corpus_len/seq_len.", "S1855");
   dom_append(dom_body(), sec7o);
 
   /* === CONTRAST === */
