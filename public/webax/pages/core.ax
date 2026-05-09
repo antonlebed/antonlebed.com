@@ -686,6 +686,11 @@ fn _section(_m:str) = 0
 
 fn _group(name:str) = set(_cur_group, 0, name)
 
+/* S1891: string cast for alloc-array reads. Compiler doesn't detect _pg_sec[i]
+   as string in "+" concat. This fn has :str return type so compiler uses __concat.
+   NOT inlined (body is N_SYM, :str identity skip preserves type annotation). */
+fn _s(v:str):str = v
+
 fn _rp(sec:str, slug:str, title:str, desc:str) = (
   let i = _pg_n[0] in
   set(_pg_sec, i, sec);
@@ -709,7 +714,7 @@ fn reg_render_section(g, section:str) = (
   mut i = 0;
   while i < _pg_n[0] do (
     if streq(_pg_sec[i], section) == 1 then
-      render_explore_link(g, "/" + _pg_sec[i] + "/" + _pg_slug[i], _pg_title[i], _pg_desc[i])
+      render_explore_link(g, "/" + _s(_pg_sec[i]) + "/" + _s(_pg_slug[i]), _pg_title[i], _pg_desc[i])
     else 0;
     mut i = i + 1
   )
@@ -727,7 +732,7 @@ fn reg_render_section_grouped(g, section:str) = (
         if _pg_group[i] != 0 then idx_group(g, _pg_group[i]) else 0;
         set(pg, 0, _pg_group[i])
       ) else 0;
-      render_explore_link(g, "/" + _pg_sec[i] + "/" + _pg_slug[i], _pg_title[i], _pg_desc[i])
+      render_explore_link(g, "/" + _s(_pg_sec[i]) + "/" + _s(_pg_slug[i]), _pg_title[i], _pg_desc[i])
     ) else 0;
     mut i = i + 1
   )
@@ -791,7 +796,7 @@ fn search_build_index() = (
   /* All pages from registry -- SSOT, never drifts */
   mut j = 0;
   while j < _pg_n[0] do (
-    mut i = _si(t, h, i, _pg_title[j], "/" + _pg_sec[j] + "/" + _pg_slug[j]);
+    mut i = _si(t, h, i, _pg_title[j], "/" + _s(_pg_sec[j]) + "/" + _s(_pg_slug[j]));
     mut j = j + 1
   );
   set(g_srch_n, 0, i)
