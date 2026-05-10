@@ -146,6 +146,7 @@ var _routeMap = {
   'cc0':'living',
   'revolution':'living',
   'lambda_rlm':'living',
+  'hdc':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
