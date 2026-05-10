@@ -1,0 +1,49 @@
+/* page_evolve.ax -- Evolutionary Search with CRT Genome (Phase E4, S1907).
+   CRT-decomposed genome = 7 independently-mutable genes.
+   4.6x accuracy advantage over monolithic evolution. */
+
+fn page_evolve() = (
+  let hero = make_section("800px") in
+  render_h2(hero, "Evolutionary Search with CRT Genome");
+  render_p(hero, "Evolutionary algorithms search by mutating, crossing, and selecting solutions. The genome structure determines how efficiently evolution can explore the space. CRT decomposition splits a genome into 7 independent genes -- one per channel. Mutation in one channel cannot disrupt another. Crossover swaps entire channels: meaningful genetic units, not random segments.");
+  render_p(hero, "Test: evolve lookup tables for bigram text prediction. CRT genome = 7 per-channel tables (132 entries, avg search space 19 per gene). Monolithic genome = one direct table (128 entries, search space 128 per gene). Same population (16), same generations (500), same selection (tournament), same corpus (471 chars).");
+  dom_append(dom_body(), hero);
+
+  -- Convergence
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "Convergence: CRT Climbs, Mono Stalls");
+  render_p(sec1, "CRT per-channel accuracy rises from 10% to 27% over 500 generations, steadily improving throughout. Monolithic accuracy jumps from 3% to 3.8% by generation 50, then completely stalls. The monolithic search space (128 possible values per gene) is too large for random mutation to explore. CRT's smaller per-gene spaces (8 to 49) allow rapid optimization.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "CRT gen 0", "333/3290 (10%)", "Random initialization. Each channel predicts ~10% of residues correctly.", "S1907");
+  render_finding(g1, "CRT gen 50", "502/3290 (15%)", "+50% improvement in 50 generations. Per-channel credit drives selection.", "S1907");
+  render_finding(g1, "CRT gen 150", "687/3290 (21%)", "Steady climb. No plateau. Channel independence prevents interference.", "S1907");
+  render_finding(g1, "CRT gen 500", "877/3290 (27%)", "2.6x initial. Still climbing -- more generations would improve further.", "S1907");
+  dom_append(dom_body(), sec1);
+
+  -- Accuracy comparison
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Accuracy: 4.6x Advantage");
+  render_p(sec2, "Final bigram prediction accuracy (full CRT decode via majority vote): CRT 96/470 (20.4%). Best monolithic across 3 random seeds: 21/470 (4.5%). CRT wins by 4.6x. The E1 tally-based analytical optimum is 172/470 (36.6%) -- the evolutionary approach reaches 56% of the analytical ceiling with zero domain knowledge.");
+  let g2 = make_findings_grid(sec2) in
+  render_finding(g2, "CRT evolved", "96/470 (20.4%)", "7-channel genome. Majority vote decode from evolved lookup tables.", "S1907");
+  render_finding(g2, "Mono seed 42", "18/470 (3.8%)", "Direct prev->next mapping. Stalled at generation 50.", "S1907");
+  render_finding(g2, "Mono seed 137", "17/470 (3.6%)", "Different random init. Same stalling behavior.", "S1907");
+  render_finding(g2, "Mono seed 999", "21/470 (4.5%)", "Best mono seed. CRT still 4.6x better.", "S1907");
+  dom_append(dom_body(), sec2);
+
+  -- Why CRT wins
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Why CRT Wins: Three Structural Advantages");
+  render_p(sec3, "1. SMALLER SEARCH SPACES. Each CRT gene searches a space of size q_i (8 to 49, average 19). Each monolithic gene searches 128 values. A random mutation in CRT has 1/19 chance of finding the optimal value vs 1/128 for monolithic -- 6.7x better odds per mutation.");
+  render_p(sec3, "2. DENSE FITNESS SIGNAL. CRT fitness counts correct per-channel predictions (max 3290). Monolithic fitness counts exact character matches (max 470). CRT gets credit for partially-correct predictions: 5 of 7 channels right is rewarded, even if the decoded character is wrong. This gradient-like signal guides evolution.");
+  render_p(sec3, "3. MEANINGFUL CROSSOVER. CRT channel-swap exchanges a complete, independent genetic unit -- like swapping a chromosome. Monolithic single-point crossover cuts at an arbitrary position, mixing unrelated genes. CRT crossover preserves what works in each channel.");
+  dom_append(dom_body(), sec3);
+
+  -- Search space
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Search Space Decomposition");
+  render_p(sec4, "The CRT search space factorizes: 7 independent tables with a total of 132 entries. The monolithic space is 128 entries but each entry ranges over 128 values (vs average 19 for CRT). Effective search volume: CRT = product of q_i^q_i, but only one gene mutates per step, so the per-step search is bounded by max(q_i) = 49. Monolithic per-step search: 128. The axiom's 9512x parameter efficiency (from Phase A) applies to search -- the same algebraic independence that enables efficient learning enables efficient evolution.");
+  dom_append(dom_body(), sec4);
+
+  0
+)

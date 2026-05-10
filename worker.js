@@ -147,6 +147,7 @@ var _routeMap = {
   'revolution':'living',
   'lambda_rlm':'living',
   'hdc':'living',
+  'evolve':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
