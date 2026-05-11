@@ -151,6 +151,7 @@ var _routeMap = {
   'nca':'living',
   'compress':'living',
   'reservoir':'living',
+  'snn':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
