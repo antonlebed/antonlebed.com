@@ -152,6 +152,7 @@ var _routeMap = {
   'compress':'living',
   'reservoir':'living',
   'snn':'living',
+  'chain_ai':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
