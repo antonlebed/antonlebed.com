@@ -154,6 +154,7 @@ var _routeMap = {
   'snn':'living',
   'chain_ai':'living',
   'bridge_ngram':'living',
+  'bridge_het':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
