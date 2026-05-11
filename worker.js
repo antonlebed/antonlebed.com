@@ -150,6 +150,7 @@ var _routeMap = {
   'evolve':'living',
   'nca':'living',
   'compress':'living',
+  'reservoir':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
