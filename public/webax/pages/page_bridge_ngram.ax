@@ -1,0 +1,57 @@
+/* page_bridge_ngram.ax -- Bridge 1: N-gram encoding (Phase F, S1913).
+   Tests whether scaling input to bigram level (0-16383) makes chain
+   constraints visible. Result: bigram residue tallies are too coarse.
+   Scaling input alone doesn't bridge ring structure to text. */
+
+fn page_bridge_ngram() = (
+  let hero = make_section("800px") in
+  render_h2(hero, "Bridge 1: N-gram Encoding");
+  render_p(hero, "F1 showed char-level CRT (0-127) is redundant -- any 3 channels determine the character. Bridge 1 tests whether scaling input to BIGRAM level (prev*128 + next, range 0-16383) makes the ring's chain constraints visible.");
+  render_p(hero, "At bigram scale, CRT mixing coefficients 128 mod q map to chain values for the axiom ring: D=2, K=3, K^2=9, b=7, L=11. Random coprimes produce arbitrary mixing. Does this structure help prediction?");
+  dom_append(dom_body(), hero);
+
+  -- Mixing analysis
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "Mixing Coefficients");
+  render_p(sec1, "Bigram encoding: bg = prev*128 + next. The CRT residue (prev*128+next) mod q mixes both characters. The mixing weight is 128 mod q. For the axiom ring, these weights are chain values:");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "D (mod 8)", "128%8 = 0 (void)", "D channel sees only the second character. No mixing.", "S1913");
+  render_finding(g1, "K (mod 9)", "128%9 = 2 = D", "Context mixed with weight D. The bridge prime.", "S1913");
+  render_finding(g1, "E (mod 25)", "128%25 = 3 = K", "Closure-weighted mixing of prev and next.", "S1913");
+  render_finding(g1, "b (mod 49)", "128%49 = 30", "Strong mixing. 30 = K*E*D.", "S1913");
+  render_finding(g1, "L (mod 11)", "128%11 = 7 = b", "Depth-weighted. The protector mixes at depth scale.", "S1913");
+  render_finding(g1, "GATE (mod 13)", "128%13 = 11 = L", "Gate mixes at transcendental scale.", "S1913");
+  render_finding(g1, "ESCAPE (mod 17)", "128%17 = 9 = K^2", "Escape mixes at closure-squared scale.", "S1913");
+  render_p(sec1, "Random coprimes [8,9,23,47,11,13,19]: mixing weights [0,2,13,34,7,11,14]. Same shared channels (8,9,11,13) but no chain meaning in the different channels.");
+  dom_append(dom_body(), sec1);
+
+  -- Results
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Results: No Bridge");
+  render_p(sec2, "Per-channel residue transition tallies on 470 bigrams from the same 471-character corpus. Given prev bigram's residue in each channel, predict next bigram's residue. Reconstruct next character via majority vote.");
+  let g2 = make_findings_grid(sec2) in
+  render_finding(g2, "Axiom accuracy", "77/469 (16.4%)", "Bigram residue tally prediction. Far below F1's 172/470 (36.6%).", "S1913");
+  render_finding(g2, "Random accuracy", "88/469 (18.8%)", "Random WINS by 11 on reconstruction. Chain mixing doesn't help.", "S1913");
+  render_finding(g2, "Axiom ch_score", "777/3283 (23.7%)", "Per-channel residue predictions. Axiom wins +4 (marginal).", "S1913");
+  render_finding(g2, "Random ch_score", "773/3283 (23.5%)", "Per-channel: axiom b(49) +4, X(17) +4; random E(23) +4.", "S1913");
+  render_finding(g2, "Shared channels", "4/4 identical", "D(8)=140, K(9)=99, L(11)=92, GATE(13)=93. Control verified.", "S1913");
+  dom_append(dom_body(), sec2);
+
+  -- Why it doesn't work
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Why Scaling Input Fails");
+  render_p(sec3, "The residue-level tally compresses 469 transitions into q*q tables (64 to 2401 entries per channel). This loses exact predecessor identity -- the strength of F1's char-level tally. At bigram scale, there are more residue classes but fewer examples per class.");
+  render_p(sec3, "For mod 49: 2401 possible transitions but only 317 non-zero entries (13% density). The tally is too sparse to predict reliably. Chain-meaningful mixing weights (K, K^2, b) create structured residue dynamics, but the tally averages over too many distinct contexts.");
+  render_p(sec3, "Random wins on reconstruction (-11 accuracy) despite losing on per-channel score (+4). Reason: prime moduli (23, 47, 19) have more uniform residue distributions than prime powers (25=5^2, 49=7^2, 17). This is the same pattern as F1 -- uniformity beats structure for reconstruction.");
+  dom_append(dom_body(), sec3);
+
+  -- Implications
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Implications");
+  render_p(sec4, "Bridge 1 tested and not confirmed. Scaling the input alone doesn't bridge ring structure to text. The chain's mixing coefficients create real algebraic structure in bigram residues, but the tally-based predictor can't exploit it. Two remaining bridges:");
+  render_p(sec4, "Bridge 2 (het channels): encode DIFFERENT text features per channel -- structural category, phonemic class, bigram class. The 490 split becomes real: DEAD channels = perception, ALIVE = strategy.");
+  render_p(sec4, "Bridge 3 (CRT on architecture): standard text tokens, but CRT structures the COMPUTATION. 864 crosses as attention masks, 490 split as encoder/decoder, bloom sync at layer boundaries.");
+  dom_append(dom_body(), sec4);
+
+  0
+)
