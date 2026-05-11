@@ -1,0 +1,52 @@
+/* page_anti_ring.ax -- Phase G2 S1919: Anti-Sauron (Ring Necessity).
+   Does modular arithmetic matter? Ring vs clamp vs flat vs monolithic. */
+
+fn page_anti_ring() = (
+  let hero = make_section("800px") in
+  render_h2(hero, "Anti-Sauron: Is the Ring Necessary?");
+  render_p(hero, "Phase G2 session 3/4. We test whether modular arithmetic is necessary, or whether the PRINCIPLES (channel decomposition, Pareto sizing) work without it. Four architectures, same abstract task: context-dependent function selection with per-channel evolution.");
+  render_p(hero, "The experiment: replace modular multiplication (a*b mod q) with clamped multiplication (min(a*b, q-1)). This removes the ring's cyclic wrapping while keeping the channel structure. If clamp matches ring, the ring is scaffolding. If not, the ring is essential.");
+  dom_append(dom_body(), hero);
+
+  -- Four configs
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "Four Architectures");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "A: RING", "[8,9,25,49,11,13,17] mod", "Full CRT ring. Modular multiply. The standard.", "S1919");
+  render_finding(g1, "B: CLAMP", "[8,9,25,49,11,13,17] saturate", "Same sizes, clamped multiply. No ring. Just the shape.", "S1919");
+  render_finding(g1, "C: FLAT", "[19,19,19,19,19,19,19] saturate", "All channels same size 19. No Pareto.", "S1919");
+  render_finding(g1, "D: MONO", "[997] saturate", "One big channel. No decomposition.", "S1919");
+  dom_append(dom_body(), sec1);
+
+  -- Results
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Results");
+  render_p(sec2, "4 functions, 160 training examples, 200 generations of per-channel evolutionary search. Same task structure across all configs.");
+  let g2 = make_findings_grid(sec2) in
+  render_finding(g2, "A RING", "ch 762 (68%), exact 47/160", "Starts at 21%. Improves +523. Genuine learning.", "S1919");
+  render_finding(g2, "B CLAMP", "ch 1038 (92%), exact 89/160", "Starts at 63%. Improves +337. High but inflated.", "S1919");
+  render_finding(g2, "C FLAT", "ch 1085 (96%), exact 155/160", "Starts at 83%. Improves +156. Nearly trivial.", "S1919");
+  render_finding(g2, "D MONO", "ch 160 (100%), exact 160/160", "Starts at 100%. Improves +0. Fully degenerate.", "S1919");
+  dom_append(dom_body(), sec2);
+
+  -- The finding
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "The Finding: Information Preservation");
+  render_p(sec3, "Clamp BEATS ring on raw numbers. But the scores are artifacts of degeneracy. Clamped multiplication saturates to q-1 for most inputs when weights are large. The monolithic config gets 100% trivially -- every output is 996.");
+  render_p(sec3, "The improvement metric reveals the truth. Ring: +523 points of genuine learning from a hard start (21%). Clamp: +337 from an inflated baseline (63%). Flat: +156 from near-trivial (83%). Mono: +0 from perfectly trivial (100%). Ring creates a task where the model must genuinely learn. Clamp creates a task where the answer is trivial.");
+  render_p(sec3, "Why? Modular multiplication is BIJECTIVE (for coprime weight). Every input maps to a unique output. Wrong weights produce completely wrong outputs -- strong evolutionary signal. Clamped multiplication is LOSSY: many inputs map to q-1. Wrong weights still produce q-1 for most inputs -- weak signal, trivial matching.");
+  render_p(sec3, "The ring is necessary not as algebraic scaffolding but as an information-preserving arithmetic substrate. The value of modular arithmetic is bijectivity: it preserves information through cyclic wrapping.");
+  dom_append(dom_body(), sec3);
+
+  -- Trial context
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Trial Context");
+  let g4 = make_findings_grid(sec4) in
+  render_finding(g4, "S1917", "Constraints KILLED", "Inter-channel constraints (K^2-D=b, etc.) are decoration. AWARE hurts by -126 ch, -79 exact.", "S1917");
+  render_finding(g4, "S1918", "Physics KILLED", "Any 7 primes match physics targets (dense expression space). Template-specific p=0.002 but post-hoc.", "S1918");
+  render_finding(g4, "S1919", "Ring = preservation", "Ring is necessary for non-degenerate computation. Its value is bijectivity, not algebraic constraints.", "S1919");
+  render_finding(g4, "S1920", "Verdict pending", "Synthesis of S1917-S1919. What IS the axiom?", "");
+  dom_append(dom_body(), sec4);
+
+  0
+)
