@@ -149,6 +149,7 @@ var _routeMap = {
   'hdc':'living',
   'evolve':'living',
   'nca':'living',
+  'compress':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
