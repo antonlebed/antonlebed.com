@@ -156,6 +156,7 @@ var _routeMap = {
   'bridge_ngram':'living',
   'bridge_het':'living',
   'ring_substrate':'living',
+  'ring_sweep':'living',
   'compiler':'living',
   'hash':'demos',
   'consensus':'demos',
