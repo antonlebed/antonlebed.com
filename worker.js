@@ -110,7 +110,6 @@ var _routeMap = {
   'sensor':'living',
   'chain':'living',
   'ai':'living',
-  'ai_predict':'living',
   'curriculum':'living',
   'scaling':'living',
   'cc0':'living',
