@@ -1,4 +1,4 @@
-/* page_demo_compute.ax -- Compute demo pages: pid, gpu_compute, scheduling, sort, cluster. Split from page_demos.ax (S1166). */
+/* page_demo_compute.ax -- Compute demo pages: pid, gpu_compute, scheduling, sort, cluster. Split from page_demos.ax. */
 
 /* ring_mul and ring_mul_trans are in core.ax (included first). */
 
@@ -192,7 +192,7 @@ fn page_gpu_compute() = (
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"15-op parallel compute over Z/214414200 (TRANS ring). FPGA-measured, GPU-deployed. Ring census + power map + Gradient Field Theorem. CC0.\",\"about\":[\"CRT parallelism\",\"GPU compute\",\"Gradient Field Theorem\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
   let hero = make_hero("CRT GPU Compute") in
   let eq = dom_create("div") in
-  dom_text(eq, "S1: NVIDIA CUDA patents. CC0.");
+  dom_text(eq, "");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
@@ -387,19 +387,19 @@ fn page_gpu_compute() = (
   let secml = make_section("800px") in
   render_h2(secml, "CRT Forward + Backward: The ML Bridge");
   render_p(secml, "The CRT Forward benchmark (op 5) runs a 2-layer neural network independently in each of 7 CRT channels. The CRT Backward benchmark (op 6) computes the input gradient via chain rule: recompute forward activations, then g = w2 * 2h * w1 mod q per channel. Seven independent gradient computations, then two-level CRT reconstruction. Forward + backward = complete ML pipeline on the GPU.");
-  render_theorem(secml, "CRT Parallelism for ML", "A function f: Z/N -> Z/N that decomposes as f = (f_0, ..., f_6) across CRT channels can be evaluated in 7 independent parallel computations. A multi-layer perceptron with modular arithmetic and squaring activation decomposes exactly this way. Each channel trains and infers independently. CRT reconstruction combines channel outputs into a single ring prediction. Block-diagonal Jacobian: zero cross-channel gradients (PROVED S1237). Backward pass: dy/dr = w2 * 2h * w1 mod q. More ops per element than forward -- expect higher GPU speedup.");
+  render_theorem(secml, "CRT Parallelism for ML", "A function f: Z/N -> Z/N that decomposes as f = (f_0, ..., f_6) across CRT channels can be evaluated in 7 independent parallel computations. A multi-layer perceptron with modular arithmetic and squaring activation decomposes exactly this way. Each channel trains and infers independently. CRT reconstruction combines channel outputs into a single ring prediction. Block-diagonal Jacobian: zero cross-channel gradients (PROVED). Backward pass: dy/dr = w2 * 2h * w1 mod q. More ops per element than forward -- expect higher GPU speedup.");
   let gml = make_findings_grid(secml) in
   render_finding(gml, "7 networks", "One per channel", "Each CRT channel runs its own 2-layer perceptron: affine + x^2 activation + affine. 4 weights per channel, 28 total.", "");
   render_finding(gml, "Zero sync", "Block-diagonal", "No cross-channel dependency during forward or backward pass. Perfect GPU parallelism. PROVED: Jacobian = diag(J_8, ..., J_17).", "");
   render_finding(gml, "Backward pass", "Chain rule per channel", "g = w2 * 2h * w1 mod q. Recompute forward activations, then 3 multiplies for gradient. More per-element work than forward -- higher GPU speedup.", "");
-  render_finding(gml, "MNIST proved", "S1267", "5-class 25->10->5 classifier in .ax. 25/25 accuracy. f64 arrays + arena reset + softmax. The pipeline works.", "");
-  render_finding(gml, ".ax->WGSL", "Transpiler (S1271)", "Write GPU kernels in .ax, compile to WGSL compute shaders. Same language for CPU (WASM) and GPU (WGSL). All 12 benchmarks have .ax source equivalents.", "");
+ render_finding(gml, "MNIST proved", "25/25 accuracy", "5-class 25->10->5 classifier in .ax. f64 arrays + arena reset + softmax. The pipeline works.", "");
+  render_finding(gml, ".ax->WGSL", "Transpiler", "Write GPU kernels in .ax, compile to WGSL compute shaders. Same language for CPU (WASM) and GPU (WGSL). All 12 benchmarks have .ax source equivalents.", "");
   render_finding(gml, "GPU Ring Census", "5 invariants + power map", "Squaring: x^2=x (128=D^7), x^2=1 (256=D^8), x^2=0 (210=DATA). Counting: rad(N)|x (420=lambda), gcd=1 (phi). Power map: x^3=1 (27=K^3), x^5=1 (25=E^2), x^7=1 (7=b). The chain is encoded in roots of unity.", "");
   dom_append(dom_body(), secml);
-  /* === Gradient Field Theorem (Thm 52, S1237/S1497) === */
+  /* === Gradient Field Theorem (S1237/S1497) === */
   let secgf = make_section("800px") in
   render_h2(secgf, "Gradient Field Theorem");
-  render_theorem(secgf, "Gradient Field (Theorem 52, S1237/S1497, PROVED)", "Prime CRT channels (Z/p) are fields: for all nonzero a,b, the product a*b is never zero. Prime-power channels (Z/p^k, k>=2) are non-fields: nonzero zero-product (NZP) pairs exist. NZP formula: Z/p^2 (odd) has (p-1)^2 NZP pairs. Z/2^3 has 5. Total across TRUE: prime channels = 0, prime-power channels = 61. In modular SGD, NZP pairs cause gradient death: a valid gradient multiplied by a valid weight produces zero. Prime channels preserve gradient flow. Prime-power channels lose it. XOR benchmark: 3x higher convergence rate on prime channels (100 restarts, 500 epochs each).");
+  render_theorem(secgf, "Gradient Field (Theorem 52, PROVED)", "Prime CRT channels (Z/p) are fields: for all nonzero a,b, the product a*b is never zero. Prime-power channels (Z/p^k, k>=2) are non-fields: nonzero zero-product (NZP) pairs exist. NZP formula: Z/p^2 (odd) has (p-1)^2 NZP pairs. Z/2^3 has 5. Total across TRUE: prime channels = 0, prime-power channels = 61. In modular SGD, NZP pairs cause gradient death: a valid gradient multiplied by a valid weight produces zero. Prime channels preserve gradient flow. Prime-power channels lose it. XOR benchmark: 3x higher convergence rate on prime channels (100 restarts, 500 epochs each).");
   render_p(secgf, "Run the NZP census: exhaustive count of nonzero zero-product pairs for all 6 TRUE channels.");
   let gf_btn = dom_create("button") in
   dom_text(gf_btn, "Run NZP Census");

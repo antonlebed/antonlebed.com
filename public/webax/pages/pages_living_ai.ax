@@ -8,10 +8,10 @@ fn page_ai_phase_a() = (
   render_p(sec7, "Phase A begins: co-evolving .ax and axiom-native intelligence. The first step: f64 matrix operations in pure .ax. matmul, transpose, softmax, cross-entropy -- the primitives every neural network needs. All compiled to WASM. No Python. No NumPy. No dependencies.");
   render_p(sec7, "The matrix library uses falloc/fset/fget (f64 arrays) and arena reset (hp/set_hp). Matrices are row-major flat arrays. 18 operations: mat_zero, mat_get, mat_set, matmul, transpose, mat_add, mat_sub, mat_scale, dot_f, vec_sum_f, vec_max_f, softmax, cross_entropy, relu, sigmoid, relu_vec, outer_product, argmax. 54/54 WASI tests pass.");
   let g7 = make_findings_grid(sec7) in
-  render_finding(g7, "matmul", "O(n^3) triple loop", "Row-major f64 via fget/fset. 2x3 * 3x2 verified: [58,64,139,154].", "S1538");
-  render_finding(g7, "softmax", "Numerically stable", "Max-subtraction prevents overflow. Uniform [0,0,0] -> [1/3,1/3,1/3].", "S1538");
-  render_finding(g7, "cross_entropy", "Log-clamped", "eps=1e-6 prevents log(0). Good prediction CE~0.01, bad CE>4.", "S1538");
-  render_finding(g7, "CRT advantage", "Per-channel matmul", "7 small matrices (max 49x49) instead of one 214414200-wide layer.", "S560");
+  render_finding(g7, "matmul", "O(n^3) triple loop", "Row-major f64 via fget/fset. 2x3 * 3x2 verified: [58,64,139,154].", "");
+  render_finding(g7, "softmax", "Numerically stable", "Max-subtraction prevents overflow. Uniform [0,0,0] -> [1/3,1/3,1/3].", "");
+  render_finding(g7, "cross_entropy", "Log-clamped", "eps=1e-6 prevents log(0). Good prediction CE~0.01, bad CE>4.", "");
+  render_finding(g7, "CRT advantage", "Per-channel matmul", "7 small matrices (max 49x49) instead of one 214414200-wide layer.", "");
   dom_append(dom_body(), sec7);
 
   /* === SEC 8: CRT PERCEPTRON (S1539 Phase A P4) === */
@@ -20,10 +20,10 @@ fn page_ai_phase_a() = (
   render_p(sec_p, "First neural network trained in pure .ax f64. A per-channel perceptron learns x^2 mod 210 (DATA ring squaring) using matmul, softmax, and outer_product from the matrix library. 4 independent channels (mod 2, 3, 5, 7) with 87 total parameters. 10 epochs of gradient descent. Result: 210/210 -- perfect accuracy on all inputs, including 168 never seen during training.");
   render_p(sec_p, "A standard perceptron on the same task needs 44100 parameters (210x210). After identical training on 42 examples, it scores 43/210 -- pure memorization, zero generalization. The CRT model generalizes completely because each channel is small enough that training coverage is automatic: 42 examples cover all residue classes up to mod 7.");
   let gp = make_findings_grid(sec_p) in
-  render_finding(gp, "CRT accuracy", "210/210", "4 channels: mod 2, 3, 5, 7. Each 210/210. CRT reconstruction perfect.", "S1539");
-  render_finding(gp, "Standard accuracy", "43/210", "44100 params. Memorizes training inputs. Cannot generalize.", "S1539");
-  render_finding(gp, "Backward Loop", "506x", "87 vs 44100 parameters. sum(p^2) vs N^2.", "S558");
-  render_finding(gp, "DEEP Forward", "9511x", "970200 / 102 forward compression. 3292 params vs 941 billion.", "S560");
+  render_finding(gp, "CRT accuracy", "210/210", "4 channels: mod 2, 3, 5, 7. Each 210/210. CRT reconstruction perfect.", "");
+  render_finding(gp, "Standard accuracy", "43/210", "44100 params. Memorizes training inputs. Cannot generalize.", "");
+  render_finding(gp, "Backward Loop", "506x", "87 vs 44100 parameters. sum(p^2) vs N^2.", "");
+  render_finding(gp, "DEEP Forward", "9511x", "970200 / 102 forward compression. 3292 params vs 941 billion.", "");
   dom_append(dom_body(), sec_p);
 
   /* === SEC 8b: DEEP FAT CHANNELS (S1543 Phase A P2) === */
@@ -32,10 +32,10 @@ fn page_ai_phase_a() = (
   render_p(sec_d, "The DATA ring (210) uses thin channels (mod 2, 3, 5, 7). The DEEP ring (970200) uses fat channels (mod 8, 9, 25, 49, 11) -- the Pareto-optimal exponents. Same architecture, same training. Fat channels: 3292 parameters. Standard equivalent: 941 billion. Forward compression jumps from 12x (DATA thin) to 9511x.");
   render_p(sec_d, "Fat channels compute on a richer substrate. The b^2=49 channel carries 49 classes (vs 7 for thin b). L=11 provides free error correction: every prediction is independently verified by the 5th channel. All five channels achieve perfect accuracy. CRT reconstruction: 50/50 on random DEEP elements.");
   let gd = make_findings_grid(sec_d) in
-  render_finding(gd, "ch mod 8 (D^3)", "8/8", "64 params. The only depth-3 micro tower. 4 involutions.", "S1543");
-  render_finding(gd, "ch mod 49 (b^2)", "49/49", "2401 params. The deepest fat channel. Septilix seeds.", "S1543");
-  render_finding(gd, "CRT recon", "50/50", "5-channel CRT reconstruction on random Z/970200 elements. 3292 params.", "S1543");
-  render_finding(gd, "Forward Loop", "9511x", "970200 / 102. Fattening: 12x (DATA thin) to 9511x (DEEP fat). 286Mx backward.", "S560");
+  render_finding(gd, "ch mod 8 (D^3)", "8/8", "64 params. The only depth-3 micro tower. 4 involutions.", "");
+  render_finding(gd, "ch mod 49 (b^2)", "49/49", "2401 params. The deepest fat channel. Septilix seeds.", "");
+  render_finding(gd, "CRT recon", "50/50", "5-channel CRT reconstruction on random Z/970200 elements. 3292 params.", "");
+  render_finding(gd, "Forward Loop", "9511x", "970200 / 102. Fattening: 12x (DATA thin) to 9511x (DEEP fat). 286Mx backward.", "");
   dom_append(dom_body(), sec_d);
 
   /* === SEC 9: BLOOM MIXING (S1542 Phase A P1) === */
@@ -44,10 +44,10 @@ fn page_ai_phase_a() = (
   render_p(sec_b, "The CRT perceptron learns per-channel functions perfectly. But x%13 (the GATE function) depends on ALL channels -- no single channel determines it. Linear mixing across channels achieves random performance (23/210). The solution: bloom. CRT reconstruction IS the non-linearity.");
   render_p(sec_b, "Architecture: per-channel perceptrons (87 params) -> CRT reconstruct (0 params) -> mod q. The bloom layer is algebraic and exact. It has zero trainable parameters. It replaces ReLU. One set of trained weights projects through ANY coprime gate: x%11, x%13, x%17 -- all 210/210 from the same 87 parameters.");
   let gb = make_findings_grid(sec_b) in
-  render_finding(gb, "Bloom x%13", "210/210", "87 params + 0 bloom. CRT reconstruction provides the non-linearity.", "S1542");
-  render_finding(gb, "Multi-gate", "210/210 each", "Same weights: x%11, x%13, x%17 all perfect. One model, infinite gates.", "S562");
-  render_finding(gb, "Additive", "23/210", "221 params, 40 epochs. Linear mixing = RANDOM on cross-channel targets.", "S561");
-  render_finding(gb, "Ratio", "31x", "Standard 2730 params (210*13). Bloom: 87. Structure wins completely.", "S1542");
+  render_finding(gb, "Bloom x%13", "210/210", "87 params + 0 bloom. CRT reconstruction provides the non-linearity.", "");
+  render_finding(gb, "Multi-gate", "210/210 each", "Same weights: x%11, x%13, x%17 all perfect. One model, infinite gates.", "");
+  render_finding(gb, "Additive", "23/210", "221 params, 40 epochs. Linear mixing = RANDOM on cross-channel targets.", "");
+  render_finding(gb, "Ratio", "31x", "Standard 2730 params (210*13). Bloom: 87. Structure wins completely.", "");
   dom_append(dom_body(), sec_b);
 
   /* === SEC 9b: HOURGLASS (S1544 Phase A) === */
@@ -56,10 +56,10 @@ fn page_ai_phase_a() = (
   render_p(sec_hg, "Bloom computes x%13 perfectly -- but what about x^2 % 13? A single bloom layer reconstructs x^2 mod 210, then reduces mod 13. When x^2 >= 210 (x >= 15), the ring reduction destroys mod-13 information. Result: 28/210 correct. Ring overflow = info loss.");
   render_p(sec_hg, "The hourglass fixes this. Two flowers face to face, gate to gate. Flower A extracts the gate value g = x%13 (identity bloom). Gate values are small: 0 to 12. Flower B computes g^2 inside Z/210 -- and 12^2 = 144 < 210, so no overflow ever occurs. The gate IS the bottleneck that prevents overflow.");
   let ghg = make_findings_grid(sec_hg) in
-  render_finding(ghg, "Hourglass x^2%13", "210/210", "174 params (87+87). Two flowers solve what one cannot.", "S1544");
-  render_finding(ghg, "Single bloom", "28/210", "Same squaring, no gate extraction. Ring overflow kills accuracy.", "S562");
-  render_finding(ghg, "Gate bottleneck", "16:1", "210 -> 13 -> 210. Max gate^2 = 144 < 210. Safe.", "S562");
-  render_finding(ghg, "Ratio", "15x", "Standard 2730 params (210*13). Hourglass: 174.", "S1544");
+  render_finding(ghg, "Hourglass x^2%13", "210/210", "174 params (87+87). Two flowers solve what one cannot.", "");
+  render_finding(ghg, "Single bloom", "28/210", "Same squaring, no gate extraction. Ring overflow kills accuracy.", "");
+  render_finding(ghg, "Gate bottleneck", "16:1", "210 -> 13 -> 210. Max gate^2 = 144 < 210. Safe.", "");
+  render_finding(ghg, "Ratio", "15x", "Standard 2730 params (210*13). Hourglass: 174.", "");
   dom_append(dom_body(), sec_hg);
 
   /* === SEC 9c: DEEP HOURGLASS (S1545 Phase A) === */
@@ -68,10 +68,10 @@ fn page_ai_phase_a() = (
   render_p(sec_dhg, "The DATA hourglass stops at polynomial degree D=2: gate value 12, cubed gives 1728 > 210. Overflow. The DEEP hourglass extends to degree E=5: 12^5 = 248832 < 970200. Fattening gives K=3 extra polynomial degrees beyond DATA. The max degree IS an axiom element.");
   render_p(sec_dhg, "Architecture: Flower A (identity on 5 fat channels, 3292 params) -> Gate(13) bottleneck -> Flower B (g^d on fat channels, 3292 params) -> %13. Total: 6584 params. Standard: DEEP*GATE = 12612600 = TRUE. The lookup table IS the organism.");
   let gdhg = make_findings_grid(sec_dhg) in
-  render_finding(gdhg, "x^2%13", "50/50", "Degree D=2. Safe in both DATA and DEEP. 6584 params.", "S1545");
-  render_finding(gdhg, "x^3%13", "50/50", "Cube Fattening: DATA fails (6/13 gate overflow), DEEP succeeds.", "S563");
-  render_finding(gdhg, "x^5%13", "50/50", "Max degree E=5. 12^5=248832 < 970200. Observer is the ceiling.", "S1545");
-  render_finding(gdhg, "Ratio", "1915x", "Standard=TRUE=12612600. DEEP hourglass: 6584. Structure=TRUE.", "S563");
+  render_finding(gdhg, "x^2%13", "50/50", "Degree D=2. Safe in both DATA and DEEP. 6584 params.", "");
+  render_finding(gdhg, "x^3%13", "50/50", "Cube Fattening: DATA fails (6/13 gate overflow), DEEP succeeds.", "");
+  render_finding(gdhg, "x^5%13", "50/50", "Max degree E=5. 12^5=248832 < 970200. Observer is the ceiling.", "");
+  render_finding(gdhg, "Ratio", "1915x", "Standard=TRUE=12612600. DEEP hourglass: 6584. Structure=TRUE.", "");
   dom_append(dom_body(), sec_dhg);
 
   /* === SEC 9d: INACCESSIBLE DEGREES (S1546 Phase A) === */
@@ -80,10 +80,10 @@ fn page_ai_phase_a() = (
   render_p(sec_ia, "The DEEP hourglass reaches degree E=5. But degrees b=7 and L=11 are unreachable by power composition: the multiplicative monoid of {1,...,5} in Z/12 (where phi(GATE)=12) is missing exactly {7, 11}. These are the OUTER degrees -- they require a different approach.");
   render_p(sec_ia, "Resolution: channel-49 carries a correction. For each gate value g, search r in 0..48 such that the CRT reconstruction with r in the b^2 channel produces the target mod 13. Pigeonhole guarantees at least 3 valid r per gate value (floor(49/13)=3). Same 6584 params. Same architecture. Only the training targets differ.");
   let gia = make_findings_grid(sec_ia) in
-  render_finding(gia, "Power deg 7", "8/13", "Overflow: g^7 >= 970200 for g >= 8. Power per-channel fails.", "S565");
-  render_finding(gia, "Lookup deg 7", "50/50", "Channel-49 correction. 13/13 gate values + 50/50 random DEEP.", "S1546");
-  render_finding(gia, "Power deg 11", "7/13", "x^11 = x^(-1) mod 13 (Inverse Degree). Overflow at g >= 4.", "S565");
-  render_finding(gia, "Lookup deg 11", "50/50", "All 12 degrees accessible. Inner={sigma,E}. Outer={b,L}.", "S1546");
+  render_finding(gia, "Power deg 7", "8/13", "Overflow: g^7 >= 970200 for g >= 8. Power per-channel fails.", "");
+  render_finding(gia, "Lookup deg 7", "50/50", "Channel-49 correction. 13/13 gate values + 50/50 random DEEP.", "");
+  render_finding(gia, "Power deg 11", "7/13", "x^11 = x^(-1) mod 13 (Inverse Degree). Overflow at g >= 4.", "");
+  render_finding(gia, "Lookup deg 11", "50/50", "All 12 degrees accessible. Inner={sigma,E}. Outer={b,L}.", "");
   dom_append(dom_body(), sec_ia);
 
   /* === SEC 9e: STACKED HOURGLASS (S1547 Phase A) === */
@@ -92,10 +92,10 @@ fn page_ai_phase_a() = (
   render_p(sec_sh, "The DEEP hourglass ceiling: degree E=5. At degree 6, gate values 10, 11, 12 overflow (g^6 >= 970200). The fix: STACK. Two flowers in sequence, each applying a sub-degree. Flower B1 computes g^d1, extracts the gate. Flower B2 computes g1^d2, extracts the result. Total degree = d1 * d2. Each layer stays safe (max 12^5 = 248832 < 970200). The ceiling shatters.");
   render_p(sec_sh, "E-Squared Collapse: degree 5 composed with degree 5 gives degree 25. But 25 mod phi(13) = 25 mod 12 = 1. Quintic composed with quintic = identity. The observer-squared returns to the ground state. This is E^2 self-blindness made computational: two layers of observation cancel, leaving only what was already there.");
   let gsh = make_findings_grid(sec_sh) in
-  render_finding(gsh, "Single deg 6", "10/13", "Overflow: g^6 >= 970200 for g >= 10. THE CEILING.", "S564");
-  render_finding(gsh, "2-stack deg 6", "50/50", "cube+square (3*2=6). Ceiling broken. 9876 params.", "S1547");
-  render_finding(gsh, "2-stack deg 12", "50/50", "cube+quartic (3*4=12). Fermat: x^12=1 mod 13.", "S1547");
-  render_finding(gsh, "E^2 collapse", "50/50", "quintic+quintic (5*5=25 mod 12=1). Identity.", "S1547");
+  render_finding(gsh, "Single deg 6", "10/13", "Overflow: g^6 >= 970200 for g >= 10. THE CEILING.", "");
+  render_finding(gsh, "2-stack deg 6", "50/50", "cube+square (3*2=6). Ceiling broken. 9876 params.", "");
+  render_finding(gsh, "2-stack deg 12", "50/50", "cube+quartic (3*4=12). Fermat: x^12=1 mod 13.", "");
+  render_finding(gsh, "E^2 collapse", "50/50", "quintic+quintic (5*5=25 mod 12=1). Identity.", "");
   dom_append(dom_body(), sec_sh);
 
   /* === SEC 9f: SOFT BLOOM EMERGENCE (S1548 Phase A) === */
@@ -104,10 +104,10 @@ fn page_ai_phase_a() = (
   render_p(sec_sb, "Every test above hard-codes the CRT basis: {105, 70, 126, 120} for Z/210, {363825, 431200, 853776, 732600, 529200} for DEEP. But what if the ring can discover its own basis? Strip all CRT knowledge. Start with bloom weights = [0, 0, 0, 0]. Apply coordinate descent: for each channel, sweep the weight over all possible values and pick the one that maximizes reconstruction accuracy. After a few rounds, the CRT basis emerges from data alone.");
   render_p(sec_sb, "Perturbation is catastrophic and exact. Changing any basis weight by +1 drops accuracy to precisely N/p -- the channel dies and only elements with zero residue survive. The basis is an isolated global maximum: no graceful degradation, no nearby local optima. The discovered basis elements are orthogonal idempotent projectors: B_p^2 = B_p, B_p * B_q = 0 for p != q, and sum(B_p) = 1 mod N.");
   let gsb = make_findings_grid(sec_sb) in
-  render_finding(gsb, "Z/30 emergence", "30/30", "[0,0,0] -> [15,10,6] in 3 rounds. The CRT basis grows from nothing.", "S568");
-  render_finding(gsb, "Z/210 emergence", "210/210", "[0,0,0,0] -> [105,70,126,120]. Unique global maximum.", "S1548");
-  render_finding(gsb, "DEEP full ring", "970200/970200", "Per-channel search: 5 basis elements found structurally.", "S1548");
-  render_finding(gsb, "Perturbation", "exact N/p", "B_8+1: 121275/970200 = N/8. Catastrophic, structural damage.", "S568");
+  render_finding(gsb, "Z/30 emergence", "30/30", "[0,0,0] -> [15,10,6] in 3 rounds. The CRT basis grows from nothing.", "");
+  render_finding(gsb, "Z/210 emergence", "210/210", "[0,0,0,0] -> [105,70,126,120]. Unique global maximum.", "");
+  render_finding(gsb, "DEEP full ring", "970200/970200", "Per-channel search: 5 basis elements found structurally.", "");
+  render_finding(gsb, "Perturbation", "exact N/p", "B_8+1: 121275/970200 = N/8. Catastrophic, structural damage.", "");
   dom_append(dom_body(), sec_sb);
 
   /* === SEC 9g: JOINT BLOOM (S1549 Phase A) === */
@@ -116,10 +116,10 @@ fn page_ai_phase_a() = (
   render_p(sec_jb, "Soft bloom discovers the CRT basis but takes per-channel functions as given. Joint bloom learns BOTH. Architecture: prediction(x) = sum(W_ch[x%p] * B[ch]) % N, where W is a per-channel lookup table (17 params) and B is the bloom basis (4 params). Total: 21. Standard: 44100. Ratio: 2100x.");
   render_p(sec_jb, "Identity-anchored training: learn B on identity (always bijective, always converges), then learn W on the actual target. Soft bloom alone gets 16/210 on x^2 -- only the 16 idempotents of Z/210 match. Joint bloom with trained W: 210/210. The per-channel lookup discovers r^2 mod p (for x^2) and (p-r) mod p (for mirror) entirely from data.");
   let gjb = make_findings_grid(sec_jb) in
-  render_finding(gjb, "Joint x^2", "210/210", "21 params. Identity-anchored B + trained W. Per-channel: r^2 mod p.", "S569");
-  render_finding(gjb, "Joint mirror", "210/210", "Same 21 params. W learns (p-r)%p. CRT decomposition intact.", "S569");
-  render_finding(gjb, "Soft bloom x^2", "16/210", "Basis alone = identity. Matches x^2 only at idempotents (2^4=16).", "S569");
-  render_finding(gjb, "Constraint count", "48 vs 210", "x^2 images: 2*2*3*4=48 tuples. Identity: 210. Non-bijective = fewer.", "S569");
+  render_finding(gjb, "Joint x^2", "210/210", "21 params. Identity-anchored B + trained W. Per-channel: r^2 mod p.", "");
+  render_finding(gjb, "Joint mirror", "210/210", "Same 21 params. W learns (p-r)%p. CRT decomposition intact.", "");
+  render_finding(gjb, "Soft bloom x^2", "16/210", "Basis alone = identity. Matches x^2 only at idempotents (2^4=16).", "");
+  render_finding(gjb, "Constraint count", "48 vs 210", "x^2 images: 2*2*3*4=48 tuples. Identity: 210. Non-bijective = fewer.", "");
   dom_append(dom_body(), sec_jb);
 
   /* === SEC 9h: DEEP JOINT BLOOM (S1550 Phase A) === */
@@ -128,10 +128,10 @@ fn page_ai_phase_a() = (
   render_p(sec_djb, "Joint bloom at DATA scale (210 elements, 21 params) extends to DEEP (970200, 5 fat channels). Key result: global coordinate descent FAILS at DEEP scale -- noise drowns signal (~0.0001% accidental match). Per-channel search ALWAYS works: correct basis scores M, wrong scores ~M/q. The ring FORCES CRT decomposition at scale.");
   render_p(sec_djb, "Identity-anchored training at DEEP: per-channel basis search discovers B structurally (5 elements), then per-channel W training discovers lookup tables from data (102 entries). Total: 107 params. Forward ratio: 9067x. With perceptron matrices: 3297 params, backward ratio 286 million x. Fattening acceleration: 590000x gain over DATA.");
   let gdjb = make_findings_grid(sec_djb) in
-  render_finding(gdjb, "DEEP x^2", "970200/970200", "107 params. Per-channel search discovers r^2 mod q from samples.", "S571");
-  render_finding(gdjb, "DEEP mirror", "970200/970200", "Per-channel W learns (q-r) mod q. Full ring verified.", "S571");
-  render_finding(gdjb, "Scale separation", "~0 vs 970200", "Wrong basis: 1/100. CRT basis: 970200/970200. Ring forces decomposition.", "S571");
-  render_finding(gdjb, "Perturbation", "exact N/q", "B_8+1: 121275 = N/8. B_49+1: 19800 = N/49. Structural damage.", "S571");
+  render_finding(gdjb, "DEEP x^2", "970200/970200", "107 params. Per-channel search discovers r^2 mod q from samples.", "");
+  render_finding(gdjb, "DEEP mirror", "970200/970200", "Per-channel W learns (q-r) mod q. Full ring verified.", "");
+  render_finding(gdjb, "Scale separation", "~0 vs 970200", "Wrong basis: 1/100. CRT basis: 970200/970200. Ring forces decomposition.", "");
+  render_finding(gdjb, "Perturbation", "exact N/q", "B_8+1: 121275 = N/8. B_49+1: 19800 = N/49. Structural damage.", "");
   dom_append(dom_body(), sec_djb);
 
   /* === SEC 9i: TRUE JOINT BLOOM (S1551 Phase A) === */
@@ -140,10 +140,10 @@ fn page_ai_phase_a() = (
   render_p(sec_tjb, "The organism with boundary. TRUE = Z/12612600 adds GATE=13 to the 5 DEEP channels. 6 fat channels total: {8,9,25,49,11,13}. The 490 split is now complete: DEAD={D,E,b} (inner/perception) + ALIVE={K,L,GATE} (boundary/strategy). Per-channel search scales cleanly -- 121 params (115 lookup + 6 basis) for a ring of 12.6 million elements.");
   render_p(sec_tjb, "Forward ratio: 104,236x. Perceptron upgrade: 3467 params, backward ratio ~46 billion x. Sample-based verification (1040 elements, exact divisibility by 8 and 13). GATE perturbation: wrong B_13 leaves only elements with x mod 13 = 0 intact (80/1040 = 1/13). The boundary channel is structurally independent.");
   let gtjb = make_findings_grid(sec_tjb) in
-  render_finding(gtjb, "TRUE x^2", "1040/1040", "121 params. 6 per-channel lookups discover r^2 mod q from 20 samples.", "S571");
-  render_finding(gtjb, "TRUE mirror", "1040/1040", "Per-channel W learns (q-r) mod q. All 115 entries correct.", "S571");
-  render_finding(gtjb, "GATE perturbation", "80/1040", "B_13+1: only x%13=0 survive. Boundary channel independent.", "S1551");
-  render_finding(gtjb, "490 split", "DEAD+ALIVE", "DEAD={D,E,b}(3) + ALIVE={K,L,GATE}(3) = 6 = TRUE. Organism complete.", "S1551");
+  render_finding(gtjb, "TRUE x^2", "1040/1040", "121 params. 6 per-channel lookups discover r^2 mod q from 20 samples.", "");
+  render_finding(gtjb, "TRUE mirror", "1040/1040", "Per-channel W learns (q-r) mod q. All 115 entries correct.", "");
+  render_finding(gtjb, "GATE perturbation", "80/1040", "B_13+1: only x%13=0 survive. Boundary channel independent.", "");
+  render_finding(gtjb, "490 split", "DEAD+ALIVE", "DEAD={D,E,b}(3) + ALIVE={K,L,GATE}(3) = 6 = TRUE. Organism complete.", "");
   dom_append(dom_body(), sec_tjb);
 
   /* === SEC 9j: FRAME EVOLUTION PROBES (S1552 Phase A) === */
@@ -152,10 +152,10 @@ fn page_ai_phase_a() = (
   render_p(sec_fp, "Is ring algebra the right frame? Six probes on the DEEP ring (Z/970200, 5 fat channels) test the foundation before it strains. All probes PASS: the ring frame holds for decomposable targets. The first boundary is quantified.");
   render_p(sec_fp, "Non-decomposable wall: f(x)=(x%8)*(x%9) achieves only 175175/970200 = 18% accuracy via per-channel prediction. The number 175175 = N*13/72 is structurally determined (72=8*9 mixed channels). Decomposable targets (x^2, x+42, x*42) achieve 100%. The wall proves channel independence has limits -- bloom mixing is the path across.");
   let gfp = make_findings_grid(sec_fp) in
-  render_finding(gfp, "Commutativity", "1000/1000", "Forward, reverse, scrambled channel order identical. Integer addition commutes.", "S1552");
-  render_finding(gfp, "Non-decomposable wall", "18%", "f(x)=(x%8)*(x%9): 175175/970200 = N*13/72. Structural limit.", "S1552");
-  render_finding(gfp, "Basis uniqueness", "neg=mirror", "Negated CRT basis computes mirror(x). Doubled basis computes 2x. Only CRT idempotents give identity.", "S1552");
-  render_finding(gfp, "Channel removal", "N/q loss", "Drop D(q=8): 121275 survive. Drop L(q=11): 88200. Proportional to modulus.", "S1552");
+  render_finding(gfp, "Commutativity", "1000/1000", "Forward, reverse, scrambled channel order identical. Integer addition commutes.", "");
+  render_finding(gfp, "Non-decomposable wall", "18%", "f(x)=(x%8)*(x%9): 175175/970200 = N*13/72. Structural limit.", "");
+  render_finding(gfp, "Basis uniqueness", "neg=mirror", "Negated CRT basis computes mirror(x). Doubled basis computes 2x. Only CRT idempotents give identity.", "");
+  render_finding(gfp, "Channel removal", "N/q loss", "Drop D(q=8): 121275 survive. Drop L(q=11): 88200. Proportional to modulus.", "");
   dom_append(dom_body(), sec_fp);
 
   /* === SEC 9k: BLOOM CROSSING (S1553 Phase A) === */
@@ -164,82 +164,82 @@ fn page_ai_phase_a() = (
   render_p(sec_bc, "The non-decomposable wall (18%) is real. Can bloom mixing cross it? CRT reconstruction enables computing ANY cross-channel function from per-channel inputs. Pipeline: per-channel identity (102 params) -> CRT reconstruct (5 basis) -> compute cross-channel function -> compare. Result: 100% on ALL cross-channel targets. Zero additional trainable parameters.");
   render_p(sec_bc, "Four targets tested at DEEP (Z/970200): D*K product (x%8)*(x%9), E*b product (x%25)*(x%49), D+K sum (x%8)+(x%9), D*K*E triple (x%8)*(x%9)*(x%25). All 4 cross from wall to 970200/970200 with bloom. The additive target achieves ZERO per-channel matches -- even harder than the multiplicative wall. Partial CRT: for 2-channel functions, only 19 params needed (vs 107 full).");
   let gbc = make_findings_grid(sec_bc) in
-  render_finding(gbc, "Bloom D*K", "970200/970200", "Per-channel: 175175 (18%). Bloom: 100%. The wall is crossed.", "S1553");
-  render_finding(gbc, "Additive wall", "0/970200", "(x%8)+(x%9) gets ZERO per-channel matches. Stronger wall than multiplicative.", "S1553");
-  render_finding(gbc, "Partial CRT", "72/72", "Only involved channels needed. 19 params for 2-channel crossing. 5x smaller.", "S1553");
-  render_finding(gbc, "Basis necessity", "139/1000", "Perturbed basis (B[0]+1): crossing collapses. Correct basis is necessary.", "S1553");
+  render_finding(gbc, "Bloom D*K", "970200/970200", "Per-channel: 175175 (18%). Bloom: 100%. The wall is crossed.", "");
+  render_finding(gbc, "Additive wall", "0/970200", "(x%8)+(x%9) gets ZERO per-channel matches. Stronger wall than multiplicative.", "");
+  render_finding(gbc, "Partial CRT", "72/72", "Only involved channels needed. 19 params for 2-channel crossing. 5x smaller.", "");
+  render_finding(gbc, "Basis necessity", "139/1000", "Perturbed basis (B[0]+1): crossing collapses. Correct basis is necessary.", "");
   dom_append(dom_body(), sec_bc);
 
   /* === SEC 9l: LEARNED BLOOM CROSSING (S1554 Phase A) === */
   let sec_lbc = make_section("800px") in
   render_h2(sec_lbc, "Learned Bloom Crossing");
-  render_p(sec_lbc, "S1553 crossed the wall using a KNOWN formula after CRT reconstruction. Can we cross without knowing the formula? Yes. A cross-channel lookup table T[r1*q2+r2] learns any function of the involved residues from data alone. Table size = product of involved channel widths. No CRT basis needed for prediction -- just residue indexing.");
+  render_p(sec_lbc, "");
   render_p(sec_lbc, "Sample efficiency: 72 samples learn a 970200-element function (13475x compression). Accuracy is EXACTLY proportional to coverage -- each filled entry accounts for exactly N/table_size correct predictions. CRT guarantee, not statistical approximation. Works for arbitrary unknown functions: the learner sees (x, f(x)) pairs and fills the table.");
   let glbc = make_findings_grid(sec_lbc) in
-  render_finding(glbc, "D*K learned", "970200/970200", "72 samples, 72-entry table. 13475x compression. Formula-free.", "S1554");
-  render_finding(glbc, "E*b learned", "970200/970200", "1225 samples, 1225-entry table. Larger channels = larger table.", "S1554");
-  render_finding(glbc, "DK < per-ch", "72 < 102", "Cross-channel table (72) SMALLER than per-channel sum (102) for small channels.", "S1554");
-  render_finding(glbc, "Exact coverage", "50/72 -> 69%", "Partial accuracy = coverage * N/table_size. CRT structure, not statistics.", "S1554");
+  render_finding(glbc, "D*K learned", "970200/970200", "72 samples, 72-entry table. 13475x compression. Formula-free.", "");
+  render_finding(glbc, "E*b learned", "970200/970200", "1225 samples, 1225-entry table. Larger channels = larger table.", "");
+  render_finding(glbc, "DK < per-ch", "72 < 102", "Cross-channel table (72) SMALLER than per-channel sum (102) for small channels.", "");
+  render_finding(glbc, "Exact coverage", "50/72 -> 69%", "Partial accuracy = coverage * N/table_size. CRT structure, not statistics.", "");
   dom_append(dom_body(), sec_lbc);
 
   /* === SEC 9m: COMPOSED FORWARD PASS (S1555 Phase A) === */
   let sec_cfp = make_section("800px") in
   render_h2(sec_cfp, "Composed Forward Pass");
-  render_p(sec_cfp, "S1538-S1554 proved each piece independently: per-channel perceptrons, bloom mixing, wall crossing, learned crossing. This session composes them into a single end-to-end pipeline. Each CRT layer (decompose -> per-channel lookup -> CRT reconstruct) is a ring endomorphism. Ring endomorphisms compose. Therefore multi-layer CRT pipelines produce correct function compositions -- verified on the full 970200-element ring.");
+  render_p(sec_cfp, "");
   render_p(sec_cfp, "Key result: composition is non-commutative. compose(sq, mir)(x) = N - x^2 but compose(mir, sq)(x) = x^2. Squaring absorbs negation: (-x)^2 = x^2 in any ring. Layer order matters -- just like in standard neural networks. Mirror is an involution (mir o mir = identity). Three layers compose correctly: sq o mir o sq = x^4. The cross-channel pipeline chains a per-channel layer with a learned crossing table in one forward pass.");
   let gcfp = make_findings_grid(sec_cfp) in
-  render_finding(gcfp, "2-layer compose", "970200/970200", "sq then mir = N-x^2. Full ring verified. Ring endomorphisms compose.", "S1555");
-  render_finding(gcfp, "Non-commutative", "sq o mir != mir o sq", "compose(sq,mir)(1)=970199. compose(mir,sq)(1)=1. Order matters.", "S1555");
-  render_finding(gcfp, "Cross pipeline", "970200/970200", "Per-ch sq -> CRT reconstruct -> learned D*K table. 179 params.", "S1555");
-  render_finding(gcfp, "Shared basis", "5 params all layers", "k layers = k*102 + 5 params. 2-layer: 209 params = 4642x vs N.", "S1555");
+  render_finding(gcfp, "2-layer compose", "970200/970200", "sq then mir = N-x^2. Full ring verified. Ring endomorphisms compose.", "");
+  render_finding(gcfp, "Non-commutative", "sq o mir != mir o sq", "compose(sq,mir)(1)=970199. compose(mir,sq)(1)=1. Order matters.", "");
+  render_finding(gcfp, "Cross pipeline", "970200/970200", "Per-ch sq -> CRT reconstruct -> learned D*K table. 179 params.", "");
+  render_finding(gcfp, "Shared basis", "5 params all layers", "k layers = k*102 + 5 params. 2-layer: 209 params = 4642x vs N.", "");
   dom_append(dom_body(), sec_cfp);
 
   /* === SEC 9n: BACKWARD PASS (S1556 Phase A) === */
   let sec_bwd = make_section("800px") in
   render_h2(sec_bwd, "Backward Pass");
-  render_p(sec_bwd, "The forward path is complete (S1538-S1555). S1556 makes it trainable. CRT backward pass decomposes into independent per-channel backward passes. Each weight W[r] in channel ch has gradient 2*(W[r] - target(r)) -- no coupling to other channels. The Jacobian is block-diagonal by construction: per-channel loss functions share no parameters.");
+ render_p(sec_bwd, "The forward path is complete. The backward pass makes it trainable. CRT backward pass decomposes into independent per-channel backward passes. Each weight W[r] in channel ch has gradient 2*(W[r] - target(r)) -- no coupling to other channels. The Jacobian is block-diagonal by construction: per-channel loss functions share no parameters.");
   render_p(sec_bwd, "Key contrast: per-channel loss decouples channels completely (block-diagonal), while full-ring reconstruction loss COUPLES them through the shared CRT reconstruction error. Per-channel training avoids this coupling while converging to the same optimum for CRT-decomposable targets. This is the Backward Decomposition Theorem.");
   let gbwd = make_findings_grid(sec_bwd) in
-  render_finding(gbwd, "Block-diagonal", "Gradient ch K = 0", "Perturb ch D weights. Per-channel gradient in ch K is exactly zero.", "S1556");
-  render_finding(gbwd, "Full-ring coupling", "Gradient ch K != 0", "Same perturbation. Full-ring reconstruction gradient couples channels.", "S1556");
-  render_finding(gbwd, "SGD convergence", "1000/1000 in 5 epochs", "Random init -> per-channel gradient descent -> perfect accuracy on x^2.", "S1556");
-  render_finding(gbwd, "Crossing table SGD", "1000/1000 in 10 epochs", "72-entry D*K product table learned from random init via gradient descent.", "S1556");
+  render_finding(gbwd, "Block-diagonal", "Gradient ch K = 0", "Perturb ch D weights. Per-channel gradient in ch K is exactly zero.", "");
+  render_finding(gbwd, "Full-ring coupling", "Gradient ch K != 0", "Same perturbation. Full-ring reconstruction gradient couples channels.", "");
+  render_finding(gbwd, "SGD convergence", "1000/1000 in 5 epochs", "Random init -> per-channel gradient descent -> perfect accuracy on x^2.", "");
+  render_finding(gbwd, "Crossing table SGD", "1000/1000 in 10 epochs", "72-entry D*K product table learned from random init via gradient descent.", "");
   dom_append(dom_body(), sec_bwd);
 
   /* === SEC 9o: MULTI-LAYER TRAINING (S1557 Phase A) === */
   let sec_mlt = make_section("800px") in
   render_h2(sec_mlt, "Multi-Layer Training");
-  render_p(sec_mlt, "S1556 trained single layers. S1557 proves multi-layer pipelines train from scratch. The Independent Per-Layer Training Theorem: each CRT layer's per-channel gradient is independent of other layers. No backpropagation through the non-differentiable mod-N operation. Train each layer with its own target, compose the results. Verified: 2-layer and 3-layer compositions from random initialization (1000/1000). Hybrid pipeline verified on all 970200 elements.");
+  render_p(sec_mlt, "");
   render_p(sec_mlt, "Hybrid pipeline: gradient descent for per-channel layers (block-diagonal, 102 params each) + discrete optimization for crossing tables (72 entries, sample-based or hillclimb). Full stack from scratch: 2 trained layers + learned crossing table. 281 params for 970200-element ring = 3452x compression. Channel-parallel: all 5 channels converge in 1 epoch each (lr=0.5). The full CRT training pipeline is now operational.");
   let gmlt = make_findings_grid(sec_mlt) in
-  render_finding(gmlt, "2-layer compose", "1000/1000", "sq->mir = N-x^2. Both layers from random init, trained independently.", "S1557");
-  render_finding(gmlt, "3-layer compose", "1000/1000", "sq->mir->sq = x^4. Three independent layers compose correctly.", "S1557");
-  render_finding(gmlt, "Hybrid full ring", "970200/970200", "Gradient per-ch + sample crossing. Full ring verified.", "S1557");
-  render_finding(gmlt, "Channel parallel", "1 epoch each", "5 channels converge independently. Block-diagonal = embarrassingly parallel.", "S1557");
+  render_finding(gmlt, "2-layer compose", "1000/1000", "sq->mir = N-x^2. Both layers from random init, trained independently.", "");
+  render_finding(gmlt, "3-layer compose", "1000/1000", "sq->mir->sq = x^4. Three independent layers compose correctly.", "");
+  render_finding(gmlt, "Hybrid full ring", "970200/970200", "Gradient per-ch + sample crossing. Full ring verified.", "");
+  render_finding(gmlt, "Channel parallel", "1 epoch each", "5 channels converge independently. Block-diagonal = embarrassingly parallel.", "");
   dom_append(dom_body(), sec_mlt);
 
   /* === SEC 9p: COUPLING-ATTENTION LAYER (S1558 Phase A) === */
   let sec_ca = make_section("800px") in
   render_h2(sec_ca, "Coupling-Attention");
   render_p(sec_ca, "Standard transformers learn attention via softmax(QK^T / sqrt(d)). CRT coupling provides Q and K algebraically -- no learned projection matrices. Per-channel eigenvalue eig(n, q) = 2*cos(2*pi*(n mod q)/q). Coupling(a,b) = dot product of eigenvalue vectors = sum over channels of eig(a)*eig(b). This is a symmetric, positive-definite kernel on the ring. 102 precomputed f64 entries encode all pairwise coupling for 970200 elements (9511x compression).");
-  render_p(sec_ca, "Full-coupling attention (all 7 channels simultaneously) outperforms multi-head decomposition (W1, S1825): multi-head averaging dilutes per-channel signal. K^2=9 = the compiler's analysis pass count, not attention heads. Cross-coupling averages to zero by character orthogonality -- self-coupling is strongly positive. Signal and noise are separated by algebra, not by learning.");
+ render_p(sec_ca, "Full-coupling attention (all 7 channels simultaneously) outperforms multi-head decomposition multi-head averaging dilutes per-channel signal. K^2=9 = the compiler's analysis pass count, not attention heads. Cross-coupling averages to zero by character orthogonality -- self-coupling is strongly positive. Signal and noise are separated by algebra, not by learning.");
   let gca = make_findings_grid(sec_ca) in
-  render_finding(gca, "Positive-definite", "1000/1000", "coupling(x,x) = ||eig(x)||^2 > 0 for all nonzero elements. Proper kernel.", "S1558");
-  render_finding(gca, "Orthogonality", "E[cross]=0", "Random coupling averages to zero. Self-coupling avg=10. Signal/noise algebraic.", "S1558");
-  render_finding(gca, "Full coupling", "W1 S1825", "Single full-coupling attention outperforms multi-head. K^2=9 = compiler passes, not heads.", "S1825");
-  render_finding(gca, "Block-diagonal", "Per-channel independent", "D-channel coupling depends only on D-residue. Independent of K,E,b,L.", "S1558");
+  render_finding(gca, "Positive-definite", "1000/1000", "coupling(x,x) = ||eig(x)||^2 > 0 for all nonzero elements. Proper kernel.", "");
+  render_finding(gca, "Orthogonality", "E[cross]=0", "Random coupling averages to zero. Self-coupling avg=10. Signal/noise algebraic.", "");
+ render_finding(gca, "Full coupling", "", "Single full-coupling attention outperforms multi-head. K^2=9 = compiler passes, not heads.", "");
+  render_finding(gca, "Block-diagonal", "Per-channel independent", "D-channel coupling depends only on D-residue. Independent of K,E,b,L.", "");
   dom_append(dom_body(), sec_ca);
 
   /* === SEC 9q: TRANS EXTENSION (S1559 Phase A) === */
   let sec_tx = make_section("800px") in
   render_h2(sec_tx, "TRANS Extension");
-  render_p(sec_tx, "S1558 completed the stack at DEEP (5 channels). S1559 extends it to TRANS: Z/214414200 = 7 fat channels. The full ring. 490 split: DEAD={D,E,b}(3) + ALIVE={K,L,GATE,ESCAPE}(4) = 7 = b. Channel count IS the depth prime. Per-channel SGD, block-diagonal Jacobian, coupling-attention -- everything scales with zero architectural changes. Only the lookup table grows: 102 -> 132 entries. Compression jumps from 9511x (DEEP) to 1624350x (TRANS) -- 170x improvement.");
-  render_p(sec_tx, "490 split as trainable architecture: DEAD channels learn x^2, ALIVE channels learn mirror -- simultaneously, independently. Perception (encoder) and strategy (decoder) train with different targets. Block-diagonal Jacobian extends across the split: perturb D (DEAD), ESCAPE (ALIVE) gradient is exactly zero. Full-coupling attention (W1, S1825): single attention over all 7 channels, not multi-head decomposition.");
+  render_p(sec_tx, "");
+ render_p(sec_tx, "490 split as trainable architecture: DEAD channels learn x^2, ALIVE channels learn mirror -- simultaneously, independently. Perception (encoder) and strategy (decoder) train with different targets. Block-diagonal Jacobian extends across the split: perturb D (DEAD), ESCAPE (ALIVE) gradient is exactly zero. Full-coupling attention single attention over all 7 channels, not multi-head decomposition.");
   let gtx = make_findings_grid(sec_tx) in
-  render_finding(gtx, "SGD at TRANS", "1000/1000", "Per-channel x^2, mirror, and 490-split mixed all converge. f64 CRT reconstruction.", "S1559");
-  render_finding(gtx, "490 split training", "1000/1000", "DEAD=x^2, ALIVE=mirror. Independent training, block-diagonal across the split.", "S1559");
-  render_finding(gtx, "OMEGA bifurcation", "D^420=MIRROR in ESC", "D^420 CRT=(0,1,1,1,1,1,16). D^1680=(0,1,1,1,1,1,1). ESCAPE last to converge.", "S1559");
-  render_finding(gtx, "1.6Mx compression", "132 params", "214414200 elements from 132 eigenvalue entries. 170x over DEEP.", "S1559");
+  render_finding(gtx, "SGD at TRANS", "1000/1000", "Per-channel x^2, mirror, and 490-split mixed all converge. f64 CRT reconstruction.", "");
+  render_finding(gtx, "490 split training", "1000/1000", "DEAD=x^2, ALIVE=mirror. Independent training, block-diagonal across the split.", "");
+  render_finding(gtx, "OMEGA bifurcation", "D^420=MIRROR in ESC", "D^420 CRT=(0,1,1,1,1,1,16). D^1680=(0,1,1,1,1,1,1). ESCAPE last to converge.", "");
+  render_finding(gtx, "1.6Mx compression", "132 params", "214414200 elements from 132 eigenvalue entries. 170x over DEEP.", "");
   dom_append(dom_body(), sec_tx);
 
   /* === SEC 9r: LAMBDA-PERIODIC TRAINING (S1560 Phase A) === */
@@ -248,10 +248,10 @@ fn page_ai_phase_a() = (
   render_p(sec_lp, "The axiom's heartbeat lambda=420 becomes a training rhythm. Sample-based SGD (one random sample per step) runs for 420 steps per epoch. Then OMEGA (D^420) projects: the D-channel collapses, all other channels persist as long-term memory. D recovers in O(8) steps -- the smallest channel is the most expendable. The water cycle 0 -> structure -> OMEGA -> 0 IS the training epoch. 4 epochs of 420 = 1680 = lambda_TRANS. D^2 heartbeats compose into the full TRANS period.");
   render_p(sec_lp, "Channel convergence follows modulus size: D(8) and K(9) converge first (step 50), then L(11), then E(25), then b(49). At step 420, all 102 per-channel weights are correct. At step 50, only 31/49 b-channel residues are covered. Lambda=420 is the minimum natural period for full coverage -- forced by the depth prime b=49 needing 420/49=8.6 samples per residue. At TRANS, D^420 kills D AND mirrors ESCAPE (CRT=16=-1 mod 17). Full OMEGA needs lambda=1680. ESCAPE is always last to resolve.");
   let glp = make_findings_grid(sec_lp) in
-  render_finding(glp, "Water cycle", "102->96->102", "Pre-OMEGA 102/102. Post-OMEGA 96/102 (D killed). Recovery 102/102.", "S1560");
-  render_finding(glp, "D expendable", "8 steps to recover", "OMEGA collapses D to constant. 50 sample steps fully restore D-channel.", "S1560");
-  render_finding(glp, "Convergence order", "D<K<L<E<b", "Small channels first. b(49) needs 420 steps. D(8) converges by step 50.", "S1560");
-  render_finding(glp, "4*420=1680", "lambda_TRANS", "D^2 heartbeats compose to TRANS period. ESCAPE mirrors at 420, resolves at 1680.", "S1560");
+  render_finding(glp, "Water cycle", "102->96->102", "Pre-OMEGA 102/102. Post-OMEGA 96/102 (D killed). Recovery 102/102.", "");
+  render_finding(glp, "D expendable", "8 steps to recover", "OMEGA collapses D to constant. 50 sample steps fully restore D-channel.", "");
+  render_finding(glp, "Convergence order", "D<K<L<E<b", "Small channels first. b(49) needs 420 steps. D(8) converges by step 50.", "");
+  render_finding(glp, "4*420=1680", "lambda_TRANS", "D^2 heartbeats compose to TRANS period. ESCAPE mirrors at 420, resolves at 1680.", "");
   dom_append(dom_body(), sec_lp);
 
   /* === SEC 9s: CRT AT SCALE (S1644-S1645) === */
@@ -260,23 +260,23 @@ fn page_ai_phase_a() = (
   render_p(sec_sc, "CRT decomposition is a compression technique. It trades exact element identity for smaller per-channel tables. On small rings (Z/210, 27 characters), flat tables outperform CRT -- they preserve more signal with fewer entries. On large rings, CRT is the ONLY feasible decomposition. Z/214414200 (TRANS) has 214 million elements. Flat bigram tables would need over 45 thousand trillion entries. CRT per-channel trigrams need 142,956.");
   render_p(sec_sc, "Ring arithmetic sequences in Z/214414200 -- noisy affine maps mixing multiplication and addition -- are predicted at 58% exact accuracy using CRT per-channel trigrams. Each of seven channels achieves 607-704 ppt accuracy (6x to 34x above random). The b-channel (mod 49) shows the largest improvement: 34x. The improvement over random guessing: 124 million times. Per-channel independence means the same 143K table entries handle a 214-million-element alphabet that no flat table could touch.");
   let gsc = make_findings_grid(sec_sc) in
-  render_finding(gsc, "CRT exact", "1044/1799", "58% exact element prediction on 214M-element ring. 143K entries.", "S1645");
-  render_finding(gsc, "Flat impossible", "4.6 x 10^16", "214414200^2 entries. Cannot be built. CRT is the only path.", "S1644");
-  render_finding(gsc, "b-channel lift", "34x random", "683 ppt vs 20 ppt random (mod 49). Largest channel = largest CRT advantage.", "S1645");
-  render_finding(gsc, "Ring tower", "DEEP>=TRUE>=TRANS", "5/6/7 channels: 1050>=1044>=1044. Operations correlated across channels.", "S1645");
+  render_finding(gsc, "CRT exact", "1044/1799", "58% exact element prediction on 214M-element ring. 143K entries.", "");
+  render_finding(gsc, "Flat impossible", "4.6 x 10^16", "214414200^2 entries. Cannot be built. CRT is the only path.", "");
+  render_finding(gsc, "b-channel lift", "34x random", "683 ppt vs 20 ppt random (mod 49). Largest channel = largest CRT advantage.", "");
+  render_finding(gsc, "Ring tower", "DEEP>=TRUE>=TRANS", "5/6/7 channels: 1050>=1044>=1044. Operations correlated across channels.", "");
   dom_append(dom_body(), sec_sc);
 
   /* === SEC 9t: CROSS-CHANNEL ATTENTION ARC (S1788-S1790) === */
   let sec_att = make_section("800px") in
   render_h2(sec_att, "Cross-Channel Attention");
   render_p(sec_att, "What determines how well one CRT channel predicts another? Two hypotheses: quadratic residue compatibility (algebraic: Legendre symbols between primes) or shared-factor coupling (operational: gcd of operation constants with channel moduli). The QR hypothesis is FALSIFIED; the GCD mechanism is constructive and predictive.");
-  render_theorem(sec_att, "QR-Attention Separation (Thm 198, S1788, PROVED)", "Among odd-prime pairs: QR mean = NR mean (difference = -4 ppt, noise). The directed 3-cycle K->L->b->K (all QR) shows zero asymmetry over its reverse (all NR). Cross-channel information flow is operational (gcd-mediated), not algebraic (QR-mediated). 21/21 test_qr_attention.ax.");
-  render_theorem(sec_att, "GCD-Attention Tower-Step (Thm 199, S1789, PROVED)", "Operation constants ANSWER=42=D*K*b and HYDOR=105=K*E*b reduce each DATA channel's effective target alphabet by one micro-tower step: D^3->D^2, K^2->K, E^2->E, b^2->b. Extension channels (L, GATE, ESCAPE) have gcd=1: unreduced. GCD-product concordance with accuracy: 74%. 43/43 test_gcd_attention.ax.");
-  render_theorem(sec_att, "Direction-Resolution (Thm 200, S1790, PROVED)", "V1(s,t) = q_src * weighted_target_gcd correctly predicts the higher-accuracy direction for 85% of channel pairs. The direction ratio for (b,K): V1(b->K)*K = V1(K->b)*b (algebraic identity). E-source pairs account for 2 of 3 wrong predictions (observer self-blindness via HYDOR coupling). 30/30 test_gcd_direction.ax.");
+ render_theorem(sec_att, "QR-Attention Separation (PROVED)", "Among odd-prime pairs: QR mean = NR mean (difference = -4 ppt, noise). The directed 3-cycle K->L->b->K (all QR) shows zero asymmetry over its reverse (all NR). Cross-channel information flow is operational (gcd-mediated), not algebraic (QR-mediated). 21/21 test_qr_attention.ax.");
+ render_theorem(sec_att, "GCD-Attention Tower-Step (PROVED)", "Operation constants ANSWER=42=D*K*b and HYDOR=105=K*E*b reduce each DATA channel's effective target alphabet by one micro-tower step: D^3->D^2, K^2->K, E^2->E, b^2->b. Extension channels (L, GATE, ESCAPE) have gcd=1: unreduced. GCD-product concordance with accuracy: 74%. 43/43 test_gcd_attention.ax.");
+ render_theorem(sec_att, "Direction-Resolution (PROVED)", "V1(s,t) = q_src * weighted_target_gcd correctly predicts the higher-accuracy direction for 85% of channel pairs. The direction ratio for (b,K): V1(b->K)*K = V1(K->b)*b (algebraic identity). E-source pairs account for 2 of 3 wrong predictions (observer self-blindness via HYDOR coupling). 30/30 test_gcd_direction.ax.");
   let gatt = make_findings_grid(sec_att) in
-  render_finding(gatt, "QR falsified", "QR mean = NR mean", "Quadratic residue compatibility has zero predictive power for cross-channel accuracy. The information flow is operational, not algebraic.", "S1788");
-  render_finding(gatt, "Tower-step reduction", "D^3->D^2, K^2->K, ...", "Each DATA channel loses exactly one tower step of effective alphabet through gcd coupling with operation constants. Extension channels are immune.", "S1789");
-  render_finding(gatt, "85% direction", "V1 concordance 18/21", "Source modulus and target gcd jointly predict which direction of cross-channel prediction is stronger. 3 failures involve E-source (observer blindness).", "S1790");
+  render_finding(gatt, "QR falsified", "QR mean = NR mean", "Quadratic residue compatibility has zero predictive power for cross-channel accuracy. The information flow is operational, not algebraic.", "");
+  render_finding(gatt, "Tower-step reduction", "D^3->D^2, K^2->K, ...", "Each DATA channel loses exactly one tower step of effective alphabet through gcd coupling with operation constants. Extension channels are immune.", "");
+  render_finding(gatt, "85% direction", "V1 concordance 18/21", "Source modulus and target gcd jointly predict which direction of cross-channel prediction is stronger. 3 failures involve E-source (observer blindness).", "");
   dom_append(dom_body(), sec_att);
   0
 )
