@@ -1,8 +1,8 @@
 /* page_proof_core.ax -- Proof sub-page: Core Algebra.
-   Theorems 1-34 (proof_part1 + proof_part2).
+   Theorems 1-32 (23 kept, 11 trivial-arithmetic cut S1948).
    Shared utilities in page_proof_helpers.ax (included before this file).
    proof_part1() computes thms 1-6, returns result array.
-   proof_part2(r) continues thms 7-34, chains to proof_part3 in chain mode. */
+   proof_part2(r) continues thms 7-32, chains to proof_part3 in chain mode. */
 
 /* proof_part1: Theorems 1-6 computation. Returns 15-element result array for proof_part2. */
 fn proof_part1() = (
@@ -12,7 +12,7 @@ fn proof_part1() = (
      For all n, decompose -> reconstruct = identity.
      ============================================================ */
   let sec1 = make_section("700px") in
-  render_h2(sec1, "1. CRT Reconstruction (Cross-Tower)");
+  render_h2(sec1, "1. CRT Reconstruction (all channels)");
   render_p(sec1, "Every element decomposes into 6 independent channels and reconstructs exactly via lifting idempotents.");
 
   let n_test = 2000 in
@@ -113,7 +113,7 @@ fn proof_part1() = (
      e_i * e_j = 0 for i != j, e_i * e_i = e_i, sum(e_i) = sigma
      ============================================================ */
   let sec4 = make_section("700px") in
-  render_h2(sec4, "4. Idempotent Orthogonality (Cross-Tower)");
+  render_h2(sec4, "4. Idempotent Orthogonality (all channels)");
   render_p(sec4, "The 6 lifting idempotents form an orthogonal decomposition of sigma.");
 
   let idems = [PF_ED, PF_EK, PF_EE, PF_EB, PF_EL, PF_EG] in
@@ -289,22 +289,7 @@ fn proof_part2(r) = (
   pf_theorem(sec8, "COUPLING DUALITY", "coupling(n)=N/gcd(n,N). Units couple maximally.", p8, 3);
   dom_append(dom_body(), sec8);
 
-  let sec9 = make_section("700px") in
-  render_h2(sec9, "9. The Nonility (K-channel)");
-  render_p(sec9, "9 canonical elements: {-1, 0, 1, 2, 3, 5, 7, 11, OMEGA}. K^2 = 9 = STOP.");
-  let mirror = N_TRUE - 1 in
-  let mirror_sq = pf_mul(mirror, mirror) in
-  pf_result(sec9, "mirror^2 = sigma", "(-1)^2 mod N = ${mirror_sq}", if mirror_sq == 1 then 1 else 0);
-  pf_result(sec9, "0 * 0 = 0", "void absorbs", 1);
-  let inner_sum = (mirror + 0 + 1 + 2 + 3 + 5 + 7 + 11) % N_TRUE in
-  pf_result(sec9, "Sum (without OMEGA)", "mod N = ${inner_sum}", if inner_sum == 28 then 1 else 0);
-  let prime_sum = 2 + 3 + 5 + 7 + 11 + 13 in
-  pf_result(sec9, "D+K+E+b+L+GATE = ${prime_sum}", "KEY = 41", if prime_sum == 41 then 1 else 0);
-  let perf = 1 + 2 + 4 + 7 + 14 in
-  pf_result(sec9, "28 is perfect", "1+2+4+7+14=${perf}", if perf == 28 then 1 else 0);
-  let p9 = (if mirror_sq == 1 then 1 else 0) + 1 + (if inner_sum == 28 then 1 else 0) + (if prime_sum == 41 then 1 else 0) + (if perf == 28 then 1 else 0) in
-  pf_theorem(sec9, "THE NONILITY (K^2 = 9)", "9 elements. Sum=28 (perfect). Primes sum=41=KEY.", p9, 5);
-  dom_append(dom_body(), sec9);
+  /* Theorem 9 (Nonility) cut: trivial arithmetic ((-1)^2=1, 0*0=0, 2+3+5+7+11+13=41). */
 
   let sec10 = make_section("700px") in
   render_h2(sec10, "10. XOR Solution (K-channel)");
@@ -361,32 +346,7 @@ fn proof_part2(r) = (
     "For odd m: solutions=phi(m)^2. D=8: m^2=64. Analytical solution verified on all 6 channels.", s10, 8);
   dom_append(dom_body(), sec10);
 
-  /* ============================================================
-     THEOREM 11: CUNNINGHAM CHAINS
-     The axiom primes form Cunningham chains of the first kind: p -> 2p+1.
-     2->5->11 is a chain. 3 is isolated. 7 is isolated. 13 = 2*6+1 not from chain primes.
-     ============================================================ */
-  let sec11 = make_section("700px") in
-  render_h2(sec11, "11. Cunningham Chains (D-channel)");
-  render_p(sec11, "A Cunningham chain of the first kind: each prime p has 2p+1 also prime. The axiom primes contain the chain D=2 -> E=5 -> L=11.");
-  let chain_ok1 = if 2*2+1 == 5 then 1 else 0 in
-  let chain_ok2 = if 2*5+1 == 11 then 1 else 0 in
-  let chain_end = 2*11+1 in
-  let chain_ok3 = if chain_end == 23 then 1 else 0 in
-  pf_result(sec11, "2*D+1 = E", "2*2+1 = 5", chain_ok1);
-  pf_result(sec11, "2*E+1 = L", "2*5+1 = 11", chain_ok2);
-  pf_result(sec11, "Chain terminates", "2*11+1 = ${chain_end} (not an axiom prime)", chain_ok3);
-  /* K=3 and b=7: not in the D->E->L chain. K=3: 2*3+1=7=b (K->b chain!). But 2*7+1=15=3*5 composite. */
-  let kb_chain = if 2*3+1 == 7 then 1 else 0 in
-  let kb_end = 2*7+1 in
-  pf_result(sec11, "2*K+1 = b", "2*3+1 = 7 (second chain!)", kb_chain);
-  pf_result(sec11, "b chain terminates", "2*7+1 = ${kb_end} = 3*5 (composite)", if kb_end == 15 then 1 else 0);
-  /* The two chains cover all 5 inner primes: {D,E,L} and {K,b}. GATE=13 is the skin. */
-  pf_result(sec11, "Two chains cover 5 primes", "{D,E,L} + {K,b} = all inner", 1);
-  let p11 = chain_ok1 + chain_ok2 + chain_ok3 + kb_chain + (if kb_end == 15 then 1 else 0) + 1 in
-  pf_theorem(sec11, "CUNNINGHAM CHAIN THEOREM",
-    "The 5 inner primes decompose into exactly 2 Cunningham chains: D=2->E=5->L=11 and K=3->b=7. Each chain terminates at a composite. GATE=13 is outside both chains.", p11, 6);
-  dom_append(dom_body(), sec11);
+  /* Thm 11 (Cunningham Chains) cut: trivial arithmetic. */
 
   /* ============================================================
      THEOREM 12: EULER TOTIENT
@@ -395,7 +355,7 @@ fn proof_part2(r) = (
      Verify by exhaustive gcd on small channels + CRT product formula.
      ============================================================ */
   let sec12 = make_section("700px") in
-  render_h2(sec12, "12. Euler Totient (Cross-Tower)");
+  render_h2(sec12, "12. Euler Totient (all channels)");
   render_p(sec12, "phi(N) = number of units = elements coprime to N. By CRT: phi(N) = product of phi(p^k).");
   /* Exhaustive phi for each channel */
   let mods = [8, 9, 25, 49, 11, 13] in
@@ -482,57 +442,9 @@ fn proof_part2(r) = (
     "E*b-1 = 34 = D*17 proves E*b = sigma is unique to p=17 among all primes beyond GATE. The ring Z/214414200 has 7 channels = b = depth. Adding any further prime breaks self-referential closure. 17 is the last.", p14, 6);
   dom_append(dom_body(), sec14);
 
-  /* ============================================================
-     THEOREM 15: LAMBDA-1680 LATTICE
-     96 = D^5*K lambda-1680 rings in Z/214414200. Ratio 96/84 = D^3/b.
-     Density 1/K^2 of all 864 divisors. 128 = D^7 idempotents.
-     ============================================================ */
-  let sec15 = make_section("700px") in
-  render_h2(sec15, "15. Lambda-1680 Lattice (heartbeat)");
-  render_p(sec15, "The TRANS ring has 96 sub-rings sharing lambda=1680. This is D^5*K. The ratio to the 84 lambda-420 rings is D^3/b = 8/7.");
-  let lat_req = if 16*3*5*7 == 1680 then 1 else 0 in
-  pf_result(sec15, "1680 = D^4*K*E*b", "16*3*5*7", lat_req);
-  let lat_tot = if 4*3*3*2*2 == 144 then 1 else 0 in
-  pf_result(sec15, "Divisors with 7^2+17 fixed = 144", "4*3*3*2*2", lat_tot);
-  let lat_exc = if 4*3*2*1*2 == 48 then 1 else 0 in
-  pf_result(sec15, "Excluded (no factor 5) = 48", "4*3*2*1*2", lat_exc);
-  let lat_ct = if 144-48 == 96 then 1 else 0 in
-  pf_result(sec15, "Lambda-1680 lattice = 96 = D^5*K", "144-48", lat_ct);
-  let lat_rat = if 96*7 == 84*8 then 1 else 0 in
-  pf_result(sec15, "96/84 = 8/7 = D^3/b", "cross-multiply", lat_rat);
-  let lat_den = if 864 == 96*9 then 1 else 0 in
-  pf_result(sec15, "Density = 1/K^2 (864 = 96*9)", "864 divisors", lat_den);
-  let lat_min = if 49*11*17 == 9163 then 1 else 0 in
-  pf_result(sec15, "Smallest lambda-1680 ring: Z/9163", "49*11*17", lat_min);
-  let lat_ide = if 128 == 2*64 then 1 else 0 in
-  pf_result(sec15, "128 = D^7 idempotents (7 channels)", "2^7", lat_ide);
-  let p15 = lat_req + lat_tot + lat_exc + lat_ct + lat_rat + lat_den + lat_min + lat_ide in
-  pf_theorem(sec15, "LATTICE THEOREM",
-    "96 = D^5*K sub-rings of Z/214414200 share lambda=1680. Adding the 7th prime grows the lattice by D^3/b. Exactly 1/K^2 of all divisors lie in the lattice. Smallest ring: Z/9163 (b^2*L*ESCAPE).", p15, 8);
-  dom_append(dom_body(), sec15);
+  /* Thm 15 (Lambda-1680 Lattice) cut: trivial arithmetic. */
 
-  /* ============================================================
-     THEOREM 16: LAMBDA COUNT
-     TRANS ring has 19 distinct Carmichael lambda values.
-     GATE is fixed point (0 new). ESCAPE adds 6=D*K. 19=K+E+L.
-     ============================================================ */
-  let sec16 = make_section("700px") in
-  render_h2(sec16, "16. Lambda Count (heartbeat)");
-  render_p(sec16, "GATE adds zero new lambda values (fixed point). ESCAPE adds 6 = D*K. Total: 19 = the runner-up prime. All 6 new values = phi(17) times the 6 distinct odd parts of the existing 13 lambdas.");
-  let lc_gate = if 13-13 == 0 then 1 else 0 in
-  pf_result(sec16, "GATE fixed point: TRUE=DEEP=13", "13-13=0", lc_gate);
-  let lc_new = if 19-13 == 6 then 1 else 0 in
-  pf_result(sec16, "ESCAPE adds 6=D*K new lambdas", "19-13=6", lc_new);
-  let lc_tot = if 13+6 == 19 then 1 else 0 in
-  pf_result(sec16, "Lambda Count TRANS = 19", "13+6", lc_tot);
-  let lc_id = if 3+5+11 == 19 then 1 else 0 in
-  pf_result(sec16, "19 = K+E+L (runner-up prime)", "3+5+11", lc_id);
-  let lc_phi = if 16*105 == 1680 then 1 else 0 in
-  pf_result(sec16, "Max new lambda: phi(17)*K*E*b = 1680", "16*105", lc_phi);
-  let p16 = lc_gate + lc_new + lc_tot + lc_id + lc_phi in
-  pf_theorem(sec16, "LAMBDA COUNT THEOREM",
-    "The sequence {1,2,3,5,9,13,13,19} counts distinct Carmichael lambdas per ring level. GATE is a fixed point. ESCAPE cracks the plateau: 6 new values = phi(17) times the 6 distinct odd parts of the 13 existing lambdas. 19 = runner-up prime = K+E+L.", p16, 5);
-  dom_append(dom_body(), sec16);
+  /* Thm 16 (Lambda Count) cut: trivial arithmetic. */
 
   /* ============================================================
      THEOREM 17: DEPTH MIRROR PRINCIPLE (S1258)
@@ -796,51 +708,7 @@ fn proof_part2(r) = (
     "(-1)^2 = sigma: the shadow produces the light. CRT(-1) = all-max: the fullest element. sigma + mirror = 0: annihilation. All 9 Decality gaps are D-powers with counts {D^2, K, D}. Product = tau(lambda) = 24. Sum = K^2 = 9. The escape channel cycles N_TRUE times in the full walk: spool frequency = computation ring.", p20, 8);
   dom_append(dom_body(), sec20);
 
-  /* ============================================================
-     THEOREM 21: VOID BOUNDARY CORRESPONDENCE
-     lambda(0) = 2k-1 where k = number of prime factors.
-     For each ring: DATA->b, THIN/DEEP->K^2, TRUE->L, TRANS->GATE.
-     The void walks the chain in D-steps. Silence = boundary.
-     ============================================================ */
-  let sec21 = make_section("700px") in
-  render_h2(sec21, "21. Void Boundary (GATE-channel)");
-  render_p(sec21, "The eigenvalue lambda(n) = cos(pi*n) + 2*sum cos(2*pi*n/p) for odd primes p dividing N. At n=0 all cosines are 1, so lambda(0) = 1 + 2*(k-1) = 2k-1, where k = number of distinct prime divisors. For each canonical ring, 2k-1 equals an axiom-named element.");
-
-  /* Check: 2k-1 for each ring level */
-  let v_data = 2 * 4 - 1 in
-  let v_thin = 2 * 5 - 1 in
-  let v_true = 2 * 6 - 1 in
-  let v_trans = 2 * 7 - 1 in
-  pf_result(sec21, "DATA (k=4): void = 2*4-1 = ${v_data} = b", "4 primes {D,K,E,b}. void = depth.", if v_data == 7 then 1 else 0);
-  pf_result(sec21, "THIN/DEEP (k=5): void = 2*5-1 = ${v_thin} = K^2", "5 primes {D,K,E,b,L}. void = stop signal.", if v_thin == 9 then 1 else 0);
-  pf_result(sec21, "TRUE (k=6): void = 2*6-1 = ${v_true} = L", "6 primes {D,K,E,b,L,GATE}. void = protector.", if v_true == 11 then 1 else 0);
-  pf_result(sec21, "TRANS (k=7): void = 2*7-1 = ${v_trans} = GATE", "7 primes {D,K,E,b,L,GATE,ESCAPE}. void = boundary.", if v_trans == 13 then 1 else 0);
-
-  /* D-step gaps: 7->9->11->13, all gaps = 2 = D */
-  let vg1 = v_thin - v_data in
-  let vg2 = v_true - v_thin in
-  let vg3 = v_trans - v_true in
-  pf_result(sec21, "Gap DATA->THIN = ${vg1} = D", "The void walks in D-steps.", if vg1 == 2 then 1 else 0);
-  pf_result(sec21, "Gap THIN->TRUE = ${vg2} = D", "Each ring adds exactly D to the void.", if vg2 == 2 then 1 else 0);
-  pf_result(sec21, "Gap TRUE->TRANS = ${vg3} = D", "Adding ESCAPE raises the silence by D=2.", if vg3 == 2 then 1 else 0);
-
-  /* CRT(0) = all zeros (void is silence in every channel) */
-  let v0_d = 0 % 8 in let v0_k = 0 % 9 in let v0_e = 0 % 25 in
-  let v0_b = 0 % 49 in let v0_l = 0 % 11 in let v0_g = 0 % 13 in
-  let v0_17 = 0 % 17 in
-  let v0_all = v0_d + v0_k + v0_e + v0_b + v0_l + v0_g + v0_17 in
-  pf_result(sec21, "CRT(0) = (${v0_d},${v0_k},${v0_e},${v0_b},${v0_l},${v0_g},${v0_17})", "Void = silence in all 7 channels (TRANS).", if v0_all == 0 then 1 else 0);
-
-  /* Product of voids: 7*9*11*13 = 9009 = K^2 * b*L*GATE */
-  let vprod = 7 * 9 * 11 * 13 in
-  let septum_denom = 7 * 11 * 13 in
-  pf_result(sec21, "Product of voids = ${vprod}", "7*9*11*13 = K^2 * 1001. Where 1001 = b*L*GATE = septum denominator.", if vprod == 9009 then 1 else 0);
-  pf_result(sec21, "Septum denominator = ${septum_denom}", "b*L*GATE = 1001. The void product encodes the septum.", if septum_denom == 1001 then 1 else 0);
-
-  let p21 = (if v_data == 7 then 1 else 0) + (if v_thin == 9 then 1 else 0) + (if v_true == 11 then 1 else 0) + (if v_trans == 13 then 1 else 0) + (if vg1 == 2 then 1 else 0) + (if vg2 == 2 then 1 else 0) + (if vg3 == 2 then 1 else 0) + (if v0_all == 0 then 1 else 0) + (if vprod == 9009 then 1 else 0) + (if septum_denom == 1001 then 1 else 0) in
-  pf_theorem(sec21, "VOID BOUNDARY CORRESPONDENCE",
-    "lambda(0) = 2k-1 for k distinct prime divisors. The void eigenvalue is an axiom-named element in each ring: b(DATA), K^2(THIN), L(TRUE), GATE(TRANS). Each ring adds exactly D=2 to the void. The product of voids = K^2 * 1001, encoding the septum denominator b*L*GATE.", p21, 10);
-  dom_append(dom_body(), sec21);
+  /* Thm 21 (Void Boundary) cut: trivial arithmetic. */
 
   /*  ====================================================================
      THEOREM 22: ROUND-TRIP CANCELLATION
@@ -996,36 +864,7 @@ fn proof_part2(r) = (
     "Z/7 GATE-cosets classify DEAD primes as fat (data carriers). Chain ordering resolves K (ALIVE but fat, chain member) and ESCAPE (thin, extension despite meta-residue = K). Lambda optimization gives specific exponents: D^3 (involutions), {K,E,b}^2 (resolution), {L,GATE,ESCAPE}^1 (ECC fields). Three-layer derivation: Z/7 + chain -> which fatten, lambda -> how much. Z/7 alone: 6/7 correct. K is the exact boundary. 56/56 test_g3_exponents.ax.", p25, 10);
   dom_append(dom_body(), sec25);
 
-  /* ============================================================
-     THEOREM 26: EIGENVALUE LANDSCAPE FROM Z/7
-     The meta-eigenvalue controls the landscape through conditional
-     expectation and algebraic organization, not statistical dominance.
-     ============================================================ */
-  let sec26 = make_section("700px") in
-  render_h2(sec26, "26. Eigenvalue Landscape (E-channel)");
-  render_p(sec26, "The meta-eigenvalue 2cos(2pi*r/7) at b-residue r equals the conditional expectation of the full eigenvalue. All non-D channels have identical variance (2.0) and correlation (0.4714) with the full eigenvalue. The b-channel is not statistically privileged -- it is algebraically privileged.");
-
-  /* Conditional mean identity */
-  pf_result(sec26, "Total variance = K^2 = 9", "D(1)+K(2)+E(2)+b(2)+L(2)=${1+2+2+2+2}", if 1+2+2+2+2==9 then 1 else 0);
-  pf_result(sec26, "Each non-D channel: 22.2%", "2/9 = ${2*100/9}%", if 2*100/9==22 then 1 else 0);
-
-  /* 16-element minimum class */
-  pf_result(sec26, "16 minima = 2^4 binary", "1*2*2*2*2=${1*2*2*2*2}", if 1*2*2*2*2==16 then 1 else 0);
-  pf_result(sec26, "17 (ESCAPE) at b-midpoint", "17%7=${17%7} in {3,4}", if 17%7==3 then 1 else 0);
-  pf_result(sec26, "137 (ADDRESS) at b-midpoint", "137%7=${137%7} in {3,4}", if 137%7==4 then 1 else 0);
-  pf_result(sec26, "All 16 at deep coset", "{3,4}=ALIVE=deep (G1)", if (6*3)%7==4 then 1 else 0);
-
-  /* GATE action on minimum class */
-  pf_result(sec26, "GATE permutes min class", "4 transpositions on 2^4", if 7-3==4 then (if 11-5==6 then 1 else 0) else 0);
-
-  /* Algebraic privilege */
-  pf_result(sec26, "b = meta-ring modulus", "Z/7 = organizing channel", if 7==7 then 1 else 0);
-  pf_result(sec26, "Deep coset: 71% of tail", "80/112 elements with ev<-5", if 80*100/112==71 then 1 else 0);
-
-  let p26 = (if 1+2+2+2+2==9 then 1 else 0) + (if 2*100/9==22 then 1 else 0) + (if 1*2*2*2*2==16 then 1 else 0) + (if 17%7==3 then 1 else 0) + (if 137%7==4 then 1 else 0) + (if (6*3)%7==4 then 1 else 0) + (if 7-3==4 then 1 else 0) + 1 + (if 80*100/112==71 then 1 else 0) in
-  pf_theorem(sec26, "EIGENVALUE LANDSCAPE",
-    "The meta-eigenvalue E[lambda | n mod 7 = r] = 2cos(2pi*r/7) is the conditional expectation of the full eigenvalue. CRT independence zeros all other channels' contributions. All non-D channels have identical variance (2/9) and correlation (sqrt(2/9)). The b-channel is not statistically privileged -- it is ALGEBRAICALLY privileged: Z/7 is the meta-ring, GATE = -1 mod 7 organizes the landscape, and the deep coset {3,4} controls 71% of the spectral tail. The 16 spectral minima form a 2^4 structure (binary choice per non-D channel). GATE acts as 4 transpositions on this set. 43/43 test_g4_landscape.ax.", p26, 9);
-  dom_append(dom_body(), sec26);
+  /* Thm 26 (Eigenvalue Landscape) cut: trivial arithmetic. */
 
   /* ============================================================
      THEOREM 27: GOLDEN RATIO IS LOAD-BEARING THROUGH E=5
@@ -1047,75 +886,9 @@ fn proof_part2(r) = (
     "The golden ratio is load-bearing through E = 5. The identity 2cos(4pi/5) = -phi is pentagon geometry. It requires E = 5 specifically -- no other prime creates this pentagonal channel. Remove E: phi vanishes from the eigenvalue. Replace E with p = 19 or 23: 137 is NOT a spectral minimum (wrong midpoint). The golden angle 137.508 and the axiom ADDRESS 137 are connected BECAUSE E = 5 exists. phi is structural, not decorative. 32/32 test_g6_golden.ax.", p27, 6);
   dom_append(dom_body(), sec27);
 
-  /* === Theorem 28: The One Ring === */
-  let sec28 = make_section("700px") in
-  render_h2(sec28, "28. The One Ring (b-channel)");
-  render_p(sec28, "Z/7 = Z/b is the meta-ring. Projecting the 7 axiom primes into Z/7 derives the 490 split (Thm 24), the unique primes (G2), the exponents (Thm 25), the eigenvalue landscape (Thm 26), and the golden genesis (Thm 27). The chain builds the axiom bottom-up (HOW). Z/7 reveals it top-down (WHY). Both arrive at TRANS.");
-  let p28 = 0 in
-  let mr_D = 2 % 7 in
-  let mr_K = 3 % 7 in
-  let mr_E = 5 % 7 in
-  let mr_b = 7 % 7 in
-  let mr_L = 11 % 7 in
-  let mr_G = 13 % 7 in
-  let mr_ESC = 17 % 7 in
-  pf_result(sec28, "D=2 mod 7 (unchanged)", "${mr_D}", if mr_D==2 then 1 else 0);
-  mut p28 = p28 + (if mr_D==2 then 1 else 0);
-  pf_result(sec28, "K=3 mod 7 (unchanged)", "${mr_K}", if mr_K==3 then 1 else 0);
-  mut p28 = p28 + (if mr_K==3 then 1 else 0);
-  pf_result(sec28, "E=5 mod 7 (unchanged)", "${mr_E}", if mr_E==5 then 1 else 0);
-  mut p28 = p28 + (if mr_E==5 then 1 else 0);
-  pf_result(sec28, "b=0 mod 7 (VOID)", "${mr_b}", if mr_b==0 then 1 else 0);
-  mut p28 = p28 + (if mr_b==0 then 1 else 0);
-  pf_result(sec28, "L=4 mod 7 (unique)", "${mr_L}", if mr_L==4 then 1 else 0);
-  mut p28 = p28 + (if mr_L==4 then 1 else 0);
-  pf_result(sec28, "GATE=6=-1 mod 7 (MIRROR)", "${mr_G}, 7-1=${7-1}", if mr_G==6 then 1 else 0);
-  mut p28 = p28 + (if mr_G==6 then 1 else 0);
-  pf_result(sec28, "ESCAPE=3 mod 7 (=K)", "${mr_ESC}=${mr_K}", if mr_ESC==mr_K then 1 else 0);
-  mut p28 = p28 + (if mr_ESC==mr_K then 1 else 0);
-  pf_result(sec28, "D*L=1 mod 7", "(2*4)%7=${(2*4)%7}", if (2*4)%7==1 then 1 else 0);
-  mut p28 = p28 + (if (2*4)%7==1 then 1 else 0);
-  pf_result(sec28, "K*E=1 mod 7", "(3*5)%7=${(3*5)%7}", if (3*5)%7==1 then 1 else 0);
-  mut p28 = p28 + (if (3*5)%7==1 then 1 else 0);
-  pf_result(sec28, "E*ESCAPE=1 mod 7", "(5*3)%7=${(5*3)%7}", if (5*3)%7==1 then 1 else 0);
-  mut p28 = p28 + (if (5*3)%7==1 then 1 else 0);
-  pf_result(sec28, "6/7 residues occupied", "sigma=1 absent", if 1==1 then 1 else 0);
-  mut p28 = p28 + 1;
-  pf_result(sec28, "Meta-sum = 23 = K^2-th prime", "2+3+5+0+4+6+3=${2+3+5+0+4+6+3}", if 2+3+5+0+4+6+3==23 then 1 else 0);
-  mut p28 = p28 + (if 2+3+5+0+4+6+3==23 then 1 else 0);
-  pf_theorem(sec28, "THE ONE RING",
-    "The meta-ring Z/7 derives the axiom top-down. GATE=-1 (mirror), b=0 (void), K=ESCAPE (closure=transcendence). Three inverse pairs: {D,L}, {K,E}, {E,ESCAPE}. 6/7 residues occupied (sigma absent). The chain builds bottom-up (HOW). Z/7 reveals top-down (WHY). Z/7 -> TRANS -> Z/7. 204 checks across G1-G6.", p28, 12);
-  dom_append(dom_body(), sec28);
+  /* Thm 28 (The One Ring) cut: trivial arithmetic. */
 
-  /* ============================================================
-     THEOREM 29: THREE MACRO TOWERS
-     Three structurally different ascents converge at TRANS.
-     Tower A (fat), Tower B (thin primorial), Tower C (heartbeat).
-     ============================================================ */
-  let sec29 = make_section("700px") in
-  render_h2(sec29, "29. Three Macro Towers");
-  render_p(sec29, "Three macro towers converge at TRANS = 214414200. Tower A (fat hybrid), Tower B (thin primorial), Tower C (heartbeat fiber). SES: 0 -> Z/420 -> Z/TRANS -> Z/510510 -> 0. 3 + 7 = K + b = 10 = the Decality.");
-  let mt_data = 2*3*5*7 in
-  let mt_thin = mt_data * 11 in
-  pf_result(sec29, "Tower A: DATA = D*K*E*b", "${mt_data} = 210", if mt_data == 210 then 1 else 0);
-  pf_result(sec29, "Tower A: THIN = DATA*L", "${mt_thin} = 2310", if mt_thin == 2310 then 1 else 0);
-  let mt_deep = 8*9*25*49*11 in
-  pf_result(sec29, "Tower A: DEEP", "${mt_deep} = 970200", if mt_deep == 970200 then 1 else 0);
-  pf_result(sec29, "Tower A: TRUE", "${mt_deep*13}", if mt_deep*13 == N_TRUE then 1 else 0);
-  pf_result(sec29, "Tower A: TRANS", "${N_TRUE*17}", if N_TRUE*17 == N_TRANS then 1 else 0);
-  let mt_b7 = 2*3*5*7*11*13*17 in
-  pf_result(sec29, "Tower B summit = 510510", "${mt_b7}", if mt_b7 == 510510 then 1 else 0);
-  pf_result(sec29, "Tower C: lambda = 420", "D^2*K*E*b", if 4*3*5*7 == 420 then 1 else 0);
-  let mt_c7 = 420 * mt_b7 in
-  pf_result(sec29, "Tower C summit = lambda * B", "${mt_c7}", if mt_c7 == N_TRANS then 1 else 0);
-  pf_result(sec29, "Convergence: A = C = B*lambda", "All = 214414200", if N_TRUE*17 == mt_c7 then 1 else 0);
-  let mt_ses = N_TRANS / mt_b7 in
-  pf_result(sec29, "SES kernel = lambda = 420", "${mt_ses}", if mt_ses == 420 then 1 else 0);
-  pf_result(sec29, "Decality: 3+7 = K+b = 10", "3 macro + 7 micro", if 3+7 == 10 then 1 else 0);
-  let p29 = (if mt_data==210 then 1 else 0) + (if mt_thin==2310 then 1 else 0) + (if mt_deep==970200 then 1 else 0) + (if mt_deep*13==N_TRUE then 1 else 0) + (if N_TRUE*17==N_TRANS then 1 else 0) + (if mt_b7==510510 then 1 else 0) + (if 4*3*5*7==420 then 1 else 0) + (if mt_c7==N_TRANS then 1 else 0) + (if N_TRUE*17==mt_c7 then 1 else 0) + (if mt_ses==420 then 1 else 0) + (if 3+7==10 then 1 else 0) in
-  pf_theorem(sec29, "THREE MACRO TOWERS",
-    "Three ascents converge at TRANS = 214414200. Tower A (fat hybrid, 5 levels). Tower B (thin primorial, 7 levels). Tower C (heartbeat fiber, lambda * primorials). SES: 0 -> Z/420 -> Z/TRANS -> Z/510510 -> 0. The heartbeat IS the kernel. 3 + 7 = K + b = Decality.", p29, 11);
-  dom_append(dom_body(), sec29);
+  /* Thm 29 (Three Macro Towers) cut: trivial arithmetic. */
 
   /* ============================================================
      THEOREM 30: PARETO EXPONENTS
@@ -1123,7 +896,7 @@ fn proof_part2(r) = (
      D-channel at depth 3 (unique). b^2 = marginal lambda step.
      ============================================================ */
   let sec30 = make_section("700px") in
-  render_h2(sec30, "30. Pareto Exponents (Cross-Tower)");
+  render_h2(sec30, "30. Pareto Exponents (all channels)");
   render_p(sec30, "The exponent set {3,2,2,2,1,1,1} gives TRANS its structure. D-channel alone reaches depth 3. Exponent sum = 12 = D^2*K.");
   pf_result(sec30, "TRANS = 8*9*25*49*11*13*17", "${8*9*25*49*11*13*17}", if 8*9*25*49*11*13*17 == N_TRANS then 1 else 0);
   mut pe_inv8 = 0; mut pe_i = 0;
@@ -1143,33 +916,7 @@ fn proof_part2(r) = (
     "{3,2,2,2,1,1,1} uniquely maximizes involutions + lambda gap. D-channel at depth 3: Klein four-group (4 involutions vs 2). Total 256 = D^8 in TRANS. Exponent sum 12 = D^2*K. Three thin towers = K = ECC parity layer. Marginal lambda step: b^2 gives ratio b = 7..", p30, 7);
   dom_append(dom_body(), sec30);
 
-  /* ============================================================
-     THEOREM 31: THIN PRIMORIAL TOWER
-     Z/7 -> Z/35 -> ... -> Z/510510. Every prime void in own channel.
-     ============================================================ */
-  let sec31 = make_section("700px") in
-  render_h2(sec31, "31. Thin Primorial (sigma)");
-  render_p(sec31, "Tower B climbs via thin primorials. At the summit Z/510510, every axiom prime divides the modulus. The void skeleton.");
-  let tp2 = 7*5 in
-  let tp3 = tp2*3 in
-  let tp7 = tp3*2*11*13*17 in
-  pf_result(sec31, "Level 2: E*b = ${tp2}", "35", if tp2==35 then 1 else 0);
-  pf_result(sec31, "Level 3: K*E*b = ${tp3}", "105", if tp3==105 then 1 else 0);
-  pf_result(sec31, "Summit: 7-primorial = ${tp7}", "510510", if tp7==510510 then 1 else 0);
-  pf_result(sec31, "D | 510510", "${tp7/2}", if tp7%2==0 then 1 else 0);
-  pf_result(sec31, "K | 510510", "${tp7/3}", if tp7%3==0 then 1 else 0);
-  pf_result(sec31, "E | 510510", "${tp7/5}", if tp7%5==0 then 1 else 0);
-  pf_result(sec31, "b | 510510", "${tp7/7}", if tp7%7==0 then 1 else 0);
-  pf_result(sec31, "L | 510510", "${tp7/11}", if tp7%11==0 then 1 else 0);
-  pf_result(sec31, "GATE | 510510", "${tp7/13}", if tp7%13==0 then 1 else 0);
-  pf_result(sec31, "ESCAPE | 510510", "${tp7/17}", if tp7%17==0 then 1 else 0);
-  pf_result(sec31, "E*b = sigma mod 17", "35%17 = ${35%17}", if 35%17==1 then 1 else 0);
-  pf_result(sec31, "E*b = 0 mod 35", "35%35 = ${35%35}", if 35%35==0 then 1 else 0);
-  pf_result(sec31, "E*b = 35 in Z/49", "5*7 = ${5*7} (SEEDS)", if 5*7==35 then 1 else 0);
-  let p31 = (if tp2==35 then 1 else 0) + (if tp3==105 then 1 else 0) + (if tp7==510510 then 1 else 0) + (if tp7%2==0 then 1 else 0) + (if tp7%3==0 then 1 else 0) + (if tp7%5==0 then 1 else 0) + (if tp7%7==0 then 1 else 0) + (if tp7%11==0 then 1 else 0) + (if tp7%13==0 then 1 else 0) + (if tp7%17==0 then 1 else 0) + (if 35%17==1 then 1 else 0) + (if 35%35==0 then 1 else 0) + (if 5*7==35 then 1 else 0) in
-  pf_theorem(sec31, "THIN PRIMORIAL TOWER",
-    "Tower B: Z/7 -> Z/35 -> Z/105 -> Z/210 -> Z/2310 -> Z/30030 -> Z/510510. Seven thin steps. At the summit every axiom prime divides the modulus. E*b has three cross-ring roles: sigma mod 17 (finality), 0 mod 35 (modulus), 35 in Z/49 (SEEDS).", p31, 13);
-  dom_append(dom_body(), sec31);
+  /* Thm 31 (Thin Primorial) cut: trivial arithmetic. */
 
   /* ============================================================
      THEOREM 32: PRIMORIAL(47) THIN EXTENSION (S1435 Phase OMEGA)
@@ -1210,113 +957,7 @@ fn proof_part2(r) = (
     "Past rad(TRANS)=510510, Tower B extends to primorial(47) via 6 pure intruders (self-map images of prime inputs) + 2 loopholes (self-map images of composite inputs). 15 primes partition {7, 6, 2} = {b, D*K, D} -- all axiom-named; sum K*E, product HB84. Idempotent count 32768 = D^(K*E) = (D^K)^E. Lambda 1275120; ratio to lambda(TRANS)=1680 is 759 = K*L*c(L) -- the Cunningham bridge c(L)=23 enters the summit heartbeat. TRANS remains the fat/Pareto summit (max-exp K=3); primorial(47) is the thin/squarefree extreme (max-exp sigma=1). NL.1 FALSIFIED as deeper-fat-summit; POSITIVE structural theorem established. Scratch: _scratch_primorial47.ax, 73/73 checks.", p32, 15);
   dom_append(dom_body(), sec32);
 
-  /* ============================================================
-     TOWER_B LENS: ONE INVARIANT, TWO STRUCTURAL ANALOGS
-     The b^2=49 gap is the shared controller of Theorems 33 + 34.
-     Phase OMEGA cross-tie: MP.3 reads it as a mass gap (YM),
-     MP.4+GH.2 reads it as a viscous dissipation floor (NS).
-     One invariant, two Clay-Millennium STRUCTURAL analogs, one
-     lambda=420 heartbeat fiber. Sits between Theorem 32 and the
-     two-theorem YM/NS pair as a reader-orientation box.
-     ============================================================ */
-  let lensbx = make_section("700px") in
-  render_h2(lensbx, "b-channel Lens: One Invariant, Two Structural Analogs");
-  render_p(lensbx, "Why does b^2 = 49 control both the Yang-Mills mass-gap analog (Theorem 33) and the Navier-Stokes dissipation floor (Theorem 34)? Because lambda = 420 = D^2*K*E*b has only one source of the 7-factor: b-channel. Every ring in the 108 lambda=420 heartbeat lattice must contain b^2 (no other channel can supply the 7). And b^2 = 49 strictly dominates every other channel width: D^4 = 16, K^2 = 9, E^2 = 25, L = 11, GATE = 13. Therefore q_max = 49 UNIFORMLY, and the Cayley-graph spectral gap = 4*sin^2(pi/49) is a 0-form on the entire 108-ring lattice -- one invariant, read through two different physical lenses.");
-  render_p(lensbx, "Theorem 33 (Phase OMEGA, MP.3+T.1) reads this invariant as the unitless MASS GAP of the Cayley-graph Laplacian -- the structural analog of Yang-Mills mass-gap existence. Theorem 34 (Phase OMEGA, MP.4+GH.2) reads the SAME invariant as the viscous DISSIPATION FLOOR 2*nu*gap that forces exponential energy decay on every 108-lattice ring -- the structural analog of Navier-Stokes regularity on the Gabriel-Horn compactification of Z^k. Two Clay-Millennium analogs, one b^2-forced controller, one b-channel. HONEST FRAMING (non-negotiable): neither is a Clay proof. Both are STRUCTURAL -- the abelian CRT Cayley setting is to non-abelian quantum YM on R^4 what free-field lattice gap is to interacting YM; discrete NS on a finite-dim ODE has global existence trivially, and the content is the Gabriel-Horn structural mapping, not the PDE result.");
-  dom_append(dom_body(), lensbx);
-
-  /* ============================================================
-     THEOREM 33: YANG-MILLS GAP -- LATTICE UNIVERSALITY (S1436 OMEGA)
-     Spectral gap of Cayley(Z/N, +-e_i) is gap = 4*sin^2(pi/q_max)
-     where q_max is the largest prime-power channel width. Across
-     all 108 lambda-420 lattice rings, b^2=49 is FORCED and strictly
-     dominates every other channel width (D^4=16, K^2=9, E^2=25,
-     L=11, GATE=13). Therefore q_max=49 UNIFORMLY -> gap is identical
-     on the entire lattice (a STRUCTURAL Yang-Mills mass-gap analog,
-     not a YM proof). Cross-phase: T.1 (gap = T^7 landscape height at
-     b^2-axis), GH (finite-ring gap = horn-finite-volume), W (Wolfram
-     numeric per-ring vs axiom-structural lattice invariance).
-     ============================================================ */
-  let sec33 = make_section("700px") in
-  render_h2(sec33, "33. Yang-Mills Gap -- Lattice Universality (b-channel)");
-  render_p(sec33, "b-channel's q^2 = 49 strictly dominates every other channel width (D^4=16, K^2=9, E^2=25, L=11, GATE=13). Therefore q_max = 49 UNIFORMLY across the 108 lambda=420 heartbeat lattice, and the Cayley-graph spectral gap = 4*sin^2(pi/49) is identical on every ring -- a 0-form on the entire lattice, depth-ruled. Mass M = N*gap varies 20592x = D^4*K^2*L*GATE from MIN = E^2*b^2 = 1225 to MAX = 2*TRUE = 25,225,200, but the unitless gap does not close anywhere. Structural Yang-Mills mass-gap analog, NOT a Clay-YM proof -- the abelian CRT Cayley setting is to non-abelian quantum YM on R^4 what free-field lattice gap is to interacting YM.");
-  let mp33_qmax = 49 in
-  let mp33_d4 = 16 in
-  let mp33_k2 = 9 in
-  let mp33_e2 = 25 in
-  let mp33_l = 11 in
-  let mp33_g = 13 in
-  let mp33_lat = 108 in
-  let mp33_lambda = 420 in
-  let mp33_min = 1225 in
-  let mp33_max = 25225200 in
-  pf_result(sec33, "q_max = b^2 = 49 (gap controller)", "7*7 = ${mp33_qmax}", if mp33_qmax == 7*7 then 1 else 0);
-  pf_result(sec33, "D^4 = 16 < 49 (D-channel dominated)", "${mp33_d4}", if 49 - mp33_d4 == 33 then 1 else 0);
-  pf_result(sec33, "K^2 = 9 < 49 (K-channel dominated)", "${mp33_k2}", if 49 - mp33_k2 == 40 then 1 else 0);
-  pf_result(sec33, "E^2 = 25 < 49 (E-channel dominated)", "${mp33_e2}", if 49 - mp33_e2 == 24 then 1 else 0);
-  pf_result(sec33, "L = 11 < 49 (L-channel dominated)", "${mp33_l}", if 49 - mp33_l == 38 then 1 else 0);
-  pf_result(sec33, "GATE = 13 < 49 (GATE-channel dominated)", "${mp33_g}", if 49 - mp33_g == 36 then 1 else 0);
-  pf_result(sec33, "TWO-CONSTRAINT lattice = 108 = D^2*K^3", "180-72 = ${mp33_lat}", if mp33_lat == 4*27 then 1 else 0);
-  pf_result(sec33, "lambda = 420 forces b^2 (only 7-source)", "${mp33_lambda} = D^2*K*E*b", if mp33_lambda == 4*3*5*7 then 1 else 0);
-  pf_result(sec33, "gap-formula numerator+denominator = D^2 + b^2 = 53 (Symbiosis prime)", "4+49 = ${4+49}", if 4 + 49 == 53 then 1 else 0);
-  pf_result(sec33, "MIN ring = E^2*b^2 = 1225 (smallest in lattice)", "${mp33_min}", if mp33_min == 25*49 then 1 else 0);
-  pf_result(sec33, "MAX ring = D^4*K^2*E^2*b^2*L*GATE = 25225200 = 2*TRUE", "${mp33_max}", if mp33_max == 16*9*25*49*11*13 then 1 else 0);
-  pf_result(sec33, "ring-size span: MAX/MIN = D^4*K^2*L*GATE = 20592", "${mp33_max/mp33_min}", if mp33_max/mp33_min == 16*9*11*13 then 1 else 0);
-  pf_result(sec33, "T^7 cross: T^7 dim = b = D + E (axis count from chain)", "2+5 = ${2+5}", if 2 + 5 == 7 then 1 else 0);
-  pf_result(sec33, "GH cross: finite ring b^2-tower; b^2 - b = 42 = ANSWER = lambda(b^2)", "49-7 = ${49-7}", if 49 - 7 == 42 then 1 else 0);
-  pf_result(sec33, "W cross: TRANS adds ESCAPE=17 < b^2; b^2 - ESCAPE = D^5 = 32", "49-17 = ${49-17}", if 49 - 17 == 32 then 1 else 0);
-  let p33 = (if mp33_qmax==7*7 then 1 else 0) + (if 49-mp33_d4==33 then 1 else 0) + (if 49-mp33_k2==40 then 1 else 0) + (if 49-mp33_e2==24 then 1 else 0) + (if 49-mp33_l==38 then 1 else 0) + (if 49-mp33_g==36 then 1 else 0) + (if mp33_lat==4*27 then 1 else 0) + (if mp33_lambda==4*3*5*7 then 1 else 0) + (if 4+49==53 then 1 else 0) + (if mp33_min==25*49 then 1 else 0) + (if mp33_max==16*9*25*49*11*13 then 1 else 0) + (if mp33_max/mp33_min==16*9*11*13 then 1 else 0) + (if 2+5==7 then 1 else 0) + (if 49-7==42 then 1 else 0) + (if 49-17==32 then 1 else 0) in
-  pf_theorem(sec33, "YANG-MILLS GAP LATTICE UNIVERSALITY",
-    "Spectral gap of Cayley(Z/N, +-e_i) = 4*sin^2(pi/q_max). Across all 108 lambda-420 heartbeat-lattice rings, b^2=49 is forced (TWO-CONSTRAINT) and strictly dominates every other channel width (D^4=16, K^2=9, E^2=25, L=11, GATE=13). Therefore q_max=49 uniformly and the gap is constant across the entire lattice. The 5-dim exponent lattice (ed,ek,ee,el,ef) carries gap as a 0-form -- no perturbation in lattice closes the gap. Mass M = N*gap varies 20592x = D^4*K^2*L*GATE across MIN(1225) to MAX(25225200), but the unitless gap is identical. Structural Yang-Mills mass-gap analog, NOT a YM proof -- the abelian CRT ring is a toy lattice gauge theory. Cross-phase: T.1 (gap = T^7 landscape height at b^2-axis harmonic), GH (finite-ring gap = horn-finite-volume; ambient Z has gap 0 = horn-surface), W (per-ring numeric Wolfram-computable, but lattice-invariance requires axiom-named exponent constraints). Scratch: _scratch_yangmills_gap.ax, 102/102 checks.", p33, 15);
-  dom_append(dom_body(), sec33);
-
-  /* ============================================================
-     THEOREM 34: NAVIER-STOKES HORN ANALOG (S1437 OMEGA.GH.2+MP.4)
-     Discrete NS on Z/N in the 108-lattice has global-existence
-     structurally: finite-dim ODE + energy conservation (skew-symmetric
-     B(u,u)) + viscous dissipation floor gap=4*sin^2(pi/49) (S1436 MP.3
-     reuse) + Lipschitz quadratic RHS -> Cauchy-Lipschitz global
-     existence. Gabriel-Horn mapping: ring-finite-state-dim = horn's
-     finite volume; continuum R^3 infinite-mode enstrophy = horn's
-     infinite surface; ring Z/N IS the horn's compactification.
-     CRT-decomposed Laplacian (MP.4 core) = direct sum of 6 (TRUE) or
-     7 (TRANS) per-channel Laplacians; orthogonal subspaces, no coupling.
-     HONEST FRAMING: this is NOT a Clay-NS proof. Discrete NS on a
-     FINITE-DIM ODE has global existence trivially. The content is
-     the Gabriel-Horn STRUCTURE: bounded-ring / unbounded-continuum =
-     volume/surface paradox in different variables.
-     ============================================================ */
-  let sec34 = make_section("700px") in
-  render_h2(sec34, "34. Navier-Stokes Horn Analog (b-channel + GATE skin)");
-  render_p(sec34, "The SAME b^2 = 49 controller as Theorem 33 floors viscous dissipation for discrete incompressible Navier-Stokes on every 108-lattice ring. Energy decays as E(t) <= E(0)*exp(-2*nu*gap*t) with gap = 4*sin^2(pi/49), locked to b-channel uniformly. Finite-dim ODE + energy conservation (Leray-skew B(u,u), divergence-free) + CRT-decomposed Laplacian (direct sum of 6 channels on TRUE, 7 on TRANS) + locally Lipschitz quadratic nonlinearity = global existence by Cauchy-Lipschitz. Gabriel-Horn mapping: ring Z/N IS the horn's finite-volume compactification; continuum R^3 with unbounded modes IS the infinite-surface side; ring Z/N truncates modes at k <= N-1. STRUCTURAL Navier-Stokes analog, NOT a Clay-NS proof -- discrete NS on a finite-dim state has global existence trivially; the content is the Gabriel-Horn STRUCTURAL mapping (volume/surface paradox in bounded vs unbounded variables), shared with Theorem 33 through the b^2 controller.");
-  let nsh_qmax = 49 in
-  let nsh_max_lap = 4 in
-  let nsh_chan_true = 6 in
-  let nsh_chan_trans = 7 in
-  let nsh_lat = 108 in
-  let nsh_true = 12612600 in
-  let nsh_trans = 214414200 in
-  let nsh_omega = 1576576 in
-  let nsh_lambda = 420 in
-  pf_result(sec34, "dissipation floor = 2*nu*gap, gap controller b^2 = 49 (MP.3 reuse)", "7*7 = ${nsh_qmax}", if nsh_qmax == 7*7 then 1 else 0);
-  pf_result(sec34, "max graph-Laplacian eigenvalue = D^2 = 4 (enstrophy bound)", "${nsh_max_lap}", if nsh_max_lap == 2*2 then 1 else 0);
-  pf_result(sec34, "TRUE CRT channel count = 6 = D*K (MP.4 Laplacian direct-sum)", "2*3 = ${nsh_chan_true}", if nsh_chan_true == 2*3 then 1 else 0);
-  pf_result(sec34, "TRANS CRT channel count = 7 = b (MP.4 extends by ESCAPE)", "${nsh_chan_trans}", if nsh_chan_trans == 2 + 5 then 1 else 0);
-  pf_result(sec34, "108-lattice global existence: universality claim", "4*27 = ${nsh_lat}", if nsh_lat == 4*27 then 1 else 0);
-  pf_result(sec34, "TRUE = 12612600 = D^3*K^2*E^2*b^2*L*GATE (finite state dim)", "${nsh_true}", if nsh_true == 8*9*25*49*11*13 then 1 else 0);
-  pf_result(sec34, "TRANS = 214414200 = TRUE * ESCAPE (7-channel horn)", "${nsh_trans}", if nsh_trans == nsh_true * 17 then 1 else 0);
-  pf_result(sec34, "OMEGA mod D^3 = 0 (GH.1 horn cross: kills D channel)", "${nsh_omega} mod 8 = ${nsh_omega % 8}", if nsh_omega % 8 == 0 then 1 else 0);
-  pf_result(sec34, "lambda = 420 = D^2*K*E*b (shared heartbeat across lattice)", "${nsh_lambda} = 4*3*5*7", if nsh_lambda == 4*3*5*7 then 1 else 0);
-  pf_result(sec34, "3 Clay ingredients: infinite modes + no gap + scale-inv", "3", if 1 + 1 + 1 == 3 then 1 else 0);
-  pf_result(sec34, "3 ring ingredients: finite modes + gap>0 + lattice breaks scale", "3", if 2 + 1 == 3 then 1 else 0);
-  pf_result(sec34, "Clay-vs-ring hinge = 3+3 = 6 = D*K (Tower C hinge count)", "6 = 2*3", if 3 + 3 == 6 then 1 else 0);
-  pf_result(sec34, "MP.3 + MP.4 share b^2=49 controller (one invariant, two MP channels)", "b^2 = 49", if 49 - 49 == 0 then 1 else 0);
-  pf_result(sec34, "horn-cap location: ring truncates modes at k = N-1 (GH.2 core)", "N-1 for N=49 = 48", if 49 - 1 == 48 then 1 else 0);
-  pf_result(sec34, "5 cross-channel ties = E (MP.3, T, GH.1, W, NL)", "5", if 2 + 3 == 5 then 1 else 0);
-  let p34 = (if nsh_qmax==7*7 then 1 else 0) + (if nsh_max_lap==2*2 then 1 else 0) + (if nsh_chan_true==2*3 then 1 else 0) + (if nsh_chan_trans==2+5 then 1 else 0) + (if nsh_lat==4*27 then 1 else 0) + (if nsh_true==8*9*25*49*11*13 then 1 else 0) + (if nsh_trans==nsh_true*17 then 1 else 0) + (if nsh_omega%8==0 then 1 else 0) + (if nsh_lambda==4*3*5*7 then 1 else 0) + (if 1+1+1==3 then 1 else 0) + (if 2+1==3 then 1 else 0) + (if 3+3==6 then 1 else 0) + (if 49-49==0 then 1 else 0) + (if 49-1==48 then 1 else 0) + (if 2+3==5 then 1 else 0) in
-  pf_theorem(sec34, "NAVIER-STOKES HORN ANALOG",
-    "Discrete incompressible Navier-Stokes du/dt = -nu*Laplacian(u) + B(u,u) on Z/N in the 108 lambda-420 lattice has no finite-time blowup. Energy E(t) = sum|u_k|^2 conserved by skew-symmetric B; viscous dissipation floor = 2*nu*gap = 2*nu*4*sin^2(pi/49) (MP.3 reuse); enstrophy Z <= max-Laplacian-eigenvalue * E = 4*E; Beale-Kato-Majda integral bounded on finite ring. Cauchy-Lipschitz on finite-dim state + a priori energy bound + locally Lipschitz quadratic B = global existence. Gabriel-Horn mapping (OMEGA.GH.2): ring-finite-state-space IS horn's finite-volume; continuum R^3 infinite-mode enstrophy IS horn's infinite-surface; ring Z/N IS the horn's compactification (truncates modes at k<=N-1). CRT-decomposed Laplacian (OMEGA.MP.4 core): direct sum of 6 (TRUE) or 7 (TRANS) per-channel Laplacians on orthogonal Fourier subspaces -- blowup would require simultaneous singularity across independent channels, structurally forbidden by CRT orthogonality. HONEST: this is NOT a Clay-NS proof; discrete NS on a finite-dim ODE has global existence trivially. The content is the Gabriel-Horn STRUCTURE -- finite-ring bounded / continuum-unbounded is the volume/surface paradox in different variables. Cross-phase: MP.3 (same gap floor 4*sin^2(pi/49)), T (ring = discrete T^6 / T^7 torus), GH.1 (OMEGA = finite-output/unbounded-input shares horn signature), W (Wolfram per-ring numeric misses universality + horn + CRT structure), NL (primorial(47) different lattice; structural principle universal). Scratch: _scratch_ns_horn.ax, 92/92 checks.", p34, 15);
-  dom_append(dom_body(), sec34);
+  /* Lens + Thm 33 (Yang-Mills) + Thm 34 (Navier-Stokes) cut: trivial arithmetic. */
 
   /* Hand off to part3: sum all checks from part1 + part2, pass to proof_part3 */
   let s1 = if pass1 == total1 then 1 else 0 in
@@ -1325,9 +966,9 @@ fn proof_part2(r) = (
   let s4 = (if idem_self_pass == 6 then 1 else 0) + (if ortho_pass == ortho_total then 1 else 0) + (if idem_sum == 1 then 1 else 0) in
   let s5 = if wc_converge > 0 then 1 else 0 in
   let s6 = if lam_pass == lam_tested then 1 else 0 in
-  let sum_so_far = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + p9 + s10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + p21 + p22 + p23 + p24 + p25 + p26 + p27 + p28 + p29 + p30 + p31 + p32 + p33 + p34 in
+  let sum_so_far = s1 + s2 + s3 + s4 + s5 + s6 + p7 + p8 + s10 + p12 + p13 + p14 + p17 + p18 + p19 + p20 + p22 + p23 + p24 + p25 + p27 + p30 + p32 in
   if _pf_mode[0] == 1 then
-    pf_standalone_summary(sum_so_far, "Core Algebra -- Theorems 1-34. CRT, OMEGA, chain, 490 split, lambda.")
+    pf_standalone_summary(sum_so_far, "Core Algebra -- 23 theorems. CRT, OMEGA, idempotents, chain, coupling, power maps.")
   else (
     let r3 = alloc(1) in
     set(r3, 0, sum_so_far);
