@@ -6,8 +6,8 @@
 
 var _routeMap = {
   '':'home','home':'home',
-  'basics':'home','structure':'structure','teach':'teach',
-  'data':'data','deep':'deep','living':'living','demos':'demos',
+  'basics':'home','patterns':'structure','theory':'teach',
+  'connections':'data','ideas':'deep','lab':'living','demos':'demos',
   'eigenvalue_swim':'structure','repl':'living','egg':'living',
   'numbers_clocks':'home',
   'crt':'home',
