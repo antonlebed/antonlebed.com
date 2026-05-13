@@ -71,7 +71,6 @@ var _routeMap = {
   'lie_algebra':'data',
   'eta_bridge':'data',
   'monster_moonshine':'data',
-  'proof':'data',
   'proof_core':'data',
   'proof_structure':'data',
   'proof_ai':'data',
