@@ -362,6 +362,32 @@ fn page_monster_moonshine() = (
 )
 /* page_photon + page_eternal_sun cut S1933 (COINCIDENCE). */
 
+/* Integer power: base^exp via repeated multiplication */
+fn fw_ipow(base, exp) = (
+  mut r = 1;
+  mut i = 0;
+  while i < exp do (mut r = r * base; mut i = i + 1);
+  r
+)
+
+/* Sigma gap calculator: p^q - q^p */
+fn freewill_gap_calc() = (
+  let p = parse_int_from("#fw-input-p") in
+  let q = parse_int_from("#fw-input-q") in
+  let result = dom_query("#fw-result") in
+  if p < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter p >= 1.</p>")
+  else if q < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter q >= 1.</p>")
+  else if p > 20 then dom_inner(result, "<p style='color:#ff6666'>p too large (max 20).</p>")
+  else if q > 20 then dom_inner(result, "<p style='color:#ff6666'>q too large (max 20).</p>")
+  else (
+    let pq = fw_ipow(p, q) in
+    let qp = fw_ipow(q, p) in
+    let gap = pq - qp in
+    let is_sigma = if gap == 1 then "<span style='color:#ffd700'> = sigma. The unique existence surplus.</span>" else "" in
+    dom_inner(result, "<p style='color:#88ddaa;margin:4px 0'>${p}^${q} = ${pq}</p><p style='color:#88ddaa;margin:4px 0'>${q}^${p} = ${qp}</p><p style='color:#ffd700;margin:8px 0'>Gap: ${p}^${q} - ${q}^${p} = ${gap}" + is_sigma + "</p>")
+  )
+)
+
 fn page_freewill() = (
   dom_head_meta("description", "K^D - D^K = sigma. 9 paths up minus 8 paths down = 1 survivor. Self-referential choice vs random: lower entropy, identity alignment, temporal coherence. Free will is the irreducible sigma between what a system IS and what it DOES.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Free Will\",\"description\":\"K^D - D^K = sigma. Nine paths up minus eight down = one survivor. Free will is the irreducible sigma between what a system IS and what it DOES.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/data/freewill\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"free will\"},{\"@type\":\"DefinedTerm\",\"name\":\"determinism\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT independence\"}]}");
