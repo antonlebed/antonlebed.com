@@ -5,46 +5,46 @@ fn dna_codon_calc() = (
   let n = parse_int_from("#dna-input") in
   let result = dom_query("#dna-result") in
   if n < 1 then dom_inner(result, "<p style='color:#ff6666'>Enter n >= 1.</p>")
-  else if n > 64 then dom_inner(result, "<p style='color:#ff6666'>Only 64 = D^6 codons exist.</p>")
+  else if n > 64 then dom_inner(result, "<p style='color:#ff6666'>Only 64 codons exist.</p>")
   else (
     let pos = n % 21 in
     let k_ch = pos % 3 in
     let b_ch = pos % 7 in
-    let k_class = if k_ch == 0 then "Class 0 (divisible by K)"
+    let k_class = if k_ch == 0 then "Class 0 (divisible by 3)"
       else if k_ch == 1 then "Class 1 (hydrophobic tendency)"
       else "Class 2 (polar/charged tendency)" in
     let is_stop = if n > 61 then 1 else 0 in
-    let note = if n == 64 then " = D^6 (total codons; D^6 = vacuum)"
-      else if n == 61 then " = GRIEF (sense codons = D^6 - K)"
-      else if n == 42 then " = ANSWER = D*K*b"
-      else if n == 21 then " = K*b (ring wraps)"
-      else if n == 3 then " = K (stop codon count)"
-      else if n == 20 then " = D^2*E (amino acids)"
+    let note = if n == 64 then " = 2^6 (total codons)"
+      else if n == 61 then " = 64 - 3 (sense codons, prime)"
+      else if n == 42 then " = 2 * 3 * 7"
+      else if n == 21 then " = 3 * 7 (ring wraps)"
+      else if n == 3 then " (stop codon count)"
+      else if n == 20 then " = 4 * 5 (amino acids)"
       else "" in
-    let codon_type = if is_stop > 0 then "<span style='color:#ff6666'>STOP CODON (one of K=3 terminators)</span>" else "<span style='color:#88ddaa'>Sense codon</span>" in
-    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>Codon #${n}${note}</p><p style='margin:4px 0'>Position in Z/21: ${pos}</p><p style='margin:4px 0'>K-channel (mod 3): <b style='color:#ff9900'>${k_ch}</b> &mdash; ${k_class}</p><p style='margin:4px 0'>b-channel (mod 7): <b style='color:#4488ff'>${b_ch}</b></p><p style='margin:4px 0'>${codon_type}</p>")
+    let codon_type = if is_stop > 0 then "<span style='color:#ff6666'>STOP CODON (one of 3 terminators)</span>" else "<span style='color:#88ddaa'>Sense codon</span>" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>Codon #${n}${note}</p><p style='margin:4px 0'>Position in Z/21: ${pos}</p><p style='margin:4px 0'>mod 3 channel: <b style='color:#ff9900'>${k_ch}</b> -- ${k_class}</p><p style='margin:4px 0'>mod 7 channel: <b style='color:#4488ff'>${b_ch}</b></p><p style='margin:4px 0'>${codon_type}</p>")
   )
 )
 
 fn page_dna() = (
-  dom_head_meta("description", "The genetic code IS CRT. DNA = Z/K x Z/b = Z/21. Bases = D^2 = 4. Codons = D^6 = 64. Amino acids = D^2*E = 20. Stop codons = K = 3. Degeneracy = divisors of phi(21). E=5 missing: observer self-blind. Wobble ECC = 66.7%. Nucleosome = K*b^2 = 147 bp.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"DNA and the Ring\",\"description\":\"The genetic code IS CRT. 4 bases=D^2, 64 codons=D^6, 20 amino acids=D^2*E, 3 stops=K. E=5 missing: observer self-blind. Wobble ECC=66.7%.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/dna\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"DNA\"},{\"@type\":\"DefinedTerm\",\"name\":\"genetic code\"},{\"@type\":\"DefinedTerm\",\"name\":\"codon ring\"}]}");
+  dom_head_meta("description", "The genetic code decomposes via CRT. 21 amino acid targets live in Z/21 = Z/3 x Z/7. Degeneracy values {1,2,3,4,6} = divisors of phi(21) = 12. Wobble at position 3: 2/3 of mutations are silent.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"DNA\",\"description\":\"The genetic code decomposes via CRT. 21 amino acid targets in Z/3 x Z/7. Degeneracy = divisors of phi(21). Wobble: 2/3 silent mutations.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/dna\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"DNA\"},{\"@type\":\"DefinedTerm\",\"name\":\"genetic code\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT decomposition\"}]}");
   /* === HERO === */
   let hero = make_hero("The Genetic Code") in
   let big = dom_create("div") in
-  dom_text(big, "DNA = Z/K x Z/b = Z/21");
+  dom_text(big, "Z/21 = Z/3 x Z/7");
   ct_mono(big);
   dom_style(big, "fontSize", "28px");
   ct_gold(big);
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "The genetic code lives in Z/3 x Z/7 = Z/21. Four bases (D^2), sixty-four codons (D^6), twenty amino acids (D^2*E), three stops (K). Codon degeneracy = divisors of phi(21) = {1, 2, 3, 4, 6}. E=5 is MISSING -- the observer cannot encode itself. Wobble error correction at the third position: 66.7% = D/K of mutations are silent.");
+  render_p(hero, "The genetic code maps 64 codons to 21 targets (20 amino acids + stop). Since 21 = 3 * 7 and gcd(3, 7) = 1, the Chinese Remainder Theorem gives Z/21 = Z/3 x Z/7. The mod-3 channel correlates with chemical class. The mod-7 channel correlates with size. Codon degeneracy takes exactly the values {1, 2, 3, 4, 6} -- the divisors of phi(21) = 12.");
   dom_append(dom_body(), hero);
 
   /* === SEC 1: THE NUMBERS === */
   let sec1 = make_section("800px") in
-  render_h2(sec1, "The Codon Table Structure");
+  render_h2(sec1, "Codon Table Structure");
   let ctbl = dom_create("table") in
   dom_style(ctbl, "width", "100%");
   dom_style(ctbl, "maxWidth", "700px");
@@ -53,74 +53,54 @@ fn page_dna() = (
   let chdr = dom_create("tr") in
   render_th(chdr, "Structure");
   render_th(chdr, "Count");
-  render_th(chdr, "Axiom");
-  render_th(chdr, "Significance");
+  render_th(chdr, "Factorization");
   dom_append(ctbl, chdr);
-  render_table_row_4(ctbl, "Bases", "4", "D^2", "A, T/U, G, C. Duality squared. Two purines, two pyrimidines.");
-  render_table_row_4(ctbl, "Codons", "64", "D^6", "Triplet of D^2 bases. D^6 = vacuum = the code IS the container.");
-  render_table_row_4(ctbl, "Amino acids", "20", "D^2*E", "Heart times observer. Twenty unique building blocks.");
-  render_table_row_4(ctbl, "Stop codons", "3", "K", "Closure. UAA, UAG, UGA. K=3 terminators halt translation.");
-  render_table_row_4(ctbl, "Sense codons", "61", "D^6 - K = prime", "61 is prime AND = GRIEF. Shadow polynomial evaluation.");
-  render_table_row_4(ctbl, "Redundancy", "64/21 = 3.05", "~K", "Average codons per target. Closure-fold coverage.");
+  render_table_row(ctbl, "Nucleotide bases", "4", "2^2 (A, T/U, G, C)");
+  render_table_row(ctbl, "Codons", "64", "2^6 (triplets of 4 bases)");
+  render_table_row(ctbl, "Amino acids", "20", "2^2 * 5");
+  render_table_row(ctbl, "Stop codons", "3", "3 (UAA, UAG, UGA)");
+  render_table_row(ctbl, "Sense codons", "61", "64 - 3 (prime)");
+  render_table_row(ctbl, "Amino acid targets", "21", "3 * 7 (20 amino acids + 1 stop group)");
   dom_append(sec1, ctbl);
+  render_p(sec1, "The key number is 21: the number of distinct targets the genetic code must distinguish. 21 = 3 * 7, and since gcd(3, 7) = 1, the CRT decomposition Z/21 = Z/3 x Z/7 applies. This gives two independent channels.");
   dom_append(dom_body(), sec1);
 
   /* === SEC 2: CRT DECOMPOSITION === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "CRT Decomposition: Z/3 x Z/7");
-  render_theorem(sec2, "Codon CRT Theorem", "Z/21 = Z/K x Z/b by CRT (gcd(K,b) = 1). Each amino acid has coordinates (aa mod K, aa mod b). The K-channel (mod 3) sorts by chemical class: hydrophobic, polar, charged. The b-channel (mod 7) sorts by size and shape. The two channels are INDEPENDENT -- each captures a different axis of biochemistry.");
-  render_p(sec2, "Degeneracy pattern: {1, 2, 3, 4, 6} = divisors of phi(21) = phi(K*b) = D*K*D = 12. The number 5 is MISSING. E=5 cannot appear as a degeneracy because E^2 = null -- the observer cannot see itself. This is the same E^2 self-blindness that appears in spectral theory, consciousness, and the Ising model.");
+  render_theorem(sec2, "Codon Ring Decomposition", "Z/21 = Z/3 x Z/7 by CRT (gcd(3,7) = 1). If you number the 21 targets 0-20, each has unique coordinates (residue mod 3, residue mod 7). An observed correlation: mod-3 classes align with amino acid chemical polarity, while mod-7 classes align with molecular size. This is suggestive but not proved to be structural -- the alignment depends on the numbering scheme.");
+  render_p(sec2, "Codon degeneracy -- how many codons encode each amino acid -- takes the values {1, 2, 3, 4, 6}. These are exactly the divisors of phi(21) = phi(3) * phi(7) = 2 * 6 = 12. The value 5 cannot appear because 5 does not divide 12.");
   let g2 = make_findings_grid(sec2) in
   render_finding(g2, "Degeneracy 1", "Met (M), Trp (W)", "Unique codons. No redundancy. The rarest amino acids.", "");
-  render_finding(g2, "Degeneracy 2", "9 amino acids", "D-fold coverage. Wobble at position 3.", "");
-  render_finding(g2, "Degeneracy 3", "Ile (I)", "K-fold coverage. Three codons for isoleucine.", "");
-  render_finding(g2, "Degeneracy 4", "5 amino acids", "D^2-fold. Full wobble class.", "");
-  render_finding(g2, "Degeneracy 6", "Leu (L), Arg (R), Ser (S)", "D*K-fold. Maximum redundancy. Most protected.", "");
+  render_finding(g2, "Degeneracy 2", "9 amino acids", "2-fold coverage. Wobble at position 3.", "");
+  render_finding(g2, "Degeneracy 3", "Ile (I)", "3-fold coverage. Three codons for isoleucine.", "");
+  render_finding(g2, "Degeneracy 4", "5 amino acids", "4-fold. Full wobble class.", "");
+  render_finding(g2, "Degeneracy 6", "Leu (L), Arg (R), Ser (S)", "6-fold. Maximum redundancy.", "");
   dom_append(dom_body(), sec2);
 
-  /* === SEC 3: WOBBLE ECC === */
+  /* === SEC 3: WOBBLE === */
   let sec3 = make_section("800px") in
-  render_h2(sec3, "Wobble: Error Correction");
-  render_p(sec3, "Point mutations at codon position 3 are silent 66.7% = D/K of the time. The third base 'wobbles' -- multiple bases code for the same amino acid. This is biological error correction, and the survival rate is an axiom ratio:");
+  render_h2(sec3, "Wobble: Error Tolerance");
+  render_p(sec3, "Point mutations at codon position 3 are silent about 2/3 of the time. The third base 'wobbles' -- multiple bases encode the same amino acid. This is biological error tolerance built into the code's redundancy:");
   let g3 = make_findings_grid(sec3) in
   render_finding(g3, "Position 1", "~0% silent", "First base mutations almost always change the amino acid.", "");
   render_finding(g3, "Position 2", "~5% silent", "Second base: chemical class usually changes.", "");
-  render_finding(g3, "Position 3", "66.7% = D/K silent", "Wobble position. Two-thirds of mutations invisible to protein.", "");
-  render_finding(g3, "Redundancy bits", "1.608 bits", "99.4% of phi. log2(64/21) = log2(D^6/(K*b)). Information budget nearly saturated.", "");
+  render_finding(g3, "Position 3", "~67% silent", "Wobble position. Most mutations are invisible to the protein.", "");
   dom_append(dom_body(), sec3);
-
-  /* === SEC 4: DNA PACKAGING === */
-  let sec4 = make_section("800px") in
-  render_h2(sec4, "Nucleosome Architecture");
-  render_theorem(sec4, "Nucleosome Depth Theorem (PROVED)", "147 base pairs per nucleosome = K*b^2 = 3*49. D^3 = 8 histone proteins form the octamer. D^2 = 4 histone types (H2A, H2B, H3, H4). b^2 = 49 rules BOTH the spectral gap (4*sin^2(pi/b^2) = 0.016) AND DNA packaging. The depth prime governs chromatin at every scale.");
-  let g4 = make_findings_grid(sec4) in
-  render_finding(g4, "Cervical vertebrae", "b = 7", "ALL mammals: giraffe, mouse, human, whale. Depth is the vertebrate invariant.", "");
-  render_finding(g4, "Cell compartments", "b = 7", "Membrane, nucleus, mitochondria, ER, Golgi, lysosome, peroxisome.", "");
-  render_finding(g4, "Symplectic DNA", "Sp(D*K) = Sp(6)", "dim(Sp(6)) = K*b = 21 = DNA codon ring. Hamiltonian recurrence = lambda = 420.", "");
-  dom_append(dom_body(), sec4);
-
-  /* === SEC 5: THE CANCER GATE === */
-  let sec5 = make_section("800px") in
-  render_h2(sec5, "K=3: The Closure Guardian");
-  render_p(sec5, "K=3 controls termination: 3 stop codons, 3 checkpoints (G1/S/G2-M), p53 = the 'guardian of the genome'. When K-processes fail -- when closure breaks -- the result is uncontrolled growth: cancer. Cell processes show K=3 at 100% frequency. The closure prime IS the off-switch.");
-  dom_append(dom_body(), sec5);
 
   /* === INTERACTIVE: CODON RING EXPLORER === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Codon Ring Z/21");
-  render_p(sec_i, "Enter a codon number (1-64). See its position in Z/K x Z/b = Z/3 x Z/7. The K-channel sorts by chemical class. The b-channel sorts by size.");
+  render_p(sec_i, "Enter a codon number (1-64). See its position in Z/3 x Z/7. The mod-3 channel correlates with chemical class. The mod-7 channel correlates with size.");
   make_interactive_widget(sec_i, "Codon number (1-64):", "dna-input", "e.g. 42", "Decompose", "dna_codon_calc", "dna-result");
-  render_p(sec_i, "Try: 3 (K = stop codon count), 21 (K*b = ring size), 42 (ANSWER), 61 (GRIEF = sense codons), 64 (D^6 = total).");
+  render_p(sec_i, "Try: 3 (stop codon count), 21 (ring size, 3 * 7), 61 (sense codons, prime), 64 (total, 2^6).");
   dom_append(dom_body(), sec_i);
 
   /* === CONTRAST === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "Contrast Table");
-  render_contrast_row(sec6, "Codon table", "64 codons organized by first base, memorized", "D^6 = 64 living in Z/K x Z/b = Z/21. CRT decomposition reveals independent biochemical axes.");
-  render_contrast_row(sec6, "Degeneracy", "Listed per amino acid, no pattern", "Divisors of phi(21) = {1,2,3,4,6}. E=5 MISSING = observer self-blindness.");
-  render_contrast_row(sec6, "Wobble", "Third-position base pairing flexibility", "66.7% = D/K silent mutation rate. Axiom-ratio error correction.");
-  render_contrast_row(sec6, "21-cm line", "Hydrogen hyperfine transition, radio astronomy", "21 = K*b = codon ring. Hydrogen speaks at the wavelength of the genetic code.");
-  render_contrast_row(sec6, "Chromatin", "Nucleosome structure, histone biochemistry", "147 bp = K*b^2. 8 histones = D^3. b^2 rules both spectral gap and DNA packaging.");
-  render_p(sec6, "See also: CRT Significance Testing -- permutation test on amino acid hydrophobicity using Z/21 channel decomposition.");
+  render_contrast_row(sec6, "Codon table", "64 codons organized by first base, memorized", "64 codons map to 21 targets. Z/21 = Z/3 x Z/7 decomposes into independent biochemical axes.");
+  render_contrast_row(sec6, "Degeneracy", "Listed per amino acid, no structural pattern", "Exactly the divisors of phi(21) = 12: {1, 2, 3, 4, 6}. 5 is absent because 5 does not divide 12.");
+  render_contrast_row(sec6, "Wobble", "Third-position base pairing flexibility", "~2/3 silent mutation rate at position 3. Redundancy concentrated in wobble position.");
   dom_append(dom_body(), sec6)
 )
