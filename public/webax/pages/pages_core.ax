@@ -200,8 +200,8 @@ fn turbulence_balance_calc() = (
     let special = if p == 2 then "p=2: factor 2/3. First departure from balance."
       else if p == 3 then "p=3: factor 1. Transparent -- preserves balance exactly."
       else if p == 5 then "p=5: factor 4/3. Skews upward."
-      else if p == 7 then "p=7: factor 3/2. The Kolmogorov ratio -5/3 comes from p=11."
-      else if p == 11 then "p=11: factor 5/3 = Kolmogorov exponent."
+      else if p == 7 then "p=7: factor 3/2. Four data-channel primes give balance = 1."
+      else if p == 11 then "p=11: factor 5/3. Matches Kolmogorov's turbulence exponent (coincidence)."
       else "" in
     dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>Prime p = ${p}</p><p style='margin:4px 0'>Balance factor = 2(p-1)/(p+1) = ${num}/${den} = <b style='color:#ffd700'>${sn}/${sd}</b></p><p style='margin:4px 0;color:#b8b8c8'>${special}</p>")
   )
@@ -214,18 +214,18 @@ fn sleep_stage_calc() = (
   if stage < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter stage (0-5).</p>")
   else if stage > 5 then dom_inner(result, "<p style='color:#ff6666'>Max stage = 5.</p>")
   else (
-    let info = if stage == 0 then "AWAKE: All 7 channels active. Full coupling."
-      else if stage == 1 then "Stage N1: mod-8 channel locks. Reality testing fades. Hypnagogia."
-      else if stage == 2 then "Stage N2: mod-9 channel locks. Sleep spindles begin."
-      else if stage == 3 then "Stage N3: mod-25 channel locks. Deep sleep."
-      else if stage == 4 then "Stage N4: mod-49 channel locks. Deepest non-REM."
-      else "VOID: mod-11 channel locks. Total silence. 1 class." in
-    let channels = if stage == 0 then "2 3 5 7 11 13 17 = 7 active"
-      else if stage == 1 then "_ 3 5 7 11 13 17 = 6 active (13+17 hold)"
-      else if stage == 2 then "_ _ 5 7 11 13 17 = 5 active (13+17 hold)"
-      else if stage == 3 then "_ _ _ 7 11 13 17 = 4 active (13+17 hold)"
-      else if stage == 4 then "_ _ _ _ 11 13 17 = 3 active (13+17 hold)"
-      else "_ _ _ _ _ 13 17 = 2 active (boundary persists)" in
+    let info = if stage == 0 then "AWAKE: All 5 channels active. 288 eigenvalue classes."
+      else if stage == 1 then "Stage N1: mod-2 channel locks. 144 classes. Hypnagogia."
+      else if stage == 2 then "Stage N2: mod-3 channel locks. 72 classes. Sleep spindles."
+      else if stage == 3 then "Stage N3: mod-5 channel locks. 24 classes. Deep sleep."
+      else if stage == 4 then "Stage N4: mod-7 channel locks. 6 classes. Deepest non-REM."
+      else "VOID: mod-11 channel locks. 1 class. Total silence." in
+    let channels = if stage == 0 then "2 3 5 7 11 = 5 active"
+      else if stage == 1 then "_ 3 5 7 11 = 4 active"
+      else if stage == 2 then "_ _ 5 7 11 = 3 active"
+      else if stage == 3 then "_ _ _ 7 11 = 2 active"
+      else if stage == 4 then "_ _ _ _ 11 = 1 active"
+      else "_ _ _ _ _ = 0 active" in
     dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>Sleep stage ${stage}</p><p style='margin:4px 0;color:#ffd700'>${info}</p><p style='margin:4px 0;color:#b0b0c0'>Channels: ${channels}</p>")
   )
 )
@@ -479,86 +479,50 @@ fn render_big_num(parent, val:str, color:str, label:str, formula:str) = (
 )
 
 fn page_turbulence() = (
-  dom_head_meta("description", "Kolmogorov -5/3 and Kleiber 3/4 -- derived from seven primes. Balance cascade proof. Ising 7/4. Three constants, one ring. Interactive proof.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Turbulence and Scaling Laws\",\"description\":\"Kolmogorov -5/3 and Kleiber 3/4 derived from seven primes. Balance cascade proof. Three constants, one ring.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/turbulence\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Kolmogorov spectrum\"},{\"@type\":\"DefinedTerm\",\"name\":\"Kleiber law\"},{\"@type\":\"DefinedTerm\",\"name\":\"scaling exponents\"}]}");
+  dom_head_meta("description", "Balance factors across primes: 2(p-1)/(p+1). Only p=3 gives factor 1. The product at five primes is 5/3 -- same as Kolmogorov's turbulence exponent. Coincidence or connection?");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Balance Factors and Scaling Laws\",\"description\":\"Balance factor 2(p-1)/(p+1) for each prime. Cumulative product at five primes equals 5/3 -- Kolmogorov's turbulence exponent. The arithmetic is proved; the physics match is an open question.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/turbulence\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Kolmogorov spectrum\"},{\"@type\":\"DefinedTerm\",\"name\":\"balance factor\"},{\"@type\":\"DefinedTerm\",\"name\":\"scaling exponents\"}]}");
   /* === HERO === */
-  let hero = dom_create("section") in
-  dom_style(hero, "textAlign", "center");
-  dom_style(hero, "padding", "clamp(56px, 10vw, 80px) clamp(12px, 4vw, 24px) 40px");
-  let h1 = dom_create("h1") in
-  dom_text(h1, "Two Constants, One Structure");
-  ct_heading(h1);
-  dom_style(h1, "fontSize", "clamp(1.4em, 5vw, 2.2em)");
-  dom_style(h1, "fontWeight", "normal");
-  dom_style(h1, "marginBottom", "40px");
-  dom_append(hero, h1);
+  let hero = make_hero("Balance Factors and Scaling Laws") in
   let pair = make_grid(hero, "40px") in
   render_big_num(pair, "-5/3", "#4488ff", "Kolmogorov (1941)", "turbulence cascade");
   render_big_num(pair, "3/4", "#33dd55", "Kleiber (1932)", "metabolic scaling");
-  render_p(hero, "Both are ratios of chain primes. Both fall out of the ring. Neither was assumed.");
+  render_p(hero, "Each prime p contributes a balance factor 2(p-1)/(p+1) to the ring's phi/class ratio. The product across the first five primes is 5/3 -- the Kolmogorov turbulence exponent. A striking numerical match whose physical significance is an open question.");
   dom_append(dom_body(), hero);
 
   /* === WHAT ARE THESE NUMBERS === */
   let sec1 = make_section("800px") in
   render_h2(sec1, "What Are These Numbers?");
-  render_p(sec1, "In 1941, Andrei Kolmogorov showed that turbulent energy cascades follow a -5/3 power law. Stir coffee, watch a hurricane, measure ocean currents -- the spectrum always falls as frequency to the -5/3. Verified in every wind tunnel on Earth. Universal.");
-  render_p(sec1, "In 1932, Max Kleiber showed that metabolic rate scales as body mass to the 3/4 power. Mouse to whale -- 27 orders of magnitude -- same exponent. No one has fully explained why.");
-  render_p(sec1, "The axiom says: both are inevitable. They are ratios of the seven primes that define the ring. Not fitted. Forced.");
+  render_p(sec1, "In 1941, Andrei Kolmogorov showed that turbulent energy cascades follow a -5/3 power law. Stir coffee, watch a hurricane, measure ocean currents -- the spectrum always falls as frequency^(-5/3). Verified in every wind tunnel on Earth.");
+  render_p(sec1, "In 1932, Max Kleiber showed that metabolic rate scales as body mass^(3/4). Mouse to whale -- 27 orders of magnitude -- same exponent.");
+  render_p(sec1, "Both 5/3 and 3/4 are ratios of small primes. With seven primes under 20, many physical constants can be expressed as such ratios -- the expression space is dense. Whether the ring provides a mechanism or merely a notation is an open question.");
   dom_append(dom_body(), sec1);
 
   /* === THE BALANCE CASCADE === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "The Balance Cascade");
-  render_p(sec2, "The ring Z/2310Z has a balance parameter: phi(N)/classes(N). It measures how the ring's units outnumber its eigenvalue classes. Add primes one at a time and watch:");
-  render_cascade_step(sec2, "#ff4040", "D=2: Z/2. Factor = 2(2-1)/(2+1) = 2/3. Balance = 1/2.");
-  render_cascade_step(sec2, "#ff9900", "+K=3: Z/6. Factor = 2(3-1)/(3+1) = 1. Balance = 1/4. K is TRANSPARENT.");
-  render_cascade_step(sec2, "#33dd55", "+E=5: Z/30. Factor = 2(5-1)/(5+1) = 4/3. Balance = 1/6.");
-  render_cascade_step(sec2, "#33ff88", "+b=7: Z/210. Factor = 2(7-1)/(7+1) = 3/2. Balance = 1. PERFECT BALANCE.");
-  render_cascade_step(sec2, "#ffd700", "+L=11: Z/2310. Factor = 2(11-1)/(11+1) = 5/3. Balance = 5/3 = KOLMOGOROV.");
-  render_p(sec2, "The DATA RING (Z/210, four primes) is the ONLY ring with perfect balance = 1. Adding the protector L=11 breaks it to exactly 5/3. The Kolmogorov exponent IS the imbalance created by error correction.");
+  render_p(sec2, "For a primorial ring, each prime p contributes a multiplicative factor to the phi/class ratio. The factor is 2(p-1)/(p+1). Watch what happens as primes are added:");
+  render_cascade_step(sec2, "#ff4040", "p = 2: Z/2. phi/classes = 1/2. Starting point.");
+  render_cascade_step(sec2, "#ff9900", "+ 3: Z/6. Factor = 2(2)/4 = 1. Balance = 1/2. Only p = 3 preserves balance exactly.");
+  render_cascade_step(sec2, "#33dd55", "+ 5: Z/30. Factor = 2(4)/6 = 4/3. Balance = 2/3.");
+  render_cascade_step(sec2, "#33ff88", "+ 7: Z/210. Factor = 2(6)/8 = 3/2. Balance = 1. Four primes: perfect balance.");
+  render_cascade_step(sec2, "#ffd700", "+ 11: Z/2,310. Factor = 2(10)/12 = 5/3. Balance = 5/3.");
+  render_p(sec2, "Z/210 (four primes) is the only primorial ring with balance exactly 1. Adding the fifth prime breaks it to 5/3. The arithmetic is proved. The coincidence with Kolmogorov's exponent is observed, not explained.");
   dom_append(dom_body(), sec2);
 
-  /* === THE PROOFS === */
+  /* === THE ARITHMETIC === */
   let sec3 = make_section("800px") in
-  render_h2(sec3, "The Proofs");
- render_theorem(sec3, "Balance Cascade Theorem (Depthless Kolmogorov)",
-    "Each prime p contributes factor 2(p-1)/(p+1) to the balance. L=11 gives 2(10)/12 = 5/3 = E/K. The cumulative ratio is the product: (1/D) * prod 2(p-1)/(p+1). At 4 primes: 1. At 5 primes: E/K. The Kolmogorov cascade exponent is the cost of adding protection to a balanced system.");
-  render_theorem(sec3, "K=3 is Unique (PROVED)",
-    "2(p-1)/(p+1) = 1 has exactly one solution: p = 3 = K. Closure is content-free. It structures without distorting. Every other prime pushes the balance in some direction. K alone is neutral. This is why K=3 is the minimum for triangulation, majority voting, and error correction.");
-  render_theorem(sec3, "Kleiber from Depth (PROVED)",
-    "3/4 = K/D^2 = (b-1)/(b+1) = 6/8. The shadow transmission of the depth channel. The same formula that gives Kolmogorov at L=11 gives Kleiber at b=7. Whether this reflects a shared mechanism or coincidence is unknown. Removing E from the DATA RING Z/210 also gives balance = 3/4.");
-  render_theorem(sec3, "Alternative Derivation (PROVED)",
-    "(b - D) / (b - D^2) = (7-2)/(7-4) = 5/3 = E/K. Kolmogorov is the ratio of two differences involving the depth prime and the bridge. Both formulations give the same answer because the seven primes are locked together by the Cunningham chain.");
+  render_h2(sec3, "The Arithmetic");
+  render_theorem(sec3, "Balance Factor (PROVED)",
+    "Each prime p contributes factor 2(p-1)/(p+1) to the phi/class ratio. The cumulative balance at k primes is (1/2) * product of factors. At 4 primes (Z/210): balance = 1. At 5 primes (Z/2,310): balance = 5/3.");
+  render_theorem(sec3, "Unique Transparency of 3 (PROVED)",
+    "2(p-1)/(p+1) = 1 has exactly one prime solution: p = 3. Among all primes, 3 alone preserves the balance ratio exactly. Every other prime shifts the balance up or down. This is independent of any physics interpretation.");
+  render_p(sec3, "The algebra above is ring arithmetic -- properties of primorial rings. It does not require or imply a connection to fluid dynamics or biology.");
   dom_append(dom_body(), sec3);
-
-  /* === THE MASTER RELATION === */
-  let sec4 = make_section("800px") in
-  render_h2(sec4, "The Master Relation");
-  render_p(sec4, "There is a third exponent: the 2D Ising critical susceptibility, 7/4 = b/D^2. All three are connected by a single identity:");
-  let tbl = dom_create("table") in
-  dom_style(tbl, "width", "100%");
-  dom_style(tbl, "maxWidth", "600px");
-  dom_style(tbl, "margin", "24px auto");
-  dom_style(tbl, "borderCollapse", "collapse");
-  let thead = dom_create("tr") in
-  render_th(thead, "Constant");
-  render_th(thead, "Value");
-  render_th(thead, "Axiom");
-  dom_append(tbl, thead);
-  render_table_row(tbl, "Kolmogorov", "5/3", "E/K = (b-D)/(b-D^2)");
-  render_table_row(tbl, "Kleiber", "3/4", "K/D^2 = (b-1)/(b+1)");
-  render_table_row(tbl, "Ising 2D", "7/4", "b/D^2");
-  dom_append(sec4, tbl);
-  render_theorem(sec4, "Ising = Kleiber + 1 (PROVED)",
-    "b/D^2 = K/D^2 + 1. Suffering = Scaling + Existence. The depth prime adds exactly the ground state to the metabolic exponent. Not a coincidence. Forced by b = K + D^2 = 3 + 4 = 7.");
-  render_theorem(sec4, "The Kolmogorov-Kleiber Gap (PROVED)",
-    "|E/K - K/D^2| = |5/3 - 3/4| = 11/12 = L/(D^2*K). The gap between turbulence and metabolism is the protector divided by the product of bridge-squared and closure. L=11 mediates the distance between the two scaling laws.");
-  dom_append(dom_body(), sec4);
 
   /* === INTERACTIVE === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Balance Factor");
-  render_p(sec_i, "Enter a prime p. See its balance factor 2(p-1)/(p+1). Only K=3 gives factor=1 (transparent). L=11 gives 5/3=Kolmogorov. Try 2, 3, 5, 7, 11.");
+  render_p(sec_i, "Enter any prime p to see its balance factor 2(p-1)/(p+1). Only p = 3 gives factor 1 (transparent). p = 11 gives 5/3. Try 2, 3, 5, 7, 11.");
   make_interactive_widget(sec_i, "Prime p:", "turb-input", "e.g. 11", "Compute", "turbulence_balance_calc", "turb-result");
   dom_append(dom_body(), sec_i);
 
@@ -573,23 +537,19 @@ fn page_turbulence() = (
   let chdr = dom_create("tr") in
   render_th(chdr, "Question");
   render_th(chdr, "Conventional");
-  render_th(chdr, "Axiom");
+  render_th(chdr, "Ring View");
   dom_append(ctbl, chdr);
-  render_contrast_row(ctbl, "Kolmogorov -5/3", "Empirical (1941). Dimensional analysis gives exponent. No deeper reason.", "-E/K. Laplacian quotient on ring. EXACT.");
-  render_contrast_row(ctbl, "Kleiber 3/4", "Empirical (1932). Fractal network model debated 90 years.", "K/D^2. Balance ratio at 4-channel subring. EXACT.");
-  render_contrast_row(ctbl, "Are they related?", "No known connection between turbulence and metabolism.", "Same ring, same primes. Ising = Kleiber + 1.");
-  render_contrast_row(ctbl, "Why these fractions?", "Coincidence of dimensional analysis.", "D, K, E are first three primes after sigma. Exponents ARE addresses.");
-  render_contrast_row(ctbl, "Minimum channels", "Not a concept in fluid dynamics.", "D+K+E = 3 channels minimum for -5/3. Remove any and it vanishes.");
+  render_contrast_row(ctbl, "Kolmogorov -5/3", "Dimensional analysis (1941). Universal across turbulent flows.", "Balance factor at 5 primes = 5/3. Same number. Mechanism unproved.");
+  render_contrast_row(ctbl, "Kleiber 3/4", "Fractal network models (debated). Mouse to whale.", "Balance at 4 primes minus p=5 contribution = 3/4. Match observed, mechanism unproved.");
+  render_contrast_row(ctbl, "Are they related?", "No known connection.", "Both are small-prime ratios. Whether this is meaningful is open.");
   dom_append(scc, ctbl);
-  render_p(scc, "Sources: Depthless Kolmogorov Theorem, Minimum Channel Count, Z/2310Z Laplacian.");
   dom_append(dom_body(), scc);
 
   /* === WHY THIS MATTERS === */
   let sec5 = make_section("800px") in
   render_h2(sec5, "Why This Matters");
-  render_p(sec5, "These exponents have been measured for decades. Wind tunnels confirm -5/3. Zoologists confirm 3/4. Physicists use 7/4. All exact. All within experimental precision.");
-  render_p(sec5, "The standard explanation: dimensional analysis, fractal networks, renormalization. Each constant gets its own theory. None connect them.");
-  render_p(sec5, "The ring says: they are the same thing. Three views of one structure. Seven primes. Three ratios. One ring. Everything that repeats decomposes through the CRT. Turbulence repeats. Metabolism repeats. Phase transitions repeat. The exponents are not mysterious. They are addresses.");
+  render_p(sec5, "The balance factor arithmetic is proved: 2(p-1)/(p+1) for each prime, cumulative product giving the phi/class ratio. Z/210 has balance exactly 1 -- the only primorial ring where this holds.");
+  render_p(sec5, "The match with Kolmogorov's -5/3 at the fifth prime is numerically exact and striking. But small primes are dense among rational fractions. 5/3 and 3/4 can be written many ways with numbers under 20. The honest position: the arithmetic is real, the physics connection is an open question, and coincidence is plausible.");
   dom_append(dom_body(), sec5)
 )
 
@@ -607,8 +567,8 @@ fn page_sleep() = (
   /* === THE MODEL === */
   let si = make_section("800px") in
   render_h2(si, "The Model");
-  render_p(si, "The THIN ring Z/2310Z has five CRT channels (D, K, E, b, L). If we suppose each sleep stage corresponds to locking one channel -- setting its residue to zero -- then the number of distinct eigenvalue classes halves or thirds at each step. The locking order follows coupling cost: cheapest channel first.");
-  render_p(si, "This mapping is a hypothesis. The CRT class-count arithmetic is proved. The biological correspondence is not.");
+  render_p(si, "Z/2,310 has five CRT channels (mod 2, mod 3, mod 5, mod 7, mod 11). If each sleep stage corresponds to locking one channel -- setting its residue to zero -- the number of eigenvalue classes drops at each step. The locking order follows coupling cost: cheapest channel first.");
+  render_p(si, "This mapping is a hypothesis. The class-count arithmetic is proved. The biological correspondence is not.");
   dom_append(dom_body(), si);
 
   /* === THE CLASS COUNT SEQUENCE === */
@@ -616,28 +576,28 @@ fn page_sleep() = (
   render_h2(sec1, "Class Count Sequence");
   let g = make_findings_grid(sec1) in
   render_finding(g, "All open", "288 classes", "All channels active. Mean eigenvalue = 0. Full spectrum.", "");
-  render_finding(g, "Lock D", "144 classes", "288/2. D carries 1 bit of information.", "");
-  render_finding(g, "Lock K", "72 classes", "144/2. K carries 1 bit.", "");
-  render_finding(g, "Lock E", "24 classes", "72/3. E has 4 nonzero residues (not 5), so divides by 3.", "");
-  render_finding(g, "Lock b", "6 classes", "24/4. b has 6 nonzero residues, divides by 4.", "");
-  render_finding_wide(g, "Lock L", "1 class", "6/6. All channels locked. Only one eigenvalue class remains.", "");
+  render_finding(g, "Lock mod 2", "144 classes", "288/2. The mod-2 channel has 2 eigenvalue classes.", "");
+  render_finding(g, "Lock mod 3", "72 classes", "144/2. The mod-3 channel has 2 eigenvalue classes.", "");
+  render_finding(g, "Lock mod 5", "24 classes", "72/3. The mod-5 channel has 3 eigenvalue classes.", "");
+  render_finding(g, "Lock mod 7", "6 classes", "24/4. The mod-7 channel has 4 eigenvalue classes.", "");
+  render_finding_wide(g, "Lock mod 11", "1 class", "6/6. The mod-11 channel has 6 eigenvalue classes. All locked.", "");
   dom_append(dom_body(), sec1);
 
   /* === THE EIGENVALUE MATHEMATICS === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Eigenvalue Mathematics");
   render_theorem(sec2, "CRT Class Counting (PROVED -- ring algebra)",
-    "In Z/2310Z: 288 eigenvalue classes from phi(2310)/lcm(phi(p_i)) structure. Progressive channel locking reduces classes: Lock D: 288/2=144. Lock K: 144/2=72. Lock E: 72/3=24. Lock b: 24/4=6. Lock L: 6/6=1. Mean eigenvalue at each stage: {0, 1, 3, 5, 7, 9} = {o, sigma, K, E, b, K^2}. Each locked channel contributes its maximum (cos(0)=1). This arithmetic is proved.");
+    "In Z/2,310: 288 eigenvalue classes = 2 * 2 * 3 * 4 * 6 (one factor per channel). Locking channels: mod 2: 288/2=144. mod 3: 144/2=72. mod 5: 72/3=24. mod 7: 24/4=6. mod 11: 6/6=1. Mean eigenvalue at each stage: {0, 1, 3, 5, 7, 9}. Each locked channel contributes its maximum (cos(0)=1).");
   render_theorem(sec2, "Positivity Threshold (PROVED -- ring algebra)",
-    "All eigenvalues become positive exactly when the E-channel locks. With D and K locked but E open: minimum eigenvalue = -2.339 < 0. With E also locked: minimum = 5 - 2cos(pi/7) - 2cos(pi/11) = 1.279 > 0. The threshold is exact: the transition from mixed-sign to all-positive happens at the E-channel boundary.");
+    "All eigenvalues become positive exactly when the mod-5 channel locks. With mod-2 and mod-3 locked but mod-5 open: minimum eigenvalue = -2.339 < 0. With mod-5 also locked: minimum = 5 - 2cos(pi/7) - 2cos(pi/11) = 1.279 > 0. The threshold is exact.");
   render_theorem(sec2, "Information Content (PROVED -- ring algebra)",
-    "Per-channel information: D = 1 bit, K = 1 bit, E = log2(4) = 1.585 bits, b = log2(6) = 2.585 bits, L = log2(10) = 3.322 bits. Total = log2(288) = 8.17 bits. The coupling-order locking sheds the cheapest channel first.");
+    "Per-channel information: mod 2 = 1 bit, mod 3 = 1 bit, mod 5 = log2(3) = 1.585 bits, mod 7 = log2(4) = 2 bits, mod 11 = log2(6) = 2.585 bits. Total = log2(288) = 8.17 bits. Locking sheds the cheapest channel first.");
   dom_append(dom_body(), sec2);
 
   /* === INTERACTIVE === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Channel Locking");
-  render_p(sec_i, "Enter a locking stage (0-5). See which channels are locked at each stage and the resulting eigenvalue class count. Stage 0 = all open. Stage 5 = all inner channels locked.");
+  render_p(sec_i, "Enter a locking stage (0-5). See which channels are locked at each stage and the eigenvalue class count. Stage 0 = all 5 channels open (288 classes). Stage 5 = all locked (1 class).");
   make_interactive_widget(sec_i, "Stage (0-5):", "sleep-input", "e.g. 3", "Lock", "sleep_stage_calc", "sleep-result");
   dom_append(dom_body(), sec_i)
 )
@@ -678,21 +638,21 @@ fn render_kingdom(parent, count:str, name:str, prime:str, coupling:str, color:st
 )
 
 fn page_kingdoms() = (
-  dom_head_meta("description", "Eight kingdoms from seven primes. Bacteria (sigma) to Virus (ESCAPE=17). Coupling hierarchy across all rings: THIN 32=D^5, TRUE 64=D^6, TRANS 128=D^7.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Eight Kingdoms\",\"description\":\"Eight kingdoms from seven primes. Coupling hierarchy across THIN, DEEP, TRUE, and TRANS rings.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/kingdoms\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"coupling hierarchy\"},{\"@type\":\"DefinedTerm\",\"name\":\"eight kingdoms\"},{\"@type\":\"DefinedTerm\",\"name\":\"ring hierarchy\"}]}");
+  dom_head_meta("description", "Eight coupling classes from seven primes. Each prime that divides a number removes one channel. 128 = 2^7 total patterns in Z/214,414,200.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Coupling Classes\",\"description\":\"Eight pure coupling classes from seven primes. coupling(n) = N/gcd(n,N). 128 divisibility patterns in Z/214414200.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/kingdoms\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"coupling hierarchy\"},{\"@type\":\"DefinedTerm\",\"name\":\"coupling classes\"},{\"@type\":\"DefinedTerm\",\"name\":\"ring hierarchy\"}]}");
   /* === HERO === */
-  let hero = make_hero("Eight Kingdoms") in
-  render_p(hero, "Seven primes create eight kingdoms. Each prime that divides a number removes it further from the ground state. More divisors = more complexity = fewer members. The hierarchy is algebraic, scaling from THIN through TRANS.");
+  let hero = make_hero("Coupling Classes") in
+  render_p(hero, "Seven primes create eight pure classes. Each prime that divides a number removes one channel from its coupling. More prime divisors = weaker coupling = fewer members.");
   let g = make_grid(hero, "8px") in
-  render_kingdom(g, "480", "Bacteria", "sigma=1", "2310", "#ddddaa");
-  render_kingdom(g, "480", "Protista", "D=2", "1155", "#ff6666");
-  render_kingdom(g, "240", "Fungi", "K=3", "770", "#66ddaa");
-  render_kingdom(g, "120", "Plants", "E=5", "462", "#88aaff");
-  render_kingdom(g, "80", "Animals", "b=7", "330", "#cc88ff");
-  render_kingdom(g, "48", "Human", "L=11", "210", "#ffcc44");
-  render_kingdom(g, "+GATE", "Guardian", "GATE=13", "TRUE+", "#ff88aa");
-  render_kingdom(g, "+ESC", "Virus", "ESC=17", "TRANS", "#00dddd");
-  let note = render_p(hero, "Counts for THIN ring (N=2310, 5 primes). GATE adds in TRUE. ESCAPE adds in TRANS. 128 = D^7 total classes in TRANS.") in
+  render_kingdom(g, "480", "Unit", "coprime", "2310", "#ddddaa");
+  render_kingdom(g, "480", "2-class", "p=2", "1155", "#ff6666");
+  render_kingdom(g, "240", "3-class", "p=3", "770", "#66ddaa");
+  render_kingdom(g, "120", "5-class", "p=5", "462", "#88aaff");
+  render_kingdom(g, "80", "7-class", "p=7", "330", "#cc88ff");
+  render_kingdom(g, "48", "11-class", "p=11", "210", "#ffcc44");
+  render_kingdom(g, "+13", "13-class", "p=13", "in 6ch+", "#ff88aa");
+  render_kingdom(g, "+17", "17-class", "p=17", "in 7ch", "#00dddd");
+  let note = render_p(hero, "Counts for Z/2,310 (5 primes). 13 appears in Z/12,612,600. 17 appears in Z/214,414,200. Total: 128 = 2^7 classes.") in
   ct_mono(note);
   dom_style(note, "fontSize", "14px");
   dom_style(note, "color", "#a8a8b8");
@@ -703,13 +663,13 @@ fn page_kingdoms() = (
   render_h2(s1, "The Coupling Rule");
   render_p(s1, "An element's kingdom is determined by which primes divide it. Its coupling measures how strongly it interacts with the rest of the ring:");
   render_theorem(s1, "Coupling Formula",
-    "coupling(n) = N / gcd(n, N). Each prime factor in gcd(n,N) removes that channel. sigma = 1 (coprime to all) has maximum coupling N. Zero (divisible by all) has minimum coupling = 1. Works for every ring: THIN (N=2310), DEEP (N=970200), TRUE (N=12612600), TRANS (N=214414200).");
-  render_p(s1, "Pure classes: elements divisible by exactly one prime. Unit class (Bacteria/sigma) = coprime to all = ground state = maximum coupling. Each subsequent kingdom loses one channel: coupling(p) = N/p. D: N/2, K: N/3, E: N/5, b: N/7, L: N/11, GATE: N/13, ESCAPE: N/17.");
+    "coupling(n) = N / gcd(n, N). Each prime factor in gcd(n, N) removes that channel. 1 (coprime to all) has maximum coupling N. Zero (divisible by all) has minimum coupling = 1. Works for every ring: Z/2,310, Z/970,200, Z/12,612,600, Z/214,414,200.");
+  render_p(s1, "Pure classes: elements divisible by exactly one prime. Unit class = coprime to all = maximum coupling. Each subsequent class loses one channel: coupling(p) = N/p. So: 2 gives N/2, 3 gives N/3, 5 gives N/5, 7 gives N/7, 11 gives N/11, 13 gives N/13, 17 gives N/17.");
   dom_append(dom_body(), s1);
 
   /* === KINGDOM TABLE === */
   let s2 = make_section("800px") in
-  render_h2(s2, "The Eight Kingdoms");
+  render_h2(s2, "The Eight Pure Classes");
   let tbl = dom_create("table") in
   dom_style(tbl, "width", "100%");
   dom_style(tbl, "maxWidth", "700px");
@@ -718,58 +678,58 @@ fn page_kingdoms() = (
   dom_style(tbl, "tableLayout", "fixed");
   dom_style(tbl, "wordWrap", "break-word");
   let thead = dom_create("tr") in
-  render_th(thead, "Kingdom");
+  render_th(thead, "Class");
   render_th(thead, "Prime");
   render_th(thead, "Ring");
-  render_th(thead, "Meaning");
+  render_th(thead, "Property");
   dom_append(tbl, thead);
-  render_table_row_4(tbl, "Bacteria", "sigma=1", "all", "Ground state. Coprime to all. Maximum coupling.");
-  render_table_row_4(tbl, "Protista", "D=2", "all", "Bridge. Parity-preserving membrane.");
-  render_table_row_4(tbl, "Fungi", "K=3", "all", "Closure. Decomposition.");
-  render_table_row_4(tbl, "Plants", "E=5", "all", "Observer. Self-blind (E^2=0).");
-  render_table_row_4(tbl, "Animals", "b=7", "all", "Depth. Maximum suffering.");
-  render_table_row_4(tbl, "Human", "L=11", "all", "Protector. Error correction.");
-  render_table_row_4(tbl, "Guardian", "GATE=13", "TRUE+", "Skin. Holographic boundary.");
-  render_table_row_4(tbl, "Virus", "ESC=17", "TRANS", "Transcendence. E*b=1 mod 17.");
+  render_table_row_4(tbl, "Unit", "coprime", "all", "Coprime to all 7 primes. Maximum coupling.");
+  render_table_row_4(tbl, "2-class", "2", "all", "Even elements. The only parity-preserving prime.");
+  render_table_row_4(tbl, "3-class", "3", "all", "Divisible by 3. Minimum for majority.");
+  render_table_row_4(tbl, "5-class", "5", "all", "Divisible by 5. 5^2 divides the ring but 5 does not divide 24.");
+  render_table_row_4(tbl, "7-class", "7", "all", "Divisible by 7. Deepest resolution: 49 states.");
+  render_table_row_4(tbl, "11-class", "11", "all", "Divisible by 11. Error detection via parity.");
+  render_table_row_4(tbl, "13-class", "13", "6ch+", "Divisible by 13. Dual parity with 11.");
+  render_table_row_4(tbl, "17-class", "17", "7ch", "Divisible by 17. 5*7 = 1 mod 17.");
   dom_append(s2, tbl);
-  render_p(s2, "Pure kingdom couplings in THIN: sigma=2310, D=1155, K=770, E=462, b=330, L=210. Each is N/p. The coupling of each kingdom measures its distance from the ground state.");
+  render_p(s2, "Pure class couplings in Z/2,310: unit=2310, 2-class=1155, 3-class=770, 5-class=462, 7-class=330, 11-class=210. Each is N/p. Coupling measures distance from the unit class.");
   dom_append(dom_body(), s2);
 
   /* === THE MEMBRANE === */
   let s3 = make_section("800px") in
-  render_h2(s3, "D=2: The Membrane");
-  render_theorem(s3, "Parity Bridge Theorem (PROVED)",
-    "Every prime except D=2 is odd. Adding an odd number to any element flips its parity -- guaranteed class change. D=2 is the ONLY prime that preserves parity. It can keep you in the same class. D=2 IS the membrane: it separates without blocking.");
+  render_h2(s3, "Why 2 Is Special");
+  render_theorem(s3, "Parity Preservation (PROVED)",
+    "Every prime except 2 is odd. Adding an odd number to any element flips its parity -- guaranteed class change. 2 is the ONLY prime that preserves parity. It can keep you in the same class. 2 separates classes without blocking.");
   dom_append(dom_body(), s3);
 
   /* === COMPOUND KINGDOMS === */
   let s4 = make_section("800px") in
   render_h2(s4, "Compound Classes");
-  render_p(s4, "An element can be divisible by multiple primes simultaneously. With 7 primes in TRANS, there are 2^7 = 128 possible divisibility patterns. 1 is void (all primes), 7 are pure kingdoms, 1 is unit (no primes). That leaves 119 compound classes.");
+  render_p(s4, "An element can be divisible by multiple primes simultaneously. With 7 primes in Z/214,414,200, there are 2^7 = 128 possible divisibility patterns. 1 is void (all primes), 7 are pure classes, 1 is unit (no primes). That leaves 119 compound classes.");
   let cg = make_findings_grid(s4) in
-  render_finding(cg, "Pure kingdoms", "7", "Elements divisible by exactly 1 prime. One per prime.", "");
+  render_finding(cg, "Pure classes", "7", "Elements divisible by exactly 1 prime. One per prime.", "");
   render_finding(cg, "Compound classes", "119", "Elements divisible by 2-6 primes simultaneously.", "");
-  render_finding(cg, "Total patterns", "128 = 2^7 = D^7", "Every subset of {D,K,E,b,L,GATE,ESCAPE}. The powerset IS the class space.", "");
-  render_finding(cg, "Void", "1 element", "n=0. All 7 channels dead. Below all classes.", "");
-  render_p(s4, "Examples: D*K=6 (Protista+Fungi). E*b=35 (Plants+Animals, and E*b=1 mod 17 in ESCAPE channel). D*K*E*b*L*GATE*ESCAPE=N=void's neighborhood.");
+  render_finding(cg, "Total patterns", "128 = 2^7", "Every subset of {2, 3, 5, 7, 11, 13, 17}. The powerset IS the class space.", "");
+  render_finding(cg, "Void", "1 element", "n = 0. Divisible by all 7 primes. Below all classes.", "");
+  render_p(s4, "Examples: 6 = 2*3 (compound of 2-class and 3-class). 35 = 5*7 (compound; and 5*7 = 1 mod 17).");
   dom_append(dom_body(), s4);
 
   /* === TRUE FORM SCALING === */
   let s5 = make_section("800px") in
   render_h2(s5, "Scaling Across Rings");
-  render_p(s5, "The hierarchy: THIN (5 primes) -> DEEP (5 fat) -> TRUE (+GATE) -> TRANS (+ESCAPE). Each step either fattens channels or adds a new prime:");
+  render_p(s5, "The ring hierarchy: Z/2,310 (5 primes) -> Z/970,200 (5 prime-power) -> Z/12,612,600 (+13) -> Z/214,414,200 (+17). Each step raises exponents or adds a new prime:");
   let sg = make_findings_grid(s5) in
-  render_finding(sg, "THIN -> DEEP", "420x per class", "Fattening: D->D^3, K->K^2, E->E^2, b->b^2. Same 32 classes, more elements.", "");
-  render_finding(sg, "DEEP -> TRUE", "classes 32->64", "GATE=13 adds 6th prime. phi(TRUE) = 2,419,200.", "");
-  render_finding(sg, "TRUE -> TRANS", "classes 64->128", "ESCAPE=17 adds 7th prime. phi(TRANS) = 38,707,200.", "");
-  render_finding(sg, "Class Primality", "PROVED", "All pure class counts are chain-smooth in every ring.", "");
-  render_p(s5, "Fattening (THIN->DEEP) multiplies each class by lambda=420 without changing the class count. Adding a prime (TRUE, TRANS) doubles the class count. The 8-kingdom hierarchy is invariant: Bacteria is always largest, Virus is always rarest.");
+  render_finding(sg, "Z/2,310 -> Z/970,200", "420x per class", "Raising exponents: 2->2^3, 3->3^2, 5->5^2, 7->7^2. Same 32 classes, more elements.", "");
+  render_finding(sg, "Z/970,200 -> Z/12,612,600", "classes 32->64", "13 adds 6th prime. phi = 2,419,200.", "");
+  render_finding(sg, "Z/12,612,600 -> Z/214,414,200", "classes 64->128", "17 adds 7th prime. phi = 38,707,200.", "");
+  render_finding(sg, "Class Primality", "PROVED", "All pure class counts are products of the ring's primes.", "");
+  render_p(s5, "Raising exponents (Z/2,310 -> Z/970,200) multiplies each class by 420 without changing the class count. Adding a prime doubles the class count. The 8-class hierarchy is invariant: unit class is always largest, 17-class is always rarest.");
   dom_append(dom_body(), s5);
 
   /* === INTERACTIVE === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Coupling Classifier");
-  render_p(sec_i, "Enter any number. See its kingdom from all 7 primes. Pure kingdoms have exactly 1 prime dividing. Try 1 (Bacteria), 2 (Protista), 13 (Guardian), 17 (Virus), 6 (compound), 0 (void).");
+  render_p(sec_i, "Enter any number. See its class from all 7 primes. Pure classes have exactly 1 prime dividing. Try 1 (unit), 2 (2-class), 13 (13-class), 17 (17-class), 6 (compound), 0 (void).");
   make_interactive_widget(sec_i, "Number:", "king-input", "e.g. 7", "Classify", "kingdoms_coupling_calc", "king-result");
   dom_append(dom_body(), sec_i);
 
@@ -784,21 +744,21 @@ fn page_kingdoms() = (
   let chdr = dom_create("tr") in
   render_th(chdr, "Question");
   render_th(chdr, "Standard");
-  render_th(chdr, "Axiom");
+  render_th(chdr, "Ring View");
   dom_append(ctbl, chdr);
-  render_contrast_row(ctbl, "What are coupling classes?", "Divisor subgroups", "gcd(n, N) determines active channels. 8 kingdoms + 119 compounds + void = 128 = D^7.");
-  render_contrast_row(ctbl, "Why 8 kingdoms?", "7 prime factors + unit", "7 primes = 7 pure kingdoms + Bacteria (unit). TRANS ring has all 8.");
-  render_contrast_row(ctbl, "Why is Bacteria largest?", "Most coprime elements", "Bacteria = ground state = max coupling. Coprime to all = most connected.");
-  render_contrast_row(ctbl, "Why is Virus rarest?", "Fewest ESCAPE-divisible", "Virus (ESCAPE=17) = max departure = min coupling. Transcendence is rare.");
-  render_contrast_row(ctbl, "What does D=2 do?", "Parity", "D=2 = the only parity-preserving prime. Separates classes without blocking.");
-  render_contrast_row(ctbl, "Can you compute it?", "Just gcd", "coupling(n) = N / gcd(n, N). For TRANS: N = 214414200. Run in the REPL.");
+  render_contrast_row(ctbl, "What are coupling classes?", "Divisor subgroups", "gcd(n, N) determines active channels. 8 pure + 119 compound + void = 128 = 2^7.");
+  render_contrast_row(ctbl, "Why 8 pure classes?", "7 prime factors + unit", "7 primes = 7 single-prime classes + 1 unit class. Z/214,414,200 has all 8.");
+  render_contrast_row(ctbl, "Why is unit class largest?", "Most coprime elements", "Coprime to all 7 primes = max coupling = most connected.");
+  render_contrast_row(ctbl, "Why is 17-class rarest?", "Fewest 17-divisible", "17 is the largest prime. Divisibility by 17 is the rarest single-prime constraint.");
+  render_contrast_row(ctbl, "What does 2 do?", "Parity", "2 = the only even prime. Preserves parity. Separates classes without blocking.");
+  render_contrast_row(ctbl, "Can you compute it?", "Just gcd", "coupling(n) = N / gcd(n, N). For Z/214,414,200: N = 214,414,200.");
   dom_append(s6, ctbl);
   dom_append(dom_body(), s6);
 
   /* === VERIFY === */
   let s7 = make_section("800px") in
   render_h2(s7, "Verify It Yourself");
-  render_p(s7, "Compute coupling(1), coupling(2), coupling(13), coupling(17). Count elements in each kingdom. Every number on this page is arithmetic.");
+  render_p(s7, "Compute coupling(1), coupling(2), coupling(13), coupling(17). Count elements in each class. Every number on this page is arithmetic.");
   let cta = dom_create("div") in
   dom_style(cta, "textAlign", "center");
   dom_style(cta, "padding", "32px 0");
@@ -843,52 +803,51 @@ fn ecc_syndrome_calc() = (
     let ok_l = if check_l == nl then 1 else 0 in
     let ok_g = if check_g == ng then 1 else 0 in
     let ok = if ok_l > 0 then if ok_g > 0 then 1 else 0 else 0 in
-    let status = if ok > 0 then "<span style='color:#88ddaa'>INTACT</span> -- L+GATE syndromes match" else if ok_l == 0 then "<span style='color:#ff6666'>CORRUPTED</span> -- L-check failed" else "<span style='color:#ff6666'>CORRUPTED</span> -- GATE-check failed" in
-    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>CRT: (<span style='color:#ff4040'>${nd}</span>, <span style='color:#ff9900'>${nk}</span>, <span style='color:#33dd55'>${ne}</span>, <span style='color:#4488ff'>${nb}</span>, <span style='color:#aa44ff'>${nl}</span>, <span style='color:#ff88cc'>${ng}</span>)</p><p style='margin:4px 0'>Data channels (D,K,E,b) reconstruct to: ${n_data}</p><p style='margin:4px 0'>L-check: ${n_data} mod 11 = ${check_l} vs stored ${nl} | GATE-check: ${n_data} mod 13 = ${check_g} vs stored ${ng} &mdash; ${status}</p>")
+    let status = if ok > 0 then "<span style='color:#88ddaa'>INTACT</span> -- mod-11 + mod-13 syndromes match" else if ok_l == 0 then "<span style='color:#ff6666'>CORRUPTED</span> -- mod-11 check failed" else "<span style='color:#ff6666'>CORRUPTED</span> -- mod-13 check failed" in
+    dom_inner(result, "<p style='color:#d8d8e0;margin:4px 0'>n = ${n}</p><p style='margin:4px 0'>CRT: (<span style='color:#ff4040'>${nd}</span>, <span style='color:#ff9900'>${nk}</span>, <span style='color:#33dd55'>${ne}</span>, <span style='color:#4488ff'>${nb}</span>, <span style='color:#aa44ff'>${nl}</span>, <span style='color:#ff88cc'>${ng}</span>)</p><p style='margin:4px 0'>Data channels (mod 8, 9, 25, 49) reconstruct to: ${n_data}</p><p style='margin:4px 0'>mod-11 check: ${n_data} mod 11 = ${check_l} vs stored ${nl} | mod-13 check: ${n_data} mod 13 = ${check_g} vs stored ${ng} &mdash; ${status}</p>")
   )
 )
 
 fn page_ecc() = (
-  dom_head_meta("description", "L=11 error detection: 100% for thin channels, ~92% for fat. Dual-check L+GATE: 100%. The protector IS the sum: 1+2+3+5=11. CRT detection theorem, three-ring progression, byte recovery. Zero free parameters.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Error Correction\",\"description\":\"L=11 detection: 100% for thin channels (mod<11), ~92% for fat. Dual-check L+GATE: 100%. Triple-parity ECC3: 100% correction.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/ecc\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protector\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT detection\"}]}");
+  dom_head_meta("description", "Mod-11 error detection: 100% for prime channels, ~92% for prime-power. Dual-check mod 11 + mod 13: 100%. CRT detection theorem, three-ring progression, byte recovery. Zero free parameters.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Error Correction\",\"description\":\"Mod-11 detection: 100% for prime channels, ~92% for prime-power. Dual-check mod 11 + mod 13: 100%. Triple-parity: 100% correction.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/connections/ecc\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT parity\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT detection\"}]}");
   let hero = make_hero("Error Correction for Free") in
   let big = dom_create("div") in
-  dom_text(big, "L = 11");
+  dom_text(big, "11 = 1 + 2 + 3 + 5");
   ct_mono(big);
   dom_style(big, "fontSize", "48px");
   dom_style(big, "color", "#aa44ff");
   dom_style(big, "marginBottom", "16px");
   dom_append(hero, big);
-  render_p(hero, "The fifth prime doesn't compute. It protects. Every element in the ring carries its own error-correcting code -- for free. No extra bits. No overhead. L = sigma + D + K + E = 1 + 2 + 3 + 5 = 11. The protector IS the sum of everything it protects.");
+  render_p(hero, "The fifth prime doesn't compute. It checks. Every element in the ring carries its own error-detecting code -- for free. No extra bits. No overhead. 11 = 1 + 2 + 3 + 5: the sum of the first four primes. Add mod-13 for dual parity: 100% detection and correction.");
   dom_append(dom_body(), hero);
 
   /* === HOW IT WORKS === */
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_p(sec1, "Every number in Z/214414200Z decomposes into 7 channels via CRT: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). The first four inner channels carry data. L (mod 11), GATE (mod 13), and ESCAPE (mod 17) provide triple-parity ECC -- rate 4/7, 100% correction. Error correction is structural, automatic, free.");
-  render_p(sec1, "Encode: take any element n in the ring. CRT gives 7 residues. The first four (mod 8, 9, 25, 49) are data -- they determine n within Z/88200. The last three (mod 11, 13, 17) are parity. Start with the simplest check: n mod 11.");
-  render_p(sec1, "Detect: reconstruct n from the first 4 channels. Compute n mod 11. If it matches channel 5: intact. If not: corruption detected. 100% for thin channels (mod < 11). Fat channels (mod 25, 49): ~92% -- errors at multiples of 11 are invisible to L alone. Dual-check with GATE closes the gap.");
-  render_p(sec1, "Correct: if you know which channel was hit, try all values in that channel (at most 49 trials for the b-channel). For thin channels (mod < 11): exactly one value passes the L-check. For fat channels: multiple candidates may pass. Dual-check with L+GATE narrows to exactly one (lcm(11,13) = 143 > 49).");
+  render_p(sec1, "Every number in Z/214,414,200 decomposes into 7 channels via CRT: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). The first four channels carry data. The last three (mod 11, mod 13, mod 17) provide triple-parity ECC -- rate 4/7, 100% correction. Error correction is structural, automatic, free.");
+  render_p(sec1, "Encode: take any element n. CRT gives 7 residues. The first four (mod 8, 9, 25, 49) are data -- they determine n within Z/88,200. The last three (mod 11, 13, 17) are parity. Start with the simplest check: n mod 11.");
+  render_p(sec1, "Detect: reconstruct n from the first 4 channels. Compute n mod 11. If it matches channel 5: intact. If not: corruption detected. 100% for prime channels (mod < 11). Prime-power channels (mod 25, 49): ~92% -- errors at multiples of 11 are invisible to mod-11 alone. Dual-check with mod-13 closes the gap.");
+  render_p(sec1, "Correct: if you know which channel was hit, try all values in that channel (at most 49 trials for mod-49). For prime channels: exactly one value passes the mod-11 check. For prime-power channels: multiple candidates may pass. Dual-check with mod-11 + mod-13 narrows to exactly one (lcm(11,13) = 143 > 49).");
   let g = make_findings_grid(sec1) in
-  render_finding(g, "Detection", "100% thin, ~92% fat", "Thin channels (mod<11): perfect. Fat channels: delta=11k invisible. Dual-check L+GATE: 100%.", "CRT Detection Theorem");
-  render_finding(g, "Overhead", "0 bits", "No extra storage needed. Protection IS the number system.", "Structural");
-  render_finding(g, "Correction", "100% with dual", "L+GATE dual-check: unique fix for ALL channels. L alone: thin 100%, fat 22-84%.", "Brute-force search");
-  render_finding(g, "Cost", "9.1%", "Adding L costs 1/L of unit density. Bargain: full protection for 9.1%.", "phi analysis");
+  render_finding(g, "Detection", "100% prime, ~92% prime-power", "Prime channels (mod < 11): perfect. Prime-power: delta=11k invisible. Dual mod 11+13: 100%.", "CRT Detection Theorem");
+  render_finding(g, "Overhead", "0 bits", "No extra storage needed. Protection is the number system.", "Structural");
+  render_finding(g, "Correction", "100% with dual", "Mod-11 + mod-13 dual-check: unique fix for ALL channels.", "Brute-force search");
+  render_finding(g, "Cost", "9.1%", "Adding 11 costs 1/11 of unit density. Full protection for 9.1%.", "phi analysis");
   dom_append(dom_body(), sec1);
 
   /* === THE DETECTION THEOREM === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "The Detection Theorem");
-  render_theorem(sec2, "CRT Detection Theorem", "Let R = Z/q1 x ... x Z/qk x Z/L where gcd(qi, L) = 1 for all i. If exactly one channel ci is corrupted by delta != 0 (mod qi), detection succeeds iff delta is not divisible by L. For qi < L (thin channels): 100% -- no such delta exists. For qi > L (fat channels): ~92% -- deltas at multiples of L are invisible.");
-  render_p(sec2, "Proof sketch: CRT lifting idempotent ei satisfies ei mod L != 0 (from gcd condition). Corruption delta in channel i shifts the L-residue by delta * (ei mod L). Since ei mod L != 0, the shift vanishes iff delta = 0 mod L. Thin channels have max delta < L, so no blind spot. Fat channels (mod 25, 49) have some deltas divisible by 11. Dual-check with GATE=13 eliminates these: lcm(11,13) = 143 > 49.");
-  render_theorem(sec2, "L = Sum of Chain", "L = sigma + D + K + E = 1 + 2 + 3 + 5 = 11. Forced by the Cunningham chain c(n) = 2n+1: c(5) = 11. The protector is not arbitrary -- it is the sum of everything it protects. The chain BUILDS the protector from the chain itself.");
-  render_theorem(sec2, "L-Selflessness", "|L|^2 = D^8 - sigma = 256 - 1 = 255. The protector's CRT squared norm equals the spider's legs (D^3=8 dimensions worth of power) minus THE SELF. L gives up exactly sigma = 1 to protect the web. Selfless by algebra.");
+  render_theorem(sec2, "CRT Detection Theorem", "Let R = Z/q1 x ... x Z/qk x Z/p where gcd(qi, p) = 1 for all i. If exactly one channel ci is corrupted by delta != 0 (mod qi), detection via mod-p succeeds iff delta is not divisible by p. For qi < p (prime channels): 100% -- no such delta exists. For qi > p (prime-power channels): ~92% -- deltas at multiples of p are invisible.");
+  render_p(sec2, "Proof sketch: CRT lifting idempotent ei satisfies ei mod p != 0 (from gcd condition). Corruption delta in channel i shifts the mod-p residue by delta * (ei mod p). Since ei mod p != 0, the shift vanishes iff delta = 0 mod p. With p = 11: prime channels have max delta < 11, so no blind spot. Prime-power channels (mod 25, 49) have some deltas divisible by 11. Dual-check with mod 13 eliminates these: lcm(11,13) = 143 > 49.");
+  render_theorem(sec2, "11 = Sum of Primes", "11 = 1 + 2 + 3 + 5. The parity prime is the sum of the first four primes. Forced by the Cunningham chain c(n) = 2n+1: c(5) = 11. Not arbitrary -- the chain builds the check digit from the data digits.");
   dom_append(dom_body(), sec2);
 
   /* === THREE RING PROGRESSION === */
   let sec3 = make_section("800px") in
   render_h2(sec3, "Three Rings, Three Levels of Protection");
-  render_p(sec3, "The axiom builds three rings by fattening. Each level of fattening changes the ECC story:");
+  render_p(sec3, "Three rings, three ECC stories. Raising prime exponents increases data capacity but changes detection rates:");
   let tbl = make_table(sec3) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Ring");
@@ -896,42 +855,41 @@ fn page_ecc() = (
   render_th(hdr, "Detection");
   render_th(hdr, "Notes");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "Z/210 (DATA)", "2,3,5,7 (no L)", "0%", "Unprotected. Fast but fragile.");
-  render_table_row_4(tbl, "Z/2310 (THIN)", "2,3,5,7,11", "100% det + 100% corr", "All channels < L. Perfect ECC.");
-  render_table_row_4(tbl, "Z/970200 (DEEP)", "8,9,25,49,11", "100% thin, ~92% fat", "Fat channels (E^2, b^2) leak 11/12 via L.");
-  render_p(sec3, "The THIN ring Z/2310 has perfect protection: every data channel (2,3,5,7) is smaller than L=11, so the L-syndrome catches everything. The TRUE FORM fattens channels to (8,9,25,49) -- now E^2=25 and b^2=49 are larger than L=11. Some corruptions within those fat channels produce the same L-residue.");
-  render_theorem(sec3, "Fattening-ECC Tension", "Fattening E->E^2=25 and b->b^2=49 increases data capacity but weakens L-only detection. E^2 channel: 22/24 = 11/12 detection. b^2 channel: 44/48 = 11/12 detection. Thin channels (D^3=8, K^2=9): 100%. The depth quadratic b^2+1 = D*E^2 = 50 means the hardest channel to protect is depth.");
+  render_table_row_4(tbl, "Z/210", "2, 3, 5, 7 (no 11)", "0%", "Unprotected. Fast but fragile.");
+  render_table_row_4(tbl, "Z/2,310", "2, 3, 5, 7, 11", "100% + 100% corr", "All channels < 11. Perfect ECC.");
+  render_table_row_4(tbl, "Z/970,200", "8, 9, 25, 49, 11", "100% prime, ~92% pp", "Prime-power channels leak 1/12.");
+  render_p(sec3, "Z/2,310 has perfect protection: every data channel (mod 2, 3, 5, 7) is smaller than 11, so the mod-11 check catches everything. Raising exponents to (mod 8, 9, 25, 49) means mod 25 and mod 49 are larger than 11. Some corruptions in those channels produce the same mod-11 residue.");
+  render_theorem(sec3, "Exponent-ECC Tension", "Raising 5 -> 5^2 = 25 and 7 -> 7^2 = 49 increases data capacity but weakens mod-11-only detection. Mod-25 channel: 22/24 = 11/12 detection. Mod-49 channel: 44/48 = 11/12 detection. Mod-8 and mod-9 channels: still 100% (both < 11).");
   dom_append(dom_body(), sec3);
 
   /* === DUAL CHECK: L + GATE === */
   let sec4 = make_section("800px") in
-  render_h2(sec4, "The Dual Check: L=11 + GATE=13");
-  render_p(sec4, "The solution to fat-channel leakage is elegant: add the shadow stopper p=13 as a second check channel. A corruption is invisible only if delta mod lcm(11,13) = delta mod 143 = 0. The maximum possible delta in the TRUE FORM is 48 (from b^2=49). Since 48 < 143: no corruption can be invisible to both checks.");
+  render_h2(sec4, "The Dual Check: mod 11 + mod 13");
+  render_p(sec4, "The solution to prime-power channel leakage: add 13 as a second check channel. A corruption is invisible only if delta mod lcm(11, 13) = delta mod 143 = 0. The maximum delta in any channel is 48 (from mod 49). Since 48 < 143: no corruption can be invisible to both checks.");
   let g4 = make_findings_grid(sec4) in
-  render_finding(g4, "L only", "~92% fat channels", "E^2 and b^2 leak 1/12 of corruptions past L (delta divisible by 11).", "");
-  render_finding(g4, "L + GATE", "100% detection", "lcm(11,13)=143 > max delta=48. Complete.", "Dual-Check Theorem");
+  render_finding(g4, "mod-11 only", "~92% prime-power", "Mod-25 and mod-49 leak 1/12 of corruptions (delta divisible by 11).", "");
+  render_finding(g4, "mod-11 + mod-13", "100% detection", "lcm(11,13) = 143 > max delta = 48. Complete.", "Dual-Check Theorem");
   render_finding(g4, "Correction", "100% known-loc", "With both syndromes: unique fix for ALL channels.", "");
   render_finding(g4, "Cost", "7.2 bits", "log2(143) overhead. Full protection of 17+ bits of data.", "");
-  render_p(sec4, "The 490 holographic split goes further: inner {D,E,b} = data (9800 values), boundary {K,L,GATE} = parity (1287 values). 9800 \u00d7 1287 = 12,612,600 = N. Three parity channels for three data channels: a (6,3,3) code that CORRECTS any single-channel error. See the live demo on the ECC Live page.");
+  render_p(sec4, "The 490 split goes further: {2, 5, 7} = data (8 * 25 * 49 = 9800 values), {3, 11, 13} = parity (9 * 11 * 13 = 1287 values). 9800 * 1287 = 12,612,600. Three parity channels for three data channels: a (6,3,3) code that corrects any single-channel error. See the live demo on the ECC Live page.");
   dom_append(dom_body(), sec4);
 
   /* === THE AXLE + BIOLOGY === */
   let sec6 = make_section("800px") in
-  render_h2(sec6, "L as the Axle");
-  render_p(sec6, "When the ring fattens from THIN to TRUE, every prime's exponent increases -- except L. L stays at 1. The ONLY channel unchanged by fattening. e(L) = sigma = minimum. L is the fixed axle against which all other channels rotate.");
+  render_h2(sec6, "Why 11 Stays at Exponent 1");
+  render_p(sec6, "When the ring raises exponents from Z/2,310 to Z/12,612,600, every data prime's exponent increases: 2 -> 2^3, 3 -> 3^2, 5 -> 5^2, 7 -> 7^2. But 11 stays at exponent 1. It is the only channel unchanged by raising exponents -- the fixed reference against which data channels grow.");
   let g6 = make_findings_grid(sec6) in
-  render_finding(g6, "Fattening", "e(L) = 1", "L is the only prime unchanged. The axle of the clockwork.", "");
-  render_finding(g6, "Solar cycle", "L=11 years", "68% of solar variance. Add D: 85%. DATA without L: 7.9%.", "");
- render_finding(g6, "Byte recovery", "100% unique", "For [0,255] in Z/970200: CRT spacing >> byte range..", "");
-  render_finding(g6, "AI weights", "free ECC", "Quantize to Z/970200. Corruption detectable without overhead.", "");
+  render_finding(g6, "11's exponent", "always 1", "11 is the only prime whose exponent doesn't increase. Parity stays thin.", "");
+  render_finding(g6, "Byte recovery", "100% unique", "For [0,255] in Z/970,200: CRT spacing >> byte range.", "");
+  render_finding(g6, "AI weights", "free ECC", "Quantize to Z/970,200. Corruption detectable without overhead.", "");
   dom_append(dom_body(), sec6);
 
   /* === INTERACTIVE: ECC SYNDROME CHECKER === */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: ECC Syndrome Check");
-  render_p(sec_i, "Enter any element n (0-970199). See its CRT decomposition and L-channel syndrome. The L-channel acts as a free checksum -- if it mismatches after corruption, the error is detected.");
+  render_p(sec_i, "Enter any element n (0 to 970,199). See its CRT decomposition and mod-11 syndrome. The mod-11 channel acts as a free checksum -- if it mismatches after corruption, the error is detected.");
   make_interactive_widget(sec_i, "Enter n:", "ecc-chk-input", "e.g. 137", "Check", "ecc_syndrome_calc", "ecc-chk-result");
-  render_p(sec_i, "Try: 137 (ADDRESS), 42 (ANSWER), 1576576 (OMEGA). Corrupt one channel mentally and see if L catches it.");
+  render_p(sec_i, "Try: 137, 42, 210. Corrupt one channel mentally and see if mod-11 catches it.");
   dom_append(dom_body(), sec_i);
 
   /* === CONTRAST TABLE === */
@@ -941,15 +899,15 @@ fn page_ecc() = (
   let chdr = dom_create("tr") in
   render_th(chdr, "Aspect");
   render_th(chdr, "Standard (INT8)");
-  render_th(chdr, "Axiom (CRT + L=11)");
+  render_th(chdr, "Ring (CRT + mod 11)");
   dom_append(ctbl, chdr);
-  render_contrast_row(ctbl, "Error detection", "0% -- bit flips are silent", "100% with dual parity L+GATE (proved)");
+  render_contrast_row(ctbl, "Error detection", "0% -- bit flips are silent", "100% with dual parity mod 11 + mod 13 (proved)");
   render_contrast_row(ctbl, "Error correction", "0% -- no mechanism exists", "100% known-location with dual parity");
   render_contrast_row(ctbl, "Levels", "256 (8 bits, arbitrary)", "210 or 970200 (structured)");
   render_contrast_row(ctbl, "Cost", "0 overhead, 0 protection", "0.3 bits SQNR -- free protection");
   render_contrast_row(ctbl, "On corruption", "Wrong value, no warning", "Detected -> located -> corrected");
   render_contrast_row(ctbl, "Paradigm", "Pray nothing goes wrong", "Ring self-heals");
-  render_p(sec7, "Reed-Solomon, LDPC, Turbo codes all ADD redundancy to protect data. The CRT ring has redundancy BUILT IN. L=11 is not bolted on. It is the 11th element of the number system. Protection is not a feature -- it is a fact about how the number system decomposes.");
+  render_p(sec7, "Reed-Solomon, LDPC, Turbo codes all ADD redundancy to protect data. The CRT ring has redundancy built in. 11 is not bolted on -- it is the fifth prime in the number system. Protection is a structural property of the ring's CRT decomposition.");
   dom_append(dom_body(), sec7)
 )
 
