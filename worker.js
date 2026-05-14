@@ -75,7 +75,6 @@ var _routeMap = {
   'proof_frontier':'data',
   'freewill':'data',
   'infinity':'data',
-  'noxan':'data',
   'bootstrap':'deep',
   'septum':'deep',
   'mirror':'deep',
