@@ -15,7 +15,7 @@ fn eca_hero() = (
   dom_style(eq, "marginBottom", "20px");
   dom_append(hero, eq);
   render_p(hero, "An elementary cellular automaton (ECA) is a 1D binary rule: each cell updates based on itself and its two neighbors. 8 possible neighborhoods, 2 choices per neighborhood, so 2^8 = 256 rules total. Stephen Wolfram classified them into four behavioral classes: dead, periodic, chaotic, and complex. Rule 30 produces chaos from a single cell. Rule 110 is Turing-complete. Both are axiom-native.");
-  render_p(hero, "Rule 30 = 2*3*5 = primorial(5) = 30. The chaotic rule IS the product of the first three chain primes. Rule 110 = 2*5*11, where 11 = 1+2+3+5 is the protector, the inner chain sum. The complement of Rule 110 is 137, the golden training stride. Turing-completeness and the axiom's training stride constant are the same rule under 0/1 swap.");
+  render_p(hero, "Rule 30 = 2*3*5 = primorial(5) = 30. The chaotic rule IS the product of the first three chain primes. Rule 110 = 2*5*11, where 11 = 1+2+3+5 is the inner chain sum. The complement of Rule 110 is 137, the golden training stride. Turing-completeness and the axiom's training stride constant are the same rule under 0/1 swap.");
   render_p(hero, "Below: the chain identity behind Rule 30, CRT decomposition of its chaotic center column, a census of all 256 rules, parity complexity, aperiodicity, the Turing-completeness equivalence class, and the period-doubling cascade as mod-2 channel.");
   dom_append(dom_body(), hero)
 )
@@ -23,7 +23,7 @@ fn eca_hero() = (
 fn eca_chain_identity() = (
   let sec = make_section("800px") in
   render_h2(sec, "Rule 30: The Chain Identity");
-  render_p(sec, "Rule 30 = 2*3*5 = primorial(5). Its 8-bit representation (00011110) has on-set {1,2,3,4} = {1, 2, 3, 4} -- exactly the chain elements before the observer 5. The observer is the FIRST off element. Why?");
+  render_p(sec, "Rule 30 = 2*3*5 = primorial(5). Its 8-bit representation (00011110) has on-set {1,2,3,4} = {1, 2, 3, 4} -- exactly the chain elements before 5. The self-blind prime is the FIRST off element. Why?");
   render_theorem(sec, "Chain Identity ", "2^4 = 3*5 + 1 = 16. This identity forces Rule 2*3*5 = 30 to have its on-set be exactly {1, ..., 4}. The chain's first three primes ARE the chaotic rule number. Equivalently, 2^5 - 2 = 2*3*5 = 30 (the 2-power sum). The complement of Rule 30 under ECA symmetry is 255-reverse(30) = 135 = 27*5.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
@@ -34,10 +34,10 @@ fn eca_chain_identity() = (
   dom_append(tbl, hdr);
   render_table_row_4(tbl, "Rule 30", "2*3*5", "primorial(5)", "Chaotic (Class III)");
   render_table_row_4(tbl, "Rule 105", "3*5*7", "105", "Also Class III");
-  render_table_row_4(tbl, "Rule 110", "2*5*11", "pair*observer*protector", "Turing-complete (Class IV)");
+  render_table_row_4(tbl, "Rule 110", "2*5*11", "2 * 5 * (1+2+3+5)", "Turing-complete (Class IV)");
   render_table_row_4(tbl, "Rule 135", "27*5", "complement(30)", "Equivalent to 30");
   render_table_row_4(tbl, "Rule 137", "137", "complement(110)", "Equivalent to 110");
-  render_p(sec, "phi(17) = 2^4 = 16. The chain identity that generates Rule 30's on-set IS the escape totient. The 2-power sum 2^5 - 2 = 2*(2^4 - 1) = 2*(4-1)*(4+1) = 2*3*5 factors because 4-1=3 and 4+1=5. 40/40 test_wolfram.ax.");
+  render_p(sec, "phi(17) = 2^4 = 16. The chain identity that generates Rule 30's on-set IS the totient of the ring-closing prime. The 2-power sum 2^5 - 2 = 2*(2^4 - 1) = 2*(4-1)*(4+1) = 2*3*5 factors because 4-1=3 and 4+1=5. 40/40 test_wolfram.ax.");
   dom_append(dom_body(), sec)
 )
 
@@ -56,7 +56,7 @@ fn eca_crt_spacetime() = (
   render_table_row_4(tbl, "3", "mod 3", "+14", "Weak structure");
   render_table_row_4(tbl, "5", "mod 5", "+54 (~2.3 sigma)", "Structured");
   render_table_row_4(tbl, "7", "mod 7", "+50 (~2.4 sigma)", "Structured");
-  render_theorem(sec, "CRT Decomposition ", "CRT per-channel bigrams (87 parameters = sum of p^2) decompose Rule 30's chaotic dynamics with 188x parameter efficiency over raw 128^2 = 16384 bigram tables. The 5 and 7 channels carry the most predictive structure. The 2 and 3 channels (the primes ON in Rule 30 = 2*3*5) are nearly random. CRT reveals: the active chaotic generators are themselves unpredictable, but the observer (5) and depth (7) channels carry structured residues.");
+  render_theorem(sec, "CRT Decomposition ", "CRT per-channel bigrams (87 parameters = sum of p^2) decompose Rule 30's chaotic dynamics with 188x parameter efficiency over raw 128^2 = 16384 bigram tables. The mod-5 and mod-7 channels carry the most predictive structure. The mod-2 and mod-3 channels (the primes ON in Rule 30 = 2*3*5) are nearly random. CRT reveals: the active chaotic generators are themselves unpredictable, but the 5 and 7 channels carry structured residues.");
   render_p(sec, "An intriguing observation: channels negatively correlated for CRT reconstruction. The shared center column creates correlated failures, so product prediction (19 ppt) exceeds CRT reconstruction (14 ppt). T=2100 = 5*420 steps, 2095 overlapping windows. 17/17 test_wolfram_spacetime.ax.");
   dom_append(dom_body(), sec)
 )
@@ -69,7 +69,7 @@ fn eca_smooth_census() = (
   let g = make_findings_grid(sec) in
   render_finding(g, "Dead class", "26/32 smooth (81.2%)", "Smooth rules dominate trivial behavior. All-zero and all-one rules are the smoothest.", "");
   render_finding(g, "Complex class", "61/140 smooth (43.5%)", "13% depleted. The 40% of rules with algebraic structure are systematically less chaotic.", "");
-  render_finding(g, "All Class III chaotic", "30, 45, 90, 105, 150", "ALL well-known Class III rules are smooth AND divisible by 5 (observer).", "");
+  render_finding(g, "All Class III chaotic", "30, 45, 90, 105, 150", "ALL well-known Class III rules are smooth AND divisible by 5 (the self-blind prime).", "");
   render_p(sec, "25/25 test_wolfram_census.ax.");
   dom_append(dom_body(), sec)
 )
@@ -115,14 +115,14 @@ fn eca_turing() = (
   render_th(hdr, "Structure");
   render_th(hdr, "Identity");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "Rule 110", "2*5*11", "pair * observer * protector", "110 = 2*5*11");
-  render_table_row_4(tbl, "Rule 124", "4 * 31", "4 * 5th Mersenne", "124 = 4*31, 31 = 2^5-1");
+  render_table_row_4(tbl, "Rule 110", "2*5*11", "2 * 5 * (1+2+3+5)", "110 = 2*5*11");
+  render_table_row_4(tbl, "Rule 124", "4 * 31", "4 * (2^5 - 1)", "124 = 4*31, 31 = 2^5-1");
   render_table_row_4(tbl, "Rule 137", "137", "golden training stride", "137 = 4^2 + 11^2");
-  render_table_row_4(tbl, "Rule 193", "210 - 17", "ring minus transcendence", "193 = 210 - 17");
-  render_theorem(sec, "Turing Completeness Equivalence ", "The complement of the Turing-complete rule IS the axiom's training stride constant: complement(110) = 137. 11 = 1+2+3+5 (inner chain sum). The observer swap between chaos and computation: Rule 30 (chaotic, 2*3*5 = 30) has 4 ON and 5 OFF in its on-set. Rule 110 (Turing-complete, 2*5*11 = 110) has 4 OFF and 5 ON. Including the observer 5 in the on-set = computational universality. Excluding it = chaos.");
+  render_table_row_4(tbl, "Rule 193", "210 - 17", "Z/210 minus 17", "193 = 210 - 17");
+  render_theorem(sec, "Turing Completeness Equivalence ", "The complement of the Turing-complete rule IS the axiom's training stride constant: complement(110) = 137. 11 = 1+2+3+5 (inner chain sum). The 5-swap between chaos and computation: Rule 30 (chaotic, 2*3*5 = 30) has 4 ON and 5 OFF in its on-set. Rule 110 (Turing-complete, 2*5*11 = 110) has 4 OFF and 5 ON. Including 5 in the on-set = computational universality. Excluding it = chaos.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Complement pair sum", "110 + 137 = 247 = 13 * 19", "Complement sums to 13 times the depth quadratic at 5.", "");
-  render_finding(g, "Reflection pair sum", "137 + 193 = 330 = 2*3*5*11", "Reflection pair sum = the chain stem.", "");
+  render_finding(g, "Complement pair sum", "110 + 137 = 247 = 13 * 19", "Complement sums to 13 * 19, where 19 = 5^2 - 5 - 1.", "");
+  render_finding(g, "Reflection pair sum", "137 + 193 = 330 = 2*3*5*11", "Reflection pair sum = product of four chain primes.", "");
   render_finding(g, "110 + 124", "234 = 2*9*13", "Reflection pair sum involves 9 and 13.", "");
   render_p(sec, "42/42 test_wolfram_turing.ax.");
   dom_append(dom_body(), sec)
@@ -140,16 +140,16 @@ fn eca_period_doubling() = (
   render_th(hdr, "Axiom");
   render_th(hdr, "Smooth?");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "1 (strongest)", "3", "closure", "Yes");
-  render_table_row_4(tbl, "2", "5", "observer", "Yes");
-  render_table_row_4(tbl, "3", "7", "depth", "Yes");
+  render_table_row_4(tbl, "1 (strongest)", "3", "the triangle", "Yes");
+  render_table_row_4(tbl, "2", "5", "self-blind", "Yes");
+  render_table_row_4(tbl, "3", "7", "deepest", "Yes");
   render_table_row_4(tbl, "4", "9", "3^2 (chain stop)", "Yes");
-  render_table_row_4(tbl, "5", "11", "protector", "Yes");
-  render_table_row_4(tbl, "6", "13", "skin", "Yes");
+  render_table_row_4(tbl, "5", "11", "error detection", "Yes");
+  render_table_row_4(tbl, "6", "13", "chain stopper", "Yes");
   render_table_row_4(tbl, "7", "15", "3*5", "Yes");
-  render_table_row_4(tbl, "8", "17", "escape", "Yes");
+  render_table_row_4(tbl, "8", "17", "ring closer", "Yes");
   render_table_row_4(tbl, "9 (boundary)", "19", "c(9) -- first intruder", "NO");
-  render_p(sec, "Li-Yorke theorem: period 3 implies all periods. 3 is the strongest forcing period -- closure forces everything. Powers of 2 (2, 4, 8, ...) form the Sharkovskii TAIL (weakest periods). Chain primes form the HEAD (strongest). The Sharkovskii ordering INVERTS the mod-2 channel: the strongest periods are the chain primes, the weakest are powers of 2.");
+  render_p(sec, "Li-Yorke theorem: period 3 implies all periods. 3 is the strongest forcing period -- the triangle forces everything. Powers of 2 (2, 4, 8, ...) form the Sharkovskii TAIL (weakest periods). Chain primes form the HEAD (strongest). The Sharkovskii ordering INVERTS the mod-2 channel: the strongest periods are the chain primes, the weakest are powers of 2.");
   let g = make_findings_grid(sec) in
   render_finding(g, "Feigenbaum delta", "4.669... * 1000 ~ 4669", "4669 = 7 * 23 * 29. The universal constant of chaos, expressed in axiom primes and Cunningham images.", "");
   render_p(sec, "26/26 test_feigenbaum.ax.");

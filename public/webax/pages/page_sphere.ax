@@ -297,21 +297,21 @@ fn sph_orbits() = (
   let hdr = dom_create("tr") in
   render_th(hdr, "Orbit");
   render_th(hdr, "q");
-  render_th(hdr, "Tower depth");
+  render_th(hdr, "Exponent");
   render_th(hdr, "Orbits/period");
-  render_th(hdr, "Role");
+  render_th(hdr, "Property");
   dom_append(tbl, hdr);
-  render_table_row_5(tbl, "mod 8", "8", "3 (unique)", "210 (exact)", "Fastest. Bridge instrument.");
-  render_table_row_5(tbl, "mod 9", "9", "2", "186 (+6/9)", "Closure engine.");
-  render_table_row_5(tbl, "mod 25", "25", "2", "67 (+5/25)", "Observer. 25=0 mod 25.");
-  render_table_row_5(tbl, "mod 49", "49", "2", "34 (+14/49)", "Slowest data channel. Depth prime.");
-  render_table_row_5(tbl, "mod 11", "11", "1", "152 (+8/11)", "Protector. ECC parity.");
-  render_table_row_5(tbl, "mod 13", "13", "1", "129 (+3/13)", "Boundary. ECC parity.");
-  render_table_row_5(tbl, "mod 17", "17", "1", "98 (+14/17)", "Transcendence. ECC parity.");
-  render_p(sec, "Data channels {mod 8, mod 9, mod 25, mod 49} carry information (warm colors, inner orbits). Parity channels {mod 11, mod 13, mod 17} carry error correction (cool colors, outer orbits). Fattening gives each data channel p^e positions (vs p thin), but the speed ordering is not data-vs-parity: mod 8 (period 8) is fastest overall, while mod 49 (period 49) is slowest.");
+  render_table_row_5(tbl, "mod 8", "8", "3 (unique)", "210 (exact)", "Fastest orbit. Even/odd.");
+  render_table_row_5(tbl, "mod 9", "9", "2", "186 (+6/9)", "Majority threshold (3).");
+  render_table_row_5(tbl, "mod 25", "25", "2", "67 (+5/25)", "5^2 states. 25=0 mod 25.");
+  render_table_row_5(tbl, "mod 49", "49", "2", "34 (+14/49)", "Slowest data channel. 7^2 states.");
+  render_table_row_5(tbl, "mod 11", "11", "1", "152 (+8/11)", "ECC parity. 1+2+3+5=11.");
+  render_table_row_5(tbl, "mod 13", "13", "1", "129 (+3/13)", "ECC parity. 2^2+3^2=13.");
+  render_table_row_5(tbl, "mod 17", "17", "1", "98 (+14/17)", "ECC parity. 5*7=1 mod 17.");
+  render_p(sec, "Data channels {mod 8, mod 9, mod 25, mod 49} carry information (warm colors, inner orbits). Parity channels {mod 11, mod 13, mod 17} carry error correction (cool colors, outer orbits). Prime-power channels have p^e positions (vs p for prime channels), but the speed ordering is not data-vs-parity: mod 8 (period 8) is fastest overall, while mod 49 (period 49) is slowest.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Period 1680 = 7 * 240", "1680 = 7 * lcm(2,6,20,10,12,16)", "The depth prime 7 contributes exactly one factor to the multiplicative exponent. Remove mod-49 fattening (lambda(49)=42) and the remaining channel lambdas give lcm = 240. The ratio 1680/240 = 7.", "");
-  render_finding(g, "Full return = 214,414,200", "lcm(8,9,...,17) = 214,414,200", "The additive orbit period (when all 7 dots return to start simultaneously) equals the product of all moduli = 214,414,200. Carmichael lambda = 1680 is the multiplicative exponent (a^1680 = 1 for coprime a), not the additive return.", "TT29");
+  render_finding(g, "Period 1680 = 7 * 240", "1680 = 7 * lcm(2,6,20,10,12,16)", "The prime 7 contributes exactly one factor to the multiplicative exponent. Remove the mod-49 prime-power (lambda(49)=42) and the remaining channel lambdas give lcm = 240. The ratio 1680/240 = 7.", "");
+  render_finding(g, "Full return = 214,414,200", "lcm(8,9,...,17) = 214,414,200", "The additive orbit period (when all 7 dots return to start simultaneously) equals the product of all moduli = 214,414,200. Carmichael lambda = 1680 is the multiplicative exponent (a^1680 = 1 for coprime a), not the additive return.", "");
   dom_append(dom_body(), sec)
 )
 
@@ -343,7 +343,7 @@ fn sph_angmom() = (
 fn sph_detect() = (
   let sec = make_section("800px") in
   render_h2(sec, "Detection");
-  render_p(sec, "The mod-11 channel = the protector. 11 = 1 + 2 + 3 + 5. ECC3 triple parity uses all three parity channels (mod 11 + mod 13 + mod 17, rate 4/7). Any single-channel corruption is 100% detectable and correctable.");
+  render_p(sec, "The mod-11 channel detects errors. 11 = 1 + 2 + 3 + 5 (a parity checksum). ECC3 triple parity uses all three parity channels (mod 11 + mod 13 + mod 17, rate 4/7). Any single-channel corruption is 100% detectable and correctable.");
   render_p(sec, "Measured on ESP32: mod-11 channel injection detected at 100% rate. Phase-independent: 72/72 tests across all rotation phases, including all 7 channel wrap points. Time does not affect ECC detectability.");
   let g = make_findings_grid(sec) in
   render_finding(g, "100% single-channel detect", "Every injected error caught", "Mod-11 parity catches every single-channel error. The parity product 11*13*17 = 2431 exceeds 49^2 = 2401. Margin of 30 means no data-channel error can hide.", "");
@@ -355,7 +355,7 @@ fn sph_detect() = (
 fn sph_recover() = (
   let sec = make_section("800px") in
   render_h2(sec, "Recovery");
-  render_p(sec, "The mod-8 channel = the bridge. 2 = duality, involution, the -1 mirror. When corruption is detected, the -1 round-trip cancels it. The algebra: x + e becomes (N - x - e) + e = N - x becomes x. Two errors, two mirrors, perfect cancellation.");
+  render_p(sec, "The mod-8 channel carries the pair structure. When corruption is detected, the negation round-trip (n -> N-n) cancels it. The algebra: x + e becomes (N - x - e) + e = N - x becomes x. Two negations, perfect cancellation.");
   render_p(sec, "Measured on ESP32: mod-8 board injects mod-11 channel error (+1 mod 11) on every 5th packet. Hub detects, mirrors the corrupted value (N - corrupted), sends back. Mod-8 board applies same error on return, mirrors again. Result: 100% recovery (4/4 targeted tests).");
   let g = make_findings_grid(sec) in
   render_finding(g, "Round-trip recovery 4/4", "-1 theorem on radio", "corrupted = 116953202 (element 2 + e_11). mirror = 97460998. Return mod-11 +1 plus final mirror yields 2. Exact.", "");
@@ -366,7 +366,7 @@ fn sph_recover() = (
 fn sph_boundary() = (
   let sec = make_section("800px") in
   render_h2(sec, "Operational Boundary");
-  render_p(sec, "The mod-13 channel = the boundary between inside and outside. 13 = skin. Here: the boundary between auto-heal (1 error) and retransmit (2 errors). Exhaustive computation: 535 million 2-channel error patterns tested. Zero undetected.");
+  render_p(sec, "The mod-13 channel marks the boundary between auto-heal (1 error) and retransmit (2 errors). 13 = 2^2 + 3^2, where the Cunningham chain stops. Exhaustive computation: 535 million 2-channel error patterns tested. Zero undetected.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Error type");
@@ -388,15 +388,15 @@ fn sph_boundary() = (
 /* ===== HEARTBEAT STABILITY (heartbeat tower) ===== */
 fn sph_heartbeat() = (
   let sec = make_section("800px") in
-  render_h2(sec, "Heartbeat Stability");
-  render_p(sec, "The heartbeat fiber. Carmichael lambda = 1680 = the multiplicative exponent (a^1680 = 1 for all a coprime to 214,414,200). The heartbeat is not the spin period (that is 214,414,200) but the algebraic pulse of the unit group.");
+  render_h2(sec, "Lambda Stability");
+  render_p(sec, "Carmichael lambda = 1680 = the multiplicative exponent (a^1680 = 1 for all a coprime to 214,414,200). This is not the spin period (that is 214,414,200) but the algebraic period of the unit group.");
   render_p(sec, "The 24-hour drift test: 3 boards spinning continuously, stride=1. Hub captures angular momentum from both neighbors every 3 seconds. 51,738 packets total. Result: ang_mom = 34 for every single observation. Zero drift. Zero ECC failures.");
   render_p(sec, "The value 34 depends on boot timing: boards power on at different moments, creating a fixed CRT distance between their spinning phases. Same-stride constancy means this is provably step-independent: any boot offset giving 34 stays at 34 forever. Verified: test_drift.ax 62/62.");
-  render_p(sec, "Drift sensitivity: a single-beat drift (3 seconds) would change ang_mom from 34 to 33. Over 24 hours (28,800 beats), ang_mom stayed exactly 34. ESP32 clocks stable to within 3 seconds per 24 hours (< 35 ppm). CRT provides free clock monitoring with zero protocol overhead.");
+  render_p(sec, "Drift sensitivity: a single-step drift (3 seconds) would change ang_mom from 34 to 33. Over 24 hours (28,800 steps), ang_mom stayed exactly 34. ESP32 clocks stable to within 3 seconds per 24 hours (< 35 ppm). CRT provides free clock monitoring with zero protocol overhead.");
   let g = make_findings_grid(sec) in
   render_finding(g, "24h zero drift", "ang_mom=34, 51738 pkts", "25,827 from board 1, 25,911 from board 2. All at ang_mom = 34. Zero ECC failures. Zero calibration delta. The CRT structure IS the clock monitor.", "");
   render_finding(g, "30-min stability", "540/540 ang_mom=47", "Earlier 30-minute test: 1801 seconds, 840 clean packets, 0 natural ECC failures. Angular momentum constant at 47 throughout.", "");
-  render_finding(g, "Free clock monitoring", "ang_mom drift detector", "If clocks drift by delta beats, ang_mom shifts. Drift 0 gives 7, drift 1 gives 0, drift 5 gives 28. Any deviation from expected constant = drift detected. No GPS, no protocol overhead.", "");
+  render_finding(g, "Free clock monitoring", "ang_mom drift detector", "If clocks drift by delta steps, ang_mom shifts. Drift 0 gives 7, drift 1 gives 0, drift 5 gives 28. Any deviation from expected constant = drift detected. No GPS, no protocol overhead.", "");
   dom_append(dom_body(), sec)
 )
 
@@ -404,7 +404,7 @@ fn sph_heartbeat() = (
 fn sph_isolation() = (
   let sec = make_section("800px") in
   render_h2(sec, "Stride and Isolation");
-  render_p(sec, "The mod-17 channel = transcendence. 17 is the Z/214,414,200-exclusive channel (not in Z/12,612,600). All three parity channels (Z/11, Z/13, Z/17) are fields. When boards spin at different strides, angular momentum becomes step-dependent. The stride DIFFERENCE determines which channels are frozen.");
+  render_p(sec, "The mod-17 channel is exclusive to Z/214,414,200 (not in Z/12,612,600). All three parity channels (Z/11, Z/13, Z/17) are fields. When boards spin at different strides, angular momentum becomes step-dependent. The stride DIFFERENCE determines which channels are frozen.");
   render_h3(sec, "Stride Lock Theorem");
   render_p(sec, "gcd(stride_diff, q_i) = q_i freezes channel i. The mod-8 channel has modulus 8. Any stride difference divisible by 8 locks mod-8 at a constant angular momentum contribution. Three stride ratios tested on hardware (90 packets each):");
   let tbl = make_table(sec) in
@@ -415,7 +415,7 @@ fn sph_isolation() = (
   render_th(hdr, "mechanism");
   dom_append(tbl, hdr);
   render_table_row_4(tbl, "1:2", "33.00", "0.00", "No channel locked.");
-  render_table_row_4(tbl, "1:7 (depth)", "33.22", "+0.22", "Near-uniform mixing.");
+  render_table_row_4(tbl, "1:7", "33.22", "+0.22", "Near-uniform mixing.");
   render_table_row_4(tbl, "1:17", "35.08", "+2.08", "mod-8 locked (16 mod 8=0).");
   render_h3(sec, "Channel Isolation Hierarchy");
   render_p(sec, "Isolation stride for channel i = N/q_i. To observe ONLY one channel, spin at the stride that makes all others period-1. The ring hierarchy IS the isolation hierarchy:");
@@ -442,11 +442,11 @@ fn sph_isolation() = (
 fn sph_silicon() = (
   let sec = make_section("800px") in
   render_h2(sec, "Silicon");
-  render_p(sec, "The mod-9 channel = closure. 9 = the parallelism unit. The FPGA implementations prove the spinning structure on silicon, where the ring physically orbits at clock speed.");
+  render_p(sec, "The mod-9 channel runs on silicon. 9 = 3^2, the parallelism unit. The FPGA implementations prove the spinning structure on hardware, where the ring physically orbits at clock speed.");
   let g = make_findings_grid(sec) in
   render_finding(g, "9-stage pipeline at 267 MHz", "crt_k9_pipeline.v, 6555 LUT4 (31%)", "9-stage pipeline, 7 channels decomposed in parallel. Counter cycles 0 to 214,414,199 at 267 MHz. Full orbit in 0.8 seconds. The spinning counter IS the ring made physical on Tang Nano 20K.", "");
   render_finding(g, "ECC3 on silicon", "crt_k9_ecc.v V2, 1696 LUT4 (8%)", "88,200 syndrome checks at 27 MHz. Inject mod-49 +1, compute d+27000 mod 88200, check all 3 parity channels. 0 false negatives. All 6 LEDs ON = proof.", "");
-  render_finding(g, "CRT polyrhythm", "crt_polyrhythm.v, 196 cells", "6 LEDs = 6 channels of Z/12,612,600. Each LED shows cos(2*pi*r/q) sign at human-visible rate. mod-8 blinks at ~3.2 Hz, mod-49 at ~0.5 Hz. The depth prime IS the slowest orbit. 6 independent wrap-around counters (CRT isomorphism). The spinning sphere, visible to the eyes.", "");
+  render_finding(g, "CRT polyrhythm", "crt_polyrhythm.v, 196 cells", "6 LEDs = 6 channels of Z/12,612,600. Each LED shows cos(2*pi*r/q) sign at human-visible rate. mod-8 blinks at ~3.2 Hz, mod-49 at ~0.5 Hz. 7 IS the slowest orbit (49 states). 6 independent wrap-around counters (CRT isomorphism). The spinning sphere, visible to the eyes.", "");
   render_finding(g, "Angular momentum on FPGA", "crt_ang_mom.v, 710 cells (2.4%)", "Two spinning addresses (stride 1:2) on Z/214,414,200 torus. 14 wrap-around counters compute circular CRT distance every cycle. Proof phase sweeps all 214M addresses in ~8 seconds: min=0 (alignment), max=63 (all antipodal). Period-1680 sum: 55205/1680 = 32.86, matching ESP32.", "");
   render_finding(g, "Void pilots all layers", "0 mod q = 0 for all q", "Element 0 (void) has residue 0 in every channel. It sees every layer simultaneously. Void is the natural hub of the spinning structure.", "");
   dom_append(dom_body(), sec)
@@ -456,7 +456,7 @@ fn sph_silicon() = (
 fn sph_theorem_pointers() = (
   let sec = make_section("800px") in
   render_h2(sec, "Theorem Pointers");
-  render_p(sec, "The spinning-spheres canvas is backed by two theorems and the Gabriel-Horn anchor. STRUCTURAL analogs of Clay-Millennium statements, NOT Clay proofs = but the ring as capped horn is proved mathematics on the 108-ring heartbeat lattice.");
+  render_p(sec, "The spinning-spheres canvas is backed by two theorems and the Gabriel-Horn anchor. STRUCTURAL analogs of Clay-Millennium statements, NOT Clay proofs = but the ring as capped horn is proved mathematics on the 108-ring Carmichael-lambda lattice.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Anchor");
