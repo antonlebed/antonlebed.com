@@ -1,5 +1,5 @@
 /* page_demo_federated.ax -- CRT Federated Learning.
-   6 participants = 6 CRT channels. Block-diagonal. mod-11 poison detection. CC0. */
+   7 participants = 7 CRT channels. Block-diagonal. mod-11 poison detection. CC0. */
 
 /* Simple linear model: predict y = w*x mod m.
    Train on data points, return learned weight. */
@@ -29,17 +29,33 @@ fn train_channel(data_x, data_y, n, m) = (
   best_w
 )
 
-/* Generate training data: y = true_w * x mod N_TRUE, with optional poison */
+/* Modular multiply for CRT reconstruction. a is small (0-48), bb up to N-1. */
+fn fed_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
+)
+
+/* Generate training data: y = true_w * x mod N_TRANS, with optional poison */
 fn gen_data(n, true_w, seed, poison_pct) = (
   let xs = alloc(n) in
   let ys = alloc(n) in
   mut i = 0;
   while i < n do (
     let x = ((i + 1) * seed * 7919 + 1301) % 1000 + 1 in
-    let y = (true_w * x) % 12612600 in
+    let y = (true_w * x) % 214414200 in
     /* Poison: flip some y values */
     let h = ((i + 1) * seed * 13331 + 7) % 100 in
-    let y_final = if h < poison_pct then (y + 4206200) % 12612600 else y in
+    let y_final = if h < poison_pct then (y + 71471400) % 214414200 else y in
     set(xs, i, x);
     set(ys, i, y_final);
     mut i = i + 1
@@ -54,19 +70,18 @@ fn demo_federated_run() = (
   let seed = if seed_val == 0 then 137 else seed_val in
   let true_w = seed % 420 + 1 in /* true weight in lambda range */
   let n_points = 20 in
-  let mods = [8, 9, 25, 49, 11, 13] in
-  let names = ["m8", "m9", "m25", "m49", "m11", "m13"] in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
 
-  /* 6 participants each get their own data (different seeds) */
+  /* 7 participants each get their own data (different seeds) */
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
-  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT FEDERATED LEARNING: true weight = " + "${true_w}" + "</p>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT FEDERATED LEARNING (Z/214,414,200): true weight = " + "${true_w}" + "</p>";
 
   /* Each participant trains on their CRT channel */
-  let weights = alloc(6) in
-  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>PER-CHANNEL TRAINING (6 participants)</p>";
+  let weights = alloc(7) in
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>PER-CHANNEL TRAINING (7 participants)</p>";
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Participant</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Channel</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Mod</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Learned w</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>True w mod m</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Match</th></tr>";
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = mods[ch] in
     let data = gen_data(n_points, true_w, seed * (ch + 1), 0) in
     let xs = data[0] in
@@ -86,26 +101,32 @@ fn demo_federated_run() = (
     let match_str = if w == true_mod then "YES" else "no" in
     let match_color = if w == true_mod then "#44ff88" else "#ff6666" in
     let ch_color = if ch == 0 then "#ff6666" else if ch == 2 then "#ff6666" else if ch == 3 then "#ff6666" else "#44ff88" in
-    let ch_name = if ch == 0 then "m8" else if ch == 1 then "m9" else if ch == 2 then "m25" else if ch == 3 then "m49" else if ch == 4 then "m11" else "m13" in
+    let ch_name = if ch == 0 then "m8" else if ch == 1 then "m9" else if ch == 2 then "m25" else if ch == 3 then "m49" else if ch == 4 then "m11" else if ch == 5 then "m13" else "m17" in
     mut html = html + "<tr><td style='padding:3px 12px;color:" + ch_color + ";font-size:12px'>P" + "${ch}" + "</td><td style='padding:3px 12px;color:" + ch_color + ";font-size:12px'>" + ch_name + "</td><td style='padding:3px 12px;color:#888;font-size:12px'>" + "${m}" + "</td><td style='padding:3px 12px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${w}" + "</td><td style='padding:3px 12px;color:#888;font-size:12px'>" + "${true_mod}" + "</td><td style='padding:3px 12px;color:" + match_color + ";font-size:12px;font-weight:bold'>" + match_str + "</td></tr>";
     mut ch = ch + 1
   );
   mut html = html + "</table>";
 
-  /* CRT reconstruct global weight from 6 channel weights */
-  let e0 = 11036025 in let e1 = 1401400 in let e2 = 9585576 in
-  let e3 = 8494200 in let e4 = 3439800 in let e5 = 3880800 in
-  let global_w = (weights[0] * e0 + weights[1] * e1 + weights[2] * e2 + weights[3] * e3 + weights[4] * e4 + weights[5] * e5) % 12612600 in
+  /* CRT reconstruct global weight from 7 channel weights */
+  let nn = 214414200 in
+  let idem = [187612425, 190590400, 60035976, 109395000, 116953200, 16493400, 176576400] in
+  mut global_w = 0; mut ri = 0;
+  while ri < 7 do (
+    let term = fed_mulmod(weights[ri], idem[ri]) in
+    mut global_w = (global_w + term) % nn;
+    mut ri = ri + 1
+  );
+  let global_w = global_w in
   let match_global = if global_w == true_w then "EXACT MATCH" else "mismatch" in
   let g_color = if global_w == true_w then "#44ff88" else "#ff6666" in
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CRT AGGREGATION</p>";
   mut html = html + "<p style='color:" + g_color + ";font-size:20px;font-weight:bold;margin:4px 0'>Global weight: " + "${global_w}" + " -- " + match_global + "</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>True weight: " + "${true_w}" + ". CRT reconstructed from 6 independent channel weights.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>True weight: " + "${true_w}" + ". CRT reconstructed from 7 independent channel weights.</p>";
 
   /* Split analysis */
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>DATA / PARITY SPLIT</p>";
   mut html = html + "<p style='color:#ff6666;margin:4px 0'>Data channels {mod 8, mod 25, mod 49}: carry actual model parameters (weights " + "${weights[0]}" + "," + "${weights[2]}" + "," + "${weights[3]}" + ")</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>Parity channels {mod 9, mod 11, mod 13}: verify model integrity (weights " + "${weights[1]}" + "," + "${weights[4]}" + "," + "${weights[5]}" + ")</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>Parity channels {mod 9, mod 11, mod 13, mod 17}: verify model integrity (weights " + "${weights[1]}" + "," + "${weights[4]}" + "," + "${weights[5]}" + "," + "${weights[6]}" + ")</p>";
   mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Privacy by algebra: participants share only their channel's tiny weight (0-48 max), not the full model.</p>";
 
   mut html = html + "</div>";
@@ -117,11 +138,11 @@ fn demo_federated_poison() = (
   let result_el = dom_query("#dfed-poison") in
   let true_w = 137 in
   let n_points = 20 in
-  let mods = [8, 9, 25, 49, 11, 13] in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
   /* Train with clean data */
-  let clean_w = alloc(6) in
+  let clean_w = alloc(7) in
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = mods[ch] in
     let data = gen_data(n_points, true_w, 42 * (ch + 1), 0) in
     let ch_x = alloc(n_points) in
@@ -135,12 +156,12 @@ fn demo_federated_poison() = (
     set(clean_w, ch, train_channel(ch_x, ch_y, n_points, m));
     mut ch = ch + 1
   );
-  /* Train with poisoned L channel (participant 4) */
-  let poison_w = alloc(6) in
+  /* Train with poisoned mod-11 channel (participant 4) */
+  let poison_w = alloc(7) in
   mut ch2 = 0;
-  while ch2 < 6 do (
+  while ch2 < 7 do (
     let m = mods[ch2] in
-    let poison_pct = if ch2 == 4 then 80 else 0 in /* poison L channel */
+    let poison_pct = if ch2 == 4 then 80 else 0 in /* poison mod-11 channel */
     let data = gen_data(n_points, true_w, 42 * (ch2 + 1), poison_pct) in
     let ch_x = alloc(n_points) in
     let ch_y = alloc(n_points) in
@@ -159,10 +180,10 @@ fn demo_federated_poison() = (
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Channel</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Clean w</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Poisoned w</th><th style='padding:4px 12px;color:#ffd700;font-size:11px;text-align:left'>Status</th></tr>";
   mut ch3 = 0;
   mut detected = 0;
-  while ch3 < 6 do (
+  while ch3 < 7 do (
     let cw = clean_w[ch3] in
     let pw = poison_w[ch3] in
-    let ch_name = if ch3 == 0 then "m8" else if ch3 == 1 then "m9" else if ch3 == 2 then "m25" else if ch3 == 3 then "m49" else if ch3 == 4 then "m11" else "m13" in
+    let ch_name = if ch3 == 0 then "m8" else if ch3 == 1 then "m9" else if ch3 == 2 then "m25" else if ch3 == 3 then "m49" else if ch3 == 4 then "m11" else if ch3 == 5 then "m13" else "m17" in
     let is_diff = if cw != pw then 1 else 0 in
     if is_diff == 1 then (mut detected = detected + 1) else 0;
     let status = if is_diff == 1 then "POISONED" else "clean" in
@@ -178,8 +199,8 @@ fn demo_federated_poison() = (
 )
 
 fn page_federated() = (
-  dom_head_meta("description", "CRT Federated Learning. 6 participants = 6 CRT channels. Block-diagonal gradient isolation. Mod-11 poison detection. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Federated Learning\",\"description\":\"6-channel CRT-decomposed federated learning over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/federated\"}");
+  dom_head_meta("description", "CRT Federated Learning. 7 participants = 7 CRT channels over Z/214,414,200. Block-diagonal gradient isolation. Mod-11 poison detection. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Federated Learning\",\"description\":\"7-channel CRT-decomposed federated learning over Z/214414200. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/federated\"}");
   let hero = make_hero("CRT Federated Learning") in
   let eq = dom_create("div") in
   dom_text(eq, "Google/Apple FL patents. CC0 alternative.");
@@ -189,23 +210,23 @@ fn page_federated() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Federated learning trains models across distributed participants without sharing raw data. Standard FL aggregates full model updates (expensive, gradient leakage risk). CRT FL: each participant trains one channel. Aggregation = CRT reconstruction. The mod-11 channel gives free poison detection. Block-diagonal: zero cross-participant gradient leakage. Privacy by algebra, not by protocol.");
+  render_p(hero, "Federated learning trains models across distributed participants without sharing raw data. Standard FL aggregates full model updates (expensive, gradient leakage risk). CRT FL: each of 7 participants trains one channel. Aggregation = CRT reconstruction. Four parity channels (mod 9, 11, 13, 17) give free poison detection. Block-diagonal: zero cross-participant gradient leakage. Privacy by algebra, not by protocol.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Federated Theorem", "6 participants each train a model on their private data, but each only learns the weight in one CRT channel (mod 8, 9, 25, 49, 11, or 13). The server collects 6 tiny channel weights and CRT-reconstructs the global model. Each participant sees at most 49 distinct values (the largest modulus). No participant ever sees the full model. Three data channels (mod 8, 25, 49) carry model parameters; three parity channels (mod 9, 11, 13) verify integrity.");
+  render_theorem(sec1, "CRT Federated Theorem", "7 participants each train a model on their private data, but each only learns the weight in one CRT channel (mod 8, 9, 25, 49, 11, 13, or 17). The server collects 7 tiny channel weights and CRT-reconstructs the global model. Each participant sees at most 49 distinct values (the largest modulus). No participant ever sees the full model. Three data channels (mod 8, 25, 49) carry model parameters; four parity channels (mod 9, 11, 13, 17) verify integrity.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "6 participants", "6 CRT channels", "Each trains independently on private data. Shares only a tiny weight.", "");
+  render_finding(g1, "7 participants", "7 CRT channels", "Each trains independently on private data. Shares only a tiny weight.", "");
   render_finding(g1, "Block-diagonal", "Zero gradient leak", "Poisoning one channel cannot affect another. Algebraic firewall.", "");
-  render_finding(g1, "mod-11 detection", "Free poison check", "Corrupted participant's weight deviates from expected mod-11 residue.", "");
-  render_finding(g1, "Data + parity", "3 + 3 split", "3 data channels carry the model. 3 parity channels verify integrity.", "");
+  render_finding(g1, "Quad parity", "Free poison check", "mod-9, mod-11, mod-13, mod-17 channels detect corrupted participants.", "");
+  render_finding(g1, "Data + parity", "3 + 4 split", "3 data channels carry the model. 4 parity channels verify integrity.", "");
   dom_append(dom_body(), sec1);
 
   let sec2 = make_section("900px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Seed (sets true weight):", "dfed-input", "e.g. 137", "Train", "demo_federated_run", "dfed-result");
-  render_p(sec2, "6 participants each learn their channel's weight from private data. CRT reconstructs the global model. All 6 match = exact reconstruction.");
+  render_p(sec2, "7 participants each learn their channel's weight from private data. CRT reconstructs the global model. All 7 match = exact reconstruction.");
   dom_append(dom_body(), sec2);
 
   let sec2b = make_section("900px") in
@@ -230,11 +251,11 @@ fn page_federated() = (
 
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT FL vs Standard Federated Learning");
-  render_contrast_row(sec3, "Aggregation", "FedAvg: weighted average of full model updates", "CRT: reconstruct from 6 tiny channel weights");
-  render_contrast_row(sec3, "Communication", "Full gradient vectors (millions of params)", "6 integers (max value 48). Minimal.");
+  render_contrast_row(sec3, "Aggregation", "FedAvg: weighted average of full model updates", "CRT: reconstruct from 7 tiny channel weights");
+  render_contrast_row(sec3, "Communication", "Full gradient vectors (millions of params)", "7 integers (max value 48). Minimal.");
   render_contrast_row(sec3, "Privacy", "Gradient leakage attacks possible", "Block-diagonal: zero cross-channel gradient access");
   render_contrast_row(sec3, "Poison detection", "Requires separate anomaly detection system", "mod-11 deviation = instant free detection");
-  render_contrast_row(sec3, "Fault tolerance", "One bad participant corrupts whole model", "One bad channel = 1/6 of model. Others unaffected.");
+  render_contrast_row(sec3, "Fault tolerance", "One bad participant corrupts whole model", "One bad channel = 1/7 of model. Others unaffected.");
   render_contrast_row(sec3, "Patent status", "Google (on-device), Apple (differential privacy FL)", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
 )

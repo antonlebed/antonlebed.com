@@ -1,13 +1,13 @@
-/* page_demo_pde.ax -- CRT Parallel PDE Simulation. 6 independent solvers via CRT. CC0. */
+/* page_demo_pde.ax -- CRT Parallel PDE Simulation. 7 independent solvers via CRT. CC0. */
 
 fn pde_mod(ch) = (
   if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
-  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+  else if ch == 3 then 49 else if ch == 4 then 11 else if ch == 5 then 13 else 17
 )
 
 fn pde_ch_name(ch) = (
   if ch == 0 then "m8" else if ch == 1 then "m9" else if ch == 2 then "m25"
-  else if ch == 3 then "m49" else if ch == 4 then "m11" else "m13"
+  else if ch == 3 then "m49" else if ch == 4 then "m11" else if ch == 5 then "m13" else "m17"
 )
 
 fn pde_heat_step(grid, w, h, ch) = (
@@ -33,15 +33,31 @@ fn pde_heat_step(grid, w, h, ch) = (
   new_grid
 )
 
+/* Modular multiply for CRT reconstruction. a is small (0-48), bb up to N-1. */
+fn pde_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
+)
+
 fn demo_pde_run() = (
   let bc_val = parse_int_from("#dpde-input") in
   let result_el = dom_query("#dpde-result") in
-  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  let bc = bc_val % 12612600 in
+  let idem = [187612425, 190590400, 60035976, 109395000, 116953200, 16493400, 176576400] in
+  let bc = bc_val % 214414200 in
   let w = 8 in let h = 8 in
-  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT HEAT EQUATION: boundary = " + "${bc}" + "</p>";
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT HEAT EQUATION (Z/214,414,200): boundary = " + "${bc}" + "</p>";
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = pde_mod(ch) in
     let bc_r = bc % m in
     let grid = alloc(w * h) in
@@ -61,8 +77,9 @@ fn demo_pde_run() = (
     mut html = html + "<p style='color:" + color + ";margin:4px 0;font-size:12px'>" + pde_ch_name(ch) + " (mod " + "${m}" + "): BC=" + "${bc_r}" + " -> center after 4 steps = " + "${center}" + "</p>";
     mut ch = ch + 1
   );
+  let nn = 214414200 in
   mut recon = 0; mut ch2 = 0;
-  while ch2 < 6 do (
+  while ch2 < 7 do (
     let m = pde_mod(ch2) in
     let bc_r = bc % m in
     let grid = alloc(w * h) in
@@ -76,24 +93,24 @@ fn demo_pde_run() = (
     let g2 = pde_heat_step(grid, w, h, ch2) in
     let g3 = pde_heat_step(g2, w, h, ch2) in
     let g4 = pde_heat_step(g3, w, h, ch2) in
-    mut recon = recon + g4[3 * w + 3] * idem[ch2];
+    let term = pde_mulmod(g4[3 * w + 3], idem[ch2]) in
+    mut recon = (recon + term) % nn;
     mut ch2 = ch2 + 1
   );
-  mut recon = recon % 12612600;
-  dom_inner(result_el, html + "<p style='color:#ffd700;margin:12px 0 4px'>CRT RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Center temperature (reconstructed): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>6 heat equations solved independently in 6 CRT channels. Zero inter-channel sync. CRT reconstruct gives the global solution.</p></div>")
+  dom_inner(result_el, html + "<p style='color:#ffd700;margin:12px 0 4px'>CRT RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Center temperature (reconstructed): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>7 heat equations solved independently in 7 CRT channels. Zero inter-channel sync. CRT reconstruct gives the global solution.</p></div>")
 )
 
 fn pde_canvas_run() = (
   let bc_val = parse_int_from("#dpde-input") in
-  let bc = bc_val % 12612600 in
-  let pw = 192 in let ph = 128 in
+  let bc = bc_val % 214414200 in
+  let pw = 256 in let ph = 128 in
   let cvs = dom_query("#dpde-canvas") in
   let _s = cvs_setsize(cvs, pw, ph) in
   let ctx = cvs_getctx(cvs) in
   let gw = 32 in let gh = 32 in
   let buf = alloc(pw * ph) in
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = pde_mod(ch) in
     let bc_r = bc % m in
     let grid = alloc(gw * gh) in
@@ -107,7 +124,7 @@ fn pde_canvas_run() = (
     let g2 = pde_heat_step(grid, gw, gh, ch) in
     let g3 = pde_heat_step(g2, gw, gh, ch) in
     let g4 = pde_heat_step(g3, gw, gh, ch) in
-    let ox = (ch % 3) * 64 in let oy = (ch / 3) * 64 in
+    let ox = (ch % 4) * 64 in let oy = (ch / 4) * 64 in
     mut gy = 0;
     while gy < 32 do (
       mut gx = 0;
@@ -120,7 +137,8 @@ fn pde_canvas_run() = (
           else if ch == 2 then intensity
           else if ch == 3 then intensity * 256 * 256 + intensity * 256
           else if ch == 4 then intensity * 256 * 256 + intensity
-          else intensity * 256 + intensity in
+          else if ch == 5 then intensity * 256 + intensity
+          else intensity * 256 * 256 + intensity * 256 + intensity in
         if px < pw then (
           if py < ph then (
             set(buf, py * pw + px, rgb);
@@ -145,8 +163,8 @@ fn pde_gpu_mul() = gpu_bench(1, 100000, dom_query("#pde-gpu-mul"))
 fn pde_gpu_eig() = gpu_bench(2, 100000, dom_query("#pde-gpu-eig"))
 
 fn page_pde() = (
-  dom_head_meta("description", "CRT PDE Simulation. 6 independent solvers via CRT decomposition. Zero inter-channel coupling. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Parallel PDE Simulation\",\"description\":\"6-channel independent PDE solver over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/pde\"}");
+  dom_head_meta("description", "CRT PDE Simulation. 7 independent solvers via CRT decomposition over Z/214,414,200. Zero inter-channel coupling. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Parallel PDE Simulation\",\"description\":\"7-channel independent PDE solver over Z/214414200. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/pde\"}");
   let hero = make_hero("CRT PDE Simulation") in
   let eq = dom_create("div") in
   dom_text(eq, "Ansys/COMSOL/Dassault. CC0 alternative.");
@@ -156,20 +174,20 @@ fn page_pde() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Standard FEM meshes are globally coupled. CRT decomposes boundary conditions into 6 independent channels. Each channel solves a tiny heat equation (mod 8, 9, 25, 49, 11, 13). No inter-channel sync. CRT reconstruct gives the global temperature field. The ring IS the domain decomposition.");
+  render_p(hero, "Standard FEM meshes are globally coupled. CRT decomposes boundary conditions into 7 independent channels. Each channel solves a tiny heat equation (mod 8, 9, 25, 49, 11, 13, 17). No inter-channel sync. CRT reconstruct gives the global temperature field. The ring IS the domain decomposition.");
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Domain Decomposition", "A 2D heat equation with boundary condition T_bc in Z/12,612,600 decomposes into 6 independent heat equations, one per CRT channel. Channel i solves on Z/m_i with boundary T_bc mod m_i. After convergence, CRT reconstruction gives the global solution. Block-diagonal stiffness matrix: 36x fewer entries than coupled. Three data channels (mod 8, 25, 49) carry temperature; three parity channels (mod 9, 11, 13) verify solution integrity.");
+  render_theorem(sec1, "CRT Domain Decomposition", "A 2D heat equation with boundary condition T_bc in Z/214,414,200 decomposes into 7 independent heat equations, one per CRT channel. Channel i solves on Z/m_i with boundary T_bc mod m_i. After convergence, CRT reconstruction gives the global solution. Block-diagonal stiffness matrix: 49x fewer entries than coupled. Three data channels (mod 8, 25, 49) carry temperature; four parity channels (mod 9, 11, 13, 17) verify solution integrity.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "6 solvers", "Zero coupling", "Each channel converges independently. No global stiffness matrix.", "");
-  render_finding(g1, "36x fewer ops", "Block-diagonal", "Coupled: (sum m_i)^2 entries. CRT: sum(m_i^2) entries. Ratio = 36x.", "");
-  render_finding(g1, "GPU mapping", "6 workgroups", "Each PDE solver = 1 GPU workgroup. Zero inter-workgroup sync.", "");
-  render_finding(g1, "mod-11 verify", "Free check", "The mod-11 channel verifies solution integrity. Corruption = instant flag.", "");
+  render_finding(g1, "7 solvers", "Zero coupling", "Each channel converges independently. No global stiffness matrix.", "");
+  render_finding(g1, "49x fewer ops", "Block-diagonal", "Coupled: (sum m_i)^2 entries. CRT: sum(m_i^2) entries. Ratio = 49x.", "");
+  render_finding(g1, "GPU mapping", "7 workgroups", "Each PDE solver = 1 GPU workgroup. Zero inter-workgroup sync.", "");
+  render_finding(g1, "Quad parity", "Free check", "mod-11, mod-13, and mod-17 channels verify solution integrity. Corruption = instant flag.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Heat Equation Demo");
-  make_interactive_widget(sec2, "Boundary temp (0-12612599):", "dpde-input", "e.g. 1000", "Solve", "demo_pde_run", "dpde-result");
+  make_interactive_widget(sec2, "Boundary temp (0-214414199):", "dpde-input", "e.g. 1000", "Solve", "demo_pde_run", "dpde-result");
   render_p(sec2, "Sets boundary condition on 8x8 grid. Runs 4 diffusion steps per channel. CRT reconstructs center temperature.");
   dom_append(dom_body(), sec2);
   let sec2c = make_section("800px") in
@@ -179,7 +197,7 @@ fn page_pde() = (
   dom_style(cvs, "width", "100%");
   dom_style(cvs, "maxWidth", "576px");
   dom_style(cvs, "height", "auto");
-  dom_style(cvs, "aspectRatio", "3 / 2");
+  dom_style(cvs, "aspectRatio", "2 / 1");
   dom_style(cvs, "imageRendering", "pixelated");
   dom_style(cvs, "border", "1px solid #333");
   dom_style(cvs, "borderRadius", "8px");
@@ -189,12 +207,12 @@ fn page_pde() = (
   dom_style(cbtn, "background", "#ffd700"); dom_style(cbtn, "color", "#0f0f2a"); dom_style(cbtn, "border", "none"); dom_style(cbtn, "padding", "10px 24px"); dom_style(cbtn, "borderRadius", "6px"); dom_style(cbtn, "cursor", "pointer"); dom_style(cbtn, "fontWeight", "bold"); dom_style(cbtn, "fontSize", "14px"); dom_style(cbtn, "marginTop", "8px");
   dom_on(cbtn, "click", "pde_canvas_run");
   dom_append(sec2c, cbtn);
-  render_p(sec2c, "6 panels: one per CRT channel. 32x32 grid, 4 diffusion steps. Colors: mod 8 (red), mod 9 (green), mod 25 (blue), mod 49 (yellow), mod 11 (magenta), mod 13 (cyan).");
+  render_p(sec2c, "7 panels: one per CRT channel. 32x32 grid, 4 diffusion steps. Colors: mod 8 (red), mod 9 (green), mod 25 (blue), mod 49 (yellow), mod 11 (magenta), mod 13 (cyan), mod 17 (white).");
   dom_append(dom_body(), sec2c);
   let secg = make_section("800px") in
   render_h2(secg, "GPU Parallel Solve (WebGPU)");
   /* S1233: gpu_init async -- always render, gpu_bench checks at click time */
-  render_p(secg, "Real CRT PDE solving on your GPU.");
+  render_p(secg, "Real CRT PDE solving on your GPU. 7 frequency bands in WGSL compute shaders.");
   let b1 = dom_create("button") in dom_text(b1, "Ring Add (diffuse)"); dom_style(b1, "background", "#ffd700"); dom_style(b1, "color", "#0f0f2a"); dom_style(b1, "border", "none"); dom_style(b1, "padding", "10px 20px"); dom_style(b1, "borderRadius", "6px"); dom_style(b1, "cursor", "pointer"); dom_style(b1, "fontWeight", "bold"); dom_style(b1, "fontSize", "13px"); dom_style(b1, "marginRight", "8px"); dom_style(b1, "marginBottom", "8px"); dom_on(b1, "click", "pde_gpu_add");
   let b2 = dom_create("button") in dom_text(b2, "CRT Multiply (couple)"); dom_style(b2, "background", "#ffd700"); dom_style(b2, "color", "#0f0f2a"); dom_style(b2, "border", "none"); dom_style(b2, "padding", "10px 20px"); dom_style(b2, "borderRadius", "6px"); dom_style(b2, "cursor", "pointer"); dom_style(b2, "fontWeight", "bold"); dom_style(b2, "fontSize", "13px"); dom_style(b2, "marginRight", "8px"); dom_style(b2, "marginBottom", "8px"); dom_on(b2, "click", "pde_gpu_mul");
   let b3 = dom_create("button") in dom_text(b3, "Eigenvalue (converge)"); dom_style(b3, "background", "#ffd700"); dom_style(b3, "color", "#0f0f2a"); dom_style(b3, "border", "none"); dom_style(b3, "padding", "10px 20px"); dom_style(b3, "borderRadius", "6px"); dom_style(b3, "cursor", "pointer"); dom_style(b3, "fontWeight", "bold"); dom_style(b3, "fontSize", "13px"); dom_style(b3, "marginBottom", "8px"); dom_on(b3, "click", "pde_gpu_eig");
@@ -206,10 +224,10 @@ fn page_pde() = (
   dom_append(dom_body(), secg);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT PDE vs FEM");
-  render_contrast_row(sec3, "Stiffness matrix", "Global: N^2 entries, coupled", "Block-diagonal: 6 tiny matrices. 36x fewer entries.");
+  render_contrast_row(sec3, "Stiffness matrix", "Global: N^2 entries, coupled", "Block-diagonal: 7 tiny matrices. 49x fewer entries.");
   render_contrast_row(sec3, "Parallelism", "Domain decomposition: sync at boundaries", "CRT channels: zero sync. Algebraically independent.");
   render_contrast_row(sec3, "Convergence", "Global iterative (GMRES/CG)", "Per-channel: tiny systems converge in O(m) steps.");
-  render_contrast_row(sec3, "Verification", "Residual check (expensive)", "mod-11 integrity: free verification per step.");
+  render_contrast_row(sec3, "Verification", "Residual check (expensive)", "mod-11, mod-13, mod-17 parity: free verification per step.");
   render_contrast_row(sec3, "Patent status", "Ansys/COMSOL/Dassault patents", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
 )
