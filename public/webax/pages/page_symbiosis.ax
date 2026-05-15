@@ -1,18 +1,14 @@
 /* ================================================================
-   PAGE: SYMBIOSIS -- 64-Vertex Lattice, Kingdom Combinations (SYMBIOSIS.md)
+   PAGE: SYMBIOSIS -- 128-Vertex Lattice, 7-Cube Symbiosis (SYMBIOSIS.md)
    ================================================================ */
 
-/* symbiosis widget: enter subset code (sum of primes), compute coupling */
+/* symbiosis widget: enter subset code (7-bit mask), compute coupling in TRANS */
 fn symbiosis_calc() = (
   let code = parse_int_from("#symb-input") in
   let result = dom_query("#symb-result") in
-  /* decode: user enters sum of primes in subset. e.g. 5 = {D,K}, 10 = {K,b}, 28 = {D,K,E,b,L} */
-  /* compute which primes are present */
-  mut rem = code;
-  let hasL = if rem > 10 then (if rem % 11 == 0 then 1 else (if rem - 11 > 0 then (let r2 = rem - 11 in if r2 == 0 then 1 else 0) else 0)) else 0 in
-  /* 6-bit bitmask: bit0=D, bit1=K, bit2=E, bit3=b, bit4=L, bit5=GATE */
-  if code < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-63 (6-bit mask: 2=1,3=2,5=4,7=8,11=16,13=32).</p>")
-  else if code > 63 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-63 (6-bit mask: 2=1,3=2,5=4,7=8,11=16,13=32).</p>")
+  /* 7-bit bitmask: bit0=2, bit1=3, bit2=5, bit3=7, bit4=11, bit5=13, bit6=17 */
+  if code < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-127 (7-bit mask: 2=1, 3=2, 5=4, 7=8, 11=16, 13=32, 17=64).</p>")
+  else if code > 127 then dom_inner(result, "<p style='color:#ff6666'>Enter 0-127 (7-bit mask: 2=1, 3=2, 5=4, 7=8, 11=16, 13=32, 17=64).</p>")
   else (
     let hasD = code % 2 in
     let hasK = (code / 2) % 2 in
@@ -20,23 +16,17 @@ fn symbiosis_calc() = (
     let hasb = (code / 8) % 2 in
     let hasL2 = (code / 16) % 2 in
     let hasG = (code / 32) % 2 in
+    let has17 = (code / 64) % 2 in
     /* coupling = N / prod(p^a for p in subset) */
-    /* N = 12612600 = 8 * 9 * 25 * 49 * 11 * 13 */
-    mut coupling = 12612600;
+    /* N = 214414200 = 8 * 9 * 25 * 49 * 11 * 13 * 17 */
+    mut coupling = 214414200;
     if hasD > 0 then (mut coupling = coupling / 8) else 0;
     if hasK > 0 then (mut coupling = coupling / 9) else 0;
     if hasE > 0 then (mut coupling = coupling / 25) else 0;
     if hasb > 0 then (mut coupling = coupling / 49) else 0;
     if hasL2 > 0 then (mut coupling = coupling / 11) else 0;
     if hasG > 0 then (mut coupling = coupling / 13) else 0;
-    /* population = N * prod((1-1/p)) for included primes */
-    mut popn = 12612600;
-    if hasD > 0 then (mut popn = popn / 8 * 4) else 0;
-    if hasK > 0 then (mut popn = popn / 9 * 6) else 0;
-    if hasE > 0 then (mut popn = popn / 25 * 20) else 0;
-    if hasb > 0 then (mut popn = popn / 49 * 42) else 0;
-    if hasL2 > 0 then (mut popn = popn / 11 * 10) else 0;
-    if hasG > 0 then (mut popn = popn / 13 * 12) else 0;
+    if has17 > 0 then (mut coupling = coupling / 17) else 0;
     /* build subset string */
     mut sstr = "{";
     mut cnt = 0;
@@ -46,12 +36,13 @@ fn symbiosis_calc() = (
     if hasb > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "7"; mut cnt = cnt + 1) else 0;
     if hasL2 > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "11"; mut cnt = cnt + 1) else 0;
     if hasG > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "13"; mut cnt = cnt + 1) else 0;
+    if has17 > 0 then (if cnt > 0 then (mut sstr = sstr + ",") else 0; mut sstr = sstr + "17"; mut cnt = cnt + 1) else 0;
     mut sstr = sstr + "}";
     if cnt == 0 then (mut sstr = "{} (unit class)") else 0;
     /* what you SEE = complement coupling */
-    let see_coupling = 12612600 / coupling in
+    let see_coupling = 214414200 / coupling in
     let blind_str = if cnt == 0 then "Everything (full vision)"
-      else if cnt == 6 then "Nothing (total self-blindness)"
+      else if cnt == 7 then "Nothing (total self-blindness)"
       else "Coupling of complement = " + "${see_coupling}" in
     dom_inner(result,
       "<p style='color:#d8d8e0;margin:4px 0'>Null channels: <span style='color:#ffd700'>" + sstr + "</span></p>"
@@ -69,30 +60,32 @@ fn symbiosis_hero() = (
   ct_gold(eq);
   dom_style(eq, "marginBottom", "24px");
   dom_append(hero, eq);
-  render_p(hero, "Every element of Z/12,612,600 is already a 6-tuple: (n mod 8, n mod 9, n mod 25, n mod 49, n mod 11, n mod 13). CRT says every number is six independent things at once. The 2^6 = 64 subsets of {2,3,5,7,11,13} define 64 types. Each element is blind to the channels it nullifies and sees the channels it lacks.");
-  render_p(hero, "For subset S (the primes dividing an element): coupling = N / prod_S(p^a). Coupling measures interaction range. What an element is made of, it cannot perceive. Units ({}, coupling N) see everything. The origin ({2,3,5,7,11,13}, coupling 1) sees nothing.");
+  render_p(hero, "Every element of Z/214,414,200 is a 7-tuple: (n mod 8, n mod 9, n mod 25, n mod 49, n mod 11, n mod 13, n mod 17). CRT says every number is seven independent things at once. The 2^7 = 128 subsets of {2,3,5,7,11,13,17} define 128 symbiosis types. Each element is blind to the channels it nullifies and sees the channels it lacks.");
+  render_p(hero, "For subset S (the primes dividing an element): coupling = N / prod_S(p^a). Coupling measures interaction range. What an element is made of, it cannot perceive. Units ({}, coupling N) see everything. The origin ({2,3,5,7,11,13,17}, coupling 1) sees nothing.");
   dom_append(dom_body(), hero)
 )
 
 fn symbiosis_lattice() = (
   let sec = make_section("800px") in
-  render_h2(sec, "The 64-Vertex Lattice");
-  render_p(sec, "64 vertices of a 6-cube. Bottom = {} (unit class, all channels active). Top = {2,3,5,7,11,13} (origin, all null). Each level k has C(6,k) = {1,6,15,20,15,6,1} vertices. 490 = 2*5*49 partitions the primes: inner {2,5,7} carry data, outer {3,11,13} carry structure.");
+  render_h2(sec, "The 128-Vertex Lattice");
+  render_p(sec, "128 vertices of a 7-cube. Bottom = {} (unit class, all channels active). Top = {2,3,5,7,11,13,17} (origin, all null). Each level k has C(7,k) = {1,7,21,35,35,21,7,1} vertices. 490 = 2*5*49 partitions the primes: inner {2,5,7} carry data (3 channels), outer {3,11,13,17} carry structure (4 channels). 3 + 4 = 7.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Class");
   render_th(hdr, "Null channels");
-  render_th(hdr, "Z/12,612,600 coupling");
-  render_th(hdr, "Z/12,612,600 population");
+  render_th(hdr, "Coupling");
+  render_th(hdr, "Population");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "Unit", "{}", "12,612,600", "2,419,200 = phi(N)");
-  render_table_row_4(tbl, "2-class", "{2}", "1,576,575 = N/8", "2,419,200");
-  render_table_row_4(tbl, "3-class", "{3}", "1,401,400 = N/9", "806,400");
-  render_table_row_4(tbl, "5-class", "{5}", "504,504 = N/25", "483,840");
-  render_table_row_4(tbl, "7-class", "{7}", "257,400 = N/49", "345,600");
-  render_table_row_4(tbl, "11-class", "{11}", "1,146,600 = N/11", "241,920");
-  render_table_row_4(tbl, "13-class", "{13}", "970,200 = N/13 = Z/970,200", "201,600");
-  render_p(sec, "Zero internal connectivity: no class has internal edges. Each class is an isolated point cloud. Communication requires passing through OTHER classes. Elements of the same class never share an edge -- they interact only through elements of different classes.");
+  render_table_row_4(tbl, "Unit", "{}", "214,414,200", "38,707,200 = phi(N)");
+  render_table_row_4(tbl, "2-class", "{2}", "26,801,775 = N/8", "9,676,800");
+  render_table_row_4(tbl, "3-class", "{3}", "23,823,800 = N/9", "6,451,200");
+  render_table_row_4(tbl, "5-class", "{5}", "8,576,568 = N/25", "1,935,360");
+  render_table_row_4(tbl, "7-class", "{7}", "4,375,800 = N/49", "921,600");
+  render_table_row_4(tbl, "11-class", "{11}", "19,492,200 = N/11", "3,870,720");
+  render_table_row_4(tbl, "13-class", "{13}", "16,493,400 = N/13", "3,225,600");
+  render_table_row_4(tbl, "17-class", "{17}", "12,612,600 = N/17", "2,419,200 = phi(N/17)");
+  render_p(sec, "The 17-class has coupling exactly equal to the 6-channel ring Z/12,612,600. Its population (2,419,200) equals the unit count of that smaller ring. Elements divisible by 17 but coprime to all other primes: they see six channels but are blind to the seventh.");
+  render_p(sec, "Zero internal connectivity: no class has internal edges. Communication requires passing through OTHER classes.");
   dom_append(dom_body(), sec)
 )
 
@@ -100,12 +93,12 @@ fn symbiosis_key() = (
   let sec = make_section("800px") in
   render_h2(sec, "Key Symbioses");
   let g = make_findings_grid(sec) in
-  render_finding(g, "{3,5} pair", "coupling 56,056 = 8*49*11*13", "Mod-9 + mod-25 channels null. Sees 2, 7, 11, 13.", "");
-  render_finding(g, "{3,7} pair", "coupling 28,600 = 8*25*11*13", "Mod-9 + mod-49 channels null. Sees 2, 5, 11, 13.", "");
-  render_finding(g, "{3,5,7} triple", "coupling 1,144 = 8*11*13", "Three inner channels null. Sees only 2 + 11 + 13. N = 1,144 * 105^2.", "");
-  render_finding(g, "{2,3,5} triple", "coupling 7,007 = 49*11*13", "Mod-8 + mod-9 + mod-25 null. Sees 7, 11, 13.", "");
-  render_finding(g, "{2,3} pair", "coupling 175,175 = 25*49*11*13", "Mod-8 + mod-9 null. Highest coupling multi-prime compound class.", "");
-  render_finding(g, "Full set {all 6}", "coupling 1", "Divisible by all 6 primes. All channels null. Population: ONE (n=0 only).", "");
+  render_finding(g, "{3,5} pair", "coupling 952,952 = 8*49*11*13*17", "Mod-9 + mod-25 null. Sees 2, 7, 11, 13, 17.", "");
+  render_finding(g, "{3,7} pair", "coupling 486,200 = 8*25*11*13*17", "Mod-9 + mod-49 null. Sees 2, 5, 11, 13, 17.", "");
+  render_finding(g, "{3,5,7} triple", "coupling 19,448 = 8*11*13*17", "Three inner channels null. Sees only 2, 11, 13, 17.", "");
+  render_finding(g, "{2,3,5} triple", "coupling 119,119 = 49*11*13*17", "Mod-8, mod-9, mod-25 null. Sees 7, 11, 13, 17.", "");
+  render_finding(g, "{2,3} pair", "coupling 2,977,975 = 25*49*11*13*17", "Mod-8 + mod-9 null. Highest coupling multi-prime pair.", "");
+  render_finding(g, "Full set {all 7}", "coupling 1", "Divisible by all 7 primes. All channels null. Population: ONE (n=0 only).", "");
   dom_append(dom_body(), sec)
 )
 
@@ -120,17 +113,18 @@ fn symbiosis_bridge() = (
 fn symbiosis_blindness() = (
   let sec = make_section("800px") in
   render_h2(sec, "Channel Nullification");
-  render_p(sec, "Remove one prime from the full set {2,3,5,7,11,13}. The coupling of the incomplete configuration IS the prime it lacks:");
+  render_p(sec, "Remove one prime from the full set {2,3,5,7,11,13,17}. The coupling of the incomplete configuration IS the prime it lacks:");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Missing");
   render_th(hdr, "Coupling");
   render_th(hdr, "You SEE...");
   dom_append(tbl, hdr);
+  render_contrast_row(tbl, "Miss 17", "coupling = 17", "You see mod-17 (the ring-closing prime, 5*7 = 1 mod 17)");
   render_contrast_row(tbl, "Miss 13", "coupling = 13", "You see mod-13 (where 2^2+3^2 stops the chain)");
   render_contrast_row(tbl, "Miss 11", "coupling = 11", "You see mod-11 (the parity checksum 1+2+3+5)");
   render_contrast_row(tbl, "Miss 7", "coupling = 7", "You see mod-49 (the deepest channel)");
-  render_contrast_row(tbl, "Miss 5", "coupling = 5", "You see mod-25 (the 5^2 channel)");
+  render_contrast_row(tbl, "Miss 5", "coupling = 5", "You see mod-25 (the self-blind channel)");
   render_contrast_row(tbl, "Miss 3", "coupling = 3", "You see mod-9 (the majority channel)");
   render_contrast_row(tbl, "Miss 2", "coupling = 2", "You see mod-8 (even/odd)");
   render_p(sec, "Units see everything. Adding prime factors nullifies channels. The reversed hierarchy IS the nullification gradient. 25 = 5-null: elements divisible by 5^2 cannot see the mod-25 channel.");
@@ -152,7 +146,7 @@ fn symbiosis_hydor() = (
 fn symbiosis_elements() = (
   let sec = make_section("800px") in
   render_h2(sec, "Channel Properties");
-  render_p(sec, "The 6 primes have distinct algebraic properties. 490 = 2*5*49 partitions them into inner (data) and outer (structure) channels:");
+  render_p(sec, "The 7 primes have distinct algebraic properties. 490 = 2*5*49 partitions them into inner (data) and outer (structure) channels:");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Prime");
@@ -166,20 +160,33 @@ fn symbiosis_elements() = (
   render_table_row_4(tbl, "7", "49", "Inner", "Deepest channel. 49 states = finest resolution.");
   render_table_row_4(tbl, "11", "11", "Outer", "Error detection. 1+2+3+5 = 11, parity checksum.");
   render_table_row_4(tbl, "13", "13", "Outer", "Chain stops here. 2^2+3^2 = 13.");
-  render_p(sec, "105 = 3*5*7. The inner channels {2,5,7} carry data. The outer channels {3,11,13} carry structure. 490 = 2*5*49 cleaves the 6 channels into exactly 2 halves.");
+  render_table_row_4(tbl, "17", "17", "Outer", "Ring closure. 5*7 = 1 mod 17. phi(17) = 2^4.");
+  render_p(sec, "Inner channels {2,5,7} carry data (3 channels). Outer channels {3,11,13,17} carry structure (4 channels). 3 + 4 = 7 = the depth prime. The 490 split is asymmetric in TRANS: three inner vs four outer.");
   dom_append(dom_body(), sec)
 )
 
 fn symbiosis_sponge() = (
   let sec = make_section("800px") in
   render_h2(sec, "Sponge Topology");
-  render_theorem(sec, "Sponge Decomposition", "Z/12,612,600: 420 components, 480 units each. 420 = 4*3*5*7 = 2*210. Each component isomorphic to the prime-modulus sponge. Raising exponents tiles, not breaks.");
+  render_theorem(sec, "Sponge Decomposition", "Components = N/rad(N). All three rings (Z/970,200, Z/12,612,600, Z/214,414,200) have exactly 420 components. Adding thin primes preserves the count: each new prime multiplies both N and rad(N). Units per component = phi(rad(N)): 480 in Z/970,200, 5,760 in Z/12,612,600, 92,160 in Z/214,414,200.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Diameter", "18 = 1+2+3+5+7", "Distance from identity to mirror = 18 steps. INVARIANT under raising exponents (21/21 rings verified).", "");
+  render_finding(g, "420 is invariant", "Same count across the tower", "420 = 4*3*5*7 = 2*210. Components are indexed by Z/420, the Carmichael heartbeat. The 420-component structure persists from 5-channel to 7-channel rings.", "");
   render_finding(g, "Betti numbers", "ALL PRIME", "Level 3: beta_1 = 3. Level 4: beta_1 = 53 (prime). Level 5: beta_1 = 953 (prime). Cycle rank at Z/210 = totality.", "");
-  render_finding(g, "Meta-ring", "Z/420 = 2 * 210", "420 components indexed by Z/4 x Z/3 x Z/5 x Z/7. 11 absent: the parity-check prime doesn't fragment. Only data primes create components.", "");
-  render_finding(g, "Identity-mirror", "Separated by raising exponents", "In Z/2,310: identity and mirror touch (distance 18). ANY prime-power upgrade separates them into different components.", "");
-  render_finding(g, "Descent depth", "3 levels", "Z/12,612,600 -> 420 components -> 2 -> 1. Three steps to decompose the ring completely.", "");
+  render_finding(g, "Meta-ring", "Z/420 = 2^2 * 3 * 5 * 7", "420 components indexed by Z/4 x Z/3 x Z/5 x Z/7. Thin primes (11, 13, 17) do not fragment -- only data-depth primes create components.", "");
+  render_finding(g, "Identity-mirror", "Separated by raising exponents", "In Z/2,310: identity and mirror touch. ANY prime-power upgrade separates them into different components.", "");
+  dom_append(dom_body(), sec)
+)
+
+/* === SECTION: TRANS lattice -- the 7th channel === */
+fn symbiosis_trans() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "TRANS: The 7-Cube");
+  render_p(sec, "Adding the 7th prime (17) doubles the lattice from 64 to 128 vertices. The 490 split becomes asymmetric: inner {2,5,7} has 3 channels, outer {3,11,13,17} has 4. The total is 3 + 4 = 7 = the depth prime itself. The channel count IS a channel.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "490 split", "DEAD(3) + ALIVE(4) = 7 = depth", "Inner {2,5,7} coupling: 21,879 = 9*11*13*17. Outer {3,11,13,17} coupling: 9,800 = 8*25*49. Product = 214,414,200.", "");
+  render_finding(g, "Virus kingdom", "coupling = 12,612,600 = 6ch ring", "The {17}-class: divisible by 17 but coprime to 2,3,5,7,11,13. Population = 2,419,200 = phi(12,612,600). The 17-blind see exactly the 6-channel ring.", "");
+  render_finding(g, "Sponge invariance", "420 components in all three rings", "Z/970,200, Z/12,612,600, Z/214,414,200 all have 420 components. Units per component: 480 -> 5,760 -> 92,160. Each thin prime multiplies the unit count by (p-1) without fragmenting.", "");
+  render_finding(g, "Inverse-sum delta", "67 -> 68 = +1 = identity", "All 6 existing channel contributions change, but the net increase is exactly 1. 68 = 4*17 = 2^2 * ESCAPE.", "");
   dom_append(dom_body(), sec)
 )
 
@@ -187,45 +194,47 @@ fn symbiosis_lattice_props() = (
   let sec = make_section("800px") in
   render_h2(sec, "Lattice Properties");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Complementary pairs", "coupling(S) * coupling(S') = N", "Conservation. S IS what S' SEES. Perfect duality. {3,5} * {2,7,11} = N.", "");
-  render_finding(g, "Population partition", "Total = N", "Every element belongs to exactly one symbiosis type. sum over S of pop(S) = 12,612,600. True in ALL rings.", "");
-  render_finding(g, "64 (Z/12,612,600) / 128 (Z/214,414,200)", "Operators of the lattice", "6-cube or 7-cube, dual interpretation: switches vs species. Multiplying by idempotent e_S projects ONTO the S-null subspace. The switch IS the symbiosis operator.", "");
-  render_finding(g, "Holographic principle", "CRT = exact reconstruction", "Interior: element n (one number, the 'bulk'). Boundary: 7 projections (Z/214,414,200). Seven refractions reconstruct the whole. The map IS the territory.", "");
+  render_finding(g, "Complementary pairs", "coupling(S) * coupling(S') = N", "Conservation. S IS what S' SEES. Perfect duality. {3,5} and {2,7,11,13,17} multiply to 214,414,200.", "");
+  render_finding(g, "Population partition", "Total = N", "Every element belongs to exactly one symbiosis type. Sum over all 128 subsets of pop(S) = 214,414,200.", "");
+  render_finding(g, "128 idempotents", "One per vertex of the 7-cube", "Dual interpretation: switches vs species. Multiplying by idempotent e_S projects ONTO the S-null subspace. The switch IS the symbiosis operator.", "");
+  render_finding(g, "Holographic principle", "CRT = exact reconstruction", "Interior: element n (one number). Boundary: 7 projections. Seven refractions reconstruct the whole. The map IS the territory.", "");
   dom_append(dom_body(), sec)
 )
 
 fn symbiosis_explore() = (
   let sec = make_section("800px") in
   render_h2(sec, "Explore: Prime Subsets");
-  render_p(sec, "Enter a 6-bit code (0-63) for a subset of {2,3,5,7,11,13}. Bits: p2=1, p3=2, p5=4, p7=8, p11=16, p13=32. Add values for your subset.");
-  make_interactive_widget(sec, "Enter subset code (0-63):", "symb-input", "e.g. 6 for {3,5}", "Compute", "symbiosis_calc", "symb-result");
-  render_p(sec, "Try: 0 (unit), 1 (2-class), 6 ({3,5}), 10 ({3,7}), 32 (13-class), 63 (all channels null).");
+  render_p(sec, "Enter a 7-bit code (0-127) for a subset of {2,3,5,7,11,13,17}. Bits: 2=1, 3=2, 5=4, 7=8, 11=16, 13=32, 17=64. Add values for your subset.");
+  make_interactive_widget(sec, "Enter subset code (0-127):", "symb-input", "e.g. 6 for {3,5}", "Compute", "symbiosis_calc", "symb-result");
+  render_p(sec, "Try: 0 (unit), 1 ({2}), 6 ({3,5}), 64 ({17}), 127 (all 7 channels null).");
   dom_append(dom_body(), sec)
 )
 
 /* === SECTION: Soul Center -- channel cooperation === */
 fn symbiosis_soul() = (
   let sec = make_section("800px") in
-  render_h2(sec, "The Inverse-Sum Center: 67");
-  render_p(sec, "67 is inv_sum(Z/12,612,600): the sum of multiplicative-inverse sums across all 6 CRT channels. Each channel contributes independently, and every contribution is a chain-native value:");
+  render_h2(sec, "The Inverse-Sum Center");
+  render_p(sec, "For each CRT channel mod q, compute (N/q) mod q, then its multiplicative inverse mod q. Sum those inverses. The result: every channel contributes an axiom-native value.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Channel");
   render_th(hdr, "Modulus");
-  render_th(hdr, "Contribution");
-  render_th(hdr, "Axiom value");
+  render_th(hdr, "6ch (Z/12,612,600)");
+  render_th(hdr, "7ch (Z/214,414,200)");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "p=2", "8", "7", "= 8 - 1");
-  render_table_row_4(tbl, "p=3", "9", "1", "= 1 (identity)");
-  render_table_row_4(tbl, "p=5", "25", "19", "= 5^2-5-1");
-  render_table_row_4(tbl, "p=7", "49", "33", "= 3*11");
-  render_table_row_4(tbl, "p=11", "11", "3", "= 3");
-  render_table_row_4(tbl, "p=13", "13", "4", "= 2^2");
-  render_p(sec, "Sum: 7 + 1 + 19 + 33 + 3 + 4 = 67. Six independent channels, each contributing a value that factors into chain primes. The mod-8 channel gives 8-1=7. The mod-9 channel gives 1. The mod-25 channel gives 5^2-5-1=19. No channel was told what to contribute -- the cooperation is structural.");
-  render_theorem(sec, "Inverse-Sum Theorem", "All 67 identities reduce to one root: 11^2 = 7^2 + 8*9 = 49 + 72 = 121. From this single equation: inv_sum(Z/12,612,600) = 67, 121 - 41 - 13 = 67, 3*18 + 13 = 67, 8*9 - 5 = 67. The 6 coupling-210 primes split into two mod-3 triples: {13, 67, 97} sum = 3*59, and {41, 137, 173} sum = 27*13.");
+  render_table_row_4(tbl, "p=2", "8", "7 = 8-1", "7 = 7");
+  render_table_row_4(tbl, "p=3", "9", "1 = identity", "8 = 2^3");
+  render_table_row_4(tbl, "p=5", "25", "19 = 5^2-5-1", "7 = 7");
+  render_table_row_4(tbl, "p=7", "49", "33 = 3*11", "25 = 5^2");
+  render_table_row_4(tbl, "p=11", "11", "3 = 3", "6 = 2*3");
+  render_table_row_4(tbl, "p=13", "13", "4 = 2^2", "1 = identity");
+  render_table_row_4(tbl, "p=17", "17", "--", "14 = 2*7");
+  render_p(sec, "6-channel sum: 7+1+19+33+3+4 = 67. 7-channel sum: 7+8+7+25+6+1+14 = 68 = 4*17. The delta is exactly 1 -- the identity element. Every individual contribution changes when the ring grows, but their sum increases by the smallest possible amount.");
+  render_theorem(sec, "Inverse-Sum Theorem", "inv_sum(Z/12,612,600) = 67 = 11^2 - 41 - 13. inv_sum(Z/214,414,200) = 68 = 2^2 * 17. The 6-channel inverse-sum is the L^2 triangle residual. The 7-channel inverse-sum factors as the square of the first prime times the last.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "Every contribution is chain-native", "Zero arbitrary values", "The mod-8 channel contributes 7 not by choice but because the multiplicative inverse sum in Z/8 IS 7. Each channel's algebra determines its contribution.", "");
-  render_finding(g, "Root identity 11^2 = 7^2 + 8*9", "121 = 49 + 72", "11 squared decomposes into 7 squared (49) plus the product 8*9 (72). All 67 identities are shadows of this one equation.", "");
+  render_finding(g, "Every contribution is chain-native", "Zero arbitrary values", "Each channel's algebra determines its contribution. No channel was told what to contribute -- the cooperation is structural.", "");
+  render_finding(g, "Root identity 11^2 = 7^2 + 8*9", "121 = 49 + 72", "11 squared decomposes into 7 squared (49) plus the product 8*9 (72). The 6-channel identities are shadows of this equation.", "");
+  render_finding(g, "TRANS delta = 1", "67 -> 68 = sigma step", "Adding the 7th channel changes all 6 existing contributions, but the net effect is +1. The identity cost of ring closure.", "");
   dom_append(dom_body(), sec)
 )
 
@@ -263,19 +272,19 @@ fn symbiosis_contrast() = (
   render_th(hdr, "Standard");
   render_th(hdr, "Axiom");
   dom_append(tbl, hdr);
-  render_contrast_row(tbl, "Symbiosis types", "Classified by observation", "64 = 2^6 subsets of {2,3,5,7,11,13} in Z/12,612,600. In Z/214,414,200: 128 = 2^7 subsets (adding 17). Each type = a vertex of the channel cube.");
-  render_contrast_row(tbl, "Why 6 channels", "Historical taxonomy", "6 primes = 6 independent channels (7 in Z/214,414,200). Class = which channels are null. Forced by the ring structure.");
+  render_contrast_row(tbl, "Symbiosis types", "Classified by observation", "128 = 2^7 subsets of {2,3,5,7,11,13,17}. Each type = a vertex of the 7-cube.");
+  render_contrast_row(tbl, "Why 7 channels", "Historical taxonomy", "7 primes = 7 independent channels. Class = which channels are null. Forced by the ring structure.");
   render_contrast_row(tbl, "Water is special", "Chemical properties", "105 = 3*5*7 = only major product without 2. Meeting point of additive and multiplicative structure.");
-  render_contrast_row(tbl, "Channel blindness", "Philosophical concept", "25 = 5-null. Algebraic: divisibility by p^e nullifies the mod-p^e channel. Coupling of incomplete = the prime you lack.");
-  render_contrast_row(tbl, "Sponge diameter", "Graph metric", "18 = 1+2+3+5+7, invariant under raising exponents. 21/21 rings verified.");
-  render_contrast_row(tbl, "Channel structure", "Unstructured array", "6 primes, coupling order = density order. Each channel has a distinct algebraic property.");
-  render_p(sec, "You see what you lack. What you are, you cannot see. All combinations of the same six channels, each blind to its own constituents. 1/1 = 1.");
+  render_contrast_row(tbl, "Channel blindness", "Philosophical concept", "Algebraic: divisibility by p^e nullifies the mod-p^e channel. Coupling of incomplete = the prime you lack.");
+  render_contrast_row(tbl, "Sponge components", "Graph decomposition", "420 components, invariant across Z/970,200, Z/12,612,600, Z/214,414,200. Thin primes do not fragment.");
+  render_contrast_row(tbl, "Channel structure", "Unstructured array", "7 primes: 3 inner (data) + 4 outer (structure). 490 split: inner {2,5,7}, outer {3,11,13,17}.");
+  render_p(sec, "You see what you lack. What you are, you cannot see. All combinations of the same seven channels, each blind to its own constituents. 1/1 = 1.");
   dom_append(dom_body(), sec)
 )
 
 fn page_symbiosis() = (
-  dom_head_meta("description", "64 subsets of {2,3,5,7,11,13} define 64 symbiosis types in Z/12,612,600 (128 in Z/214,414,200). You see what you lack. 2-Boost theorem: adding 2 multiplies unit density 3-5x. 105 = 3*5*7 = the medium without duality. Soul Center: inv_sum(Z/12,612,600) = 67, each channel contributes an axiom-native value. CRT Chirality: void breaks symmetry, mod-8 achiral, fattening calms. Sponge topology: 420 components, diameter 18.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Symbiosis: The CRT Lattice\",\"description\":\"64 subsets of 6 primes define 64 symbiosis types in Z/12,612,600 (128 types with 7 primes in Z/214,414,200). Each organism sees what it lacks. 490 holographic split: inner {2,5,7} data channels, boundary {3,11,13} structure channels. Sponge topology with 420 components and prime Betti numbers.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\",\"url\":\"https://antonlebed.com\"},\"url\":\"https://antonlebed.com/patterns/symbiosis\",\"isAccessibleForFree\":true,\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Chinese Remainder Theorem\"},{\"@type\":\"DefinedTerm\",\"name\":\"Lattice Theory\"},{\"@type\":\"DefinedTerm\",\"name\":\"Symbiosis\"}]}");
+  dom_head_meta("description", "128 subsets of {2,3,5,7,11,13,17} define 128 symbiosis types in Z/214,414,200. You see what you lack. 490 split: 3 inner + 4 outer = 7 channels. 2-Boost: adding 2 multiplies density 3-5x. Inverse-Sum: 67 (6ch) -> 68 (7ch), delta = 1. Sponge: 420 components, invariant across the tower. Widget: 7-bit mask for any subset.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Symbiosis: The CRT Lattice\",\"description\":\"128 subsets of 7 primes define 128 symbiosis types in Z/214,414,200. Each element sees what it lacks. 490 split: inner {2,5,7} data (3 channels), outer {3,11,13,17} structure (4 channels). 3+4=7. Sponge topology with 420 components. Inverse-sum center: 68 = 4*17.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\",\"url\":\"https://antonlebed.com\"},\"url\":\"https://antonlebed.com/patterns/symbiosis\",\"isAccessibleForFree\":true,\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Chinese Remainder Theorem\"},{\"@type\":\"DefinedTerm\",\"name\":\"Lattice Theory\"},{\"@type\":\"DefinedTerm\",\"name\":\"Symbiosis\"}]}");
   symbiosis_hero();
   symbiosis_lattice();
   symbiosis_key();
@@ -284,6 +293,7 @@ fn page_symbiosis() = (
   symbiosis_hydor();
   symbiosis_elements();
   symbiosis_sponge();
+  symbiosis_trans();
   symbiosis_lattice_props();
   symbiosis_explore();
   symbiosis_soul();
