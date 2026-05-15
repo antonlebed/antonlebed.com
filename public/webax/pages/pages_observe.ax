@@ -34,37 +34,46 @@ fn emergence_maj_calc() = (
   dom_inner(result, "<p style='color:#f0c040;margin:8px 0'>Inputs: " + "${ca}" + ", " + "${cb}" + ", " + "${cc}" + "</p><p style='color:#88ddaa;margin:4px 0'>AND: " + "${band}" + " -- persistence. What survives AND survives.</p><p style='color:#88ddaa;margin:4px 0'>XOR: " + "${bxor}" + " -- distinction. Parity.</p><p style='color:#88ddaa;margin:4px 0'>MAJ: " + "${maj}" + " -- majority. " + (if s == 3 then "Unanimous." else if s == 2 then "2-vs-1: majority decides." else if s == 1 then "1-vs-2: minority overruled." else "All zero.") + "</p><p style='color:#a0a0b0;margin:4px 0'>Pattern 7 = all three on (AND=1, XOR=1, MAJ=1). Try 1,1,1.</p>")
 )
 
-/* dom_on callback: omega_emergence kingdom classifier */
+/* dom_on callback: omega_emergence class classifier (7 channels, TRANS ring) */
 fn omega_em_kingdom_calc() = (
   let n = parse_int_from("#omem-input") in
   let result = dom_query("#omem-result") in
-  let big_n = N_TRUE in
-  let n2 = n % big_n in
+  let n2 = n % N_TRANS in
   let nd = n2 % 8 in
   let nk = n2 % 9 in
   let ne = n2 % 25 in
   let nb = n2 % 49 in
   let nl = n2 % 11 in
   let ng = n2 % 13 in
-  let kingdom = if nd == 0 then (if nk == 0 then (if ne == 0 then (if nb == 0 then (if nl == 0 then (if ng == 0 then "void (0)" else "13-only") else "multi-zero") else "multi-zero") else "multi-zero") else "multi-zero") else (if nk == 0 then "3-class (green)" else if ne == 0 then "5-class (blue)" else if nb == 0 then "7-class (purple)" else if nl == 0 then "11-class (cyan)" else if ng == 0 then "13-class (rose)" else "unit (gold)") in
-  let kingdom2 = if nd == 0 then "2-class (red)" else kingdom in
-  let is_unit = if nd > 0 then (if nk > 0 then (if ne > 0 then (if nb > 0 then (if nl > 0 then (if ng > 0 then 1 else 0) else 0) else 0) else 0) else 0) else 0 in
-  dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>n = " + "${n2}" + " mod 12,612,600</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${nd}" + ", " + "${nk}" + ", " + "${ne}" + ", " + "${nb}" + ", " + "${nl}" + ", " + "${ng}" + ")</p><p style='color:" + (if is_unit == 1 then "#ffd700" else "#ff6666") + ";margin:4px 0'>Class: " + kingdom2 + "</p><p style='color:#a0a0b0;margin:4px 0'>" + (if is_unit == 1 then "Unit: all 6 channels alive. Thrives." else "Zero divisor: at least one dead channel. Drains.") + "</p>")
+  let n17 = n2 % 17 in
+  let dead = (if nd % 2 == 0 then 1 else 0) + (if nk % 3 == 0 then 1 else 0) + (if ne % 5 == 0 then 1 else 0) + (if nb % 7 == 0 then 1 else 0) + (if nl == 0 then 1 else 0) + (if ng == 0 then 1 else 0) + (if n17 == 0 then 1 else 0) in
+  let kingdom = if dead == 0 then "unit (gold)"
+    else if dead == 7 then "void (0)"
+    else if dead > 1 then "compound (" + "${dead}" + " dead)"
+    else if nd % 2 == 0 then "2-class (red)"
+    else if nk % 3 == 0 then "3-class (green)"
+    else if ne % 5 == 0 then "5-class (blue)"
+    else if nb % 7 == 0 then "7-class (purple)"
+    else if nl == 0 then "11-class (cyan)"
+    else if ng == 0 then "13-class (rose)"
+    else "17-class (teal)" in
+  dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>n = " + "${n2}" + " mod 214,414,200</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${nd}" + ", " + "${nk}" + ", " + "${ne}" + ", " + "${nb}" + ", " + "${nl}" + ", " + "${ng}" + ", " + "${n17}" + ")</p><p style='color:" + (if dead == 0 then "#ffd700" else "#ff6666") + ";margin:4px 0'>Class: " + kingdom + "</p><p style='color:#a0a0b0;margin:4px 0'>" + (if dead == 0 then "Unit: all 7 channels alive. Thrives." else "Zero divisor: " + "${dead}" + " dead channel(s). Drains.") + "</p>")
 )
 
-/* dom_on callback: omega_journey D^k step */
+/* dom_on callback: omega_journey D^k step (7 channels, TRANS ring) */
 fn omega_journey_dk_calc() = (
   let k = parse_int_from("#owc-input") in
   let result = dom_query("#owc-result") in
   if k < 0 then dom_inner(result, "<p style='color:#ff6666'>Enter k >= 0.</p>")
   else (
-    /* compute D^k mod each channel (6 channels, TRUE ring) */
+    /* compute 2^k mod each channel (7 channels, TRANS ring) */
     mut pd = 1;
     mut pk = 1;
     mut pe = 1;
     mut pb = 1;
     mut pl = 1;
     mut pg = 1;
+    mut p17 = 1;
     mut i = 0;
     while i < k do (
       mut pd = (pd * 2) % 8;
@@ -73,20 +82,24 @@ fn omega_journey_dk_calc() = (
       mut pb = (pb * 2) % 49;
       mut pl = (pl * 2) % 11;
       mut pg = (pg * 2) % 13;
+      mut p17 = (p17 * 2) % 17;
       mut i = i + 1
     );
     let note = if k == 0 then "2^0 = 1. Starting point."
-      else if k == 3 then "2^3 = 8. mod-8 channel zeroed (8 mod 8 = 0). First sub-return."
+      else if k == 3 then "2^3 = 8. mod-8 channel zeroed (8 mod 8 = 0). First death."
       else if k == 6 then "2^6 = 64. mod-9 returns (64 mod 9 = 1)."
+      else if k == 8 then "2^8 = 256. mod-17 returns (256 mod 17 = 1). ord(2,17) = 8."
       else if k == 10 then "2^10 = 1024. mod-11 returns (1024 mod 11 = 1)."
       else if k == 12 then "2^12 = 4096. mod-13 returns (4096 mod 13 = 1). phi(13) = 12."
       else if k == 20 then "2^20. mod-25 returns (mod 25 = 1). phi(25) = 20."
       else if k == 21 then "2^21. mod-49 returns (mod 49 = 1). ord(2,49) = 21."
-      else if k == 42 then "2^42. All channels visited. Half-cycle."
-      else if k == 210 then "2^210. Half of Carmichael lambda."
-      else if k == 420 then "2^420 = 1,576,576. Terminal. CRT = (0,1,1,1,1,1)."
+      else if k == 42 then "2^42. All prime-power channels visited. Half-cycle of 6-channel lambda."
+      else if k == 210 then "2^210. Half of lambda = 420."
+      else if k == 420 then "2^420: CRT = (0,1,1,1,1,1,16). Six channels resolved, mod-17 at 16."
+      else if k == 840 then "2^840. Half of lambda(TRANS) = 1680."
+      else if k == 1680 then "2^1680: CRT = (0,1,1,1,1,1,1). All 7 channels resolved. Full TRANS period."
       else "" in
-    dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>2^" + "${k}" + " mod channels:</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${pd}" + ", " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ", " + "${pg}" + ")</p><p style='color:" + (if pd == 0 then "#ff6666" else "#88ddaa") + ";margin:4px 0'>mod 8: " + "${pd}" + (if pd == 0 then " -- ZERO" else "") + "</p><p style='color:" + (if pk == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 9: " + "${pk}" + (if pk == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pe == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 25: " + "${pe}" + (if pe == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pb == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 49: " + "${pb}" + (if pb == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pl == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 11: " + "${pl}" + (if pl == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pg == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 13: " + "${pg}" + (if pg == 1 then " -- RETURNED" else "") + "</p>" + (if len(note) > 0 then "<p style='color:#f0c040;margin:8px 0'>" + note + "</p>" else ""))
+    dom_inner(result, "<p style='color:#88ddaa;margin:8px 0'>2^" + "${k}" + " mod channels:</p><p style='color:#88ddaa;margin:4px 0'>CRT = (" + "${pd}" + ", " + "${pk}" + ", " + "${pe}" + ", " + "${pb}" + ", " + "${pl}" + ", " + "${pg}" + ", " + "${p17}" + ")</p><p style='color:" + (if pd == 0 then "#ff6666" else "#88ddaa") + ";margin:4px 0'>mod 8: " + "${pd}" + (if pd == 0 then " -- ZERO" else "") + "</p><p style='color:" + (if pk == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 9: " + "${pk}" + (if pk == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pe == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 25: " + "${pe}" + (if pe == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pb == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 49: " + "${pb}" + (if pb == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pl == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 11: " + "${pl}" + (if pl == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if pg == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 13: " + "${pg}" + (if pg == 1 then " -- RETURNED" else "") + "</p><p style='color:" + (if p17 == 1 then "#ffd700" else "#aaa") + ";margin:4px 0'>mod 17: " + "${p17}" + (if p17 == 1 then " -- RETURNED" else "") + "</p>" + (if len(note) > 0 then "<p style='color:#f0c040;margin:8px 0'>" + note + "</p>" else ""))
   )
 )
 
@@ -690,23 +703,23 @@ fn page_emergence() = (
 )
 
 fn omega_em_hero() = (
-  dom_head_meta("description", "CRT cellular automaton in Z/12,612,600. Each cell is a 6-channel CRT tuple. Per-channel median evolution. 2^420 projection every 420 generations. Natural selection from algebra.");
+  dom_head_meta("description", "CRT cellular automaton in Z/214,414,200. Each cell is a 7-channel CRT tuple. Per-channel median evolution. Projector every 1680 generations. Natural selection from algebra.");
   let hero = make_hero("CRT Emergence") in
   let eq = dom_create("div") in
-  dom_text(eq, "CRT cells in Z/12,612,600 -- 6 channels, Carmichael period 420");
+  dom_text(eq, "CRT cells in Z/214,414,200 -- 7 channels, Carmichael period 1680");
   ct_mono(eq);
   dom_style(eq, "fontSize", "18px");
   ct_gold(eq);
   dom_style(eq, "marginBottom", "20px");
   dom_append(hero, eq);
-  render_p(hero, "A cellular automaton where each cell is an element of Z/12,612,600, decomposed into 6 independent CRT channels. Evolution: per-channel median of 3 neighbors. Every 420 generations, multiplication by 1,576,576 zeros out the mod-8 channel. Units thrive. Zero divisors drain. Natural selection from pure algebra.");
+  render_p(hero, "A cellular automaton where each cell is an element of Z/214,414,200, decomposed into 7 independent CRT channels. Evolution: per-channel median of 3 neighbors. Every 1680 generations, multiplication by 26,801,776 zeros out the mod-8 channel. Units thrive. Zero divisors drain. Natural selection from pure algebra.");
   dom_append(dom_body(), hero)
 )
 
 fn omega_em_anatomy() = (
   let sec = make_section("800px") in
   render_h2(sec, "CRT Cell Anatomy");
-  render_theorem(sec, "Six Independent Channels", "Each cell is a 6-tuple: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13). Evolution rule: per-channel median of 3 neighbors (self + 2 orthogonal). Each channel evolves INDEPENDENTLY -- the CRT separation IS the parallel substrate. No interaction between channels except through the element they compose.");
+  render_theorem(sec, "Seven Independent Channels", "Each cell is a 7-tuple: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). Evolution rule: per-channel median of 3 neighbors (self + 2 orthogonal). Each channel evolves INDEPENDENTLY -- the CRT separation IS the parallel substrate. No interaction between channels except through the element they compose.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
   render_th(hdr, "Channel");
@@ -714,18 +727,19 @@ fn omega_em_anatomy() = (
   render_th(hdr, "Median rule");
   render_th(hdr, "Property");
   dom_append(tbl, hdr);
-  render_table_row_4(tbl, "mod 8", "Z/8", "median of 3 values mod 8", "Nilpotent: 2^3 = 0. Zeroed by 1,576,576.");
+  render_table_row_4(tbl, "mod 8", "Z/8", "median of 3 values mod 8", "Nilpotent: 2^3 = 0. Zeroed by projector.");
   render_table_row_4(tbl, "mod 9", "Z/9", "median of 3 values mod 9", "3^2 = 0. 9 states.");
   render_table_row_4(tbl, "mod 25", "Z/25", "median of 3 values mod 25", "5^2 = 0. 25 states.");
   render_table_row_4(tbl, "mod 49", "Z/49", "median of 3 values mod 49", "7^2 = 0. 49 states (deepest).");
   render_table_row_4(tbl, "mod 11", "Z/11", "median of 3 values mod 11", "Prime field. Error detection.");
-  render_table_row_4(tbl, "mod 13", "Z/13", "median of 3 values mod 13", "Prime field. Where the Cunningham chain stops.");
+  render_table_row_4(tbl, "mod 13", "Z/13", "median of 3 values mod 13", "Prime field. Cunningham chain stops.");
+  render_table_row_4(tbl, "mod 17", "Z/17", "median of 3 values mod 17", "Prime field. 5*7 = 1 mod 17. Completes the ring.");
   dom_append(dom_body(), sec)
 )
 
 fn omega_em_kingdoms() = (
   let sec = make_section("800px") in
-  render_h2(sec, "Six Classes");
+  render_h2(sec, "Seven Classes");
   render_p(sec, "Each cell has a class based on which CRT channels are zero. Units have all channels nonzero. Zero divisors have at least one dead channel. The class determines color, energy, and fate.");
   let tbl = make_table(sec) in
   let hdr = dom_create("tr") in
@@ -740,7 +754,9 @@ fn omega_em_kingdoms() = (
   render_table_row_4(tbl, "5-class", "Blue", "mod 25 = 0", "Drain. mod-25 channel dead.");
   render_table_row_4(tbl, "7-class", "Purple", "mod 49 = 0", "Drain. mod-49 channel dead.");
   render_table_row_4(tbl, "11-class", "Cyan", "mod 11 = 0", "Drain. mod-11 channel dead.");
-  render_theorem(sec, "Natural Selection", "Units (gold) gain energy because all 6 channels are active -- they can participate in all ring operations. Zero divisors drain because a dead channel means broken arithmetic. Not coded. Falls out of CRT structure. phi(N)/N = 192/1001 = 19.18%. The selection pressure = this fraction.");
+  render_table_row_4(tbl, "13-class", "Rose", "mod 13 = 0", "Drain. mod-13 channel dead.");
+  render_table_row_4(tbl, "17-class", "Teal", "mod 17 = 0", "Drain. mod-17 channel dead.");
+  render_theorem(sec, "Natural Selection", "Units (gold) gain energy because all 7 channels are active -- they can participate in all ring operations. Zero divisors drain because a dead channel means broken arithmetic. Not coded. Falls out of CRT structure. phi(N)/N = 3072/17017 = 18.05%. The selection pressure = this fraction.");
   dom_append(dom_body(), sec)
 )
 
@@ -748,11 +764,11 @@ fn omega_em_heartbeat() = (
   let sec = make_section("800px") in
   render_h2(sec, "The Carmichael Period");
   let g = make_findings_grid(sec) in
-  render_finding(g, "lambda = 420", "Carmichael period", "lcm(4,6,20,42,10,12) = 420. Every 420 generations: all channels complete one full cycle. 2^420 mod N = 1,576,576.", "");
-  render_finding(g, "1,576,576 projection", "Every 420 gens", "mod-8 channel zeroed. CRT = (0,1,1,1,1,1). Even channel dies, everything else survives.", "");
-  render_finding(g, "Sub-periods", "42, 210", "42 generations: lcm of the first 4 channel orders. 210: half of 420. Structural sub-rhythms.", "");
-  render_finding(g, "mod-11 ECC", "Error detection", "mod-11 channel detects corruption in other channels. 4 remaining channels + mod-11 parity = single-channel recovery.", "");
-  render_theorem(sec, "Projector = Selective Pruning", "1,576,576 zeros out the mod-8 channel but preserves mod 9, mod 25, mod 49, mod 11, mod 13. Not destruction -- selective pruning. The projector remembers everything except the mod-8 component.");
+  render_finding(g, "lambda = 1680", "Carmichael period", "lcm(4,6,20,42,10,12,16) = 1680. Every 1680 generations: all 7 channels complete one full cycle.", "");
+  render_finding(g, "26,801,776 projection", "Every 1680 gens", "mod-8 channel zeroed. CRT = (0,1,1,1,1,1,1). Even channel dies, everything else survives.", "");
+  render_finding(g, "Sub-period 420", "Six-channel return", "lcm(4,6,20,42,10,12) = 420. After 420 gens, 6 of 7 channels return. mod-17 = 16 (not yet home).", "");
+  render_finding(g, "mod-11 + mod-13 ECC", "Error detection", "mod-11 detects corruption. Dual mod-11 + mod-13 corrects. mod-17 adds redundancy.", "");
+  render_theorem(sec, "Projector = Selective Pruning", "26,801,776 zeros out the mod-8 channel but preserves mod 9, mod 25, mod 49, mod 11, mod 13, mod 17. Not destruction -- selective pruning. The projector remembers everything except the mod-8 component.");
   dom_append(dom_body(), sec)
 )
 
@@ -770,10 +786,10 @@ fn omega_em_map() = (
   render_table_row(tbl, "1", "Unit cell", "All channels alive. Maximum fitness.");
   render_table_row(tbl, "2", "Neighbor count", "2 orthogonal neighbors per cell.");
   render_table_row(tbl, "3", "Median vote", "3 inputs per channel decision.");
-  render_table_row(tbl, "6", "Channel count", "6 independent CRT channels.");
-  render_table_row(tbl, "420", "Carmichael period", "Full cycle length. lcm(4,6,20,42,10,12).");
-  render_table_row(tbl, "1,576,576", "Projector event", "Every 420 gens: mod-8 channel zeroed.");
-  render_table_row(tbl, "12,612,599", "Boundary reflection", "Edge cells reflect, not absorb (mirror of 1).");
+  render_table_row(tbl, "7", "Channel count", "7 independent CRT channels.");
+  render_table_row(tbl, "1680", "Carmichael period", "Full cycle length. lcm(4,6,20,42,10,12,16).");
+  render_table_row(tbl, "26,801,776", "Projector event", "Every 1680 gens: mod-8 channel zeroed.");
+  render_table_row(tbl, "214,414,199", "Boundary reflection", "Edge cells reflect, not absorb (mirror of 1).");
   dom_append(dom_body(), sec)
 )
 
@@ -787,24 +803,24 @@ fn omega_em_contrast() = (
   render_th(chdr, "Ring Structure View");
   dom_append(ctbl, chdr);
   render_contrast_row(ctbl, "Cellular automaton", "Toy model", "Ring structure parameters as CA rules");
-  render_contrast_row(ctbl, "CRT decomposition", "Computation trick", "Six independent evolutionary channels");
+  render_contrast_row(ctbl, "CRT decomposition", "Computation trick", "Seven independent evolutionary channels");
   render_contrast_row(ctbl, "Median consensus", "Voting rule", "3-voter median in each channel independently");
-  render_contrast_row(ctbl, "Unit selection", "Fitness function", "phi(N)/N = 192/1001 = 19.18%");
-  render_contrast_row(ctbl, "420-gen cycle", "Period of simulation", "Carmichael lambda = lcm of phi values");
-  render_contrast_row(ctbl, "1,576,576 projector", "Reset event", "2^420 mod N. Zeros mod-8 channel, preserves rest.");
+  render_contrast_row(ctbl, "Unit selection", "Fitness function", "phi(N)/N = 3072/17017 = 18.05%");
+  render_contrast_row(ctbl, "1680-gen cycle", "Period of simulation", "Carmichael lambda = lcm of phi values");
+  render_contrast_row(ctbl, "26,801,776 projector", "Reset event", "2^1680 mod N. Zeros mod-8 channel, preserves rest.");
   dom_append(dom_body(), sec)
 )
 
 fn omega_em_interactive() = (
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: CRT Class Classifier");
-  render_p(sec_i, "Enter any element of Z/12,612,600. See its CRT 6-tuple and class. Units (gold) thrive. Zero divisors drain. Try 1, 0, 42, 1576576, 8, 9, 25, 13.");
+  render_p(sec_i, "Enter any element of Z/214,414,200. See its CRT 7-tuple and class. Units (gold) thrive. Zero divisors drain. Try 1, 0, 42, 26801776, 8, 9, 25, 17.");
   make_interactive_widget(sec_i, "Element n:", "omem-input", "e.g. 42", "Classify", "omega_em_kingdom_calc", "omem-result");
   dom_append(dom_body(), sec_i)
 )
 
 fn page_omega_emergence() = (
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Emergence\",\"description\":\"Cellular automaton in Z/12612600. CRT 6-tuple cells evolving by per-channel median consensus. Six classes, 2^420 projector every 420 generations, mod-11 error detection.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/omega_emergence\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT projector\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT cellular automaton\"},{\"@type\":\"DefinedTerm\",\"name\":\"natural selection\"}]}");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Emergence\",\"description\":\"Cellular automaton in Z/214414200. CRT 7-tuple cells evolving by per-channel median consensus. Seven classes, projector every 1680 generations, mod-11 error detection.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/omega_emergence\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT projector\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT cellular automaton\"},{\"@type\":\"DefinedTerm\",\"name\":\"natural selection\"}]}");
   omega_em_hero();
   omega_em_anatomy();
   omega_em_kingdoms();
@@ -815,28 +831,28 @@ fn page_omega_emergence() = (
 )
 
 fn page_omega_journey() = (
-  dom_head_meta("description", "The 1,576,576 Journey. Powers of 2 through six CRT channels. 420 steps from 1 to 2^420 = 1,576,576. Sub-returns at steps 3, 6, 10, 12, 20, 21.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The 1,576,576 Journey\",\"description\":\"Powers of 2 through six CRT channels. 420 steps from 1 to 2^420 = 1,576,576. Each channel returns to 1 at its own pace. Sub-returns at steps 3, 6, 10, 12, 20, 21.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/omega_journey\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Carmichael function\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT projector\"},{\"@type\":\"DefinedTerm\",\"name\":\"power orbit\"}]}");
-  domain_hero("The 1,576,576 Journey", "2^0 = 1, 2^1 = 2, ..., 2^420 = 1,576,576", "One prime. 420 steps. Six channels traced.");
+  dom_head_meta("description", "The 1,576,576 Journey. Powers of 2 through seven CRT channels. Each channel returns to 1 at its own pace. Sub-returns at steps 3, 6, 8, 10, 12, 20, 21. Full period: 1680.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The 1,576,576 Journey\",\"description\":\"Powers of 2 through seven CRT channels of Z/214414200. Each channel returns to 1 at its own pace. Sub-returns at steps 3, 6, 8, 10, 12, 20, 21. Full period: 1680.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/omega_journey\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Carmichael function\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT projector\"},{\"@type\":\"DefinedTerm\",\"name\":\"power orbit\"}]}");
+  domain_hero("The 1,576,576 Journey", "2^0 = 1, 2^1 = 2, ..., 2^420 = 1,576,576", "One prime. Seven channels. 1680 steps.");
   let sec = make_section("800px") in
   render_h2(sec, "The Journey of 2^k");
-  render_theorem(sec, "Growth Phase", "Starting from 2^0 = 1, multiply by 2 at each step. 2^1 = 2, 2^2 = 4, 2^3 = 8, ... Each step changes the CRT address. After 420 steps: 2^420 mod 12,612,600 = 1,576,576. The journey is 420 steps because Carmichael lambda = lcm(phi(8), phi(9), phi(25), phi(49), phi(11), phi(13)) = lcm(4,6,20,42,10,12) = 420.");
-  render_theorem(sec, "Collapse Phase", "1,576,576 * n = 0 for any n divisible by 8. Growth is slow (420 steps). Projection to zero is one multiplication.");
+  render_theorem(sec, "Growth Phase", "Starting from 2^0 = 1, multiply by 2 at each step. Each step changes the CRT address across seven channels. Six channels have Carmichael lambda = lcm(4,6,20,42,10,12) = 420. The seventh (mod 17) has phi(17) = 16. The full period is lcm(420, 16) = 1680.");
+  render_theorem(sec, "Collapse Phase", "At k = 420: CRT = (0,1,1,1,1,1,16). The mod-8 channel is zeroed (2^3 = 0 mod 8). Five channels return to 1. But mod 17 = 16: the seventh channel is not yet home. Growth to 1,576,576 takes 420 steps. The mod-17 channel needs 1680 steps for full resolution.");
   let g = make_findings_grid(sec) in
-  render_finding(g, "2^3 = 8", "k = 3", "mod-8 channel zeroed: 8 mod 8 = 0. First sub-return.", "");
+  render_finding(g, "2^3 = 8", "k = 3", "mod-8 channel zeroed: 8 mod 8 = 0. First death.", "");
   render_finding(g, "2^6 = 64", "k = 6", "mod-9 returns: 64 mod 9 = 1. (phi(9) = 6.)", "");
+  render_finding(g, "2^8 = 256", "k = 8", "mod-17 returns: 256 mod 17 = 1. ord(2,17) = 8.", "");
   render_finding(g, "2^10 = 1024", "k = 10", "mod-11 returns: 1024 mod 11 = 1. (phi(11) = 10.)", "");
   render_finding(g, "2^12 = 4096", "k = 12", "mod-13 returns: 4096 mod 13 = 1. (phi(13) = 12.)", "");
   render_finding(g, "2^20", "k = 20", "mod-25 returns: 2^20 mod 25 = 1. (phi(25) = 20.)", "");
   render_finding(g, "2^21", "k = 21", "mod-49 returns: 2^21 mod 49 = 1. (ord(2,49) = 21.)", "");
-  render_finding(g, "2^42", "k = 42", "All prime-power channels have returned at least once. Half-cycle.", "");
-  render_finding(g, "2^210", "k = 210", "Half of 420. Midpoint of the full orbit.", "");
-  render_finding(g, "2^420 = 1,576,576", "k = 420", "Terminal. CRT = (0,1,1,1,1,1). Journey complete.", "");
+  render_finding(g, "2^420", "k = 420", "CRT = (0,1,1,1,1,1,16). Six channels resolved. mod-17 = 16 (not home). 2^420 mod 12,612,600 = 1,576,576.", "");
+  render_finding(g, "2^1680", "k = 1680", "CRT = (0,1,1,1,1,1,1). All 7 channels resolved. Full period of Z/214,414,200. 2^1680 mod 214,414,200 = 26,801,776.", "");
   dom_append(dom_body(), sec);
-  /* Interactive: walk D^k step by step */
+  /* Interactive: walk 2^k step by step */
   let sec_i = make_section("800px") in
   render_h2(sec_i, "Explore: Walk the Journey");
-  render_p(sec_i, "Enter exponent k. See 2^k decomposed into 6 CRT channels. Watch each channel return to 1 at its own pace. Try: 0, 3, 6, 10, 12, 20, 21, 42, 210, 420.");
+  render_p(sec_i, "Enter exponent k. See 2^k decomposed into 7 CRT channels. Watch each channel return to 1 at its own pace. Try: 0, 3, 6, 8, 10, 12, 20, 21, 420, 1680.");
   make_interactive_widget(sec_i, "Exponent k:", "owc-input", "e.g. 42", "Walk", "omega_journey_dk_calc", "owc-result");
   dom_append(dom_body(), sec_i)
 )
