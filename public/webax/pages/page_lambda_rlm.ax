@@ -21,8 +21,8 @@ fn rlm_cost_calc() = (
       "<p style='color:#ffd700;margin:8px 0'><b>Cost f(k) = [k^2*(a+b) - k*(a+g)] / (k-1)</b></p>"
       + "<p style='color:#88ddaa;margin:4px 0'>f(2) = " + "${f2}" + " | f(3) = " + "${f3}" + " | f(4) = " + "${f4}" + " | f(5) = " + "${f5}" + " | f(6) = " + "${f6}" + "</p>"
       + "<p style='color:" + (if best == 2 then "#ffd700" else "#ff6666") + ";margin:4px 0'>"
-      + (if best == 2 then "k* = 2 = D is OPTIMAL (minimum cost)" else "k* = " + "${best}" + " (k=2 not optimal for these parameters)") + "</p>"
-      + "<p style='color:#a0a0b0;margin:4px 0'>Paper Theorem 4: k*=2 is cost-optimal for binary recursive decomposition when b > g. Try a=10, b=50, g=5 (paper defaults: f(2) = 210 = D*K*E*b = DATA ring).</p>")
+      + (if best == 2 then "k* = 2 is OPTIMAL (minimum cost)" else "k* = " + "${best}" + " (k=2 not optimal for these parameters)") + "</p>"
+      + "<p style='color:#a0a0b0;margin:4px 0'>Paper Theorem 4: k*=2 is cost-optimal for binary recursive decomposition when b > g. Try a=10, b=50, g=5 (paper defaults: f(2) = 210 = 2*3*5*7).</p>")
   )
 )
 
@@ -48,7 +48,7 @@ fn rlm_split_map_reduce() = (
     "<p style='color:#ffd700;margin:8px 0'><b>SPLIT</b> " + "${n2}" + " = (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ", " + "${rg}" + ")</p>"
     + "<p style='color:#88ddaa;margin:4px 0'><b>MAP</b> (+137 per channel): (" + "${ad}" + ", " + "${ak}" + ", " + "${ae}" + ", " + "${ab}" + ", " + "${al}" + ", " + "${ag}" + ")</p>"
     + "<p style='color:#c0a0ff;margin:4px 0'><b>REDUCE</b> (CRT reconstruct): " + "${added}" + "</p>"
-    + "<p style='color:#a0a0b0;margin:4px 0'>Each channel computed independently. No cross-channel terms. This IS the paper's Split->Map->Reduce pattern, running on Z/12612600.</p>")
+    + "<p style='color:#a0a0b0;margin:4px 0'>Each channel computed independently. No cross-channel terms. This IS the paper's Split->Map->Reduce pattern, running on Z/12,612,600.</p>")
 )
 
 fn rlm_make_input(lbl:str, id:str, placeholder:str) = (
@@ -76,13 +76,13 @@ fn rlm_make_input(lbl:str, id:str, placeholder:str) = (
 )
 
 fn page_lambda_rlm() = (
-  dom_head_meta("description", "External validation: Roy et al. 2026 independently prove k*=2 cost-optimal for recursive decomposition (Theorem 4) = D=2. Their Split->Map->Reduce IS CRT decomposition.");
+  dom_head_meta("description", "External validation: Roy et al. 2026 independently prove k*=2 cost-optimal for recursive decomposition (Theorem 4). Their Split->Map->Reduce IS CRT decomposition.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Lambda-RLM: External Validation\",\"description\":\"External validation of CRT decomposition from Roy et al. 2026 Y-Combinator for LLMs paper.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/lambda_rlm\"}");
 
   /* === HERO === */
   let hero = make_hero("External Validation") in
   let eq = dom_create("div") in
-  dom_text(eq, "k* = 2 = D (Theorem 4, Roy et al. 2026)");
+  dom_text(eq, "k* = 2 (Theorem 4, Roy et al. 2026)");
   ct_mono(eq);
   dom_style(eq, "fontSize", "22px");
   ct_gold(eq);
@@ -98,27 +98,27 @@ fn page_lambda_rlm() = (
   let g1 = make_findings_grid(sec1) in
   render_finding(g1, "Theorem 3", "Power-law accuracy", "Accuracy decays as a power law with problem complexity. Decomposition into independent subproblems delays the decay.", "STRUCTURAL MATCH");
   render_finding(g1, "Theorem 4", "k* = 2 is cost-optimal", "Binary splitting minimizes total cost for recursive decomposition. k=2 beats k=3,4,5,... for a wide parameter range.", "STRUCTURAL MATCH");
-  render_finding(g1, "8 combinators", "Split, Peek, Map, Filter, Reduce, Concat, Cross, M", "The paper's combinator library. 8 = D^3, but the library is extensible, not canonical.", "COINCIDENCE");
-  render_finding(g1, "f(2) = 210", "Cost minimum with specific parameters", "With a=10, b=50, g=5: f(2) = 210 = D*K*E*b = DATA ring. Parameter-dependent, not general.", "COINCIDENCE");
+  render_finding(g1, "8 combinators", "Split, Peek, Map, Filter, Reduce, Concat, Cross, M", "The paper's combinator library. 8 = 2^3, but the library is extensible, not canonical.", "COINCIDENCE");
+  render_finding(g1, "f(2) = 210", "Cost minimum with specific parameters", "With a=10, b=50, g=5: f(2) = 210 = 2*3*5*7 = Z/210. Parameter-dependent, not general.", "COINCIDENCE");
   dom_append(dom_body(), sec1);
 
   /* === SEC 2: STRUCTURAL MATCH 1 -- k*=2=D === */
   let sec2 = make_section("800px") in
-  render_h2(sec2, "Structural Match 1: k* = 2 = D");
-  render_p(sec2, "The paper's cost function: f(k) = [k^2*(a+b) - k*(a+g)] / (k-1). Theorem 4 proves k*=2 is optimal when generation cost b exceeds verification gain g. In the axiom: D=2 is the FIRST prime. Duality. The pair. Everything begins with binary splitting.");
-  render_theorem(sec2, "Binary Splitting Universality", "CRT decomposes N into coprime moduli. The first split is always mod 2 (D-channel). Every element is even or odd before any other classification. D=2 is the cost-optimal first decomposition, independently proved by both the axiom chain and by this paper's Theorem 4.");
+  render_h2(sec2, "Structural Match 1: k* = 2");
+  render_p(sec2, "The paper's cost function: f(k) = [k^2*(a+b) - k*(a+g)] / (k-1). Theorem 4 proves k*=2 is optimal when generation cost b exceeds verification gain g. Binary splitting -- even/odd -- is the most fundamental decomposition, and it's cost-optimal.");
+  render_theorem(sec2, "Binary Splitting Universality", "CRT decomposes N into coprime moduli. The first split is always mod 2. Every element is even or odd before any other classification. k=2 is the cost-optimal first decomposition, independently proved by this paper's Theorem 4.");
   let tbl = make_table(sec2) in
   let hdr = dom_create("tr") in
   render_th(hdr, "k");
   render_th(hdr, "f(k) [a=10,b=50,g=5]");
-  render_th(hdr, "Axiom reading");
+  render_th(hdr, "Ring reading");
   dom_append(tbl, hdr);
-  render_table_row(tbl, "2", "210 = D*K*E*b", "DATA ring (4 channels)");
-  render_table_row(tbl, "3", "247", "No axiom structure");
-  render_table_row(tbl, "4", "300", "No axiom structure");
-  render_table_row(tbl, "5", "356", "No axiom structure");
-  render_table_row(tbl, "6", "414", "No axiom structure");
-  render_p(sec2, "k=2 is optimal across a wide parameter range. The f(2)=210 result is parameter-specific (coincidence), but k*=2=D is structural.");
+  render_table_row(tbl, "2", "210 = 2*3*5*7", "Z/210 (4 channels)");
+  render_table_row(tbl, "3", "247", "No ring structure");
+  render_table_row(tbl, "4", "300", "No ring structure");
+  render_table_row(tbl, "5", "356", "No ring structure");
+  render_table_row(tbl, "6", "414", "No ring structure");
+  render_p(sec2, "k=2 is optimal across a wide parameter range. The f(2)=210 result is parameter-specific (coincidence), but k*=2 is structural.");
   dom_append(dom_body(), sec2);
 
   /* === SEC 3: STRUCTURAL MATCH 2 -- Split->Map->Reduce = CRT === */
@@ -135,19 +135,19 @@ fn page_lambda_rlm() = (
   /* === SEC 4: THE COINCIDENCES === */
   let sec4 = make_section("800px") in
   render_h2(sec4, "The Coincidences (Honestly Labeled)");
-  render_p(sec4, "Two results look axiom-significant but are parameter-dependent or extensible:");
-  render_contrast_row(sec4, "8 = D^3 combinators", "The paper defines 8 combinators. 8 = D^3 = 2^3. But the library is explicitly extensible -- users can add more. The count is not canonical.", "COINCIDENCE: The paper says M is an 'oracle' that can be anything. The combinator set is open, not closed at 8.");
-  render_contrast_row(sec4, "f(2) = 210 = DATA", "With specific parameters a=10, b=50, g=5, the cost minimum is 210 = D*K*E*b. But different parameters give different minima.", "COINCIDENCE: Change a=1, b=10, g=1 and f(2)=40 (not axiom-significant). The structural result is k*=2, not the value f(2).");
+  render_p(sec4, "Two results look significant but are parameter-dependent or extensible:");
+  render_contrast_row(sec4, "8 = 2^3 combinators", "The paper defines 8 combinators. 8 = 2^3. But the library is explicitly extensible -- users can add more. The count is not canonical.", "COINCIDENCE: The paper says M is an 'oracle' that can be anything. The combinator set is open, not closed at 8.");
+  render_contrast_row(sec4, "f(2) = 210 = Z/210", "With specific parameters a=10, b=50, g=5, the cost minimum is 210 = 2*3*5*7. But different parameters give different minima.", "COINCIDENCE: Change a=1, b=10, g=1 and f(2)=40 (not ring-significant). The structural result is k*=2, not the value f(2).");
   dom_append(dom_body(), sec4);
 
   /* === SEC 5: WHAT THIS MEANS === */
   let sec5 = make_section("800px") in
   render_h2(sec5, "What This Means");
-  render_p(sec5, "An independent research group, working on LLM reasoning chains with no knowledge of the axiom, arrived at two of its core structures: binary splitting (D=2) as optimal and independent channel processing (CRT) as the decomposition strategy.");
+  render_p(sec5, "An independent research group, working on LLM reasoning chains with no knowledge of this ring, arrived at two of its core structures: binary splitting (k=2) as optimal and independent channel processing (CRT) as the decomposition strategy.");
   let g5 = make_findings_grid(sec5) in
-  render_finding(g5, "For the axiom", "External confirmation", "D=2 and CRT are not just our framework. They emerge independently from cost optimization in recursive computation.", "");
+  render_finding(g5, "For the ring", "External confirmation", "k=2 and CRT are not just our framework. They emerge independently from cost optimization in recursive computation.", "");
   render_finding(g5, "For AI", "CRT-native architectures", "If binary splitting is cost-optimal, then CRT decomposition (which IS binary-first splitting of ring arithmetic) is the natural computation strategy for AI.", "");
-  render_finding(g5, "The Y-combinator", "Y = lambda f. (lambda x. f(x x))(lambda x. f(x x))", "Self-application (x x) = D=2. Y g = g(Y g) = the strange loop. Fixed-point recursion is duality applied to itself.", "");
+  render_finding(g5, "The Y-combinator", "Y = lambda f. (lambda x. f(x x))(lambda x. f(x x))", "Self-application (x x) is binary. Y g = g(Y g) = fixed-point recursion. Binary recursion is the cost-optimal primitive.", "");
   dom_append(dom_body(), sec5);
 
   /* === INTERACTIVE 1: COST FUNCTION === */
@@ -192,6 +192,6 @@ fn page_lambda_rlm() = (
   let sec6 = make_section("800px") in
   render_h2(sec6, "Reference");
   render_p(sec6, "Roy et al. 2026. \"The Y-Combinator for LLMs: Closed-Form Recursive Decomposition of Complex Problems.\" arXiv:2603.20105. External validation test suite: test_lambda_rlm.ax (43/43 checks).");
-  render_p(sec6, "Tier labels: STRUCTURAL MATCH = the paper's result maps to an axiom structure for parameter-independent reasons. COINCIDENCE = the match depends on specific parameter values or extensible library choices.");
+  render_p(sec6, "Tier labels: STRUCTURAL MATCH = the paper's result maps to ring structure for parameter-independent reasons. COINCIDENCE = the match depends on specific parameter values or extensible library choices.");
   dom_append(dom_body(), sec6)
 )

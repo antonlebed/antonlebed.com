@@ -34,13 +34,13 @@ fn sn_ecc_ok(r0, r1, r2, r3, r4, r5, r6) = (
 )
 
 fn sn_ch_short(i) =
-  if i == 0 then "D"
-  else if i == 1 then "K"
-  else if i == 2 then "E"
-  else if i == 3 then "b"
-  else if i == 4 then "L"
-  else if i == 5 then "G"
-  else "X"
+  if i == 0 then "p2"
+  else if i == 1 then "p3"
+  else if i == 2 then "p5"
+  else if i == 3 then "p7"
+  else if i == 4 then "p11"
+  else if i == 5 then "p13"
+  else "p17"
 
 fn sn_ch_color(i) =
   if i == 0 then "#ff4444"
@@ -135,12 +135,12 @@ fn sn_update() = (
     + "<th style='text-align:center;padding:6px;color:#ff8844'>Temp</th>"
     + "<th style='text-align:center;padding:6px;color:#4488ff'>Humidity</th>"
     + "<th style='text-align:center;padding:6px;color:#88cc44'>Pressure</th>"
-    + "<th style='text-align:center;padding:6px;color:#888'>Role</th></tr>";
+    + "<th style='text-align:center;padding:6px;color:#888'>Type</th></tr>";
 
   mut i = 0;
   while i < 7 do (
     let bg = if i < 4 then "#0a0a14" else "#0a140a" in
-    let role = if i < 4 then "DATA" else "ECC" in
+    let role = if i < 4 then "data" else "parity" in
     let name = sn_ch_short(i) in
     let color = sn_ch_color(i) in
     let tv = sn_t_res[i] in
@@ -166,7 +166,7 @@ fn sn_update() = (
   let ecc_text = if ecc_all == 3 then "ALL PASS" else "FAIL" in
   dom_inner(sn_ecc_el[0], "<span style='color:${ecc_color};font-size:20px;font-weight:bold'>${ecc_text}</span>"
     + "<span style='color:#888;margin-left:12px'>Temp: ${ecc_t}/1  Hum: ${ecc_h}/1  Press: ${ecc_p}/1</span>"
-    + "<br><span style='color:#666;font-size:12px'>ECC3: triple-parity (L + GATE + ESCAPE). Rate 4/7. 100% single-channel correction.</span>");
+    + "<br><span style='color:#666;font-size:12px'>ECC3: triple-parity (mod 11 + mod 13 + mod 17). Rate 4/7. 100% single-channel correction.</span>");
 
   /* Reading count */
   set(sn_reading, 0, sn_reading[0] + 1);
@@ -207,7 +207,7 @@ fn on_sn_corrupt() = (
   let ecc_text = if ecc_all == 3 then "ALL PASS" else "CORRUPTION DETECTED" in
   dom_inner(sn_ecc_el[0], "<span style='color:${ecc_color};font-size:20px;font-weight:bold'>${ecc_text}</span>"
     + "<span style='color:#888;margin-left:12px'>Temp: ${ecc_t}/1  Hum: ${ecc_h}/1  Press: ${ecc_p}/1</span>"
-    + "<br><span style='color:#ff6666;font-size:12px'>Channel ${name} corrupted. L+GATE+ESCAPE parity mismatch detects the error.</span>");
+    + "<br><span style='color:#ff6666;font-size:12px'>Channel ${name} corrupted. Parity channels (mod 11 + mod 13 + mod 17) detect the error.</span>");
 
   /* Update table to show corruption */
   sn_decompose(sn_hum[0], sn_h_res);
@@ -219,13 +219,13 @@ fn on_sn_corrupt() = (
     + "<th style='text-align:center;padding:6px;color:#ff8844'>Temp</th>"
     + "<th style='text-align:center;padding:6px;color:#4488ff'>Humidity</th>"
     + "<th style='text-align:center;padding:6px;color:#88cc44'>Pressure</th>"
-    + "<th style='text-align:center;padding:6px;color:#888'>Role</th></tr>";
+    + "<th style='text-align:center;padding:6px;color:#888'>Type</th></tr>";
 
   mut i = 0;
   while i < 7 do (
     let is_corrupt = if i == ch then 1 else 0 in
     let bg = if is_corrupt == 1 then "#2a0a0a" else if i < 4 then "#0a0a14" else "#0a140a" in
-    let role = if i < 4 then "DATA" else "ECC" in
+    let role = if i < 4 then "data" else "parity" in
     let name2 = sn_ch_short(i) in
     let color = if is_corrupt == 1 then "#ff0000" else sn_ch_color(i) in
     let tv = sn_t_res[i] in
@@ -384,7 +384,7 @@ fn on_sn_fetch_done() = (
       let iso_html = if len(iso_v) > 0
         then " <span style='color:#888;font-size:13px'>as of ${iso_v} UTC</span>"
         else "" in
-      dom_inner(sn_status_el[0], "<span style='color:#44ff88'>BRIDGE</span> am=${sn_am[0]} ecc=${ecc_s}${iso_html}");
+      dom_inner(sn_status_el[0], "<span style='color:#44ff88'>LIVE</span> am=${sn_am[0]} ecc=${ecc_s}${iso_html}");
       sn_update()
     ) else (
       dom_inner(sn_status_el[0], "<span style='color:#ff6666'>No data yet</span> (waiting for bridge)")
@@ -558,7 +558,7 @@ fn page_sensor() = (
   /* === SECTION 2: CRT DECOMPOSITION === */
   let sec2 = make_section("700px") in
   render_h2(sec2, "CRT Decomposition");
-  render_p(sec2, "Every reading is a number in Z/214414200. The Chinese Remainder Theorem splits it into 7 independent channels: 4 data (D, K, E, b) and 3 parity (L, GATE, ESCAPE). Each channel sees only its own residue. Corruption in any single channel is detected by the triple-parity check.");
+  render_p(sec2, "Every reading is a number in Z/214,414,200. The Chinese Remainder Theorem splits it into 7 independent channels: 4 data (mod 8, mod 9, mod 25, mod 49) and 3 parity (mod 11, mod 13, mod 17). Each channel sees only its own residue. Corruption in any single channel is detected by the triple-parity check.");
 
   let tbl_wrap = dom_create("div") in
   dom_style(tbl_wrap, "overflowX", "auto");
@@ -571,7 +571,7 @@ fn page_sensor() = (
   /* === SECTION 3: ECC STATUS === */
   let sec3 = make_section("700px") in
   render_h2(sec3, "Error Detection (ECC3)");
-  render_p(sec3, "Triple parity: L=11 + GATE=13 + ESCAPE=17. Rate 4/7 (4 data, 3 parity). Reconstruct the reading from the 4 data channels. If the result disagrees with any parity channel, corruption is detected. Click Corrupt to see it in action.");
+  render_p(sec3, "Triple parity: mod 11 + mod 13 + mod 17. Rate 4/7 (4 data, 3 parity). Reconstruct the reading from the 4 data channels. If the result disagrees with any parity channel, corruption is detected. Click Corrupt to see it in action.");
 
   let ecc_box = dom_create("div") in
   dom_style(ecc_box, "padding", "12px");
@@ -594,9 +594,9 @@ fn page_sensor() = (
   render_finding(g, "SPIN Packet", "14 bytes", "Step counter + lambda progress + sensor data. ESP-NOW broadcast. 3-second heartbeat.", "");
   render_finding(g, "ECC3", "100% detect", "Any single-channel corruption detected by triple parity. Two errors: 100% detect (535M exhaustive). Correction: Hamming-3 lookup.", "");
   render_finding(g, "Angular Momentum", "Clock sync", "Phase difference between sender and receiver = distance on 7-torus. Deviation from static CRT distance = clock drift. Free on every packet.", "");
-  render_finding(g, "Gateway", "PC bridge", "Python script reads void ESP32 serial, POSTs sensor JSON to Cloudflare Worker every 10 minutes. Worker stores in KV. Page fetches the latest on load. Click Refresh to re-fetch; within 10 minutes the browser cache returns the same payload at zero API cost.", "");
+  render_finding(g, "Gateway", "PC bridge", "Python script reads ESP32 serial, POSTs sensor JSON to Cloudflare Worker every 10 minutes. Worker stores in KV. Page fetches the latest on load. Click Refresh to re-fetch; within 10 minutes the browser cache returns the same payload at zero API cost.", "");
 
-  render_theorem(sec4, "Why CRT for Sensors?", "A temperature reading is just a number. But through CRT, it becomes 7 independent residues traveling on 7 independent channels. If any channel is corrupted by noise, the other 6 are unaffected. The parity channels detect it. The round-trip mirror cancels systematic offsets. The angular momentum monitors clock drift. All of this is FREE -- it falls out of the algebra. No protocol overhead. No error-correction codec. Just arithmetic in Z/214414200.");
+  render_theorem(sec4, "Why CRT for Sensors?", "A temperature reading is just a number. But through CRT, it becomes 7 independent residues traveling on 7 independent channels. If any channel is corrupted by noise, the other 6 are unaffected. The parity channels detect it. The round-trip mirror cancels systematic offsets. The angular momentum monitors clock drift. All of this is FREE -- it falls out of the algebra. No protocol overhead. No error-correction codec. Just arithmetic in Z/214,414,200.");
 
   dom_append(dom_body(), sec4);
 

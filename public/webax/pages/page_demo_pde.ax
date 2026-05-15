@@ -1,4 +1,4 @@
-/* CC0 #40: CRT Parallel PDE Simulation. 6 independent solvers via CRT. Domain: Ansys/COMSOL patents. CC0. */
+/* page_demo_pde.ax -- CRT Parallel PDE Simulation. 6 independent solvers via CRT. CC0. */
 
 fn pde_mod(ch) = (
   if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
@@ -6,8 +6,8 @@ fn pde_mod(ch) = (
 )
 
 fn pde_ch_name(ch) = (
-  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
-  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+  if ch == 0 then "m8" else if ch == 1 then "m9" else if ch == 2 then "m25"
+  else if ch == 3 then "m49" else if ch == 4 then "m11" else "m13"
 )
 
 fn pde_heat_step(grid, w, h, ch) = (
@@ -56,8 +56,8 @@ fn demo_pde_run() = (
     let g3 = pde_heat_step(g2, w, h, ch) in
     let g4 = pde_heat_step(g3, w, h, ch) in
     let center = g4[3 * w + 3] in
-    let is_dead = if ch == 0 then 1 else if ch == 2 then 1 else if ch == 3 then 1 else 0 in
-    let color = if is_dead == 1 then "#ff6666" else "#44ff88" in
+    let is_data = if ch == 0 then 1 else if ch == 2 then 1 else if ch == 3 then 1 else 0 in
+    let color = if is_data == 1 then "#ff6666" else "#44ff88" in
     mut html = html + "<p style='color:" + color + ";margin:4px 0;font-size:12px'>" + pde_ch_name(ch) + " (mod " + "${m}" + "): BC=" + "${bc_r}" + " -> center after 4 steps = " + "${center}" + "</p>";
     mut ch = ch + 1
   );
@@ -145,11 +145,11 @@ fn pde_gpu_mul() = gpu_bench(1, 100000, dom_query("#pde-gpu-mul"))
 fn pde_gpu_eig() = gpu_bench(2, 100000, dom_query("#pde-gpu-eig"))
 
 fn page_pde() = (
-  dom_head_meta("description", "CRT PDE Simulation. 6 independent solvers via CRT decomposition. Zero inter-channel sync. CC0.");
+  dom_head_meta("description", "CRT PDE Simulation. 6 independent solvers via CRT decomposition. Zero inter-channel coupling. CC0.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Parallel PDE Simulation\",\"description\":\"6-channel independent PDE solver over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/pde\"}");
   let hero = make_hero("CRT PDE Simulation") in
   let eq = dom_create("div") in
-  dom_text(eq, "A40: Ansys/COMSOL/Dassault. CC0.");
+  dom_text(eq, "Ansys/COMSOL/Dassault. CC0 alternative.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
@@ -160,12 +160,12 @@ fn page_pde() = (
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Domain Decomposition", "A 2D heat equation with boundary condition T_bc in Z/12612600 decomposes into 6 independent heat equations, one per CRT channel. Channel i solves on Z/m_i with boundary T_bc mod m_i. After convergence, CRT reconstruct gives the global solution. Block-diagonal stiffness: 36x fewer entries than coupled. 490 split: DEAD={D,E,b} = temperature data. ALIVE={K,L,G} = solution integrity.");
+  render_theorem(sec1, "CRT Domain Decomposition", "A 2D heat equation with boundary condition T_bc in Z/12,612,600 decomposes into 6 independent heat equations, one per CRT channel. Channel i solves on Z/m_i with boundary T_bc mod m_i. After convergence, CRT reconstruction gives the global solution. Block-diagonal stiffness matrix: 36x fewer entries than coupled. Three data channels (mod 8, 25, 49) carry temperature; three parity channels (mod 9, 11, 13) verify solution integrity.");
   let g1 = make_findings_grid(sec1) in
   render_finding(g1, "6 solvers", "Zero coupling", "Each channel converges independently. No global stiffness matrix.", "");
   render_finding(g1, "36x fewer ops", "Block-diagonal", "Coupled: (sum m_i)^2 entries. CRT: sum(m_i^2) entries. Ratio = 36x.", "");
   render_finding(g1, "GPU mapping", "6 workgroups", "Each PDE solver = 1 GPU workgroup. Zero inter-workgroup sync.", "");
-  render_finding(g1, "L=11 verify", "Free check", "L channel verifies solution integrity. Corruption = instant flag.", "");
+  render_finding(g1, "mod-11 verify", "Free check", "The mod-11 channel verifies solution integrity. Corruption = instant flag.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Heat Equation Demo");
@@ -189,7 +189,7 @@ fn page_pde() = (
   dom_style(cbtn, "background", "#ffd700"); dom_style(cbtn, "color", "#0f0f2a"); dom_style(cbtn, "border", "none"); dom_style(cbtn, "padding", "10px 24px"); dom_style(cbtn, "borderRadius", "6px"); dom_style(cbtn, "cursor", "pointer"); dom_style(cbtn, "fontWeight", "bold"); dom_style(cbtn, "fontSize", "14px"); dom_style(cbtn, "marginTop", "8px");
   dom_on(cbtn, "click", "pde_canvas_run");
   dom_append(sec2c, cbtn);
-  render_p(sec2c, "6 panels: one per CRT channel. 32x32 grid, 4 diffusion steps. Colors: D(red), K(green), E(blue), b(yellow), L(magenta), G(cyan).");
+  render_p(sec2c, "6 panels: one per CRT channel. 32x32 grid, 4 diffusion steps. Colors: mod 8 (red), mod 9 (green), mod 25 (blue), mod 49 (yellow), mod 11 (magenta), mod 13 (cyan).");
   dom_append(dom_body(), sec2c);
   let secg = make_section("800px") in
   render_h2(secg, "GPU Parallel Solve (WebGPU)");
@@ -209,7 +209,7 @@ fn page_pde() = (
   render_contrast_row(sec3, "Stiffness matrix", "Global: N^2 entries, coupled", "Block-diagonal: 6 tiny matrices. 36x fewer entries.");
   render_contrast_row(sec3, "Parallelism", "Domain decomposition: sync at boundaries", "CRT channels: zero sync. Algebraically independent.");
   render_contrast_row(sec3, "Convergence", "Global iterative (GMRES/CG)", "Per-channel: tiny systems converge in O(m) steps.");
-  render_contrast_row(sec3, "Verification", "Residual check (expensive)", "L=11 integrity: free verification per step.");
+  render_contrast_row(sec3, "Verification", "Residual check (expensive)", "mod-11 integrity: free verification per step.");
   render_contrast_row(sec3, "Patent status", "Ansys/COMSOL/Dassault patents", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
 )

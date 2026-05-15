@@ -690,8 +690,8 @@ fn ct_draw_ch_loss_curve() = (
       );
       mut c = c + 1
     );
-    /* Legend: D K E b L G (top, like other curves) */
-    let names = ["D", "K", "E", "b", "L", "G"] in
+    /* Legend: mod N labels (top, like other curves) */
+    let names = ["m8", "m9", "m25", "m49", "m11", "m13"] in
     mut c = 0;
     while c < 6 do (
       let _fl = cvs_fillstyle(ctx, ct_ch_color(c)) in
@@ -913,9 +913,9 @@ fn ct_show_stats(w) = (
   mut c = 0;
   while c < 6 do (
     let acc = ct_accuracy(w, 33 + c * 17, 4) in
-    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else if c == 4 then "L" else "G" in
+    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else "mod 13" in
     let dead = kills[c] in
-    dom_text(dom_query("#ct-ch${c}"), "${name}: ${if dead == 1 then "DEAD" else "${acc}/${nd}"}");
+    dom_text(dom_query("#ct-ch${c}"), "${name}: ${if dead == 1 then "OFF" else "${acc}/${nd}"}");
     dom_style(dom_query("#ct-ch${c}"), "color", if dead == 1 then "#ff4444" else if acc == nd then "#44ff44" else "#ffbb00");
     mut c = c + 1
   );
@@ -1059,7 +1059,7 @@ fn ct_f64_show_stats(w, nd, dx0, dx1, dy) = (
   mut c = 0;
   while c < 6 do (
     let acc = ct_f64_accuracy(w, 33 + c * 17, 4, nd, dx0, dx1, dy) in
-    let name = if c == 0 then "D" else if c == 1 then "K" else if c == 2 then "E" else if c == 3 then "b" else if c == 4 then "L" else "G" in
+    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else "mod 13" in
     dom_text(dom_query("#ct-ch${c}"), "${name}: ${acc}/${nd}");
     dom_style(dom_query("#ct-ch${c}"), "color", if acc == nd then "#44ff44" else "#ffbb00");
     mut c = c + 1
@@ -1339,7 +1339,7 @@ fn on_ct_corrupt() = (
     while j < 17 do (set(w, b_base + j, saved[j]); mut j = j + 1);
     ct_write_w(w);
     dom_text(dom_query("#ct-corrupt-out"),
-      "b-channel corrupted (+/-1.0 random noise on all 17 weights). L=11 detected anomaly in ${detected}/${nd} test cases. ${if detected > 0 then "Corruption found!" else "Train more epochs for stronger channel separation."}")
+      "mod-49 channel corrupted (+/-1.0 random noise on all 17 weights). mod-11 detected anomaly in ${detected}/${nd} test cases. ${if detected > 0 then "Corruption found!" else "Train more epochs for stronger channel separation."}")
   )
 )
 
@@ -1492,20 +1492,20 @@ fn ct_d_ratio() = (
   let r1 = np / sp in let r2 = vp / dp in
   set_hp(mark);
   /* Phase 2: build HTML from saved scalars */
-  let h = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>D-RATIO BRIDGE: per-channel exhaustive counts (TRANS)</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Ch</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Nil</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Sq0</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Idem</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Invol</th></tr>"
-    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>D=Z/8</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v0}</td></tr>"
-    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>K=Z/9</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v1}</td></tr>"
-    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>E=Z/25</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v2}</td></tr>"
-    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>b=Z/49</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v3}</td></tr>"
-    + "<tr><td style='padding:3px;color:#44ff88;font-size:12px'>L=Z/11</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v4}</td></tr>"
-    + "<tr><td style='padding:3px;color:#44ff88;font-size:12px'>G=Z/13</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v5}</td></tr>"
-    + "<tr><td style='padding:3px;color:#7FFFD4;font-size:12px'>X=Z/17</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v6}</td></tr>"
-    + "</table><p style='color:#ffd700;margin:12px 0 4px'>CRT PRODUCTS (TRANS)</p>"
-    + "<p style='color:#b0b0c0;margin:4px 0'>|Nil| = ${np} = lambda.  |Sq0| = ${sp} = DATA.  |Idem| = ${dp} = D^7.  |Invol| = ${vp} = D^8.</p>"
-    + "<p style='color:#ffd700;margin:12px 0 4px'>D-RATIO BRIDGE</p>"
-    + "<p style='color:#44ff88;margin:4px 0;font-size:16px'>Nil / Sq0 = ${np} / ${sp} = ${r1} = D</p>"
-    + "<p style='color:#44ff88;margin:4px 0;font-size:16px'>Invol / Idem = ${vp} / ${dp} = ${r2} = D</p>"
-    + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Both ratios = D = 2 because D-channel is the ONLY micro tower with Pareto depth 3. Z/8 has 4 involutions (Klein four-group) while all odd Z/p^k have exactly 2.</p></div>"
+  let h = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>2-RATIO BRIDGE: per-channel exhaustive counts (Z/214,414,200)</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Ch</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Nil</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Sq0</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Idem</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Invol</th></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>Z/8</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d0}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v0}</td></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>Z/9</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d1}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v1}</td></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>Z/25</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d2}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v2}</td></tr>"
+    + "<tr><td style='padding:3px;color:#ff6666;font-size:12px'>Z/49</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d3}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v3}</td></tr>"
+    + "<tr><td style='padding:3px;color:#44ff88;font-size:12px'>Z/11</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d4}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v4}</td></tr>"
+    + "<tr><td style='padding:3px;color:#44ff88;font-size:12px'>Z/13</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d5}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v5}</td></tr>"
+    + "<tr><td style='padding:3px;color:#7FFFD4;font-size:12px'>Z/17</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${n6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${s6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${d6}</td><td style='padding:3px;color:#b0b0c0;font-size:12px'>${v6}</td></tr>"
+    + "</table><p style='color:#ffd700;margin:12px 0 4px'>CRT PRODUCTS (Z/214,414,200)</p>"
+    + "<p style='color:#b0b0c0;margin:4px 0'>|Nil| = ${np} = Carmichael lambda.  |Sq0| = ${sp} = primorial.  |Idem| = ${dp} = 2^7.  |Invol| = ${vp} = 2^8.</p>"
+    + "<p style='color:#ffd700;margin:12px 0 4px'>2-RATIO BRIDGE</p>"
+    + "<p style='color:#44ff88;margin:4px 0;font-size:16px'>Nil / Sq0 = ${np} / ${sp} = ${r1} = 2</p>"
+    + "<p style='color:#44ff88;margin:4px 0;font-size:16px'>Invol / Idem = ${vp} / ${dp} = ${r2} = 2</p>"
+    + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Both ratios = 2 because Z/8 is the ONLY channel with exponent depth 3. Z/8 has 4 involutions (Klein four-group) while all odd Z/p^k have exactly 2.</p></div>"
   in
   dom_inner(result_el, h)
 )

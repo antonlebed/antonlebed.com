@@ -4,24 +4,24 @@
 fn page_nca() = (
   let hero = make_section("800px") in
   render_h2(hero, "Cellular Automata with CRT Decomposition");
-  render_p(hero, "A cellular automaton applies the same local rule everywhere, iteratively. Complex patterns emerge from simple rules. CRT decomposes the CA into 7 independent layers -- each channel runs its own CA rule at its own modular scale. After K=3 steps, each cell absorbs a 4-gram context window. The channels evolve independently, coupled only at sync points.");
-  render_p(hero, "Test: evolve CA rules for bigram text prediction. CRT CA = 7 per-channel lookup tables (132 entries total), each applied 3 times with left-neighbor context. Monolithic CA = one 128-entry table applied 3 times. Same population (16), generations (500), corpus (471 chars). Both CRT and mono get 4-gram context via iteration -- the question is whether CRT decomposition helps evolution find better rules.");
+  render_p(hero, "A cellular automaton applies the same local rule everywhere, iteratively. Complex patterns emerge from simple rules. CRT decomposes the CA into 7 independent layers -- each channel runs its own CA rule at its own modular scale. After 3 iterated steps, each cell absorbs a 4-gram context window. The channels evolve independently, coupled only at sync points.");
+  render_p(hero, "Test: evolve CA rules for bigram text prediction. CRT CA = 7 per-channel lookup tables (132 entries total), each applied 3 times with left-neighbor context. Monolithic CA = one 128-entry table applied 3 times. Same population (16), generations (500), corpus (471 chars). Both get 4-gram context via iteration -- the question is whether CRT decomposition helps evolution find better rules.");
   dom_append(dom_body(), hero);
 
   -- How CA works
   let sec1 = make_section("800px") in
   render_h2(sec1, "How the CA Predicts Text");
-  render_p(sec1, "Initialize: each position in the text gets its CRT residue (char mod q per channel). Update: each cell combines its left neighbor and itself (combined = (left + self*2) mod q), looks up the result in the channel's rule table. After K=3 steps, position t has information from positions t-3 through t. The CA's prediction at position t should match the next character's residue at t+1. The rule table has only q entries but captures 4-gram patterns through iteration.");
-  render_p(sec1, "This is genuinely different from E4's direct lookup (prev -> next). E4 uses 1 lookup with 2-gram context. E3 uses 3 iterated lookups with 4-gram context. Same parameter count (132 entries). The depth gives more context at the cost of a harder optimization landscape.");
+  render_p(sec1, "Initialize: each position in the text gets its CRT residue (char mod q per channel). Update: each cell combines its left neighbor and itself (combined = (left + self*2) mod q), looks up the result in the channel's rule table. After 3 steps, position t has information from positions t-3 through t. The CA's prediction at position t should match the next character's residue at t+1. The rule table has only q entries but captures 4-gram patterns through iteration.");
+  render_p(sec1, "This is genuinely different from direct lookup (prev -> next). Direct lookup uses 1 step with 2-gram context. The CA uses 3 iterated lookups with 4-gram context. Same parameter count (132 entries). The depth gives more context at the cost of a harder optimization landscape.");
   dom_append(dom_body(), sec1);
 
   -- Results
   let sec2 = make_section("800px") in
   render_h2(sec2, "Results: 2.4x Advantage");
-  render_p(sec2, "CRT CA bigram accuracy: 85/470 (18.1%). Best monolithic CA across 3 seeds: 35/470 (7.4%). CRT wins by 2.4x. Both use the same CA iteration depth (K=3 steps) and the same evolutionary framework. The difference is purely structural: CRT decomposes the rule space.");
+  render_p(sec2, "CRT CA bigram accuracy: 85/470 (18.1%). Best monolithic CA across 3 seeds: 35/470 (7.4%). CRT wins by 2.4x. Both use the same CA iteration depth (3 steps) and the same evolutionary framework. The difference is purely structural: CRT decomposes the rule space.");
   let g2 = make_findings_grid(sec2) in
-  render_finding(g2, "CRT CA", "85/470 (18.1%)", "7-channel CA. 132-entry genome. K=3 steps. Majority vote decode.", "");
-  render_finding(g2, "Mono CA seed 42", "23/470 (4.9%)", "128-entry CA table. Same K=3 steps. Direct prediction.", "");
+  render_finding(g2, "CRT CA", "85/470 (18.1%)", "7-channel CA. 132-entry genome. 3 iterated steps. Majority vote decode.", "");
+  render_finding(g2, "Mono CA seed 42", "23/470 (4.9%)", "128-entry CA table. Same 3 steps. Direct prediction.", "");
   render_finding(g2, "Mono CA seed 137", "35/470 (7.4%)", "Best mono seed. Still 2.4x below CRT.", "");
   render_finding(g2, "Mono CA seed 999", "30/470 (6.4%)", "Consistent across seeds: mono always below CRT.", "");
   dom_append(dom_body(), sec2);
@@ -29,7 +29,7 @@ fn page_nca() = (
   -- Convergence
   let sec3 = make_section("800px") in
   render_h2(sec3, "Convergence: Steady Climb");
-  render_p(sec3, "CRT per-channel accuracy rises steadily: 9% (gen 0) to 15% (gen 50) to 21% (gen 500). The curve shows no plateau after 500 generations -- more evolution would improve further. The trajectory matches E4 (10% to 27% over same generations), confirming that per-channel credit assignment drives efficient search regardless of the prediction mechanism.");
+  render_p(sec3, "CRT per-channel accuracy rises steadily: 9% (gen 0) to 15% (gen 50) to 21% (gen 500). The curve shows no plateau after 500 generations -- more evolution would improve further. The trajectory matches the direct-lookup experiment (10% to 27% over same generations), confirming that per-channel credit assignment drives efficient search regardless of the prediction mechanism.");
   let g3 = make_findings_grid(sec3) in
   render_finding(g3, "Gen 0", "299/3290 (9%)", "Random CA rules. Baseline.", "");
   render_finding(g3, "Gen 50", "501/3290 (15%)", "+68% in 50 generations. Fast initial learning.", "");
@@ -38,16 +38,16 @@ fn page_nca() = (
 
   -- Bloom sync
   let sec4 = make_section("800px") in
-  render_h2(sec4, "Bloom Sync: Cross-Channel Coupling");
-  render_p(sec4, "After K=3 independent CA steps, channels may have drifted apart. Bloom sync couples them: decode all 7 channels to a character via majority vote, then re-encode back to channel residues. This corrects channels that disagree with the consensus. Run 3 more CA steps from the synced state.");
-  render_p(sec4, "Result: bloom sync improves accuracy from 85 to 87 (+2.4%). Small but positive -- the independent channels are already quite consistent (they evolved under the same corpus), so correction has limited room. The key insight: bloom sync is the axiom's natural coupling mechanism (minimal sync at specific points), and it works as predicted.");
+  render_h2(sec4, "Cross-Channel Sync");
+  render_p(sec4, "After 3 independent CA steps, channels may have drifted apart. A sync step couples them: decode all 7 channels to a character via majority vote, then re-encode back to channel residues. This corrects channels that disagree with the consensus. Run 3 more CA steps from the synced state.");
+  render_p(sec4, "Result: sync improves accuracy from 85 to 87 (+2.4%). Small but positive -- the independent channels are already quite consistent (they evolved under the same corpus), so correction has limited room. The key insight: minimal sync at specific points is all that's needed. Continuous coupling would destroy channel independence.");
   dom_append(dom_body(), sec4);
 
   -- Comparison with E4
   let sec5 = make_section("800px") in
   render_h2(sec5, "CA vs Direct Lookup: Depth vs Width");
-  render_p(sec5, "E4 direct lookup: CRT 96/470, mono 21/470, ratio 4.6x. E3 CA iteration: CRT 85/470, mono 35/470, ratio 2.4x. The CA helps both methods by providing 4-gram context instead of 2-gram. But it helps mono MORE (21 to 35, +67%) than CRT (96 to 85, -11%). Why?");
-  render_p(sec5, "The CRT advantage scales with the gap between search space complexity and available information. E4's direct lookup has a huge gap: mono searches 128-dim space with only bigram signal, while CRT searches 7 small spaces. With CA's 4-gram context, mono gets richer signal, partially closing the gap. CRT's structural advantages (channel independence, small spaces, meaningful crossover) persist but are less decisive when the baseline has more information to work with.");
+  render_p(sec5, "Direct lookup: CRT 96/470, mono 21/470, ratio 4.6x. CA iteration: CRT 85/470, mono 35/470, ratio 2.4x. The CA helps both methods by providing 4-gram context instead of 2-gram. But it helps mono MORE (21 to 35, +67%) than CRT (96 to 85, -11%). Why?");
+  render_p(sec5, "The CRT advantage scales with the gap between search space complexity and available information. Direct lookup has a huge gap: mono searches 128-dim space with only bigram signal, while CRT searches 7 small spaces. With CA's 4-gram context, mono gets richer signal, partially closing the gap. CRT's structural advantages (channel independence, small spaces, meaningful crossover) persist but are less decisive when the baseline has more information to work with.");
   dom_append(dom_body(), sec5);
 
   0

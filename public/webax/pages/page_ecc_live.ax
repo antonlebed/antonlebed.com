@@ -406,7 +406,7 @@ fn ecc_decompose() = (
   let re = n210 % 5 in
   let rb = n210 % 7 in
   let rl = n210 % 11 in
-  dom_inner(result_el, "<p style='color:#88ddaa;margin:8px 0'>n = ${n210} (mod 210)</p><p style='color:#88ddaa;margin:4px 0'>CRT = (${rd}, ${rk}, ${re}, ${rb}, ${rl})</p><p style='color:#a0a0b0;margin:4px 0'>D=${rd} (mod 2) | K=${rk} (mod 3) | E=${re} (mod 5) | b=${rb} (mod 7) | L=${rl} (mod 11)</p>")
+  dom_inner(result_el, "<p style='color:#88ddaa;margin:8px 0'>n = ${n210} (mod 210)</p><p style='color:#88ddaa;margin:4px 0'>CRT = (${rd}, ${rk}, ${re}, ${rb}, ${rl})</p><p style='color:#a0a0b0;margin:4px 0'>mod 2=${rd} | mod 3=${rk} | mod 5=${re} | mod 7=${rb} | mod 11=${rl}</p>")
 )
 
 fn ecc_corrupt_heal() = (
@@ -432,7 +432,7 @@ fn ecc_corrupt_heal() = (
     else if try2 % 11 == rl then try2
     else if try3 % 11 == rl then try3
     else try4 in
-  dom_inner(result_el, "<p style='color:#ffaa44;margin:8px 0'>Original: n=${n210}, E channel=${re}</p><p style='color:#ff4444;margin:4px 0'>Corrupted: E channel ${re} -> ${re_bad} | Decoded to ${bad_val} (WRONG)</p><p style='color:#4488ff;margin:4px 0'>L check: expected ${rl}, got ${bad_l} -- " + (if detected == 1 then "ERROR DETECTED" else "no error") + "</p><p style='color:#44ff88;margin:4px 0'>Healed: ${healed} (correct: ${n210}) -- " + (if healed == n210 then "PERFECT RECOVERY" else "mismatch") + "</p>")
+  dom_inner(result_el, "<p style='color:#ffaa44;margin:8px 0'>Original: n=${n210}, mod-5 channel=${re}</p><p style='color:#ff4444;margin:4px 0'>Corrupted: mod-5 channel ${re} -> ${re_bad} | Decoded to ${bad_val} (WRONG)</p><p style='color:#4488ff;margin:4px 0'>mod-11 check: expected ${rl}, got ${bad_l} -- " + (if detected == 1 then "ERROR DETECTED" else "no error") + "</p><p style='color:#44ff88;margin:4px 0'>Healed: ${healed} (correct: ${n210}) -- " + (if healed == n210 then "PERFECT RECOVERY" else "mismatch") + "</p>")
 )
 
 fn ecc_batch_test() = (
@@ -490,7 +490,7 @@ fn spread_spectrum_calc() = (
     if is_coprime == 0 then
       dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ff8888;margin:0 0 8px'>KEY ${k} is NOT coprime to 12,612,600</p><p style='color:#b0b0c0;margin:4px 0'>Divisible by " + (if div2 == 0 then "2 " else "") + (if div3 == 0 then "3 " else "") + (if div5 == 0 then "5 " else "") + (if div7 == 0 then "7 " else "") + (if div11 == 0 then "11 " else "") + (if div13 == 0 then "13" else "") + ". Not a valid spreading code.</p><p style='color:#b0b0c0;margin:4px 0'>CRT decomposition: (${rd}, ${rk}, ${re}, ${rb}, ${rl}, ${rg})</p><p style='color:#a0a0b0;margin:4px 0'>Try a prime > 13: 17, 19, 23, 29, 31, 37, 41, 43, 47...</p></div>")
     else
-      dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>SPREADING KEY: ${k}</p><p style='color:#44ff88;margin:4px 0'>VALID -- coprime to 12,612,600 (invertible in the ring)</p><p style='color:#88ddaa;margin:4px 0'>CRT slot: (${rd}, ${rk}, ${re}, ${rb}, ${rl}, ${rg})</p><p style='color:#b0b0c0;margin:4px 0'>Channels: D=${rd}/8, K=${rk}/9, E=${re}/25, b=${rb}/49, L=${rl}/11, G=${rg}/13</p><p style='color:#b0b0c0;margin:4px 0'>This 6-tuple is UNIQUE to key ${k}. No other coprime key maps here.</p><p style='color:#ffd700;margin:8px 0'>Capacity: 2,419,200 valid keys (phi(12612600) = septum of TRUE ring)</p><p style='color:#b0b0c0;margin:4px 0'>Encode: data * ${k} mod 12612600. Decode: signal * ${k}^(-1) mod 12612600.</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>CRT guarantees unique decomposition = unique spreading code. 6 algebraically orthogonal channels. L=11 + GATE=13 = dual error detection per symbol. CC0.</p></div>")
+      dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>SPREADING KEY: ${k}</p><p style='color:#44ff88;margin:4px 0'>VALID -- coprime to 12,612,600 (invertible in the ring)</p><p style='color:#88ddaa;margin:4px 0'>CRT slot: (${rd}, ${rk}, ${re}, ${rb}, ${rl}, ${rg})</p><p style='color:#b0b0c0;margin:4px 0'>Channels: mod 8=${rd}, mod 9=${rk}, mod 25=${re}, mod 49=${rb}, mod 11=${rl}, mod 13=${rg}</p><p style='color:#b0b0c0;margin:4px 0'>This 6-tuple is UNIQUE to key ${k}. No other coprime key maps here.</p><p style='color:#ffd700;margin:8px 0'>Capacity: 2,419,200 valid keys (phi(12,612,600))</p><p style='color:#b0b0c0;margin:4px 0'>Encode: data * ${k} mod 12,612,600. Decode: signal * ${k}^(-1) mod 12,612,600.</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>CRT guarantees unique decomposition = unique spreading code. 6 algebraically orthogonal channels. mod 11 + mod 13 = dual error detection per symbol. CC0.</p></div>")
   )
 )
 
@@ -503,7 +503,7 @@ fn fountain_drop_calc() = (
     let rd = v % 2 in let rk = v % 3 in let re = v % 5 in let rb = v % 7 in let rl = v % 11 in
     let r4_skip_l = (105 * rd + 70 * rk + 126 * re + 120 * rb) % 210 in
     let check_l = r4_skip_l % 11 in
-    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT FOUNTAIN DROPS</p><p style='color:#88ddaa;margin:4px 0'>Value: ${v} (mod 210)</p><p style='color:#b0b0c0;margin:4px 0'>5 drops: D=${rd} K=${rk} E=${re} b=${rb} L=${rl}</p><p style='color:#ffd700;margin:12px 0 4px'>LOSSY CHANNEL (lose L drop)</p><p style='color:#88ddaa;margin:4px 0'>4 drops received: D=${rd} K=${rk} E=${re} b=${rb}</p><p style='color:#88ddaa;margin:4px 0'>CRT reconstruct from 4: ${r4_skip_l}" + (if r4_skip_l == v then " -- PERFECT RECOVERY" else " -- mismatch") + "</p><p style='color:#b0b0c0;margin:4px 0'>L check: reconstructed mod 11 = ${check_l}, original L = ${rl}" + (if check_l == rl then " -- CONSISTENT" else " -- ERROR DETECTED") + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>CRT = rateless fountain code. Each channel = one drop. Any 4+ drops recover (for values < 210). No Luby transform. No graph structure. The ring IS the code. CC0.</p></div>")
+    dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT FOUNTAIN DROPS</p><p style='color:#88ddaa;margin:4px 0'>Value: ${v} (mod 210)</p><p style='color:#b0b0c0;margin:4px 0'>5 drops: mod 2=${rd}, mod 3=${rk}, mod 5=${re}, mod 7=${rb}, mod 11=${rl}</p><p style='color:#ffd700;margin:12px 0 4px'>LOSSY CHANNEL (lose mod-11 drop)</p><p style='color:#88ddaa;margin:4px 0'>4 drops received: mod 2=${rd}, mod 3=${rk}, mod 5=${re}, mod 7=${rb}</p><p style='color:#88ddaa;margin:4px 0'>CRT reconstruct from 4: ${r4_skip_l}" + (if r4_skip_l == v then " -- PERFECT RECOVERY" else " -- mismatch") + "</p><p style='color:#b0b0c0;margin:4px 0'>mod-11 check: reconstructed mod 11 = ${check_l}, original = ${rl}" + (if check_l == rl then " -- CONSISTENT" else " -- ERROR DETECTED") + "</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>CRT = rateless fountain code. Each channel = one drop. Any 4+ drops recover (for values < 210). No Luby transform. No graph structure. CC0.</p></div>")
   )
 )
 
@@ -563,14 +563,14 @@ fn holo_calc() = (
     let fix_ok = if fixed >= 0 then if fixed == v then 1 else 0 else 0 in
     let fix_msg = if fixed >= 0 then "Fixed via " + fix_name + " channel (${fix_trials} trials): ${fixed}" + (if fix_ok > 0 then " = ORIGINAL. PERFECT." else "") else "No single-channel fix found" in
     dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>" +
-      "<p style='color:#ffd700;margin:0 0 8px'>490 HOLOGRAPHIC ECC</p>" +
-      "<p style='color:#88ddaa;margin:4px 0'>Value: ${v} in Z/9800 (inner ring D\u00b3\u00d7E\u00b2\u00d7b\u00b2)</p>" +
-      "<p style='color:#b0b0c0;margin:4px 0'>Inner (data): D=${rd}/8, E=${re}/25, b=${rb}/49</p>" +
-      "<p style='color:#b0b0c0;margin:4px 0'>Boundary (parity): K=${rk}/9, L=${rl}/11, GATE=${rg}/13</p>" +
+      "<p style='color:#ffd700;margin:0 0 8px'>490 SPLIT ECC</p>" +
+      "<p style='color:#88ddaa;margin:4px 0'>Value: ${v} in Z/9,800 (inner ring 8\u00d725\u00d749)</p>" +
+      "<p style='color:#b0b0c0;margin:4px 0'>Inner (data): mod 8=${rd}, mod 25=${re}, mod 49=${rb}</p>" +
+      "<p style='color:#b0b0c0;margin:4px 0'>Boundary (parity): mod 9=${rk}, mod 11=${rl}, mod 13=${rg}</p>" +
       "<p style='color:" + ch_color + ";margin:12px 0 4px'>CORRUPT " + ch_name + " channel (+1 mod p)</p>" +
-      "<p style='color:#ff8888;margin:4px 0'>Received inner: D=${bad_rd}, E=${bad_re}, b=${bad_rb}</p>" +
+      "<p style='color:#ff8888;margin:4px 0'>Received inner: mod 8=${bad_rd}, mod 25=${bad_re}, mod 49=${bad_rb}</p>" +
       "<p style='color:#ffd700;margin:12px 0 4px'>SYNDROME (3 boundary checks)</p>" +
-      "<p style='color:#b0b0c0;margin:4px 0'>K: expect ${ek}, have ${rk}, syn=${sk} | L: expect ${el}, have ${rl}, syn=${sl} | GATE: expect ${eg}, have ${rg}, syn=${sg}</p>" +
+      "<p style='color:#b0b0c0;margin:4px 0'>mod 9: expect ${ek}, have ${rk}, syn=${sk} | mod 11: expect ${el}, have ${rl}, syn=${sl} | mod 13: expect ${eg}, have ${rg}, syn=${sg}</p>" +
       "<p style='color:#ffaa44;margin:4px 0'>All 3 nonzero \u2192 inner channel error confirmed</p>" +
       "<p style='color:#ffd700;margin:12px 0 4px'>BLIND CORRECTION (max 82 trials: 8+25+49)</p>" +
       "<p style='color:#44ff88;margin:4px 0'>" + fix_msg + "</p></div>")
@@ -611,13 +611,13 @@ fn ecc3_double_demo() = (
   let ok = if matches == 1 then if fixed_val == v then 1 else 0 else 0 in
   dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>" +
     "<p style='color:#ffd700;margin:0 0 8px'>ECC3 TRIPLE-PARITY DEMO</p>" +
-    "<p style='color:#88ddaa;margin:4px 0'>Value: ${v} in Z/88200 (data ring D^3 x K^2 x E^2 x b^2)</p>" +
-    "<p style='color:#b0b0c0;margin:4px 0'>Data: D=${rd}/8, K=${rk}/9, E=${re}/25, b=${rb}/49</p>" +
-    "<p style='color:#b0b0c0;margin:4px 0'>Parity: L=${rl}/11, GATE=${rg}/13, ESCAPE=${rx}/17</p>" +
-    "<p style='color:#ff6666;margin:12px 0 4px'>DOUBLE CORRUPTION: D(+1 mod 8) and K(+1 mod 9)</p>" +
-    "<p style='color:#ff8888;margin:4px 0'>Corrupted: D=${rd_bad}, K=${rk_bad} -- decoded to ${v_bad}</p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>Value: ${v} in Z/88,200 (data ring 8 x 9 x 25 x 49)</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>Data: mod 8=${rd}, mod 9=${rk}, mod 25=${re}, mod 49=${rb}</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>Parity: mod 11=${rl}, mod 13=${rg}, mod 17=${rx}</p>" +
+    "<p style='color:#ff6666;margin:12px 0 4px'>DOUBLE CORRUPTION: mod 8 (+1) and mod 9 (+1)</p>" +
+    "<p style='color:#ff8888;margin:4px 0'>Corrupted: mod 8=${rd_bad}, mod 9=${rk_bad} -- decoded to ${v_bad}</p>" +
     "<p style='color:#ffd700;margin:12px 0 4px'>TRIPLE-PARITY SYNDROME</p>" +
-    "<p style='color:#b0b0c0;margin:4px 0'>L: ${sl} | GATE: ${sg} | ESCAPE: ${sx}</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>mod 11: ${sl} | mod 13: ${sg} | mod 17: ${sx}</p>" +
     "<p style='color:#ffd700;margin:12px 0 4px'>CORRECTION (72 trials: 8 x 9)</p>" +
     "<p style='color:" + (if ok == 1 then "#44ff88" else "#ffaa44") + ";margin:4px 0'>" +
     (if ok == 1 then "UNIQUE MATCH: ${fixed_val} = ORIGINAL. DOUBLE ERROR CORRECTED."
@@ -633,7 +633,7 @@ fn ecc_void_chain() = (
   let k = if k_in < 2 then 2 else if k_in > 12 then 12 else k_in in
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>VOID CHAIN: lambda(0) = 2k - 1 for k channels</p>";
-  mut html = html + "<table style='border-collapse:collapse;width:100%;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#666;font-size:10px;text-align:left'>k</th><th style='padding:3px 8px;color:#ffd700;font-size:10px;text-align:left'>lambda(0)</th><th style='padding:3px 8px;color:#44ff88;font-size:10px;text-align:left'>Ring</th><th style='padding:3px 8px;color:#ff9900;font-size:10px;text-align:left'>Axiom Name</th><th style='padding:3px 8px;color:#888;font-size:10px;text-align:left'>Gap</th></tr>";
+  mut html = html + "<table style='border-collapse:collapse;width:100%;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#666;font-size:10px;text-align:left'>k</th><th style='padding:3px 8px;color:#ffd700;font-size:10px;text-align:left'>lambda(0)</th><th style='padding:3px 8px;color:#44ff88;font-size:10px;text-align:left'>Ring</th><th style='padding:3px 8px;color:#ff9900;font-size:10px;text-align:left'>Chain Prime?</th><th style='padding:3px 8px;color:#888;font-size:10px;text-align:left'>Gap</th></tr>";
   mut prev = 0;
   mut prod = 1;
   mut total = 0;
@@ -643,7 +643,7 @@ fn ecc_void_chain() = (
     let lam = 2 * i - 1 in
     let gap = if prev == 0 then 0 else lam - prev in
     let ring_name = if i == 4 then "DATA" else if i == 5 then "DEEP" else if i == 6 then "TRUE" else if i == 7 then "TRANS" else "" in
-    let ax_name = if lam == 3 then "K" else if lam == 5 then "E" else if lam == 7 then "b" else if lam == 9 then "K^2" else if lam == 11 then "L" else if lam == 13 then "GATE" else if lam == 17 then "ESCAPE" else "" in
+    let ax_name = if lam == 3 then "yes (3)" else if lam == 5 then "yes (5)" else if lam == 7 then "yes (7)" else if lam == 9 then "3^2" else if lam == 11 then "yes (11)" else if lam == 13 then "yes (13)" else if lam == 17 then "yes (17)" else "" in
     let is_ax = if len(ax_name) > 0 then 1 else 0 in
     let a_clr = if is_ax == 1 then "#ffd700" else "#555" in
     let r_clr = if len(ring_name) > 0 then "#44ff88" else "#555" in
@@ -658,26 +658,26 @@ fn ecc_void_chain() = (
     mut i = i + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Axiom hits: " + "${axiom_hits}" + "/" + "${k - 1}" + " values name axiom elements.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Chain prime hits: " + "${axiom_hits}" + "/" + "${k - 1}" + " values are chain primes or their squares.</p>";
   if k >= 7 then (
-    mut html = html + "<p style='color:#88ddaa;margin:4px 0;font-size:12px'>Tower A product (k=4..7): " + "${prod}" + " = 7*9*11*13 = K^2*b*L*GATE = 9009. Sum: " + "${total}" + " = 40 = D^3*E.</p>";
+    mut html = html + "<p style='color:#88ddaa;margin:4px 0;font-size:12px'>Product (k=4..7): " + "${prod}" + " = 7*9*11*13 = 9,009. Sum: " + "${total}" + " = 40 = 8*5.</p>";
     mut html = html + "<p style='color:#88ddaa;margin:4px 0;font-size:12px'>All gaps = 2 = D. The void walks the axiom at D-spaced intervals.</p>"
   ) else 0;
-  mut html = html + "<p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Void Chain Theorem. lambda(0) = 2k-1. At Tower A rings DATA/DEEP/TRUE/TRANS, the void eigenvalue names b, K^2, L, GATE. L=11 = void eigenvalue of TRUE = the ring where ECC operates. CC0.</p>";
+  mut html = html + "<p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Void Chain Theorem. lambda(0) = 2k-1. At k=4,5,6,7 the values are 7, 9, 11, 13 -- chain primes or their squares. 11 = zero eigenvalue of Z/12,612,600 = the ring where ECC operates. CC0.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 /* ===== PAGE CONSTRUCTION ===== */
 fn page_ecc_live() = (
-  dom_head_meta("description", "Live Error Correction. L=11 detects, CRT heals. 100% single-error correction. ECC3 triple-parity: 43.2% double-error vs Hamming 0%. Void Chain Theorem: lambda(0) at TRUE = L = the ECC prime. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Live Error Correction\",\"description\":\"CRT error correction: L=11 single-error (100%), ECC3 triple-parity double-error (43.2% vs Hamming 0%). Void Chain Theorem: void eigenvalue at TRUE = L=11 = the ECC prime.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/ecc_live\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"L=11 protection\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT reconstruction\"},{\"@type\":\"DefinedTerm\",\"name\":\"double-error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"void chain theorem\"}]}");
-  domain_hero("Error Correction", "L = 11 detects. CRT heals.", "Type a message. Click any channel cell to corrupt it. Watch L=11 catch the error. Click again or Heal All to restore. 100% recovery.");
+  dom_head_meta("description", "Live Error Correction. mod-11 detects, CRT corrects. 100% single-error correction. ECC3 triple-parity: 43.2% double-error vs Hamming 0%. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Live Error Correction\",\"description\":\"CRT error correction: mod-11 single-error (100%), ECC3 triple-parity double-error (43.2% vs Hamming 0%).\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/ecc_live\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"error correction\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT reconstruction\"},{\"@type\":\"DefinedTerm\",\"name\":\"double-error correction\"}]}");
+  domain_hero("Error Correction", "mod-11 detects. CRT corrects.", "Type a message. Click any channel cell to corrupt it. Watch mod-11 catch the error. Click again or Heal All to restore. 100% recovery.");
 
   /* === SEC 1: LIVE MESSAGE ECC (NEW -- canvas-based, absorbed from ecc_live.html) === */
   let sec1 = make_section("800px") in
   render_h2(sec1, "Live Message Protection");
-  render_p(sec1, "Each character splits into 5 CRT channels (D, K, E, b, L). L=11 is the guardian. Click any data channel cell to corrupt it. Click a corrupted character to heal it. Or scramble everything and heal all at once.");
+  render_p(sec1, "Each character splits into 5 CRT channels (mod 2, 3, 5, 7, 11). The mod-11 channel detects errors. Click any data channel cell to corrupt it. Click a corrupted character to heal it. Or scramble everything and heal all at once.");
   /* Message input */
   let row1 = dom_create("div") in
   dom_style(row1, "display", "flex");
@@ -754,7 +754,7 @@ fn page_ecc_live() = (
   dom_style(stats, "fontFamily", "'Courier New', monospace");
   dom_style(stats, "marginBottom", "12px");
   dom_append(sec1, stats);
-  render_p(sec1, "Each character lives in Z/210Z (the DATA ring). 5 channels: D (mod 2), K (mod 3), E (mod 5), b (mod 7), L (mod 11). Corrupt any single channel and L detects. CRT reconstructs. 100% recovery. No statistics -- exhaustive proof over the ring.");
+  render_p(sec1, "Each character lives in Z/210. Five channels: mod 2, mod 3, mod 5, mod 7, mod 11. Corrupt any single data channel and mod-11 detects. CRT reconstructs. 100% recovery. Not sampling -- exhaustive proof over the entire ring.");
   dom_append(dom_body(), sec1);
   /* Auto-encode the default message */
   ecc_msg_encode();
@@ -762,7 +762,7 @@ fn page_ecc_live() = (
   /* === SEC 2: SINGLE VALUE ECC (existing) === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It: Single Value ECC");
-  render_p(sec2, "Type any number. Decompose it into 5 CRT channels. Then corrupt the E channel and watch L=11 detect the error and CRT reconstruct the original.");
+  render_p(sec2, "Type any number. Decompose it into 5 CRT channels. Then corrupt the mod-5 channel and watch mod-11 detect the error and CRT reconstruct the original.");
   let row2 = dom_create("div") in
   dom_style(row2, "display", "flex");
   dom_style(row2, "gap", "12px");
@@ -792,7 +792,7 @@ fn page_ecc_live() = (
   dom_on(btn2a, "click", "ecc_decompose");
   dom_append(row2, btn2a);
   let btn2b = dom_create("button") in
-  dom_inner(btn2b, "Corrupt E & Heal");
+  dom_inner(btn2b, "Corrupt mod-5 & Heal");
   dom_style(btn2b, "background", "#1a1a2e");
   dom_style(btn2b, "color", "#ffaa44");
   dom_style(btn2b, "border", "1px solid #ffaa44");
@@ -813,18 +813,18 @@ fn page_ecc_live() = (
   /* === SEC 3: HOW IT WORKS === */
   let sec3 = make_section("800px") in
   render_h2(sec3, "How CRT Error Correction Works");
-  render_theorem(sec3, "The L=11 Protector", "Every element in Z/210Z has 5 independent CRT channels. L=11 is the PROTECTOR channel. If one channel is corrupted, the other 4 channels + the L parity check can DETECT which channel was hit and RECONSTRUCT the correct value. Same principle as RAID-5, Reed-Solomon, and Hamming codes -- but it falls out of the axiom for free.");
+  render_theorem(sec3, "mod-11 Error Detection", "Every element in Z/210 has 5 independent CRT channels (mod 2, 3, 5, 7, 11). The mod-11 channel serves as a parity check. If one channel is corrupted, the other 4 channels plus the mod-11 check can DETECT which channel was hit and RECONSTRUCT the correct value. Same principle as RAID-5 and Reed-Solomon codes -- but it falls out of the ring structure for free.");
   let g3 = make_findings_grid(sec3) in
-  render_finding(g3, "Channels", "5", "D, K, E, b, L. Five independent views of one number.", "");
-  render_finding(g3, "Detection", "100%", "Any single-channel corruption detected by L parity.", "");
-  render_finding(g3, "Correction", "100%", "Try all values for suspect channel until L matches.", "");
-  render_finding(g3, "Redundancy", "1/11", "One channel of five. The protector earns its keep.", "");
+  render_finding(g3, "Channels", "5", "mod 2, 3, 5, 7, 11. Five independent views of one number.", "");
+  render_finding(g3, "Detection", "100%", "Any single-channel corruption detected by mod-11 parity.", "");
+  render_finding(g3, "Correction", "100%", "Try all values for suspect channel until mod-11 matches.", "");
+  render_finding(g3, "Redundancy", "1/11", "One channel of five. Error detection at no extra cost.", "");
   dom_append(dom_body(), sec3);
 
   /* === SEC 4: BATCH PROOF === */
   let sec4 = make_section("800px") in
   render_h2(sec4, "Batch Proof: All 210 Values");
-  render_p(sec4, "Test every element of Z/210Z. For each, corrupt a random channel, check L=11 detection, and attempt correction. Result: 100% detection, 100% correction. Not sampling -- exhaustive proof.");
+  render_p(sec4, "Test every element of Z/210. For each, corrupt a random channel, check mod-11 detection, and attempt correction. Result: 100% detection, 100% correction. Not sampling -- exhaustive proof.");
   let btn_batch = dom_create("button") in
   dom_inner(btn_batch, "Run All 210 Trials");
   dom_style(btn_batch, "background", "#1a1a2e");
@@ -844,41 +844,41 @@ fn page_ecc_live() = (
   /* === SEC 5: WHY THIS MATTERS === */
   let sec5 = make_section("800px") in
   render_h2(sec5, "Why This Matters");
-  render_theorem(sec5, "3.02x Reliability Gain", "In CRT transformer architecture, L=11 error correction provides 3.02x improvement in reliability over standard approaches. Proved in AI experiments. The redundancy is not waste -- it is the PROTECTOR doing its job.");
-  render_p(sec5, "L = 11 = sigma + D + K + E. The minimum prime that can protect all other axiom channels. The ECC property follows algebraically from the coprimality of 11 with the data moduli {2, 3, 5, 7}.");
+  render_theorem(sec5, "3.02x Reliability Gain", "In CRT transformer architecture, mod-11 error correction provides 3.02x improvement in reliability over standard approaches. Proved in AI experiments. The redundancy is not waste -- it is error detection doing its job.");
+  render_p(sec5, "11 = 1 + 2 + 3 + 5. The smallest prime coprime to all four data moduli {2, 3, 5, 7}. The ECC property follows algebraically from this coprimality.");
   dom_append(dom_body(), sec5);
 
   /* === SEC 5b: 490 HOLOGRAPHIC ECC -- THE TRUE RING UPGRADE === */
   let sec5b = make_section("800px") in
-  render_h2(sec5b, "490 Holographic ECC: The TRUE Ring");
-  render_theorem(sec5b, "Holographic Split Theorem", "490 = D\u00d7E\u00d7b\u00b2 cleaves 6 channels into inner {D,E,b} and boundary {K,L,GATE}. Inner product: 8\u00d725\u00d749 = 9,800. Boundary product: 9\u00d711\u00d713 = 1,287. And 9,800 \u00d7 1,287 = 12,612,600 = N exactly. For data in Z/9800: boundary channels are pure parity. Three parity channels for three data channels. The 490 split IS the ECC architecture. Holographic: 3 boundary encode 6 bulk. d_min = 3: corrects 1 error anywhere, detects 2.");
-  render_p(sec5b, "This upgrades L=11 alone (above) to the full holographic trinity K+L+GATE. The syndrome has 3 components -- if all nonzero, an inner channel is corrupted. Blind correction tries D(8) + E(25) + b(49) = 82 trials max. The boundary verifies each guess.");
-  make_interactive_widget(sec5b, "Value (0-9799):", "holo-input", "e.g. 42", "Holographic ECC", "holo_calc", "holo-result");
+  render_h2(sec5b, "490 Split ECC: The 6-Channel Ring");
+  render_theorem(sec5b, "490 Split Theorem", "490 = 2\u00d75\u00d77\u00b2 cleaves 6 channels into inner {2,5,7} and boundary {3,11,13}. Inner product: 8\u00d725\u00d749 = 9,800. Boundary product: 9\u00d711\u00d713 = 1,287. And 9,800 \u00d7 1,287 = 12,612,600 exactly. For data in Z/9,800: boundary channels are pure parity. Three parity channels for three data channels. d_min = 3: corrects 1 error anywhere, detects 2.");
+  render_p(sec5b, "This upgrades mod-11 alone (above) to the full triple: mod 9 + mod 11 + mod 13. The syndrome has 3 components -- if all nonzero, an inner channel is corrupted. Blind correction tries mod 8 (8) + mod 25 (25) + mod 49 (49) = 82 trials max. The boundary verifies each guess.");
+  make_interactive_widget(sec5b, "Value (0-9799):", "holo-input", "e.g. 42", "490 Split ECC", "holo_calc", "holo-result");
   let g5b = make_findings_grid(sec5b) in
-  render_finding(g5b, "Architecture", "490 split", "Inner {D,E,b} = data. Boundary {K,L,GATE} = parity. 9800 \u00d7 1287 = N.", "");
-  render_finding(g5b, "Data capacity", "9,800", "D\u00b3\u00d7E\u00b2\u00d7b\u00b2 = 8\u00d725\u00d749. Inner ring of TRUE.", "");
+  render_finding(g5b, "Architecture", "490 split", "Inner {2,5,7} = data. Boundary {3,11,13} = parity. 9,800 \u00d7 1,287 = 12,612,600.", "");
+  render_finding(g5b, "Data capacity", "9,800", "2\u00b3\u00d75\u00b2\u00d77\u00b2 = 8\u00d725\u00d749. Inner ring of Z/12,612,600.", "");
   render_finding(g5b, "Correction", "1 error / 82 trials", "Blind: try all inner channels. Boundary triple-checks. Unique fix.", "");
   render_finding(g5b, "d_min = 3", "Weight-3 at 792", "792 = lcm(8,9,11). Corrects 1, detects 2. (6,3,3) code.", "");
-  render_p(sec5b, "DUAL-PARITY ALTERNATIVE: Use L=11 + GATE=13 as 2 parity channels for 4 data channels (D,K,E,b). Data ring Z/88200 = Z/8 x Z/9 x Z/25 x Z/49. Capacity 88200 (vs 9800 holographic). PROVED: max data modulus (49) < L*GATE (143), so known-location correction is 100% for all channels. Trade-off: 490 holographic (3+3) gives stronger blind correction; dual-parity (4+2) gives higher data rate. Both: 100% detection, 100% known-location correction. Implemented in crt.h as crt_ecc2_* functions. CC0.");
+  render_p(sec5b, "DUAL-PARITY ALTERNATIVE: Use mod-11 + mod-13 as 2 parity channels for 4 data channels (mod 8, 9, 25, 49). Data ring Z/88,200. Capacity 88,200 (vs 9,800 above). Max data modulus (49) < 11*13 (143), so known-location correction is 100% for all channels. Trade-off: 490 split (3+3) gives stronger blind correction; dual-parity (4+2) gives higher data rate. Both: 100% detection, 100% known-location correction. CC0.");
   dom_append(dom_body(), sec5b);
 
   /* === SEC 5c: NN WEIGHT PROTECTION (S1235 finding) === */
   let sec5c = make_section("800px") in
   render_h2(sec5c, "Neural Network Weight Protection");
-  render_theorem(sec5c, "L=11 Protects NN Weights (VERIFIED)", "Train a 2-layer XOR network (17 weights, 4/4 accuracy). CRT-decompose all weights into 6 channels. Corrupt an entire channel (simulating hardware fault). L=11 detects 17/17 corruptions. Known-location correction restores all weights. Accuracy after correction: 4/4. The ring protects trained parameters for free.");
+  render_theorem(sec5c, "mod-11 Protects NN Weights (VERIFIED)", "Train a 2-layer XOR network (17 weights, 4/4 accuracy). CRT-decompose all weights into 6 channels. Corrupt an entire channel (simulating hardware fault). mod-11 detects 17/17 corruptions. Known-location correction restores all weights. Accuracy after correction: 4/4. The ring protects trained parameters for free.");
   let g5c = make_findings_grid(sec5c) in
-  render_finding(g5c, "Detection", "17/17 (100%)", "L=11 parity mismatch on every corrupted weight.", "");
-  render_finding(g5c, "Correction", "17/17 (100%)", "Known-location: try all residues for corrupted channel until L matches.", "");
+  render_finding(g5c, "Detection", "17/17 (100%)", "mod-11 parity mismatch on every corrupted weight.", "");
+  render_finding(g5c, "Correction", "17/17 (100%)", "Known-location: try all residues for corrupted channel until mod-11 matches.", "");
   render_finding(g5c, "Accuracy", "4/4 restored", "Full accuracy recovery. CRT reconstruction = exact inverse of decomposition.", "");
-  render_finding(g5c, "Cost", "Zero", "No checksums added. L=11 is already part of the ring representation.", "");
-  render_p(sec5c, "Data subring Z/1146600 = Z/8 x Z/9 x Z/25 x Z/49 x Z/13 stores weights. L=11 is parity: L = smod(data_val, 11). Correction rates: D=100%, K=100%, GATE=84%, E=44%, b=22% (single parity). Dual-parity (L+GATE): 100% all channels. See test_ecc_nn.ax (CC0).");
+  render_finding(g5c, "Cost", "Zero", "No checksums added. mod-11 is already part of the ring representation.", "");
+  render_p(sec5c, "Data subring Z/1,146,600 = Z/8 x Z/9 x Z/25 x Z/49 x Z/13 stores weights. mod-11 is parity. Correction rates: mod 8=100%, mod 9=100%, mod 13=84%, mod 25=44%, mod 49=22% (single parity). Dual-parity (mod 11 + mod 13): 100% all channels. See test_ecc_nn.ax (CC0).");
   dom_append(dom_body(), sec5c);
 
   /* === SEC 6: PARADIGM CONTRAST === */
   let sec6 = make_section("800px") in
   render_h2(sec6, "Paradigm Contrast: CRT vs INT8");
   render_p(sec6, "Standard INT8 quantization uses 256 levels (8 bits, arbitrary). CRT uses 210 levels (7.7 bits, structured). The 0.3-bit cost buys infinite error correction.");
-  render_contrast_row(sec6, "Error detection", "0% -- bit flips are invisible to INT8", "100% in Z/210 (all mods < 11). ~92% fat channels. Dual L+GATE: 100%.");
+  render_contrast_row(sec6, "Error detection", "0% -- bit flips are invisible to INT8", "100% in Z/210 (all mods < 11). ~92% prime-power channels. Dual mod 11+13: 100%.");
   render_contrast_row(sec6, "Error correction", "0% -- no mechanism exists in INT8", "100% known-location -- gcd(CRT_weight, L)=1 guarantees unique fix");
   render_contrast_row(sec6, "Levels", "256 (8 bits, arbitrary)", "210 = 2 x 3 x 5 x 7 (7.7 bits, structured)");
   render_contrast_row(sec6, "Cost", "0 dB overhead, but silent failures", "0.2 dB SQNR loss -- built-in protection is free");
@@ -950,9 +950,9 @@ fn page_ecc_live() = (
   dom_style(res6b, "lineHeight", "1.7");
   dom_style(res6b, "whiteSpace", "pre");
   dom_style(res6b, "overflowX", "auto");
-  dom_inner(res6b, "                    Hamming(7,4)      CRT (Z/210, L=11)\n------------------------------------------------------------\nData capacity:      16 values           210 values\nData bits:          4.00                7.71\nTotal bits:         7                   ~13 (1+2+3+3+4)\nParity bits:        3                   ~4 (L channel)\nCode rate:          0.57                0.59\nError model:        bit flip            channel corruption\nTrials:             ${112} (16x7)         ${840} (210x4)\nDetection:          ${ham_detect}/${112} (${ham_det_pct}%)       ${crt_detect}/${840} (${crt_det_pct}%)\nCorrection:         ${ham_correct_count}/${112} (${ham_cor_pct}%)       ${crt_correct_count}/${840} (${crt_cor_pct}%)\nEncoding:           matrix multiply     5 mod operations\nDecoding:           syndrome lookup     CRT reconstruction\n------------------------------------------------------------\nKey difference:     ADDED layer         STRUCTURAL (free)");
+  dom_inner(res6b, "                    Hamming(7,4)      CRT (Z/210, mod-11)\n------------------------------------------------------------\nData capacity:      16 values           210 values\nData bits:          4.00                7.71\nTotal bits:         7                   ~13 (1+2+3+3+4)\nParity bits:        3                   ~4 (L channel)\nCode rate:          0.57                0.59\nError model:        bit flip            channel corruption\nTrials:             ${112} (16x7)         ${840} (210x4)\nDetection:          ${ham_detect}/${112} (${ham_det_pct}%)       ${crt_detect}/${840} (${crt_det_pct}%)\nCorrection:         ${ham_correct_count}/${112} (${ham_cor_pct}%)       ${crt_correct_count}/${840} (${crt_cor_pct}%)\nEncoding:           matrix multiply     5 mod operations\nDecoding:           syndrome lookup     CRT reconstruction\n------------------------------------------------------------\nKey difference:     ADDED layer         STRUCTURAL (free)");
   dom_append(sec6b, res6b);
-  render_p(sec6b, "Both achieve 100% single-error detection and correction on their respective error models. The critical difference: Hamming requires a separate encoding/decoding layer. CRT error protection falls out of the number representation itself -- the L=11 channel is not added overhead, it is the 11th prime's natural residue.");
+  render_p(sec6b, "Both achieve 100% single-error detection and correction on their respective error models. The critical difference: Hamming requires a separate encoding/decoding layer. CRT error protection falls out of the number representation itself -- the mod-11 channel is not added overhead, it is the 11th prime's natural residue.");
   /* Honest note */
   let note6b = dom_create("div") in
   dom_style(note6b, "background", "#1a1a0a");
@@ -969,17 +969,17 @@ fn page_ecc_live() = (
   /* === SEC 6c: ECC3 DOUBLE-ERROR CORRECTION (Theorem 48, S1493) === */
   let sec6c = make_section("800px") in
   render_h2(sec6c, "ECC3: Triple-Parity Double Correction");
-  render_theorem(sec6c, "ECC3 Double Correction (Theorem 48, PROVED)", "Upgrade from L=11 alone to the full triple: L + GATE + ESCAPE. 4 data channels {D=8, K=9, E=25, b=49} encode values in Z/88200. 3 parity channels {L=11, GATE=13, ESCAPE=17} create a 3-component syndrome. Syndrome space: 11 x 13 x 17 = 2431. Single errors: 87/87 unique syndromes = 100% correctable. Double errors: 989/2288 = 43.2% uniquely correctable. Hamming(7,4) double-error correction: 0%. Exhaustive verification.");
-  render_p(sec6c, "Try it: enter any value mod 88200. Both D and K channels are corrupted (+1 each). The triple-parity syndrome identifies the error. If the syndrome is unique among all possible D x K error pairs, the value is corrected. Otherwise the error is detected but requires retransmission.");
+  render_theorem(sec6c, "ECC3 Double Correction (Theorem 48, PROVED)", "Upgrade from mod-11 alone to the full triple: mod 11 + mod 13 + mod 17. Four data channels (mod 8, 9, 25, 49) encode values in Z/88,200. Three parity channels (mod 11, 13, 17) create a 3-component syndrome. Syndrome space: 11 x 13 x 17 = 2,431. Single errors: 87/87 unique syndromes = 100% correctable. Double errors: 989/2,288 = 43.2% uniquely correctable. Hamming(7,4) double-error correction: 0%. Exhaustive verification.");
+  render_p(sec6c, "Try it: enter any value mod 88,200. Both mod-8 and mod-9 channels are corrupted (+1 each). The triple-parity syndrome identifies the error. If the syndrome is unique, the value is corrected. Otherwise the error is detected but requires retransmission.");
   make_interactive_widget(sec6c, "Value (0-88199):", "ecc3-input", "e.g. 42", "Corrupt D + K", "ecc3_double_demo", "ecc3-result");
   let g6c = make_findings_grid(sec6c) in
   render_finding(g6c, "Single errors", "87/87 = 100%", "Every single-channel error has a unique 3-component syndrome.", "");
   render_finding(g6c, "Double errors", "989/2288 = 43.2%", "Nearly half of 2-channel errors uniquely correctable.", "");
   render_finding(g6c, "Hamming double", "0%", "Hamming(7,4) detects double errors but corrects none.", "");
-  render_finding(g6c, "Syndrome space", "2431", "L x GATE x ESCAPE = 11 x 13 x 17. Three independent checks.", "");
+  render_finding(g6c, "Syndrome space", "2,431", "11 x 13 x 17. Three independent parity checks.", "");
   render_contrast_row(sec6c, "Single correction", "Hamming(7,4): 100%", "CRT ECC3: 100% (87/87 unique syndromes)");
   render_contrast_row(sec6c, "Double correction", "Hamming(7,4): 0%", "CRT ECC3: 43.2% (989/2288 unique syndromes)");
-  render_contrast_row(sec6c, "Parity channels", "3 bits (constructed)", "L=11, GATE=13, ESCAPE=17 (structural)");
+  render_contrast_row(sec6c, "Parity channels", "3 bits (constructed)", "mod 11, mod 13, mod 17 (structural)");
   render_contrast_row(sec6c, "Data capacity", "16 values", "88,200 values");
   let note6c = dom_create("div") in
   dom_style(note6c, "background", "#1a1a0a");
@@ -997,13 +997,13 @@ fn page_ecc_live() = (
   let sec7 = make_section("800px") in
   render_h2(sec7, "CRT Fountain Codes");
   render_p(sec7, "Rateless erasure coding via CRT decomposition. Traditional fountain codes (LT, Raptor) use complex XOR-graph constructions patented by Qualcomm. CRT fountain codes use the ring structure itself. No special encoding needed. The decomposition IS the code.");
-  render_theorem(sec7, "CRT Fountain Principle (fountain_codes.html, CC0)", "Each data symbol lives in Z/210Z (the data ring). CRT decomposes it into 5 independent drops: (n mod 2, n mod 3, n mod 5, n mod 7, n mod 11). Send drops over a lossy channel. When any 4+ drops arrive, CRT reconstructs the original (product of any 4 mods >= 210 > max data value). L=11 provides error detection for FREE. For ASCII (0-127): any 4 channels suffice (min 4-channel product = 210 > 127). The ring IS the fountain.");
+  render_theorem(sec7, "CRT Fountain Principle (CC0)", "Each data symbol lives in Z/210. CRT decomposes it into 5 independent drops: (n mod 2, n mod 3, n mod 5, n mod 7, n mod 11). Send drops over a lossy channel. When any 4+ drops arrive, CRT reconstructs the original (product of any 4 mods >= 210 > max data value). mod-11 provides error detection for free. For ASCII (0-127): any 4 channels suffice (min 4-channel product = 210 > 127).");
   render_p(sec7, "Enter a value (0-209). See 5 fountain drops. Simulate channel loss:");
   make_interactive_widget(sec7, "Value (0-209):", "ftn-input", "e.g. 72", "Send Drops", "fountain_drop_calc", "ftn-result");
   let g7 = make_findings_grid(sec7) in
   render_finding(g7, "Encoding", "CRT decomposition", "No Luby transform. No graph structure. n -> (n%2, n%3, n%5, n%7, n%11). Done.", "");
   render_finding(g7, "Recovery", "4-of-5 channels", "Any 4 drops reconstruct ASCII. Graceful: even 3 drops give partial info.", "");
-  render_finding(g7, "Error check", "L=11 free", "5th channel detects corruption in any of the other 4. Same as ECC above.", "");
+  render_finding(g7, "Error check", "mod-11 free", "5th channel detects corruption in any of the other 4. Same as ECC above.", "");
   render_finding(g7, "Alternative", "vs Raptor/LT codes", "CRT fountain codes need zero special encoding. The ring IS the code. CC0.", "");
   dom_append(dom_body(), sec7);
 
@@ -1017,11 +1017,11 @@ fn page_ecc_live() = (
   let g8 = make_findings_grid(sec8) in
   render_finding(g8, "Code space", "201,600 keys", "phi(970,200) = 201,600 coprime keys. Each IS a spreading code. 20.78% = septum.", "");
   render_finding(g8, "Operations", "O(1) per symbol", "5 mod ops to encode/decode. Walsh-Hadamard: O(N^2) matrix multiply.", "");
-  render_finding(g8, "Error detection", "L=11 free", "5th CRT channel detects corruption on every transmission. No extra cost.", "");
+  render_finding(g8, "Error detection", "mod-11 free", "5th CRT channel detects corruption on every transmission. No extra cost.", "");
   render_finding(g8, "Alternative", "CC0", "Open CRT-CDMA approach. No code assignment authority. The algebra IS the protocol.", "");
   render_contrast_row(sec8, "Code space", "Walsh-Hadamard: 64-256 codes (fixed matrix)", "CRT: 201,600 codes (coprime to N)");
   render_contrast_row(sec8, "Operations", "O(N^2) per symbol (matrix multiply)", "O(1) per symbol (5 mod ops + 1 modinv)");
-  render_contrast_row(sec8, "Error handling", "External ECC layer (convolutional/turbo/LDPC)", "L=11 FREE -- built into the ring");
+  render_contrast_row(sec8, "Error handling", "External ECC layer (convolutional/turbo/LDPC)", "mod-11 free -- built into the ring");
   render_contrast_row(sec8, "Orthogonality", "H*H^T = NI (constructed)", "CRT isomorphism (algebraic -- by theorem)");
   render_contrast_row(sec8, "Authority", "Central code assignment needed", "None -- coprime to N = valid code. Self-organizing.");
   dom_append(dom_body(), sec8);
@@ -1029,7 +1029,7 @@ fn page_ecc_live() = (
   /* === SEC 9: CRT-OFDM === */
   let sec9 = make_section("800px") in
   render_h2(sec9, "CRT-OFDM: 3.08x Spectral Efficiency");
-  render_p(sec9, "Replace WiFi BPSK with CRT-PSK. Each subcarrier becomes a CRT channel with p-ary Phase Shift Keying. The DATA ring Z/210Z = Z/2 x Z/3 x Z/5 x Z/7 encodes 7.71 bits per symbol across 5 subcarriers (1.54 bits/subcarrier). 802.11a BPSK rate-1/2: 0.50 bits/subcarrier. Ratio: 3.08x. Same bandwidth, same noise, more data.");
+  render_p(sec9, "Replace WiFi BPSK with CRT-PSK. Each subcarrier becomes a CRT channel with p-ary Phase Shift Keying. Z/210 = Z/2 x Z/3 x Z/5 x Z/7 encodes 7.71 bits per symbol across 5 subcarriers (1.54 bits/subcarrier). 802.11a BPSK rate-1/2: 0.50 bits/subcarrier. Ratio: 3.08x. Same bandwidth, same noise, more data.");
   render_theorem(sec9, "CRT-OFDM Spectral Efficiency (demo_ofdm_vs_wifi.html, CC0)", "5 CRT subcarriers carry data symbol d in Z/210Z. Each subcarrier i transmits PSK constellation point at angle 2*pi*r_i/p_i where r_i = d mod p_i. Receiver demodulates each channel independently (nearest constellation point), CRT reconstructs d. Capacity: log2(210) = 7.71 bits/symbol over 5 subcarriers = 1.54 bits/subcarrier. WiFi 802.11a BPSK r=1/2: 0.50 bits/subcarrier. CRT/WiFi = 3.08x. Channel fading: if one CRT channel fades completely, 4 remaining channels still carry data (product >= 210 > max data). WiFi BPSK: entire signal degrades uniformly. CRT-OFDM fails GRACEFULLY; WiFi fails CATASTROPHICALLY.");
   let g9 = make_findings_grid(sec9) in
   render_finding(g9, "Spectral efficiency", "3.08x over 802.11a", "1.54 vs 0.50 bits/subcarrier. Same bandwidth, same noise. More data.", "");
@@ -1046,18 +1046,18 @@ fn page_ecc_live() = (
   /* === SEC 10: VOID CHAIN THEOREM (Theorem 49, S1319/S1494) === */
   let sec10 = make_section("800px") in
   render_h2(sec10, "Void Chain: Detection Across Rings");
-  render_p(sec10, "The void element (0) has an eigenvalue lambda(0) = 2k-1 where k is the number of CRT channels. At each Tower A ring level, this void eigenvalue names an axiom element: DATA(4ch)=7=b, DEEP(5ch)=9=K^2, TRUE(6ch)=11=L, TRANS(7ch)=13=GATE. Gaps are always D=2. The void walks the axiom chain at constant intervals.");
-  render_theorem(sec10, "Void Chain Theorem (Theorem 49, PROVED)", "lambda(0) = 2k-1 for k CRT channels. At Tower A rings: DATA=b(7), DEEP=K^2(9), TRUE=L(11), TRANS=GATE(13). Constant gap = D = 2. Product = 9009 = K^2*b*L*GATE (septum denominator 1001 * K^2). Sum = 40 = D^3*E. The void eigenvalue at TRUE is L=11 -- the ring where ECC operates IS the ring whose void eigenvalue IS the ECC protector prime.");
-  render_p(sec10, "Explore: enter a channel count (2-12). See the void chain extend and verify axiom element hits.");
+  render_p(sec10, "The zero element has eigenvalue lambda(0) = 2k-1 where k is the number of CRT channels. At successive ring levels: Z/210 (4ch) = 7, Z/2,310 (5ch) = 9, Z/12,612,600 (6ch) = 11, Z/214,414,200 (7ch) = 13. Gaps are always 2.");
+  render_theorem(sec10, "Void Chain Theorem (Theorem 49, PROVED)", "lambda(0) = 2k-1 for k CRT channels. At prime-power rings: Z/210 -> 7, Z/2,310 -> 9, Z/12,612,600 -> 11, Z/214,414,200 -> 13. Constant gap = 2. Product = 9,009 = 9*7*11*13. Sum = 40 = 8*5. The zero eigenvalue at the 6-channel ring is 11 -- the ring where ECC operates is the ring whose zero eigenvalue is the error-detection prime.");
+  render_p(sec10, "Explore: enter a channel count (2-12). See the void chain extend and check for chain primes.");
   make_interactive_widget(sec10, "Channels (2-12):", "void-chain-input", "e.g. 7", "Show Void Chain", "ecc_void_chain", "void-chain-result");
   let g10 = make_findings_grid(sec10) in
-  render_finding(g10, "DATA void = b", "lambda(0) = 7 = depth", "The void sees depth. 4-channel ring.", "");
-  render_finding(g10, "TRUE void = L", "lambda(0) = 11 = protector", "The ECC ring's void IS the ECC prime. Self-referential.", "");
-  render_finding(g10, "TRANS void = GATE", "lambda(0) = 13 = boundary", "7-channel ring. Void = the gatekeeper.", "");
-  render_finding(g10, "Product = 9009", "K^2 * b * L * GATE", "Septum denominator times K^2. All four = axiom chain.", "");
-  render_contrast_row(sec10, "Traditional ECC", "Parity bits chosen by designer", "CRT: L=11 chosen by the void itself");
-  render_contrast_row(sec10, "Ring growth", "Each channel adds arbitrary complexity", "Each channel adds exactly D=2 to void eigenvalue");
-  render_contrast_row(sec10, "Error detection", "Bolted on from outside", "Structural: the void eigenvalue AT TRUE = the detection prime");
+  render_finding(g10, "Z/210 zero = 7", "lambda(0) = 7", "4-channel ring. Zero eigenvalue is the 4th chain prime.", "");
+  render_finding(g10, "Z/12,612,600 zero = 11", "lambda(0) = 11", "6-channel ring. Zero eigenvalue is the error-detection prime.", "");
+  render_finding(g10, "Z/214,414,200 zero = 13", "lambda(0) = 13", "7-channel ring. Zero eigenvalue is the 6th chain prime.", "");
+  render_finding(g10, "Product = 9,009", "9 * 7 * 11 * 13", "All four zero eigenvalues are chain primes or their squares.", "");
+  render_contrast_row(sec10, "Traditional ECC", "Parity bits chosen by designer", "CRT: mod-11 is structural -- the zero eigenvalue of the ring");
+  render_contrast_row(sec10, "Ring growth", "Each channel adds arbitrary complexity", "Each channel adds exactly 2 to the zero eigenvalue");
+  render_contrast_row(sec10, "Error detection", "Bolted on from outside", "Structural: the zero eigenvalue at Z/12,612,600 = the detection prime");
   let note10 = dom_create("div") in
   dom_style(note10, "background", "#1a1a0a");
   dom_style(note10, "border", "1px solid #665500");
@@ -1066,7 +1066,7 @@ fn page_ecc_live() = (
   dom_style(note10, "marginTop", "12px");
   dom_style(note10, "fontSize", "14px");
   dom_style(note10, "color", "#ccbb88");
-  dom_inner(note10, "HONEST NOTE: The void eigenvalue lambda(0) = 2k-1 holds for moduli with k distinct prime factors (squarefree or not -- verified at DEEP, TRUE, TRANS which have prime powers). The axiom claim is not the formula (which is general) but the coincidence that at exactly the four Tower A levels (k=4,5,6,7), the resulting odd numbers happen to be axiom elements {b, K^2, L, GATE}. This is a structural observation, not a proof of necessity.");
+  dom_inner(note10, "HONEST NOTE: The formula lambda(0) = 2k-1 holds for any modulus with k distinct prime factors (squarefree or not). The observation is that at exactly k = 4, 5, 6, 7 channels, the resulting odd numbers (7, 9, 11, 13) happen to be chain primes or their squares. This is a structural observation, not a proof of necessity.");
   dom_append(sec10, note10);
   dom_append(dom_body(), sec10)
 )
