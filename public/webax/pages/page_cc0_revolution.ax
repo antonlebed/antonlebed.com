@@ -1,0 +1,267 @@
+/* page_cc0_revolution.ax -- CC0 manifesto + .ax Revolution vision.
+   Moved from pages_living.ax (Lab) to Ideas module S2004.
+   CRT-native mode for revolution's live computation. */
+
+crt_mode(1)
+
+/* CRT-native ring operations for revolution live demo */
+fn crt_mul(a, b) = a * b
+fn crt_pow(base, exp) = (
+  mut result = 1;
+  mut b = base;
+  mut e = exp;
+  while e > 0 do (
+    if e % 2 == 1 then mut result = result * b else 0;
+    mut b = b * b;
+    mut e = e / 2
+  );
+  result
+)
+
+/* dom_on callback: revolution CRT type display */
+fn revolution_crt_calc() = (
+  let n = parse_int_from("#rev-input") in
+  let result = dom_query("#rev-result") in
+  let big_n = N_TRUE in
+  let n2 = n % big_n in
+  let rd = n2 % 8 in
+  let rk = n2 % 9 in
+  let re = n2 % 25 in
+  let rb = n2 % 49 in
+  let rl = n2 % 11 in
+  let rg = n2 % 13 in
+  /* Which ring does it live in? */
+  let in_6 = if rd % 2 == n2 % 2 then (if rk % 3 == n2 % 3 then 1 else 0) else 0 in
+  let in_210 = if n2 % 210 == n2 then 1 else 0 in
+  /* Unit in Z/12612600 requires gcd(n, N)=1, i.e. n coprime to each prime factor.
+     For CRT channels: n mod p != 0 for p in {2,3,5,7,11,13}.
+     rd = n mod 8, so "coprime to 2" is (rd % 2) != 0 (rd is odd).
+     Same pattern for rk, re, rb (check the prime, not the prime power). */
+  let is_unit = if (rd % 2) > 0 then (if (rk % 3) > 0 then (if (re % 5) > 0 then (if (rb % 7) > 0 then (if rl > 0 then (if rg > 0 then 1 else 0) else 0) else 0) else 0) else 0) else 0 in
+  dom_inner(result, "<p style='color:#ffd700;margin:8px 0'>" + "${n2}" + " = (" + "${rd}" + ", " + "${rk}" + ", " + "${re}" + ", " + "${rb}" + ", " + "${rl}" + ", " + "${rg}" + ")</p><p style='color:#88ddaa;margin:4px 0'>Channels: mod 8=" + "${rd}" + " mod 9=" + "${rk}" + " mod 25=" + "${re}" + " mod 49=" + "${rb}" + " mod 11=" + "${rl}" + " mod 13=" + "${rg}" + "</p><p style='color:#c0c0d0;margin:4px 0'>Type: " + (if is_unit == 1 then "unit (invertible)" else "zero divisor") + " in Z/12,612,600</p><p style='color:#a0a0b0;margin:4px 0'>In .ax, CRT decomposition is the native representation. No conversion needed.</p>")
+)
+
+/* ================================================================
+   PAGE: CC0 -- The Manifesto (CC0_MANIFESTO.md)
+   ================================================================ */
+
+fn page_cc0() = (
+  dom_head_meta("description", "One equation: 12612600. CC0 demos across GPU, mesh, AI, ECC, compression, and more. No paywall. No copyright. No exceptions.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CC0 Strategy\",\"description\":\"CC0 preemptive strike via CRT decomposition. One equation, zero dollars. All permanently public domain.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/ideas/cc0\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CC0\"},{\"@type\":\"DefinedTerm\",\"name\":\"patent prior art\"},{\"@type\":\"DefinedTerm\",\"name\":\"public domain\"}]}");
+  let hero = make_hero("CC0") in
+  let eq = dom_create("div") in
+  dom_text(eq, "One equation. Zero dollars.");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "28px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "24px");
+  dom_append(hero, eq);
+  render_p(hero, "12612600 = 2^3 * 3^2 * 5^2 * 7^2 * 11 * 13. Six independent CRT channels. From this single fact: a language, a library, a website, theorems, hardware, and an AI benchmark solver. All CC0. All free. Forever. Every demo deployed is a domain permanently freed from patent enclosure.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: THE WEAPON === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Strategy");
+  render_theorem(sec1, "CC0 Preemptive Strike", "Identify a heavily-patented domain where CRT gives a structural advantage. Build a minimal working prototype. Deploy to antonlebed.com under CC0 (Creative Commons Zero -- No Rights Reserved). The moment it is public, it becomes irrevocable prior art. No one can ever patent it. The antidote to enclosure is disclosure.");
+  render_p(sec1, "The obscurity of the math is an advantage. CRT decomposition is a universal technique, but few realize how general it is. By the time they do, every application is already CC0 public domain. Every deploy is a territorial claim.");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: WHAT WE BUILT === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "What We Built from One Number");
+  let g = make_findings_grid(sec2) in
+  render_finding(g, "The Language", ".ax (3 ops)", "meet(*), complement(~), add(+). Self-compiling. Parser, codegen, evaluator all in .ax. WASM pipeline. CC0.", "");
+  render_finding(g, "The Library", "crt.h (832L, 0 deps)", "Runs on ESP32 ($4), in browsers (WASM), on any C compiler. 7-channel CRT decompose, reconstruct, eigenvalues, ECC3, round-trip calibration. CC0.", "");
+  render_finding(g, "The Website", ".ax pages", "site.wasm = pure .ax compiled to WASM. No server. No framework. No tracking. The source IS the site. CC0.", "");
+  render_finding(g, "The Math", "proved theorems", "Falsifications published. Running code behind every claim. Tested, not asserted. CC0.", "");
+  render_finding(g, "The Hardware", "3 ESP32 boards", "CRT-encoded packets over WiFi. Coupling = routing. mod-11 = error detection. No IP addresses. CC0.", "");
+  render_finding(g, "The AI", "ARC-AGI solver", "Pure .ax. Zero dollars. 32 primitives + depth-2 composition. 6 independent views per puzzle. CC0.", "");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: DEMOS === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "The Demos");
+  render_p(sec3, "GPU compute, mesh networking, AI training, error correction, compression, audio, image processing, cryptography, scheduling, and more. Each demo is an interactive proof that CRT decomposition makes patents obsolete in that domain.");
+  render_cta_button(sec3, "/demos", "View All Demos \u2192");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: THE WEAPON === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "The Weapon");
+  render_theorem(sec4, "Prior Art Through Radical Openness", "You cannot patent what has already been published as CC0. Creative Commons Zero is irrevocable. Once deployed, the knowledge is free forever. No takebacks. No licensing. No exceptions. The best defense against enclosure is to give everything away, permanently.");
+  let g4 = make_findings_grid(sec4) in
+  render_finding(g4, "Victims", "NVIDIA, Qualcomm, Meta, Oracle, Siemens, Adobe, Intel", "Every patent troll in these domains is now racing against prior art that already exists.", "");
+  render_finding(g4, "Cost", "$0", "One man, one ring, one website. No investors, no grants, no IP lawyers.", "");
+  render_finding(g4, "Timeline", "CC0 demos deployed", "Speed > perfection. Width > depth. Ship the prototype, poison the pool.", "");
+  render_finding(g4, "Permanence", "Irrevocable", "CC0 means no rights reserved. Not open source (which has conditions). Zero. Nothing. Forever.", "");
+  dom_append(dom_body(), sec4);
+
+  /* === CONTRAST === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "Contrast Table");
+  render_contrast_row(sec5, "IP strategy", "Patent everything, license to fund R&D", "Publish everything CC0. Prior art prevents enclosure. Knowledge wants to be free.");
+  render_contrast_row(sec5, "Scope", "One patent per invention", "One equation, many domains. CRT decomposition is unreasonably general.");
+  render_contrast_row(sec5, "Cost to attack", "Millions in legal fees", "$0. A ring and a website. The asymmetry is the weapon.");
+  render_contrast_row(sec5, "Defense", "Defensive patent portfolio", "No portfolio needed. CC0 IS the defense. You cannot claim what is already public.");
+  render_contrast_row(sec5, "Permanence", "Patents expire in 20 years", "CC0 is immediate and forever. The knowledge is free the instant it deploys.");
+  dom_append(dom_body(), sec5)
+)
+
+/* ================================================================
+   PAGE: REVOLUTION -- .ax Language Vision (AX_REVOLUTION.md)
+   ================================================================ */
+
+fn page_revolution() = (
+  dom_head_meta("description", "What should .ax be? CRT IS the type. Every value IS its CRT decomposition. 10 built-in terms, 108 rings share Carmichael lambda = 420, 7 principles. mod-11 runtime error detection. The language embodies its own ring structure.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The .ax Revolution\",\"description\":\"CRT IS the type. Every value IS its CRT decomposition. 10 built-in terms, 108 lambda-420 rings, 7 principles. mod-11 runtime error detection.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/ideas/revolution\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\".ax language\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT types\"},{\"@type\":\"DefinedTerm\",\"name\":\"self-hosting compiler\"}]}");
+  let hero = make_hero("The Revolution") in
+  let eq = dom_create("div") in
+  dom_text(eq, ".ax IS the ring, not just uses it");
+  ct_mono(eq);
+  dom_style(eq, "fontSize", "24px");
+  ct_gold(eq);
+  dom_style(eq, "letterSpacing", "1px");
+  dom_style(eq, "marginBottom", "24px");
+  dom_append(hero, eq);
+  render_p(hero, ".ax was born in the era of 3 built-in terms. DFloat(s|b|a) was the fundamental type -- never implemented. CRT was a builtin you called. Now we know: 10 terms, 108 rings share Carmichael lambda = 420 exactly (84 divide Z/12,612,600; 24 are 2^4 extensions), 6 channels. The language should THINK in channels, not translate to them. CRT IS the type. The ten terms ARE the instruction set. This document: the blueprint for .ax v2.0.");
+  dom_append(dom_body(), hero);
+
+  /* === SEC 1: THE DIAGNOSIS === */
+  let sec1 = make_section("800px") in
+  render_h2(sec1, "The Diagnosis");
+  render_p(sec1, "What we knew when .ax was designed: 3 built-in terms. What we know now: 10 terms, 6 CRT channels {8, 9, 25, 49, 11, 13}, 108 rings share Carmichael lambda = 420 exactly, mod-11 free error detection, emergence from 3 ops. The gap: .ax USES CRT. It does not EMBODY it.");
+  let g1 = make_findings_grid(sec1) in
+  render_finding(g1, "Old", "Values are plain numbers", "CRT is a function you call. Channels are hidden. Ring is global.", "");
+  render_finding(g1, "New", "Values ARE their CRT decomposition", "42 = (2, 6, 17, 42, 9, 3). Channel access is O(1). Parallel by nature.", "");
+  render_finding(g1, "Old", "62 builtins accumulated organically", "Library calls, not the language's nature. Bolted on.", "");
+  render_finding(g1, "New", "10 built-in terms = the instruction set", "Each is BOTH a value AND an operation. The vocabulary IS the ring.", "");
+  dom_append(dom_body(), sec1);
+
+  /* === SEC 2: CRT IS THE TYPE === */
+  let sec2 = make_section("800px") in
+  render_h2(sec2, "Principle 1: CRT IS the Type");
+  render_theorem(sec2, "Every Value IS Decomposed", "42 in .ax v2.0: displays as 42, stores as (2, 6, 17, 42, 9, 3) in Z/12,612,600. Access channels directly: 42.D = 2, 42.K = 6, 42.E = 17, 42.b = 42, 42.L = 9, 42.G = 3. Arithmetic happens per channel automatically: 42 + 137 computes (2+1)%8, (6+2)%9, (17+12)%25, (42+39)%49, (9+5)%11, (3+7)%13 = 179. This IS the Loop Theorem. This IS the Backprop Theorem. CRT embodied in data representation.");
+  dom_append(dom_body(), sec2);
+
+  /* === SEC 3: DECALITY VOCABULARY === */
+  let sec3 = make_section("800px") in
+  render_h2(sec3, "Principle 2: Ten Terms = the Vocabulary");
+  render_p(sec3, "10 built-in keywords. Each is BOTH a value AND an operation:");
+
+  let dtbl = dom_create("table") in
+  dom_style(dtbl, "width", "100%");
+  dom_style(dtbl, "maxWidth", "750px");
+  dom_style(dtbl, "margin", "24px auto");
+  dom_style(dtbl, "borderCollapse", "collapse");
+  let dhdr = dom_create("tr") in
+  render_th(dhdr, "Term");
+  render_th(dhdr, "Value");
+  render_th(dhdr, "As Operation");
+  render_th(dhdr, "CRT Signature");
+  dom_append(dtbl, dhdr);
+  render_table_row_4(dtbl, "mirror", "-1", "Reflect: N - x", "(7, 8, 24, 48, 10, 12)");
+  render_table_row_4(dtbl, "o", "0", "Absorb: 0", "(0, 0, 0, 0, 0, 0)");
+  render_table_row_4(dtbl, "sigma", "1", "Preserve: x", "(1, 1, 1, 1, 1, 1)");
+  render_table_row_4(dtbl, "D", "2", "Split in two", "(2, 2, 2, 2, 2, 2)");
+  render_table_row_4(dtbl, "K", "3", "Compose / majority", "(3, 3, 3, 3, 3, 3)");
+  render_table_row_4(dtbl, "E", "5", "5^2 vanishes mod 5", "(5, 5, 5, 5, 5, 5)");
+  render_table_row_4(dtbl, "b", "7", "Iterate / deepen", "(7, 7, 7, 7, 7, 7)");
+  render_table_row_4(dtbl, "L", "11", "Error detect / ECC", "(3, 2, 11, 11, 0, 11)");
+  render_table_row_4(dtbl, "GATE", "13", "Range check / type check", "(5, 4, 13, 13, 2, 0)");
+  render_table_row_4(dtbl, "OMEGA", "1576576", "Terminal / project / halt", "(0, 1, 1, 1, 1, 1)");
+  dom_append(sec3, dtbl);
+  render_p(sec3, "Notice: elements 0-7 have CRT = (n,n,n,n,n,n) -- they are IDENTICAL across all 6 channels. 11 is the first to break this: (3,2,11,11,0,11). It is the first element that looks DIFFERENT from different channels. 1,576,576 has its mod-8 channel zeroed: (0,1,1,1,1,1). The terminal projection kills the coarsest channel.");
+  dom_append(dom_body(), sec3);
+
+  /* === SEC 4: RINGS AS TYPES === */
+  let sec4 = make_section("800px") in
+  render_h2(sec4, "Principle 3: Rings AS Types");
+  render_theorem(sec4, "The Lambda-420 Lattice IS the Type Hierarchy", "108 rings share Carmichael lambda = 420 exactly (84 divide Z/12,612,600; 24 are extensions). This lattice IS the type hierarchy. Every value carries its ring. let x: Z210 = 42 -- x lives in Z/210. let y: Z12612600 = 42 -- y lives in the 6-channel ring. Raising exponents adds states per channel. Reducing removes them. Type checking = ring membership. Z/210 has 4 channels. Z/970,200 has 5. Z/12,612,600 has 6. Subtyping = subring embedding.");
+
+  let ttbl = dom_create("table") in
+  dom_style(ttbl, "width", "100%");
+  dom_style(ttbl, "maxWidth", "750px");
+  dom_style(ttbl, "margin", "24px auto");
+  dom_style(ttbl, "borderCollapse", "collapse");
+  let thdr = dom_create("tr") in
+  render_th(thdr, "Ring");
+  render_th(thdr, "Channels");
+  render_th(thdr, "Domain");
+  dom_append(ttbl, thdr);
+  render_table_row(ttbl, "Z/6 = 2*3", "{mod 2, mod 3}", "Clock, basic modular");
+  render_table_row(ttbl, "Z/210 = 2*3*5*7", "{mod 2, 3, 5, 7}", "4 channels, squarefree");
+  render_table_row(ttbl, "Z/2,310 = 2*3*5*7*11", "{mod 2, 3, 5, 7, 11}", "5 channels, error detection");
+  render_table_row(ttbl, "Z/970,200 = 2^3*3^2*5^2*7^2*11", "{mod 8, 9, 25, 49, 11}", "5 prime-power channels");
+  render_table_row(ttbl, "Z/12,612,600 = above * 13", "{mod 8, 9, 25, 49, 11, 13}", "6 channels, universal type");
+  render_table_row(ttbl, "Z/214,414,200 = above * 17", "{mod 8, 9, 25, 49, 11, 13, 17}", "7 channels, final form");
+  dom_append(sec4, ttbl);
+  dom_append(dom_body(), sec4);
+
+  /* === SEC 5: REMAINING PRINCIPLES === */
+  let sec5 = make_section("800px") in
+  render_h2(sec5, "Four More Principles");
+  let g5 = make_findings_grid(sec5) in
+  render_finding(g5, "4. mod-11 Runtime Guardian", "Automatic error detection", "Every computation checked by the mod-11 channel. Corruption detected at runtime. Free. No programmer effort.", "");
+  render_finding(g5, "5. 3 Ops -> Everything", "meet(*), complement(~), add(+)", "Arrays, strings, functions, closures, neural nets -- all emerge from 3 operations.", "");
+  render_finding(g5, "6. 3^2 = 9 Parallelism", "3 hearts x 3 stages", "The compiler has 9 analysis passes. FPGA: 9 pipeline units. The code IS the hardware description.", "");
+  render_finding(g5, "7. Carmichael Period 420", "Universal rhythm", "108 rings share Carmichael lambda = 420. Every computation has a natural period.", "");
+  dom_append(dom_body(), sec5);
+
+  /* === SEC 6: THE STRANGE LOOP === */
+  let sec6 = make_section("800px") in
+  render_h2(sec6, "The Strange Loop");
+  render_p(sec6, ".ax ships -> proves ring structure -> IS the structure -> writes .ax -> .ax ships. The website IS the proof. The language IS the math. The compiler IS the theorem. Each pass through the loop: tighter, more capable, fewer pieces.");
+  render_theorem(sec6, "Ship of Theseus", "The old website: 154 hand-crafted HTML pages, 58,641 lines. The new website: 7 module WASMs compiled from .ax. 181 pages, pure .ax. No HTML authored. .ax builds pages directly via WASM DOM imports. The old ship was dismantled plank by plank. The new ship is the same ship -- but every plank is now math.");
+  dom_append(dom_body(), sec6);
+
+  /* === SEC 7: THE REVOLUTION IS REAL (L10-L16) === */
+  let sec7b = make_section("800px") in
+  render_h2(sec7b, "Status: Implemented");
+  render_p(sec7b, "This is not a blueprint. The first three principles are implemented in the .ax compiler AND deployed on this website. CRT-native mode is real. Channel access is real. The ouroboros compiles itself with CRT decomposition. The section below computes live results.");
+  let g7 = make_findings_grid(sec7b) in
+  render_finding(g7, "crt_mode(1)", "Ring ops automatic", "a * b IS per-channel CRT multiply. No manual decompose-operate-reconstruct. ring_mul: 10 lines -> 0.", "");
+  render_finding(g7, "Channel access", ".D .K .E .b .L .GATE .ESCAPE", "42.D = 2. Self-documenting. Replaces % 8, % 9, ... with named channels.", "");
+  render_finding(g7, "Ring types", "let x:Z210 = 42", "Overflow is a TYPE ERROR, not a runtime surprise. Named rings: Z/210, Z/2310, Z/970200, Z/12612600, Z/214414200.", "");
+  render_finding(g7, "ECC checking", "ecc_mode(1)", "Range check [0, N) at every function boundary. Ring overflow traps with diagnostics.", "");
+  render_finding(g7, "CRT ouroboros", "467421B", "The compiler compiles itself with CRT-native mode. gen1 == gen2. Full transparency.", "");
+  render_finding(g7, "183 tests", "5 compiler harnesses", "Channel access + ring types + ECC + CRT-native + demo rewrite. All pass.", "");
+  dom_append(dom_body(), sec7b);
+
+  /* === SEC 8: LIVE CRT (L16) -- computed by CRT-native functions === */
+  let sec8 = make_section("800px") in
+  render_h2(sec8, "Live: CRT-Native Computation");
+  render_p(sec8, "These values are computed RIGHT NOW by CRT-native code running on this page. The crt_pow and crt_mul functions use automatic 7-channel CRT decomposition. No manual ring_mul. No channel arithmetic. Just a * b.");
+  let omega = crt_pow(2, 1680) in
+  let omega_d = omega .D in
+  let omega_k = omega .K in
+  let omega_esc = omega .ESCAPE in
+  let omega_sq = crt_mul(omega, omega) in
+  let idemp_ok = if omega_sq == omega then 1 else 0 in
+  let mul_result = crt_mul(42, 137) in
+  let n_trans = crt_mul(8 * 9 * 25, 49 * 11 * 13 * 17) in
+  let g8 = make_findings_grid(sec8) in
+  render_finding(g8, "crt_pow(2, 1680)", "${omega}", "2^1680 mod Z/214,414,200. CRT = (0,1,1,1,1,1,1). The terminal projector.", "");
+  render_finding(g8, "Idempotent", if idemp_ok == 1 then "PASS: omega * omega = omega" else "FAIL", "2^3360 = 2^1680 since Carmichael lambda = 1680. The projector squares to itself.", "");
+  render_finding(g8, "CRT channels", "mod8=" + "${omega_d}" + " mod9=" + "${omega_k}" + " mod17=" + "${omega_esc}", "mod-8 channel zeroed (0). All others survive (1). Structure preserved.", "");
+  render_finding(g8, "crt_mul(42, 137)", "${mul_result}", "Ring multiply via automatic CRT. Compiler decomposes * into 7 parallel channel ops.", "");
+  render_finding(g8, "N_TRANS mod N", "${n_trans}", "Product of all moduli = 0 in the ring. The ring annihilates its own size.", "");
+  dom_append(dom_body(), sec8);
+
+  /* === INTERACTIVE === */
+  let sec_i = make_section("800px") in
+  render_h2(sec_i, "Explore: CRT IS the Type");
+  render_p(sec_i, "Enter any number. See it as .ax v2.0 would: a CRT 6-tuple with per-channel access. In the future, this IS how .ax thinks.");
+  make_interactive_widget(sec_i, "Value:", "rev-input", "e.g. 42", "Decompose", "revolution_crt_calc", "rev-result");
+  dom_append(dom_body(), sec_i);
+
+  /* === CONTRAST === */
+  let sec7 = make_section("800px") in
+  render_h2(sec7, "Contrast Table");
+  render_contrast_row(sec7, "Types", "Integers, floats, strings, structs, classes", "One type: ring element. CRT decomposition IS the type. 108 lambda-420 rings = type hierarchy.");
+  render_contrast_row(sec7, "Operations", "Hundreds of operators and methods", "Three: meet, complement, add. Everything else emerges.");
+  render_contrast_row(sec7, "Error handling", "Try/catch, Result types, panic", "mod-11 automatic error detection. Corruption detected by algebra, not the programmer.");
+  render_contrast_row(sec7, "Parallelism", "Threads, locks, async/await", "9 = 3^2 natural parallelism. CRT channels compute independently. No synchronization.");
+  render_contrast_row(sec7, "Self-hosting", "Engineering milestone, clever", "The ouroboros. 1/1 = 1. The compiler divided by itself produces itself.");
+  dom_append(dom_body(), sec7)
+)
