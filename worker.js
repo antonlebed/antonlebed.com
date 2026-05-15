@@ -77,7 +77,7 @@ var _routeMap = {
   'septum':'ideas',
   'mirror':'ideas',
   'sacrifice':'ideas',
-  'decality':'ideas',
+  'terms':'ideas',
   'lattice':'ideas',
   'duality':'ideas',
   'observer':'ideas',
