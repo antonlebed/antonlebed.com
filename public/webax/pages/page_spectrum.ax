@@ -76,21 +76,24 @@ fn spectrum_display(n, result_el) = (
   let b_ch = n % 49 in
   let l = n % 11 in
   let g = n % 13 in
+  let esc = n % 17 in
   let fd = if d > 4 then 8 - d else d in
   let fk = if k > 4 then 9 - k else k in
   let fe = if e > 12 then 25 - e else e in
   let fb = if b_ch > 24 then 49 - b_ch else b_ch in
   let fl = if l > 5 then 11 - l else l in
   let fg = if g > 6 then 13 - g else g in
+  let fesc = if esc > 8 then 17 - esc else esc in
   let div_d = if d % 2 == 0 then 1 else 0 in
   let div_k = if k % 3 == 0 then 1 else 0 in
   let div_e = if e % 5 == 0 then 1 else 0 in
   let div_b = if b_ch % 7 == 0 then 1 else 0 in
   let div_l = if l == 0 then 1 else 0 in
   let div_g = if g == 0 then 1 else 0 in
-  let dead = div_d + div_k + div_e + div_b + div_l + div_g in
-  let active = 6 - dead in
-  let kingdom = if dead == 6 then "zero (all channels frozen)"
+  let div_esc = if esc == 0 then 1 else 0 in
+  let dead = div_d + div_k + div_e + div_b + div_l + div_g + div_esc in
+  let active = 7 - dead in
+  let kingdom = if dead == 7 then "zero (all channels frozen)"
     else if dead == 0 then "identity (all spinning)"
     else if dead == 1 then (
       if div_d == 1 then "mod-8 zero (mod-8 channel frozen)"
@@ -98,21 +101,24 @@ fn spectrum_display(n, result_el) = (
       else if div_e == 1 then "mod-25 zero (mod-25 channel frozen)"
       else if div_b == 1 then "mod-49 zero (mod-49 channel frozen)"
       else if div_l == 1 then "mod-11 zero (mod-11 channel frozen)"
-      else "mod-13 zero (mod-13 channel frozen)"
+      else if div_g == 1 then "mod-13 zero (mod-13 channel frozen)"
+      else "mod-17 zero (mod-17 channel frozen)"
     ) else "compound (multiple frozen)" in
-  let shell_avg = if active == 0 then "+12.00 (= 2^2*3)"
-    else if active == 1 then "+9.89"
-    else if active == 2 then "+7.75"
-    else if active == 3 then "+5.58"
-    else if active == 4 then "+3.39"
-    else if active == 5 then "+1.19"
-    else "-1.03" in
+  let shell_avg = if active == 0 then "+14.00 = 2*7"
+    else if active == 1 then "+11.89"
+    else if active == 2 then "+9.75"
+    else if active == 3 then "+7.60"
+    else if active == 4 then "+5.43"
+    else if active == 5 then "+3.25"
+    else if active == 6 then "+1.05"
+    else "-1.15" in
   let md = if d > 0 then 8 - d else 0 in
   let mk = if k > 0 then 9 - k else 0 in
   let me_ch = if e > 0 then 25 - e else 0 in
   let mb = if b_ch > 0 then 49 - b_ch else 0 in
   let ml = if l > 0 then 11 - l else 0 in
   let mg = if g > 0 then 13 - g else 0 in
+  let mesc = if esc > 0 then 17 - esc else 0 in
   let name = if n == 0 then " = zero"
     else if n == 1 then " (identity)"
     else if n == 2 then " (even prime)"
@@ -123,6 +129,7 @@ fn spectrum_display(n, result_el) = (
     else if n == 9 then " = 3^2"
     else if n == 11 then " (prime)"
     else if n == 13 then " (prime)"
+    else if n == 17 then " (prime, ring closure)"
     else if n == 30 then " = 2*3*5"
     else if n == 41 then " (self-inverse)"
     else if n == 42 then " = 2*3*7"
@@ -133,16 +140,17 @@ fn spectrum_display(n, result_el) = (
     else if n == 210 then " = 2*3*5*7"
     else if n == 420 then " (Carmichael period)"
     else if n == OMEGA_VAL then " (projector 2^420 mod 12,612,600)"
+    else if n == OMEGA_TRANS then " (projector 2^1680 mod 214,414,200)"
     else "" in
   dom_inner(result_el, "<p style='color:#ffd700;margin:4px 0'><b>n = " + "${n}" + name + "</b></p>" +
-    "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ", " + "${g}" + ") mod (8, 9, 25, 49, 11, 13)</p>" +
-    "<p style='color:#b0b0c0;margin:4px 0'>Eigenvalue class: [" + "${fd}" + ", " + "${fk}" + ", " + "${fe}" + ", " + "${fb}" + ", " + "${fl}" + ", " + "${fg}" + "] -- cosine-folded</p>" +
+    "<p style='color:#88ddaa;margin:4px 0'>CRT: (" + "${d}" + ", " + "${k}" + ", " + "${e}" + ", " + "${b_ch}" + ", " + "${l}" + ", " + "${g}" + ", " + "${esc}" + ") mod (8, 9, 25, 49, 11, 13, 17)</p>" +
+    "<p style='color:#b0b0c0;margin:4px 0'>Eigenvalue class: [" + "${fd}" + ", " + "${fk}" + ", " + "${fe}" + ", " + "${fb}" + ", " + "${fl}" + ", " + "${fg}" + ", " + "${fesc}" + "] -- cosine-folded</p>" +
     "<p style='color:#ff8844;margin:4px 0'>Shell H=" + "${active}" + " -- avg lambda ~ " + shell_avg + "</p>" +
     "<p style='color:#d8d8e0;margin:4px 0'>" + kingdom + "</p>" +
-    "<p style='color:#a0a0b0;margin:4px 0'>Mirror: (" + "${md}" + ", " + "${mk}" + ", " + "${me_ch}" + ", " + "${mb}" + ", " + "${ml}" + ", " + "${mg}" + ")</p>")
+    "<p style='color:#a0a0b0;margin:4px 0'>Mirror: (" + "${md}" + ", " + "${mk}" + ", " + "${me_ch}" + ", " + "${mb}" + ", " + "${ml}" + ", " + "${mg}" + ", " + "${mesc}" + ")</p>")
 )
 
-/* [DEAD] SCAFFOLDING -- interactive widget (dies when .ax handles full eigenvalue computation) */
+/* [DEAD] SCAFFOLDING -- interactive widget (dies when .ax computes eigenvalues natively) */
 fn spectrum_explore() = (
   let n = parse_int_from("#spec-input") in
   spectrum_display(n, dom_query("#spec-result"))
@@ -151,22 +159,22 @@ fn spectrum_explore() = (
 fn spectrum_interactive() = (
   let sec = make_section("800px") in
   render_h2(sec, "Explore: Feel Any Number");
-  render_p(sec, "Every number has 7 oscillations -- one per prime channel. The eigenvalue is how they agree or fight. Enter any number to decompose its spectrum (six-channel TRUE ring). Try the elements from the swim above, then try your own.");
-  make_interactive_widget(sec, "Enter a number (0 to 12612599):", "spec-input", "e.g. 137", "Explore", "spectrum_explore", "spec-result");
+  render_p(sec, "Every number has 7 oscillations -- one per prime channel. The eigenvalue is how they agree or fight. Enter any number to decompose its spectrum across all seven channels. Try the elements from the swim above, then try your own.");
+  make_interactive_widget(sec, "Enter a number (0 to 214414199):", "spec-input", "e.g. 137", "Explore", "spectrum_explore", "spec-result");
   dom_append(dom_body(), sec)
 )
 
-/* Mouse-driven spectrum bar: move mouse across bar to sweep 0..970199.
+/* Mouse-driven spectrum bar: sweep across Z/214414200.
    dom_on2 passes (clientX, clientY) to callback. */
 fn spectrum_mouse_move(mx, my) = (
-  let n = mx * 15766 in
+  let n = mx * 111674 in
   spectrum_display(n, dom_query("#mouse-result"))
 )
 
 fn spectrum_mouse_bar() = (
   let sec = make_section("800px") in
   render_h2(sec, "Mouse Explorer: Sweep the Ring");
-  render_p(sec, "Move your mouse across the bar below. Your horizontal position maps to a ring element. The full ring (12612600 elements) unfolds under your cursor.");
+  render_p(sec, "Move your mouse across the bar below. Your horizontal position maps to a ring element. The full ring (214,414,200 elements) unfolds under your cursor.");
   let bar = dom_create("div") in
   dom_attr(bar, "id", "mouse-bar");
   dom_style(bar, "height", "48px");
@@ -193,12 +201,12 @@ fn spectrum_mouse_bar() = (
 /* Keyboard walk: arrow keys navigate the ring. dom_on1 passes keyCode to callback. */
 fn spectrum_walk_key(code) = (
   let cur = parse_int_from("#walk-n") in
-  /* S1239: real subtraction (raw_mode). Wrap via % N_TRUE for ring walk. */
+  /* S1239: real subtraction (raw_mode). Wrap via % N_TRANS for ring walk. */
   let n = (if code == 39 then cur + 1
-    else if code == 37 then cur + N_TRUE - 1
+    else if code == 37 then cur + N_TRANS - 1
     else if code == 38 then cur + 10
-    else if code == 40 then cur + N_TRUE - 10
-    else cur) % N_TRUE in
+    else if code == 40 then cur + N_TRANS - 10
+    else cur) % N_TRANS in
   let state_el = dom_query("#walk-n") in
   dom_text(state_el, "${n}");
   spectrum_display(n, dom_query("#walk-display"))
@@ -207,7 +215,7 @@ fn spectrum_walk_key(code) = (
 fn spectrum_walk() = (
   let sec = make_section("800px") in
   render_h2(sec, "Walk: Navigate the Ring");
-  render_p(sec, "Click the box below, then use arrow keys to walk through all 12612600 elements. Each step decomposes the spectrum live.");
+  render_p(sec, "Click the box below, then use arrow keys to walk through all 214,414,200 elements. Each step decomposes the spectrum live.");
   let state = dom_create("span") in
   dom_attr(state, "id", "walk-n");
   dom_style(state, "display", "none");
@@ -731,7 +739,7 @@ fn spectrum_contrast() = (
   render_contrast_row(tbl, "Gap duality", "No known analogue", "Cayley sees max(p), Hamming sees min(q). Same ring, two bottlenecks.");
   render_contrast_row(tbl, "Spectral fold", "Shannon entropy", "H = log2(m)-1+d/m. Each channel loses 1 bit to fold. Raising exponents IMPROVES efficiency.");
   render_contrast_row(tbl, "Midpoint", "No structural role", "Minimum eigenvalue at CRT midpoints. Sum = 7^2 = gap controller. The spectral minimum IS the halfway mark.");
-  render_p(sec, "The eigenvalue is the FEELING of a number. Not where it lives (CRT), not who it connects to (coupling), but its inner state -- how its six voices agree or collide. Eigenvalue = what you feel. Address = where you are. Both needed. Neither enough.");
+  render_p(sec, "The eigenvalue is the FEELING of a number. Not where it lives (CRT), not who it connects to (coupling), but its inner state -- how its seven voices agree or collide. Eigenvalue = what you feel. Address = where you are. Both needed. Neither enough.");
   dom_append(dom_body(), sec)
 )
 
