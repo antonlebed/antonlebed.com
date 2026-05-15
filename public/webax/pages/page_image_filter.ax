@@ -1,26 +1,44 @@
-/* page_image_filter.ax -- CRT Image Filter. CC0 demo kill.
-   Ring math applied to image processing. L=11 denoises for free.
-   Absorbed from image_filter_demo.html (441L JS scaffolding).
-   NO pixel I/O imports needed -- fillrect draws each pixel as 3x3 block.
-   RESTORED S1240 from git ea8383ea (was stripped S1210 for monolith size).
-   FIX: imgf_reconstruct needs explicit % 12612600 (raw_mode S1239). */
+/* page_image_filter.ax -- CRT Image Filter. 7-channel TRANS (Z/214,414,200).
+   Ring math applied to image processing. mod-11 denoises for free.
+   NO pixel I/O imports needed -- fillrect draws each pixel as 3x3 block. */
 
 /* ===== GLOBAL IMAGE STORE (avoids DOM string serialization = quadratic disease) ===== */
 let g_imgf_data = alloc(4096)
 let g_imgf_valid = [0]
 
-/* ===== CRT RECONSTRUCTION ===== */
-/* CRT lifting coefficients: e_i = (N/m_i) * (N/m_i)^(-1 mod m_i) mod N
-   11036025, 1401400, 9585576, 8494200, 3439800, 3880800. All verified mod N=12612600. */
-fn imgf_reconstruct(r0, r1, r2, r3, r4, r5) =
-  (r0 * 11036025 + r1 * 1401400 + r2 * 9585576 + r3 * 8494200 + r4 * 3439800 + r5 * 3880800) % 12612600
+/* ===== CRT RECONSTRUCTION (7ch TRANS) ===== */
+/* Modular multiply -- Russian peasant avoids i32 overflow with TRANS idempotents. */
+fn if_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
+)
 
-/* L=11 parity prediction from DATA subring Z/1146600.
-   Reconstruct from 5 DATA channels {D,K,E,b,GATE} using DATA idempotents, then mod 11.
-   Cannot shortcut via (sum of residue*coeff) mod 11 because 1146600%11=4 (not 0).
-   Detects b-channel corruption: CRT independence means e_b%11=0, so 6-channel
-   reconstruct mod 11 always equals original L. This function bypasses that. */
-fn imgf_predict_L(r0, r1, r2, r3, r5) = ((r0 * 716625 + r1 * 254800 + r2 * 412776 + r3 * 468000 + r5 * 441000) % 1146600) % 11
+fn if_red(x) = (let m = 214414200 in if x >= m then x - m else x)
+
+fn if_recon(r0, r1, r2, r3, r4, r5, r6) = (
+  let s0 = if_mulmod(r0, 187612425) in
+  let s1 = if_red(s0 + if_mulmod(r1, 190590400)) in
+  let s2 = if_red(s1 + if_mulmod(r2, 60035976)) in
+  let s3 = if_red(s2 + if_mulmod(r3, 109395000)) in
+  let s4 = if_red(s3 + if_mulmod(r4, 116953200)) in
+  let s5 = if_red(s4 + if_mulmod(r5, 16493400)) in
+  if_red(s5 + if_mulmod(r6, 176576400))
+)
+
+/* Predict mod-11 from all other channels (subring Z/19492200).
+   Corrupting mod-49 doesn't change full recon mod 11 (CRT independence: e_3%11=0).
+   This reconstructs from {mod8,mod9,mod25,mod49,mod13,mod17} to bypass that. */
+fn imgf_predict_L(r0, r1, r2, r3, r5, r6) = ((r0 * 12182625 + r1 * 15160600 + r2 * 1559376 + r3 * 11934000 + r5 * 16493400 + r6 * 1146600) % 19492200) % 11
 
 /* ===== IMAGE READ/WRITE via WASM global (no DOM serialization) ===== */
 /* S1240: eliminated string concat in loop -- was 33MB of dead copies (quadratic disease).
@@ -53,13 +71,12 @@ fn imgf_read_int(id) = (
 fn imgf_write_int(id, v) = dom_text(dom_query(id), "${v}")
 
 /* ===== RING MATH ===== */
-fn imgf_mods(ch) = if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25 else if ch == 3 then 49 else if ch == 4 then 11 else 13
-fn imgf_mod_name(ch) = if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E" else if ch == 3 then "b" else if ch == 4 then "L" else "GATE"
-fn imgf_ch_color(ch) = if ch == 0 then "#4488ff" else if ch == 1 then "#33dd55" else if ch == 2 then "#ff9900" else if ch == 3 then "#ff4040" else if ch == 4 then "#aa44ff" else "#ff4466"
+fn imgf_mods(ch) = if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25 else if ch == 3 then 49 else if ch == 4 then 11 else if ch == 5 then 13 else 17
+fn imgf_ch_color(ch) = if ch == 0 then "#4488ff" else if ch == 1 then "#33dd55" else if ch == 2 then "#ff9900" else if ch == 3 then "#ff4040" else if ch == 4 then "#aa44ff" else if ch == 5 then "#ff4466" else "#44ddff"
 
 /* Map ring value [0, N) to grayscale [0, 255].
-   For values in [0,255]: pass through. For larger: v/3804 ~ v*255/N. */
-fn imgf_to_gray(v) = if v < 0 then 0 else if v < 256 then v else v / 49461
+   For values in [0,255]: pass through. For larger: v/840841 scales 214414200 to ~255. */
+fn imgf_to_gray(v) = if v < 0 then 0 else if v < 256 then v else v / 840841
 
 /* ===== DRAW PIXELS TO CANVAS ===== */
 fn imgf_draw_gray(ctx, data) = (
@@ -171,16 +188,14 @@ fn imgf_draw_orig() = (
 )
 
 /* ===== DECOMPOSITION ===== */
+fn imgf_ch_id(ch) = if ch == 0 then "#imgf-ch0" else if ch == 1 then "#imgf-ch1" else if ch == 2 then "#imgf-ch2" else if ch == 3 then "#imgf-ch3" else if ch == 4 then "#imgf-ch4" else if ch == 5 then "#imgf-ch5" else "#imgf-ch6"
 fn imgf_show_decomp() = (
   let data = imgf_read_img() in
   if len(data) == 4096 then (
     mut ch = 0;
-    while ch < 6 do (
+    while ch < 7 do (
       let m = imgf_mods(ch) in
-      let cid = if ch == 0 then "#imgf-chD" else if ch == 1 then "#imgf-chK"
-                else if ch == 2 then "#imgf-chE" else if ch == 3 then "#imgf-chb"
-                else if ch == 4 then "#imgf-chL" else "#imgf-chG" in
-      let ctx = cvs_getctx(dom_query(cid)) in
+      let ctx = cvs_getctx(dom_query(imgf_ch_id(ch))) in
       let chdata = alloc(4096) in
       mut i = 0;
       while i < 4096 do (
@@ -320,50 +335,54 @@ fn imgf_apply_filter() = (
   if len(data) == 4096 then (
     let ftype = imgf_read_int("#imgf-ftype") in
     let chsel = imgf_read_int("#imgf-chsel") in
-    /* Decompose all pixels into 6 channels (pre-allocated, no push disease) */
+    /* Decompose all pixels into 7 channels (pre-allocated, no push disease) */
     let ch0 = alloc(4096) in let ch1 = alloc(4096) in let ch2 = alloc(4096) in
     let ch3 = alloc(4096) in let ch4 = alloc(4096) in let ch5 = alloc(4096) in
+    let ch6 = alloc(4096) in
     mut i = 0;
     while i < 4096 do (
       set(ch0, i, data[i] % 8); set(ch1, i, data[i] % 9); set(ch2, i, data[i] % 25);
       set(ch3, i, data[i] % 49); set(ch4, i, data[i] % 11); set(ch5, i, data[i] % 13);
+      set(ch6, i, data[i] % 17);
       mut i = i + 1
     );
-    /* Filter selected channels (6=all, 0-5=individual) */
-    let fch0 = if chsel == 6 then imgf_filter_ch(ch0, 8, ftype) else if chsel == 0 then imgf_filter_ch(ch0, 8, ftype) else ch0 in
-    let fch1 = if chsel == 6 then imgf_filter_ch(ch1, 9, ftype) else if chsel == 1 then imgf_filter_ch(ch1, 9, ftype) else ch1 in
-    let fch2 = if chsel == 6 then imgf_filter_ch(ch2, 25, ftype) else if chsel == 2 then imgf_filter_ch(ch2, 25, ftype) else ch2 in
-    let fch3 = if chsel == 6 then imgf_filter_ch(ch3, 49, ftype) else if chsel == 3 then imgf_filter_ch(ch3, 49, ftype) else ch3 in
-    let fch4 = if chsel == 6 then imgf_filter_ch(ch4, 11, ftype) else if chsel == 4 then imgf_filter_ch(ch4, 11, ftype) else ch4 in
-    let fch5 = if chsel == 6 then imgf_filter_ch(ch5, 13, ftype) else if chsel == 5 then imgf_filter_ch(ch5, 13, ftype) else ch5 in
+    /* Filter selected channels (7=all, 0-6=individual) */
+    let fch0 = if chsel == 7 then imgf_filter_ch(ch0, 8, ftype) else if chsel == 0 then imgf_filter_ch(ch0, 8, ftype) else ch0 in
+    let fch1 = if chsel == 7 then imgf_filter_ch(ch1, 9, ftype) else if chsel == 1 then imgf_filter_ch(ch1, 9, ftype) else ch1 in
+    let fch2 = if chsel == 7 then imgf_filter_ch(ch2, 25, ftype) else if chsel == 2 then imgf_filter_ch(ch2, 25, ftype) else ch2 in
+    let fch3 = if chsel == 7 then imgf_filter_ch(ch3, 49, ftype) else if chsel == 3 then imgf_filter_ch(ch3, 49, ftype) else ch3 in
+    let fch4 = if chsel == 7 then imgf_filter_ch(ch4, 11, ftype) else if chsel == 4 then imgf_filter_ch(ch4, 11, ftype) else ch4 in
+    let fch5 = if chsel == 7 then imgf_filter_ch(ch5, 13, ftype) else if chsel == 5 then imgf_filter_ch(ch5, 13, ftype) else ch5 in
+    let fch6 = if chsel == 7 then imgf_filter_ch(ch6, 17, ftype) else if chsel == 6 then imgf_filter_ch(ch6, 17, ftype) else ch6 in
     /* CRT reconstruct */
     let filtered = alloc(4096) in
     mut i = 0;
     while i < 4096 do (
-      set(filtered, i, imgf_reconstruct(fch0[i], fch1[i], fch2[i], fch3[i], fch4[i], fch5[i]));
+      set(filtered, i, if_recon(fch0[i], fch1[i], fch2[i], fch3[i], fch4[i], fch5[i], fch6[i]));
       mut i = i + 1
     );
     /* Draw filtered result */
     let ctx = cvs_getctx(dom_query("#imgf-filtered")) in
     imgf_draw_gray(ctx, filtered);
     /* Draw per-channel views */
-    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fchD")), fch0, 8);
-    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fchK")), fch1, 9);
-    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fchE")), fch2, 25);
-    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fchb")), fch3, 49);
-    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fchL")), fch4, 11);
-    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fchG")), fch5, 13);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch0")), fch0, 8);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch1")), fch1, 9);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch2")), fch2, 25);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch3")), fch3, 49);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch4")), fch4, 11);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch5")), fch5, 13);
+    imgf_draw_channel(cvs_getctx(dom_query("#imgf-fch6")), fch6, 17);
     /* Update label */
     let fname = if ftype == 0 then "Blur" else if ftype == 1 then "Sharpen" else if ftype == 2 then "Edge" else "Median" in
-    let chname = if chsel == 6 then "all channels" else "Z/${imgf_mods(chsel)} (${imgf_mod_name(chsel)})" in
-    dom_text(dom_query("#imgf-flabel"), "${fname} on ${chname}: 6 independent convolutions, no cross-channel bleed")
+    let chname = if chsel == 7 then "all channels" else "mod ${imgf_mods(chsel)}" in
+    dom_text(dom_query("#imgf-flabel"), "${fname} on ${chname}: 7 independent convolutions, no cross-channel bleed")
   ) else 0
 )
 
 fn imgf_set_ftype(t) = (imgf_write_int("#imgf-ftype", t); imgf_apply_filter())
 fn imgf_set_chsel(c) = (imgf_write_int("#imgf-chsel", c); imgf_apply_filter())
 
-/* ===== L=11 DENOISING ===== */
+/* ===== MOD-11 ERROR DETECTION ===== */
 fn imgf_denoise() = (
   let data = imgf_read_img() in
   if len(data) == 4096 then (
@@ -372,13 +391,15 @@ fn imgf_denoise() = (
     /* Decompose (pre-allocated) */
     let ch0 = alloc(4096) in let ch1 = alloc(4096) in let ch2 = alloc(4096) in
     let ch3 = alloc(4096) in let ch4 = alloc(4096) in let ch5 = alloc(4096) in
+    let ch6 = alloc(4096) in
     mut i = 0;
     while i < 4096 do (
       set(ch0, i, data[i] % 8); set(ch1, i, data[i] % 9); set(ch2, i, data[i] % 25);
       set(ch3, i, data[i] % 49); set(ch4, i, data[i] % 11); set(ch5, i, data[i] % 13);
+      set(ch6, i, data[i] % 17);
       mut i = i + 1
     );
-    /* Corrupt b-channel on random pixels */
+    /* Corrupt mod-49 channel on random pixels */
     mut corrupted = 0;
     let noisy3 = alloc(4096) in
     mut i = 0;
@@ -393,33 +414,33 @@ fn imgf_denoise() = (
     let noisy_img = alloc(4096) in
     mut i = 0;
     while i < 4096 do (
-      set(noisy_img, i, imgf_reconstruct(ch0[i], ch1[i], ch2[i], noisy3[i], ch4[i], ch5[i]));
+      set(noisy_img, i, if_recon(ch0[i], ch1[i], ch2[i], noisy3[i], ch4[i], ch5[i], ch6[i]));
       mut i = i + 1
     );
     /* Draw noisy */
     imgf_draw_gray(cvs_getctx(dom_query("#imgf-noisy")), noisy_img);
-    /* L=11 detect + correct (S1324 fix: predict L from DATA subring, not from 6ch recon).
-       CRT channels are independent: e_b%11=0, so corrupting b never changes recon%11.
-       FIX: imgf_predict_L computes L from DATA channels only, making corruption visible. */
+    /* mod-11 detect + correct: predict mod-11 from all other channels (subring).
+       CRT independence: e_3%11=0, so corrupting mod-49 never changes full recon%11.
+       imgf_predict_L reconstructs from the subring, making corruption visible. */
     mut detected = 0;
     mut corrected = 0;
     let denoised = alloc(4096) in
     mut i = 0;
     while i < 4096 do (
-      let predicted_L = imgf_predict_L(ch0[i], ch1[i], ch2[i], noisy3[i], ch5[i]) in
+      let predicted_L = imgf_predict_L(ch0[i], ch1[i], ch2[i], noisy3[i], ch5[i], ch6[i]) in
       let orig_L = ch4[i] in
       if predicted_L == orig_L then (
         set(denoised, i, noisy_img[i])
       ) else (
         mut detected = detected + 1;
-        /* Try all b-values, find one consistent with original L */
+        /* Try all mod-49 values, find one consistent with original mod-11 */
         mut best = noisy_img[i];
         mut found = 0;
         mut bt = 0;
         while bt < 49 do (
           if found == 0 then (
-            if imgf_predict_L(ch0[i], ch1[i], ch2[i], bt, ch5[i]) == ch4[i] then (
-              mut best = imgf_reconstruct(ch0[i], ch1[i], ch2[i], bt, ch4[i], ch5[i]);
+            if imgf_predict_L(ch0[i], ch1[i], ch2[i], bt, ch5[i], ch6[i]) == ch4[i] then (
+              mut best = if_recon(ch0[i], ch1[i], ch2[i], bt, ch4[i], ch5[i], ch6[i]);
               mut found = 1;
               mut corrected = corrected + 1
             ) else 0
@@ -464,12 +485,13 @@ fn imgf_isolate(kill_ch) = (
       let r3 = if kill_ch == 3 then 0 else data[i] % 49 in
       let r4 = if kill_ch == 4 then 0 else data[i] % 11 in
       let r5 = if kill_ch == 5 then 0 else data[i] % 13 in
-      set(result, i, imgf_reconstruct(r0, r1, r2, r3, r4, r5));
+      let r6 = if kill_ch == 6 then 0 else data[i] % 17 in
+      set(result, i, if_recon(r0, r1, r2, r3, r4, r5, r6));
       mut i = i + 1
     );
     imgf_draw_gray(cvs_getctx(dom_query("#imgf-isolate")), result);
     let label = if kill_ch < 0 then "All channels active"
-                else "Channel ${imgf_mod_name(kill_ch)} (mod ${imgf_mods(kill_ch)}) zeroed" in
+                else "mod ${imgf_mods(kill_ch)} zeroed" in
     dom_text(dom_query("#imgf-isolate-label"), label)
   ) else 0
 )
@@ -484,26 +506,25 @@ fn imgf_restore_all() = (
 
 /* ===== PAGE LAYOUT ===== */
 fn page_image_filter() = (
-  dom_head_meta("description", "CRT Image Filter. Ring math applied to image processing. 6 independent CRT channels. L=11 error detection. GATE=13 boundary. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Image Filter\",\"description\":\"Ring math applied to image processing. CRT channel separation. L=11 error detection via DATA subring. No patents.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/image_filter\"}");
+  dom_head_meta("description", "CRT Image Filter over Z/214,414,200. 7 independent channels. Per-channel convolution. mod-11 error detection.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Image Filter\",\"description\":\"Ring math applied to image processing. 7 independent CRT channels over Z/214,414,200. mod-11 error detection.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/image_filter\"}");
   let hero = make_hero("CRT Image Filter") in
   let eq = dom_create("div") in
-  dom_text(eq, "the ring IS the filter bank");
+  dom_text(eq, "Z/214,414,200 = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13 x Z/17");
   ct_mono(eq);
-  dom_style(eq, "fontSize", "22px");
+  dom_style(eq, "fontSize", "18px");
   ct_gold(eq);
   dom_style(eq, "marginBottom", "20px");
   dom_append(hero, eq);
-  render_p(hero, "Decompose each pixel into 6 CRT channels. Filter independently. L=11 detects corruption via DATA subring parity. CC0.");
+  render_p(hero, "Decompose each pixel into 7 independent CRT channels. Filter each channel separately -- no cross-channel bleed. The mod-11 channel detects single-channel corruption for free.");
   dom_append(dom_body(), hero);
 
   /* ===== SECTION 1: How It Works ===== */
   let s1 = make_section("800px") in
   render_h2(s1, "How It Works");
-  render_p(s1, "Every pixel value (0-255) is a ring element in Z/12612600.");
-  render_p(s1, "CRT decomposes each pixel into 6 independent channels: Z/8 (D), Z/9 (K), Z/25 (E), Z/49 (b), Z/11 (L), Z/13 (GATE).");
-  render_p(s1, "Filter each channel separately -- no cross-channel artifacts. CRT-reconstruct to get filtered pixel.");
-  render_p(s1, "L=11 channel = integrity check. Corrupt a data channel? L=11 parity (from DATA subring) detects ~92% of single-channel errors.");
+  render_p(s1, "Every pixel value (0-255) lives in Z/214,414,200. The Chinese Remainder Theorem splits this into 7 independent channels: mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17.");
+  render_p(s1, "Filter each channel separately -- no cross-channel artifacts. Reconstruct with CRT to get the filtered pixel.");
+  render_p(s1, "The mod-11 channel serves as an integrity check. Corrupt the mod-49 channel? A parity prediction from the other 6 channels detects ~92% of single-channel errors.");
   dom_append(dom_body(), s1);
 
   /* ===== SECTION 2: Generate Test Image ===== */
@@ -514,7 +535,7 @@ fn page_image_filter() = (
   /* Hidden state inputs */
   let st = dom_create("input") in dom_attr(st, "type", "hidden"); dom_attr(st, "id", "imgf-state"); dom_append(s2, st);
   let ft = dom_create("input") in dom_attr(ft, "type", "hidden"); dom_attr(ft, "id", "imgf-ftype"); dom_attr(ft, "value", "0"); dom_append(s2, ft);
-  let cs = dom_create("input") in dom_attr(cs, "type", "hidden"); dom_attr(cs, "id", "imgf-chsel"); dom_attr(cs, "value", "6"); dom_append(s2, cs);
+  let cs = dom_create("input") in dom_attr(cs, "type", "hidden"); dom_attr(cs, "id", "imgf-chsel"); dom_attr(cs, "value", "7"); dom_append(s2, cs);
   let npst = dom_create("input") in dom_attr(npst, "type", "hidden"); dom_attr(npst, "id", "imgf-npct"); dom_attr(npst, "value", "10"); dom_append(s2, npst);
 
   let btns = dom_create("div") in
@@ -543,7 +564,7 @@ fn page_image_filter() = (
   /* ===== SECTION 3: CRT Decomposition ===== */
   let s3 = make_section("900px") in
   render_h2(s3, "2. CRT Decomposition");
-  render_p(s3, "Each pixel decomposed into 6 independent channel views.");
+  render_p(s3, "Each pixel decomposed into 7 independent channel views.");
 
   let bd_w = dom_create("div") in dom_style(bd_w, "textAlign", "center"); dom_style(bd_w, "margin", "8px 0");
   let bd = dom_create("button") in dom_text(bd, "Decompose"); dom_append(bd_w, bd);
@@ -557,12 +578,12 @@ fn page_image_filter() = (
   dom_style(drow, "justifyContent", "center");
   dom_style(drow, "margin", "8px 0");
   mut chi = 0;
-  while chi < 6 do (
+  while chi < 7 do (
     let cw = dom_create("div") in dom_style(cw, "textAlign", "center");
     let cc = dom_create("canvas") in
-    let cid = if chi == 0 then "imgf-chD" else if chi == 1 then "imgf-chK"
-              else if chi == 2 then "imgf-chE" else if chi == 3 then "imgf-chb"
-              else if chi == 4 then "imgf-chL" else "imgf-chG" in
+    let cid = if chi == 0 then "imgf-ch0" else if chi == 1 then "imgf-ch1"
+              else if chi == 2 then "imgf-ch2" else if chi == 3 then "imgf-ch3"
+              else if chi == 4 then "imgf-ch4" else if chi == 5 then "imgf-ch5" else "imgf-ch6" in
     dom_attr(cc, "id", cid);
     cvs_setsize(cc, 192, 192);
     dom_style(cc, "border", "1px solid #444");
@@ -571,7 +592,7 @@ fn page_image_filter() = (
     let cl = dom_create("div") in
     dom_style(cl, "color", imgf_ch_color(chi));
     dom_style(cl, "fontSize", "0.85em");
-    dom_text(cl, "Z/${imgf_mods(chi)} (${imgf_mod_name(chi)})");
+    dom_text(cl, "mod ${imgf_mods(chi)}");
     dom_append(cw, cl);
     dom_append(drow, cw);
     mut chi = chi + 1
@@ -600,18 +621,20 @@ fn page_image_filter() = (
   let chl = dom_create("span") in dom_style(chl, "color", "#888"); dom_text(chl, "Channel: "); dom_append(crow, chl);
   let ca = dom_create("button") in dom_text(ca, "All"); dom_append(crow, ca);
   dom_on(ca, "click", "imgf_set_chsel_all");
-  let c0 = dom_create("button") in dom_text(c0, "D"); dom_style(c0, "marginLeft", "4px"); dom_append(crow, c0);
+  let c0 = dom_create("button") in dom_text(c0, "8"); dom_style(c0, "marginLeft", "4px"); dom_append(crow, c0);
   dom_on(c0, "click", "imgf_set_chsel_0");
-  let c1 = dom_create("button") in dom_text(c1, "K"); dom_style(c1, "marginLeft", "4px"); dom_append(crow, c1);
+  let c1 = dom_create("button") in dom_text(c1, "9"); dom_style(c1, "marginLeft", "4px"); dom_append(crow, c1);
   dom_on(c1, "click", "imgf_set_chsel_1");
-  let c2 = dom_create("button") in dom_text(c2, "E"); dom_style(c2, "marginLeft", "4px"); dom_append(crow, c2);
+  let c2 = dom_create("button") in dom_text(c2, "25"); dom_style(c2, "marginLeft", "4px"); dom_append(crow, c2);
   dom_on(c2, "click", "imgf_set_chsel_2");
-  let c3 = dom_create("button") in dom_text(c3, "b"); dom_style(c3, "marginLeft", "4px"); dom_append(crow, c3);
+  let c3 = dom_create("button") in dom_text(c3, "49"); dom_style(c3, "marginLeft", "4px"); dom_append(crow, c3);
   dom_on(c3, "click", "imgf_set_chsel_3");
-  let c4 = dom_create("button") in dom_text(c4, "L"); dom_style(c4, "marginLeft", "4px"); dom_append(crow, c4);
+  let c4 = dom_create("button") in dom_text(c4, "11"); dom_style(c4, "marginLeft", "4px"); dom_append(crow, c4);
   dom_on(c4, "click", "imgf_set_chsel_4");
-  let c5 = dom_create("button") in dom_text(c5, "G"); dom_style(c5, "marginLeft", "4px"); dom_append(crow, c5);
+  let c5 = dom_create("button") in dom_text(c5, "13"); dom_style(c5, "marginLeft", "4px"); dom_append(crow, c5);
   dom_on(c5, "click", "imgf_set_chsel_5");
+  let c6 = dom_create("button") in dom_text(c6, "17"); dom_style(c6, "marginLeft", "4px"); dom_append(crow, c6);
+  dom_on(c6, "click", "imgf_set_chsel_6");
   dom_append(s4, crow);
 
   /* Filtered channel canvases */
@@ -622,12 +645,12 @@ fn page_image_filter() = (
   dom_style(fchrow, "justifyContent", "center");
   dom_style(fchrow, "margin", "8px 0");
   mut fci = 0;
-  while fci < 6 do (
+  while fci < 7 do (
     let fcw = dom_create("div") in dom_style(fcw, "textAlign", "center");
     let fcc = dom_create("canvas") in
-    let fcid = if fci == 0 then "imgf-fchD" else if fci == 1 then "imgf-fchK"
-               else if fci == 2 then "imgf-fchE" else if fci == 3 then "imgf-fchb"
-               else if fci == 4 then "imgf-fchL" else "imgf-fchG" in
+    let fcid = if fci == 0 then "imgf-fch0" else if fci == 1 then "imgf-fch1"
+               else if fci == 2 then "imgf-fch2" else if fci == 3 then "imgf-fch3"
+               else if fci == 4 then "imgf-fch4" else if fci == 5 then "imgf-fch5" else "imgf-fch6" in
     dom_attr(fcc, "id", fcid);
     cvs_setsize(fcc, 192, 192);
     dom_style(fcc, "border", "1px solid #444");
@@ -636,7 +659,7 @@ fn page_image_filter() = (
     let fcl = dom_create("div") in
     dom_style(fcl, "color", imgf_ch_color(fci));
     dom_style(fcl, "fontSize", "0.85em");
-    dom_text(fcl, "Z/${imgf_mods(fci)} filtered");
+    dom_text(fcl, "mod ${imgf_mods(fci)} filtered");
     dom_append(fcw, fcl);
     dom_append(fchrow, fcw);
     mut fci = fci + 1
@@ -664,10 +687,10 @@ fn page_image_filter() = (
   dom_append(s4, flbl);
   dom_append(dom_body(), s4);
 
-  /* ===== SECTION 5: L=11 Denoising ===== */
+  /* ===== SECTION 5: mod-11 Error Detection ===== */
   let s5 = make_section("800px") in
-  render_h2(s5, "4. L=11 Denoising");
-  render_p(s5, "Corrupt the b-channel (mod 49). L=11 detects ~92% of corrupted pixels (those where the b-change alters the DATA subring mod 11). Correction searches for a b-value consistent with L -- limited to ~22% accuracy because mod 49 > mod 11.");
+  render_h2(s5, "4. Error Detection (mod 11)");
+  render_p(s5, "Corrupt the mod-49 channel with random noise. A parity prediction from the other 6 channels detects ~92% of corrupted pixels. Correction searches for a mod-49 value consistent with mod 11 -- limited to ~22% accuracy because 49 states > 11 states.");
 
   let nrow = dom_create("div") in dom_style(nrow, "textAlign", "center"); dom_style(nrow, "margin", "8px 0");
   let nl = dom_create("span") in dom_style(nl, "color", "#888"); dom_text(nl, "Noise: "); dom_append(nrow, nl);
@@ -703,7 +726,7 @@ fn page_image_filter() = (
   dom_style(nc2, "border", "1px solid #444"); dom_style(nc2, "borderRadius", "4px");
   dom_append(nwrap2, nc2);
   let nl2 = dom_create("div") in dom_style(nl2, "color", "#0f0"); dom_style(nl2, "fontSize", "0.85em");
-  dom_text(nl2, "L=11 Denoised"); dom_append(nwrap2, nl2);
+  dom_text(nl2, "Denoised (mod-11 parity)"); dom_append(nwrap2, nl2);
   dom_append(ncrow, nwrap2);
   dom_append(s5, ncrow);
 
@@ -732,21 +755,23 @@ fn page_image_filter() = (
   /* ===== SECTION 6: Channel Isolation ===== */
   let s6 = make_section("800px") in
   render_h2(s6, "5. Channel Isolation");
-  render_p(s6, "Zero out one channel, reconstruct. See what each prime contributes.");
+  render_p(s6, "Zero out one channel, reconstruct. See what each channel contributes.");
 
   let irow = dom_create("div") in dom_style(irow, "textAlign", "center"); dom_style(irow, "margin", "8px 0");
-  let ib0 = dom_create("button") in dom_text(ib0, "Kill D"); dom_append(irow, ib0);
-  dom_on(ib0, "click", "imgf_kill_D");
-  let ib1 = dom_create("button") in dom_text(ib1, "Kill K"); dom_style(ib1, "marginLeft", "4px"); dom_append(irow, ib1);
-  dom_on(ib1, "click", "imgf_kill_K");
-  let ib2 = dom_create("button") in dom_text(ib2, "Kill E"); dom_style(ib2, "marginLeft", "4px"); dom_append(irow, ib2);
-  dom_on(ib2, "click", "imgf_kill_E");
-  let ib3 = dom_create("button") in dom_text(ib3, "Kill b"); dom_style(ib3, "marginLeft", "4px"); dom_append(irow, ib3);
-  dom_on(ib3, "click", "imgf_kill_b");
-  let ib4 = dom_create("button") in dom_text(ib4, "Kill L"); dom_style(ib4, "marginLeft", "4px"); dom_append(irow, ib4);
-  dom_on(ib4, "click", "imgf_kill_L");
-  let ib5 = dom_create("button") in dom_text(ib5, "Kill G"); dom_style(ib5, "marginLeft", "4px"); dom_append(irow, ib5);
-  dom_on(ib5, "click", "imgf_kill_G");
+  let ib0 = dom_create("button") in dom_text(ib0, "Zero 8"); dom_append(irow, ib0);
+  dom_on(ib0, "click", "imgf_kill_0");
+  let ib1 = dom_create("button") in dom_text(ib1, "Zero 9"); dom_style(ib1, "marginLeft", "4px"); dom_append(irow, ib1);
+  dom_on(ib1, "click", "imgf_kill_1");
+  let ib2 = dom_create("button") in dom_text(ib2, "Zero 25"); dom_style(ib2, "marginLeft", "4px"); dom_append(irow, ib2);
+  dom_on(ib2, "click", "imgf_kill_2");
+  let ib3 = dom_create("button") in dom_text(ib3, "Zero 49"); dom_style(ib3, "marginLeft", "4px"); dom_append(irow, ib3);
+  dom_on(ib3, "click", "imgf_kill_3");
+  let ib4 = dom_create("button") in dom_text(ib4, "Zero 11"); dom_style(ib4, "marginLeft", "4px"); dom_append(irow, ib4);
+  dom_on(ib4, "click", "imgf_kill_4");
+  let ib5 = dom_create("button") in dom_text(ib5, "Zero 13"); dom_style(ib5, "marginLeft", "4px"); dom_append(irow, ib5);
+  dom_on(ib5, "click", "imgf_kill_5");
+  let ib6 = dom_create("button") in dom_text(ib6, "Zero 17"); dom_style(ib6, "marginLeft", "4px"); dom_append(irow, ib6);
+  dom_on(ib6, "click", "imgf_kill_6");
   let ibr = dom_create("button") in dom_text(ibr, "Restore"); dom_style(ibr, "marginLeft", "12px"); dom_append(irow, ibr);
   dom_on(ibr, "click", "imgf_restore_all");
   dom_append(s6, irow);
@@ -762,7 +787,7 @@ fn page_image_filter() = (
   dom_text(ilbl, "Channel isolation"); dom_append(iw, ilbl);
   dom_append(s6, iw);
 
-  render_p(s6, "CC0 1.0 Universal. The ring IS the filter bank.");
+  render_p(s6, "7 channels, 7 independent convolutions, one ring.");
   dom_append(dom_body(), s6)
 )
 
@@ -771,16 +796,18 @@ fn imgf_set_ftype_blur() = imgf_set_ftype(0)
 fn imgf_set_ftype_sharpen() = imgf_set_ftype(1)
 fn imgf_set_ftype_edge() = imgf_set_ftype(2)
 fn imgf_set_ftype_median() = imgf_set_ftype(3)
-fn imgf_set_chsel_all() = imgf_set_chsel(6)
+fn imgf_set_chsel_all() = imgf_set_chsel(7)
 fn imgf_set_chsel_0() = imgf_set_chsel(0)
 fn imgf_set_chsel_1() = imgf_set_chsel(1)
 fn imgf_set_chsel_2() = imgf_set_chsel(2)
 fn imgf_set_chsel_3() = imgf_set_chsel(3)
 fn imgf_set_chsel_4() = imgf_set_chsel(4)
 fn imgf_set_chsel_5() = imgf_set_chsel(5)
-fn imgf_kill_D() = imgf_isolate(0)
-fn imgf_kill_K() = imgf_isolate(1)
-fn imgf_kill_E() = imgf_isolate(2)
-fn imgf_kill_b() = imgf_isolate(3)
-fn imgf_kill_L() = imgf_isolate(4)
-fn imgf_kill_G() = imgf_isolate(5)
+fn imgf_set_chsel_6() = imgf_set_chsel(6)
+fn imgf_kill_0() = imgf_isolate(0)
+fn imgf_kill_1() = imgf_isolate(1)
+fn imgf_kill_2() = imgf_isolate(2)
+fn imgf_kill_3() = imgf_isolate(3)
+fn imgf_kill_4() = imgf_isolate(4)
+fn imgf_kill_5() = imgf_isolate(5)
+fn imgf_kill_6() = imgf_isolate(6)

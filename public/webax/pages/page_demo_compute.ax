@@ -4,56 +4,53 @@
 
 /* ================================================================
    CRT PID -- dedicated demo page /demos/pid. CC0 kill B15.
-   6-channel multi-scale control loop.
+   7-channel multi-scale control loop over Z/214,414,200.
    ================================================================ */
-
-fn demo_pid_step(err, prev_err, integral, dt) = (
-  /* Per-channel PID gains derived from moduli */
-  let kp = 100 in let ki = 5 in let kd = 30 in
-  let new_int = integral + err * dt in
-  let deriv = (err + 12612600 - prev_err) in
-  let p_term = kp * err in
-  let i_term = ki * new_int in
-  let d_term = kd * deriv in
-  (p_term + i_term + d_term) % N_TRUE
-)
 
 fn demo_pid_run() = (
   let setpoint = parse_int_from("#dpid-input") in
   let result_el = dom_query("#dpid-result") in
-  let sp = setpoint % N_TRUE in
-  let sp_d = sp % 8 in let sp_k = sp % 9 in let sp_e = sp % 25 in
-  let sp_b = sp % 49 in let sp_l = sp % 11 in let sp_g = sp % 13 in
-  /* Simulate: start at 0, chase setpoint per-channel */
-  mut pos_d = 0; mut pos_k = 0; mut pos_e = 0; mut pos_b = 0; mut pos_l = 0; mut pos_g = 0;
-  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT PID CONTROL: setpoint = " + "${sp}" + " = (" + "${sp_d}" + "," + "${sp_k}" + "," + "${sp_e}" + "," + "${sp_b}" + "," + "${sp_l}" + "," + "${sp_g}" + ")</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Step</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>D</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>K</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>E</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>b</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>L</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>G</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Err</th></tr>";
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
+  let sp = setpoint % N_TRANS in
+  let sp_ch = alloc(7) in
+  mut ci = 0;
+  while ci < 7 do (set(sp_ch, ci, sp % mods[ci]); mut ci = ci + 1);
+  let pos = alloc(7) in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT PID CONTROL: setpoint = " + "${sp}" + " = (" + "${sp_ch[0]}" + "," + "${sp_ch[1]}" + "," + "${sp_ch[2]}" + "," + "${sp_ch[3]}" + "," + "${sp_ch[4]}" + "," + "${sp_ch[5]}" + "," + "${sp_ch[6]}" + ")</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Step</th>";
+  mut ci = 0;
+  while ci < 7 do (
+    let is_data = if ci == 0 then 1 else if ci == 2 then 1 else if ci == 3 then 1 else 0 in
+    let hcol = if is_data == 1 then "#ff6666" else "#44ff88" in
+    mut html = html + "<th style='text-align:left;padding:4px;color:" + hcol + ";font-size:11px'>mod " + "${mods[ci]}" + "</th>";
+    mut ci = ci + 1
+  );
+  mut html = html + "<th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Err</th></tr>";
   mut step = 0;
   while step < 12 do (
-    /* P-only control per channel: move halfway to target each step */
-    let err_d = (sp_d + 8 - pos_d) % 8 in
-    let err_k = (sp_k + 9 - pos_k) % 9 in
-    let err_e = (sp_e + 25 - pos_e) % 25 in
-    let err_b = (sp_b + 49 - pos_b) % 49 in
-    let err_l = (sp_l + 11 - pos_l) % 11 in
-    let err_g = (sp_g + 13 - pos_g) % 13 in
-    let total_err = err_d + err_k + err_e + err_b + err_l + err_g in
-    /* Move: add half the error (integer division) */
-    mut pos_d = (pos_d + (err_d + 1) / 2) % 8;
-    mut pos_k = (pos_k + (err_k + 1) / 2) % 9;
-    mut pos_e = (pos_e + (err_e + 1) / 2) % 25;
-    mut pos_b = (pos_b + (err_b + 1) / 2) % 49;
-    mut pos_l = (pos_l + (err_l + 1) / 2) % 11;
-    mut pos_g = (pos_g + (err_g + 1) / 2) % 13;
+    mut total_err = 0;
+    mut ci = 0;
+    while ci < 7 do (
+      let err_ch = (sp_ch[ci] + mods[ci] - pos[ci]) % mods[ci] in
+      mut total_err = total_err + err_ch;
+      set(pos, ci, (pos[ci] + (err_ch + 1) / 2) % mods[ci]);
+      mut ci = ci + 1
+    );
     let color = if total_err == 0 then "#44ff88" else "#b0b0c0" in
-    mut html = html + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${step}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos_d}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos_k}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos_e}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos_b}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos_l}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos_g}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${total_err}" + "</td></tr>";
+    mut html = html + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${step}" + "</td>";
+    mut ci = 0;
+    while ci < 7 do (
+      mut html = html + "<td style='padding:3px;color:" + color + ";font-size:12px'>" + "${pos[ci]}" + "</td>";
+      mut ci = ci + 1
+    );
+    mut html = html + "<td style='padding:3px;color:" + color + ";font-size:12px'>" + "${total_err}" + "</td></tr>";
     mut step = step + 1
   );
   dom_inner(result_el, html + "</table></div>")
 )
 
 fn page_pid() = (
-  dom_head_meta("description", "CRT PID Controller. 6 independent control channels over Z/12612600. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT PID Controller\",\"description\":\"6-channel multi-scale PID control over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/pid\"}");
+  dom_head_meta("description", "CRT PID Controller. 7 independent control channels over Z/214,414,200. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT PID Controller\",\"description\":\"7-channel multi-scale PID control over Z/214414200. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/pid\"}");
   let hero = make_hero("CRT PID Control") in
   let eq = dom_create("div") in
   dom_text(eq, "B15: Siemens/ABB. CC0.");
@@ -63,26 +60,26 @@ fn page_pid() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "PID control decomposes into 6 independent channels. Each channel controls at its own scale: D=fast/coarse, b=slow/fine. Errors in one channel cannot destabilize others. CRT reconstruction gives the global control signal.");
+  render_p(hero, "PID control decomposes into 7 independent channels. Each channel controls at its own scale: mod 8 = coarse, mod 49 = fine. Errors in one channel cannot destabilize others. CRT reconstruction gives the global control signal.");
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Multi-Scale Control", "A setpoint in Z/12612600 has 6 CRT residues. Each channel runs independent proportional control. Channel D (mod 8) converges in 3 steps. Channel b (mod 49) converges in 6 steps. The controller naturally separates fast/coarse from slow/fine -- no manual tuning.");
+  render_theorem(sec1, "CRT Multi-Scale Control", "A setpoint in Z/214,414,200 has 7 CRT residues. Each channel runs independent proportional control. mod 8 converges in 3 steps. mod 49 converges in 6 steps. The controller naturally separates fast/coarse from slow/fine -- no manual tuning.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "6 scales", "CRT decomposition", "D=coarse(8), K=medium(9), E=fine(25), b=depth(49), L=slow(11), G=gate(13).", "");
+  render_finding(g1, "7 scales", "CRT decomposition", "mod 8 = coarse, mod 9 = medium, mod 25 = fine, mod 49 = precise, mod 11 = slow, mod 13 = auxiliary, mod 17 = detail.", "");
   render_finding(g1, "Independence", "Algebraic firewall", "Error in one channel cannot propagate to others.", "");
   render_finding(g1, "Auto-tuning", "Modulus = bandwidth", "Channel bandwidth = 1/modulus. No PID tuning needed.", "");
   render_finding(g1, "Convergence", "Per-channel guaranteed", "Each channel converges in O(log(modulus)) steps.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
-  make_interactive_widget(sec2, "Setpoint (0-12612599):", "dpid-input", "e.g. 42", "Run Controller", "demo_pid_run", "dpid-result");
-  render_p(sec2, "Watch 6 channels converge independently. D(mod 8) arrives first, b(mod 49) last.");
+  make_interactive_widget(sec2, "Setpoint (0-214414199):", "dpid-input", "e.g. 42", "Run Controller", "demo_pid_run", "dpid-result");
+  render_p(sec2, "Watch 7 channels converge independently. mod 8 arrives first, mod 49 last.");
   dom_append(dom_body(), sec2);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT PID vs Traditional");
   render_contrast_row(sec3, "Tuning", "PID: Kp, Ki, Kd manual tuning", "CRT: channel modulus IS the bandwidth");
-  render_contrast_row(sec3, "Coupling", "Coupled: error in one axis affects all", "Independent: 6 algebraic firewalls");
+  render_contrast_row(sec3, "Coupling", "Coupled: error in one axis affects all", "Independent: 7 algebraic firewalls");
   render_contrast_row(sec3, "Multi-scale", "Cascaded loops (complex)", "CRT channels = natural scale separation");
   render_contrast_row(sec3, "Convergence", "Heuristic (Ziegler-Nichols)", "Provable: O(log m) per channel");
   render_contrast_row(sec3, "Patent status", "Siemens/ABB process patents", "CC0. Public domain. Forever.");
@@ -90,26 +87,38 @@ fn page_pid() = (
 )
 
 /* ================================================================
-   CRT STEGANOGRAPHY -- dedicated demo page /demos/stego. CC0 kill C16.
-   Hide data in CRT channel residues.
-
+   CRT GPU COMPUTE -- dedicated demo page /demos/gpu_compute.
+   7-channel parallel compute over Z/214,414,200. FPGA + WebGPU.
    ================================================================ */
 
 fn demo_gpu_run() = (
   let data = parse_int_from("#dgpu-input") in
   let result_el = dom_query("#dgpu-result") in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
   let d = data % N_TRANS in
-  /* Decompose into 7 channels (TRANS ring) */
-  let rd = d % 8 in let rk = d % 9 in let re = d % 25 in let rb = d % 49 in let rl = d % 11 in let rg = d % 13 in let r17 = d % 17 in
-  /* f(x) = x^2 mod N -- compute per channel independently (GPU workgroup analogy) */
-  let sd = (rd * rd) % 8 in let sk = (rk * rk) % 9 in let se = (re * re) % 25 in
-  let sb = (rb * rb) % 49 in let sl = (rl * rl) % 11 in let sg = (rg * rg) % 13 in let s17 = (r17 * r17) % 17 in
-  /* Two-level CRT reconstruct (TRUE 6ch + ESCAPE lift) */
-  let recon = ring_recon_trans(sd, sk, se, sb, sl, sg, s17) in
-  /* Verify: direct computation */
+  let residues = alloc(7) in
+  let squared = alloc(7) in
+  mut ci = 0;
+  while ci < 7 do (
+    let r = d % mods[ci] in
+    set(residues, ci, r);
+    set(squared, ci, (r * r) % mods[ci]);
+    mut ci = ci + 1
+  );
+  let recon = ring_recon_trans(squared[0], squared[1], squared[2], squared[3], squared[4], squared[5], squared[6]) in
   let direct = ring_mul_trans(d, d) in
   let ok = if recon == direct then 1 else 0 in
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>7-CHANNEL PARALLEL COMPUTE: f(x) = x^2 mod 214414200</p><p style='color:#88ddaa;margin:4px 0'>Input: x = " + "${d}" + "</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>WG</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Mod</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>r</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>r^2</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Role</th></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>D</td><td style='padding:3px;color:#888;font-size:12px'>8</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rd}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sd}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>K</td><td style='padding:3px;color:#888;font-size:12px'>9</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rk}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sk}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>E</td><td style='padding:3px;color:#888;font-size:12px'>25</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${re}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${se}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#ff6666;font-size:12px'>b</td><td style='padding:3px;color:#888;font-size:12px'>49</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rb}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sb}" + "</td><td style='padding:3px;color:#ff6666;font-size:11px'>DEAD</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>L</td><td style='padding:3px;color:#888;font-size:12px'>11</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rl}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sl}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#44ff88;font-size:12px'>G</td><td style='padding:3px;color:#888;font-size:12px'>13</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${rg}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${sg}" + "</td><td style='padding:3px;color:#44ff88;font-size:11px'>ALIVE</td></tr><tr><td style='padding:3px;color:#7FFFD4;font-size:12px'>ESC</td><td style='padding:3px;color:#888;font-size:12px'>17</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${r17}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${s17}" + "</td><td style='padding:3px;color:#7FFFD4;font-size:11px'>ESCAPE</td></tr></table><p style='color:#ffd700;margin:12px 0 4px'>TWO-LEVEL CRT RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Parallel (7 workgroups + CRT): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>Verified (ring_mul_trans): " + "${direct}" + "</p><p style='color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>" + (if ok == 1 then "MATCH -- 7 independent computations, 1 correct answer" else "MISMATCH -- bug") + "</p></div>")
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>7-CHANNEL PARALLEL COMPUTE: f(x) = x^2 mod 214,414,200</p><p style='color:#88ddaa;margin:4px 0'>Input: x = " + "${d}" + "</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Channel</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>r</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>r^2</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Type</th></tr>";
+  mut ci = 0;
+  while ci < 7 do (
+    let is_data = if ci == 0 then 1 else if ci == 2 then 1 else if ci == 3 then 1 else 0 in
+    let color = if is_data == 1 then "#ff6666" else "#44ff88" in
+    let tag = if is_data == 1 then "data" else "parity" in
+    mut html = html + "<tr><td style='padding:3px;color:" + color + ";font-size:12px'>mod " + "${mods[ci]}" + "</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${residues[ci]}" + "</td><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${squared[ci]}" + "</td><td style='padding:3px;color:" + color + ";font-size:11px'>" + tag + "</td></tr>";
+    mut ci = ci + 1
+  );
+  mut html = html + "</table><p style='color:#ffd700;margin:12px 0 4px'>CRT RECONSTRUCTION</p><p style='color:#88ddaa;margin:4px 0'>Parallel (7 channels + CRT): " + "${recon}" + "</p><p style='color:#b0b0c0;margin:4px 0'>Verified (direct): " + "${direct}" + "</p><p style='color:" + (if ok == 1 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:8px 0'>" + (if ok == 1 then "MATCH -- 7 independent computations, 1 correct answer" else "MISMATCH -- bug") + "</p></div>";
+  dom_inner(result_el, html)
 )
 
 fn demo_gpu_batch() = (
@@ -126,7 +135,7 @@ fn demo_gpu_batch() = (
     if recon == direct then set(ok_count, 0, ok_count[0] + 1) else 0;
     set(i, 0, i[0] + 1)
   );
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 1000 values x f(x)=x^2 mod 214414200</p><p style='color:" + (if ok_count[0] == 1000 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${ok_count[0]}" + "/1000 MATCH</p><p style='color:#b0b0c0;margin:4px 0'>Each value decomposed into 7 channels, squared independently, reconstructed via two-level CRT (TRUE + ESCAPE lift). All 7 workgroups run in parallel -- no cross-channel dependency.</p></div>")
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH: 1000 values x f(x)=x^2 mod 214414200</p><p style='color:" + (if ok_count[0] == 1000 then "#44ff88" else "#ff4444") + ";font-size:18px;margin:4px 0'>" + "${ok_count[0]}" + "/1000 MATCH</p><p style='color:#b0b0c0;margin:4px 0'>Each value decomposed into 7 channels, squared independently, reconstructed via CRT. All 7 channels compute in parallel -- no cross-channel dependency.</p></div>")
 )
 
 fn gpu_bench_n() = (
@@ -166,30 +175,29 @@ fn gpu_nzp_pairs(m) = (
 
 fn demo_gpu_nzp() = (
   let result_el = dom_query("#gpu-nzp-result") in
-  let mods = [8, 9, 25, 49, 11, 13] in
-  let names = ["D=Z/8", "K=Z/9", "E=Z/25", "b=Z/49", "L=Z/11", "G=Z/13"] in
-  let classes = ["pp", "pp", "pp", "pp", "prime", "prime"] in
-  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>GRADIENT FIELD CENSUS: NZP pairs per TRUE channel</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Ch</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Mod</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Type</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>NZP</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Field?</th></tr>";
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
+  let classes = ["pp", "pp", "pp", "pp", "prime", "prime", "prime"] in
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>GRADIENT FIELD CENSUS: NZP pairs per channel</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Channel</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Type</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>NZP</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Field?</th></tr>";
   mut total_prime = 0;
   mut total_pp = 0;
   mut i = 0;
-  while i < 6 do (
+  while i < 7 do (
     let m = mods[i] in
     let nzp = gpu_nzp_pairs(m) in
     let is_field = if nzp == 0 then 1 else 0 in
     let color = if is_field == 1 then "#44ff88" else "#ff6666" in
     if i >= 4 then mut total_prime = total_prime + nzp
     else mut total_pp = total_pp + nzp;
-    mut html = html + "<tr><td style='padding:3px;color:" + color + ";font-size:12px'>" + names[i] + "</td><td style='padding:3px;color:#888;font-size:12px'>" + "${m}" + "</td><td style='padding:3px;color:#888;font-size:12px'>" + classes[i] + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${nzp}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + (if is_field == 1 then "YES" else "no") + "</td></tr>";
+    mut html = html + "<tr><td style='padding:3px;color:" + color + ";font-size:12px'>mod " + "${m}" + "</td><td style='padding:3px;color:#888;font-size:12px'>" + classes[i] + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + "${nzp}" + "</td><td style='padding:3px;color:" + color + ";font-size:12px'>" + (if is_field == 1 then "YES" else "no") + "</td></tr>";
     mut i = i + 1
   );
-  mut html = html + "</table><p style='color:#ffd700;margin:12px 0 4px'>TOTALS</p><p style='color:#44ff88;margin:4px 0'>Prime channels (L,G): NZP = " + "${total_prime}" + " -- fields, zero gradient death</p><p style='color:#ff6666;margin:4px 0'>Prime-power channels (D,K,E,b): NZP = " + "${total_pp}" + " -- non-fields, gradient death via zero divisors</p><p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Formula: Z/p (prime) NZP=0. Z/p^2 (odd) NZP=(p-1)^2. Z/2^3 NZP=5. Density decreases with modulus: D=10.2%, K=6.3%, E=2.8%, b=1.6%.</p></div>";
+  mut html = html + "</table><p style='color:#ffd700;margin:12px 0 4px'>TOTALS</p><p style='color:#44ff88;margin:4px 0'>Prime channels (mod 11, 13, 17): NZP = " + "${total_prime}" + " -- fields, zero gradient death</p><p style='color:#ff6666;margin:4px 0'>Prime-power channels (mod 8, 9, 25, 49): NZP = " + "${total_pp}" + " -- non-fields, gradient death via zero divisors</p><p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Formula: Z/p (prime) NZP=0. Z/p^2 (odd) NZP=(p-1)^2. Z/2^3 NZP=5. Density decreases with modulus: mod 8=10.2%, mod 9=6.3%, mod 25=2.8%, mod 49=1.6%.</p></div>";
   dom_inner(result_el, html)
 )
 
 fn page_gpu_compute() = (
-  dom_head_meta("description", "CRT GPU Compute. 15 operations over Z/214414200. FPGA-informed WebGPU. GPU ring census + power map + Gradient Field Theorem (prime=field, NZP=0). CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"15-op parallel compute over Z/214414200 (TRANS ring). FPGA-measured, GPU-deployed. Ring census + power map + Gradient Field Theorem. CC0.\",\"about\":[\"CRT parallelism\",\"GPU compute\",\"Gradient Field Theorem\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
+  dom_head_meta("description", "CRT GPU Compute. 15 operations over Z/214,414,200. FPGA-informed WebGPU. GPU ring census + power map + Gradient Field Theorem (prime=field, NZP=0). CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT GPU Compute\",\"description\":\"15-op parallel compute over Z/214,414,200. FPGA-measured, GPU-deployed. Ring census + power map + Gradient Field Theorem. CC0.\",\"about\":[\"CRT parallelism\",\"GPU compute\",\"Gradient Field Theorem\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/gpu_compute\"}");
   let hero = make_hero("CRT GPU Compute") in
   let eq = dom_create("div") in
   dom_text(eq, "");
@@ -203,17 +211,17 @@ fn page_gpu_compute() = (
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Parallelism Principle (TRANS Ring)", "For f(x) = x^2 mod N where N = 8*9*25*49*11*13*17 = 214414200: decompose x into 7 residues. Compute f(r_i) = r_i^2 mod m_i independently in each channel. Two-level CRT reconstruct: 6 TRUE channels first, then ESCAPE lift (inv(11,17)=14). Result equals f(x) mod N exactly. Z/N = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13 x Z/17. The 490 split: DEAD={D,E,b} carry bulk compute, ALIVE={K,L,GATE} verify, ESCAPE=17 transcends (E*b=1 mod 17).");
+  render_theorem(sec1, "CRT Parallelism Principle", "For f(x) = x^2 mod N where N = 8*9*25*49*11*13*17 = 214,414,200: decompose x into 7 residues. Compute f(r_i) = r_i^2 mod m_i independently in each channel. CRT reconstruction gives f(x) mod N exactly. Z/N = Z/8 x Z/9 x Z/25 x Z/49 x Z/11 x Z/13 x Z/17. The 3+4 split: 3 data channels {mod 8, mod 25, mod 49} carry bulk compute, 4 parity channels {mod 9, mod 11, mod 13, mod 17} verify.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "7 workgroups", "CRT decomposition", "Each CRT channel computes independently. No shared memory, no barriers, no race conditions. 7 = b = depth (self-referential).", "");
-  render_finding(g1, "K^2=9 pipeline", "Spider web architecture", "3 hearts x 3 stages. FPGA measured: k9 pipeline 6555 LUT4 (31%), 267 MHz on Tang Nano 20K.", "");
+  render_finding(g1, "7 workgroups", "CRT decomposition", "Each CRT channel computes independently. No shared memory, no barriers, no race conditions.", "");
+  render_finding(g1, "9-stage pipeline", "FPGA measured", "3 x 3 stages. FPGA: 6555 LUT4 (31%), 267 MHz on Tang Nano 20K.", "");
   render_finding(g1, "Block-diagonal", "Zero cross-talk", "Gradients in channel i never touch channel j. Backprop decomposes the same way.", "");
-  render_finding(g1, "490 split", "Compute + verify", "DEAD={D,E,b} channels do the work. ALIVE={K,L,GATE} channels verify for free.", "");
+  render_finding(g1, "3+4 split", "Compute + verify", "3 data channels do the work. 4 parity channels verify for free.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Input value (0-214414199):", "dgpu-input", "e.g. 137", "Compute", "demo_gpu_run", "dgpu-result");
-  render_p(sec2, "Decomposes x into 7 channels, squares each independently, reconstructs via two-level CRT (TRUE + ESCAPE lift). Compares with direct x^2 mod N.");
+  render_p(sec2, "Decomposes x into 7 channels, squares each independently, reconstructs via CRT. Compares with direct x^2 mod N.");
   dom_append(dom_body(), sec2);
   let sec2b = make_section("800px") in
   render_h2(sec2b, "Batch Test");
@@ -236,7 +244,7 @@ fn page_gpu_compute() = (
   let secg = make_section("800px") in
   render_h2(secg, "Real GPU Benchmark (WebGPU)");
   /* S1233: gpu_init async -- always render, gpu_bench checks at click time */
-  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214414200 in WGSL. 15 operations: arithmetic, ML passes, ring census, and power map roots of unity. Ring Census: x^2=x (128=D^7), x^2=1 (256=D^8), x^2=0 (210=DATA), rad(N)|x (420=lambda), gcd(x,N)=1 (phi). Power Map: x^3=1 (27=K^3), x^5=1 (25=E^2), x^7=1 (7=b). The p-th chain prime appears as the p-th-power roots-of-unity count. Full verification needs N=214414200 (~860MB GPU buffer).");
+  render_p(secg, "Run real CRT compute shaders on your GPU. 7 channels of Z/214,414,200 in WGSL. 15 operations: arithmetic, ML passes, ring census, and power map roots of unity. Ring Census: x^2=x (128=2^7), x^2=1 (256=2^8), x^2=0 (210=2*3*5*7), rad(N)|x (420=Carmichael lambda), gcd(x,N)=1 (Euler phi). Power Map: x^3=1 (27=3^3), x^5=1 (25=5^2), x^7=1 (7). The p-th prime power appears as the p-th-power roots-of-unity count. Full verification needs N=214,414,200 (~860MB GPU buffer).");
   let cnt_label = dom_create("span") in
   dom_text(cnt_label, "Elements (1K-250M): ");
   dom_style(cnt_label, "color", "#b0b0c0");
@@ -369,9 +377,9 @@ fn page_gpu_compute() = (
   render_h2(secf, "FPGA Ground Truth (Tang Nano 20K)");
   render_p(secf, "FPGA synthesis reveals the minimum circuit for each CRT operation. These measurements inform the GPU shader design. The FPGA is a microscope, not a destination.");
   let gf = make_findings_grid(secf) in
-  render_finding(gf, "k9 pipeline", "6555 LUT4, 267 MHz", "K^2=9 stages: 3 hearts x 3 stages. Best verified TRANS design. 31% of Tang Nano 20K.", "");
+  render_finding(gf, "9-stage pipeline", "6555 LUT4, 267 MHz", "3 x 3 stages. Best verified design. 31% of Tang Nano 20K.", "");
   render_finding(gf, "Decompose = 50%", "2937 LUT4 (of 5822 total)", "7 modulus operations dominate all per-op cost. Critical path: mod 9 at 307 MHz. GPU: mod 8 = single ALU instruction.", "");
-  render_finding(gf, "Reconstruct", "2059 LUT4", "Two-level CRT: 6ch TRUE + ESCAPE lift (inv(11,17)=14). Single reduce. Same algorithm in WGSL shader.", "");
+  render_finding(gf, "Reconstruct", "2059 LUT4", "Two-level CRT: 6 channels first, then mod-17 lift (inv(11,17)=14). Single reduce. Same algorithm in WGSL shader.", "");
   render_finding(gf, "Add: 365, Mul: 461", "Arithmetic is cheap", "Ring add/mul are small. The cost is decompose (getting into CRT) not computing (once there).", "");
   dom_append(dom_body(), secf);
   let secd = make_section("800px") in
@@ -380,7 +388,7 @@ fn page_gpu_compute() = (
   render_theorem(secd, "Cost Decomposition", "Decompose cost = T_decompose. Reconstruct cost = T_roundtrip - T_decompose. Per-channel compute = T_eigenvalue - T_decompose. Full CRT multiply overhead = T_multiply - T_add. FPGA ground truth: decompose = 50% of per-op gate area (ALU divider chains). On GPU, integer modulus is a single ALU instruction -- expect decompose to be proportionally cheaper.");
   let gd = make_findings_grid(secd) in
   render_finding(gd, "FPGA: Decompose", "50% (2937 LUT4)", "7 modulus ops via combinational dividers. Dominates circuit area. Critical path: mod 9.", "");
-  render_finding(gd, "FPGA: Reconstruct", "35% (2059 LUT4)", "6 idempotent multiplies + sum + mod 12612600 + ESCAPE lift. Second largest cost.", "");
+  render_finding(gd, "FPGA: Reconstruct", "35% (2059 LUT4)", "6 idempotent multiplies + sum + mod 12,612,600 + mod-17 lift. Second largest cost.", "");
   render_finding(gd, "GPU: Decompose", "Run benchmark", "GPU has hardware integer ALU. Expect mod ops to be fast. Decompose should NOT dominate on GPU.", "");
   render_finding(gd, "GPU: Reconstruct", "Run benchmark", "T_roundtrip - T_decompose isolates CRT reconstruction cost on GPU.", "");
   dom_append(dom_body(), secd);
@@ -394,13 +402,13 @@ fn page_gpu_compute() = (
   render_finding(gml, "Backward pass", "Chain rule per channel", "g = w2 * 2h * w1 mod q. Recompute forward activations, then 3 multiplies for gradient. More per-element work than forward -- higher GPU speedup.", "");
  render_finding(gml, "MNIST proved", "25/25 accuracy", "5-class 25->10->5 classifier in .ax. f64 arrays + arena reset + softmax. The pipeline works.", "");
   render_finding(gml, ".ax->WGSL", "Transpiler", "Write GPU kernels in .ax, compile to WGSL compute shaders. Same language for CPU (WASM) and GPU (WGSL). All 12 benchmarks have .ax source equivalents.", "");
-  render_finding(gml, "GPU Ring Census", "5 invariants + power map", "Squaring: x^2=x (128=D^7), x^2=1 (256=D^8), x^2=0 (210=DATA). Counting: rad(N)|x (420=lambda), gcd=1 (phi). Power map: x^3=1 (27=K^3), x^5=1 (25=E^2), x^7=1 (7=b). The chain is encoded in roots of unity.", "");
+  render_finding(gml, "GPU Ring Census", "5 invariants + power map", "Squaring: x^2=x (128=2^7), x^2=1 (256=2^8), x^2=0 (210=2*3*5*7). Counting: rad(N)|x (420=lambda), gcd=1 (phi). Power map: x^3=1 (27=3^3), x^5=1 (25=5^2), x^7=1 (7). Prime powers appear as roots-of-unity counts.", "");
   dom_append(dom_body(), secml);
   /* === Gradient Field Theorem (S1237/S1497) === */
   let secgf = make_section("800px") in
   render_h2(secgf, "Gradient Field Theorem");
-  render_theorem(secgf, "Gradient Field (Theorem 52, PROVED)", "Prime CRT channels (Z/p) are fields: for all nonzero a,b, the product a*b is never zero. Prime-power channels (Z/p^k, k>=2) are non-fields: nonzero zero-product (NZP) pairs exist. NZP formula: Z/p^2 (odd) has (p-1)^2 NZP pairs. Z/2^3 has 5. Total across TRUE: prime channels = 0, prime-power channels = 61. In modular SGD, NZP pairs cause gradient death: a valid gradient multiplied by a valid weight produces zero. Prime channels preserve gradient flow. Prime-power channels lose it. XOR benchmark: 3x higher convergence rate on prime channels (100 restarts, 500 epochs each).");
-  render_p(secgf, "Run the NZP census: exhaustive count of nonzero zero-product pairs for all 6 TRUE channels.");
+  render_theorem(secgf, "Gradient Field (Theorem 52, PROVED)", "Prime CRT channels (Z/p) are fields: for all nonzero a,b, the product a*b is never zero. Prime-power channels (Z/p^k, k>=2) are non-fields: nonzero zero-product (NZP) pairs exist. NZP formula: Z/p^2 (odd) has (p-1)^2 NZP pairs. Z/2^3 has 5. Across all 7 channels: 3 prime channels (mod 11, 13, 17) have NZP = 0. 4 prime-power channels (mod 8, 9, 25, 49) have NZP = 61 total. In modular SGD, NZP pairs cause gradient death: a valid gradient multiplied by a valid weight produces zero. Prime channels preserve gradient flow. Prime-power channels lose it. XOR benchmark: 3x higher convergence rate on prime channels (100 restarts, 500 epochs each).");
+  render_p(secgf, "Run the NZP census: exhaustive count of nonzero zero-product pairs for all 7 channels.");
   let gf_btn = dom_create("button") in
   dom_text(gf_btn, "Run NZP Census");
   dom_style(gf_btn, "background", "#ffd700");
@@ -417,9 +425,9 @@ fn page_gpu_compute() = (
   dom_attr(gf_out, "id", "gpu-nzp-result");
   dom_append(secgf, gf_out);
   let ggf = make_findings_grid(secgf) in
-  render_finding(ggf, "Prime = field", "NZP = 0", "L=11 and G=13 are prime: ab=0 implies a=0 or b=0. Gradients never vanish spuriously.", "");
-  render_finding(ggf, "Prime-power = non-field", "NZP > 0", "D=8: 5 pairs. K=9: 4. E=25: 16. b=49: 36. Total: 61 gradient-death pathways.", "");
-  render_finding(ggf, "Density ordering", "D > K > E > b", "Smaller channels have higher NZP density. D(10.2%) > K(6.3%) > E(2.8%) > b(1.6%). Gradient risk decreases with channel size.", "");
+  render_finding(ggf, "Prime = field", "NZP = 0", "mod 11, mod 13, mod 17 are prime: ab=0 implies a=0 or b=0. Gradients never vanish spuriously.", "");
+  render_finding(ggf, "Prime-power = non-field", "NZP > 0", "mod 8: 5 pairs. mod 9: 4. mod 25: 16. mod 49: 36. Total: 61 gradient-death pathways.", "");
+  render_finding(ggf, "Density ordering", "mod 8 > mod 9 > mod 25 > mod 49", "Smaller channels have higher NZP density. mod 8 (10.2%) > mod 9 (6.3%) > mod 25 (2.8%) > mod 49 (1.6%). Gradient risk decreases with channel size.", "");
   render_finding(ggf, "SGD convergence", "3x prime > prime-power", "XOR task, 100 restarts, 500 epochs: prime channels converge 3x more often. The field property IS the convergence advantage.", "");
   render_contrast_row(secgf, "Zero-divisor pairs", "Prime-power: 61 total (gradient death)", "Prime: 0 (field -- gradients preserved)");
   render_contrast_row(secgf, "SGD convergence", "Prime-power: ~20-30% (XOR, 100 runs)", "Prime: ~60-80% (3x higher)");
@@ -430,9 +438,9 @@ fn page_gpu_compute() = (
   render_h2(sec3, "CRT Compute vs CUDA");
   render_contrast_row(sec3, "Parallelism model", "CUDA: thread blocks + shared memory + barriers", "CRT: 7 independent channels. No sync needed.");
   render_contrast_row(sec3, "Cross-talk", "Shared memory races, warp divergence", "Zero. Channels are algebraically orthogonal.");
-  render_contrast_row(sec3, "Scaling", "GPU hardware-dependent (thousands of cores)", "Ring-intrinsic. 7 channels = b = depth (self-referential).");
-  render_contrast_row(sec3, "Verification", "Separate checksums needed", "490 split: ALIVE channels verify DEAD channels. ECC3 triple-parity (rate 4/7).");
-  render_contrast_row(sec3, "Circuit floor", "Unknown (GPU microarch proprietary)", "FPGA-measured: k9 pipeline 6555 LUT4, 267 MHz. Minimum circuit known.");
+  render_contrast_row(sec3, "Scaling", "GPU hardware-dependent (thousands of cores)", "Ring-intrinsic. 7 algebraically independent channels.");
+  render_contrast_row(sec3, "Verification", "Separate checksums needed", "3+4 split: 4 parity channels verify 3 data channels. Triple-parity error detection (rate 4/7).");
+  render_contrast_row(sec3, "Circuit floor", "Unknown (GPU microarch proprietary)", "FPGA-measured: 9-stage pipeline 6555 LUT4, 267 MHz. Minimum circuit known.");
   render_contrast_row(sec3, "Patent status", "CUDA ecosystem (mostly royalty-free for end users)", "CC0. Public domain. Forever.");
   render_p(sec3, "HONEST NOTE: This is a demonstration of CRT-structured parallelism, not a CUDA replacement. CUDA operates on thousands of cores with sophisticated memory hierarchies. CRT parallelism is limited to 7 channels. The structural advantage is zero-synchronization independence, built-in verification, and hardware-verified minimum circuits.");
   dom_append(dom_body(), sec3)
@@ -440,47 +448,88 @@ fn page_gpu_compute() = (
 
 /* ================================================================
    SCHEDULING -- dedicated demo page /demos/scheduling. CC0 kill B11.
-   CRT-factored constraint scheduling. Coprime moduli = conflict-free slots.
+   CRT-factored constraint scheduling over Z/214,414,200. 7 coprime channels.
    ================================================================ */
+
+fn sched_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
+)
+
+fn sched_recon(task_id) = (
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
+  let idem = [187612425, 190590400, 60035976, 109395000, 116953200, 16493400, 176576400] in
+  mut slot = 0;
+  mut ci = 0;
+  while ci < 7 do (
+    let r = task_id % mods[ci] in
+    mut slot = (slot + sched_mulmod(r, idem[ci])) % N_TRANS;
+    mut ci = ci + 1
+  );
+  slot
+)
 
 fn demo_sched_run() = (
   let ntasks = parse_int_from("#dsched-input") in
   let result_el = dom_query("#dsched-result") in
   let n = if ntasks < 1 then 1 else if ntasks > 100 then 100 else ntasks in
-  let mods = [8, 9, 25, 49, 11, 13] in
-  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
-  /* Assign each task a unique CRT address: task i -> residues (i%8, i%9, i%25, i%49, i%11, i%13) */
-  /* Check all pairs for slot collision */
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
   let collisions = [0] in
   let i = [0] in
   while i[0] < n do (
     let j = [0] in
     set(j, 0, i[0] + 1);
     while j[0] < n do (
-      let slot_i = (i[0] % 8 * idem[0] + i[0] % 9 * idem[1] + i[0] % 25 * idem[2] + i[0] % 49 * idem[3] + i[0] % 11 * idem[4] + i[0] % 13 * idem[5]) % N_TRUE in
-      let slot_j = (j[0] % 8 * idem[0] + j[0] % 9 * idem[1] + j[0] % 25 * idem[2] + j[0] % 49 * idem[3] + j[0] % 11 * idem[4] + j[0] % 13 * idem[5]) % N_TRUE in
+      let slot_i = sched_recon(i[0]) in
+      let slot_j = sched_recon(j[0]) in
       if slot_i == slot_j then set(collisions, 0, collisions[0] + 1) else 0;
       set(j, 0, j[0] + 1)
     );
     set(i, 0, i[0] + 1)
   );
-  /* Show first 6 task assignments */
   let show_n = if n < 6 then n else 6 in
-  let rows = [""] in
-  let k = [0] in
-  while k[0] < show_n do (
-    let t = k[0] in
-    let s = (t % 8 * idem[0] + t % 9 * idem[1] + t % 25 * idem[2] + t % 49 * idem[3] + t % 11 * idem[4] + t % 13 * idem[5]) % N_TRUE in
-    set(rows, 0, rows[0] + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${t}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 8}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 9}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 25}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>" + "${t % 49}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 11}" + "</td><td style='padding:3px;color:#44ff88;font-size:12px'>" + "${t % 13}" + "</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${s}" + "</td></tr>");
-    set(k, 0, k[0] + 1)
+  mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT SCHEDULING: " + "${n}" + " tasks</p><table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Task</th>";
+  mut ci = 0;
+  while ci < 7 do (
+    let is_data = if ci == 0 then 1 else if ci == 2 then 1 else if ci == 3 then 1 else 0 in
+    let hcol = if is_data == 1 then "#ff6666" else "#44ff88" in
+    mut html = html + "<th style='text-align:left;padding:4px;color:" + hcol + ";font-size:11px'>mod " + "${mods[ci]}" + "</th>";
+    mut ci = ci + 1
+  );
+  mut html = html + "<th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Slot</th></tr>";
+  mut ki = 0;
+  while ki < show_n do (
+    let t = ki in
+    let s = sched_recon(t) in
+    mut html = html + "<tr><td style='padding:3px;color:#ffd700;font-size:12px'>" + "${t}" + "</td>";
+    mut ci = 0;
+    while ci < 7 do (
+      let is_data = if ci == 0 then 1 else if ci == 2 then 1 else if ci == 3 then 1 else 0 in
+      let color = if is_data == 1 then "#ff6666" else "#44ff88" in
+      mut html = html + "<td style='padding:3px;color:" + color + ";font-size:12px'>" + "${t % mods[ci]}" + "</td>";
+      mut ci = ci + 1
+    );
+    mut html = html + "<td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${s}" + "</td></tr>";
+    mut ki = ki + 1
   );
   let pairs = n * (n + 0 - 1) / 2 in
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT SCHEDULING: " + "${n}" + " tasks</p><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Task</th><th style='text-align:left;padding:4px;color:#ff6666;font-size:11px'>D(8)</th><th style='text-align:left;padding:4px;color:#44ff88;font-size:11px'>K(9)</th><th style='text-align:left;padding:4px;color:#ff6666;font-size:11px'>E(25)</th><th style='text-align:left;padding:4px;color:#ff6666;font-size:11px'>b(49)</th><th style='text-align:left;padding:4px;color:#44ff88;font-size:11px'>L(11)</th><th style='text-align:left;padding:4px;color:#44ff88;font-size:11px'>G(13)</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:11px'>Slot</th></tr>" + rows[0] + "</table><p style='color:#ffd700;margin:12px 0 4px'>CONFLICT CHECK</p><p style='color:#88ddaa;margin:4px 0'>Pairs checked: " + "${pairs}" + "</p><p style='color:" + (if collisions[0] == 0 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:4px 0'>Collisions: " + "${collisions[0]}" + (if collisions[0] == 0 then " -- ZERO. CRT guarantees uniqueness up to 12,612,600 tasks." else "") + "</p><p style='color:#b0b0c0;margin:4px 0'>Search space: 8*9*25*49*11*13 = 12,612,600. Factored search vs brute-force = 115 ops vs 12.6M ops.</p></div>")
+  mut html = html + "</table><p style='color:#ffd700;margin:12px 0 4px'>CONFLICT CHECK</p><p style='color:#88ddaa;margin:4px 0'>Pairs checked: " + "${pairs}" + "</p><p style='color:" + (if collisions[0] == 0 then "#44ff88" else "#ff4444") + ";font-size:16px;margin:4px 0'>Collisions: " + "${collisions[0]}" + (if collisions[0] == 0 then " -- ZERO. CRT guarantees uniqueness up to 214,414,200 tasks." else "") + "</p><p style='color:#b0b0c0;margin:4px 0'>Search space: 8*9*25*49*11*13*17 = 214,414,200. Factored search vs brute-force = 132 ops vs 214.4M ops.</p></div>";
+  dom_inner(result_el, html)
 )
 
 fn page_scheduling() = (
-  dom_head_meta("description", "CRT Scheduling. Factored constraint scheduling via 6 coprime channels. Zero collisions guaranteed. 9512x speedup. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Scheduling\",\"description\":\"6-channel factored constraint scheduling over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/scheduling\"}");
+  dom_head_meta("description", "CRT Scheduling. Factored constraint scheduling via 7 coprime channels over Z/214,414,200. Zero collisions guaranteed. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Scheduling\",\"description\":\"7-channel factored constraint scheduling over Z/214414200. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/scheduling\"}");
   let hero = make_hero("CRT Scheduling") in
   let eq = dom_create("div") in
   dom_text(eq, "B11: Gurobi/CPLEX patents. CC0.");
@@ -490,25 +539,25 @@ fn page_scheduling() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "CRT approach to constraint satisfaction. A scheduling problem over N = 12,612,600 slots becomes 6 independent sub-problems over moduli {8, 9, 25, 49, 11, 13}. Total per-channel checks: 8+9+25+49+11+13 = 115 vs 12.6M brute force. Search space reduction when constraints factor independently across channels.");
+  render_p(hero, "CRT approach to constraint satisfaction. A scheduling problem over N = 214,414,200 slots becomes 7 independent sub-problems over moduli {8, 9, 25, 49, 11, 13, 17}. Total per-channel checks: 8+9+25+49+11+13+17 = 132 vs 214.4M brute force. Search space reduction when constraints factor independently across channels.");
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Factored Search", "Any integer in Z/12612600 is uniquely determined by its 6 residues. To find a slot satisfying 6 independent constraints (one per channel), solve each constraint in its own modular space. CRT reconstruction gives the unique solution. No backtracking. No heuristics. The 490 holographic split: DEAD channels {D,E,b} carry task data, ALIVE channels {K,L,G} carry scheduling metadata (priority, group, deadline).");
+  render_theorem(sec1, "CRT Factored Search", "Any integer in Z/214,414,200 is uniquely determined by its 7 residues. To find a slot satisfying 7 independent constraints (one per channel), solve each constraint in its own modular space. CRT reconstruction gives the unique solution. No backtracking. No heuristics. The 3+4 split: 3 data channels {mod 8, mod 25, mod 49} carry task data, 4 parity channels {mod 9, mod 11, mod 13, mod 17} carry scheduling metadata.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "109,675x", "Search space reduction", "115 checks (sum of moduli) vs 12,612,600 (brute force).", "");
+  render_finding(g1, "1,624,350x", "Search space reduction", "132 checks (sum of moduli) vs 214,414,200 (brute force).", "");
   render_finding(g1, "Zero collisions", "CRT guarantee", "Distinct CRT tuples map to distinct slots. Algebraic, not probabilistic.", "");
-  render_finding(g1, "490 split", "Data + metadata", "3 inner channels schedule tasks. 3 boundary channels track constraints.", "");
-  render_finding(g1, "12.6M capacity", "One ring", "12,612,600 unique conflict-free slots from 6 small moduli.", "");
+  render_finding(g1, "3+4 split", "Data + metadata", "3 data channels schedule tasks. 4 parity channels track constraints.", "");
+  render_finding(g1, "214.4M capacity", "One ring", "214,414,200 unique conflict-free slots from 7 small moduli.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Number of tasks (1-100):", "dsched-input", "e.g. 20", "Schedule", "demo_sched_run", "dsched-result");
-  render_p(sec2, "Each task gets a unique CRT address. All pairs checked for collision. Red = DEAD (inner data). Green = ALIVE (boundary metadata).");
+  render_p(sec2, "Each task gets a unique CRT address. All pairs checked for collision. Red = data channels. Green = parity channels.");
   dom_append(dom_body(), sec2);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Scheduling vs Constraint Solvers");
-  render_contrast_row(sec3, "Search space", "Gurobi/CPLEX: N = 12.6M brute force + heuristics", "CRT: 115 checks (sum of 6 moduli)");
+  render_contrast_row(sec3, "Search space", "Gurobi/CPLEX: N = 214.4M brute force + heuristics", "CRT: 132 checks (sum of 7 moduli)");
   render_contrast_row(sec3, "Guarantee", "Best-effort, may not find optimum", "Algebraic: unique solution guaranteed by CRT");
   render_contrast_row(sec3, "Collisions", "Requires conflict resolution", "Zero. Coprime moduli = orthogonal channels.");
   render_contrast_row(sec3, "Scaling", "NP-hard in general", "Linear in number of moduli. Add primes to grow.");
@@ -517,8 +566,8 @@ fn page_scheduling() = (
 )
 
 /* ================================================================
-   DATABASE INDEX -- dedicated demo page /demos/db_index. CC0 kill B14.
-   CRT = 6-dimensional perfect hash. O(1) insert/lookup.
+   CRT SORT -- dedicated demo page /demos/sort. CC0 kill D25.
+   CRT radix sort: 7 counting sort passes. O(7N).
    ================================================================ */
 
 /* Forward stable counting sort by residue mod m. O(N + m). */
@@ -551,12 +600,12 @@ fn sort_pass(arr, n, m) = (
   out
 )
 
-/* CRT radix sort: 6 passes, LSD order. D = primary key. */
+/* CRT radix sort: 7 passes, LSD order. mod 8 = primary key. */
 fn crt_sort(arr, n) = (
-  let mods = [13, 11, 49, 25, 9, 8] in
+  let mods = [17, 13, 11, 49, 25, 9, 8] in
   mut cur = arr;
   mut pass = 0;
-  while pass < 6 do (
+  while pass < 7 do (
     mut cur = sort_pass(cur, n, mods[pass]);
     mut pass = pass + 1
   );
@@ -567,10 +616,12 @@ fn demo_sort_run() = (
   let n = parse_int_from("#dsort-input") in
   let result_el = dom_query("#dsort-result") in
   let sz = if n < 2 then 10 else (if n > 200 then 200 else n) in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
+  let colors = ["#ff6666", "#ff9900", "#33dd55", "#4488ff", "#aa44ff", "#ff44aa", "#7FFFD4"] in
   let arr = alloc(sz) in
   mut i = 0;
   while i < sz do (
-    set(arr, i, (i * 7919 + 104729) % N_TRUE);
+    set(arr, i, (i * 7919 + 104729) % N_TRANS);
     mut i = i + 1
   );
   let sorted = crt_sort(arr, sz) in
@@ -578,24 +629,48 @@ fn demo_sort_run() = (
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 8px'>CRT RADIX SORT: N = " + "${sz}" + "</p>";
   mut html = html + "<p style='color:#888;margin:4px 0;font-size:12px'>Before (first " + "${show_n}" + "):</p>";
-  mut html = html + "<table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Value</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>D%8</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>K%9</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>E%25</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>b%49</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>L%11</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>G%13</th></tr>";
+  mut html = html + "<table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Value</th>";
+  mut ci = 0;
+  while ci < 7 do (
+    mut html = html + "<th style='text-align:left;padding:3px;color:" + colors[ci] + ";font-size:11px'>%" + "${mods[ci]}" + "</th>";
+    mut ci = ci + 1
+  );
+  mut html = html + "</tr>";
   mut i = 0;
   while i < show_n do (
     let v = arr[i] in
-    mut html = html + "<tr><td style='padding:2px 3px;color:#b0b0c0;font-size:11px'>" + "${v}" + "</td><td style='padding:2px 3px;color:#ff6666;font-size:11px'>" + "${v % 8}" + "</td><td style='padding:2px 3px;color:#ff9900;font-size:11px'>" + "${v % 9}" + "</td><td style='padding:2px 3px;color:#33dd55;font-size:11px'>" + "${v % 25}" + "</td><td style='padding:2px 3px;color:#4488ff;font-size:11px'>" + "${v % 49}" + "</td><td style='padding:2px 3px;color:#aa44ff;font-size:11px'>" + "${v % 11}" + "</td><td style='padding:2px 3px;color:#ff44aa;font-size:11px'>" + "${v % 13}" + "</td></tr>";
+    mut html = html + "<tr><td style='padding:2px 3px;color:#b0b0c0;font-size:11px'>" + "${v}" + "</td>";
+    mut ci = 0;
+    while ci < 7 do (
+      mut html = html + "<td style='padding:2px 3px;color:" + colors[ci] + ";font-size:11px'>" + "${v % mods[ci]}" + "</td>";
+      mut ci = ci + 1
+    );
+    mut html = html + "</tr>";
     mut i = i + 1
   );
   mut html = html + "</table>";
   mut html = html + "<p style='color:#88ddaa;margin:8px 0 4px;font-size:12px'>After CRT sort (first " + "${show_n}" + "):</p>";
-  mut html = html + "<table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Value</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>D%8</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>K%9</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>E%25</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>b%49</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>L%11</th><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>G%13</th></tr>";
+  mut html = html + "<table style='width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:3px;color:#ffd700;font-size:11px'>Value</th>";
+  mut ci = 0;
+  while ci < 7 do (
+    mut html = html + "<th style='text-align:left;padding:3px;color:" + colors[ci] + ";font-size:11px'>%" + "${mods[ci]}" + "</th>";
+    mut ci = ci + 1
+  );
+  mut html = html + "</tr>";
   mut i = 0;
   while i < show_n do (
     let v = sorted[i] in
-    mut html = html + "<tr><td style='padding:2px 3px;color:#88ddaa;font-size:11px'>" + "${v}" + "</td><td style='padding:2px 3px;color:#ff6666;font-size:11px'>" + "${v % 8}" + "</td><td style='padding:2px 3px;color:#ff9900;font-size:11px'>" + "${v % 9}" + "</td><td style='padding:2px 3px;color:#33dd55;font-size:11px'>" + "${v % 25}" + "</td><td style='padding:2px 3px;color:#4488ff;font-size:11px'>" + "${v % 49}" + "</td><td style='padding:2px 3px;color:#aa44ff;font-size:11px'>" + "${v % 11}" + "</td><td style='padding:2px 3px;color:#ff44aa;font-size:11px'>" + "${v % 13}" + "</td></tr>";
+    mut html = html + "<tr><td style='padding:2px 3px;color:#88ddaa;font-size:11px'>" + "${v}" + "</td>";
+    mut ci = 0;
+    while ci < 7 do (
+      mut html = html + "<td style='padding:2px 3px;color:" + colors[ci] + ";font-size:11px'>" + "${v % mods[ci]}" + "</td>";
+      mut ci = ci + 1
+    );
+    mut html = html + "</tr>";
     mut i = i + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:8px 0 0;font-size:11px'>Sorted by CRT tuple: D first (primary), then K, E, b, L, GATE. 6 passes. Done.</p></div>";
+  mut html = html + "<p style='color:#b0b0c0;margin:8px 0 0;font-size:11px'>Sorted by CRT tuple: mod 8 first (primary), then mod 9, 25, 49, 11, 13, 17. 7 passes. Done.</p></div>";
   dom_inner(result_el, html)
 )
 
@@ -611,19 +686,19 @@ fn demo_sort_bench() = (
     let n = sizes[si] in
     let lg = if n < 16 then 4 else (if n < 64 then 6 else (if n < 256 then 8 else (if n < 1024 then 10 else (if n < 4096 then 12 else 14)))) in
     let qs_passes = (139 * lg) / 100 in
-    let crt_passes = 6 in
+    let crt_passes = 7 in
     let adv10 = (qs_passes * 10) / crt_passes in
     mut html = html + "<tr><td style='padding:3px;color:#b0b0c0;font-size:12px'>" + "${n}" + "</td><td style='padding:3px;color:#ff6666;font-size:12px'>~" + "${qs_passes}" + "</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${crt_passes}" + "</td><td style='padding:3px;color:#88ddaa;font-size:12px'>" + "${adv10 / 10}" + "." + "${adv10 % 10}" + "x</td></tr>";
     mut si = si + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:8px 0 0;font-size:12px'>CRT radix: always 6 data passes. Quicksort: ~1.39 * log2(N) passes. For N in Z/12612600 (24-bit values): 6 vs ~33 passes = 5.5x. Each CRT pass uses max 49 buckets -- cache-perfect at any N.</p></div>";
+  mut html = html + "<p style='color:#b0b0c0;margin:8px 0 0;font-size:12px'>CRT radix: always 7 data passes. Quicksort: ~1.39 * log2(N) passes. For N in Z/214,414,200 (28-bit values): 7 vs ~39 passes = 5.5x. Each CRT pass uses max 49 buckets -- cache-perfect at any N.</p></div>";
   dom_inner(result_el, html)
 )
 
 fn page_sort() = (
-  dom_head_meta("description", "CRT Radix Sort. 6 counting sort passes through channels of size 8,9,25,49,11,13. O(6N) for any N in Z/12612600. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Radix Sort\",\"description\":\"6-channel radix sort over Z/12612600. O(6N). CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/sort\"}");
+  dom_head_meta("description", "CRT Radix Sort. 7 counting sort passes through channels of size 8,9,25,49,11,13,17. O(7N) for any N in Z/214,414,200. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Radix Sort\",\"description\":\"7-channel radix sort over Z/214414200. O(7N). CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/sort\"}");
   let hero = make_hero("CRT Sort") in
   let eq = dom_create("div") in
   dom_text(eq, "D25: Proprietary sort. CC0.");
@@ -633,25 +708,25 @@ fn page_sort() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Every number in Z/12612600 IS its CRT decomposition: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13). Sort each channel with counting sort -- max 49 buckets. 6 passes. O(N). Done.");
+  render_p(hero, "Every number in Z/214,414,200 IS its CRT decomposition: (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). Sort each channel with counting sort -- max 49 buckets. 7 passes. O(N). Done.");
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Radix Sort (PROVED)", "Any value in Z/12612600 decomposes via CRT into 6 residues with ranges 8, 9, 25, 49, 11, 13. An LSD radix sort through these 6 channels produces a total order in 6 data passes. Each pass is a stable counting sort with at most 49 buckets -- cache-perfect regardless of N. Comparison sort requires ~1.39 * log2(N) passes.");
+  render_theorem(sec1, "CRT Radix Sort (PROVED)", "Any value in Z/214,414,200 decomposes via CRT into 7 residues with ranges 8, 9, 25, 49, 11, 13, 17. An LSD radix sort through these 7 channels produces a total order in 7 data passes. Each pass is a stable counting sort with at most 49 buckets -- cache-perfect regardless of N. Comparison sort requires ~1.39 * log2(N) passes.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "6 passes", "One per CRT channel", "mod 8, mod 9, mod 25, mod 49, mod 11, mod 13. Each pass = one scan of the data.", "");
+  render_finding(g1, "7 passes", "One per CRT channel", "mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17. Each pass = one scan of the data.", "");
   render_finding(g1, "Counting sort", "O(N + m) per pass", "Distribute N elements into m buckets. Forward scan. Stable. No comparisons.", "");
   render_finding(g1, "Cache perfect", "Max 49 buckets", "Every pass fits in L1 cache regardless of N. No cache misses.", "");
-  render_finding(g1, "CRT order", "Ring-native ordering", "Elements sort by (D, K, E, b, L, GATE). The ring's own algebraic structure.", "");
+  render_finding(g1, "CRT order", "Ring-native ordering", "Elements sort by (mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17). The ring's algebraic structure.", "");
   dom_append(dom_body(), sec1);
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Array size (2-200):", "dsort-input", "e.g. 20", "Sort", "demo_sort_run", "dsort-result");
-  render_p(sec2, "Generates random values in Z/12612600, sorts via 6 CRT counting sort passes. Shows CRT decomposition before and after.");
+  render_p(sec2, "Generates random values in Z/214,414,200, sorts via 7 CRT counting sort passes. Shows CRT decomposition before and after.");
   dom_append(dom_body(), sec2);
   let sec3 = make_section("800px") in
   render_h2(sec3, "Scaling");
-  render_p(sec3, "CRT radix sort always uses exactly 6 data passes. Quicksort uses ~1.39 * log2(N). The gap widens with N.");
+  render_p(sec3, "CRT radix sort always uses exactly 7 data passes. Quicksort uses ~1.39 * log2(N). The gap widens with N.");
   let btn = dom_create("button") in
   dom_text(btn, "Run Scaling Comparison");
   dom_style(btn, "background", "#ffd700");
@@ -670,52 +745,54 @@ fn page_sort() = (
   dom_append(dom_body(), sec3);
   let sec4 = make_section("800px") in
   render_h2(sec4, "CRT Sort vs Comparison Sort");
-  render_contrast_row(sec4, "Complexity", "Quicksort: O(N log N), avg 1.39N log2 N", "CRT radix: O(6N). Always. No worst case.");
+  render_contrast_row(sec4, "Complexity", "Quicksort: O(N log N), avg 1.39N log2 N", "CRT radix: O(7N). Always. No worst case.");
   render_contrast_row(sec4, "Cache behavior", "Random access (partition pivots)", "Sequential scan, max 49 buckets (L1-perfect)");
   render_contrast_row(sec4, "Stability", "Quicksort: unstable", "Counting sort: stable by construction");
-  render_contrast_row(sec4, "Worst case", "Quicksort: O(N^2) on adversarial input", "CRT: always exactly 6 passes. No adversarial input.");
-  render_contrast_row(sec4, "Parallelism", "Recursive divide -- serial dependencies", "6 independent channels. Sort in parallel.");
+  render_contrast_row(sec4, "Worst case", "Quicksort: O(N^2) on adversarial input", "CRT: always exactly 7 passes. No adversarial input.");
+  render_contrast_row(sec4, "Parallelism", "Recursive divide -- serial dependencies", "7 independent channels. Sort in parallel.");
   render_contrast_row(sec4, "Patent status", "Proprietary sort optimizations in databases", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec4)
 )
 
 /* ================================================================
    CRT CLUSTERING -- dedicated demo page /demos/cluster. CC0 kill F41.
-   Kingdom = O(1) cluster assignment. No iteration. No hyperparameters.
+   Coupling class = O(1) cluster assignment via GCD. No iteration.
    ================================================================ */
 
-/* Kingdom index: 0=void, 1=sigma, 2=D, 3=K, 4=E, 5=b, 6=L, 7=GATE, 8=mixed */
-fn cl_kingdom(n) = (
-  let r = n % N_TRUE in
+/* Class index: 0=zero, 1=unit, 2..8=p-class for p in {2,3,5,7,11,13,17}, 9=mixed */
+fn cl_class(n) = (
+  let r = n % N_TRANS in
   if r == 0 then 0
   else (
-    let g = gcd_shared(r, N_TRUE) in
+    let g = gcd_shared(r, N_TRANS) in
     if g == 1 then 1
     else (
-      /* Count which primes divide g */
       let d2 = if g % 2 == 0 then 1 else 0 in
       let d3 = if g % 3 == 0 then 1 else 0 in
       let d5 = if g % 5 == 0 then 1 else 0 in
       let d7 = if g % 7 == 0 then 1 else 0 in
       let d11 = if g % 11 == 0 then 1 else 0 in
       let d13 = if g % 13 == 0 then 1 else 0 in
-      let cnt = d2 + d3 + d5 + d7 + d11 + d13 in
-      if cnt > 1 then 8
+      let d17 = if g % 17 == 0 then 1 else 0 in
+      let cnt = d2 + d3 + d5 + d7 + d11 + d13 + d17 in
+      if cnt > 1 then 9
       else if d2 == 1 then 2
       else if d3 == 1 then 3
       else if d5 == 1 then 4
       else if d7 == 1 then 5
       else if d11 == 1 then 6
-      else 7
+      else if d13 == 1 then 7
+      else 8
     )
   )
 )
 
 fn cl_name(k) = (
-  if k == 0 then "void" else if k == 1 then "sigma"
-  else if k == 2 then "D (bridge)" else if k == 3 then "K (closure)"
-  else if k == 4 then "E (observer)" else if k == 5 then "b (depth)"
-  else if k == 6 then "L (transcend)" else if k == 7 then "GATE (boundary)"
+  if k == 0 then "zero" else if k == 1 then "unit"
+  else if k == 2 then "2-class" else if k == 3 then "3-class"
+  else if k == 4 then "5-class" else if k == 5 then "7-class"
+  else if k == 6 then "11-class" else if k == 7 then "13-class"
+  else if k == 8 then "17-class"
   else "mixed"
 )
 
@@ -724,6 +801,7 @@ fn cl_color(k) = (
   else if k == 2 then "#4488ff" else if k == 3 then "#33dd55"
   else if k == 4 then "#ff9900" else if k == 5 then "#ff4040"
   else if k == 6 then "#aa44ff" else if k == 7 then "#ff4466"
+  else if k == 8 then "#7FFFD4"
   else "#888888"
 )
 
@@ -731,23 +809,21 @@ fn demo_cluster_run() = (
   let n = parse_int_from("#dclust-input") in
   let result_el = dom_query("#dclust-result") in
   let sz = if n < 10 then 100 else (if n > 1000 then 1000 else n) in
-  /* Count per kingdom */
-  let counts = alloc(9) in
+  let counts = alloc(10) in
   mut j = 0;
-  while j < 9 do (set(counts, j, 0); mut j = j + 1);
+  while j < 10 do (set(counts, j, 0); mut j = j + 1);
   mut i = 0;
   while i < sz do (
-    let val = (i * 7919 + 104729 + i * i * 13) % N_TRUE in
-    let k = cl_kingdom(val) in
+    let val = (i * 7919 + 104729 + i * i * 13) % N_TRANS in
+    let k = cl_class(val) in
     set(counts, k, counts[k] + 1);
     mut i = i + 1
   );
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 8px'>CRT CLUSTERING: N = " + "${sz}" + " points. O(1) per point.</p>";
-  /* Kingdom distribution */
-  mut html = html + "<table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Kingdom</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Count</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>%</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Bar</th></tr>";
+  mut html = html + "<table style='width:100%;border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Class</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Count</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>%</th><th style='text-align:left;padding:4px;color:#ffd700;font-size:12px'>Bar</th></tr>";
   mut k = 0;
-  while k < 9 do (
+  while k < 10 do (
     let c = counts[k] in
     let pct = (c * 100) / sz in
     let bar_w = (c * 300) / sz in
@@ -757,33 +833,31 @@ fn demo_cluster_run() = (
     mut k = k + 1
   );
   mut html = html + "</table>";
-  /* Show first 20 assignments */
   let show_n = if sz < 20 then sz else 20 in
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:12px'>First " + "${show_n}" + " assignments:</p>";
   mut html = html + "<div style='display:flex;flex-wrap:wrap;gap:4px'>";
   mut i = 0;
   while i < show_n do (
-    let val = (i * 7919 + 104729 + i * i * 13) % N_TRUE in
-    let k = cl_kingdom(val) in
+    let val = (i * 7919 + 104729 + i * i * 13) % N_TRANS in
+    let k = cl_class(val) in
     let color = cl_color(k) in
     mut html = html + "<span style='background:" + color + "22;border:1px solid " + color + ";border-radius:4px;padding:2px 6px;font-size:10px;color:" + color + "'>" + "${val % 1000}" + "</span>";
     mut i = i + 1
   );
   mut html = html + "</div>";
-  /* K-means comparison */
-  let kmeans_ops = sz * 7 * 20 in
+  let kmeans_ops = sz * 10 * 20 in
   mut html = html + "<div style='margin:12px 0;padding:8px;border-top:1px solid #333'>";
   mut html = html + "<p style='color:#ffd700;margin:4px 0'>OPERATION COUNT</p>";
-  mut html = html + "<p style='color:#ff6666;margin:2px 0;font-size:13px'>K-means (K=7, 20 iterations): ~" + "${kmeans_ops}" + " distance computations</p>";
-  mut html = html + "<p style='color:#88ddaa;margin:2px 0;font-size:13px'>CRT kingdom: " + "${sz}" + " GCD operations (O(1) each, zero iterations)</p>";
+  mut html = html + "<p style='color:#ff6666;margin:2px 0;font-size:13px'>K-means (K=10, 20 iterations): ~" + "${kmeans_ops}" + " distance computations</p>";
+  mut html = html + "<p style='color:#88ddaa;margin:2px 0;font-size:13px'>CRT class: " + "${sz}" + " GCD operations (O(1) each, zero iterations)</p>";
   mut html = html + "<p style='color:#b0b0c0;margin:2px 0;font-size:13px'>Speedup: " + "${kmeans_ops / sz}" + "x fewer operations</p>";
   mut html = html + "</div></div>";
   dom_inner(result_el, html)
 )
 
 fn page_cluster() = (
-  dom_head_meta("description", "CRT Clustering. Kingdom = O(1) cluster assignment via GCD. No iteration. No hyperparameters. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Clustering\",\"description\":\"O(1) kingdom-based clustering over Z/12612600. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/cluster\"}");
+  dom_head_meta("description", "CRT Clustering. Coupling class = O(1) cluster assignment via GCD over Z/214,414,200. No iteration. No hyperparameters. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Clustering\",\"description\":\"O(1) coupling-class clustering over Z/214414200. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/cluster\"}");
   let hero = make_hero("CRT Clustering") in
   let eq = dom_create("div") in
   dom_text(eq, "F41: AWS/Google ML. CC0.");
@@ -793,13 +867,13 @@ fn page_cluster() = (
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Every number in Z/12612600 has a KINGDOM: which axiom prime divides it. gcd(n, N) reveals it in O(1). No iteration. No hyperparameters. No training data. The ring decides.");
+  render_p(hero, "Every number in Z/214,414,200 belongs to a coupling class: which prime divides it. gcd(n, N) reveals it in O(1). No iteration. No hyperparameters. No training data. The ring decides.");
   dom_append(dom_body(), hero);
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "Kingdom Classification (PROVED)", "For any n in Z/12612600, gcd(n, N) reveals which axiom primes divide n. This defines 9 clusters: void (gcd=N), sigma (gcd=1), 6 pure kingdoms (one prime divides), and mixed (multiple primes divide). Assignment is O(1): one GCD + one factorization test. No iteration. Deterministic.");
+  render_theorem(sec1, "Coupling Class (PROVED)", "For any n in Z/214,414,200, gcd(n, N) reveals which primes divide n. This defines 10 clusters: zero (gcd=N), unit (gcd=1), 7 pure classes (exactly one prime divides), and mixed (multiple primes divide). Assignment is O(1): one GCD + one factorization test. No iteration. Deterministic.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "9 clusters", "Algebraically forced", "void, sigma, D, K, E, b, L, GATE, mixed. Not chosen -- discovered.", "");
+  render_finding(g1, "10 clusters", "Algebraically forced", "zero, unit, 2-class, 3-class, 5-class, 7-class, 11-class, 13-class, 17-class, mixed. Not chosen -- discovered.", "");
   render_finding(g1, "O(1)", "One GCD operation", "K-means: O(NKI) for N points, K clusters, I iterations. CRT: O(N).", "");
   render_finding(g1, "No hyperparameters", "K emerges from the ring", "K-means: choose K. DBSCAN: choose epsilon, minPts. CRT: the ring decides.", "");
   render_finding(g1, "Deterministic", "Same input = same cluster", "K-means depends on initialization. CRT: unique, deterministic, algebraic.", "");
@@ -807,15 +881,15 @@ fn page_cluster() = (
   let sec2 = make_section("800px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Number of points (10-1000):", "dclust-input", "e.g. 100", "Cluster", "demo_cluster_run", "dclust-result");
-  render_p(sec2, "Generates random data points in Z/12612600 and classifies each by kingdom. Shows distribution + first 20 assignments.");
+  render_p(sec2, "Generates random data points in Z/214,414,200 and classifies each by coupling class. Shows distribution + first 20 assignments.");
   dom_append(dom_body(), sec2);
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT Clustering vs K-Means");
-  render_contrast_row(sec3, "Complexity", "K-means: O(NKI), typically 20+ iterations", "CRT kingdom: O(N). One pass. Done.");
-  render_contrast_row(sec3, "Cluster count", "K-means: choose K (hyperparameter)", "CRT: 9 kingdoms emerge from ring structure");
+  render_contrast_row(sec3, "Complexity", "K-means: O(NKI), typically 20+ iterations", "CRT class: O(N). One pass. Done.");
+  render_contrast_row(sec3, "Cluster count", "K-means: choose K (hyperparameter)", "CRT: 10 classes emerge from ring structure");
   render_contrast_row(sec3, "Initialization", "K-means: random centroids (non-deterministic)", "CRT: deterministic. GCD is unique.");
-  render_contrast_row(sec3, "Stability", "K-means: different runs = different clusters", "CRT: same input = same kingdom. Always.");
-  render_contrast_row(sec3, "Interpretability", "K-means: centroid vectors (opaque)", "CRT: kingdoms = axiom primes (algebraic meaning)");
+  render_contrast_row(sec3, "Stability", "K-means: different runs = different clusters", "CRT: same input = same class. Always.");
+  render_contrast_row(sec3, "Interpretability", "K-means: centroid vectors (opaque)", "CRT: classes = prime divisibility (algebraic meaning)");
   render_contrast_row(sec3, "Patent status", "AWS SageMaker, Google AutoML", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
 )

@@ -1,49 +1,72 @@
 /* page_demo_speech.ax -- CC0 #24: CRT Speech Codec.
-   CRT spectral decomposition. Per-channel quantization. L=11 packet loss.
+   CRT spectral decomposition. Per-channel quantization. mod-11 packet loss.
    Domain: Fraunhofer/Opus/AAC/EVS patents. CC0. */
 
 /* ================================================================
-   CRT SPEECH CODEC -- /demos/speech. CC0 kill B24.
-   Audio spectral frames -> ring elements -> 6 CRT channels = 6
+   CRT SPEECH CODEC -- /demos/speech.
+   Audio spectral frames -> ring elements -> 7 CRT channels = 7
    independent spectral bands. Quantize per-channel. Reconstruct.
-   L=11 = error concealment (packet loss recovery for free).
+   mod-11 = error concealment (packet loss recovery for free).
    No MDCT needed. CRT IS the transform.
    ================================================================ */
 
-fn sp_mod(ch) = (
-  if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
-  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+fn sp_mulmod(a, b, m) = (
+  mut result = 0;
+  mut aa = a % m;
+  mut bb = b;
+  while bb > 0 do (
+    if bb % 2 == 1 then (mut result = (result + aa) % m) else 0;
+    mut aa = (aa + aa) % m;
+    mut bb = bb / 2
+  );
+  result
 )
 
-fn sp_ch_name(ch) = (
-  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
-  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+fn sp_recon(r0, r1, r2, r3, r4, r5, r6) = (
+  let n = 214414200 in
+  mut val = 0;
+  mut val = (val + sp_mulmod(187612425, r0, n)) % n;
+  mut val = (val + sp_mulmod(190590400, r1, n)) % n;
+  mut val = (val + sp_mulmod(60035976, r2, n)) % n;
+  mut val = (val + sp_mulmod(109395000, r3, n)) % n;
+  mut val = (val + sp_mulmod(116953200, r4, n)) % n;
+  mut val = (val + sp_mulmod(16493400, r5, n)) % n;
+  mut val = (val + sp_mulmod(176576400, r6, n)) % n;
+  val
+)
+
+fn sp_mod(ch) = (
+  if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
+  else if ch == 3 then 49 else if ch == 4 then 11 else if ch == 5 then 13
+  else 17
+)
+
+fn sp_ch_label(ch) = (
+  if ch == 0 then "mod 8" else if ch == 1 then "mod 9" else if ch == 2 then "mod 25"
+  else if ch == 3 then "mod 49" else if ch == 4 then "mod 11" else if ch == 5 then "mod 13"
+  else "mod 17"
 )
 
 fn sp_band_name(ch) = (
   if ch == 0 then "sub-bass" else if ch == 1 then "bass" else if ch == 2 then "midrange"
-  else if ch == 3 then "presence" else if ch == 4 then "brilliance" else "air"
+  else if ch == 3 then "presence" else if ch == 4 then "brilliance" else if ch == 5 then "air"
+  else "ultrasonic"
 )
 
-fn sp_basis(ch) = (
-  if ch == 0 then 11036025 else if ch == 1 then 1401400
-  else if ch == 2 then 9585576 else if ch == 3 then 8494200
-  else if ch == 4 then 3439800 else 3880800
-)
-
-/* Band center frequencies (Hz): sub-bass, bass, midrange, presence, brilliance, air */
+/* Band center frequencies (Hz): sub-bass, bass, midrange, presence, brilliance, air, ultrasonic */
 fn sp_center_hz(ch) = (
   if ch == 0 then 40 else if ch == 1 then 150 else if ch == 2 then 800
-  else if ch == 3 then 3000 else if ch == 4 then 8000 else 15000
+  else if ch == 3 then 3000 else if ch == 4 then 8000 else if ch == 5 then 15000
+  else 20000
 )
 
-let g_sp_oscs = [0, 0, 0, 0, 0, 0]
+let g_sp_oscs = [0, 0, 0, 0, 0, 0, 0]
 
 fn demo_speech_play() = (
   let spk = parse_int_from("#dsp-input") in
   let frame = gen_speech_frame(spk, 0, 5) in
   let i = [0] in
-  while i[0] < 6 do (
+  while i[0] < 7 do (
     let m = sp_mod(i[0]) in
     let r = frame % m in
     let freq = sp_center_hz(i[0]) + r * sp_center_hz(i[0]) / m / 4 in
@@ -60,7 +83,7 @@ fn demo_speech_play() = (
 
 fn demo_speech_stop() = (
   let i = [0] in
-  while i[0] < 6 do (
+  while i[0] < 7 do (
     if g_sp_oscs[i[0]] > 0 then (
       aud_gain(g_sp_oscs[i[0]], 0);
       set(g_sp_oscs, i[0], 0)
@@ -70,11 +93,12 @@ fn demo_speech_stop() = (
   0
 )
 
-/* Generate synthetic speech frame: 6 spectral band energies.
+/* Generate synthetic speech frame: 7 spectral band energies.
    Each frame is one 20ms time slice of speech.
-   Channels: D=sub-bass(20-60Hz), K=bass(60-250Hz), E=midrange(250-2kHz),
-   b=presence(2-6kHz), L=brilliance(6-12kHz), G=air(12-20kHz).
-   Speech is concentrated in E(midrange) and b(presence). */
+   Channels: mod8=sub-bass(20-60Hz), mod9=bass(60-250Hz), mod25=midrange(250-2kHz),
+   mod49=presence(2-6kHz), mod11=brilliance(6-12kHz), mod13=air(12-20kHz),
+   mod17=ultrasonic(20kHz+).
+   Speech is concentrated in midrange and presence. */
 fn gen_speech_frame(speaker_id, frame_idx, phoneme) = (
   /* Speech spectral envelope: midrange/presence dominant */
   let sub_bass = (speaker_id * 3 + phoneme + frame_idx / 4) % 8 in
@@ -83,8 +107,8 @@ fn gen_speech_frame(speaker_id, frame_idx, phoneme) = (
   let presence = (speaker_id * 11 + phoneme * 7 + frame_idx * 5 + 20) % 49 in
   let brilliance = (speaker_id * 2 + phoneme * 3 + frame_idx / 2) % 11 in
   let air = (speaker_id + phoneme * 2 + frame_idx / 5) % 13 in
-  (sub_bass * sp_basis(0) + bass * sp_basis(1) + midrange * sp_basis(2) +
-    presence * sp_basis(3) + brilliance * sp_basis(4) + air * sp_basis(5)) % 12612600
+  let ultrasonic = (speaker_id * 13 + phoneme + frame_idx / 6) % 17 in
+  sp_recon(sub_bass, bass, midrange, presence, brilliance, air, ultrasonic)
 )
 
 /* Generate a speech utterance: sequence of phoneme frames */
@@ -104,24 +128,23 @@ fn gen_utterance(speaker_id, n_frames) = (
 /* Quantize per-channel: reduce bits per channel (lossy compression).
    quant_level: 1=full, 2=half precision, 4=quarter precision */
 fn quantize_frame(val, quant_level) = (
-  mut result = 0;
+  let residues = alloc(7) in
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = sp_mod(ch) in
     let residue = val % m in
     /* Quantize: reduce resolution by dividing then multiplying */
-    let quantized = (residue / quant_level) * quant_level in
-    mut result = result + quantized * sp_basis(ch);
+    set(residues, ch, (residue / quant_level) * quant_level);
     mut ch = ch + 1
   );
-  result % 12612600
+  sp_recon(residues[0], residues[1], residues[2], residues[3], residues[4], residues[5], residues[6])
 )
 
 /* Compute distortion between original and quantized frame */
 fn frame_distortion(orig, quant) = (
   mut dist = 0;
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = sp_mod(ch) in
     let r1 = orig % m in
     let r2 = quant % m in
@@ -132,21 +155,20 @@ fn frame_distortion(orig, quant) = (
   dist
 )
 
-/* Simulate packet loss: drop some frames, conceal via L=11 interpolation */
+/* Simulate packet loss: drop some frames, conceal via mod-11 interpolation */
 fn conceal_lost_frame(prev, next) = (
-  /* Use L=11 channel as integrity check + interpolation guide */
-  mut result = 0;
+  /* Use mod-11 channel as integrity check + interpolation guide */
+  let residues = alloc(7) in
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = sp_mod(ch) in
     let r_prev = prev % m in
     let r_next = next % m in
     /* Interpolate: average of neighbors per channel */
-    let interp = (r_prev + r_next) / 2 in
-    mut result = result + interp * sp_basis(ch);
+    set(residues, ch, (r_prev + r_next) / 2);
     mut ch = ch + 1
   );
-  result % 12612600
+  sp_recon(residues[0], residues[1], residues[2], residues[3], residues[4], residues[5], residues[6])
 )
 
 /* Measure quality: signal-to-noise ratio per channel */
@@ -196,13 +218,14 @@ fn demo_speech_run() = (
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Channel</th><th style='padding:4px 8px;color:#666;font-size:10px'>Band</th><th style='padding:4px 8px;color:#666;font-size:10px'>Mod</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>Q=1 (lossless)</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Q=2 (half)</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>Q=4 (quarter)</th></tr>";
 
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let snr1 = channel_snr(orig, q1, n_frames, ch) in
     let snr2 = channel_snr(orig, q2, n_frames, ch) in
     let snr4 = channel_snr(orig, q4, n_frames, ch) in
     let chc = if ch == 0 then "#ff6666" else if ch == 1 then "#44ff88" else if ch == 2 then "#ff6666"
-      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else "#44ff88" in
-    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + sp_ch_name(ch) + "</td>";
+      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else if ch == 5 then "#44ff88"
+      else "#9966ff" in
+    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + sp_ch_label(ch) + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:11px'>" + sp_band_name(ch) + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:#888;font-size:11px'>" + "${sp_mod(ch)}" + "</td>";
     let c1 = if snr1 > 50 then "#44ff88" else "#ffd700" in
@@ -219,10 +242,11 @@ fn demo_speech_run() = (
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>FRAME-BY-FRAME DISTORTION (first 10 frames)</p>";
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 8px;color:#666;font-size:10px'>Frame</th>";
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let hc = if c == 0 then "#ff6666" else if c == 1 then "#44ff88" else if c == 2 then "#ff6666"
-      else if c == 3 then "#ff6666" else if c == 4 then "#44ff88" else "#44ff88" in
-    mut html = html + "<th style='padding:4px 8px;color:" + hc + ";font-size:10px'>" + sp_ch_name(c) + "(orig)</th><th style='padding:4px 8px;color:" + hc + ";font-size:10px'>" + sp_ch_name(c) + "(Q=2)</th>";
+      else if c == 3 then "#ff6666" else if c == 4 then "#44ff88" else if c == 5 then "#44ff88"
+      else "#9966ff" in
+    mut html = html + "<th style='padding:4px 8px;color:" + hc + ";font-size:10px'>" + sp_ch_label(c) + "(orig)</th><th style='padding:4px 8px;color:" + hc + ";font-size:10px'>" + sp_ch_label(c) + "(Q=2)</th>";
     mut c = c + 1
   );
   mut html = html + "<th style='padding:4px 8px;color:#ffd700;font-size:10px'>Distortion</th></tr>";
@@ -233,7 +257,7 @@ fn demo_speech_run() = (
     let d_color = if d == 0 then "#44ff88" else if d < 10 then "#88ff44" else if d < 50 then "#ffd700" else "#ff6666" in
     mut html = html + "<tr><td style='padding:2px 8px;color:#888;font-size:11px'>" + "${f}" + "</td>";
     mut c2 = 0;
-    while c2 < 6 do (
+    while c2 < 7 do (
       let m = sp_mod(c2) in
       let orig_r = orig[f] % m in
       let quant_r = q2[f] % m in
@@ -257,11 +281,11 @@ fn demo_speech_run() = (
   let avg_dist = total_dist / n_frames in
   mut html = html + "<p style='color:#b0b0c0;margin:8px 0'>Average frame distortion (Q=2): <span style='color:#ffd700;font-weight:bold'>" + "${avg_dist}" + "</span> (lower = better)</p>";
 
-  /* 490 split analysis */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
-  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: sub-bass + midrange + presence = SPEECH CONTENT (formants, pitch)</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: bass + brilliance + air = SPEECH IDENTITY (speaker, prosody)</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Aggressive quantization on DEAD channels degrades content but preserves speaker identity. Codec can prioritize identity channels for low-bitrate voice recognition scenarios.</p>";
+  /* 3+4 data/parity split analysis */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>3+4 DATA/PARITY SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>Data channels {mod 8, mod 25, mod 49}: sub-bass + midrange + presence = SPEECH CONTENT (formants, pitch)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>Parity channels {mod 9, mod 11, mod 13, mod 17}: bass + brilliance + air + ultrasonic = SPEECH IDENTITY (speaker, prosody)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Aggressive quantization on data channels degrades content but preserves speaker identity. Codec can prioritize identity channels for low-bitrate voice recognition scenarios.</p>";
 
   mut html = html + "</div>";
   dom_inner(result_el, html)
@@ -303,7 +327,7 @@ fn demo_speech_loss() = (
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Channel</th><th style='padding:4px 8px;color:#666;font-size:10px'>Band</th><th style='padding:4px 8px;color:#666;font-size:10px'>Avg Error</th><th style='padding:4px 8px;color:#666;font-size:10px'>Recovery</th></tr>";
 
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = sp_mod(ch) in
     mut ch_err = 0;
     mut ch_count = 0;
@@ -322,9 +346,10 @@ fn demo_speech_loss() = (
     let max_err = m / 2 in
     let recovery_pct = if max_err > 0 then (max_err - avg_err) * 100 / max_err else 100 in
     let chc = if ch == 0 then "#ff6666" else if ch == 1 then "#44ff88" else if ch == 2 then "#ff6666"
-      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else "#44ff88" in
+      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else if ch == 5 then "#44ff88"
+      else "#9966ff" in
     let rec_color = if recovery_pct > 80 then "#44ff88" else if recovery_pct > 50 then "#ffd700" else "#ff6666" in
-    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + sp_ch_name(ch) + " (" + sp_band_name(ch) + ")</td>";
+    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + sp_ch_label(ch) + " (" + sp_band_name(ch) + ")</td>";
     mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:11px'>mod " + "${m}" + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:#b0b0c0;font-size:12px;text-align:center'>" + "${avg_err}" + "/" + "${max_err}" + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:" + rec_color + ";font-size:12px;font-weight:bold;text-align:center'>" + "${recovery_pct}" + "%</td></tr>";
@@ -332,7 +357,7 @@ fn demo_speech_loss() = (
   );
   mut html = html + "</table>";
 
-  mut html = html + "<p style='color:#b0b0c0;margin:8px 0'>L=11 channel: smallest modulus = highest recovery rate. Neighbor interpolation lands within the same residue class more often. Same ECC property that detects data corruption conceals lost audio frames.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:8px 0'>mod-8 channel: smallest modulus = highest recovery rate. Neighbor interpolation lands within the same residue class more often. Same ECC property that detects data corruption conceals lost audio frames.</p>";
   mut html = html + "<p style='color:#ffd700;margin:8px 0'>Average concealment distortion: <span style='font-weight:bold;font-size:18px'>" + "${avg_conceal}" + "</span> per lost frame</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
@@ -394,34 +419,34 @@ fn demo_speech_batch() = (
   let grand_avg2 = total_q2 / n_speakers in
   let grand_avg4 = total_q4 / n_speakers in
   mut html = html + "<p style='color:#44ff88;font-size:18px;font-weight:bold;margin:8px 0'>Average distortion: Q=2: " + "${grand_avg2}" + " (50% compression), Q=4: " + "${grand_avg4}" + " (75% compression)</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT codec compresses per-channel independently. Each channel quantized to ceil(log2(mod)/quant) bits. Total: 6 channels at reduced resolution = predictable bitrate. L=11 channel (mod 11) can be transmitted losslessly as error check (costs only 4 bits).</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT codec compresses per-channel independently. Each channel quantized to ceil(log2(mod)/quant) bits. Total: 7 channels at reduced resolution = predictable bitrate. mod-11 channel can be transmitted losslessly as error check (costs only 4 bits).</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 fn page_speech() = (
-  dom_head_meta("description", "CRT Speech Codec. 6 CRT channels = 6 spectral bands. Per-channel quantization. L=11 packet loss concealment. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Speech Codec\",\"description\":\"CRT-decomposed speech compression. 6 spectral bands. Per-channel quantization. L=11 error concealment. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/speech\"}");
+  dom_head_meta("description", "CRT Speech Codec. 7 CRT channels in Z/214,414,200 = 7 spectral bands. Per-channel quantization. mod-11 packet loss concealment. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Speech Codec\",\"description\":\"CRT-decomposed speech compression in Z/214,414,200. 7 spectral bands. Per-channel quantization. mod-11 error concealment. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/speech\"}");
   let hero = make_hero("CRT Speech Codec") in
   let eq = dom_create("div") in
-  dom_text(eq, "B24: Fraunhofer / Opus / AAC / EVS. CC0.");
+  dom_text(eq, "Fraunhofer / Opus / AAC / EVS. CC0.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Speech codecs (AAC, Opus, EVS) use Modified Discrete Cosine Transform to decompose audio into frequency bands, then quantize per-band. Patented: psychoacoustic models, bit allocation, entropy coding, packet loss concealment. CRT approach: encode speech spectral features (sub-bass, bass, midrange, presence, brilliance, air) as ring elements in Z/12612600. 6 CRT channels = 6 algebraically independent spectral bands. Quantize each channel independently. L=11 = error concealment for free. No MDCT. No psychoacoustic model. The ring structure IS the transform.");
+  render_p(hero, "Speech codecs (AAC, Opus, EVS) use Modified Discrete Cosine Transform to decompose audio into frequency bands, then quantize per-band. Patented: psychoacoustic models, bit allocation, entropy coding, packet loss concealment. CRT approach: encode speech spectral features (sub-bass, bass, midrange, presence, brilliance, air, ultrasonic) as ring elements in Z/214,414,200. 7 CRT channels = 7 algebraically independent spectral bands. Quantize each channel independently. mod-11 = error concealment for free. No MDCT. No psychoacoustic model. The ring structure IS the transform.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Speech Codec Theorem", "Speech spectral frames encoded in Z/12612600 decompose into 6 independent CRT channels. D(mod 8) = sub-bass (20-60Hz, room tone). K(mod 9) = bass (60-250Hz, voice fundamental). E(mod 25) = midrange (250-2kHz, vowel formants). b(mod 49) = presence (2-6kHz, consonant detail). L(mod 11) = brilliance (6-12kHz, sibilance). G(mod 13) = air (12-20kHz, breathiness). Per-channel quantization: each channel quantized independently to floor(bits/quant_level) bits. Reconstruction via CRT. Quality degrades gracefully per-channel. L=11 error concealment: lost frames reconstructed by neighbor interpolation within the L channel residue class. Small modulus = high interpolation accuracy. 490 split: DEAD={D,E,b} = speech CONTENT (formants, pitch). ALIVE={K,L,G} = speech IDENTITY (speaker, prosody). Low-bitrate voice recognition: quantize DEAD aggressively, preserve ALIVE.");
+  render_theorem(sec1, "CRT Speech Codec Theorem", "Speech spectral frames encoded in Z/214,414,200 decompose into 7 independent CRT channels. mod 8 = sub-bass (20-60Hz, room tone). mod 9 = bass (60-250Hz, voice fundamental). mod 25 = midrange (250-2kHz, vowel formants). mod 49 = presence (2-6kHz, consonant detail). mod 11 = brilliance (6-12kHz, sibilance). mod 13 = air (12-20kHz, breathiness). mod 17 = ultrasonic (20kHz+, inaudible harmonics). Per-channel quantization: each channel quantized independently to floor(bits/quant_level) bits. Reconstruction via CRT. Quality degrades gracefully per-channel. mod-11 error concealment: lost frames reconstructed by neighbor interpolation within the mod-11 residue class. Small modulus = high interpolation accuracy. 3+4 data/parity split: data channels {mod 8, mod 25, mod 49} = speech CONTENT (formants, pitch). Parity channels {mod 9, mod 11, mod 13, mod 17} = speech IDENTITY (speaker, prosody). Low-bitrate voice recognition: quantize data aggressively, preserve parity.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "6 spectral bands", "CRT channels", "Each channel captures one frequency range independently. No cross-band leakage.", "");
+  render_finding(g1, "7 spectral bands", "CRT channels", "Each channel captures one frequency range independently. No cross-band leakage.", "");
   render_finding(g1, "Per-channel quantize", "Independent", "Reduce bits in each channel separately. Graceful degradation. No global bit allocation.", "");
-  render_finding(g1, "L=11 concealment", "Free ECC", "Lost packets recovered by neighbor interpolation. L channel has highest recovery rate.", "");
-  render_finding(g1, "490 split", "Content vs identity", "DEAD = formants (what is said). ALIVE = speaker (who says it). Selective compression.", "");
+  render_finding(g1, "mod-11 concealment", "Free ECC", "Lost packets recovered by neighbor interpolation. Small-modulus channels have highest recovery rate.", "");
+  render_finding(g1, "3+4 split", "Content vs identity", "Data channels = formants (what is said). Parity channels = speaker (who says it). Selective compression.", "");
   dom_append(dom_body(), sec1);
 
   let sec2 = make_section("900px") in
@@ -454,7 +479,7 @@ fn page_speech() = (
   dom_on(sb2, "click", "demo_speech_stop");
   dom_append(abtn2, sb2);
   dom_append(sec2, abtn2);
-  render_p(sec2, "Play Spectral Bands synthesizes 6 oscillators at the CRT band center frequencies, with gain derived from each channel residue. 40-frame speech utterance (800ms at 20ms/frame). Three quantization levels compared.");
+  render_p(sec2, "Play Spectral Bands synthesizes 7 oscillators at the CRT band center frequencies, with gain derived from each channel residue. 40-frame speech utterance (800ms at 20ms/frame). Three quantization levels compared.");
   dom_append(dom_body(), sec2);
 
   let sec3 = make_section("900px") in
@@ -474,7 +499,7 @@ fn page_speech() = (
   let br_loss = dom_create("div") in
   dom_attr(br_loss, "id", "dsp-loss");
   dom_append(sec3, br_loss);
-  render_p(sec3, "25% packet loss: every 4th frame dropped. Lost frames concealed by per-channel neighbor interpolation. L=11 channel recovers best (smallest modulus = closest interpolation). No explicit FEC overhead.");
+  render_p(sec3, "25% packet loss: every 4th frame dropped. Lost frames concealed by per-channel neighbor interpolation. Small-modulus channels recover best (closest interpolation). No explicit FEC overhead.");
   dom_append(dom_body(), sec3);
 
   let sec4 = make_section("900px") in
@@ -494,16 +519,16 @@ fn page_speech() = (
   let br_batch = dom_create("div") in
   dom_attr(br_batch, "id", "dsp-batch");
   dom_append(sec4, br_batch);
-  render_p(sec4, "8 speakers x 30 frames each. Distortion measured at Q=1 (lossless), Q=2 (50% bit reduction), Q=4 (75% bit reduction). CRT guarantees: per-channel quantization error stays within that channel. No cross-band artifacts.");
+  render_p(sec4, "8 speakers x 30 frames each. Distortion measured at Q=1 (lossless), Q=2 (50% bit reduction), Q=4 (75% bit reduction). CRT guarantees across all 7 channels: per-channel quantization error stays within that channel. No cross-band artifacts.");
   dom_append(dom_body(), sec4);
 
   let sec5 = make_section("800px") in
   render_h2(sec5, "CRT vs Traditional Speech Codecs");
-  render_contrast_row(sec5, "Transform", "Opus/AAC: MDCT (modified discrete cosine transform, patented variants)", "CRT: 6 independent channel residues. No transform matrix. Integer arithmetic.");
+  render_contrast_row(sec5, "Transform", "Opus/AAC: MDCT (modified discrete cosine transform, patented variants)", "CRT: 7 independent channel residues. No transform matrix. Integer arithmetic.");
   render_contrast_row(sec5, "Bit alloc", "Psychoacoustic model allocates bits per band (patented)", "Per-channel: each mod quantized independently. No model needed.");
-  render_contrast_row(sec5, "Packet loss", "Opus: SILK/CELT hybrid FEC (complex, patent-adjacent)", "L=11 neighbor interpolation: small modulus = high recovery. Free from algebra.");
-  render_contrast_row(sec5, "Bands", "Typically 18-64 bands (empirical, tuned)", "6 bands = 6 CRT channels. Algebraically independent. Not tuned.");
-  render_contrast_row(sec5, "Compute", "FFT/MDCT + entropy coding + rate control", "Modular arithmetic. 6 mod operations per frame. Integer only.");
+  render_contrast_row(sec5, "Packet loss", "Opus: SILK/CELT hybrid FEC (complex, patent-adjacent)", "mod-11 neighbor interpolation: small modulus = high recovery. Free from algebra.");
+  render_contrast_row(sec5, "Bands", "Typically 18-64 bands (empirical, tuned)", "7 bands = 7 CRT channels. Algebraically independent. Not tuned.");
+  render_contrast_row(sec5, "Compute", "FFT/MDCT + entropy coding + rate control", "Modular arithmetic. 7 mod operations per frame. Integer only.");
   render_contrast_row(sec5, "Patent status", "Fraunhofer (AAC/MP3), various (EVS/3GPP), IETF (Opus is open but complex)", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec5)
 )

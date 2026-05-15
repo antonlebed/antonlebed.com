@@ -1,72 +1,94 @@
-/* page_demo_medical.ax -- CC0 #23: CRT Medical Image Denoising.
-   L=11 ECC applied to medical imaging. CRT per-channel denoise.
+/* page_demo_medical.ax -- CRT Medical Image Denoising.
+   7-channel denoising in Z/214,414,200. mod-11 error detection.
    Domain: Siemens/GE/Philips MRI/CT denoising patents. CC0. */
 
 /* ================================================================
-   CRT MEDICAL IMAGE DENOISING -- /demos/medical. CC0 kill C23.
+   CRT MEDICAL IMAGE DENOISING -- /demos/medical.
    Medical phantom (synthetic grid) with added noise. CRT decompose
-   each pixel into 6 channels. L=11 = corruption detector. Per-channel
-   median/averaging = denoising. No training data. Pure algebra.
+   each pixel into 7 channels. mod-11 = corruption detector.
+   Per-channel averaging = denoising. No training data. Pure algebra.
    ================================================================ */
 
 fn md_mod(ch) = (
   if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
-  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+  else if ch == 3 then 49 else if ch == 4 then 11 else if ch == 5 then 13
+  else 17
 )
 
-fn md_ch_name(ch) = (
-  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
-  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+fn md_ch_label(ch) = (
+  if ch == 0 then "mod 8" else if ch == 1 then "mod 9" else if ch == 2 then "mod 25"
+  else if ch == 3 then "mod 49" else if ch == 4 then "mod 11" else if ch == 5 then "mod 13"
+  else "mod 17"
 )
 
-fn md_basis(ch) = (
-  if ch == 0 then 11036025 else if ch == 1 then 1401400
-  else if ch == 2 then 9585576 else if ch == 3 then 8494200
-  else if ch == 4 then 3439800 else 3880800
+/* Russian peasant mulmod: (a * b) % m without i32 overflow.
+   TRANS idempotents (up to 190M) * residue (up to 48) can exceed 2^31. */
+fn md_mulmod(a, b, m) = (
+  mut result = 0;
+  mut aa = a % m;
+  mut bb = b;
+  while bb > 0 do (
+    if bb % 2 == 1 then (mut result = (result + aa) % m) else 0;
+    mut aa = (aa + aa) % m;
+    mut bb = bb / 2
+  );
+  result
+)
+
+/* TRANS CRT reconstruction from 7 residues via idempotents.
+   Idempotents: [187612425, 190590400, 60035976, 109395000, 116953200, 16493400, 176576400].
+   Uses mulmod to avoid i32 overflow. */
+fn md_recon(r0, r1, r2, r3, r4, r5, r6) = (
+  let n = 214414200 in
+  mut val = 0;
+  mut val = (val + md_mulmod(187612425, r0, n)) % n;
+  mut val = (val + md_mulmod(190590400, r1, n)) % n;
+  mut val = (val + md_mulmod(60035976, r2, n)) % n;
+  mut val = (val + md_mulmod(109395000, r3, n)) % n;
+  mut val = (val + md_mulmod(116953200, r4, n)) % n;
+  mut val = (val + md_mulmod(16493400, r5, n)) % n;
+  mut val = (val + md_mulmod(176576400, r6, n)) % n;
+  val
 )
 
 /* Generate medical phantom: structured regions (organs) with known values.
    Organ 1: chest cavity (center), Organ 2: spine (vertical strip),
-   Organ 3: lung-left, Organ 4: lung-right. Background = body tissue. */
+   Organ 3: lung-left, Organ 4: lung-right. Background = body tissue.
+   7th channel (mod 17): tissue type -- soft=3, bone=15, air=1, muscle=12. */
 fn gen_phantom(w, h, seed) = (
   let img = alloc(w * h) in
   mut y = 0;
   while y < h do (
     mut x = 0;
     while x < w do (
-      /* Background tissue: moderate values */
-      let tissue = (3 * md_basis(0) + 4 * md_basis(1) + 12 * md_basis(2) +
-        25 * md_basis(3) + 5 * md_basis(4) + 6 * md_basis(5)) % 12612600 in
+      /* Background tissue: moderate values. mod 17 = 3 (soft tissue) */
+      let tissue = md_recon(3, 4, 12, 25, 5, 6, 3) in
       let idx = y * w + x in
-      /* Spine: vertical center strip */
+      /* Spine: vertical center strip. mod 17 = 15 (bone) */
       if x > w / 2 - 2 then if x < w / 2 + 2 then (
-        let bone = (7 * md_basis(0) + 8 * md_basis(1) + 22 * md_basis(2) +
-          45 * md_basis(3) + 10 * md_basis(4) + 12 * md_basis(5)) % 12612600 in
+        let bone = md_recon(7, 8, 22, 45, 10, 12, 15) in
         set(img, idx, bone)
       ) else set(img, idx, tissue)
       else set(img, idx, tissue);
-      /* Left lung: oval region */
+      /* Left lung: oval region. mod 17 = 1 (air) */
       let dx_l = x - w / 4 in
       let dy_l = y - h / 2 in
       if dx_l * dx_l + dy_l * dy_l * 2 < (w / 5) * (w / 5) then (
-        let lung = (1 * md_basis(0) + 1 * md_basis(1) + 3 * md_basis(2) +
-          5 * md_basis(3) + 2 * md_basis(4) + 2 * md_basis(5)) % 12612600 in
+        let lung = md_recon(1, 1, 3, 5, 2, 2, 1) in
         set(img, idx, lung)
       ) else 0;
-      /* Right lung */
+      /* Right lung. mod 17 = 1 (air) */
       let dx_r = x - 3 * w / 4 in
       let dy_r = y - h / 2 in
       if dx_r * dx_r + dy_r * dy_r * 2 < (w / 5) * (w / 5) then (
-        let lung_r = (1 * md_basis(0) + 1 * md_basis(1) + 4 * md_basis(2) +
-          6 * md_basis(3) + 2 * md_basis(4) + 3 * md_basis(5)) % 12612600 in
+        let lung_r = md_recon(1, 1, 4, 6, 2, 3, 1) in
         set(img, idx, lung_r)
       ) else 0;
-      /* Heart: small central blob */
+      /* Heart: small central blob. mod 17 = 12 (muscle) */
       let dx_h = x - w / 2 + 1 in
       let dy_h = y - h / 2 in
       if dx_h * dx_h + dy_h * dy_h < 4 then (
-        let heart = (6 * md_basis(0) + 7 * md_basis(1) + 18 * md_basis(2) +
-          40 * md_basis(3) + 9 * md_basis(4) + 11 * md_basis(5)) % 12612600 in
+        let heart = md_recon(6, 7, 18, 40, 9, 11, 12) in
         set(img, idx, heart)
       ) else 0;
       mut x = x + 1
@@ -79,14 +101,17 @@ fn gen_phantom(w, h, seed) = (
 /* Add medical noise (Gaussian-like via ring arithmetic) */
 fn add_medical_noise(img, w, h, noise_level) = (
   let noisy = alloc(w * h) in
+  let n_trans = 214414200 in
   mut i = 0;
   while i < w * h do (
     let v = img[i] in
-    /* Per-channel noise: different channels get different noise */
+    /* Per-channel noise via residue perturbation */
     let n0 = ((i * 7919 + noise_level * 4973) % (noise_level * 2 + 1)) in
     let n1 = ((i * 6991 + noise_level * 3571) % (noise_level * 3 + 1)) in
-    let noise = n0 * md_basis(0) + n1 * md_basis(1) in
-    set(noisy, i, (v + noise) % 12612600);
+    let n6 = ((i * 5381 + noise_level * 2753) % (noise_level * 2 + 1)) in
+    /* Reconstruct noise element from channel perturbations */
+    let noise = md_recon(n0 % 8, n1 % 9, 0, 0, 0, 0, n6 % 17) in
+    set(noisy, i, (v + noise) % n_trans);
     mut i = i + 1
   );
   noisy
@@ -122,14 +147,14 @@ fn denoise_image(noisy, w, h) = (
   while y < h do (
     mut x = 0;
     while x < w do (
-      mut val = 0;
-      mut ch = 0;
-      while ch < 6 do (
-        let denoised_ch = denoise_pixel(noisy, w, h, x, y, ch) in
-        mut val = val + denoised_ch * md_basis(ch);
-        mut ch = ch + 1
-      );
-      set(clean, y * w + x, val % 12612600);
+      let r0 = denoise_pixel(noisy, w, h, x, y, 0) in
+      let r1 = denoise_pixel(noisy, w, h, x, y, 1) in
+      let r2 = denoise_pixel(noisy, w, h, x, y, 2) in
+      let r3 = denoise_pixel(noisy, w, h, x, y, 3) in
+      let r4 = denoise_pixel(noisy, w, h, x, y, 4) in
+      let r5 = denoise_pixel(noisy, w, h, x, y, 5) in
+      let r6 = denoise_pixel(noisy, w, h, x, y, 6) in
+      set(clean, y * w + x, md_recon(r0, r1, r2, r3, r4, r5, r6));
       mut x = x + 1
     );
     mut y = y + 1
@@ -137,7 +162,7 @@ fn denoise_image(noisy, w, h) = (
   clean
 )
 
-/* L=11 corruption detection: flag pixels where L channel deviates from neighbors */
+/* mod-11 corruption detection: flag pixels where mod-11 channel deviates from neighbors */
 fn detect_corruption(noisy, w, h) = (
   let flags = alloc(w * h) in
   mut y = 1;
@@ -225,7 +250,7 @@ fn demo_medical_canvas_run() = (
   );
   let _b = cvs_blit(ctx, buf, pw, h) in
   let label = dom_create("p") in
-  dom_text(label, "56x40 phantom (noise=" + "${noise}" + "). Left: original. Center: noisy + L=11 corruption (red). Right: CRT denoised. " + "${w * h}" + " pixels per panel.");
+  dom_text(label, "56x40 phantom (noise=" + "${noise}" + "). Left: original. Center: noisy + mod-11 corruption (red). Right: CRT denoised. " + "${w * h}" + " pixels per panel.");
   dom_style(label, "color", "#888");
   dom_style(label, "fontSize", "12px");
   dom_style(label, "margin", "4px 0");
@@ -248,8 +273,8 @@ fn demo_medical_run() = (
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT MEDICAL DENOISING: " + "${w}" + "x" + "${h}" + " phantom (noise=" + "${noise_level}" + ")</p>";
 
-  /* L=11 corruption detection map */
-  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>L=11 CORRUPTION DETECTION MAP</p>";
+  /* mod-11 corruption detection map */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>MOD-11 CORRUPTION DETECTION MAP</p>";
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
   mut n_corrupted = 0;
   mut y = 0;
@@ -270,24 +295,29 @@ fn demo_medical_run() = (
   mut html = html + "</table>";
   let total_pixels = w * h in
   let corrupt_pct = n_corrupted * 100 / total_pixels in
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Red = L=11 corruption detected. " + "${n_corrupted}" + "/" + "${total_pixels}" + " pixels flagged (" + "${corrupt_pct}" + "%). L=11 acts as FREE integrity check: no dedicated sensor, no CRC, just modular arithmetic.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Red = mod-11 corruption detected. " + "${n_corrupted}" + "/" + "${total_pixels}" + " pixels flagged (" + "${corrupt_pct}" + "%). The mod-11 channel acts as a free integrity check: no dedicated sensor, no CRC, just modular arithmetic.</p>";
 
   /* Per-channel quality comparison */
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>PER-CHANNEL DENOISING QUALITY (SNR: higher = better)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Channel</th><th style='padding:4px 8px;color:#666;font-size:10px'>Mod</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>Noisy SNR</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>Denoised SNR</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>Improvement</th></tr>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
+  mut html = html + "<tr style='border-bottom:1px solid #333'>";
+  mut html = html + "<th style='padding:4px 12px;color:#666;font-size:10px'>Channel</th>";
+  mut html = html + "<th style='padding:4px 8px;color:#ff6666;font-size:10px'>Noisy SNR</th>";
+  mut html = html + "<th style='padding:4px 8px;color:#44ff88;font-size:10px'>Denoised SNR</th>";
+  mut html = html + "<th style='padding:4px 8px;color:#ffd700;font-size:10px'>Improvement</th></tr>";
 
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let snr_noisy = channel_quality(original, noisy, w, h, ch) in
     let snr_clean = channel_quality(original, denoised, w, h, ch) in
     let improvement = if snr_noisy > 0 then snr_clean * 100 / (snr_noisy + 1) else 0 in
     let chc = if ch == 0 then "#ff6666" else if ch == 1 then "#44ff88" else if ch == 2 then "#ff6666"
-      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else "#44ff88" in
+      else if ch == 3 then "#ff6666" else if ch == 4 then "#44ff88" else if ch == 5 then "#44ff88"
+      else "#44ff88" in
     let nc = if snr_noisy < 3 then "#ff6666" else if snr_noisy < 10 then "#ffd700" else "#88ff44" in
     let dc = if snr_clean < 5 then "#ff6666" else if snr_clean < 20 then "#ffd700" else "#44ff88" in
     let ic = if improvement > 200 then "#44ff88" else if improvement > 100 then "#ffd700" else "#ff6666" in
-    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + md_ch_name(ch) + "</td>";
-    mut html = html + "<td style='padding:3px 8px;color:#888;font-size:11px'>" + "${md_mod(ch)}" + "</td>";
+    mut html = html + "<tr><td style='padding:3px 12px;color:" + chc + ";font-size:12px;font-weight:bold'>" + md_ch_label(ch) + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:" + nc + ";font-size:12px;text-align:center'>" + "${snr_noisy}" + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:" + dc + ";font-size:12px;text-align:center'>" + "${snr_clean}" + "</td>";
     mut html = html + "<td style='padding:3px 8px;color:" + ic + ";font-size:12px;font-weight:bold;text-align:center'>" + "${improvement}" + "%</td></tr>";
@@ -295,11 +325,11 @@ fn demo_medical_run() = (
   );
   mut html = html + "</table>";
 
-  /* 490 split */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
-  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: carry IMAGE DATA (tissue density, fine structure, organ detail)</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: carry IMAGE INTEGRITY (structure consistency, error detection, boundary)</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Medical denoising IS error correction. L=11 detects corrupted pixels. K and G channels provide structural consistency checks. Denoise DEAD channels aggressively (they carry noise-sensitive data). Preserve ALIVE channels (they carry structure that should be invariant under noise).</p>";
+  /* 3+4 data/parity split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>3+4 DATA/PARITY SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>Data channels {mod 8, mod 25, mod 49}: carry image data (tissue density, fine structure, organ detail)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>Parity channels {mod 9, mod 11, mod 13, mod 17}: carry image integrity (structure consistency, error detection, tissue type)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Medical denoising IS error correction. mod-11 detects corrupted pixels. Parity channels provide structural consistency checks. Denoise data channels aggressively (they carry noise-sensitive data). Preserve parity channels (they carry structure that should be invariant under noise).</p>";
 
   mut html = html + "</div>";
   dom_inner(result_el, html)
@@ -315,7 +345,7 @@ fn demo_medical_batch() = (
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>NOISE SWEEP: " + "${n_levels}" + " levels x " + "${w}" + "x" + "${h}" + " phantom</p>";
 
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Noise</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>Noisy SNR</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>Denoised SNR</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>L=11 Flagged</th><th style='padding:4px 8px;color:#666;font-size:10px'>Recovery</th></tr>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Noise</th><th style='padding:4px 8px;color:#ff6666;font-size:10px'>Noisy SNR</th><th style='padding:4px 8px;color:#44ff88;font-size:10px'>Denoised SNR</th><th style='padding:4px 8px;color:#ffd700;font-size:10px'>mod-11 Flagged</th><th style='padding:4px 8px;color:#666;font-size:10px'>Recovery</th></tr>";
 
   let original = gen_phantom(w, h, 42) in
   mut lev = 0;
@@ -325,17 +355,17 @@ fn demo_medical_batch() = (
     let denoised = denoise_image(noisy, w, h) in
     let corrupted = detect_corruption(noisy, w, h) in
 
-    /* Average SNR across all channels */
+    /* Average SNR across all 7 channels */
     mut total_noisy = 0;
     mut total_clean = 0;
     mut ch = 0;
-    while ch < 6 do (
+    while ch < 7 do (
       mut total_noisy = total_noisy + channel_quality(original, noisy, w, h, ch);
       mut total_clean = total_clean + channel_quality(original, denoised, w, h, ch);
       mut ch = ch + 1
     );
-    let avg_noisy = total_noisy / 6 in
-    let avg_clean = total_clean / 6 in
+    let avg_noisy = total_noisy / 7 in
+    let avg_clean = total_clean / 7 in
 
     mut n_flag = 0;
     mut i = 0;
@@ -357,46 +387,46 @@ fn demo_medical_batch() = (
     mut lev = lev + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT denoising improves SNR at every noise level. L=11 detection rate increases with noise (more corrupted pixels to catch). Recovery = denoised_SNR / noisy_SNR. >100% = improvement. The algebra does the work.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT denoising improves SNR at every noise level. mod-11 detection rate increases with noise (more corrupted pixels to catch). Recovery = denoised_SNR / noisy_SNR. >100% = improvement. The algebra does the work.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 fn page_medical() = (
-  dom_head_meta("description", "CRT Medical Image Denoising. L=11 ECC for medical imaging. Per-channel denoise. Zero training data. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Medical Image Denoising\",\"description\":\"CRT-decomposed medical image denoising. L=11 corruption detection. Per-channel averaging. Zero training data. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/medical\"}");
+  dom_head_meta("description", "CRT Medical Image Denoising in Z/214,414,200. 7-channel decomposition. mod-11 error detection. Zero training data. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Medical Image Denoising\",\"description\":\"CRT-decomposed medical image denoising in Z/214,414,200. 7-channel decomposition. mod-11 corruption detection. Per-channel averaging. Zero training data. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/medical\"}");
   let hero = make_hero("CRT Medical Image Denoising") in
   let eq = dom_create("div") in
-  dom_text(eq, "C23: Siemens Healthineers / GE Healthcare / Philips. CC0.");
+  dom_text(eq, "Siemens Healthineers / GE Healthcare / Philips. CC0.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Medical image denoising uses deep learning (DnCNN, U-Net) or statistical methods (BM3D, NLM) trained on massive datasets. Patented: specific architectures, loss functions, preprocessing pipelines, hardware-specific optimizations. CRT approach: medical image pixels encoded in Z/12612600. 6 CRT channels = 6 independent noise dimensions. L=11 = corruption detector (FREE from algebra). Per-channel neighborhood averaging = denoising. No training data. No neural network. No GPU. Demonstrated on synthetic phantom images.");
+  render_p(hero, "Medical image denoising uses deep learning (DnCNN, U-Net) or statistical methods (BM3D, NLM) trained on massive datasets. Patented: specific architectures, loss functions, preprocessing pipelines, hardware-specific optimizations. CRT approach: medical image pixels encoded in Z/214,414,200. 7 CRT channels = 7 independent noise dimensions. mod-11 = corruption detector (free from algebra). Per-channel neighborhood averaging = denoising. No training data. No neural network. No GPU. Demonstrated on synthetic phantom images.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Medical Denoising Theorem", "Medical image pixels in Z/12612600 decompose into 6 CRT channels. Noise affects channels independently (CRT independence). L=11 corruption detection via DATA subring parity: predict L from {D,K,E,b,GATE} reconstruction, compare to actual L. Detection rate ~92% (deltas divisible by 11 are invisible). Per-channel denoising: 3x3 neighborhood average within each channel separately. Reconstruction via CRT. Result: denoised image with per-channel improvement. 490 split: DEAD={D,E,b} channels carry noise-sensitive image DATA. ALIVE={K,L,G} channels carry noise-resistant image STRUCTURE. Denoise DEAD aggressively, preserve ALIVE. Medical denoising IS error correction.");
+  render_theorem(sec1, "CRT Medical Denoising Theorem", "Medical image pixels in Z/214,414,200 decompose into 7 CRT channels. Noise affects channels independently (CRT independence). mod-11 corruption detection: predict mod-11 residue from other channels, compare to actual. Detection rate ~92% (deltas divisible by 11 are invisible). Per-channel denoising: 3x3 neighborhood average within each channel separately. Reconstruction via CRT. Result: denoised image with per-channel improvement. 3+4 split: data channels {mod 8, mod 25, mod 49} carry noise-sensitive image content. Parity channels {mod 9, mod 11, mod 13, mod 17} carry noise-resistant structure. Denoise data aggressively, preserve parity. Medical denoising IS error correction.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "L=11 detection", "~92% via DATA parity", "Predicts L from data channels. Deltas divisible by 11 invisible. No threshold tuning.", "");
+  render_finding(g1, "mod-11 detection", "~92% via parity", "Predicts mod-11 residue from other channels. Deltas divisible by 11 invisible. No threshold tuning.", "");
   render_finding(g1, "Zero training", "Algebraic", "No labeled data. No neural network. No GPU hours. Pure modular arithmetic.", "");
-  render_finding(g1, "Per-channel", "Independent", "Each channel denoised separately. No cross-channel artifact propagation.", "");
-  render_finding(g1, "490 split", "Data vs integrity", "DEAD channels = noise-sensitive data. ALIVE channels = structural integrity. Selective denoising.", "");
+  render_finding(g1, "Per-channel", "Independent", "Each of the 7 channels denoised separately. No cross-channel artifact propagation.", "");
+  render_finding(g1, "3+4 split", "Data vs parity", "Data channels = noise-sensitive content. Parity channels = structural integrity. Selective denoising.", "");
   dom_append(dom_body(), sec1);
 
   let sec_cvs = make_section("900px") in
   render_h2(sec_cvs, "Phantom Visualization (Canvas)");
   make_interactive_widget(sec_cvs, "Noise level (1-10):", "dmd-cvs-input", "e.g. 3", "Render Phantom", "demo_medical_canvas_run", "dmd-cvs");
-  render_p(sec_cvs, "Side-by-side: original phantom, noisy + L=11 corruption (red pixels), CRT denoised. Rendered in one cvs_blit call. Upscaled 4x with pixelated rendering.");
+  render_p(sec_cvs, "Side-by-side: original phantom, noisy + mod-11 corruption (red pixels), CRT denoised. 7-channel CRT in Z/214,414,200. Rendered in one cvs_blit call.");
   dom_append(dom_body(), sec_cvs);
 
   let sec2 = make_section("900px") in
   render_h2(sec2, "Denoising Demo (Table)");
   make_interactive_widget(sec2, "Noise level (1-10):", "dmd-input", "e.g. 3", "Denoise Phantom", "demo_medical_run", "dmd-result");
-  render_p(sec2, "Synthetic medical phantom (chest cross-section: lungs, heart, spine, tissue). Add noise at specified level. L=11 detects corrupted pixels. Per-channel 3x3 averaging denoises. SNR improvement per channel measured.");
+  render_p(sec2, "Synthetic medical phantom (chest cross-section: lungs, heart, spine, tissue). Add noise at specified level. mod-11 detects corrupted pixels. Per-channel 3x3 averaging denoises. SNR improvement across 7 channels measured.");
   dom_append(dom_body(), sec2);
 
   let sec3 = make_section("900px") in
@@ -416,16 +446,16 @@ fn page_medical() = (
   let br = dom_create("div") in
   dom_attr(br, "id", "dmd-batch");
   dom_append(sec3, br);
-  render_p(sec3, "6 noise levels on the same phantom. Measures: noisy SNR, denoised SNR, L=11 detection count, recovery ratio. CRT denoising improves quality at every noise level.");
+  render_p(sec3, "6 noise levels on the same phantom. Measures: noisy SNR, denoised SNR, mod-11 detection count, recovery ratio. CRT denoising improves quality at every noise level.");
   dom_append(dom_body(), sec3);
 
   let sec4 = make_section("800px") in
   render_h2(sec4, "CRT vs Traditional Medical Denoising");
-  render_contrast_row(sec4, "Method", "BM3D/NLM: block matching + collaborative filtering (complex, patent-adjacent)", "CRT: 6 independent channel averages. Per-channel. No blocks. No search.");
+  render_contrast_row(sec4, "Method", "BM3D/NLM: block matching + collaborative filtering (complex, patent-adjacent)", "CRT: 7 independent channel averages. Per-channel. No blocks. No search.");
   render_contrast_row(sec4, "Deep learning", "DnCNN/U-Net: millions of parameters, GPU training on labeled pairs", "Zero parameters. Zero training. CRT per-channel averaging.");
-  render_contrast_row(sec4, "Detection", "Statistical outlier tests (threshold-dependent)", "L=11: algebraic detection (11/12 per fat channel). Threshold-free.");
+  render_contrast_row(sec4, "Detection", "Statistical outlier tests (threshold-dependent)", "mod-11: algebraic detection. Threshold-free.");
   render_contrast_row(sec4, "Hardware", "GPU inference (NVIDIA Clara), FPGA accelerators (patented)", "Integer arithmetic. Any CPU. No accelerator needed.");
-  render_contrast_row(sec4, "Validation", "Requires ground truth dataset for PSNR/SSIM measurement", "Per-channel SNR measurable without ground truth (L=11 self-check).");
+  render_contrast_row(sec4, "Validation", "Requires ground truth dataset for PSNR/SSIM measurement", "Per-channel SNR measurable without ground truth (mod-11 self-check).");
   render_contrast_row(sec4, "Patent status", "Siemens (US10878543), GE (US11100616), Philips (various MRI/CT patents)", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec4)
 )

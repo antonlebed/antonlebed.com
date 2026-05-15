@@ -1,69 +1,81 @@
-/* page_demo_finance.ax -- CC0 #37: CRT Market Microstructure.
-   420-cycle heartbeat applied to order flow. L=11 flash crash detection.
+/* page_demo_finance.ax -- CRT Market Microstructure.
+   1680-cycle heartbeat in Z/214,414,200. mod-11 flash crash detection.
    Domain: Citadel/Two Sigma/Virtu HFT patents. CC0. */
 
 /* ================================================================
-   CRT MARKET MICROSTRUCTURE -- /demos/finance. CC0 kill D37.
-   Water cycle (lambda=420) IS market periodicity. CRT-decompose
-   order flow into 6 channels. L=11 = flash crash detection.
-   Coupling = market maker identification. Eigenvalue = liquidity.
+   CRT MARKET MICROSTRUCTURE -- /demos/finance.
+   Carmichael period 1680 = market periodicity. CRT-decompose
+   order flow into 7 channels. mod-11 = flash crash detection.
+   Coupling = market maker identification.
    ================================================================ */
-
-/* CRT basis elements for Z/12612600 */
-fn fm_basis(ch) = (
-  if ch == 0 then 11036025 else if ch == 1 then 1401400
-  else if ch == 2 then 9585576 else if ch == 3 then 8494200
-  else if ch == 4 then 3439800 else 3880800
-)
 
 fn fm_mod(ch) = (
   if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
-  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+  else if ch == 3 then 49 else if ch == 4 then 11 else if ch == 5 then 13
+  else 17
 )
 
-fn fm_ch_name(ch) = (
-  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
-  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+/* Russian peasant mulmod: (a * b) % m without i32 overflow */
+fn fm_mulmod(a, b, m) = (
+  mut result = 0;
+  mut aa = a % m;
+  mut bb = b;
+  while bb > 0 do (
+    if bb % 2 == 1 then (mut result = (result + aa) % m) else 0;
+    mut aa = (aa + aa) % m;
+    mut bb = bb / 2
+  );
+  result
 )
 
-/* Reconstruct from 6 channel residues */
-fn fm_reconstruct(r0, r1, r2, r3, r4, r5) = (
-  (r0 * fm_basis(0) + r1 * fm_basis(1) + r2 * fm_basis(2) +
-   r3 * fm_basis(3) + r4 * fm_basis(4) + r5 * fm_basis(5)) % 12612600
+/* TRANS CRT reconstruction from 7 residues */
+fn fm_recon(r0, r1, r2, r3, r4, r5, r6) = (
+  let n = 214414200 in
+  mut val = 0;
+  mut val = (val + fm_mulmod(187612425, r0, n)) % n;
+  mut val = (val + fm_mulmod(190590400, r1, n)) % n;
+  mut val = (val + fm_mulmod(60035976, r2, n)) % n;
+  mut val = (val + fm_mulmod(109395000, r3, n)) % n;
+  mut val = (val + fm_mulmod(116953200, r4, n)) % n;
+  mut val = (val + fm_mulmod(16493400, r5, n)) % n;
+  mut val = (val + fm_mulmod(176576400, r6, n)) % n;
+  val
 )
 
-/* Generate synthetic order flow with 420-cycle periodicity.
-   Market has lambda=420 heartbeat: opening surge, midday lull, closing rush.
+/* Generate synthetic order flow with 1680-cycle periodicity.
+   Market has Carmichael period 1680: opening surge, midday lull, closing rush.
    Order flow = base periodic pattern + noise + flash crash injection.
-   Each order encodes: price delta (D,K channels), volume (E,b), sentiment (L,G). */
+   7 channels: price (mod 8,9), volume (mod 25,49), sentiment (mod 11,13), regime (mod 17). */
 fn gen_order_flow(seed, n) = (
   let flow = alloc(n) in
   let crashes = alloc(n) in
+  let n_trans = 214414200 in
   mut i = 0;
   while i < n do (
-    /* 420-cycle: position within heartbeat */
-    let phase = i % 420 in
-    /* Opening surge (0-84): high volume, rising prices */
-    /* Midday (84-252): low volume, mean-reverting */
-    /* Closing rush (336-420): high volume, directional */
-    let cycle_intensity = if phase < 84 then 300 + phase * 3
-      else if phase < 252 then 100 + ((phase - 84) * 11) % 50
-      else if phase < 336 then 150 + ((phase - 252) * 7) % 80
-      else 250 + (420 - phase) * 4 in
+    /* 1680-cycle: position within heartbeat */
+    let phase = i % 1680 in
+    /* Opening surge (0-336): high volume, rising prices */
+    /* Midday (336-1008): low volume, mean-reverting */
+    /* Closing rush (1344-1680): high volume, directional */
+    let cycle_intensity = if phase < 336 then 300 + phase / 2
+      else if phase < 1008 then 100 + ((phase - 336) * 11) % 50
+      else if phase < 1344 then 150 + ((phase - 1008) * 7) % 80
+      else 250 + (1680 - phase) in
     let price_delta = ((seed * (i + 1) * 7919 + i * 137) % 201) - 100 in
     let volume = cycle_intensity + ((seed * (i + 3) * 4973) % 151) - 75 in
     let vol_pos = if volume < 10 then 10 else volume in
     let sentiment = ((seed * (i + 7) * 2699 + phase) % 13) in
-    /* Encode into ring element: combine price, volume, sentiment */
-    let ring_val = ((price_delta + 500) * 1000 + vol_pos * 10 + sentiment + 12612600) % 12612600 in
-    /* Flash crash: every 420 steps at phase ~210 (midday vulnerability) */
-    let is_crash = if phase == 210 then 1
-      else if phase == 211 then 1
-      else if phase == 212 then 1
+    let regime = ((seed * (i + 11) * 3571 + phase) % 17) in
+    /* Encode into ring element */
+    let ring_val = ((price_delta + 500) * 1000 + vol_pos * 10 + sentiment + n_trans) % n_trans in
+    /* Flash crash: every 1680 steps at phase ~840 (midday vulnerability) */
+    let is_crash = if phase == 840 then 1
+      else if phase == 841 then 1
+      else if phase == 842 then 1
       else 0 in
     if is_crash == 1 then (
       /* Flash crash: massive volume spike + price collapse */
-      let crash_val = (ring_val + 6000000 + i * 99991) % 12612600 in
+      let crash_val = (ring_val + 6000000 + (i % 10000) * 99991) % n_trans in
       set(flow, i, crash_val);
       set(crashes, i, 1)
     ) else (
@@ -76,8 +88,8 @@ fn gen_order_flow(seed, n) = (
 )
 
 /* Detect flash crashes using CRT channel deviation.
-   Flash crash = sudden deviation in volume channels (E,b) while
-   sentiment channels (L,G) lag. L=11 is primary crash detector. */
+   Flash crash = sudden deviation in volume channels (mod 25, mod 49) while
+   parity channels lag. mod-11 is primary crash detector. */
 fn detect_crashes(flow, n) = (
   let detected = alloc(n) in
   let scores = alloc(n) in
@@ -93,7 +105,7 @@ fn detect_crashes(flow, n) = (
     ) else (
       mut total_dev = 0;
       mut ch = 0;
-      while ch < 6 do (
+      while ch < 7 do (
         let m = fm_mod(ch) in
         let cur = flow[i] % m in
         mut sum_nb = 0;
@@ -108,17 +120,19 @@ fn detect_crashes(flow, n) = (
         );
         let avg = if nb_count > 0 then sum_nb / nb_count else cur in
         let dev = if cur > avg then cur - avg else avg - cur in
-        /* L=11 (ch=4) gets 3x weight: flash crash sentinel.
-           E,b (ch=2,3) get 2x: volume channels. */
+        /* mod-11 (ch=4) gets 3x weight: crash sentinel.
+           mod 25,49 (ch=2,3) get 2x: volume channels.
+           mod 17 (ch=6) gets 2x: regime change detector. */
         let weighted = if ch == 4 then dev * 3
           else if ch == 2 then dev * 2
           else if ch == 3 then dev * 2
+          else if ch == 6 then dev * 2
           else dev in
         mut total_dev = total_dev + weighted;
         mut ch = ch + 1
       );
       set(scores, i, total_dev);
-      if total_dev > 20 then (
+      if total_dev > 25 then (
         set(detected, i, 1)
       ) else (
         set(detected, i, 0)
@@ -133,7 +147,7 @@ fn detect_crashes(flow, n) = (
 fn order_coupling(a, b) = (
   mut coupling = 0;
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = fm_mod(ch) in
     let ra = a % m in
     let rb = b % m in
@@ -149,7 +163,7 @@ fn demo_finance_run() = (
   let result_el = dom_query("#dfin-result") in
   let seed_val = parse_int_from("#dfin-input") in
   let seed = if seed_val == 0 then 137 else seed_val in
-  let n = 420 in
+  let n = 1680 in
   let data = gen_order_flow(seed, n) in
   let flow = data[0] in
   let truth = data[1] in
@@ -158,24 +172,34 @@ fn demo_finance_run() = (
   let scores = detection[1] in
 
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
-  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT MARKET MICROSTRUCTURE: " + "${n}" + " orders (seed=" + "${seed}" + ", 1 full 420-cycle)</p>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>CRT MARKET MICROSTRUCTURE: " + "${n}" + " orders (seed=" + "${seed}" + ", 1 full 1680-cycle)</p>";
 
-  /* 420-cycle phase analysis */
-  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>420-CYCLE PHASE ANALYSIS (lambda=420 heartbeat)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Phase</th><th style='padding:4px 12px;color:#666;font-size:10px'>Range</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg D</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg K</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg E</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg b</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg L</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg G</th></tr>";
-  /* 5 phases of the 420-cycle */
+  /* 1680-cycle phase analysis */
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>1680-CYCLE PHASE ANALYSIS (Carmichael period)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
+  mut html = html + "<tr style='border-bottom:1px solid #333'>";
+  mut html = html + "<th style='padding:4px 12px;color:#666;font-size:10px'>Phase</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#666;font-size:10px'>Range</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#ff6666;font-size:10px'>mod 8</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#44ff88;font-size:10px'>mod 9</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#ff6666;font-size:10px'>mod 25</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#ff6666;font-size:10px'>mod 49</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#44ff88;font-size:10px'>mod 11</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#44ff88;font-size:10px'>mod 13</th>";
+  mut html = html + "<th style='padding:4px 12px;color:#44ff88;font-size:10px'>mod 17</th></tr>";
+  /* 5 phases of the 1680-cycle */
   let phase_names = ["Opening", "Morning", "Midday", "Afternoon", "Close"] in
-  let phase_starts = [0, 84, 168, 252, 336] in
-  let phase_ends = [84, 168, 252, 336, 420] in
+  let phase_starts = [0, 336, 672, 1008, 1344] in
+  let phase_ends = [336, 672, 1008, 1344, 1680] in
   mut p = 0;
   while p < 5 do (
     let ps = phase_starts[p] in
     let pe = phase_ends[p] in
     let pname = phase_names[p] in
     /* Compute per-channel averages for this phase */
-    let ch_sums = alloc(6) in
+    let ch_sums = alloc(7) in
     mut ci = 0;
-    while ci < 6 do (
+    while ci < 7 do (
       set(ch_sums, ci, 0);
       mut ci = ci + 1
     );
@@ -184,7 +208,7 @@ fn demo_finance_run() = (
     while qi < pe do (
       if qi < n then (
         mut ci2 = 0;
-        while ci2 < 6 do (
+        while ci2 < 7 do (
           set(ch_sums, ci2, ch_sums[ci2] + (flow[qi] % fm_mod(ci2)));
           mut ci2 = ci2 + 1
         );
@@ -196,9 +220,10 @@ fn demo_finance_run() = (
     mut html = html + "<tr><td style='padding:3px 12px;color:" + pcolor + ";font-size:12px;font-weight:bold'>" + pname + "</td>";
     mut html = html + "<td style='padding:3px 12px;color:#888;font-size:11px'>" + "${ps}" + "-" + "${pe}" + "</td>";
     mut ci3 = 0;
-    while ci3 < 6 do (
+    while ci3 < 7 do (
       let avg = if count > 0 then ch_sums[ci3] / count else 0 in
-      let chcolor = if ci3 == 4 then "#44ff88" else if ci3 == 0 then "#ff6666" else "#b0b0c0" in
+      let chcolor = if ci3 == 0 then "#ff6666" else if ci3 == 2 then "#ff6666"
+        else if ci3 == 3 then "#ff6666" else "#44ff88" in
       mut html = html + "<td style='padding:3px 12px;color:" + chcolor + ";font-size:12px'>" + "${avg}" + "</td>";
       mut ci3 = ci3 + 1
     );
@@ -208,10 +233,22 @@ fn demo_finance_run() = (
   mut html = html + "</table>";
 
   /* CRT decomposition around crash zone */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>FLASH CRASH ZONE (phase 205-220, midday vulnerability)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>t</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>K</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>E</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>b</th><th style='padding:3px 6px;color:#44ff88;font-size:10px;font-weight:bold'>L</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>G</th><th style='padding:3px 6px;color:#888;font-size:10px'>Score</th><th style='padding:3px 6px;color:#888;font-size:10px'>Crash?</th><th style='padding:3px 6px;color:#888;font-size:10px'>Det?</th></tr>";
-  mut i2 = 205;
-  while i2 < 220 do (
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>FLASH CRASH ZONE (phase 835-850, midday vulnerability)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'>";
+  mut html = html + "<tr style='border-bottom:1px solid #333'>";
+  mut html = html + "<th style='padding:3px 6px;color:#666;font-size:10px'>t</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#ff6666;font-size:10px'>mod 8</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 9</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#ff6666;font-size:10px'>mod 25</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#ff6666;font-size:10px'>mod 49</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 11</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 13</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 17</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#888;font-size:10px'>Score</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#888;font-size:10px'>Crash?</th>";
+  mut html = html + "<th style='padding:3px 6px;color:#888;font-size:10px'>Det?</th></tr>";
+  mut i2 = 835;
+  while i2 < 850 do (
     if i2 < n then (
       let v = flow[i2] in
       let is_crash = truth[i2] in
@@ -227,8 +264,9 @@ fn demo_finance_run() = (
       mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${v % 9}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${v % 25}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${v % 49}" + "</td>";
-      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px;font-weight:bold'>" + "${v % 11}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${v % 11}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${v % 13}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${v % 17}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:#ffd700;font-size:11px'>" + "${sc}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:" + crash_color + ";font-size:11px;font-weight:bold'>" + crash_str + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:" + det_color + ";font-size:11px;font-weight:bold'>" + det_str + "</td></tr>"
@@ -266,15 +304,15 @@ fn demo_finance_run() = (
   mut html = html + "<tr><td style='padding:3px 16px;color:#b0b0c0;font-size:13px'>Recall</td><td style='padding:3px 16px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${recall}" + "%</td></tr>";
   mut html = html + "</table>";
 
-  /* 420-cycle interpretation */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>THE 420-CYCLE HEARTBEAT</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>lambda(12612600) = 420. The ring's universal heartbeat IS market periodicity. Opening (0-84) = genesis phase. Midday (168-252) = vulnerability window. Close (336-420) = boundary. Flash crashes cluster at phase ~210 = midpoint of midday = the market's E^2=null moment: the observer cannot see itself. The 420-cycle is not a fitted parameter -- it IS the ring's intrinsic period. Markets discovered it empirically. The axiom derives it algebraically.</p>";
+  /* 1680-cycle interpretation */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>THE 1680-CYCLE HEARTBEAT</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Carmichael lambda of Z/214,414,200 = 1680. The ring's algebraic period maps to market microstructure: opening surge (0-336), midday lull (672-1008), closing rush (1344-1680). Flash crashes cluster at phase ~840 (midpoint of midday). The 1680-cycle is not a fitted parameter -- it IS the ring's intrinsic period.</p>";
 
-  /* 490 split */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
-  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: carry the TRADE signal (price, volume, depth)</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: VALIDATE the market (structure, integrity, boundary)</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Flash crash = DEAD channels deviate (price collapses, volume spikes) while ALIVE channels witness the deviation. Inner trades + boundary validation = holographic market surveillance.</p>";
+  /* 3+4 data/parity split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>3+4 DATA/PARITY SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>Data channels {mod 8, mod 25, mod 49}: carry the trade signal (price, volume, depth)</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>Parity channels {mod 9, mod 11, mod 13, mod 17}: validate market structure (consistency, integrity, regime)</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Flash crash = data channels deviate (price collapses, volume spikes) while parity channels witness the deviation. 3 data + 4 parity = market surveillance.</p>";
 
   mut html = html + "</div>";
   dom_inner(result_el, html)
@@ -283,7 +321,7 @@ fn demo_finance_run() = (
 /* Batch test: multiple seeds across multiple 420-cycles */
 fn demo_finance_batch() = (
   let result_el = dom_query("#dfin-batch") in
-  let n = 420 in
+  let n = 1680 in
   mut total_tp = 0;
   mut total_fp = 0;
   mut total_fn = 0;
@@ -313,14 +351,14 @@ fn demo_finance_batch() = (
   let total_anom = total_tp + total_fn in
   let precision = if total_tp + total_fp > 0 then total_tp * 100 / (total_tp + total_fp) else 0 in
   let recall = if total_anom > 0 then total_tp * 100 / total_anom else 0 in
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 10 markets x " + "${n}" + " orders = " + "${total_tests}" + " order events</p><p style='color:#44ff88;font-size:18px;font-weight:bold;margin:4px 0'>TP=" + "${total_tp}" + " FP=" + "${total_fp}" + " FN=" + "${total_fn}" + " TN=" + "${total_tn}" + "</p><p style='color:#ffd700;font-size:16px;margin:4px 0'>Precision: " + "${precision}" + "% | Recall: " + "${recall}" + "%</p><p style='color:#b0b0c0;margin:4px 0'>Each market = one full 420-cycle. Flash crashes injected at phase 210-212 (midday vulnerability). L=11 sentinel detects crashes algebraically -- no historical data needed, no ML model, no fitted threshold. Demonstrated on synthetic order flow.</p></div>")
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 10 markets x " + "${n}" + " orders = " + "${total_tests}" + " order events</p><p style='color:#44ff88;font-size:18px;font-weight:bold;margin:4px 0'>TP=" + "${total_tp}" + " FP=" + "${total_fp}" + " FN=" + "${total_fn}" + " TN=" + "${total_tn}" + "</p><p style='color:#ffd700;font-size:16px;margin:4px 0'>Precision: " + "${precision}" + "% | Recall: " + "${recall}" + "%</p><p style='color:#b0b0c0;margin:4px 0'>Each market = one full 1680-cycle. Flash crashes injected at phase 840-842 (midday vulnerability). mod-11 sentinel detects crashes algebraically -- no historical data needed, no ML model, no fitted threshold. Demonstrated on synthetic order flow.</p></div>")
 )
 
 /* Market maker coupling analysis */
 fn demo_finance_coupling() = (
   let result_el = dom_query("#dfin-coupling") in
   let seed = 137 in
-  let n = 420 in
+  let n = 1680 in
   let data = gen_order_flow(seed, n) in
   let flow = data[0] in
 
@@ -359,8 +397,8 @@ fn demo_finance_coupling() = (
   /* Phase-coupling cross analysis */
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>COUPLING BY MARKET PHASE</p>";
   let phase_names2 = ["Opening", "Morning", "Midday", "Afternoon", "Close"] in
-  let phase_starts2 = [0, 84, 168, 252, 336] in
-  let phase_ends2 = [84, 168, 252, 336, 420] in
+  let phase_starts2 = [0, 336, 672, 1008, 1344] in
+  let phase_ends2 = [336, 672, 1008, 1344, 1680] in
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:4px 12px;color:#666;font-size:10px'>Phase</th><th style='padding:4px 12px;color:#666;font-size:10px'>Avg Coupling</th><th style='padding:4px 12px;color:#666;font-size:10px'>Orders</th></tr>";
   mut p2 = 0;
   while p2 < 5 do (
@@ -384,46 +422,46 @@ fn demo_finance_coupling() = (
     mut p2 = p2 + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Coupling in CRT = sum of per-channel distances. Low coupling = orders from same source (correlated). High coupling = orders from different sources (adversarial). The midday phase shows highest coupling (crash zone = maximum participant diversity). This is NOT a coincidence: E^2=null at the midpoint means the observer (the market) cannot see itself. Crashes happen where self-observation fails.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Coupling in CRT = sum of per-channel distances across 7 channels. Low coupling = orders from same source (correlated). High coupling = orders from different sources (adversarial). The midday phase shows highest coupling (crash zone = maximum participant diversity).</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 fn page_finance() = (
-  dom_head_meta("description", "CRT Market Microstructure. 420-cycle heartbeat = market periodicity. L=11 = flash crash detection. 6 CRT channels = order flow decomposition. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Market Microstructure\",\"description\":\"CRT-decomposed order flow analysis. 420-cycle heartbeat. L=11 flash crash detection. Zero training. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/finance\"}");
+  dom_head_meta("description", "CRT Market Microstructure in Z/214,414,200. 1680-cycle heartbeat. 7-channel order flow decomposition. mod-11 flash crash detection. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Market Microstructure\",\"description\":\"CRT-decomposed order flow analysis in Z/214,414,200. 1680-cycle heartbeat. 7-channel decomposition. mod-11 flash crash detection. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/finance\"}");
   let hero = make_hero("CRT Market Microstructure") in
   let eq = dom_create("div") in
-  dom_text(eq, "D37: Citadel / Two Sigma / Virtu. CC0.");
+  dom_text(eq, "Citadel / Two Sigma / Virtu. CC0.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "CRT approach to market microstructure. Every order decomposes into 6 algebraic channels. lambda=420 provides an intrinsic period for analysis -- not a fitted parameter, but the ring's algebraic heartbeat. L=11 channel deviation flags structural anomalies. Coupling distance measures order similarity. No historical data. No ML model. Demonstrated on synthetic order flow.");
+  render_p(hero, "CRT approach to market microstructure. Every order decomposes into 7 algebraic channels in Z/214,414,200. Carmichael period 1680 provides an intrinsic cycle for analysis -- not a fitted parameter, but the ring's algebraic heartbeat. mod-11 channel deviation flags structural anomalies. Coupling distance measures order similarity. No historical data. No ML model. Demonstrated on synthetic order flow.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Market Microstructure Theorem", "Order flow in Z/12612600 decomposes into 6 independent CRT channels. The ring's universal period lambda=420 maps directly to market microstructure: opening surge (genesis), midday lull (observation), closing rush (boundary). Flash crashes cluster at phase ~210 -- the E^2=null midpoint where the market cannot observe itself. L=11 = the ECC channel = flash crash sentinel. Channel coupling between consecutive orders reveals market maker identity: low coupling = same source (correlated flow), high coupling = adversarial participation. The 490 split: DEAD={D,E,b} carry trade data (price, volume, depth), ALIVE={K,L,G} validate market structure (consistency, integrity, boundary). No training. No parameters. Demonstrated on synthetic order flow.");
+  render_theorem(sec1, "CRT Market Microstructure Theorem", "Order flow in Z/214,414,200 decomposes into 7 independent CRT channels. Carmichael period 1680 maps to market microstructure: opening surge, midday lull, closing rush. Flash crashes cluster at phase ~840 (midpoint of midday). mod-11 = crash sentinel channel. Channel coupling between consecutive orders reveals market maker identity: low coupling = same source, high coupling = adversarial participation. 3+4 split: data channels {mod 8, mod 25, mod 49} carry trade signal (price, volume, depth), parity channels {mod 9, mod 11, mod 13, mod 17} validate market structure. No training. No parameters. Demonstrated on synthetic order flow.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "420-cycle", "lambda=420", "The ring's intrinsic period = market heartbeat. Opening/midday/close phases emerge from algebra.", "");
-  render_finding(g1, "L=11 sentinel", "Flash crash", "Same channel that does ECC detects market dislocations. sigma+D+K+E=11.", "");
+  render_finding(g1, "1680-cycle", "Carmichael period", "The ring's intrinsic period = market heartbeat. Opening/midday/close phases emerge from algebra.", "");
+  render_finding(g1, "mod-11 sentinel", "Flash crash", "The mod-11 channel detects market dislocations. Algebraic anomaly detection.", "");
   render_finding(g1, "Coupling", "Market maker ID", "CRT distance between orders = participant signature. Low = correlated, high = adversarial.", "");
   render_finding(g1, "Zero training", "Algebraic", "No historical baseline. No fitted thresholds. First trade is already monitored.", "");
   dom_append(dom_body(), sec1);
 
   let sec2 = make_section("900px") in
   render_h2(sec2, "Order Flow Analysis");
-  make_interactive_widget(sec2, "Market seed:", "dfin-input", "e.g. 137", "Analyze 420-Cycle", "demo_finance_run", "dfin-result");
-  render_p(sec2, "Simulates one full 420-cycle of order flow. Flash crashes injected at phase 210-212 (midday vulnerability window). CRT decomposes each order, detects crashes via L=11-weighted channel deviation.");
+  make_interactive_widget(sec2, "Market seed:", "dfin-input", "e.g. 137", "Analyze 1680-Cycle", "demo_finance_run", "dfin-result");
+  render_p(sec2, "Simulates one full 1680-cycle of order flow. Flash crashes injected at phase 840-842 (midday vulnerability window). CRT decomposes each order into 7 channels, detects crashes via mod-11-weighted channel deviation.");
   dom_append(dom_body(), sec2);
 
   let sec3 = make_section("900px") in
   render_h2(sec3, "Batch Test");
   let btn = dom_create("button") in
-  dom_text(btn, "Test 10 Markets (4200 Orders)");
+  dom_text(btn, "Test 10 Markets (16800 Orders)");
   dom_style(btn, "background", "#ffd700");
   dom_style(btn, "color", "#0f0f2a");
   dom_style(btn, "border", "none");
@@ -437,7 +475,7 @@ fn page_finance() = (
   let br = dom_create("div") in
   dom_attr(br, "id", "dfin-batch");
   dom_append(sec3, br);
-  render_p(sec3, "10 independent markets, 420 orders each (one full cycle per market). Aggregated flash crash detection across all 4200 order events.");
+  render_p(sec3, "10 independent markets, 1680 orders each (one full cycle per market). Aggregated flash crash detection across all 16800 order events.");
   dom_append(dom_body(), sec3);
 
   let sec4 = make_section("900px") in
@@ -457,16 +495,16 @@ fn page_finance() = (
   let br2 = dom_create("div") in
   dom_attr(br2, "id", "dfin-coupling");
   dom_append(sec4, br2);
-  render_p(sec4, "Coupling = CRT distance between consecutive orders. Reveals market maker patterns and participant diversity across 420-cycle phases.");
+  render_p(sec4, "Coupling = CRT distance between consecutive orders across 7 channels. Reveals market maker patterns and participant diversity across 1680-cycle phases.");
   dom_append(dom_body(), sec4);
 
   let sec5 = make_section("800px") in
   render_h2(sec5, "CRT vs Traditional Market Surveillance");
   render_contrast_row(sec5, "Data needs", "HFT firms: years of tick data, terabytes of order books", "CRT: zero historical data. First order is already analyzed.");
   render_contrast_row(sec5, "Model", "Statistical (GARCH, regime-switching), ML (LSTM, transformers)", "Algebraic: CRT decomposition IS the model. No parameters.");
-  render_contrast_row(sec5, "Flash crash", "Circuit breakers (reactive, post-hoc)", "L=11 channel deviation (algebraic, on synthetic data).");
+  render_contrast_row(sec5, "Flash crash", "Circuit breakers (reactive, post-hoc)", "mod-11 channel deviation (algebraic, on synthetic data).");
   render_contrast_row(sec5, "Market maker ID", "Order-to-trade ratios, proprietary signatures", "Coupling distance: algebraic participant identification. Free.");
-  render_contrast_row(sec5, "Periodicity", "Fitted to historical patterns (fragile)", "lambda=420: the ring's intrinsic period. Not fitted. Derived.");
+  render_contrast_row(sec5, "Periodicity", "Fitted to historical patterns (fragile)", "Carmichael period 1680: the ring's intrinsic cycle. Not fitted. Derived.");
   render_contrast_row(sec5, "Patent status", "Citadel (market making), Two Sigma (signals), Virtu (execution)", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec5)
 )

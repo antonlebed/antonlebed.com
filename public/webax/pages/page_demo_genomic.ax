@@ -1,12 +1,13 @@
-/* page_demo_genomic.ax -- CC0 #28: CRT Genomic Sequence Alignment.
-   DNA codons -> Z/12612600. Wobble = CRT ECC tolerance.
+/* page_demo_genomic.ax -- CRT Genomic Sequence Alignment.
+   DNA codons -> Z/214414200 (TRANS ring, 7 channels). Wobble = CRT ECC tolerance.
    Domain: Illumina/PacBio/10x Genomics patents. CC0. */
 
 /* ================================================================
-   CRT GENOMIC ALIGNMENT -- /demos/genomic. CC0 kill D28.
+   CRT GENOMIC ALIGNMENT -- /demos/genomic.
    64 codons -> 20 amino acids via Z/3 x Z/7 natural ring.
    CRT channels decompose genetic information: codon position 1,2,3
-   separate into independent channels. Wobble tolerance = L=11 ECC.
+   separate into independent channels. Wobble tolerance = mod-11 ECC.
+   7th channel (mod 17) = amino acid polarity class.
    Alignment via coupling distance, not BLOSUM matrices.
    ================================================================ */
 
@@ -70,13 +71,76 @@ fn aa_name_3(idx) = (
   else if idx == 18 then "Arg" else if idx == 19 then "Gly" else "***"
 )
 
-/* Encode a codon into Z/12612600 using CRT.
-   Position 1 -> D channel (mod 8): 4 nucleotides fit in mod 8
-   Position 2 -> K channel (mod 9): 4 nucleotides fit in mod 9
-   Position 3 -> E channel (mod 25): wobble position, larger modulus = more tolerance
-   AA identity -> b channel (mod 49): 21 AA values fit in mod 49
-   Wobble class -> L channel (mod 11): wobble tolerance group
-   GC content -> G channel (mod 13): stability indicator */
+/* Amino acid polarity class (0-16 for mod 17 channel).
+   Hydrophobic AAs get low values, polar mid, charged high. Stop=0. */
+fn aa_polarity(idx) = (
+  /* F=0 L=1 I=2 M=3 V=4 S=5 P=6 T=7 A=8 Y=9 H=10 Q=11 N=12 K=13 D=14 E=15 C=16 W=17 R=18 G=19 stop=20 */
+  /* Hydrophobic (0-5): Phe=0,Leu=1,Ile=2,Met=3,Val=4,Ala=8,Trp=17,Pro=6 */
+  if idx == 0 then 1       /* Phe - hydrophobic */
+  else if idx == 1 then 2  /* Leu - hydrophobic */
+  else if idx == 2 then 3  /* Ile - hydrophobic */
+  else if idx == 3 then 4  /* Met - hydrophobic */
+  else if idx == 4 then 5  /* Val - hydrophobic */
+  else if idx == 6 then 0  /* Pro - hydrophobic */
+  else if idx == 8 then 3  /* Ala - hydrophobic */
+  else if idx == 17 then 2 /* Trp - hydrophobic */
+  /* Polar (6-11): Ser=5,Thr=7,Asn=12,Gln=11,Cys=16,Tyr=9,His=10 */
+  else if idx == 5 then 7  /* Ser - polar */
+  else if idx == 7 then 8  /* Thr - polar */
+  else if idx == 9 then 9  /* Tyr - polar */
+  else if idx == 10 then 10 /* His - polar */
+  else if idx == 11 then 11 /* Gln - polar */
+  else if idx == 12 then 6  /* Asn - polar */
+  else if idx == 16 then 7  /* Cys - polar */
+  /* Charged (12-16): Lys=13,Arg=18,Asp=14,Glu=15 */
+  else if idx == 13 then 14 /* Lys - charged */
+  else if idx == 14 then 12 /* Asp - charged */
+  else if idx == 15 then 13 /* Glu - charged */
+  else if idx == 18 then 15 /* Arg - charged */
+  else if idx == 19 then 16 /* Gly - tiny/special */
+  else 0  /* Stop */
+)
+
+/* Russian peasant mulmod for TRANS idempotents -- prevents i32 overflow. */
+fn gn_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
+)
+
+fn gn_red(x) = (let m = 214414200 in if x >= m then x - m else x)
+
+/* CRT reconstruct from 7 genomic channels into Z/214414200.
+   n1=pos1, n2=pos2, n3=pos3(wobble), aa=AA id, wob=wobble class,
+   gc=GC content, pol=polarity class */
+fn gn_recon(n1, n2, n3, aa, wob, gc, pol) = (
+  let idem = [187612425, 190590400, 60035976, 109395000, 116953200, 16493400, 176576400] in
+  let r0 = gn_mulmod(n1, idem[0]) in
+  let r1 = gn_red(r0 + gn_mulmod(n2, idem[1])) in
+  let r2 = gn_red(r1 + gn_mulmod(n3, idem[2])) in
+  let r3 = gn_red(r2 + gn_mulmod(aa, idem[3])) in
+  let r4 = gn_red(r3 + gn_mulmod(wob, idem[4])) in
+  let r5 = gn_red(r4 + gn_mulmod(gc, idem[5])) in
+  gn_red(r5 + gn_mulmod(pol, idem[6]))
+)
+
+/* Encode a codon into Z/214414200 using CRT (TRANS ring, 7 channels).
+   Position 1 -> mod 8 channel: 4 nucleotides fit in mod 8
+   Position 2 -> mod 9 channel: 4 nucleotides fit in mod 9
+   Position 3 -> mod 25 channel: wobble position, larger modulus = more tolerance
+   AA identity -> mod 49 channel: 21 AA values fit in mod 49
+   Wobble class -> mod 11 channel: wobble tolerance group
+   GC content -> mod 13 channel: stability indicator
+   Polarity -> mod 17 channel: amino acid polarity class */
 fn codon_to_ring(n1, n2, n3) = (
   let aa = codon_to_aa(n1, n2, n3) in
   let gc = (if n1 == 1 then 1 else if n1 == 2 then 1 else 0)
@@ -88,17 +152,16 @@ fn codon_to_ring(n1, n2, n3) = (
     else if aa == 1 then 6 else if aa == 18 then 6 else if aa == 5 then 6  /* Leu, Arg, Ser = 6 */
     else if aa == 2 then 3  /* Ile = 3 */
     else 2 in  /* most = 2 or 4, simplified */
-  let e0 = 11036025 in let e1 = 1401400 in let e2 = 9585576 in
-  let e3 = 8494200 in let e4 = 3439800 in let e5 = 3880800 in
-  (n1 * e0 + n2 * e1 + n3 * e2 + aa * e3 + wobble * e4 + gc * e5) % 12612600
+  let pol = aa_polarity(aa) in
+  gn_recon(n1, n2, n3, aa, wobble, gc, pol)
 )
 
-/* Coupling distance between two codons in the ring */
+/* Coupling distance between two codons in the ring (7 channels) */
 fn codon_coupling(ring_a, ring_b) = (
-  let mods = [8, 9, 25, 49, 11, 13] in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
   mut dist = 0;
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = mods[ch] in
     let ra = ring_a % m in
     let rb = ring_b % m in
@@ -150,8 +213,8 @@ fn demo_genomic_run() = (
   mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>Var: " + name_var + "</p>";
 
   /* Codon-by-codon alignment */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CODON ALIGNMENT (CRT decomposition)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Pos</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Ref</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Var</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA ref</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA var</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>Syn?</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>Coupling</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L dev</th></tr>";
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CODON ALIGNMENT (CRT decomposition, 7 channels)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Pos</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Ref</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Var</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA ref</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA var</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>Syn?</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>Coupling</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod-11 dev</th></tr>";
 
   mut total_syn = 0;
   mut total_nonsyn = 0;
@@ -217,13 +280,13 @@ fn demo_genomic_run() = (
 
   /* Wobble explanation */
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>WOBBLE = CRT ERROR TOLERANCE</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Synonymous mutations change the codon but preserve the amino acid. In CRT terms: the E channel (position 3, wobble position) changes but the b channel (AA identity, mod 49) stays the same. This structural similarity to CRT error correction is striking -- one channel changes, functional output preserved. Whether this reflects genuine CRT structure in the genetic code or coincidental similarity is an open question.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Synonymous mutations change the codon but preserve the amino acid. In CRT terms: the mod-25 channel (position 3, wobble position) changes but the mod-49 channel (AA identity) stays the same. The mod-17 polarity channel also stays close for synonymous substitutions. This structural similarity to CRT error correction is striking -- one channel changes, functional output preserved. Whether this reflects genuine CRT structure in the genetic code or coincidental similarity is an open question.</p>";
 
-  /* 490 split */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
-  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: codon positions 1,3 + AA identity = the GENETIC DATA</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: codon position 2 + wobble class + GC content = the VALIDATORS</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Inner channels encode the gene. Boundary channels ensure fidelity. This decomposition mirrors the 490 holographic split structure. Whether the genetic code actually implements holographic coding is unproved.</p>";
+  /* 3+4 data/parity split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>3+4 DATA/PARITY SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>3 data channels {mod 8, mod 25, mod 49}: codon positions 1,3 + AA identity = the GENETIC DATA</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>4 parity channels {mod 9, mod 11, mod 13, mod 17}: position 2 + wobble class + GC content + polarity = VALIDATORS</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Data channels encode the gene. Parity channels ensure fidelity. This 3+4 decomposition into 7 independent channels gives rate 4/7 error correction for free. Whether the genetic code actually implements this coding structure is unproved.</p>";
 
   mut html = html + "</div>";
   dom_inner(result_el, html)
@@ -233,8 +296,8 @@ fn demo_genomic_run() = (
 fn demo_genomic_codons() = (
   let result_el = dom_query("#dgen-codons") in
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
-  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>GENETIC CODE: CRT DECOMPOSITION (all 64 codons)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Codon</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D:Pos1</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>K:Pos2</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>E:Pos3</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>b:AA</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L:Wob</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>G:GC</th></tr>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>GENETIC CODE: CRT DECOMPOSITION (7 channels, all 64 codons)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Codon</th><th style='padding:3px 6px;color:#888;font-size:10px'>AA</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>mod 8:Pos1</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 9:Pos2</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>mod 25:Pos3</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>mod 49:AA</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 11:Wob</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 13:GC</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>mod 17:Pol</th></tr>";
 
   /* Show representative codons (16 of 64 to keep table readable) */
   let show_n1 = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3] in
@@ -259,13 +322,14 @@ fn demo_genomic_codons() = (
       mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px'>" + "${ring % 25}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:11px;font-weight:bold'>" + "${ring % 49}" + "</td>";
       mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 11}" + "</td>";
-      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 13}" + "</td></tr>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 13}" + "</td>";
+      mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:11px'>" + "${ring % 17}" + "</td></tr>";
       mut n3 = n3 + 1
     );
     mut i = i + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:11px'>Notice: codons that encode the SAME amino acid share the SAME b-channel value (mod 49). The wobble position (3rd nucleotide) only changes the E-channel. This mirrors CRT error tolerance: one channel varies, the functional output is preserved. Whether DNA's degeneracy IS ring arithmetic remains an open question (see Theorem 51).</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:11px'>Notice: codons that encode the SAME amino acid share the SAME mod-49 channel value (AA identity). The wobble position (3rd nucleotide) only changes the mod-25 channel. The mod-17 polarity channel stays close for synonymous codons. This mirrors CRT error tolerance: one channel varies, the functional output is preserved.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
@@ -308,7 +372,7 @@ fn demo_genomic_distance() = (
     mut r = r + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT distance = sum of per-channel circular distances across all codons. Silent mutations (synonymous) have SMALL CRT distance because the b-channel (AA identity) is preserved. Non-synonymous mutations (sickle cell E6V) create LARGE CRT distance. The coupling metric IS evolutionary distance: functionally silent changes are algebraically close.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>CRT distance = sum of per-channel circular distances across all 7 channels. Silent mutations (synonymous) have SMALL CRT distance because the mod-49 channel (AA identity) and mod-17 channel (polarity) are preserved. Non-synonymous mutations (sickle cell E6V) create LARGE CRT distance. The coupling metric IS evolutionary distance: functionally silent changes are algebraically close.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
@@ -321,7 +385,7 @@ fn demo_genomic_wobble() = (
   mut ai = 0;
   while ai < 22 do (pure_aa[ai] = 0; mut ai = ai + 1);
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
-  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>WOBBLE PARTITION: 20 = D^3 + D^2*K = D^2*E</p>";
+  mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>WOBBLE PARTITION: 20 = 8 + 12 = 4*5</p>";
   mut html = html + "<table style='border-collapse:collapse;width:100%;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px;text-align:left'>Group</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=A</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=C</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=G</th><th style='padding:3px 6px;color:#888;font-size:10px'>n3=T</th><th style='padding:3px 6px;color:#ffd700;font-size:10px'>Pure?</th></tr>";
   mut n1 = 0;
   while n1 < 4 do (
@@ -357,38 +421,38 @@ fn demo_genomic_wobble() = (
   let non_wobble = 20 - pure_aa_count in
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>RESULT</p>";
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:8px'>";
-  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Pure wobble groups</td><td style='padding:3px 12px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${pure_count}" + " = D^3 = 8</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Pure wobble groups</td><td style='padding:3px 12px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${pure_count}" + " = 8</td></tr>";
   mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Wobble-tolerant AAs</td><td style='padding:3px 12px;color:#44ff88;font-size:14px;font-weight:bold'>" + "${pure_aa_count}" + "</td></tr>";
-  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Position-dependent AAs</td><td style='padding:3px 12px;color:#ff8844;font-size:14px;font-weight:bold'>" + "${non_wobble}" + " = D^2*K = 12</td></tr>";
-  mut html = html + "<tr style='border-top:1px solid #333'><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Total amino acids</td><td style='padding:3px 12px;color:#ffd700;font-size:14px;font-weight:bold'>20 = D^2*E = D^3 + D^2*K</td></tr>";
+  mut html = html + "<tr><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Position-dependent AAs</td><td style='padding:3px 12px;color:#ff8844;font-size:14px;font-weight:bold'>" + "${non_wobble}" + " = 12</td></tr>";
+  mut html = html + "<tr style='border-top:1px solid #333'><td style='padding:3px 12px;color:#b0b0c0;font-size:13px'>Total amino acids</td><td style='padding:3px 12px;color:#ffd700;font-size:14px;font-weight:bold'>20 = 8 + 12 = 4*5</td></tr>";
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>D^3 = 8 amino acids are fully wobble-tolerant: any nucleotide at position 3 preserves the amino acid. The remaining D^2*K = 12 are position-dependent. D^3 + D^2*K = D^2*(D+K) = D^2*E = 4*5 = 20 (chain equation D+K=E). OBSERVED: whether this partition reflects ring structure is an open question (Theorem 51).</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0;font-size:12px'>8 amino acids are fully wobble-tolerant: any nucleotide at position 3 preserves the amino acid. The remaining 12 are position-dependent. 8 + 12 = 4*5 = 20. OBSERVED: whether this partition reflects ring structure is an open question.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 fn page_genomic() = (
-  dom_head_meta("description", "CRT Genomic Sequence Alignment. DNA codons as ring elements. Wobble Decomposition: 20 AAs = D^3 + D^2*K. Coupling = evolutionary distance. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Genomic Sequence Alignment\",\"description\":\"DNA codons in Z/12612600. Wobble Decomposition Theorem: 20 AAs = D^3 + D^2*K = D^2*E. Alignment via coupling distance. CC0.\",\"about\":[\"wobble hypothesis\",\"genetic code\",\"Theorem 51\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/genomic\"}");
+  dom_head_meta("description", "CRT Genomic Sequence Alignment. DNA codons as elements of Z/214,414,200 (7 channels). Wobble decomposition: 20 AAs = 8 + 12. Coupling = evolutionary distance. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Genomic Sequence Alignment\",\"description\":\"DNA codons in Z/214,414,200 (7 channels). Wobble decomposition: 20 AAs = 8 + 12 = 4*5. Alignment via coupling distance. CC0.\",\"about\":[\"wobble hypothesis\",\"genetic code\",\"CRT alignment\"],\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/genomic\"}");
   let hero = make_hero("CRT Genomic Sequence Alignment") in
   let eq = dom_create("div") in
-  dom_text(eq, "D28: Illumina / PacBio / 10x Genomics. CC0.");
+  dom_text(eq, "Illumina / PacBio / 10x Genomics. CC0.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Genomic sequence alignment uses BLOSUM substitution matrices and dynamic programming -- expensive, heuristic, patented. CRT approach: encode each codon as a ring element in Z/12612600. The 6 CRT channels naturally separate: positions 1-3 map to D,K,E channels, amino acid identity to b channel, wobble degeneracy to L, GC content to G. Alignment = coupling distance. Synonymous mutations = small CRT distance (b channel preserved). The genetic code has striking structural parallels to a CRT code.");
+  render_p(hero, "Genomic sequence alignment uses BLOSUM substitution matrices and dynamic programming -- expensive, heuristic, patented. CRT approach: encode each codon as a ring element in Z/214,414,200. The 7 CRT channels naturally separate: positions 1-3 map to mod 8, mod 9, mod 25 channels, amino acid identity to mod 49, wobble degeneracy to mod 11, GC content to mod 13, polarity class to mod 17. Alignment = coupling distance. Synonymous mutations = small CRT distance (mod-49 channel preserved). The genetic code has striking structural parallels to a CRT code.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Genetic Code Theorem", "The standard genetic code maps 64 codons to 20 amino acids + stop. This degeneracy (wobble) is CRT error tolerance: synonymous codons differ only in the E channel (position 3) while the b channel (AA identity, mod 49) is preserved. CRT distance between sequences = sum of per-channel circular distances. Synonymous mutations have near-zero b-channel distance. Non-synonymous mutations create large b-channel jumps. L=11 = wobble class detector. The 490 split: DEAD={D,E,b} = genetic data, ALIVE={K,L,G} = validation channels.");
+  render_theorem(sec1, "CRT Genetic Code Theorem", "The standard genetic code maps 64 codons to 20 amino acids + stop. This degeneracy (wobble) is CRT error tolerance: synonymous codons differ only in the mod-25 channel (position 3) while the mod-49 channel (AA identity) is preserved. CRT distance between sequences = sum of per-channel circular distances across all 7 channels. Synonymous mutations have near-zero mod-49 distance. Non-synonymous mutations create large mod-49 jumps. mod-11 = wobble class detector. The 3+4 data/parity split: 3 data channels {mod 8, mod 25, mod 49} = genetic data, 4 parity channels {mod 9, mod 11, mod 13, mod 17} = validation.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "64 codons", "Ring elements", "Each codon = one number in Z/12612600. 6 channels = 6 genetic properties.", "");
-  render_finding(g1, "Wobble = ECC", "L=11 tolerance", "Synonymous substitutions change E channel only. b channel (AA) preserved.", "");
-  render_finding(g1, "Coupling = distance", "Evolutionary metric", "CRT distance between codons = functional distance. Silent mutations are algebraically close.", "");
+  render_finding(g1, "64 codons", "Ring elements", "Each codon = one number in Z/214,414,200. 7 channels = 7 genetic properties.", "");
+  render_finding(g1, "Wobble = ECC", "mod-11 tolerance", "Synonymous substitutions change mod-25 channel only. mod-49 channel (AA) preserved.", "");
+  render_finding(g1, "Coupling = distance", "Evolutionary metric", "CRT distance across 7 channels = functional distance. Silent mutations are algebraically close.", "");
   render_finding(g1, "No BLOSUM", "No matrix", "Substitution scoring from ring structure, not empirical log-odds matrices.", "");
   dom_append(dom_body(), sec1);
 
@@ -415,7 +479,7 @@ fn page_genomic() = (
   let br = dom_create("div") in
   dom_attr(br, "id", "dgen-codons");
   dom_append(sec2b, br);
-  render_p(sec2b, "32 representative codons showing CRT channel decomposition. Synonymous codons share b-channel values.");
+  render_p(sec2b, "32 representative codons showing CRT channel decomposition. Synonymous codons share mod-49 channel values.");
   dom_append(dom_body(), sec2b);
 
   let sec2c = make_section("900px") in
@@ -441,12 +505,12 @@ fn page_genomic() = (
   /* Section: Wobble Decomposition (Theorem 51) */
   let sec2d = make_section("900px") in
   render_h2(sec2d, "Wobble Decomposition");
-  render_theorem(sec2d, "Wobble-AA Partition (Theorem 51, OBSERVED)", "20 amino acids = D^3 + D^2*K = D^2*(D+K) = D^2*E. 8 amino acids (D^3) are fully wobble-tolerant: any nucleotide at position 3 preserves the amino acid. 12 amino acids (D^2*K) are position-dependent. The chain equation D + K = E gives 8 + 12 = 4*5 = 20. 64 codons = D^6. Whether this partition reflects ring structure in the genetic code is an open question.");
+  render_theorem(sec2d, "Wobble-AA Partition (OBSERVED)", "20 amino acids = 8 + 12 = 4*5. 8 amino acids are fully wobble-tolerant: any nucleotide at position 3 preserves the amino acid. 12 amino acids are position-dependent. 8 + 12 = 4*5 = 20. 64 codons = 4^3. Whether this partition reflects ring structure in the genetic code is an open question.");
   let g2d = make_findings_grid(sec2d) in
-  render_finding(g2d, "D^3 = 8", "Wobble-tolerant AAs", "Ala, Gly, Pro, Thr, Val, Leu*, Arg*, Ser*. All pos-3 variants give same AA.", "");
-  render_finding(g2d, "D^2*K = 12", "Position-dependent AAs", "Phe, Ile, Met, Tyr, His, Gln, Asn, Lys, Asp, Glu, Cys, Trp.", "");
-  render_finding(g2d, "D^2*E = 20", "Total amino acids", "8 + 12 = D^2*(D+K) = D^2*E. Chain equation D+K=E.", "");
-  render_finding(g2d, "D^6 = 64", "Total codons", "4^3 = 64. Three positions, four nucleotides each.", "");
+  render_finding(g2d, "8 wobble-tolerant", "Pure wobble AAs", "Ala, Gly, Pro, Thr, Val, Leu*, Arg*, Ser*. All pos-3 variants give same AA.", "");
+  render_finding(g2d, "12 position-dependent", "Sensitive AAs", "Phe, Ile, Met, Tyr, His, Gln, Asn, Lys, Asp, Glu, Cys, Trp.", "");
+  render_finding(g2d, "20 total", "All amino acids", "8 + 12 = 4*5 = 20.", "");
+  render_finding(g2d, "64 codons", "4^3", "Three positions, four nucleotides each.", "");
   let btn3 = dom_create("button") in
   dom_text(btn3, "Compute Wobble Partition");
   dom_style(btn3, "background", "#44ff88");
@@ -462,16 +526,16 @@ fn page_genomic() = (
   let br3 = dom_create("div") in
   dom_attr(br3, "id", "dgen-wobble");
   dom_append(sec2d, br3);
-  render_p(sec2d, "Exhaustive classification of all 16 codon groups. * = AA also encoded by a non-pure group. Theorem 51 is OBSERVED: the partition is exact, but causal mechanism is unproved.");
+  render_p(sec2d, "Exhaustive classification of all 16 codon groups. * = AA also encoded by a non-pure group. OBSERVED: the partition is exact, but causal mechanism is unproved.");
   dom_append(dom_body(), sec2d);
 
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT vs Traditional Alignment");
   render_contrast_row(sec3, "Scoring", "BLOSUM/PAM: empirical log-odds substitution matrices", "CRT: algebraic coupling distance. No empirical fitting.");
   render_contrast_row(sec3, "Algorithm", "Smith-Waterman: O(mn) dynamic programming", "CRT: O(n) pairwise codon comparison (no insertions/deletions).");
-  render_contrast_row(sec3, "Synonymous", "Requires separate dN/dS ratio computation", "Automatic: b channel (AA identity) preserved = synonymous.");
-  render_contrast_row(sec3, "Wobble", "Empirical wobble rules (third position tolerance)", "CRT E-channel IS the wobble position. Tolerance = modular distance.");
-  render_contrast_row(sec3, "Error detection", "Quality scores (Phred), separate pipeline", "L=11 channel deviation = sequencing error. Free from ring.");
+  render_contrast_row(sec3, "Synonymous", "Requires separate dN/dS ratio computation", "Automatic: mod-49 channel (AA identity) preserved = synonymous.");
+  render_contrast_row(sec3, "Wobble", "Empirical wobble rules (third position tolerance)", "CRT mod-25 channel IS the wobble position. Tolerance = modular distance.");
+  render_contrast_row(sec3, "Error detection", "Quality scores (Phred), separate pipeline", "mod-11 channel deviation = sequencing error. Free from ring.");
   render_contrast_row(sec3, "Patent status", "Illumina (sequencing+alignment), PacBio (HiFi), 10x Genomics", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
 )

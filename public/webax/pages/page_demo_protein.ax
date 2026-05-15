@@ -1,68 +1,94 @@
-/* page_demo_protein.ax -- CC0 #29: CRT Protein Folding Proxy.
-   Amino acid contacts via CRT coupling. 6 channels = 6 interaction types.
-   Domain: DeepMind/Google AlphaFold, Meta ESMFold patents. CC0. */
+/* page_demo_protein.ax -- CRT Protein Folding Proxy.
+   7-channel TRANS (Z/214,414,200). Amino acid contacts via CRT coupling.
+   7 channels = 7 interaction types. CC0. */
 
 /* ================================================================
-   CRT PROTEIN FOLDING PROXY -- /demos/protein. CC0 kill F29.
-   20 amino acids -> Z/12612600 residues. Contact prediction via
-   CRT channel coupling. 6 channels = hydrophobic, charge, size,
-   H-bond, aromatic, backbone. Kingdom = fold class.
+   CRT PROTEIN FOLDING PROXY -- /demos/protein.
+   20 amino acids -> Z/214,414,200 residues. Contact prediction via
+   CRT channel coupling. 7 channels = hydrophobic, charge, size,
+   H-bond, aromatic, backbone, secondary structure propensity.
    ================================================================ */
 
 /* Amino acid properties encoded as ring elements.
-   Each AA gets a value in Z/12612600 based on its physical properties.
-   The 6 CRT channels naturally separate into 6 interaction types:
-     D (mod 8):  hydrophobicity (0=polar, 7=hydrophobic)
-     K (mod 9):  charge class (0=neg, 4=neutral, 8=pos)
-     E (mod 25): size/volume (small=low, large=high)
-     b (mod 49): H-bond capacity (donor+acceptor count mapped)
-     L (mod 11): aromaticity (0=none, 5=aromatic, 10=strong)
-     G (mod 13): backbone flexibility (0=rigid, 12=flexible)
+   Each AA gets a value in Z/214,414,200 based on its physical properties.
+   The 7 CRT channels naturally separate into 7 interaction types:
+     mod 8:  hydrophobicity (0=polar, 7=hydrophobic)
+     mod 9:  charge class (0=neg, 4=neutral, 8=pos)
+     mod 25: size/volume (small=low, large=high)
+     mod 49: H-bond capacity (donor+acceptor count mapped)
+     mod 11: aromaticity (0=none, 5=aromatic, 10=strong)
+     mod 13: backbone flexibility (0=rigid, 12=flexible)
+     mod 17: secondary structure propensity (0=coil, 8=helix, 16=sheet)
 */
 
-/* Map amino acid single-letter code to ring element.
-   20 standard amino acids. Returns ring value encoding properties. */
-fn aa_to_ring(code) = (
-  /* Hydro, Charge, Size, Hbond, Arom, Flex -> CRT reconstruct */
-  /* G=Gly  */ if code == 71 then crt6_prot(1, 4, 1, 2, 0, 12)
-  /* A=Ala  */ else if code == 65 then crt6_prot(4, 4, 3, 1, 0, 10)
-  /* V=Val  */ else if code == 86 then crt6_prot(6, 4, 10, 1, 0, 6)
-  /* L=Leu  */ else if code == 76 then crt6_prot(6, 4, 12, 1, 0, 7)
-  /* I=Ile  */ else if code == 73 then crt6_prot(7, 4, 12, 1, 0, 5)
-  /* P=Pro  */ else if code == 80 then crt6_prot(5, 4, 8, 0, 0, 1)
-  /* F=Phe  */ else if code == 70 then crt6_prot(7, 4, 16, 1, 8, 4)
-  /* W=Trp  */ else if code == 87 then crt6_prot(7, 4, 20, 3, 10, 3)
-  /* M=Met  */ else if code == 77 then crt6_prot(6, 4, 14, 1, 0, 7)
-  /* S=Ser  */ else if code == 83 then crt6_prot(1, 4, 4, 4, 0, 9)
-  /* T=Thr  */ else if code == 84 then crt6_prot(2, 4, 6, 4, 0, 8)
-  /* C=Cys  */ else if code == 67 then crt6_prot(5, 4, 5, 3, 0, 7)
-  /* Y=Tyr  */ else if code == 89 then crt6_prot(3, 4, 17, 5, 7, 4)
-  /* H=His  */ else if code == 72 then crt6_prot(1, 6, 13, 5, 5, 5)
-  /* D=Asp  */ else if code == 68 then crt6_prot(0, 1, 7, 6, 0, 8)
-  /* E=Glu  */ else if code == 69 then crt6_prot(0, 1, 10, 6, 0, 9)
-  /* N=Asn  */ else if code == 78 then crt6_prot(0, 4, 8, 6, 0, 8)
-  /* Q=Gln  */ else if code == 81 then crt6_prot(0, 4, 11, 6, 0, 9)
-  /* K=Lys  */ else if code == 75 then crt6_prot(0, 8, 13, 5, 0, 10)
-  /* R=Arg  */ else if code == 82 then crt6_prot(0, 8, 16, 8, 0, 9)
-  else 0
+/* Russian peasant mulmod for TRANS idempotents. */
+fn prot_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
 )
 
-/* CRT reconstruct from 6 protein property channels */
-fn crt6_prot(h, c, s, hb, ar, fl) = (
-  let e0 = 11036025 in let e1 = 1401400 in let e2 = 9585576 in
-  let e3 = 8494200 in let e4 = 3439800 in let e5 = 3880800 in
-  (h * e0 + c * e1 + s * e2 + ar * e4 + hb * e3 + fl * e5) % 12612600
+fn prot_red(x) = (let m = 214414200 in if x >= m then x - m else x)
+
+/* CRT reconstruct from 7 protein property channels.
+   h=hydro, c=charge, s=size, hb=H-bond, ar=aromatic, fl=flex, ss=SS propensity */
+fn crt7_prot(h, c, s, hb, ar, fl, ss) = (
+  let idem = [187612425, 190590400, 60035976, 109395000, 116953200, 16493400, 176576400] in
+  let r0 = prot_mulmod(h, idem[0]) in
+  let r1 = prot_red(r0 + prot_mulmod(c, idem[1])) in
+  let r2 = prot_red(r1 + prot_mulmod(s, idem[2])) in
+  let r3 = prot_red(r2 + prot_mulmod(hb, idem[3])) in
+  let r4 = prot_red(r3 + prot_mulmod(ar, idem[4])) in
+  let r5 = prot_red(r4 + prot_mulmod(fl, idem[5])) in
+  prot_red(r5 + prot_mulmod(ss, idem[6]))
+)
+
+/* Map amino acid single-letter code to ring element.
+   20 standard amino acids. Returns ring value encoding 7 properties.
+   7th param = secondary structure propensity (0=coil, ~8=helix, ~16=sheet) */
+fn aa_to_ring(code) = (
+  /* Hydro, Charge, Size, Hbond, Arom, Flex, SS -> CRT reconstruct */
+  /* G=Gly  */ if code == 71 then crt7_prot(1, 4, 1, 2, 0, 12, 2)
+  /* A=Ala  */ else if code == 65 then crt7_prot(4, 4, 3, 1, 0, 10, 14)
+  /* V=Val  */ else if code == 86 then crt7_prot(6, 4, 10, 1, 0, 6, 15)
+  /* L=Leu  */ else if code == 76 then crt7_prot(6, 4, 12, 1, 0, 7, 12)
+  /* I=Ile  */ else if code == 73 then crt7_prot(7, 4, 12, 1, 0, 5, 15)
+  /* P=Pro  */ else if code == 80 then crt7_prot(5, 4, 8, 0, 0, 1, 1)
+  /* F=Phe  */ else if code == 70 then crt7_prot(7, 4, 16, 1, 8, 4, 13)
+  /* W=Trp  */ else if code == 87 then crt7_prot(7, 4, 20, 3, 10, 3, 12)
+  /* M=Met  */ else if code == 77 then crt7_prot(6, 4, 14, 1, 0, 7, 11)
+  /* S=Ser  */ else if code == 83 then crt7_prot(1, 4, 4, 4, 0, 9, 5)
+  /* T=Thr  */ else if code == 84 then crt7_prot(2, 4, 6, 4, 0, 8, 12)
+  /* C=Cys  */ else if code == 67 then crt7_prot(5, 4, 5, 3, 0, 7, 9)
+  /* Y=Tyr  */ else if code == 89 then crt7_prot(3, 4, 17, 5, 7, 4, 13)
+  /* H=His  */ else if code == 72 then crt7_prot(1, 6, 13, 5, 5, 5, 8)
+  /* D=Asp  */ else if code == 68 then crt7_prot(0, 1, 7, 6, 0, 8, 5)
+  /* E=Glu  */ else if code == 69 then crt7_prot(0, 1, 10, 6, 0, 9, 13)
+  /* N=Asn  */ else if code == 78 then crt7_prot(0, 4, 8, 6, 0, 8, 4)
+  /* Q=Gln  */ else if code == 81 then crt7_prot(0, 4, 11, 6, 0, 9, 11)
+  /* K=Lys  */ else if code == 75 then crt7_prot(0, 8, 13, 5, 0, 10, 10)
+  /* R=Arg  */ else if code == 82 then crt7_prot(0, 8, 16, 8, 0, 9, 10)
+  else 0
 )
 
 /* Compute contact score between two amino acids.
    Higher = more likely to be in contact. Uses per-channel coupling. */
 fn contact_score(ring_a, ring_b) = (
-  let mods = [8, 9, 25, 49, 11, 13] in
-  /* Channel weights: hydrophobic contact (D) is strongest driver */
-  let weights = [4, 2, 1, 2, 3, 1] in
+  let mods = [8, 9, 25, 49, 11, 13, 17] in
+  /* Channel weights: hydrophobic contact (mod 8) is strongest driver */
+  let weights = [4, 2, 1, 2, 3, 1, 2] in
   mut score = 0;
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let m = mods[ch] in
     let ra = ring_a % m in
     let rb = ring_b % m in
@@ -72,16 +98,19 @@ fn contact_score(ring_a, ring_b) = (
     /* High hydrophobicity in both = attraction (low diff in D channel) */
     /* High charge opposite = attraction (diff near max in K channel) */
     let channel_score = if ch == 0 then (
-      /* D channel: hydrophobic pairing. Both high = contact */
+      /* mod-8 channel: hydrophobic pairing. Both high = contact */
       let min_h = if ra < rb then ra else rb in
       min_h * weights[ch]
     ) else if ch == 1 then (
-      /* K channel: charge complementarity. Opposite charges attract */
+      /* mod-9 channel: charge complementarity. Opposite charges attract */
       circ_diff * weights[ch]
     ) else if ch == 4 then (
-      /* L channel: aromatic stacking. Both aromatic = contact */
+      /* mod-11 channel: aromatic stacking. Both aromatic = contact */
       let min_ar = if ra < rb then ra else rb in
       min_ar * weights[ch]
+    ) else if ch == 6 then (
+      /* mod-17 channel: SS propensity similarity. Same class = contact */
+      (m - circ_diff) * weights[ch] / m
     ) else (
       /* Other channels: proximity contributes */
       (m - circ_diff) * weights[ch] / m
@@ -144,7 +173,7 @@ fn classify_fold(seq, n) = (
   let avg_h = sum_hydro / n in
   let avg_c = sum_charge / n in
   let avg_a = sum_arom / n in
-  /* Fold class = kingdom in CRT ring */
+  /* Fold class from channel averages */
   if avg_h > 4 then (
     if avg_a > 3 then "beta-barrel (membrane)" else "alpha-helix bundle (globular)"
   ) else if avg_c > 5 then "alpha+beta (mixed)"
@@ -183,20 +212,21 @@ fn demo_protein_run() = (
 
   /* CRT decomposition of first 10 residues */
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>CRT CHANNEL DECOMPOSITION (first 10 residues)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#666;font-size:11px'>Pos</th><th style='padding:3px 8px;color:#666;font-size:11px'>AA</th><th style='padding:3px 8px;color:#ff6666;font-size:11px'>D:Hydro</th><th style='padding:3px 8px;color:#44ff88;font-size:11px'>K:Charge</th><th style='padding:3px 8px;color:#ff6666;font-size:11px'>E:Size</th><th style='padding:3px 8px;color:#ff6666;font-size:11px'>b:H-bond</th><th style='padding:3px 8px;color:#44ff88;font-size:11px'>L:Arom</th><th style='padding:3px 8px;color:#44ff88;font-size:11px'>G:Flex</th></tr>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>Pos</th><th style='padding:3px 6px;color:#666;font-size:10px'>AA</th><th style='padding:3px 5px;color:#ff6666;font-size:9px'>mod 8</th><th style='padding:3px 5px;color:#44ff88;font-size:9px'>mod 9</th><th style='padding:3px 5px;color:#ff6666;font-size:9px'>mod 25</th><th style='padding:3px 5px;color:#ff6666;font-size:9px'>mod 49</th><th style='padding:3px 5px;color:#44ff88;font-size:9px'>mod 11</th><th style='padding:3px 5px;color:#44ff88;font-size:9px'>mod 13</th><th style='padding:3px 5px;color:#44ff88;font-size:9px'>mod 17</th></tr>";
   let show_n = if n < 10 then n else 10 in
   mut i = 0;
   while i < show_n do (
     let code = charCode(seq, i) in
     let rv = aa_to_ring(code) in
     let ch_str = charAt(seq, i) in
-    mut html = html + "<tr><td style='padding:2px 8px;color:#888;font-size:12px'>" + "${i}" + "</td><td style='padding:2px 8px;color:#ffd700;font-size:14px;font-weight:bold'>" + ch_str + "</td>";
-    mut html = html + "<td style='padding:2px 8px;color:#ff6666;font-size:12px'>" + "${rv % 8}" + "</td>";
-    mut html = html + "<td style='padding:2px 8px;color:#44ff88;font-size:12px'>" + "${rv % 9}" + "</td>";
-    mut html = html + "<td style='padding:2px 8px;color:#ff6666;font-size:12px'>" + "${rv % 25}" + "</td>";
-    mut html = html + "<td style='padding:2px 8px;color:#ff6666;font-size:12px'>" + "${rv % 49}" + "</td>";
-    mut html = html + "<td style='padding:2px 8px;color:#44ff88;font-size:12px'>" + "${rv % 11}" + "</td>";
-    mut html = html + "<td style='padding:2px 8px;color:#44ff88;font-size:12px'>" + "${rv % 13}" + "</td></tr>";
+    mut html = html + "<tr><td style='padding:2px 6px;color:#888;font-size:12px'>" + "${i}" + "</td><td style='padding:2px 6px;color:#ffd700;font-size:14px;font-weight:bold'>" + ch_str + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#ff6666;font-size:12px'>" + "${rv % 8}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#44ff88;font-size:12px'>" + "${rv % 9}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#ff6666;font-size:12px'>" + "${rv % 25}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#ff6666;font-size:12px'>" + "${rv % 49}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#44ff88;font-size:12px'>" + "${rv % 11}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#44ff88;font-size:12px'>" + "${rv % 13}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#44ff88;font-size:12px'>" + "${rv % 17}" + "</td></tr>";
     mut i = i + 1
   );
   mut html = html + "</table>";
@@ -277,15 +307,15 @@ fn demo_protein_run() = (
 
   /* Fold classification */
   let fold_class = classify_fold(seq, n) in
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>FOLD CLASSIFICATION (CRT Kingdom)</p>";
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>FOLD CLASSIFICATION</p>";
   mut html = html + "<p style='color:#44ff88;font-size:18px;font-weight:bold;margin:4px 0'>" + fold_class + "</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Fold class = kingdom in CRT ring. Channel averages map to structural class. D-channel (hydrophobicity) and L-channel (aromaticity) dominate fold determination.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Channel averages map to structural class. mod-8 (hydrophobicity) and mod-11 (aromaticity) dominate fold determination.</p>";
 
-  /* 490 split */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT</p>";
-  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DEAD channels {D,E,b}: physical properties (hydrophobicity, size, H-bonds) -- the FOLD DRIVERS</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>ALIVE channels {K,L,G}: interaction quality (charge, aromaticity, flexibility) -- the FOLD VALIDATORS</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Inner channels (490) determine the fold. Boundary channels verify it. Holographic: 3 encode 6.</p>";
+  /* 3+4 split */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>3+4 DATA/PARITY SPLIT</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>3 data channels {mod 8, mod 25, mod 49}: physical properties (hydrophobicity, size, H-bonds) -- FOLD DRIVERS</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>4 parity channels {mod 9, mod 11, mod 13, mod 17}: interaction quality (charge, aromaticity, flexibility, SS propensity) -- FOLD VALIDATORS</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>Data channels determine the fold. Parity channels verify it.</p>";
 
   mut html = html + "</div>";
   dom_inner(result_el, html)
@@ -300,7 +330,7 @@ fn demo_protein_channels() = (
 
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 8px;font-size:16px'>ALL 20 AMINO ACIDS: CRT CHANNEL DECOMPOSITION</p>";
-  mut html = html + "<table style='border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='padding:3px 6px;color:#666;font-size:10px'>AA</th><th style='padding:3px 6px;color:#666;font-size:10px'>Name</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>D:Hyd</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>K:Chg</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>E:Siz</th><th style='padding:3px 6px;color:#ff6666;font-size:10px'>b:Hbn</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>L:Aro</th><th style='padding:3px 6px;color:#44ff88;font-size:10px'>G:Flx</th><th style='padding:3px 6px;color:#888;font-size:10px'>Ring</th></tr>";
+  mut html = html + "<table style='border-collapse:collapse'><tr style='border-bottom:1px solid #333'><th style='padding:3px 5px;color:#666;font-size:9px'>AA</th><th style='padding:3px 5px;color:#666;font-size:9px'>Name</th><th style='padding:3px 4px;color:#ff6666;font-size:9px'>m8</th><th style='padding:3px 4px;color:#44ff88;font-size:9px'>m9</th><th style='padding:3px 4px;color:#ff6666;font-size:9px'>m25</th><th style='padding:3px 4px;color:#ff6666;font-size:9px'>m49</th><th style='padding:3px 4px;color:#44ff88;font-size:9px'>m11</th><th style='padding:3px 4px;color:#44ff88;font-size:9px'>m13</th><th style='padding:3px 4px;color:#44ff88;font-size:9px'>m17</th><th style='padding:3px 5px;color:#888;font-size:9px'>Ring</th></tr>";
   mut a = 0;
   while a < 20 do (
     let code = aa_codes[a] in
@@ -314,46 +344,47 @@ fn demo_protein_channels() = (
     mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:12px'>" + "${rv % 9}" + "</td>";
     mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:12px'>" + "${rv % 25}" + "</td>";
     mut html = html + "<td style='padding:2px 6px;color:#ff6666;font-size:12px'>" + "${rv % 49}" + "</td>";
-    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:12px'>" + "${rv % 11}" + "</td>";
-    mut html = html + "<td style='padding:2px 6px;color:#44ff88;font-size:12px'>" + "${rv % 13}" + "</td>";
-    mut html = html + "<td style='padding:2px 6px;color:#666;font-size:10px'>" + "${rv}" + "</td></tr>";
+    mut html = html + "<td style='padding:2px 4px;color:#44ff88;font-size:12px'>" + "${rv % 11}" + "</td>";
+    mut html = html + "<td style='padding:2px 4px;color:#44ff88;font-size:12px'>" + "${rv % 13}" + "</td>";
+    mut html = html + "<td style='padding:2px 4px;color:#44ff88;font-size:12px'>" + "${rv % 17}" + "</td>";
+    mut html = html + "<td style='padding:2px 5px;color:#666;font-size:10px'>" + "${rv}" + "</td></tr>";
     mut a = a + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:#b0b0c0;margin:8px 0 0;font-size:11px'>D-channel: orange=hydrophobic, blue=polar. Each amino acid's physical properties decompose naturally into 6 CRT channels. No training needed -- the ring structure IS the encoding.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:8px 0 0;font-size:11px'>mod-8 channel: orange=hydrophobic, blue=polar. Each amino acid's physical properties decompose naturally into 7 CRT channels. No training needed -- the ring structure is the encoding.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 fn page_protein() = (
-  dom_head_meta("description", "CRT Protein Folding Proxy. 20 amino acids as CRT ring elements. 6 channels = 6 interaction types. Contact prediction without neural networks. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Protein Folding Proxy\",\"description\":\"CRT-decomposed protein contact prediction. 20 amino acids in Z/12612600. 6 channels = 6 interaction types. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/protein\"}");
+  dom_head_meta("description", "CRT Protein Folding Proxy over Z/214,414,200. 20 amino acids as CRT ring elements. 7 channels = 7 interaction types. Contact prediction without neural networks. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Protein Folding Proxy\",\"description\":\"CRT-decomposed protein contact prediction. 20 amino acids in Z/214,414,200. 7 channels = 7 interaction types. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/protein\"}");
   let hero = make_hero("CRT Protein Folding Proxy") in
   let eq = dom_create("div") in
-  dom_text(eq, "F29: DeepMind AlphaFold / Meta ESMFold. CC0.");
+  dom_text(eq, "CRT approach to protein contact prediction over Z/214,414,200. CC0.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Protein structure prediction is dominated by neural networks with billions of parameters (AlphaFold, ESMFold). CRT approach: encode each amino acid's 6 physical properties into 6 CRT channels. Contact prediction = channel coupling. Fold classification = CRT kingdom. No training data. No GPU. No neural network. Just ring arithmetic on 20 amino acids.");
+  render_p(hero, "Protein structure prediction is dominated by neural networks with billions of parameters (AlphaFold, ESMFold). CRT approach: encode each amino acid's 7 physical properties into 7 CRT channels of Z/214,414,200. Contact prediction = channel coupling. Fold classification from channel averages. No training data. No GPU. No neural network. Just ring arithmetic on 20 amino acids.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT Protein Contact Theorem", "Each of the 20 amino acids maps to an element of Z/12612600 encoding 6 physical properties in 6 CRT channels: D (mod 8) = hydrophobicity, K (mod 9) = charge, E (mod 25) = size, b (mod 49) = H-bond capacity, L (mod 11) = aromaticity, G (mod 13) = backbone flexibility. Contact between residues i and j is predicted by channel coupling: high hydrophobicity in both (D channel), opposite charges (K channel), or mutual aromaticity (L channel). The 490 split: DEAD channels {D,E,b} = fold drivers. ALIVE channels {K,L,G} = fold validators.");
+  render_theorem(sec1, "CRT Protein Contact Theorem", "Each of the 20 amino acids maps to an element of Z/214,414,200 encoding 7 physical properties in 7 CRT channels: mod 8 = hydrophobicity, mod 9 = charge, mod 25 = size, mod 49 = H-bond capacity, mod 11 = aromaticity, mod 13 = backbone flexibility, mod 17 = secondary structure propensity. Contact between residues i and j is predicted by channel coupling: high hydrophobicity in both (mod-8 channel), opposite charges (mod-9 channel), or mutual aromaticity (mod-11 channel). 3+4 split: data channels (mod 8, 25, 49) = fold drivers. Parity channels (mod 9, 11, 13, 17) = fold validators.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "20 amino acids", "Ring elements", "Each AA = one number in Z/12612600. Physical properties split across 6 channels.", "");
-  render_finding(g1, "6 interaction types", "6 CRT channels", "Hydrophobic, charge, size, H-bond, aromatic, flexibility. Independent.", "");
-  render_finding(g1, "Contact prediction", "Channel coupling", "High coupling in D+L channels = predicted contact. No neural network.", "");
-  render_finding(g1, "Fold classification", "CRT kingdom", "Channel averages determine structural class. D+L dominate.", "");
+  render_finding(g1, "20 amino acids", "Ring elements", "Each AA = one number in Z/214,414,200. Physical properties split across 7 channels.", "");
+  render_finding(g1, "7 interaction types", "7 CRT channels", "Hydrophobic, charge, size, H-bond, aromatic, flexibility, SS propensity. Independent.", "");
+  render_finding(g1, "Contact prediction", "Channel coupling", "High coupling in mod-8 + mod-11 channels = predicted contact. No neural network.", "");
+  render_finding(g1, "Fold classification", "Channel averages", "Channel averages determine structural class. mod-8 + mod-11 dominate.", "");
   dom_append(dom_body(), sec1);
 
   let sec2 = make_section("900px") in
   render_h2(sec2, "Analyze Protein");
   make_interactive_widget(sec2, "Example (0-3):", "dprot-input", "0=hemoglobin, 1=lysozyme, 2=spike, 3=GFP", "Analyze", "demo_protein_run", "dprot-result");
-  render_p(sec2, "Select example protein. CRT decomposes each residue into 6 channels, predicts contacts, classifies fold type.");
+  render_p(sec2, "Select example protein. CRT decomposes each residue into 7 channels, predicts contacts, classifies fold type.");
   dom_append(dom_body(), sec2);
 
   let sec2b = make_section("900px") in
@@ -373,16 +404,16 @@ fn page_protein() = (
   let br = dom_create("div") in
   dom_attr(br, "id", "dprot-channels");
   dom_append(sec2b, br);
-  render_p(sec2b, "All 20 standard amino acids decomposed into 6 CRT channels. Physical properties are the channel values.");
+  render_p(sec2b, "All 20 standard amino acids decomposed into 7 CRT channels. Physical properties are the channel values.");
   dom_append(dom_body(), sec2b);
 
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT vs Neural Network Folding");
   render_contrast_row(sec3, "Parameters", "AlphaFold: 93M parameters, trained on 170K structures", "CRT: 20 ring values. Zero training.");
   render_contrast_row(sec3, "Compute", "GPU cluster, hours per prediction", "Ring arithmetic, microseconds");
-  render_contrast_row(sec3, "Channels", "Attention heads (opaque learned features)", "6 CRT channels = 6 named physical properties");
-  render_contrast_row(sec3, "Interpretability", "Black box: cannot explain WHY residues contact", "Transparent: D=hydrophobic, K=charge, L=aromatic");
-  render_contrast_row(sec3, "Error detection", "Separate confidence scores", "L=11 channel gives free integrity check");
+  render_contrast_row(sec3, "Channels", "Attention heads (opaque learned features)", "7 CRT channels = 7 named physical properties");
+  render_contrast_row(sec3, "Interpretability", "Black box: cannot explain WHY residues contact", "Transparent: mod 8=hydrophobic, mod 9=charge, mod 11=aromatic");
+  render_contrast_row(sec3, "Error detection", "Separate confidence scores", "mod-11 channel gives free integrity check");
   render_contrast_row(sec3, "Patent status", "DeepMind/Google (AlphaFold), Meta (ESMFold)", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
 )
