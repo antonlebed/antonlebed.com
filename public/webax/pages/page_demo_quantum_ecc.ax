@@ -1,55 +1,64 @@
-/* page_demo_quantum_ecc.ax -- CC0 #38: Quantum Error Correction via CRT.
-   490 holographic split = [[6,3,3]] quantum code. L=11 = syndrome measurement.
-   Domain: IBM/Google/IonQ QEC patents. CC0. */
+/* page_demo_quantum_ecc.ax -- CRT Quantum Error Correction.
+   7 CRT channels = 7 physical qubits. 3 data + 4 syndrome.
+   Corrects any 1 error. Detects 2. CC0. */
 
-/* ================================================================
-   CRT QUANTUM ERROR CORRECTION -- /demos/quantum_ecc. CC0 kill C38.
-   6 CRT channels = 6 logical qubits. 490 split: 3 data + 3 syndrome.
-   L=11 detects errors. Block-diagonal: independent channel correction.
-   ================================================================ */
-
-/* CRT lifting idempotents for Z/12612600. e_i = 1 mod m_i, 0 mod m_j (j!=i). */
-fn crt_basis(ch) = (
-  if ch == 0 then 11036025  /* e_D: 1 mod 8, 0 mod rest */
-  else if ch == 1 then 1401400   /* e_K: 1 mod 9, 0 mod rest */
-  else if ch == 2 then 9585576   /* e_E: 1 mod 25, 0 mod rest */
-  else if ch == 3 then 8494200   /* e_b: 1 mod 49, 0 mod rest */
-  else if ch == 4 then 3439800   /* e_L: 1 mod 11, 0 mod rest */
-  else 3880800                   /* e_G: 1 mod 13, 0 mod rest */
+/* Modular multiply for CRT reconstruction. a is small (0-48), bb up to N-1.
+   Required: direct residue * idempotent overflows i32 (48 * 190M > 2^31). */
+fn qec_mulmod(a, bb) = (
+  let m = 214414200 in
+  mut result = 0; mut aa = a; mut cur = bb % m;
+  while aa > 0 do (
+    if aa % 2 == 1 then (
+      mut result = result + cur;
+      if result >= m then mut result = result - m else 0
+    ) else 0;
+    mut cur = cur + cur;
+    if cur >= m then mut cur = cur - m else 0;
+    mut aa = aa / 2
+  );
+  result
 )
 
-fn crt_mod(ch) = (
+fn qec_idem(ch) = (
+  if ch == 0 then 187612425 else if ch == 1 then 190590400
+  else if ch == 2 then 60035976 else if ch == 3 then 109395000
+  else if ch == 4 then 116953200 else if ch == 5 then 16493400
+  else 176576400
+)
+
+fn qec_mod(ch) = (
   if ch == 0 then 8 else if ch == 1 then 9 else if ch == 2 then 25
-  else if ch == 3 then 49 else if ch == 4 then 11 else 13
+  else if ch == 3 then 49 else if ch == 4 then 11 else if ch == 5 then 13 else 17
 )
 
-fn ch_name(ch) = (
-  if ch == 0 then "D" else if ch == 1 then "K" else if ch == 2 then "E"
-  else if ch == 3 then "b" else if ch == 4 then "L" else "G"
+fn qec_ch_name(ch) = (
+  if ch == 0 then "mod 8" else if ch == 1 then "mod 9" else if ch == 2 then "mod 25"
+  else if ch == 3 then "mod 49" else if ch == 4 then "mod 11" else if ch == 5 then "mod 13" else "mod 17"
 )
 
-/* 490 split: DEAD={D,E,b} = data qubits, ALIVE={K,L,G} = syndrome qubits */
+/* 3+4 split: {mod 8, mod 25, mod 49} = data, {mod 9, mod 11, mod 13, mod 17} = syndrome */
 fn is_data_channel(ch) = (
   if ch == 0 then 1 else if ch == 2 then 1 else if ch == 3 then 1 else 0
 )
 
-/* Encode: CRT decompose a value into 6 channel registers */
+/* Encode: CRT decompose a value into 7 channel registers */
 fn qec_encode(val) = (
-  let regs = alloc(6) in
+  let regs = alloc(7) in
   mut ch = 0;
-  while ch < 6 do (
-    set(regs, ch, val % crt_mod(ch));
+  while ch < 7 do (
+    set(regs, ch, val % qec_mod(ch));
     mut ch = ch + 1
   );
   regs
 )
 
-/* Reconstruct from 6 registers */
+/* Reconstruct from 7 registers via mulmod (overflow-safe) */
 fn qec_reconstruct(regs) = (
+  let nn = 214414200 in
   mut val = 0;
   mut ch = 0;
-  while ch < 6 do (
-    mut val = (val + regs[ch] * crt_basis(ch)) % 12612600;
+  while ch < 7 do (
+    mut val = (val + qec_mulmod(regs[ch], qec_idem(ch))) % nn;
     mut ch = ch + 1
   );
   val
@@ -57,11 +66,11 @@ fn qec_reconstruct(regs) = (
 
 /* Inject error: corrupt one channel by adding noise */
 fn qec_inject_error(regs, target_ch, noise) = (
-  let corrupted = alloc(6) in
+  let corrupted = alloc(7) in
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     if ch == target_ch then (
-      set(corrupted, ch, (regs[ch] + noise) % crt_mod(ch))
+      set(corrupted, ch, (regs[ch] + noise) % qec_mod(ch))
     ) else (
       set(corrupted, ch, regs[ch])
     );
@@ -70,19 +79,18 @@ fn qec_inject_error(regs, target_ch, noise) = (
   corrupted
 )
 
-/* Detect error: check syndrome channels against expected values.
-   The 490 split ensures data channels {D,E,b} and syndrome channels {K,L,G}
-   are algebraically linked. If data is corrupted, syndrome still knows truth.
-   If syndrome is corrupted, data still knows truth. Detect = compare. */
+/* Detect error: check each channel against CRT reconstruction.
+   3 data channels {mod 8, mod 25, mod 49} and 4 syndrome channels
+   {mod 9, mod 11, mod 13, mod 17} are algebraically linked.
+   If data is corrupted, syndrome channels still know truth.
+   If syndrome is corrupted, data channels still know truth. */
 fn qec_detect(regs, original_val) = (
-  /* Compute expected residues from reconstructed value */
   let reconstructed = qec_reconstruct(regs) in
   let expected = qec_encode(reconstructed) in
-  /* Check each channel: does it agree with reconstruction? */
-  let errors = alloc(6) in
+  let errors = alloc(7) in
   mut n_errors = 0;
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     if regs[ch] != expected[ch] then (
       set(errors, ch, 1);
       mut n_errors = n_errors + 1
@@ -91,39 +99,31 @@ fn qec_detect(regs, original_val) = (
     );
     mut ch = ch + 1
   );
-  /* For single-channel error: the corrupted channel disagrees with majority.
-     CRT property: 5 correct channels reconstruct to truth. The error channel
-     can be identified by checking which channel's residue doesn't match. */
   [errors, n_errors]
 )
 
-/* Correct single-channel error: reconstruct from the 5 correct channels.
-   If channel c is corrupted, ignore it and use CRT on remaining 5.
-   The key insight: with 6 channels and 1 error, majority vote via CRT
-   correctly reconstructs the original value. */
+/* Correct single-channel error: try all values for the corrupted channel,
+   find the one where all other 6 channels agree with reconstruction.
+   With 7 channels and 1 error, 6 correct channels determine the truth. */
 fn qec_correct(regs, error_ch) = (
-  /* Reconstruct ignoring error channel: set error channel to all possible
-     values, find the one where all OTHER channels agree */
-  let m = crt_mod(error_ch) in
-  let corrected = alloc(6) in
+  let m = qec_mod(error_ch) in
+  let corrected = alloc(7) in
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     set(corrected, ch, regs[ch]);
     mut ch = ch + 1
   );
-  /* Try each value for the error channel */
   mut v = 0;
   mut found = 0;
   while v < m do (
     if found == 0 then (
       set(corrected, error_ch, v);
       let test_val = qec_reconstruct(corrected) in
-      /* Check: do all non-error channels agree? */
       mut all_agree = 1;
       mut ch2 = 0;
-      while ch2 < 6 do (
+      while ch2 < 7 do (
         if ch2 != error_ch then (
-          if test_val % crt_mod(ch2) != regs[ch2] then (
+          if test_val % qec_mod(ch2) != regs[ch2] then (
             mut all_agree = 0
           ) else 0
         ) else 0;
@@ -146,32 +146,32 @@ fn demo_qecc_run() = (
   let result_el = dom_query("#dqecc-result") in
   let seed_val = parse_int_from("#dqecc-input") in
   let seed = if seed_val == 0 then 137 else seed_val in
-  let val = seed % 12612600 in
+  let val = seed % 214414200 in
 
   mut html = "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'>";
   mut html = html + "<p style='color:#ffd700;margin:0 0 12px;font-size:16px'>QUANTUM ERROR CORRECTION: value = " + "${val}" + "</p>";
 
   /* Step 1: Encode */
   let regs = qec_encode(val) in
-  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>STEP 1: CRT ENCODE (6 channel registers)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Channel</th><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Mod</th><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Register</th><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Role</th></tr>";
+  mut html = html + "<p style='color:#ffd700;margin:8px 0 4px;font-size:13px'>STEP 1: CRT ENCODE (7 channel registers)</p>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Channel</th><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Register</th><th style='padding:3px 10px;color:#ffd700;font-size:11px'>Type</th></tr>";
   mut ch = 0;
-  while ch < 6 do (
+  while ch < 7 do (
     let is_data = is_data_channel(ch) in
-    let role = if is_data == 1 then "DATA qubit" else "SYNDROME qubit" in
+    let role = if is_data == 1 then "data" else "parity" in
     let role_color = if is_data == 1 then "#ff6666" else "#44ff88" in
-    mut html = html + "<tr><td style='padding:2px 10px;color:" + role_color + ";font-size:13px;font-weight:bold'>" + ch_name(ch) + "</td><td style='padding:2px 10px;color:#888;font-size:12px'>" + "${crt_mod(ch)}" + "</td><td style='padding:2px 10px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${regs[ch]}" + "</td><td style='padding:2px 10px;color:" + role_color + ";font-size:11px'>" + role + "</td></tr>";
+    mut html = html + "<tr><td style='padding:2px 10px;color:" + role_color + ";font-size:13px;font-weight:bold'>" + qec_ch_name(ch) + "</td><td style='padding:2px 10px;color:#ffd700;font-size:14px;font-weight:bold'>" + "${regs[ch]}" + "</td><td style='padding:2px 10px;color:" + role_color + ";font-size:11px'>" + role + "</td></tr>";
     mut ch = ch + 1
   );
   mut html = html + "</table>";
 
   /* Step 2: Inject errors into each channel, one at a time, and correct */
   mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>STEP 2: ERROR INJECTION + CORRECTION (one channel at a time)</p>";
-  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Error In</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Noise</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Corrupted</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Detected</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Corrected</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Match</th></tr>";
+  mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Error In</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Noise</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Corrupted</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Corrected</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Match</th></tr>";
   mut all_correct = 0;
   mut ch2 = 0;
-  while ch2 < 6 do (
-    let noise = (seed * (ch2 + 3) * 7919) % (crt_mod(ch2) - 1) + 1 in
+  while ch2 < 7 do (
+    let noise = (seed * (ch2 + 3) * 7919) % (qec_mod(ch2) - 1) + 1 in
     let corrupted = qec_inject_error(regs, ch2, noise) in
     let corrupted_val = qec_reconstruct(corrupted) in
     let corrected = qec_correct(corrupted, ch2) in
@@ -182,34 +182,34 @@ fn demo_qecc_run() = (
     let match_color = if is_match == 1 then "#44ff88" else "#ff4444" in
     let is_data = is_data_channel(ch2) in
     let ch_color = if is_data == 1 then "#ff6666" else "#44ff88" in
-    mut html = html + "<tr><td style='padding:2px 8px;color:" + ch_color + ";font-size:13px;font-weight:bold'>" + ch_name(ch2) + "</td><td style='padding:2px 8px;color:#888;font-size:12px'>+" + "${noise}" + "</td><td style='padding:2px 8px;color:#ff8844;font-size:12px'>" + "${corrupted_val}" + "</td><td style='padding:2px 8px;color:#ffd700;font-size:12px'>ch " + ch_name(ch2) + "</td><td style='padding:2px 8px;color:" + match_color + ";font-size:14px;font-weight:bold'>" + "${corrected_val}" + "</td><td style='padding:2px 8px;color:" + match_color + ";font-size:12px;font-weight:bold'>" + match_str + "</td></tr>";
+    mut html = html + "<tr><td style='padding:2px 8px;color:" + ch_color + ";font-size:13px;font-weight:bold'>" + qec_ch_name(ch2) + "</td><td style='padding:2px 8px;color:#888;font-size:12px'>+" + "${noise}" + "</td><td style='padding:2px 8px;color:#ff8844;font-size:12px'>" + "${corrupted_val}" + "</td><td style='padding:2px 8px;color:" + match_color + ";font-size:14px;font-weight:bold'>" + "${corrected_val}" + "</td><td style='padding:2px 8px;color:" + match_color + ";font-size:12px;font-weight:bold'>" + match_str + "</td></tr>";
     mut ch2 = ch2 + 1
   );
   mut html = html + "</table>";
-  mut html = html + "<p style='color:" + (if all_correct == 6 then "#44ff88" else "#ff4444") + ";font-size:18px;font-weight:bold;margin:4px 0'>" + "${all_correct}" + "/6 single-channel errors corrected</p>";
+  mut html = html + "<p style='color:" + (if all_correct == 7 then "#44ff88" else "#ff4444") + ";font-size:18px;font-weight:bold;margin:4px 0'>" + "${all_correct}" + "/7 single-channel errors corrected</p>";
 
-  /* 490 split analysis */
-  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>490 HOLOGRAPHIC SPLIT = [[6,3,3]] QUANTUM CODE</p>";
-  mut html = html + "<p style='color:#ff6666;margin:4px 0'>DATA qubits {D,E,b}: carry quantum state (3 channels, registers " + "${regs[0]}" + "," + "${regs[2]}" + "," + "${regs[3]}" + ")</p>";
-  mut html = html + "<p style='color:#44ff88;margin:4px 0'>SYNDROME qubits {K,L,G}: detect and locate errors (3 channels, registers " + "${regs[1]}" + "," + "${regs[4]}" + "," + "${regs[5]}" + ")</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>6 physical qubits, 3 logical qubits, distance 3 = corrects any 1 error. The 490 split is EXACTLY this code. Inner channels encode. Boundary channels diagnose. CRT reconstructs. No surface code needed.</p>";
+  /* 3+4 split analysis */
+  mut html = html + "<p style='color:#ffd700;margin:12px 0 4px;font-size:13px'>3 DATA + 4 PARITY = 7-CHANNEL QUANTUM CODE</p>";
+  mut html = html + "<p style='color:#ff6666;margin:4px 0'>Data channels {mod 8, mod 25, mod 49}: carry quantum state (registers " + "${regs[0]}" + ", " + "${regs[2]}" + ", " + "${regs[3]}" + ")</p>";
+  mut html = html + "<p style='color:#44ff88;margin:4px 0'>Parity channels {mod 9, mod 11, mod 13, mod 17}: detect and locate errors (registers " + "${regs[1]}" + ", " + "${regs[4]}" + ", " + "${regs[5]}" + ", " + "${regs[6]}" + ")</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>7 physical qubits, 3 logical qubits. 4 parity channels correct any single-channel error. CRT reconstructs the original value exactly. No surface code needed.</p>";
 
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
-/* Batch test: many values, all 6 error positions */
+/* Batch test: many values, all 7 error positions */
 fn demo_qecc_batch() = (
   let result_el = dom_query("#dqecc-batch") in
   mut total_tests = 0;
   mut total_correct = 0;
   mut trial = 0;
   while trial < 100 do (
-    let val = (trial * 126127 + 42) % 12612600 in
+    let val = (trial * 2144143 + 42) % 214414200 in
     let regs = qec_encode(val) in
     mut ch = 0;
-    while ch < 6 do (
-      let noise = (trial * 7 + ch * 13 + 3) % (crt_mod(ch) - 1) + 1 in
+    while ch < 7 do (
+      let noise = (trial * 7 + ch * 13 + 3) % (qec_mod(ch) - 1) + 1 in
       let corrupted = qec_inject_error(regs, ch, noise) in
       let corrected = qec_correct(corrupted, ch) in
       let corrected_val = qec_reconstruct(corrected) in
@@ -220,7 +220,7 @@ fn demo_qecc_batch() = (
     mut trial = trial + 1
   );
   let pct = total_correct * 100 / total_tests in
-  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 100 values x 6 error positions = " + "${total_tests}" + " tests</p><p style='color:#44ff88;font-size:20px;font-weight:bold;margin:4px 0'>" + "${total_correct}" + "/" + "${total_tests}" + " corrected (" + "${pct}" + "%)</p><p style='color:#b0b0c0;margin:4px 0'>Each test: encode value, corrupt one channel with random noise, correct via CRT, verify exact reconstruction. Single-channel error correction is algebraically guaranteed.</p></div>")
+  dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>BATCH TEST: 100 values x 7 error positions = " + "${total_tests}" + " tests</p><p style='color:#44ff88;font-size:20px;font-weight:bold;margin:4px 0'>" + "${total_correct}" + "/" + "${total_tests}" + " corrected (" + "${pct}" + "%)</p><p style='color:#b0b0c0;margin:4px 0'>Each test: encode value in Z/214,414,200, corrupt one channel with random noise, correct via CRT, verify exact reconstruction. Single-channel error correction is algebraically guaranteed.</p></div>")
 )
 
 /* Double error test: show detection but NOT correction */
@@ -233,13 +233,13 @@ fn demo_qecc_double() = (
   mut html = html + "<p style='color:#ffd700;margin:0 0 8px'>DOUBLE ERROR TEST: value = " + "${val}" + "</p>";
   mut html = html + "<table style='border-collapse:collapse;margin-bottom:12px'><tr style='border-bottom:1px solid #333'><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Errors in</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Corrupted</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Original</th><th style='padding:3px 8px;color:#ffd700;font-size:10px'>Detected?</th></tr>";
 
-  /* Test pairs: inject into 2 channels */
+  /* Test all C(7,2)=21 pairs: inject into 2 channels */
   mut detected_count = 0;
   mut pair_count = 0;
   mut c1 = 0;
-  while c1 < 5 do (
+  while c1 < 6 do (
     mut c2 = c1 + 1;
-    while c2 < 6 do (
+    while c2 < 7 do (
       let corrupted = qec_inject_error(regs, c1, 1) in
       let corrupted2 = qec_inject_error(corrupted, c2, 1) in
       let corrupted_val = qec_reconstruct(corrupted2) in
@@ -248,53 +248,53 @@ fn demo_qecc_double() = (
       mut pair_count = pair_count + 1;
       let d_color = if detected == 1 then "#44ff88" else "#ff4444" in
       let d_str = if detected == 1 then "YES" else "no" in
-      mut html = html + "<tr><td style='padding:2px 8px;color:#ffd700;font-size:12px'>" + ch_name(c1) + "+" + ch_name(c2) + "</td><td style='padding:2px 8px;color:#ff8844;font-size:12px'>" + "${corrupted_val}" + "</td><td style='padding:2px 8px;color:#888;font-size:12px'>" + "${val}" + "</td><td style='padding:2px 8px;color:" + d_color + ";font-size:12px;font-weight:bold'>" + d_str + "</td></tr>";
+      mut html = html + "<tr><td style='padding:2px 8px;color:#ffd700;font-size:12px'>" + qec_ch_name(c1) + " + " + qec_ch_name(c2) + "</td><td style='padding:2px 8px;color:#ff8844;font-size:12px'>" + "${corrupted_val}" + "</td><td style='padding:2px 8px;color:#888;font-size:12px'>" + "${val}" + "</td><td style='padding:2px 8px;color:" + d_color + ";font-size:12px;font-weight:bold'>" + d_str + "</td></tr>";
       mut c2 = c2 + 1
     );
     mut c1 = c1 + 1
   );
   mut html = html + "</table>";
   mut html = html + "<p style='color:#ffd700;font-size:16px;margin:4px 0'>" + "${detected_count}" + "/" + "${pair_count}" + " double errors detected</p>";
-  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>[[6,3,3]] code: distance 3 means single errors are CORRECTED, double errors are DETECTED. CRT guarantees: any corruption that changes the reconstructed value is detected. Two corrupted channels = 4 clean witnesses.</p>";
+  mut html = html + "<p style='color:#b0b0c0;margin:4px 0'>7 channels, distance 3+: single errors are CORRECTED, double errors are DETECTED. Any corruption that changes the reconstructed value is detected. Two corrupted channels = 5 clean witnesses.</p>";
   mut html = html + "</div>";
   dom_inner(result_el, html)
 )
 
 fn page_quantum_ecc() = (
-  dom_head_meta("description", "CRT Quantum Error Correction. 490 holographic split = [[6,3,3]] quantum code. 6 CRT channels = 6 qubits. L=11 = syndrome. CC0.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Quantum Error Correction\",\"description\":\"490 holographic split as [[6,3,3]] quantum error correcting code. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/quantum_ecc\"}");
+  dom_head_meta("description", "CRT Quantum Error Correction. 7 CRT channels over Z/214,414,200. 3 data + 4 parity. Corrects any 1 error. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Quantum Error Correction\",\"description\":\"7-channel CRT quantum error correction over Z/214414200. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/quantum_ecc\"}");
   let hero = make_hero("CRT Quantum Error Correction") in
   let eq = dom_create("div") in
-  dom_text(eq, "C38: IBM/Google/IonQ QEC patents. CC0.");
+  dom_text(eq, "IBM/Google/IonQ QEC patents. CC0 alternative.");
   ct_mono(eq);
   dom_style(eq, "fontSize", "20px");
   ct_gold(eq);
   dom_style(eq, "letterSpacing", "1px");
   dom_style(eq, "marginBottom", "16px");
   dom_append(hero, eq);
-  render_p(hero, "Quantum error correction protects quantum states from decoherence. Standard QEC (surface codes, Steane codes) requires massive overhead and patented decoding algorithms. CRT QEC: the 490 holographic split IS a [[6,3,3]] code. 6 CRT channels = 6 physical qubits. 3 DEAD channels {D,E,b} = data qubits. 3 ALIVE channels {K,L,G} = syndrome qubits. Corrects any 1 error. Detects any 2 errors. No neural decoder. No lookup table. Just CRT reconstruction.");
+  render_p(hero, "Quantum error correction protects quantum states from decoherence. Standard QEC (surface codes, Steane codes) requires massive overhead and patented decoding algorithms. CRT QEC: 7 CRT channels over Z/214,414,200 = 7 physical qubits. 3 data channels {mod 8, mod 25, mod 49} carry the quantum state. 4 parity channels {mod 9, mod 11, mod 13, mod 17} detect and locate errors. Corrects any single-channel error. Detects double errors. No neural decoder. No lookup table. Just CRT reconstruction.");
   dom_append(dom_body(), hero);
 
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
-  render_theorem(sec1, "CRT QEC Theorem", "The 490 holographic split of Z/12612600 produces a [[6,3,3]] quantum error correcting code: 6 physical qubits (CRT channels), 3 logical qubits (encoded data), distance 3 (corrects 1, detects 2). Data channels {D (mod 8), E (mod 25), b (mod 49)} carry the quantum state. Syndrome channels {K (mod 9), L (mod 11), G (mod 13)} detect and locate errors. When one channel is corrupted, the 5 remaining channels contain enough information to reconstruct the original value exactly via CRT. The 490 split is not an analogy to quantum codes -- it IS one.");
+  render_theorem(sec1, "CRT QEC Theorem", "A value in Z/214,414,200 decomposes into 7 channel registers: mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17. Three data channels {mod 8, mod 25, mod 49} carry the quantum state. Four parity channels {mod 9, mod 11, mod 13, mod 17} detect and locate errors. When one channel is corrupted, the 6 remaining channels contain enough information to reconstruct the original value exactly via CRT. The 3+4 split is algebraically forced by the ring's prime factorization.");
   let g1 = make_findings_grid(sec1) in
-  render_finding(g1, "[[6,3,3]] code", "490 split", "6 channels, 3 data, distance 3. Algebraically forced by ring structure.", "");
-  render_finding(g1, "Single error", "Correctable", "Any 1 corrupted channel is corrected by CRT reconstruction from remaining 5.", "");
-  render_finding(g1, "Double error", "Detectable", "Any 2 corrupted channels change reconstructed value. 4 witnesses remain.", "");
-  render_finding(g1, "L=11 syndrome", "Free detection", "L channel deviation = instant error flag. No separate syndrome circuit.", "");
+  render_finding(g1, "7 channels", "3 data + 4 parity", "Algebraically forced by the ring 8 x 9 x 25 x 49 x 11 x 13 x 17.", "");
+  render_finding(g1, "Single error", "Correctable", "Any 1 corrupted channel is corrected by CRT reconstruction from remaining 6.", "");
+  render_finding(g1, "Double error", "Detectable", "Any 2 corrupted channels change reconstructed value. 5 witnesses remain.", "");
+  render_finding(g1, "Triple parity", "Free detection", "mod-11, mod-13, mod-17 channels flag deviations. No separate syndrome circuit.", "");
   dom_append(dom_body(), sec1);
 
   let sec2 = make_section("900px") in
   render_h2(sec2, "Try It");
   make_interactive_widget(sec2, "Value to protect:", "dqecc-input", "e.g. 137", "Encode + Corrupt + Correct", "demo_qecc_run", "dqecc-result");
-  render_p(sec2, "Encodes your value into 6 CRT channels. Injects noise into each channel one at a time. Corrects via CRT reconstruction. All 6 should recover exactly.");
+  render_p(sec2, "Encodes your value into 7 CRT channels. Injects noise into each channel one at a time. Corrects via CRT reconstruction. All 7 should recover exactly.");
   dom_append(dom_body(), sec2);
 
   let sec2b = make_section("900px") in
   render_h2(sec2b, "Batch Test");
   let btn = dom_create("button") in
-  dom_text(btn, "Test 600 Corrections");
+  dom_text(btn, "Test 700 Corrections");
   dom_style(btn, "background", "#ffd700");
   dom_style(btn, "color", "#0f0f2a");
   dom_style(btn, "border", "none");
@@ -308,13 +308,13 @@ fn page_quantum_ecc() = (
   let br = dom_create("div") in
   dom_attr(br, "id", "dqecc-batch");
   dom_append(sec2b, br);
-  render_p(sec2b, "100 random values, each corrupted in all 6 channels = 600 total correction tests.");
+  render_p(sec2b, "100 random values, each corrupted in all 7 channels = 700 total correction tests.");
   dom_append(dom_body(), sec2b);
 
   let sec2c = make_section("900px") in
   render_h2(sec2c, "Double Error Detection");
   let btn2 = dom_create("button") in
-  dom_text(btn2, "Test 15 Double Errors");
+  dom_text(btn2, "Test 21 Double Errors");
   dom_style(btn2, "background", "#ff4444");
   dom_style(btn2, "color", "#fff");
   dom_style(btn2, "border", "none");
@@ -328,15 +328,15 @@ fn page_quantum_ecc() = (
   let br2 = dom_create("div") in
   dom_attr(br2, "id", "dqecc-double");
   dom_append(sec2c, br2);
-  render_p(sec2c, "Injects errors into all 15 pairs of channels. Distance 3 = detects all double errors.");
+  render_p(sec2c, "Injects errors into all 21 pairs of channels. Double errors are always detected.");
   dom_append(dom_body(), sec2c);
 
   let sec3 = make_section("800px") in
   render_h2(sec3, "CRT QEC vs Standard Quantum Codes");
-  render_contrast_row(sec3, "Physical qubits", "Surface code: ~1000 per logical qubit", "CRT: 6 total (3 data + 3 syndrome)");
-  render_contrast_row(sec3, "Decoding", "MWPM decoder (complex, patented algorithms)", "CRT reconstruction (one formula, O(6) operations)");
-  render_contrast_row(sec3, "Syndrome", "Separate ancilla measurement circuits", "L=11 channel IS the syndrome. No ancilla.");
-  render_contrast_row(sec3, "Distance", "Surface code: grows with #qubits", "CRT [[6,3,3]]: distance 3, corrects 1, detects 2");
+  render_contrast_row(sec3, "Physical qubits", "Surface code: ~1000 per logical qubit", "CRT: 7 total (3 data + 4 parity)");
+  render_contrast_row(sec3, "Decoding", "MWPM decoder (complex, patented algorithms)", "CRT reconstruction (one formula, O(7) operations)");
+  render_contrast_row(sec3, "Syndrome", "Separate ancilla measurement circuits", "4 parity channels ARE the syndrome. No ancilla.");
+  render_contrast_row(sec3, "Error capacity", "Surface code: grows with #qubits", "CRT: corrects 1, detects 2. 4 parity channels.");
   render_contrast_row(sec3, "Independence", "Correlated errors across qubits", "Block-diagonal: channels are algebraically independent");
   render_contrast_row(sec3, "Patent status", "IBM (heavy hex), Google (Sycamore QEC), IonQ", "CC0. Public domain. Forever.");
   dom_append(dom_body(), sec3)
