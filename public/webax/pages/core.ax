@@ -36,6 +36,14 @@ let CRT_Q3 = 49
 let CRT_Q4 = 11
 let CRT_Q5 = 13
 let CRT_Q6 = 17
+/* CRT lifting idempotents for Z/12612600 (TRUE ring, canonical S1180).
+   e_p * n mod N_TRUE extracts the p-channel contribution of n. */
+let CRT_ED = 11036025
+let CRT_EK = 1401400
+let CRT_EE = 9585576
+let CRT_EB = 8494200
+let CRT_EL = 3439800
+let CRT_EG = 3880800
 /* Channel colors: D=gold, K=orange, E=green, b=blue, L=purple, GATE=red, ESCAPE=cyan */
 let CLR_D = "#ffd700"
 let CLR_K = "#ff9900"
@@ -47,8 +55,30 @@ let CLR_17 = "#00dddd"
 let CLR_GOLD = "#ffd700"
 let CLR_DIM = "#aaa"
 
+/* CRT RECONSTRUCTION — SSOT (S2010). All CRT reconstruction goes through these functions.
+   ring_recon: 6 residues -> TRUE ring element. The ONE place where idempotent formula lives.
+   ring_recon_data: 4 data-channel residues -> partial TRUE element (for ECC checks).
+   ring_recon_trans: 7 residues -> TRANS ring element (two-level: TRUE + ESCAPE lift).
+   Max per-term: 48*8494200=407M. Sum of 6 < 808M < i32 max (2147M). Safe. */
+fn ring_recon(rd, rk, re, rb, rl, rg) =
+  (rd * CRT_ED + rk * CRT_EK + re * CRT_EE + rb * CRT_EB + rl * CRT_EL + rg * CRT_EG) % N_TRUE
+
+/* Reconstruct from 4 data channels only (D,K,E,b). For ECC: compare result % 11 vs L, % 13 vs GATE.
+   NOT mod N_TRUE — caller must apply % N_TRUE if needed. Raw sum fits i32 (max ~440M). */
+fn ring_recon_data(rd, rk, re, rb) =
+  (rd * CRT_ED + rk * CRT_EK + re * CRT_EE + rb * CRT_EB) % N_TRUE
+
+/* TRANS ring two-level CRT reconstruction: 7 channel residues -> element of Z/214414200.
+   Step 1: reconstruct TRUE value from channels 0-5.
+   Step 2: lift to TRANS via ESCAPE channel (inv(12612600 mod 17, 17) = inv(11,17) = 14).
+   Max intermediate: 12612599 + 12612600*16 = 214414199 < 2^31. Safe i32. */
+fn ring_recon_trans(rd, rk, re, rb, rl, rg, r17) = (
+  let xt = ring_recon(rd, rk, re, rb, rl, rg) in
+  xt + N_TRUE * ((r17 + 17 - xt % 17) % 17 * 14 % 17)
+)
+
 /* Ring multiply via CRT: safe for any a,b (no i32 overflow).
-   Per-channel max: 48*48=2304. Reconstruction sum max: ~807M < 2^31. */
+   Per-channel max: 48*48=2304. Reconstruction via ring_recon. */
 fn ring_mul(a, b) = (
   let d = (a%8)*(b%8)%8 in
   let k = (a%9)*(b%9)%9 in
@@ -56,16 +86,7 @@ fn ring_mul(a, b) = (
   let bb = (a%49)*(b%49)%49 in
   let l = (a%11)*(b%11)%11 in
   let g = (a%13)*(b%13)%13 in
-  (d * 11036025 + k * 1401400 + e * 9585576 + bb * 8494200 + l * 3439800 + g * 3880800) % N_TRUE
-)
-
-/* TRANS ring two-level CRT reconstruction: 7 channel residues -> element of Z/214414200.
-   Step 1: reconstruct TRUE value from channels 0-5 using TRUE idempotents.
-   Step 2: lift to TRANS via ESCAPE channel (inv(12612600 mod 17, 17) = inv(11,17) = 14).
-   Max intermediate: 12612599 + 12612600*16 = 214414199 < 2^31. Safe i32. */
-fn ring_recon_trans(rd, rk, re, rb, rl, rg, r17) = (
-  let xt = (rd * 11036025 + rk * 1401400 + re * 9585576 + rb * 8494200 + rl * 3439800 + rg * 3880800) % N_TRUE in
-  xt + N_TRUE * ((r17 + 17 - xt % 17) % 17 * 14 % 17)
+  ring_recon(d, k, e, bb, l, g)
 )
 
 /* TRANS ring multiply: 7-channel CRT multiply in Z/214414200. */

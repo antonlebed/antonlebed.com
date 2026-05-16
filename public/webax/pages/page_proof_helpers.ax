@@ -93,14 +93,15 @@ fn pf_standalone_summary(local_pass, section_name:str) = (
   dom_append(dom_body(), summary)
 )
 
-/* CRT lifting idempotents for Z/12612600 (canonical, S1180) */
-let PF_ED = 11036025
-let PF_EK = 1401400
-let PF_EE = 9585576
-let PF_EB = 8494200
-let PF_EL = 3439800
-let PF_EG = 3880800
-let PF_OMEGA = 1576576
+/* CRT lifting idempotents: use CRT_ED..CRT_EG from core.ax (SSOT S2010).
+   PF_E* aliases kept for proof page readability. PF_OMEGA = OMEGA_VAL from core.ax. */
+let PF_ED = CRT_ED
+let PF_EK = CRT_EK
+let PF_EE = CRT_EE
+let PF_EB = CRT_EB
+let PF_EL = CRT_EL
+let PF_EG = CRT_EG
+let PF_OMEGA = OMEGA_VAL
 
 /* Count idempotents in Z/m (exhaustive: test all 0..m-1). Small m only. */
 fn pf_count_idem(m) = (
@@ -112,10 +113,8 @@ fn pf_count_idem(m) = (
   c
 )
 
-/* CRT reconstruct from 6 channels.
-   Max per-term: 48*8494200=407M. Sum of all 6 < 808M < i32 max (2147M). Safe. */
-fn pf_reconstruct(d, k, e, b, l, g) =
-  (d * PF_ED + k * PF_EK + e * PF_EE + b * PF_EB + l * PF_EL + g * PF_EG) % N_TRUE
+/* CRT reconstruct from 6 channels — delegates to ring_recon (core.ax SSOT). */
+fn pf_reconstruct(d, k, e, b, l, g) = ring_recon(d, k, e, b, l, g)
 
 /* Decompose n into 6 CRT channels */
 fn pf_decompose(n) = [n % 8, n % 9, n % 25, n % 49, n % 11, n % 13]

@@ -145,16 +145,14 @@ fn dh_modpow(base, exp, m) = (
 )
 
 fn dh_ring_pow(base, exp) = (
-  /* Exponentiation via CRT: decompose, per-channel modpow, reconstruct */
-  let mods = [8, 9, 25, 49, 11, 13] in
-  let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+  /* Exponentiation via CRT: decompose, per-channel modpow, reconstruct via ring_recon (core.ax SSOT) */
   let ch0 = dh_modpow(base % 8, exp, 8) in
   let ch1 = dh_modpow(base % 9, exp, 9) in
   let ch2 = dh_modpow(base % 25, exp, 25) in
   let ch3 = dh_modpow(base % 49, exp, 49) in
   let ch4 = dh_modpow(base % 11, exp, 11) in
   let ch5 = dh_modpow(base % 13, exp, 13) in
-  (ch0 * idem[0] + ch1 * idem[1] + ch2 * idem[2] + ch3 * idem[3] + ch4 * idem[4] + ch5 * idem[5]) % N_TRUE
+  ring_recon(ch0, ch1, ch2, ch3, ch4, ch5)
 )
 
 fn keyex_run() = (

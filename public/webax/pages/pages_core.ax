@@ -794,12 +794,9 @@ fn ecc_syndrome_calc() = (
     let nb = n % 49 in
     let nl = n % 11 in
     let ng = n % 13 in
-    /* Reconstruct from first 4 data channels only (D,K,E,b) */
-    /* TRUE ring idempotents: e_D=11036025, e_K=1401400, e_E=9585576, e_b=8494200, e_L=3439800, e_G=3880800 */
-    /* Data reconstruction: n_data = (nd*e_D + nk*e_K + ne*e_E + nb*e_b) mod 12612600 */
+    /* Reconstruct from first 4 data channels only (D,K,E,b) via ring_recon_data (core.ax SSOT) */
     /* Then check: n_data mod 11 should equal nl, n_data mod 13 should equal ng */
-    let part = nd * 11036025 + nk * 1401400 + ne * 9585576 + nb * 8494200 in
-    let n_data = part % N_TRUE in
+    let n_data = ring_recon_data(nd, nk, ne, nb) in
     let check_l = n_data % 11 in
     let check_g = n_data % 13 in
     let ok_l = if check_l == nl then 1 else 0 in

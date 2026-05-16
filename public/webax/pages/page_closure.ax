@@ -429,8 +429,7 @@ fn consensus_run() = (
     let vtf = value in
     /* TRUE ring Z/12612600 channel moduli */
     let mods = [8, 9, 25, 49, 11, 13] in
-    /* CRT idempotents for Z/12612600 */
-    let idem = [11036025, 1401400, 9585576, 8494200, 3439800, 3880800] in
+    /* CRT idempotents from core.ax SSOT (CRT_ED..CRT_EG) */
     /* Decompose true value in TRUE ring */
     let tv = [vtf % 8, vtf % 9, vtf % 25, vtf % 49, vtf % 11, vtf % 13] in
     /* Per-channel vote tallies: track votes for true value */
@@ -472,10 +471,8 @@ fn consensus_run() = (
     let ok4 = if w4 == 999 then 0 else 1 in
     let ok5 = if w5 == 999 then 0 else 1 in
     let channels_ok = ok0 + ok1 + ok2 + ok3 + ok4 + ok5 in
-    /* CRT reconstruction (using idempotents mod 12612600) */
-    let recon = if channels_ok == 6 then
-      (idem[0] * w0 + idem[1] * w1 + idem[2] * w2 + idem[3] * w3 + idem[4] * w4 + idem[5] * w5) % N_TRUE
-    else 0 in
+    /* CRT reconstruction via ring_recon (core.ax SSOT) */
+    let recon = if channels_ok == 6 then ring_recon(w0, w1, w2, w3, w4, w5) else 0 in
     let correct = if channels_ok == 6 then (if recon == vtf then 1 else 0) else 0 in
     let byz_pct = (n_byz * 100) / n_nodes in
     dom_inner(result_el, "<div style='background:#0a0a18;border:1px solid #333;border-radius:8px;padding:16px;margin:8px 0'><p style='color:#ffd700;margin:0 0 8px'>CRT CONSENSUS: " + "${n_nodes}" + " nodes, " + "${n_byz}" + " Byzantine (" + "${byz_pct}" + "%)</p><p style='margin:4px 0;color:#b0b0c0'>True value: " + "${vtf}" + " (Z/12612600) = (" + "${tv[0]}" + "," + "${tv[1]}" + "," + "${tv[2]}" + "," + "${tv[3]}" + "," + "${tv[4]}" + "," + "${tv[5]}" + ")</p><p style='margin:4px 0;color:#b0b0c0'>Channel majorities: mod-8=" + "${honest0}" + "/" + "${n_nodes}" + " mod-9=" + "${honest1}" + "/" + "${n_nodes}" + " mod-25=" + "${honest2}" + "/" + "${n_nodes}" + " mod-49=" + "${honest3}" + "/" + "${n_nodes}" + " mod-11=" + "${honest4}" + "/" + "${n_nodes}" + " mod-13=" + "${honest5}" + "/" + "${n_nodes}" + "</p><p style='margin:4px 0;color:" + (if correct == 1 then "#44ff88" else "#ff4444") + ";font-size:16px'>" + (if correct == 1 then "CONSENSUS CORRECT" else "CONSENSUS FAILED -- too many Byzantine nodes") + " (" + "${channels_ok}" + "/6 channels held)</p><p style='color:#a0a0b0;margin:8px 0 0;font-size:12px'>Each channel votes independently. Byzantine corruption is CONTAINED. CRT reconstructs from 6 local majorities. O(n) messages, not O(n^2).</p></div>")
