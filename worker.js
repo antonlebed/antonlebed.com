@@ -6,8 +6,13 @@
 
 var _routeMap = {
   '':'home','home':'home',
-  'basics':'home','patterns':'patterns','theory':'theory',
-  'connections':'connections','ideas':'ideas','lab':'lab','demos':'demos',
+  'basics':'home',
+  'patterns':'patterns',
+  'theory':'theory',
+  'connections':'connections',
+  'ideas':'ideas',
+  'lab':'lab',
+  'demos':'demos',
   'eigenvalue_swim':'patterns','repl':'lab',
   'numbers_clocks':'home',
   'crt':'home',
@@ -214,7 +219,6 @@ export default {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },
-        sin_f: Math.sin, cos_f: Math.cos, PI_f: function() { return Math.PI; }, exp_f: Math.exp,
         /* Game/ring import stubs -- coupling() in widgets triggers ALL game imports */
         canvas_clear: function(){return 0;}, canvas_rect: function(){return 0;},
         canvas_circle: function(){return 0;}, canvas_line: function(){return 0;},

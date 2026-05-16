@@ -1,5 +1,5 @@
 /* core.ax -- K-channel: the closure engine.
-   Shared infrastructure for all 151 pages. K=3 pipeline: register -> render -> output.
+   Shared infrastructure for all 141 pages. K=3 pipeline: register -> render -> output.
    Celestial theatre (starfield, moon, clouds, wave), nav, page registry,
    search, render components, index pages, footer. Every page includes this. */
 
@@ -585,14 +585,13 @@ fn unhighlight_gold(tid:str) = (
 
 fn reset_nav_highlights() = (
   unhighlight_gold("home");
-  unhighlight_tier("basics");
-  unhighlight_tier("patterns");
-  unhighlight_tier("connections");
-  unhighlight_tier("theory");
-  unhighlight_tier("ideas");
-  unhighlight_tier("lab");
-  unhighlight_gold("repl");
+  mut i = 0;
+  while i < SEC_N[0] - 1 do (
+    unhighlight_tier(SEC_SLUGS[i]);
+    mut i = i + 1
+  );
   unhighlight_tier("demos-card");
+  unhighlight_gold("repl");
   /* reset Explore button */
   let btn = dom_query("#nav-explore-btn") in
   if btn then (
@@ -603,25 +602,30 @@ fn reset_nav_highlights() = (
 /* highlight_nav: derive tier from URL category (SSOT: URL is truth).
    get_category() returns first path segment: /basics/page -> "basics".
    Single-segment paths: /repl -> "repl", / -> "home".
-   No page-slug mapping needed -- URL category IS the tier. -140L SSOT kill. */
+   Loops over SEC_SLUGS (populated from page_list.ax). */
 fn highlight_nav() = (
   reset_nav_highlights();
   let cat = get_category() in
-  if streq(cat, "basics") == 1 then highlight_tier("basics")
-  else if streq(cat, "patterns") == 1 then highlight_tier("patterns")
-  else if streq(cat, "connections") == 1 then highlight_tier("connections")
-  else if streq(cat, "theory") == 1 then highlight_tier("theory")
-  else if streq(cat, "ideas") == 1 then highlight_tier("ideas")
-  else if streq(cat, "lab") == 1 then highlight_tier("lab")
-  else if streq(cat, "repl") == 1 then (
-    let rb = dom_query("#nt-repl") in
-    if rb then dom_style(rb, "borderBottom", "2px solid #ffd700") else 0
-  )
-  else if streq(cat, "demos") == 1 then highlight_tier("demos-card")
-  else (
-    let hb = dom_query("#nt-home") in
-    if hb then dom_style(hb, "borderBottom", "2px solid #ffd700") else 0
-  )
+  mut found = 0;
+  mut i = 0;
+  while i < SEC_N[0] - 1 do (
+    if streq(cat, SEC_SLUGS[i]) == 1 then (
+      highlight_tier(SEC_SLUGS[i]);
+      mut found = 1
+    ) else 0;
+    mut i = i + 1
+  );
+  if found == 0 then (
+    if streq(cat, "demos") == 1 then highlight_tier("demos-card")
+    else if streq(cat, "repl") == 1 then (
+      let rb = dom_query("#nt-repl") in
+      if rb then dom_style(rb, "borderBottom", "2px solid #ffd700") else 0
+    )
+    else (
+      let hb = dom_query("#nt-home") in
+      if hb then dom_style(hb, "borderBottom", "2px solid #ffd700") else 0
+    )
+  ) else 0
 )
 
 /* ================================================================
@@ -708,6 +712,25 @@ let _pg_n = [0]
 let _cur_group = alloc(1)
 
 fn _section(_m:str) = 0
+fn _file(_p:str) = 0
+
+/* SECTION METADATA SSOT (S2017). Populated by _sec_meta() calls in page_list.ax.
+   Nav cards, highlight_nav, reset_nav_highlights all derive from these arrays.
+   Adding/renaming a section = 1 edit in page_list.ax. */
+let SEC_SLUGS = alloc(10)
+let SEC_NAMES = alloc(10)
+let SEC_RINGS = alloc(10)
+let SEC_DESCS = alloc(10)
+let SEC_N = [0]
+
+fn _sec_meta(slug:str, name:str, ring:str, desc:str) = (
+  let i = SEC_N[0] in
+  set(SEC_SLUGS, i, slug);
+  set(SEC_NAMES, i, name);
+  set(SEC_RINGS, i, ring);
+  set(SEC_DESCS, i, desc);
+  set(SEC_N, 0, i + 1)
+)
 
 fn _group(name:str) = set(_cur_group, 0, name)
 
@@ -1049,15 +1072,16 @@ fn render_nav() = (
   dom_style(dd, "boxSizing", "border-box");
   dom_style(dd, "zIndex", "200");
   dom_style(dd, "backdropFilter", "blur(12px)");
-  nav_dd_card(dd, "/basics", "nt-basics", "Basics", "Z/6", "Start here. What is 0/0?");
-  nav_dd_card(dd, "/patterns", "nt-patterns", "Patterns", "Z/30", "Algebra, spectrum, geometry, music.");
-  nav_dd_card(dd, "/connections", "nt-connections", "Connections", "Z/210", "Where the math meets the world.");
-  nav_dd_card(dd, "/theory", "nt-theory", "Theory", "Z/2,310", "Number theory. Every theorem proved.");
-  nav_dd_card(dd, "/ideas", "nt-ideas", "Ideas", "Z/970,200", "What it means. The deep structure.");
-  nav_dd_card(dd, "/lab", "nt-lab", "Lab", "Z/12,612,600", "Build and experiment. Compiler, training, games.");
-  /* 7th section: Demos. Full-width bar. */
+  /* First 6 sections: regular nav cards (from SEC_* arrays, page_list.ax SSOT) */
+  mut nci = 0;
+  while nci < SEC_N[0] - 1 do (
+    nav_dd_card(dd, "/" + SEC_SLUGS[nci], "nt-" + SEC_SLUGS[nci], SEC_NAMES[nci], SEC_RINGS[nci], SEC_DESCS[nci]);
+    mut nci = nci + 1
+  );
+  /* 7th section: Demos. Full-width bar (special styling, draws text from SEC_* arrays). */
+  let di = SEC_N[0] - 1 in
   let dcard = dom_create("a") in
-  dom_attr(dcard, "href", "/demos");
+  dom_attr(dcard, "href", "/" + SEC_SLUGS[di]);
   dom_attr(dcard, "id", "nt-demos-card");
   dom_style(dcard, "gridColumn", "1 / -1");
   dom_style(dcard, "display", "block");
@@ -1068,18 +1092,18 @@ fn render_nav() = (
   dom_style(dcard, "background", "linear-gradient(90deg, #1a0a2f 0%, #2a1a4f 50%, #1a0a2f 100%)");
   dom_style(dcard, "border", "1px solid #6633aa");
   let vt = dom_create("div") in
-  dom_text(vt, "Demos");
+  dom_text(vt, SEC_NAMES[di]);
   dom_style(vt, "color", "#cc88ff");
   dom_style(vt, "fontWeight", "bold");
   dom_style(vt, "fontSize", "13px");
   dom_append(dcard, vt);
   let vr = dom_create("div") in
-  dom_text(vr, "Z/214,414,200");
+  dom_text(vr, SEC_RINGS[di]);
   dom_style(vr, "color", "#8866bb");
   dom_style(vr, "fontSize", "10px");
   dom_append(dcard, vr);
   let vd = dom_create("div") in
-  dom_text(vd, "40 CC0 applications. All free, forever.");
+  dom_text(vd, SEC_DESCS[di]);
   dom_style(vd, "color", "#777");
   dom_style(vd, "fontSize", "10px");
   dom_style(vd, "marginTop", "2px");
