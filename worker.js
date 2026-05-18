@@ -4,6 +4,27 @@
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM. */
 
+/* Static WASM imports: pre-compiled by wrangler at deploy time.
+   Cloudflare Workers block dynamic WebAssembly.instantiate(bytes).
+   Static imports give us pre-compiled WebAssembly.Module objects. */
+import _wasm_home from './public/site_home.wasm';
+import _wasm_patterns from './public/site_patterns.wasm';
+import _wasm_theory from './public/site_theory.wasm';
+import _wasm_connections from './public/site_connections.wasm';
+import _wasm_ideas from './public/site_ideas.wasm';
+import _wasm_lab from './public/site_lab.wasm';
+import _wasm_demos from './public/site_demos.wasm';
+
+var _wasmModules = {
+  home: _wasm_home,
+  patterns: _wasm_patterns,
+  theory: _wasm_theory,
+  connections: _wasm_connections,
+  ideas: _wasm_ideas,
+  lab: _wasm_lab,
+  demos: _wasm_demos
+};
+
 var _routeMap = {
   '':'home','home':'home',
   'basics':'home',
@@ -193,7 +214,6 @@ export default {
 
     /* ===== SSR: render body via WASM, inject into _app.html template ===== */
     try {
-      console.log('SSR: start, path=' + url.pathname);
 
       /* Virtual DOM tree (handle 0 = body) */
       var nid = 0;
@@ -212,14 +232,11 @@ export default {
         return s;
       }
 
-      /* Fetch the right module WASM based on route */
+      /* Select pre-compiled WASM module based on route */
       var _mod = _routeMod(route);
-      console.log('SSR: fetching site_' + _mod + '.wasm');
-      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());
-      console.log('SSR: fetch status=' + _wr.status + ', compiling...');
-      var _bytes = await _wr.arrayBuffer();
-      console.log('SSR: got ' + _bytes.byteLength + ' bytes, instantiating...');
-      var result = await WebAssembly.instantiate(_bytes, { env: {
+      var _wasmMod = _wasmModules[_mod];
+      if (!_wasmMod) throw new Error('No WASM module for: ' + _mod);
+      var result = await WebAssembly.instantiate(_wasmMod, { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },
@@ -343,14 +360,11 @@ export default {
         }
       }});
 
-      console.log('SSR: instantiated, extracting exports...');
       var inst = result.exports ? result : (result.instance || result);
       mem = inst.exports.memory;
       _hashPtr = inst.exports.js_alloc(1024);
       _catPtr = inst.exports.js_alloc(256);
-      console.log('SSR: calling _main(), route=' + route);
       inst.exports._main();
-      console.log('SSR: _main() done, nodes=' + Object.keys(nodes).length);
 
       /* ===== Serialize virtual DOM to HTML ===== */
       function esc(s) {
@@ -424,13 +438,9 @@ export default {
       });
 
     } catch (e) {
-      /* SSR failed -- DIAGNOSTIC: expose error in response header (temporary) */
+      /* SSR failed -- log error, fallback to bootstrap (client-side rendering) */
       console.log('SSR error: ' + (e.message || e));
-      var fallback = await env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
-      var body = await fallback.text();
-      return new Response('<!-- SSR_ERROR: ' + (e.message || e).substring(0, 500) + ' -->\n' + body, {
-        headers: { 'Content-Type': 'text/html;charset=utf-8', 'X-SSR-Error': (e.message || String(e)).substring(0, 200) }
-      });
+      return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
     }
   }
 };
