@@ -208,7 +208,7 @@ export default {
         var _headInject = _metaMatch.concat(_ogMatch).concat(_linkMatch).join('');
         if (_headInject) _tpl = _tpl.replace('</head>', _headInject + '</head>');
         /* Inject SSR body content (hidden when JS runs, visible to LLMs) */
-        _tpl = _tpl.replace('<body>', '<body><div id="ssr-content">' + _ssrBody + '</div>');
+        _tpl = _tpl.replace('<body>', '<body><div id="ssr-content" hidden>' + _ssrBody + '</div>');
         return new Response(_tpl, { headers: { 'Content-Type': 'text/html;charset=utf-8' } });
       }
     } catch (e) { console.log('SSR error: ' + (e.message || e)); }
