@@ -186,10 +186,10 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    /* ===== SSR: serve pre-rendered HTML to bots/non-browsers ===== */
-    var ua = request.headers.get('User-Agent') || '';
-    var isBrowser = /Mozilla\/5\.0.*(Chrome|Firefox|Safari|Edge|Opera|Trident)/i.test(ua);
-    if (!isBrowser) {
+    /* ===== SSR: serve pre-rendered HTML unless real browser navigation ===== */
+    var _sfm = request.headers.get('Sec-Fetch-Mode');
+    var _isNav = (_sfm === 'navigate' || _sfm === 'same-origin');
+    if (!_isNav) {
       try {
         var parts = url.pathname.split('/').filter(Boolean);
         var _ssrPath = '/_ssr/' + (parts.length ? parts.join('/') : 'home') + '.html';
