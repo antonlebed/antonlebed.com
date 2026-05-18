@@ -193,7 +193,7 @@ export default {
 
     /* ===== SSR: render body via WASM, inject into _app.html template ===== */
     try {
-      /* siteWasm is a pre-compiled WebAssembly.Module (static import) */
+      console.log('SSR: start, path=' + url.pathname);
 
       /* Virtual DOM tree (handle 0 = body) */
       var nid = 0;
@@ -214,8 +214,12 @@ export default {
 
       /* Fetch the right module WASM based on route */
       var _mod = _routeMod(route);
+      console.log('SSR: fetching site_' + _mod + '.wasm');
       var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());
-      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {
+      console.log('SSR: fetch status=' + _wr.status + ', compiling...');
+      var _bytes = await _wr.arrayBuffer();
+      console.log('SSR: got ' + _bytes.byteLength + ' bytes, instantiating...');
+      var result = await WebAssembly.instantiate(_bytes, { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },
@@ -339,11 +343,14 @@ export default {
         }
       }});
 
+      console.log('SSR: instantiated, extracting exports...');
       var inst = result.exports ? result : (result.instance || result);
       mem = inst.exports.memory;
       _hashPtr = inst.exports.js_alloc(1024);
       _catPtr = inst.exports.js_alloc(256);
+      console.log('SSR: calling _main(), route=' + route);
       inst.exports._main();
+      console.log('SSR: _main() done, nodes=' + Object.keys(nodes).length);
 
       /* ===== Serialize virtual DOM to HTML ===== */
       function esc(s) {
