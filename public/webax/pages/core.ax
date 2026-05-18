@@ -338,10 +338,8 @@ fn ct_star(c, i) = (
   let fm = fd - (fd / 35) * 35 in
   let depth_slow = (2 - layer) * 15 in
   let fall_dur = 20 + fm + depth_slow in
-  /* Negative delay = start mid-cycle (sky pre-populated on first frame).
-     spawn/91 distributes each star to a unique cycle point. */
-  let fall_offset = spawn * fall_dur / 91 in
-  dom_style(star, "animation", "glow${layer} ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear -${fall_offset}s infinite");
+  let fall_delay = spawn / 6 in
+  dom_style(star, "animation", "glow${layer} ${glow_dur}s ease-in-out 0s infinite, starfall ${fall_dur}s linear ${fall_delay}s infinite");
   dom_append(c, star)
 )
 
@@ -358,11 +356,7 @@ fn ct_layer(c, id:str) = (
 )
 
 fn ct_starfield(body) = (
-  /* Skip creation if starfield already exists (preserved across SPA nav) */
-  let existing = dom_query("#ct-starfield") in
-  if existing != 0 - 1 then 0 else (
   let c = dom_create("div") in
-  dom_attr(c, "id", "ct-starfield");
   dom_style(c, "position", "fixed");
   dom_style(c, "top", "0");
   dom_style(c, "left", "0");
@@ -382,7 +376,7 @@ fn ct_starfield(body) = (
     let layer = i - (i / 3) * 3 in
     let target = if layer == 0 then l0 else if layer == 1 then l1 else l2 in
     ct_star(target, i)
-  ))
+  )
 )
 
 /* Stars are position:fixed -- no scroll parallax. They stay pinned.
