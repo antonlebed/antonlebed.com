@@ -186,19 +186,32 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    /* ===== SSR: serve pre-rendered HTML unless real browser navigation ===== */
-    var _sfm = request.headers.get('Sec-Fetch-Mode');
-    var _isNav = (_sfm === 'navigate' || _sfm === 'same-origin');
-    if (!_isNav) {
-      try {
-        var parts = url.pathname.split('/').filter(Boolean);
-        var _ssrPath = '/_ssr/' + (parts.length ? parts.join('/') : 'home') + '.html';
-        var _ssrResp = await env.ASSETS.fetch(new URL(_ssrPath, url.origin).toString());
-        if (_ssrResp.ok) return new Response(_ssrResp.body, {
-          headers: { 'Content-Type': 'text/html;charset=utf-8' }
-        });
-      } catch (e) { console.log('SSR error: ' + (e.message || e)); }
-    }
+    /* ===== Hybrid SSR: inject pre-rendered content into _app.html ===== */
+    /* Browsers: see SSR briefly, then WASM hydrates. LLMs: see SSR content. */
+    try {
+      var parts = url.pathname.split('/').filter(Boolean);
+      var _ssrPath = '/_ssr/' + (parts.length ? parts.join('/') : 'home') + '.html';
+      var _ssrResp = await env.ASSETS.fetch(new URL(_ssrPath, url.origin).toString());
+      if (_ssrResp.ok) {
+        var _ssrHtml = await _ssrResp.text();
+        /* Extract body content and head metas from SSR */
+        var _ssrBody = (_ssrHtml.match(/<body>([\s\S]*)<\/body>/) || [])[1] || '';
+        var _ssrHead = (_ssrHtml.match(/<title>[\s\S]*?<\/head>/) || [''])[0].replace('<\/head>','');
+        /* Get _app.html template */
+        var _tpl = await (await env.ASSETS.fetch(new URL('/_app.html', url.origin).toString())).text();
+        /* Inject SSR head (title, metas) */
+        var _titleMatch = _ssrHtml.match(/<title>([^<]+)<\/title>/);
+        if (_titleMatch) _tpl = _tpl.replace('<title>antonlebed.com</title>', '<title>' + _titleMatch[1] + '</title>');
+        var _metaMatch = _ssrHtml.match(/<meta[^>]+name=[^>]+>/g) || [];
+        var _ogMatch = _ssrHtml.match(/<meta[^>]+property=[^>]+>/g) || [];
+        var _linkMatch = _ssrHtml.match(/<link[^>]+canonical[^>]+>/g) || [];
+        var _headInject = _metaMatch.concat(_ogMatch).concat(_linkMatch).join('');
+        if (_headInject) _tpl = _tpl.replace('</head>', _headInject + '</head>');
+        /* Inject SSR body content (hidden when JS runs, visible to LLMs) */
+        _tpl = _tpl.replace('<body>', '<body><div id="ssr-content">' + _ssrBody + '</div>');
+        return new Response(_tpl, { headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+      }
+    } catch (e) { console.log('SSR error: ' + (e.message || e)); }
     /* Browser: client-side rendering via _app.html bootstrap */
     return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
   }
