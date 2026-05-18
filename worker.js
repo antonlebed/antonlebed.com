@@ -424,9 +424,13 @@ export default {
       });
 
     } catch (e) {
-      /* SSR failed -- log error, fallback to bootstrap (client-side rendering) */
+      /* SSR failed -- DIAGNOSTIC: expose error in response header (temporary) */
       console.log('SSR error: ' + (e.message || e));
-      return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
+      var fallback = await env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
+      var body = await fallback.text();
+      return new Response('<!-- SSR_ERROR: ' + (e.message || e).substring(0, 500) + ' -->\n' + body, {
+        headers: { 'Content-Type': 'text/html;charset=utf-8', 'X-SSR-Error': (e.message || String(e)).substring(0, 200) }
+      });
     }
   }
 };
