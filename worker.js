@@ -186,18 +186,20 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    /* ===== SSR: serve pre-rendered HTML from static assets ===== */
-    try {
-      var parts = url.pathname.split('/').filter(Boolean);
-      var _ssrPath = '/_ssr/' + (parts.length ? parts.join('/') : 'home') + '.html';
-      var _ssrResp = await env.ASSETS.fetch(new URL(_ssrPath, url.origin).toString());
-      if (_ssrResp.ok) return new Response(_ssrResp.body, {
-        headers: { 'Content-Type': 'text/html;charset=utf-8' }
-      });
-    } catch (e) {
-      console.log('SSR error: ' + (e.message || e));
+    /* ===== SSR: serve pre-rendered HTML to bots/crawlers only ===== */
+    var ua = (request.headers.get('User-Agent') || '').toLowerCase();
+    var isBot = /bot|crawl|spider|slurp|wget|curl|fetch|gpt|claude|anthropic|perplexity|facebook|twitter|whatsapp|telegram|discord|linkedinbot|embedly|quora|pinterest|slack|archive/i.test(ua);
+    if (isBot) {
+      try {
+        var parts = url.pathname.split('/').filter(Boolean);
+        var _ssrPath = '/_ssr/' + (parts.length ? parts.join('/') : 'home') + '.html';
+        var _ssrResp = await env.ASSETS.fetch(new URL(_ssrPath, url.origin).toString());
+        if (_ssrResp.ok) return new Response(_ssrResp.body, {
+          headers: { 'Content-Type': 'text/html;charset=utf-8' }
+        });
+      } catch (e) { console.log('SSR error: ' + (e.message || e)); }
     }
-    /* Fallback: client-side rendering via _app.html bootstrap */
+    /* Browser: client-side rendering via _app.html bootstrap */
     return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
   }
 };
