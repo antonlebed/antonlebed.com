@@ -13,6 +13,12 @@ fn worker_head() =
   + "   Crawler -> SSR: per-module WASM, string-based imports -> full HTML.\n"
   + "   Same .ax code, two surfaces. WYSIWYG by construction.\n"
   + "   Dies when WASI provides native server-side DOM. */\n"
+  + "import site_home from './site_home.wasm';\n"
+  + "import site_patterns from './site_patterns.wasm';\n"
+  + "import site_theory from './site_theory.wasm';\n"
+  + "import site_connections from './site_connections.wasm';\n"
+  + "import site_ideas from './site_ideas.wasm';\n"
+  + "import site_demos from './site_demos.wasm';\n"
   + "\n"
   + boot_route_map()
   + "\n"
@@ -50,7 +56,7 @@ fn worker_head() =
   + "\n"
   + "    /* ===== SSR: render body via WASM, inject into _app.html template ===== */\n"
   + "    try {\n"
-  + "      /* siteWasm is a pre-compiled WebAssembly.Module (static import) */\n"
+  + "      /* SSR: static WASM imports (6 content modules, lab client-only) */\n"
 
 fn worker_ssr_setup() =
   "\n"
@@ -71,10 +77,11 @@ fn worker_ssr_setup() =
   + "        return s;\n"
   + "      }\n"
   + "\n"
-  + "      /* Fetch the right module WASM based on route */\n"
+  + "      /* Select pre-compiled module (6 content SSR, lab client-only) */\n"
   + "      var _mod = _routeMod(route);\n"
-  + "      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());\n"
-  + "      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {\n"
+  + "      var _wasmMods = {home:site_home,patterns:site_patterns,theory:site_theory,connections:site_connections,ideas:site_ideas,demos:site_demos};\n"
+  + "      if (!_wasmMods[_mod]) return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());\n"
+  + "      var result = await WebAssembly.instantiate(_wasmMods[_mod], { env: {\n"
 
 fn worker_imports_a() =
   "        show_int: function(v) { return v; },\n"
@@ -145,6 +152,8 @@ fn worker_imports_b() =
   + "          return ptr;\n"
   + "        },\n"
   + "        dom_value: function() { return 0; },\n"
+  + "        dom_focus: function() { return 0; },\n"
+  + "        time_ms: function() { return 0; },\n"
 
 fn worker_imports_c() =
   "        /* Canvas 2D stubs -- no-op for SSR (canvas is browser-only) */\n"
@@ -182,6 +191,7 @@ fn worker_imports_c() =
   + "        aud_gain: function() { return 0; },\n"
   + "        gpu_init: function() { return 0; },\n"
   + "        gpu_bench: function() { return 0; },\n"
+  + "        gpu_train: function() { return 0; },\n"
   + "        dom_fetch: function() { return 0; },\n"
   + "        dom_timeout: function() { return 0; },\n"
   + "        get_category: function() {\n"

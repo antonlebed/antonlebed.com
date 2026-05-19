@@ -3,6 +3,12 @@
    Crawler -> SSR: per-module WASM, string-based imports -> full HTML.
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM. */
+import site_home from './site_home.wasm';
+import site_patterns from './site_patterns.wasm';
+import site_theory from './site_theory.wasm';
+import site_connections from './site_connections.wasm';
+import site_ideas from './site_ideas.wasm';
+import site_demos from './site_demos.wasm';
 
 var _routeMap = {
   '':'home','home':'home',
@@ -193,7 +199,7 @@ export default {
 
     /* ===== SSR: render body via WASM, inject into _app.html template ===== */
     try {
-      /* siteWasm is a pre-compiled WebAssembly.Module (static import) */
+      /* SSR: static WASM imports (6 content modules, lab client-only) */
 
       /* Virtual DOM tree (handle 0 = body) */
       var nid = 0;
@@ -212,10 +218,11 @@ export default {
         return s;
       }
 
-      /* Fetch the right module WASM based on route */
+      /* Select pre-compiled module (6 content SSR, lab client-only) */
       var _mod = _routeMod(route);
-      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());
-      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {
+      var _wasmMods = {home:site_home,patterns:site_patterns,theory:site_theory,connections:site_connections,ideas:site_ideas,demos:site_demos};
+      if (!_wasmMods[_mod]) return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
+      var result = await WebAssembly.instantiate(_wasmMods[_mod], { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },
@@ -290,6 +297,8 @@ export default {
           return ptr;
         },
         dom_value: function() { return 0; },
+        dom_focus: function() { return 0; },
+        time_ms: function() { return 0; },
         /* Canvas 2D stubs -- no-op for SSR (canvas is browser-only) */
         cvs_getctx: function() { return -1; },
         cvs_fillrect: function() { return 0; },
@@ -325,6 +334,7 @@ export default {
         aud_gain: function() { return 0; },
         gpu_init: function() { return 0; },
         gpu_bench: function() { return 0; },
+        gpu_train: function() { return 0; },
         dom_fetch: function() { return 0; },
         dom_timeout: function() { return 0; },
         get_category: function() {
