@@ -1,0 +1,64 @@
+/* router_lab2.ax -- Module router for LAB2 (proof, observe, training). S2068 split. */
+
+fn page_404(hash) = (
+  let sec = make_section("600px") in
+  render_h2(sec, "Page Not Found");
+  render_p(sec, "No page matches this route.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Home", "/", "Start here.", "");
+  dom_append(dom_body(), sec)
+)
+
+fn route_page(hash) = page_404(hash)
+
+fn route() = (
+  let hash = get_hash() in
+  if streq(hash, "lab") == 1 then page_lab_index()
+  else if streq(hash, "coupling") == 1 then page_coupling()
+  else if streq(hash, "crt_anatomy") == 1 then page_crt_anatomy()
+  else if streq(hash, "emergence") == 1 then page_emergence()
+  else if streq(hash, "omega_emergence") == 1 then page_omega_emergence()
+  else if streq(hash, "omega_journey") == 1 then page_omega_journey()
+  else if streq(hash, "ecc_live") == 1 then page_ecc_live()
+  else if streq(hash, "crt_train") == 1 then page_crt_train()
+  else if streq(hash, "proof") == 1 then page_proof_core()
+  else if streq(hash, "proof_core") == 1 then page_proof_core()
+  else if streq(hash, "proof_structure") == 1 then page_proof_structure()
+  else if streq(hash, "proof_ai") == 1 then page_proof_ai()
+  else if streq(hash, "proof_frontier") == 1 then page_proof_frontier()
+  else page_404(hash)
+)
+
+let arena_mark = [0]
+fn get_hp() = hp()
+fn reset_hp(v) = set_hp(v)
+fn route_only() = (
+  dom_inner(dom_body(), "");
+  route();
+  highlight_nav();
+  render_vow(dom_body());
+  render_footer()
+)
+
+fn on_navigate() = (
+  set_hp(arena_mark[0]);
+  close_nav_dd();
+  route_only()
+)
+ct_body(dom_body());
+ct_starfield(dom_body());
+ct_wave(dom_body());
+ct_moon(dom_body());
+render_nav();
+let spa_root = dom_create("div") in
+dom_style(spa_root, "position", "relative");
+dom_style(spa_root, "zIndex", "1");
+dom_style(spa_root, "paddingTop", "52px");
+dom_append(dom_body(), spa_root);
+dom_set_root(spa_root);
+set(arena_mark, 0, hp());
+route();
+highlight_nav();
+render_vow(dom_body());
+render_footer();
+dom_spa_init("on_navigate")
