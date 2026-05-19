@@ -1,5 +1,5 @@
 /* [DEAD] SCAFFOLDING -- Cloudflare Worker: sensor API + SSG.
-   141 pages pre-rendered as static HTML. Zero WASM imports.
+   142 pages pre-rendered as static HTML. Zero WASM imports.
    Dies when WASI provides native server-side DOM. */
 export default {
   async fetch(request, env) {
