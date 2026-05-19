@@ -3,12 +3,6 @@
    Crawler -> SSR: per-module WASM, string-based imports -> full HTML.
    Same .ax code, two surfaces. WYSIWYG by construction.
    Dies when WASI provides native server-side DOM. */
-import siteHome from './site_home.wasm';
-import sitePatterns from './site_patterns.wasm';
-import siteTheory from './site_theory.wasm';
-import siteConnections from './site_connections.wasm';
-import siteIdeas from './site_ideas.wasm';
-import siteDemos from './site_demos.wasm';
 
 var _routeMap = {
   '':'home','home':'home',
@@ -165,15 +159,6 @@ var _routeMap = {
 var _currentModule = '';
 function _routeMod(r) { return _routeMap[r] || 'home'; }
 
-var _ssrMods = {
-  'home': siteHome,
-  'patterns': sitePatterns,
-  'theory': siteTheory,
-  'connections': siteConnections,
-  'ideas': siteIdeas,
-  'demos': siteDemos
-};
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -227,13 +212,10 @@ export default {
         return s;
       }
 
-      /* Select SSR module or fall through to client-side rendering */
+      /* Fetch the right module WASM based on route */
       var _mod = _routeMod(route);
-      var _ssrWasm = _ssrMods[_mod];
-      if (!_ssrWasm) {
-        return env.ASSETS.fetch(new URL('/_app.html', url.origin).toString());
-      }
-      var result = await WebAssembly.instantiate(_ssrWasm, { env: {
+      var _wr = await env.ASSETS.fetch(new URL('/site_' + _mod + '.wasm', url.origin).toString());
+      var result = await WebAssembly.instantiate(await _wr.arrayBuffer(), { env: {
         show_int: function(v) { return v; },
         show_str: function(p) { return p; },
         show_float: function(v) { return 0; },
@@ -308,9 +290,6 @@ export default {
           return ptr;
         },
         dom_value: function() { return 0; },
-        dom_focus: function() { return 0; },
-        time_ms: function() { return 0; },
-        gpu_train: function() { return 0; },
         /* Canvas 2D stubs -- no-op for SSR (canvas is browser-only) */
         cvs_getctx: function() { return -1; },
         cvs_fillrect: function() { return 0; },
