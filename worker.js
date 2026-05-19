@@ -431,7 +431,7 @@ export default {
       var html = tpl;
 
       return new Response(html, {
-        headers: { 'Content-Type': 'text/html;charset=utf-8' }
+        headers: { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
       });
 
     } catch (e) {
