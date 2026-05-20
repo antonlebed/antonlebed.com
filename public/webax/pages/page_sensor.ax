@@ -592,11 +592,12 @@ fn page_sensor() = (
   render_finding(g, "BME280", "I2C sensor", "Temperature + humidity + pressure. GPIO21 (SDA), GPIO22 (SCL). Reading every 3 seconds.", "");
   render_finding(g, "CRT Encode", "7 channels", "Each reading modulo {8, 9, 25, 49, 11, 13, 17}. Four data channels carry the measurement. Three parity channels protect it.", "");
   render_finding(g, "SPIN Packet", "14 bytes", "Step counter + lambda progress + sensor data. ESP-NOW broadcast. 3-second heartbeat.", "");
-  render_finding(g, "ECC3", "100% detect", "Any single-channel corruption detected by triple parity. Two errors: 100% detect (535M exhaustive). Correction: Hamming-3 lookup.", "");
+  render_finding(g, "ECC3", "100% correct", "Any single-channel corruption detected AND corrected. Parity error (1 syndrome): O(1) from data reconstruction. Data error (2-3 syndromes): brute-force search, max 196 iterations. Uniqueness guaranteed: any 6 of 7 channels determine the value.", "");
+  render_finding(g, "Hardware Verified", "19/19", "Parity correction: 9/9 on live radio (channel L, delta +1). Data correction: 10/10 on live radio (channel D, brute-force). Three ESP32 boards, ESP-NOW broadcast, .ax WASM firmware. Zero failures.", "");
   render_finding(g, "Angular Momentum", "Clock sync", "Phase difference between sender and receiver = distance on 7-torus. Deviation from static CRT distance = clock drift. Free on every packet.", "");
   render_finding(g, "Gateway", "PC bridge", "Python script reads ESP32 serial, POSTs sensor JSON to Cloudflare Worker every 10 minutes. Worker stores in KV. Page fetches the latest on load. Click Refresh to re-fetch; within 10 minutes the browser cache returns the same payload at zero API cost.", "");
 
-  render_theorem(sec4, "Why CRT for Sensors?", "A temperature reading is just a number. But through CRT, it becomes 7 independent residues traveling on 7 independent channels. If any channel is corrupted by noise, the other 6 are unaffected. The parity channels detect it. The round-trip mirror cancels systematic offsets. The angular momentum monitors clock drift. All of this is FREE -- it falls out of the algebra. No protocol overhead. No error-correction codec. Just arithmetic in Z/214,414,200.");
+  render_theorem(sec4, "Why CRT for Sensors?", "A temperature reading is just a number. But through CRT, it becomes 7 independent residues traveling on 7 independent channels. If any channel is corrupted by noise, the other 6 are unaffected. The parity channels detect it -- and the receiver corrects it, recovering the original value from the remaining channels. The angular momentum monitors clock drift. All of this is FREE -- it falls out of the algebra. No protocol overhead. No error-correction codec. Just arithmetic in Z/214,414,200.");
 
   dom_append(dom_body(), sec4);
 

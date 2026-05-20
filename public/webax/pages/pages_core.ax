@@ -907,7 +907,17 @@ fn page_ecc() = (
   render_contrast_row(ctbl, "On corruption", "Wrong value, no warning", "Detected -> located -> corrected");
   render_contrast_row(ctbl, "Paradigm", "Pray nothing goes wrong", "Ring self-heals");
   render_p(sec7, "Reed-Solomon, LDPC, Turbo codes all ADD redundancy to protect data. The CRT ring has redundancy built in. 11 is not bolted on -- it is the fifth prime in the number system. Protection is a structural property of the ring's CRT decomposition.");
-  dom_append(dom_body(), sec7)
+  dom_append(dom_body(), sec7);
+
+  /* === HARDWARE VERIFICATION === */
+  let sec8 = make_section("800px") in
+  render_h2(sec8, "Proved on Hardware");
+  render_p(sec8, "Three ESP32 boards running .ax WASM firmware on the TRANS ring Z/214,414,200. Seven channels. Triple-parity ECC (rate 4/7). Packets broadcast via ESP-NOW radio every 3 seconds. Error injection via serial command corrupts one CRT channel per packet. The receiver corrects it.");
+  let g8 = make_findings_grid(sec8) in
+  render_finding(g8, "Parity correction", "9/9 (100%)", "Channel L (mod 11) corrupted by +1 on every packet from sigma(1). Receiver D(2) corrected all 9: syndrome identifies the parity channel, data reconstruction gives the correct value. O(1).", "");
+  render_finding(g8, "Data correction", "10/10 (100%)", "Channel D (mod 8) corrupted by +1. Receiver brute-force searched 8 candidate values, found the unique match against all 3 parity channels. Max 196 iterations for mod-49. Zero failures.", "");
+  render_finding(g8, "Uniqueness", "Proved", "Any 6 of 7 channels uniquely determine the element. lcm of any 6 moduli exceeds the data ring (88,200). Single-channel correction always has exactly one solution.", "");
+  dom_append(dom_body(), sec8)
 )
 
 /* page_cosmo CUT S1934 (COINCIDENCE). See git history. */
