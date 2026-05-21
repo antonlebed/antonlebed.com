@@ -1,0 +1,296 @@
+/* ================================================================
+   PAGE: THE HELIX -- seven spirals, seven gears.
+   CRT channels as interlocking helices with different angular rates.
+   Each channel's helix winds at rate 2*pi/q_i per element.
+   Gear ratio between channels i and j = q_j/q_i (irreducible, coprime).
+   Full return: lcm(8,9,25,49,11,13,17) = TRANS = 214,414,200.
+   Smallest pairwise mesh: 72 = D^3*K^2 (the ouroboros cycle).
+   Largest pairwise mesh: 1225 = E^2*b^2 = 35^2.
+   ================================================================ */
+
+/* ===== INTEGER TRIG (fixed-point *1000, 64ths of full circle) ===== */
+fn _hlx_sq(k) = if k == 0 then 0 else if k == 1 then 98 else if k == 2 then 195 else if k == 3 then 290 else if k == 4 then 383 else if k == 5 then 471 else if k == 6 then 556 else if k == 7 then 634 else if k == 8 then 707 else if k == 9 then 773 else if k == 10 then 831 else if k == 11 then 882 else if k == 12 then 924 else if k == 13 then 957 else if k == 14 then 981 else 996
+
+fn hlx_sin64(a) = (
+  let a2 = ((a % 64) + 64) % 64 in
+  if a2 < 16 then _hlx_sq(a2)
+  else if a2 < 32 then _hlx_sq(32 - a2)
+  else if a2 < 48 then 0 - _hlx_sq(a2 - 32)
+  else 0 - _hlx_sq(64 - a2)
+)
+
+/* ===== GLOBAL STATE ===== */
+let hlx_ctx = [0]
+let hlx_step = [0]
+let hlx_playing = [0]
+let hlx_speed = [4]
+let hlx_frame = [0]
+let hlx_q = CRT_MODS_TRANS
+
+fn hlx_color(i) = (
+  if i == 0 then CLR_D
+  else if i == 1 then CLR_K
+  else if i == 2 then CLR_E
+  else if i == 3 then CLR_b
+  else if i == 4 then CLR_L
+  else if i == 5 then CLR_G
+  else CLR_17
+)
+
+fn hlx_label(i) = (
+  if i == 0 then "8"
+  else if i == 1 then "9"
+  else if i == 2 then "25"
+  else if i == 3 then "49"
+  else if i == 4 then "11"
+  else if i == 5 then "13"
+  else "17"
+)
+
+/* ===== DRAW ONE FRAME ===== */
+fn hlx_draw() = (
+  let ctx = hlx_ctx[0] in
+  let t = hlx_step[0] in
+  let cx = 175 in
+  let amp = 65 in
+  let y_top = 20 in
+  let y_bot = 340 in
+  let ht = y_bot - y_top in
+  let n_range = 100 in
+  /* Clear */
+  cvs_fillstyle(ctx, "#0a0a18");
+  cvs_fillrect(ctx, 0, 0, 350, 370);
+  /* Central axis */
+  cvs_strokestyle(ctx, "#1a1a2e");
+  cvs_linewidth(ctx, 1);
+  cvs_beginpath(ctx);
+  cvs_moveto(ctx, cx, y_top);
+  cvs_lineto(ctx, cx, y_bot);
+  cvs_stroke(ctx);
+  /* Draw helices: slowest (back) to fastest (front) */
+  let draw_order = [3, 2, 6, 5, 4, 1, 0] in
+  mut di = 0;
+  while di < 7 do (
+    let ch = draw_order[di] in
+    let q = hlx_q[ch] in
+    cvs_strokestyle(ctx, hlx_color(ch));
+    cvs_linewidth(ctx, 2);
+    cvs_beginpath(ctx);
+    mut yy = y_top;
+    while yy <= y_bot do (
+      let n = t + (yy - y_top) * n_range / ht in
+      let angle = (n % q) * 64 / q in
+      let xx = cx + amp * hlx_sin64(angle) / 1000 in
+      if yy == y_top then cvs_moveto(ctx, xx, yy)
+      else cvs_lineto(ctx, xx, yy);
+      mut yy = yy + 2
+    );
+    cvs_stroke(ctx);
+    mut di = di + 1
+  );
+  /* Scan line at center */
+  let scan_y = (y_top + y_bot) / 2 in
+  cvs_strokestyle(ctx, "#ffd700");
+  cvs_linewidth(ctx, 1);
+  cvs_beginpath(ctx);
+  cvs_moveto(ctx, cx - amp - 15, scan_y);
+  cvs_lineto(ctx, cx + amp + 15, scan_y);
+  cvs_stroke(ctx);
+  /* Dots at scan line */
+  let scan_n = t + n_range / 2 in
+  mut cj = 0;
+  while cj < 7 do (
+    let q = hlx_q[cj] in
+    let angle = (scan_n % q) * 64 / q in
+    let xx = cx + amp * hlx_sin64(angle) / 1000 in
+    cvs_fillstyle(ctx, hlx_color(cj));
+    cvs_beginpath(ctx);
+    cvs_arc(ctx, xx, scan_y, 4, 0, 36000);
+    cvs_fill(ctx);
+    mut cj = cj + 1
+  );
+  /* HUD: step + residues */
+  cvs_fillstyle(ctx, "#b0b0c0");
+  cvs_font(ctx, "11px monospace");
+  cvs_filltext(ctx, "n = ${scan_n}", 8, 14);
+  let ry = y_bot + 14 in
+  mut ck = 0;
+  while ck < 7 do (
+    let q = hlx_q[ck] in
+    let r = scan_n % q in
+    cvs_fillstyle(ctx, hlx_color(ck));
+    cvs_filltext(ctx, "${r}", 8 + ck * 50, ry);
+    mut ck = ck + 1
+  );
+  cvs_fillstyle(ctx, "#666");
+  cvs_font(ctx, "9px monospace");
+  mut cl = 0;
+  while cl < 7 do (
+    cvs_filltext(ctx, hlx_label(cl), 8 + cl * 50, ry + 12);
+    mut cl = cl + 1
+  );
+  /* Progress bar: lambda cycle */
+  let phase = scan_n % 1680 in
+  cvs_fillstyle(ctx, "#1a1a2e");
+  cvs_fillrect(ctx, 8, 354, 334, 8);
+  let bar_w = (phase * 334) / 1680 in
+  cvs_fillstyle(ctx, if phase < 840 then "#44ff88" else "#ffd700");
+  cvs_fillrect(ctx, 8, 354, bar_w, 8)
+)
+
+/* ===== ANIMATION TICK ===== */
+fn hlx_tick() = (
+  if hlx_playing[0] == 1 then (
+    let spd = hlx_speed[0] in
+    let f = hlx_frame[0] + 1 in
+    set(hlx_frame, 0, f);
+    if spd >= 32 then (
+      set(hlx_step, 0, hlx_step[0] + spd / 32);
+      hlx_draw()
+    ) else (
+      let div = 32 / spd in
+      if f % div == 0 then (
+        set(hlx_step, 0, hlx_step[0] + 1);
+        hlx_draw()
+      ) else 0
+    )
+  ) else 0
+)
+
+/* ===== CONTROLS ===== */
+fn hlx_play() = set(hlx_playing, 0, 1)
+fn hlx_pause() = set(hlx_playing, 0, 0)
+fn hlx_step_fwd() = (set(hlx_step, 0, hlx_step[0] + 1); hlx_draw())
+fn hlx_reset() = (set(hlx_step, 0, 0); hlx_draw())
+
+fn hlx_jump_lambda() = (
+  let t = hlx_step[0] in
+  let phase = t % 1680 in
+  set(hlx_step, 0, t + (1680 - phase));
+  hlx_draw()
+)
+
+fn hlx_speed_label(s) = (
+  if s == 1 then "x0.25" else if s == 2 then "x0.5" else if s == 4 then "x1"
+  else if s == 8 then "x2" else if s == 16 then "x4" else if s == 32 then "x8"
+  else if s == 64 then "x16" else "x32"
+)
+
+fn hlx_speed_up() = (
+  let s = hlx_speed[0] in
+  if s < 128 then set(hlx_speed, 0, s * 2) else 0;
+  dom_inner(dom_query("#hlx-speed-lbl"), hlx_speed_label(hlx_speed[0]))
+)
+
+fn hlx_speed_down() = (
+  let s = hlx_speed[0] in
+  if s > 1 then set(hlx_speed, 0, s / 2) else 0;
+  dom_inner(dom_query("#hlx-speed-lbl"), hlx_speed_label(hlx_speed[0]))
+)
+
+/* ===== HERO ===== */
+fn hlx_hero() = (
+  let hero = make_hero("The Helix") in
+  render_p(hero, "Seven CRT channels are seven interlocking gears. Each channel's modulus sets its gear size: mod 8 is the smallest gear (fastest rotation), mod 49 is the largest (slowest). As element n advances through the ring, each gear turns at its own rate. The gear ratio between any two channels = the ratio of their moduli.");
+  render_p(hero, "Below: a side view of seven helices winding around a shared axis. Each helix is one CRT channel. Its wavelength is its modulus. Where two helices cross at the same phase = their gears mesh. All seven gears return to start simultaneously after lcm(8,9,25,49,11,13,17) = 214,414,200 steps.");
+  dom_append(dom_body(), hero)
+)
+
+/* ===== CANVAS + CONTROLS ===== */
+fn hlx_canvas_section() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "The Machine");
+  let cvs = dom_create("canvas") in
+  dom_attr(cvs, "id", "hlx-canvas");
+  cvs_setsize(cvs, 350, 370);
+  dom_style(cvs, "display", "block");
+  dom_style(cvs, "background", "#0a0a18");
+  dom_style(cvs, "maxWidth", "100%");
+  dom_style(cvs, "border", "1px solid #333");
+  dom_style(cvs, "borderRadius", "8px");
+  dom_style(cvs, "margin", "0 auto 12px");
+  dom_append(sec, cvs);
+  let ctx = cvs_getctx(cvs) in
+  set(hlx_ctx, 0, ctx);
+  /* Control buttons */
+  let ctrls = dom_create("div") in
+  dom_style(ctrls, "display", "flex");
+  dom_style(ctrls, "gap", "6px");
+  dom_style(ctrls, "flexWrap", "wrap");
+  dom_style(ctrls, "justifyContent", "center");
+  dom_style(ctrls, "marginBottom", "12px");
+  let bs = "6px 12px" in let br = "4px" in let fs = "12px" in
+  let b1 = dom_create("button") in dom_text(b1, "Play"); dom_style(b1, "padding", bs); dom_style(b1, "cursor", "pointer"); dom_style(b1, "background", "#228833"); dom_style(b1, "color", "#fff"); dom_style(b1, "border", "none"); dom_style(b1, "borderRadius", br); dom_style(b1, "fontSize", fs); dom_on(b1, "click", "hlx_play"); dom_append(ctrls, b1);
+  let b2 = dom_create("button") in dom_text(b2, "Pause"); dom_style(b2, "padding", bs); dom_style(b2, "cursor", "pointer"); dom_style(b2, "background", "#884422"); dom_style(b2, "color", "#fff"); dom_style(b2, "border", "none"); dom_style(b2, "borderRadius", br); dom_style(b2, "fontSize", fs); dom_on(b2, "click", "hlx_pause"); dom_append(ctrls, b2);
+  let b3 = dom_create("button") in dom_text(b3, "Step"); dom_style(b3, "padding", bs); dom_style(b3, "cursor", "pointer"); dom_style(b3, "background", "#336688"); dom_style(b3, "color", "#fff"); dom_style(b3, "border", "none"); dom_style(b3, "borderRadius", br); dom_style(b3, "fontSize", fs); dom_on(b3, "click", "hlx_step_fwd"); dom_append(ctrls, b3);
+  let b4 = dom_create("button") in dom_text(b4, "Reset"); dom_style(b4, "padding", bs); dom_style(b4, "cursor", "pointer"); dom_style(b4, "background", "#663344"); dom_style(b4, "color", "#fff"); dom_style(b4, "border", "none"); dom_style(b4, "borderRadius", br); dom_style(b4, "fontSize", fs); dom_on(b4, "click", "hlx_reset"); dom_append(ctrls, b4);
+  let b5 = dom_create("button") in dom_text(b5, "Jump to period"); dom_style(b5, "padding", bs); dom_style(b5, "cursor", "pointer"); dom_style(b5, "background", "#886622"); dom_style(b5, "color", "#fff"); dom_style(b5, "border", "none"); dom_style(b5, "borderRadius", br); dom_style(b5, "fontSize", fs); dom_on(b5, "click", "hlx_jump_lambda"); dom_append(ctrls, b5);
+  let b6 = dom_create("button") in dom_text(b6, "Slower"); dom_style(b6, "padding", bs); dom_style(b6, "cursor", "pointer"); dom_style(b6, "background", "#444466"); dom_style(b6, "color", "#fff"); dom_style(b6, "border", "none"); dom_style(b6, "borderRadius", br); dom_style(b6, "fontSize", fs); dom_on(b6, "click", "hlx_speed_down"); dom_append(ctrls, b6);
+  let spd_lbl = dom_create("span") in dom_attr(spd_lbl, "id", "hlx-speed-lbl"); dom_text(spd_lbl, "x1"); dom_style(spd_lbl, "color", "#ffd700"); dom_style(spd_lbl, "fontSize", fs); dom_style(spd_lbl, "padding", "6px 4px"); dom_append(ctrls, spd_lbl);
+  let b7 = dom_create("button") in dom_text(b7, "Faster"); dom_style(b7, "padding", bs); dom_style(b7, "cursor", "pointer"); dom_style(b7, "background", "#444466"); dom_style(b7, "color", "#fff"); dom_style(b7, "border", "none"); dom_style(b7, "borderRadius", br); dom_style(b7, "fontSize", fs); dom_on(b7, "click", "hlx_speed_up"); dom_append(ctrls, b7);
+  dom_append(sec, ctrls);
+  dom_append(dom_body(), sec);
+  hlx_draw();
+  raf("hlx_tick")
+)
+
+/* ===== GEAR RATIOS ===== */
+fn hlx_gear_section() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Gear Ratios");
+  render_p(sec, "Each pair of CRT channels has a gear ratio = the ratio of their moduli. Since all moduli are pairwise coprime (distinct prime powers), every ratio is irreducible. Meshing period = lcm(q_i, q_j) = q_i * q_j.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Pair");
+  render_th(hdr, "Ratio");
+  render_th(hdr, "Mesh");
+  render_th(hdr, "Reading");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "mod-8 / mod-9", "9/8", "72", "D^3*K^2 = ouroboros cycle");
+  render_table_row_4(tbl, "mod-9 / mod-11", "11/9", "99", "K^2*L = closure + protector");
+  render_table_row_4(tbl, "mod-11 / mod-13", "13/11", "143", "L*GATE = parity pair");
+  render_table_row_4(tbl, "mod-13 / mod-17", "17/13", "221", "GATE*ESCAPE = boundary pair");
+  render_table_row_4(tbl, "mod-9 / mod-49", "49/9", "441=21^2", "(K*b)^2 = closure*depth");
+  render_table_row_4(tbl, "mod-25 / mod-49", "49/25", "1225=35^2", "(E*b)^2 = meta-meta-ring^2");
+  render_table_row_4(tbl, "mod-8 / mod-17", "17/8", "136", "D^3*ESCAPE = bridge-transcend");
+  render_p(sec, "Smallest mesh: 72 = 8*9 = D^3*K^2. The ouroboros cycle (3^2 * 2^3 = 72 transitions in the 3-bit state graph). The two innermost towers mesh first.");
+  render_p(sec, "Largest mesh: 1225 = 25*49 = E^2*b^2 = 35^2. The two depth-2 quadratic towers take the longest to align. 35 = E*b is the meta-meta-ring in Tower B.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "21 pairwise gear ratios", "All irreducible", "C(7,2) = 21 pairs. Each coprime pair has meshing period = product of moduli. The full ring 214,414,200 = product of all 7 = the period when all gears return simultaneously.", "");
+  render_finding(g, "72 = ouroboros cycle", "lcm(8,9) = 72 = 3^2 * 2^3", "Smallest pairwise mesh. The D-K bridge is the tightest coupling. The mod-8 gear turns 9 times while mod-9 turns 8.", "");
+  render_finding(g, "1225 = 35^2 = (E*b)^2", "lcm(25,49)", "Largest pairwise mesh. The two quadratic data channels are the most loosely coupled. 35 = E*b = meta-meta-ring.", "");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== 490 SPLIT IN THE GEAR SYSTEM ===== */
+fn hlx_mesh_section() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "When Gears Mesh");
+  render_p(sec, "Gears mesh when both channels return to residue 0 simultaneously. For coprime moduli q_i and q_j, this happens every q_i * q_j steps. At mesh points, both helices cross the central axis at the same height.");
+  render_p(sec, "The 490 split reappears. DEAD channels {mod 8, mod 25, mod 49} = {D^3, E^2, b^2} (perception). ALIVE channels {mod 9, mod 11, mod 13, mod 17} = {K^2, L, GATE, ESCAPE} (strategy).");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Set");
+  render_th(hdr, "Mesh range");
+  render_th(hdr, "Count");
+  render_th(hdr, "Character");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "DEAD-DEAD", "200 to 1225", "3 pairs", "Wide spread, loosely coupled");
+  render_table_row_4(tbl, "ALIVE-ALIVE", "99 to 221", "6 pairs", "Narrow range, tightly coupled");
+  render_table_row_4(tbl, "DEAD-ALIVE", "72 to 833", "12 pairs", "Cross-split coupling");
+  render_p(sec, "DEAD channels span a 6x range in meshing periods (1225/200). ALIVE channels span only 2.2x (221/99). Strategy gears are more tightly synchronized than perception gears.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "DEAD: wide frequency spread", "Perception channels", "Three DEAD-DEAD meshes: 200 (D^3*E^2), 392 (D^3*b^2), 1225 (E^2*b^2). The quadratic exponents create large mesh periods. Perception channels scan different timescales.", "");
+  render_finding(g, "ALIVE: tight coordination", "Strategy channels", "Six ALIVE-ALIVE meshes: 99, 117, 143, 153, 187, 221. All under 225. Strategy channels mesh frequently = coordinated decision-making.", "");
+  dom_append(dom_body(), sec)
+)
+
+/* ===== MAIN PAGE ===== */
+fn page_helix() = (
+  dom_head_meta("description", "The Helix: CRT channels as seven interlocking gears. Side view of seven helices winding at rates set by their moduli. Gear ratios, meshing periods, the 490 split in coupling structure.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The Helix\",\"description\":\"CRT channels as interlocking helices. Gear ratios from pairwise coprime moduli. Smallest mesh 72 (ouroboros), largest 1225 (meta-meta-ring squared).\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/patterns/helix\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"CRT helix\"},{\"@type\":\"DefinedTerm\",\"name\":\"gear ratios\"},{\"@type\":\"DefinedTerm\",\"name\":\"coprime moduli\"}]}");
+  hlx_hero();
+  hlx_canvas_section();
+  hlx_gear_section();
+  hlx_mesh_section()
+)
