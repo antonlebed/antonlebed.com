@@ -11,7 +11,7 @@ fn fields_hero() = (
   ct_gold(eq);
   dom_style(eq, "marginBottom", "24px");
   dom_append(hero, eq);
-  render_p(hero, "The chain primes {2,3,5,7,11} live in Z, but their shadows extend into number fields: Gaussian integers Z[i] (disc = -4), Eisenstein integers Z[omega] (disc = -3), imaginary quadratic fields Q(sqrt(-d)). 5 is the ONLY chain prime that splits in Z[i] -- the prime that fails to divide 24 is the one that decomposes.");
+  render_p(hero, "The axiom primes {2,3,5,7,11,13,17} live in Z, but their shadows extend into number fields: Gaussian integers Z[i] (disc = -4), Eisenstein integers Z[omega] (disc = -3), imaginary quadratic fields Q(sqrt(-d)). In Z[i], primes 1 mod 4 SPLIT: 7 channels become 10 = Decality. In Z[omega], primes 1 mod 3 SPLIT: 7 channels become 9 = K^2. Three partitions uniquely classify all seven primes.");
   render_p(hero, "Two quadratic fields partition ALL key constants. The Gaussian field (disc = -4) generates 13, 41, 137. The Eisenstein field (disc = -3) generates 7, 19, 67, 163. Together they organize the entire chain.");
   dom_append(dom_body(), hero)
 )
@@ -205,6 +205,86 @@ fn fields_legendre() = (
   dom_append(dom_body(), sec)
 )
 
+fn fields_gaussian_decality() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Gaussian Decality: 7 Channels Become 10");
+  render_p(sec, "Extending Z/N to Z[i]/N (Gaussian integers mod N), each prime behaves differently. Primes that are 1 mod 4 SPLIT into two conjugate factors in Z[i], doubling their CRT channels. Primes that are 3 mod 4 stay INERT (single channel with p^2 elements instead of p). D=2 RAMIFIES (unique).");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Prime");
+  render_th(hdr, "mod 4");
+  render_th(hdr, "Status");
+  render_th(hdr, "Channels");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "2", "--", "Ramified", "1");
+  render_table_row_4(tbl, "3", "3", "Inert", "1");
+  render_table_row_4(tbl, "5 = 2^2+1^2", "1", "Split: (2+i)(2-i)", "2");
+  render_table_row_4(tbl, "7", "3", "Inert", "1");
+  render_table_row_4(tbl, "11", "3", "Inert", "1");
+  render_table_row_4(tbl, "13 = 3^2+2^2", "1", "Split: (3+2i)(3-2i)", "2");
+  render_table_row_4(tbl, "17 = 4^2+1^2", "1", "Split: (4+i)(4-i)", "2");
+  render_theorem(sec, "Gaussian Decality Theorem (PROVED)", "Z[i]/TRANS has exactly 10 CRT components: 1 ramified + 3 inert + 3*2 split = 10 = Decality = 3 + 7. The three new channels come from {5, 13, 17} splitting -- exactly the primes with order-4 elements in their unit groups (the 2-Sylow 1 mod 4 partition). 67/67 tests.");
+  render_theorem(sec, "Gaussian Idempotent Theorem (PROVED)", "Z[i]/TRANS has 2^10 = 1024 idempotents. Z/TRANS has 2^7 = 128. Ratio = 2^3 = 8 = Tower_D top. The Gaussian extension creates exactly D^3 times more idempotents -- and D^3 is the unique Pareto top of Tower_D, the tower that owns Z[i].");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Inert sum", "3+7+11 = 21 = 3*7", "Inert primes (3 mod 4): closure * depth. Single channel each, but over p^2 elements (GF(p^2) at depth 1, local ring at depth 2+).", "");
+  render_finding(g, "Split sum", "5+13+17 = 35 = 5*7", "Split primes (1 mod 4): observer * depth. Two channels each. Same three primes that have sum-of-two-squares representations.", "");
+  render_finding(g, "490 cross-cut", "Two independent partitions", "The Gaussian partition (by mod 4) cross-cuts the 490 split (by idempotent). 5 of 6 cells non-empty. The empty cell (Ramified-ALIVE) is forced since 2 divides 490.", "");
+  dom_append(dom_body(), sec)
+)
+
+fn fields_eisenstein_decality() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Eisenstein Decality: 7 Channels Become 9 = K^2");
+  render_p(sec, "The Eisenstein integers Z[omega] (disc = -3) give a second extension. Primes that are 1 mod 3 SPLIT, doubling their channels. Primes that are 2 mod 3 stay INERT. K=3 RAMIFIES (it divides the discriminant).");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Prime");
+  render_th(hdr, "mod 3");
+  render_th(hdr, "Status");
+  render_th(hdr, "Channels");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "2", "2", "Inert", "1");
+  render_table_row_4(tbl, "3", "--", "Ramified", "1");
+  render_table_row_4(tbl, "5", "2", "Inert", "1");
+  render_table_row_4(tbl, "7 = 3^2-3+1", "1", "Split", "2");
+  render_table_row_4(tbl, "11", "2", "Inert", "1");
+  render_table_row_4(tbl, "13 = 4^2-4+1", "1", "Split", "2");
+  render_table_row_4(tbl, "17", "2", "Inert", "1");
+  render_theorem(sec, "Eisenstein Decality Theorem (PROVED)", "Z[omega]/TRANS has exactly 9 CRT components: 1 ramified + 4 inert + 2*2 split = 9 = K^2 = closure squared. Channel gain = D = 2. 109/109 tests.");
+  render_theorem(sec, "Quadratic Channel Formula (PROVED)", "For any class-1 imaginary quadratic extension where one axiom prime ramifies: channels = 7 + s, where s = split count. D ramifying gives s=3, channels=10 (Decality). Odd axiom prime ramifying gives s=2, channels=9 (K^2). The D anomaly: the even prime adds one extra split.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Gaussian gain = K = 3", "10 - 7 = 3", "The Gaussian extension adds K channels -- exactly the closure prime, the prime that owns Z[i]'s sister field Z[omega].", "");
+  render_finding(g, "Eisenstein gain = D = 2", "9 - 7 = 2", "The Eisenstein extension adds D channels -- exactly the bridge prime, the prime that owns Z[i]. The two base fields exchange gain primes.", "");
+  render_finding(g, "Class-1 axiom primes", "{2, 3, 7, 11}", "Exactly 4 axiom primes have class-1 quadratic extensions. Sum = 23 = c(11). 5 excluded (h(-20)=2), 13 excluded (h(-52)=2), 17 excluded (h(-68)=4).", "");
+  render_finding(g, "Idempotent tower", "128 -> 512 -> 1024", "Z/TRANS: 2^7. Z[omega]/TRANS: 2^9 (gain D^2=4). Z[i]/TRANS: 2^10 (gain D^3=8). Gains multiply: D^2 * D = D^3.", "");
+  dom_append(dom_body(), sec)
+)
+
+fn fields_unique_triple() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Unique Triple: Three Partitions Classify Seven Primes");
+  render_p(sec, "The 490 split (by holographic idempotent), Gaussian partition (by mod 4), and Eisenstein partition (by mod 3) are three independent ways to classify the axiom primes. Together, they uniquely identify every prime.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Prime");
+  render_th(hdr, "490 split");
+  render_th(hdr, "Gaussian");
+  render_th(hdr, "Eisenstein");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "D = 2", "DEAD", "Ramified", "Inert");
+  render_table_row_4(tbl, "K = 3", "ALIVE", "Inert", "Ramified");
+  render_table_row_4(tbl, "E = 5", "DEAD", "Split", "Inert");
+  render_table_row_4(tbl, "b = 7", "DEAD", "Inert", "Split");
+  render_table_row_4(tbl, "L = 11", "ALIVE", "Inert", "Inert");
+  render_table_row_4(tbl, "GATE = 13", "ALIVE", "Split", "Split");
+  render_table_row_4(tbl, "ESCAPE = 17", "ALIVE", "Split", "Inert");
+  render_theorem(sec, "Unique Triple Theorem (PROVED)", "All 7 triples are distinct. 7 out of 2*3*3 = 18 possible triples are used. The three partitions are genuinely independent: no single partition or pair of partitions achieves unique classification. All three together = perfect fingerprint.");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "D-K anti-diagonal", "Ramified and Inert swap", "D is Gaussian-ramified + Eisenstein-inert. K is Gaussian-inert + Eisenstein-ramified. The two base fields exchange their ramifying primes.", "");
+  render_finding(g, "Cross-grid: 6 of 9 cells non-empty", "3x3 Gaussian x Eisenstein", "The Gaussian and Eisenstein partitions cross-cut each other (6 non-empty cells out of 9 = K^2). The 3 empty cells: both ramified (impossible), and two others.", "");
+  dom_append(dom_body(), sec)
+)
+
 fn fields_class_mirror() = (
   let sec = make_section("800px") in
   render_h2(sec, "Class Number Mirror");
@@ -225,7 +305,7 @@ fn fields_contrast() = (
   render_th(hdr, "Axiom");
   dom_append(tbl, hdr);
   render_contrast_row(tbl, "Heegner numbers", "9 exceptional discriminants", "First 5 = the chain {1,2,3,7,11}. Remaining 4 = c(3*{3,7,11,27}). 3 generates all 9. 5 excluded.");
-  render_contrast_row(tbl, "Gaussian splitting", "p = 1 mod 4 splits", "5 is the ONLY chain prime with Leg=+1. The prime that doesn't divide 24 is the one that splits.");
+  render_contrast_row(tbl, "Gaussian splitting", "p = 1 mod 4 splits", "{5, 13, 17} split in Z[i]. 7 real channels become 10 Gaussian = Decality. Idempotents: 128 -> 1024 (gain = 8 = Tower_D top).");
   render_contrast_row(tbl, "Two quadratic fields", "Z[i] and Z[omega]", "Gaussian (disc=-4) generates 13, 41, 137. Eisenstein (disc=-3) generates 7, 19, 67, 163. Together they organize the entire chain.");
   render_contrast_row(tbl, "Pell equations", "Diophantine curiosity", "ALL 5 chain Pells have smooth solutions. Sum(x)=32 (= 2^5, the idempotent count). Sum(y)=13.");
   render_contrast_row(tbl, "j(i) = 1728", "CM theory value", "6*(125+163) = 6*288. CRT(1728) = (0,0,3,13,1). Three fields converge at one pair.");
@@ -259,8 +339,8 @@ fn fld_lookup() = (
 )
 
 fn page_fields() = (
-  dom_head_meta("description", "Number fields and the axiom. Gaussian norms: |1+2i|^2=5, |2+3i|^2=13. Eisenstein lattice: all key constants from one operation. Heegner-Cunningham: all 9 = axiom primes + c(3*p). Pell: all 5 smooth, Sum(x)=32. 163 = 288-125 = Eisenstein norm. Class number mirror involution.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Number Fields and the Axiom\",\"description\":\"Gaussian norms produce axiom constants (5, 13, 41, 137). Eisenstein norms organize the entire chain. All 9 Heegner numbers = axiom primes + Cunningham of 3-products. Three Roads to 19. Codon convergence at p=2.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/patterns/fields\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Heegner numbers\"},{\"@type\":\"DefinedTerm\",\"name\":\"Gaussian integers\"},{\"@type\":\"DefinedTerm\",\"name\":\"Eisenstein integers\"}]}");
+  dom_head_meta("description", "Number fields and the axiom. Gaussian Z[i]: 7 channels become 10 = Decality. Eisenstein Z[omega]: 7 channels become 9 = K^2. Three partitions uniquely classify all 7 primes. Heegner: all 9 = axiom primes + c(3*p). Class-1 axiom primes: {2,3,7,11}. Pell: all 5 smooth.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Number Fields and the Axiom\",\"description\":\"Gaussian integers Z[i]: 7 CRT channels become 10 = Decality. Eisenstein integers Z[omega]: 7 become 9 = K^2. Quadratic Channel Formula: channels = 7 + split count. Three partitions uniquely classify all 7 primes. Heegner numbers = axiom primes + Cunningham. Class-1 axiom primes: {2,3,7,11}.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/patterns/fields\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Heegner numbers\"},{\"@type\":\"DefinedTerm\",\"name\":\"Gaussian integers\"},{\"@type\":\"DefinedTerm\",\"name\":\"Eisenstein integers\"},{\"@type\":\"DefinedTerm\",\"name\":\"Chinese Remainder Theorem\"}]}");
   fields_hero();
   fields_gaussian();
   fields_eisenstein();
@@ -272,6 +352,9 @@ fn page_fields() = (
   fields_heegner_tower();
   fields_pell();
   fields_legendre();
+  fields_gaussian_decality();
+  fields_eisenstein_decality();
+  fields_unique_triple();
   fields_class_mirror();
 
   /* === INTERACTIVE: NORM CALCULATOR === */
