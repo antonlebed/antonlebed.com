@@ -60,6 +60,20 @@ fn ea_crt_row(label:str, val) = (
   html + "</tr>"
 )
 
+/* Parse digit string to integer (handles leading minus) */
+fn ea_parse_int(s:str) = (
+  mut n = 0;
+  mut neg = 0;
+  mut i = 0;
+  if len(s) > 0 then if charCode(s, 0) == 45 then (mut neg = 1; mut i = 1) else 0 else 0;
+  while i < len(s) do (
+    let c = charCode(s, i) in
+    if c >= 48 then if c <= 57 then (mut n = n * 10 + c - 48) else 0 else 0;
+    mut i = i + 1
+  );
+  if neg == 1 then 0 - n else n
+)
+
 /* ===== DISPLAY STATE ===== */
 
 let ea_input_el = [0]
@@ -69,7 +83,7 @@ let ea_output_el = [0]
 
 fn on_ea_classify() = (
   let val_s = dom_value(ea_input_el[0]) in
-  let val = str_to_num(val_s) in
+  let val = ea_parse_int(val_s) in
   let N = 214414200 in
   let elem = ((val % N) + N) % N in
   let g = ea_gcd(elem, N) in
@@ -89,7 +103,7 @@ fn on_ea_classify() = (
     let c = ea_ch_color(i) in
     let role = if i < 4 then "data" else "parity" in
     mut crt = crt + "<tr style='border-bottom:1px solid #222'>"
-      + "<td style='padding:4px 8px;color:${c}'>${m}</td>"
+      + "<td style='padding:4px 8px;color:${c}'>mod ${m}</td>"
       + "<td style='text-align:center;padding:4px 8px;color:#e0e0e0'>${rv}</td>"
       + "<td style='padding:4px 8px;color:#888'>${role}</td></tr>";
     mut i = i + 1
@@ -97,7 +111,7 @@ fn on_ea_classify() = (
   mut crt = crt + "</table>";
 
   dom_inner(ea_output_el[0],
-    "<div style='margin:12px 0;padding:12px;background:#0a0a14;border:1px solid #333;border-radius:4px'>"
+    "<div style='margin:12px 0;padding:12px;background:#0a0a14;border:1px solid #333;border-radius:4px;overflow-x:auto'>"
     + "<div style='font-size:16px;color:#ffd700;margin-bottom:8px'>Element ${elem}</div>"
     + "<div style='margin-bottom:4px'>Coupling: <span style='color:#44dddd;font-family:monospace'>${coupling}</span></div>"
     + "<div style='margin-bottom:8px'>Kingdom: <span style='color:#ff8844;font-weight:bold'>${kn}</span></div>"

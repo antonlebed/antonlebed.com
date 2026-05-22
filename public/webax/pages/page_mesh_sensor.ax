@@ -24,6 +24,20 @@ fn ms_ch_color(i) =
   else if i == 4 then "#44dddd" else if i == 5 then "#ffaa44"
   else "#88ff88"
 
+/* Parse digit string to integer (handles leading minus) */
+fn ms_parse_int(s:str) = (
+  mut n = 0;
+  mut neg = 0;
+  mut i = 0;
+  if len(s) > 0 then if charCode(s, 0) == 45 then (mut neg = 1; mut i = 1) else 0 else 0;
+  while i < len(s) do (
+    let c = charCode(s, i) in
+    if c >= 48 then if c <= 57 then (mut n = n * 10 + c - 48) else 0 else 0;
+    mut i = i + 1
+  );
+  if neg == 1 then 0 - n else n
+)
+
 /* ===== DISPLAY STATE ===== */
 
 let ms_input_el = [0]
@@ -35,8 +49,8 @@ let ms_output_el = [0]
 fn on_ms_probe() = (
   let x_s = dom_value(ms_input_el[0]) in
   let e_s = dom_value(ms_eps_el[0]) in
-  let x = str_to_num(x_s) in
-  let eps = str_to_num(e_s) in
+  let x = ms_parse_int(x_s) in
+  let eps = ms_parse_int(e_s) in
   let N = 214414200 in
   let xn = ((x % N) + N) % N in
 
@@ -89,7 +103,7 @@ fn on_ms_probe() = (
   mut trace = trace + "</table>";
 
   dom_inner(ms_output_el[0],
-    "<div style='margin:12px 0;padding:12px;background:#0a0a14;border:1px solid #333;border-radius:4px'>"
+    "<div style='margin:12px 0;padding:12px;background:#0a0a14;border:1px solid #333;border-radius:4px;overflow-x:auto'>"
     + "<div style='margin-bottom:4px'>x = ${xn}, epsilon = ${eps}</div>"
     + "<div style='margin-bottom:4px'>Forward: ${xn} + ${eps} = ${fwd}</div>"
     + "<div style='margin-bottom:4px'>Mirror: N - ${fwd} = ${mirror}</div>"
