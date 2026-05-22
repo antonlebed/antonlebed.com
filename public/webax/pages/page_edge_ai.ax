@@ -1,0 +1,224 @@
+/* page_edge_ai.ax -- Edge AI: CRT classifier on ESP32 sensor data. CC0.
+   Real BME280 readings from live ESP32 boards. CRT decomposition -> kingdom
+   classification via coupling. No training. No model. Just ring arithmetic.
+   Data from S2122 recording (embedded constants, not live). */
+
+/* ===== CRT HELPERS ===== */
+
+let ea_mods = alloc(7)
+fn ea_init_mods() = (
+  set(ea_mods, 0, 8); set(ea_mods, 1, 9); set(ea_mods, 2, 25);
+  set(ea_mods, 3, 49); set(ea_mods, 4, 11); set(ea_mods, 5, 13);
+  set(ea_mods, 6, 17)
+)
+
+fn ea_ch_color(i) =
+  if i == 0 then "#ff4444" else if i == 1 then "#44cc44"
+  else if i == 2 then "#4488ff" else if i == 3 then "#cc44ff"
+  else if i == 4 then "#44dddd" else if i == 5 then "#ffaa44"
+  else "#88ff88"
+
+fn ea_gcd(a, b) = (
+  mut x = if a < 0 then 0 - a else a;
+  mut y = if b < 0 then 0 - b else b;
+  while y > 0 do (let t = y in mut y = x % y; mut x = t);
+  x
+)
+
+fn ea_kingdom(elem) = (
+  let g = ea_gcd(elem, 214414200) in
+  if g == 0 then "void"
+  else (
+    let c = 214414200 / g in
+    if c == 214414200 then "bacteria (sigma)"
+    else if c == 107207100 then "protista (D)"
+    else if c == 71471400 then "fungi (K)"
+    else if c == 42882840 then "plants (E)"
+    else if c == 30630600 then "animals (b)"
+    else if c == 19492200 then "human (L)"
+    else if c == 16493400 then "guardian (GATE)"
+    else if c == 12612600 then "virus (ESCAPE)"
+    else if c == 1 then "void (zero)"
+    else "composite"
+  )
+)
+
+/* Build one CRT row as HTML string: label + 7 residues computed from val */
+fn ea_crt_row(label:str, val) = (
+  mut html = "<tr style='border-bottom:1px solid #222'>"
+    + "<td style='padding:4px 8px;color:#ccc;white-space:nowrap'>" + label + "</td>";
+  mut i = 0;
+  while i < 7 do (
+    let m = ea_mods[i] in
+    let r = val % m in
+    let rv = if r < 0 then r + m else r in
+    let c = ea_ch_color(i) in
+    let bg = if i < 4 then "#0a0a14" else "#0a140a" in
+    mut html = html + "<td style='text-align:center;padding:4px 8px;color:${c};background:${bg}'>${rv}</td>";
+    mut i = i + 1
+  );
+  html + "</tr>"
+)
+
+/* ===== DISPLAY STATE ===== */
+
+let ea_input_el = [0]
+let ea_output_el = [0]
+
+/* ===== HANDLER: CLASSIFY ===== */
+
+fn on_ea_classify() = (
+  let val_s = dom_value(ea_input_el[0]) in
+  let val = str_to_num(val_s) in
+  let N = 214414200 in
+  let elem = ((val % N) + N) % N in
+  let g = ea_gcd(elem, N) in
+  let coupling = if g == 0 then 0 else N / g in
+  let kn = ea_kingdom(elem) in
+
+  mut crt = "<table style='width:100%;border-collapse:collapse;font-family:monospace;font-size:13px;table-layout:fixed'>"
+    + "<tr style='border-bottom:1px solid #333'>"
+    + "<th style='text-align:left;padding:4px 8px;color:#888'>Channel</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#888'>Residue</th>"
+    + "<th style='padding:4px 8px;color:#888'>Type</th></tr>";
+  mut i = 0;
+  while i < 7 do (
+    let m = ea_mods[i] in
+    let r = elem % m in
+    let rv = if r < 0 then r + m else r in
+    let c = ea_ch_color(i) in
+    let role = if i < 4 then "data" else "parity" in
+    mut crt = crt + "<tr style='border-bottom:1px solid #222'>"
+      + "<td style='padding:4px 8px;color:${c}'>${m}</td>"
+      + "<td style='text-align:center;padding:4px 8px;color:#e0e0e0'>${rv}</td>"
+      + "<td style='padding:4px 8px;color:#888'>${role}</td></tr>";
+    mut i = i + 1
+  );
+  mut crt = crt + "</table>";
+
+  dom_inner(ea_output_el[0],
+    "<div style='margin:12px 0;padding:12px;background:#0a0a14;border:1px solid #333;border-radius:4px'>"
+    + "<div style='font-size:16px;color:#ffd700;margin-bottom:8px'>Element ${elem}</div>"
+    + "<div style='margin-bottom:4px'>Coupling: <span style='color:#44dddd;font-family:monospace'>${coupling}</span></div>"
+    + "<div style='margin-bottom:8px'>Kingdom: <span style='color:#ff8844;font-weight:bold'>${kn}</span></div>"
+    + crt + "</div>")
+)
+
+/* ===== PAGE LAYOUT ===== */
+
+fn page_edge_ai() = (
+  ea_init_mods();
+  dom_head_meta("description", "Edge AI: CRT classifier on ESP32 BME280 sensor data. Real temperature, humidity, pressure decomposed into 7 CRT channels. Kingdom classification from algebraic coupling. No training. CC0.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Edge AI\",\"description\":\"CRT classifier on ESP32 with BME280 sensor. 7-channel decomposition. Kingdom classification from coupling. Real hardware data. CC0.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/demos/edge_ai\"}");
+  domain_hero("Edge AI", "sensor -> CRT -> classify", "BME280 sensor on ESP32. Temperature, humidity, pressure decomposed into 7 CRT channels. Coupling determines kingdom. No training. No model. Real data from live boards.");
+
+  /* === HARDWARE === */
+  let sec1 = make_section("750px") in
+  render_h2(sec1, "Real Hardware");
+  render_p(sec1, "Three ESP32 boards on the CRT mesh. Two equipped with BME280 sensors (temperature, humidity, pressure). Data recorded from live hardware.");
+  let t1 = make_table(sec1) in
+  let h1 = dom_create("tr") in
+  render_th(h1, "Board"); render_th(h1, "Element"); render_th(h1, "Kingdom"); render_th(h1, "Sensor");
+  dom_append(t1, h1);
+  render_table_row_4(t1, "FAR (COM3)", "sigma = 1", "bacteria", "BME280");
+  render_table_row_4(t1, "MIDDLE (COM4)", "D = 2", "protista", "BME280");
+  render_table_row_4(t1, "CLOSE (COM5)", "void = 0", "void", "none");
+  dom_append(dom_body(), sec1);
+
+  /* === SENSOR DATA + CRT === */
+  let sec2 = make_section("750px") in
+  render_h2(sec2, "Sensor Data Through CRT");
+  render_p(sec2, "Each reading is an integer. CRT splits it into 7 independent channels: 4 data (mod 8, 9, 25, 49) and 3 parity (mod 11, 13, 17). Green background = parity channel.");
+
+  let tw = dom_create("div") in
+  dom_style(tw, "overflowX", "auto");
+  dom_style(tw, "marginBottom", "16px");
+  mut html = "<table style='width:100%;border-collapse:collapse;font-family:monospace;font-size:13px;table-layout:fixed;word-wrap:break-word'>"
+    + "<tr style='border-bottom:1px solid #333'>"
+    + "<th style='text-align:left;padding:4px 8px;color:#888'>Reading</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#ff4444'>mod 8</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#44cc44'>mod 9</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#4488ff'>mod 25</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#cc44ff'>mod 49</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#44dddd'>mod 11</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#ffaa44'>mod 13</th>"
+    + "<th style='text-align:center;padding:4px 8px;color:#88ff88'>mod 17</th></tr>";
+  /* sigma board: real sensor data (S2122 recording) */
+  mut html = html + ea_crt_row("sigma 25.12 C", 2512);
+  mut html = html + ea_crt_row("sigma 45.25 %", 4525);
+  mut html = html + ea_crt_row("sigma 1024.6 hPa", 10246);
+  /* D board sensor data */
+  mut html = html + ea_crt_row("D 23.92 C", 2392);
+  mut html = html + ea_crt_row("D 47.82 %", 4782);
+  mut html = html + ea_crt_row("D 1024.4 hPa", 10244);
+  dom_inner(tw, html + "</table>");
+  dom_append(sec2, tw);
+  dom_append(dom_body(), sec2);
+
+  /* === CLASSIFICATION === */
+  let sec3 = make_section("750px") in
+  render_h2(sec3, "Kingdom Classification");
+  render_p(sec3, "coupling(n) = N / gcd(n, N). One GCD computation classifies any element into one of 8 kingdoms. No training data. No gradient descent. The ring structure IS the classifier.");
+  let t3 = make_table(sec3) in
+  let h3 = dom_create("tr") in
+  render_th(h3, "Element"); render_th(h3, "gcd(n, N)"); render_th(h3, "Coupling"); render_th(h3, "Kingdom");
+  dom_append(t3, h3);
+  render_table_row_4(t3, "sigma = 1", "1", "214,414,200", "bacteria");
+  render_table_row_4(t3, "D = 2", "2", "107,207,100", "protista");
+  render_table_row_4(t3, "void = 0", "214,414,200", "1", "void");
+  render_theorem(sec3, "No Training Required", "Traditional edge classifiers need labeled data, gradient descent, and quantization to fit on microcontrollers. CRT classification uses algebraic structure: coupling(n) = N/gcd(n,N) maps any element to one of 8 kingdoms. No weights. No epochs. No overfitting. The algebra IS the model.");
+  dom_append(dom_body(), sec3);
+
+  /* === TRY IT === */
+  let sec4 = make_section("750px") in
+  render_h2(sec4, "Classify Any Element");
+  render_p(sec4, "Enter any number. See its CRT decomposition, coupling, and kingdom.");
+  let row = dom_create("div") in
+  dom_style(row, "display", "flex");
+  dom_style(row, "gap", "8px");
+  dom_style(row, "alignItems", "center");
+  dom_style(row, "marginBottom", "12px");
+  dom_style(row, "flexWrap", "wrap");
+  let inp = dom_create("input") in
+  dom_attr(inp, "type", "number");
+  dom_attr(inp, "value", "42");
+  dom_style(inp, "width", "120px");
+  dom_style(inp, "padding", "6px");
+  dom_style(inp, "backgroundColor", "#1a1a2e");
+  dom_style(inp, "color", "#e0e0e0");
+  dom_style(inp, "border", "1px solid #444");
+  dom_style(inp, "borderRadius", "4px");
+  dom_style(inp, "fontFamily", "monospace");
+  set(ea_input_el, 0, inp);
+  dom_append(row, inp);
+  let btn = dom_create("button") in
+  dom_inner(btn, "Classify");
+  dom_style(btn, "padding", "6px 16px");
+  dom_style(btn, "cursor", "pointer");
+  dom_style(btn, "background", "#1a1a2e");
+  dom_style(btn, "color", "#ffd700");
+  dom_style(btn, "border", "1px solid #ffd700");
+  dom_style(btn, "borderRadius", "4px");
+  dom_style(btn, "fontFamily", "monospace");
+  dom_on(btn, "click", "on_ea_classify");
+  dom_append(row, btn);
+  dom_append(sec4, row);
+  let out = dom_create("div") in
+  set(ea_output_el, 0, out);
+  dom_append(sec4, out);
+  dom_append(dom_body(), sec4);
+
+  /* === HOW IT WORKS === */
+  let sec5 = make_section("750px") in
+  render_h2(sec5, "How It Works");
+  let g5 = make_findings_grid(sec5) in
+  render_finding(g5, "BME280 Sensor", "I2C, $2", "Temperature + humidity + pressure at 0.01 C resolution. GPIO21/22. One reading every 3 seconds.", "");
+  render_finding(g5, "CRT Decompose", "7 channels", "Each reading modulo {8, 9, 25, 49, 11, 13, 17}. Four data channels carry the measurement. Three parity channels protect it.", "");
+  render_finding(g5, "Classify", "O(1)", "coupling(n) = N/gcd(n,N). One GCD computation. 8 coupling classes from 7 prime factors. No weights. No model.", "");
+  render_finding(g5, "ECC3 Verify", "Rate 4/7", "Triple-parity: reconstruct from 4 data channels, verify against 3 parity channels. 100% single-channel correction on hardware.", "");
+  render_finding(g5, "Total Size", "536 bytes", "Classifier WASM on ESP32. 240MHz, 520KB RAM, $4 board. No cloud. No GPU. No framework.", "");
+  dom_append(dom_body(), sec5);
+
+  /* Auto-classify default value */
+  on_ea_classify()
+)

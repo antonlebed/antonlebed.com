@@ -158,6 +158,43 @@ fn demo_gpu_bench_cube1() = gpu_bench(12, gpu_bench_n(), dom_query("#gpu-res-cub
 fn demo_gpu_bench_5th1() = gpu_bench(13, gpu_bench_n(), dom_query("#gpu-res-5th1"))
 fn demo_gpu_bench_7th1() = gpu_bench(14, gpu_bench_n(), dom_query("#gpu-res-7th1"))
 
+/* S2120: gpu_map demo -- user data through GPU kernel, results back to WASM. */
+let _gm_buf = alloc(16)
+let _gm_n = [0]
+
+fn demo_gpu_map_run() = (
+  let result_el = dom_query("#gm-result") in
+  let n = 8 in
+  let a = alloc(n) in
+  let b = alloc(n) in
+  mut i = 0;
+  while i < n do (
+    set(a, i, (i * 12637 + 41) % N_TRANS);
+    set(b, i, (i * 7919 + 137) % N_TRANS);
+    mut i = i + 1
+  );
+  set(_gm_n, 0, n);
+  let ok = gpu_map(a, b, n, 1, _gm_buf) in
+  if ok == 0 then
+    dom_inner(result_el, "<p style='color:#ff6666'>No WebGPU -- gpu_map returns 0. CPU fallback needed.</p>")
+  else
+    dom_inner(result_el, "<p style='color:#ffd700'>GPU dispatch started...</p>")
+)
+
+fn on_gpu_map_done() = (
+  let result_el = dom_query("#gm-result") in
+  let n = _gm_n[0] in
+  mut ok = 0;
+  mut i = 0;
+  while i < n do (
+    let a_i = (i * 12637 + 41) % N_TRANS in
+    let b_i = (i * 7919 + 137) % N_TRANS in
+    if _gm_buf[i] == ring_mul_trans(a_i, b_i) then mut ok = ok + 1 else 0;
+    mut i = i + 1
+  );
+  dom_inner(result_el, "<p style='color:" + (if ok == n then "#44ff88" else "#ff4444") + ";font-size:16px'>gpu_map: " + "${ok}" + "/" + "${n}" + " verified (CRT multiply via GPU, data returned to WASM)</p>")
+)
+
 /* Gradient Field: count NZP pairs per channel (exhaustive) */
 fn gpu_nzp_pairs(m) = (
   mut count = 0;
@@ -373,6 +410,25 @@ fn page_gpu_compute() = (
   dom_append(secg, r_5th1);
   dom_append(secg, r_7th1);
   dom_append(dom_body(), secg);
+  /* S2120: gpu_map -- map kernel over user data, return results to WASM */
+  let secm = make_section("800px") in
+  render_h2(secm, "GPU Map: Compute on Your Data");
+  render_p(secm, "gpu_map dispatches a WGSL kernel on user arrays. Data flows: WASM -> GPU -> WASM. Click to multiply 8 elements via CRT on GPU.");
+  let gm_btn = dom_create("button") in
+  dom_text(gm_btn, "Run gpu_map");
+  dom_style(gm_btn, "background", "#ffd700");
+  dom_style(gm_btn, "color", "#0f0f2a");
+  dom_style(gm_btn, "border", "none");
+  dom_style(gm_btn, "padding", "10px 24px");
+  dom_style(gm_btn, "borderRadius", "6px");
+  dom_style(gm_btn, "cursor", "pointer");
+  dom_style(gm_btn, "fontWeight", "bold");
+  dom_on(gm_btn, "click", "demo_gpu_map_run");
+  dom_append(secm, gm_btn);
+  let gm_out = dom_create("div") in
+  dom_attr(gm_out, "id", "gm-result");
+  dom_append(secm, gm_out);
+  dom_append(dom_body(), secm);
   let secf = make_section("800px") in
   render_h2(secf, "FPGA Ground Truth (Tang Nano 20K)");
   render_p(secf, "FPGA synthesis reveals the minimum circuit for each CRT operation. These measurements inform the GPU shader design. The FPGA is a microscope, not a destination.");

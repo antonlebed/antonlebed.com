@@ -47,7 +47,7 @@
 
    R3 CROSS-FILE (TT50 yield): ZERO dead functions. Every top-level fn has a
    live consumer (emit_bootstrap composes all; worker_emit reuses js_ring_fns+js_grid_stubs;
-   wasm_emit unconditionally emits game_count()=29 + dom_count()=55 imports
+   wasm_emit unconditionally emits game_count()=29 + dom_count()=58 imports
    so the browser loader MUST provide stubs; page .ax code calls coupling/
    kingdom/eigenvalue/mirror/crt_r and the dom_ / cvs_ / aud_ / gpu_ import
    families). The file's [DEAD] marker refers to the whole output scaffold
@@ -136,6 +136,26 @@ fn gpu_train_wgsl() =
   + "var cs:i32=0;for(var c:u32=0u;c<6u;c=c+1u){cs=cs+nf(33u+c*17u,4u,x0,x1);}"
   + "let co=cs/6;let cd=co-t;losses[p*2u+1u]=cd*cd/1000;}}"
 
+/* S2120: WGSL kernel array — single source of 15 pre-compiled GPU shaders.
+   Referenced by gpu_bench, gpu_map, gpu_reduce, crt_parallel. */
+fn gpu_wgsl_all() = "['" + gpu_wgsl_0() + "','" + gpu_wgsl_1() + "','" + gpu_wgsl_2() + "','" + gpu_wgsl_3() + "','" + gpu_wgsl_4() + "','" + gpu_wgsl_5() + "','" + gpu_wgsl_6() + "','" + gpu_wgsl_7() + "','" + gpu_wgsl_8() + "','" + gpu_wgsl_9() + "','" + gpu_wgsl_10() + "','" + gpu_wgsl_11() + "','" + gpu_wgsl_12() + "','" + gpu_wgsl_13() + "','" + gpu_wgsl_14() + "']"
+
+/* S2120: Shared GPU dispatch — creates pipeline, runs kernel, reads results.
+   Returns Uint32Array of results. Used by gpu_map, gpu_reduce, crt_parallel. */
+fn gpu_dispatch_js() =
+  "async function _gpuRun(a,b,N,kid){"
+  + "var d=_gpuD,ws=_gpuWs[kid],sm=d.createShaderModule({code:ws});"
+  + "var bg=d.createBindGroupLayout({entries:[{binding:0,visibility:4,buffer:{type:'read-only-storage'}},{binding:1,visibility:4,buffer:{type:'read-only-storage'}},{binding:2,visibility:4,buffer:{type:'storage'}}]});"
+  + "var pl=d.createComputePipeline({layout:d.createPipelineLayout({bindGroupLayouts:[bg]}),compute:{module:sm,entryPoint:'main'}});"
+  + "var bA=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bA.getMappedRange()).set(a);bA.unmap();"
+  + "var bB=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bB.getMappedRange()).set(b);bB.unmap();"
+  + "var bO=d.createBuffer({size:N*4,usage:140});var bR=d.createBuffer({size:N*4,usage:9});"
+  + "var grp=d.createBindGroup({layout:bg,entries:[{binding:0,resource:{buffer:bA}},{binding:1,resource:{buffer:bB}},{binding:2,resource:{buffer:bO}}]});"
+  + "var enc=d.createCommandEncoder();var pass=enc.beginComputePass();pass.setPipeline(pl);pass.setBindGroup(0,grp);var wg=Math.ceil(N/256);pass.dispatchWorkgroups(Math.min(wg,65535),Math.ceil(wg/65535));pass.end();"
+  + "enc.copyBufferToBuffer(bO,0,bR,0,N*4);d.queue.submit([enc.finish()]);await d.queue.onSubmittedWorkDone();"
+  + "await bR.mapAsync(1);var res=new Uint32Array(bR.getMappedRange().slice(0));bR.unmap();"
+  + "bA.destroy();bB.destroy();bO.destroy();bR.destroy();return res;}\n"
+
 fn boot_head() =
   "<!DOCTYPE html>\n"
   + "<!-- [DEAD] SCAFFOLDING -- dies when WASI DOM access ships in browsers.\n"
@@ -148,6 +168,8 @@ fn boot_head() =
   + "/* [DEAD] DOM import handlers -- JS side of WASM DOM imports */\n"
   + "var _domId = 0, _dom = {0: document.body}, _rafActive = false, _spaBase = 0, _qc = {}, _aud = null, _osc = [], _gpuD = null, _gpuOk = 0, _spaInited = false;\n"
   + "if(navigator.gpu){navigator.gpu.requestAdapter().then(function(a){if(a){var L=a.limits;a.requestDevice({requiredLimits:{maxBufferSize:L.maxBufferSize,maxStorageBufferBindingSize:L.maxStorageBufferBindingSize}}).then(function(d){_gpuD=d;_gpuOk=1;});}});}\n"
+  + "var _gpuWs=" + gpu_wgsl_all() + ";\n"
+  + gpu_dispatch_js()
   + "var _keys = {};\n"
   + "window.addEventListener('keydown', function(e) { _keys[e.keyCode] = 1; var t=e.target.tagName; if(t!=='TEXTAREA'&&t!=='INPUT'&&(e.keyCode>=37&&e.keyCode<=40||e.keyCode==32))e.preventDefault(); });\n"
   + "window.addEventListener('keyup', function(e) { _keys[e.keyCode] = 0; });\n"
@@ -299,7 +321,7 @@ fn boot_loader_c() =
   + "    gpu_init: function() { return _gpuOk; },\n"
   + "    gpu_bench: function(op,count,tgt) { if(!_gpuD){var e=_dom[tgt];if(e)e.innerHTML='<p style=\"color:#ff6666\">No WebGPU</p>';return 0;} (async function(){var N=count,d=_gpuD,M=214414200;"
   + "var a=new Uint32Array(N),b=new Uint32Array(N);for(var i=0;i<N;i++){a[i]=op>=7?i:(i*12637+41)%M;b[i]=(i*7919+137)%M;}"
-  + "var ws=['" + gpu_wgsl_0() + "','" + gpu_wgsl_1() + "','" + gpu_wgsl_2() + "','" + gpu_wgsl_3() + "','" + gpu_wgsl_4() + "','" + gpu_wgsl_5() + "','" + gpu_wgsl_6() + "','" + gpu_wgsl_7() + "','" + gpu_wgsl_8() + "','" + gpu_wgsl_9() + "','" + gpu_wgsl_10() + "','" + gpu_wgsl_11() + "','" + gpu_wgsl_12() + "','" + gpu_wgsl_13() + "','" + gpu_wgsl_14() + "'][op];var sm=d.createShaderModule({code:ws});"
+  + "var ws=_gpuWs[op];var sm=d.createShaderModule({code:ws});"
   + "var bg=d.createBindGroupLayout({entries:[{binding:0,visibility:4,buffer:{type:'read-only-storage'}},{binding:1,visibility:4,buffer:{type:'read-only-storage'}},{binding:2,visibility:4,buffer:{type:'storage'}}]});"
   + "var pl=d.createComputePipeline({layout:d.createPipelineLayout({bindGroupLayouts:[bg]}),compute:{module:sm,entryPoint:'main'}});"
   + "var bA=d.createBuffer({size:N*4,usage:140,mappedAtCreation:true});new Uint32Array(bA.getMappedRange()).set(a);bA.unmap();"
@@ -355,7 +377,29 @@ fn boot_loader_c() =
   + "        try { if (wasm.instance.exports[f]) { wasm.instance.exports[f](); _arenaSave(); _fixRL(); _fixTitle(); } } catch(e) { console.error('nav:', e); }\n"
   + "      });\n"
   + "      return 0;\n"
-  + "    }\n"
+  + "    },\n"
+  + "    /* S2120: GPU Phase G2 builtins — gpu_map, gpu_reduce, crt_parallel */\n"
+  + "    gpu_map: function(aptr,bptr,count,kid,optr) { if(!_gpuD)return 0;"
+  + "var m=new Int32Array(mem.buffer),N=count,a=new Uint32Array(N),b=new Uint32Array(N);"
+  + "for(var i=0;i<N;i++){a[i]=m[aptr/4+1+i]>>>0;b[i]=m[bptr/4+1+i]>>>0;}"
+  + "(async function(){var res=await _gpuRun(a,b,N,kid);"
+  + "var m2=new Int32Array(mem.buffer);m2[optr/4]=N;for(var j=0;j<N;j++)m2[optr/4+1+j]=res[j];"
+  + "try{_arenaReset();if(wasm.instance.exports['on_gpu_map_done'])wasm.instance.exports['on_gpu_map_done']();}catch(err){console.error('gpu_map:',err);}"
+  + "})();return 1; },\n"
+  + "    gpu_reduce: function(aptr,count,kid) { if(!_gpuD)return 0;"
+  + "var m=new Int32Array(mem.buffer),N=count,a=new Uint32Array(N),b=new Uint32Array(N);"
+  + "for(var i=0;i<N;i++){a[i]=m[aptr/4+1+i]>>>0;b[i]=0;}"
+  + "(async function(){var res=await _gpuRun(a,b,N,kid);"
+  + "var s=0;for(var j=0;j<N;j++)s+=res[j];"
+  + "try{_arenaReset();if(wasm.instance.exports['on_gpu_reduce_done'])wasm.instance.exports['on_gpu_reduce_done'](s);}catch(err){console.error('gpu_reduce:',err);}"
+  + "})();return 1; },\n"
+  + "    crt_parallel: function(aptr,bptr,count,kid,optr) { if(!_gpuD)return 0;"
+  + "var m=new Int32Array(mem.buffer),N=count,a=new Uint32Array(N),b=new Uint32Array(N);"
+  + "for(var i=0;i<N;i++){a[i]=m[aptr/4+1+i]>>>0;b[i]=m[bptr/4+1+i]>>>0;}"
+  + "(async function(){var res=await _gpuRun(a,b,N,kid<2?kid:1);"
+  + "var m2=new Int32Array(mem.buffer);m2[optr/4]=N;for(var j=0;j<N;j++)m2[optr/4+1+j]=res[j];"
+  + "try{_arenaReset();if(wasm.instance.exports['on_gpu_crt_done'])wasm.instance.exports['on_gpu_crt_done']();}catch(err){console.error('crt_parallel:',err);}"
+  + "})();return 1; }\n"
   + "  }};\n"
   + "  var wasm = await WebAssembly.instantiate(_wasmBytes, _imports);\n"
   + "  mem = wasm.instance.exports.memory;\n"
