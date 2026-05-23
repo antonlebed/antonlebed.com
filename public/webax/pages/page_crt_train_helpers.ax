@@ -3,7 +3,7 @@
    in build_lab_entry.ax. Contains: training data generators (XOR, Circle,
    Spiral, Moons, Blobs), neural network forward/backward pass, i32 fixed-point
    and f64 native float modes, GPU compute helpers, D-Ratio Bridge handler.
-   135 params = 33 standard (nh=8) + 6x17 CRT (nh=4). */
+   152 params = 33 standard (nh=8) + 7x17 CRT (nh=4). */
 
 /* ===== FIXED-POINT CONSTANTS =====
    S=1000 scale. 1.0 = 1000, 0.5 = 500, -1.0 = -1000.
@@ -136,7 +136,7 @@ fn ct_data_x1(i) = if ct_task() == 0 then xor_x1(i) else if ct_task() == 1 then 
 fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then circle_y(i) else if ct_task() == 2 then spiral_y(i) else if ct_task() == 3 then moons_y(i) else blobs_y(i)
 
 /* ===== STATE: weights as comma-separated i32s in hidden textarea =====
-   135 values total:
+   152 values total:
      [0..32]:    Standard network (nh=8, 33 params)
      [33..49]:   CRT channel D (nh=4, 17 params)
      [50..66]:   CRT channel K
@@ -144,6 +144,7 @@ fn ct_data_y(i) = if ct_task() == 0 then xor_y(i) else if ct_task() == 1 then ci
      [84..100]:  CRT channel b
      [101..117]: CRT channel L
      [118..134]: CRT channel GATE
+     [135..151]: CRT channel ESCAPE
    Layout per network (nh hidden units): w1[nh*2] + b1[nh] + w2[nh] + b2[1] = nh*4+1 */
 
 fn ct_parse_csv(s) = (
@@ -331,11 +332,11 @@ fn nn_grad_f64(w, dw, base, nh, x0, x1, target, tmp_h) = (
 fn ct_crt_fwd_f64(w, x0, x1) = (
   mut sum = toF(0);
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     mut sum = sum + nn_fwd_f64(w, 33 + c * 17, 4, x0, x1);
     mut c = c + 1
   );
-  sum / toF(6)
+  sum / toF(7)
 )
 
 fn ct_init_f64_w(w) = (
@@ -356,7 +357,7 @@ fn ct_init_f64_w(w) = (
   fset(w, 32, toF(0));
   let a_w2c = sqrt_f(toF(6) / toF(4)) in
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let base = 33 + c * 17 in
     mut j = 0;
     while j < 8 do (
@@ -378,7 +379,7 @@ fn ct_init_f64_w(w) = (
 
 fn ct_train_f64(w, epochs, lr, nd, dx0, dx1, dy) = (
   let tmp_h = falloc(16) in
-  let dw = falloc(135) in
+  let dw = falloc(152) in
   let batch_sz = if nd <= 10 then nd else nd / 5 in
   let perm = alloc(nd) in
   mut si = 0;
@@ -390,7 +391,7 @@ fn ct_train_f64(w, epochs, lr, nd, dx0, dx1, dy) = (
       let b_end = if b_start + batch_sz < nd then b_start + batch_sz else nd in
       let b_n_f = toF(b_end - b_start) in
       mut j = 0;
-      while j < 135 do (fset(dw, j, toF(0)); mut j = j + 1);
+      while j < 152 do (fset(dw, j, toF(0)); mut j = j + 1);
       mut i = b_start;
       while i < b_end do (
         let pi = perm[i] in
@@ -399,14 +400,14 @@ fn ct_train_f64(w, epochs, lr, nd, dx0, dx1, dy) = (
         let tgt = fget(dy, pi) in
         nn_grad_f64(w, dw, 0, 8, x0, x1, tgt, tmp_h);
         mut c = 0;
-        while c < 6 do (
+        while c < 7 do (
           nn_grad_f64(w, dw, 33 + c * 17, 4, x0, x1, tgt, tmp_h);
           mut c = c + 1
         );
         mut i = i + 1
       );
       mut j = 0;
-      while j < 135 do (
+      while j < 152 do (
         fset(w, j, fget(w, j) - lr * fget(dw, j) / b_n_f);
         mut j = j + 1
       );
@@ -420,7 +421,7 @@ fn ct_train_f64(w, epochs, lr, nd, dx0, dx1, dy) = (
 fn ct_write_wf(w) = (
   mut s = "";
   mut i = 0;
-  while i < 135 do (
+  while i < 152 do (
     let v = toInt(fget(w, i) * toF(10000)) in
     if i > 0 then mut s = s + ",${v}"
     else mut s = "${v}";
@@ -431,9 +432,9 @@ fn ct_write_wf(w) = (
 
 fn ct_read_wf(w) = (
   let csv = ct_parse_csv(dom_value(dom_query("#ct-wf"))) in
-  if len(csv) >= 135 then (
+  if len(csv) >= 152 then (
     mut i = 0;
-    while i < 135 do (
+    while i < 152 do (
       fset(w, i, toF(csv[i]) / toF(10000));
       mut i = i + 1
     );
@@ -457,7 +458,7 @@ fn ct_crt_fwd(w, x0, x1, kills) = (
   mut sum = 0;
   mut n = 0;
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     if kills[c] == 0 then (
       mut sum = sum + nn_fwd(w, 33 + c * 17, 4, x0, x1);
       mut n = n + 1
@@ -487,7 +488,7 @@ fn ct_train_epochs(w, epochs) = (
   let tmp_hr = alloc(8) in
   let tmp_h = alloc(8) in
   let tmp_dh = alloc(8) in
-  let dw = alloc(135) in
+  let dw = alloc(152) in
   let batch_sz = if nd <= 10 then nd else nd / 5 in
   /* Deterministic interleave: breaks class-ordered data (Spiral, Moons, Blobs).
      perm[i] = (i * 137) % nd visits all indices in class-mixed order.
@@ -503,14 +504,14 @@ fn ct_train_epochs(w, epochs) = (
       let b_n = b_end - b_start in
       /* Zero gradient accumulator */
       mut j = 0;
-      while j < 135 do (set(dw, j, 0); mut j = j + 1);
+      while j < 152 do (set(dw, j, 0); mut j = j + 1);
       /* Accumulate gradients over mini-batch (interleaved indices) */
       mut i = b_start;
       while i < b_end do (
         let pi = perm[i] in
         nn_grad(w, dw, 0, 8, dx0[pi], dx1[pi], dy[pi], tmp_hr, tmp_h, tmp_dh);
         mut c = 0;
-        while c < 6 do (
+        while c < 7 do (
           nn_grad(w, dw, 33 + c * 17, 4, dx0[pi], dx1[pi], dy[pi], tmp_hr, tmp_h, tmp_dh);
           mut c = c + 1
         );
@@ -518,7 +519,7 @@ fn ct_train_epochs(w, epochs) = (
       );
       /* Apply averaged gradients: w -= lr * (dw/b_n) / 1000 + weight clamp */
       mut j = 0;
-      while j < 135 do (
+      while j < 152 do (
         let avg_g = dw[j] / b_n in
         let update = lr * avg_g / 1000 in
         let nw = w[j] - update in
@@ -651,7 +652,7 @@ fn ct_draw_loss_curve() = (
 /* ===== PER-CHANNEL LOSS CURVE ===== */
 fn ct_draw_ch_loss_curve() = (
   let data = ct_parse_csv(dom_value(dom_query("#ct-ch-loss-hist"))) in
-  let n = len(data) / 6 in
+  let n = len(data) / 7 in
   let ctx = cvs_getctx(dom_query("#ct-ch-loss-cvs")) in
   let cw = 320 in let ch = 120 in
   let _c = cvs_clearrect(ctx, 0, 0, cw, ch) in
@@ -665,7 +666,7 @@ fn ct_draw_ch_loss_curve() = (
     /* Find max loss across all channels for scaling */
     mut mx = 1;
     mut i = 0;
-    while i < n * 6 do (
+    while i < n * 7 do (
       if data[i] > mx then mut mx = data[i] else 0;
       mut i = i + 1
     );
@@ -677,25 +678,25 @@ fn ct_draw_ch_loss_curve() = (
     let _fy = cvs_fillstyle(ctx, "#555") in
     cvs_filltext(ctx, "${mx}", 0, 14);
     cvs_filltext(ctx, "0", 8, ch - 8);
-    /* 6 channel traces */
+    /* 7 channel traces */
     mut c = 0;
-    while c < 6 do (
+    while c < 7 do (
       let _fs = cvs_fillstyle(ctx, ct_ch_color(c)) in
       mut i = 0;
       while i < n do (
         let x = 28 + i * (cw - 36) / (if n > 1 then n - 1 else 1) in
-        let y = ch - 8 - data[i * 6 + c] * (ch - 18) / mx in
+        let y = ch - 8 - data[i * 7 + c] * (ch - 18) / mx in
         cvs_fillrect(ctx, x, if y < 5 then 5 else y, 3, 3);
         mut i = i + 1
       );
       mut c = c + 1
     );
     /* Legend: mod N labels (top, like other curves) */
-    let names = ["m8", "m9", "m25", "m49", "m11", "m13"] in
+    let names = ["m8", "m9", "m25", "m49", "m11", "m13", "m17"] in
     mut c = 0;
-    while c < 6 do (
+    while c < 7 do (
       let _fl = cvs_fillstyle(ctx, ct_ch_color(c)) in
-      let lx = 28 + c * 48 in
+      let lx = 28 + c * 40 in
       cvs_fillrect(ctx, lx, 8, 6, 6);
       cvs_filltext(ctx, names[c], lx + 9, 16);
       mut c = c + 1
@@ -908,12 +909,12 @@ fn ct_show_stats(w) = (
     if (out > 500) == (ct_data_y(i) > 500) then mut crt_correct = crt_correct + 1 else 0;
     mut i = i + 1
   );
-  let active = 6 - kills[0] - kills[1] - kills[2] - kills[3] - kills[4] - kills[5] in
-  dom_text(dom_query("#ct-crt-stats"), "Accuracy: ${crt_correct}/${nd} | Active: ${active}/6");
+  let active = 7 - kills[0] - kills[1] - kills[2] - kills[3] - kills[4] - kills[5] - kills[6] in
+  dom_text(dom_query("#ct-crt-stats"), "Accuracy: ${crt_correct}/${nd} | Active: ${active}/7");
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let acc = ct_accuracy(w, 33 + c * 17, 4) in
-    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else "mod 13" in
+    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else if c == 5 then "mod 13" else "mod 17" in
     let dead = kills[c] in
     dom_text(dom_query("#ct-ch${c}"), "${name}: ${if dead == 1 then "OFF" else "${acc}/${nd}"}");
     dom_style(dom_query("#ct-ch${c}"), "color", if dead == 1 then "#ff4444" else if acc == nd then "#44ff44" else "#ffbb00");
@@ -1055,11 +1056,11 @@ fn ct_f64_show_stats(w, nd, dx0, dx1, dy) = (
   let std_l = ct_f64_loss(w, 0, 8, nd, dx0, dx1, dy) in
   dom_text(dom_query("#ct-std-stats"), "f64 | Acc: ${std_acc}/${nd} | Loss: ${std_l}");
   let crt_acc = ct_f64_crt_accuracy(w, nd, dx0, dx1, dy) in
-  dom_text(dom_query("#ct-crt-stats"), "f64 | Acc: ${crt_acc}/${nd} | Active: 6/6");
+  dom_text(dom_query("#ct-crt-stats"), "f64 | Acc: ${crt_acc}/${nd} | Active: 7/7");
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let acc = ct_f64_accuracy(w, 33 + c * 17, 4, nd, dx0, dx1, dy) in
-    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else "mod 13" in
+    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else if c == 5 then "mod 13" else "mod 17" in
     dom_text(dom_query("#ct-ch${c}"), "${name}: ${acc}/${nd}");
     dom_style(dom_query("#ct-ch${c}"), "color", if acc == nd then "#44ff44" else "#ffbb00");
     mut c = c + 1
@@ -1079,7 +1080,7 @@ fn ct_draw_all(w) = (
 
 /* ===== CALLBACKS ===== */
 fn on_ct_init() = (
-  mut w = alloc(135);
+  mut w = alloc(152);
   /* Standard: nh=8, 33 params. He init: w2 = U(-500,500) ~ sqrt(6/8)*1000. (S1362 fix) */
   mut i = 0;
   while i < 33 do (
@@ -1090,9 +1091,9 @@ fn on_ct_init() = (
     set(w, i, v);
     mut i = i + 1
   );
-  /* CRT: 6 channels x 17 params. He init: w2 = U(-500,500) ~ sqrt(6/4)*1000. (S1362 fix) */
+  /* CRT: 7 channels x 17 params. He init: w2 = U(-500,500) ~ sqrt(6/4)*1000. (S1362 fix) */
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let base = 33 + c * 17 in
     mut j = 0;
     while j < 17 do (
@@ -1105,7 +1106,7 @@ fn on_ct_init() = (
     );
     mut c = c + 1
   );
-  dom_text(dom_query("#ct-kills"), "0,0,0,0,0,0");
+  dom_text(dom_query("#ct-kills"), "0,0,0,0,0,0,0");
   dom_text(dom_query("#ct-epoch-n"), "0");
   dom_text(dom_query("#ct-wf"), "");
   ct_write_w(w);
@@ -1125,7 +1126,8 @@ fn on_ct_init() = (
   let cl3 = ct_loss(w, 84, 4) in
   let cl4 = ct_loss(w, 101, 4) in
   let cl5 = ct_loss(w, 118, 4) in
-  dom_text(dom_query("#ct-ch-loss-hist"), "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}");
+  let cl6 = ct_loss(w, 135, 4) in
+  dom_text(dom_query("#ct-ch-loss-hist"), "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}");
   ct_draw_loss_curve();
   ct_draw_acc_curve();
   ct_draw_ch_loss_curve()
@@ -1133,7 +1135,7 @@ fn on_ct_init() = (
 
 fn on_ct_train() = (
   let check = ct_read_w() in
-  if len(check) < 135 then on_ct_init() else 0;
+  if len(check) < 152 then on_ct_init() else 0;
   let w = ct_read_w() in
   let epc = ct_get_epc() in
   let chunks = epc / 200 in
@@ -1165,9 +1167,10 @@ fn on_ct_train() = (
     let cl3 = ct_loss(w, 84, 4) in
     let cl4 = ct_loss(w, 101, 4) in
     let cl5 = ct_loss(w, 118, 4) in
+    let cl6 = ct_loss(w, 135, 4) in
     let ch_str = dom_value(dom_query("#ct-ch-loss-hist")) in
-    let new_ch = if len(ch_str) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}"
-                 else "${ch_str},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}" in
+    let new_ch = if len(ch_str) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}"
+                 else "${ch_str},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}" in
     dom_text(dom_query("#ct-ch-loss-hist"), new_ch);
     set_hp(mark);
     mut chunk = chunk + 1
@@ -1194,12 +1197,12 @@ fn on_ct_train() = (
 
 fn ct_toggle_kill(ch) = (
   let kills = ct_read_kills() in
-  if len(kills) < 6 then 0
+  if len(kills) < 7 then 0
   else (
     set(kills, ch, if kills[ch] == 0 then 1 else 0);
     dom_text(dom_query("#ct-kills"), ct_to_csv(kills));
     let w = ct_read_w() in
-    if len(w) >= 135 then (
+    if len(w) >= 152 then (
       ct_draw_crt_heatmap(w, kills);
       ct_draw_points("#ct-crt-cvs");
       ct_show_stats(w)
@@ -1213,7 +1216,7 @@ fn on_ct_train_f64() = (
   let epc = ct_get_epc() in
   let lr_i = ct_get_lr() in
   let lr = toF(lr_i) / toF(1000) in
-  let w = falloc(135) in
+  let w = falloc(152) in
   let loaded = ct_read_wf(w) in
   if loaded == 0 then ct_init_f64_w(w) else 0;
   let dx0 = falloc(nd) in
@@ -1242,10 +1245,11 @@ fn on_ct_train_f64() = (
     let cl3 = ct_f64_loss(w, 84, 4, nd, dx0, dx1, dy) in
     let cl4 = ct_f64_loss(w, 101, 4, nd, dx0, dx1, dy) in
     let cl5 = ct_f64_loss(w, 118, 4, nd, dx0, dx1, dy) in
+    let cl6 = ct_f64_loss(w, 135, 4, nd, dx0, dx1, dy) in
     let ch_s = dom_value(dom_query("#ct-ch-loss-hist")) in
     dom_text(dom_query("#ct-ch-loss-hist"),
-      if len(ch_s) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}"
-      else "${ch_s},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}");
+      if len(ch_s) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}"
+      else "${ch_s},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}");
     set_hp(mark);
     mut chunk = chunk + 1
   );
@@ -1259,7 +1263,7 @@ fn on_ct_train_f64() = (
   let dx1b = falloc(nd) in
   let dyb = falloc(nd) in
   ct_load_f64_data(dx0b, dx1b, dyb, nd);
-  let w2 = falloc(135) in
+  let w2 = falloc(152) in
   ct_read_wf(w2);
   ct_draw_std_heatmap_f64(w2);
   ct_draw_points("#ct-std-cvs");
@@ -1300,10 +1304,11 @@ fn on_kill_e() = ct_toggle_kill(2)
 fn on_kill_b() = ct_toggle_kill(3)
 fn on_kill_l() = ct_toggle_kill(4)
 fn on_kill_g() = ct_toggle_kill(5)
+fn on_kill_esc() = ct_toggle_kill(6)
 
 fn on_ct_corrupt() = (
   let w = ct_read_w() in
-  if len(w) < 135 then dom_text(dom_query("#ct-corrupt-out"), "Train a model first.")
+  if len(w) < 152 then dom_text(dom_query("#ct-corrupt-out"), "Train a model first.")
   else (
     /* Save b-channel weights (ch=3) */
     let b_base = 33 + 3 * 17 in
@@ -1324,12 +1329,12 @@ fn on_ct_corrupt() = (
       let l_out = nn_fwd(w, 33 + 4 * 17, 4, ct_data_x0(i), ct_data_x1(i)) in
       mut non_l = 0;
       mut c = 0;
-      while c < 6 do (
+      while c < 7 do (
         if c == 4 then 0
         else (mut non_l = non_l + nn_fwd(w, 33 + c * 17, 4, ct_data_x0(i), ct_data_x1(i)));
         mut c = c + 1
       );
-      let avg = non_l / 5 in
+      let avg = non_l / 6 in
       let diff = if l_out > avg then l_out - avg else avg - l_out in
       if diff > 200 then mut detected = detected + 1 else 0;
       mut i = i + 1
@@ -1346,7 +1351,7 @@ fn on_ct_corrupt() = (
 /* ===== MODEL EXPORT ===== */
 fn on_ct_export() = (
   let w = ct_read_w() in
-  if len(w) < 135 then dom_text(dom_query("#ct-export-out"), "No model. Train first.")
+  if len(w) < 152 then dom_text(dom_query("#ct-export-out"), "No model. Train first.")
   else (
     let nd = ct_data_n() in
     let std_acc = ct_accuracy(w, 0, 8) in
@@ -1363,24 +1368,24 @@ fn on_ct_export() = (
     let task = ct_task() in
     let task_name = if task == 0 then "XOR" else if task == 1 then "Circle" else if task == 2 then "Spiral" else if task == 3 then "Moons" else "Blobs" in
     dom_text(dom_query("#ct-export-out"),
-      "Task: ${task_name} (${nd} pts) | Epoch: ${ep} | Std: ${std_acc}/${nd} | CRT: ${crt_correct}/${nd}\nScale: 1000 (1.0=1000). Layout: std[0..32] (nh=8) + 6xCRT[33..134] (nh=4 each).\n${ct_to_csv(w)}")
+      "Task: ${task_name} (${nd} pts) | Epoch: ${ep} | Std: ${std_acc}/${nd} | CRT: ${crt_correct}/${nd}\nScale: 1000 (1.0=1000). Layout: std[0..32] (nh=8) + 7xCRT[33..151] (nh=4 each).\n${ct_to_csv(w)}")
   )
 )
 
 /* ===== GPU TRAINING ===== */
 fn on_ct_gpu_train() = (
   let check = ct_read_w() in
-  if len(check) < 135 then on_ct_init() else 0;
+  if len(check) < 152 then on_ct_init() else 0;
   let w = ct_read_w() in
   let nd = ct_data_n() in
-  let buf = alloc(135 + nd * 3) in
+  let buf = alloc(152 + nd * 3) in
   mut i = 0;
-  while i < 135 do (set(buf, i, w[i]); mut i = i + 1);
+  while i < 152 do (set(buf, i, w[i]); mut i = i + 1);
   mut i = 0;
   while i < nd do (
-    set(buf, 135 + i * 3, ct_data_x0(i));
-    set(buf, 135 + i * 3 + 1, ct_data_x1(i));
-    set(buf, 135 + i * 3 + 2, ct_data_y(i));
+    set(buf, 152 + i * 3, ct_data_x0(i));
+    set(buf, 152 + i * 3 + 1, ct_data_x1(i));
+    set(buf, 152 + i * 3 + 2, ct_data_y(i));
     mut i = i + 1
   );
   gpu_train(buf, nd, ct_get_epc(), ct_get_lr(), dom_query("#ct-gpu-result"))
@@ -1388,7 +1393,7 @@ fn on_ct_gpu_train() = (
 
 fn on_ct_gpu_done() = (
   let w = ct_read_w() in
-  if len(w) >= 135 then (
+  if len(w) >= 152 then (
     let old_e = ct_parse_csv(dom_value(dom_query("#ct-epoch-n"))) in
     let e_n = if len(old_e) > 0 then old_e[0] else 0 in
     dom_text(dom_query("#ct-epoch"), "Epoch: ${e_n}");
@@ -1410,10 +1415,11 @@ fn on_ct_gpu_done() = (
     let cl3 = ct_loss(w, 84, 4) in
     let cl4 = ct_loss(w, 101, 4) in
     let cl5 = ct_loss(w, 118, 4) in
+    let cl6 = ct_loss(w, 135, 4) in
     let ch_str = dom_value(dom_query("#ct-ch-loss-hist")) in
     dom_text(dom_query("#ct-ch-loss-hist"),
-      if len(ch_str) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}"
-      else "${ch_str},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5}");
+      if len(ch_str) == 0 then "${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}"
+      else "${ch_str},${cl0},${cl1},${cl2},${cl3},${cl4},${cl5},${cl6}");
     ct_draw_all(w);
     ct_draw_loss_curve();
     ct_draw_acc_curve();
@@ -1432,7 +1438,7 @@ fn ct_nn_btn(btn) = (
   dom_style(btn, "borderRadius", "4px")
 )
 
-fn ct_ch_color(c) = if c == 0 then "#4488ff" else if c == 1 then "#33dd55" else if c == 2 then "#ff9900" else if c == 3 then "#cc44ff" else if c == 4 then "#44dddd" else "#ff4466"
+fn ct_ch_color(c) = if c == 0 then "#4488ff" else if c == 1 then "#33dd55" else if c == 2 then "#ff9900" else if c == 3 then "#cc44ff" else if c == 4 then "#44dddd" else if c == 5 then "#ff4466" else "#00dddd"
 
 /* GPU benchmark handlers for CRT training operations */
 fn ct_gpu_add() = gpu_bench(0, 100000, dom_query("#ct-gpu-add"))

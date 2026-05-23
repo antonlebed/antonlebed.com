@@ -2,27 +2,27 @@
    Helpers in page_crt_train_helpers.ax (included before this file).
    K-channel primary: training IS the closure process. */
 fn page_crt_train() = (
-  dom_head_meta("description", "CRT neural network: 6 independent channels, block-diagonal backprop, mod-11 error detection. Live training on 5 datasets. i32 and f64 modes. CPU and GPU SGD.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"6 independent channels, block-diagonal backprop, mod-11 error detection. 5 datasets. GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/crt_train\",\"about\":[\"CRT neural network\",\"block-diagonal backprop\",\"error detection\"]}");
+  dom_head_meta("description", "CRT neural network: 7 independent channels, block-diagonal backprop, triple-parity error detection. Live training on 5 datasets. i32 and f64 modes. CPU and GPU SGD.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"CRT Neural Network\",\"description\":\"7 independent channels, block-diagonal backprop, triple-parity error detection. 5 datasets. GPU via WebGPU.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"url\":\"https://antonlebed.com/lab/crt_train\",\"about\":[\"CRT neural network\",\"block-diagonal backprop\",\"error detection\"]}");
 
   /* === HERO === */
   let hero = make_hero("CRT Neural Network") in
   let big = dom_create("div") in
-  dom_text(big, "6 independent channels. Block-diagonal backprop. Free error detection.");
+  dom_text(big, "7 independent channels. Block-diagonal backprop. Free error detection.");
   ct_mono(big);
   dom_style(big, "fontSize", "24px");
   ct_gold(big);
   dom_style(big, "letterSpacing", "1px");
   dom_style(big, "marginBottom", "24px");
   dom_append(hero, big);
-  render_p(hero, "Train a neural network split into 6 independent sub-networks: mod 8, mod 9, mod 25, mod 49, mod 11, mod 13. Each channel trains alone. Standard network (red) beside CRT ensemble (green). Kill any channel -- graceful degradation. Corrupt weights -- mod-11 channel detects it for free. 5 datasets. Two modes: i32 fixed-point and f64 native float.");
+  render_p(hero, "Train a neural network split into 7 independent sub-networks: mod 8, mod 9, mod 25, mod 49, mod 11, mod 13, mod 17. Each channel trains alone. Standard network (red) beside CRT ensemble (green). Kill any channel -- graceful degradation. Corrupt weights -- triple-parity (mod 11 + mod 13 + mod 17) detects it for free. 5 datasets. Two modes: i32 fixed-point and f64 native float.");
   dom_append(dom_body(), hero);
 
   /* === HIDDEN STATE === */
   let ws = dom_create("textarea") in dom_attr(ws, "id", "ct-w");
   dom_style(ws, "display", "none"); dom_append(dom_body(), ws);
   let ks = dom_create("textarea") in dom_attr(ks, "id", "ct-kills");
-  dom_attr(ks, "value", "0,0,0,0,0,0");
+  dom_attr(ks, "value", "0,0,0,0,0,0,0");
   dom_style(ks, "display", "none"); dom_append(dom_body(), ks);
   let en = dom_create("textarea") in dom_attr(en, "id", "ct-epoch-n");
   dom_attr(en, "value", "0");
@@ -49,7 +49,7 @@ fn page_crt_train() = (
   let sec1 = make_section("800px") in
   render_h2(sec1, "How It Works");
   let pre = dom_create("pre") in
-  dom_text(pre, "STANDARD NEURAL NETWORK:\n  Forward:  x -> W*x + b -> ReLU -> output\n  Backward: full Jacobian (all neurons interact)\n  Cost: O(N^2) per layer\n\nCRT NEURAL NETWORK:\n  Forward:  x -> 6 independent sub-networks -> average\n  Backward: 6 INDEPENDENT Jacobians (block-diagonal)\n  Cost: O(sum(m_i^2)) = O(8^2+9^2+25^2+49^2+11^2+13^2) = O(3461)\n\n  mod 8  (2^3):  8 states, depth 3 (unique -- only even-prime channel)\n  mod 9  (3^2):  9 states, depth 2\n  mod 25 (5^2):  25 states, depth 2\n  mod 49 (7^2):  49 states, depth 2 (largest channel)\n  mod 11:        error detection (parity check, always on)\n  mod 13:        quality gate (bounds check)\n\nAt N=12,612,600: 46 BILLION x fewer gradient ops.\nmod-11 channel = free error detection on every inference.");
+  dom_text(pre, "STANDARD NEURAL NETWORK:\n  Forward:  x -> W*x + b -> ReLU -> output\n  Backward: full Jacobian (all neurons interact)\n  Cost: O(N^2) per layer\n\nCRT NEURAL NETWORK:\n  Forward:  x -> 7 independent sub-networks -> average\n  Backward: 7 INDEPENDENT Jacobians (block-diagonal)\n  Cost: O(sum(m_i^2)) = O(8^2+9^2+25^2+49^2+11^2+13^2+17^2) = O(3750)\n\n  mod 8  (2^3):  8 states, depth 3 (unique -- only even-prime channel)\n  mod 9  (3^2):  9 states, depth 2\n  mod 25 (5^2):  25 states, depth 2\n  mod 49 (7^2):  49 states, depth 2 (largest channel)\n  mod 11:        error detection (parity check)\n  mod 13:        quality gate (bounds check)\n  mod 17:        escape channel (triple-parity ECC with mod 11 + mod 13)\n\nAt N=214,414,200: 12 TRILLION x fewer gradient ops.\nTriple-parity ECC (mod 11 + mod 13 + mod 17) = free error detection.");
   dom_style(pre, "background", "#0a0a1a");
   dom_style(pre, "padding", "16px");
   dom_style(pre, "borderRadius", "4px");
@@ -63,7 +63,7 @@ fn page_crt_train() = (
   /* === SEC 2: LIVE TRAINING === */
   let sec2 = make_section("800px") in
   render_h2(sec2, "Live Training");
-  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = six independent 2->4->1 networks (102 params, 6 channels x 17 params each), outputs averaged. 5 tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. CPU Train = fixed-point i32. CPU Train (f64) = native float with leaky ReLU + sigmoid + cross-entropy. GPU uses mini-batch SGD + leaky ReLU 25% + golden interleave (stride 137).");
+  render_p(sec2, "Standard = one 2->8->1 network (33 params). CRT = seven independent 2->4->1 networks (119 params, 7 channels x 17 params each), outputs averaged. 5 tasks: XOR (trivial), Circle (radial boundary), Moons (interleaving crescents), Spiral (hard), Blobs (500 pts, GPU scale). Adjustable learning rate: low (0.05) = stable but slow, high (0.50) = fast but may overshoot. CPU Train = fixed-point i32. CPU Train (f64) = native float with leaky ReLU + sigmoid + cross-entropy. GPU uses mini-batch SGD + leaky ReLU 25% + golden interleave (stride 137).");
 
   /* Task selector */
   let task_row = dom_create("div") in
@@ -252,7 +252,7 @@ fn page_crt_train() = (
 
   let crt_box = dom_create("div") in
   let crt_lbl = dom_create("div") in
-  dom_text(crt_lbl, "CRT Network (6 channels)");
+  dom_text(crt_lbl, "CRT Network (7 channels)");
   dom_style(crt_lbl, "color", "#6aeaa0");
   dom_style(crt_lbl, "fontWeight", "bold");
   dom_style(crt_lbl, "marginBottom", "8px");
@@ -359,9 +359,9 @@ fn page_crt_train() = (
   dom_style(kill_row, "flexWrap", "wrap");
   dom_style(kill_row, "margin", "16px 0");
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let btn = dom_create("button") in
-    let name = if c == 0 then "Toggle mod 8" else if c == 1 then "Toggle mod 9" else if c == 2 then "Toggle mod 25" else if c == 3 then "Toggle mod 49" else if c == 4 then "Toggle mod 11" else "Toggle mod 13" in
+    let name = if c == 0 then "Toggle mod 8" else if c == 1 then "Toggle mod 9" else if c == 2 then "Toggle mod 25" else if c == 3 then "Toggle mod 49" else if c == 4 then "Toggle mod 11" else if c == 5 then "Toggle mod 13" else "Toggle mod 17" in
     dom_text(btn, name);
     ct_nn_btn(btn);
     if c == 0 then dom_on(btn, "click", "on_kill_d")
@@ -369,7 +369,8 @@ fn page_crt_train() = (
     else if c == 2 then dom_on(btn, "click", "on_kill_e")
     else if c == 3 then dom_on(btn, "click", "on_kill_b")
     else if c == 4 then dom_on(btn, "click", "on_kill_l")
-    else dom_on(btn, "click", "on_kill_g");
+    else if c == 5 then dom_on(btn, "click", "on_kill_g")
+    else dom_on(btn, "click", "on_kill_esc");
     dom_style(btn, "borderColor", ct_ch_color(c));
     dom_append(kill_row, btn);
     mut c = c + 1
@@ -382,10 +383,10 @@ fn page_crt_train() = (
   dom_style(ch_row, "flexWrap", "wrap");
   dom_style(ch_row, "margin", "16px 0");
   mut c = 0;
-  while c < 6 do (
+  while c < 7 do (
     let ch_box = dom_create("div") in
     dom_attr(ch_box, "id", "ct-ch${c}");
-    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else "mod 13" in
+    let name = if c == 0 then "mod 8" else if c == 1 then "mod 9" else if c == 2 then "mod 25" else if c == 3 then "mod 49" else if c == 4 then "mod 11" else if c == 5 then "mod 13" else "mod 17" in
     dom_text(ch_box, "${name}: -");
     dom_style(ch_box, "padding", "8px 12px");
     dom_style(ch_box, "background", "#16213e");
@@ -447,24 +448,24 @@ fn page_crt_train() = (
   dom_style(th3, "textTransform", "uppercase"); dom_style(th3, "textAlign", "left");
   dom_append(chdr, th3);
   dom_append(ctbl, chdr);
-  render_table_row(ctbl, "Backprop", "Full Jacobian", "Block-diagonal (6 independent)");
-  render_table_row(ctbl, "Ops at N=12,612,600", "N^2 = 159 trillion", "sum(m_i^2) = 3,461");
-  render_table_row(ctbl, "Savings", "1x", "46,000,000,000x");
+  render_table_row(ctbl, "Backprop", "Full Jacobian", "Block-diagonal (7 independent)");
+  render_table_row(ctbl, "Ops at N=214,414,200", "N^2 = 46 quadrillion", "sum(m_i^2) = 3,750");
+  render_table_row(ctbl, "Savings", "1x", "12,261,000,000,000x");
   render_table_row(ctbl, "Channel failure", "Entangled", "Graceful degradation");
-  render_table_row(ctbl, "Error detection", "External validation", "mod-11 built-in (free)");
-  render_table_row(ctbl, "Parallelism", "Synchronous", "6 independent machines");
+  render_table_row(ctbl, "Error detection", "External validation", "Triple-parity ECC (free)");
+  render_table_row(ctbl, "Parallelism", "Synchronous", "7 independent machines");
   render_table_row(ctbl, "Hot swap", "Retrain everything", "Add/remove channels");
   dom_append(sec5, ctbl);
-  render_p(sec5, "Two views of the same data: standard (one big network) and CRT (six small ones). CRT decomposition is EXACT -- the Chinese Remainder Theorem guarantees unique reconstruction. The 46 billion x savings is the mathematical ratio N^2/sum(m_i^2) at N = 12,612,600.");
-  render_p(sec5, "HONEST NOTE: This comparison overstates practical benefit. Real neural networks do not have N = 12,612,600 parameters in one layer. The block-diagonal structure trades off representational capacity for computational independence. Whether CRT decomposition improves real ML workloads has not been benchmarked against PyTorch or JAX. The demos above are toy problems. The architecture idea (independent sub-networks with built-in error detection) is novel; its practical value is an open question.");
-  render_theorem(sec5, "24x mulmod Elimination (COMPUTED)", "In Z/12,612,600, each ring multiply requires mulmod with ~24 binary-method iterations (log2 N). Per-channel: one i32 multiply (max 48*48 = 2304, no overflow). Forward + backward: 9 multiplies per sample. Full ring: 9 x 24 = 216 iterations. Per-channel parallel: 9 i32 ops across 6 channels = 9 wall-clock ops. Speedup: 24x from mulmod elimination alone, 6x additional from channel parallelism. Verified: 120/120 gradient channel checks pass. Per-channel training converged on XOR (6 independent networks, CRT-reconstructed 4/4). CC0.");
+  render_p(sec5, "Two views of the same data: standard (one big network) and CRT (seven small ones). CRT decomposition is EXACT -- the Chinese Remainder Theorem guarantees unique reconstruction. The 12 trillion x savings is the mathematical ratio N^2/sum(m_i^2) at N = 214,414,200.");
+  render_p(sec5, "HONEST NOTE: This comparison overstates practical benefit. Real neural networks do not have N = 214,414,200 parameters in one layer. The block-diagonal structure trades off representational capacity for computational independence. Whether CRT decomposition improves real ML workloads has not been benchmarked against PyTorch or JAX. The demos above are toy problems. The architecture idea (independent sub-networks with built-in error detection) is novel; its practical value is an open question.");
+  render_theorem(sec5, "28x mulmod Elimination (COMPUTED)", "In Z/214,414,200, each ring multiply requires mulmod with ~28 binary-method iterations (log2 N). Per-channel: one i32 multiply (max 48*48 = 2304, no overflow). Forward + backward: 9 multiplies per sample. Full ring: 9 x 28 = 252 iterations. Per-channel parallel: 9 i32 ops across 7 channels = 9 wall-clock ops. Speedup: 28x from mulmod elimination alone, 7x additional from channel parallelism. Verified: 120/120 gradient channel checks pass. Per-channel training converged on XOR (7 independent networks, CRT-reconstructed 4/4). CC0.");
   dom_append(dom_body(), sec5);
 
   /* === SEC 5b: GPU BLOCK-DIAGONAL BACKPROP === */
   let secg = make_section("800px") in
   render_h2(secg, "GPU Backprop");
   /* S1233: gpu_init async -- always render, gpu_bench checks at click time */
-  render_p(secg, "CRT block-diagonal backprop maps directly to WGSL compute shaders: 6 independent channels = 6 workgroups, each operating in parallel. Each benchmark dispatches 100,000 ring elements through Z/12,612,600.");
+  render_p(secg, "CRT block-diagonal backprop maps directly to WGSL compute shaders: 7 independent channels = 7 workgroups, each operating in parallel. Each benchmark dispatches 100,000 ring elements through Z/214,414,200.");
   let mk_btn = fn(label) = (
     let btn = dom_create("button") in
     dom_text(btn, label); ct_nn_btn(btn);
@@ -481,7 +482,7 @@ fn page_crt_train() = (
   dom_on(b3, "click", "ct_gpu_eig");
   dom_append(secg, b1); dom_append(secg, b2); dom_append(secg, b3);
   dom_append(secg, r1); dom_append(secg, r2); dom_append(secg, r3);
-  render_p(secg, "Each operation runs as a WGSL compute shader with 6 channels. Ring Add = forward pass accumulation. CRT Multiply = block-diagonal gradient step. Eigenvalue = convergence check. All verified against CPU.");
+  render_p(secg, "Each operation runs as a WGSL compute shader with 7 channels. Ring Add = forward pass accumulation. CRT Multiply = block-diagonal gradient step. Eigenvalue = convergence check. All verified against CPU.");
 
   /* GPU Training */
   let gpu_sep = dom_create("div") in
@@ -495,7 +496,7 @@ fn page_crt_train() = (
   dom_style(gpu_lbl, "fontWeight", "bold");
   dom_style(gpu_lbl, "marginBottom", "8px");
   dom_append(secg, gpu_lbl);
-  render_p(secg, "Train the same CRT network on GPU. Mini-batch SGD with leaky ReLU 25% and golden interleave (stride 137), matching CPU training. 7 networks (1 standard + 6 channels) in a single WGSL compute dispatch. Uses the selected learning rate and epoch count. Atomic gradient accumulation in workgroup shared memory.");
+  render_p(secg, "Train the same CRT network on GPU. Mini-batch SGD with leaky ReLU 25% and golden interleave (stride 137), matching CPU training. 8 networks (1 standard + 7 channels) in a single WGSL compute dispatch. Uses the selected learning rate and epoch count. Atomic gradient accumulation in workgroup shared memory.");
   /* GPU-section task selector (mirrors top selector; shares state via ct_update_task_indicators) */
   let gpu_task_row = dom_create("div") in
   dom_style(gpu_task_row, "margin", "12px 0");
@@ -591,7 +592,7 @@ fn page_crt_train() = (
   dom_style(pre6, "lineHeight", "1.6");
   dom_style(pre6, "color", "#ccc");
   dom_append(sec6, pre6);
-  render_p(sec6, "Both modes use the same CRT decomposition: 6 independent sub-networks whose predictions are averaged at inference. This is classic ensemble regularization -- each channel sees the full training signal, trains independently, and averaging smooths individual errors. The f64 mode makes this visible: smoother decision boundaries, faster convergence, higher accuracy on all datasets. Tested: momentum SGD helps the standard network (Moons 71 to 83 at beta=0.9) but HURTS CRT (74 to 69). Similarly, adding a second hidden layer helps standard (Moons 71 to 84) but NOT CRT (74 to 72). Both momentum and depth add regularization that a single large network needs, but CRT's ensemble averaging already provides it. Learning rate robustness: sweeping 7 rates (0.10 to 2.00), CRT accuracy varies by only 7 points on Moons vs 13 for standard -- 46% less sensitive. CRT works well with any rate in the 0.25 to 1.50 range without per-task tuning. CRT does not need external regularization -- the structure IS the regularizer.");
+  render_p(sec6, "Both modes use the same CRT decomposition: 7 independent sub-networks whose predictions are averaged at inference. This is classic ensemble regularization -- each channel sees the full training signal, trains independently, and averaging smooths individual errors. The f64 mode makes this visible: smoother decision boundaries, faster convergence, higher accuracy on all datasets. Tested: momentum SGD helps the standard network (Moons 71 to 83 at beta=0.9) but HURTS CRT (74 to 69). Similarly, adding a second hidden layer helps standard (Moons 71 to 84) but NOT CRT (74 to 72). Both momentum and depth add regularization that a single large network needs, but CRT's ensemble averaging already provides it. Learning rate robustness: sweeping 7 rates (0.10 to 2.00), CRT accuracy varies by only 7 points on Moons vs 13 for standard -- 46% less sensitive. CRT works well with any rate in the 0.25 to 1.50 range without per-task tuning. CRT does not need external regularization -- the structure IS the regularizer.");
   dom_append(dom_body(), sec6);
 
   /* === SEC 6b: RATIO BRIDGE === */
@@ -620,7 +621,7 @@ fn page_crt_train() = (
   /* === SEC 7: IMPLEMENTATION === */
   let sec7 = make_section("800px") in
   render_h2(sec7, "Implementation");
-  render_p(sec7, "This demo is .ax compiled to WebAssembly by a self-hosting .ax compiler (the ouroboros). Two training modes: i32 fixed-point (scale 1000) and f64 native float (leaky ReLU + sigmoid + cross-entropy). 135 parameters: 33 standard (nh=8) + 102 CRT (6 channels x 17 params). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as mixing schedule. 137 = floor(golden angle in degrees). CRT = 6 independent channels averaged at inference = built-in ensemble regularization.");
+  render_p(sec7, "This demo is .ax compiled to WebAssembly by a self-hosting .ax compiler (the ouroboros). Two training modes: i32 fixed-point (scale 1000) and f64 native float (leaky ReLU + sigmoid + cross-entropy). 152 parameters: 33 standard (nh=8) + 119 CRT (7 channels x 17 params). Training: mini-batch SGD with golden interleave -- perm[i] = (i*137) % nd -- the phyllotaxis constant as mixing schedule. 137 = floor(golden angle in degrees). CRT = 7 independent channels averaged at inference = built-in ensemble regularization.");
   let link = dom_create("a") in
   dom_text(link, "Full CRT AI architecture >");
   dom_attr(link, "href", "/lab/ai");
