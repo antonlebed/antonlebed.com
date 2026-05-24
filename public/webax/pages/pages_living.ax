@@ -860,6 +860,19 @@ fn page_ai() = (
   render_finding(g7n, "Block-diagonal V", "7 independent", "Per-channel value projection. No cross-channel mixing in attention.", "");
   dom_append(dom_body(), sec7n);
 
+  /* === SEC 9u: CRT LIKELIHOOD SCORING (THMs 104+105) === */
+  let sec_ls = make_section("800px") in
+  render_h2(sec_ls, "CRT Likelihood Scoring");
+  render_p(sec_ls, "Mode-based CRT prediction picks the most common next element per channel. It works at ring scale (58% exact on 214M elements, above) but hits a structural ceiling: 74% of test positions fail, and 89% of those failures are MODEL-limited -- the correct character has nonzero training count but is not the mode. The model sees the answer but selects wrong.");
+  render_theorem(sec_ls, "Soft CRT Prediction (VERIFIED)", "CRT-factored distribution scoring -- summing normalized per-channel trigram counts across all channels -- achieves 115/399 (28.8%) on text prediction, vs 105/399 (26.3%) for mode+NN search (+9.5%). Per-channel accuracy jumps from 268 to 322 ppt (+20%). Small channels gain most: D-channel +34%, K-channel +37%. 14 soft-only correct positions vs 4 NN-only: distribution scoring is a near-superset of mode search. Score discriminates: 5.1/7 channels match at correct vs 0.7/7 at wrong. Equal channel weights ARE optimal -- SGD coordinate descent finds zero improvement.");
+  render_p(sec_ls, "The soft score IS a CRT-factored probability: each channel votes with its conditional frequency, not its mode. Channel independence means the sum factorizes -- no interaction terms. Small moduli (D=8, K=9) gain most because their count distributions are richest: 8 and 9 residue classes per context provide well-sampled distributions. Large moduli (b=49) gain little: sparse data collapses distribution to mode. 15 incremental approaches closed (THMs 93-109): mode, bloom variants, weighting, cross-channel joints. Distribution scoring is the capstone.");
+  let gls = make_findings_grid(sec_ls) in
+  render_finding(gls, "Ceiling diagnostic", "89% model-limited", "Mode is 6.2x more common than actual. Correct character ranks 8th among 24 alternatives.", "");
+  render_finding(gls, "Soft vs Mode+NN", "+9.5% exact, +20% per-ch", "115/399 vs 105/399. D-channel: 141 vs 105 (+34%). K-channel: 133 vs 97 (+37%).", "");
+  render_finding(gls, "Weight optimality", "Equal = optimal", "SGD (5 epochs, 400 validation): 0 exclusive gains on test. 8 divergent predictions ALL wrong for both methods.", "");
+  render_finding(gls, "Near-superset", "14 soft-only, 4 NN-only", "Oracle(soft, NN) = 119. Gap from soft = 4, gap from NN = 14. Distribution subsumes mode.", "");
+  dom_append(dom_body(), sec_ls);
+
   /* === CONTRAST === */
   let sec8 = make_section("800px") in
   render_h2(sec8, "Contrast Table");
@@ -1275,9 +1288,9 @@ fn page_ouroboros_compiler() = (
   let g2 = make_findings_grid(sec2) in
   render_finding(g2, "9 passes", "3 hearts x 3 stages", "Feature scan + float inference + string inference. Same structure as FPGA pipeline.", "");
   render_finding(g2, "Native speed", "67x faster", "Compiled .ax vs interpreted .ax.", "");
-  render_finding(g2, "WASM size", "~317 KB", "deep_ouroboros: compiler in a browser. Fixed-point verified.", "");
-  render_finding(g2, "Test gate", "190/190 + 147/147 + 638/638", "test_self + test_pages + test_interactive. Zero regression.", "");
-  render_finding(g2, "7 modules", "~14,861 KB total", "home + patterns + connections + theory + ideas + lab + demos.", "");
+  render_finding(g2, "WASM size", "~397 KB", "deep_ouroboros: compiler in a browser. Fixed-point verified.", "");
+  render_finding(g2, "Test gate", "198/198 + 199p + 795h", "test_self + test_pages + test_interactive. Zero regression.", "");
+  render_finding(g2, "7 modules", "~15,218 KB total", "home + patterns + connections + theory + ideas + lab + demos.", "");
   dom_append(dom_body(), sec2);
   let sec3 = make_section("800px") in
   render_h2(sec3, "The Self-Compilation Loop");
