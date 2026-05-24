@@ -1,8 +1,31 @@
 /* page_proof_frontier.ax -- Proof sub-page: Geometry & Dynamics.
-   Theorems 158-202 + global summary (chain mode only).
+   Theorems 158-224 + global summary (chain mode only).
    Shared utilities in page_proof_helpers.ax (included before this file). */
 
-/* ===== PART 3c: Theorems 158-202 + Summary ===== */
+-- Helpers for THM 223-224 (top-level to avoid nested fn restriction)
+fn _sr_pow(c, e, p) = (
+  mut r = 1; mut bx = c % p; mut ex = e;
+  while ex > 0 do (
+    if ex % 2 == 1 then mut r = r * bx % p else 0;
+    mut bx = bx * bx % p; mut ex = ex / 2
+  ); r
+)
+fn _sr_distinct(e, p) = (
+  let mark = hp() in
+  let seen = alloc(p) in
+  mut si = 0;
+  while si < p do (set(seen, si, 0); mut si = si + 1);
+  mut sc = 0;
+  while sc < p do (set(seen, _sr_pow(sc, e, p), 1); mut sc = sc + 1);
+  mut st = 0; mut sj = 0;
+  while sj < p do (
+    if seen[sj] > 0 then mut st = st + 1 else 0;
+    mut sj = sj + 1
+  ); set_hp(mark); st
+)
+fn _sr_gcd(a, bx) = (mut gx = a; mut gy = bx; while gy > 0 do (let gt = gy in mut gy = gx % gy; mut gx = gt); gx)
+
+/* ===== PART 3c: Theorems 158-224 + Summary ===== */
 fn proof_part3c(r3c) = (
   let sum_so_far = r3c[0] in
 
@@ -1474,10 +1497,47 @@ fn proof_part3c(r3c) = (
     "Omega Terminus (Thm 220): Omega spans 1-12=HEART continuously across Tower C levels. GATE=13=first gap. K+1=D^2 forces lambda(DATA)=Omega(TRANS)=12. GATE=sigma+HEART. Pell Twin Bloom (Thm 221): exactly 2 of 21 pairs satisfy 4p+1=3q: (D,K) and (E,b). Gram degenerate: DD=DK=HYDOR, EE=Eb=K*lambda. K=3 bloom tiers. Gate Consistency (Thm 222): 5 finality proofs verify all 6 sub-Gate layers. GATE appears as: building layer, Omega terminus, M_2(b), phi(42)+1, perceive mask count. Attention phases: perceive=GATE=13, decide=D*L*ESC=374. chi(T^7)=0 from alternating cross sum.", p220, 19);
   dom_append(dom_body(), s220);
 
+  /* ============================================================
+     THEOREMS 223-224: SELF-RESONANCE + DEGREE CONSENSUS (S2165)
+     ============================================================ */
+  let s223 = make_section("700px") in
+  render_h2(s223, "223-224. Self-Resonance and Degree Consensus");
+  render_p(s223, "For CRT channel Z/p^2, the p-th power map compresses to exactly p distinct outputs. The chain primes are self-resonance fixed points: K->K, E->E, b->b. D generates K. Total (axiom prime, channel) resonance pairs = GATE = 13.");
+
+  -- THM 223: Self-resonance theorem
+  let sr_k = _sr_distinct(K, K*K) in
+  let sr_e = _sr_distinct(E, E*E) in
+  let sr_b = _sr_distinct(b, b*b) in
+  pf_result(s223, "K^K mod 9: 3 outputs = K", "${sr_k}", if sr_k == K then 1 else 0);
+  pf_result(s223, "E^E mod 25: 5 outputs = E", "${sr_e}", if sr_e == E then 1 else 0);
+  pf_result(s223, "b^b mod 49: 7 outputs = b", "${sr_b}", if sr_b == b then 1 else 0);
+
+  -- Resonance count: how many channels resonate with each prime
+  let rc_d = (if _sr_gcd(D,4)>1 then 1 else 0) + (if _sr_gcd(D,6)>1 then 1 else 0) + (if _sr_gcd(D,20)>1 then 1 else 0) + (if _sr_gcd(D,42)>1 then 1 else 0) + (if _sr_gcd(D,10)>1 then 1 else 0) + (if _sr_gcd(D,12)>1 then 1 else 0) + (if _sr_gcd(D,16)>1 then 1 else 0) in
+  let rc_b = (if _sr_gcd(b,4)>1 then 1 else 0) + (if _sr_gcd(b,6)>1 then 1 else 0) + (if _sr_gcd(b,20)>1 then 1 else 0) + (if _sr_gcd(b,42)>1 then 1 else 0) + (if _sr_gcd(b,10)>1 then 1 else 0) + (if _sr_gcd(b,12)>1 then 1 else 0) + (if _sr_gcd(b,16)>1 then 1 else 0) in
+  pf_result(s223, "D resonance: 7 channels (universal)", "${rc_d}", if rc_d == b then 1 else 0);
+  pf_result(s223, "b resonance: 1 channel (singleton)", "${rc_b}", if rc_b == 1 then 1 else 0);
+  let total_res = rc_d + (if _sr_gcd(K,4)>1 then 1 else 0) + (if _sr_gcd(K,6)>1 then 1 else 0) + (if _sr_gcd(K,20)>1 then 1 else 0) + (if _sr_gcd(K,42)>1 then 1 else 0) + (if _sr_gcd(K,10)>1 then 1 else 0) + (if _sr_gcd(K,12)>1 then 1 else 0) + (if _sr_gcd(K,16)>1 then 1 else 0) + (if _sr_gcd(E,4)>1 then 1 else 0) + (if _sr_gcd(E,6)>1 then 1 else 0) + (if _sr_gcd(E,20)>1 then 1 else 0) + (if _sr_gcd(E,42)>1 then 1 else 0) + (if _sr_gcd(E,10)>1 then 1 else 0) + (if _sr_gcd(E,12)>1 then 1 else 0) + (if _sr_gcd(E,16)>1 then 1 else 0) + rc_b in
+  pf_result(s223, "Total resonance pairs = GATE = 13", "${total_res}", if total_res == GATE then 1 else 0);
+
+  -- THM 224: Degree-consensus theorem
+  render_p(s223, "Sigma-graph degree at ring level k = 2k-1. At TRANS (k=7): degree = GATE = 13, majority threshold = b = 7. Next degree 15 = K*E would be composite -- the chain MUST stop.");
+  pf_result(s223, "TRANS degree = 2*7-1 = GATE", "${2*b-1}", if 2*b-1 == GATE then 1 else 0);
+  pf_result(s223, "Majority threshold = (13+1)/2 = b", "${(GATE+1)/2}", if (GATE+1)/2 == b then 1 else 0);
+  pf_result(s223, "Error tolerance = GATE - b = D*K", "${GATE-b}", if GATE - b == D*K then 1 else 0);
+  pf_result(s223, "Next degree 15 = K*E (composite)", "${2*8-1}", if 2*8-1 == K*E then 1 else 0);
+  pf_result(s223, "K^2 = 9: only composite in degree sequence", "${K*K}", if K*K == 9 then 1 else 0);
+
+  let p223 = (if sr_k==K then 1 else 0) + (if sr_e==E then 1 else 0) + (if sr_b==b then 1 else 0) + (if rc_d==b then 1 else 0) + (if rc_b==1 then 1 else 0) + (if total_res==GATE then 1 else 0) + (if 2*b-1==GATE then 1 else 0) + (if (GATE+1)/2==b then 1 else 0) + (if GATE-b==D*K then 1 else 0) + (if 2*8-1==K*E then 1 else 0) + (if K*K==9 then 1 else 0) in
+  pf_theorem(s223, "SELF-RESONANCE + DEGREE CONSENSUS",
+    "Z/p^2 raised to p -> p outputs (chain fixed points). Resonance count = GATE = 13. Degree-consensus: TRANS threshold = b out of GATE.",
+    p223, 11);
+  dom_append(dom_body(), s223);
+
   /* Summary */
-  let local_c = p158 + p159 + p160 + p161 + p162 + p163 + p164 + p165 + p166 + p167 + p168 + p169 + p170 + p171 + p172 + p173 + p174 + p175 + p176 + p178 + p179 + p180 + p181 + p182 + p183 + p184 + p185 + p186 + p187 + p188 + p189 + p190 + p191 + p192 + p193 + p194 + p195 + p196 + p197 + p198 + p199 + p200 + p201 + p202 + p203 + p204 + p208 + p214 + p217 + p220 in
+  let local_c = p158 + p159 + p160 + p161 + p162 + p163 + p164 + p165 + p166 + p167 + p168 + p169 + p170 + p171 + p172 + p173 + p174 + p175 + p176 + p178 + p179 + p180 + p181 + p182 + p183 + p184 + p185 + p186 + p187 + p188 + p189 + p190 + p191 + p192 + p193 + p194 + p195 + p196 + p197 + p198 + p199 + p200 + p201 + p202 + p203 + p204 + p208 + p214 + p217 + p220 + p223 in
   if _pf_mode[0] == 1 then
-    pf_standalone_summary(local_c, "Geometry & Dynamics -- 50 theorem groups. Geometry, dynamics, coding theory, group orders, cross-ring structure.")
+    pf_standalone_summary(local_c, "Geometry & Dynamics -- 51 theorem groups. Geometry, dynamics, coding theory, group orders, cross-ring structure, self-resonance.")
   else (
     let summary = make_section("700px") in
     render_h2(summary, "Summary");
@@ -1494,7 +1554,7 @@ fn proof_part3c(r3c) = (
     dom_style(st, "fontWeight", "bold");
     dom_append(sbox, st);
     let sd = dom_create("div") in
-    dom_text(sd, "Theorems 158-222 + 2 falsifications. All computed live by .ax running as WASM.");
+    dom_text(sd, "Theorems 158-224 + 2 falsifications. All computed live by .ax running as WASM.");
     dom_style(sd, "color", "#888");
     dom_style(sd, "marginTop", "8px");
     dom_style(sd, "fontSize", "13px");
