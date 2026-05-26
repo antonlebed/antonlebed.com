@@ -70,12 +70,43 @@ fn page_ring_substrate() = (
   render_finding(g_bas, "CD depth saturation", "Pass 3 ceiling for all conditions", "Allowing up to 20 CD passes (instead of 2): ALL conditions stop at pass 3 with no further improvement. The 76% ceiling for Z/49 is STRUCTURAL, not search-limited. Basin width gradient: 5% perturbation gives 88% recovery, 10% gives 77%, 20% gives 45%. Z/49 alone from additive start: only 2% recovery (vs 95% for Z/25). Reynolds number analogy: Z/49 is in the turbulent regime where more iterations cannot converge.", "");
   dom_append(dom_body(), sec_basin);
 
+  -- Evolutionary Training
+  let sec_evo = make_section("800px") in
+  render_h2(sec_evo, "Evolutionary Training");
+  render_p(sec_evo, "Can evolution FIND the multiplicative basin? Random entry-level mutation of 2D-LUT tables (3750 entries, 7 channels) PRESERVES structure near the attractor but CANNOT DISCOVER improvements. Crossover between independently-perturbed members helps, but plateaus quickly.");
+  let g_evo = make_findings_grid(sec_evo) in
+  render_finding(g_evo, "Evolutionary blindness", "75% flat across 200 gen", "From 90% seeding: score flat at 5259/7000 = 75%. Each random entry change has P(wrong) = (q-1)/q > 97% for Z/49. The basin resists drift but random search cannot navigate its interior.", "");
+  render_finding(g_evo, "Crossover improvement", "+5.1pp (72.6% -> 77.7%)", "Uniform crossover between parents with DIFFERENT corrupted subsets combines correct entries. Plateaus at gen ~50 when diversity exhausts. Biology's solution: large populations + structured mutations + many generations.", "");
+  render_finding(g_evo, "Genuine attractor", "Drift-resistant, not discoverable", "The multiplicative basin is stable against perturbation (population MAINTAINS proximity) but not discoverable by random exploration. This STRENGTHENS the convergent attractor thesis: the structure persists once found, but finding it requires structural prior or systematic search.", "");
+  dom_append(dom_body(), sec_evo);
+
+  -- 2D-LUT Scaling
+  let sec_scale = make_section("800px") in
+  render_h2(sec_scale, "2D-LUT Scaling");
+  render_p(sec_scale, "The nonlinear 2D-LUT automaton (h'=LUT[h*q+x], 3750 params) breaks through the additive ceiling. Three additive models (LUT, GLUT, PLUT) all hit 88-89% overfit at N=1000. The 2D-LUT breaks to 91%. At larger N: overfit improves monotonically (96% at N=2000, 97% at N=5000). Ceiling-free in tested range.");
+  let g_scale = make_findings_grid(sec_scale) in
+  render_finding(g_scale, "Additive ceiling", "88-89% overfit (3 models)", "LUT (132p), GLUT (396p), PLUT (660p) all plateau. Additive h'=h+f(x)%q structurally limited. The ceiling IS the additive representation, not the optimizer or data.", "");
+  render_finding(g_scale, "2D-LUT breakthrough", "91% -> 96% -> 97%", "Nonlinear h'=f(h,x) at N=1000/2000/5000. More data = better generalization. Test accuracy stable at 66-68% (task-inherent limit from channel capacity). Multi-automaton architecture VALIDATED.", "");
+  render_finding(g_scale, "Channel capacity", "Z/49 = 100%, Z/8 = 70%", "Per-channel accuracy reveals the real bottleneck: small channels lack state capacity. Z/49 (2401 entries) achieves PERFECT per-channel accuracy. Z/8 (64 entries) caps at 70%. The aggregate ~66% is driven by small channels, not the architecture.", "");
+  dom_append(dom_body(), sec_scale);
+
+  -- 2D-PLUT Compounding
+  let sec_p2d = make_section("800px") in
+  render_h2(sec_p2d, "2D-PLUT Compounding");
+  render_p(sec_p2d, "Per-position nonlinear automaton: h'=PLUT2D[pos*NP+off+h*q+x]. Each token position gets its own 2D-LUT transition function (18750 params). Position-awareness and nonlinearity COMPOUND: the ~66% ceiling was architectural (position-blind), not task-inherent.");
+  let g_p2d = make_findings_grid(sec_p2d) in
+  render_finding(g_p2d, "Compounding confirmed", "+20pp (N=1000), +21pp (N=5000)", "2D-PLUT breaks the 66% ceiling to 85.8% and 87.4%. The gap over position-blind 2D-LUT GROWS with data. Overfit improves 95.7% to 99%. Not overparameterization: more capacity generalizes better.", "");
+  render_finding(g_p2d, "Capacity multiplier", "Gain scales with headroom", "Per-channel: Z/49 gains NOTHING (already perfect at 2D-LUT). Z/8 gains +60%, Z/9 +79%. Z/17 crosses from 62% to PERFECT. Gain correlates with how far each channel was from saturation, not raw modulus size. Position-awareness is a capacity multiplier: 5 position-specific tables = 5x effective entries. The 66% ceiling was small-channel capacity starvation.", "");
+  render_finding(g_p2d, "Attention sink parallel", "Position 0 dominates", "The first token position (seed) has the most non-zero weights. This matches the attention sink phenomenon in transformers (Xiao et al. 2023): initial tokens serve as global memory registers. Same information-routing attractor at 18750 params vs billions.", "");
+  dom_append(dom_body(), sec_p2d);
+
   -- Interpretation
   let sec4 = make_section("800px") in
-  render_h2(sec4, "Interpretation");
-  render_p(sec4, "Ring substrate learning is VIABLE. All computation was ring arithmetic: integer modular operations for attention, multiplication for FFN, greedy per-channel search for learning. The paradigm works.");
-  render_p(sec4, "The ring does not strongly outperform random coprimes on per-channel accuracy (-1.3% ch_score). But it has 27% better exact match: when the ring is right, it is right everywhere; when wrong, wrong everywhere. This coherence is a structural property of the specific channel sizes and their algebraic relationships.");
-  render_p(sec4, "The channel split emerging in attention is the key finding. The model discovered that ALIVE channels (9, 11, 13, 17) are better for routing, while DEAD channels (8, 25, 49) carry information. This maps to the axiom's 490 holographic split: DEAD={D,E,b} for perception, ALIVE={K,L,GATE,ESCAPE} for strategy. Not designed, DISCOVERED.");
+  render_h2(sec4, "What We Know");
+  render_p(sec4, "Ring arithmetic is a viable computation substrate. Per-channel automata learn real structure via coordinate descent on integer modular operations. Zero floats. Zero gradients. The paradigm works.");
+  render_p(sec4, "The architecture story has a clear arc. Additive models (LUT, GLUT, PLUT) hit an 88-89% overfit ceiling. Nonlinear 2D-LUT breaks through, scaling cleanly (91% to 97% overfit at N=1000/5000). Position-aware 2D-PLUT compounds: +21 percentage points over 2D-LUT. The aggregate ~66% ceiling was small-channel capacity starvation -- position-awareness is a capacity multiplier that dissolves it.");
+  render_p(sec4, "The multiplicative basin is a genuine attractor: perturbation-stable but unreachable by smooth optimization (modular discontinuity). Evolution preserves but cannot discover. Crossover helps marginally. The structure requires a structural prior -- exactly how biology works. The axiom IS the structural prior.");
+  render_p(sec4, "Two emergent patterns bridge to transformer architecture: the 490 split (ALIVE channels route, DEAD channels carry data) and the attention sink (position 0 dominates). Both discovered, not designed. Same information-routing attractor at 18750 params vs billions.");
   dom_append(dom_body(), sec4);
 
   0
