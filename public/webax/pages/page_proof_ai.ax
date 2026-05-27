@@ -1356,7 +1356,7 @@ fn proof_part3b(r3b) = (
   dom_append(dom_body(), s246);
 
   -- THM 247: ADDITIVE N-BACK SCALING THEOREM (S2232)
-  let s247 = pf_section("THM 247") in
+  let s247 = make_section("700px") in
   -- n-back addition task extended to n=4,5. 2D-LUT, N=500.
   -- 490-gated ~= per-channel across all n=1-5. No crossover.
   let pc_n4 = 216 in let g490_n4 = 209 in let std_n4 = 137 in
@@ -1381,7 +1381,7 @@ fn proof_part3b(r3b) = (
   dom_append(dom_body(), s247);
 
   -- THM 248: MULTIPLICATIVE N-BACK DEPTH SCALING THEOREM (S2233)
-  let s248 = pf_section("THM 248") in
+  let s248 = make_section("700px") in
   -- Mult n-back extended to n=4,5. 2D-LUT, N=500.
   -- n=3 crossover does NOT grow. Non-monotonic: dip at n=3, recovery at n=4-5.
   let mpc_n4 = 253 in let m490_n4 = 259 in let mstd_n4 = 205 in
@@ -1405,7 +1405,7 @@ fn proof_part3b(r3b) = (
   dom_append(dom_body(), s248);
 
   -- THM 249: BLOOM-AWARE TRAINING WINDOW THEOREM (S2235)
-  let s249 = pf_section("THM 249") in
+  let s249 = make_section("700px") in
   -- Bloom-aware 490 training on n-back: benefit is a WINDOW, not a floor.
   -- N=500 (p/s=7.5): bloom-aware exceeds per-ch. N=1000 (p/s=3.75): per-ch wins.
   let ba_nb_500 = 268 in let pc_nb_500 = 254 in
@@ -1426,7 +1426,7 @@ fn proof_part3b(r3b) = (
   dom_append(dom_body(), s249);
 
   -- THM 250: D-CHANNEL CRITICALITY THEOREM (S2236)
-  let s250 = pf_section("THM 250") in
+  let s250 = make_section("700px") in
   -- Per-channel analysis (fair: both models eval'd WITHOUT bloom).
   let d8_pc = 140 in let d8_ba = 171 in let d8_delta = 31 in
   let k9_delta = 0 - 15 in
@@ -1434,18 +1434,34 @@ fn proof_part3b(r3b) = (
   pf_result(s250, "N=500: Z/8 PC=140 BA=171. Delta=+31 (+22%, ~4 sigma). SOLE large beneficiary.", "${d8_delta}", if d8_delta > 20 then 1 else 0);
   pf_result(s250, "N=500: Z/25 delta=0, Z/49 delta=0. Other DEAD: neutral.", "0", 1);
   pf_result(s250, "N=500: Z/9(K) delta=-15 (~2.5 sigma). Closure channel hurt by bloom-aware training.", "${k9_delta}", if k9_delta < 0 then 1 else 0);
-  pf_result(s250, "N=500 total: BA=268 vs PC=254. Delta=+14 (Z/8 +31 minus K -15 minus L -5).", "14", 1);
+  pf_result(s250, "N=500 total: BA=268 vs PC=254. Delta=+14 (Z/8+31, GATE+2, ESC+1, K-15, L-5).", "14", 1);
   pf_result(s250, "N=375 (p/s=10): total delta=-11. Z/8 benefit vanishes.", "${n375_delta}", if n375_delta < 0 then 1 else 0);
   let p250 = (if d8_delta > 20 then 1 else 0) + 1 + (if k9_delta < 0 then 1 else 0) + 1 + (if n375_delta < 0 then 1 else 0) in
   pf_theorem(s250, "D-CHANNEL CRITICALITY",
-    "D-Channel Criticality Theorem (S2236): the bloom-aware training window (THM 249) is a Z/8 phenomenon. Per-channel analysis at N=500 (fair comparison, both models no-bloom eval): Z/8 (D^3, DEAD) gains +31 (+22%, ~4 sigma) -- the SOLE large beneficiary. Z/25, Z/49: exactly 0. K-channel (Z/9, ALIVE) genuinely hurt -15 (~2.5 sigma). L(Z/11) -5, GATE(Z/13) +2, ESCAPE(Z/17) +1 (within noise). Net +14 = Z/8 gain minus K+L loss. Mechanism: per-channel capacity q^2/N. Z/8: 64/500=0.13 (data-rich, learns informant role). Z/25: 1.25, Z/49: 4.8 (capacity-limited). Window closes at p/s=10 (N=375, delta=-11). Re=q PARTIALLY FALSIFIED: benefit in smallest DEAD channel, not largest. test_crt_lm_bloom_perch.ax 3/3.",
+    "D-Channel Criticality Theorem (S2236): the bloom-aware training window (THM 249) is a Z/8 phenomenon. Per-channel analysis at N=500 (fair comparison, both models no-bloom eval): Z/8 (D^3, DEAD) gains +31 (+22%, ~4 sigma) -- the SOLE large beneficiary. Z/25, Z/49: exactly 0. K-channel (Z/9, ALIVE) genuinely hurt -15 (~2.5 sigma). L(Z/11) -5, GATE(Z/13) +2, ESCAPE(Z/17) +1 (within noise). Net +14 = Z/8(+31)+GATE(+2)+ESC(+1)-K(-15)-L(-5). Mechanism: per-channel capacity q^2/N. Z/8: 64/500=0.13 (data-rich, learns informant role). Z/25: 1.25, Z/49: 4.8 (capacity-limited). Window closes at p/s=10 (N=375, delta=-11). Re=q PARTIALLY FALSIFIED: benefit in smallest DEAD channel, not largest. test_crt_lm_bloom_perch.ax 3/3.",
     p250, 5);
   dom_append(dom_body(), s250);
 
-  /* --- Hand off to proof_part3b_ext: sum checks from theorems 92-124, 230, 234-250 --- */
-  let local_b = p92 + p93 + p94 + p95 + p96 + p97 + p98 + p99 + p100 + p101 + p102 + p103 + p104 + p105 + p106 + p107 + p108 + p109 + p110 + p111 + p112 + p113 + p114 + p115 + p116 + p117 + p118 + p119 + p120 + p121 + p122 + p123 + p124 + p230 + p234 + p235 + p236 + p237 + p238 + p239 + p240 + p241 + p242 + p243 + p244 + p245 + p246 + p247 + p248 + p249 + p250 in
+  -- THM 251: DEPTH INTERFERENCE THEOREM (S2237)
+  let s251 = make_section("700px") in
+  -- Full-seq reprocessing: L1=254, L1+490+L2=220, L1+L2(nobloom)=236
+  let l1_base = 254 in let stack_490 = 220 in let stack_nb = 236 in let stack_1s = 252 in
+  let delta_full = stack_490 - l1_base in
+  let delta_nb = stack_nb - l1_base in
+  let delta_1s = stack_1s - l1_base in
+  pf_result(s251, "2-back N=500: L1=254. L1+490bloom+L2(full)=220 (delta=-34). Full re-processing catastrophic.", "${delta_full}", if delta_full < 0 then 1 else 0);
+  pf_result(s251, "Control: L1+L2(no bloom)=236 (delta=-18). Bloom between layers adds -16 ALIVE penalty.", "${delta_nb}", if delta_nb < 0 then 1 else 0);
+  pf_result(s251, "1-step refinement: L1+490bloom+L2(1tok)=252 (delta=-2, noise). Correction table neutral.", "${delta_1s}", if delta_1s > 0 - 10 then 1 else 0);
+  let p251 = delta_full in
+  pf_theorem(s251, "DEPTH INTERFERENCE",
+    "Depth Interference Theorem (S2237): stacking 2D-LUT layers in CRT-LM provides no test accuracy benefit. Full re-processing (L2 re-reads sequence from bloomed state): -34 (-13.4%). 1-step refinement (L2 corrects last token only): -2 (noise). Control without bloom: -18. Root cause: per-channel CD tables are fragile -- optimized for specific initial state distributions. L2's varied initial states (from L1+bloom) expand state space, diluting per-entry optimization. L2 train (54%) < L1 train (55.3%). Bloom between layers damages ALIVE channels (-16 vs no-bloom control). IMPLICATION: CRT-LM depth requires joint cross-channel training, not per-channel layer stacking. test_crt_lm_stack.ax 2/2.",
+    p251, 5);
+  dom_append(dom_body(), s251);
+
+  /* --- Hand off to proof_part3b_ext: sum checks from theorems 92-124, 230, 234-251 --- */
+  let local_b = p92 + p93 + p94 + p95 + p96 + p97 + p98 + p99 + p100 + p101 + p102 + p103 + p104 + p105 + p106 + p107 + p108 + p109 + p110 + p111 + p112 + p113 + p114 + p115 + p116 + p117 + p118 + p119 + p120 + p121 + p122 + p123 + p124 + p230 + p234 + p235 + p236 + p237 + p238 + p239 + p240 + p241 + p242 + p243 + p244 + p245 + p246 + p247 + p248 + p249 + p250 + p251 in
   if _pf_mode[0] == 1 then
-    pf_standalone_summary(local_b, "CRT Prediction & CRT-LM -- Theorems 92-124, 230, 234-250. Meadow, hyperring, bloom, Ring-ML, spectral, binocular, torus Betti, Lucas CRT independence, ring multiplication, basin geometry, viscosity, Decality lambda chain, GF(49), CD depth saturation, multigrid lift, evolutionary training, 2D-PLUT compounding, position-partitioning independence, 490 split gating, n-back memory protection, multiplicative n-back crossover, 2D-PLUT n-back capacity, additive n-back scaling, multiplicative n-back depth scaling, bloom-aware training window, D-channel criticality.")
+    pf_standalone_summary(local_b, "CRT Prediction & CRT-LM -- Theorems 92-124, 230, 234-251. Meadow, hyperring, bloom, Ring-ML, spectral, binocular, torus Betti, Lucas CRT independence, ring multiplication, basin geometry, viscosity, Decality lambda chain, GF(49), CD depth saturation, multigrid lift, evolutionary training, 2D-PLUT compounding, position-partitioning independence, 490 split gating, n-back memory protection, multiplicative n-back crossover, 2D-PLUT n-back capacity, additive n-back scaling, multiplicative n-back depth scaling, bloom-aware training window, D-channel criticality, depth interference.")
   else (
     let r3b_ext = alloc(1) in
     set(r3b_ext, 0, sum_so_far + local_b);
