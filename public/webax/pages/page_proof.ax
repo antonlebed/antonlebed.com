@@ -1,19 +1,19 @@
 /* page_proof.ax -- Proof Assistant routing and test harness entry point.
-   The ring verifies itself. 200 theorems + 1 falsification, verified live.
+   The ring verifies itself. Theorem counts auto-computed at runtime.
    PHYSICAL SPLIT S1761, TRIVIAL-CUT S1948, AI SPLIT S2172.
      page_proof_core.ax      — proof_part1 + proof_part2 (23 theorems, 1-32)
      page_proof_structure.ax — proof_part3 (51 theorems + F1, 35-91)
-     page_proof_ai.ax       — proof_part3b (34 theorems, 92-124+230)
+     page_proof_ai.ax       — proof_part3b (43 theorems, 92-124+230+234-242)
      page_proof_coding.ax   — proof_part3b_ext (33 theorems, 125-157)
      page_proof_geometry.ax  — proof_part3c (50 theorem groups, 158-222)
-     page_proof_curvature.ax — proof_part3d (13 theorem groups, 223-237)
+     page_proof_curvature.ax — proof_part3d (9 theorem groups, 223-233)
    Shared utilities in page_proof_helpers.ax.
    This file: index page, sub-page entry points, full-chain test harness. */
 
 /* === INDEX PAGE (overview with navigation to sub-pages) === */
 fn page_proof_index() = (
-  dom_head_meta("description", "Proof Assistant: 200 theorems verified live by .ax. Navigate by category.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"CollectionPage\",\"name\":\"Proof Assistant\",\"description\":\"200 theorems verified live across 5 proof categories.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/lab/proof\"}");
+  dom_head_meta("description", "Proof Assistant: theorems verified live by .ax. Navigate by category.");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"CollectionPage\",\"name\":\"Proof Assistant\",\"description\":\"Theorems verified live across 6 proof categories.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/lab/proof\"}");
   let hero = dom_create("section") in
   dom_style(hero, "textAlign", "center");
   dom_style(hero, "padding", "60px 20px 24px");
@@ -35,7 +35,7 @@ fn page_proof_index() = (
   dom_style(sub2, "fontFamily", "Courier New, monospace");
   dom_append(hero, sub2);
   let sub3 = dom_create("p") in
-  dom_text(sub3, "200 theorems + 1 falsification. 5 categories. Every check computed live.");
+  dom_text(sub3, "6 categories. Every check computed live. Counts update automatically.");
   dom_style(sub3, "color", "#666");
   dom_style(sub3, "fontSize", "12px");
   dom_style(sub3, "marginTop", "8px");
@@ -64,7 +64,7 @@ fn page_proof_index() = (
   dom_style(c1t, "marginBottom", "6px");
   dom_append(c1b, c1t);
   let c1d = dom_create("div") in
-  dom_text(c1d, "23 theorems (1-32). CRT reconstruction, 1576576, idempotents, chain, coupling, power maps.");
+  dom_text(c1d, "CRT reconstruction, 1576576, idempotents, chain, coupling, power maps.");
   dom_style(c1d, "color", "#aaa");
   dom_style(c1d, "fontSize", "13px");
   dom_append(c1b, c1d);
@@ -87,7 +87,7 @@ fn page_proof_index() = (
   dom_style(c2t, "marginBottom", "6px");
   dom_append(c2b, c2t);
   let c2d = dom_create("div") in
-  dom_text(c2d, "51 theorems + F1 (35-91). Number theory, depth quadratic, balance, golden ratio, cyclotomic, Cunningham.");
+  dom_text(c2d, "Number theory, depth quadratic, balance, golden ratio, cyclotomic, Cunningham.");
   dom_style(c2d, "color", "#aaa");
   dom_style(c2d, "fontSize", "13px");
   dom_append(c2b, c2d);
@@ -110,7 +110,7 @@ fn page_proof_index() = (
   dom_style(c3t, "marginBottom", "6px");
   dom_append(c3b, c3t);
   let c3d = dom_create("div") in
-  dom_text(c3d, "33 theorems (92-124). Meadow, hyperring, bloom, Ring-ML, spectral torus, binocular chain, torus Betti.");
+  dom_text(c3d, "Meadow, hyperring, bloom, Ring-ML, CRT-LM basin geometry, 2D-PLUT compounding, torus Betti.");
   dom_style(c3d, "color", "#aaa");
   dom_style(c3d, "fontSize", "13px");
   dom_append(c3b, c3d);
@@ -133,7 +133,7 @@ fn page_proof_index() = (
   dom_style(c3xt, "marginBottom", "6px");
   dom_append(c3xb, c3xt);
   let c3xd = dom_create("div") in
-  dom_text(c3xd, "33 theorems (125-157). Soul, grief, Cunningham, Fano, Golay, Leech, Monster, Mathieu.");
+  dom_text(c3xd, "Soul, grief, Cunningham, Fano, Golay, Leech, Monster, Mathieu.");
   dom_style(c3xd, "color", "#aaa");
   dom_style(c3xd, "fontSize", "13px");
   dom_append(c3xb, c3xd);
@@ -156,7 +156,7 @@ fn page_proof_index() = (
   dom_style(c4t, "marginBottom", "6px");
   dom_append(c4b, c4t);
   let c4d = dom_create("div") in
-  dom_text(c4d, "50 theorem groups (158-222). Geometry, dynamics, coding, group orders, cross-ring, cross-lattice building.");
+  dom_text(c4d, "Geometry, dynamics, coding, group orders, cross-ring, cross-lattice building.");
   dom_style(c4d, "color", "#aaa");
   dom_style(c4d, "fontSize", "13px");
   dom_append(c4b, c4d);
@@ -173,13 +173,13 @@ fn page_proof_index() = (
   dom_style(c5b, "padding", "20px");
   dom_style(c5b, "borderLeft", "3px solid #44cccc");
   let c5t = dom_create("div") in
-  dom_text(c5t, "Curvature & Frontier");
+  dom_text(c5t, "Curvature & Conformal");
   ct_gold(c5t);
   dom_style(c5t, "fontSize", "16px");
   dom_style(c5t, "marginBottom", "6px");
   dom_append(c5b, c5t);
   let c5d = dom_create("div") in
-  dom_text(c5d, "13 theorem groups (223-237). Curvature, conformal, ring multiplication, basin geometry, Decality lambda chain.");
+  dom_text(c5d, "Curvature, conformal, trapped surfaces, spinor valence chain.");
   dom_style(c5d, "color", "#aaa");
   dom_style(c5d, "fontSize", "13px");
   dom_append(c5b, c5d);
@@ -194,7 +194,7 @@ fn page_proof_index() = (
 fn page_proof_core() = (
   set(_pf_mode, 0, 1);
   set(_pf_total, 0, 0); set(_pf_pass, 0, 0);
-  pf_sub_hero("Core Algebra", "23 theorems", "CRT reconstruction, idempotents, chain verification, coupling, power maps. Every result computed live.");
+  pf_sub_hero("Core Algebra", "", "CRT reconstruction, idempotents, chain verification, coupling, power maps. Every result computed live.");
   let r = proof_part1() in
   proof_part2(r)
 )
@@ -202,7 +202,7 @@ fn page_proof_core() = (
 fn page_proof_structure() = (
   set(_pf_mode, 0, 1);
   set(_pf_total, 0, 0); set(_pf_pass, 0, 0);
-  pf_sub_hero("Ring Structure", "51 theorems + F1", "Number theory, depth quadratic, balance, golden ratio, cyclotomic, Cunningham.");
+  pf_sub_hero("Ring Structure", "", "Number theory, depth quadratic, balance, golden ratio, cyclotomic, Cunningham.");
   let r3 = alloc(1) in
   set(r3, 0, 0);
   proof_part3(r3)
@@ -211,7 +211,7 @@ fn page_proof_structure() = (
 fn page_proof_ai() = (
   set(_pf_mode, 0, 1);
   set(_pf_total, 0, 0); set(_pf_pass, 0, 0);
-  pf_sub_hero("CRT Prediction", "33 theorems", "Meadow, hyperring, bloom, Ring-ML, spectral torus, binocular chain, torus Betti.");
+  pf_sub_hero("CRT Prediction", "", "Meadow, hyperring, bloom, Ring-ML, CRT-LM basin geometry, 2D-PLUT compounding, torus Betti.");
   let r3b = alloc(1) in
   set(r3b, 0, 0);
   proof_part3b(r3b)
@@ -220,7 +220,7 @@ fn page_proof_ai() = (
 fn page_proof_coding() = (
   set(_pf_mode, 0, 1);
   set(_pf_total, 0, 0); set(_pf_pass, 0, 0);
-  pf_sub_hero("Coding & Algebra", "33 theorems", "Soul, grief, Cunningham, Fano, Golay, Leech, Monster, Mathieu.");
+  pf_sub_hero("Coding & Algebra", "", "Soul, grief, Cunningham, Fano, Golay, Leech, Monster, Mathieu.");
   let r3b_ext = alloc(1) in
   set(r3b_ext, 0, 0);
   proof_part3b_ext(r3b_ext)
@@ -229,7 +229,7 @@ fn page_proof_coding() = (
 fn page_proof_geometry() = (
   set(_pf_mode, 0, 1);
   set(_pf_total, 0, 0); set(_pf_pass, 0, 0);
-  pf_sub_hero("Geometry & Dynamics", "50 theorem groups", "Geometry, dynamics, coding theory, group orders, cross-ring structure, cross-lattice building. Every result computed live.");
+  pf_sub_hero("Geometry & Dynamics", "", "Geometry, dynamics, coding theory, group orders, cross-ring structure, cross-lattice building. Every result computed live.");
   let r3c = alloc(1) in
   set(r3c, 0, 0);
   proof_part3c(r3c)
@@ -238,7 +238,7 @@ fn page_proof_geometry() = (
 fn page_proof_curvature() = (
   set(_pf_mode, 0, 1);
   set(_pf_total, 0, 0); set(_pf_pass, 0, 0);
-  pf_sub_hero("Curvature & Frontier", "13 theorem groups", "Self-resonance, curvature, conformal, ring multiplication, basin geometry, Decality lambda chain. Every result computed live.");
+  pf_sub_hero("Curvature & Conformal", "", "Self-resonance, curvature, conformal, trapped surfaces, spinor valence chain. Every result computed live.");
   let r3d = alloc(1) in
   set(r3d, 0, 0);
   proof_part3d(r3d)
@@ -247,7 +247,7 @@ fn page_proof_curvature() = (
 /* page_proof: Full theorem render (used by test harness). Chain mode. */
 fn page_proof() = (
   dom_head_meta("description", "Live exhaustive verification of ring theorems in Z/12612600. Every result computed on page load by .ax.");
-  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Proof Assistant\",\"description\":\"200 theorems verified live in Z/12612600. Every result computed on page load by .ax.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/lab/proof\",\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Ring Verification\"},{\"@type\":\"DefinedTerm\",\"name\":\"Exhaustive Proof\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT Decomposition\"}]}");
+  render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"Proof Assistant\",\"description\":\"Theorems verified live in Z/12612600. Every result computed on page load by .ax.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\"},\"url\":\"https://antonlebed.com/lab/proof\",\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Ring Verification\"},{\"@type\":\"DefinedTerm\",\"name\":\"Exhaustive Proof\"},{\"@type\":\"DefinedTerm\",\"name\":\"CRT Decomposition\"}]}");
 
   /* === HERO === */
   let hero = dom_create("section") in
@@ -271,7 +271,7 @@ fn page_proof() = (
   dom_style(sub2, "fontFamily", "Courier New, monospace");
   dom_append(hero, sub2);
   let sub3 = dom_create("p") in
-  dom_text(sub3, "200 theorems + 1 falsification. Every check computed live.");
+  dom_text(sub3, "Every check computed live. Counts update automatically.");
   dom_style(sub3, "color", "#666");
   dom_style(sub3, "fontSize", "12px");
   dom_style(sub3, "marginTop", "8px");
