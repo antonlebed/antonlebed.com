@@ -725,6 +725,7 @@ fn spectrum_contrast() = (
   dom_append(tbl, hdr);
   render_contrast_row(tbl, "Eigenvalues", "Belong to matrices and linear operators", "Every integer has one. Sum of 7 cosine harmonics. Coherence of 7 channels. 3,071,250 distinct classes.");
   render_contrast_row(tbl, "Spectral gap", "Random matrix statistics", "4sin^2(pi/7^2) = 0.016. Controlled by 7^2. Lattice-invariant. 84/84 lambda-420 rings.");
+  render_contrast_row(tbl, "Spacing distribution", "GUE / level repulsion (chaotic)", "POISSON. Variance -> 1, no level repulsion. Independent channels = uncorrelated levels. The ring is integrable, not chaotic.");
   render_contrast_row(tbl, "Gap = 0.753", "Random matrix / network model", "Removing 11 from squarefree ring: gap = 4sin^2(pi/7) = 0.753. Numerical coincidence with Kleiber's 3/4.");
   render_contrast_row(tbl, "Ratio 5/3", "Dimensional analysis", "Removing 7: ratio = 5/3. Requires 3 as the smallest odd prime.");
   render_contrast_row(tbl, "Eigenvalue uniqueness", "Generically expected", "3,071,250 distinct classes (TRANS). Zero collisions. Cyclotomic disjointness.");
@@ -805,8 +806,31 @@ fn spectrum_totient_gcd_matrix() = (
   dom_append(dom_body(), sec)
 )
 
+fn spectrum_spacings() = (
+  let sec = make_section("800px") in
+  render_h2(sec, "Spacing Statistics: Poisson, Not GUE");
+  render_p(sec, "The gap fixes the SMALLEST distance between eigenvalues. But what about the gaps between every adjacent pair across the whole spectrum -- are they spread like a chaotic quantum system, or like independent random points? Sort all eigenvalue classes, rescale so the average spacing is 1 (unfold by local density), and measure the distribution of consecutive gaps. The answer decides whether the ring is INTEGRABLE (independent channels) or CHAOTIC (entangled levels).");
+  render_theorem(sec, "Poisson Spacing Theorem", "Unfolded eigenvalue-class spacings converge to the POISSON distribution (exponential, variance 1), NOT the GUE distribution of chaotic quantum systems (variance 0.273, strong level repulsion). Spacing variance: Z/2,310 = 0.799, Z/970,200 = 1.018, Z/12,612,600 = 1.016 -- approaching 1 as the channels fatten. The fraction of spacings below 0.1 of the mean = 95 per 1000, matching the Poisson value 1 - exp(-0.1) = 95.2 per 1000 to within 0.2 per 1000; GUE predicts only ~4 per 1000. Independent CRT channels produce spectrally UNCORRELATED levels: the ring does not repel its own eigenvalues.");
+  let tbl = make_table(sec) in
+  let hdr = dom_create("tr") in
+  render_th(hdr, "Statistic");
+  render_th(hdr, "Poisson (independent)");
+  render_th(hdr, "GUE (chaotic)");
+  render_th(hdr, "Measured (Z/12,612,600)");
+  dom_append(tbl, hdr);
+  render_table_row_4(tbl, "Spacing variance", "1.000", "0.273", "1.016");
+  render_table_row_4(tbl, "P(spacing < 0.1)", "95.2 / 1000", "~4 / 1000", "95 / 1000");
+  render_table_row_4(tbl, "Level repulsion", "none", "strong", "none");
+  let g = make_findings_grid(sec) in
+  render_finding(g, "Integrable, not chaotic", "variance -> 1 as channels fatten", "0.799 (five thin channels) climbs to 1.016 (six fat channels). More channels = cleaner independence = sharper Poisson. Channel independence is the spectral signature.", "");
+  render_finding(g, "No level repulsion", "small gaps are common", "95 per 1000 spacings fall below a tenth of the mean -- exactly the Poisson rate. A chaotic spectrum would forbid these crowded pairs. The levels do not feel each other.", "");
+  render_finding(g, "Near-degeneracies", "368 in 341,250 classes", "1.1 per 1000 -- distinct CRT tuples whose seven cosines happen to sum to nearly the same value. Algebraic coincidences, not symmetry. The classes stay exactly distinct (zero collisions); only their spectral values crowd.", "");
+  render_finding(g, "Zeta path closed here", "spacings are uncorrelated", "The Riemann zeta zeros follow GUE statistics (level repulsion). The ring's eigenvalues follow Poisson. Any connection to the zeros is NOT through eigenvalue spacings -- it would have to run through multiplicative (Euler-product) structure instead.", "");
+  dom_append(dom_body(), sec)
+)
+
 fn page_spectrum() = (
-  dom_head_meta("description", "Every element gets an eigenvalue: sum of 7 cosines. 3,071,250 classes at Z/214414200. Degree 14 = 2*7. Gap = 4sin^2(pi/49). Shell staircase H=0..7. Bessel-cumulant theorem. Self-resonance. Silence theorem. Balance=1 uniqueness. Multiplicative order matrix: efficiency = 7/9.");
+  dom_head_meta("description", "Every element gets an eigenvalue: sum of 7 cosines. 3,071,250 classes at Z/214414200. Degree 14 = 2*7. Gap = 4sin^2(pi/49). Shell staircase H=0..7. Bessel-cumulant theorem. Self-resonance. Silence theorem. Balance=1 uniqueness. Spacings are Poisson, not GUE: the ring is integrable, not chaotic. Multiplicative order matrix: efficiency = 7/9.");
   render_jsonld("{\"@context\":\"https://schema.org\",\"@type\":\"ScholarlyArticle\",\"name\":\"The Eigenvalue Spectrum\",\"description\":\"3,071,250 eigenvalue classes from sum of 7 cosines over 7 prime channels. Degree 14 = 2*7. Gap = 4*sin^2(pi/49). Shell staircase H=0 to H=7. Multiplicative order matrix. Totient GCD matrix.\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton Lebed\",\"url\":\"https://antonlebed.com\"},\"url\":\"https://antonlebed.com/patterns/spectrum\",\"isAccessibleForFree\":true,\"license\":\"https://creativecommons.org/publicdomain/zero/1.0/\",\"about\":[{\"@type\":\"DefinedTerm\",\"name\":\"Eigenvalue Spectrum\"},{\"@type\":\"DefinedTerm\",\"name\":\"Spectral Graph Theory\"},{\"@type\":\"DefinedTerm\",\"name\":\"Cayley Graph\"},{\"@type\":\"DefinedTerm\",\"name\":\"Multiplicative Orders\"},{\"@type\":\"DefinedTerm\",\"name\":\"Totient Structure\"}]}");
   spectrum_hero();
   spectrum_formula();
@@ -822,6 +846,7 @@ fn page_spectrum() = (
   spectrum_degree();
   spectrum_shadow();
   spectrum_invariants();
+  spectrum_spacings();
   spectrum_classes();
   spectrum_shadow_chain();
   spectrum_resolution();
