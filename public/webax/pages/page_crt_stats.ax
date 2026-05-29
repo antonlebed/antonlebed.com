@@ -33,13 +33,6 @@ fn cs_hstat7(arr) = (
   s0*s0+s1*s1+s2*s2+s3*s3+s4*s4+s5*s5+s6*s6
 )
 
-/* Group sum for a single group g under mod p grouping */
-fn cs_gsum(arr, p, g) = (
-  mut s = 0; mut i = g;
-  while i < 21 do (s = s + arr[i]; mut i = i + p);
-  s
-)
-
 /* Build group sum arrays for CRT channels. Returns grand sum. No while loop. */
 fn cs_r2_build(arr, gm3, gm7) = (
   set(gm3, 0, arr[0]+arr[3]+arr[6]+arr[9]+arr[12]+arr[15]+arr[18]);
@@ -125,7 +118,7 @@ fn cs_perm_loop(hydro, seed_in, out) = (
    (many let+template in one fn triggers H2.11 compiler perf bug). */
 fn cs_perm_show(rel, seed_in, hydro, h3, h7, c3, c7, cb, r2_obs) = (
   let np = 500 in
-  /* Group sums inlined -- calling cs_gsum (which has mut+while) poisons the entire call chain (H2.11) */
+  /* Group sums inlined directly -- a separate mut+while accumulator fn poisoned the call chain (H2.11) */
   let g30 = hydro[0]+hydro[3]+hydro[6]+hydro[9]+hydro[12]+hydro[15]+hydro[18] in
   let g31 = hydro[1]+hydro[4]+hydro[7]+hydro[10]+hydro[13]+hydro[16]+hydro[19] in
   let g32 = hydro[2]+hydro[5]+hydro[8]+hydro[11]+hydro[14]+hydro[17]+hydro[20] in
@@ -146,7 +139,7 @@ fn cs_perm_show(rel, seed_in, hydro, h3, h7, c3, c7, cb, r2_obs) = (
     "</div>")
 )
 
-/* Build hydro array (extracted -- having a while loop + calling cs_gsum in same fn triggers H2.11) */
+/* Build hydro array (extracted -- a while loop + a mut+while accumulator in one fn triggers H2.11) */
 fn cs_build_hydro(arr) = (
   mut i = 0;
   while i < 21 do (set(arr, i, cs_h(i)); mut i = i + 1);
