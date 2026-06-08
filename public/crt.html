@@ -76,6 +76,37 @@
       font-family: var(--mono);
       font-size: 0.85rem;
     }
+    .recon-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 0.75rem 0;
+    }
+    .recon-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .recon-cell input {
+      width: 3.5rem;
+      text-align: center;
+      font-family: var(--mono);
+    }
+    .recon-cell label {
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    .idemp-row {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 0.5rem 0;
+    }
     @media (max-width: 600px) {
       .channels { height: 120px; gap: 4px; }
       .ch-val { font-size: 0.8rem; }
@@ -141,6 +172,17 @@
     <button onclick="doArith()">=</button>
   </div>
   <div id="arith-result"></div>
+
+  <h2>Reconstruction</h2>
+  <p>
+    The decomposition is a bijection. Pick any 7 residues &mdash; exactly one
+    number in Z/510,510 has that tuple. The formula uses <em>idempotents</em>:
+    elements that are 1 in one channel and 0 in all others.
+  </p>
+  <div class="recon-grid" id="recon-grid"></div>
+  <div class="tuple" id="recon-result"></div>
+  <div id="recon-formula" style="font-size:0.8rem; color:var(--fg-dim); margin:0.5rem 0;"></div>
+  <div class="idemp-row" id="idemp-row"></div>
 
   <footer>
     <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a></p>
@@ -262,6 +304,51 @@ function doArith() {
 
 document.getElementById('n-input').addEventListener('input', update);
 update();
+
+// Idempotents: e_i ≡ 1 mod p_i, 0 mod all others
+const Nbig = BigInt(N);
+const idempotents = channels.map(ch => {
+  const qi = BigInt(ch.q);
+  const Mi = Nbig / qi;
+  const yi = modInverse(Mi, qi);
+  return Number((Mi * yi) % Nbig);
+});
+
+// Display idempotents
+const idempEl = document.getElementById('idemp-row');
+idempEl.innerHTML = channels.map((ch, i) =>
+  `<span style="color:${ch.color}">e<sub>${ch.q}</sub>=${idempotents[i].toLocaleString('en')}</span>`
+).join('');
+
+// Build reconstruction inputs
+const reconGrid = document.getElementById('recon-grid');
+channels.forEach((ch, i) => {
+  const cell = document.createElement('div');
+  cell.className = 'recon-cell';
+  cell.innerHTML = `<input type="number" id="r-${i}" value="0" min="0" max="${ch.q - 1}">
+    <label style="color:${ch.color}">mod ${ch.q}</label>`;
+  reconGrid.appendChild(cell);
+  cell.querySelector('input').addEventListener('input', updateRecon);
+});
+
+function updateRecon() {
+  const residues = channels.map((ch, i) => {
+    const v = parseInt(document.getElementById(`r-${i}`).value) || 0;
+    return mod(v, ch.q);
+  });
+  const result = crtReconstruct(residues);
+  const parts = residues.map((r, i) =>
+    `<span style="color:${channels[i].color}">${r}</span>`
+  );
+  document.getElementById('recon-result').innerHTML =
+    `(${parts.join(', ')}) &rarr; <strong>${result.toLocaleString('en')}</strong>`;
+  const terms = residues.map((r, i) =>
+    `<span style="color:${channels[i].color}">${r}&times;${idempotents[i].toLocaleString('en')}</span>`
+  ).join(' + ');
+  document.getElementById('recon-formula').innerHTML =
+    `n = (${terms}) mod ${N.toLocaleString('en')}`;
+}
+updateRecon();
 </script>
 </body>
 </html>

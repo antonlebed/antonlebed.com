@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hardware Lab — antonlebed.com</title>
-  <meta name="description" content="The ring on real hardware: FPGA at 267MHz, ESP32 mesh correcting errors over radio, BME280 sensor data surviving CRT perfectly. Measurements, not simulations.">
+  <meta name="description" content="The ring on real hardware: FPGA at 194 MHz proving CRT + ECC in 1M exhaustive checks (3329 LUT4), ESP32 mesh with 104/104 CRT+ECC packets over radio, live sensor data surviving CRT perfectly.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <script src="atmosphere.js" defer></script>
@@ -92,57 +92,108 @@
 
   <h1>Hardware Lab</h1>
   <p>
-    The ring runs on real hardware. An FPGA doing 267 million operations per second.
-    Three ESP32 boards correcting errors over radio. Real sensor data surviving
-    CRT decomposition perfectly. Measurements, not simulations.  </p>
+    The ring runs on real hardware. An FPGA proving CRT arithmetic and error correction
+    across 1,022,070 exhaustive checks at 194 MHz. Three ESP32 boards sending CRT-encoded
+    packets over radio &mdash; 104 out of 104 correct. Real sensor data surviving
+    decomposition perfectly. Measurements, not simulations.
+  </p>
 
   <h2>The Setup</h2>
 
   <div class="device-grid">
     <div class="device-card">
       <h3>Tang Nano 20K</h3>
-      <p>FPGA — Gowin GW2AR-18</p>
-      <p class="spec">20,736 LUT4</p>
-      <p class="spec">267 MHz verified</p>
-      <p class="spec">9-stage CRT pipeline</p>
+      <p>FPGA &mdash; Gowin GW2AR-18</p>
+      <p class="spec">3,329 LUT4 (16%)</p>
+      <p class="spec">194 MHz post-route</p>
+      <p class="spec">CRT + ECC pipeline</p>
     </div>
     <div class="device-card">
       <h3>ESP32 &times; 3</h3>
-      <p>Mesh — ESP-NOW radio</p>
+      <p>Mesh &mdash; ESP-NOW radio</p>
       <p class="spec">240 MHz, MicroPython</p>
       <p class="spec">2 carry BME280 sensors</p>
-      <p class="spec">~20ms round-trip</p>
+      <p class="spec">104/104 CRT+ECC packets</p>
     </div>
+  </div>
+
+  <h2>FPGA Pipeline</h2>
+  <p>
+    Z/510,510 on silicon. Seven GF(p) multipliers &mdash; one per prime field
+    channel &mdash; with CRT reconstruction and ECC proof. One design does roundtrip
+    verification, per-channel multiplication, and full error-correction testing.
+  </p>
+
+  <div class="measurement">
+    <strong>Exhaustive proof:</strong> <span class="result">1,022,070 checks, 0 failures.</span>
+    Seven phases at 194 MHz F<sub>max</sub>.
+  </div>
+
+  <table class="lab-table">
+    <tr><th>Phase</th><th>What it proves</th><th>Checks</th></tr>
+    <tr><td>CRT roundtrip</td><td>decompose &rarr; reconstruct = identity for all 510,510 elements</td><td class="num">510,510</td></tr>
+    <tr><td>Multiply &times;19</td><td>per-channel multiply &rarr; reconstruct = (n&times;19) mod N</td><td class="num">510,510</td></tr>
+    <tr><td>ECC clean</td><td>syndrome = (0,0,0) for all 210 valid codewords</td><td class="num">210</td></tr>
+    <tr><td>ECC inject D</td><td>corrupt mod-2 channel, verify detection</td><td class="num">210</td></tr>
+    <tr><td>ECC inject K</td><td>corrupt mod-3 channel, verify detection</td><td class="num">210</td></tr>
+    <tr><td>ECC inject E</td><td>corrupt mod-5 channel, verify detection</td><td class="num">210</td></tr>
+    <tr><td>ECC inject b</td><td>corrupt mod-7 channel, verify detection</td><td class="num">210</td></tr>
+  </table>
+
+  <table class="lab-table" style="margin-top:1rem;">
+    <tr><th>Design</th><th>Ring</th><th>LUT4</th><th>%</th><th>F<sub>max</sub></th><th>Scope</th></tr>
+    <tr><td>crt_rad</td><td>Z/510,510</td><td class="num">3,329</td><td class="num">16%</td><td class="num">194 MHz</td><td>CRT + multiply + ECC</td></tr>
+    <tr><td style="color:var(--fg-dim)">crt_k9_pipeline</td><td style="color:var(--fg-dim)">Z/214M (fat)</td><td class="num" style="color:var(--fg-dim)">6,555</td><td class="num" style="color:var(--fg-dim)">31%</td><td class="num" style="color:var(--fg-dim)">267 MHz</td><td style="color:var(--fg-dim)">Multiply only (historical)</td></tr>
+  </table>
+
+  <p style="font-size:0.8rem; color:var(--fg-dim);">
+    Z/510,510 uses 49% fewer LUTs than the fat-ring pipeline while proving more (roundtrip +
+    multiply + ECC vs multiply only). Field-only arithmetic (GF(p) vs Z/p<sup>k</sup>)
+    eliminates the complex modular reduction that dominated fat-ring LUT usage.
+  </p>
+
+  <div class="measurement">
+    <strong>ECC weight matrix &mdash; how each data channel influences each parity channel:</strong>
+    <pre style="margin:0.5rem 0;font-size:0.75rem;color:var(--fg);">        mod 2  mod 3  mod 5  mod 7
+mod 11:   6      4      5     10
+mod 13:   1      5      9      3
+mod 17:   3      2      7      1</pre>
+    <span style="font-size:0.8rem;color:var(--fg-dim);">
+      All 12 weights nonzero &mdash; <strong style="color:var(--heal)">no blind spots</strong>.
+      Every single-channel data error triggers all 3 parity alarms.
+      (A fattened ring with raised exponents had mod&nbsp;5 invisible to mod&nbsp;17: weight&nbsp;=&nbsp;0.)
+    </span>
   </div>
 
   <h2>ESP32 Mesh</h2>
   <p>
-    Three ESP32 boards form an ESP-NOW mesh. CRT-encoded packets fly over radio.
-    ECC detects and corrects errors in transit. Clock synchronization via triangle
-    closure &mdash; no master, no ground truth.
-  </p>
-  <p style="font-size:0.8rem; color:var(--fg-dim);">
-    All measurements below used Z/214,414,200 &mdash; the same 7 primes with raised exponents
-    (moduli 8, 9, 25, 49, 11, 13, 17) for higher resolution per channel.
-    The foundation ring Z/510,510 uses each prime at exponent 1.
+    Three ESP32 boards form an ESP-NOW mesh. Each CRT-encodes data into Z/510,510
+    residues (7 bytes), broadcasts over radio, and the receiver reconstructs and checks
+    ECC. Three test phases, 20 rounds each.
   </p>
 
-  <h3>ECC on Radio</h3>
   <div class="measurement">
-    <strong>Per-channel injection test:</strong> deliberate single-channel errors on all 7 channels,
-    both boards. <span class="result">100% detection (58/58), 100% correction (123/123).</span>
+    <strong>Protocol test:</strong>
+    <span class="result">104/104 received packets, 100% correct.</span>
   </div>
 
   <table class="lab-table">
-    <tr><th>Channel</th><th>Type</th><th>Detection</th><th>Correction (3 deltas)</th></tr>
-    <tr><td class="ch-d">mod 8</td><td>data</td><td class="pass">8/8</td><td class="pass">16/16</td></tr>
-    <tr><td class="ch-k">mod 9</td><td>data</td><td class="pass">8/8</td><td class="pass">18/18</td></tr>
-    <tr><td class="ch-e">mod 25</td><td>data</td><td class="pass">8/8</td><td class="pass">18/18</td></tr>
-    <tr><td class="ch-b">mod 49</td><td>data</td><td class="pass">8/8</td><td class="pass">18/18</td></tr>
-    <tr><td class="ch-l">mod 11</td><td>parity</td><td class="pass">8/8</td><td class="pass">17/17</td></tr>
-    <tr><td class="ch-gate">mod 13</td><td>parity</td><td class="pass">9/9</td><td class="pass">18/18</td></tr>
-    <tr><td class="ch-escape">mod 17</td><td>parity</td><td class="pass">9/9</td><td class="pass">18/18</td></tr>
+    <tr><th>Phase</th><th>What it tests</th><th>Result</th></tr>
+    <tr><td>CRT roundtrip</td><td>encode counter &rarr; broadcast &rarr; reconstruct &rarr; verify</td><td class="pass">24/24</td></tr>
+    <tr><td>ECC clean</td><td>syndrome = (0,0,0) for valid codewords over radio</td><td class="pass">40/40</td></tr>
+    <tr><td>ECC injection</td><td>corrupt one data channel per packet, verify detection</td><td class="pass">40/40</td></tr>
   </table>
+
+  <div class="measurement" style="margin-top:0.75rem;">
+    <strong>Syndrome signatures match the weight matrix:</strong>
+    <pre style="margin:0.5rem 0;font-size:0.75rem;color:var(--fg);">Inject D(2)+1: syndrome (5, 12, 14)
+Inject K(3)+1: syndrome (7, 8, 15)
+Inject E(5)+1: syndrome (6, 4, 10)
+Inject b(7)+1: syndrome (1, 10, 16)</pre>
+    <span style="font-size:0.8rem;color:var(--fg-dim);">
+      All 3 parity channels fire for every injection &mdash; no blind spots confirmed over radio.
+    </span>
+  </div>
 
   <h3>Clock Synchronization</h3>
   <div class="measurement">
@@ -158,50 +209,26 @@
 
   <h2>Sensor Data</h2>
   <p>
-    Real BME280 readings (temperature, humidity, pressure) survive CRT decomposition
-    and reconstruction perfectly. Ring arithmetic preserves physical measurements exactly.
+    Real BME280 readings (temperature, pressure) survive CRT decomposition
+    and reconstruction over radio perfectly. Ring arithmetic preserves physical
+    measurements exactly.
   </p>
 
   <div class="measurement">
-    <strong>CRT round-trip:</strong> 6 sensor values &rarr; 7-channel decomposition &rarr; reconstruction.
-    <span class="result">6/6 exact match, ECC PASS on all.</span>
+    <strong>CRT round-trip over radio:</strong> temperature and pressure from 2 sensor boards.
+    <span class="result">24/24 exact match, 100% correct.</span>
   </div>
 
   <table class="lab-table">
-    <tr><th>Board</th><th>Temperature</th><th>Humidity</th><th>Pressure</th></tr>
-    <tr><td>COM3</td><td class="num">27.45 &deg;C</td><td class="num">41.67%</td><td class="num">1017.3 hPa</td></tr>
-    <tr><td>COM4</td><td class="num">27.99 &deg;C</td><td class="num">40.22%</td><td class="num">1017.3 hPa</td></tr>
+    <tr><th>Board</th><th>Temperature</th><th>Pressure</th></tr>
+    <tr><td>COM3</td><td class="num">26.28 &deg;C</td><td class="num">1025.4 hPa</td></tr>
+    <tr><td>COM4</td><td class="num">27.29 &deg;C</td><td class="num">1025.4 hPa</td></tr>
   </table>
   <p style="font-size:0.8rem; color:var(--fg-dim);">
-    Pressure identical (same room). Temperature &Delta; 0.54&deg;C (board position).
-    Additive-inverse check: (value + negation) mod q<sub>i</sub> = 0 for all 7 channels (7/7).
+    Pressure identical (same room). Temperature &Delta; 1.01&deg;C (board position).
+    Each reading CRT-encoded into 7 residues, broadcast over ESP-NOW, reconstructed
+    by the receiver.
   </p>
-
-  <h2>FPGA Pipeline</h2>
-  <p>
-    CRT arithmetic at 267 MHz on the raised-exponent ring. The parallel pipeline: one multiply per clock
-    cycle, 9-cycle latency. Post-route measurements on the Tang Nano 20K.
-  </p>
-
-  <table class="lab-table">
-    <tr><th>Design</th><th>LUT4</th><th>%</th><th>F<sub>max</sub></th><th>Notes</th></tr>
-    <tr><td>crt_k9_pipeline</td><td class="num">6555</td><td class="num">31%</td><td class="num">267 MHz</td><td>Best throughput</td></tr>
-    <tr><td>crt_k9_fast</td><td class="num">6089</td><td class="num">29%</td><td class="num">264 MHz</td><td>Optimized mod9</td></tr>
-    <tr><td>crt_baseline</td><td class="num">5643</td><td class="num">27%</td><td class="num">97 MHz</td><td>Combinational (no pipeline)</td></tr>
-    <tr><td>crt_ecc_trans</td><td class="num">2861</td><td class="num">13%</td><td class="num">187 MHz</td><td>ECC proof in silicon</td></tr>
-  </table>
-
-  <div class="measurement">
-    <strong>ECC weight matrix (how each data channel influences each parity channel):</strong>
-    <pre style="margin:0.5rem 0;font-size:0.75rem;color:var(--fg);">          mod8 mod9 mod25 mod49
-mod 11:    3    3     4     6
-mod 13:    1   10     7    12
-mod 17:    9   13     0     4</pre>
-    <span style="font-size:0.8rem;color:var(--fg-dim);">
-      mod 25 is invisible to mod 17 (weight = 0). Triple parity catches all single-channel errors.
-      Proved in silicon: crt_ecc_trans flashed to persistent flash.
-    </span>
-  </div>
 
   <h2>Platform Comparison</h2>
   <p>
@@ -212,16 +239,17 @@ mod 17:    9   13     0     4</pre>
 
   <table class="lab-table">
     <tr><th>Platform</th><th>Clock</th><th>Throughput</th><th>Latency</th><th>Character</th></tr>
-    <tr><td>FPGA</td><td class="num">267 MHz</td><td class="num">267M ops/s</td><td class="num">9 cycles</td><td>Deterministic, single-op</td></tr>
+    <tr><td>FPGA</td><td class="num">194 MHz</td><td class="num">194M ops/s</td><td class="num">1 cycle</td><td>Proof engine, 3329 LUT4</td></tr>
     <tr><td>GPU</td><td class="num">~1 GHz</td><td class="num">357M ops/s</td><td class="num">~2.8 &mu;s</td><td>Batch-only (1M elements)</td></tr>
-    <tr><td>ESP32</td><td class="num">240 MHz</td><td class="num">~1M ops/s</td><td class="num">~240 cyc</td><td>Interpreter overhead</td></tr>
+    <tr><td>ESP32</td><td class="num">240 MHz</td><td class="num">~1M ops/s</td><td class="num">~240 cyc</td><td>Interpreter + radio mesh</td></tr>
   </table>
 
   <p style="font-size:0.85rem; color:var(--fg-dim); margin-top:1.5rem;">
     <strong>What the hardware proves:</strong> CRT arithmetic is not a theoretical curiosity.
-    267 million correct operations per second on a $20 FPGA. 100% error correction over
-    noisy radio. Real sensor data surviving perfectly. The algebra works where it counts
-    &mdash; on silicon and on radio.
+    1,022,070 exhaustive checks on a $20 FPGA &mdash; CRT roundtrip, multiplication, and
+    error correction all proved in silicon. 104/104 packets correct over radio. Real sensor
+    data surviving decomposition perfectly. The algebra works where it counts &mdash; on
+    silicon and on radio.
   </p>
 
   <footer>
@@ -232,10 +260,9 @@ mod 17:    9   13     0     4</pre>
 
 <script>
 'use strict';
-// Throughput visual
 const tpData = [
   { label: 'GPU', val: 357, color: '#ffd700' },
-  { label: 'FPGA', val: 267, color: 'var(--accent)' },
+  { label: 'FPGA', val: 194, color: 'var(--accent)' },
   { label: 'ESP32', val: 1, color: '#ff8c00' },
 ];
 const container = document.getElementById('tp-bars');

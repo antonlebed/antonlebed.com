@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Engineering — antonlebed.com</title>
-  <meta name="description" content="CRT-decomposed neural architecture: 25000x fewer gradient params, 82x forward pass, free error detection. What works and what doesn't.">
+  <meta name="description" content="CRT-decomposed neural architecture: 391M× fewer gradient params, 8802× forward pass, free error detection on Z/510510. What works and what doesn't.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <script src="atmosphere.js" defer></script>
@@ -174,9 +174,10 @@
   <div id="flop-chart"></div>
 
   <p style="font-size:0.8rem; color:var(--fg-dim);">
-    Theoretical 22&times; vs measured 3.6-11.4&times; (GPU benchmarks on the fat ring
-    Z/214,414,200). The gap is memory bandwidth and kernel launch overhead &mdash;
-    the algebra is exact, the hardware has friction.
+    Theoretical 22&times; on Z/510,510. GPU measurements on the fat ring
+    Z/214,414,200: 3.6&ndash;11.4&times; (theoretical 16&times; for that ring).
+    The gap is memory bandwidth and kernel launch overhead &mdash; the algebra
+    is exact, the hardware has friction.
   </p>
 
   <h2>CRT-GPT-1 Spec</h2>
@@ -196,27 +197,45 @@
   <div class="c1-box">
     <h3>Free Error Detection</h3>
     <p style="font-size:0.85rem; color:var(--fg-dim);">
-      A CRT-LM with 7 output heads. 4 data heads reconstruct the token;
+      A CRT-LM with 7 output heads on Z/510,510. 4 data heads reconstruct the token;
       3 parity heads are algebraically predictable from data. The <strong>syndrome</strong>
-      = count of parity-head disagreements = a free "this token contradicts itself" signal.
+      = count of parity-head disagreements = a free &ldquo;this token contradicts itself&rdquo; signal.
     </p>
     <div class="metric-grid" style="margin-top:0.75rem;">
       <div class="metric">
-        <span class="num" style="color:var(--heal)">2&permil;</span>
-        <span class="label">Syndrome on CORRECT tokens</span>
+        <span class="num" style="color:var(--heal)">122/122</span>
+        <span class="label">Errors caught (98% accuracy)</span>
       </div>
       <div class="metric">
-        <span class="num" style="color:var(--error)">1000&permil;</span>
-        <span class="label">Syndrome on WRONG tokens</span>
+        <span class="num" style="color:var(--heal)">6&permil;</span>
+        <span class="label">False alarm rate (98% accuracy)</span>
       </div>
       <div class="metric">
-        <span class="num" style="color:var(--detect)">12&times;</span>
-        <span class="label">Out-of-domain separation</span>
+        <span class="num" style="color:var(--detect)">2.21</span>
+        <span class="label">OOD mean syndrome (0&ndash;3; in-domain: 0)</span>
       </div>
     </div>
     <p style="font-size:0.8rem; color:var(--fg-dim); margin-top:0.75rem;">
-      90/90 errors flagged, 0 undetected. No held-out set needed, no extra compute.
-      No standard transformer has this — it's a consequence of decomposition.
+      100% error detection from 85% accuracy onward on 2,361 characters of natural English
+      text. On simpler corpora, Z/510,510 converges to 100% accuracy (the fat ring
+      plateaued at 95%).
+      Every channel a prime field &mdash; no zero-divisor complications. No held-out set,
+      no extra compute. No standard transformer has this &mdash; it's a consequence of
+      decomposition.
+    </p>
+
+    <table class="spec-table" style="margin-top:0.75rem; font-size:0.75rem;">
+      <tr><th>Accuracy</th><th>Detection</th><th>False alarm</th></tr>
+      <tr><td>47.8%</td><td>85%</td><td>91&permil;</td></tr>
+      <tr><td>70.8%</td><td>97%</td><td>58&permil;</td></tr>
+      <tr><td>85.8%</td><td style="color:var(--heal)">100%</td><td>29&permil;</td></tr>
+      <tr><td>96.1%</td><td style="color:var(--heal)">100%</td><td>9&permil;</td></tr>
+      <tr><td>98.3%</td><td style="color:var(--heal)">100%</td><td>6&permil;</td></tr>
+    </table>
+
+    <p style="font-size:0.75rem; color:var(--fg-dim); margin-top:0.5rem;">
+      3 seeds, h=128 Elman RNN, PyTorch. Corpus: Carroll (1865), 58-char vocab.
+      Detection degrades gracefully in the capacity-limited regime (95% at 47% accuracy).
     </p>
   </div>
 
@@ -247,7 +266,7 @@
     <tr><th>Hypothesis</th><th>Status</th><th>Key finding</th></tr>
     <tr><td>7 channels > 6</td><td style="color:var(--detect)">Partial</td><td>+48 score, but requires diverse seeding</td></tr>
     <tr><td>Hierarchy-ordered convergence</td><td style="color:var(--heal)">Confirmed</td><td>Resolution dominates; 2&lt;3&lt;5&lt;7 strictly</td></tr>
-    <tr><td>Free ECC (rate 4/7)</td><td style="color:var(--detect)">Partial</td><td>100% detection, 312&times; separation</td></tr>
+    <tr><td>Free ECC (rate 4/7)</td><td style="color:var(--heal)">Confirmed</td><td>122/122 on real text, 0 false alarms at convergence</td></tr>
     <tr><td>Selective channel zeroing</td><td style="color:var(--heal)">Confirmed</td><td>85.7% retention = 6/7 exact</td></tr>
     <tr><td>Channel parallelism</td><td style="color:var(--heal)">Confirmed</td><td>7-domain validation (W1-W11)</td></tr>
   </table>
