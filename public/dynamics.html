@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamics — antonlebed.com</title>
+  <meta name="description" content="Power maps paint orbits. The carousel spins. Eigenvalues reveal the cost of structure. Dynamics of the ring Z/214,414,200.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
+  <style>
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      min-width: 120px;
+      max-width: 300px;
+      accent-color: var(--accent);
+    }
+    .slider-row .k-val {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--accent);
+      min-width: 3ch;
+    }
+    #power-canvas {
+      display: block;
+      margin: 0.5rem auto;
+      border-radius: 4px;
+      max-width: 100%;
+    }
+    .power-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      font-size: 0.8rem;
+      color: var(--fg-dim);
+      margin: 0.5rem 0;
+    }
+    .power-legend span::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+      background: var(--c);
+    }
+    .carousel-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    .carousel-ring {
+      width: 90px;
+      height: 90px;
+      position: relative;
+    }
+    .carousel-ring svg { width: 100%; height: 100%; }
+    .carousel-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-align: center;
+    }
+    .cost-bars {
+      margin: 1rem 0;
+    }
+    .cost-bar-row {
+      display: flex;
+      align-items: center;
+      margin: 0.3rem 0;
+      gap: 0.5rem;
+    }
+    .cost-bar-label {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      width: 2.5rem;
+      text-align: right;
+    }
+    .cost-bar {
+      height: 18px;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .cost-bar-val {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--fg-dim);
+      margin-left: 0.5rem;
+    }
+    .seed-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.8rem;
+    }
+    .seed-table th, .seed-table td {
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    .seed-table th {
+      background: var(--card-bg);
+      color: var(--fg-dim);
+      font-weight: normal;
+    }
+    .seed-table td { color: var(--fg); }
+    .seed-table .predicted { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="primer.html">Primer</a>
+    <a href="ring.html">Ring</a>
+    <a href="crt.html">CRT</a>
+    <a href="ecc.html">ECC</a>
+    <a href="dynamics.html" aria-current="page">Dynamics</a>
+    <a href="engineering.html">Engineering</a>
+    <a href="lab.html">Lab</a>
+  </nav>
+
+  <h1>Dynamics</h1>
+  <p>
+    Raise every element to the k-th power. Watch fixed points crystallize, cycles form,
+    and structure collapse. The ring's arithmetic paints its own portrait.
+  </p>
+
+  <h2>Power Map</h2>
+  <p>
+    The map x &rarr; x<sup>k</sup> on Z/210 (the data ring). Each cell is one element.
+    Move the slider to see how the map transforms the ring.  </p>
+
+  <div class="slider-row">
+    <span style="color:var(--fg-dim);font-size:0.85rem;">k =</span>
+    <span class="k-val" id="k-display">2</span>
+    <input type="range" id="k-slider" min="1" max="20" value="2">
+  </div>
+
+  <canvas id="power-canvas" width="400" height="420"></canvas>
+
+  <div class="power-legend" id="power-legend"></div>
+  <div class="stats" id="power-stats"></div>
+
+  <h2>The Carousel</h2>
+  <p>
+    Addition as rotation on 7 independent circles. Each channel has its own clock.
+    Enter a number to see its position on all 7 dials.
+  </p>
+
+  <div class="slider-row">
+    <input type="number" id="carousel-input" value="1" min="0" max="214414199" style="max-width:180px;" oninput="updateCarousel()">
+    <button onclick="stepCarousel(1)">+1</button>
+    <button onclick="stepCarousel(-1)">&minus;1</button>
+  </div>
+
+  <div class="carousel-container" id="carousel-container"></div>
+
+  <h2>Eigenvalue Cost</h2>
+  <p>
+    Each CRT channel has a cost: <code>c(p) = 4sin&sup2;(&pi;/p)</code>. Cheaper channels
+    activate last in the hierarchy. mod 11 is cheapest; mod 8 and mod 9 are most expensive.  </p>
+
+  <div class="cost-bars" id="cost-bars"></div>
+
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    Total cost = 7.452. The hierarchy builds expensive channels first (mod 8, mod 9) and
+    cheap channels last (mod 11). This connects spectral theory to the activation order.
+  </p>
+
+  <h2>Seed-Flower</h2>
+  <p>
+    A ring built from fewer primes doesn't "know" about primes it hasn't met.
+    Yet its topology <em>names</em> them. The embryo carries the blueprint.  </p>
+  <p>
+    <strong>CRT Euler characteristic:</strong>
+    <code>&chi; = N &times; (1 &minus; k + &Sigma; 1/q<sub>i</sub>)</code>
+  </p>
+
+  <table class="seed-table">
+    <tr><th>Sub-ring</th><th>Contains</th><th>&minus;&chi;</th><th>Predicts</th></tr>
+    <tr>
+      <td>Z/30</td><td>2, 3, 5</td>
+      <td>29 = 2+3+5+7+11+1</td>
+      <td class="predicted">7, 11</td>
+    </tr>
+    <tr>
+      <td>Z/72</td><td>2&sup3;, 3&sup2;</td>
+      <td>55 = 5 &times; 11</td>
+      <td class="predicted">5, 11</td>
+    </tr>
+    <tr>
+      <td>Z/15</td><td>3, 5</td>
+      <td>7</td>
+      <td class="predicted">7 (missing prime)</td>
+    </tr>
+  </table>
+
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    The formula is arithmetic (Euler characteristic of the CRT complex). The factorizations
+    that "name" future primes are structural — forced by the chain construction.
+  </p>
+
+  <footer>
+    <p><a href="https://github.com/AntoshkaL/antonlebed.com/issues">Report issue</a></p>
+    <p><a href="https://github.com/AntoshkaL/antonlebed.com">Source code</a></p>
+    <p>Public domain (CC0)</p>
+  </footer>
+
+<script>
+'use strict';
+
+// --- Power Map ---
+const N = 210;
+const COLS = 14, ROWS = 15;
+const CELL = 14; // px — spacing between dots
+
+function powMod(base, exp, mod) {
+  let result = 1;
+  base = ((base % mod) + mod) % mod;
+  while (exp > 0) {
+    if (exp & 1) result = (result * base) % mod;
+    exp >>= 1;
+    base = (base * base) % mod;
+  }
+  return result;
+}
+
+function computePowerMap(k) {
+  const map = new Array(N);
+  for (let x = 0; x < N; x++) map[x] = powMod(x, k, N);
+  return map;
+}
+
+function classifyElements(map) {
+  const visited = new Uint8Array(N);
+  const classification = new Array(N); // 'fixed' | 'cycle-N' | 'tail' | 'zero'
+  const cycleLengths = new Array(N).fill(0);
+
+  for (let start = 0; start < N; start++) {
+    if (visited[start]) continue;
+    const path = [];
+    let x = start;
+    while (!visited[x] && !path.includes(x)) {
+      path.push(x);
+      x = map[x];
+    }
+    if (visited[x]) {
+      // Tail into already-classified territory
+      for (const p of path) { classification[p] = 'tail'; visited[p] = 1; }
+    } else {
+      // Found a cycle starting at x
+      const cycleStart = path.indexOf(x);
+      const cycleLen = path.length - cycleStart;
+      for (let i = cycleStart; i < path.length; i++) {
+        classification[path[i]] = cycleLen === 1 ? 'fixed' : 'cycle';
+        cycleLengths[path[i]] = cycleLen;
+        visited[path[i]] = 1;
+      }
+      for (let i = 0; i < cycleStart; i++) {
+        classification[path[i]] = 'tail';
+        visited[path[i]] = 1;
+      }
+    }
+  }
+  // Mark zero specially
+  if (map[0] === 0) classification[0] = 'fixed-zero';
+  return { classification, cycleLengths };
+}
+
+const canvas = document.getElementById('power-canvas');
+const ctx = canvas.getContext('2d');
+
+function drawPowerMap(k) {
+  const map = computePowerMap(k);
+  const { classification, cycleLengths } = classifyElements(map);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let fixedCount = 0, cycleCount = 0, tailCount = 0;
+  const cycleSizes = new Set();
+
+  for (let i = 0; i < N; i++) {
+    const col = i % COLS;
+    const row = Math.floor(i / COLS);
+    const x = col * (CELL * 2) + CELL;
+    const y = row * (CELL * 2) + CELL;
+
+    let color;
+    switch (classification[i]) {
+      case 'fixed-zero':
+        color = '#555566'; fixedCount++; break;
+      case 'fixed':
+        color = '#ffffff'; fixedCount++; break;
+      case 'cycle':
+        const hue = (cycleLengths[i] * 47) % 360;
+        color = `hsl(${hue}, 70%, 55%)`;
+        cycleCount++;
+        cycleSizes.add(cycleLengths[i]);
+        break;
+      case 'tail':
+      default:
+        color = '#2a2a3a'; tailCount++; break;
+    }
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, CELL * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Show number for fixed points
+    if (classification[i] === 'fixed' || classification[i] === 'fixed-zero') {
+      ctx.fillStyle = classification[i] === 'fixed-zero' ? '#888' : '#000';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(i, x, y);
+    }
+  }
+
+  // Stats
+  const statsEl = document.getElementById('power-stats');
+  const cycles = [...cycleSizes].sort((a,b) => a-b);
+  statsEl.textContent = `Fixed: ${fixedCount} | Cycles: ${cycleCount} (lengths: ${cycles.join(', ') || 'none'}) | Tails: ${tailCount}`;
+
+  // Legend
+  const legend = document.getElementById('power-legend');
+  legend.innerHTML =
+    '<span style="--c:#fff">Fixed points</span>' +
+    '<span style="--c:#2a2a3a">Tails</span>' +
+    '<span style="--c:hsl(94,70%,55%)">Cycles</span>';
+}
+
+const slider = document.getElementById('k-slider');
+const kDisplay = document.getElementById('k-display');
+slider.addEventListener('input', function() {
+  kDisplay.textContent = this.value;
+  drawPowerMap(parseInt(this.value));
+});
+drawPowerMap(2);
+
+// --- Carousel ---
+const TRANS_MODS = [8, 9, 25, 49, 11, 13, 17];
+const CH_NAMES = ['2', '3', '5', '7', '11', '13', '17'];
+const CH_COLORS = ['#ff5555', '#ff8c00', '#ffd700', '#4caf50', '#00bcd4', '#5c6bc0', '#ab47bc'];
+
+let carouselValue = 1;
+
+function drawCarousel() {
+  const container = document.getElementById('carousel-container');
+  container.innerHTML = '';
+
+  for (let ch = 0; ch < 7; ch++) {
+    const mod = TRANS_MODS[ch];
+    const residue = ((carouselValue % mod) + mod) % mod;
+    const div = document.createElement('div');
+    div.className = 'carousel-ring';
+
+    const r = 36;
+    const cx = 45, cy = 45;
+    let svg = `<svg viewBox="0 0 90 90">`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${CH_COLORS[ch]}33" stroke-width="2"/>`;
+
+    // Tick marks
+    for (let i = 0; i < mod; i++) {
+      const angle = (i / mod) * Math.PI * 2 - Math.PI / 2;
+      const x1 = cx + Math.cos(angle) * (r - 4);
+      const y1 = cy + Math.sin(angle) * (r - 4);
+      const x2 = cx + Math.cos(angle) * (r + 2);
+      const y2 = cy + Math.sin(angle) * (r + 2);
+      const isActive = i === residue;
+      svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isActive ? CH_COLORS[ch] : '#333'}" stroke-width="${isActive ? 2.5 : 1}"/>`;
+    }
+
+    // Active position dot
+    const angle = (residue / mod) * Math.PI * 2 - Math.PI / 2;
+    const dx = cx + Math.cos(angle) * r;
+    const dy = cy + Math.sin(angle) * r;
+    svg += `<circle cx="${dx}" cy="${dy}" r="4" fill="${CH_COLORS[ch]}"/>`;
+    svg += `</svg>`;
+
+    div.innerHTML = svg;
+    const label = document.createElement('div');
+    label.className = 'carousel-label';
+    label.style.color = CH_COLORS[ch];
+    label.innerHTML = `mod ${TRANS_MODS[ch]}<br><span style="font-size:1rem">${residue}</span>`;
+    div.appendChild(label);
+    container.appendChild(div);
+  }
+}
+
+function updateCarousel() {
+  carouselValue = parseInt(document.getElementById('carousel-input').value) || 0;
+  drawCarousel();
+}
+
+function stepCarousel(delta) {
+  carouselValue = ((carouselValue + delta) % 214414200 + 214414200) % 214414200;
+  document.getElementById('carousel-input').value = carouselValue;
+  drawCarousel();
+}
+
+drawCarousel();
+
+// --- Eigenvalue Cost ---
+const COST_DATA = [
+  { name: 'mod 8', cost: 2.000, color: '#ff5555' },
+  { name: 'mod 9', cost: 3.000, color: '#ff8c00' },
+  { name: 'mod 25', cost: 1.382, color: '#ffd700' },
+  { name: 'mod 49', cost: 0.753, color: '#4caf50' },
+  { name: 'mod 11', cost: 0.317, color: '#00bcd4' },
+];
+
+function drawCostBars() {
+  const container = document.getElementById('cost-bars');
+  const maxCost = 3;
+  let html = '';
+  for (const d of COST_DATA) {
+    const width = (d.cost / maxCost) * 100;
+    html += `<div class="cost-bar-row">
+      <span class="cost-bar-label" style="color:${d.color}">${d.name}</span>
+      <div class="cost-bar" style="width:${width}%;background:${d.color};opacity:0.7"></div>
+      <span class="cost-bar-val">${d.cost.toFixed(3)}</span>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+drawCostBars();
+</script>
+</body>
+</html>
