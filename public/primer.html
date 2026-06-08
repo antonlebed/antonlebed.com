@@ -147,10 +147,10 @@
 
   <h1>Primer</h1>
   <p>
-    Take any number. Divide it by 8, by 9, by 25, by 49, by 11, by 13, by 17. Keep
+    Take any number. Divide it by 2, by 3, by 5, by 7, by 11, by 13, by 17. Keep
     only the remainders. Those seven remainders are <em>completely independent</em> of
     each other &mdash; and together they reconstruct the original number exactly. This
-    gives you free error correction, parallel computation, and a resolution hierarchy,
+    gives you free error correction, parallel computation, and a tower of nested rings,
     all from pure arithmetic.
   </p>
 
@@ -161,14 +161,14 @@
     bijection &mdash; no information lost, no ambiguity.
   </p>
   <p>
-    For our ring, N = 214,414,200 = 8 &times; 9 &times; 25 &times; 49 &times; 11 &times; 13 &times; 17.
+    For our ring, N = 510,510 = 2 &times; 3 &times; 5 &times; 7 &times; 11 &times; 13 &times; 17.
     Every number from 0 to N&minus;1 maps to a unique 7-tuple of remainders. Every valid
     7-tuple maps back to exactly one number. Type one and see:
   </p>
 
   <div class="primer-input">
     <label>n =</label>
-    <input type="number" id="crt-n" value="26801776" min="0" max="214414199">
+    <input type="number" id="crt-n" value="255256" min="0" max="510509">
     <button id="btn-random">Random</button>
   </div>
 
@@ -179,7 +179,7 @@
   <p>
     Here's what most explanations miss. The CRT doesn't just give you a way to represent
     numbers &mdash; it gives you <strong>independence</strong>. Knowing a number's remainder
-    mod 8 tells you <em>nothing</em> about its remainder mod 9, or mod 25, or any other
+    mod 2 tells you <em>nothing</em> about its remainder mod 3, or mod 5, or any other
     channel. Zero mutual information. This is a theorem, not an approximation.
   </p>
 
@@ -187,7 +187,7 @@
     <h3>Watch independence in action</h3>
     <p style="font-size:0.8rem; color:var(--fg-dim); margin-bottom:0.75rem;">
       Click +1 repeatedly. Channels highlight when they wrap (roll from max back to 0).
-      Mod 8 wraps every 8 steps, mod 9 every 9 &mdash; they wrap at different times.
+      Mod 2 wraps every 2 steps, mod 3 every 3 &mdash; they wrap at different times.
       No channel's wrap affects any other.
     </p>
     <div class="primer-input" style="margin:0.5rem 0;">
@@ -205,9 +205,9 @@
     <em>decomposes</em> into 7 tiny, parallel, non-interfering computations.
   </p>
   <p>
-    Instead of one problem with 214 million possibilities, you have 7 problems with
-    at most 49 possibilities each. Total positions to search: 8 + 9 + 25 + 49 + 11 + 13 + 17 = 132.
-    That's a <strong>1.6 million&times;</strong> reduction.
+    Instead of one problem with 510,510 possibilities, you have 7 problems with
+    at most 17 possibilities each. Total positions to search: 2 + 3 + 5 + 7 + 11 + 13 + 17 = 58.
+    That's an <strong>8,802&times;</strong> reduction.
   </p>
 
   <h2>Why these seven primes</h2>
@@ -221,29 +221,25 @@
 
   <div class="chain-steps" id="chain-display"></div>
 
-  <h3>Why the exponents</h3>
+  <h3>The tower</h3>
   <p>
-    The ring uses exponents {3, 2, 2, 2, 1, 1, 1} &mdash; giving moduli 8, 9, 25, 49, 11, 13, 17.
-    These are Pareto-optimal: each is the largest exponent whose channel period divides
-    the ring's Carmichael function (&lambda; = 1680 at TRANS level). Raising any exponent
-    further would force a larger period that breaks the lattice. The result: maximum
-    resolution per channel with perfect synchronization.
+    Each prime adds one channel. Every channel is a prime field &mdash; no zero divisors,
+    every nonzero element invertible. The tower builds from the data ring to the full
+    7-channel ring:
   </p>
 
   <table class="why-table">
-    <tr><th>Prime</th><th>Exponent</th><th>Modulus</th><th>Period</th><th>Role</th></tr>
-    <tr><td style="color:var(--ch-d)">2</td><td>3</td><td>8</td><td>2</td><td>Data</td></tr>
-    <tr><td style="color:var(--ch-k)">3</td><td>2</td><td>9</td><td>6</td><td>Data</td></tr>
-    <tr><td style="color:var(--ch-e)">5</td><td>2</td><td>25</td><td>20</td><td>Data</td></tr>
-    <tr><td style="color:var(--ch-b)">7</td><td>2</td><td>49</td><td>42</td><td>Data</td></tr>
-    <tr><td style="color:var(--ch-l)">11</td><td>1</td><td>11</td><td>10</td><td>Parity</td></tr>
-    <tr><td style="color:var(--ch-gate)">13</td><td>1</td><td>13</td><td>12</td><td>Parity</td></tr>
-    <tr><td style="color:var(--ch-escape)">17</td><td>1</td><td>17</td><td>16</td><td>Parity</td></tr>
+    <tr><th>Primes</th><th>N</th><th>Channels</th><th>&lambda;</th><th>Role</th></tr>
+    <tr><td style="color:var(--fg-dim)">{2, 3, 5, 7}</td><td>210</td><td>4</td><td>12</td><td>Data ring</td></tr>
+    <tr><td style="color:var(--ch-l)">+ 11</td><td>2,310</td><td>5</td><td>60</td><td>First parity</td></tr>
+    <tr><td style="color:var(--ch-gate)">+ 13</td><td>30,030</td><td>6</td><td>60</td><td>Second parity</td></tr>
+    <tr><td style="color:var(--ch-escape)">+ 17</td><td>510,510</td><td>7</td><td>240</td><td>Full ring (MDS ECC)</td></tr>
   </table>
   <p>
-    &lambda; = lcm(2, 6, 20, 42, 10, 12, 16) = 1680. Every element's power map repeats
-    with this period. The data channels provide resolution (8 &times; 9 &times; 25 &times; 49 = 88,200
-    states); the parity channels provide protection (11 &times; 13 &times; 17 = 2,431 redundant states).
+    &lambda; is the Carmichael function &mdash; the universal period of the power map.
+    Adding prime 11 jumps &lambda; from 12 to 60. Adding 17 jumps it to 240.
+    The data channels carry information (2 &times; 3 &times; 5 &times; 7 = 210
+    states); the parity channels provide protection (11 &times; 13 &times; 17 = 2,431).
   </p>
 
   <h2>What this gives you</h2>
@@ -253,8 +249,7 @@
   <p>
     <strong>Error correction.</strong> The 3 parity channels are algebraically determined by
     the 4 data channels. Corrupt any single channel and the parity detects, locates, and
-    corrects it. Rate 4/7 &mdash; the same as Hamming(7,4), but embedded in the ring's own
-    arithmetic.
+    corrects it. The code is MDS (distance 4) &mdash; no [7,4] code can do better.
   </p>
   <p>
     <strong>Parallel computation.</strong> Any operation on the full ring decomposes into 7
@@ -262,9 +257,9 @@
     Gradients don't cross channels.
   </p>
   <p>
-    <strong>A resolution ladder.</strong> Use fewer channels for a coarser ring (5 channels gives
-    Z/2310, or fattened to Z/970200), all seven for full resolution (TRANS = Z/214414200).
-    Each level nests inside the next.
+    <strong>A tower of rings.</strong> Use fewer primes for a coarser ring (4 primes gives
+    Z/210), all seven for full resolution (Z/510,510). Each level nests inside the next.
+    Fattening exponents beyond 1 trades field structure for more resolution per channel.
   </p>
 
   <footer>
@@ -274,11 +269,9 @@
   </footer>
 
 <script>
-const N = 214414200;
-const MODS = [8, 9, 25, 49, 11, 13, 17];
-const PRIMES = [2, 3, 5, 7, 11, 13, 17];
+const N = 510510;
+const MODS = [2, 3, 5, 7, 11, 13, 17];
 const COLORS = ['#ff5555','#ff8c00','#ffd700','#4caf50','#00bcd4','#5c6bc0','#ab47bc'];
-const NAMES = ['D','K','E','b','L','GATE','ESC'];
 
 function mod(a, m) { return ((a % m) + m) % m; }
 function crt(n) { return MODS.map(m => mod(n, m)); }
@@ -358,7 +351,7 @@ function renderIndep() {
   const container = document.getElementById('indep-channels');
   container.innerHTML = tuple.map((v, i) =>
     '<div class="indep-ch" id="ich-' + i + '" style="color:' + COLORS[i] + '">' +
-      NAMES[i] + '=' + v +
+      MODS[i] + ':' + v +
     '</div>'
   ).join('');
 }
@@ -391,17 +384,16 @@ renderIndep();
 // --- Chain display ---
 (function() {
   const steps = [
-    { val: 2, text: 'Start: <span class="num">2</span>' },
-    { val: 6, text: '2 &times; 3 = <span class="num">6</span>' },
-    { val: 30, text: '6 &times; 5 = <span class="num">30</span>' },
-    { val: 210, text: '30 &times; 7 = <span class="num">210</span>' },
-    { val: 2310, text: '210 &times; 11 = <span class="num">2,310</span> &mdash; the thin ring (5 channels, exponent 1 each)' },
-    { val: 30030, text: '2310 &times; 13 = <span class="num">30,030</span> &mdash; adds GATE' },
-    { val: 510510, text: '30030 &times; 17 = <span class="num">510,510</span> &mdash; adds ESCAPE (thin 7-channel ring)' },
-    { val: 214414200, text: 'Fatten exponents &rarr; <span class="num">214,414,200</span> = 8&times;9&times;25&times;49&times;11&times;13&times;17 (TRANS)' },
+    { text: 'Start: <span class="num">2</span>' },
+    { text: '2 &times; 3 = <span class="num">6</span>' },
+    { text: '6 &times; 5 = <span class="num">30</span>' },
+    { text: '30 &times; 7 = <span class="num">210</span> &mdash; data ring (4 channels)' },
+    { text: '210 &times; 11 = <span class="num">2,310</span> &mdash; first parity channel' },
+    { text: '2310 &times; 13 = <span class="num">30,030</span> &mdash; second parity channel' },
+    { text: '30030 &times; 17 = <span class="num">510,510</span> &mdash; full ring, 7 channels, MDS ECC' },
   ];
   const container = document.getElementById('chain-display');
-  container.innerHTML = steps.map(function(s, i) {
+  container.innerHTML = steps.map(function(s) {
     return '<div class="step active">' + s.text + '</div>';
   }).join('');
 })();

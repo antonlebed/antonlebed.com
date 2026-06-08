@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Error Correction — antonlebed.com</title>
-  <meta name="description" content="Corrupt any channel. The ring autonomously detects, locates, and corrects the error. Free ECC from number theory at rate 4/7.">
+  <meta name="description" content="Corrupt any channel. The ring detects, locates, and corrects the error. MDS error correction from CRT at rate 4/7.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <script src="atmosphere.js" defer></script>
@@ -104,14 +104,17 @@
     locates, and corrects every one.
   </p>
   <p>
-    <strong>Corrupt 2</strong> damages two &mdash; the ring still detects the error,
-    but can no longer correct it. That's the boundary of a rate-4/7 code: correct 1, detect 2.
+    <strong>Corrupt 2</strong> or <strong>Corrupt 3</strong> damages more channels &mdash;
+    the ring still detects the error, but can no longer correct it. The code is
+    <em>maximum distance separable</em> (d&nbsp;=&nbsp;4): correct any 1, detect up to 3.
+    No [7,4] code can do better.
   </p>
 
   <div class="controls">
     <input type="text" id="msg-input" placeholder="Type a message..." maxlength="16" value="HELLO">
     <button onclick="scrambleAll()">Corrupt 1</button>
     <button onclick="scrambleDouble()">Corrupt 2</button>
+    <button onclick="scrambleTriple()">Corrupt 3</button>
     <button onclick="resetAll()">Reset</button>
   </div>
 
@@ -129,23 +132,28 @@
 
   <h2>The math</h2>
   <p>
-    Data ring: Z/88,200 = Z/8 &times; Z/9 &times; Z/25 &times; Z/49.<br>
+    Data ring: Z/210 = Z/2 &times; Z/3 &times; Z/5 &times; Z/7. Every channel a prime field.<br>
     Parity: mod 11, mod 13, mod 17. Product = 2431. Rate 4/7.
   </p>
   <p>
-    CRT reconstruction: <code>n = 11025d + 78400k + 59976e + 27000b (mod 88200)</code><br>
+    CRT reconstruction: <code>n = 105d + 70k + 126e + 120b (mod 210)</code><br>
     Parity: <code>n mod 11, n mod 13, n mod 17</code>. Stored alongside the data.
   </p>
   <p>
     Correction: for each candidate channel, try each value until all three parities match.
-    Since max data modulus (49) &lt;&lt; parity product (2431), exactly one solution exists
+    Max data modulus is 7, parity product is 2431 &mdash; exactly one solution exists
     for any single-channel error. <strong>100% correction rate.</strong>
+  </p>
+  <p>
+    The code is MDS: minimum distance d&nbsp;=&nbsp;4 = n&nbsp;&minus;&nbsp;k&nbsp;+&nbsp;1 = 7&nbsp;&minus;&nbsp;4&nbsp;+&nbsp;1.
+    Any 4 of 7 channels reconstruct the original. This is optimal &mdash; the Singleton bound
+    says no [7,4] code can achieve d&nbsp;&gt;&nbsp;4.
   </p>
 
   <div class="explanation" style="font-size:0.8rem;">
-    <strong>What this is:</strong> Hamming correction over modular residues. Not a new coding
-    theory &mdash; the novelty is that ECC emerges free from CRT decomposition. No separate
-    encoding layer. The ring is the code.
+    <strong>What this is:</strong> Hamming-style correction over modular residues. The novelty
+    is that MDS error correction emerges free from CRT decomposition of a squarefree ring.
+    No separate encoding layer. The ring <em>is</em> the code.
   </div>
 
   <footer>
@@ -157,13 +165,13 @@
 <script>
 'use strict';
 
-const DATA_MODS = [8, 9, 25, 49];
+const DATA_MODS = [2, 3, 5, 7];
 const CH_NAMES = ['2', '3', '5', '7', '11', '13', '17'];
 const CH_CLASSES = ['row-d', 'row-k', 'row-e', 'row-b', 'row-l', 'row-gate', 'row-escape'];
-const N = 88200;
+const N = 210;
 
 function crtReconstruct(d, k, e, b) {
-  return ((d * 11025 + k * 78400 + e * 59976 + b * 27000) % N + N) % N;
+  return ((d * 105 + k * 70 + e * 126 + b * 120) % N + N) % N;
 }
 
 function computeParities(n) {
@@ -187,7 +195,6 @@ function tryCorrect(c) {
     return { detected: false };
   }
 
-  // Error detected. Try to locate and correct.
   for (let ch = 0; ch < 4; ch++) {
     for (let v = 0; v < DATA_MODS[ch]; v++) {
       if (v === c.residues[ch]) continue;
@@ -234,12 +241,24 @@ function scrambleDouble() {
   setTimeout(autoCorrectAll, 400);
 }
 
+function scrambleTriple() {
+  encode();
+  for (const c of chars) {
+    const skip = Math.floor(Math.random() * 4);
+    for (let ch = 0; ch < 4; ch++) {
+      if (ch !== skip) corruptChar(c, ch);
+    }
+  }
+  render();
+  setTimeout(autoCorrectAll, 400);
+}
+
 function resetAll() {
   encode();
 }
 
 function corruptChar(c, ch) {
-  if (ch >= 4) return; // can't corrupt parity channels directly
+  if (ch >= 4) return;
   const oldVal = c.residues[ch];
   let newVal;
   do { newVal = Math.floor(Math.random() * DATA_MODS[ch]); } while (newVal === oldVal);
@@ -297,25 +316,21 @@ function autoCorrectChar(idx) {
     return;
   }
 
-  // Step 1: Detection
-  pipe.innerHTML = `<span class="step detect">&#x25CF; DETECTED (mod 11 syndrome &ne; 0)</span>`;
+  pipe.innerHTML = `<span class="step detect">&#x25CF; DETECTED (syndrome &ne; 0)</span>`;
   render();
 
   setTimeout(() => {
     if (result.located >= 0) {
-      // Step 2: Location
-      pipe.innerHTML += `<span class="step locate">&#x25CF; LOCATED mod ${[8,9,25,49][result.located]}</span>`;
+      pipe.innerHTML += `<span class="step locate">&#x25CF; LOCATED mod ${DATA_MODS[result.located]}</span>`;
       render();
 
       setTimeout(() => {
-        // Step 3: Correction
         c.residues[result.located] = result.correctedValue;
         c.state = 'healed';
         pipe.innerHTML += `<span class="step correct">&#x25CF; CORRECTED</span>`;
         render();
       }, 350);
     } else {
-      // Multi-channel: detection works but correction fails
       c.state = 'uncorrectable';
       pipe.innerHTML += `<span class="step fail">&#x25CF; CANNOT LOCATE (multi-channel error)</span>`;
       render();

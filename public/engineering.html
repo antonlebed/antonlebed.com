@@ -119,12 +119,12 @@
 
   <div class="metric-grid">
     <div class="metric">
-      <span class="num">25,654&times;</span>
-      <span class="label">Jacobian savings (THIN)</span>
+      <span class="num">391M&times;</span>
+      <span class="label">Jacobian savings (Z/510,510)</span>
     </div>
     <div class="metric">
-      <span class="num">82.5&times;</span>
-      <span class="label">Forward pass speedup</span>
+      <span class="num">8,802&times;</span>
+      <span class="label">Forward pass (Z/510,510)</span>
     </div>
     <div class="metric">
       <span class="num">4/7</span>
@@ -148,19 +148,19 @@
   <div class="theorem">
     <h3>Block-Diagonal Jacobian</h3>
     <p>CRT Jacobian is block-diagonal: O(&Sigma;q<sub>i</sub>&sup2;) vs O(N&sup2;).
-    At TRANS: N&sup2;/&Sigma;q<sub>i</sub>&sup2; = 12.26 trillion &times;.
+    At Z/510,510: N&sup2;/&Sigma;q<sub>i</sub>&sup2; = 391 million &times;.
     The gradient decomposes exactly like the number does.</p>
   </div>
 
   <div class="theorem">
     <h3>Loop Theorem — Forward Pass</h3>
-    <p>CRT forward: N/&Sigma;p<sub>i</sub> speedup. At THIN (2310): 2310/28 = 82.5&times;.
+    <p>CRT forward: N/&Sigma;p<sub>i</sub> speedup. At Z/510,510: 510510/58 = 8,802&times;.
     CRT mixing is 50&times; faster than cyclic mixing (Hamming gap / Cayley gap ratio).</p>
   </div>
 
   <div class="theorem">
     <h3>Block-Diagonal FLOP Theorem</h3>
-    <p>Matmul: (&Sigma;q<sub>i</sub>)&sup3; / &Sigma;q<sub>i</sub>&sup3; = 16&times; at TRANS.
+    <p>Matmul: (&Sigma;q<sub>i</sub>)&sup3; / &Sigma;q<sub>i</sub>&sup3; = 22&times; at Z/510,510.
     Params: 4.6&times; fewer. Per NN layer: 3.4&times;. 12-layer CRT-GPT: ~25M params
     vs ~117M GPT-1.</p>
   </div>
@@ -173,8 +173,9 @@
   <div id="flop-chart"></div>
 
   <p style="font-size:0.8rem; color:var(--fg-dim);">
-    Theoretical 16&times; vs measured 3.6-11.4&times;. The gap is memory bandwidth and kernel
-    launch overhead — the algebra is exact, the hardware has friction.
+    Theoretical 22&times; vs measured 3.6-11.4&times; (GPU benchmarks on the fat ring
+    Z/214,414,200). The gap is memory bandwidth and kernel launch overhead &mdash;
+    the algebra is exact, the hardware has friction.
   </p>
 
   <h2>CRT-GPT-1 Spec</h2>
@@ -183,8 +184,8 @@
     <tr><td>Total params</td><td>~25M</td><td>~117M</td></tr>
     <tr><td>d_model</td><td>448 (7 &times; 64)</td><td>768</td></tr>
     <tr><td>Layers</td><td>12 (ECC at 3,6,9,12)</td><td>12</td></tr>
-    <tr><td>Embedding</td><td>132 entries (&Sigma;q<sub>i</sub>)</td><td>~50K BPE</td></tr>
-    <tr><td>Output</td><td>7 softmaxes (132 total)</td><td>1 softmax (50K)</td></tr>
+    <tr><td>Embedding</td><td>58 entries (&Sigma;p<sub>i</sub>)</td><td>~50K BPE</td></tr>
+    <tr><td>Output</td><td>7 softmaxes (58 total)</td><td>1 softmax (50K)</td></tr>
     <tr><td>FFN</td><td>7 independent MLPs</td><td>1 monolithic</td></tr>
     <tr><td>Attention</td><td>Algebraic coupling (zero learned params)</td><td>Learned QKV</td></tr>
   </table>
@@ -253,7 +254,7 @@
   <p style="font-size:0.85rem; color:var(--fg-dim); margin-top:1.5rem;">
     <strong>Conclusions:</strong> CRT decomposition is a structural technique, not a
     silver bullet. At char-level vocab (28 chars), CRT costs more params than monolithic
-    (132 residues vs 28 classes). The value is in the syndrome payoff and the theoretical
+    (58 residues vs 28 classes). The value is in the syndrome payoff and the theoretical
     scaling &mdash; not small-scale benchmarks. At vocabulary scale (50K+), the param advantage
     flips decisively.
   </p>
@@ -273,14 +274,14 @@ const data = [
 ];
 
 const gpuData = [
-  { label: 'Theoretical', val: 16, unit: 'x' },
+  { label: 'Theoretical', val: 22, unit: 'x' },
   { label: 'Measured (best)', val: 11.4, unit: 'x' },
   { label: 'Measured (worst)', val: 3.6, unit: 'x' },
 ];
 
 const container = document.getElementById('flop-chart');
 let html = '';
-const maxVal = 16;
+const maxVal = 22;
 for (const d of gpuData) {
   const pct = (d.val / maxVal) * 100;
   html += `<div class="flop-row">

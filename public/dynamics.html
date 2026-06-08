@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dynamics — antonlebed.com</title>
-  <meta name="description" content="Power maps paint orbits. The carousel spins. Eigenvalues reveal the cost of structure. Dynamics of the ring Z/214,414,200.">
+  <meta name="description" content="Power maps paint orbits. The carousel spins. Eigenvalues reveal the cost of structure. Dynamics of the ring Z/510,510.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <script src="atmosphere.js" defer></script>
@@ -142,7 +142,8 @@
   <h2>Power Map</h2>
   <p>
     The map x &rarr; x<sup>k</sup> on Z/210 (the data ring). Each cell is one element.
-    Move the slider to see how the map transforms the ring.  </p>
+    Move the slider to see how the map transforms the ring.
+  </p>
 
   <div class="slider-row">
     <span style="color:var(--fg-dim);font-size:0.85rem;">k =</span>
@@ -162,7 +163,7 @@
   </p>
 
   <div class="slider-row">
-    <input type="number" id="carousel-input" value="1" min="0" max="214414199" style="max-width:180px;" oninput="updateCarousel()">
+    <input type="number" id="carousel-input" value="1" min="0" max="510509" style="max-width:180px;" oninput="updateCarousel()">
     <button onclick="stepCarousel(1)">+1</button>
     <button onclick="stepCarousel(-1)">&minus;1</button>
   </div>
@@ -172,46 +173,50 @@
   <h2>Eigenvalue Cost</h2>
   <p>
     Each CRT channel has a cost: <code>c(p) = 4sin&sup2;(&pi;/p)</code>. Cheaper channels
-    activate last in the hierarchy. mod 11 is cheapest; mod 8 and mod 9 are most expensive.  </p>
+    activate last in the hierarchy. mod 2 is most expensive; mod 17 is cheapest.
+  </p>
 
   <div class="cost-bars" id="cost-bars"></div>
 
   <p style="font-size:0.85rem; color:var(--fg-dim);">
-    Total cost = 7.452. The hierarchy builds expensive channels first (mod 8, mod 9) and
-    cheap channels last (mod 11). This connects spectral theory to the activation order.
+    Total cost = 9.817. The hierarchy cost descends with prime order: the larger the prime,
+    the cheaper the channel. The four data channels (2, 3, 5, 7) carry most of the cost;
+    the three parity channels (11, 13, 17) are lightweight.
   </p>
 
   <h2>Seed-Flower</h2>
   <p>
     A ring built from fewer primes doesn't "know" about primes it hasn't met.
-    Yet its topology <em>names</em> them. The embryo carries the blueprint.  </p>
+    Yet its topology <em>names</em> them. The embryo carries the blueprint.
+  </p>
   <p>
     <strong>CRT Euler characteristic:</strong>
-    <code>&chi; = N &times; (1 &minus; k + &Sigma; 1/q<sub>i</sub>)</code>
+    <code>&chi; = N &times; (1 &minus; k + &Sigma; 1/p<sub>i</sub>)</code>
   </p>
 
   <table class="seed-table">
     <tr><th>Sub-ring</th><th>Contains</th><th>&minus;&chi;</th><th>Predicts</th></tr>
     <tr>
-      <td>Z/30</td><td>2, 3, 5</td>
-      <td>29 = 2+3+5+7+11+1</td>
-      <td class="predicted">7, 11</td>
-    </tr>
-    <tr>
-      <td>Z/72</td><td>2&sup3;, 3&sup2;</td>
-      <td>55 = 5 &times; 11</td>
-      <td class="predicted">5, 11</td>
+      <td>Z/10</td><td>2, 5</td>
+      <td>3</td>
+      <td class="predicted">3 (missing chain prime)</td>
     </tr>
     <tr>
       <td>Z/15</td><td>3, 5</td>
       <td>7</td>
-      <td class="predicted">7 (missing prime)</td>
+      <td class="predicted">7 (next chain prime)</td>
+    </tr>
+    <tr>
+      <td>Z/21</td><td>3, 7</td>
+      <td>11</td>
+      <td class="predicted">11 (next chain prime)</td>
     </tr>
   </table>
 
   <p style="font-size:0.85rem; color:var(--fg-dim);">
-    The formula is arithmetic (Euler characteristic of the CRT complex). The factorizations
-    that "name" future primes are structural — forced by the chain construction.
+    Each pair of chain primes names the next one via &minus;&chi;. The formula is arithmetic
+    (Euler characteristic of the CRT complex). These predictions are a thin-ring phenomenon
+    &mdash; forced by the squarefree structure.
   </p>
 
   <footer>
@@ -224,9 +229,9 @@
 'use strict';
 
 // --- Power Map ---
-const N = 210;
+const N_DATA = 210;
 const COLS = 14, ROWS = 15;
-const CELL = 14; // px — spacing between dots
+const CELL = 14;
 
 function powMod(base, exp, mod) {
   let result = 1;
@@ -240,17 +245,17 @@ function powMod(base, exp, mod) {
 }
 
 function computePowerMap(k) {
-  const map = new Array(N);
-  for (let x = 0; x < N; x++) map[x] = powMod(x, k, N);
+  const map = new Array(N_DATA);
+  for (let x = 0; x < N_DATA; x++) map[x] = powMod(x, k, N_DATA);
   return map;
 }
 
 function classifyElements(map) {
-  const visited = new Uint8Array(N);
-  const classification = new Array(N); // 'fixed' | 'cycle-N' | 'tail' | 'zero'
-  const cycleLengths = new Array(N).fill(0);
+  const visited = new Uint8Array(N_DATA);
+  const classification = new Array(N_DATA);
+  const cycleLengths = new Array(N_DATA).fill(0);
 
-  for (let start = 0; start < N; start++) {
+  for (let start = 0; start < N_DATA; start++) {
     if (visited[start]) continue;
     const path = [];
     let x = start;
@@ -259,10 +264,8 @@ function classifyElements(map) {
       x = map[x];
     }
     if (visited[x]) {
-      // Tail into already-classified territory
       for (const p of path) { classification[p] = 'tail'; visited[p] = 1; }
     } else {
-      // Found a cycle starting at x
       const cycleStart = path.indexOf(x);
       const cycleLen = path.length - cycleStart;
       for (let i = cycleStart; i < path.length; i++) {
@@ -276,7 +279,6 @@ function classifyElements(map) {
       }
     }
   }
-  // Mark zero specially
   if (map[0] === 0) classification[0] = 'fixed-zero';
   return { classification, cycleLengths };
 }
@@ -293,7 +295,7 @@ function drawPowerMap(k) {
   let fixedCount = 0, cycleCount = 0, tailCount = 0;
   const cycleSizes = new Set();
 
-  for (let i = 0; i < N; i++) {
+  for (let i = 0; i < N_DATA; i++) {
     const col = i % COLS;
     const row = Math.floor(i / COLS);
     const x = col * (CELL * 2) + CELL;
@@ -321,7 +323,6 @@ function drawPowerMap(k) {
     ctx.arc(x, y, CELL * 0.7, 0, Math.PI * 2);
     ctx.fill();
 
-    // Show number for fixed points
     if (classification[i] === 'fixed' || classification[i] === 'fixed-zero') {
       ctx.fillStyle = classification[i] === 'fixed-zero' ? '#888' : '#000';
       ctx.font = '9px monospace';
@@ -331,12 +332,10 @@ function drawPowerMap(k) {
     }
   }
 
-  // Stats
   const statsEl = document.getElementById('power-stats');
   const cycles = [...cycleSizes].sort((a,b) => a-b);
   statsEl.textContent = `Fixed: ${fixedCount} | Cycles: ${cycleCount} (lengths: ${cycles.join(', ') || 'none'}) | Tails: ${tailCount}`;
 
-  // Legend
   const legend = document.getElementById('power-legend');
   legend.innerHTML =
     '<span style="--c:#fff">Fixed points</span>' +
@@ -353,7 +352,8 @@ slider.addEventListener('input', function() {
 drawPowerMap(2);
 
 // --- Carousel ---
-const TRANS_MODS = [8, 9, 25, 49, 11, 13, 17];
+const N = 510510;
+const MODS = [2, 3, 5, 7, 11, 13, 17];
 const CH_NAMES = ['2', '3', '5', '7', '11', '13', '17'];
 const CH_COLORS = ['#ff5555', '#ff8c00', '#ffd700', '#4caf50', '#00bcd4', '#5c6bc0', '#ab47bc'];
 
@@ -364,8 +364,8 @@ function drawCarousel() {
   container.innerHTML = '';
 
   for (let ch = 0; ch < 7; ch++) {
-    const mod = TRANS_MODS[ch];
-    const residue = ((carouselValue % mod) + mod) % mod;
+    const m = MODS[ch];
+    const residue = ((carouselValue % m) + m) % m;
     const div = document.createElement('div');
     div.className = 'carousel-ring';
 
@@ -374,9 +374,8 @@ function drawCarousel() {
     let svg = `<svg viewBox="0 0 90 90">`;
     svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${CH_COLORS[ch]}33" stroke-width="2"/>`;
 
-    // Tick marks
-    for (let i = 0; i < mod; i++) {
-      const angle = (i / mod) * Math.PI * 2 - Math.PI / 2;
+    for (let i = 0; i < m; i++) {
+      const angle = (i / m) * Math.PI * 2 - Math.PI / 2;
       const x1 = cx + Math.cos(angle) * (r - 4);
       const y1 = cy + Math.sin(angle) * (r - 4);
       const x2 = cx + Math.cos(angle) * (r + 2);
@@ -385,8 +384,7 @@ function drawCarousel() {
       svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isActive ? CH_COLORS[ch] : '#333'}" stroke-width="${isActive ? 2.5 : 1}"/>`;
     }
 
-    // Active position dot
-    const angle = (residue / mod) * Math.PI * 2 - Math.PI / 2;
+    const angle = (residue / m) * Math.PI * 2 - Math.PI / 2;
     const dx = cx + Math.cos(angle) * r;
     const dy = cy + Math.sin(angle) * r;
     svg += `<circle cx="${dx}" cy="${dy}" r="4" fill="${CH_COLORS[ch]}"/>`;
@@ -396,7 +394,7 @@ function drawCarousel() {
     const label = document.createElement('div');
     label.className = 'carousel-label';
     label.style.color = CH_COLORS[ch];
-    label.innerHTML = `mod ${TRANS_MODS[ch]}<br><span style="font-size:1rem">${residue}</span>`;
+    label.innerHTML = `mod ${m}<br><span style="font-size:1rem">${residue}</span>`;
     div.appendChild(label);
     container.appendChild(div);
   }
@@ -408,7 +406,7 @@ function updateCarousel() {
 }
 
 function stepCarousel(delta) {
-  carouselValue = ((carouselValue + delta) % 214414200 + 214414200) % 214414200;
+  carouselValue = ((carouselValue + delta) % N + N) % N;
   document.getElementById('carousel-input').value = carouselValue;
   drawCarousel();
 }
@@ -417,16 +415,18 @@ drawCarousel();
 
 // --- Eigenvalue Cost ---
 const COST_DATA = [
-  { name: 'mod 8', cost: 2.000, color: '#ff5555' },
-  { name: 'mod 9', cost: 3.000, color: '#ff8c00' },
-  { name: 'mod 25', cost: 1.382, color: '#ffd700' },
-  { name: 'mod 49', cost: 0.753, color: '#4caf50' },
+  { name: 'mod 2',  cost: 4.000, color: '#ff5555' },
+  { name: 'mod 3',  cost: 3.000, color: '#ff8c00' },
+  { name: 'mod 5',  cost: 1.382, color: '#ffd700' },
+  { name: 'mod 7',  cost: 0.753, color: '#4caf50' },
   { name: 'mod 11', cost: 0.317, color: '#00bcd4' },
+  { name: 'mod 13', cost: 0.229, color: '#5c6bc0' },
+  { name: 'mod 17', cost: 0.135, color: '#ab47bc' }
 ];
 
 function drawCostBars() {
   const container = document.getElementById('cost-bars');
-  const maxCost = 3;
+  const maxCost = 4;
   let html = '';
   for (const d of COST_DATA) {
     const width = (d.cost / maxCost) * 100;
