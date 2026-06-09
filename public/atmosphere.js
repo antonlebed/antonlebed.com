@@ -20,9 +20,9 @@
   // [color, glowAlpha, coreRadius(px), haloRadius(px), driftSecsPerViewport,
   //  twinkleSecs, baseOpacity]
   var LAYERS = [
-    ['#1A4D3E', 0.25, 0.6, 2.5, 80, 7, 0.4 ],
-    ['#2D8B6F', 0.40, 1.0, 4.5, 50, 5, 0.65],
-    ['#7FFFD4', 0.55, 1.5, 7.0, 30, 3, 0.9 ]
+    ['#1A4D3E', 0.30, 1.0, 3.5, 80, 7, 0.5 ],
+    ['#2D8B6F', 0.45, 1.5, 6.0, 50, 5, 0.7 ],
+    ['#7FFFD4', 0.60, 2.2, 9.0, 30, 3, 0.9 ]
   ];
   var PER_VIEWPORT = 28;          // stars per layer per viewport-height
   var GLOW = '74,255,160';
