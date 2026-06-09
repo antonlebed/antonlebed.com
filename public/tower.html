@@ -319,8 +319,9 @@ footer p { margin-bottom: 0.25rem; }
   <div class="card">
     <h3>Watch independence in action</h3>
     <p class="note" style="margin-bottom:0.75rem;">
-      Click +1 repeatedly. A channel highlights when it wraps (rolls from its maximum
-      back to 0). They wrap at different times; none affects any other.
+      Click +1 repeatedly. A channel highlights when it wraps past zero during the
+      step. They wrap at different times; none affects any other. With +10, every
+      channel smaller than 10 wraps at least once &mdash; mod 2 wraps five times.
     </p>
     <div class="controls" style="margin:0.5rem 0;">
       <label id="indep-n-label">n = 42</label>
@@ -494,7 +495,6 @@ document.addEventListener('DOMContentLoaded', function() {
   updateMain();
 
   var indepN = 42;
-  var prevTuple = TOWER.crt(indepN);
 
   function renderIndep() {
     var tuple = TOWER.crt(indepN);
@@ -506,22 +506,20 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function stepIndep(delta) {
+    var oldTuple = TOWER.crt(indepN);
     indepN = TOWER.mod(indepN + delta, N);
-    var tuple = TOWER.crt(indepN);
     renderIndep();
     for (var i = 0; i < MODS.length; i++) {
       var el = document.getElementById('ich-' + i);
-      if (tuple[i] < prevTuple[i]) el.classList.add('changed');
+      if (oldTuple[i] + delta >= MODS[i]) el.classList.add('changed');
       else el.classList.remove('changed');
     }
-    prevTuple = tuple;
   }
 
   document.getElementById('btn-plus1').addEventListener('click', function() { stepIndep(1); });
   document.getElementById('btn-plus10').addEventListener('click', function() { stepIndep(10); });
   document.getElementById('btn-indep-reset').addEventListener('click', function() {
     indepN = 42;
-    prevTuple = TOWER.crt(indepN);
     renderIndep();
   });
   renderIndep();
