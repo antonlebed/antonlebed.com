@@ -61,14 +61,8 @@
     return results;
   }
 
-  var nav = document.querySelector('nav');
-  if (!nav) return;
-
-  var wrap = document.createElement('div');
-  wrap.className = 'search-wrap';
-  wrap.innerHTML = '<input type="text" placeholder="Search..." aria-label="Search pages">' +
-    '<div class="search-results"></div>';
-  nav.appendChild(wrap);
+  var wrap = document.querySelector('nav .search-wrap');
+  if (!wrap) return;
 
   var input = wrap.querySelector('input');
   var box = wrap.querySelector('.search-results');
