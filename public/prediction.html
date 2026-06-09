@@ -3,155 +3,291 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prediction — antonlebed.com</title>
-  <meta name="description" content="The tower predicts primes it has never met. Pick primes, compute the Euler characteristic, and see what it names. Interactive explorer with proved algebraic identities.">
+  <meta name="description" content="Sub-rings name primes they have never met: the factorization rule, the prediction horizon, and why the misses miss.">
+  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="antonlebed.com">
+  <link rel="canonical" href="https://antonlebed.com/prediction">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="style.css">
-  <script src="atmosphere.js" defer></script>
-  <script src="search.js" defer></script>
+  <title>Prediction — antonlebed.com</title>
   <style>
-    .prime-btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin: 1rem 0;
-      justify-content: center;
-    }
+:root {
+  --bg: #0a0a0f;
+  --fg: #e8e8f0;
+  --fg-dim: #888898;
+  --accent: #88ccaa;
+  --link: #6699cc;
+  --border: #1e1e2e;
+  --card-bg: #111118;
+  --error: #ff4444;
+  --heal: #44ff88;
+  --detect: #ffd700;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ch-2: #ff5555;
+  --ch-3: #ff8c00;
+  --ch-5: #ffd700;
+  --ch-7: #4caf50;
+  --ch-11: #00bcd4;
+  --ch-13: #5c6bc0;
+  --ch-17: #ab47bc;
+  --ch-19: #7e57c2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #22332c var(--bg);
+}
+::-webkit-scrollbar { width: 8px; background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #22332c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2f4a3f; }
+#atmo-sun {
+  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    #050508 0%, #0a0a0f 52%, #1a0800 68%, #4a1500 80%,
+    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
+  animation: sun-breathe 24s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
+                         0 0 80px 32px rgba(255,120,0,0.13),
+                         0 0 150px 64px rgba(255,80,0,0.05); }
+  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
+                         0 0 105px 46px rgba(255,140,0,0.20),
+                         0 0 185px 82px rgba(255,100,0,0.08); }
+}
+#atmo-stars {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: -2;
+}
+@media (prefers-reduced-motion: reduce) {
+  #atmo-sun { animation: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
+p  { margin-bottom: 1rem; color: var(--fg-dim); }
+strong { color: var(--fg); font-weight: 600; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 0.9rem; }
+.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
+.note { font-size: 0.85rem; color: var(--fg-dim); }
+.ch-2 { color: var(--ch-2); }
+.ch-3 { color: var(--ch-3); }
+.ch-5 { color: var(--ch-5); }
+.ch-7 { color: var(--ch-7); }
+.ch-11 { color: var(--ch-11); }
+.ch-13 { color: var(--ch-13); }
+.ch-17 { color: var(--ch-17); }
+.ch-19 { color: var(--ch-19); }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.82rem;
+}
+.tbl th, .tbl td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+.tbl td { font-family: var(--mono); }
+.tbl.left th, .tbl.left td { text-align: left; }
+.tbl .demo td { color: var(--accent); }
+.tbl .transparent td { color: var(--fg-dim); }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
+nav {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+nav a {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
+nav .search-wrap { position: relative; margin-left: auto; }
+nav .search-wrap input {
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: 7rem;
+  font-family: var(--sans);
+  transition: width 0.2s, border-color 0.15s;
+}
+nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
+nav .search-wrap .search-results {
+  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  min-width: 14rem;
+  z-index: 100;
+  display: none;
+}
+nav .search-wrap .search-results a {
+  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
+  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+}
+nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
+nav .search-wrap .search-results a:last-child { border-bottom: none; }
+nav .search-wrap .search-results .match-title { color: var(--fg); }
+nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
+nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
+.hero { margin: 2rem 0 1.5rem; text-align: center; }
+.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero .factorization {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+button {
+  background: #222233;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+button:hover { background: #333344; border-color: #666688; }
+button:active { background: #444455; }
+input[type="text"], input[type="number"] {
+  background: #111122;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  width: 100%;
+  max-width: 300px;
+}
+input:focus { outline: none; border-color: var(--accent); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+footer p { margin-bottom: 0.25rem; }
+@media (max-width: 600px) {
+  body { padding: 0.75rem; }
+  .hero h1 { font-size: 1.4rem; }
+}
+  </style>
+  <style>
+    .prime-btns { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1rem 0; justify-content: center; }
     .prime-btn {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      border: 2px solid;
-      background: transparent;
-      font-family: var(--mono);
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      width: 3rem; height: 3rem; border-radius: 50%; border: 2px solid;
+      background: transparent; font-family: var(--mono); font-size: 0.95rem;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
     }
     .prime-btn.on { color: #000; }
     .result-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1.2rem;
-      margin: 1rem 0;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 1.2rem; margin: 1rem 0;
     }
-    .result-card .rname {
-      font-family: var(--mono);
-      font-size: 1.05rem;
-      color: var(--fg);
-      margin-bottom: 0.5rem;
-    }
+    .result-card .rname { font-family: var(--mono); font-size: 1.05rem; color: var(--fg); margin-bottom: 0.5rem; }
     .result-card .formula {
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--fg-dim);
-      margin-bottom: 0.4rem;
-      overflow-wrap: break-word;
+      font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim);
+      margin-bottom: 0.4rem; overflow-wrap: break-word;
     }
     .result-card .naming { margin-top: 0.6rem; font-size: 0.9rem; }
     .chain-box {
-      background: #88ccaa10;
-      border-left: 3px solid var(--accent);
-      padding: 0.6rem 0.8rem;
-      margin-top: 0.8rem;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      color: var(--fg-dim);
-      line-height: 1.7;
+      background: #88ccaa10; border-left: 3px solid var(--accent);
+      padding: 0.6rem 0.8rem; margin-top: 0.8rem; font-family: var(--mono);
+      font-size: 0.8rem; color: var(--fg-dim); line-height: 1.7;
     }
     .chain-box .ident { color: var(--accent); }
-    .prompt {
-      color: var(--fg-dim);
-      font-size: 0.9rem;
-      text-align: center;
-      padding: 2rem 0;
-    }
-    .pred-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.8rem;
-    }
-    .pred-table th, .pred-table td {
-      padding: 0.35rem 0.5rem;
-      border: 1px solid var(--border);
-      text-align: center;
-    }
-    .pred-table th {
-      background: var(--card-bg);
-      color: var(--fg-dim);
-      font-weight: normal;
-    }
-    .pred-table td { font-family: var(--mono); }
-    .proof-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.8rem;
-    }
-    .proof-table th, .proof-table td {
-      padding: 0.4rem 0.5rem;
-      border: 1px solid var(--border);
-      font-family: var(--mono);
-    }
-    .proof-table th {
-      background: var(--card-bg);
-      color: var(--fg-dim);
-      font-weight: normal;
-      text-align: left;
-    }
-    .proof-table .pred { color: var(--accent); font-weight: 600; }
-    .scale-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.85rem;
-    }
-    .scale-table th, .scale-table td {
-      padding: 0.35rem 0.5rem;
-      border: 1px solid var(--border);
-      text-align: center;
-    }
-    .scale-table th {
-      background: var(--card-bg);
-      color: var(--fg-dim);
-      font-weight: normal;
-    }
-    .hi { color: var(--accent); }
+    .prompt { color: var(--fg-dim); font-size: 0.9rem; text-align: center; padding: 2rem 0; }
+    .tbl .pred { color: var(--accent); font-weight: 600; }
+    .tbl .hi { color: var(--accent); }
   </style>
+  <script src="tower.js" defer></script>
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
 </head>
 <body>
-  <div id="atmo-sun"></div>
+  <div id="atmo-sun" aria-hidden="true"></div>
   <nav>
     <a href="index.html">Home</a>
-    <a href="sieve.html">Sieve</a>
     <a href="tower.html">Tower</a>
     <a href="crt.html">CRT</a>
     <a href="ecc.html">ECC</a>
     <a href="dynamics.html">Dynamics</a>
     <a href="prediction.html" aria-current="page">Prediction</a>
-    <a href="engineering.html">Engineering</a>
-    <a href="lab.html">Lab</a>
+    <a href="build.html">Build</a>
     <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
   </nav>
 
-  <h1>Prediction</h1>
+<h1>Prediction</h1>
   <p>
-    The tower predicts primes it has never met. Build a sub-ring from a few
-    primes. Compute its Euler characteristic. The answer names primes the
-    sub-ring has never seen.
+    The tower predicts primes it has never met. Build a sub-ring from a few primes.
+    Compute its Euler characteristic. The answer names primes the sub-ring has never
+    seen.
   </p>
   <p>
     <strong>Formula:</strong> <code>&minus;&chi; = N &times; (k&minus;1 &minus; &Sigma; 1/p<sub>i</sub>)</code>.
-    For two primes: <code>(p&minus;1)(q&minus;1) &minus; 1</code>.
+    For two primes: <code>(p&minus;1)(q&minus;1) &minus; 1</code>. For example,
+    {3, 5} &rarr; Z/15 gives &minus;&chi; = 2 &times; 4 &minus; 1 = <strong>7</strong>
+    &mdash; the next prime, which the sub-ring does not contain.
   </p>
 
   <h2>Explorer</h2>
   <p>Select any two or more of the seven primes (k = 7 demo rung).</p>
 
   <div class="prime-btns" id="btns"></div>
-  <div id="out"></div>
+  <div id="out"><div class="prompt">Select two primes to see what &minus;&chi; names.</div></div>
 
   <h2>Predictions through the tower</h2>
   <p>
@@ -160,7 +296,7 @@
     the twin offset {2, p} &rarr; p&minus;2, and the 3-root {3, p} &rarr; 2p&minus;3.
   </p>
 
-  <table class="pred-table">
+  <table class="tbl">
     <tr><th>k</th><th>p<sub>k</sub></th><th>Predictions</th><th>2-root</th><th>3-root</th><th>Other</th></tr>
     <tr><td>3</td><td>5</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
     <tr><td>4</td><td>7</td><td>3</td><td>2</td><td>1</td><td>0</td></tr>
@@ -186,7 +322,7 @@
     (p<sub>i</sub>&minus;1)(p<sub>j</sub>&minus;1) with p<sub>i</sub>, p<sub>j</sub>
     smaller tower primes contributes one prediction.
   </p>
-  <p style="font-size:0.85rem; color:var(--fg-dim);">
+  <p class="note">
     &ldquo;Rich&rdquo; rungs: (p<sub>k</sub>&nbsp;+&nbsp;1) highly composite (e.g. p<sub>k</sub> = 71,
     72 = 2&sup3;&middot;3&sup2;, gains 3 new predictions). &ldquo;Barren&rdquo; rungs:
     (p<sub>k</sub>&nbsp;+&nbsp;1) lacks usable factorizations (e.g. p<sub>k</sub> = 29,
@@ -195,11 +331,11 @@
 
   <h2>Examples at k = 7</h2>
   <p>
-    Four 2-prime sub-rings at k = 7 name the next prime in the chain.
-    Each is an algebraic identity, not a numerical coincidence.
+    Four 2-prime sub-rings at k = 7 name the next prime in the chain. Each is an
+    algebraic identity, not a numerical coincidence.
   </p>
 
-  <table class="proof-table">
+  <table class="tbl left">
     <tr><th>Sub-ring</th><th>&minus;&chi;</th><th>Identity</th><th>Factoring</th></tr>
     <tr>
       <td>{2, 5} &rarr; Z/10</td>
@@ -227,7 +363,7 @@
     </tr>
   </table>
 
-  <p style="font-size:0.85rem;color:var(--fg-dim)">
+  <p class="note">
     D = 2, K = 3 are the Cunningham chain starting points. Every polynomial factors as
     (ring element) &times; (D&minus;2 or K&minus;3).
   </p>
@@ -237,7 +373,7 @@
     How many sub-rings at k = 7 have &minus;&chi; built entirely from the seven primes?
   </p>
 
-  <table class="scale-table">
+  <table class="tbl">
     <tr><th>Primes in sub-ring</th><th>Sub-rings</th><th>Smooth</th><th>Fraction</th></tr>
     <tr><td>1</td><td>7</td><td class="hi">7</td><td class="hi">100%</td></tr>
     <tr><td>2</td><td>21</td><td class="hi">11</td><td class="hi">52%</td></tr>
@@ -263,185 +399,181 @@
     k=7: &thinsp;14 of 15 primes after p<sub>7</sub> predicted &emsp;
     k=10: &thinsp;horizon/p<sub>k</sub> = 505M
   </p>
-  <p style="font-size:0.85rem; color:var(--fg-dim);">
+  <p class="note">
     Mid-size sub-rings (~k/2 primes) are the most productive predictors.
     The full ring's &minus;&chi; is too large (rarely prime); single primes
     are too small.
   </p>
 
-  <footer>
-    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a></p>
-    <p><a href="https://github.com/antonlebed/antonlebed.com">Source code</a></p>
-    <p>Public domain (CC0)</p>
-  </footer>
-
 <script>
-'use strict';
+document.addEventListener('DOMContentLoaded', function() {
+  'use strict';
 
-var P = [2, 3, 5, 7, 11, 13, 17];
-var COL = [
-  'var(--ch-d)', 'var(--ch-k)', 'var(--ch-e)', 'var(--ch-b)',
-  'var(--ch-l)', 'var(--ch-gate)', 'var(--ch-escape)'
-];
-var AXIOM = {};
-P.forEach(function(p) { AXIOM[p] = true; });
+  var P = TOWER.MODS;
+  var COL = P.map(function(p) { return 'var(--ch-' + p + ')'; });
+  var AXIOM = {};
+  P.forEach(function(p) { AXIOM[p] = true; });
 
-var CHAIN = {
-  '2,5':  { eq: '(2D+1)(D−2) = 0', note: '5 × (D−2)' },
-  '2,7':  { eq: '(3D+1)(D−2) = 0', note: '7 × (D−2)' },
-  '3,5':  { eq: '(2K−1)(K−3) = 0', note: '5 × (K−3)' },
-  '3,7':  { eq: '2K(K−3) = 0', note: '6 × (K−3)' }
-};
-
-var sel = {};
-var selOrder = [];
-
-function fac(n) {
-  if (n < 2) return [];
-  var r = [], d, e;
-  for (d = 2; d * d <= n; d++) {
-    e = 0;
-    while (n % d === 0) { e++; n = n / d; }
-    if (e) r.push([d, e]);
-  }
-  if (n > 1) r.push([n, 1]);
-  return r;
-}
-
-function c(p) {
-  var i = P.indexOf(p);
-  return i < 0 ? 'var(--fg-dim)' : COL[i];
-}
-
-function fmt(n) {
-  return fac(n).map(function(x) {
-    var s = '<span style="color:' + c(x[0]) + '">' + x[0] + '</span>';
-    return x[1] > 1 ? s + '<sup>' + x[1] + '</sup>' : s;
-  }).join(' × ');
-}
-
-function negChi(ps) {
-  var k = ps.length, N = 1, s = 0, i;
-  for (i = 0; i < k; i++) N *= ps[i];
-  for (i = 0; i < k; i++) s += N / ps[i];
-  return N * (k - 1) - s;
-}
-
-function nf(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-function getSelected() {
-  return selOrder.slice().sort(function(a, b) { return a - b; });
-}
-
-var btns = document.getElementById('btns');
-P.forEach(function(p, i) {
-  var b = document.createElement('button');
-  b.className = 'prime-btn';
-  b.textContent = p;
-  b.style.borderColor = COL[i];
-  b.style.color = COL[i];
-  b.onclick = function() {
-    if (sel[p]) {
-      delete sel[p];
-      selOrder.splice(selOrder.indexOf(p), 1);
-      b.classList.remove('on');
-      b.style.background = 'transparent';
-      b.style.color = COL[i];
-    } else {
-      sel[p] = true;
-      selOrder.push(p);
-      b.classList.add('on');
-      b.style.background = COL[i];
-      b.style.color = '#000';
-    }
-    render();
+  var CHAIN = {
+    '2,5':  { eq: '(2D+1)(D−2) = 0', note: '5 × (D−2)' },
+    '2,7':  { eq: '(3D+1)(D−2) = 0', note: '7 × (D−2)' },
+    '3,5':  { eq: '(2K−1)(K−3) = 0', note: '5 × (K−3)' },
+    '3,7':  { eq: '2K(K−3) = 0', note: '6 × (K−3)' }
   };
-  btns.appendChild(b);
-});
 
-function render() {
-  var el = document.getElementById('out');
-  var ps = getSelected();
+  var sel = {};
+  var selOrder = [];
 
-  if (ps.length === 0) {
-    el.innerHTML = '<div class="prompt">Select two primes to see what −χ names.</div>';
-    return;
-  }
-  if (ps.length === 1) {
-    el.innerHTML = '<div class="prompt">Select one more prime.</div>';
-    return;
-  }
-
-  var k = ps.length, N = 1, i;
-  for (i = 0; i < k; i++) N *= ps[i];
-  var nc = negChi(ps);
-
-  var rn = 'Z/' + nf(N) + ' = ' +
-    ps.map(function(p) { return '<span style="color:' + c(p) + '">Z/' + p + '</span>'; }).join(' × ');
-
-  var form;
-  if (k === 2) {
-    var a = ps[0] - 1, b = ps[1] - 1;
-    form = '−χ = (' + ps[0] + '−1)(' + ps[1] + '−1) − 1 = ' +
-      (a * b) + ' − 1 = <strong>' + nc + '</strong>';
-  } else {
-    var terms = [];
-    for (i = 0; i < k; i++) terms.push(nf(N / ps[i]));
-    form = '−χ = ' + nf(N) + ' × ' + (k - 1) +
-      ' − (' + terms.join(' + ') + ') = <strong>' + nf(nc) + '</strong>';
+  function fac(n) {
+    if (n < 2) return [];
+    var r = [], d, e;
+    for (d = 2; d * d <= n; d++) {
+      e = 0;
+      while (n % d === 0) { e++; n = n / d; }
+      if (e) r.push([d, e]);
+    }
+    if (n > 1) r.push([n, 1]);
+    return r;
   }
 
-  var facLine = '';
-  if (nc > 1) {
-    var f = fac(nc);
-    if (f.length === 1 && f[0][1] === 1) {
-      facLine = nf(nc) + ' is prime';
+  function c(p) {
+    var i = P.indexOf(p);
+    return i < 0 ? 'var(--fg-dim)' : COL[i];
+  }
+
+  function fmt(n) {
+    return fac(n).map(function(x) {
+      var s = '<span style="color:' + c(x[0]) + '">' + x[0] + '</span>';
+      return x[1] > 1 ? s + '<sup>' + x[1] + '</sup>' : s;
+    }).join(' × ');
+  }
+
+  function negChi(ps) {
+    var k = ps.length, N = 1, s = 0, i;
+    for (i = 0; i < k; i++) N *= ps[i];
+    for (i = 0; i < k; i++) s += N / ps[i];
+    return N * (k - 1) - s;
+  }
+
+  function nf(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function getSelected() {
+    return selOrder.slice().sort(function(a, b) { return a - b; });
+  }
+
+  var btns = document.getElementById('btns');
+  P.forEach(function(p, i) {
+    var b = document.createElement('button');
+    b.className = 'prime-btn';
+    b.textContent = p;
+    b.style.borderColor = COL[i];
+    b.style.color = COL[i];
+    b.onclick = function() {
+      if (sel[p]) {
+        delete sel[p];
+        selOrder.splice(selOrder.indexOf(p), 1);
+        b.classList.remove('on');
+        b.style.background = 'transparent';
+        b.style.color = COL[i];
+      } else {
+        sel[p] = true;
+        selOrder.push(p);
+        b.classList.add('on');
+        b.style.background = COL[i];
+        b.style.color = '#000';
+      }
+      render();
+    };
+    btns.appendChild(b);
+  });
+
+  function render() {
+    var el = document.getElementById('out');
+    var ps = getSelected();
+
+    if (ps.length === 0) {
+      el.innerHTML = '<div class="prompt">Select two primes to see what −χ names.</div>';
+      return;
+    }
+    if (ps.length === 1) {
+      el.innerHTML = '<div class="prompt">Select one more prime.</div>';
+      return;
+    }
+
+    var k = ps.length, N = 1, i;
+    for (i = 0; i < k; i++) N *= ps[i];
+    var nc = negChi(ps);
+
+    var rn = 'Z/' + nf(N) + ' = ' +
+      ps.map(function(p) { return '<span style="color:' + c(p) + '">Z/' + p + '</span>'; }).join(' × ');
+
+    var form;
+    if (k === 2) {
+      var a = ps[0] - 1, b = ps[1] - 1;
+      form = '−χ = (' + ps[0] + '−1)(' + ps[1] + '−1) − 1 = ' +
+        (a * b) + ' − 1 = <strong>' + nc + '</strong>';
     } else {
-      facLine = fmt(nc);
+      var terms = [];
+      for (i = 0; i < k; i++) terms.push(nf(N / ps[i]));
+      form = '−χ = ' + nf(N) + ' × ' + (k - 1) +
+        ' − (' + terms.join(' + ') + ') = <strong>' + nf(nc) + '</strong>';
     }
-  }
 
-  var named = [];
-  if (nc > 1) {
-    fac(nc).forEach(function(x) {
-      if (AXIOM[x[0]] && !sel[x[0]]) named.push(x[0]);
-    });
-  }
-
-  var namHtml;
-  if (named.length) {
-    var labels = named.map(function(p) {
-      return '<span style="color:' + c(p) + ';font-weight:600">' + p + '</span>';
-    });
-    namHtml = '<div class="naming" style="color:var(--accent)">✦ Names ' +
-      labels.join(', ') + ' — not in this sub-ring</div>';
-  } else if (nc <= 1) {
-    namHtml = '<div class="naming" style="color:var(--fg-dim)">−χ = ' + nc +
-      '. No naming.</div>';
-  } else {
-    var smooth = fac(nc).every(function(x) { return !!AXIOM[x[0]]; });
-    namHtml = smooth
-      ? '<div class="naming" style="color:var(--fg-dim)">All factors are ring primes already in this sub-ring.</div>'
-      : '<div class="naming" style="color:var(--fg-dim)">None of the seven primes named. Outside primes appear.</div>';
-  }
-
-  var chainHtml = '';
-  if (k === 2) {
-    var ch = CHAIN[ps.join(',')];
-    if (ch) {
-      chainHtml = '<div class="chain-box"><span class="ident">' + ch.eq +
-        '</span><br>' + ch.note + '</div>';
+    var facLine = '';
+    if (nc > 1) {
+      var f = fac(nc);
+      if (f.length === 1 && f[0][1] === 1) {
+        facLine = nf(nc) + ' is prime';
+      } else {
+        facLine = fmt(nc);
+      }
     }
+
+    var named = [];
+    if (nc > 1) {
+      fac(nc).forEach(function(x) {
+        if (AXIOM[x[0]] && !sel[x[0]]) named.push(x[0]);
+      });
+    }
+
+    var namHtml;
+    if (named.length) {
+      var labels = named.map(function(p) {
+        return '<span style="color:' + c(p) + ';font-weight:600">' + p + '</span>';
+      });
+      namHtml = '<div class="naming" style="color:var(--accent)">✦ Names ' +
+        labels.join(', ') + ' — not in this sub-ring</div>';
+    } else if (nc <= 1) {
+      namHtml = '<div class="naming" style="color:var(--fg-dim)">−χ = ' + nc +
+        '. No naming.</div>';
+    } else {
+      var smooth = fac(nc).every(function(x) { return !!AXIOM[x[0]]; });
+      namHtml = smooth
+        ? '<div class="naming" style="color:var(--fg-dim)">All factors are ring primes already in this sub-ring.</div>'
+        : '<div class="naming" style="color:var(--fg-dim)">None of the seven primes named. Outside primes appear.</div>';
+    }
+
+    var chainHtml = '';
+    if (k === 2) {
+      var ch = CHAIN[ps.join(',')];
+      if (ch) {
+        chainHtml = '<div class="chain-box"><span class="ident">' + ch.eq +
+          '</span><br>' + ch.note + '</div>';
+      }
+    }
+
+    el.innerHTML = '<div class="result-card">' +
+      '<div class="rname">' + rn + '</div>' +
+      '<div class="formula">' + form + '</div>' +
+      (facLine ? '<div class="formula">' + facLine + '</div>' : '') +
+      namHtml + chainHtml + '</div>';
   }
-
-  el.innerHTML = '<div class="result-card">' +
-    '<div class="rname">' + rn + '</div>' +
-    '<div class="formula">' + form + '</div>' +
-    (facLine ? '<div class="formula">' + facLine + '</div>' : '') +
-    namHtml + chainHtml + '</div>';
-}
-
-render();
+});
 </script>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
+    <p>The mathematics behind this site is machine-verified: 159 tests at last build.</p>
+  </footer>
 </body>
 </html>

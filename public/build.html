@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Things built on the tower: CRT neural architectures with built-in parity, FPGA pipelines, an ESP32 radio mesh that corrects errors.">
+  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="antonlebed.com">
+  <link rel="canonical" href="https://antonlebed.com/build">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Build — antonlebed.com</title>
+  <style>
+:root {
+  --bg: #0a0a0f;
+  --fg: #e8e8f0;
+  --fg-dim: #888898;
+  --accent: #88ccaa;
+  --link: #6699cc;
+  --border: #1e1e2e;
+  --card-bg: #111118;
+  --error: #ff4444;
+  --heal: #44ff88;
+  --detect: #ffd700;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ch-2: #ff5555;
+  --ch-3: #ff8c00;
+  --ch-5: #ffd700;
+  --ch-7: #4caf50;
+  --ch-11: #00bcd4;
+  --ch-13: #5c6bc0;
+  --ch-17: #ab47bc;
+  --ch-19: #7e57c2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #22332c var(--bg);
+}
+::-webkit-scrollbar { width: 8px; background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #22332c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2f4a3f; }
+#atmo-sun {
+  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    #050508 0%, #0a0a0f 52%, #1a0800 68%, #4a1500 80%,
+    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
+  animation: sun-breathe 24s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
+                         0 0 80px 32px rgba(255,120,0,0.13),
+                         0 0 150px 64px rgba(255,80,0,0.05); }
+  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
+                         0 0 105px 46px rgba(255,140,0,0.20),
+                         0 0 185px 82px rgba(255,100,0,0.08); }
+}
+#atmo-stars {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: -2;
+}
+@media (prefers-reduced-motion: reduce) {
+  #atmo-sun { animation: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
+p  { margin-bottom: 1rem; color: var(--fg-dim); }
+strong { color: var(--fg); font-weight: 600; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 0.9rem; }
+.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
+.note { font-size: 0.85rem; color: var(--fg-dim); }
+.ch-2 { color: var(--ch-2); }
+.ch-3 { color: var(--ch-3); }
+.ch-5 { color: var(--ch-5); }
+.ch-7 { color: var(--ch-7); }
+.ch-11 { color: var(--ch-11); }
+.ch-13 { color: var(--ch-13); }
+.ch-17 { color: var(--ch-17); }
+.ch-19 { color: var(--ch-19); }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.82rem;
+}
+.tbl th, .tbl td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+.tbl td { font-family: var(--mono); }
+.tbl.left th, .tbl.left td { text-align: left; }
+.tbl .demo td { color: var(--accent); }
+.tbl .transparent td { color: var(--fg-dim); }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
+nav {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+nav a {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
+nav .search-wrap { position: relative; margin-left: auto; }
+nav .search-wrap input {
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: 7rem;
+  font-family: var(--sans);
+  transition: width 0.2s, border-color 0.15s;
+}
+nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
+nav .search-wrap .search-results {
+  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  min-width: 14rem;
+  z-index: 100;
+  display: none;
+}
+nav .search-wrap .search-results a {
+  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
+  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+}
+nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
+nav .search-wrap .search-results a:last-child { border-bottom: none; }
+nav .search-wrap .search-results .match-title { color: var(--fg); }
+nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
+nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
+.hero { margin: 2rem 0 1.5rem; text-align: center; }
+.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero .factorization {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+button {
+  background: #222233;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+button:hover { background: #333344; border-color: #666688; }
+button:active { background: #444455; }
+input[type="text"], input[type="number"] {
+  background: #111122;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  width: 100%;
+  max-width: 300px;
+}
+input:focus { outline: none; border-color: var(--accent); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+footer p { margin-bottom: 0.25rem; }
+@media (max-width: 600px) {
+  body { padding: 0.75rem; }
+  .hero h1 { font-size: 1.4rem; }
+}
+  </style>
+  <style>
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; margin: 1rem 0; }
+    .metric {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.8rem; text-align: center;
+    }
+    .metric .num { display: block; font-family: var(--mono); font-size: 1.3rem; color: var(--accent); }
+    .metric .label { display: block; font-size: 0.7rem; color: var(--fg-dim); margin-top: 0.25rem; }
+    .measurement {
+      background: var(--card-bg); border-left: 3px solid var(--accent);
+      padding: 0.6rem 0.9rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--fg-dim);
+    }
+    .measurement .result { color: var(--heal); font-family: var(--mono); }
+    .measurement strong { color: var(--fg); }
+    .killed {
+      background: #1a1115; border-left: 3px solid var(--error);
+      padding: 0.5rem 0.9rem; margin: 0.5rem 0; font-size: 0.85rem; color: var(--fg-dim);
+    }
+    .killed strong { color: var(--error); margin-right: 0.4rem; }
+    .bar-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
+    .bar-label { font-family: var(--mono); font-size: 0.8rem; color: var(--fg-dim); min-width: 4rem; text-align: right; }
+    .bar { height: 16px; border-radius: 2px; opacity: 0.7; }
+    .bar-val { font-family: var(--mono); font-size: 0.75rem; color: var(--fg); }
+    .pass { color: var(--heal); font-family: var(--mono); }
+  </style>
+  <script src="tower.js" defer></script>
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
+</head>
+<body>
+  <div id="atmo-sun" aria-hidden="true"></div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="tower.html">Tower</a>
+    <a href="crt.html">CRT</a>
+    <a href="ecc.html">ECC</a>
+    <a href="dynamics.html">Dynamics</a>
+    <a href="prediction.html">Prediction</a>
+    <a href="build.html" aria-current="page">Build</a>
+    <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
+  </nav>
+
+<h1>Build</h1>
+  <p>
+    Things built on the tower substrate &mdash; in silicon, over radio, and inside
+    neural networks. The lesson that repeats across everything below: the tower's
+    properties must be <strong>wired in by construction, not hoped for
+    emergently</strong>. What worked and what didn't are both documented.
+  </p>
+
+  <h2>Silicon: FPGA pipelines</h2>
+  <p>
+    Two primorial rings on a $20 Tang Nano 20K FPGA. Each design has per-channel
+    GF(p) multipliers, CRT reconstruction, and exhaustive error-correction testing
+    &mdash; every element of the ring checked, in hardware.
+  </p>
+
+  <div class="measurement">
+    <strong>k = 7 (Z/510,510) exhaustive proof:</strong>
+    <span class="result">1,022,070 checks, 0 failures</span> &mdash; CRT roundtrip for
+    all 510,510 elements, multiply &times;19 for all elements, ECC clean + four
+    single-channel corruption phases. 3,329 LUT4 (16% of the chip), 194 MHz.
+  </div>
+  <div class="measurement">
+    <strong>k = 8 (Z/9,699,690) exhaustive proof:</strong>
+    <span class="result">19,413,240 checks, 0 failures</span> &mdash; eight phases,
+    8 channels (5 data + 3 parity), rate 5/8 MDS ECC. 5,291 LUT4 (26%), 172 MHz.
+  </div>
+  <p class="note">
+    Adding the 8th channel (mod 19) cost +59% LUT while proving 19&times; more values.
+    Field-only rings are lean: a historical fattened-ring design used 31% of the FPGA
+    for multiply alone.
+  </p>
+
+  <h2>Radio: the ESP32 mesh</h2>
+  <p>
+    Three ESP32 boards form an ESP-NOW mesh. Each board CRT-encodes data into
+    Z/510,510 residues (7 bytes), broadcasts, and the receiver reconstructs and
+    checks parity. Measurements, not simulations.
+  </p>
+
+  <div class="measurement">
+    <strong>Protocol test:</strong>
+    <span class="result">104/104 received packets, 100% correct.</span>
+  </div>
+
+  <table class="tbl left">
+    <tr><th>Phase</th><th>What it tests</th><th>Result</th></tr>
+    <tr><td>CRT roundtrip</td><td>encode counter &rarr; broadcast &rarr; reconstruct &rarr; verify</td><td class="pass">24/24</td></tr>
+    <tr><td>ECC clean</td><td>syndrome = (0,0,0) for valid codewords over radio</td><td class="pass">40/40</td></tr>
+    <tr><td>ECC injection</td><td>corrupt one data channel per packet, verify detection</td><td class="pass">40/40</td></tr>
+  </table>
+
+  <div class="measurement">
+    <strong>Syndrome signatures over radio:</strong>
+    <pre style="margin:0.5rem 0;font-size:0.75rem;color:var(--fg);">corrupt mod 2 (+1): syndrome (5, 12, 14)
+corrupt mod 3 (+1): syndrome (7, 8, 15)
+corrupt mod 5 (+1): syndrome (6, 4, 10)
+corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
+    <span style="font-size:0.8rem;">
+      All 3 parity channels fire for every injection &mdash; the no-blind-spots
+      property, confirmed over the air.
+    </span>
+  </div>
+
+  <div class="measurement">
+    <strong>Clock sync, no master:</strong> triangle closure across 3 boards,
+    5 snapshots over 30s, beat drift = <span class="result">0</span>.
+    <strong>Sustained:</strong> <span class="result">127/127 packets, 0 ECC failures</span>
+    over a 60-second drift test.
+  </div>
+
+  <div class="measurement">
+    <strong>Real sensor data:</strong> BME280 temperature and pressure from 2 boards,
+    CRT-encoded, broadcast, reconstructed: <span class="result">24/24 exact match.</span>
+    Ring arithmetic preserves physical measurements exactly (26.28&thinsp;&deg;C /
+    27.29&thinsp;&deg;C, both 1025.4 hPa &mdash; same room, different shelf).
+  </div>
+
+  <h2>Neural: CRT architectures with built-in parity</h2>
+  <p>
+    Instead of one monolithic output head, use 7 independent CRT output heads, one
+    per channel, over a shared backbone. The structural numbers below follow from the
+    decomposition itself (computed at Z/510,510); the detection numbers are measured.
+  </p>
+
+  <div class="metric-grid">
+    <div class="metric">
+      <span class="num">391M&times;</span>
+      <span class="label">Jacobian block-diagonal savings: N&sup2; vs &Sigma;q<sub>i</sub>&sup2;</span>
+    </div>
+    <div class="metric">
+      <span class="num">8,802&times;</span>
+      <span class="label">Forward-pass positions: 510,510 vs 58</span>
+    </div>
+    <div class="metric">
+      <span class="num">22&times;</span>
+      <span class="label">Matmul FLOPs (theoretical; GPU measured 3.6&ndash;11.4&times;)</span>
+    </div>
+    <div class="metric">
+      <span class="num">4/7</span>
+      <span class="label">ECC rate, no encoding layer</span>
+    </div>
+  </div>
+
+  <h3>The parity syndrome &mdash; the real payoff</h3>
+  <p>
+    Train the 3 parity heads as extra objectives and every prediction carries a free
+    self-check: the <strong>syndrome</strong> &mdash; how many parity heads disagree
+    with the data heads. A token that contradicts itself announces it.
+  </p>
+
+  <div class="metric-grid">
+    <div class="metric">
+      <span class="num" style="color:var(--heal)">122/122</span>
+      <span class="label">errors caught at k=7 (98% accuracy, 6&permil; false alarms)</span>
+    </div>
+    <div class="metric">
+      <span class="num" style="color:var(--heal)">277/277</span>
+      <span class="label">errors caught at k=8 (96% accuracy, 4&permil; false alarms)</span>
+    </div>
+    <div class="metric">
+      <span class="num" style="color:var(--detect)">2.21</span>
+      <span class="label">mean syndrome on out-of-domain input (in-domain: 0)</span>
+    </div>
+  </div>
+
+  <p class="note">
+    Measured: Elman RNN (h=128), PyTorch, 3 seeds, 2,361 characters of natural English
+    (Carroll, 58-char vocabulary). Detection reaches 100% from 85% model accuracy
+    onward and degrades gracefully below. The larger ring also wins at fixed capacity:
+    at h=64, k=8 beats k=7 on both accuracy (64% vs 47%) and detection (99% vs 95%)
+    &mdash; the extra channel adds an independent training signal.
+  </p>
+
+  <h2>What didn't work</h2>
+  <p>Tried and conclusively failed &mdash; kept here so they stay failed:</p>
+
+  <div class="killed"><strong>&times;</strong> ECC as emergent behavior &mdash; parity channels are not independently predictable. Parity must be a training objective. Built-in beats bolted-on.</div>
+  <div class="killed"><strong>&times;</strong> 9 attention heads &mdash; multi-head averaging dilutes the signal; single full coupling works.</div>
+  <div class="killed"><strong>&times;</strong> Eigenvalue sum as embedding &mdash; the scalar collapses to noise. Per-channel residues are the embedding.</div>
+  <div class="killed"><strong>&times;</strong> Hierarchy-ordered annealing &mdash; simultaneous training converges 2.69&times; faster than a sequential curriculum.</div>
+  <div class="killed"><strong>&times;</strong> AdaBoost over CRT models &mdash; bijectivity rotates all outputs at once; no local correction exists.</div>
+  <div class="killed"><strong>&times;</strong> Deeper per-channel nets &mdash; width beats depth inside a channel.</div>
+
+  <p class="note">
+    The honest summary: CRT decomposition is a structural technique, not a silver
+    bullet. At character-level vocabulary it costs <em>more</em> output parameters
+    than a monolithic head; at V = 1,000 it has 17&times; fewer, but the monolithic
+    model still converges faster (all per-channel predictions must agree, so errors
+    compound). The durable value is the syndrome: free error detection that no
+    monolithic architecture has.
+  </p>
+
+  <h2>Platform comparison</h2>
+  <p>Same ring arithmetic, three substrates:</p>
+
+  <div style="margin:1rem 0;">
+    <div class="bar-row"><span class="bar-label">GPU</span><div class="bar" style="width:100%;background:var(--ch-5)"></div><span class="bar-val">357M ops/s (batch, 1M elements)</span></div>
+    <div class="bar-row"><span class="bar-label">FPGA</span><div class="bar" style="width:54%;background:var(--accent)"></div><span class="bar-val">194M ops/s (1 op/cycle)</span></div>
+    <div class="bar-row"><span class="bar-label">ESP32</span><div class="bar" style="width:1%;background:var(--ch-3)"></div><span class="bar-val">~2K ops/s interpreted; ~74K compiled (measured on-board)</span></div>
+  </div>
+  <p class="note">
+    The FPGA is the proof engine (exhaustive verification in silicon), the GPU the
+    batch engine, the ESP32 the radio mesh node &mdash; throughput was never its job.
+  </p>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
+    <p>The mathematics behind this site is machine-verified: 159 tests at last build.</p>
+  </footer>
+</body>
+</html>

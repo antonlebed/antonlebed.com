@@ -3,122 +3,324 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Error Correction — antonlebed.com</title>
-  <meta name="description" content="Corrupt any channel. The ring detects, locates, and corrects the error. MDS error correction from CRT at rate 4/7.">
+  <meta name="description" content="The ring is the code: corrupt a channel, watch parity detect, locate, and correct it. MDS distance 4, rate scaling 4/7 → 5/8 → 6/9.">
+  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="antonlebed.com">
+  <link rel="canonical" href="https://antonlebed.com/ecc">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="style.css">
-  <script src="atmosphere.js" defer></script>
-  <script src="search.js" defer></script>
+  <title>Error Correction — antonlebed.com</title>
+  <style>
+:root {
+  --bg: #0a0a0f;
+  --fg: #e8e8f0;
+  --fg-dim: #888898;
+  --accent: #88ccaa;
+  --link: #6699cc;
+  --border: #1e1e2e;
+  --card-bg: #111118;
+  --error: #ff4444;
+  --heal: #44ff88;
+  --detect: #ffd700;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ch-2: #ff5555;
+  --ch-3: #ff8c00;
+  --ch-5: #ffd700;
+  --ch-7: #4caf50;
+  --ch-11: #00bcd4;
+  --ch-13: #5c6bc0;
+  --ch-17: #ab47bc;
+  --ch-19: #7e57c2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #22332c var(--bg);
+}
+::-webkit-scrollbar { width: 8px; background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #22332c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2f4a3f; }
+#atmo-sun {
+  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    #050508 0%, #0a0a0f 52%, #1a0800 68%, #4a1500 80%,
+    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
+  animation: sun-breathe 24s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
+                         0 0 80px 32px rgba(255,120,0,0.13),
+                         0 0 150px 64px rgba(255,80,0,0.05); }
+  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
+                         0 0 105px 46px rgba(255,140,0,0.20),
+                         0 0 185px 82px rgba(255,100,0,0.08); }
+}
+#atmo-stars {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: -2;
+}
+@media (prefers-reduced-motion: reduce) {
+  #atmo-sun { animation: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
+p  { margin-bottom: 1rem; color: var(--fg-dim); }
+strong { color: var(--fg); font-weight: 600; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 0.9rem; }
+.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
+.note { font-size: 0.85rem; color: var(--fg-dim); }
+.ch-2 { color: var(--ch-2); }
+.ch-3 { color: var(--ch-3); }
+.ch-5 { color: var(--ch-5); }
+.ch-7 { color: var(--ch-7); }
+.ch-11 { color: var(--ch-11); }
+.ch-13 { color: var(--ch-13); }
+.ch-17 { color: var(--ch-17); }
+.ch-19 { color: var(--ch-19); }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.82rem;
+}
+.tbl th, .tbl td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+.tbl td { font-family: var(--mono); }
+.tbl.left th, .tbl.left td { text-align: left; }
+.tbl .demo td { color: var(--accent); }
+.tbl .transparent td { color: var(--fg-dim); }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
+nav {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+nav a {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
+nav .search-wrap { position: relative; margin-left: auto; }
+nav .search-wrap input {
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: 7rem;
+  font-family: var(--sans);
+  transition: width 0.2s, border-color 0.15s;
+}
+nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
+nav .search-wrap .search-results {
+  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  min-width: 14rem;
+  z-index: 100;
+  display: none;
+}
+nav .search-wrap .search-results a {
+  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
+  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+}
+nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
+nav .search-wrap .search-results a:last-child { border-bottom: none; }
+nav .search-wrap .search-results .match-title { color: var(--fg); }
+nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
+nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
+.hero { margin: 2rem 0 1.5rem; text-align: center; }
+.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero .factorization {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+button {
+  background: #222233;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+button:hover { background: #333344; border-color: #666688; }
+button:active { background: #444455; }
+input[type="text"], input[type="number"] {
+  background: #111122;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  width: 100%;
+  max-width: 300px;
+}
+input:focus { outline: none; border-color: var(--accent); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+footer p { margin-bottom: 0.25rem; }
+@media (max-width: 600px) {
+  body { padding: 0.75rem; }
+  .hero h1 { font-size: 1.4rem; }
+}
+  </style>
   <style>
     .ecc-grid {
-      display: grid;
-      gap: 2px;
-      margin: 1rem 0;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.8rem;
+      display: grid; gap: 2px; margin: 1rem 0; overflow-x: auto;
+      font-family: var(--mono); font-size: 0.8rem;
     }
     .ecc-cell {
-      min-width: 32px;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 2px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s, outline-color 0.3s;
+      min-width: 32px; height: 26px; display: flex; align-items: center;
+      justify-content: center; border-radius: 2px; cursor: pointer;
+      user-select: none; transition: background 0.15s, outline-color 0.3s;
     }
     .ecc-cell:hover { opacity: 0.8; }
     .ecc-label {
-      min-width: 32px;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding-right: 4px;
-      font-size: 0.7rem;
-      cursor: default;
+      min-width: 32px; height: 26px; display: flex; align-items: center;
+      justify-content: flex-end; padding-right: 4px; font-size: 0.7rem; cursor: default;
     }
     .ecc-row-char .ecc-cell { background: #1a1a2a; color: var(--fg); font-size: 0.9rem; }
     .ecc-row-char .ecc-cell.corrupted { background: #331111; color: var(--error); }
     .ecc-row-char .ecc-cell.healed { background: #113311; color: var(--heal); }
     .ecc-row-char .ecc-cell.wrong { background: #332211; color: #ff8844; }
-    .row-d .ecc-cell { background: #2a1515; color: var(--ch-d); }
-    .row-k .ecc-cell { background: #2a2215; color: var(--ch-k); }
-    .row-e .ecc-cell { background: #2a2a15; color: var(--ch-e); }
-    .row-b .ecc-cell { background: #152a1a; color: var(--ch-b); }
-    .row-l .ecc-cell { background: #152a2a; color: var(--ch-l); }
-    .row-gate .ecc-cell { background: #1a1a2a; color: var(--ch-gate); }
-    .row-escape .ecc-cell { background: #1f152a; color: var(--ch-escape); }
+    .row-2 .ecc-cell { background: #2a1515; color: var(--ch-2); }
+    .row-3 .ecc-cell { background: #2a2215; color: var(--ch-3); }
+    .row-5 .ecc-cell { background: #2a2a15; color: var(--ch-5); }
+    .row-7 .ecc-cell { background: #152a1a; color: var(--ch-7); }
+    .row-11 .ecc-cell { background: #152a2a; color: var(--ch-11); }
+    .row-13 .ecc-cell { background: #1a1a2a; color: var(--ch-13); }
+    .row-17 .ecc-cell { background: #1f152a; color: var(--ch-17); }
     .ecc-cell.corrupted { outline: 2px solid var(--error); outline-offset: -2px; }
     .ecc-cell.healed { outline: 2px solid var(--heal); outline-offset: -2px; }
     .ecc-cell.detected { outline: 2px solid var(--detect); outline-offset: -2px; }
-    .ecc-cell.located { outline: 2px solid var(--ch-gate); outline-offset: -2px; }
-    .controls { margin: 1rem 0; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .ecc-cell.located { outline: 2px solid var(--ch-13); outline-offset: -2px; }
     .explanation {
-      background: #111122;
-      border: 1px solid #222233;
-      border-radius: 4px;
-      padding: 1rem;
-      margin: 1rem 0;
-      font-size: 0.85rem;
-      color: var(--fg-dim);
+      background: #111122; border: 1px solid #222233; border-radius: 4px;
+      padding: 1rem; margin: 1rem 0; font-size: 0.85rem; color: var(--fg-dim);
     }
     .explanation strong { color: var(--fg); }
     .pipeline {
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      background: #0d0d15;
-      border-radius: 3px;
-      min-height: 1.6rem;
+      font-family: var(--mono); font-size: 0.8rem; margin: 0.5rem 0;
+      padding: 0.5rem; background: #0d0d15; border-radius: 3px; min-height: 1.6rem;
     }
     .pipeline .step { display: inline-block; margin-right: 1rem; }
     .pipeline .detect { color: var(--detect); }
-    .pipeline .locate { color: var(--ch-gate); }
+    .pipeline .locate { color: var(--ch-13); }
     .pipeline .correct { color: var(--heal); }
     .pipeline .fail { color: var(--error); }
   </style>
+  <script src="tower.js" defer></script>
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
 </head>
 <body>
-  <div id="atmo-sun"></div>
+  <div id="atmo-sun" aria-hidden="true"></div>
   <nav>
     <a href="index.html">Home</a>
-    <a href="sieve.html">Sieve</a>
     <a href="tower.html">Tower</a>
     <a href="crt.html">CRT</a>
     <a href="ecc.html" aria-current="page">ECC</a>
     <a href="dynamics.html">Dynamics</a>
     <a href="prediction.html">Prediction</a>
-    <a href="engineering.html">Engineering</a>
-    <a href="lab.html">Lab</a>
+    <a href="build.html">Build</a>
     <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
   </nav>
 
-  <h1>Error Correction</h1>
+<h1>Error Correction</h1>
   <p>
-    MDS error correction exists at every rung k &ge; 7 of the primorial tower.
-    Rate improves as you climb: 4/7 &rarr; 5/8 &rarr; 6/9 &rarr; 7/10. The demos
-    below use k = 7 (Z/510,510): 4 data channels + 3 parity channels.
+    MDS error correction exists at every rung k &ge; 7 of the primorial tower. Rate
+    improves as you climb: 4/7 &rarr; 5/8 &rarr; 6/9 &rarr; 7/10. The demos below use
+    k = 7 (Z/510,510): 4 data channels + 3 parity channels.
   </p>
   <p>
-    Type a message. Each character decomposes into the 7 channels.
-    Click any data cell to corrupt it, or use the buttons below.
+    Type a message. Each character decomposes into the 7 channels. Click any data
+    cell to corrupt it, or use the buttons below.
   </p>
   <p>
-    <strong>Corrupt 1</strong> damages one channel per character &mdash; the ring detects,
-    locates, and corrects every one.
+    <strong>Corrupt 1</strong> damages one channel per character &mdash; the ring
+    detects, locates, and corrects every one.
   </p>
   <p>
-    <strong>Corrupt 2</strong> or <strong>Corrupt 3</strong> damages more channels &mdash;
-    the ring still detects the error, but can no longer correct it. The code is
-    <em>maximum distance separable</em> (d&nbsp;=&nbsp;4): correct any 1, detect up to 3.
-    No [7,4] code can do better.
+    <strong>Corrupt 2</strong> or <strong>Corrupt 3</strong> damages more channels
+    &mdash; the ring still detects the error, but can no longer correct it. The code
+    is <em>maximum distance separable</em> (d&nbsp;=&nbsp;4): correct any 1, detect
+    up to 3. No [7,4] code can do better.
   </p>
 
-  <div class="controls">
+  <div class="explanation">
+    <strong>A worked round, by hand:</strong> the character 'H' is 72, which encodes
+    as data (<span class="ch-2">0</span>, <span class="ch-3">0</span>,
+    <span class="ch-5">2</span>, <span class="ch-7">2</span>) with parity
+    (<span class="ch-11">6</span>, <span class="ch-13">7</span>,
+    <span class="ch-17">4</span>) &mdash; remainders of 72. Corrupt the mod-5 cell
+    from 2 to 3 and the data alone now reconstructs to 198, whose parities
+    (0, 3, 11) disagree with the stored (6, 7, 4): <em>detected</em>. Trying each
+    possible value in each data channel, only mod&nbsp;5 = 2 makes all three parities
+    match again: <em>located and corrected</em>.
+  </div>
+
+  <div class="controls" style="justify-content:flex-start;">
     <input type="text" id="msg-input" placeholder="Type a message..." maxlength="16" value="HELLO">
     <button onclick="scrambleAll()">Corrupt 1</button>
     <button onclick="scrambleDouble()">Corrupt 2</button>
@@ -132,9 +334,9 @@
   <div class="explanation">
     <strong>The three-step pipeline:</strong>
     <p style="margin-top:0.5rem">
-      <span class="ch-l">mod 11</span> &mdash; <strong>detects</strong>: syndrome S<sub>11</sub> = stored &minus; computed. If S<sub>11</sub> &ne; 0, something's wrong.<br>
-      <span class="ch-gate">mod 13</span> &mdash; <strong>locates</strong>: syndrome S<sub>13</sub> + S<sub>11</sub> together identify which channel failed.<br>
-      <span class="ch-escape">mod 17</span> &mdash; <strong>corrects</strong>: all three syndromes &rarr; unique original value.
+      <span class="ch-11">mod 11</span> &mdash; <strong>detects</strong>: syndrome S<sub>11</sub> = stored &minus; computed. If S<sub>11</sub> &ne; 0, something's wrong.<br>
+      <span class="ch-13">mod 13</span> &mdash; <strong>locates</strong>: syndrome S<sub>13</sub> + S<sub>11</sub> together identify which channel failed.<br>
+      <span class="ch-17">mod 17</span> &mdash; <strong>corrects</strong>: all three syndromes &rarr; unique original value.
     </p>
   </div>
 
@@ -149,21 +351,21 @@
     Parity: <code>n mod 11, n mod 13, n mod 17</code>. Stored alongside the data.
   </p>
   <p>
-    Correction: for each candidate channel, try each value until all three parities match.
-    Max data modulus is 7, parity product is 2431 &mdash; exactly one solution exists
-    for any single-channel error. <strong>100% correction rate.</strong>
+    Correction: for each candidate channel, try each value until all three parities
+    match. Max data modulus is 7, parity product is 2431 &mdash; exactly one solution
+    exists for any single-channel error. <strong>100% correction rate.</strong>
   </p>
   <p>
     The code is MDS: minimum distance d&nbsp;=&nbsp;4 = n&nbsp;&minus;&nbsp;k&nbsp;+&nbsp;1 = 7&nbsp;&minus;&nbsp;4&nbsp;+&nbsp;1.
-    Any 4 of 7 channels reconstruct the original. This is optimal &mdash; the Singleton bound
-    says no [7,4] code can achieve d&nbsp;&gt;&nbsp;4.
+    Any 4 of 7 channels reconstruct the original. This is optimal &mdash; the Singleton
+    bound says no [7,4] code can achieve d&nbsp;&gt;&nbsp;4.
   </p>
 
-  <h2>Weight Matrix &mdash; No Blind Spots</h2>
+  <h2>Weight matrix &mdash; no blind spots</h2>
   <p>
     Each parity channel sees every data channel with a specific weight: the CRT
-    idempotent of each data prime, reduced mod each parity prime. If any weight
-    were zero, that data channel would be invisible to that parity channel.
+    idempotent of each data prime, reduced mod each parity prime. If any weight were
+    zero, that data channel would be invisible to that parity channel.
   </p>
 
   <div class="explanation">
@@ -172,9 +374,9 @@ mod 11:     6      4      5     10
 mod 13:     1      5      9      3
 mod 17:     3      2      7      1</pre>
     <p style="margin-top:0.75rem;">
-      <strong style="color:var(--heal)">All 12 entries nonzero.</strong> Every single-channel
-      data error produces a nonzero syndrome in all 3 parity channels. No channel
-      combination is blind.
+      <strong style="color:var(--heal)">All 12 entries nonzero.</strong> Every
+      single-channel data error produces a nonzero syndrome in all 3 parity channels.
+      No channel combination is blind.
     </p>
     <p style="margin-top:0.5rem; font-size:0.8rem;">
       This is guaranteed for squarefree rings: if a data idempotent were zero mod a
@@ -186,23 +388,17 @@ mod 17:     3      2      7      1</pre>
   </div>
 
   <div class="explanation" style="font-size:0.8rem;">
-    <strong>What this is:</strong> Hamming-style correction over modular residues. The novelty
-    is that MDS error correction emerges free from CRT decomposition of a squarefree ring.
-    No separate encoding layer. The ring <em>is</em> the code.
+    <strong>What this is:</strong> Hamming-style correction over modular residues.
+    The novelty is that MDS error correction comes free with CRT decomposition of a
+    squarefree ring. No separate encoding layer. The ring <em>is</em> the code.
   </div>
-
-  <footer>
-    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a></p>
-    <p><a href="https://github.com/antonlebed/antonlebed.com">Source code</a></p>
-    <p>Public domain (CC0)</p>
-  </footer>
 
 <script>
 'use strict';
 
 const DATA_MODS = [2, 3, 5, 7];
 const CH_NAMES = ['2', '3', '5', '7', '11', '13', '17'];
-const CH_CLASSES = ['row-d', 'row-k', 'row-e', 'row-b', 'row-l', 'row-gate', 'row-escape'];
+const CH_CLASSES = ['row-2', 'row-3', 'row-5', 'row-7', 'row-11', 'row-13', 'row-17'];
 const N = 210;
 
 function crtReconstruct(d, k, e, b) {
@@ -383,8 +579,7 @@ function render() {
     html += `<div class="ecc-grid ${rowClass}" style="grid-template-columns: 36px repeat(${cols}, 32px);">`;
 
     const label = row === 0 ? '' : CH_NAMES[row - 1];
-    const labelColor = row === 0 ? '' :
-      `var(--ch-${['d','k','e','b','l','gate','escape'][row-1]})`;
+    const labelColor = row === 0 ? '' : `var(--ch-${CH_NAMES[row - 1]})`;
     html += `<div class="ecc-label" style="color:${labelColor}">${label}</div>`;
 
     for (let i = 0; i < cols; i++) {
@@ -418,5 +613,10 @@ function render() {
 document.getElementById('msg-input').addEventListener('input', encode);
 encode();
 </script>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
+    <p>The mathematics behind this site is machine-verified: 159 tests at last build.</p>
+  </footer>
 </body>
 </html>

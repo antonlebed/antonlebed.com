@@ -3,206 +3,528 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="The primorial tower: the first 14 rungs, lambda plateaus, transparency, rate scaling, and the k=7 demo rung in detail.">
+  <meta name="description" content="The sieve as algebra: every Eratosthenes step is a CRT projection. The first 14 rungs, transparency, two growth modes, the k=7 demo rung.">
+  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="antonlebed.com">
+  <link rel="canonical" href="https://antonlebed.com/tower">
   <link rel="icon" type="image/png" href="favicon.png">
   <title>Tower — antonlebed.com</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+:root {
+  --bg: #0a0a0f;
+  --fg: #e8e8f0;
+  --fg-dim: #888898;
+  --accent: #88ccaa;
+  --link: #6699cc;
+  --border: #1e1e2e;
+  --card-bg: #111118;
+  --error: #ff4444;
+  --heal: #44ff88;
+  --detect: #ffd700;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ch-2: #ff5555;
+  --ch-3: #ff8c00;
+  --ch-5: #ffd700;
+  --ch-7: #4caf50;
+  --ch-11: #00bcd4;
+  --ch-13: #5c6bc0;
+  --ch-17: #ab47bc;
+  --ch-19: #7e57c2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #22332c var(--bg);
+}
+::-webkit-scrollbar { width: 8px; background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #22332c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2f4a3f; }
+#atmo-sun {
+  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    #050508 0%, #0a0a0f 52%, #1a0800 68%, #4a1500 80%,
+    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
+  animation: sun-breathe 24s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
+                         0 0 80px 32px rgba(255,120,0,0.13),
+                         0 0 150px 64px rgba(255,80,0,0.05); }
+  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
+                         0 0 105px 46px rgba(255,140,0,0.20),
+                         0 0 185px 82px rgba(255,100,0,0.08); }
+}
+#atmo-stars {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: -2;
+}
+@media (prefers-reduced-motion: reduce) {
+  #atmo-sun { animation: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
+p  { margin-bottom: 1rem; color: var(--fg-dim); }
+strong { color: var(--fg); font-weight: 600; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 0.9rem; }
+.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
+.note { font-size: 0.85rem; color: var(--fg-dim); }
+.ch-2 { color: var(--ch-2); }
+.ch-3 { color: var(--ch-3); }
+.ch-5 { color: var(--ch-5); }
+.ch-7 { color: var(--ch-7); }
+.ch-11 { color: var(--ch-11); }
+.ch-13 { color: var(--ch-13); }
+.ch-17 { color: var(--ch-17); }
+.ch-19 { color: var(--ch-19); }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.82rem;
+}
+.tbl th, .tbl td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+.tbl td { font-family: var(--mono); }
+.tbl.left th, .tbl.left td { text-align: left; }
+.tbl .demo td { color: var(--accent); }
+.tbl .transparent td { color: var(--fg-dim); }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
+nav {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+nav a {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
+nav .search-wrap { position: relative; margin-left: auto; }
+nav .search-wrap input {
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: 7rem;
+  font-family: var(--sans);
+  transition: width 0.2s, border-color 0.15s;
+}
+nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
+nav .search-wrap .search-results {
+  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  min-width: 14rem;
+  z-index: 100;
+  display: none;
+}
+nav .search-wrap .search-results a {
+  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
+  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+}
+nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
+nav .search-wrap .search-results a:last-child { border-bottom: none; }
+nav .search-wrap .search-results .match-title { color: var(--fg); }
+nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
+nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
+.hero { margin: 2rem 0 1.5rem; text-align: center; }
+.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero .factorization {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+button {
+  background: #222233;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+button:hover { background: #333344; border-color: #666688; }
+button:active { background: #444455; }
+input[type="text"], input[type="number"] {
+  background: #111122;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  width: 100%;
+  max-width: 300px;
+}
+input:focus { outline: none; border-color: var(--accent); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+footer p { margin-bottom: 0.25rem; }
+@media (max-width: 600px) {
+  body { padding: 0.75rem; }
+  .hero h1 { font-size: 1.4rem; }
+}
+  </style>
+  <style>
+    .clock-row { display: flex; justify-content: center; gap: 0.8rem; margin: 1.5rem 0; flex-wrap: wrap; min-height: 70px; }
+    .clock-cell { text-align: center; }
+    .clock-cell canvas { display: block; margin: 0 auto; }
+    .clock-label { font-family: var(--mono); font-size: 0.75rem; margin-top: 0.25rem; }
+    #tuple-display {
+      font-family: var(--mono); font-size: 0.95rem; text-align: center;
+      margin: 0.75rem 0; padding: 0.5rem;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px;
+    }
+    .indep-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.5rem 0; }
+    .indep-ch {
+      font-family: var(--mono); font-size: 0.85rem; padding: 0.3rem 0.5rem;
+      border-radius: 3px; border: 1px solid var(--border); min-width: 3.5rem;
+      text-align: center; transition: background 0.2s, border-color 0.2s;
+    }
+    .indep-ch.changed { background: #ffffff15; border-color: var(--accent); }
+    @media (max-width: 600px) {
+      .clock-row { gap: 0.4rem; }
+      .clock-cell canvas { width: 56px; height: 56px; }
+    }
+  </style>
+  <script src="tower.js" defer></script>
   <script src="atmosphere.js" defer></script>
   <script src="search.js" defer></script>
-  <style>
-    .tower-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.8rem; }
-    .tower-table th, .tower-table td { padding: 0.35rem 0.5rem; border: 1px solid var(--border); text-align: center; }
-    .tower-table th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
-    .tower-table td { font-family: var(--mono); }
-    .tower-table .demo td { color: var(--accent); }
-    .tower-table .transparent td { color: var(--fg-dim); }
-    .mini-demo { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin: 1rem 0; }
-    .mini-demo label { color: var(--fg-dim); font-family: var(--mono); font-size: 0.85rem; }
-    .mini-demo input { max-width: 160px; margin: 0 0.5rem; }
-    #mini-tuple { font-family: var(--mono); font-size: 0.9rem; margin-top: 0.75rem; }
-    .constants-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
-    .constants-table th, .constants-table td { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: left; }
-    .constants-table th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
-    .constants-table td { font-family: var(--mono); }
-    .rate-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
-    .rate-table th, .rate-table td { padding: 0.35rem 0.5rem; border: 1px solid var(--border); text-align: center; }
-    .rate-table th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
-    .rate-table td { font-family: var(--mono); }
-  </style>
 </head>
 <body>
-  <div id="atmo-sun"></div>
+  <div id="atmo-sun" aria-hidden="true"></div>
   <nav>
     <a href="index.html">Home</a>
-    <a href="sieve.html">Sieve</a>
     <a href="tower.html" aria-current="page">Tower</a>
     <a href="crt.html">CRT</a>
     <a href="ecc.html">ECC</a>
     <a href="dynamics.html">Dynamics</a>
     <a href="prediction.html">Prediction</a>
-    <a href="engineering.html">Engineering</a>
-    <a href="lab.html">Lab</a>
+    <a href="build.html">Build</a>
     <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
   </nav>
 
-  <h1>The Tower</h1>
+<h1>The Tower</h1>
   <p>
-    The primorial tower is the sequence of rings built from the first k primes. Each
-    rung adds one prime, one independent channel, one sieve step. This page shows what
-    you get at each rung and how the structure scales.
+    The Eratosthenes sieve finds primes by elimination: remove multiples of 2, then 3,
+    then 5, then 7&hellip; The survivors are the primes. &ldquo;Remove multiples of
+    p&rdquo; is the same operation as &ldquo;check the residue mod p&rdquo; &mdash;
+    so each sieve step is a projection onto a prime field, and the whole sieve is the
+    ring Z/(2&middot;3&middot;5&middot;&hellip;&middot;p<sub>k</sub>) decomposed by the
+    Chinese Remainder Theorem. The <strong>primorial tower</strong> is the sequence of
+    these rings. Each rung adds one prime, one independent channel, one sieve step.
+  </p>
+
+  <h2>Each sieve step is a channel</h2>
+  <p>
+    At k = 7 &mdash; the demo rung throughout this site &mdash;
+    N = 510,510 = 2 &times; 3 &times; 5 &times; 7 &times; 11 &times; 13 &times; 17.
+    Every number from 0 to 510,509 maps to a unique 7-tuple of remainders, and every
+    valid 7-tuple maps back to exactly one number. For example, 255,256 decomposes as
+    <span class="crt-tuple">(<span class="ch-2">0</span>, <span class="ch-3">1</span>,
+    <span class="ch-5">1</span>, <span class="ch-7">1</span>, <span class="ch-11">1</span>,
+    <span class="ch-13">1</span>, <span class="ch-17">1</span>)</span> &mdash;
+    even, but with remainder 1 at every odd prime. Type a number and see:
+  </p>
+
+  <div class="controls">
+    <label>n =</label>
+    <input type="number" id="crt-n" value="255256" min="0" max="510509">
+    <button id="btn-random">Random</button>
+  </div>
+
+  <div class="clock-row" id="clocks"></div>
+  <div id="tuple-display">255256 &mapsto; (<span class="ch-2">0</span>, <span class="ch-3">1</span>, <span class="ch-5">1</span>, <span class="ch-7">1</span>, <span class="ch-11">1</span>, <span class="ch-13">1</span>, <span class="ch-17">1</span>)</div>
+
+  <h2>Independence</h2>
+  <p>
+    The decomposition gives you <strong>independence</strong>: a number's remainder
+    mod 2 tells you nothing about its remainder mod 3, or mod 5, or any other channel.
+    Zero mutual information &mdash; a theorem, not an approximation. Arithmetic
+    decomposes the same way: adding 1 in the ring is adding 1 in every channel at once,
+    and each channel wraps on its own schedule. Starting from n = 42 =
+    <span class="crt-tuple">(<span class="ch-2">0</span>, <span class="ch-3">0</span>,
+    <span class="ch-5">2</span>, <span class="ch-7">0</span>, <span class="ch-11">9</span>,
+    <span class="ch-13">3</span>, <span class="ch-17">8</span>)</span>, the mod-2 channel
+    wraps every 2 steps, the mod-3 channel every 3 &mdash; no channel's wrap ever
+    touches another.
+  </p>
+
+  <div class="card">
+    <h3>Watch independence in action</h3>
+    <p class="note" style="margin-bottom:0.75rem;">
+      Click +1 repeatedly. A channel highlights when it wraps (rolls from its maximum
+      back to 0). They wrap at different times; none affects any other.
+    </p>
+    <div class="controls" style="margin:0.5rem 0;">
+      <label id="indep-n-label">n = 42</label>
+      <button id="btn-plus1">+1</button>
+      <button id="btn-plus10">+10</button>
+      <button id="btn-indep-reset">Reset</button>
+    </div>
+    <div class="indep-row" id="indep-channels"></div>
+  </div>
+
+  <p>
+    Instead of one problem with 510,510 possibilities, you have 7 problems with at
+    most 17 possibilities each. Total positions across all channels:
+    2 + 3 + 5 + 7 + 11 + 13 + 17 = 58 &mdash; an 8,802&times; reduction.
   </p>
 
   <h2>The first 14 rungs</h2>
   <p>
-    Every rung: all channels are prime fields, arithmetic is bijective, meadow
-    structure holds. MDS error correction from k = 7 onward.
+    Every rung, by construction: all channels are prime fields, arithmetic is
+    bijective, division is total among survivors. MDS error correction (distance 4)
+    from k = 7 onward. This table is recomputed from first principles on every build.
   </p>
 
-  <table class="tower-table">
-    <tr>
-      <th>k</th><th>p<sub>k</sub></th><th>N</th><th>Channels</th><th>&lambda;</th><th>Transparent?</th><th>ECC</th>
-    </tr>
-    <tr><td>3</td><td>5</td><td>30</td><td>3</td><td>4</td><td>&mdash;</td><td>&mdash;</td></tr>
-    <tr><td>4</td><td>7</td><td>210</td><td>4</td><td>12</td><td>&mdash;</td><td>&mdash;</td></tr>
-    <tr><td>5</td><td>11</td><td>2,310</td><td>5</td><td>60</td><td>&mdash;</td><td>Fano plane</td></tr>
-    <tr class="transparent"><td>6</td><td>13</td><td>30,030</td><td>6</td><td>60</td><td>yes</td><td>&mdash;</td></tr>
-    <tr class="demo"><td>7</td><td>17</td><td>510,510</td><td>7</td><td>240</td><td>&mdash;</td><td>MDS d=4, rate 4/7</td></tr>
-    <tr><td>8</td><td>19</td><td>9,699,690</td><td>8</td><td>720</td><td>&mdash;</td><td>rate 5/8</td></tr>
-    <tr><td>9</td><td>23</td><td>223,092,870</td><td>9</td><td>7,920</td><td>&mdash;</td><td>rate 6/9</td></tr>
-    <tr><td>10</td><td>29</td><td>6,469,693,230</td><td>10</td><td>55,440</td><td>&mdash;</td><td>rate 7/10</td></tr>
-    <tr class="transparent"><td>11</td><td>31</td><td>2.01 &times; 10<sup>11</sup></td><td>11</td><td>55,440</td><td>yes</td><td>rate 8/11</td></tr>
-    <tr class="transparent"><td>12</td><td>37</td><td>7.42 &times; 10<sup>12</sup></td><td>12</td><td>55,440</td><td>yes</td><td>rate 9/12</td></tr>
-    <tr class="transparent"><td>13</td><td>41</td><td>3.04 &times; 10<sup>14</sup></td><td>13</td><td>55,440</td><td>yes</td><td>rate 10/13</td></tr>
-    <tr class="transparent"><td>14</td><td>43</td><td>1.31 &times; 10<sup>16</sup></td><td>14</td><td>55,440</td><td>yes</td><td>rate 11/14</td></tr>
-  </table>
+  <table class="tbl">
+  <tr><th>k</th><th>p<sub>k</sub></th><th>N</th><th>&lambda;</th><th>Transparent?</th><th>ECC rate</th></tr>
+  <tr><td>3</td><td>5</td><td>30</td><td>4</td><td>&mdash;</td><td>&mdash;</td></tr>
+  <tr><td>4</td><td>7</td><td>210</td><td>12</td><td>&mdash;</td><td>&mdash;</td></tr>
+  <tr><td>5</td><td>11</td><td>2,310</td><td>60</td><td>&mdash;</td><td>&mdash;</td></tr>
+  <tr class="transparent"><td>6</td><td>13</td><td>30,030</td><td>60</td><td>yes</td><td>&mdash;</td></tr>
+  <tr class="demo"><td>7</td><td>17</td><td>510,510</td><td>240</td><td>&mdash;</td><td>4/7</td></tr>
+  <tr><td>8</td><td>19</td><td>9,699,690</td><td>720</td><td>&mdash;</td><td>5/8</td></tr>
+  <tr><td>9</td><td>23</td><td>223,092,870</td><td>7,920</td><td>&mdash;</td><td>6/9</td></tr>
+  <tr><td>10</td><td>29</td><td>6,469,693,230</td><td>55,440</td><td>&mdash;</td><td>7/10</td></tr>
+  <tr class="transparent"><td>11</td><td>31</td><td>2.01 &times; 10<sup>11</sup></td><td>55,440</td><td>yes</td><td>8/11</td></tr>
+  <tr class="transparent"><td>12</td><td>37</td><td>7.42 &times; 10<sup>12</sup></td><td>55,440</td><td>yes</td><td>9/12</td></tr>
+  <tr class="transparent"><td>13</td><td>41</td><td>3.04 &times; 10<sup>14</sup></td><td>55,440</td><td>yes</td><td>10/13</td></tr>
+  <tr class="transparent"><td>14</td><td>43</td><td>1.31 &times; 10<sup>16</sup></td><td>55,440</td><td>yes</td><td>11/14</td></tr>
+</table>
 
   <h2>Two growth modes</h2>
   <p>
-    Adding a prime either changes lambda or doesn't. This creates two modes:
+    &lambda; is the Carmichael function &mdash; the universal period of the power map,
+    the least common multiple of (p&minus;1) over the primes in the ring. Adding a
+    prime either changes &lambda; or doesn't, and that splits growth into two modes:
   </p>
   <p>
-    <strong>Complexity</strong> &mdash; a non-transparent prime introduces a new
-    prime-power factor to lambda. New dynamical structure: new orbit periods, new
-    order levels. Lambda jumps. Examples: 11 (jump &times;5), 17 (jump &times;4),
-    23 (jump &times;11).
+    <strong>Complexity.</strong> A non-transparent prime brings a new prime-power
+    factor into &lambda;: new orbit periods, new order levels. &lambda; jumps.
+    Examples: 11 (&times;5), 17 (&times;4), 23 (&times;11).
   </p>
   <p>
-    <strong>Capacity</strong> &mdash; a transparent prime adds space without new
-    complexity. Phi grows, idempotents double, but lambda stays the same. The
-    dynamical skeleton is unchanged. Example: 13, whose &phi;(13) = 12 already
-    divides lambda = 60.
+    <strong>Capacity.</strong> A transparent prime adds space without new complexity:
+    &phi; grows, idempotents double, &lambda; stays put. Example: 13, whose
+    &phi;(13) = 12 already divides &lambda; = 60.
   </p>
   <p>
-    <strong>Transparency criterion:</strong> prime p is transparent at rung k iff
-    (p&minus;1) divides &lambda;(k&minus;1).
+    <strong>Transparency criterion</strong> (proved): prime p is transparent at rung k
+    iff (p&minus;1) divides &lambda;(k&minus;1).
   </p>
-  <p style="font-size:0.85rem; color:var(--fg-dim);">
-    A lambda plateau is a run of rungs sharing one lambda value: the jump
-    rung that sets it, then consecutive transparent primes that preserve it.
-    k = 10&ndash;14 is a 5-rung plateau at &lambda; = 55,440. By k = 2000,
-    77% of primes are transparent, the longest transparent run is 24
-    consecutive primes (k = 1849&ndash;1872), and the non-transparent
-    fraction decays as approximately k<sup>&minus;0.17</sup>.
+  <p class="note">
+    A &lambda; plateau is a run of rungs sharing one &lambda; value: a jump rung sets
+    it, consecutive transparent primes preserve it. k = 10&ndash;14 is a 5-rung plateau
+    at &lambda; = 55,440. Computed out to k = 2000: 77% of primes are transparent, the
+    longest transparent run is 24 consecutive primes (k = 1849&ndash;1872), and the
+    non-transparent fraction decays as roughly k<sup>&minus;0.17</sup>.
   </p>
 
-  <h2>ECC rate scales</h2>
-  <p>
-    At every rung k &ge; 7, designate the last 3 channels as parity and the rest
-    as data. Any (k&minus;3) of k channels reconstruct the original. The code is MDS
-    (distance 4) at every rung &mdash; optimal.
-  </p>
-
-  <table class="rate-table">
-    <tr><th>k</th><th>Rate</th><th>Data capacity</th></tr>
-    <tr><td>7</td><td>4/7 = 0.571</td><td>210</td></tr>
-    <tr><td>8</td><td>5/8 = 0.625</td><td>2,310</td></tr>
-    <tr><td>9</td><td>6/9 = 0.667</td><td>30,030</td></tr>
-    <tr><td>10</td><td>7/10 = 0.700</td><td>510,510</td></tr>
-  </table>
-  <p style="font-size:0.85rem; color:var(--fg-dim);">
-    Rate approaches 1 as the tower grows. No blind spots at any verified rung
-    (k = 7&ndash;10): parity primes are larger than data primes, so no data
-    idempotent can vanish mod a parity prime.
-  </p>
-
-  <h2>The k = 7 rung</h2>
-  <p>
-    Most interactive demos on this site use k = 7: the ring Z/510,510. Seven channels
-    give MDS ECC at rate 4/7, the ring is small enough for exhaustive computation
-    (510,510 elements, 92,160 units), and the 4+3 split is the first with distance 4.
-  </p>
+  <h2>The k = 7 rung up close</h2>
   <p class="factorization" style="font-family:var(--mono);font-size:1rem;text-align:center;margin:1.5rem 0;color:var(--fg);">
     Z/510,510 &cong; Z/2 &times; Z/3 &times; Z/5 &times; Z/7 &times; Z/11 &times; Z/13 &times; Z/17
   </p>
-
-  <h3>The Cunningham chains</h3>
   <p>
-    The first 7 primes admit a closed, self-referential description. Iterate
-    c(n) = 2n+1 from the seeds 1 and 2; each chain terminates at a composite:
-  </p>
-  <p style="font-family:var(--mono);font-size:0.85rem;margin:0.5rem 0;padding-left:1rem;">
-    From 1: 1 &rarr; 3 &rarr; 7 &rarr; 15 (stop: 15 = 3&times;5)<br>
-    From 2: 2 &rarr; 5 &rarr; 11 &rarr; 23 &rarr; 47 &rarr; 95 (stop: 95 = 5&times;19)
-  </p>
-  <p>
-    Five primes &le; 17: {2, 3, 5, 7, 11}. Two more rules close the set:
-    13 = 2&sup2;+3&sup2; and 17 = 2+3+5+7. Written additively (3 = 2+1,
-    5 = 2+3, 7 = 2+5, 11 = 1+2+3+5), the seed is forced: a seed prime &gt; 2
-    is odd, so seed+1 is even and &ge; 4 &mdash; composite. Only 2 works.
-    What is proved is that the first 7 primes <em>admit</em> this description
-    &mdash; the rules were found after the fact, and the rung needs no
-    construction: it is the first 7 primes by definition.
+    The demo rung is k = 7 because it is the first rung with the full 4+3
+    data/parity split (distance-4 MDS error correction, rate 4/7) while staying small
+    enough to verify exhaustively: 510,510 elements, 92,160 of them units.
   </p>
 
-  <div class="mini-demo">
-    <label>n =</label><input type="number" id="mini-n" value="255256" min="0" max="510509">
-    <div id="mini-tuple"></div>
-  </div>
-
-  <table class="constants-table">
+  <table class="tbl left">
     <tr><th>Name</th><th>Value</th><th>CRT tuple</th><th>Meaning</th></tr>
     <tr><td>0</td><td>0</td><td>(0, 0, 0, 0, 0, 0, 0)</td><td>All channels zero</td></tr>
     <tr><td>1</td><td>1</td><td>(1, 1, 1, 1, 1, 1, 1)</td><td>Multiplicative identity</td></tr>
     <tr><td>&minus;1</td><td>510,509</td><td>(1, 2, 4, 6, 10, 12, 16)</td><td>Each channel shows p&minus;1</td></tr>
     <tr><td>&Omega;</td><td>255,256</td><td>(0, 1, 1, 1, 1, 1, 1)</td><td>Idempotent: 1 everywhere except mod 2</td></tr>
   </table>
-
-  <table class="constants-table" style="margin-top:0.5rem;">
+  <table class="tbl left" style="margin-top:0.5rem;">
     <tr><td>&phi;</td><td colspan="3">92,160 units</td></tr>
     <tr><td>&lambda;</td><td colspan="3">240 = 2<sup>4</sup> &middot; 3 &middot; 5</td></tr>
     <tr><td>Idempotents</td><td colspan="3">128 (one per subset of 7 primes)</td></tr>
   </table>
 
-  <footer>
-    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a></p>
-    <p><a href="https://github.com/antonlebed/antonlebed.com">Source code</a></p>
-    <p>Public domain (CC0)</p>
-  </footer>
+  <h3>A curiosity: the first 7 primes describe themselves</h3>
+  <p>
+    Iterate c(n) = 2n+1 from the seeds 1 and 2; each chain stops at a composite:
+  </p>
+  <p style="font-family:var(--mono);font-size:0.85rem;margin:0.5rem 0;padding-left:1rem;">
+    From 1: 1 &rarr; 3 &rarr; 7 &rarr; 15 (stop: 15 = 3&times;5)<br>
+    From 2: 2 &rarr; 5 &rarr; 11 &rarr; 23 &rarr; 47 &rarr; 95 (stop: 95 = 5&times;19)
+  </p>
+  <p>
+    That yields five of the primes &le; 17: {2, 3, 5, 7, 11}. Two more rules close the
+    set: 13 = 2&sup2;+3&sup2; and 17 = 2+3+5+7. Written additively (3 = 2+1, 5 = 2+3,
+    7 = 2+5, 11 = 1+2+3+5), the seed is forced: a seed prime &gt; 2 is odd, so seed+1
+    is even and &ge; 4 &mdash; composite. Only 2 works. What is proved is that the
+    first 7 primes <em>admit</em> this closed description &mdash; the rules were found
+    after the fact; the rung itself needs no construction, being the first 7 primes by
+    definition.
+  </p>
 
 <script>
-const channels = [
-  { q: 2,  name: '2', color: '#ff5555' },
-  { q: 3,  name: '3', color: '#ff8c00' },
-  { q: 5,  name: '5', color: '#ffd700' },
-  { q: 7,  name: '7', color: '#4caf50' },
-  { q: 11, name: '11', color: '#00bcd4' },
-  { q: 13, name: '13', color: '#5c6bc0' },
-  { q: 17, name: '17', color: '#ab47bc' }
-];
-const N = 510510;
+document.addEventListener('DOMContentLoaded', function() {
+  var MODS = TOWER.MODS, COLORS = TOWER.COLORS, N = TOWER.N;
 
-function update() {
-  let n = parseInt(document.getElementById('mini-n').value) || 0;
-  n = ((n % N) + N) % N;
-  const parts = channels.map(ch =>
-    `<span style="color:${ch.color}">${n % ch.q}</span>`
-  );
-  document.getElementById('mini-tuple').innerHTML =
-    `${n} &mapsto; (${parts.join(', ')})`;
-}
+  function drawClock(canvas, m, value, color) {
+    var w = canvas.width, h = canvas.height;
+    var ctx = canvas.getContext('2d');
+    var cx = w / 2, cy = h / 2, r = w * 0.36;
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = '#2a2a3a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    for (var i = 0; i < m; i++) {
+      var angle = -Math.PI / 2 + (2 * Math.PI * i) / m;
+      var x = cx + Math.cos(angle) * r;
+      var y = cy + Math.sin(angle) * r;
+      var active = i === value;
+      ctx.fillStyle = active ? color : '#444';
+      ctx.beginPath();
+      ctx.arc(x, y, active ? 6 : 4, 0, Math.PI * 2);
+      ctx.fill();
+      if (active || m <= 17) {
+        ctx.fillStyle = active ? '#fff' : '#666';
+        ctx.font = (active ? 'bold ' : '') + '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i, cx + Math.cos(angle) * (r - 14), cy + Math.sin(angle) * (r - 14));
+      }
+    }
+  }
 
-document.getElementById('mini-n').addEventListener('input', update);
-update();
+  function renderClocks(tuple) {
+    var container = document.getElementById('clocks');
+    if (!container.children.length) {
+      container.innerHTML = MODS.map(function(m, i) {
+        return '<div class="clock-cell">' +
+          '<canvas id="clock-' + i + '" width="70" height="70"></canvas>' +
+          '<div class="clock-label" style="color:' + COLORS[i] + '">mod ' + m + '</div></div>';
+      }).join('');
+    }
+    for (var i = 0; i < MODS.length; i++) {
+      drawClock(document.getElementById('clock-' + i), MODS[i], tuple[i], COLORS[i]);
+    }
+  }
+
+  function updateMain() {
+    var n = TOWER.mod(parseInt(document.getElementById('crt-n').value) || 0, N);
+    var tuple = TOWER.crt(n);
+    renderClocks(tuple);
+    document.getElementById('tuple-display').innerHTML =
+      n + ' &mapsto; (' + tuple.map(function(v, i) {
+        return '<span style="color:' + COLORS[i] + '">' + v + '</span>';
+      }).join(', ') + ')';
+  }
+
+  document.getElementById('crt-n').addEventListener('input', updateMain);
+  document.getElementById('btn-random').addEventListener('click', function() {
+    document.getElementById('crt-n').value = Math.floor(Math.random() * N);
+    updateMain();
+  });
+  updateMain();
+
+  var indepN = 42;
+  var prevTuple = TOWER.crt(indepN);
+
+  function renderIndep() {
+    var tuple = TOWER.crt(indepN);
+    document.getElementById('indep-n-label').textContent = 'n = ' + indepN;
+    document.getElementById('indep-channels').innerHTML = tuple.map(function(v, i) {
+      return '<div class="indep-ch" id="ich-' + i + '" style="color:' + COLORS[i] + '">' +
+        MODS[i] + ':' + v + '</div>';
+    }).join('');
+  }
+
+  function stepIndep(delta) {
+    indepN = TOWER.mod(indepN + delta, N);
+    var tuple = TOWER.crt(indepN);
+    renderIndep();
+    for (var i = 0; i < MODS.length; i++) {
+      var el = document.getElementById('ich-' + i);
+      if (tuple[i] < prevTuple[i]) el.classList.add('changed');
+      else el.classList.remove('changed');
+    }
+    prevTuple = tuple;
+  }
+
+  document.getElementById('btn-plus1').addEventListener('click', function() { stepIndep(1); });
+  document.getElementById('btn-plus10').addEventListener('click', function() { stepIndep(10); });
+  document.getElementById('btn-indep-reset').addEventListener('click', function() {
+    indepN = 42;
+    prevTuple = TOWER.crt(indepN);
+    renderIndep();
+  });
+  renderIndep();
+});
 </script>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
+    <p>The mathematics behind this site is machine-verified: 159 tests at last build.</p>
+  </footer>
 </body>
 </html>

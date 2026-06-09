@@ -3,140 +3,269 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamics — antonlebed.com</title>
-  <meta name="description" content="Power maps paint orbits. The carousel spins. Eigenvalues reveal the cost of structure. Dynamics of the ring Z/510,510.">
+  <meta name="description" content="Power maps on the tower: squaring orbits, the eigenvalue carousel, lambda as universal period, the geometry/dynamics split.">
+  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="antonlebed.com">
+  <link rel="canonical" href="https://antonlebed.com/dynamics">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="style.css">
-  <script src="atmosphere.js" defer></script>
-  <script src="search.js" defer></script>
+  <title>Dynamics — antonlebed.com</title>
   <style>
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin: 1rem 0;
-      flex-wrap: wrap;
-    }
-    .slider-row input[type="range"] {
-      flex: 1;
-      min-width: 120px;
-      max-width: 300px;
-      accent-color: var(--accent);
-    }
-    .slider-row .k-val {
-      font-family: var(--mono);
-      font-size: 1.1rem;
-      color: var(--accent);
-      min-width: 3ch;
-    }
-    #power-canvas {
-      display: block;
-      margin: 0.5rem auto;
-      border-radius: 4px;
-      max-width: 100%;
-    }
-    .power-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 1.5rem;
-      font-size: 0.8rem;
-      color: var(--fg-dim);
-      margin: 0.5rem 0;
-    }
+:root {
+  --bg: #0a0a0f;
+  --fg: #e8e8f0;
+  --fg-dim: #888898;
+  --accent: #88ccaa;
+  --link: #6699cc;
+  --border: #1e1e2e;
+  --card-bg: #111118;
+  --error: #ff4444;
+  --heal: #44ff88;
+  --detect: #ffd700;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ch-2: #ff5555;
+  --ch-3: #ff8c00;
+  --ch-5: #ffd700;
+  --ch-7: #4caf50;
+  --ch-11: #00bcd4;
+  --ch-13: #5c6bc0;
+  --ch-17: #ab47bc;
+  --ch-19: #7e57c2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #22332c var(--bg);
+}
+::-webkit-scrollbar { width: 8px; background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #22332c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2f4a3f; }
+#atmo-sun {
+  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    #050508 0%, #0a0a0f 52%, #1a0800 68%, #4a1500 80%,
+    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
+  animation: sun-breathe 24s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
+                         0 0 80px 32px rgba(255,120,0,0.13),
+                         0 0 150px 64px rgba(255,80,0,0.05); }
+  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
+                         0 0 105px 46px rgba(255,140,0,0.20),
+                         0 0 185px 82px rgba(255,100,0,0.08); }
+}
+#atmo-stars {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: -2;
+}
+@media (prefers-reduced-motion: reduce) {
+  #atmo-sun { animation: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
+p  { margin-bottom: 1rem; color: var(--fg-dim); }
+strong { color: var(--fg); font-weight: 600; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 0.9rem; }
+.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
+.note { font-size: 0.85rem; color: var(--fg-dim); }
+.ch-2 { color: var(--ch-2); }
+.ch-3 { color: var(--ch-3); }
+.ch-5 { color: var(--ch-5); }
+.ch-7 { color: var(--ch-7); }
+.ch-11 { color: var(--ch-11); }
+.ch-13 { color: var(--ch-13); }
+.ch-17 { color: var(--ch-17); }
+.ch-19 { color: var(--ch-19); }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.82rem;
+}
+.tbl th, .tbl td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+.tbl td { font-family: var(--mono); }
+.tbl.left th, .tbl.left td { text-align: left; }
+.tbl .demo td { color: var(--accent); }
+.tbl .transparent td { color: var(--fg-dim); }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
+nav {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+nav a {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
+nav .search-wrap { position: relative; margin-left: auto; }
+nav .search-wrap input {
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: 7rem;
+  font-family: var(--sans);
+  transition: width 0.2s, border-color 0.15s;
+}
+nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
+nav .search-wrap .search-results {
+  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  min-width: 14rem;
+  z-index: 100;
+  display: none;
+}
+nav .search-wrap .search-results a {
+  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
+  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+}
+nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
+nav .search-wrap .search-results a:last-child { border-bottom: none; }
+nav .search-wrap .search-results .match-title { color: var(--fg); }
+nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
+nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
+.hero { margin: 2rem 0 1.5rem; text-align: center; }
+.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero .factorization {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+button {
+  background: #222233;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+button:hover { background: #333344; border-color: #666688; }
+button:active { background: #444455; }
+input[type="text"], input[type="number"] {
+  background: #111122;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  width: 100%;
+  max-width: 300px;
+}
+input:focus { outline: none; border-color: var(--accent); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+footer p { margin-bottom: 0.25rem; }
+@media (max-width: 600px) {
+  body { padding: 0.75rem; }
+  .hero h1 { font-size: 1.4rem; }
+}
+  </style>
+  <style>
+    .slider-row { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }
+    .slider-row input[type="range"] { flex: 1; min-width: 120px; max-width: 300px; accent-color: var(--accent); }
+    .slider-row .k-val { font-family: var(--mono); font-size: 1.1rem; color: var(--accent); min-width: 3ch; }
+    #power-canvas { display: block; margin: 0.5rem auto; border-radius: 4px; max-width: 100%; }
+    .power-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-size: 0.8rem; color: var(--fg-dim); margin: 0.5rem 0; }
     .power-legend span::before {
-      content: '';
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      margin-right: 4px;
-      vertical-align: middle;
-      background: var(--c);
+      content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+      margin-right: 4px; vertical-align: middle; background: var(--c);
     }
-    .carousel-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      justify-content: center;
-      margin: 1rem 0;
-    }
-    .carousel-ring {
-      width: 90px;
-      height: 90px;
-      position: relative;
-    }
+    .carousel-container { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin: 1rem 0; min-height: 90px; }
+    .carousel-ring { width: 90px; height: 90px; position: relative; }
     .carousel-ring svg { width: 100%; height: 100%; }
     .carousel-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      text-align: center;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-family: var(--mono); font-size: 0.7rem; text-align: center;
     }
-    .cost-bars {
-      margin: 1rem 0;
-    }
-    .cost-bar-row {
-      display: flex;
-      align-items: center;
-      margin: 0.3rem 0;
-      gap: 0.5rem;
-    }
-    .cost-bar-label {
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      width: 2.5rem;
-      text-align: right;
-    }
-    .cost-bar {
-      height: 18px;
-      border-radius: 2px;
-      transition: width 0.3s;
-    }
-    .cost-bar-val {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--fg-dim);
-      margin-left: 0.5rem;
-    }
-    .seed-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.8rem;
-    }
-    .seed-table th, .seed-table td {
-      padding: 0.4rem 0.6rem;
-      border: 1px solid var(--border);
-      text-align: left;
-    }
-    .seed-table th {
-      background: var(--card-bg);
-      color: var(--fg-dim);
-      font-weight: normal;
-    }
-    .seed-table td { color: var(--fg); }
-    .seed-table .predicted { color: var(--accent); font-weight: 600; }
+    .cost-bars { margin: 1rem 0; }
+    .cost-bar-row { display: flex; align-items: center; margin: 0.3rem 0; gap: 0.5rem; }
+    .cost-bar-label { font-family: var(--mono); font-size: 0.8rem; width: 2.5rem; text-align: right; }
+    .cost-bar { height: 18px; border-radius: 2px; opacity: 0.7; }
+    .cost-bar-val { font-family: var(--mono); font-size: 0.75rem; color: var(--fg-dim); margin-left: 0.5rem; }
   </style>
+  <script src="tower.js" defer></script>
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
 </head>
 <body>
-  <div id="atmo-sun"></div>
+  <div id="atmo-sun" aria-hidden="true"></div>
   <nav>
     <a href="index.html">Home</a>
-    <a href="sieve.html">Sieve</a>
     <a href="tower.html">Tower</a>
     <a href="crt.html">CRT</a>
     <a href="ecc.html">ECC</a>
     <a href="dynamics.html" aria-current="page">Dynamics</a>
     <a href="prediction.html">Prediction</a>
-    <a href="engineering.html">Engineering</a>
-    <a href="lab.html">Lab</a>
+    <a href="build.html">Build</a>
     <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
   </nav>
 
-  <h1>Dynamics</h1>
+<h1>Dynamics</h1>
   <p>
     Raise every element to a power and watch what happens. At k = 7, the universal
     period is &lambda; = 240: every unit satisfies x<sup>240</sup> = 1. Lambda is
@@ -147,10 +276,13 @@
     primes minus one. The two are orthogonal.
   </p>
 
-  <h2>Power Map</h2>
+  <h2>Power map</h2>
   <p>
-    The map x &rarr; x<sup>k</sup> on Z/210 (the data ring). Each cell is one element.
-    Move the slider to see how the map transforms the ring.
+    The map x &rarr; x<sup>k</sup> on Z/210 (the data ring). Each cell is one
+    element. At k = 2, the fixed points are exactly the 16 idempotents of Z/210
+    (x&sup2; = x is the definition of idempotent; one per subset of the 4 primes) &mdash;
+    everything else sits on a cycle or a tail flowing into one. Move the slider
+    to see how the map transforms the ring.
   </p>
 
   <div class="slider-row">
@@ -164,289 +296,231 @@
   <div class="power-legend" id="power-legend"></div>
   <div class="stats" id="power-stats"></div>
 
-  <h2>The Carousel</h2>
+  <h2>The carousel</h2>
   <p>
-    Addition as rotation on 7 independent circles. Each channel has its own clock.
-    Enter a number to see its position on all 7 dials.
+    Addition as rotation on 7 independent circles. Each channel has its own clock:
+    +1 advances every dial one tick, and each wraps on its own period. Enter a
+    number to see its position on all 7 dials.
   </p>
 
   <div class="slider-row">
-    <input type="number" id="carousel-input" value="1" min="0" max="510509" style="max-width:180px;" oninput="updateCarousel()">
-    <button onclick="stepCarousel(1)">+1</button>
-    <button onclick="stepCarousel(-1)">&minus;1</button>
+    <input type="number" id="carousel-input" value="1" min="0" max="510509" style="max-width:180px;">
+    <button id="btn-car-plus">+1</button>
+    <button id="btn-car-minus">&minus;1</button>
   </div>
 
   <div class="carousel-container" id="carousel-container"></div>
 
-  <h2>Eigenvalue Cost</h2>
+  <h2>Eigenvalue cost</h2>
   <p>
-    Each CRT channel has a cost: <code>c(p) = 4sin&sup2;(&pi;/p)</code>. Cheaper channels
-    activate last in the hierarchy. mod 2 is most expensive; mod 17 is cheapest.
+    Each CRT channel has a spectral cost: <code>c(p) = 4sin&sup2;(&pi;/p)</code>.
+    The larger the prime, the cheaper the channel:
   </p>
 
-  <div class="cost-bars" id="cost-bars"></div>
+  <div class="cost-bars">
+    <div class="cost-bar-row"><span class="cost-bar-label ch-2">2</span><div class="cost-bar" style="width:66.7%;background:var(--ch-2)"></div><span class="cost-bar-val">2.000</span></div>
+    <div class="cost-bar-row"><span class="cost-bar-label ch-3">3</span><div class="cost-bar" style="width:100%;background:var(--ch-3)"></div><span class="cost-bar-val">3.000</span></div>
+    <div class="cost-bar-row"><span class="cost-bar-label ch-5">5</span><div class="cost-bar" style="width:46.1%;background:var(--ch-5)"></div><span class="cost-bar-val">1.382</span></div>
+    <div class="cost-bar-row"><span class="cost-bar-label ch-7">7</span><div class="cost-bar" style="width:25.1%;background:var(--ch-7)"></div><span class="cost-bar-val">0.753</span></div>
+    <div class="cost-bar-row"><span class="cost-bar-label ch-11">11</span><div class="cost-bar" style="width:10.6%;background:var(--ch-11)"></div><span class="cost-bar-val">0.317</span></div>
+    <div class="cost-bar-row"><span class="cost-bar-label ch-13">13</span><div class="cost-bar" style="width:7.6%;background:var(--ch-13)"></div><span class="cost-bar-val">0.229</span></div>
+    <div class="cost-bar-row"><span class="cost-bar-label ch-17">17</span><div class="cost-bar" style="width:4.5%;background:var(--ch-17)"></div><span class="cost-bar-val">0.135</span></div>
+  </div>
 
-  <p style="font-size:0.85rem; color:var(--fg-dim);">
-    Total cost = 7.816. The hierarchy cost descends with prime order: the larger the prime,
-    the cheaper the channel. mod 2 costs 2 (not 4) because Z/2 has only 1 direction
-    in the Hamming graph (1 = &minus;1 mod 2), while odd channels have 2.
+  <p class="note">
+    Total cost = 7.816. The hierarchy cost descends with prime order: the larger the
+    prime, the cheaper the channel. mod 2 costs 2 (not 4) because Z/2 has only 1
+    direction in the Hamming graph (1 = &minus;1 mod 2), while odd channels have 2.
   </p>
-
-  <h2>Prediction</h2>
-  <p>
-    Sub-rings built from fewer primes predict primes they've never met.
-    The Euler characteristic of the sub-ring names the absent ones.
-  </p>
-  <p>
-    <strong>CRT Euler characteristic:</strong>
-    <code>&chi; = N &times; (1 &minus; k + &Sigma; 1/p<sub>i</sub>)</code>
-  </p>
-
-  <table class="seed-table">
-    <tr><th>Sub-ring</th><th>Contains</th><th>&minus;&chi;</th><th>Predicts</th></tr>
-    <tr>
-      <td>Z/10</td><td>2, 5</td>
-      <td>3</td>
-      <td class="predicted">3 (missing chain prime)</td>
-    </tr>
-    <tr>
-      <td>Z/15</td><td>3, 5</td>
-      <td>7</td>
-      <td class="predicted">7 (next chain prime)</td>
-    </tr>
-    <tr>
-      <td>Z/21</td><td>3, 7</td>
-      <td>11</td>
-      <td class="predicted">11 (next chain prime)</td>
-    </tr>
-  </table>
-
-  <p style="font-size:0.85rem; color:var(--fg-dim);">
-    Each pair of chain primes names the next one via &minus;&chi;. The formula is arithmetic
-    (Euler characteristic of the CRT complex). These predictions are forced by
-    the squarefree structure &mdash; every channel a prime field.
-  </p>
-
-  <footer>
-    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a></p>
-    <p><a href="https://github.com/antonlebed/antonlebed.com">Source code</a></p>
-    <p>Public domain (CC0)</p>
-  </footer>
 
 <script>
-'use strict';
+document.addEventListener('DOMContentLoaded', function() {
+  'use strict';
 
-// --- Power Map ---
-const N_DATA = 210;
-const COLS = 14, ROWS = 15;
-const CELL = 14;
+  // --- Power map on the data ring Z/210 ---
+  var N_DATA = 210;
+  var COLS = 14, CELL = 14;
 
-function powMod(base, exp, mod) {
-  let result = 1;
-  base = ((base % mod) + mod) % mod;
-  while (exp > 0) {
-    if (exp & 1) result = (result * base) % mod;
-    exp >>= 1;
-    base = (base * base) % mod;
-  }
-  return result;
-}
-
-function computePowerMap(k) {
-  const map = new Array(N_DATA);
-  for (let x = 0; x < N_DATA; x++) map[x] = powMod(x, k, N_DATA);
-  return map;
-}
-
-function classifyElements(map) {
-  const visited = new Uint8Array(N_DATA);
-  const classification = new Array(N_DATA);
-  const cycleLengths = new Array(N_DATA).fill(0);
-
-  for (let start = 0; start < N_DATA; start++) {
-    if (visited[start]) continue;
-    const path = [];
-    let x = start;
-    while (!visited[x] && !path.includes(x)) {
-      path.push(x);
-      x = map[x];
+  function powMod(base, exp, mod) {
+    var result = 1;
+    base = ((base % mod) + mod) % mod;
+    while (exp > 0) {
+      if (exp & 1) result = (result * base) % mod;
+      exp >>= 1;
+      base = (base * base) % mod;
     }
-    if (visited[x]) {
-      for (const p of path) { classification[p] = 'tail'; visited[p] = 1; }
-    } else {
-      const cycleStart = path.indexOf(x);
-      const cycleLen = path.length - cycleStart;
-      for (let i = cycleStart; i < path.length; i++) {
-        classification[path[i]] = cycleLen === 1 ? 'fixed' : 'cycle';
-        cycleLengths[path[i]] = cycleLen;
-        visited[path[i]] = 1;
+    return result;
+  }
+
+  function computePowerMap(k) {
+    var map = new Array(N_DATA);
+    for (var x = 0; x < N_DATA; x++) map[x] = powMod(x, k, N_DATA);
+    return map;
+  }
+
+  function classifyElements(map) {
+    var visited = new Uint8Array(N_DATA);
+    var classification = new Array(N_DATA);
+    var cycleLengths = new Array(N_DATA).fill(0);
+
+    for (var start = 0; start < N_DATA; start++) {
+      if (visited[start]) continue;
+      var path = [];
+      var x = start;
+      while (!visited[x] && path.indexOf(x) === -1) {
+        path.push(x);
+        x = map[x];
       }
-      for (let i = 0; i < cycleStart; i++) {
-        classification[path[i]] = 'tail';
-        visited[path[i]] = 1;
+      if (visited[x]) {
+        for (var j = 0; j < path.length; j++) { classification[path[j]] = 'tail'; visited[path[j]] = 1; }
+      } else {
+        var cycleStart = path.indexOf(x);
+        var cycleLen = path.length - cycleStart;
+        for (var i = cycleStart; i < path.length; i++) {
+          classification[path[i]] = cycleLen === 1 ? 'fixed' : 'cycle';
+          cycleLengths[path[i]] = cycleLen;
+          visited[path[i]] = 1;
+        }
+        for (i = 0; i < cycleStart; i++) {
+          classification[path[i]] = 'tail';
+          visited[path[i]] = 1;
+        }
       }
     }
-  }
-  if (map[0] === 0) classification[0] = 'fixed-zero';
-  return { classification, cycleLengths };
-}
-
-const canvas = document.getElementById('power-canvas');
-const ctx = canvas.getContext('2d');
-
-function drawPowerMap(k) {
-  const map = computePowerMap(k);
-  const { classification, cycleLengths } = classifyElements(map);
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  let fixedCount = 0, cycleCount = 0, tailCount = 0;
-  const cycleSizes = new Set();
-
-  for (let i = 0; i < N_DATA; i++) {
-    const col = i % COLS;
-    const row = Math.floor(i / COLS);
-    const x = col * (CELL * 2) + CELL;
-    const y = row * (CELL * 2) + CELL;
-
-    let color;
-    switch (classification[i]) {
-      case 'fixed-zero':
-        color = '#555566'; fixedCount++; break;
-      case 'fixed':
-        color = '#ffffff'; fixedCount++; break;
-      case 'cycle':
-        const hue = (cycleLengths[i] * 47) % 360;
-        color = `hsl(${hue}, 70%, 55%)`;
-        cycleCount++;
-        cycleSizes.add(cycleLengths[i]);
-        break;
-      case 'tail':
-      default:
-        color = '#2a2a3a'; tailCount++; break;
-    }
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, CELL * 0.7, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (classification[i] === 'fixed' || classification[i] === 'fixed-zero') {
-      ctx.fillStyle = classification[i] === 'fixed-zero' ? '#888' : '#000';
-      ctx.font = '9px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(i, x, y);
-    }
+    if (map[0] === 0) classification[0] = 'fixed-zero';
+    return { classification: classification, cycleLengths: cycleLengths };
   }
 
-  const statsEl = document.getElementById('power-stats');
-  const cycles = [...cycleSizes].sort((a,b) => a-b);
-  statsEl.textContent = `Fixed: ${fixedCount} | Cycles: ${cycleCount} (lengths: ${cycles.join(', ') || 'none'}) | Tails: ${tailCount}`;
+  var canvas = document.getElementById('power-canvas');
+  var ctx = canvas.getContext('2d');
 
-  const legend = document.getElementById('power-legend');
-  legend.innerHTML =
-    '<span style="--c:#fff">Fixed points</span>' +
-    '<span style="--c:#2a2a3a">Tails</span>' +
-    '<span style="--c:hsl(94,70%,55%)">Cycles</span>';
-}
+  function drawPowerMap(k) {
+    var map = computePowerMap(k);
+    var r = classifyElements(map);
+    var classification = r.classification, cycleLengths = r.cycleLengths;
 
-const slider = document.getElementById('k-slider');
-const kDisplay = document.getElementById('k-display');
-slider.addEventListener('input', function() {
-  kDisplay.textContent = this.value;
-  drawPowerMap(parseInt(this.value));
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var fixedCount = 0, cycleCount = 0, tailCount = 0;
+    var cycleSizes = new Set();
+
+    for (var i = 0; i < N_DATA; i++) {
+      var col = i % COLS;
+      var row = Math.floor(i / COLS);
+      var x = col * (CELL * 2) + CELL;
+      var y = row * (CELL * 2) + CELL;
+
+      var color;
+      switch (classification[i]) {
+        case 'fixed-zero':
+          color = '#555566'; fixedCount++; break;
+        case 'fixed':
+          color = '#ffffff'; fixedCount++; break;
+        case 'cycle':
+          var hue = (cycleLengths[i] * 47) % 360;
+          color = 'hsl(' + hue + ', 70%, 55%)';
+          cycleCount++;
+          cycleSizes.add(cycleLengths[i]);
+          break;
+        default:
+          color = '#2a2a3a'; tailCount++; break;
+      }
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, CELL * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (classification[i] === 'fixed' || classification[i] === 'fixed-zero') {
+        ctx.fillStyle = classification[i] === 'fixed-zero' ? '#888' : '#000';
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i, x, y);
+      }
+    }
+
+    var cycles = Array.from(cycleSizes).sort(function(a, b) { return a - b; });
+    document.getElementById('power-stats').textContent =
+      'Fixed: ' + fixedCount + ' | Cycles: ' + cycleCount +
+      ' (lengths: ' + (cycles.join(', ') || 'none') + ') | Tails: ' + tailCount;
+
+    document.getElementById('power-legend').innerHTML =
+      '<span style="--c:#fff">Fixed points</span>' +
+      '<span style="--c:#2a2a3a">Tails</span>' +
+      '<span style="--c:hsl(94,70%,55%)">Cycles</span>';
+  }
+
+  var slider = document.getElementById('k-slider');
+  var kDisplay = document.getElementById('k-display');
+  slider.addEventListener('input', function() {
+    kDisplay.textContent = this.value;
+    drawPowerMap(parseInt(this.value));
+  });
+  drawPowerMap(2);
+
+  // --- Carousel (k=7 constants from tower.js) ---
+  var N = TOWER.N, MODS = TOWER.MODS, CH_COLORS = TOWER.COLORS;
+  var carouselValue = 1;
+
+  function drawCarousel() {
+    var container = document.getElementById('carousel-container');
+    container.innerHTML = '';
+
+    for (var ch = 0; ch < MODS.length; ch++) {
+      var m = MODS[ch];
+      var residue = ((carouselValue % m) + m) % m;
+      var div = document.createElement('div');
+      div.className = 'carousel-ring';
+
+      var r = 36, cx = 45, cy = 45;
+      var svg = '<svg viewBox="0 0 90 90">';
+      svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + CH_COLORS[ch] + '33" stroke-width="2"/>';
+
+      for (var i = 0; i < m; i++) {
+        var angle = (i / m) * Math.PI * 2 - Math.PI / 2;
+        var x1 = cx + Math.cos(angle) * (r - 4);
+        var y1 = cy + Math.sin(angle) * (r - 4);
+        var x2 = cx + Math.cos(angle) * (r + 2);
+        var y2 = cy + Math.sin(angle) * (r + 2);
+        var isActive = i === residue;
+        svg += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+          '" stroke="' + (isActive ? CH_COLORS[ch] : '#333') + '" stroke-width="' + (isActive ? 2.5 : 1) + '"/>';
+      }
+
+      var pa = (residue / m) * Math.PI * 2 - Math.PI / 2;
+      svg += '<circle cx="' + (cx + Math.cos(pa) * r) + '" cy="' + (cy + Math.sin(pa) * r) +
+        '" r="4" fill="' + CH_COLORS[ch] + '"/></svg>';
+
+      div.innerHTML = svg;
+      var label = document.createElement('div');
+      label.className = 'carousel-label';
+      label.style.color = CH_COLORS[ch];
+      label.innerHTML = 'mod ' + m + '<br><span style="font-size:1rem">' + residue + '</span>';
+      div.appendChild(label);
+      container.appendChild(div);
+    }
+  }
+
+  function stepCarousel(delta) {
+    carouselValue = ((carouselValue + delta) % N + N) % N;
+    document.getElementById('carousel-input').value = carouselValue;
+    drawCarousel();
+  }
+
+  document.getElementById('carousel-input').addEventListener('input', function() {
+    carouselValue = parseInt(this.value) || 0;
+    drawCarousel();
+  });
+  document.getElementById('btn-car-plus').addEventListener('click', function() { stepCarousel(1); });
+  document.getElementById('btn-car-minus').addEventListener('click', function() { stepCarousel(-1); });
+  drawCarousel();
 });
-drawPowerMap(2);
-
-// --- Carousel ---
-const N = 510510;
-const MODS = [2, 3, 5, 7, 11, 13, 17];
-const CH_NAMES = ['2', '3', '5', '7', '11', '13', '17'];
-const CH_COLORS = ['#ff5555', '#ff8c00', '#ffd700', '#4caf50', '#00bcd4', '#5c6bc0', '#ab47bc'];
-
-let carouselValue = 1;
-
-function drawCarousel() {
-  const container = document.getElementById('carousel-container');
-  container.innerHTML = '';
-
-  for (let ch = 0; ch < 7; ch++) {
-    const m = MODS[ch];
-    const residue = ((carouselValue % m) + m) % m;
-    const div = document.createElement('div');
-    div.className = 'carousel-ring';
-
-    const r = 36;
-    const cx = 45, cy = 45;
-    let svg = `<svg viewBox="0 0 90 90">`;
-    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${CH_COLORS[ch]}33" stroke-width="2"/>`;
-
-    for (let i = 0; i < m; i++) {
-      const angle = (i / m) * Math.PI * 2 - Math.PI / 2;
-      const x1 = cx + Math.cos(angle) * (r - 4);
-      const y1 = cy + Math.sin(angle) * (r - 4);
-      const x2 = cx + Math.cos(angle) * (r + 2);
-      const y2 = cy + Math.sin(angle) * (r + 2);
-      const isActive = i === residue;
-      svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isActive ? CH_COLORS[ch] : '#333'}" stroke-width="${isActive ? 2.5 : 1}"/>`;
-    }
-
-    const angle = (residue / m) * Math.PI * 2 - Math.PI / 2;
-    const dx = cx + Math.cos(angle) * r;
-    const dy = cy + Math.sin(angle) * r;
-    svg += `<circle cx="${dx}" cy="${dy}" r="4" fill="${CH_COLORS[ch]}"/>`;
-    svg += `</svg>`;
-
-    div.innerHTML = svg;
-    const label = document.createElement('div');
-    label.className = 'carousel-label';
-    label.style.color = CH_COLORS[ch];
-    label.innerHTML = `mod ${m}<br><span style="font-size:1rem">${residue}</span>`;
-    div.appendChild(label);
-    container.appendChild(div);
-  }
-}
-
-function updateCarousel() {
-  carouselValue = parseInt(document.getElementById('carousel-input').value) || 0;
-  drawCarousel();
-}
-
-function stepCarousel(delta) {
-  carouselValue = ((carouselValue + delta) % N + N) % N;
-  document.getElementById('carousel-input').value = carouselValue;
-  drawCarousel();
-}
-
-drawCarousel();
-
-// --- Eigenvalue Cost ---
-const COST_DATA = [
-  { name: 'mod 2',  cost: 2.000, color: '#ff5555' },
-  { name: 'mod 3',  cost: 3.000, color: '#ff8c00' },
-  { name: 'mod 5',  cost: 1.382, color: '#ffd700' },
-  { name: 'mod 7',  cost: 0.753, color: '#4caf50' },
-  { name: 'mod 11', cost: 0.317, color: '#00bcd4' },
-  { name: 'mod 13', cost: 0.229, color: '#5c6bc0' },
-  { name: 'mod 17', cost: 0.135, color: '#ab47bc' }
-];
-
-function drawCostBars() {
-  const container = document.getElementById('cost-bars');
-  const maxCost = 3;
-  let html = '';
-  for (const d of COST_DATA) {
-    const width = (d.cost / maxCost) * 100;
-    html += `<div class="cost-bar-row">
-      <span class="cost-bar-label" style="color:${d.color}">${d.name}</span>
-      <div class="cost-bar" style="width:${width}%;background:${d.color};opacity:0.7"></div>
-      <span class="cost-bar-val">${d.cost.toFixed(3)}</span>
-    </div>`;
-  }
-  container.innerHTML = html;
-}
-drawCostBars();
 </script>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
+    <p>The mathematics behind this site is machine-verified: 159 tests at last build.</p>
+  </footer>
 </body>
 </html>

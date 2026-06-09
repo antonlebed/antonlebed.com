@@ -1,14 +1,14 @@
+// search.js -- client-side full-text search. PAGES is injected by build.py
+// from manifest.py (SSOT: the page list lives in ONE place).
 (function() {
   var PAGES = [
     {url:'index.html', title:'Home'},
-    {url:'sieve.html', title:'Sieve'},
     {url:'tower.html', title:'Tower'},
-    {url:'crt.html', title:'CRT Explorer'},
-    {url:'ecc.html', title:'Error Correction'},
+    {url:'crt.html', title:'CRT'},
+    {url:'ecc.html', title:'ECC'},
     {url:'dynamics.html', title:'Dynamics'},
     {url:'prediction.html', title:'Prediction'},
-    {url:'engineering.html', title:'Engineering'},
-    {url:'lab.html', title:'Hardware Lab'}
+    {url:'build.html', title:'Build'}
   ];
 
   var index = null;
