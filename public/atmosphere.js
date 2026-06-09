@@ -1,5 +1,4 @@
 // atmosphere.js — starfield (sun + scrollbar styles now in style.css)
-// Visual reference: webax/pages/core.ax celestial theatre
 
 (function() {
   if (document.getElementById('atmo-stars')) return;
