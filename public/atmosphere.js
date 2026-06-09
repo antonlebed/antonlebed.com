@@ -1,4 +1,4 @@
-// atmosphere.js — starfield + black sun + overlay scrollbar
+// atmosphere.js — starfield (sun + scrollbar styles now in style.css)
 // Visual reference: webax/pages/core.ax celestial theatre
 
 (function() {

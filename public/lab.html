@@ -107,9 +107,9 @@
     <div class="device-card">
       <h3>Tang Nano 20K</h3>
       <p>FPGA &mdash; Gowin GW2AR-18</p>
-      <p class="spec">3,329 LUT4 (16%)</p>
-      <p class="spec">194 MHz post-route</p>
-      <p class="spec">CRT + ECC pipeline</p>
+      <p class="spec">Two designs: RAD + RUNG5</p>
+      <p class="spec">3,329 &ndash; 5,291 LUT4</p>
+      <p class="spec">CRT + ECC pipelines</p>
     </div>
     <div class="device-card">
       <h3>ESP32 &times; 3</h3>
@@ -122,13 +122,13 @@
 
   <h2>FPGA Pipeline</h2>
   <p>
-    Z/510,510 on silicon. Seven GF(p) multipliers &mdash; one per prime field
-    channel &mdash; with CRT reconstruction and ECC proof. One design does roundtrip
-    verification, per-channel multiplication, and full error-correction testing.
+    Primorial rings on silicon. Each design has per-channel GF(p) multipliers,
+    CRT reconstruction, and exhaustive ECC testing. RAD (k=7, 7 channels) and
+    RUNG5 (k=8, 8 channels) both fit the Tang Nano 20K with room to spare.
   </p>
 
   <div class="measurement">
-    <strong>Exhaustive proof:</strong> <span class="result">1,022,070 checks, 0 failures.</span>
+    <strong>RAD exhaustive proof:</strong> <span class="result">1,022,070 checks, 0 failures.</span>
     Seven phases at 194 MHz F<sub>max</sub>.
   </div>
 
@@ -145,18 +145,24 @@
 
   <table class="lab-table" style="margin-top:1rem;">
     <tr><th>Design</th><th>Ring</th><th>LUT4</th><th>%</th><th>F<sub>max</sub></th><th>Scope</th></tr>
-    <tr><td>crt_rad</td><td>Z/510,510</td><td class="num">3,329</td><td class="num">16%</td><td class="num">194 MHz</td><td>CRT + multiply + ECC</td></tr>
+    <tr><td>crt_rad</td><td>Z/510,510</td><td class="num">3,329</td><td class="num">16%</td><td class="num">194 MHz</td><td>CRT + multiply + ECC (1M checks)</td></tr>
+    <tr><td>crt_rung5</td><td>Z/9,699,690</td><td class="num">5,291</td><td class="num">26%</td><td class="num">172 MHz</td><td>CRT + multiply + ECC (19M checks)</td></tr>
     <tr><td style="color:var(--fg-dim)">crt_k9_pipeline</td><td style="color:var(--fg-dim)">Z/214M (fat)</td><td class="num" style="color:var(--fg-dim)">6,555</td><td class="num" style="color:var(--fg-dim)">31%</td><td class="num" style="color:var(--fg-dim)">267 MHz</td><td style="color:var(--fg-dim)">Multiply only (historical)</td></tr>
   </table>
 
+  <div class="measurement" style="margin-top:1rem;">
+    <strong>RUNG5 exhaustive proof:</strong> <span class="result">19,413,240 checks, 0 failures.</span>
+    Eight phases at 172 MHz. 8 channels (5 data + 3 parity), rate 5/8 MDS ECC.
+  </div>
+
   <p style="font-size:0.8rem; color:var(--fg-dim);">
-    Z/510,510 uses 49% fewer LUTs than the fat-ring pipeline while proving more (roundtrip +
-    multiply + ECC vs multiply only). Field-only arithmetic (GF(p) vs Z/p<sup>k</sup>)
-    eliminates the complex modular reduction that dominated fat-ring LUT usage.
+    RUNG5 adds one channel (mod&nbsp;19) at +59% LUT cost while proving 19&times;
+    more values. Both field-only designs outperform the fat-ring pipeline, which used
+    31% of the FPGA for multiply-only at a single fattened ring.
   </p>
 
   <div class="measurement">
-    <strong>ECC weight matrix &mdash; how each data channel influences each parity channel:</strong>
+    <strong>RAD ECC weight matrix &mdash; how each data channel influences each parity channel:</strong>
     <pre style="margin:0.5rem 0;font-size:0.75rem;color:var(--fg);">        mod 2  mod 3  mod 5  mod 7
 mod 11:   6      4      5     10
 mod 13:   1      5      9      3
