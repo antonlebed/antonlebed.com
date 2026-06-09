@@ -71,36 +71,18 @@
     document.head.appendChild(driftStyle);
   }
 
-  // Static CSS
-  var staticCss =
-    '#atmo-stars{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:-2}';
-
-  // Sun: 80px, gradient core, 3-layer corona, 21s pulse
-  staticCss += '#atmo-sun{position:absolute;top:20px;left:30px;width:80px;height:80px;border-radius:50%;' +
-    'background:radial-gradient(circle at 50% 50%,#0a0a0f 0%,#0a0a0f 50%,#1a0800 68%,#4a1500 80%,#8B2500 90%,#CC5500 96%,#FF8C00 100%);' +
-    'box-shadow:0 0 40px 14px rgba(255,60,0,0.3),0 0 90px 35px rgba(255,120,0,0.12),0 0 160px 65px rgba(255,80,0,0.05);' +
-    'pointer-events:none;z-index:-1;animation:atmo-pulse 21s ease-in-out infinite}';
-  staticCss += '@keyframes atmo-pulse{' +
-    '0%,100%{box-shadow:0 0 30px 10px rgba(255,60,0,0.35),0 0 70px 30px rgba(255,120,0,0.15),0 0 140px 60px rgba(255,80,0,0.06)}' +
-    '50%{box-shadow:0 0 45px 18px rgba(255,80,0,0.5),0 0 100px 45px rgba(255,140,0,0.22),0 0 180px 80px rgba(255,100,0,0.09)}}';
-
-  // Scrollbar
-  staticCss += 'html{position:relative;overflow-y:scroll;overflow-y:overlay;scrollbar-width:thin;scrollbar-color:#2a2a40 transparent}';
-  staticCss += '::-webkit-scrollbar{width:8px;background:transparent}';
-  staticCss += '::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:4px}';
-  staticCss += '::-webkit-scrollbar-thumb:hover{background:#3a3a55}';
-
-  var style = document.createElement('style');
-  style.textContent = staticCss;
-  document.head.appendChild(style);
+  // Sun + scrollbar + container CSS now in style.css (loads synchronously, no flash).
+  // atmosphere.js only creates the starfield layers.
 
   document.body.appendChild(container);
   buildStars();
 
-  // Sun (in page flow, scrolls away)
-  var sun = document.createElement('div');
-  sun.id = 'atmo-sun';
-  document.body.insertBefore(sun, document.body.firstChild);
+  // Sun: use existing HTML div if present, otherwise create
+  if (!document.getElementById('atmo-sun')) {
+    var sun = document.createElement('div');
+    sun.id = 'atmo-sun';
+    document.body.insertBefore(sun, document.body.firstChild);
+  }
 
   // Regenerate on resize
   var resizeTimer;
