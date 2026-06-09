@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The primorial tower: the first 14 rungs, lambda plateaus, transparency, rate scaling, and the k=7 demo rung in detail.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Tower — antonlebed.com</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
+  <style>
+    .tower-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.8rem; }
+    .tower-table th, .tower-table td { padding: 0.35rem 0.5rem; border: 1px solid var(--border); text-align: center; }
+    .tower-table th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+    .tower-table td { font-family: var(--mono); }
+    .tower-table .demo td { color: var(--accent); }
+    .tower-table .transparent td { color: var(--fg-dim); }
+    .mini-demo { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+    .mini-demo label { color: var(--fg-dim); font-family: var(--mono); font-size: 0.85rem; }
+    .mini-demo input { max-width: 160px; margin: 0 0.5rem; }
+    #mini-tuple { font-family: var(--mono); font-size: 0.9rem; margin-top: 0.75rem; }
+    .constants-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+    .constants-table th, .constants-table td { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: left; }
+    .constants-table th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+    .constants-table td { font-family: var(--mono); }
+    .rate-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+    .rate-table th, .rate-table td { padding: 0.35rem 0.5rem; border: 1px solid var(--border); text-align: center; }
+    .rate-table th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+    .rate-table td { font-family: var(--mono); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="sieve.html">Sieve</a>
+    <a href="tower.html" aria-current="page">Tower</a>
+    <a href="crt.html">CRT</a>
+    <a href="ecc.html">ECC</a>
+    <a href="dynamics.html">Dynamics</a>
+    <a href="prediction.html">Prediction</a>
+    <a href="engineering.html">Engineering</a>
+    <a href="lab.html">Lab</a>
+  </nav>
+
+  <h1>The Tower</h1>
+  <p>
+    The primorial tower is the sequence of rings built from the first k primes. Each
+    rung adds one prime, one independent channel, one sieve step. This page shows what
+    you get at each rung and how the structure scales.
+  </p>
+
+  <h2>The first 14 rungs</h2>
+  <p>
+    Every rung: all channels are prime fields, arithmetic is bijective, meadow
+    structure holds. MDS error correction from k = 7 onward.
+  </p>
+
+  <table class="tower-table">
+    <tr>
+      <th>k</th><th>p<sub>k</sub></th><th>N</th><th>Channels</th><th>&lambda;</th><th>Transparent?</th><th>ECC</th>
+    </tr>
+    <tr><td>3</td><td>5</td><td>30</td><td>3</td><td>4</td><td>&mdash;</td><td>&mdash;</td></tr>
+    <tr><td>4</td><td>7</td><td>210</td><td>4</td><td>12</td><td>&mdash;</td><td>&mdash;</td></tr>
+    <tr><td>5</td><td>11</td><td>2,310</td><td>5</td><td>60</td><td>&mdash;</td><td>Fano plane</td></tr>
+    <tr class="transparent"><td>6</td><td>13</td><td>30,030</td><td>6</td><td>60</td><td>yes</td><td>&mdash;</td></tr>
+    <tr class="demo"><td>7</td><td>17</td><td>510,510</td><td>7</td><td>240</td><td>&mdash;</td><td>MDS d=4, rate 4/7</td></tr>
+    <tr><td>8</td><td>19</td><td>9,699,690</td><td>8</td><td>720</td><td>&mdash;</td><td>rate 5/8</td></tr>
+    <tr><td>9</td><td>23</td><td>223,092,870</td><td>9</td><td>7,920</td><td>&mdash;</td><td>rate 6/9</td></tr>
+    <tr><td>10</td><td>29</td><td>6,469,693,230</td><td>10</td><td>55,440</td><td>&mdash;</td><td>rate 7/10</td></tr>
+    <tr class="transparent"><td>11</td><td>31</td><td>2.01 &times; 10<sup>11</sup></td><td>11</td><td>55,440</td><td>yes</td><td>rate 8/11</td></tr>
+    <tr class="transparent"><td>12</td><td>37</td><td>7.42 &times; 10<sup>12</sup></td><td>12</td><td>55,440</td><td>yes</td><td>rate 9/12</td></tr>
+    <tr class="transparent"><td>13</td><td>41</td><td>3.04 &times; 10<sup>14</sup></td><td>13</td><td>55,440</td><td>yes</td><td>rate 10/13</td></tr>
+    <tr class="transparent"><td>14</td><td>43</td><td>1.31 &times; 10<sup>16</sup></td><td>14</td><td>55,440</td><td>yes</td><td>rate 11/14</td></tr>
+  </table>
+
+  <h2>Two growth modes</h2>
+  <p>
+    Adding a prime either changes lambda or doesn't. This creates two modes:
+  </p>
+  <p>
+    <strong>Complexity</strong> &mdash; a non-transparent prime introduces a new
+    prime-power factor to lambda. New dynamical structure: new orbit periods, new
+    order levels. Lambda jumps. Examples: 11 (jump &times;5), 17 (jump &times;4),
+    23 (jump &times;11).
+  </p>
+  <p>
+    <strong>Capacity</strong> &mdash; a transparent prime adds space without new
+    complexity. Phi grows, idempotents double, but lambda stays the same. The
+    dynamical skeleton is unchanged. Example: 13, whose &phi;(13) = 12 already
+    divides lambda = 60.
+  </p>
+  <p>
+    <strong>Transparency criterion:</strong> prime p is transparent at rung k iff
+    (p&minus;1) divides &lambda;(k&minus;1).
+  </p>
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    Lambda plateaus occur when consecutive primes are all transparent.
+    k = 10&ndash;14 is a 5-rung plateau at &lambda; = 55,440. By k = 2000,
+    77% of primes are transparent, the longest plateau is 24 consecutive primes
+    (k = 1849&ndash;1872), and the non-transparent fraction decays as
+    approximately k<sup>&minus;0.17</sup>.
+  </p>
+
+  <h2>ECC rate scales</h2>
+  <p>
+    At every rung k &ge; 7, designate the last 3 channels as parity and the rest
+    as data. Any (k&minus;3) of k channels reconstruct the original. The code is MDS
+    (distance 4) at every rung &mdash; optimal.
+  </p>
+
+  <table class="rate-table">
+    <tr><th>k</th><th>Rate</th><th>Data capacity</th></tr>
+    <tr><td>7</td><td>4/7 = 0.571</td><td>210</td></tr>
+    <tr><td>8</td><td>5/8 = 0.625</td><td>2,310</td></tr>
+    <tr><td>9</td><td>6/9 = 0.667</td><td>30,030</td></tr>
+    <tr><td>10</td><td>7/10 = 0.700</td><td>510,510</td></tr>
+  </table>
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    Rate approaches 1 as the tower grows. No blind spots at any verified rung
+    (k = 7&ndash;10): parity primes are larger than data primes, so no data
+    idempotent can vanish mod a parity prime.
+  </p>
+
+  <h2>The k = 7 rung</h2>
+  <p>
+    Most interactive demos on this site use k = 7: the ring Z/510,510. Seven channels
+    give MDS ECC at rate 4/7, the ring is small enough for exhaustive computation
+    (510,510 elements, 92,160 units), and the 4+3 split is the first with distance 4.
+  </p>
+  <p class="factorization" style="font-family:var(--mono);font-size:1rem;text-align:center;margin:1.5rem 0;color:var(--fg);">
+    Z/510,510 &cong; Z/2 &times; Z/3 &times; Z/5 &times; Z/7 &times; Z/11 &times; Z/13 &times; Z/17
+  </p>
+
+  <h3>The Cunningham construction</h3>
+  <p>
+    The first 7 primes are uniquely determined by a single map. Start with seed 2
+    and apply c(n) = 2n+1. Two chains emerge, each terminating at a composite:
+  </p>
+  <p style="font-family:var(--mono);font-size:0.85rem;margin:0.5rem 0;padding-left:1rem;">
+    From 1: 1 &rarr; 3 &rarr; 7 &rarr; 15 (stop: 15 = 3&times;5)<br>
+    From 2: 2 &rarr; 5 &rarr; 11 &rarr; 23 &rarr; 47 &rarr; 95 (stop: 95 = 5&times;19)
+  </p>
+  <p>
+    Five primes &le; 17: {2, 3, 5, 7, 11}. Two more close the set:
+    13 = 2&sup2;+3&sup2; and 17 = 2+3+5+7.
+    Why seed 2 is forced: any prime &gt; 2 is odd, so 2n+1 is even and &ge; 4
+    &mdash; composite. The only even prime is 2.
+  </p>
+
+  <div class="mini-demo">
+    <label>n =</label><input type="number" id="mini-n" value="255256" min="0" max="510509">
+    <div id="mini-tuple"></div>
+  </div>
+
+  <table class="constants-table">
+    <tr><th>Name</th><th>Value</th><th>CRT tuple</th><th>Meaning</th></tr>
+    <tr><td>0</td><td>0</td><td>(0, 0, 0, 0, 0, 0, 0)</td><td>All channels zero</td></tr>
+    <tr><td>1</td><td>1</td><td>(1, 1, 1, 1, 1, 1, 1)</td><td>Multiplicative identity</td></tr>
+    <tr><td>&minus;1</td><td>510,509</td><td>(1, 2, 4, 6, 10, 12, 16)</td><td>Each channel shows p&minus;1</td></tr>
+    <tr><td>&Omega;</td><td>255,256</td><td>(0, 1, 1, 1, 1, 1, 1)</td><td>Idempotent: 1 everywhere except mod 2</td></tr>
+  </table>
+
+  <table class="constants-table" style="margin-top:0.5rem;">
+    <tr><td>&phi;</td><td colspan="3">92,160 units</td></tr>
+    <tr><td>&lambda;</td><td colspan="3">240 = 2<sup>4</sup> &middot; 3 &middot; 5</td></tr>
+    <tr><td>Idempotents</td><td colspan="3">128 (one per subset of 7 primes)</td></tr>
+  </table>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a></p>
+    <p><a href="https://github.com/antonlebed/antonlebed.com">Source code</a></p>
+    <p>Public domain (CC0)</p>
+  </footer>
+
+<script>
+const channels = [
+  { q: 2,  name: '2', color: '#ff5555' },
+  { q: 3,  name: '3', color: '#ff8c00' },
+  { q: 5,  name: '5', color: '#ffd700' },
+  { q: 7,  name: '7', color: '#4caf50' },
+  { q: 11, name: '11', color: '#00bcd4' },
+  { q: 13, name: '13', color: '#5c6bc0' },
+  { q: 17, name: '17', color: '#ab47bc' }
+];
+const N = 510510;
+
+function update() {
+  let n = parseInt(document.getElementById('mini-n').value) || 0;
+  n = ((n % N) + N) % N;
+  const parts = channels.map(ch =>
+    `<span style="color:${ch.color}">${n % ch.q}</span>`
+  );
+  document.getElementById('mini-tuple').innerHTML =
+    `${n} &mapsto; (${parts.join(', ')})`;
+}
+
+document.getElementById('mini-n').addEventListener('input', update);
+update();
+</script>
+</body>
+</html>

@@ -3,70 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Z/510510: the product of the first seven primes. 7 independent channels, MDS error correction, bijective arithmetic. Interactive explorations.">
+  <meta name="description" content="The primorial tower: the algebraic form of the Eratosthenes sieve. Independent channels, MDS error correction, and prime prediction — all by construction.">
   <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="antonlebed.com">
   <link rel="icon" type="image/png" href="favicon.png">
-  <title>antonlebed.com — Seven Primes, One Ring</title>
+  <title>antonlebed.com — The Primorial Tower</title>
   <link rel="stylesheet" href="style.css">
   <script src="atmosphere.js" defer></script>
   <script src="search.js" defer></script>
+  <style>
+    .tower-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.8rem;
+    }
+    .tower-table th, .tower-table td {
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .tower-table th {
+      background: var(--card-bg);
+      color: var(--fg-dim);
+      font-weight: normal;
+    }
+    .tower-table td { font-family: var(--mono); }
+    .tower-table .demo td { color: var(--accent); }
+  </style>
 </head>
 <body>
   <nav>
     <a href="index.html" aria-current="page">Home</a>
-    <a href="primer.html">Primer</a>
-    <a href="ring.html">Ring</a>
+    <a href="sieve.html">Sieve</a>
+    <a href="tower.html">Tower</a>
     <a href="crt.html">CRT</a>
     <a href="ecc.html">ECC</a>
     <a href="dynamics.html">Dynamics</a>
-    <a href="seedflower.html">Seed-Flower</a>
+    <a href="prediction.html">Prediction</a>
     <a href="engineering.html">Engineering</a>
     <a href="lab.html">Lab</a>
   </nav>
 
   <div class="hero">
-    <h1>Z/510,510</h1>
-    <p class="factorization">
-      2 &times; 3 &times; 5 &times; 7 &times; 11 &times; 13 &times; 17
-    </p>
+    <h1>The Primorial Tower</h1>
+    <p class="factorization">The algebra of the Eratosthenes sieve</p>
   </div>
 
-  <h2>The ring</h2>
   <p>
-    The product of the first seven primes.
-    By the Chinese Remainder Theorem, every element maps to a unique 7-tuple of residues
-    &mdash; one per prime field. What happens in mod 2 cannot affect mod 3, or mod 5, or
-    any of the others. Every 7-tuple maps back to exactly one number.
-    The decomposition is a bijection.
+    The sieve of Eratosthenes finds primes by removing multiples: cross out
+    multiples of 2, then 3, then 5, and so on. Each step is a projection onto a
+    prime field. The sieve has an algebraic form &mdash; the <strong>primorial
+    tower</strong> &mdash; and that form gives you structure for free.
   </p>
 
-  <h2>Built-in error correction</h2>
+  <h2>The tower</h2>
   <p>
-    Four channels (mod 2, 3, 5, 7) carry data. Three (mod 11, 13, 17) are parity.
-    This gives a rate-4/7 error-correcting code that is <em>maximum distance separable</em>:
-    any 4 of 7 channels reconstruct the original. No [7,4] code can do better.
+    Multiply the first k primes. By the Chinese Remainder Theorem, the resulting ring
+    decomposes into k independent channels, each a prime field. Every rung adds one
+    prime, one channel, one sieve step.
+  </p>
+
+  <table class="tower-table">
+    <tr>
+      <th>k</th><th>Primes</th><th>N</th><th>Channels</th><th>ECC rate</th>
+    </tr>
+    <tr><td>3</td><td>2 &middot; 3 &middot; 5</td><td>30</td><td>3</td><td>&mdash;</td></tr>
+    <tr><td>4</td><td>+ 7</td><td>210</td><td>4</td><td>&mdash;</td></tr>
+    <tr><td>5</td><td>+ 11</td><td>2,310</td><td>5</td><td>&mdash;</td></tr>
+    <tr><td>6</td><td>+ 13</td><td>30,030</td><td>6</td><td>&mdash;</td></tr>
+    <tr class="demo"><td>7</td><td>+ 17</td><td>510,510</td><td>7</td><td>4/7</td></tr>
+    <tr><td>8</td><td>+ 19</td><td>9,699,690</td><td>8</td><td>5/8</td></tr>
+    <tr><td>9</td><td>+ 23</td><td>223,092,870</td><td>9</td><td>6/9</td></tr>
+  </table>
+  <p style="font-size:0.8rem; color:var(--fg-dim);">
+    k = 7 is the demo rung throughout this site. Every rung:
+    all channels are fields, arithmetic is bijective, meadow structure holds.
+  </p>
+
+  <h2>What the tower gives you</h2>
+
+  <p>
+    <strong>Independent channels.</strong>
+    Knowing a number's remainder mod 2 tells you nothing about its remainder
+    mod 3, or any other prime. Zero mutual information &mdash; a theorem, not an
+    approximation. One problem with 510,510 possibilities becomes seven
+    problems with at most 17 each.
+  </p>
+
+  <p>
+    <strong>Built-in error correction.</strong>
+    From k = 7 onward, any (k&minus;3) of k channels reconstruct the original element.
+    Maximum distance separable &mdash; no code with those parameters can do better.
     No separate encoding layer. The ring <em>is</em> the code.
   </p>
 
-  <h2>Why these primes</h2>
   <p>
-    The first seven consecutive primes. Not arbitrary &mdash; two Cunningham chains
-    (each step: double and add 1) starting from seeds 1 and 2 produce
-    2, 3, 5, 7, 11, then 13 and 17 close the set algebraically.
-    Every channel is a prime field &mdash; no zero divisors, every nonzero
-    element invertible.
+    <strong>Prime prediction.</strong>
+    Build a sub-ring from a few primes. Its Euler characteristic names primes the
+    sub-ring has never met. At k = 7, fourteen of fifteen primes after the 7th are
+    predicted. The tower sees further as it climbs.
   </p>
 
-  <h2>What you can do here</h2>
+  <h2>Explore</h2>
   <p>
-    Everything on this site is computed live in your browser. Type any number and watch it
-    decompose into 7 channels. Corrupt a channel and watch the ring heal it. Trace
-    power-map orbits across the ring's dynamics. The engineering section documents a
-    CRT-decomposed neural architecture built on this structure &mdash; what worked, what
-    didn't. The hardware lab shows real measurements: an FPGA proving CRT arithmetic
-    across 1,022,070 exhaustive checks, three ESP32 boards correcting errors over radio.
+    Everything on this site is computed live in your browser. Type a number and watch
+    it decompose into 7 channels. Corrupt a channel and watch the ring heal it.
+    Trace power-map orbits. Pick primes and see what they predict.
+  </p>
+  <p>
+    The engineering section documents a CRT-decomposed neural architecture &mdash;
+    what worked, what didn't. The hardware lab shows real measurements: an FPGA
+    proving CRT arithmetic across 1,022,070 exhaustive checks, three ESP32 boards
+    correcting errors over radio.
   </p>
 
   <footer>

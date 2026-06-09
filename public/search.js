@@ -1,12 +1,12 @@
 (function() {
   var PAGES = [
     {url:'index.html', title:'Home'},
-    {url:'primer.html', title:'Primer'},
-    {url:'ring.html', title:'Ring'},
+    {url:'sieve.html', title:'Sieve'},
+    {url:'tower.html', title:'Tower'},
     {url:'crt.html', title:'CRT Explorer'},
     {url:'ecc.html', title:'Error Correction'},
     {url:'dynamics.html', title:'Dynamics'},
-    {url:'seedflower.html', title:'Seed-Flower'},
+    {url:'prediction.html', title:'Prediction'},
     {url:'engineering.html', title:'Engineering'},
     {url:'lab.html', title:'Hardware Lab'}
   ];

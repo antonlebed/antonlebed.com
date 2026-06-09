@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seed-Flower — antonlebed.com</title>
-  <meta name="description" content="Pick two primes. The Euler characteristic of their sub-ring names primes they've never met. Interactive explorer with proved algebraic identities.">
+  <title>Prediction — antonlebed.com</title>
+  <meta name="description" content="The tower predicts primes it has never met. Pick primes, compute the Euler characteristic, and see what it names. Interactive explorer with proved algebraic identities.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <script src="atmosphere.js" defer></script>
@@ -49,10 +49,7 @@
       margin-bottom: 0.4rem;
       overflow-wrap: break-word;
     }
-    .result-card .naming {
-      margin-top: 0.6rem;
-      font-size: 0.9rem;
-    }
+    .result-card .naming { margin-top: 0.6rem; font-size: 0.9rem; }
     .chain-box {
       background: #88ccaa10;
       border-left: 3px solid var(--accent);
@@ -70,6 +67,23 @@
       text-align: center;
       padding: 2rem 0;
     }
+    .pred-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.8rem;
+    }
+    .pred-table th, .pred-table td {
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .pred-table th {
+      background: var(--card-bg);
+      color: var(--fg-dim);
+      font-weight: normal;
+    }
+    .pred-table td { font-family: var(--mono); }
     .proof-table {
       width: 100%;
       border-collapse: collapse;
@@ -110,20 +124,21 @@
 <body>
   <nav>
     <a href="index.html">Home</a>
-    <a href="primer.html">Primer</a>
-    <a href="ring.html">Ring</a>
+    <a href="sieve.html">Sieve</a>
+    <a href="tower.html">Tower</a>
     <a href="crt.html">CRT</a>
     <a href="ecc.html">ECC</a>
     <a href="dynamics.html">Dynamics</a>
-    <a href="seedflower.html" aria-current="page">Seed-Flower</a>
+    <a href="prediction.html" aria-current="page">Prediction</a>
     <a href="engineering.html">Engineering</a>
     <a href="lab.html">Lab</a>
   </nav>
 
-  <h1>Seed-Flower</h1>
+  <h1>Prediction</h1>
   <p>
-    Build a ring from just a few primes &mdash; a seed. Compute its Euler characteristic.
-    The answer can name primes the seed has never seen.
+    The tower predicts primes it has never met. Build a sub-ring from a few
+    primes. Compute its Euler characteristic. The answer names primes the
+    sub-ring has never seen.
   </p>
   <p>
     <strong>Formula:</strong> <code>&minus;&chi; = N &times; (k&minus;1 &minus; &Sigma; 1/p<sub>i</sub>)</code>.
@@ -131,40 +146,79 @@
   </p>
 
   <h2>Explorer</h2>
-  <p>Select any two or more of the seven primes.</p>
+  <p>Select any two or more of the seven primes (k = 7 demo rung).</p>
 
   <div class="prime-btns" id="btns"></div>
   <div id="out"></div>
 
-  <h2>The Chain Predictions</h2>
+  <h2>Predictions through the tower</h2>
   <p>
-    Four pairs connected by Cunningham chains predict the next prime in the ring.
+    Each rung predicts a different number of primes. The count grows as the tower
+    climbs. Two root patterns generate all 2-prime predictions at k &le; 8:
+    the twin offset {2, p} &rarr; p&minus;2, and the 3-root {3, p} &rarr; 2p&minus;3.
+  </p>
+
+  <table class="pred-table">
+    <tr><th>k</th><th>p<sub>k</sub></th><th>Predictions</th><th>2-root</th><th>3-root</th><th>Other</th></tr>
+    <tr><td>3</td><td>5</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>4</td><td>7</td><td>3</td><td>2</td><td>1</td><td>0</td></tr>
+    <tr><td>5</td><td>11</td><td>4</td><td>2</td><td>2</td><td>0</td></tr>
+    <tr><td>6</td><td>13</td><td>5</td><td>3</td><td>2</td><td>0</td></tr>
+    <tr><td>7</td><td>17</td><td>5</td><td>3</td><td>2</td><td>0</td></tr>
+    <tr><td>8</td><td>19</td><td>7</td><td>4</td><td>3</td><td>0</td></tr>
+    <tr><td>9</td><td>23</td><td>9</td><td>4</td><td>4</td><td>1</td></tr>
+    <tr><td>10</td><td>29</td><td>9</td><td>4</td><td>4</td><td>1</td></tr>
+    <tr><td>11</td><td>31</td><td>11</td><td>5</td><td>5</td><td>1</td></tr>
+  </table>
+
+  <h2>The factorization rule</h2>
+  <p>
+    New predictions at rung k come from exactly two sources (proved, verified k = 3&ndash;24):
+  </p>
+  <p>
+    <strong>(A) Twin term:</strong> {2, p<sub>k</sub>} &rarr; p<sub>k</sub>&minus;2.
+    Fires when p<sub>k</sub> and p<sub>k</sub>&minus;2 are a twin prime pair.
+  </p>
+  <p>
+    <strong>(B) Factorization term:</strong> each way to write (p<sub>k</sub>&nbsp;+&nbsp;1) as
+    (p<sub>i</sub>&minus;1)(p<sub>j</sub>&minus;1) with p<sub>i</sub>, p<sub>j</sub>
+    smaller tower primes contributes one prediction.
+  </p>
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    &ldquo;Rich&rdquo; rungs: (p<sub>k</sub>&nbsp;+&nbsp;1) highly composite (e.g. p<sub>k</sub> = 71,
+    72 = 2&sup3;&middot;3&sup2;, gains 3 new predictions). &ldquo;Barren&rdquo; rungs:
+    (p<sub>k</sub>&nbsp;+&nbsp;1) lacks usable factorizations (e.g. p<sub>k</sub> = 29,
+    30 = 2&middot;3&middot;5, gains 0).
+  </p>
+
+  <h2>Examples at k = 7</h2>
+  <p>
+    Four 2-prime sub-rings at k = 7 name the next prime in the chain.
     Each is an algebraic identity, not a numerical coincidence.
-    Writing D&nbsp;=&nbsp;2 and K&nbsp;=&nbsp;3 for the chain starting points:
   </p>
 
   <table class="proof-table">
-    <tr><th>Pair</th><th>&minus;&chi;</th><th>Identity</th><th>Factoring</th></tr>
+    <tr><th>Sub-ring</th><th>&minus;&chi;</th><th>Identity</th><th>Factoring</th></tr>
     <tr>
-      <td>{2,&thinsp;5} &rarr; Z/10</td>
+      <td>{2, 5} &rarr; Z/10</td>
       <td class="pred">3</td>
       <td>(2D+1)(D&minus;2) = 0</td>
       <td>5 &times; (D&minus;2)</td>
     </tr>
     <tr>
-      <td>{2,&thinsp;7} &rarr; Z/14</td>
+      <td>{2, 7} &rarr; Z/14</td>
       <td class="pred">5</td>
       <td>(3D+1)(D&minus;2) = 0</td>
       <td>7 &times; (D&minus;2)</td>
     </tr>
     <tr>
-      <td>{3,&thinsp;5} &rarr; Z/15</td>
+      <td>{3, 5} &rarr; Z/15</td>
       <td class="pred">7</td>
       <td>(2K&minus;1)(K&minus;3) = 0</td>
       <td>5 &times; (K&minus;3)</td>
     </tr>
     <tr>
-      <td>{3,&thinsp;7} &rarr; Z/21</td>
+      <td>{3, 7} &rarr; Z/21</td>
       <td class="pred">11</td>
       <td>2K(K&minus;3) = 0</td>
       <td>6 &times; (K&minus;3)</td>
@@ -172,19 +226,17 @@
   </table>
 
   <p style="font-size:0.85rem;color:var(--fg-dim)">
-    Every polynomial factors as (ring element) &times; (D&minus;2 or K&minus;3).
-    The roots D&nbsp;=&nbsp;2 and K&nbsp;=&nbsp;3 are forced &mdash; the unique starting points
-    of the Cunningham chains among the seven primes. Discriminants are perfect squares:
-    5&sup2;, 7&sup2;, 5&sup2;, 6&sup2;.
+    D = 2, K = 3 are the Cunningham chain starting points. Every polynomial factors as
+    (ring element) &times; (D&minus;2 or K&minus;3).
   </p>
 
-  <h2>The Landscape</h2>
+  <h2>The landscape</h2>
   <p>
-    How many sub-rings have &minus;&chi; built entirely from the seven primes?
+    How many sub-rings at k = 7 have &minus;&chi; built entirely from the seven primes?
   </p>
 
   <table class="scale-table">
-    <tr><th>Primes</th><th>Sub-rings</th><th>Smooth</th><th>Fraction</th></tr>
+    <tr><th>Primes in sub-ring</th><th>Sub-rings</th><th>Smooth</th><th>Fraction</th></tr>
     <tr><td>1</td><td>7</td><td class="hi">7</td><td class="hi">100%</td></tr>
     <tr><td>2</td><td>21</td><td class="hi">11</td><td class="hi">52%</td></tr>
     <tr><td>3</td><td>35</td><td>3</td><td>9%</td></tr>
@@ -193,15 +245,26 @@
   </table>
 
   <p>
-    <strong>2-invisibility.</strong> The prime 2 is never named by any sub-ring
-    that doesn't contain it. For odd-prime sub-rings, &minus;&chi; is always odd.
-    2 is the only one of the seven primes invisible to the topology.
+    <strong>2-invisibility (proved).</strong> The prime 2 is never named by any sub-ring
+    that doesn't contain it. For odd-prime sub-rings, &minus;&chi; is always odd. This
+    follows from the reciprocal naming criterion: for odd primes, each 1/p<sub>i</sub> = 1
+    (mod 2), so the sum can never equal m&minus;1 (mod 2).
   </p>
 
-  <p style="font-size:0.85rem;color:var(--fg-dim)">
-    Naming frequency across all 127 sub-rings:
-    3 is named 24 times, 5 by 12, 7 by 8, 11 by 6, 13 and 17 by 3 each, 2 by 0.
-    Smaller primes are more visible.
+  <h2>How far the tower sees</h2>
+  <p>
+    The prediction horizon &mdash; how far ahead the tower's sub-rings can name primes
+    &mdash; grows super-exponentially:
+  </p>
+  <p style="font-family:var(--mono);font-size:0.85rem;">
+    k=3: &thinsp;horizon/p<sub>k</sub> = 5.8 &emsp;
+    k=7: &thinsp;14 of 15 primes after p<sub>7</sub> predicted &emsp;
+    k=10: &thinsp;horizon/p<sub>k</sub> = 505M
+  </p>
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    Mid-size sub-rings (~k/2 primes) are the most productive predictors.
+    The full ring's &minus;&chi; is too large (rarely prime); single primes
+    are too small.
   </p>
 
   <footer>
@@ -268,7 +331,6 @@ function getSelected() {
   return selOrder.slice().sort(function(a, b) { return a - b; });
 }
 
-// Build buttons
 var btns = document.getElementById('btns');
 P.forEach(function(p, i) {
   var b = document.createElement('button');
@@ -312,11 +374,9 @@ function render() {
   for (i = 0; i < k; i++) N *= ps[i];
   var nc = negChi(ps);
 
-  // Ring name
   var rn = 'Z/' + nf(N) + ' = ' +
     ps.map(function(p) { return '<span style="color:' + c(p) + '">Z/' + p + '</span>'; }).join(' × ');
 
-  // Formula
   var form;
   if (k === 2) {
     var a = ps[0] - 1, b = ps[1] - 1;
@@ -329,7 +389,6 @@ function render() {
       ' − (' + terms.join(' + ') + ') = <strong>' + nf(nc) + '</strong>';
   }
 
-  // Factorization
   var facLine = '';
   if (nc > 1) {
     var f = fac(nc);
@@ -340,7 +399,6 @@ function render() {
     }
   }
 
-  // Named primes (ring primes dividing nc that aren't in the selection)
   var named = [];
   if (nc > 1) {
     fac(nc).forEach(function(x) {
@@ -365,7 +423,6 @@ function render() {
       : '<div class="naming" style="color:var(--fg-dim)">None of the seven primes named. Outside primes appear.</div>';
   }
 
-  // Chain identity (2-prime pairs only)
   var chainHtml = '';
   if (k === 2) {
     var ch = CHAIN[ps.join(',')];
