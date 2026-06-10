@@ -1,201 +1,108 @@
-// atmosphere.js -- starfield on a single canvas, ANCHORED TO THE VIEWPORT.
-// Stars live in viewport coordinates and ignore scroll entirely: the field
-// follows the reader down the page. (The black sun is the one page-anchored
-// element -- CSS-absolute in style.css #atmo-sun -- so you scroll away from
-// it while the stars stay with you.) Their only own motion is a slow
-// downward drift -- the page feels like it is rising.
-// Look: solid crisp cores with a TIGHT, steeply-fading glow; 28 stars per
-// layer; drift one viewport in 80/50/30s; twinkle 7/5/3s between base
-// opacity (0.5/0.7/0.9) and 35% of it (matches the original box-shadow
-// starfield in git history, pages/atmosphere.js).
-// MOBILE URL-BAR IMMUNITY, two halves:
-// (1) Size -- the bar toggling fires resize with a ~100px innerHeight change
-//     on every scroll. The band is sized 100vh, which on mobile is the LARGE
-//     viewport (bar hidden) no matter the bar state: geometry never changes,
-//     stars never re-render. Drift is accumulated incrementally per frame
-//     (never derived from t * height, which would teleport the field on any
-//     height change). Only rotation or a real window resize re-sizes the
-//     band, and even then the same stars rescale via their fractional
-//     positions -- the field is never re-randomized.
-// (2) Position -- no CSS anchor escapes chrome animation: fixed layers are
-//     glued to viewport EDGES, and when browser bars animate (top AND
-//     bottom, on many browsers) the edges are exactly what moves. The
-//     DOCUMENT, by contrast, is kept visually stationary by the browser
-//     (it adjusts scroll internally while chrome slides) -- that is why
-//     page text never shifts. The stars borrow that stability: a bar
-//     settle always steps innerHeight (pure scrolling never does), so the
-//     loop watches scrollY+innerHeight each frame, measures the
-//     discontinuity the canvas just suffered (scrollY step beyond ordinary
-//     scrolling + innerHeight step, for a bottom-anchored layer), cancels
-//     it instantly in the draw offset, then releases it into the ambient
-//     downward drift over ~1s -- a glide that reads as drift, not a jump.
-//     Scrolling itself is never compensated: the field stays rigid.
-// Engine: pre-rendered sprites, 30fps cap, pause in hidden tabs,
-// prefers-reduced-motion = static frame. Stars are an enhancement: without
-// JS the page is simply deep space.
+// atmosphere.js -- starfield as pure CSS box-shadows, ANCHORED TO THE
+// VIEWPORT. Resurrected from the pre-canvas original (git history:
+// pages/atmosphere.js) after the canvas version proved unfixable on mobile:
+// a canvas needs a JS loop that samples geometry (scrollY/innerHeight) and
+// repaints, which means guessing how the browser animates its URL bar --
+// and every guess (page anchor, 100vh band, bottom anchor, settle-glide)
+// still moved stars on a real phone. This version samples NOTHING: stars
+// are box-shadows on three 1px divs inside a fixed 100vh container, drift
+// and twinkle are compositor-run CSS keyframe animations, and the only JS
+// is the one-time build. During chrome animation the fixed layer behaves
+// like every site's fixed header -- native platform behavior, no JS to
+// fight it.
+// Fixes over the original:
+//   - band height = the container's own 100vh (the mobile URL bar cannot
+//     change it), not innerHeight measured at load (bar-state-dependent);
+//   - rebuild only when WIDTH or 100vh actually change (rotation, real
+//     window resize) -- bar-driven resize events change neither, so the
+//     field is never re-randomized by scrolling;
+//   - clientWidth, not innerWidth (no scrollbar overlap).
+// Look (P21-tuned, carried over from the canvas version): 28 stars/layer,
+// deep water -> sea green -> aquamarine by depth, cores ~2/3/4px, tight
+// glow; drift one band in 80/50/30s (the page feels like it is rising);
+// twinkle 7/5/3s between base opacity (0.5/0.7/0.9) and 35% of it.
+// Each star is painted twice (y and y-H) so the translateY(0 -> H) drift
+// loop wraps seamlessly.
+// reduced-motion: style.css zeroes all animation durations = static field.
+// Hidden tabs: browsers pause CSS animations natively. The black sun is
+// pure CSS (style.css #atmo-sun). Stars are an enhancement: without JS the
+// page is simply deep space.
 
 (function() {
   if (document.getElementById('atmo-stars')) return;
 
   // Depth layers: deep water -> sea green -> aquamarine.
-  // [color, glowAlpha, coreRadius(px), haloRadius(px), driftSecsPerViewport,
-  //  twinkleSecs, baseOpacity]
+  var COLORS = ['#1A4D3E', '#2D8B6F', '#7FFFD4'];
+  var GLOW = 'rgba(74,255,160,';
+  var GLOW_ALPHA = ['0.30)', '0.45)', '0.60)'];
+  // [count, dotSpread(px), glowBlur(px), glowSpread(px), baseOpacity,
+  //  driftSecsPerBand, twinkleSecs]   (dot diameter = 1 + 2*dotSpread)
   var LAYERS = [
-    ['#1A4D3E', 0.30, 1.0, 3.5, 80, 7, 0.5 ],
-    ['#2D8B6F', 0.45, 1.5, 6.0, 50, 5, 0.7 ],
-    ['#7FFFD4', 0.60, 2.2, 9.0, 30, 3, 0.9 ]
+    [28, 0.5, 4, 1, 0.5, 80, 7],   // far: ~2px dot, dim, slow
+    [28, 1.0, 6, 2, 0.7, 50, 5],   // mid: ~3px dot
+    [28, 1.7, 9, 3, 0.9, 30, 3]    // near: ~4px dot, bright, fast
   ];
-  var PER_LAYER = 28;             // stars per layer
-  var GLOW = '74,255,160';
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var reduced = window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var canvas = document.createElement('canvas');
-  canvas.id = 'atmo-stars';
-  document.body.appendChild(canvas);
-  var ctx = canvas.getContext('2d');
+  var container = document.createElement('div');
+  container.id = 'atmo-stars';
+  document.body.appendChild(container);
 
-  var viewW, viewH, stars, sprites;
-  var drift = [0, 0, 0];          // accumulated px of downward drift per layer
-  var glide = 0;                  // un-released chrome-settle jump compensation
-  var lastScrollY = 0, lastDScroll = 0, lastInner = 0;
+  var driftStyle, builtW = 0, builtH = 0;
 
-  // Sprite per layer: steep-falloff halo (bright tight, fades fast),
-  // solid core on top. Rendered at DPR for crisp small stars.
-  function makeSprite(color, alpha, coreR, haloR) {
-    var size = Math.ceil(haloR * 2) + 2;
-    var c = document.createElement('canvas');
-    c.width = c.height = Math.ceil(size * DPR);
-    var g = c.getContext('2d');
-    g.scale(DPR, DPR);
-    var m = size / 2;
-    var grad = g.createRadialGradient(m, m, coreR * 0.5, m, m, haloR);
-    grad.addColorStop(0,    'rgba(' + GLOW + ',' + alpha + ')');
-    grad.addColorStop(0.25, 'rgba(' + GLOW + ',' + (alpha * 0.35).toFixed(3) + ')');
-    grad.addColorStop(0.6,  'rgba(' + GLOW + ',' + (alpha * 0.08).toFixed(3) + ')');
-    grad.addColorStop(1,    'rgba(' + GLOW + ',0)');
-    g.fillStyle = grad;
-    g.fillRect(0, 0, size, size);
-    g.fillStyle = color;
-    g.beginPath();
-    g.arc(m, m, coreR, 0, Math.PI * 2);
-    g.fill();
-    c._cssSize = size;
-    return c;
+  function makeStars(count, sz, blur, spread, ci, W, H) {
+    var shadows = [];
+    var col = COLORS[ci];
+    var glow = GLOW + GLOW_ALPHA[ci];
+    for (var i = 0; i < count; i++) {
+      var x = (Math.random() * W) | 0;
+      var y = (Math.random() * H) | 0;
+      // star dot + a copy one band up, so the drift loop wraps seamlessly
+      shadows.push(x + 'px ' + y + 'px 0 ' + sz + 'px ' + col);
+      shadows.push(x + 'px ' + (y - H) + 'px 0 ' + sz + 'px ' + col);
+      // glow halo
+      shadows.push(x + 'px ' + y + 'px ' + blur + 'px ' + spread + 'px ' + glow);
+      shadows.push(x + 'px ' + (y - H) + 'px ' + blur + 'px ' + spread + 'px ' + glow);
+    }
+    return shadows.join(',');
   }
 
-  // Built ONCE: positions are band fractions, so any later re-size just
-  // rescales the field instead of rolling new stars.
-  function buildStars() {
-    sprites = [];
-    stars = [];
-    LAYERS.forEach(function(L, li) {
-      sprites.push(makeSprite(L[0], L[1], L[2], L[3]));
-      for (var i = 0; i < PER_LAYER; i++) {
-        stars.push({
-          layer: li,
-          x: Math.random(),          // fraction of band width
-          y: Math.random(),          // fraction of the drift wrap-band
-          phase: Math.random() * Math.PI * 2
-        });
-      }
+  function build() {
+    builtW = document.documentElement.clientWidth;  // EXCLUDES scrollbar
+    builtH = container.clientHeight;                // 100vh: bar-stable
+    container.innerHTML = '';
+    if (driftStyle) driftStyle.remove();
+
+    var css = '';
+    LAYERS.forEach(function(L, i) {
+      var el = document.createElement('div');
+      el.style.cssText =
+        'position:absolute;top:0;left:0;width:1px;height:1px;border-radius:50%;' +
+        'box-shadow:' + makeStars(L[0], L[1], L[2], L[3], i, builtW, builtH) +
+        ';animation:atmo-drift-' + i + ' ' + L[5] + 's linear infinite,' +
+        'atmo-twinkle-' + i + ' ' + L[6] + 's ease-in-out infinite';
+      container.appendChild(el);
+
+      css += '@keyframes atmo-drift-' + i +
+        '{from{transform:translateY(0)}to{transform:translateY(' + builtH + 'px)}}' +
+        '@keyframes atmo-twinkle-' + i +
+        '{0%,100%{opacity:' + L[4] + '}50%{opacity:' + (L[4] * 0.35).toFixed(3) + '}}';
     });
+
+    driftStyle = document.createElement('style');
+    driftStyle.textContent = css;
+    document.head.appendChild(driftStyle);
   }
 
-  // The band: full width, 100vh tall. On mobile, 100vh is the LARGE viewport
-  // (URL bar hidden) regardless of bar state, so the band is bar-immune from
-  // the first frame; with the bar shown it just clips underneath. CSS owns
-  // the element size; this reads it back to match the backing store.
-  function size() {
-    viewW = document.documentElement.clientWidth;   // EXCLUDES scrollbar
-    canvas.style.width = viewW + 'px';
-    canvas.style.height = '100vh';
-    viewH = canvas.clientHeight;
-    canvas.width = Math.ceil(viewW * DPR);
-    canvas.height = Math.ceil(viewH * DPR);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    glide = 0;                    // a rebuild re-lays the field anyway
-    lastScrollY = window.scrollY || 0;
-    lastDScroll = 0;
-    lastInner = window.innerHeight;
-  }
-
-  function draw(t, dt) {
-    ctx.clearRect(0, 0, viewW, viewH);
-    for (var li = 0; li < LAYERS.length; li++) {
-      // drift down one band-height every L[4] seconds, accumulated
-      // incrementally so a band re-size never teleports the field
-      drift[li] = (drift[li] + dt * viewH / (LAYERS[li][4] * 1000)) %
-                  (viewH + sprites[li]._cssSize);
-    }
-    for (var i = 0; i < stars.length; i++) {
-      var s = stars[i];
-      var L = LAYERS[s.layer];
-      var sp = sprites[s.layer];
-      var half = sp._cssSize / 2;
-      // wrap on a band one sprite taller than the canvas so stars enter
-      // and leave fully offscreen instead of popping at the edges
-      var wrapH = viewH + sp._cssSize;
-      var y = (s.y * wrapH + drift[s.layer] - glide) % wrapH;
-      if (y < 0) y += wrapH;      // glide can drive the modulo negative
-      y -= half;
-      // twinkle: base opacity down to 35% of it and back
-      var tw = reduced ? L[6] :
-        L[6] * (0.675 + 0.325 * Math.sin(s.phase + t * 2 * Math.PI / (L[5] * 1000)));
-      ctx.globalAlpha = tw;
-      ctx.drawImage(sp, s.x * viewW - half, y - half, sp._cssSize, sp._cssSize);
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  var last = 0;
-  function loop(t) {
-    if (!document.hidden && t - last >= 33) {
-      // cap dt so a hidden-tab stall reads as a pause, not a drift jump
-      var dt = Math.min(t - last, 100);
-      last = t;
-      var sy = window.scrollY || 0;
-      var inner = window.innerHeight;
-      var dScroll = sy - lastScrollY;
-      if (inner !== lastInner) {
-        // chrome settled (or window resized): the layout viewport edges
-        // jumped, taking the fixed canvas with them. Star screen-jump for
-        // a bottom-anchored canvas = (scrollY step beyond the ordinary
-        // scrolling of the previous frame) + innerHeight step. Cancel it
-        // now; release it below into the ambient drift.
-        glide += (dScroll - lastDScroll) + (inner - lastInner);
-      } else {
-        lastDScroll = dScroll;
-      }
-      lastScrollY = sy;
-      lastInner = inner;
-      glide *= Math.exp(-dt / 600);
-      if (glide > -0.3 && glide < 0.3) glide = 0;
-      draw(t, dt);
-    }
-    requestAnimationFrame(loop);
-  }
-
-  buildStars();
-  size();
-  if (reduced) {
-    draw(0, 0);
-  } else {
-    requestAnimationFrame(loop);
-  }
+  build();
 
   var resizeTimer;
   window.addEventListener('resize', function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
-      // mobile URL-bar toggles fire resize but leave 100vh unchanged --
-      // only rotation or a real window resize moves these
-      var w = document.documentElement.clientWidth;
-      var h = canvas.clientHeight;
-      if (w === viewW && h === viewH) return;
-      size();
-      draw(last, 0);
-    }, 150);
+      // mobile URL-bar toggles change neither clientWidth nor 100vh --
+      // only rotation or a real window resize gets past this guard
+      if (document.documentElement.clientWidth !== builtW ||
+          container.clientHeight !== builtH) build();
+    }, 250);
   });
 })();
