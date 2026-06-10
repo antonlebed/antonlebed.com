@@ -1,32 +1,28 @@
-// atmosphere.js -- starfield as pure CSS box-shadows, ANCHORED TO THE
-// VIEWPORT. Resurrected from the pre-canvas original (git history:
-// pages/atmosphere.js) after the canvas version proved unfixable on mobile:
-// a canvas needs a JS loop that samples geometry (scrollY/innerHeight) and
-// repaints, which means guessing how the browser animates its URL bar --
-// and every guess (page anchor, 100vh band, bottom anchor, settle-glide)
-// still moved stars on a real phone. This version samples NOTHING: stars
-// are box-shadows on three 1px divs inside a fixed 100vh container, drift
-// and twinkle are compositor-run CSS keyframe animations, and the only JS
-// is the one-time build. During chrome animation the fixed layer behaves
-// like every site's fixed header -- native platform behavior, no JS to
-// fight it.
-// Fixes over the original:
-//   - band height = the container's own 100vh (the mobile URL bar cannot
-//     change it), not innerHeight measured at load (bar-state-dependent);
-//   - rebuild only when WIDTH or 100vh actually change (rotation, real
-//     window resize) -- bar-driven resize events change neither, so the
-//     field is never re-randomized by scrolling;
-//   - clientWidth, not innerWidth (no scrollbar overlap).
-// Look (P21-tuned, carried over from the canvas version): 28 stars/layer,
-// deep water -> sea green -> aquamarine by depth, cores ~2/3/4px, tight
-// glow; drift one band in 80/50/30s (the page feels like it is rising);
-// twinkle 7/5/3s between base opacity (0.5/0.7/0.9) and 35% of it.
-// Each star is painted twice (y and y-H) so the translateY(0 -> H) drift
-// loop wraps seamlessly.
+// atmosphere.js -- starfield as pure CSS box-shadows, ANCHORED TO THE PAGE
+// (like the text). Stars live in document space and scroll with the
+// content: browser-panel show/hide moves the VIEWPORT's edges, never the
+// document -- the browser keeps the page visually stationary while its
+// chrome animates, which is why text never teleports and any
+// viewport-fixed layer always does. Anchoring to the document is the one
+// frame that is immune (P26 trial, Anton evaluating the trade: stars pass
+// by like scenery while scrolling instead of holding screen position).
+// Look: the pre-canvas ORIGINAL restored verbatim (git history,
+// pages/atmosphere.js): 1/2/3px dots, glow blur 4/8/12 at alpha
+// 0.2/0.4/0.65, base opacity 0.4/0.65/0.9, drift one viewport in
+// 80/50/30s (the page feels like it is rising), twinkle 7/5/3s down to
+// 35% of base. Deep water -> sea green -> aquamarine by depth.
+// Engine: zero per-frame JS -- drift and twinkle are compositor-run CSS
+// keyframe animations on three 1px divs in an absolute document-height
+// container; each star is painted twice (y and y - docH) so the
+// translateY(0 -> docH) drift loop wraps seamlessly. 28 stars per layer
+// per viewport of page height, capped at 150/layer (very long pages get a
+// sparser field, never a starless strip). Rebuilds only when width or
+// document height actually change -- panel-driven resize events change
+// neither, so the field is never re-randomized by scrolling.
 // reduced-motion: style.css zeroes all animation durations = static field.
 // Hidden tabs: browsers pause CSS animations natively. The black sun is
-// pure CSS (style.css #atmo-sun). Stars are an enhancement: without JS the
-// page is simply deep space.
+// pure CSS (style.css #atmo-sun). Stars are an enhancement: without JS
+// the page is simply deep space.
 
 (function() {
   if (document.getElementById('atmo-stars')) return;
@@ -34,14 +30,15 @@
   // Depth layers: deep water -> sea green -> aquamarine.
   var COLORS = ['#1A4D3E', '#2D8B6F', '#7FFFD4'];
   var GLOW = 'rgba(74,255,160,';
-  var GLOW_ALPHA = ['0.30)', '0.45)', '0.60)'];
-  // [count, dotSpread(px), glowBlur(px), glowSpread(px), baseOpacity,
-  //  driftSecsPerBand, twinkleSecs]   (dot diameter = 1 + 2*dotSpread)
+  var GLOW_ALPHA = ['0.2)', '0.4)', '0.65)'];
+  // [perViewport, dotSpread(px), glowBlur(px), glowSpread(px), baseOpacity,
+  //  driftSecsPerViewport, twinkleSecs]   (dot diameter = 1 + 2*dotSpread)
   var LAYERS = [
-    [28, 0.5, 4, 1, 0.5, 80, 7],   // far: ~2px dot, dim, slow
-    [28, 1.0, 6, 2, 0.7, 50, 5],   // mid: ~3px dot
-    [28, 1.7, 9, 3, 0.9, 30, 3]    // near: ~4px dot, bright, fast
+    [28, 0,   4,  1, 0.4,  80, 7],   // far: 1px dot, dim, slow
+    [28, 0.5, 8,  2, 0.65, 50, 5],   // mid: 2px dot
+    [28, 1,  12,  3, 0.9,  30, 3]    // near: 3px dot, bright, fast
   ];
+  var CAP = 150;                     // stars per layer
 
   var container = document.createElement('div');
   container.id = 'atmo-stars';
@@ -56,7 +53,7 @@
     for (var i = 0; i < count; i++) {
       var x = (Math.random() * W) | 0;
       var y = (Math.random() * H) | 0;
-      // star dot + a copy one band up, so the drift loop wraps seamlessly
+      // star dot + a copy one wrap-band up, so the drift loop is seamless
       shadows.push(x + 'px ' + y + 'px 0 ' + sz + 'px ' + col);
       shadows.push(x + 'px ' + (y - H) + 'px 0 ' + sz + 'px ' + col);
       // glow halo
@@ -66,26 +63,40 @@
     return shadows.join(',');
   }
 
+  // Document height measured with the container collapsed: once built, the
+  // container itself holds the page open, so measuring around it is the
+  // only way to see the content's true height.
+  function measureDocH() {
+    container.style.height = '0px';
+    return document.documentElement.scrollHeight;
+  }
+
   function build() {
     builtW = document.documentElement.clientWidth;  // EXCLUDES scrollbar
-    builtH = container.clientHeight;                // 100vh: bar-stable
+    builtH = measureDocH();
+    var viewH = window.innerHeight;
+    container.style.width = builtW + 'px';
+    container.style.height = builtH + 'px';
     container.innerHTML = '';
     if (driftStyle) driftStyle.remove();
 
     var css = '';
     LAYERS.forEach(function(L, i) {
+      var count = Math.min(CAP, Math.round(L[0] * builtH / viewH));
       var el = document.createElement('div');
       el.style.cssText =
         'position:absolute;top:0;left:0;width:1px;height:1px;border-radius:50%;' +
-        'box-shadow:' + makeStars(L[0], L[1], L[2], L[3], i, builtW, builtH) +
-        ';animation:atmo-drift-' + i + ' ' + L[5] + 's linear infinite,' +
+        'box-shadow:' + makeStars(count, L[1], L[2], L[3], i, builtW, builtH) +
+        ';animation:atmo-drift-' + i + ' ' +
+        (L[5] * builtH / viewH).toFixed(1) + 's linear infinite,' +
         'atmo-twinkle-' + i + ' ' + L[6] + 's ease-in-out infinite';
       container.appendChild(el);
 
       css += '@keyframes atmo-drift-' + i +
-        '{from{transform:translateY(0)}to{transform:translateY(' + builtH + 'px)}}' +
-        '@keyframes atmo-twinkle-' + i +
-        '{0%,100%{opacity:' + L[4] + '}50%{opacity:' + (L[4] * 0.35).toFixed(3) + '}}';
+        '{from{transform:translateY(0)}to{transform:translateY(' + builtH + 'px)}}';
+      var hi = L[4], lo = Math.max(hi * 0.35, 0.1);
+      css += '@keyframes atmo-twinkle-' + i +
+        '{0%,100%{opacity:' + hi + '}50%{opacity:' + lo + '}}';
     });
 
     driftStyle = document.createElement('style');
@@ -93,16 +104,25 @@
     document.head.appendChild(driftStyle);
   }
 
+  // Rebuild only on real geometry change: rotation/window resize (width)
+  // or content reflow (document height, e.g. late font swap). Mobile
+  // panel toggles change neither. The half-viewport tolerance keeps minor
+  // reflows from re-rolling the field.
+  function check() {
+    if (document.documentElement.clientWidth !== builtW ||
+        Math.abs(measureDocH() - builtH) > window.innerHeight / 2) {
+      build();
+    } else {
+      container.style.height = builtH + 'px';  // undo the measure collapse
+    }
+  }
+
   build();
+  window.addEventListener('load', check);
 
   var resizeTimer;
   window.addEventListener('resize', function() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function() {
-      // mobile URL-bar toggles change neither clientWidth nor 100vh --
-      // only rotation or a real window resize gets past this guard
-      if (document.documentElement.clientWidth !== builtW ||
-          container.clientHeight !== builtH) build();
-    }, 250);
+    resizeTimer = setTimeout(check, 250);
   });
 })();
