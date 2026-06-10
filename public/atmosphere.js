@@ -105,12 +105,17 @@
   }
 
   // Rebuild only on real geometry change: rotation/window resize (width)
-  // or content reflow (document height, e.g. late font swap). Mobile
-  // panel toggles change neither. The half-viewport tolerance keeps minor
-  // reflows from re-rolling the field.
+  // or content reflow (document height). Mobile panel toggles change
+  // neither. GROWTH always rebuilds -- the field must reach the bottom,
+  // and pages grow right after the first build when their inline scripts
+  // inject demos at DOMContentLoaded (deferred scripts run before that);
+  // only shrinkage gets a tolerance, so minor reflows can't re-roll the
+  // field.
   function check() {
+    var docH = measureDocH();
     if (document.documentElement.clientWidth !== builtW ||
-        Math.abs(measureDocH() - builtH) > window.innerHeight / 2) {
+        docH > builtH + 8 ||
+        docH < builtH - window.innerHeight / 2) {
       build();
     } else {
       container.style.height = builtH + 'px';  // undo the measure collapse
@@ -118,6 +123,7 @@
   }
 
   build();
+  document.addEventListener('DOMContentLoaded', check);
   window.addEventListener('load', check);
 
   var resizeTimer;
