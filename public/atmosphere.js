@@ -8,15 +8,20 @@
 // layer; drift one viewport in 80/50/30s; twinkle 7/5/3s between base
 // opacity (0.5/0.7/0.9) and 35% of it (matches the original box-shadow
 // starfield in git history, pages/atmosphere.js).
-// MOBILE URL-BAR IMMUNITY: the bar appearing/disappearing fires resize with
-// a ~100px innerHeight change on every scroll. The canvas band is therefore
-// sized 100vh -- on mobile that is the LARGE viewport (bar hidden) no matter
-// the bar state -- and simply clips under the bar when it shows: geometry
-// never changes, so stars never jump. Drift is accumulated incrementally
-// per frame (never derived from t * height, which would teleport the field
-// on any height change). Only rotation or a real window resize re-sizes the
-// band, and even then the same stars rescale via their fractional
-// positions -- the field is never re-randomized.
+// MOBILE URL-BAR IMMUNITY, two halves:
+// (1) Size -- the bar toggling fires resize with a ~100px innerHeight change
+//     on every scroll. The band is sized 100vh, which on mobile is the LARGE
+//     viewport (bar hidden) no matter the bar state: geometry never changes,
+//     stars never re-render. Drift is accumulated incrementally per frame
+//     (never derived from t * height, which would teleport the field on any
+//     height change). Only rotation or a real window resize re-sizes the
+//     band, and even then the same stars rescale via their fractional
+//     positions -- the field is never re-randomized.
+// (2) Position -- the canvas is fixed to the BOTTOM edge (style.css
+//     #atmo-stars): the bar animates at the TOP, moving the viewport's top
+//     edge while the bottom edge stays glued to the screen, so a
+//     bottom-anchored layer holds perfectly still through the bar animation
+//     and just clips underneath the bar.
 // Engine: pre-rendered sprites, 30fps cap, pause in hidden tabs,
 // prefers-reduced-motion = static frame. Stars are an enhancement: without
 // JS the page is simply deep space.
