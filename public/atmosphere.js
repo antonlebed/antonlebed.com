@@ -4,8 +4,8 @@
 // document -- the browser keeps the page visually stationary while its
 // chrome animates, which is why text never teleports and any
 // viewport-fixed layer always does. Anchoring to the document is the one
-// frame that is immune (P26 trial, Anton evaluating the trade: stars pass
-// by like scenery while scrolling instead of holding screen position).
+// frame that is immune (P26, Anton approved the trade: stars pass by like
+// scenery while scrolling instead of holding screen position).
 // Look: the pre-canvas ORIGINAL restored verbatim (git history,
 // pages/atmosphere.js): 1/2/3px dots, glow blur 4/8/12 at alpha
 // 0.2/0.4/0.65, base opacity 0.4/0.65/0.9, drift one viewport in
@@ -86,6 +86,9 @@
       var el = document.createElement('div');
       el.style.cssText =
         'position:absolute;top:0;left:0;width:1px;height:1px;border-radius:50%;' +
+        'opacity:' + L[4] + ';' +   // static base: twinkle overrides while it
+                                    // runs; reduced-motion kills the animation
+                                    // and must NOT leave the layer at opacity 1
         'box-shadow:' + makeStars(count, L[1], L[2], L[3], i, builtW, builtH) +
         ';animation:atmo-drift-' + i + ' ' +
         (L[5] * builtH / viewH).toFixed(1) + 's linear infinite,' +
