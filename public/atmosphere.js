@@ -116,8 +116,12 @@
   // field.
   function check() {
     var docH = measureDocH();
+    // docH > innerHeight guard: scrollHeight is floored at the viewport
+    // height, and on a page SHORTER than the viewport that floor moves
+    // when mobile panels toggle -- growth in the floor regime is the
+    // viewport moving, not content, and must not re-roll the field
     if (document.documentElement.clientWidth !== builtW ||
-        docH > builtH + 8 ||
+        (docH > builtH + 8 && docH > window.innerHeight) ||
         docH < builtH - window.innerHeight / 2) {
       build();
     } else {
