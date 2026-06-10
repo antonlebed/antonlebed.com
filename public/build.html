@@ -283,34 +283,51 @@ footer p { margin-bottom: 0.25rem; }
 
   <h2>Silicon: FPGA pipelines</h2>
   <p>
-    Two primorial rings on a $20 Tang Nano 20K FPGA. Each design has per-channel
+    Three primorial rings on a $20 Tang Nano 20K FPGA. Each design has per-channel
     GF(p) multipliers, CRT reconstruction, and ECC testing &mdash; every ring
     element round-tripped and multiplied, every codeword's error correction
-    exercised, in hardware.
+    exercised. Each proof runs twice: exhaustively in RTL simulation, then on the
+    device at the 27 MHz board clock with the verdict on the LEDs.
   </p>
 
   <div class="measurement">
     <strong>k = 7 (Z/510,510) exhaustive proof:</strong>
     <span class="result">1,022,070 checks, 0 failures</span> &mdash; CRT roundtrip for
     all 510,510 elements, multiply &times;19 for all elements, ECC clean + four
-    single-channel corruption phases. 3,329 LUT4 (16% of the chip), 194 MHz.
+    single-channel corruption phases. 2,922 LUT4 (14% of the chip); the full proof
+    passes on silicon in ~38 ms.
   </div>
   <div class="measurement">
     <strong>k = 8 (Z/9,699,690) exhaustive proof:</strong>
     <span class="result">19,413,240 checks, 0 failures</span> &mdash; eight phases,
-    8 channels (5 data + 3 parity), rate 5/8 MDS ECC. 5,291 LUT4 (26%), 172 MHz.
+    8 channels (5 data + 3 parity), rate 5/8 MDS ECC. 4,670 LUT4 (23%); ~720 ms
+    on silicon.
+  </div>
+  <div class="measurement">
+    <strong>k = 9 (Z/223,092,870) exhaustive proof:</strong>
+    <span class="result">446,395,950 checks, 0 failures</span> &mdash; 9 channels
+    (6 data + 3 parity), rate 6/9 MDS ECC, multiply &times;29, six corruption
+    phases. 6,711 LUT4 (32%); the full proof passes on silicon in ~33 s at half
+    clock.
   </div>
   <p class="note">
-    Adding the 8th channel (mod 19) cost +59% LUT while proving 19&times; more values.
-    Field-only rings are lean: a historical fattened-ring design used 31% of the FPGA
-    for multiply alone.
+    Each rung adds one channel, widens every datapath, and adds a reduction
+    stage: roughly +40&ndash;60% logic per rung (2,922 &rarr; 4,670 &rarr; 6,711
+    LUT4). Three rungs deep, every resource axis stays under half the device.
+    Field-only rings are lean: a historical fattened-ring design used 31% of the
+    FPGA for multiply alone. The silicon builds disable the toolchain's
+    carry-chain inference: running these exhaustive proofs on the device exposed
+    a miscomputation in the open-source place-and-route's inferred ALU cells
+    &mdash; isolated by bisection down to a passing gate-level netlist simulation,
+    routed around, and queued for an upstream report.
   </p>
 
   <h2>Radio: the ESP32 mesh</h2>
   <p>
     Three ESP32 boards form an ESP-NOW mesh. Each board CRT-encodes data into
     Z/510,510 residues (7 bytes), broadcasts, and the receiver reconstructs and
-    checks parity. Measurements, not simulations.
+    checks parity. Measurements, not simulations &mdash; in three acts: detect,
+    recover, self-check.
   </p>
 
   <div class="measurement">
@@ -343,6 +360,48 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     Ring arithmetic preserves physical measurements exactly (26.28&thinsp;&deg;C /
     27.29&thinsp;&deg;C, both 1025.4 hPa &mdash; same room, different shelf).
   </div>
+
+  <h3>Node loss: erasure recovery</h3>
+  <p>
+    Detection is half the ECC story; the mesh also recovers. One value's 7
+    residues are sharded across the 3 boards (channels 2, 3, 5 / 7, 11 / 13, 17),
+    one board is silenced each round, and a surviving board reconstructs the
+    value over radio from the residues that still exist &mdash; subset CRT, no
+    retransmission.
+  </p>
+  <div class="measurement">
+    <strong>Silence any board, survivors reconstruct:</strong>
+    <span class="result">18/18 rounds exact</span> &mdash; including the tight
+    4-residue case (the board holding channels 2, 3, 5 dies; {7, 11, 13, 17}
+    suffices): <span class="result">6/6</span>, and the rounds where the value's
+    own creator dies right after sharding: <span class="result">6/6</span>.
+  </div>
+
+  <h3>Clock sync that checks itself</h3>
+  <p>
+    NTP-style two-way time transfer, pairwise around the triangle 0&rarr;1&rarr;2&rarr;0.
+    The three pairwise offsets sum to zero identically, so the measured sum
+    &mdash; the <strong>closure</strong> &mdash; is pure estimation error: a
+    self-check the mesh computes about its own synchronization with no reference
+    clock, the radio sibling of the parity syndrome below.
+  </p>
+  <div class="measurement">
+    <strong>Clean phase:</strong> boot skews of seconds to hundreds of seconds
+    between boards, yet the triangle closes to
+    <span class="result">a few hundred &micro;s</span> regardless of which board
+    leads. <strong>Inject phase:</strong> one board lies by +5 ms to one neighbor
+    while serving the other honestly &mdash; no single pair can tell the lie from
+    ordinary skew, but the closure reports
+    <span class="result">+4.88 ms</span>. A board lying consistently to both
+    neighbors merely has a wrong clock and cancels: the closure detects
+    inconsistency, exactly like a parity check.
+  </div>
+  <p class="note">
+    The closure's first real catch was not the injected lie. It was a ~5 ms
+    scheduler-tick bias in our own measurement path &mdash; blocking radio reads
+    quantized every timestamp pickup &mdash; found and fixed because the closure
+    refused to sit at zero when the leader role rotated.
+  </p>
 
   <h2>Neural: CRT architectures with built-in parity</h2>
   <p>
@@ -423,7 +482,7 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
 
   <div style="margin:1rem 0;">
     <div class="bar-row"><span class="bar-label">GPU</span><div class="bar" style="width:100%;background:var(--ch-5)"></div><span class="bar-val">357M ops/s (batch of 1M, earlier-era kernels)</span></div>
-    <div class="bar-row"><span class="bar-label">FPGA</span><div class="bar" style="width:54%;background:var(--accent)"></div><span class="bar-val">194M ops/s (1 op/cycle)</span></div>
+    <div class="bar-row"><span class="bar-label">FPGA</span><div class="bar" style="width:8%;background:var(--accent)"></div><span class="bar-val">27M ops/s observed (1 check/cycle at the 27 MHz board clock)</span></div>
     <div class="bar-row"><span class="bar-label">ESP32</span><div class="bar" style="width:1%;background:var(--ch-3)"></div><span class="bar-val">~2K ops/s interpreted; ~74K compiled (measured on-board)</span></div>
   </div>
   <p class="note">
