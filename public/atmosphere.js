@@ -17,11 +17,19 @@
 //     height change). Only rotation or a real window resize re-sizes the
 //     band, and even then the same stars rescale via their fractional
 //     positions -- the field is never re-randomized.
-// (2) Position -- the canvas is fixed to the BOTTOM edge (style.css
-//     #atmo-stars): the bar animates at the TOP, moving the viewport's top
-//     edge while the bottom edge stays glued to the screen, so a
-//     bottom-anchored layer holds perfectly still through the bar animation
-//     and just clips underneath the bar.
+// (2) Position -- no CSS anchor escapes chrome animation: fixed layers are
+//     glued to viewport EDGES, and when browser bars animate (top AND
+//     bottom, on many browsers) the edges are exactly what moves. The
+//     DOCUMENT, by contrast, is kept visually stationary by the browser
+//     (it adjusts scroll internally while chrome slides) -- that is why
+//     page text never shifts. The stars borrow that stability: a bar
+//     settle always steps innerHeight (pure scrolling never does), so the
+//     loop watches scrollY+innerHeight each frame, measures the
+//     discontinuity the canvas just suffered (scrollY step beyond ordinary
+//     scrolling + innerHeight step, for a bottom-anchored layer), cancels
+//     it instantly in the draw offset, then releases it into the ambient
+//     downward drift over ~1s -- a glide that reads as drift, not a jump.
+//     Scrolling itself is never compensated: the field stays rigid.
 // Engine: pre-rendered sprites, 30fps cap, pause in hidden tabs,
 // prefers-reduced-motion = static frame. Stars are an enhancement: without
 // JS the page is simply deep space.
@@ -50,6 +58,8 @@
 
   var viewW, viewH, stars, sprites;
   var drift = [0, 0, 0];          // accumulated px of downward drift per layer
+  var glide = 0;                  // un-released chrome-settle jump compensation
+  var lastScrollY = 0, lastDScroll = 0, lastInner = 0;
 
   // Sprite per layer: steep-falloff halo (bright tight, fades fast),
   // solid core on top. Rendered at DPR for crisp small stars.
@@ -105,6 +115,10 @@
     canvas.width = Math.ceil(viewW * DPR);
     canvas.height = Math.ceil(viewH * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    glide = 0;                    // a rebuild re-lays the field anyway
+    lastScrollY = window.scrollY || 0;
+    lastDScroll = 0;
+    lastInner = window.innerHeight;
   }
 
   function draw(t, dt) {
@@ -123,7 +137,9 @@
       // wrap on a band one sprite taller than the canvas so stars enter
       // and leave fully offscreen instead of popping at the edges
       var wrapH = viewH + sp._cssSize;
-      var y = (s.y * wrapH + drift[s.layer]) % wrapH - half;
+      var y = (s.y * wrapH + drift[s.layer] - glide) % wrapH;
+      if (y < 0) y += wrapH;      // glide can drive the modulo negative
+      y -= half;
       // twinkle: base opacity down to 35% of it and back
       var tw = reduced ? L[6] :
         L[6] * (0.675 + 0.325 * Math.sin(s.phase + t * 2 * Math.PI / (L[5] * 1000)));
@@ -139,6 +155,23 @@
       // cap dt so a hidden-tab stall reads as a pause, not a drift jump
       var dt = Math.min(t - last, 100);
       last = t;
+      var sy = window.scrollY || 0;
+      var inner = window.innerHeight;
+      var dScroll = sy - lastScrollY;
+      if (inner !== lastInner) {
+        // chrome settled (or window resized): the layout viewport edges
+        // jumped, taking the fixed canvas with them. Star screen-jump for
+        // a bottom-anchored canvas = (scrollY step beyond the ordinary
+        // scrolling of the previous frame) + innerHeight step. Cancel it
+        // now; release it below into the ambient drift.
+        glide += (dScroll - lastDScroll) + (inner - lastInner);
+      } else {
+        lastDScroll = dScroll;
+      }
+      lastScrollY = sy;
+      lastInner = inner;
+      glide *= Math.exp(-dt / 600);
+      if (glide > -0.3 && glide < 0.3) glide = 0;
       draw(t, dt);
     }
     requestAnimationFrame(loop);
