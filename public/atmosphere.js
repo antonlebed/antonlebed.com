@@ -1,17 +1,18 @@
-// atmosphere.js -- starfield on a single canvas, ANCHORED TO THE PAGE.
-// Stars live in DOCUMENT coordinates and are drawn at (x, y - scrollY) on a
-// viewport-sized fixed canvas: page-anchored look (stars scroll away with
-// content), zero horizontal overflow, small memory, and devicePixelRatio-
-// sharp rendering. Their only own motion is a slow downward drift -- the
-// page feels like it is rising.
+// atmosphere.js -- starfield on a single canvas, ANCHORED TO THE VIEWPORT.
+// Stars live in viewport-fraction coordinates and ignore scroll entirely:
+// the field follows the reader down the page. (The black sun is the one
+// page-anchored element -- CSS-absolute in style.css #atmo-sun -- so you
+// scroll away from it while the stars stay with you.) Their only own motion
+// is a slow downward drift -- the page feels like it is rising.
 // Look: solid crisp cores with a TIGHT, steeply-fading glow; 28 stars per
-// layer per viewport-height; drift one viewport in 80/50/30s; twinkle 7/5/3s
-// between base opacity (0.4/0.65/0.9) and 35% of it (matches the original
-// box-shadow starfield in git history, pages/atmosphere.js).
-// Engine: pre-rendered sprites, 30fps drift cap (immediate redraw on scroll),
-// pause in hidden tabs, prefers-reduced-motion = static frame.
-// The black sun is pure CSS (style.css #atmo-sun). Stars are an enhancement:
-// without JS the page is simply deep space.
+// layer; drift one viewport in 80/50/30s; twinkle 7/5/3s between base
+// opacity (0.5/0.7/0.9) and 35% of it (matches the original box-shadow
+// starfield in git history, pages/atmosphere.js).
+// Engine: pre-rendered sprites, 30fps cap, pause in hidden tabs,
+// prefers-reduced-motion = static frame. Resize (including mobile URL-bar
+// collapse, which fires resize on scroll) rescales the SAME stars via their
+// fractional positions -- it never re-randomizes the field.
+// Stars are an enhancement: without JS the page is simply deep space.
 
 (function() {
   if (document.getElementById('atmo-stars')) return;
@@ -24,7 +25,7 @@
     ['#2D8B6F', 0.45, 1.5, 6.0, 50, 5, 0.7 ],
     ['#7FFFD4', 0.60, 2.2, 9.0, 30, 3, 0.9 ]
   ];
-  var PER_VIEWPORT = 28;          // stars per layer per viewport-height
+  var PER_LAYER = 28;             // stars per layer
   var GLOW = '74,255,160';
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
   var reduced = window.matchMedia &&
@@ -35,7 +36,7 @@
   document.body.appendChild(canvas);
   var ctx = canvas.getContext('2d');
 
-  var viewW, viewH, docH, stars, sprites;
+  var viewW, viewH, stars, sprites;
 
   // Sprite per layer: steep-falloff halo (bright tight, fades fast),
   // solid core on top. Rendered at DPR for crisp small stars.
@@ -61,66 +62,68 @@
     return c;
   }
 
-  function build() {
-    viewW = document.documentElement.clientWidth;   // EXCLUDES scrollbar
-    viewH = window.innerHeight;
-    docH = Math.max(document.documentElement.scrollHeight, viewH);
-    canvas.style.width = viewW + 'px';
-    canvas.style.height = viewH + 'px';
-    canvas.width = Math.ceil(viewW * DPR);
-    canvas.height = Math.ceil(viewH * DPR);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // Built ONCE: positions are viewport fractions, so any later resize just
+  // rescales the field instead of rolling new stars.
+  function buildStars() {
     sprites = [];
     stars = [];
     LAYERS.forEach(function(L, li) {
       sprites.push(makeSprite(L[0], L[1], L[2], L[3]));
-      var count = Math.min(150, Math.round(PER_VIEWPORT * docH / viewH));
-      for (var i = 0; i < count; i++) {
+      for (var i = 0; i < PER_LAYER; i++) {
         stars.push({
           layer: li,
-          x: Math.random() * viewW,
-          y: Math.random() * docH,     // document coordinates
+          x: Math.random(),          // fraction of viewport width
+          y: Math.random(),          // fraction of the drift wrap-band
           phase: Math.random() * Math.PI * 2
         });
       }
     });
   }
 
-  function draw(t, scroll) {
+  function size() {
+    viewW = document.documentElement.clientWidth;   // EXCLUDES scrollbar
+    viewH = window.innerHeight;
+    canvas.style.width = viewW + 'px';
+    canvas.style.height = viewH + 'px';
+    canvas.width = Math.ceil(viewW * DPR);
+    canvas.height = Math.ceil(viewH * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function draw(t) {
     ctx.clearRect(0, 0, viewW, viewH);
     for (var i = 0; i < stars.length; i++) {
       var s = stars[i];
       var L = LAYERS[s.layer];
       var sp = sprites[s.layer];
-      // drift down: one viewport-height every L[4] seconds, wrap on page height
-      var yDoc = (s.y + t * viewH / (L[4] * 1000)) % docH;
-      var y = yDoc - scroll;           // page-anchored: scrolls away with content
       var half = sp._cssSize / 2;
-      if (y < -half || y > viewH + half) continue;
+      // drift down one viewport-height every L[4] seconds; wrap on a band
+      // one sprite taller than the viewport so stars enter and leave fully
+      // offscreen instead of popping at the edges
+      var wrapH = viewH + sp._cssSize;
+      var y = (s.y * wrapH + t * viewH / (L[4] * 1000)) % wrapH - half;
       // twinkle: base opacity down to 35% of it and back
       var tw = reduced ? L[6] :
         L[6] * (0.675 + 0.325 * Math.sin(s.phase + t * 2 * Math.PI / (L[5] * 1000)));
       ctx.globalAlpha = tw;
-      ctx.drawImage(sp, s.x - half, y - half, sp._cssSize, sp._cssSize);
+      ctx.drawImage(sp, s.x * viewW - half, y - half, sp._cssSize, sp._cssSize);
     }
     ctx.globalAlpha = 1;
   }
 
   var last = 0;
-  var lastScroll = -1;
   function loop(t) {
-    var scroll = window.scrollY || 0;
-    if (!document.hidden && (t - last >= 33 || scroll !== lastScroll)) {
+    if (!document.hidden && t - last >= 33) {
       last = t;
-      lastScroll = scroll;
-      draw(t, scroll);
+      draw(t);
     }
     requestAnimationFrame(loop);
   }
 
-  build();
+  buildStars();
+  size();
   if (reduced) {
-    draw(0, window.scrollY || 0);
+    draw(0);
   } else {
     requestAnimationFrame(loop);
   }
@@ -129,8 +132,8 @@
   window.addEventListener('resize', function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
-      build();
-      draw(last, window.scrollY || 0);
-    }, 250);
+      size();
+      draw(last);
+    }, 150);
   });
 })();
