@@ -231,7 +231,22 @@ footer p { margin-bottom: 0.25rem; }
   nav .search-wrap .search-results { left: 50%; right: auto; transform: translateX(-50%); }
 }
   </style>
-  
+  <style>
+    .hw-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
+    .hw-ch {
+      font-family: var(--mono); font-size: 0.85rem; padding: 0.3rem 0.5rem;
+      border-radius: 3px; border: 1px solid var(--border); min-width: 3.5rem;
+      text-align: center;
+    }
+    .hw-ch.dark { border-style: dashed; color: var(--fg-dim); }
+    #hw-card select {
+      background: var(--card-bg); color: var(--fg); border: 1px solid var(--border);
+      padding: 0.4rem; border-radius: 3px; font-family: var(--mono);
+    }
+    #hw-result { font-family: var(--mono); font-size: 0.85rem; margin: 0.5rem 0; min-height: 2.4rem; }
+    #hw-result .good { color: var(--heal); }
+    #hw-result .bad { color: var(--error); }
+  </style>
   <script src="tower.js" defer></script>
   <script src="atmosphere.js" defer></script>
   <script src="search.js" defer></script>
@@ -281,6 +296,43 @@ footer p { margin-bottom: 0.25rem; }
     still essentially a coin flip. Positional digits carry size; residues
     provably cannot.
   </p>
+
+  <div class="card" id="hw-card">
+    <h3>Try to beat the wall</h3>
+    <p class="note" style="margin-bottom:0.75rem;">
+      A random element of Z/510,510 is hidden. You see six of its seven
+      residues &mdash; you choose which channel stays dark. Guess its half:
+      bottom (0 &ndash; 255,254) or top (255,255 &ndash; 510,509). The exact
+      best any strategy can do is the majority side of the candidate ladder
+      &mdash; (p+1)/2 of the dark prime's p candidates: 53% for mod 17 dark,
+      67% for mod 3, exactly 50% for mod 2 &mdash; and reading the ladder
+      out of the six visible residues is itself a full reconstruction, the
+      one thing channels never do for you. Your eyes get the residues; the
+      size stays dark.
+    </p>
+    <div class="controls" style="margin:0.5rem 0;">
+      <label>dark channel:</label>
+      <select id="hw-hide">
+        <option>2</option><option>3</option><option>5</option><option>7</option>
+        <option>11</option><option>13</option><option selected>17</option>
+      </select>
+      <button id="hw-new">New element</button>
+    </div>
+    <div class="hw-row" id="hw-row">
+      <div class="hw-ch">2:0</div><div class="hw-ch">3:0</div>
+      <div class="hw-ch">5:2</div><div class="hw-ch">7:0</div>
+      <div class="hw-ch">11:9</div><div class="hw-ch">13:3</div>
+      <div class="hw-ch dark">17:?</div>
+    </div>
+    <div class="controls" style="margin:0.5rem 0;">
+      <button id="hw-bottom">Bottom half</button>
+      <button id="hw-top">Top half</button>
+    </div>
+    <div id="hw-result">Without JavaScript this stays a worked example: the
+    six residues shown admit 17 candidates spaced 30,030 apart, splitting
+    9 bottom / 8 top &mdash; the prose above is the whole game.</div>
+    <div class="note" id="hw-score"></div>
+  </div>
 
   <h2>The second coordinate system</h2>
   <p>
@@ -415,6 +467,66 @@ footer p { margin-bottom: 0.25rem; }
     substitute just cycles (explicit witness). Division-with-remainder died
     with the size window; only its purpose survives, and it survives bounded.
   </p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var N = TOWER.N, MODS = TOWER.MODS, COLORS = TOWER.COLORS;
+  var HALF = N / 2;
+  var n = 42, hiddenIdx = 6, answered = true, score = 0, total = 0;
+
+  function renderRow(revealed) {
+    document.getElementById('hw-row').innerHTML = MODS.map(function(m, i) {
+      var dark = (i === hiddenIdx) && !revealed;
+      var v = TOWER.mod(n, m);
+      return '<div class="hw-ch' + (dark ? ' dark' : '') + '" style="color:' +
+        (dark ? 'var(--fg-dim)' : COLORS[i]) + '">' + m + ':' + (dark ? '?' : v) + '</div>';
+    }).join('');
+  }
+
+  function newRound() {
+    n = Math.floor(Math.random() * N);
+    hiddenIdx = MODS.indexOf(parseInt(document.getElementById('hw-hide').value));
+    answered = false;
+    renderRow(false);
+    document.getElementById('hw-result').innerHTML =
+      'Six residues showing. Bottom half or top half?';
+  }
+
+  function guess(saidTop) {
+    if (answered) return;
+    answered = true;
+    total++;
+    var isTop = n >= HALF;
+    var correct = (saidTop === isTop);
+    if (correct) score++;
+    var p = MODS[hiddenIdx], M = N / p, r = n % M;
+    var bottom = 0;
+    for (var j = 0; j < p; j++) if (r + j * M < HALF) bottom++;
+    renderRow(true);
+    document.getElementById('hw-result').innerHTML =
+      'n = ' + n.toLocaleString('en') + ' &mdash; ' + (isTop ? 'top' : 'bottom') +
+      ' half. <span class="' + (correct ? 'good' : 'bad') + '">' +
+      (correct ? 'Correct.' : 'Wrong.') + '</span> The ' + p +
+      ' candidates, spaced ' + M.toLocaleString('en') + ' apart, split ' +
+      bottom + ' bottom / ' + (p - bottom) + ' top.';
+    document.getElementById('hw-score').textContent =
+      'Your hit rate: ' + score + '/' + total +
+      (total ? ' (' + Math.round(100 * score / total) + '%)' : '');
+  }
+
+  document.getElementById('hw-new').addEventListener('click', newRound);
+  document.getElementById('hw-hide').addEventListener('change', newRound);
+  document.getElementById('hw-bottom').addEventListener('click', function() {
+    if (answered) { newRound(); return; }
+    guess(false);
+  });
+  document.getElementById('hw-top').addEventListener('click', function() {
+    if (answered) { newRound(); return; }
+    guess(true);
+  });
+  newRound();
+});
+</script>
 
   <footer>
     <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
