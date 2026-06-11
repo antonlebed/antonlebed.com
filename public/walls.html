@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="What channels cannot see: the size wall, the exponent coordinate and its lookup tax, the missing third coordinate, the size a channel can see, and what replaces order — exact limits, proved.">
+  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="antonlebed.com">
+  <link rel="canonical" href="https://antonlebed.com/walls">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Walls — antonlebed.com</title>
+  <style>
+:root {
+  --bg: #0a0c18;          
+  --fg: #e8e8f0;
+  --fg-dim: #888898;
+  --accent: #88ccaa;
+  --link: #6699cc;
+  --border: #1e2233;
+  --card-bg: #10131f;
+  --error: #ff4444;
+  --heal: #44ff88;
+  --detect: #ffd700;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ch-2: #ff5555;
+  --ch-3: #ff8c00;
+  --ch-5: #ffd700;
+  --ch-7: #4caf50;
+  --ch-11: #00bcd4;
+  --ch-13: #5c6bc0;
+  --ch-17: #ab47bc;
+  --ch-19: #7e57c2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #2d2a52 var(--bg);
+}
+::-webkit-scrollbar { width: 8px; background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2d2a52; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3d3870; }
+#atmo-sun {
+  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    #05060c 0%, #0a0c18 52%, #1a0800 68%, #4a1500 80%,
+    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
+  animation: sun-breathe 24s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
+                         0 0 80px 32px rgba(255,120,0,0.13),
+                         0 0 150px 64px rgba(255,80,0,0.05); }
+  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
+                         0 0 105px 46px rgba(255,140,0,0.20),
+                         0 0 185px 82px rgba(255,100,0,0.08); }
+}
+#atmo-stars {
+  position: absolute; top: 0; left: 0;
+  overflow: hidden; pointer-events: none; z-index: -2;
+}
+@media (prefers-reduced-motion: reduce) {
+  #atmo-sun { animation: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
+p  { margin-bottom: 1rem; color: var(--fg-dim); }
+strong { color: var(--fg); font-weight: 600; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 0.9rem; }
+.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
+.note { font-size: 0.85rem; color: var(--fg-dim); }
+.ch-2 { color: var(--ch-2); }
+.ch-3 { color: var(--ch-3); }
+.ch-5 { color: var(--ch-5); }
+.ch-7 { color: var(--ch-7); }
+.ch-11 { color: var(--ch-11); }
+.ch-13 { color: var(--ch-13); }
+.ch-17 { color: var(--ch-17); }
+.ch-19 { color: var(--ch-19); }
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.82rem;
+}
+.tbl th, .tbl td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
+.tbl td { font-family: var(--mono); }
+.tbl.left th, .tbl.left td { text-align: left; }
+.tbl .demo td { color: var(--accent); }
+.tbl .transparent td { color: var(--fg-dim); }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
+nav {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+nav a {
+  color: var(--fg);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
+nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
+nav .search-wrap { position: relative; margin-left: auto; }
+nav .search-wrap input {
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: 7rem;
+  font-family: var(--sans);
+  transition: width 0.2s, border-color 0.15s;
+}
+nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
+nav .search-wrap .search-results {
+  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 4px;
+  min-width: 14rem;
+  z-index: 100;
+  display: none;
+}
+nav .search-wrap .search-results a {
+  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
+  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+}
+nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
+nav .search-wrap .search-results a:last-child { border-bottom: none; }
+nav .search-wrap .search-results .match-title { color: var(--fg); }
+nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
+nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
+.hero { margin: 2rem 0 1.5rem; text-align: center; }
+.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero .factorization {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+button {
+  background: #222233;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+button:hover { background: #333344; border-color: #666688; }
+button:active { background: #444455; }
+input[type="text"], input[type="number"] {
+  background: #111122;
+  color: var(--fg);
+  border: 1px solid #444466;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  width: 100%;
+  max-width: 300px;
+}
+input:focus { outline: none; border-color: var(--accent); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+footer p { margin-bottom: 0.25rem; }
+@media (max-width: 600px) {
+  body { padding: 0.75rem; }
+  .hero h1 { font-size: 1.4rem; }
+  nav .search-wrap { margin-left: 0; flex-basis: 100%; text-align: center; }
+  nav .search-wrap input { width: 60%; max-width: 14rem; }
+  nav .search-wrap input:focus { width: 70%; }
+  nav .search-wrap .search-results { left: 50%; right: auto; transform: translateX(-50%); }
+}
+  </style>
+  
+  <script src="tower.js" defer></script>
+  <script src="atmosphere.js" defer></script>
+  <script src="search.js" defer></script>
+</head>
+<body>
+  <div id="atmo-sun" aria-hidden="true"></div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="tower.html">Tower</a>
+    <a href="crt.html">CRT</a>
+    <a href="walls.html" aria-current="page">Walls</a>
+    <a href="ecc.html">ECC</a>
+    <a href="dynamics.html">Dynamics</a>
+    <a href="prediction.html">Prediction</a>
+    <a href="build.html">Build</a>
+    <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
+  </nav>
+
+<h1>What Channels Cannot See</h1>
+  <p>
+    The CRT decomposition has exact limits, and they are as structural as the
+    decomposition itself. This page charts them at the k&nbsp;=&nbsp;7 demo rung,
+    Z/510,510, where every element is a 7-tuple of remainders mod 2, 3, 5, 7, 11,
+    13, 17 &mdash; small enough that every claim below is proved or checked
+    exhaustively over a stated range. The chart: what no channel reads, what a
+    second coordinate system buys and what it taxes, why a third does not exist,
+    what kind of size a channel <em>can</em> compute, and what replaces the
+    ordering of the integers once size is gone.
+  </p>
+
+  <h2>The size wall</h2>
+  <p>
+    When the modulus is a product of distinct primes &mdash; every rung of the
+    tower &mdash; a function is computable channel-by-channel exactly when it is a
+    polynomial &mdash; some mix of ring additions and multiplications (proved).
+    Every question of <em>size</em> &mdash; sign, comparison, overflow &mdash;
+    falls outside: none of it is channel-computable at any rung with two or more
+    channels, and no per-channel recoding brings it into view. Any coordinate
+    system that keeps addition parallel hits the same wall.
+  </p>
+  <p>
+    The hiding is exact, not approximate. Fix six of the seven residues of an
+    unknown element and leave mod 17 open: 17 candidates remain, spaced 30,030
+    apart &mdash; an even ladder across the whole ring, splitting the two
+    halves 9 to 8. Leave the mod-2 channel open instead and the two candidates
+    split the halves exactly. Six channels of seven, and the size question is
+    still essentially a coin flip. Positional digits carry size; residues
+    provably cannot.
+  </p>
+
+  <h2>The second coordinate system</h2>
+  <p>
+    Multiplication, on the other hand, has a <em>second</em> exact coordinate
+    system. Within each channel the nonzero residues are the powers of one
+    base &mdash; mod 7 the powers of 3 run 1, 3, 2, 6, 4, 5 &mdash; so
+    rewriting residues as exponents turns multiplication into addition, the
+    slide-rule move: 2 &times; 6 becomes exponents 2 + 3 = 5, and
+    3<sup>5</sup> &equiv; 5 &equiv; 2 &times; 6 (mod 7). Composed across
+    channels &mdash; for the invertible elements, the 92,160 of 510,510 with
+    no zero residue &mdash; one multiplication is seven small exponent
+    additions, powering is exponent scaling, and the multiplicative order of
+    an element is a per-channel gcd read (verified exhaustively at k = 7).
+    The price flips: in exponent coordinates <em>addition</em> is the
+    operation that needs a lookup table &mdash; one per channel, 44 entries
+    in all here (Zech's logarithm, the classical device).
+  </p>
+  <p>
+    Each pair of demands has its coordinate system; the three together have
+    none. Residues run + and &times; in parallel but hide size. Exponents make
+    &times; and powering linear but tax +. Positional digits show size but
+    chain every carry. No coordinate system hosts all three &mdash; at
+    Z/30, the small rung where it can be checked completely, the census of
+    coordinate systems is exhaustive.
+  </p>
+
+  <h2>The ladder ends at two rungs</h2>
+  <p>
+    The two moves do not extend to a third. The residue split turns
+    multiplication into channel-by-channel work, at the price of size; the
+    exponent rewrite turns multiplication into addition, at the price of the
+    lookup table; a third move &mdash; a coordinate system in which
+    <em>powering</em> becomes addition &mdash; generically does not exist.
+    Powering is not a ring operation to begin with: exponents live in a
+    smaller companion ring &mdash; here, raising any element to the power
+    a + 240 gives the same result as the power a (for exponents &ge; 1)
+    &mdash; so the question restarts one ring down. There, channel by
+    channel, the move exists only when the channel's prime p has 8 not
+    dividing p &minus; 1: three quarters of primes pass, one in four is
+    blocked, and at k = 7 the mod-17 channel already fails. And the operation itself runs out of
+    values: power towers &mdash; x to the x to the x, floor on floor &mdash;
+    reduced mod 510,510 stop changing once four floors are up, for any base
+    x &ge; 2 (computed by a recursion checked against exact integer towers),
+    because the chain of companion rings 510,510 &rarr; 240 &rarr; 4 &rarr;
+    2 &rarr; 1 bottoms out. A third coordinate would have almost nothing
+    left to coordinate. A mirror world isolates what the first wall is made
+    of: in polynomial arithmetic, where multiplication has no carries, size
+    is exactly as invisible to channels &mdash; but the workarounds that
+    read size back, silent-failure-prone over the integers, either answer
+    exactly or fail in plain sight there (checked completely at a small
+    ring). Carries are where silent size errors live. Multiplication can be
+    rewritten all the way down to addition; powering, here, cannot: the
+    ladder ends at two rungs.
+  </p>
+
+  <h2>Three walls, one question</h2>
+  <p>
+    The three walls look unrelated &mdash; size is unreadable, the exponent
+    table is uncompressible, the third coordinate is missing &mdash; but they
+    are one statement with one parameter: <strong>through which residue window
+    can the operation be read?</strong> Size: through none &mdash; the reading
+    it lived in is the one the construction deletes, and no channel table of
+    any size substitutes (an information obstruction). The exponent table:
+    addition, rewritten into exponents, cannot be read through any window of
+    the <em>companion ring</em> &mdash; the table is incompatible with every
+    one of its prime quotients (checked for every prime p from 5 to 200,
+    every prime divisor of p &minus; 1, without exception), so it resists every
+    compression (a structure obstruction). The third coordinate: blocked one
+    ring down by the window at 2 &mdash; the companion ring's 2-part is not a
+    clean prime field once 8 divides p &minus; 1, and exactly that thickness
+    forbids the move (an existence obstruction). Three failure modes, one
+    question, asked at level zero, then twice one level down.
+  </p>
+
+  <h2>The size a channel can see</h2>
+  <p>
+    One floor up, the wall has a counterweight. Take 2&times;2 matrices with
+    entries in the ring: the determinant is a polynomial in the entries, so by
+    the criterion above it is channel-computable &mdash; a genuinely size-like,
+    multiplicative quantity (it scales, it composes, it gates invertibility)
+    living <em>inside</em> the locality class where integer size is the wall.
+    It is the multiplicative half of size only &mdash; no remainder arithmetic
+    recovers an ordering &mdash; but at every odd channel it is the whole of
+    what survives: every reading of an odd channel's matrix floor that lands
+    in commutative territory factors through the determinant (the kernel is
+    exactly the commutator subgroup &mdash; verified at every odd channel of
+    the demo rung; the group fact is classical). The mod-2 channel is the
+    exception here as elsewhere: its matrix group is too small for the
+    determinant to say anything.
+  </p>
+  <p>
+    The same floor shows the deleted window from the other side. A quaternion
+    layer over the ring can be <em>designed</em>: choose which channels go
+    strange &mdash; instead of splitting into 2&times;2 matrices, a chosen
+    channel fattens into a field of p&sup2; elements &mdash; and the choice is
+    free: {3,&thinsp;5}, {7,&thinsp;11}, even a single channel. A classical
+    conservation law says the set of strange places always has even size
+    &mdash; but it counts <em>all</em> the readings of a number, the deleted
+    one included. A visible strange-set of size one is therefore possible:
+    its partner sits at the deleted window (computed: four designed algebras,
+    every verdict at all 7 channels as predicted, 28 of 28; the bookkeeping
+    behind the conservation law is classical, the channel pattern is the
+    tower-side reading).
+  </p>
+
+  <h2>What replaces order</h2>
+  <p>
+    With size deleted, the ordering of the integers is gone &mdash; and the
+    loss is total, not partial. Test any relation by asking whether it equals
+    the AND of its per-channel readings: <em>less-than</em> fails maximally
+    &mdash; every channel's reading saturates, so the channels jointly retain
+    nothing of the order (exhaustive at Z/210) &mdash; and arranging the ring
+    on a circle instead of a line buys nothing, since the circular relation
+    carries the line's order inside it. What passes the test is
+    <em>divisibility</em>, and it reads exactly one bit per channel: zero
+    here, or not. The zero pattern &mdash; which channels an element has died
+    in &mdash; is the surviving skeleton: where you live, not how big you are.
+  </p>
+  <p>
+    The deepest consequence is what happens to induction. Over the integers,
+    &ldquo;keep descending, you must stop&rdquo; powers everything from Euclid's
+    algorithm on up &mdash; and descent there can run unboundedly long before it
+    stops. In the ring, descent through the zero patterns halts in at most k
+    steps at rung k &mdash; the depth is a constant of the <em>ring</em>, not a
+    function of the element &mdash; so every descent loop unrolls into a
+    fixed-depth circuit. Euclid splits in half: the gcd itself is a one-step
+    read of the joint zero pattern (checked exhaustively at small rungs), while
+    Euclid's <em>loop</em> &mdash; divide, take the remainder, repeat &mdash;
+    has no analogue at all: a remainder is a size comparison, and the sizeless
+    substitute just cycles (explicit witness). Division-with-remainder died
+    with the size window; only its purpose survives, and it survives bounded.
+  </p>
+
+  <footer>
+    <p><a href="https://github.com/antonlebed/antonlebed.com/issues">Report issue</a> &middot; <a href="https://github.com/antonlebed/antonlebed.com">Source</a> &middot; Public domain (CC0)</p>
+  </footer>
+</body>
+</html>
