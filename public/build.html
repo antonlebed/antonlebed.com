@@ -460,6 +460,62 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     &mdash; the extra channel adds an independent training signal.
   </p>
 
+  <h3>The syndrome as a sequential alarm</h3>
+  <p>
+    The syndrome answers a per-token question: is this output self-consistent?
+    Run sequentially, the same label-free signal answers a deployment question:
+    <strong>has the input distribution changed?</strong> Each block of output,
+    the syndrome count places a bet against the hypothesis &ldquo;operation is
+    in-distribution&rdquo;; the running product of the bets &mdash; the
+    <strong>wealth</strong> &mdash; is the alarm, fired when it reaches
+    1/&alpha;. By Ville's inequality, the false-alarm budget &alpha; holds no
+    matter how long you watch or when you stop watching.
+  </p>
+
+  <div class="metric-grid">
+    <div class="metric">
+      <span class="num" style="color:var(--heal)">3/100</span>
+      <span class="label">clean streams alarmed in 200 blocks (budget at &alpha; = 0.05: &le;5)</span>
+    </div>
+    <div class="metric">
+      <span class="num" style="color:var(--detect)">block 3</span>
+      <span class="label">median alarm on out-of-distribution text</span>
+    </div>
+    <div class="metric">
+      <span class="num" style="color:var(--detect)">block 12</span>
+      <span class="label">median alarm under 10% input corruption</span>
+    </div>
+  </div>
+
+  <p>
+    The model here is deliberately under-sized (h = 16, ~47% accuracy), so even
+    in-distribution blocks carry 13&ndash;27 syndrome positions &mdash; a raw
+    rule that flags any syndrome false-flags <strong>every</strong> clean
+    stream at block&nbsp;1. The betting version, reading the same signal on the
+    same streams, stays quiet on 97 of 100. Corruption shows what the
+    accumulation buys: corrupted blocks mostly overlap the clean range, so a
+    fixed threshold waits for rare extreme blocks, while the wealth compounds
+    the persistent mild shift across ordinary ones.
+  </p>
+
+  <div class="measurement">
+    <strong>Bets precede measurement:</strong> projecting the parity heads onto
+    the parities implied by the data heads &mdash; forcing every output to be a
+    valid codeword &mdash; sets the syndrome identically to zero, and the alarm
+    <span class="result">never fires on the same out-of-distribution
+    stream</span>. Post-processing that forces consistency destroys the
+    evidence the alarm reads.
+  </div>
+
+  <p class="note">
+    Measured: 5 seeds, Elman RNN (h=16) at Z/510,510, a 10-sentence pangram
+    corpus, one sentence per block with state reset &mdash; the model is
+    deterministic, so the null distribution of the block count is enumerated
+    from its own emissions, not estimated. In-distribution here means the
+    memorized 10 sentences; any unseen text is out-of-distribution for this
+    toy.
+  </p>
+
   <h2>What didn't work</h2>
   <p>Tried and conclusively failed &mdash; kept here so they stay failed:</p>
 
