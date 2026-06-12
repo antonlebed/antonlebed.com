@@ -419,7 +419,7 @@ footer p { margin-bottom: 0.25rem; }
     that trajectory buys: a set that skips primes is a partial sieve, and the
     sieve results on this page do not transfer to it. The blueprint does. Choosing the
     set turns &lambda; and the per-channel hardware cost into design knobs &mdash;
-    and two such rings are already deployed in the wild:
+    and a family of such rings is already deployed in the wild:
   </p>
   <p>
     <strong>The internet checksum.</strong> RFC 1071's checksum &mdash; the one IP,
@@ -450,6 +450,27 @@ footer p { margin-bottom: 0.25rem; }
     operation &mdash; a datapath fact, not a language one. Measured in Python, the
     plain % beats the fold per addition, and accumulating first then reducing once
     beats both.
+  </p>
+  <p>
+    <strong>One family, four sizes.</strong> These two rings are members of a
+    ladder: 2<sup>8</sup>&minus;1 = 3 &times; 5 &times; 17, then 65,535, then
+    2<sup>32</sup>&minus;1, then 2<sup>64</sup>&minus;1 = 3 &times; 5 &times;
+    17 &times; 257 &times; 641 &times; 65,537 &times; 6,700,417 &mdash; seven
+    prime channels filling a 64-bit word (641 &times; 6,700,417 is Euler's
+    factorization of 2<sup>32</sup>+1, the first Fermat number that is not
+    prime). Fletcher's checksums live on the first three members: Fletcher-16,
+    -32, and -64 each keep two running sums &mdash; a plain sum and a
+    position-weighted one &mdash; in one's-complement arithmetic, which is
+    arithmetic mod 255, 65,535, and 2<sup>32</sup>&minus;1 respectively; both
+    sums split per channel by construction, so each prime runs its own smaller
+    Fletcher (verified; the real-world variants that reduce mod 2<sup>w</sup>
+    instead leave the ring). And the 64-bit member closes a loop: with seven
+    channels it is the first of the family large enough for the 4+3 data/parity
+    split, and its four data channels multiply to exactly 65,535 &mdash; the
+    internet checksum's ring <em>is</em> the data space of the 64-bit tower: a
+    16-bit-word payload &mdash; one's-complement, its two zero patterns one
+    value &mdash; riding a 64-bit word with distance-4 error correction
+    (verified exhaustively over channel subsets).
   </p>
 
   <h2>The k = 7 rung up close</h2>

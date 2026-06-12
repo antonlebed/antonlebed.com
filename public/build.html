@@ -323,6 +323,40 @@ footer p { margin-bottom: 0.25rem; }
     upstream report.
   </p>
 
+  <h3>A designed ring: multiplication from logarithm tables</h3>
+  <p>
+    The fourth design leaves the primorial path. In Z/65,535 = Z/3 &times; Z/5
+    &times; Z/17 &times; Z/257 &mdash; the internet checksum's ring, four Fermat
+    primes &mdash; every channel's unit count is a power of two, so multiplying
+    units reduces to <em>adding their discrete logarithms</em>, and the
+    wrap-around of each addition is plain bit truncation. Per channel: a
+    logarithm table, a masked add, an exponential table. The classic trade is
+    tables instead of multipliers; the question is what the tables cost.
+  </p>
+  <div class="measurement">
+    <strong>Exhaustive proof on silicon:</strong>
+    <span class="result">2<sup>30</sup> + 256 checks, 0 errors</span> &mdash; all
+    1,073,741,824 ordered pairs of units, the table-lookup core compared against
+    a per-channel multiplier core, in 39.8 s at 27 MHz, verdict over serial with
+    a build-id check. The tables prove themselves first: before the sweep, the
+    device exhaustively checks per channel that the log and exponential tables
+    invert each other, that each exponential step multiplies by the channel's
+    generator, and that index 0 maps to 1 &mdash; so the table contents need no
+    off-board trust.
+  </div>
+  <div class="measurement">
+    <strong>The cost, measured both ways (one board, one toolchain):</strong>
+    with the tables in block RAM &mdash; the synthesizer maps them there on its
+    own once the core sits between registers &mdash; the lookup core uses
+    <span class="result">~4&times; less soft logic at 2.2&times; the
+    clock</span> than the bank of multipliers built from logic fabric (233 vs
+    995 logic cells, 179.7 vs 80.8 MHz, one result per cycle each). Forced into
+    LUTs, the same tables cost ~2.4&times; the multiplier bank &mdash; the
+    lookup core loses the area race. The niche is exactly &ldquo;tables in
+    block RAM, adds in fabric&rdquo;; without the dedicated memory, plain
+    multipliers win.
+  </div>
+
   <h2>Radio: the ESP32 mesh</h2>
   <p>
     Three ESP32 boards form an ESP-NOW mesh. Each board CRT-encodes data into
