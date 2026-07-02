@@ -6,6 +6,7 @@
     {url:'tower.html', title:'Tower'},
     {url:'crt.html', title:'CRT'},
     {url:'walls.html', title:'Walls'},
+    {url:'measure.html', title:'Measure'},
     {url:'ecc.html', title:'ECC'},
     {url:'dynamics.html', title:'Dynamics'},
     {url:'prediction.html', title:'Prediction'},
