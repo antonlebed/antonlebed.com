@@ -498,6 +498,28 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     &mdash; the extra channel adds an independent training signal.
   </p>
 
+  <p>
+    The check survives a real vocabulary and real residual errors. Same
+    architecture, GPT-2's tokenizer (a 2,118-class slice of the k=8 ring),
+    five chapters of Carroll: a small model stuck at 27% accuracy makes
+    ~10,000 errors per run, and the syndrome flags 99.7% of them (30,713 of
+    30,812 across three seeds), rare tokens as well as frequent ones. The
+    price at that starved capacity is a 16% false-alarm rate on correct
+    tokens; at adequate capacity false alarms return to zero. The 99 misses
+    are not noise but two named shapes, both coherent wrong codewords: a
+    <strong>counting</strong> miss &mdash; the net continues a scene-break
+    token run where the corpus ends it, every run-end, every seed &mdash;
+    and a <strong>frequent-default</strong> miss, a confident wrong guess of
+    a well-learned frequent token that aligns all 8 heads. The counting miss
+    belongs to the recurrent cell, not to the check: swap the Elman cell for
+    an LSTM, heads unchanged, and at adequate capacity the nine run-end
+    misses drop to two &mdash; five predicted correctly, two flagged. What
+    no model could know (context-free segment starts) stays flagged.
+  </p>
+  <p class="note">
+    Measured: PyTorch, 3 seeds per cell, one corpus &mdash; observation tier.
+  </p>
+
   <h3>The syndrome as a sequential alarm</h3>
   <p>
     The syndrome answers a per-token question: is this output self-consistent?
