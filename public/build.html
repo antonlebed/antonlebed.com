@@ -520,6 +520,37 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     Measured: PyTorch, 3 seeds per cell, one corpus &mdash; observation tier.
   </p>
 
+  <h3>The blind spot is the source's grammar</h3>
+  <p>
+    Everything above is memorization &mdash; the model has seen every answer, so
+    any error is a self-contradiction waiting to be caught. A model that
+    <strong>generalizes</strong> errs differently, and there the blind spot takes
+    an exact shape. Train the same architecture on a known synthetic source
+    &mdash; a 300-state Markov process, 80% of transitions deterministic, the
+    rest branch points where the likeliest successor carries probability 0.6
+    &mdash; and score it on fresh text it has never seen: 87&ndash;88% accuracy
+    against the source's 92% ceiling, where the memorizer models above score
+    0&ndash;4%. Because the source is known, every error can be judged against
+    what it could legally have said.
+  </p>
+  <p>
+    <strong>The syndrome flags what the source could not have said.</strong>
+    Every test error predicting something that is not a legal successor of the
+    input state is flagged &mdash; 100%, across all six model cells &mdash; and every error
+    the syndrome misses is a bet the source itself could have made. Pure bad
+    luck (betting the likeliest successor when the sample branched away) is 94%
+    invisible by construction: a successor carrying more than half the
+    probability wins the vote in every channel, so the optimal bet is a valid
+    codeword whether it wins or loses. Aggregate detection therefore falls to
+    ~50%, tracking how many errors are illegal rather than unlucky &mdash; and
+    false alarms nearly vanish (6&ndash;13&permil; against the starved
+    memorizer's 148&ndash;250&permil;: that price was capacity, not the check).
+  </p>
+  <p class="note">
+    Measured: Elman RNN, h=64 and h=256, 3 seeds each, one synthetic
+    first-order source &mdash; observation tier.
+  </p>
+
   <h3>The syndrome as a sequential alarm</h3>
   <p>
     The syndrome answers a per-token question: is this output self-consistent?
@@ -608,6 +639,59 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     given the past survives dependent reading policies, at the price of
     calibrating the null per reading state rather than once &mdash; skip
     that, and a dependent stream lands 6&times; past the budget.
+  </p>
+
+  <h3>Three kinds of drift, three time constants</h3>
+  <p>
+    Run the alarm on the generalizer &mdash; the known-source model above,
+    where the null can no longer be enumerated. It is estimated from
+    label-free calibration blocks instead, with a concentration pad on the
+    betting target so estimation error is paid in delay, never in false
+    alarms. No null stream ever alarmed: both block lengths, all seeds, at a
+    false-alarm budget of 0.10 per monitor. Against that quiet floor, three
+    kinds of change get three measured time constants.
+  </p>
+
+  <div class="metric-grid">
+    <div class="metric">
+      <span class="num" style="color:var(--detect)">75</span>
+      <span class="label">positions to alarm on a foreign source, label-free</span>
+    </div>
+    <div class="metric">
+      <span class="num" style="color:var(--detect)">~10&#8309;</span>
+      <span class="label">positions on same-grammar probability drift, label-free (1.7&ndash;18&times;10&sup3; with labels)</span>
+    </div>
+    <div class="metric">
+      <span class="num" style="color:var(--heal)">no alarm</span>
+      <span class="label">on in-grammar bad luck &mdash; correctly: there is no rate excess to bet on</span>
+    </div>
+  </div>
+
+  <p>
+    A foreign source &mdash; a walk from a different generator &mdash; throws
+    the recurrent context off-manifold and nearly every position flags: the
+    alarm fires in three short blocks. Drift that keeps the grammar but shifts
+    the branch probabilities is the hard case: no per-token signal moves, and
+    the errors it adds are legal bets, individually indistinguishable from bad
+    luck. What survives label-free is a ~1-point rise in the flag
+    <em>rate</em>, and that echo lives at a specific timescale &mdash; it rides
+    the drifted walk's redistribution of time across states, which needs
+    hundreds of steps to settle. Blocks of 25 positions forfeit it: the echo
+    falls to the estimation pad, and no alarm fired in a 60,000-position
+    budget. Blocks of 600 catch it at 0.6&ndash;1.0&times;10&#8309; positions.
+  </p>
+  <p>
+    A monitor with labels reads the error rate itself &mdash; an excess three
+    to four times the size, visible even at short blocks &mdash; and alarms in
+    1.7&ndash;18&times;10&sup3; positions, 18&ndash;51&times; sooner best tier
+    against best tier. The division of labor: the per-token syndrome catches
+    foreign context, a label-free alarm on the flag rate at the occupancy
+    timescale catches same-grammar drift, and the in-grammar loss itself is
+    the labeled error rate's job.
+  </p>
+  <p class="note">
+    Measured: 3 seeds, Elman h=64, alarm at wealth 20 &mdash; one synthetic
+    source, observation tier.
   </p>
 
   <h2>What didn't work</h2>
