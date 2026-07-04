@@ -442,6 +442,61 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     refused to sit at zero when the leader role rotated.
   </p>
 
+  <h3>Drift alarms with a guarantee</h3>
+  <p>
+    The sequential alarm that watches the neural syndrome (below) also runs
+    whole on one $5 sensor node. The board calibrates a per-channel drift
+    statistic from 200 blocks of its own BME280 stream &mdash; temperature,
+    pressure, humidity; one 32-read block every 1.37&thinsp;s &mdash; then
+    monitors with betting-style accumulators whose false-alarm rate is bounded
+    at 10% per 150-block deployment <em>within the whole horizon</em>: the
+    bound holds at every block, not just at a scheduled test time, and the
+    channel that crosses its threshold names the fault.
+  </p>
+  <div class="measurement">
+    <strong>On-node cost:</strong>
+    <span class="result">6&thinsp;KB of state, ~4&thinsp;ms per 1.37&thinsp;s block</span>
+    &mdash; the guarantee rides along at 0.3% duty, and the ESP32's
+    single-precision floats stay within 4.7&times;10<sup>&minus;6</sup> of a
+    double-precision desktop replay of the same stream.
+  </div>
+  <p>
+    A hand held on the sensor: humidity alarms at block 8 (skin moisture moves
+    first and hardest), temperature at block 13 as the board warms, pressure
+    never &mdash; its detector peaked at 257 against a threshold of 9,000. The
+    naming tracks the physics, not just the anomaly.
+  </p>
+  <p>
+    The instructive failure was the calibration <em>window</em>. A 4.6-minute
+    calibration read ordinary room life &mdash; air conditioning, occupancy
+    &mdash; as drift: 5 of 9 quiet-room channel-runs alarmed, truthfully naming
+    temperature and humidity while pressure stayed quiet. The same 200 blocks
+    spread over 9.2 minutes: 0 of 6, with ~360&times; of detector margin. The
+    constraint on a small node is not samples or RAM; it is that the
+    calibration window must cover the room's own variation. Read the other way,
+    that failure is a feature: &ldquo;your calibration no longer describes this
+    room&rdquo; is itself a sellable alarm.
+  </p>
+  <p>
+    The natural rival is conformal anomaly detection &mdash; the calibration
+    machinery filling the guarantee gap in industrial monitoring. Replayed on
+    the identical streams, same statistic, same calibration: a
+    conformal detector matched to our whole-horizon bound is structurally mute
+    at this calibration size (its smallest p-value, 1/201, sits ~45&times;
+    above the required per-block level; equivalence needs &ge;&thinsp;8,999
+    calibration blocks &mdash; ~3.4 quiet hours and ~145&thinsp;KB of state,
+    off the MCU) &mdash; while per-decision conformal, the shape production
+    tools ship, detects a touch instantly but false-alarmed 4 of 6 quiet
+    channel-runs (the accumulating detector: 0 of 6), fired on a sensor-init
+    transient the accumulator absorbs, and named pressure on a touch. One
+    structure pays the monitoring horizon in calibration size; the other pays
+    it in a threshold. Truthful drift naming needs accumulation.
+  </p>
+  <p class="note">
+    Tier: observation &mdash; one board, one room, one day; the window
+    lesson rests on two points, and the hour of day is a named confound.
+  </p>
+
   <h2>Neural: CRT architectures with built-in parity</h2>
   <p>
     Instead of one monolithic output head, use 7 independent CRT output heads, one
