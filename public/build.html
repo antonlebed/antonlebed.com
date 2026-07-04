@@ -751,6 +751,79 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     through the same text pipeline &mdash; observation tier.
   </p>
 
+  <h3>The check on a frozen pretrained model</h3>
+  <p>
+    Everything above trains the backbone and the parity heads together. A
+    model that already exists was not trained that way &mdash; so freeze one.
+    Take DistilGPT-2 with its weights never touched, and train only the eight
+    residue heads: small standalone maps from its cached hidden states into an
+    8-channel ring's residue classes (a 2,310-token-class slice, 5 data + 3
+    parity channels). No retraining, no reference model, no extra generations
+    &mdash; the forward pass was happening anyway, and the check reads it. The
+    signal survives: every channel's head beats a bigram table reading the
+    same current token, parity residues included, and the syndrome separates wrong
+    reconstructions from correct ones by 13&times; (mean syndrome 2.5 vs
+    0.19), flagging 91% of them.
+  </p>
+
+  <div class="metric-grid">
+    <div class="metric">
+      <span class="num" style="color:var(--heal)">.94</span>
+      <span class="label">syndrome AUROC on the heads' error event</span>
+    </div>
+    <div class="metric">
+      <span class="num">.73</span>
+      <span class="label">the model's own next-token entropy, same event</span>
+    </div>
+    <div class="metric">
+      <span class="num">.80&ndash;.84</span>
+      <span class="label">a probe trained on the error event itself</span>
+    </div>
+  </div>
+
+  <p>
+    The cheaper monitors do not replace it. On the same cached states, the
+    model's own next-token entropy &mdash; the natural free uncertainty signal
+    &mdash; ranks the heads' errors at AUROC .73 where the syndrome holds .94.
+    A logistic probe <em>supervised on that very error event</em> reaches
+    .80&ndash;.84, and pays for it off its fit domain: the probe's calibrated
+    threshold collapses to a 73&ndash;78% false-alarm rate on new text, and
+    the linear variant inverts on out-of-domain input &mdash; text at 98%
+    true error scored <em>safer</em> than usual. The syndrome needs no labels
+    and no threshold: any parity disagreement is a flag, so there is nothing
+    to mis-calibrate on text it never fit.
+  </p>
+  <p>
+    The prices at this scale, stated plainly. False alarms: one correct token
+    in seven flagged (14&ndash;16%) at 91% detection &mdash; falling with
+    head-training text, not structural: one doubling of training pairs cut it
+    by a third. A depth dial trades detection for false alarms, down to 4%
+    false alarms at 78% detection on the embedding layer's near-token-identity
+    features. Reconstruction stays weak (~.15 linear, .17 with a small MLP)
+    &mdash; and is honestly not the product: a plain bigram lookup table
+    reconstructs .18 on the same data yet detects only 53&ndash;62% of its own
+    errors, because a majority table votes one coherent codeword in every
+    channel and its mistakes stay silent. Detection lives in cross-channel
+    <em>disagreement</em>, which independently trained heads produce and
+    lookup tables cannot.
+  </p>
+  <p>
+    The drift story survives too, and turns out to belong to the features. A
+    10%-corrupted stream elevates the mean syndrome label-free at every
+    setting, and out-of-domain text saturates a ceiling above that &mdash; the
+    ordering clean &lt; corrupted &lt; foreign that the sequential alarm
+    above bets on. Run the same syndrome on the bigram table's predictions
+    instead and the ordering breaks: unseen contexts fall back to
+    near-coherent majority guesses, and foreign text looks <em>safer</em>
+    than clean. The frozen model's representation is what makes drift
+    visible to the check.
+  </p>
+  <p class="note">
+    Measured: DistilGPT-2 frozen, linear and MLP heads, 3 seeds, GPT-2
+    tokenizer, <em>Alice</em> chapters (train ch. 1&ndash;6 + 8&ndash;12,
+    held-out ch. 7) &mdash; one backbone, one corpus pair, observation tier.
+  </p>
+
   <h2>What didn't work</h2>
   <p>Tried and conclusively failed &mdash; kept here so they stay failed:</p>
 
