@@ -762,8 +762,8 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     &mdash; the forward pass was happening anyway, and the check reads it. The
     signal survives: every channel's head beats a bigram table reading the
     same current token, parity residues included, and the syndrome separates wrong
-    reconstructions from correct ones by 13&times; (mean syndrome 2.5 vs
-    0.19), flagging 91% of them.
+    reconstructions from correct ones by 17&times; (mean syndrome 2.5 vs
+    0.15), flagging 89% of them.
   </p>
 
   <div class="metric-grid">
@@ -795,17 +795,26 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
   </p>
   <p>
     The prices at this scale, stated plainly. False alarms: one correct token
-    in seven flagged (14&ndash;16%) at 91% detection &mdash; falling with
-    head-training text, not structural: one doubling of training pairs cut it
-    by a third. A depth dial trades detection for false alarms, down to 4%
-    false alarms at 78% detection on the embedding layer's near-token-identity
-    features. Reconstruction stays weak (~.15 linear, .17 with a small MLP)
-    &mdash; and is honestly not the product: a plain bigram lookup table
-    reconstructs .18 on the same data yet detects only 53&ndash;62% of its own
-    errors, because a majority table votes one coherent codeword in every
-    channel and its mistakes stay silent. Detection lives in cross-channel
-    <em>disagreement</em>, which independently trained heads produce and
-    lookup tables cannot.
+    in nine flagged (11&ndash;12%) at 89% detection. The rate falls with
+    head-training text &mdash; two doublings of training pairs walked it from
+    20&ndash;22% through 14&ndash;16% to 11&ndash;12%, the second doubling
+    from a different book &mdash; but detection slides down the same dial
+    (95% &rarr; 91% &rarr; 89%): more pairs make the heads agree more, so
+    they flag less of everything. More text moves the operating point; it
+    does not dominate it. An MLP head holds 90% detection at 12&ndash;16%
+    false alarms. The depth dial trades further, down to 4&ndash;5% false
+    alarms at 78% detection on the embedding layer's near-token-identity
+    features &mdash; the one cell the different book <em>hurt</em> (token
+    statistics differ by book; the deep layers' geometry is what transfers).
+  </p>
+  <p>
+    Reconstruction stays weak (~.15 linear &mdash; flat under more pairs,
+    capacity-bound &mdash; and ~.20 with a small MLP), and is honestly not
+    the product: a plain bigram lookup table reconstructs .18 on the same
+    data yet detects only 53&ndash;62% of its own errors, because a majority
+    table votes one coherent codeword in every channel and its mistakes stay
+    silent. Detection lives in cross-channel <em>disagreement</em>, which
+    independently trained heads produce and lookup tables cannot.
   </p>
   <p>
     The drift story survives too, and turns out to belong to the features. A
@@ -818,12 +827,53 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     than clean. The frozen model's representation is what makes drift
     visible to the check.
   </p>
+
+  <h3>Junk versus lies</h3>
+  <p>
+    Random corruption is the easy adversary. So corrupt the same 10% of
+    held-out positions three ways, changing only what replaces the true
+    token: a uniformly random one (junk), the corpus's most frequent
+    successor of the preceding token (a bigram liar), and the frozen model's
+    own most plausible wrong choice at that position (the model as its own
+    liar) &mdash; 317 positions, identical across the three streams.
+  </p>
+  <table class="tbl">
+    <tr><th>replaced with</th><th>model's own surprisal</th><th>heads reconstruct the forgery</th></tr>
+    <tr><td>random token</td><td>+10 nats</td><td>never (0 of 317)</td></tr>
+    <tr><td>bigram lie</td><td>+1.4 nats</td><td>8&ndash;11%</td></tr>
+    <tr><td>the model's own lie</td><td>below clean</td><td>7&ndash;9%</td></tr>
+  </table>
+  <p>
+    Token surprisal &mdash; the classic free detector: flag what the model
+    finds improbable &mdash; prices junk as absurd, a bigram lie as mildly
+    odd, and the model's own lie at 3.25 nats against a 3.32 clean average.
+    A model finds its own suggestions plausible by construction, so its
+    surprisal is structurally blind to exactly the lies it would tell. The
+    syndrome is not: the mean syndrome stays elevated over clean on both lie
+    streams in every seed at both head capacities, the model's own lies at
+    32&ndash;53% of junk's elevation &mdash; and a nonzero syndrome remains
+    a proof that some head erred, whatever the corruption.
+  </p>
+  <p>
+    Upgrading the adversary buys it nothing. The deepest failure &mdash; the
+    heads reconstructing the forgery itself as a coherent codeword &mdash;
+    is bounded at 7&ndash;11% of lie positions for either liar, and the
+    model's own best wrong guesses fool the heads no more often than bigram
+    statistics do; the reconstruction stays the truth 1.4&ndash;2.5&times;
+    more often than the lie. The heads' failure surface does not follow the
+    model's plausibility ranking, so an adversary armed with the model's own
+    preferences is aiming at a surface it cannot see. One scope line: flag
+    rates at lie positions sit within .043 of clean positions &mdash; the
+    syndrome never reads the target token &mdash; so this is a stream-level
+    observable plus a bounded illusion rate, not a per-token lie detector.
+  </p>
   <p class="note">
     Measured: DistilGPT-2 frozen, linear and MLP heads, 3 seeds, GPT-2
     tokenizer, <em>Alice</em> chapters, held-out ch. 7 throughout &mdash;
     the monitor comparison at head-training ch. 1&ndash;5, the price and
-    dial numbers with ch. 6 + 8&ndash;12 added &mdash; one backbone, one
-    corpus pair, observation tier.
+    dial numbers with ch. 6 + 8&ndash;12 then <em>Looking-Glass</em> added,
+    the lie comparison at the full diet &mdash; one backbone, one author,
+    observation tier.
   </p>
 
   <h2>What didn't work</h2>
