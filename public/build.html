@@ -449,69 +449,100 @@ corrupt mod 7 (+1): syndrome (1, 10, 16)</pre>
     statistic from 200 blocks of its own BME280 stream &mdash; temperature,
     pressure, humidity; one 32-read block every 1.37&thinsp;s &mdash; then
     monitors with betting-style accumulators whose false-alarm rate is bounded
-    at 10% per 150-block deployment <em>within the whole horizon</em>: the
-    bound holds at every block, not just at a scheduled test time, and the
-    channel that crosses its threshold names the fault.
+    at 10% per 150-block deployment &mdash; at every block, not just a scheduled
+    test time &mdash; and the channel that crosses its threshold names the fault.
   </p>
   <div class="measurement">
     <strong>On-node cost:</strong>
     <span class="result">6&thinsp;KB of state, ~4&thinsp;ms per 1.37&thinsp;s block</span>
-    &mdash; the guarantee rides along at 0.3% duty, and the ESP32's
-    single-precision floats stay within 4.7&times;10<sup>&minus;6</sup> of a
-    double-precision desktop replay of the same stream.
+    &mdash; the guarantee rides at 0.3% duty.
   </div>
   <p>
-    A hand held on the sensor: humidity alarms at block 8 (skin moisture moves
-    first and hardest), temperature at block 13 as the board warms, pressure
-    never &mdash; its detector peaked at 257 against a threshold of 9,000. The
-    naming tracks the physics, not just the anomaly.
+    A hand held on the sensor: humidity alarms at block 8, temperature at block
+    13 as the board warms, pressure never &mdash; its detector peaked at 257
+    against a threshold of 9,000. The naming tracks the physics, not just the
+    anomaly.
   </p>
   <p>
     The instructive failure was the calibration <em>window</em>. A 4.6-minute
     calibration read ordinary room life &mdash; air conditioning, occupancy
-    &mdash; as drift: 5 of 9 quiet-room channel-runs alarmed, truthfully naming
-    temperature and humidity while pressure stayed quiet. The same 200 blocks
-    spread over 9.2 minutes: 0 of 6, with ~360&times; of detector margin. The
-    constraint on a small node is not samples or RAM; it is that the
-    calibration window must cover the room's own variation. Read the other way,
-    that failure is a feature: &ldquo;your calibration no longer describes this
-    room&rdquo; is itself a sellable alarm.
+    &mdash; as drift, alarming 5 of 9 quiet-room channel-runs; spread over 9.2
+    minutes it gave 0 of 6, ~360&times; of margin. The binding constraint on a
+    small node is not samples or RAM but that the calibration window cover the
+    room's own variation.
   </p>
   <p>
-    The natural rival is conformal anomaly detection &mdash; the calibration
-    machinery filling the guarantee gap in industrial monitoring. Replayed on
-    the identical streams, same statistic, same calibration: a
-    conformal detector matched to our whole-horizon bound is structurally mute
-    at this calibration size (its smallest p-value, 1/201, sits ~45&times;
-    above the required per-block level; equivalence needs &ge;&thinsp;8,999
-    calibration blocks &mdash; ~3.4 quiet hours and ~145&thinsp;KB of state,
-    off the MCU) &mdash; while per-decision conformal, the construction its
-    own literature ships, detects a touch instantly but false-alarmed 4 of 6 quiet
-    channel-runs (the accumulating detector: 0 of 6), fired on a sensor-init
-    transient the accumulator absorbs, and named pressure on a touch. One
-    structure pays the monitoring horizon in calibration size; the other pays
-    it in a threshold. Truthful drift naming needs accumulation.
+    The natural rival, conformal anomaly detection, cannot meet a whole-horizon
+    bound at this calibration size: equivalence needs &ge;&thinsp;8,999
+    calibration blocks (~3.4 quiet hours, ~145&thinsp;KB, off the MCU), and the
+    per-decision form its own literature ships false-alarmed 4 of 6 quiet
+    channel-runs where the accumulator held 0 of 6. Truthful drift naming needs
+    accumulation.
   </p>
   <p>
     And the guarantee crosses the radio. Each block's decision values ride
-    ESP-NOW as residues of the same rate-4/7 code the ECC demo runs &mdash;
-    21 coded bytes per block &mdash; and a second, sensorless board corrects
+    ESP-NOW as residues of the same rate-4/7 code the ECC demo runs &mdash; 21
+    coded bytes per block &mdash; and a second, sensorless board corrects
     single-channel errors and runs the same detector from a byte-identical
-    calibration. On a clean link the decoded stream is the sensor's
-    bit-exact twin: 150 of 150 per-block detector triples identical across
-    two different boards. Under an injected fault schedule &mdash; 30
-    corruptions and 12 dropped blocks, including the touch replay's hottest
-    block &mdash; every corruption was flagged at the true channel and
-    corrected to the exact transmitted value, and the touch verdicts crossed
-    intact one block late (humidity at block 9, temperature at 14), exactly
-    as computed on the desktop before the run. A block that never arrives
-    places no bet, and the false-alarm bound is monotone in the number of
-    bets: radio loss costs delay, never validity.
+    calibration. On a clean link the decoded stream is the sensor's bit-exact
+    twin, 150 of 150 detector triples identical across two boards. Under an
+    injected fault schedule (30 corruptions, 12 dropped blocks) every corruption
+    was flagged and corrected exactly, and the touch verdicts crossed intact one
+    block late (humidity 9, temperature 14). A missing block places no bet, so
+    radio loss costs delay, never validity.
+  </p>
+
+  <h3>The alarm reads a spec, not a scalar</h3>
+  <p>
+    That alarm watches three scalars and names the channel that crosses. But a
+    <em>touch</em> is not &ldquo;some channel drifted&rdquo;; it is a shape:
+    humidity drifts <em>and</em> temperature drifts <em>and</em> pressure stays
+    quiet &mdash; a Boolean formula over the three channels. Monitor the formula
+    itself and the alarm certifies the shape, not just an anomaly.
+  </p>
+  <p>
+    Each channel carries a <em>pair</em> of accumulators: a drift
+    certificate (against &ldquo;quiet&rdquo;) and a quiet certificate (against
+    &ldquo;drifted past a named margin&rdquo;). As a Boolean tree the pair
+    brackets the formula &mdash; a floor that certifies TRUE, a roof that
+    certifies FALSE, an ABSTAIN between that names the channels still in doubt.
+    The family false-alarm budget stays linear in the atom count:
+    &le;&thinsp;10% at the same calibration and threshold the scalar alarm runs.
+  </p>
+  <div class="measurement">
+    <strong>Touch, replayed:</strong>
+    <span class="result">certified TRUE at block 13</span>
+    &mdash; the same block the scalar temperature alarm fires; the certificate
+    costs zero delay. The quiet streams certify FALSE-for-prefix by block 4,
+    with zero false TRUE.
+  </div>
+  <p>
+    The value is in the negation, which a one-sided alarm cannot state. A
+    constructed pressure front that moves all three channels at once &mdash; a
+    labeled synthetic, since no real pressure event was captured &mdash; fools a
+    naive &ldquo;humidity <em>and</em> temperature drifted&rdquo; latch into
+    firing TRUE at block 13; the formula monitor's <em>not-pressure</em>
+    certificate catches the front at block 7 and reads FALSE first. A second
+    synthetic, a <em>late</em> front, certifies TRUE early (correct for the
+    stretch it covers) then <em>voids</em> at block 65 with pressure named
+    &mdash; the exposure window made a visible state, not a silent hole.
+  </p>
+  <p>
+    &ldquo;Quiet throughout the last 22 seconds&rdquo; is temporal, not instant.
+    A windowed accumulator certifies a growing prefix &mdash; no drift stretch
+    longer than the window so far &mdash; and the first failed window locates
+    the onset; testing every window position is <em>free</em>, since a wrong
+    certificate would need every shifted window to cross at once. Drift shorter
+    than the window sits below the certificate by design, so the same monitor
+    certifies sparse drift has passed while abstaining on drift too dense to see
+    through.
   </p>
   <p class="note">
-    Tier: observation &mdash; one board (one pair for the radio leg), one
-    room, one day; the window lesson rests on two points, and the hour of
-    day is a named confound.
+    Tier: observation &mdash; one board (one pair for the radio leg), one room,
+    one day; the hour of day is a named confound. The touch and quiet verdicts
+    replay the drift streams above; the two moving fronts are constructed
+    synthetics (no real pressure event exists to replay), labeled wherever they
+    appear.
   </p>
 
   <h2>Neural: CRT architectures with built-in parity</h2>
