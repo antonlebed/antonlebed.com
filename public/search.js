@@ -8,6 +8,7 @@
     {url:'walls.html', title:'Walls'},
     {url:'measure.html', title:'Measure'},
     {url:'ecc.html', title:'ECC'},
+    {url:'automata.html', title:'Automata'},
     {url:'dynamics.html', title:'Dynamics'},
     {url:'prediction.html', title:'Prediction'},
     {url:'build.html', title:'Build'}
