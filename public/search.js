@@ -4,6 +4,7 @@
   var PAGES = [
     {url:'index.html', title:'Home'},
     {url:'tower.html', title:'Tower'},
+    {url:'growth.html', title:'Growth'},
     {url:'crt.html', title:'CRT'},
     {url:'walls.html', title:'Walls'},
     {url:'measure.html', title:'Measure'},
