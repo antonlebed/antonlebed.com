@@ -1,16 +1,15 @@
 """
-Rich rungs: the (p+1)-factorization census + heuristic (MAP 7).
+Rich rungs: the (p+1)-factorization census + heuristic.
 
 A rung k of the primorial tower gains new seed-flower predictions by
-the factorization rule (ALGEBRA.md, proved; explore_seed_flower_k8.py):
+the factorization rule (proved; explore_seed_flower_k8.py):
 
     new_preds(k) = twin(p_k) + f(p_k),
     f(p) = #{(a,b) : ab = p+1, 2 <= a <= b, a+1 and b+1 prime}
 
 A rung is RICH when f >= 1 (the term's birthplace is
-explore_seed_flower_k8.py section IX; /archive has no earlier or
-different count -- grepped P35, the (q-1)(r-1) hits there are
-unrelated Lie numerics). MAP 7 asks: infinitely many rich rungs?
+explore_seed_flower_k8.py section IX). The open question: are there
+infinitely many rich rungs?
 
 The "smaller tower primes" constraint is INTRINSIC: a >= 2 forces
 b+1 <= (p+1)/2 + 1 < p for every p > 3, so q = a+1 and r = b+1 are
@@ -60,10 +59,10 @@ Tier: census facts are rule (exhaustive, p <= 5*10^7); decade trends
 are pattern; "infinitely many" is a conjecture with a measured-and-
 calibrated heuristic behind it. Not a proof.
 
-Resource: peak commit 272 MB at N = 5*10^7 (memwatch-verified),
-wall ~1.5 s. N is a CLI arg: `python explore_rich_rungs.py [N]`
+Resource: peak commit 272 MB at N = 5*10^7, wall ~1.5 s. N is a CLI
+arg: `python explore_rich_rungs.py [N]`
 (default 50000000). OPENBLAS_NUM_THREADS=1 set before numpy import
-(the P33 gotcha: bare import commits ~730 MB of thread arenas).
+(bare import commits ~730 MB of thread arenas).
 """
 
 import os
@@ -166,7 +165,7 @@ def main():
     print(f"  f anchors hold: " +
           ", ".join(f"f({p})={v}" for p, v in anchors.items()))
 
-    # cumulative new_preds(k) = twin + f must reproduce ALGEBRA.md's
+    # cumulative new_preds(k) = twin + f must reproduce the published
     # table 1,3,4,5,5,7,9,9,11 for k = 3..11
     published = [1, 3, 4, 5, 5, 7, 9, 9, 11]
     cum = 0

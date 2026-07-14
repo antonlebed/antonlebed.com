@@ -1,7 +1,7 @@
 """
-The Galois-stable skeleton of curves (MOONSHOT probe, P82).
+The Galois-stable skeleton of curves.
 
-The joint-measurement entry's named reopen (LOGIC.md SI), taken with
+A named reopen from earlier work, taken with
 its bar: beyond the additive lines a + b = c, which algebraic shadows
 [f(a, b) = 0] have word-visible points -- is the stable locus of a
 general algebraic condition again rational-trace torsion, or does a
@@ -10,7 +10,7 @@ new species appear past degree 1? Bar: a LAW naming the stable loci
 crystallographic skeleton 1, 2, 3, 4, 6), verified by exhaustive
 census over small p.
 
-Setting (P77 inherited): per channel F_p a shadow is word-decidable
+Setting (inherited from earlier work): per channel F_p a shadow is word-decidable
 iff constant on conjugacy orbits (a, b) -> (a^u, b^u), u a unit; the
 STABLE LOCUS of [f = 0] is the union of orbits lying wholly inside
 the shadow. For a unit pair (a, b) put d = lcm(ord a, ord b). Every
@@ -70,8 +70,8 @@ PREDICTIONS (stated before the run):
     antipodal at every point (F = (-1)^t + 1, d forced even);
     x^8 + x^4 + 1 = the order-{3, 6, 12} gate in curve clothing
     (codeword Phi_12 Phi_6 Phi_3 -- one-variable shadows reduce to
-    the ladder's order conditions, P75).
- P6 (rule): LINE CONTINUITY. The criterion reproduces the P77
+    the ladder's order conditions).
+ P6 (rule): LINE CONTINUITY. The criterion reproduces the earlier
     crystallographic law verbatim on a + b = c: c != 0 stable points
     = {(a, a^{-1}): a + a^{-1} = c, ord(a) in {1, 2, 3, 6}}, c = 0
     = all (a, -a).
@@ -88,7 +88,7 @@ PREDICTIONS (stated before the run):
     admit a nonzero conic vanishing on their whole cyclic group
     (e.g. (1, h) lies on x = 1 with its full orbit) -- the
     codeword scope is load-bearing, not pedantry. (The general law
-    this observation seeded: explore_realizability.py, P86.)
+    this observation seeded: explore_realizability.py.)
 
 RESULTS (the run below prints the record; all confirmed):
   P1 brute orbit check == criterion over EVERY unit pair x battery
@@ -108,7 +108,7 @@ RESULTS (the run below prints the record; all confirmed):
      = codeword, collected weight 5.
   P5 species labels confirmed at every battery point (group /
      antipodal / codeword as predicted).
-  P6 line stable sets == P77 law at all c, p in {7, 11, 13, 31}.
+  P6 line stable sets == the earlier law at all c, p in {7, 11, 13, 31}.
   P7 conic-25 obstruction: all 600 pairs of torsion 25 at p = 101,
      no conic coefficient vector (kernel search over the distinct
      monomial values) stabilizes any through the codeword species;
@@ -127,8 +127,8 @@ vanishing sums of roots of unity (in char 0 the menu law's minimum
 follows from Mann's theorem; the run bound proves that consequence
 directly, in any characteristic); coding theory --
 the stable loci are graded by the minimum distance of cyclotomic
-cyclic codes on the exponent ring: the index-ring contact (LOGIC.md
-SI) now carrying ECC vocabulary one level down.
+cyclic codes on the exponent ring: an earlier index-ring contact
+now carrying ECC vocabulary one level down.
 
 Runs in ~3 s, tiny memory. ALL CHECKS PASSED (51).
 """
@@ -391,7 +391,7 @@ for p in [7, 11, 13, 31]:
 print(f"  ({total} stability tests total)")
 
 # ----------------------------------------------------------------------
-section("IV. LINE CONTINUITY (the P77 crystallographic law reproduced)")
+section("IV. LINE CONTINUITY (the crystallographic law reproduced)")
 # ----------------------------------------------------------------------
 
 for p in [7, 11, 13, 31]:
@@ -408,7 +408,7 @@ for p in [7, 11, 13, 31]:
                     and mult_order(a, p) in (1, 2, 3, 6)}
         if got != want:
             ok = False
-    check(ok, f"p={p}: line stable sets == P77 law at every c")
+    check(ok, f"p={p}: line stable sets == the crystallographic law at every c")
 
 # ----------------------------------------------------------------------
 section("V. THE PENTAGON WITNESS (the first new species past lines)")

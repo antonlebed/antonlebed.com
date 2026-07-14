@@ -1,6 +1,6 @@
 """
-BUILD: THE MACHINE-WORD TOWER -- Z/(2^32 - 1) charted whole. (P73; the
-BUILD smaller lead, n = 5 of the Fermat family whose n = 4 member is
+THE MACHINE-WORD TOWER -- Z/(2^32 - 1) charted whole. (A smaller
+engineering lead, n = 5 of the Fermat family whose n = 4 member is
 the internet-checksum ring, explore_checksum_ring.py.)
 
 2^32 - 1 = 4294967295 = 3 * 5 * 17 * 257 * 65537: the FIVE known
@@ -9,7 +9,7 @@ squarefree all-field designed tower that fills one machine word
 exactly. Reduction mod 2^32 - 1 is end-around carry at the word
 width -- the RFC 1071 fold one octave up -- so the ring's addition is
 native on any 32-bit datapath. The chart below reads the whole
-blueprint plus the two probes harvested at P69/P71: RFC 1624's
+blueprint plus two earlier probes: RFC 1624's
 incremental update as a per-channel ring identity, and the forced
 channel 3 with its one-point graded region.
 
@@ -28,8 +28,8 @@ Predictions (stated in advance of any run):
       representatives of the zero class.
       MEASURED CONTACT (observation, this platform): a Python-int
       benchmark -- per-add fold vs per-add %, and the deferred form
-      (accumulate wide, reduce once) both ways. The question ROAD
-      asks: does the word-width trick buy the reduction even where %
+      (accumulate wide, reduce once) both ways. The open question is
+      whether the word-width trick buys the reduction even where %
       is one bignum op? (In C the fold is add-with-carry; Python
       ints are the honest local measurement.)
   P2. THE MODULUS IS A DESIGNED TOWER (property, verified).
@@ -52,7 +52,7 @@ Predictions (stated in advance of any run):
   P4. CHEAP COLLAPSE (rule). x^lambda = x^(2^16) = e_supp(x) in 16
       squarings; sampled + all 32 supports via constructed witnesses
       (residue 2 on the support, 0 off it -- random draws provably
-      cannot reach the rare small supports, the P69 lesson).
+      cannot reach the rare small supports, a lesson learned earlier).
   P5. INCREMENTAL UPDATE SPLITS BY CHANNEL (rule + classical contact,
       RFC 1624). RFC 1624's eqn 3, HC' = ~(~HC + ~m + m'), is -- since
       complement is ring negation -- the identity HC' = HC + m - m'
@@ -69,8 +69,8 @@ Predictions (stated in advance of any run):
       representatives.
   P6. THE FORCED 3 AND ITS POVERTY (property + chart line). 3 divides
       2^w - 1 iff w is even, so every Fermat-family ring 2^(2^n) - 1
-      (n >= 1) carries channel 3 -- and with it the p = 3 RIGIDITY
-      (P71): the graded region of F_3 is the single self-inverse
+      (n >= 1) carries channel 3 -- and with it the p = 3 RIGIDITY:
+      the graded region of F_3 is the single self-inverse
       point -1, where (-1) OR (-1) = 0 and (-1) AND (-1) = 1 are
       forced. Inside the free-mod family the dodge is parity of the
       width: any ODD w gives a 3-free ring Z/(2^w - 1) with the same
@@ -81,7 +81,7 @@ RESULTS (the record; checks below encode the measured law):
   All six predictions CONFIRMED (20 checks, ~5 s). P1: fold law on
   200,000 random sums + 17 edge sums; max folds = 1 on the single-add
   range, with 2^33 - 1 (just beyond it) confirmed as the smallest
-  2-fold sum. The benchmark ANSWERS ROAD'S QUESTION NO for Python:
+  2-fold sum. The benchmark ANSWERS THE OPEN QUESTION NO for Python:
   per-add fold 0.052 s vs per-add % 0.043 s per 10^6 adds (median of
   5, CPython 3.12 this machine -- % WINS by ~1.2x: % is ONE bytecode
   op, the fold is three), and the deferred form beats both by ~3.5x
@@ -108,9 +108,9 @@ Tier: rule (P1 fold law -- proved algebra, sampled witness; P3, P4,
 P5 -- verified at the stated ranges, the splits one-line algebra from
 channel locality); property (P2; P6's divisibility -- elementary);
 observation (the benchmark -- one platform, Python ints only).
-Classical contacts: RFC 1624 eqn 3 + its RFC 1141 boundary example
-(fetched P73); index-LUT RNS multipliers are classic hardware. Doc
-home: WALLS.md SII (the char-2 mirrors, Fermat-family clause).
+Classical contacts: RFC 1624 eqn 3 + its RFC 1141 boundary example;
+index-LUT RNS multipliers are classic hardware (the char-2 mirrors,
+Fermat-family clause).
 """
 
 import os
@@ -392,7 +392,7 @@ print("=" * 68)
 check("3 | 2^w - 1 at exactly the even widths (w = 1..64 swept)",
       all((((2**w - 1) % 3 == 0) == (w % 2 == 0)) for w in range(1, 65)))
 
-# The p = 3 rigidity (P71): F_3's graded region (outside {0,1}) is the
+# The p = 3 rigidity: F_3's graded region (outside {0,1}) is the
 # single self-inverse point -1 = 2, and the ring-polynomial logic
 # (a OR b = a+b-ab, a AND b = ab) is forced there.
 check("channel-3 graded region = {-1}: (-1) OR (-1) = 0, "

@@ -1,8 +1,7 @@
 """explore_reduction_law.py — THE REDUCTION LAW: the triangle's two
-corollaries (the readout arc's designed-engine close; ROAD P197,
-VERTIGO STOCK (a) remainder).
+corollaries (the readout arc's designed-engine close).
 
-THE QUESTION (ROAD P197). The triangle (P194,
+THE QUESTION. The triangle (
 explore_readout_triangle.py) proved the GRID map — sub-leading
 Eisenstein coefficient bits (beta, delta, gamma) -> window word — is
 unitriangular, a bijection onto {0,1}^{3e/2-1}. Its derivation
@@ -13,7 +12,7 @@ invariant of the reduced bits; (2) the anchor Phi_{2e}(x+1) reduces
 by Kummer parities to a CLOSED-FORM design, which by C7 (readout
 theorem) must carry the skeleton word at every 2-power depth.
 
-THE HAND DERIVATION (SCRATCH.md P197 passes 1-2, frozen before this
+THE HAND DERIVATION (fixed before this
 file existed).
 
 Setup (the triangle's): F(x) = x^e + sum_{i=1}^{e-1} 2 b_i x^i - 2d
@@ -53,10 +52,10 @@ word(anchor) = the skeleton (nonzero exactly {e/2, 5e/4}), so by the
 reduction law THE SKELETON DESIGN IS CLOSED-FORM: the 3-term window
 x^e + 2x^{e/2} + 4x^{e/4} - 6 carries zeta_{2e}'s skeleton word at
 every 2-power depth, the UNIQUE grid member that does — at e = 16 it
-is [-6,4@4,2@8], the P194 solver's find: the solver was
+is [-6,4@4,2@8], an earlier solver's find: the solver was
 rediscovering the anchor's own bit-reduction.
 
-THE FROZEN SLATE (SCRATCH.md P197 pass 3, frozen before this file):
+THE PREDICTIONS (fixed before this file existed):
 
 RD1 (deep-bit invisibility, targeted): from grid members, single
     deep-bit perturbations leave the word unchanged — b_i += 4 (any
@@ -97,8 +96,8 @@ MEASURED digits — the reduction steers which fields exist, never the
 read.
 Run: python prime/code/explore_reduction_law.py
 
-FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output; naming
+tiers as below).
 
 1. THE REDUCTION LAW (theorem — the level pricing is the triangle's
    own derivation, general in even e; the engine falsifies it on 628
@@ -125,7 +124,7 @@ CLAUDE.md).
    vector); the anchors Phi_16/Phi_32(x+1) print the design's word
    verbatim (RD6 — the reduction law live on fields whose deep bits
    are full binomials); e = 2 face x^2 + 2x - 6, word (1, 0). The
-   P194 solver's find [-6,4@4,2@8] was the anchor's own
+   earlier solver's find [-6,4@4,2@8] was the anchor's own
    bit-reduction: the solver rediscovered Phi_32(x+1) mod the
    invisible bits.
 

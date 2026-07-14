@@ -1,10 +1,11 @@
 """
-Operation discovery, hunt (b): the MISSING SUPER-LOGARITHM. (MOONSHOT, P41)
+The missing super-logarithm.
 
-Hunts 1+2 charted the tower's two logs: the CRT map (P38 -- trivializes
-exactly the polynomial functions, walls off size at the archimedean
-place) and the index transform (P39 -- per-channel discrete log, x -> +,
-walled by Zech's incompressible table). Napier's ladder suggests a THIRD
+Two earlier scripts charted the tower's two logs: the CRT map
+(explore_size_transform.py -- trivializes exactly the polynomial functions,
+walls off size at the archimedean place) and the index transform
+(per-channel discrete log, x -> +, walled by Zech's incompressible table).
+Napier's ladder suggests a THIRD
 move: a coordinate in which POWERING becomes addition -- a
 super-logarithm. Per channel, powering reads as multiplication in the
 index ring Z/(p-1); a third log is therefore an index transform ON the
@@ -47,7 +48,7 @@ Findings preview (full statements at the bottom):
   3. SELF-SIMILARITY EXACTLY ON SKIP TOWERS: the full level-1 blueprint
      (field channels, x^(lambda+1) = x, graded log over non-units)
      recurs at level 2 iff p-1 is SQUAREFREE -- then Z/(p-1) is itself
-     a designed tower (P38). Otherwise nilpotents appear and the
+     a designed tower (see explore_size_transform.py). Otherwise nilpotents appear and the
      Clifford extension dies (witnesses in Z/4, Z/12, Z/16). Density of
      self-similar channels = Artin's constant (Mirsky), census-matched.
   4. THE LADDER IS THE PRATT TREE: iterating "unit group + CRT split"
@@ -146,8 +147,8 @@ print("                         ring operation)")
 # ----------------------------------------------------------------------
 section("II. THE THIRD LOG: THREE GRADES OF EXISTENCE")
 # ----------------------------------------------------------------------
-# P39 cross-check: in index coordinates powering is index-ring
-# multiplication. Channel p=7, g=3: ind(x^n) = n * ind(x) mod 6.
+# Cross-check against the index transform: in index coordinates powering
+# is index-ring multiplication. Channel p=7, g=3: ind(x^n) = n * ind(x) mod 6.
 p7, g7 = 7, 3
 ind7 = {}
 x = 1
@@ -313,7 +314,7 @@ for m in (6, 10):
     assert all(pow(x, lm + 1, m) == x for x in range(m))
     assert all(e == 1 for e in factorize(m).values())
 print("Z/6, Z/10: Clifford identity holds, all channels fields -- these")
-print("  index rings ARE designed towers (P38 skip towers: {2,3}, {2,5}).")
+print("  index rings ARE designed towers (skip towers: {2,3}, {2,5}).")
 print()
 print("So the ladder is self-similar at a channel IFF p-1 is squarefree:")
 print("  then Z/(p-1) carries the FULL level-1 blueprint and the same")
@@ -489,7 +490,7 @@ print(f"""
 3. SELF-SIMILARITY EXACTLY ON SKIP TOWERS (rule; iff validated
    m <= 300 + classical contact Mirsky). The full level-1 blueprint
    recurs at level 2 iff p-1 is squarefree: then Z/(p-1) is a designed
-   tower (P38) and the two moves repeat verbatim. Otherwise nilpotents
+   tower and the two moves repeat verbatim. Otherwise nilpotents
    appear, x^(lambda+1) = x fails, and the graded log dies. Density of
    self-similar channels = Artin constant 0.374 (census-matched).
    RAD: self-similar at 2, 3, 7, 11; broken at 5, 13, 17.

@@ -1,18 +1,16 @@
 """explore_telescope.py — THE TELESCOPE SCAN: is the storey ladder
 the Herbrand function's shadow — "one window up" an upper-numbering
 transport, the next band's game the (c, m-1) game psi-transported?
-(ROAD P217, the breathing-arc closure review's recommended closing
-move; P215's journal hunch put first to the review.)
 
-THE QUESTION (ROAD P217). psi(i) = min(p*i, i+e) drives window game,
-pins, and gaps across storeys (the shallow-route general law, P215).
-Is the storey ladder the HERBRAND FUNCTION's shadow — each storey-j
-band the (c, m-1) game's band transported one window up? KILL-SHAPE:
-the transport fails at a measured storey — cheapest test the
-general-m delta-r = 1 pin at (3,1,3).
+THE QUESTION. psi(i) = min(p*i, i+e) drives window game,
+pins, and gaps across storeys (the shallow-route general law,
+established in explore_shallow_route.py). Is the storey ladder the
+HERBRAND FUNCTION's shadow — each storey-j band the (c, m-1) game's
+band transported one window up? KILL-SHAPE: the transport fails at a
+measured storey — cheapest test the general-m delta-r = 1 pin at (3,1,3).
 
-THE HAND DERIVATION (SCRATCH.md P217 passes 1-4, frozen and
-committed BEFORE this file existed; git 3e238569b).
+THE HAND DERIVATION (worked out by hand, frozen and committed
+before this file existed).
 
 T1 (THE SCALING BIJECTION). A (c, m-1)-game monomial {(x_l, i_l)}
    maps to {(p*x_l, i_l)} (sizes *p, offsets FIXED): A -> pA
@@ -53,10 +51,10 @@ T3 (THE GENERAL-m delta-r = 1 PIN, M3 redone at general m; scope
    contribution = (-1)^{m+1}(rho*s_1 - rho^2/2); with the fork-1
    value s_1 = -k_1 + rho/2 the rho^2 cancels:
      D_{rel_0+1} = -w_{rel_0+1} + (-1)^m * k_1
-   PIN w_{rel_0+1} = (-1)^m * k_1 (m = 2: +k_1, measured P215;
-   m = 3: -k_1 — THE KILL TEST). ASSUMPTION NAMED: s_1 = -k_1 +
-   rho/2 is m-UNIFORM (the fork system's m-blindness, measured at
-   m = 2, P214); a miss at w_137 with a hit at w_136 indicts s_1's
+   PIN w_{rel_0+1} = (-1)^m * k_1 (m = 2: +k_1, measured in
+   explore_shallow_route.py; m = 3: -k_1 — THE KILL TEST). ASSUMPTION
+   NAMED: s_1 = -k_1 + rho/2 is m-UNIFORM (the fork system's
+   m-blindness, measured at m = 2); a miss at w_137 with a hit at w_136 indicts s_1's
    m-uniformity, not the prefactor. Storey-1 transported twins
    (T1 + T2, positions *p of the m = 2 band):
      w_{rel_1} = (-1)^{m+1-j} = -1;  w_{rel_1 + p} = (-1)^{m-1}*k_1
@@ -79,7 +77,7 @@ T4 (THE CLASSICAL CONTACT — honest scope). (a) IDENTITY: the clock
    cyclotomic ladder measured in the game's own model. Scope:
    measured at the p = 3 anchor, not a general CFT theorem.
 
-THE FROZEN SLATE (SCRATCH.md P217 pass 5, frozen and committed
+THE PREDICTIONS (fixed and committed
 before this file existed; every m = 3 pin line is an m = 2 -> m = 3
 TRANSPLANT and every e = 54 diagonal-read line an e = 18 -> e = 54
 transplant, NAMED per the standing discipline):
@@ -115,7 +113,7 @@ TS-F (perturbation sticks; each field = K81's eis with ONE
      b_29 += 27 -> first diff 137, stick 218  (delta-r = 1, KILL)
    K81's own climb-from-floor reaches >= its cap (pool adequacy
    control; a perturbed stick BELOW prediction indicts the pool,
-   ABOVE falsifies the pin — the P213 framing).
+   ABOVE falsifies the pin).
 TS-G (provenance): every assert compares measured word/climb
    values; no assert derives its reference through the law under
    test (sticks from climbs, words from w_digits, independently).
@@ -135,8 +133,7 @@ Estimated ~5 min (seven e = 54 pools/climbs dominate), < 100 MB.
 
 Run: python prime/code/explore_telescope.py
 
-FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output).
 
 1. THE TELESCOPE (T1 + T2 landed whole; the scaling bijection is
    derivation-tier algebra, its census face verified exhaustively
@@ -144,10 +141,10 @@ CLAUDE.md).
    BIJECTIVE with the sizes-x3 image of the (3,1,2)@30 census
    (cap 3, 55 monomials) — rel x3, offsets fixed, gamma and v_p
    preserved monomial-for-monomial; no storey-0 monomial in the
-   censused range (the 136 onset is P215's derived clearance);
-   rel 84 = {((3,0),)}, rel 87 = {((3,1),), ((6,0),)}
-   (the x3 shallow pair — P215's onset_content t >= 1 branch listed
-   only ((3,1),); the pair is what the bijection demands and the
+   censused range (the 136 onset is a clearance derived in
+   explore_shallow_route.py); rel 84 = {((3,0),)}, rel 87 = {((3,1),), ((6,0),)}
+   (the x3 shallow pair — explore_shallow_route.py's onset_content t >= 1
+   branch listed only ((3,1),); the pair is what the bijection demands and the
    census confirms). The gamma/Wilson lemma held at all 836 (p = 3)
    + 639 (p = 5) part-multisets. With the floor lemma (non-
    descenders pay >= j*e), each storey-j band opens as a VERBATIM
@@ -182,7 +179,7 @@ CLAUDE.md).
    The window game is the unit-filtration reading of the
    cyclotomic tower's ramification; the arc's words, pins, and
    designed sticks are the digit-level structure the classical
-   objects do not carry. VERDICT on the ROAD question: YES — the
+   objects do not carry. VERDICT: YES — the
    storey ladder is the Herbrand function's shadow, "one window
    up" is the transport (x p positions across windows; one clock
    step in-field), and the next band's game is the (c, m-1) game
@@ -191,10 +188,10 @@ CLAUDE.md).
    the fork values' m-uniformity is the separately MEASURED half,
    T3's named assumption paid by the w_137 hit).
 
-RECORD: first run green — no pre-green failures, the frozen slate
-paid 100% (every TS line, including all named transplants). Slate
-note: k_1(K81) = 2 = k_1(K27) (unfrozen, unexplained — a
-self-similarity candidate for the word-atlas census).
+RECORD: first run green — no pre-green failures, the predictions
+paid 100% (every TS line, including all named transplants). Note:
+k_1(K81) = 2 = k_1(K27) (unexplained — a self-similarity candidate
+for the word-atlas census).
 
 RUN RECORD (python prime/code/explore_telescope.py, ~177 s,
 exit 0): 362,646 checks (the [S] clock sweep at large e dominates

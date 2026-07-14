@@ -1,9 +1,9 @@
 """
-Operation discovery, hunt 1: is SIZE transform-trivializable? (MOONSHOT, P38)
+Is SIZE transform-trivializable?
 
 The CRT log (x -> residue tuple) makes multiplication channel-parallel.
 The classic residue-system walls -- magnitude comparison, sign, overflow --
-are all SIZE questions. The hunt: is there a transform that makes size
+are all SIZE questions. The question: is there a transform that makes size
 channel-local, or a proof that none can exist? The RNS literature calls
 these "non-positional operations" and says channel-wise computation is
 impossible "because RNS is non-positional" -- a truism, not a theorem.
@@ -29,7 +29,7 @@ Findings preview (full statements at the bottom):
      (D, x mod p_min) is an exact comparator for ANY squarefree set;
      with 2 a channel the break is a single parity bit.
   5. THE TROPICAL SHADOW: the (min,+) content of a residue is exactly the
-     P37 collapse e_supp(x); size is the archimedean place -- the one
+     earlier collapse e_supp(x); size is the archimedean place -- the one
      place the CRT log discards (Ostrowski framing).
 
 Runs on RAD (k=7) with exhaustive small-k cross-checks. ~2 s, tiny memory.
@@ -374,7 +374,7 @@ assert ties == R.phi
 # all-prime sets: later elements are units). No channel residue can
 # wrap inside a class, so the residues at EVERY channel strictly
 # increase, and (D, x mod p_min) is an exact comparator for ANY
-# squarefree modulus set (composite-moduli specimen verified P102,
+# squarefree modulus set (composite-moduli specimen verified in
 # explore_rns_comparator.py). (The residue tie-break is also the
 # standard sum-of-quotients (SQT) architecture's move -- a parallel
 # compare on one channel's residues, Dimauro 1993 / Piestrak IPL 2015;
@@ -429,11 +429,11 @@ print("    channel. Every KNOWN exact method pays one of prices (a)-(c).)")
 # ───────────────────────────────────────────────────────────────────────
 section("V. THE TROPICAL SHADOW: size is the archimedean place")
 # ───────────────────────────────────────────────────────────────────────
-# ROAD lead 3 asked: does size live naturally in the (min,+) image?
+# An earlier open question: does size live naturally in the (min,+) image?
 # Answer: NO. On a squarefree ring the only well-defined valuation data
 # of a residue is v_p in {0, >=1} per channel -- the zero pattern. The
 # (min,+) shadow of Z/N is the support lattice {0,1}^k, i.e. exactly the
-# idempotent skeleton, and the shadow map is the P37 collapse x -> x^lambda
+# idempotent skeleton, and the shadow map is the earlier collapse x -> x^lambda
 # = e_supp(x). All phi(N) units share ONE shadow while ranging over the
 # whole interval [1, N-1]: size and tropical content are fully decoupled.
 ok = True
@@ -457,7 +457,7 @@ print("    carries archimedean data. Recovering size = recovering the")
 print("    discarded place = the full-precision summation of escape (a).")
 
 # ───────────────────────────────────────────────────────────────────────
-section("FINDINGS (tiers per CLAUDE.md)")
+section("FINDINGS")
 # ───────────────────────────────────────────────────────────────────────
 print("""
 1. THE CRITERION (rule, proved; classical ingredients, Kempner-flavored).
@@ -495,21 +495,21 @@ print("""
    literature, not a theorem over all possible methods.
 
 5. THE TIE-BREAK LEMMA (rule, proved + verified, incl. a composite-
-   moduli specimen P102). D steps exactly at the multiples of the
+   moduli specimen). D steps exactly at the multiples of the
    moduli, so no tie-class element past the first is divisible by ANY
    modulus and no channel residue wraps inside a class: the residues
    at EVERY channel strictly increase, and (D, x mod p_min) is an
    exact comparator for ANY squarefree modulus set -- the same residue
    compare the standard sum-of-quotients (SQT) comparator wires in
    parallel (Dimauro 1993; Piestrak, IPL 2015); the lemma is the
-   general proof and scope (P102 contact). Tower bonus: with 2 as a
+   general proof and scope (literature contact). Tower bonus: with 2 as a
    channel the tie-break is a single parity bit, ties cap at adjacent
    pairs {x, x+1} (count = phi(N)), and parity itself is free (unlike
    odd-moduli RNS).
 
 6. THE TROPICAL ANSWER (observation + standard framing). Size does NOT
    live in the (min,+) image: the tropical shadow of a residue is exactly
-   the P37 collapse e_supp(x) (all units share one shadow). Ostrowski
+   the collapse e_supp(x) (all units share one shadow). Ostrowski
    names the wall: channels are the finite places of Q; size is the
    archimedean place -- the one place the CRT log discards by
    construction. What CRT trivializes (polynomials) and what it hides

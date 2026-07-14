@@ -1,15 +1,15 @@
 """
-The quantifier envelope: the pair as a two-sided certificate (STITCH probe, P71).
+The quantifier envelope: the pair as a two-sided certificate.
 
-Builds on the quantifier pair (P66, LOGIC.md SI): DIA(a) = a^lambda
+Builds on the quantifier pair from earlier work: DIA(a) = a^lambda
 ("true to SOME degree": channel bit 1 iff residue != 0) and its De Morgan
 conjugate BOX(a) = 1 - (1-a)^lambda ("FULLY true": 1 iff residue = 1),
 with DIA NOT = NOT BOX exactly, DIA exact on AND, BOX exact on OR, each
 leaking ONE-DIRECTIONALLY on the dual connective (p-2 pairs per channel).
 
-THE QUESTION (the ROAD bar): does the PAIR decide something a plain
+THE QUESTION: does the PAIR decide something a plain
 idempotent mask cannot? A mask e_S selects channels; DIA alone is the
-data-computed mask (the P37 measurement). The probe: evaluate any
+data-computed mask (the measurement from earlier work). The probe: evaluate any
 formula's classical shadow from MEASUREMENTS ONLY -- per leaf, the two
 bits (DIA a, BOX a) -- and certify verdicts where possible.
 
@@ -28,8 +28,9 @@ PREDICTIONS (stated before the run):
     NOT BOX a IS the conjugacy. AND node: DIA(fg) = DIA f AND DIA g
     (fields, exact) <= U(f) AND U(g) by monotonicity; BOX(fg) >=
     BOX f AND BOX g (the inversion gain is one-directional) >= L AND L.
-    OR node: dual -- BOX exact, DIA loses one-directionally. The P66
-    leak directions are exactly the two inequality slots; nothing else
+    OR node: dual -- BOX exact, DIA loses one-directionally. The
+    leak directions established earlier are exactly the two inequality
+    slots; nothing else
     is used. COROLLARY (the decision): U = 0 certifies the shadow
     false, L = 1 certifies it fully true, U = L certifies the verdict
     outright -- sound by P1.
@@ -50,8 +51,8 @@ PREDICTIONS (stated before the run):
  P4 (slack rates, exact): envelope slack enters only at DIA-of-OR
     (destructive interference, (1-x)(1-y) = 1) and BOX-of-AND
     (inversion, xy = 1), each on exactly p-2 of the (p-1)^2
-    relevant pairs per channel -- the P66 counts, re-derived here as
-    envelope-slack counts.
+    relevant pairs per channel -- the same counts derived earlier,
+    re-derived here as envelope-slack counts.
  P5 (sharpness): for READ-ONCE formulas the envelope is ACHIEVED at
     every p >= 5: max achievable DIA F over inputs consistent with the
     measurements = U, min achievable BOX F = L (exhaustive over the

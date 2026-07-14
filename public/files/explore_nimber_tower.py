@@ -1,14 +1,13 @@
 """
-Operation discovery, hunt (b) continued: NIMBERS AND THE CHAR-2 MIRRORS.
-(MOONSHOT, P42)
+NIMBERS AND THE CHAR-2 MIRRORS.
 
-P38-P41 charted three walls from inside the primorial tower: size (the
+Three walls have been charted from inside the primorial tower: size (the
 archimedean place, an information obstruction), Zech (within-channel
 structure), and the super-log (existence). This script steps OUTSIDE and
 builds the two characteristic-2 constructions next door: the VERTICAL
 nim-field tower (one prime, quadratic extensions stacked upward) and the
 HORIZONTAL polynomial mirror F_2[x]/f (the F_q[x] analogue of the
-primorial ring). The questions, from ROAD: what plays "channel" in the
+primorial ring). The questions: what plays "channel" in the
 vertical tower, and does the size wall soften in the mirror?
 
 Survey anchors (standard material, named so nothing here poses as new):
@@ -35,8 +34,8 @@ Wieferich (squarefreeness of 2^p - 1 for prime p is tied to Wieferich
 primes and OPEN in general; composite exponents fail concretely:
 2^6 - 1 = 63 = 3^2 * 7), and carry-free GF(2^n) hardware (LFSR/XOR
 multipliers; mod-Mersenne and mod-Fermat reduction as shift-add --
-the two families P38 named as designed-tower hardware knobs).
-Carried over from P41: Pohlig-Hellman, Pratt trees (Ford-Konyagin-Luca),
+the two families named as designed-tower hardware knobs).
+Carried over: Pohlig-Hellman, Pratt trees (Ford-Konyagin-Luca),
 iterated lambda (Martin-Pomerance, Harland), the three existence grades.
 
 Findings preview (full statements at the bottom):
@@ -44,7 +43,7 @@ Findings preview (full statements at the bottom):
      FIELD (idempotents {0,1}, no CRT split): the vertical move is
      extension, not product. The channels live ONE LEVEL DOWN: the unit
      group is cyclic of order 2^(2^n) - 1 = prod F_k, so the INDEX RING
-     of the nim-rung is a squarefree all-field designed tower (P38) --
+     of the nim-rung is a squarefree all-field designed tower --
      on the five Fermat PRIMES for n <= 5, where at n = 5 it is exactly
      the machine-word specimen Z/(2^32 - 1) = 3*5*17*257*65537; at
      n = 6 on the prime factors of F_0..F_5 (still squarefree); beyond,
@@ -52,7 +51,7 @@ Findings preview (full statements at the bottom):
   2. NAPIER INVERSION: the vertical tower has the PERFECT second log
      (cyclic units: one discrete log, no CRT detour -- what the
      primorial tower lacks at every rung k >= 3) and the maximally
-     blocked third log (every Fermat channel >= 17 has 8 | p-1: P41
+     blocked third log (every Fermat channel >= 17 has 8 | p-1:
      grade B fails; only 3 and 5 are grade A). Pratt trees of Fermat
      primes are PATHS; the lambda-chain decays arithmetically (2 bits
      per step): height 10 at 2^32 - 1 vs 4 at RAD, so the 32-bit nim
@@ -64,32 +63,32 @@ Findings preview (full statements at the bottom):
      rungs f = x^(2^d) + x have channels <-> Frobenius orbits of
      F_{2^d}-points, lambda = 2^d - 1 (MERSENNE by construction), and
      collapse = Frobenius^d = d squarings. The two char-2 constructions
-     realize P38's two hardware families as index rings: vertical/nim
+     realize the two hardware families as index rings: vertical/nim
      -> one Fermat tower, horizontal/mirror -> per-channel Mersenne
      rings (the rung-wide product is not a single Z/M).
   4. THE CRITERION TRANSFERS: channel-local = compatible = polynomial
      on squarefree F_2[x]/f (exhaustive at the 4- and 8-element rings;
      constructive Lagrange + CRT glue), and thin-only again
      (F_2[x]/x^2 has polynomial strictly inside channel-local). The
-     P38 locality criterion never used the integers.
+     locality criterion never used the integers.
   5. THE SIZE WALL SOFTENS EXACTLY IN ITS ARCHIMEDEAN PART: deg is
      incompatible (witnesses at every channel -- the information core
      of the wall is unchanged, and the recoding argument transfers
      verbatim). But the mirror has no archimedean place: sign/order is
      VACATED (Artin-Schreier), multiplication is carry-free
-     (deg(ab) = deg a + deg b exactly), and the P38 partial-fraction
+     (deg(ab) = deg a + deg b exactly), and the partial-fraction
      escape becomes EXACT-OR-FLAGGED -- t-term truncation either reads
      deg exactly or returns a self-flagging zero prefix; zero silent
      failures, exhaustively (vs Z's silent wraparound mode). Carries
      are the archimedean place's shadow in positional digits.
   6. THE MIRROR'S PRIME SIDE IS CLOSED-FORM: the Euler product over
-     irreducibles equals 1/(1-2t) coefficientwise -- the sieve-lens MAP
-     questions trivialize in the mirror; it feeds BUILD/STITCH only
-     (P38's designed-tower honest limit, reconfirmed).
+     irreducibles equals 1/(1-2t) coefficientwise -- the exploratory
+     questions trivialize in the mirror; it feeds engineering applications
+     only (the designed-tower honest limit, reconfirmed).
 
 Runs exhaustively at F_16 / F_256 / the 1024-element mirror ring, with
 order-certified generators at F_{2^16} and F_{2^32} and a Mersenne
-squarefree census e <= 40.  ~2 s, ~26 MB (memwatch).
+squarefree census e <= 40.  ~2 s, ~26 MB.
 """
 
 import sys, os, math, random
@@ -348,7 +347,7 @@ assert g16 >= 4 and g256 >= 16   # generators lie OUTSIDE the next subfield down
 # Frobenius orbits on F_256: |orbit| in {1,2,4,8}; the squaring map is
 # the tower's symmetry (Gal(F_{2^(2^n)}/F_2) = Z/2^n; the inverse limit
 # over the whole vertical tower is Z_2 -- the SAME 2-adic object that
-# walls P41's grade B. Classical; verified here at n = 3.)
+# walls grade B. Classical; verified here at n = 3.)
 seen, orbit_count = set(), {}
 for a in range(256):
     if a in seen:
@@ -383,7 +382,7 @@ print("2^(2^n) - 1 = F_0 * ... * F_{n-1} verified n <= 6;")
 print("F_0..F_4 prime (Euler: F_5 = 641 * 6700417)")
 
 # The index ring of the nim-rung F_{2^(2^n)} is Z/(2^(2^n) - 1):
-# squarefree, all prime-field channels for n <= 5 -- a P38 DESIGNED
+# squarefree, all prime-field channels for n <= 5 -- a DESIGNED
 # TOWER on the Fermat primes. At n = 5 it is the machine-word specimen.
 M16, M32 = 65535, (1 << 32) - 1
 assert M16 == 3 * 5 * 17 * 257 and M32 == 3 * 5 * 17 * 257 * 65537
@@ -406,8 +405,8 @@ for n, (m, lam_expected) in enumerate([(15, 4), (255, 16), (M16, 256),
                                        (M32, 65536)], start=2):
     assert carmichael_lambda(m) == lam_expected == 2 ** (2 ** (n - 1))
 print("index-ring lambdas: 4, 16, 256, 65536 -- always a 2-power")
-print("  (P38 cheap-collapse knob: collapse = 2^(n-1) squarings);")
-print("  the n = 5 index ring IS the P38 machine-word tower Z/(2^32-1)")
+print("  (the cheap-collapse knob: collapse = 2^(n-1) squarings);")
+print("  the n = 5 index ring IS the machine-word tower Z/(2^32-1)")
 
 # n = 6: F_5 composite. The index ring Z/(2^64-1) is STILL squarefree
 # all-field (7 distinct prime channels) but the rung<->Fermat-number
@@ -422,10 +421,10 @@ print(f"n = 6: Z/(2^64-1) has 7 prime channels (still squarefree) but")
 print(f"       lambda = {lam64} is not a 2-power: the cheap-collapse")
 print("       knob = Fermat primality. All-Fermat-squarefree is OPEN.")
 
-# Third-log grades (P41) on the Fermat channels: p - 1 = 2^(2^k), so
+# Third-log grades on the Fermat channels: p - 1 = 2^(2^k), so
 # Z/(p-1) is cyclic iff 2^(2^k) in {2, 4} (k <= 1), and 8 | p-1 for
 # every k >= 2: channels 17, 257, 65537 fail grade B 2-adically -- the
-# vertical tower is the WORST CASE of the P41 census, by construction.
+# vertical tower is the WORST CASE of the census, by construction.
 def euler_phi(m):
     r = 1
     for p, a in factorize(m).items():
@@ -437,7 +436,7 @@ for p in (3, 5):
 for p in (17, 257, 65537):
     assert (p - 1) % 8 == 0                               # grade B fails
 print("third-log grades: 3, 5 grade A; 17, 257, 65537 fail grade B")
-print("  (8 | p-1, the P41 2-adic obstruction -- maximal by construction)")
+print("  (8 | p-1, the 2-adic obstruction -- maximal by construction)")
 
 # Pratt trees of Fermat primes are PATHS: p - 1 has the single prime 2.
 assert all(list(factorize(F - 1).keys()) == [2] for F in FERMAT[:5])
@@ -460,7 +459,7 @@ H32 = len(chain_m32) - 1
 print(f"lambda-chain of 2^32-1: height {H32} "
       f"(2^16 -> 2^14 -> ... -> 2 -> 1) vs RAD height 4")
 
-# Tetration depth resolution (engine from explore_super_log.py, P41,
+# Tetration depth resolution (engine from explore_super_log.py,
 # including the lift-validity assert: lambda(m) >= nu(m); m = 8 and 24
 # are the only failing moduli and neither appears in these chains).
 def exact_tower(x, h, max_bits=1 << 22):
@@ -541,7 +540,7 @@ for d in range(1, 13):
 assert series == [2 ** n for n in range(13)]
 print("Euler product over irreducibles = 1/(1-2t) verified to t^12 --")
 print("  the sieve closes in closed form; the mirror's MAP side is")
-print("  trivial (P38 honest limit reconfirmed: mirrors feed BUILD)")
+print("  trivial (the limit reconfirmed: the mirrors feed engineering)")
 
 # Canonical rungs: x^(2^d) + x = prod of irreducibles of degree | d.
 for d in range(1, 5):
@@ -581,8 +580,8 @@ print("d = 3 rung: channels are the Frobenius orbits of F_8 points")
 print("  (orbit sizes 1,1,3,3 -> x, x+1, x^3+x+1, x^3+x^2+1)")
 
 # Clifford identity on canonical rungs IS Frobenius^d: a^(2^d) = a, so
-# lambda = 2^d - 1 -- MERSENNE BY CONSTRUCTION -- and the P37 collapse
-# costs d squarings (both P38 knobs at once).
+# lambda = 2^d - 1 -- MERSENNE BY CONSTRUCTION -- and the collapse
+# costs d squarings (both knobs at once).
 for d in (2, 3, 4):
     rung = (1 << (1 << d)) ^ 2
     lam = lcm_list([2 ** e - 1 for e in range(1, d + 1) if d % e == 0])
@@ -652,7 +651,7 @@ print("  (no proper prime-power 2^e - 1 appears -- the Catalan route)")
 # ----------------------------------------------------------------------
 section("IV. THE LOCALITY CRITERION TRANSFERS")
 # ----------------------------------------------------------------------
-# P38's criterion (channel-local = compatible = polynomial on squarefree
+# The locality criterion (channel-local = compatible = polynomial on squarefree
 # rings) never used the integers: Lagrange interpolation works over any
 # finite field and coefficients CRT-glue degreewise. Verified here.
 
@@ -773,7 +772,7 @@ section("V. THE SIZE WALL IN THE MIRROR")
 # ----------------------------------------------------------------------
 # (1) The information core is unchanged: deg is incompatible -- at every
 # channel there are congruent pairs with different top-degree bit, so
-# deg is not polynomial, not channel-local, and (the P38 argument
+# deg is not polynomial, not channel-local, and (the argument
 # transfers verbatim: channel-local bijections compose and invert
 # channel-locally) no within-ring recoding exposes it.
 for f in F5_IRR:
@@ -801,7 +800,7 @@ for a in range(1, 256):
 print("deg(a*b) = deg a + deg b exactly (exhaustive a,b < 256) -- the")
 print("  +-1 carry ambiguity of integer bit-length does not exist here")
 
-# (3) The P38 partial-fraction escape, re-priced. Exact identity first:
+# (3) The partial-fraction escape, re-priced. Exact identity first:
 # a = sum_i c_i * (f/f_i) with c_i = (a mod f_i) * (f/f_i)^-1 mod f_i.
 FHAT = [pdivmod(FW, f)[0] for f in F5_IRR]
 CINV = [pinvmod(pmod(FHAT[i], F5_IRR[i]), F5_IRR[i]) for i in range(5)]
@@ -841,7 +840,7 @@ assert silent == 0
 print("truncation sweep t = 1..10, all 1024 elements: ZERO silent")
 print(f"  failures; flagged counts {flag_counts}")
 print("  = 2^(10-t) exactly (the elements with deg < 10 - t). The Z")
-print("  escape fails SILENTLY near wraparound (P38, measured); the")
+print("  escape fails SILENTLY near wraparound (measured); the")
 print("  mirror escape is exact-or-flagged. Carries were the failure.")
 
 # (4) Mixed-radix analogue: exact, still triangular (depth = k) -- the
@@ -858,9 +857,9 @@ for a in range(W):
         m = pmul(m, f)
     assert acc == a
 print("mixed-radix: exact, depth-5 sequential -- triangularity is")
-print("  characteristic-free (the price P38 measured does not move)")
+print("  characteristic-free (the measured price does not move)")
 
-# (5) Diagonal-function analogue D(a) = XOR of (a div f_i): the P38
+# (5) Diagonal-function analogue D(a) = XOR of (a div f_i): the
 # channel-linearity identity holds verbatim (char-2 signs vanish):
 # f * D(a) = a * SQ + sum (a mod f_i)(f/f_i),  SQ = sum f/f_i.
 # And it COLLAPSES further: polynomial division by f is F_2-LINEAR in
@@ -880,13 +879,13 @@ for a in range(W):
     rhs = pmul(a, SQ)
     for f, fh in zip(F5_IRR, FHAT):
         rhs ^= pmul(pmod(a, f), fh)
-    assert pmul(FW, D) == rhs                       # P38 identity
+    assert pmul(FW, D) == rhs                       # channel-linearity identity
     assert D == pdivmod(pmul(a, SQ), FW)[0]         # exact linearity
     if pdeg(a) >= 6:
         assert pdeg(D) == pdeg(a) - 6               # exact offset readout
     else:
         assert D == 0                               # kernel: deg a < 6
-print("diagonal: P38 channel-linearity identity exact for all 1024, and")
+print("diagonal: the channel-linearity identity exact for all 1024, and")
 print("  stronger -- D(a) = (a*SQ) div f exactly (division by f is")
 print("  F_2-linear: no borrows), an F_2-linear map with deg SQ = 4:")
 print("  deg D = deg a - 6 for deg a >= 6, D = 0 below (64-element")
@@ -902,25 +901,25 @@ print("""
    CRT split: the vertical move is extension, not product. The channels
    live ONE LEVEL DOWN: U(F_2^(2^n)) is cyclic of order 2^(2^n)-1 =
    F_0...F_{n-1}, so the INDEX RING of the nim-rung is a squarefree
-   all-field designed tower (P38) -- on the five Fermat PRIMES for
+   all-field designed tower -- on the five Fermat PRIMES for
    n <= 5 (verified by index isomorphism, exhaustive at n = 2, 3;
    order-certified smallest generators at n = 4, 5), at n = 5 exactly
-   the P38 machine-word specimen Z/(2^32-1) = 3*5*17*257*65537; at
+   the machine-word specimen Z/(2^32-1) = 3*5*17*257*65537; at
    n = 6 on the prime factors of F_0..F_5 (still squarefree, verified);
    beyond, it rides the OPEN all-Fermat-squarefree question.
 
 2. NAPIER INVERSION (rule, stated ranges). The vertical tower has the
    PERFECT second log -- cyclic units, one discrete log, no CRT detour
-   (what the primorial tower lacks at every rung k >= 3, P39) -- and
+   (what the primorial tower lacks at every rung k >= 3) -- and
    the maximally blocked third log: every Fermat channel >= 17 has
-   8 | p-1, failing P41's grade B 2-adically; only 3 and 5 are grade A.
+   8 | p-1, failing the third-log grade B 2-adically; only 3 and 5 are grade A.
    Vertical trades third-rung existence for second-rung perfection.
    Pratt trees of Fermat primes are PATHS; the lambda-chain decays
    arithmetically (2 bits per step): height 10 at 2^32-1 vs 4 at RAD,
    bounding tetration depth at 10 (sampled bases stabilize by 9;
    tower_mod, validated). Chain height is a DESIGN KNOB: Fermat-index
    towers maximize tetration resolution; primorial chains crash.
-   Lambda of the index ring is 2^(2^(n-1)) (P38 cheap-collapse knob)
+   Lambda of the index ring is 2^(2^(n-1)) (the cheap-collapse knob)
    for n <= 5 -- and the knob DIES at n = 6 with F_5's compositeness
    (lambda(2^64-1) is not a 2-power), though squarefree/all-field
    survives. All-Fermat-squarefree is OPEN.
@@ -931,8 +930,8 @@ print("""
    phi = prod(2^e_i - 1) (all exhaustive at the 1024-element W).
    Canonical rungs f = x^(2^d)+x have channels <-> FROBENIUS ORBITS of
    F_2^d-points, lambda = 2^d - 1 MERSENNE BY CONSTRUCTION, and the
-   P37 collapse = Frobenius^d = d squarings. So the two char-2
-   constructions realize P38's two hardware families as INDEX RINGS:
+   collapse x^lambda = Frobenius^d = d squarings. So the two char-2
+   constructions realize the two designed-tower hardware families as INDEX RINGS:
    vertical/nim -> one Fermat tower, horizontal/mirror -> PER-CHANNEL
    Mersenne rings Z/(2^e-1) (designed iff 2^e-1 squarefree: fails
    first at e = 6, prime e clean to 40, general OPEN -- Wieferich;
@@ -947,13 +946,13 @@ print("""
    F_2 x F_2 (brute), 1024 = 1024 = 1024 at F_2 x F_4 (pruned-DFS
    exhaustive compatible; every local function realized constructively
    by Lagrange + degreewise CRT glue); thin-only again (F_2[x]/x^2:
-   polynomial strictly inside the 256 functions). The P38 locality
+   polynomial strictly inside the 256 functions). The locality
    criterion never used the integers.
 
 5. THE SIZE WALL SOFTENS EXACTLY IN ITS ARCHIMEDEAN PART (rule +
    classical contacts). deg is incompatible -- witnesses at every
    channel of W -- so size stays invisible to channels and to every
-   channel-local recoding: the INFORMATION CORE of the P38 wall is
+   channel-local recoding: the INFORMATION CORE of the size wall is
    unchanged. What disappears is everything archimedean about it:
    (i) sign is VACATED, not softened -- char-2 fields admit no order
    (Artin-Schreier; squaring is a bijection on W, -1 = 1); (ii) the
@@ -961,7 +960,7 @@ print("""
    the partial-fraction escape becomes EXACT-OR-FLAGGED: t-term
    truncation either reads deg exactly or returns an all-zero prefix
    that flags itself -- zero silent failures across all t, all 1024
-   elements, vs Z's silent wraparound mode (P38, measured). Carries
+   elements, vs Z's silent wraparound mode (measured). Carries
    are the archimedean place's shadow in positional digits; the mirror
    (where every place is finite -- Artin-Whaples) deletes them and
    with them every silent size-failure mode, while the wall stands.
@@ -976,6 +975,6 @@ print("""
    Euler product over irreducibles equals 1/(1-2t) coefficientwise
    (verified to t^12) and irreducible counts are exact (Gauss-Mobius):
    the sieve-lens MAP questions trivialize in the mirror. Like the
-   designed towers (P38), the mirrors feed BUILD/STITCH, not MAP.
+   designed towers, the mirrors feed engineering, not the prime-lens questions.
 """)
 print("ALL CHECKS PASSED")

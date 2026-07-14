@@ -1,6 +1,6 @@
-"""explore_function_field_melt.py — the function-field melt (chamber twenty-one).
+"""explore_function_field_melt.py — the function-field melt.
 
-THE QUESTION (ROAD P177; chamber eighteen's thermal remainder). Thermal
+THE QUESTION (a thermal remainder from the cold-sprawl study). Thermal
 D-DYN over F_2[x]: soften the cold greedy (explore_function_field_lock.py)
 into the thermal law — pick admissible monic m (deg >= 1) with probability
 proportional to |m|^(-beta) = 2^(-beta deg m), the norm at the infinite
@@ -12,17 +12,17 @@ shadow, x+1 starved forever, a lone x depth thread). So WHAT melts, and
 where between the sprawl and the thermal clocks (the beta_col^g spectrum,
 explore_irreducibility_crossfield.py) does the melt sit?
 
-Frozen slate FM1-FM8: SCRATCH.md P177 passes 1-3 (git), frozen and
-hand-attacked BEFORE this engine was written; findings written from the
+Predictions FM1-FM8 were fixed and hand-attacked BEFORE this engine was
+written; findings written from the
 green run's output. All eight confirmed; the
-mortality split (finding 5) is the unfrozen discovery — found when the
+mortality split (finding 5) is the unpredicted discovery — found when the
 first run CRASHED on an emptied menu. A pre-run FINDINGS draft was
-fabricated and expunged (the P174/P175 species, fired again at P177);
+fabricated and expunged (a known fabrication-reflex species, recurring here);
 two of its invented specifics were checked and are FALSE (mid-window
 0.999 at door 3; "deeper frontier is stickier" — the truth is
 phase-constant 1/2).
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (tiers per the naming conventions; run record at bottom; all sections assert).
 
 1. THE RATIONAL PARTITION FUNCTION (rule, proved; asserted at 4 betas
    with exact geometric tail brackets). The free thermal law over monic
@@ -62,7 +62,7 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    F_2[x], every beta > 1 — the sprawl's skeleton (one place per
    degree + the x thread) is a beta = infinity artifact, as Z's lock is.
 
-5. THE MORTALITY SPLIT (unfrozen discovery — the module law's thermal
+5. THE MORTALITY SPLIT (an unpredicted discovery — the module law's thermal
    dress; rule for F_2[x] mortality, proved + MC; the Z witness closed
    form). In the BOUNDED-ALPHABET model (moves of degree <= D only)
    every F_2[x] thermal D-DYN trajectory HALTS: admissibility doubles
@@ -81,13 +81,13 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    lambda(2^a) = 2^(a-2) strictly increasing (asserted a = 3..30) —
    m = 2 admissible forever at bounded cost. Equal char: NO infinite
    bounded-alphabet thermal trajectory exists; mixed char: one does
-   (the locked column). This is chamber twenty's cost divergence
+   (the locked column). This is explore_module_law.py's cost divergence
    (bounded-cost tail <=> lock at p^rank) BECOME mortality — cite the
    module law, not a new theorem. And the death is CLOCK-AUTHORED: at
    D = 10 every run dies at the same reading c* = 5 (c-gain exactly 4,
    min = max, at beta = 1.5, 2, 3 — temperature-independent;
-   observation), while the halt TIME varies by route. RESOLVED at
-   P178: c* = 5 is the closed law c*(D) = floor(log2 D) + 2, and only
+   observation), while the halt TIME varies by route. RESOLVED:
+   c* = 5 is the closed law c*(D) = floor(log2 D) + 2, and only
    the MODE is temperature-independent — explore_halt_clock.py.
 
 6. WHAT MELTS IS THE SHADOW (rule via finding 4; MC measured before
@@ -130,10 +130,10 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    interval beta in (1, infinity): no dynamical transition at the
    clock spectrum's beta_col^g or its window top beta* = 2 — the
    thermal clocks' critical structure belongs to the zeta MEASURE's
-   genesis mode (OBSERVER.md), not to the growth dynamics' limit.
+   genesis mode, not to the growth dynamics' limit.
    Rates move smoothly and gently (fresh-pick fraction 0.753 / 0.735 /
    0.720 at beta = 1.5 / 2 / 3; 3-point scan, observation). THE
-   CHAMBER'S ANSWER: the melt of the sprawl's GEOGRAPHY sits at
+   THE ANSWER: the melt of the sprawl's GEOGRAPHY sits at
    beta = infinity exactly (as Z's lock melt does); the sprawl's
    ESCALATOR — diverging move costs, the forced march up degrees —
    NEVER melts (finding 5: it kills bounded-alphabet growers at every
@@ -162,10 +162,10 @@ under 512 MB — tables to deg 14 only).
   S7 100 trajectories x betas 1.5, 2, 3, D = 10: rates + the fixed
      halt clock (min = max = 4 c-gain, all betas).
 
-Chambers: eighteen = explore_function_field_lock.py (the cold sprawl),
-five = explore_thermal_growth.py (Z's melt), eight =
-explore_hot_limit.py (Z's hot limit), twenty = explore_module_law.py
-(the rank dichotomy this chamber reads thermally).
+Companion records: explore_function_field_lock.py (the cold sprawl),
+explore_thermal_growth.py (Z's melt),
+explore_hot_limit.py (Z's hot limit), explore_module_law.py
+(the rank dichotomy this record reads thermally).
 """
 
 import random
@@ -582,7 +582,7 @@ def lamZ_2col(a):
 
 
 def s5_mortality_and_melt():
-    """FM5 + the mortality split (unfrozen, SCRATCH pass 4).
+    """FM5 + the mortality split (an unpredicted discovery, found during the run).
 
     (i) the truncated D-DYN model over F_2[x] is uniformly MORTAL:
     lambda at least doubles per move, its odd part is bounded by
@@ -704,7 +704,7 @@ def s6_deviation():
     fr = {a: out[(2.0, a)] for a in (4, 8, 16, 32)}
     print("  frontier P(out) at beta=2: " + ", ".join(
         f"a={a}: [{lo:.3f}, {hi:.3f}]" for a, (lo, hi) in fr.items()))
-    # mid-window melt: P(out) -> 1 as the door recedes (frozen FM7 shape;
+    # mid-window melt: P(out) -> 1 as the door recedes (the FM7 shape fixed in advance;
     # thresholds hand-derived pre-run: m_out ~ 0.22 at beta = 2, door >= 3
     # gives m_in <= 4^-4/(3/4) ~ 0.005 -> P(out) >~ 0.97; door >= 6 -> 0.999-)
     for a in range(2, 65):

@@ -1,5 +1,5 @@
 """
--chi primality decay: the census + conditioned heuristic (MAP 8).
+-chi primality decay: the census + conditioned heuristic.
 
 A sub-ring S (a subset of the first k tower primes, |S| = m >= 2) has
 CRT Euler characteristic chi = N(1 - m + sum 1/p_i), N = prod(S), so
@@ -7,22 +7,22 @@ CRT Euler characteristic chi = N(1 - m + sum 1/p_i), N = prod(S), so
     -chi(S) = N*(m-1) - sum_i N/p_i        (-chi = -1 for m <= 1)
 
 The seed-flower names primes through -chi; PRIMALITY of -chi is the
-gate. MAP 8: the fraction of size>=2 sub-rings with -chi prime decays
+gate. The fraction of size>=2 sub-rings with -chi prime decays
 (82% at k=4 -> 45% at k=8). Why, and toward what limit?
 
 TWO EXACT PROPERTIES (proved here, verified exhaustively k <= 12):
 
   P1 (member coprimality). For p in S: N == 0 and N/p_i == 0 (mod p)
      for all p_i != p, so -chi == -N/p (mod p), nonzero. -chi is
-     coprime to EVERY member prime. (Naming criterion's complement:
-     ALGEBRA.md handles absent primes; members never divide.)
+     coprime to EVERY member prime. (Naming criterion's complement
+     handles absent primes; members never divide.)
   P2 (always odd). If 2 in S: P1. If 2 not in S: N and every N/p_i
      are odd, so -chi == (m-1) - m == 1 (mod 2). (Same parity
      arithmetic as the 2-invisibility rule: 2 is never named, present
      OR absent.)
 
 So -chi arrives pre-sieved: coprime to 2 and to all of S by
-construction. The conditioned-Cramer model (the P35 shape) is then
+construction. The conditioned-Cramer model is then
 forced: check divisibility by primes s <= 100 EXACTLY per sub-ring
 (members can't divide, by P1), and weight survivors
 
@@ -73,7 +73,7 @@ sampled rungs (error < 4^-25 per test, no known MR-25 pseudoprime);
 sampled fractions are pattern; the limit statement is heuristic.
 
 Resource: pure Python (no numpy), peak commit 116 MB at K_EXH = 20
-(two 2^20 bigint DP arrays, memwatch-verified), wall ~15 s. K_EXH and
+(two 2^20 bigint DP arrays, peak-memory verified), wall ~15 s. K_EXH and
 the sample plan are constants in main().
 """
 
@@ -267,7 +267,7 @@ def main():
     rng = Random(20260610)
 
     # --- II. anchors ---
-    print("II. PINNED ANCHORS (ROAD MAP 8, recomputed P35)")
+    print("II. PINNED ANCHORS (recomputed)")
     print("-" * 72)
     cum_t = cum_p = 0
     fracs = {}

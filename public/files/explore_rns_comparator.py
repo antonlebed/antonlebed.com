@@ -1,21 +1,21 @@
 """
-The exact RNS comparator from the diagonal tie-break lemma (BUILD, P76)
+The exact RNS comparator from the diagonal tie-break lemma
 
-The banked ADVANTAGE lead (P38): the diagonal function D(x) = sum_p
+An earlier line of work found: the diagonal function D(x) = sum_p
 floor(x/p) is channel-linear mod SQ = sum_p N/p, and inside a D-tie
 class the residues mod the smallest modulus strictly increase -- so
 (D(x), x mod p_min) is an EXACT comparator for any squarefree modulus
-set. This script is the BUILD layer on the charted lemma: a reference
-implementation, exhaustive exactness, the approximate-diagonal
+set. This script is the implementation layer on the charted lemma: a
+reference implementation, exhaustive exactness, the approximate-diagonal
 contrast, a measured cost model, and the honest FPGA-niche verdict.
-Literature placement: see LITERATURE CONTACT (P102) after finding 7.
+Literature placement: see LITERATURE CONTACT after finding 7.
 
 THE KEY (packed form): key(x) = D(x) * p_min + (x mod p_min), one
 integer of width log2(SQ * p_min), strictly increasing on [0, N).
 Strict monotonicity over all N values proves exactness on ALL N(N-1)/2
 pairs at once (lexicographic order is total + transitive).
 
-FINDINGS (tiers per CLAUDE.md):
+FINDINGS (tiers below):
 
 1. THE REFERENCE COMPARATOR IS EXACT (rule, proved + exhaustive).
    key(x) strictly increasing over ALL 510510 RAD values => all
@@ -45,10 +45,12 @@ FINDINGS (tiers per CLAUDE.md):
    multiples of the moduli, so NO modulus divides a later class
    element. Hence ANY channel's residue serves as the tie-break, not
    only p_min's (rule, proved + verified in-loop at all three sets +
-   RAD); p_min's residue minimizes the packed-key width. (Two record
-   corrections, P102: "reach 33" was a drafted number, the printed
-   record says 97; the unitness wording stood P76-P102, corrected by
-   the /end probe.)
+   RAD); p_min's residue minimizes the packed-key width. (Two
+   corrections to the record: an earlier draft said the tie classes
+   reach 33; the printed run shows 97. The earlier wording assumed
+   later tie-class elements are units; the {15,77,221} run showed
+   that is not required, and the wording above reflects the
+   correction.)
 
 4. THE APPROXIMATE-DIAGONAL CONTRAST (rule, exhaustive at RAD).
    D alone is monotone but not strict: it returns a false "equal" on
@@ -71,7 +73,7 @@ FINDINGS (tiers per CLAUDE.md):
        8 near 2^32 give 29.0 under 256.0 (ratio 0.89). The saving is
        log2(p_min/k) bits of log2 N -- real, modest, ~10% at practical
        sizes.
-     - CPython timing (interpreter-level, the P73 lesson: big-int
+     - CPython timing (interpreter-level: big-int
        constant factors, not datapath widths): diagonal-key compare
        within 1.15x of reconstruction at RAD and 1.08x at 8x32-bit;
        MRC ~3-5x slower (sequential digits; fair baseline, inverse
@@ -98,7 +100,7 @@ FINDINGS (tiers per CLAUDE.md):
    an architecture -- the width law is forced by construction and a
    build would only re-measure it.
 
-LITERATURE CONTACT (P102 RNS scout; sources fetched, not paywalled
+LITERATURE CONTACT (sources fetched, not paywalled
 originals -- placements below cite what was read):
 
 a. THE RESIDUE TIE-BREAK IS THE STANDARD ARCHITECTURE. The
@@ -183,7 +185,7 @@ def section(title):
 # THE REFERENCE IMPLEMENTATION
 # ───────────────────────────────────────────────────────────────────────
 class DiagonalComparator:
-    """Exact RNS comparator from the diagonal tie-break lemma (P38).
+    """Exact RNS comparator from the diagonal tie-break lemma.
     Verified scope: squarefree modulus sets (all primes, or pairwise-
     coprime squarefree composites); construction itself needs only
     pairwise coprimality (the gcd is forced, finding 2).
@@ -325,7 +327,7 @@ section("III. ANY SQUAREFREE SET: three tie regimes, exhaustive")
 # (c) The all-composite set {15,77,221} (p_min = 15 composite): later
 #     tie-class elements need NOT be units here (x = 3 is one) -- the
 #     working invariant is "no modulus divides x", which is what the
-#     in-loop assert checks (P102 /end probe).
+#     in-loop assert checks.
 for moduli, label in (((3, 5, 17, 257), "checksum ring"),
                       ((97, 101, 103), "long-tie designed set"),
                       ((15, 77, 221), "all-composite squarefree set")):
@@ -426,7 +428,7 @@ print(f"  saving = log2(p_min / k) bits of log2 N: "
       f"{-math.log2(s32):.1f} of {math.log2(math.prod(P32)):.1f} (32-bit set)")
 
 # Interpreter timing (honest tier: CPython measures big-int constant
-# factors, not datapath widths -- the P73 lesson; the niche claim is
+# factors, not datapath widths; the niche claim is
 # the datapath's). Per-comparison cost, residues in hand.
 def bench(moduli, label, n_pairs=20_000):
     c = DiagonalComparator(moduli)

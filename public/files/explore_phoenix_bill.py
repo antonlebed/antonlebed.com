@@ -1,20 +1,20 @@
-"""explore_phoenix_bill.py — chamber twenty-four: the intervention price list.
+"""explore_phoenix_bill.py — the intervention price list.
 
-THE QUESTION (ROAD P201 face 1: the melt's last remainder + chamber
-eleven's open lead, unified). Two remainders are one object. (i) THE
-UNTRUNCATED ESCALATOR: along TRUE (no degree bound) thermal D-DYN
-trajectories over F_2[x], what is the recurrence of the minimal
-admissible move degree m*_t — the law whose truncated face is the halt
-clock's rider-creep (explore_halt_clock.py findings 2, 5)? (ii) THE
-GENERAL PHOENIX: the phoenix protocol (chamber eleven) with NON-MINIMAL
-pushes — what does an intervention buy, at what price? The unifier: the
-min-admissible-degree recurrence IS the phoenix's price list; paying
-the minimum sustains, paying above it programs.
+THE QUESTION (the melt's last remainder, plus an open lead from
+explore_interactive_observer.py, unified). Two remainders are one
+object. (i) THE UNTRUNCATED ESCALATOR: along TRUE (no degree bound)
+thermal D-DYN trajectories over F_2[x], what is the recurrence of the
+minimal admissible move degree m*_t — the law whose truncated face is
+the halt clock's rider-creep (explore_halt_clock.py findings 2, 5)?
+(ii) THE GENERAL PHOENIX: the phoenix protocol (explore_interactive_
+observer.py) with NON-MINIMAL pushes — what does an intervention buy,
+at what price? The unifier: the min-admissible-degree recurrence IS
+the phoenix's price list; paying the minimum sustains, paying above it
+programs.
 
-FROZEN SLATE E1-E4: SCRATCH.md P201 passes 1-2 (git), frozen and
-hand-attacked BEFORE this engine was written. Findings enter by a
-separate post-run edit copying printed output (BORN FINDINGS-FREE,
-CLAUDE.md).
+PREDICTIONS E1-E4 were fixed before the run and hand-checked before
+this engine was written. Findings enter by a separate post-run edit
+copying printed output.
 
   E1 (criterion): m*(state) = min of (a) d*(S) = min{d >= 2 : d divides
      no d' in S} (fresh open door), (b) min over places deg(g) *
@@ -29,12 +29,13 @@ CLAUDE.md).
      ~ 2r/(1-r) instead); E2e m*_t = min{n : A(n) > 0} every move.
   E3 (the phoenix bill, D-truncated afterlife): E3a doors never reopen
      under any injection; E3b minimal revival = a column topped up to
-     within its native reach of the frontier (slate guessed the deepest
-     degree-1 column; brute adjudicates); E3c the bill recurrence
-     bill' = 2*bill + D (geometric — vs Z's constant-2 linear pump,
-     the module law as intervention economics); E3d each revival buys
-     EXACTLY ONE native move (the dead thermostat); E3e odd(lambda)
-     frozen through the whole afterlife (the frozen DNA law transfers).
+     within its native reach of the frontier (the prediction guessed
+     the deepest degree-1 column; brute adjudicates); E3c the bill
+     recurrence bill' = 2*bill + D (geometric — vs Z's constant-2
+     linear pump, the module law as intervention economics); E3d each
+     revival buys EXACTLY ONE native move (the dead thermostat); E3e
+     odd(lambda) constant through the whole afterlife (the DNA law
+     transfers unchanged).
   E4 (the general phoenix over Z): E4a the generalized spectrum law —
      windows ever opened = {p : (p-1) | 2^t * D}, D = odd(lambda) after
      pushes, schedule-independent; E4b the price list (fiat / depth /
@@ -56,13 +57,13 @@ crossing-only species (core + NoDoor cofactor with multiplicity
 correction). Needs a general F_2[x] factorizer (DDF + char-2 trace
 EDF), GATED against the melt's tables on all monics deg <= 14, and the
 DP is GATED per degree against brute counts on every battery state
-(plus the all-monics 2^n identity). Z side reimplements the chamber-
-eleven phoenix (greedy D-TRA fill to the wall, push at death) with
-arbitrary push schedules.
+(plus the all-monics 2^n identity). Z side reimplements the phoenix
+protocol from explore_interactive_observer.py (greedy D-TRA fill to
+the wall, push at death) with arbitrary push schedules.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections
-assert. Slate E1/E3 confirmed; E2 and E4 carry three upgraded misses
-— predictions are not tame, the P152/P153 lineage.)
+FINDINGS (run record at bottom; all sections
+assert. E1/E3 confirmed as predicted; E2 and E4 carry three upgraded
+misses — predictions are not tame.)
 
 1. THE MOVE-DEGREE CRITERION (criterion, proved; asserted exhaustively:
    14 states x all monics deg <= 11, DP gated per degree). The minimal
@@ -127,13 +128,14 @@ assert. Slate E1/E3 confirmed; E2 and E4 carry three upgraded misses
    cost read as a price the operator pays.
 
 4. THE GENERAL PHOENIX PROGRAMS THE DNA — AT A PRICE (rules + census;
-   the chamber-eleven phoenix over Z with non-minimal pushes). THE
+   the explore_interactive_observer.py phoenix over Z with non-minimal
+   pushes). THE
    SPECTRUM LAW GENERALIZES exactly (E4a, 4 runs): the windows a
    phoenix ever opens are {p : odd(p-1) | D} at depths v_p(D)+1, D =
    odd(lambda) after the pushes — so a push writes the world's genome,
    and richer pushes open strictly more windows (DNA 3: 12 odd windows
    incl. the Fermat + Proth-3 families; DNA 9 adds 8 more: 19, 37, 73,
-   577, ...). FROZEN E4a MISS (upgraded): pushes are NOT schedule-
+   577, ...). PREDICTED E4a MISS (upgraded): pushes are NOT schedule-
    independent — the same push 9 = 3^2 gives DNA 3 when it lands on a
    virgin 3-column (odd(lambda(3^2)) = 3) but DNA 9 when it lands on the
    world's SELF-GROWN 3-column at death 4 (the exponents COMPOUND); the
@@ -170,10 +172,9 @@ the Sierpinski obstruction's density are open. All Z windows assume the
 observer reads exact states and knows the law family.
 
 RUN RECORD (this file, ~4 s, 46038 checks, well under 512 MB; all
-sections assert. The frozen slate E1-E4 hand-attacked pre-engine
-(SCRATCH P201 passes 1-2, git): E1/E3 confirmed clean; E2a/E2d/E4a
-missed and upgraded as above — the fourth multi-miss slate in the
-lineage, every miss a real refinement.)
+sections assert. Predictions E1-E4 were hand-checked before this
+engine was built: E1/E3 confirmed clean; E2a/E2d/E4a missed and
+upgraded as above, every miss a real refinement.)
   SA 14 states (8 constructed + 6 MC-reached) x all 1022 monics deg
      <= 11: formula m* == brute, DP (quiet/NoDoor/all-monics) == brute
      per degree; factorizer == melt tables on all 32766 monics deg
@@ -188,10 +189,10 @@ lineage, every miss a real refinement.)
      97->7, 641->11, 1009->127, 257 free; census 5132 primes 31.3%
      discounted, 935 cover wins; E4d Proth table (47 resistant at 583).
 
-Chambers: twenty-one = explore_function_field_melt.py (+ its closure
-explore_halt_clock.py — the truncated face), twenty =
-explore_module_law.py (the rank dichotomy priced here as economics),
-eleven = explore_interactive_observer.py (the minimal phoenix).
+Related scripts: explore_function_field_melt.py (+ its closure
+explore_halt_clock.py — the truncated face), explore_module_law.py
+(the rank dichotomy priced here as economics), and
+explore_interactive_observer.py (the minimal phoenix).
 """
 
 import random
@@ -639,7 +640,8 @@ def divisors(n):
 
 
 def phoenixZ(schedule, t2max):
-    """Chamber-eleven phoenix from seed 1, generalized pushes.
+    """The phoenix from seed 1 (explore_interactive_observer.py),
+    generalized pushes.
 
     Greedy D-TRA: fill to the wall W(lambda) (every prime power whose
     lambda divides lambda(N)); at death k push schedule.get(k, 2).

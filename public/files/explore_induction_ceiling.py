@@ -1,20 +1,19 @@
 """
-explore_induction_ceiling.py -- THE INDUCTION CEILING (THE HUNT chamber
-sixteen, P170; sibling of explore_growth_laws.py P143 ..
-explore_ruler_ladder.py P169).
+explore_induction_ceiling.py -- THE INDUCTION CEILING (sibling of
+explore_growth_laws.py .. explore_ruler_ladder.py).
 
 THE QUESTION. Every growth world is Kolmogorov-SHORT -- its generator
 g = (law, beta) plus a seed is a few symbols -- yet the observer
-theorems (bounded evidence P148, finite thermometer P148, cold
-blindness P153, witness gap P153, age law P156) say pieces of g and
+theorems (bounded evidence, finite thermometer, cold
+blindness, witness gap, age law) say pieces of g and
 the route are unrecoverable from inside. Make that ONE object: the
 exact mutual-information LEDGER I(coordinate; channel) across
 observation channels (state / dated state / watched path / probe) and
 fates, so every observer theorem becomes a ROW of a single chart --
 and the chart is a BAYES CEILING no inducer (Solomonoff, MDL,
 anything compression-driven) can beat, computed exactly: growth-world
-induction tasks KNOW THEIR OWN OPTIMUM. Design + frozen slate PR1-PR9
-+ paper attack: SCRATCH P170 pass 1-1b (git).
+induction tasks KNOW THEIR OWN OPTIMUM. Predictions PR1-PR9 were fixed
+before the run.
 
 MODEL (truncated-menu exactness as in explore_thermometer_pair.py).
 One move from state N picks admissible m (2 <= m <= M = 12, stated
@@ -28,7 +27,7 @@ from the thermal law. CHANNELS, nested: C_state = the bare endpoint N
 distributions exact by full path enumeration (no Monte Carlo); MI in
 nats unless bits stated.
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert;
+FINDINGS (tier-labeled; run record below; all sections assert;
 every number is truncated-menu exact at M = 12, T = 4, seed 1 --
 none is an untruncated limit).
 
@@ -56,8 +55,8 @@ none is an untruncated limit).
    0.1151, +0.4%); TEMPERATURE
    IS A RATE (how big by when), so dating adds +28% (0.0489 ->
    0.0628) and watching more. The law lives in the state; the
-   temperature lives in the clock -- chamber twelve's rate-reading,
-   now a channel-decomposition fact. And the law coordinate's
+   temperature lives in the clock -- explore_thermometer_pair.py's
+   rate-reading, now a channel-decomposition fact. And the law coordinate's
    visibility is entirely THERMAL: at T = 0 it is exactly zero
    (finding 4) -- heat is what makes laws readable.
 
@@ -71,7 +70,7 @@ none is an untruncated limit).
    crossover age. Breadth's own I(N_tau) DROPS 0.0724 -> 0.0662 at
    tau = 4: completion amnesia beginning (finding 8).
 
-4. THE COLD FLOOR AND THE PROBE JUMP (rule -- cold blindness P153
+4. THE COLD FLOOR AND THE PROBE JUMP (rule -- cold blindness
    re-priced in MI; verified S2). At T = 0 the three demands write
    ONE trajectory (2,3,5,7,11,13,17,19 asserted identical, 8 steps,
    M = 1000), so I(law; C_path) = 0 EXACTLY at every age: the watch
@@ -97,17 +96,19 @@ none is an untruncated limit).
    function of the path, so I(G; path) = I(G; dated) +
    I(G; path | dated) EXACTLY (asserted to < 1e-12, both fates
    computed independently): the path's surplus is the route
-   posterior's G-information -- chamber eleven's Fisher identity
+   posterior's G-information -- explore_interactive_observer.py's
+   Fisher identity
    I_path = I_state + I(route) acquires an information-theoretic twin
    at finite age. Values (beta-grid, mixed ensemble): gap_IND =
    0.0130 vs gap_DYN = 0.0033; mnemonic fractions rho =
    I(dated)/I(path): IND 0.829, DYN 0.955 -- the same fate ordering
-   and nearly the same fractions as chamber twelve's Fisher tax
+   and nearly the same fractions as explore_thermometer_pair.py's
+   Fisher tax
    (0.803 / 0.927 at M = 30): the tax is not a Fisher artifact.
 
 7. THE FOSSIL PARADOX (rule, proved + computed; verified S5). The
    column world: I(G; dated) = I(G; path) EXACTLY (diff 6.9e-18,
-   asserted -- the perfect fossil, P156) while its route is MAXIMALLY
+   asserted -- the perfect fossil) while its route is MAXIMALLY
    unrecoverable: H(path | dated, G) = 0.3183 bits = the uniform
    maximum EXACTLY (asserted) -- the largest value that support
    allows. Breadth is the reverse: positive witness gap (0.0130) with
@@ -115,7 +116,7 @@ none is an untruncated limit).
    ratio 0.737, asserted strict). THE PARADOX: the fate that
    remembers its temperature perfectly forgets its history maximally,
    and necessarily so -- zero menu drift forces the route posterior
-   UNIFORM (P156), and uniformity is simultaneously the proof of the
+   UNIFORM, and uniformity is simultaneously the proof of the
    perfect fossil (beta-free) and the maximum of route entropy.
    Memory for the generator and memory for the past are different
    resources, and the chain identity (finding 6) locates the
@@ -128,7 +129,8 @@ none is an untruncated limit).
    residuals H(G | channel), beta-grid on D-IND: the path channel
    falls strictly (1.0552 / 1.0251 / 1.0095 / 1.0015, asserted) while
    the state channel stalls and TURNS UP (1.0552 / 1.0296 / 1.0262 /
-   1.0324) -- chamber twelve's completion arc (peak then collapse) in
+   1.0324) -- explore_thermometer_pair.py's completion arc (peak then
+   collapse) in
    MI dress, unpredicted: as the M = 12 world nears completion its
    bare state starts FORGETTING its temperature while the watch keeps
    earning. The ceiling belongs to states; honest note: in this small
@@ -166,19 +168,18 @@ numbers as its optimum. (Exploitation contact, verify-first, NOT
 begun here: Solomonoff/Hutter universal induction, MDL (Rissanen),
 Chollet's ARC. The general point that underdetermination caps
 induction is textbook; the contribution would be EXACTNESS -- closed
-posteriors, known ceilings, prices for every escape. The graduation
-review adjudicates at arc close.)
+posteriors, known ceilings, prices for every escape.)
 
 HONEST LIMITS. (a) M = 12, T = 4, seed 1: every number is
 truncated-menu exact; the untruncated anchors are the finite
-thermometer (P148) and the age law (P156). (b) The beta grid makes G
+thermometer and the age law. (b) The beta grid makes G
 finite: the ceiling is exact FOR THE STATED TASK; a continuous prior
-needs the Fisher rows (chambers six-twelve). (c) One unfrozen
+needs the Fisher rows (earlier companion records). (c) One unfrozen
 expectation refuted (finding 2), one pass-1b magnitude sketch missed
 (finding 8) -- both recorded. (d) 'H'-padded records make completion
 observable: a dead world is a readable fossil, a channel feature,
 not an artifact. (e) The T = 0 identity of the three laws is
-asserted 8 steps at M = 1000 here; the general statement is P153's.
+asserted 8 steps at M = 1000 here.
 
 RUN RECORD (this file, python explore_induction_ceiling.py, ~0.15 s):
   S0 machinery: 12 path distributions sum to 1 (< 1e-12); column
@@ -389,7 +390,7 @@ for name, gens in classes.items():
           f"I(dated)={i_d:.4f} < I(path)={i_p:.4f}")
 # (unfrozen expectation "law harder than temperature" was REFUTED by the
 #  first run: the law-grid MI exceeds the beta-grid MI in this window --
-#  reported as an observation, no assert; the frozen slate never claimed it)
+#  reported as an observation, no assert; the predictions never claimed it)
 
 # pairwise decomposition of the law coordinate (the support mechanism):
 pair_mi = {}

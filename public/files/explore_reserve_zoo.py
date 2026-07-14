@@ -1,11 +1,11 @@
-"""explore_reserve_zoo.py -- chamber twenty-nine: the reserve zoo (the constant-realizer).
+"""explore_reserve_zoo.py -- the reserve zoo (the constant-realizer).
 
-THE QUESTION (ROAD P206 face 1). Chamber twenty-eight (explore_ledger_threshold.py)
-built two designed reserves whose solvency thresholds are named constants: a COUNT
-reserve (degenerate 0) and a SIZE reserve (Golomb-Dickman ~0.6243). The face asks for a
-THIRD weighting at a different constant -- but with its own LATERAL-ESCAPE warning: a
-shrinking third means the real target is "which constants are reachable AS thresholds?"
-This chamber EXECUTES that escape rather than hunting one constant.
+THE QUESTION. A companion script (explore_ledger_threshold.py) built two designed
+reserves whose solvency thresholds are named constants: a COUNT reserve (degenerate 0)
+and a SIZE reserve (Golomb-Dickman ~0.6243). That work left a THIRD weighting at a
+different constant open -- but with a warning: a shrinking third target usually means
+the real question is "which constants are reachable AS thresholds?" This script answers
+that broader question rather than hunting one constant.
 
 THE FRAME (the realizer principle). For any prime-indexed cost w(p) >= 0, the reserve
   R(k) = rho*theta(p_k) - Sum_{i<=k} w(p_i),     theta(p_k) = Sum_{i<=k} log p_i
@@ -15,7 +15,7 @@ with S(k) = Sum w(p_i); if S/theta -> L then rho > L gives +inf, rho < L gives -
 rho_c = L. So EVERY nonnegative value is trivially a reachable threshold (w = c*log p gives
 rho_c = c exactly), and the lateral-escape content is therefore NOT which values are
 reachable -- all of [0, inf) are -- but which STRUCTURED weights realize which NAMED analytic
-constants. Chamber 28's SIZE reserve is the weight w = log P+(p-1) = the j=1 member of the
+constants. explore_ledger_threshold.py's SIZE reserve is the weight w = log P+(p-1) = the j=1 member of the
 rank family below; this frame relocates the third-weighting question (rule) from reachability
 to the structured zoo it realizes.
 
@@ -27,12 +27,13 @@ TWO STRUCTURED SUB-FAMILIES populate the zoo.
     CONSERVATION (exact per k): Sum_j w_j(p) = log(p-1) (the product of all prime factors
     with multiplicity is p-1), so Sum_j S_j(k) = Sum_i log(p_i-1) = log phi(p_k#) and
     Sum_j rho_c^(j)(k) = log phi/theta -> 1 (elementary: log(p-1) = log p + log(1-1/p),
-    Sum log(1-1/p) = O(log log x) = o(x)). The rank thresholds SUM TO 1 -- the conserved
-    constellation chamber 27/28's degenerate count-reserve had no analog of. The values
+    Sum log(1-1/p) = O(log log x) = o(x)). The rank thresholds SUM TO 1 -- a conserved
+    constellation neither explore_complexity_ledger.py's nor explore_ledger_threshold.py's
+    degenerate count-reserve had an analog of. The values
     are conjecturally the PD(1) / Shepp-Lloyd expectations {0.6243, ~0.210, ~0.088, ...}
-    of the Dickman ordered factorization: j=1 = chamber 28's SIZE threshold EXACTLY (same
-    object; its limit conjecturally lambda_GD), j=2 ~ 0.21 the "third named constant" the
-    face wanted.
+    of the Dickman ordered factorization: j=1 = explore_ledger_threshold.py's SIZE threshold
+    EXACTLY (same object; its limit conjecturally lambda_GD), j=2 ~ 0.21 the "third named
+    constant" that motivated this script.
 
   FAMILY B -- DENSITY (any prime-density event realizes its density as a threshold, a
     DIFFERENT KIND than Dickman size). Weight w(p) = log p * 1[E(p)] for a density-delta
@@ -44,22 +45,22 @@ TWO STRUCTURED SUB-FAMILIES populate the zoo.
       q | (p-1), 2^((p-1)/q) != 1 (mod p); the factorization of p-1 is already in hand,
       and base 2 carries no Artin correction.
 
-FROZEN SLATE FR1-FR4 (hand-attacked pre-engine; findings enter by a SEPARATE post-run
-edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
+PREDICTIONS FR1-FR4 (fixed before the run; findings enter by a separate post-run
+edit copying printed output):
 
   FR1 (the realizer identity, rule). rho_c(w) = lim Sum w/theta governs thrive/sink.
     Assert on KNOWN weights: w = log p gives rho_c = 1 EXACT (R = (rho-1) theta; sink at
     rho=0.9, thrive at rho=1.1); w = (1/2) log p gives rho_c = 1/2 EXACT; and the SIZE
-    weight w = log P+(p-1) reproduces chamber 28's rho_c(1e4) in (0.57, 0.59). HAND:
+    weight w = log P+(p-1) reproduces explore_ledger_threshold.py's rho_c(1e4) in (0.57, 0.59). Hand estimate:
     controls exact; SIZE ~0.579.
 
   FR2 (the rank family + conservation). (a) EXACT per k: Sum_{j>=1} S_j(k) = log phi
     (float tol), so Sum_j rho_c^(j)(k) = log phi/theta in (0.99, 1.0), -> 1. HAND k=1e4:
     log phi ~ 104389, log phi/theta ~ 0.9968. (b) ordered decreasing rho_c^(1) >
-    rho_c^(2) > rho_c^(3) > 0, HAND ~0.58, ~0.20, ~0.09. (c) rho_c^(1) EQUALS chamber 28's
+    rho_c^(2) > rho_c^(3) > 0, hand estimate ~0.58, ~0.20, ~0.09. (c) rho_c^(1) EQUALS explore_ledger_threshold.py's
     SIZE threshold (same object). (d) integer control mean(log P_j(n)/log n, n<=x) tracks
-    the same decreasing spectrum and sits ABOVE the shifted mean for j=1 (the P205
-    straddle); int j=1 in (0.60,0.70), j=2 in (0.15,0.25), j=3 in (0.05,0.12). Conjectural
+    the same decreasing spectrum and sits ABOVE the shifted mean for j=1 (a straddle
+    already observed); int j=1 in (0.60,0.70), j=2 in (0.15,0.25), j=3 in (0.05,0.12). Conjectural
     limits = the Shepp-Lloyd / PD constants (cited, not asserted-exact).
 
   FR3 (the density family / Artin, observation). w = log p * 1[2 prim root mod p]:
@@ -67,7 +68,7 @@ edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     family (conjecturally Artin 0.37396). Anchor w = log p * 1[p == 1 mod 4] -> (0.47,
     0.53) (conjecturally 1/2). The threshold IS the density -- a DIFFERENT KIND of constant
     (a density: Dirichlet for the anchor, Artin for the primitive root) than the size
-    family's Dickman averages. HAND: Artin ~0.373 (from
+    family's Dickman averages. Hand estimate: Artin ~0.373 (from
     below), 1-mod-4 ~0.500.
 
   FR4 (the realizer + the zoo table, argument -- the headline). The map w |-> rho_c(w)
@@ -79,7 +80,7 @@ edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     moment ~0.21 (rank 2), Artin 0.3739 (density) -- plus rational anchors (1/2, and 1.0
     for w = log p), all mutually distinct in range. THIS is the lateral escape EXECUTED:
     not one third constant but the realizer principle + a conserved infinite family + a
-    different-kind constant. VERTIGO: designed-growth solvency thresholds realize the
+    different-kind constant. The headline: designed-growth solvency thresholds realize the
     analytic-prime-constant zoo, and the size-rank thresholds are a conserved
     Poisson-Dirichlet spectrum partitioning the whole log budget (Sum -> 1).
 
@@ -97,9 +98,9 @@ distribution 1 => the full joint PD(1) law, Bharadwaj-Rodgers arXiv:2402.11884 T
 the bridge from distributional convergence to these Cesaro log-averages is elementary --
 ratios bounded by 1 carry the means, partial summation carries the log-weighting;
 Pomerance's conjecture, j=1 Granville/Wang; shifted primes hold level 1/2 = BV
-unconditionally, buying only restricted-support PD correlations -- open, contact P225)
+unconditionally, buying only restricted-support PD correlations -- open)
 -- what is asserted is the ordered, positive, summing-to-1
-spectrum and the j=1 identity with chamber 28. FR3's threshold = density is a rule; the
+spectrum and the j=1 identity with explore_ledger_threshold.py. FR3's threshold = density is a rule; the
 value = Artin's constant is conjectural (Hooley/GRH). FR4 is the argument that the reserve
 construction is a universal realizer of prime log-averages; the incumbent is analytic prime
 number theory (Dickman/Golomb-Dickman for the size family, Artin/Hooley for the density
@@ -111,19 +112,19 @@ CONSERVATION (Sum -> 1, a genuine structural law here), not any new analytic res
 reserve computes nothing the incumbent does not. The vertigo is that a designed-growth
 economy's solvency boundary IS exactly these constants. The Dirichlet-abscissa
 solvency mechanism (a geometric rather than Cesaro criterion), left open here as a
-possible third kind, was cashed as chamber thirty: NO third constant -- the abscissa
-is the settled end (explore_abscissa_reserve.py, corrected P208).
+possible third kind, was settled by explore_abscissa_reserve.py: NO third constant --
+the abscissa is the settled end.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (run record at bottom; all sections assert).
 
 1. THE REALIZER IDENTITY (rule -- the frame). For any prime weight w(p) >= 0 the reserve
    R(k) = rho*theta(p_k) - Sum w(p_i) thrives iff rho > rho_c(w) = lim Sum w/theta.
    Verified on controls: w = log p realizes rho_c = 1.000000 EXACT (R sinks -10439 at
    rho=0.9, thrives +10439 at rho=1.1), w = (1/2) log p realizes 0.500000 EXACT, and the
-   SIZE weight w = log P+(p-1) reproduces chamber 28's rho_c = 0.5791. So the map
+   SIZE weight w = log P+(p-1) reproduces explore_ledger_threshold.py's rho_c = 0.5791. So the map
    w |-> rho_c(w) sends any nonnegative prime weight to its Cesaro log-average; EVERY value
    in [0, inf) is trivially reachable (w = c*log p gives rho_c = c, as the two controls show),
-   so the lateral-escape content is NOT which values are reachable -- all are -- but which
+   so the content is NOT which values are reachable -- all are -- but which
    STRUCTURED weights realize which NAMED constants (findings 2-3).
 
 2. THE RANK FAMILY -- A CONSERVED PD SPECTRUM SUMMING TO 1 (property + rule; values
@@ -132,15 +133,15 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    log(p-1) EXACTLY (Sum_j log P_j(p-1) = log(p-1), a product identity, every k), so the
    full sum is log phi/theta -> 1 (rule: log(p-1) ~ log p elementarily) -- the LIMITING
    thresholds sum to 1, the in-range sum 0.999971. At k=10^4: rho_c^(1..3) = 0.5791, 0.1931,
-   0.0980 with tail (ranks >= 4) 0.1298, total 0.999971. rho_c^(1) = chamber 28's SIZE threshold
+   0.0980 with tail (ranks >= 4) 0.1298, total 0.999971. rho_c^(1) = explore_ledger_threshold.py's SIZE threshold
    EXACTLY (same object). The values are in the limit the Poisson-Dirichlet(1) /
    Shepp-Lloyd expectations of the Dickman ordered factorization {0.6243, ~0.210, ~0.088}
-   -- a theorem under EH, open unconditionally (contact P225, HONEST SCOPE below):
+   -- a theorem under EH, open unconditionally (see HONEST SCOPE above):
    the integer positive control mean(log P_j(n)/log n) = [0.6523, 0.2006, 0.0789] sits in
-   those bands and (at j=1) ABOVE the shifted rho_c^(1) = 0.5791 -- the P205 straddle, so
+   those bands and (at j=1) ABOVE the shifted rho_c^(1) = 0.5791 -- the straddle noted above, so
    the exact identification with the PD constants is EH-conditional, the ordered
    summing-to-1 spectrum the measured fact. Rank 2 ~ 0.19-0.21 IS the "third named
-   constant" the face asked for -- but it arrives inside an infinite conserved family.
+   constant" that motivated this script -- but it arrives inside an infinite conserved family.
 
 3. THE DENSITY FAMILY -- A THRESHOLD IS A DENSITY (rule; value conjectural). Weight
    w(p) = log p * 1[E(p)] for a density-delta event E realizes rho_c = delta (log-weighted
@@ -157,37 +158,36 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    charted by two families -- RANK (a PD spectrum with Sum = 1) and DENSITY (the density
    itself). Three named irrational constants appear as reserve thresholds,
    mutually distinct and ORDERED in range: PD_2 0.1931 < Artin 0.3749 < Golomb-Dickman
-   0.5791, alongside rational anchors (1/2 for p==1 mod4, 1.0 for w=log p). THIS is the
-   lateral escape EXECUTED (the face's own warning): not one third constant but the
+   0.5791, alongside rational anchors (1/2 for p==1 mod4, 1.0 for w=log p). This is the
+   broader answer worked out above: not one third constant but the
    realizer principle + a conserved infinite family + a different-kind constant.
 
-THE VERTIGO (chamber headline). Designed-growth solvency thresholds realize the
+THE HEADLINE. Designed-growth solvency thresholds realize the
 analytic-prime-constant zoo -- Golomb-Dickman, the Poisson-Dirichlet spectrum, Artin --
 and the size-RANK thresholds are a CONSERVED Poisson-Dirichlet constellation that partitions
 the whole log budget (Sum -> 1; the partition Sum_j log P_j = log(p-1) exact, in-range
-0.99997), the conservation chamber 27/28's degenerate count-reserve had no analog of.
+0.99997), a conservation neither explore_complexity_ledger.py's nor explore_ledger_threshold.py's
+degenerate count-reserve had an analog of.
 The single lever is the weight w: SIZE-by-rank tiles the log budget (a Dickman
 spectrum); DENSITY reads a density constant (Artin) off a fixed-density event.
 
 RUN RECORD (this file, ~0.1 s, 16 checks, well under 512 MB, no numpy; all sections assert).
-Frozen slate FR1-FR4 hand-attacked pre-engine (SCRATCH P206). Every WORLD-prediction held
+Predictions FR1-FR4 were worked out by hand before the run. Every predicted value held
 on the first complete run: the realizer controls (1.000000 / 0.500000 exact, SIZE 0.5791 =
-chamber 28), the rank spectrum (0.5791 > 0.1931 > 0.0980, tail 0.1298, total 0.999971 -> 1;
-rank 1 = chamber 28), the integer straddle control ([0.6523, 0.2006, 0.0789] in the PD
+explore_ledger_threshold.py), the rank spectrum (0.5791 > 0.1931 > 0.0980, tail 0.1298, total 0.999971 -> 1;
+rank 1 = explore_ledger_threshold.py), the integer straddle control ([0.6523, 0.2006, 0.0789] in the PD
 bands, j=1 above shifted), the density family (2-primroot 0.3749 ~ Artin 0.3740, p==1 mod4
-0.4987 ~ 1/2), the ordered distinct zoo (PD_2 < Artin < GD). Hand calls (rho_c^(1..3) ~
-0.58/0.20/0.09; conservation ~1; Artin ~0.373; 1-mod-4 ~0.5) all landed. The /check
-PARTITION check added post-hoc (round 9): the conservation total_at -> 1 uses log(p-1)
+0.4987 ~ 1/2), the ordered distinct zoo (PD_2 < Artin < GD). Hand estimates (rho_c^(1..3) ~
+0.58/0.20/0.09; conservation ~1; Artin ~0.373; 1-mod-4 ~0.5) all landed. A PARTITION check
+verifies this independently of the conservation check above: the conservation total_at -> 1 uses log(p-1)
 directly, so it could not catch a factorization bug corrupting the rank spectrum; the
 direct check Sum_{q^e||p-1} e*log q = log(p-1) at every prime (max dev < 1e-9) verifies
 the EXACT property and factorization completeness independently (adversarially confirmed:
 a dropped factor drives the deviation to ~9).
 
-Chambers: twenty-eight = explore_ledger_threshold.py (the collision hinge -- the COUNT
-reserve degenerate 0, the SIZE reserve Golomb-Dickman); this chamber = the SIZE reserve
-generalized to the realizer principle (the rank family Sum=1, the density family Artin).
-The Golomb-Dickman / transparency context = TOWER.md SVII; the growth-hunt inside story =
-OBSERVER.md (the reserve zoo, after the collision hinge).
+Companion script: explore_ledger_threshold.py (the collision hinge -- the COUNT
+reserve degenerate 0, the SIZE reserve Golomb-Dickman); this script generalizes the SIZE
+reserve to the realizer principle (the rank family Sum=1, the density family Artin).
 """
 
 import sys
@@ -300,7 +300,7 @@ def build():
       logp[i]   = log p
       pr2[i]    = 1[2 is a primitive root mod p]
       p1mod4[i] = 1[p == 1 mod 4]
-      Pplus[i]  = P+(p-1)  (= rank-1 factor; ties chamber 28)
+      Pplus[i]  = P+(p-1)  (= rank-1 factor; ties explore_ledger_threshold.py)
     """
     ps = first_k_primes(K_MAX)
     Prank = []
@@ -341,10 +341,10 @@ def section_FR1(ps, logp, Pplus):
     R_sink = 0.9 * theta - w_full
     R_thrive = 1.1 * theta - w_full
     ok(R_sink < 0 < R_thrive, "FR1: reserve sinks below / thrives above rho_c (w=log p)")
-    # the SIZE weight reproduces chamber 28
+    # the SIZE weight reproduces explore_ledger_threshold.py
     w_size = sum(log(Pplus[i]) for i in range(len(ps)))
     rc_size = w_size / theta
-    ok(0.57 < rc_size < 0.59, "FR1: w = log P+(p-1) reproduces chamber 28 rho_c ~ 0.579")
+    ok(0.57 < rc_size < 0.59, "FR1: w = log P+(p-1) reproduces the SIZE threshold rho_c ~ 0.579")
     print(f"    theta(p_k) = {theta:.1f}   (k={len(ps)}, p_max={ps[-1]})")
     print(f"    w=log p     -> rho_c = {rc_full:.6f}   (R sink@0.9 = {R_sink:.1f}, "
           f"thrive@1.1 = {R_thrive:.1f})")
@@ -404,9 +404,9 @@ def section_FR2(ps, Prank, logm, logp):
     rr = rho_at[K]
     ok(rr[0] > rr[1] > rr[2] > 0,
        "FR2: rho_c^(1) > rho_c^(2) > rho_c^(3) > 0 (ordered spectrum)")
-    # (c) rank-1 == chamber 28 SIZE threshold
+    # (c) rank-1 == the SIZE threshold (explore_ledger_threshold.py)
     ok(0.57 < rr[0] < 0.59,
-       "FR2: rho_c^(1) equals chamber 28's SIZE threshold (~0.579)")
+       "FR2: rho_c^(1) equals the SIZE threshold (~0.579)")
     # (d) integer control spectrum: mean(log P_j(n)/log n) over n <= x
     spf = spf_sieve(ps[-1])
     int_sum = [0.0] * J_MAX
@@ -428,7 +428,7 @@ def section_FR2(ps, Prank, logm, logp):
     ok(0.60 < ic[0] < 0.70 and 0.15 < ic[1] < 0.25 and 0.05 < ic[2] < 0.12,
        "FR2 control: integer spectrum in the PD/Shepp-Lloyd bands (rig computes P_j)")
     ok(ic[0] > rr[0],
-       "FR2: integer mean (above) exceeds shifted rho_c^(1) (below) -- the P205 straddle")
+       "FR2: integer mean (above) exceeds shifted rho_c^(1) (below) -- the straddle")
     print(f"    {'k':>6} {'rho_c^1':>8} {'rho_c^2':>8} {'rho_c^3':>8} {'tail':>7} "
           f"{'Sum(=logphi/th)':>16}")
     for k in mile:
@@ -519,7 +519,7 @@ def section_FR4(rr, d_pr2, d_p14):
 
 def main():
     print("=" * 72)
-    print("CHAMBER TWENTY-NINE  -  the reserve zoo (the constant-realizer)")
+    print("THE RESERVE ZOO  -  the constant-realizer")
     print("=" * 72)
     ps, Prank, logm, logp, pr2, p1mod4, Pplus = build()
     print(f"trajectory: primorial schedule k=1..{K_MAX}, p_max={ps[-1]}\n")

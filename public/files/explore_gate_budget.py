@@ -1,7 +1,7 @@
 """
-The gate-budget grading (MOONSHOT probe, P83).
+The gate-budget grading.
 
-The idempotent-logic entry's last named reopen (LOGIC.md SI), taken
+The idempotent-logic entry's last named reopen, taken
 with its bar: the meadow closure proved omniscience -- every shadow
 decidable -- at unstated cost. Grade the decidable world by
 measurement cost. Bar: a LAW (exact costs for the named shadows plus
@@ -18,7 +18,7 @@ Three budget axes: GATE COUNT, WORD OPS (formula operations, the
 integer-complexity convention -- no reuse), ALPHABET LEVEL
 (monomial < NOT-closed < meadow). The CUT budget -- collected
 monomials of a defining polynomial, the torsion-menu law's currency
-(P82) -- prices the shadow as a CONDITION; the axes price DECIDING
+-- prices the shadow as a CONDITION; the axes price DECIDING
 it. Each axis binds at its own level: at the monomial level gate
 count carries laws; at the meadow level gate count collapses to 1
 (gate_1 of a decision word) and the price moves to word ops.
@@ -46,11 +46,11 @@ PREDICTIONS (stated before the run):
     conjugacy-orbit-constant (w(a^u, b^u) = w(a, b)^u preserves
     order), so every readout is orbit-constant: a shadow that
     splits one orbit has NO finite monomial-gate price at any gate
-    count. The P75/P77 measurement walls are exactly the infinite
+    count. The earlier measurement-wall results are exactly the infinite
     entries of the cost table ([a + b = 3] at p = 7 splits the
     orbit of (3, 3)); the alphabet axis is what makes them finite
     (the +-1-ratio lines fall at the NOT-closed level and the
-    meadow level decides everything -- P77, cited not rerun).
+    meadow level decides everything -- cited, not rerun).
  P3 (rule, proved): THE SUBGROUP-CELL BOUND. A two-leaf monomial
     gate shadow is the kernel of a torus character composed with
     ^m -- a subgroup H <= (F_p*)^2 of index dividing n, so
@@ -63,11 +63,11 @@ PREDICTIONS (stated before the run):
     intersection atom contains (1, 1). For a target of <= 4 points
     avoiding (1, 1) this kills r <= 2 whenever n > 8.
  P4 (rule, proved + exhaustive): THE PENTAGON PRICE. The order-5
-    orbit O = {(t^u, t^2u)} of the pentagon conic (P82) has READ
+    orbit O = {(t^u, t^2u)} of the pentagon conic has READ
     cost exactly 3 monomial gates (p = 1 mod 5, p > 9): >= 3 by P3
     (|O| = 4); <= 3 by gate_1(a^2 b^-1) AND gate_5(a) AND NOT
     gate_1(a). Its CUT cost is 5 collected monomials (the
-    torsion-menu law, P82). Cutting and reading are different
+    torsion-menu law). Cutting and reading are different
     currencies -- the same orbit is cheaper to read than to cut.
  P5 (rule, proved at p = 7; censused at p = 13): THE
     CRYSTALLOGRAPHIC PRICE. The Phi_6 stable orbit of the line
@@ -89,7 +89,7 @@ PREDICTIONS (stated before the run):
     (constant on the units except 1: at the leaf value 1 every
     word reads 0 or 1, so the exception is forced; one masking
     gate_1(x) patches it when w reads 1 there). h_p(-1) <= 6 at
-    every p (the P77 wall-breaker word NOT(a^-1) * (NOT a)^-1 * a
+    every p (the wall-breaker word NOT(a^-1) * (NOT a)^-1 * a
     -- an algebraic identity, any p). Floor: COUNTING applies to
     decision words directly -- at most F(t) formulas of cost t
     exist (F(t) = 2F(t-1) + sum_{i+j=t-1} F(i)F(j), F(0) = 1), so
@@ -129,7 +129,7 @@ RESULTS (the run below prints the record; all confirmed):
      discount is real and is the law's d = n boundary case.
   P6 heights (exact Dijkstra): p = 5: h(2) = 7, h(3) = 7,
      h(4) = 6; p = 7: h(2) = 7, h(3) = 11, h(4) = 8, h(5) = 11,
-     h(6) = 6. So h_p(-1) = 6 exactly at p = 5, 7: the P77
+     h(6) = 6. So h_p(-1) = 6 exactly at p = 5, 7: the
      wall-breaker word is OPTIMAL there, and -1 is the cheapest
      nontrivial constant (observation; heights are not monotone
      in c -- h(4) < h(3) at p = 7). The 6-op word verified at
@@ -445,14 +445,14 @@ for p in (5, 7):
     check("p=%d every constant reached exactly; max h(c)=%d >= "
           "L_min=%d" % (p, max(hs.values()), L_min(p)),
           exact and max(hs.values()) >= L_min(p))
-    check("p=%d h(-1)=%d <= 6 (P77 word bound)" % (p, hs[p - 1]),
+    check("p=%d h(-1)=%d <= 6 (word bound)" % (p, hs[p - 1]),
           hs[p - 1] <= 6)
     check("p=%d -1 is a cheapest nontrivial constant" % p,
           hs[p - 1] == min(hs.values()))
 for p in (11, 13, 31):
     okw = all((1 - pow(a, p - 2, p)) * pow(1 - a, p - 2, p) * a % p
               == p - 1 for a in range(2, p))
-    check("p=%d the 6-op P77 word makes -1 on every unit != 1" % p,
+    check("p=%d the 6-op word makes -1 on every unit != 1" % p,
           okw)
 print("  counting floor growth: L_min(10^3)=%d, L_min(10^6)=%d"
       % (next(t for t in range(25) if cum[t] >= 10 ** 3),

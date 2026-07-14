@@ -1,13 +1,13 @@
 """
-MOONSHOT: THE STATS THREAD -- evidence on the ring: the e-calculus and
-the semiring family. (P53)
+THE STATS THREAD -- evidence on the ring: the e-calculus and
+the semiring family.
 
-THE TARGET (ROAD track 4, the last hunt (b) menu entry -- Anton's
-"what comes after frequentist/Bayesian?"). Two questions. (1) Does
+THE TARGET (motivated by an earlier question: "what comes after
+frequentist/Bayesian?"). Two questions. (1) Does
 "sum-product vs max-product = one algorithm in two semirings" extend
 to a semiring-indexed family of inference calculi with a tower home?
 (2) The third-pillar candidate is the e-value / game-theoretic
-calculus -- what does it attach to on the ring? (ROAD's guess: the
+calculus -- what does it attach to on the ring? (the working guess: the
 graded logic's delta-measurement.)
 
 Survey anchors (standard material, named so nothing here poses as new):
@@ -40,19 +40,19 @@ PREDICTIONS (stated before computing, per protocol):
      (GDL + CRT; expect trivially exact), and the marginal
      reconstruction test "f == (tensor of its own channel marginals,
      normalized)" is the semiring-indexed rank-1/product-form test.
-  P2 (the conjunctive split is semiring-stable): P48's Boolean
-     verdicts (equality, divisibility conjunctive; order not) are the
+  P2 (the conjunctive split is semiring-stable): the earlier conjunctive
+     test's Boolean verdicts (equality, divisibility conjunctive; order not) are the
      verdicts at EVERY semiring point -- for 0/1-valued f the three
      verdicts provably coincide (a 0/1 product form can be taken with
      0/1 factors). The walls do not depend on the temperature.
   P3 (rank levels): order's channel flattening at Z/6 (a 4x9 matrix
      over (x2,y2) x (x3,y3)) has FULL Boolean rank 4 and full real
-     rank 4 -- the P48 "maximal failure" as a rank statement;
+     rank 4 -- the earlier "maximal failure" as a rank statement;
      equality's flattening has rank 1 in both; the size function's
      2x3 matrix has full rank 2 in both real and tropical senses.
   P4 (cylinder e-variables): normalized support-cylinder indicators
      E_S = 1[x e_S = x]/mu(e_S) are EXACT e-variables (mean = 1);
-     E_S E_T = E_{S int T} / mu(e_{S union T}) pointwise (the P37
+     E_S E_T = E_{S int T} / mu(e_{S union T}) pointwise (the
      multiplicative law mu(S^T)mu(SvT) = mu(S)mu(T) is the
      bookkeeping); the product is e-valid iff S union T = all
      channels iff the two events are CRT-independent: THE PRODUCT
@@ -75,16 +75,16 @@ PREDICTIONS (stated before computing, per protocol):
      second-order axis (bets over masses) anchored at the summing
      end, with the tropical valuation as its log-shadow.
 
-Findings preview (full statements in WALLS.md SII):
+Findings preview:
   1. ONE TEST, EVERY SEMIRING (rule): product-form totals factorize
      per channel in sum/max/Boolean; the marginal-reconstruction
-     test is exact in each; P48's conjunctive test IS the Boolean
+     test is exact in each; the earlier conjunctive test IS the Boolean
      instance, and the verdicts are semiring-stable on relations.
   2. RANK LEVELS (observation): at Z/6, equality flattens to rank
      1/1 (Boolean/real), order to rank 4/4 (full/full); size's 2x3
-     matrix is full rank really and tropically. Whether the P48
+     matrix is full rank really and tropically. Whether the earlier
      failure modes always sort by rank level was an open hook here;
-     RESOLVED P65 -- REFUTED (the P65 record block below + section
+     RESOLVED, REFUTED (the rank-sorting record block below + section
      VI: what order's full rank detected was the LIFT).
   3. THE PRODUCT RULE IS CRT INDEPENDENCE (rule): cylinder and
      classicality e-variables are exact (mean = 1); a product of two
@@ -93,10 +93,10 @@ Findings preview (full statements in WALLS.md SII):
      reads S minus {2} (channel 2's classicality is the VACUOUS bet:
      every residue mod 2 is already in {0,1} -- the decality as the
      trivial e-variable), mixed valid iff T subset S u {2}. The
-     P37 law is the excess bookkeeping: E[E_S E_T] = 1/mu(S v T).
+     multiplicative law is the excess bookkeeping: E[E_S E_T] = 1/mu(S v T).
   4. LOG E-VALUE = TROPICAL VALUATION (rule): evidence factors are
      1/P per independent channel read; log-evidence is the log-mass
-     excluded -- P37's counting valuation IS the e-calculus's
+     excluded -- the counting valuation IS the e-calculus's
      log-shadow, exact at every rung.
   5. COLLAPSE BREAKS ANYTIME-VALIDITY (rule): E_cl(x^lambda) =
      prod_{p in S} p/2 for EVERY x -- the measurement manufactures
@@ -108,11 +108,11 @@ Findings preview (full statements in WALLS.md SII):
      mean over cylinder pairs is exactly 2 - 1/N (59/30 at Z/30,
      419/210 at Z/210) -- the union bound approached at rate 1/N.
      Evidence on the ring is ONE-DIRECTIONAL (lose: allowed;
-     fabricate: forbidden) -- the same arrow as P37's OR
+     fabricate: forbidden) -- the same arrow as the ring's OR
      interference and the collapse, and the betting calculus is the
      formalism that enforces it.
 
-P65 RECORD -- THE RANK SORTING QUESTION (finding 2's open hook):
+THE RANK SORTING RECORD (finding 2's open hook):
 RESOLVED, REFUTED in both directions, with two proved fragments and
 the gap (no properly-failing relation's rank computed) filled.
 The hook asked whether the conjunctive failure modes sort by rank
@@ -270,7 +270,7 @@ report("product-form totals factorize, sum/max/bool, Z/30 + Z/210", ok,
 
 # P1b/P2: the marginal-reconstruction test on relations (pair ring).
 # f == (product of its own channel marginals) / total^(k-1) iff f is
-# product-form over the channels. Boolean instance = P48 conjunctive test.
+# product-form over the channels. Boolean instance = the earlier conjunctive test.
 def reconstruction_verdict(ps, f, sr):
     """f: function on pairs (x,y) of Z/N. Returns True iff f == f_hat."""
     name, add, mul, zero, one, div = sr
@@ -323,7 +323,7 @@ ok = (all(verdicts[("equality", s)] for s in ["sum", "max", "bool"])
       and all(verdicts[("divisibility", s)] for s in ["sum", "max", "bool"])
       and not any(verdicts[("order", s)] for s in ["sum", "max", "bool"]))
 report("Z/30 verdicts: equality, divisibility product-form; order NOT", ok,
-       "same verdict at all three semirings (P48 = the Boolean row)")
+       "same verdict at all three semirings (the Boolean row)")
 
 # P2 coincidence is provable for indicators; confirm at Z/210 (bool + sum).
 ps4 = [2, 3, 5, 7]
@@ -471,7 +471,7 @@ for ps in [ps3, ps4]:
             I, U = S & T, S | T
             A_I, mu_I = cyl[frozenset(I)]
             mu_U = cyl[frozenset(U)][1]
-            # pointwise: E_S E_T = E_I / mu_U  (P37 law as bookkeeping)
+            # pointwise: E_S E_T = E_I / mu_U (the multiplicative law as bookkeeping)
             if A_S & A_T != A_I:
                 ok_all["point"] = False
             if mu_I * mu_U != mu_S * mu_T:
@@ -490,7 +490,7 @@ for ps in [ps3, ps4]:
 report("count law |A_S| = prod_S p, all S (Z/30 + Z/210): E_S exact",
        ok_all["count"],
        "enumeration vs closed form; mean E_S = 1 IS this law")
-report("pointwise E_S E_T = E_{S^T} / mu(SvT); P37 law is the bookkeeping",
+report("pointwise E_S E_T = E_{S^T} / mu(SvT); the collapse law is the bookkeeping",
        ok_all["point"] and ok_all["law"],
        "mu(S^T) mu(SvT) = mu(S) mu(T); E[E_S E_T] = 1/mu(SvT)")
 report("product e-valid  <=>  S u T = all channels", ok_all["evalid"])
@@ -672,12 +672,12 @@ report("max-merge worst mean = 2 - 1/N exactly (59/30, 419/210) -> 2", ok,
 
 # ---------------------------------------------------------------- VI
 
-section("VI. RANK READS THE SPLIT, NOT THE MODE (the sorting question, P65)")
+section("VI. RANK READS THE SPLIT, NOT THE MODE (the sorting question)")
 
 # Machinery. Flattening R at a channel bipartition S | rest gives the
 # matrix M[(residue pairs on S)][(residue pairs on the rest)] = R(x,y);
-# CRT fills every entry exactly once. Hand-proofs in the P65 record
-# block of the docstring; this section is the mechanical confirmation.
+# CRT fills every entry exactly once. Hand-proofs in the rank-sorting
+# record block of the docstring; this section is the mechanical confirmation.
 
 import math
 

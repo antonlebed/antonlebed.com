@@ -1,5 +1,5 @@
 """
-What a base buys (MOONSHOT probe, P96; the P87 base seed): numeration
+What a base buys: numeration
 systems read through the windows -- the two-readings criterion and the
 readability chart.
 
@@ -33,7 +33,7 @@ The census, each system anchored at its Ostrowski window(s):
    finite place; multiplicative queries go window-local, addition
    dies.
 
-PREDICTIONS (stated before the run, P86 discipline; adjudication
+PREDICTIONS (stated before the run; adjudication
 recorded per item after the run -- PR1-PR7 all landed; the one
 number not predicted in advance, the Nerode class counts of PR6,
 came out at the saturation ceiling, recorded there):
@@ -87,7 +87,7 @@ came out at the saturation ceiling, recorded there):
      S3e). LANDED.
  PR4 (witnesses): SIZE/ORDER ARE WALLED off the archimedean window.
      CRT: (1, 31) vs (31, 1) -- identical residue windows mod 30,
-     opposite order (the archimedean wall, WALLS.md SII, holding at
+     opposite order (the archimedean wall, holding at
      the representation level; S4a). Exponent vector: 7 and 23 have
      the same all-zero {2,3,5}-window, 7 < 11 < 23 (S4b). LANDED.
  PR5 (criterion, proved + verified): DIVISIBILITY LOCALITY IN BASE b.
@@ -97,8 +97,8 @@ came out at the saturation ceiling, recorded there):
      scan-read (MSD Horner automaton, m states; S5b). CRT: p | n is
      window-read (one digit = 0) for p in P; q outside P is WALLED --
      (q, q + N) share the whole P-window and disagree (S5c; the same
-     witness shape is the membership-certificate clause, ALGEBRA.md
-     SXII: no finite window is injective on N). Exponent vector:
+     witness shape is the membership-certificate clause: no finite
+     window is injective on N). Exponent vector:
      divisibility, gcd, lcm all window-read (componentwise <=, min,
      max on supp(m); S5d). Verified m = 8 (j = 3) vs m in
      {3, 7, 9, 11} witnessed at every j <= 5 (S5a). Zeckendorf sits

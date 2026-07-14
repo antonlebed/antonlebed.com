@@ -1,7 +1,7 @@
 """
-Operation discovery, hunt 2: the SECOND log -- index coordinates. (MOONSHOT, P39)
+Operation discovery: the SECOND log -- index coordinates.
 
-Hunt 1 (P38, explore_size_transform.py) charted the first log: the CRT
+explore_size_transform.py charted the first log: the CRT
 map x -> residue tuple trivializes exactly the polynomial functions and
 walls off size (the archimedean place). The tower has a SECOND log: per
 channel, the discrete logarithm to a primitive root maps the unit group
@@ -31,20 +31,20 @@ Findings preview (full statements at the bottom):
      divisibility, quadratic residuosity -> a coordinate projection.
   3. THE ZECH WALL HAS A DIFFERENT SHAPE THAN THE SIZE WALL: the index
      map recodes each channel independently (graded over non-units, so
-     a channel-local bijection of the ring), and the P38 locality
+     a channel-local bijection of the ring), and the locality
      criterion cannot see it -- addition stays tower-channel-local in
      index coordinates (one unary Zech table per channel). The wall is
      WITHIN the channel: Zech's logarithm is incompatible with EVERY
      nontrivial proper quotient of Z/(p-1) -- PROVED for every p >= 5
-     and every divisor 2 <= q <= (p-1)/2, composite q included (P64;
-     the linear-fraction count below) -- hence not polynomial -- it
+     and every divisor 2 <= q <= (p-1)/2, composite q included (the
+     linear-fraction count below) -- hence not polynomial -- it
      resists structural compression, but costs only a (p-2)-entry
      table. Size: cross-channel, no table of any size. Zech:
      within-channel, one unary table. Different obstruction types.
   4. THE GRADED LOG: x^(lambda+1) = x for ALL x (exhaustive), so the
      multiplicative monoid is a commutative Clifford monoid -- the
      Boolean lattice of supports carrying the sub-rings' unit groups.
-     The P37 collapse x -> x^lambda = e_supp(x) IS the canonical
+     The collapse x -> x^lambda = e_supp(x) IS the canonical
      grading; full log coordinate x <-> (supp, indices on supp);
      meadow inverse = index negation. "log 0 = -infinity" is realized
      structurally as grade drop.
@@ -56,10 +56,11 @@ Findings preview (full statements at the bottom):
      No coordinate gives (+ local, x additive):
      the zero/idempotent grading obstructs. Each operation pair picks
      its home: (+,x) -> CRT, (x,^) -> index, (+,size) -> positional
-     (sequential, the P38 price (b)); all three at once: impossible.
+     (sequential, the locality criterion's price (b)); all three at
+     once: impossible.
 
-P64 (the proof hunt for the swept rule of finding 3): ROAD named the
-classical route -- a compatible quotient forces every row of the q-th
+THE PROOF (of the swept rule in finding 3): the classical route
+considered was a compatible quotient forces every row of the q-th
 cyclotomic-number matrix into one column, and all-positive cyclotomic
 numbers (Jacobi sums) forbid that for p large; derive the bound. The
 bound DISSOLVED: compatibility, read coset-side, says the ratio
@@ -72,9 +73,9 @@ every p >= 5, every nontrivial proper quotient (the old claim: prime
 q only, swept); primitive-root-free since only cosets of C appear.
 Mechanical check: 263 (p,q) pairs (5 <= p < 200, ALL divisors
 2 <= q <= (p-1)/2), complying-set = predicted-set verified as set
-equality, witness pair violates in every case. Lesson repeated from
-P63: the named heavy route (Jacobi sums) was the verifier's shadow,
-not the fact's shape -- the rule was a four-line count all along.
+equality, witness pair violates in every case. The named heavy route
+(Jacobi sums) was the verifier's shadow, not the fact's shape -- the
+rule was a four-line count all along.
 
 Runs on RAD (k=7) with exhaustive small-ring cross-checks. ~1 s, tiny
 memory.
@@ -188,7 +189,7 @@ print("(a) powering -> index scaling: 2k random (x, e) VERIFIED")
 
 # (b) multiplicative order = a gcd READ: ord(x) = lcm_p (p-1)/gcd(ind_p, p-1).
 #     Exhaustive over all 92160 units; the distribution must reproduce
-#     ALGEBRA.md's exhaustive table (verify_algebra.py::test_order_distribution).
+#     the documented exhaustive table (verify_algebra.py::test_order_distribution).
 from collections import Counter
 order_of = {}
 for x in units:
@@ -207,7 +208,7 @@ assert len(dist) == 20 and sum(dist.values()) == PHI
 sample = random.sample(units, 2_000)
 assert all(multiplicative_order(x, N) == order_of[x] for x in sample)
 print(f"(b) order = per-channel gcd read: exhaustive {PHI} units, "
-      f"distribution matches ALGEBRA.md (all 20 divisors of 240, "
+      f"distribution matches the order census (all 20 divisors of 240, "
       f"primitives {dist[240]}); 2k direct cross-checks pass")
 
 # (c) e-th roots: x is an e-th power iff gcd(e, p-1) | ind_p per channel;
@@ -242,13 +243,14 @@ print("    modulus index does not exist (no primitive root, section I).")
 section("III. THE ZECH WALL -- and why it is NOT the size wall")
 # ───────────────────────────────────────────────────────────────────────
 # In index coordinates addition is the hard operation. But first, what
-# the P38 criterion says: the index map recodes each channel
+# the locality criterion says: the index map recodes each channel
 # INDEPENDENTLY (units here; the section-IV graded coordinate extends
 # the recode to all of Z/p, since addition is not closed on units), so
 # it is a channel-local bijection of the ring -- and channel-local
-# bijections cannot change which functions are channel-local (P38
-# survival argument). So tower addition REMAINS tower-channel-local in
-# (graded) index coordinates -- the Zech wall cannot be a cross-channel
+# bijections cannot change which functions are channel-local (the
+# locality criterion's survival argument). So tower addition REMAINS
+# tower-channel-local in (graded) index coordinates -- the Zech wall
+# cannot be a cross-channel
 # locality obstruction. It lives WITHIN the channel:
 #
 #   ind(g^a + g^b) = a + Z(b - a),   Z(n) := ind(1 + g^n)
@@ -256,7 +258,7 @@ section("III. THE ZECH WALL -- and why it is NOT the size wall")
 # -- one subtraction, one unary table Z (Zech's logarithm), one
 # addition. Addition leaves the units exactly once: 1 + g^n0 = 0 at
 # n0 = ind(-1) -- the grade-drop point (section IV picks this up).
-# The wall question, stated as hunt 1 stated it: does Z itself carry
+# The wall question, stated as explore_size_transform.py stated it: does Z itself carry
 # structure -- is it a polynomial on Z/(p-1)? A polynomial is compatible
 # with EVERY quotient (a = b mod q => f(a) = f(b) mod q). Test every
 # prime quotient q | p-1, every channel.
@@ -290,7 +292,7 @@ for i, p in enumerate(PRIMES):
 print()
 print("    Z is incompatible with EVERY nontrivial proper quotient of")
 print("    Z/(p-1), every p >= 5 -- not a polynomial on Z/(p-1) (polynomial =>")
-print("    compatible holds in any modulus). PROVED (P64), elementarily:")
+print("    compatible holds in any modulus). PROVED, elementarily:")
 print("    read coset-side, the residue classes of indices mod q are the")
 print("    cosets of the index-q subgroup C <= F_p^* (m = (p-1)/q")
 print("    elements), and compatibility says (1 + wx)/(1 + x) lands in C")
@@ -342,7 +344,7 @@ print(f"    divisor 2 <= q <= (p-1)/2 ({swept} (p,q) pairs, composite q")
 print(f"    included): complying x's = exactly m-2 (cap attained with")
 print(f"    m-2 > 0 in {tight} pairs), witness pair violates, every case.")
 print()
-print("    SHAPE COMPARISON. Size wall (P38): CROSS-channel, an")
+print("    SHAPE COMPARISON. Size wall: CROSS-channel, an")
 print("    information obstruction -- no per-channel data of any size")
 print("    computes sign; survives every transform. Zech wall: WITHIN-")
 print("    channel, a structure obstruction -- addition needs one unary")
@@ -352,7 +354,7 @@ print("    wall's 'no table exists'), and the table is structureless:")
 print("    not polynomial, no quotient compression. Different walls.")
 
 # ───────────────────────────────────────────────────────────────────────
-section("IV. THE GRADED LOG: non-units, the P37 collapse as grading")
+section("IV. THE GRADED LOG: non-units, the collapse x^lambda as grading")
 # ───────────────────────────────────────────────────────────────────────
 # Non-units have no index. The canonical extension: x^(lambda+1) = x for
 # ALL x on a squarefree ring (per channel: x_p = 0 stays 0; x_p != 0 has
@@ -362,14 +364,14 @@ print(f"x^(lambda+1) = x for all {N} elements (exhaustive) -- the")
 print("multiplicative monoid is COMPLETELY REGULAR: a commutative")
 print("Clifford monoid (classically: a semilattice of groups; here")
 print("the semilattice is the Boolean lattice of supports).")
-# The grading map is the P37 collapse x -> x^lambda = e_supp(x); the
+# The grading map is the collapse x -> x^lambda = e_supp(x); the
 # grade-S group is e_S * U = the unit group of the S-SUB-RING -- the
-# sub-ring lattice (census threads P35/P36) IS the Clifford skeleton.
+# sub-ring lattice (census threads) IS the Clifford skeleton.
 for _ in range(5_000):
     x = random.randrange(N)
     S = frozenset(i for i, r in enumerate(encode(x, R)) if r != 0)
     assert pow(x, LAM, N) == idempotent(S, R)
-print("grade(x) = x^lambda = e_supp(x): 5k random x VERIFIED (P37 map)")
+print("grade(x) = x^lambda = e_supp(x): 5k random x VERIFIED (collapse map)")
 
 # Full log coordinate: x <-> (supp(x), (ind_p(x_p))_{p in supp}).
 # Multiplication = intersect supports, add indices on the intersection.
@@ -425,13 +427,13 @@ print()
 print("    'log 0 = -infinity' is realized STRUCTURALLY: addition's one")
 print("    exit from the units (1 + g^n0 = 0, section III) is a grade")
 print("    drop in the Boolean lattice. The second log extends to the")
-print("    whole ring as (grade, index) -- and the P37 collapse is the")
+print("    whole ring as (grade, index) -- and the collapse is the")
 print("    canonical projection onto the grade.")
 
 # ───────────────────────────────────────────────────────────────────────
 section("V. THE RIGIDITY DICHOTOMY: + is rigid, x is floppy")
 # ───────────────────────────────────────────────────────────────────────
-# Hunt question (4): with three charted coordinates (positional, CRT,
+# Question 4: with three charted coordinates (positional, CRT,
 # index), which operation-pairs can be simultaneously local? The
 # backbone is a decomposition fact, checked exhaustively at k=3.
 #
@@ -474,7 +476,7 @@ print("    into coprime cyclic pieces.) + is RIGID: demanding + local")
 print("    already pins the coordinates to the divisor lattice; adding")
 print("    x to the demand changes nothing (components inherit the ring")
 print("    laws pointwise; ring decompositions = the same partitions,")
-print("    via central idempotents). The archimedean wall (P38) is")
+print("    via central idempotents). The archimedean wall is")
 print("    therefore unavoidable in EVERY +-local coordinate system.")
 print()
 # Multiplication alone is floppier: U(30) = C2 x C4 (8 elements).
@@ -516,11 +518,11 @@ print("    carry it. Each pair picks its home, and the homes differ:")
 print("      (+, x)    -> CRT coordinates (unique up to regrouping)")
 print("      (x, ^)    -> index coordinates (one of many regroupings)")
 print("      (+, size) -> positional/mixed-radix (sequential -- the")
-print("                   P38 escape (b) price, not channel-local)")
+print("                   the size-wall escape (b) price, not channel-local)")
 print("      (+, x, size) or (+, x-as-addition): NO common home.")
 
 # ───────────────────────────────────────────────────────────────────────
-section("FINDINGS (tiers per CLAUDE.md)")
+section("FINDINGS")
 # ───────────────────────────────────────────────────────────────────────
 print("""
 1. NO SINGLE-MODULUS INDEX (property). lambda = lcm(p-1) < phi at every
@@ -533,15 +535,15 @@ print("""
    tower-wide). Two stacked logs turn the unit group's multiplicative
    theory linear: mul -> channel-wise add (exhaustive Z/210, 20k RAD
    pairs), powering -> index scaling, multiplicative order -> per-
-   channel gcd read (exhaustive: reproduces the ALGEBRA.md order
+   channel gcd read (exhaustive: reproduces the order
    distribution, all 20 divisors of 240), e-th-root existence and
    count -> per-channel divisibility (squares: 1440 x 64 = 92160),
    QR -> index parity projection.
 
-3. THE ZECH WALL (rule, PROVED -- P64; shape comparison is the
+3. THE ZECH WALL (rule, PROVED; shape comparison is the
    new content). The index map recodes each channel independently (the
    graded coordinate of finding 4 covers the non-units, making it a
-   channel-local bijection of the RING), so the P38 criterion is BLIND
+   channel-local bijection of the RING), so the locality criterion is BLIND
    to it: addition stays tower-channel-local (per-channel cost = one
    unary Zech table, 44 entries total at RAD). The wall lives within
    the channel: Zech's logarithm is incompatible with every nontrivial
@@ -561,7 +563,7 @@ print("""
    the sub-rings' unit groups (the census threads' sub-ring lattice IS
    the Clifford skeleton). Full log coordinate x <-> (supp, indices);
    multiplication = intersect + add (exhaustive Z/210, 10k RAD);
-   meadow inverse = index negation (exhaustive Z/210). The P37 collapse
+   meadow inverse = index negation (exhaustive Z/210). The collapse
    x^lambda = e_supp(x) is the canonical grading map, and 'log 0 =
    -infinity' is the grade drop at 1 + g^(ind(-1)) = 0.
 
@@ -574,7 +576,7 @@ print("""
    direct decompositions) but by containment: 3 of the 4 cross tower
    channels, which no +-local system can; at RAD the Sylow regrouping
    gathers all channels' 2-parts into one 2^11 component. Addition is RIGID (pins the divisor
-   lattice -- and with it the P38 archimedean wall), multiplication is
+   lattice -- and with it the archimedean wall), multiplication is
    FLOPPY (free regrouping -- and with it the Zech wall). No coordinate
    system hosts (+ local, x additive) or (+, x, size) together: every
    coordinate choice picks which operation pays.

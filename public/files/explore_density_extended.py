@@ -187,7 +187,7 @@ def main():
   Max new prime powers in any single jump: {max_new_powers}
 """)
     # jump anatomy (rule, k<=K_MAX): every lambda jump introduces
-    # exactly one new prime power -- cited by TOWER.md SVII.
+    # exactly one new prime power.
     assert max_new_powers == 1, \
         f"a jump introduced {max_new_powers} new prime powers (a finding!)"
 

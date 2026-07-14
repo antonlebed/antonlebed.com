@@ -1,19 +1,18 @@
 """
-explore_size_crystallization.py — the archimedean crystallization (THE
-HUNT chamber three, P145; sibling of explore_growth_laws.py P143 and
-explore_growth_capability.py P144).
+explore_size_crystallization.py — the archimedean crystallization
+(sibling of explore_growth_laws.py and explore_growth_capability.py).
 
-THE QUESTION. P143/P144 closed on one honest limit: every growth law
+THE QUESTION. Prior work closed on one honest limit: every growth law
 prices its candidates by SIZE ("least m") — the deleted archimedean
-place returns as the cost axis of growth. This chamber removes size
+place returns as the cost axis of growth. This script removes size
 from the cost too, and asks both directions of the traffic:
-(A) GROWTH WITHOUT SIZE — which of P143's blueprint outputs (fields
+(A) GROWTH WITHOUT SIZE — which of explore_growth_laws.py's blueprint outputs (fields
     for free, squarefree-ness, healing, the primorial route) can be
     purchased with pure window data, and which are archimedean-authored?
 (B) SIZE FROM WINDOWS — a window budget Q reads the horizon [1, X]
     through residues; when does the archimedean order CRYSTALLIZE out
-    of window data? The hiding lemma (P38, explore_size_transform.py;
-    WALLS.md) owns the rigid divisor-budget corner — seated here, not
+    of window data? The hiding lemma (explore_size_transform.py)
+    owns the rigid divisor-budget corner — seated here, not
     re-walked.
 
 VOCABULARY (the window world). Candidate moves are rings Z/m; the only
@@ -24,7 +23,7 @@ A window-visible cost = any function of the iso class of Z/m (of m's
 factorization shape); comparing cost VALUES is ordinal bookkeeping.
 What is removed is the archimedean order on m itself as a primitive.
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (naming tiers below; run record follows; all sections assert).
 
 1. THE HOM-ORDER LEMMA (rule, textbook content; verified exhaustively
    a, b <= 60 via the forced form). A unital ring hom Z/a -> Z/b is
@@ -41,7 +40,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    trajectories include: seed 2 -> pick 9 (a depth-2 NON-FIELD window;
    Z/18 not squarefree — fields-for-free dies); seed 3 -> 5, 7, 11,
    ..., 37 with 2 never entering (healing dies: the all-primes
-   destination is not demand-forced). EVERY P143 blueprint output —
+   destination is not demand-forced). EVERY blueprint output —
    fields, squarefree-ness, healing, the primorial route — is
    authored by the SELECTION axis, not by the independence demand.
 
@@ -66,7 +65,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    adversarial tie-break that picks others forever (specimen: c =
    Omega puts ALL primes in one fiber — the odd-preferring tie-break
    starves 2 indefinitely; verified 30 steps). COROLLARY: the
-   destination (window set -> all primes, P143's healing) is
+   destination (window set -> all primes, the healing property above) is
    guaranteed for every tie-break iff the cost is PROPER (every
    prime's sublevel set finite). The archimedean order enters "least m" ONLY
    through properness plus one choice of linear extension — nothing
@@ -109,7 +108,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    q - 1 | lambda(N), is one — and it HALTS, the mortality fate);
    whether Pratt is the strongest such demand still compatible with
    the all-primes destination is open. Lineage: the Pratt tree itself
-   is charted in-repo (WALLS.md the super-logarithm — its iterated
+   is charted elsewhere (the super-logarithm — its iterated
    index-ring construction descends the tree; Ford-Konyagin-Luca
    contact there); new here is its role as a window-visible route
    order of growth.
@@ -137,15 +136,15 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    span; from 2, determined singles pair up). Verified: pair
    determinacy iff 2Q - X >= 2 at every budget X <= 120; zero
    singles and pairs at every proper-divisor budget X <= 240.
-   Kinship: the proof is the linear-order sibling of the P63
-   orientation-hiding argument (WALLS.md — every ladder contains an
+   Kinship: the proof is the linear-order sibling of the
+   orientation-hiding argument (every ladder contains an
    element <= M and one >= (c-1)M); same extreme-pair mechanism, there
    cyclic, here [1, X].
 
 9. THE SUB-RING CAP (corollary of 8; the hiding lemma seated). A
    proper divisor budget Q | X, Q < X has Q <= X/2: sub-ring windows
    are exactly the budgets that can NEVER cross the onset. The hiding
-   lemma's totality (P38/P63: proper windows leave size uniform,
+   lemma's totality (proper windows leave size uniform,
    orientation hiding total) is explained by the CAP, not by any
    rigidity of divisor fibers — certainty-blindness below half
    coverage is universal (finding 8); divisor structure just pins the
@@ -162,7 +161,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
     what leaks is the residue ORDER of pairs. Certainty crystallizes
     at half coverage; statistics leak from the first window.
 
-THE SYNTHESIS (the chamber's close). Remove the archimedean place
+THE SYNTHESIS (this script's close). Remove the archimedean place
 from growth's cost and the blueprint splits cleanly in two: the
 window world purchases FIELDS, SQUAREFREE-NESS, and (given any
 proper div-monotone cost) the DESTINATION — but the primes are a
@@ -186,15 +185,15 @@ makes "ascending" canonical. The tower is co-authored: windows write
 the destination, the deleted place writes the itinerary.
 
 HONEST SCOPE. Threshold-greedy laws over ring extensions of Z/N, as
-in P143/P144; costs = functions of the iso class with well-ordered
+in the sibling scripts; costs = functions of the iso class with well-ordered
 values; the Pratt constraint is ONE natural window-visible arrival
 demand, not the unique one; crystallization is stated for uniform
 priors on [1, X] (the hiding lemma's setting), exhaustive in range,
 with the closed forms proved. Stochastic laws were subsequently
-charted at P147 (explore_thermal_growth.py — the thermal chamber
-makes this chamber's authorship split physical: the
-selection-authored residue is exactly what temperature melts);
-additive moves and non-cyclic ambients remain open (ROAD, the hunt).
+charted in explore_thermal_growth.py — it
+makes this script's authorship split physical: the
+selection-authored residue is exactly what temperature melts;
+additive moves and non-cyclic ambients remain open questions.
 
 RUN RECORD (python explore_size_crystallization.py, ~60 s, <200 MB):
   S1 hom-order: 3,481 (a,b) pairs, existence == reverse divisibility;
@@ -223,7 +222,7 @@ RUN RECORD (python explore_size_crystallization.py, ~60 s, <200 MB):
      21..30)
   TOTAL 43,690 checks, exit 0.
 
-ADJUDICATION vs the frozen predictions (SCRATCH passes 1-3, git).
+ADJUDICATION vs the predictions fixed before the run.
 PR1, PR2, PR3, PR4 landed as stated. PR6 landed on the singles curve,
 the divisor blindness, and the exact rigid accuracy law (derivation
 A, frozen pre-code) — but its RAGGED-LEAK clause ("determined pairs
@@ -232,12 +231,12 @@ REFUTED: the hand specimen ignored that every fiber's least lift is
 <= Q and greatest is > X - Q, so spans always overlap at or below
 half coverage. The failed assert forced the stronger true law
 (finding 8: no certainty of ANY kind below the onset). Same species
-as P144's PR2: a hand-derived specimen blind to a structural fact,
-caught only because the prediction was frozen and asserted. PR5
+as explore_growth_capability.py's PR2: a hand-derived specimen blind to a structural fact,
+caught only because the prediction was fixed before the run and asserted. PR5
 landed on both qualitative calls (extensions grow superexponentially,
 ratio to n! collapses); its first docstring draft carried typed
 placeholder counts that the run replaced (the unfrozen-specimen
-reflex again — caught in-session, SCRATCH pass 3).
+reflex again, caught before the final draft).
 """
 
 import os
@@ -352,7 +351,7 @@ for m in route:
 check(N % 2 == 1, "2 never entered in 10 legal D-IND steps")
 print("composite/prime-power moves legal at all 6 seeds; seed-2 "
       "pick-9 kills squarefree+fields; seed-3 route starves 2 "
-      "(10 steps) — every P143 output is selection-authored")
+      "(10 steps) — every output is selection-authored")
 
 # ────────────────────────────────────────────────────────────────────
 section("S3. FIELDS ARE WINDOW-PURCHASABLE: div-monotone costs pick "
@@ -561,7 +560,7 @@ def determined_pairs(X, Q):
 
 # (b) the sub-ring cap: a proper divisor budget has Q <= X/2, so by
 # the half-coverage law (c) it is certainty-blind — zero singles AND
-# zero pairs (the hiding lemma's home case — WALLS.md, P38/P63).
+# zero pairs (the hiding lemma's home case).
 rigid_budgets = 0
 for X in range(4, 241):
     for Q in range(2, X):

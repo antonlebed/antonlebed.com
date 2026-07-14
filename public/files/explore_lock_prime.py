@@ -1,16 +1,16 @@
 """
-explore_lock_prime.py — the lock-prime law (THE HUNT chamber four,
-P146; sibling of explore_growth_laws.py P143, explore_growth_
-capability.py P144, explore_size_crystallization.py P145).
+explore_lock_prime.py — the lock-prime law (sibling of
+explore_growth_laws.py, explore_growth_capability.py,
+explore_size_crystallization.py).
 
-THE QUESTION. P143 measured D-DYN (grow by the least m >= 2 with
+THE QUESTION. Prior work measured D-DYN (grow by the least m >= 2 with
 lambda(N*m) > lambda(N)) locking onto a single prime — 11/11 seeds,
 40-step scope, lock target varying with the seed, no proof and no
-formula. This chamber proves the lock and computes the basin map:
+formula. This script proves the lock and computes the basin map:
 WHICH prime does a seed fall into, WHEN is the fall decided, and is
 every prime somebody's destiny?
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (naming tiers below; run record follows; all sections assert).
 
 1. THE DOOR MENU (rule, proved; verified exhaustively N <= 20000).
    The minimal growth move is always a PRIME POWER q^r: lambda(Nm) =
@@ -24,7 +24,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
      q = 2: same scan with contributions 1, 2, 2^{d-2}.
    Door costs are powers of distinct primes, hence pairwise distinct:
    D-DYN is DETERMINISTIC — no tie-break axis exists (contrast:
-   costless D-IND needed one, P145).
+   costless D-IND needed one, explore_size_crystallization.py).
 
 2. THE GHOST TRICHOTOMY (rule, proved; classified over the sweep).
    Every minimal move is one of: a DEEPENING (q | N); a FRESH OPENING
@@ -52,8 +52,8 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    lambda by ghost q_j are factors of q_j - 1 < q_j, too small to
    mint later ghosts). So the wander visits only odd prime factors of
    lambda(seed): LOCK IS CERTAIN within omega_odd(lambda(seed)) + 1
-   picks. Upgrades P143's miser observation (11/11 seeds, 40-step
-   scope) to a rule with no scope caveat — and explains why P143
+   picks. Upgrades explore_growth_laws.py's miser observation (11/11 seeds, 40-step
+   scope) to a rule with no scope caveat — and explains why that script
    never met the wander at all: its 11 seeds all have wander 0 (the
    observation itself was safe either way; locks are certain).
 
@@ -61,7 +61,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    adds the factors of q - 1 to lambda, CLOSING cheaper locking doors
    behind it — wandering can LIFT the lock far above the seed's
    cheapest lock. Specimens (trajectories asserted):
-     seed 11    ghost 5        -> LOCK 7   (outside P143's seed set)
+     seed 11    ghost 5        -> LOCK 7   (outside the earlier seed set)
      seed 71    ghosts 5, 7    -> LOCK 17  (ghost 7's dowry 6 blocks
                 the 9-door that would have locked 3)
      seed 20231 ghosts 5, 7, 17 -> LOCK 19 (wander 3, = omega_odd
@@ -98,17 +98,16 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    NO-OP — B == M for every q <= 47 (asserted): the verified seeds
    instantiate the general construction exactly, with P a
    Linnik-least-prime object — the same function governing the
-   tower's lambda entry order (TOWER.md SII) here manufactures
-   BASINS on demand. (The frozen D9 form used M over p < q and
+   tower's lambda entry order here manufactures
+   BASINS on demand. (An earlier draft of this construction, D9, used M over p < q and
    claimed q-1 | M — false at q = 5; the assert caught it. And D9's
    'blocked doors exceed q' was stated bare — true in range, not
-   forced in general; the enrichment closes the gap. SCRATCH pass 4
-   + /check round 3.)
+   forced in general; the enrichment closes the gap.)
    THE PLATEAU RESONANCE (observation, from the run): the blocker is
    ONE prime, P = 55441 = 55440 + 1, for all of q = 29, 31, 37, 41,
    43 — because M = lcm{p-1 : p <= q} is the tower's lambda at the
    rung topped by q, and 31, 37, 41, 43 are the transparent run of
-   the k = 10..14 plateau (jump rung 29; TOWER.md SII): transparency
+   the k = 10..14 plateau (jump rung 29): transparency
    = the blocker modulus standing still. The plateau constant
    re-enters as the basin manufacturer for its own rungs.
 
@@ -130,14 +129,14 @@ moves in; every prime is a reachable destiny (Linnik blockers
 manufacture basins); and the pre-decision wander is a ghost story —
 primes whose periods already haunt the dynamics open cheap doors
 that never bind, each one shutting cheaper destinies behind it (the
-dowry). One level down (DESCEND), this is again selection theory
+dowry). One level down, this is again selection theory
 over a poset of doors: rising rival costs + one absorbing invariant
-= lock; the tower picked its poset (P145), the column picks its
+= lock; the tower picked its poset (explore_size_crystallization.py), the column picks its
 absorbing door.
 
 HONEST SCOPE. Multiplicative threshold-greedy D-DYN over Z/N only
-(the P143 scope); stochastic and additive moves open (ROAD hunt
-entry). Whether wander length is UNBOUNDED over seeds is open — the
+(as in the sibling scripts); stochastic and additive moves remain open
+questions. Whether wander length is UNBOUNDED over seeds is open — the
 candidate mechanism is a 2-adic ghost ladder (5, 17, 97, 193, 257,
 7681, ...: each the least prime with v2(p-1) exceeding the
 accumulated dowry), but the blocker bookkeeping is delicate and no
@@ -145,13 +144,13 @@ construction is claimed; the max wander over the census range is a
 measured output (RUN RECORD), with the wander-3 specimen 20231
 asserted individually in S5.
 
-FROZEN PREDICTIONS (SCRATCH passes 2-3, frozen before the script
-existed; PASS 3 amended PR5's q = 2 cost clause PRE-RUN — the
+PREDICTIONS (fixed before the run; a later pass amended PR5's q = 2
+cost clause PRE-RUN — the
 lambda(4) = lambda(8) hiccup was hand-caught before any code).
 Adjudication:
   PR1 menu rule ......... CONFIRMED (S1: brute == formula, 20000/20000)
   PR2 trichotomy/no-tie . CONFIRMED (S1: costs distinct, class exclusive)
-  PR3 P143 reproduction . CONFIRMED (S4: 11/11 locks match, wander 0)
+  PR3 prior seed reproduction . CONFIRMED (S4: 11/11 locks match, wander 0)
   PR4 specimens ......... CONFIRMED (S5: 11 -> [5] -> 7; 71 -> [5,7] ->
                           17; 20231 prime -> [5,7,17] -> 19; 1 -> 3-adic)
   PR5 lock criterion .... CONFIRMED as amended (S3: 2000 seeds x 30
@@ -163,7 +162,7 @@ Adjudication:
                           D9 blocker construction failed its own assert
                           twice at q = 5 (P = q slipped the filter;
                           q-1 | M false for M over p < q); the p <= q
-                          form restores the proof (SCRATCH pass 4).
+                          form restores the proof.
                           The law survived; the hand-built witness
                           needed the machine.
 
@@ -180,7 +179,7 @@ RUN RECORD (python explore_lock_prime.py, ~1.8 s, trivial memory):
   S3 lock criterion + wander bound: seeds 1..2000, 30 post-lock steps
      each — first non-ghost pick locks, invariant at every step,
      ghosts increasing/dividing lambda(seed)/within omega_odd
-  S4 P143 seeds: 11/11 reproduced (2->2, 3->3, 5->5, 6->3, 10->5,
+  S4 prior-script seeds: 11/11 reproduced (2->2, 3->3, 5->5, 6->3, 10->5,
      21->5, 30->3, 105->5, 210->5, 2310->7, 30030->7), wander 0
   S5 specimens: as PR4; seed 1 trajectory 1 -> 3 -> 9 -> 27
   S6 census seeds 1..20000 (measured): locks {2: 3674, 3: 4193,
@@ -539,16 +538,16 @@ print("  ghosts increasing, dividing lambda(seed), within omega_odd")
 
 # =========================================================
 print("=" * 64)
-print("S4: P143 SEED REPRODUCTION")
+print("S4: SEED REPRODUCTION (reference table)")
 print("=" * 64)
 
-P143 = {2: 2, 3: 3, 5: 5, 6: 3, 10: 5, 21: 5, 30: 3, 105: 5,
+REF = {2: 2, 3: 3, 5: 5, 6: 3, 10: 5, 21: 5, 30: 3, 105: 5,
         210: 5, 2310: 7, 30030: 7}
-for seed, expected in sorted(P143.items()):
+for seed, expected in sorted(REF.items()):
     ghosts, lock, _, _ = run_trajectory(seed, 12)
-    check(lock == expected, f"seed {seed}: lock {lock} != P143 {expected}")
+    check(lock == expected, f"seed {seed}: lock {lock} != reference {expected}")
     check(ghosts == [], f"seed {seed}: unexpected wander {ghosts}")
-    print(f"  seed {seed:>6} -> lock {lock} (wander 0)  == P143")
+    print(f"  seed {seed:>6} -> lock {lock} (wander 0)  == reference")
 
 # =========================================================
 print("=" * 64)

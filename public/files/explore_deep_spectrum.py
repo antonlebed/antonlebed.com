@@ -1,18 +1,18 @@
 """explore_deep_spectrum.py — THE ODD-p DEEP SPECTRUM: the
 post-freedom fork/ceiling game as digit laws, and the odd-p
-reduction law (VERTIGO STOCK (a) remainder, ROAD P198; the P196
-deep-spectrum remainder + the P197 hunch).
+reduction law (the deep-spectrum remainder and an earlier hunch
+cashed here).
 
-THE QUESTION (ROAD P198). The tame readout (P196) priced the FLOOR:
+THE QUESTION. The tame readout priced the FLOOR:
 L = p*i* + min(delta, p^m). Above freedom the spectrum was never
 charted — K9 lands {12, 16, 17, 18} with holes at 13-15, the
 mid-fields are FORCED to stop at 13, and TR6's i-dagger = c(p-1)
 coincidence defers freedom by a w-digit condition. Chart the whole
-post-freedom game as digit laws, and cash the P197 hunch: an odd-p
+post-freedom game as digit laws, and cash an earlier hunch: an odd-p
 REDUCTION LAW, thinner than p = 2's, via the p-adic digit diagonals
 (digit k of b_i feeding level i + ke).
 
-THE HAND DERIVATION (SCRATCH.md P198 passes 1-4, frozen before this
+THE HAND DERIVATION (frozen before this
 file existed). Setup as explore_tame_readout.py TR1: rel =
 Lambda(a) - p*i*, Lambda = e*v_p + cA + W, sigma = s_p(p^{m+1} - A)
 + sum s_p(a_i), v_p = (sigma - 1)/(p - 1).
@@ -56,7 +56,7 @@ DR4 (THE TORSION DETECTOR — Krasner). Above rel e every rel (on the
     have a FINITE ceiling at their first non-hole slot; torsion
     fields' spectra are infinite lattices (censuses print sampled
     prefixes).
-DR5 (THE ODD-p REDUCTION LAW — the P197 hunch cashed). The game
+DR5 (THE ODD-p REDUCTION LAW — an earlier hunch cashed). The game
     never reads w past depth e (gate w_0, ladder w_1..w_{p^m-1},
     slots [rel_c, e], the deferral pivot w_delta). By the diagonal
     pricing (digit k of b_i enters at level i + ke, digit k of d at
@@ -79,7 +79,7 @@ DR6 (THE SKELETON TWIST). reduce(Phi_9(x+1)) = x^6 + 6x^5 + 6x^4 +
     the anchor's grid class has exactly one member field. The
     stopless-mimic option was a wildness privilege.
 
-THE FROZEN SLATE (SCRATCH.md P198 pass 3 + the pass-4 Krasner
+THE PREDICTIONS (fixed before the run, including a later Krasner
 revision, hand-attacked before this file existed; a miss falsifies
 its lemma):
 
@@ -101,7 +101,7 @@ DS-C (deep spectra at censused fields, never censused deep):
      ladder rels), ceiling 39 at rel_c = 12. x^18+3x^5+3 class
      (3,1): {30, 32} (ladder ceiling rel 5). x^12+3 class (2,1):
      {21, 24, 26} = freedom 3 + fork 6 + ceiling rel_c = 8 (t = 0
-     forced, fork 9 unreachable) — regression, printed P196.
+     forced, fork 9 unreachable) — regression.
      C/D class-1 {12, 13}; K9 class-1 visited {12, 16, 17, 18}
      within [12, 18], then torsion (DS-D iii).
 DS-D (THE REDUCTION LAW): (i) word pi-invariance under sampled eta;
@@ -129,8 +129,7 @@ censused field also passes law_row (floor regression). Labels never
 read orbits; the engine only ever reads MEASURED digits.
 Run: python prime/code/explore_deep_spectrum.py
 
-FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output).
 
 1. THE SLOT GAME (rule in range; enumeration brute at (3,1,1),
    (3,2,1), (5,1,1), (3,1,2), censuses at p = 3): the post-freedom
@@ -143,7 +142,7 @@ CLAUDE.md).
    13-hole vs the mid-field {13} ceiling, two values of one digit);
    the designed pair splits the dichotomy on cue (w_4 = 2: {12, 13};
    w_4 = 1: holes 13-15, sailing 16+). The next slot at (3,1,1)
-   measures D = -rho_0(w_3 + w_5) (DERIVED P210 as the slot-1 law
+   measures D = -rho_0(w_3 + w_5) (derived here as the slot-1 law
    -(w_{p^m} + w_{rel_c+p^{m-1}}) of the reciprocal law,
    explore_slot_algebra.py finding 2; design 0+0 passes, probe 0+1
    ceils at {12, 14}, K9 2+1 == 0 passes). The m = 2 and c > 1 faces called
@@ -151,7 +150,7 @@ CLAUDE.md).
    lattice {30,33,36,39,42,43} (holes 40, 41; ceiling 43 via
    rho_4 = rho_0), class (1,2) {36, 39} (ceiling at rel_c = 12);
    x^12+3 class (2,1) {21, 24, 26} (ceiling rel_c = 8, fork 9
-   unreachable) — the P196 print re-derived as freedom + fork +
+   unreachable) — re-derived as freedom + fork +
    slot; x^18+3x^5+3 class (3,1) {30, 32} (ladder ceiling rel 5).
 
 2. THE TORSION DETECTOR (rule, Hensel-certified by the climb;
@@ -167,7 +166,7 @@ CLAUDE.md).
    constructed in x^6-3x^4+3 and in reduce(Phi_9(x+1)); non-torsion
    words ceil in-window (the probe; C/D; every DS-C field).
    COROLLARY: THE 2-TERM DESIGN x^6 - 3x^4 + 3 GENERATES
-   Q_3(zeta_9). The odd-p twist on P197's skeleton: at p = 2 the
+   Q_3(zeta_9). The odd-p twist on the earlier skeleton hunch: at p = 2 the
    3-term design MIMICS the anchor's readout in a different field
    (stopless through a finite window); at odd p the window is
    followed by open-ended sailing, so passing it FORCES the torsion
@@ -188,29 +187,29 @@ CLAUDE.md).
    (b mod 3 = [0,0,1,2,2], d = -1).
 
 4. THE WORD IS A CHART, NOT A FIELD INVARIANT (rule in range;
-   corrects DR5's invariance clause; the exact action derived P210,
+   corrects DR5's invariance clause; the exact action derived in
    explore_slot_algebra.py finding 4): the element twist obeys
    v(eta^{-e} - 1) = p^m k (at (3,1,1): 3k — the class-1 sample
    moves w_3 on cue), chart re-expansion mixes digit r to depth
    r + k (dead at p | r); full invariance from k > i-dagger =
    c(p-1) — "k >= i*" was the (c,m) = (1,1) coincidence. The
-   SPECTRUM is the field invariant, made word-level exact at P210:
+   SPECTRUM is the field invariant, made word-level exact:
    K9's genuine chart-word set is EXACTLY the 3-word solution
    variety of its forced-digit laws {w_4 = 1, w_5 = -w_3, w_6 =
    w_3^2} (K9's [1,0,0,2,1,1,1] ~ the design's [1,0,0,0,1,0,0] ~
-   [1,0,0,1,1,2,1]). CAVEAT (P210): section_d(i)'s printed vectors
+   [1,0,0,1,1,2,1]). CAVEAT: section_d(i)'s printed vectors
    are MIXED-PAIR artifacts — w_digits divides by its own argument,
    so (old pi, new w) extracts along neither chart; they witness
    prefix depth only and are NOT chart words (the [1,0,0,1,1,1,0]
    vector violates w_5 = -w_3).
 
 PRE-GREEN FAILURES (three, adjudicated in-session — the slate paid
-its way; record in SCRATCH passes 5-7, git):
+its way; see git history):
 (1) DS-B froze {12, 14} for x^6-3x^4+3: run 1 printed {12} u
     [16, ..]. The hand D_5 dropped the rho_1-pass's w_3 part and
     the tau_0^2 companion; the corrected slot digit -rho_0(w_3+w_5)
     fits all three censused words.
-(2) The interim Krasner-cap revision (SCRATCH pass 5) predicted the
+(2) The interim Krasner-cap revision predicted the
     design sticks below CAP: run 2's climb reached CAP, and the
     Hensel margin proves zeta_9 IN the design — the derivation's
     pi-invariance "bonus" (DR5) was wrong (char-p binomial; TR5's
@@ -532,7 +531,7 @@ def reduce_eis(p, eis):
 def section_d(rng, results):
     print("\n[D] DS-D: THE ODD-p REDUCTION LAW — word, twin, bijection")
     # (i) prefix depth of the eta-action: preserved to 3k (the char-p
-    # binomial of eta^{-e} - 1). NOTE (P210): these vectors are
+    # binomial of eta^{-e} - 1). NOTE: these vectors are
     # MIXED-PAIR extractions (w_digits divides by its own argument;
     # (old pi, new w) follows neither chart) — prefix witnesses only,
     # NOT chart words; the true orbit action (matched pairs, the

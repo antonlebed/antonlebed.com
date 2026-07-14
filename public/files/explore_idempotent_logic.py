@@ -1,5 +1,5 @@
 """
-The idempotent lattice as a non-Boolean logic (MOONSHOT probe, P37).
+The idempotent lattice as a non-Boolean logic.
 
 The 2^k idempotents of a rung are truth values; the ring polynomials
     AND(a,b) = a*b
@@ -23,7 +23,7 @@ Findings preview (full statements at the bottom):
      (log-additive over EXCLUDED channels): strength = what a proposition
      forbids. Additive valuations exist but are exactly channel-weight
      functionals (disjoint join IS ring sum).
-  6. (P66) delta COMPOSES exactly under every connective: delta(NOT a) =
+  6. delta COMPOSES exactly under every connective: delta(NOT a) =
      delta(a); delta(a AND b) = delta(a)delta(b) + delta(a)b + a delta(b)
      (a twisted Leibniz rule, equivalently a^2 delta(b) + delta(a) b);
      OR and IMP are the NOT-conjugates; delta(a+b) = delta(a) + delta(b)
@@ -35,7 +35,7 @@ Findings preview (full statements at the bottom):
      TWO ways per binary connective (AND: partner 0 or x^{-1}; OR:
      partner 1 or its NOT-mirror; IMP the same two per argument
      position; NOT: never).
-  7. (P66) The quantifier was the measurement: the collapse DIA(a) =
+  7. The quantifier was the measurement: the collapse DIA(a) =
      a^lambda ("true to SOME degree") and its De Morgan conjugate BOX(a)
      = 1 - (1-a)^lambda ("FULLY true") are an exact quantifier/modal
      pair: DIA NOT = NOT BOX exactly (finding 4's NOT-failure is NOT
@@ -223,7 +223,7 @@ assert ok
 # ───────────────────────────────────────────────────────────────────────
 section("IV. COLLAPSE a -> a^lambda: MEASUREMENT, AND ITS ASYMMETRY")
 # ───────────────────────────────────────────────────────────────────────
-# x^lambda = e_supp(x) (the 490 mechanism, CORE.md): every element has a
+# x^lambda = e_supp(x) (the 490 mechanism): every element has a
 # classical shadow. Is collapse a homomorphism of the logic?
 
 def collapse(a, ring=R):
@@ -365,9 +365,9 @@ print("    analysis semiring (the Maslov probe), not the probability one.")
 print("    mu(0) = 1/N != 0: even FALSE forbids only finitely much here.")
 
 # ───────────────────────────────────────────────────────────────────────
-section("VI. DELTA COMPOSES UNDER NESTING (exact laws, P66)")
+section("VI. DELTA COMPOSES UNDER NESTING (exact laws)")
 # ───────────────────────────────────────────────────────────────────────
-# The P37 chart proved every failing law lands in the defect ideal. The
+# The earlier chart proved every failing law lands in the defect ideal. The
 # open hook asked whether delta itself COMPOSES under formula nesting.
 # It does, exactly -- closed laws by substitution (a^2 = delta(a) + a):
 
@@ -475,7 +475,7 @@ print("non-classical channel is classicalized only by absorption or by an")
 print("inverse.")
 
 # ───────────────────────────────────────────────────────────────────────
-section("VII. THE QUANTIFIER PAIR: COLLAPSE AND ITS CONJUGATE (P66)")
+section("VII. THE QUANTIFIER PAIR: COLLAPSE AND ITS CONJUGATE")
 # ───────────────────────────────────────────────────────────────────────
 # The 'what plays quantifier' hook. Answer: the measurement already was
 # one -- HALF of a pair. DIA(a) = a^lambda reads 'true to SOME degree'
@@ -587,7 +587,7 @@ print("question. The quantum flavor lives in the measurement pair instead:")
 print("DIA loses truth over OR exactly as BOX gains it over AND.")
 
 # ───────────────────────────────────────────────────────────────────────
-section("FINDINGS (tiers per CLAUDE.md)")
+section("FINDINGS")
 # ───────────────────────────────────────────────────────────────────────
 print("""
 1. RULE (per-channel proof + exhaustive RAD): AND = ab, OR = a+b-ab,
@@ -631,7 +631,7 @@ print("""
    valuations exist but are exactly channel-weight functionals
    (disjoint join = ring sum); the IE gate -1/(p-1) is a signed one.
 
-6. RULE (P66; proved by substitution, verified exhaustively Z/30 +
+6. RULE (proved by substitution, verified exhaustively Z/30 +
    20,000 RAD pairs): delta COMPOSES exactly under every connective.
    delta(NOT a) = delta(a); delta(a AND b) = delta(a)delta(b) +
    delta(a)b + a delta(b) -- a twisted Leibniz rule (twist a -> a^2);
@@ -646,7 +646,7 @@ print("""
    1-(1-x)^{-1}; IMP: the same two per argument position; NOT:
    never) -- census all p <= 23, all non-classical x.
 
-7. RULE (P66; per-channel case analysis, verified exhaustive Z/30 +
+7. RULE (per-channel case analysis, verified exhaustive Z/30 +
    RAD samples): the quantifier was the measurement, HALF of a pair.
    DIA(a) = a^lambda ('true to some degree') and its De Morgan
    conjugate BOX(a) = 1-(1-a)^lambda ('fully true') satisfy: exact

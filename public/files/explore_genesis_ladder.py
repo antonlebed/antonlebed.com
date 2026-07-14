@@ -1,15 +1,15 @@
 """
-The genesis ladder (MOONSHOT probe, P97; the P87 emergence-root seed):
-capability birthdays -- for each capability, the minimal rung of the
-primorial trajectory where it first exists, with the law that decides
-every row's fate.
+The genesis ladder (the emergence-root seed): capability birthdays --
+for each capability, the minimal rung of the primorial trajectory
+where it first exists, with the law that decides every row's fate.
 
-Setting: the provenance ladder (WALLS.md SII) pins each WALL down to
+Setting: the provenance ladder pins each WALL down to
 the minimal structure carrying it; this chart is its mirror -- each
 CAPABILITY pinned up to its birth rung on the trajectory R_k = Z/p_k#
 (R_0 = Z/1, the degenerate rung: 0 = 1, no distinction). The
-instrument is the P96 sibling's: one row per capability, each row a
-claim with its own shape, birthday/deathday, criterion, witness, tier.
+instrument is explore_walls_provenance.py's: one row per capability,
+each row a claim with its own shape, birthday/deathday, criterion,
+witness, tier.
 
 THE FATE RULE (rule, proved -- one line, but it decides every row):
 channels only ACCUMULATE along the trajectory (rung k+1 = rung k's
@@ -38,7 +38,7 @@ temporal fate is its QUANTIFIER SHAPE over channels:
    trajectory is nondecreasing and every FORALL-row's nonincreasing,
    computed per rung, not assumed (S6).
 
-PREDICTIONS (stated before the run, P86 discipline; adjudication
+PREDICTIONS (stated before the run; adjudication
 recorded per item after the run -- PR1-PR8 all landed):
  PR1 (rule, proved + swept exact): THE BIRTHDAY FORMULA. An element
      of multiplicative order m exists in R_k iff m | lambda(k)
@@ -99,7 +99,7 @@ recorded per item after the run -- PR1-PR8 all landed):
      with a divisor strictly between 1 and lambda: gate_2 sits
      strictly between gate_1 = box and gate_lambda = diamond, three
      distinct functions on
-     U(30); LOGIC.md SI semantics; S5e), first non-cyclic unit group
+     U(30); S5e), first non-cyclic unit group
      (S4c). Composition's price and measurement's depth arrive
      exactly one rung after their prerequisites. LANDED.
  PR6 (rule, mechanized): THE FATE SWEEP. Every EXISTS-row in the
@@ -131,7 +131,7 @@ Also verified: the lambda spine matches the published sequence
 1, 2, 4, 12, 60, 60, 240, 720, 7920, 55440 (explore_lambda_tower;
 S1a); transparency birthday k = 6, prime 13 (S1b); the first
 length-2 transparency run completes at k = 12 (31 at k = 11, 37 at
-k = 12; S1c). The designed-tower control (the P97 /end probe, folded
+k = 12; S1c). The designed-tower control (folded
 in): on the tower {2, 5, 13, 17, 29} -- 3 skipped, every odd prime
 == 1 mod 4 -- sqrt(-1) is solvable at EVERY rung (brute, all 5
 rungs), and the fate sweep is monotone/anti-monotone there too: the
@@ -159,7 +159,7 @@ THE CHART (capability x shape x fate; birth/death = rung index k):
                                          chart's one conjunction row:
                                          a size floor (monotone) meets
                                          the cube condition (anti-
-                                         monotone) (CHANNELS.md, cited)
+                                         monotone)
   transparency (event)          event    first at k=6 (13)
   ECC rate > 1/2                EXISTS   born k=7 (the top step)
   order-m element               EXISTS   born at the formula's rung;
@@ -167,7 +167,7 @@ THE CHART (capability x shape x fate; birth/death = rung index k):
   non-commutativity             --       STILLBORN: every rung is
                                          commutative (property); the
                                          capability lives one level
-                                         up (M_2 floor, WALLS.md)
+                                         up (M_2 floor)
 
 Readings of the chart (the seed's answer):
  - THE EMERGENCE STAIRCASE HAS A TOP STEP: the tower's KINDS of
@@ -645,7 +645,7 @@ def s8_saturation():
     print("S8 -- the saturation (chart-scope observation)")
     # Birthdays/deathdays READ OFF the computed S6 rows (first True /
     # first False + 1); hiding (S5c, birthday 2 = first proper window)
-    # and Fano (CHANNELS.md, dies 6) enter as their recorded values --
+    # and Fano (dies 6) enter as their recorded values --
     # the chart's small parametric exemplars (order 3/4/5) are included
     # and happen to fall below 7; the parametric family at large is
     # exempt from the saturation claim by definition (order 19 -> 43).
@@ -673,7 +673,7 @@ def s8_saturation():
           f"births {births} / deaths {deaths}")
 
 
-# ------------------------------- S9: the designed-tower control (/end probe)
+# ------------------------------- S9: the designed-tower control
 
 def s9_designed_tower():
     """The veto-knob claim, computed: on a designed tower that SKIPS 3

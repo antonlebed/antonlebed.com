@@ -1,15 +1,14 @@
 """
-The joint measurement: two-leaf word gates (MOONSHOT probe, P77).
+The joint measurement: two-leaf word gates.
 
-The idempotent-logic entry's named reopen question (LOGIC.md SI),
-taken with its bar: the quantifier ladder (P75) proved relative order
--- [ab = 1] -- escapes every SINGLE-LEAF measurement, yet BOX(ab)
-reads it in one gate once the product is admitted as a leaf. Chart
-the TWO-LEAF measurement family: gates on words a^i b^j (i, j in Z
-via the meadow inverse). THE BAR (ROAD): a two-variable analogue of
-the P75 classification -- which two-variable shadows the word family
-decides, blind channels named by a LAW -- or a proved wall that no
-finite word family suffices.
+An open question from the idempotent-logic work: the quantifier
+ladder proved relative order -- [ab = 1] -- escapes every SINGLE-LEAF
+measurement, yet BOX(ab) reads it in one gate once the product is
+admitted as a leaf. Chart the TWO-LEAF measurement family: gates on
+words a^i b^j (i, j in Z via the meadow inverse). THE BAR: a
+two-variable analogue of the single-leaf classification -- which
+two-variable shadows the word family decides, blind channels named
+by a LAW -- or a proved wall that no finite word family suffices.
 
 Setting: per channel F_p the unit group is cyclic of order n = p-1;
 write a = g^alpha, b = g^beta. Then ord(a^i b^j) =
@@ -39,9 +38,9 @@ PREDICTIONS (stated before the run):
  P2 (rule): THE NEW CONTENT IS THE RELATIVE POSITION. When a is
     primitive the profile pins b EXACTLY (classes with a primitive
     = n, one per value of dlog_a b): the word family measures the
-    relative discrete log -- precisely what P75 proved no single-leaf
-    family sees. [ab = 1], the P75 escape witness, is ONE gate:
-    gate_1(ab).
+    relative discrete log -- precisely what the single-leaf
+    classification proved no single-leaf family sees. [ab = 1], the
+    escape witness for that classification, is ONE gate: gate_1(ab).
  P3 (rule, proved): DECIDABILITY = CONJUGACY INVARIANCE + THE
     CRYSTALLOGRAPHIC SKELETON. By P1 a two-variable shadow is
     word-decidable on a channel iff it is constant on conjugacy
@@ -56,8 +55,8 @@ PREDICTIONS (stated before the run):
     So the word-visible part of the additive world is the torsion of
     orders 1, 2, 3, 4, 6: c = 2 keeps (1,1), c = -2 keeps (-1,-1),
     c = 1 keeps the Phi_6 pair (present iff p = 1 mod 6 -- the
-    splitting law of Q(zeta_6), the P71/P75 dependent shadow
-    returning as the line's multiplicative skeleton), c = -1 the
+    splitting law of Q(zeta_6), a dependent shadow reappearing here
+    as the line's multiplicative skeleton), c = -1 the
     Phi_3 pair (iff p = 1 mod 3), EVERY OTHER c is word-invisible.
     Blind channels for [a+b = 1]: all p >= 5 (straddling orbits
     exist); deciding channels: exactly p <= 3, where the Galois
@@ -80,10 +79,10 @@ PREDICTIONS (stated before the run):
  P5 (rule + witnesses): THE ALPHABET LADDER. Measurement reach is
     alphabet-graded, the word-profile theorem covering every level
     (L letters -> dlog L-tuple up to one unit):
-    (a) one leaf, MIXED words in {a, 1-a} already beat the P75
-        polynomial family: the P75 profile-collision x = 9 vs 3 at
-        p = 11 (both (ord, ord) = (5,5)) is separated by the word
-        a^2(1-a) -- the P75 wall witness was itself a word;
+    (a) one leaf, MIXED words in {a, 1-a} already beat the
+        single-leaf polynomial family: the profile-collision x = 9
+        vs 3 at p = 11 (both (ord, ord) = (5,5)) is separated by the
+        word a^2(1-a) -- that wall witness was itself a word;
     (b) two leaves, four letters {a, b, 1-a, 1-b}: profile = the
         dlog 4-tuple up to one unit; newly decided: the six
         +-1-ratio affine lines (a+b in {0,1,2}, a-b in {0,1,-1}),
@@ -99,7 +98,7 @@ PREDICTIONS (stated before the run):
         [x = c] = gate_1(x c^-1) pins every unit residue exactly
         (0 and 1 are the pair bits'). The meadow inverse is the
         WALL-BREAKER: every measurement wall in the hierarchy --
-        including P75's single-leaf wall -- is a fact about
+        including the single-leaf wall -- is a fact about
         inverse-free alphabets; total division buys omniscience.
  P6 (rule): RING LEVEL. All reads are ring polynomials assembling
     per channel (gates of CRT words); on RAD the d(240) = 20
@@ -115,7 +114,7 @@ RESULTS (the run below prints the record; all six confirmed):
      ord ab), different orbits); the field dressing ord(a^i b^j) =
      (p-1)/gcd(i alpha + j beta, p-1) spot-verified 400x.
   P2 classes with a primitive = n exactly (every p in the census);
-     the P75 witness (p = 7: b = 5 vs b' = 3 over a = 3, same
+     the earlier witness (p = 7: b = 5 vs b' = 3 over a = 3, same
      single-leaf profiles) split by the one gate gate_1(ab).
   P3 stable census = the crystallographic law at every (p, c),
      p <= 100, ALL c (line c = 0 wholly stable; c != 0 matches the
@@ -129,9 +128,9 @@ RESULTS (the run below prints the record; all six confirmed):
      bilinear factorization gcd(ab, n) = gcd(gcd(a,n)gcd(b,n), n)
      exhaustive over all pairs, all n in the C_n list.
   P5 (a) 9 vs 3 at p = 11 separated by ord(a^2(1-a)) = 1 vs 5; the
-     one-leaf two-letter word partition strictly refines the P75
-     (ord a, ord(1-a)) partition (first at p = 11) and equals the
-     2-tuple-up-to-unit partition (exhaustive p <= 23);
+     one-leaf two-letter word partition strictly refines the
+     single-leaf (ord a, ord(1-a)) partition (first at p = 11) and
+     equals the 2-tuple-up-to-unit partition (exhaustive p <= 23);
      (b) 4-letter profile partition = 4-tuple-up-to-unit partition
      (exhaustive p = 7, 11); all six +-1-ratio lines read by gates
      (exhaustive p <= 19); [a+b = 3] blind witness (3,3) vs (5,5)
@@ -291,12 +290,12 @@ check(ok, "classes with a primitive = p-1 exactly: the profile pins "
           "dlog_a b -- the relative position single leaves never see "
           "(exhaustive, census primes)")
 
-# The P75 escape witness, decided by ONE gate.
+# The single-leaf escape witness, decided by ONE gate.
 p, a, b, b2 = 7, 3, 5, 3
 prof = lambda x: (multiplicative_order(x, p), multiplicative_order((1 - x) % p, p))
 check(prof(b) == prof(b2) and (a * b % p == 1) != (a * b2 % p == 1)
       and (a * b % p == 1) == (pow(a * b % p, 1, p) == 1),
-      "the P75 multi-variable escape ([ab = 1] blind to single leaves at "
+      "the multi-variable escape ([ab = 1] blind to single leaves at "
       "p = 7) is ONE word gate: gate_1(ab)")
 
 # ----------------------------------------------------------------------
@@ -418,16 +417,16 @@ check(ok, "the bilinear candidate factors: gcd(alpha*beta, n) = "
 section("V. THE ALPHABET LADDER")
 # ----------------------------------------------------------------------
 
-# (a) one leaf, mixed words in {a, 1-a} beat the P75 family.
+# (a) one leaf, mixed words in {a, 1-a} beat the single-leaf family.
 p = 11
 x, y = 9, 3
 sep = lambda t: multiplicative_order(t * t * (1 - t) % p, p)
 prof11 = lambda t: (multiplicative_order(t, p),
                     multiplicative_order((1 - t) % p, p))
 check(prof11(x) == prof11(y) == (5, 5) and sep(x) != sep(y),
-      f"the P75 collision 9 vs 3 at p = 11 (both order profile (5,5)) is "
+      f"the known collision 9 vs 3 at p = 11 (both order profile (5,5)) is "
       f"separated by the WORD a^2(1-a): ord {sep(x)} vs {sep(y)} -- the "
-      "P75 wall witness was itself a word")
+      "earlier wall witness was itself a word")
 
 ok_thm = True
 strictly_finer_at = []
@@ -448,7 +447,7 @@ for p in P_CENSUS:
         strictly_finer_at.append(p)
 check(ok_thm and strictly_finer_at and min(strictly_finer_at) == 11,
       "one-leaf two-letter words measure (dlog a, dlog(1-a)) up to one "
-      "unit -- strictly finer than the P75 joint order profile, first at "
+      "unit -- strictly finer than the joint order profile, first at "
       f"p = {min(strictly_finer_at) if strictly_finer_at else '?'} "
       f"(strict at p in {strictly_finer_at})")
 

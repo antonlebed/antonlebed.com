@@ -1,19 +1,18 @@
 """
-explore_thermal_growth.py — thermal growth (THE HUNT chamber five,
-P147; sibling of explore_growth_laws.py P143, explore_growth_
-capability.py P144, explore_size_crystallization.py P145,
-explore_lock_prime.py P146).
+explore_thermal_growth.py — thermal growth (sibling of
+explore_growth_laws.py, explore_growth_capability.py,
+explore_size_crystallization.py, explore_lock_prime.py).
 
-THE QUESTION. Every P143-P146 growth law is a ZERO-TEMPERATURE object:
-the greedy takes the minimal admissible m. This chamber softens the
-selection into THE THERMAL LAW at inverse temperature beta — from
-state N, pick admissible m >= 2 with probability proportional to
-m^(-beta) (normalizable for beta > 1; beta -> infinity recovers the
+THE QUESTION. Every growth law in the companion scripts above is a
+ZERO-TEMPERATURE object: the greedy takes the minimal admissible m. This
+script softens the selection into THE THERMAL LAW at inverse temperature
+beta — from state N, pick admissible m >= 2 with probability proportional
+to m^(-beta) (normalizable for beta > 1; beta -> infinity recovers the
 greedy). Demands unchanged: D-IND (coprime), D-DYN (lambda-growing),
 D-TRA (transparent). Which parts of each fate survive temperature,
 and what are the hot limits?
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (run record below; all sections assert).
 
 1. ENTRY-ONCE (rule, proved; asserted as a trajectory invariant over
    all MC picks). Under thermal D-IND a prime is touched by at most
@@ -84,7 +83,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
 
 6. THE LOCK MELTS (rule for the mechanism, proved; measured for the
    census). At T = 0 the lock held because the locked door q is the
-   strict minimum forever (P146). At any finite beta a rival blocked
+   strict minimum forever (explore_lock_prime.py). At any finite beta a rival blocked
    opening r with (r-1) | lambda costs r^(v_r(lambda)+2) — CONSTANT
    in t while v_r(lambda) is constant — so its per-step probability
    is bounded below and it fires a.s. (conditional Borel-Cantelli;
@@ -110,7 +109,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    bound, stronger than a.s.). Verified: seeds
    5, 7, 73 absorb at 240, 504, 20174525280 in every run; seed 2 is
    its own wall (W(1) = 2, zero admissible moves). Same tombstones as
-   P143's table (cross-asserted, L <= 12 and 72).
+   explore_growth_laws.py's table (cross-asserted, L <= 12 and 72).
 
 8. THE MELTING ASYMMETRY (the synthesis). Temperature grades the
    blueprint by how much of the SELECTION each property needs. The
@@ -122,11 +121,11 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    the support but carry probability zero, so the destination is a.s.
    yet never sure). The route, the depth-1 profile (squarefree-ness),
    the lock, and the wander bound needed the ARGMIN itself — and melt
-   at any finite beta. P145 split free growth's authorship into
-   demand vs selection; the thermal chamber makes the split physical
+   at any finite beta. explore_size_crystallization.py split free growth's
+   authorship into demand vs selection; this script makes the split physical
    AND graded: demand-authored structure survives every selection,
    full-support-purchasable structure survives every temperature
-   (the thermal analog of P145's properness), and what only the
+   (the thermal analog of explore_size_crystallization.py's properness), and what only the
    argmin enforced is exactly the thermal part. Windows write the
    invariants; the softened deleted place writes a MEASURE over
    itineraries, with zeta as its partition function. The three fates
@@ -136,23 +135,22 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    wall on a random climb.
 
 HONEST SCOPE. Multiplicative thermal laws over Z/N at beta > 1, the
-P143 ambient; MC sections run truncated models (D-IND universe =
-primes <= 300; D-DYN menu m <= 1000) whose in-universe per-prime
-marginals are exact — the proofs (findings 1-5, 6-mechanism, 7) are
+ambient of explore_growth_laws.py; MC sections run truncated models
+(D-IND universe = primes <= 300; D-DYN menu m <= 1000) whose in-universe
+per-prime marginals are exact — the proofs (findings 1-5, 6-mechanism, 7) are
 for the full law; the hot D-DYN limit object is NOT claimed here (the
 measured window growth is 40-step scope; whether every window opens
 a.s. and deepens without bound — candidate limit Z-hat itself — was
 left open: v_r(lambda) can grow spontaneously and freeze doors, the
-same delicacy as P146's ghost-ladder question. ANSWERED AT P150,
-explore_hot_limit.py: the admissible set is upward-closed, the
+same delicacy as explore_lock_prime.py's ghost-ladder question. ANSWERED
+by explore_hot_limit.py: the admissible set is upward-closed, the
 door-freeze prices only minimal moves, and hot D-DYN reaches Z-hat
 a.s. at every seed and every beta > 1). Additive moves and
-non-cyclic ambients remain open (ROAD hunt entry). beta <= 1 is not a
+non-cyclic ambients remain open. beta <= 1 is not a
 law (zeta's pole); the Haar-edge statement is a limit of laws, never
 a law at 1.
 
-FROZEN PREDICTIONS (SCRATCH.md pass 2, frozen before any code; git).
-Adjudication:
+PREDICTIONS (fixed before any code was written). Adjudication:
   PR1 entry-once ........ CONFIRMED (S3 invariant, every MC pick)
   PR2 geometric depths .. CONFIRMED (S1 exact at 4 betas; S3 MC bands)
   PR3 crystal 1/zeta .... CONFIRMED (S2 both sides; S3 fraction 0.642
@@ -284,7 +282,7 @@ def ok(cond, msg):
 # ---------------------------------------------------------------- S0
 # lambda cross-check: factored-form lambda vs the exponent of U(n)
 # computed raw from element orders (the shared formula verified outside
-# itself; the P146 S0 pattern).
+# itself; the same pattern used in explore_lock_prime.py's S0 section).
 
 def brute_exponent(n):
     exp = 1
@@ -516,7 +514,7 @@ def s3():
 # along the 2-column: P(pick not a 2-power) from states 2^a, a=3..30,
 # each >= 0.10 (constant rival doors -> the deviation sum grows
 # linearly, Borel-Cantelli fires); (b) T=0 contrast: the greedy from
-# seed 2 stays single-window (P146 re-derived in-harness); (c) MC:
+# seed 2 stays single-window (re-derived in-harness from explore_lock_prime.py); (c) MC:
 # fraction of hot seed-2 runs opening a second window within 40 steps.
 
 M_CAP = 1000
@@ -624,7 +622,7 @@ def divisors_of(d):
     return out
 
 def s6():
-    # wall table cross-check (P143)
+    # wall table cross-check (explore_growth_laws.py)
     table = {2: 24, 4: 240, 6: 504, 8: 480, 10: 264, 12: 65520, 72: 20174525280}
     for L, w in table.items():
         ok(dict_to_int(wall(L)) == w, f"S6 wall W({L}) != {w}")

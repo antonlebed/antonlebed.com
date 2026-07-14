@@ -1,15 +1,15 @@
 """
 BUILD: THE INTERNET-CHECKSUM RING -- RFC 1071 lives in a designed
-tower. (P69; the gem banked P45)
+tower.
 
 RFC 1071 (the IP/TCP/UDP checksum) sums 16-bit words in one's
 complement: add, then fold the carry back in (end-around carry). Since
 2^16 == 1 (mod 2^16 - 1), the fold is reduction mod 65535 -- the
 checksum is arithmetic in Z/(2^16 - 1). The gem is what that modulus
 IS: 65535 = 3 * 5 * 17 * 257, four distinct FERMAT primes -- a
-squarefree all-field designed tower (TOWER.md SI), the n = 4 member of
-the nim index-ring family 2^(2^n) - 1 = F_0 ... F_(n-1) (ALGEBRA.md
-SIII, the char-2 mirrors). Every internet packet checksums inside a
+squarefree all-field designed tower, the n = 4 member of
+the nim index-ring family 2^(2^n) - 1 = F_0 ... F_(n-1) (the char-2
+mirrors). Every internet packet checksums inside a
 tower ring with the full blueprint. The mod-65535 reading of RFC 1071
 is classical (the RFC's appendix, IEN 45, derives the checksum from
 digit sums computing remainders mod radix - 1 -- never the phrase
@@ -65,8 +65,8 @@ Tier: rule (P1, P3, P4 -- exhaustive/sampled at the stated ranges;
 P1's fold law and P3's locality are one-line algebra, the run is the
 witness); property (P2, by construction). Classical contact: RFC 1071
 states the mod-2^16-1 reading; Fermat-prime factorization of 2^16 - 1
-is elementary. The designed-tower chart entry: WALLS.md SII (the
-char-2 mirrors).
+is elementary. The designed-tower chart entry: the
+char-2 mirrors.
 """
 
 import os

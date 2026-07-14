@@ -1,6 +1,6 @@
-"""explore_local_clock.py — chamber twenty-two: the two-gear clock (the breathing descent).
+"""explore_local_clock.py — the two-gear clock (the breathing descent).
 
-THE QUESTION (ROAD P180; VERTIGO STOCK (a)'s descent remainder). The breathing
+THE QUESTION. The breathing
 law sits at observation tier: the wall ticks on the 1-unit clock, tame places
 breathe with period e, wild places tick irregularly (the measured P2 chain
 1,2,4,4,4,4,8,8,16), equal characteristic doubles. Theorem A (the module law)
@@ -20,7 +20,7 @@ lambda(P^a) = lcm(q-1, E(a)). Orbit of a unit u: o_u(n) = v(u^{p^n} - 1);
 order of u in U_1/U_a = p^{#{n : o_u(n) < a}}. E-chain = (E(a))_{a<=amax},
 computed EXHAUSTIVELY (every representative of U_1/U_amax enumerated).
 
-THE FROZEN SLATE (SCRATCH.md P180 passes 1-3, frozen and hand-attacked before
+THE PREDICTIONS (fixed before the run, hand-attacked before
 this file existed; the hand attack re-derived every naive chain independently,
 fixed the fencepost convention m(a) = min{n : s_n >= a} against ground truth
 Q_2, and downgraded two landings to pattern-freeze — N11 from 3 samples, N12
@@ -73,10 +73,10 @@ min_j (e*v_p(c_j) + j) with v_p(c) = min over w-coordinates (monogenic
 Eisenstein: distinct monomials have distinct valuations). U_1/U_amax
 enumerated exactly once via the monomial basis {p^i x^j w^l : 1 <= ei+j <
 amax}; each unit's full p-power orbit recorded to the cap. Equal char runs
-the same census on F_p[t]/(t^amax). Everything asserts against the slate;
+the same census on F_p[t]/(t^amax). Everything asserts against the predictions;
 run `python prime/code/explore_local_clock.py`.
 
-FINDINGS (entered post-run, copied from printed output; tiers per CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output; tier-labeled).
 
 1. THE TWO-GEAR CLOCK LAW (rule, verified exhaustively across the zoo —
    1,132,648 checks): every unit orbit at every censused local field obeys
@@ -110,7 +110,7 @@ FINDINGS (entered post-run, copied from printed output; tiers per CLAUDE.md).
 
 4. THE STARTER FLOOR IS UNIVERSAL, THE ARRIVAL LANDING READS THE FIELD
    (observation, unfrozen — surfaced by the first run's operationalization
-   catch: the slate's l was the LEVEL-1 landing; min-over-all-starts is
+   catch: the frozen prediction's l was the LEVEL-1 landing; min-over-all-starts is
    graded). Every seat-STARTER class (units with v(u-1) = i*) lands at
    exactly p*i* + 1, at all nine fields whose seat level DIES (f = 1 and
    zeta_p in K; a dodging seat lands at psi(i*) instead — Q3(sqrt3)
@@ -123,7 +123,7 @@ FINDINGS (entered post-run, copied from printed output; tiers per CLAUDE.md).
    (d=2) gets 1, i-field (d=2, mu_4) gets 2 — candidate torsion tie
    (mu_4 in K raises it; zeta_8's mu_8 raises it more) EYEBALLED ONLY,
    never asserted. The arrival-defect chart is a new per-field invariant;
-   its classical identity was an open remainder at this run (closed P184:
+   its classical identity was an open remainder at this run (closed by
    the constellation law, explore_arrival_defect.py).
 
 5. THE BREATHING LAW IS NOW A RULE IN RANGE (PR-E/PR-F): mixed char —
@@ -157,7 +157,7 @@ RUN RECORD (python explore_local_clock.py, 6.9 s, exit 0):
   Q3(zeta3)         1,3,3,3,9,9,27,27,81             landings {1:4}
   Q5(sqrt-5)        1,5,5,25,25,125,125              (no seat)
   F_2[[t]]          1,2,4,4,8,8,8,8,16,16,16,16      F_3[[t]] 1,3,3,9x6
-First run caught the arrival grading (SCRATCH P180 pass 4) and an equal-char
+First run caught the arrival grading and an equal-char
 truncation edge (a Frobenius step landing exactly at t^amax truncates to the
 cap sentinel; assert re-scoped to p*i < amax). Two pre-green failures total;
 every later rerun green.

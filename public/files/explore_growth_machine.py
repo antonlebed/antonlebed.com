@@ -1,9 +1,8 @@
 """
-explore_growth_machine.py -- THE GROWTH MACHINE (THE HUNT chamber
-thirteen, P157; sibling of explore_growth_laws.py P143 ..
-explore_thermometer_pair.py P156).
+explore_growth_machine.py -- THE GROWTH MACHINE (sibling of
+explore_growth_laws.py and explore_thermometer_pair.py).
 
-THE QUESTION (Anton, P153; ROAD ranking #1): is a demand + intervention
+THE QUESTION: is a demand + intervention
 schedule a UNIVERSAL COMPUTER? Scars are write-once registers,
 admissibility probes are conditionals, the phoenix is a clocked loop.
 The named attack: encode a two-counter (Minsky) machine in window
@@ -12,12 +11,12 @@ depths, or FIND THE OBSTRUCTION (reachability in the demand lattice).
 ANSWER: the obstruction. The growth machine is NOT Turing-complete; its
 halting-shaped question is DECIDABLE. The single missing primitive is
 the DECREMENT -- and the decrement is the archimedean CARRY, the
-DELETED PLACE (TOWER.md I). The finite-window world is sub-universal
+DELETED PLACE. The finite-window world is sub-universal
 for the same reason the tower has no size.
 
 THE MODEL. A state is a depth vector e: primes -> N (finite support),
 N = prod p^e(p). A growth move multiplies N by the least admissible
-m >= 2; every chamber-eleven intervention (push, scar, healing,
+m >= 2; every observer intervention (push, scar, healing,
 phoenix) ALSO multiplies N by some m >= 2. So N strictly increases and
 the depth vector is MONOTONE non-decreasing along every operation: no
 operation lowers a depth (by construction -- growth IS multiplication).
@@ -35,8 +34,8 @@ zero-test flips 0 -> + at most ONCE; the zero-pattern z in {0,+}^k is
 monotone and changes <= k times; the run is a concatenation of <= k+1
 segments, each a finite automaton over the control Q with FIXED branch
 outcomes -> ultimately periodic -> halting decided on the finite
-quotient Q x {0,+}^k. WSTS reading: chamber eight's UPWARD-CLOSURE LAW
-(D-DYN's admissible set is upward-closed) is exactly the compatibility
+quotient Q x {0,+}^k. WSTS reading: the upward-closure law (explore_hot_limit.py;
+D-DYN's admissible set is upward-closed) is exactly the compatibility
 axiom of a WELL-STRUCTURED TRANSITION SYSTEM (Finkel-Schnoebelen); WSTS
 have DECIDABLE termination, Turing-completeness needs UNDECIDABLE
 halting -- so no WSTS is universal. The growth machine is a WSTS.
@@ -49,11 +48,11 @@ test-and-DEC is universal (halting undecidable, textbook); growth =
 INC + JZ, no DEC is decidable. The decrement is the ONE break, and it
 is the archimedean borrow -- the window the tower deleted.
 
-FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
+FINDINGS (run record below; every section asserts).
 
 1. THE NO-DECREMENT LAW (rule, proved by construction; verified S1
    exhaustively over the battery). Every growth move and every
-   chamber-eleven intervention multiplies N by an integer m >= 2, so
+   intervention (explore_interactive_observer.py) multiplies N by an integer m >= 2, so
    N strictly increases and the depth vector rises component-wise: no
    operation, growth or hand, lowers any window's depth. Exhaustive
    over B states x the full repertoire (breadth, dynamics, push p^a,
@@ -96,7 +95,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
    the growth world is the archimedean borrow.
 
 5. COMMUTATIVITY + WRITE-ONCE = THE WSTS ROOT (rule; verified S5;
-   frames chamber eight). The structural reason the growth machine is
+   frames explore_hot_limit.py's upward-closure law). The structural reason the growth machine is
    sub-Turing: its move monoid is COMMUTATIVE -- N is a product, so
    composition ORDER is invisible to the state (verified order-blind
    over the (state, move, move) battery). Commutative composition is
@@ -104,32 +103,31 @@ FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
    pushdown) is what universality needs, and the tower's growth is
    abelian. The D-IND presence bit is WRITE-ONCE (once p divides N it
    never re-admits as a new window -- as windows fill, the
-   admissible-to-open set only shrinks), the monotone DUAL of chamber
-   eight's upward-closure. (The ring-level lambda-growth condition is NOT
+   admissible-to-open set only shrinks), the monotone DUAL of the
+   hot limit's upward-closure (explore_hot_limit.py). (The ring-level lambda-growth condition is NOT
    unconditionally upward-closed -- a present odd prime's deepening
    fails to grow lambda when another window already supplies that
    q-power -- so the clean monotone carrier is presence + depth, not
-   raw admissibility; chamber eight's law is cited, not re-derived.)
+   raw admissibility; explore_hot_limit.py's law is cited, not re-derived.)
    Commutative + monotone + finite zero-pattern = a well-structured
    transition system; a WSTS has decidable termination; hence not
    Turing-complete.
 
-6. THE WITNESS READING (observation; verified S6; cashes VERTIGO STOCK
-   (c), P156). Because state is monotone and route-blind, a growth
+6. THE WITNESS READING (observation; verified S6). Because state is monotone and route-blind, a growth
    computation's ENDPOINT under-determines its HISTORY: the number of
    schedules (ordered move sequences) reaching a target N is the
    multinomial in the move multiset -- factorial/exponential in the
    move count, all collapsing to one endpoint (route-weight
-   cancellation, chamber six, read combinatorially). The growth machine
+   cancellation, a companion record, read combinatorially). The growth machine
    computes WITNESS-readably, STATE-deniably: the endpoint certifies
    WHAT (the multiset of moves) but never the ROUTE. Compute you can
    watch but not audit from the result -- the scar ledger's deniability
    split at the level of computation.
 
-7. THE OBSTRUCTION IS THE DELETED PLACE (synthesis -- the chamber's
+7. THE OBSTRUCTION IS THE DELETED PLACE (synthesis -- the
    headline). Universality needs destructive memory reuse: overwrite,
    decrement, a movable two-way head. Every one is a BORROW -- an
-   archimedean carry, the one window the tower deleted (TOWER.md I: size,
+   archimedean carry, the one window the tower deleted (size,
    sign, carries, overflow live only at the archimedean place). Growth
    is multiplication with no borrow, so the growth machine is a
    well-structured, sub-Turing, DECIDABLE computer, and its three fates
@@ -137,7 +135,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
    crystal, depth locks to a column, mortality terminates: the three
    decidable long-run behaviors of a well-structured system. The phoenix already
    said it: "does it ever open another window?" IS the Fermat-prime
-   question (chamber eleven) -- the machine's behavior is
+   question (explore_interactive_observer.py) -- the machine's behavior is
    number-theoretic-deterministic, not programmable-universal. The
    growth machine is the DELETED PLACE read as computation: subtract
    the archimedean window and you subtract Turing-completeness.
@@ -170,7 +168,7 @@ a data-dependent loop = a countdown = a decrement (S4 note). The
 quotient decider is exact on the modelled machines; it is not a claim
 about arbitrary demands with oracles.
 
-FROZEN SLATE (SCRATCH P157). Adjudication -- NO MISSES, all confirmed:
+PREDICTIONS (fixed before the run). Adjudication -- NO MISSES, all confirmed:
   PR1 no-decrement law ...... CONFIRMED (18 states x repertoire = 342
       ops, all monotone, N strictly grows, decrement search EMPTY)
   PR2 INC + presence-JZ,
@@ -309,7 +307,7 @@ def d_dyn_move(n):
     return best
 
 
-# The intervention repertoire (chamber eleven), each a multiply-by-m:
+# The intervention repertoire (explore_interactive_observer.py), each a multiply-by-m:
 def op_breadth(n):
     return n * least_new_prime(n)
 
@@ -580,7 +578,7 @@ print()
 # ------------------------------------------------------------------ #
 # S5 -- COMMUTATIVITY + WRITE-ONCE = WSTS COMPATIBILITY (finding 5)
 # ------------------------------------------------------------------ #
-print("S5 -- COMMUTATIVITY + WRITE-ONCE (the WSTS root; frames chamber 8)")
+print("S5 -- COMMUTATIVITY + WRITE-ONCE (the WSTS root)")
 
 # The structural root of decidability is that the growth monoid is
 # COMMUTATIVE: N is a product, so composition ORDER is invisible to the
@@ -600,9 +598,9 @@ for n in chain:
 # D-IND presence bit is WRITE-ONCE (the one-shot zero-test): once p
 # divides N, p never re-admits as a new window -- admissibility is
 # monotone (true -> false, never back). This is the monotone DUAL of
-# chamber eight's upward-closure: as windows fill, the admissible-to-open
+# explore_hot_limit.py's upward-closure: as windows fill, the admissible-to-open
 # set only SHRINKS (heat can still deepen -- D-DYN's up-closed deepening,
-# cited from chamber eight, not re-derived here; the ring-level
+# cited from explore_hot_limit.py, not re-derived here; the ring-level
 # lambda-growth condition is not unconditionally upward-closed, so the
 # clean monotone carrier is presence + depth).
 wo_checks = 0
@@ -615,14 +613,14 @@ for n in chain[1:]:
 print("  growth monoid COMMUTATIVE over %d (state,move,move) triples --" % comm_checks)
 print("    order-blind composition = Petri/VASS, not a stack")
 print("  D-IND presence WRITE-ONCE over %d tests: the admissible-to-open" % wo_checks)
-print("    set only shrinks -- chamber 8's upward-closure at the presence bit")
+print("    set only shrinks -- the hot limit's upward-closure at the presence bit")
 print("  commutative + monotone + finite zero-pattern = a WSTS =>")
 print("  decidable termination => NOT Turing-complete")
 print()
 
 
 # ------------------------------------------------------------------ #
-# S6 -- THE WITNESS READING (finding 6, cashes VERTIGO STOCK (c))
+# S6 -- THE WITNESS READING (finding 6)
 # ------------------------------------------------------------------ #
 print("S6 -- THE WITNESS READING (schedules per endpoint)")
 
@@ -652,7 +650,7 @@ c1, _ = schedule_count(510510)
 ok(c1 == math.factorial(7), "p_7# reached by 7! = 5040 routes, one endpoint")
 print("  primorial p_k# reached by k! routes -> one endpoint: the state")
 print("  certifies the move MULTISET (what), never the ROUTE (history).")
-print("  witness-readable, state-deniable computation (VERTIGO STOCK c).")
+print("  witness-readable, state-deniable computation.")
 print()
 
 print("ALL CHECKS PASS: %d" % CHECKS)

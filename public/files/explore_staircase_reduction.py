@@ -1,33 +1,33 @@
 """
 The staircase reduction: the strong staircase lemma becomes a
-max-coverage bound (MOONSHOT, P90), the caps are proved on the
-closed region (P91), and the lattice-count closure (P92) proves
+max-coverage bound, the caps are proved on the
+closed region, and the lattice-count closure proves
 them at EVERY (m, D, B) -- the lemma is a rule with complete
 coverage, and twin 2's exclusion holds at every two-prime d.
 
-CONTEXT. Twin 2's residual (explore_cover_exclusion.py P4, ROAD
-P90): THE STRONG STAIRCASE LEMMA -- lay intervals A_u = [-Bu, -Bu+u]
+CONTEXT. Twin 2's residual (explore_cover_exclusion.py):
+THE STRONG STAIRCASE LEMMA -- lay intervals A_u = [-Bu, -Bu+u]
 (u = 0..D, B a unit) on Z/m, f(c) = covering multiplicity; claim
-#{c : f(c) >= D+1-s} <= s+1 for every s < (D+1)/2. P90 reduced the
-lemma to the caps (R3), P91 proved them on the closed region
-(R7-R11), P92 closed the rest (R12-R14): analytic for m >= 213,
+#{c : f(c) >= D+1-s} <= s+1 for every s < (D+1)/2. This reduces the
+lemma to the caps (R3), proves them on the closed region
+(R7-R11), and closes the rest (R12-R14): analytic for m >= 213,
 exhaustive below. m prime throughout (the pair application needs
 nothing else; R7/R8 hold for any m with B, B-1 units).
 
-THE FINDINGS (derived on paper in SCRATCH passes, probed in
-scratchpad, fixed here as the permanent record):
+THE FINDINGS (derived by hand, checked computationally, fixed here
+as the permanent record):
 
  R1 (rule, proved -- THE UNCONDITIONAL WEAK STAIRCASE). The weak
     bound #deep(s) <= 2s+1 holds for ALL s < (D+1)/2 with NO zone
     condition, and for intervals of sizes 1..D+1 at ARBITRARY
-    positions (the P89 clustering proof was also position-free but
+    positions (an earlier clustering proof was also position-free but
     needed the zone 8s <= m).
     Proof (pure counting): an interval of size u+1 covers at most
     min(k, u+1) of any k cells, so k deep cells receive coverage
     k(D+1-s) <= sum_u min(k, u+1) = k(k-1)/2 + k(D+2-k) (for
     k <= D+1), giving k <= 2s+1; k >= D+2 is killed by total mass
     (D+1)(D+2)/2 < k(D+1-s) when s < (D+1)/2. This retro-explains
-    the P89 tally: all 348,488 weak excesses sat at or beyond
+    the prior tally: all 348,488 weak excesses sat at or beyond
     half-range because below it the bound is a theorem everywhere.
 
  R2 (criterion, proved -- THE ANHARMONIC INVOLUTION). For a good
@@ -36,8 +36,8 @@ scratchpad, fixed here as the permanent record):
     G_B(c) = G_{1-B}(-c) exactly: f_B(c) = f_{1-B}(-c). B and 1-B
     are interchangeable everywhere; both are units iff B != 0, 1.
     (The companion map B -> B^{-1} swaps the diagonal side --
-    P90's observation fmax_B = fmax_{B^{-1}}, PROVED pointwise at
-    P91 by time reversal, R9. Orbit of 2 under the S3 cross-ratio
+    an earlier observation fmax_B = fmax_{B^{-1}}, PROVED pointwise
+    by time reversal, R9. Orbit of 2 under the S3 cross-ratio
     action: {2, 1/2, -1} = the extremal multipliers.)
 
  R3 (rule, proved -- THE STAIRCASE REDUCTION). For m prime and
@@ -77,10 +77,10 @@ scratchpad, fixed here as the permanent record):
     and maximizer cap verified for every prime m <= 61, every
     D in [3, m-2], every B in [2, m-1] (both caps + the full
     reduction end-to-end), and caps-only to every prime m <= 103
-    (the /end probe, kept as a check); maximizer count
+    (a follow-up extension, kept as a check); maximizer count
     <= max(1, D/2 - 1) everywhere swept -- slack 2 under
     need, stable as m doubles. The wrapped regime B*D >= m,
-    P90's open residual, is CLOSED: R7-R11 give the arithmetic
+    the open residual, is CLOSED: R7-R11 give the arithmetic
     closed region, R12-R14 everything else.
 
  R6 (pattern, swept -- THE TRUE GENERALITY). The s+1 bound needs
@@ -90,12 +90,12 @@ scratchpad, fixed here as the permanent record):
     random systems swept below (m <= 41, D up to m-2, two thirds
     cluster-biased toward the near-tight packed shape).
     One-sided distinctness FAILS (witness asserted below); fully
-    arbitrary positions fail even harder (P89's probe). The AP
+    arbitrary positions fail even harder (an earlier probe). The AP
     family with B != 0, 1 has both ends distinct (steps B, B-1
     both units) -- the lemma's mechanism is END-DISTINCTNESS, with
     B = 1 (repeated lefts, the nested extremal) the one AP case
     that leans on its own exact count instead. BUT the COVERAGE
-    CAP does NOT follow from end-distinctness (P91 guard, witness
+    CAP does NOT follow from end-distinctness (guard confirmed, witness
     asserted in S7): on Z/40 at D = 5 a both-distinct system
     covers one cell 4 > floor(D/2)+1 = 3 times -- the cap is
     genuinely arithmetic (R7-R11), only the deep-count bound is
@@ -232,7 +232,7 @@ R14 (rule, proved, COMPLETE COVERAGE -- THE CLOSURE). Target
     exactly the three families of R13.) The case split + bounds
     verified mechanically at every (D, B) for every prime m in
     [213, 449] plus spot prime 1009: zero uncovered, zero bound
-    failures, brute samples below the bounds (S22; the /end probe
+    failures, brute samples below the bounds (S22; a further run
     extended the same test to m = 2003 and 5003 -- margins GROW
     with m: minimum 6.0 at 2003, 10.3 at 5003). THE FINITE LEG: every prime m <= 211,
     every D in [1, m-2], every B in [2, m-1], BOTH caps brute-
@@ -248,9 +248,9 @@ R14 (rule, proved, COMPLETE COVERAGE -- THE CLOSURE). Target
     withheld only by the naming gate on computation-assisted
     proofs).
 
-CONSEQUENCE FOR TWIN 2 (P92 close). The strong staircase lemma now
-holds unconditionally, so with the kill algebra (proved, P89), the
-counting gate (P89), and R7/R8: TWIN 2'S EXCLUSION HOLDS AT EVERY
+CONSEQUENCE FOR TWIN 2 (this closure). The strong staircase lemma now
+holds unconditionally, so with the kill algebra (proved), the
+counting gate, and R7/R8: TWIN 2'S EXCLUSION HOLDS AT EVERY
 ODD PRIME PAIR (q, q') -- no covering system with two fat slices
 evades at any two-prime d = q q', any D <= q-2. The open-zone
 censuses (98 pairs q <= 97, 1103/1130 to q <= 400 by the R11 test
@@ -280,7 +280,7 @@ bespoke tents; S22 the assembled case split, primes in [213, 449];
 S23 the finite leg, both caps, every prime m <= 211.
 
 Classical contacts: lattice points in thin rational triangles
-(three-distance theorem, Ostrowski representation -- the named P90
+(three-distance theorem, Ostrowski representation -- the earlier-named
 suspicion; R10 is its first descent step; R12 replaces the descent
 with geometry of numbers); Minkowski's first theorem + Brunn
 concavity (the generic count); the cross-ratio S3 action on the
@@ -379,8 +379,8 @@ for D in (10, 30, 50):
     for B in range(2, m):
         if max(f_ap(m, D, B)) != max(f_ap(m, D, pow(B, m - 2, m))):
             obs = False
-check(obs, "fmax_B = fmax_{B^-1} (m = 61, D = 10/30/50) -- P90's "
-           "observation, PROVED pointwise at P91 (R9, asserted S11)")
+check(obs, "fmax_B = fmax_{B^-1} (m = 61, D = 10/30/50) -- the earlier "
+           "observation, PROVED pointwise (R9, asserted S11)")
 
 # --------------------------------------------------------------- S3-S5
 section("S3-S5: the caps sweep + the reduction end-to-end (R3, R5)")
@@ -432,7 +432,7 @@ check(not red_viol,
       "REDUCTION end-to-end: deep counts = 0 below the cap threshold, "
       "lemma bound s+1 never violated, B = 1 exact (= s+1 at every s)")
 
-# caps-only extension (cheap: no per-s loop) -- the /end probe, kept
+# caps-only extension (cheap: no per-s loop) -- a follow-up check, kept
 ext_viol = 0
 ext_worst = 99
 for m in [p for p in range(63, 104) if is_prime(p)]:
@@ -718,7 +718,7 @@ check(len(frontier) == 1130 and len(failing) == 27 and wide,
 
 # ----------------------------------------------------------------- S16
 section("S16: the mid-band itself -- residual-only cap sweep to "
-        "m = 251 (the /end probe, kept)")
+        "m = 251 (follow-up probe, kept)")
 mb_viol = 0
 mb_tested = 0
 mb_at_cap = []

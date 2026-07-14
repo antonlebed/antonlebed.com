@@ -1,7 +1,7 @@
 """
-FRAME STEP 2: THE LIMIT OBJECT -- what the tower converges to. (P46)
+FRAME STEP 2: THE LIMIT OBJECT -- what the tower converges to.
 
-The places frame (gated P45-P47; ROAD THE FRAME) reads each
+The places frame reads each
 rung Z/p_k# as the integers seen through the first k residue windows,
 with the archimedean window deleted. Step 2 makes the k -> infinity
 limit precise and charts which blueprint properties survive it. The
@@ -10,7 +10,7 @@ CRT coordinates, coordinate-forgetting projections -- so the inverse
 limit is the FULL PRODUCT Pi_p F_p of all residue fields. Every prime's
 exponent stays 1 forever: the limit is NOT the profinite completion
 Z-hat = lim Z/n = Pi Z_p (the limit of the ALL-MODULI system --
-fattening without bound; the fat Pareto tower (archived P219) is a BOUNDED
+fattening without bound; the fat Pareto tower (archived) is a BOUNDED
 fattening, finite by finality, not this system), not the finite
 adeles (no Z_p to restrict against), not an ultraproduct (no
 quotient taken).
@@ -58,10 +58,10 @@ Findings preview (full statements at the bottom):
      lattice (completes from 2^k to the full power set P(Primes)).
      DIES -- lambda (every fixed exponent fails at ALL channels
      p > lambda+1), and with it the Clifford identity a^(lambda+1) = a,
-     the P37 collapse-measurement x^lambda, the meadow-as-one-polynomial
+     the collapse-measurement x^lambda, the meadow-as-one-polynomial
      formula a^(lambda-1); ECC dies with the height (no archimedean
-     place, no cut, no code -- the P45 audit reading made exact).
-     SPLITS -- the P38 criterion: channel-local = compatible STRICTLY
+     place, no cut, no code -- the audit reading made exact).
+     SPLITS -- the locality criterion: channel-local = compatible STRICTLY
      CONTAINS polynomial in the limit (witness: the pseudo-inverse,
      whose minimal per-channel degree p-2 is unbounded).
   4. NO RING BETWEEN THE SUM AND THE PRODUCT (rule + classical): F_p
@@ -271,7 +271,7 @@ assert all(l >= p - 1 for l, p in zip(lams, thin_ring(12).primes[1:]))
 print("  lambda_k unbounded (lambda_k >= p_k - 1): no global exponent --")
 print("  Clifford identity, collapse x^lambda, meadow FORMULA a^(lambda-1)")
 print("  are all finite-rung artifacts; the OPERATIONS survive channelwise")
-# SPLITS: the P38 criterion. Per channel, the unique reduced polynomial
+# SPLITS: the locality criterion. Per channel, the unique reduced polynomial
 # representing the inverse function has degree exactly p-2 (p odd), so
 # no single polynomial of any degree d serves all channels p > d+2:
 # in the limit, channel-local = compatible STRICTLY CONTAINS polynomial.
@@ -297,7 +297,7 @@ for p in [q for q in primes_up_to(32) if q > 2]:
         assert v == (pow(a, p - 2, p) if a else 0)
 print("  pseudo-inverse interpolant has degree EXACTLY p-2 at every odd")
 print("  channel p <= 31: minimal degree is unbounded across channels,")
-print("  so no global polynomial -- the P38 equivalence (local =")
+print("  so no global polynomial -- the locality equivalence (local =")
 print("  compatible = polynomial) is a finite-rung statement; the limit")
 print("  keeps local = compatible and drops polynomial to a proper subclass")
 # DIES WITH THE HEIGHT: ECC. Below the cut (x < 210 = min 4-modulus
@@ -470,12 +470,12 @@ print("""
    regularity -- products of fields), idempotents (the lattice
    completes from the finite Boolean algebra 2^k to the full power
    set P(Primes)). DIES: lambda -- every fixed exponent L fails at
-   all channels p > L+1, so the Clifford identity, the P37 collapse
+   all channels p > L+1, so the Clifford identity, the collapse
    measurement x^lambda, and the one-polynomial meadow formula
    a^(lambda-1) are finite-rung artifacts (the operations survive
    channel-locally); ECC -- no archimedean place, no height cut, no
    code: redundancy was a property of the integer points under a
-   bound (P45 audit reading, made exact). SPLITS: the P38 criterion
+   bound (the audit reading, made exact). SPLITS: the locality criterion
    -- in the limit channel-local = compatible STRICTLY CONTAINS
    polynomial (pseudo-inverse witness: minimal degree p-2 per
    channel, unbounded). Torus: native limit topology is profinite

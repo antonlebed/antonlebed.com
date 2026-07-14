@@ -1,8 +1,8 @@
 """THE CROSS-FIELD CLOCK — irreducibility critical temperatures across global fields.
 
-VERTIGO STOCK (a), the cross-field remainder, P168. P165 built the interior
+The cross-field remainder of an earlier question. Earlier work built the interior
 irreducibility clock beta_col (the depth column's condensation temperature);
-P166 showed the clock READS THE PLACE: every lock prime q of Q carries its own
+it also showed the clock READS THE PLACE: every lock prime q of Q carries its own
 beta_col^q, and the spectrum is Ostrowski's finite places of Q read
 thermodynamically (explore_irreducibility_places.py). THIS script asks the
 cross-FIELD question: is that a fact about Q, or about GLOBAL FIELDS?
@@ -19,8 +19,8 @@ Z_state = zeta_M - cofactor_sum = the ADMISSIBLE MASS (menu weight of the
 non-transparent moves; -> inf at the zeta pole, -> 0 cold, one crossing);
 the clock beta_col = interior root of Z = 1 in the deep-column limit.
 
-FINDINGS (tiers per section; run record at bottom; predictions PR1-PR10 frozen
-in SCRATCH.md P168 pass 1 and hand-attacked in passes 2-3 BEFORE the run).
+FINDINGS (tiers per section; run record at bottom; predictions PR1-PR10 fixed
+by hand and attacked BEFORE the run).
 
 F0/F1 THE ALGEBRAIC CLOCK (the lambda/transparency structure: rule, brute-
 verified in range; the clock equation: closed form). In F_2[x], lambda(g^a) =
@@ -30,7 +30,7 @@ lcm law on ALL monic F of deg 6, the state lemma on 6 column states).
 Transparency of h^j to the g-column: (2^e-1)2^ceil(log2 j) | (2^d-1)2^s <=>
 e | d AND j <= 2^s — the transparent set is THE SUBFIELD LATTICE of the
 residue field F_{2^d}, every member at UNBOUNDED exponent in the limit: the
-ambient characteristic supplies every 2-part free (the P167 own-powers clause
+ambient characteristic supplies every 2-part free (an earlier own-powers clause
 is the WHOLE transparency structure in char 2). Limit cofactor C_d(x) =
 prod_{e | d} (1-x^e)^-(N_e - [e=d]), so the clock equation zeta_M - C_d = 1
 (zeta_M = 1/(1-2x)) CLEARS TO A POLYNOMIAL in x = 2^-beta: the critical
@@ -89,9 +89,9 @@ places sharing the column's residue characteristic). Menu norms in range:
 {2, 3, 7, 163, 487, 39367}.
 
 K2 THE CLOCK SPLITS BY THE CLASS GROUP (observation; identity components
-proved/cited). The element world (principal moves only, ch.10's mezzanine)
+proved/cited). The element world (principal moves only, explore_class_gap.py's mezzanine)
 prices BOTH sides of the clock equation through the genus character:
-zeta_princ = (zeta_K + L_cl)/2 (ch.10 finding 5, spot-checked at beta = 2)
+zeta_princ = (zeta_K + L_cl)/2 (explore_class_gap.py finding 5, spot-checked at beta = 2)
 and C_princ = (C_id + C_chi)/2 (verified against direct principal-divisor
 lattice enumeration, 1e-12, 5376 vectors) — the element clock equation is
 the ideal one AVERAGED OVER THE CLASS-GROUP CHARACTERS, and since the menu
@@ -105,12 +105,12 @@ residue ratio). Z_id/Z_el at beta 1.2 / 1.05 / 1.01: 2.0317 -> 2.0056 ->
 2.0010 — h = 2 read off the clock pair's normalizers at the pole. SLATE MISS
 (PR8): the frozen prediction said approach from BELOW; the run shows a clean
 monotone DESCENT from above (band clause hit, direction wrong — asserts
-corrected to the truth post-run, marked in k3). Ch.10's pole ratio was the
+corrected to the truth post-run, marked in k3). explore_class_gap.py's pole ratio was the
 breadth/crystal reading; this is its depth-world twin.
 
 SYN THE SEAT LAW + THE FERMAT GATE (observation). K ideal spectrum over
 columns {P2, P3, Q7, (13)}: 1.70395 > 1.54922 > 1.45633 > 1.31983 — the P2
-column tops K exactly as q = 2 tops Q (P166: 1.6045) and deg-1 tops F_2(x)
+column tops K exactly as q = 2 tops Q (1.6045) and deg-1 tops F_2(x)
 (1.77155): at all three global fields the spectrum max sits at the place
 with residue field F_2, the least-rich transparent menu. And K's 2-column is
 edited by class field theory: the Fermat candidates 17, 257, 65537 are all
@@ -129,7 +129,7 @@ pass, ~60 s): F_2(x) spectrum d = 1..6: 1.77155, 1.50553, 1.47652, 1.39505,
 K0; P3-menu norms {2, 3, 7, 163, 487, 39367}, inert-gated {19, 1459};
 split clocks 1.35270 (el) < 1.54922 (id), gap 0.1965; pole ratios 2.0317 ->
 2.0056 -> 2.0010; K spectrum P2 1.70395 > P3 1.54922 > Q7 1.45633 > (13)
-1.31983. zeta_princ(2) formula-vs-ch.10-record within 2e-3. Two bugs caught
+1.31983. zeta_princ(2) formula-vs-explore_class_gap.py-record within 2e-3. Two bugs caught
 by the gates mid-session: an hnf sign flip (conjugate-ideal swap, caught by
 the K0 lambda assert) and a prime-only chi20 fed to the L-series (caught by
 the zeta_princ spot check).
@@ -568,7 +568,7 @@ def k0():
             L = L * o // gcd(L, o)
             n_seen += 1
     ok(L == target and n_seen > 300, f"K0 inert a=2 sampled lcm {L} != 2184")
-    # the state lemma over ideals (the Dedekind carry-over of ch.5's D-TRA
+    # the state lemma over ideals (the Dedekind carry-over of a companion record's D-TRA
     # lemma, which the wall-discount normalizer rests on): at state I = P3^2,
     # a move m is transparent (lambda(Im) = lambda(I)) iff every prime power
     # in Im fits its cap in W(lambda(I)) — brute over all products of the six

@@ -1,11 +1,11 @@
 """
-The trade-exclusion, closed (MOONSHOT probe, P99; twin 1).
+The trade-exclusion, closed.
 
-The orbit-cost law's last open piece (LOGIC.md SI; explore_orbit_cost.py
+The orbit-cost law's last open piece (explore_orbit_cost.py
 P4): could a program trade coset gates for EXTRA separators (repeated-
 or composite-modulus covering systems) and beat m(C) + omega(d)? Known:
 excluded whenever m(C) = 1 (the cover bound alone), excluded by
-exhaustive census on the P85 battery (L <= 3, d in {5,6,30}, p <= 61),
+exhaustive census on an earlier battery (L <= 3, d in {5,6,30}, p <= 61),
 open in general. This session: PROVED in general -- and the proof never
 uses the leaf structure: it holds for ANY finite abelian ambient group
 V, any cyclic C = <c> of order d >= 2, gates = character kernels.
@@ -60,13 +60,13 @@ PROOF (7 steps; each verified mechanically below).
     total >= m + omega. QED.
     (If p* NOT | d then r* = 0 by step 3 and t >= m directly.)
 
-The piece the P85 per-coset arithmetic could not see: the {2,3,3}-style
+The piece the earlier per-coset arithmetic could not see: the {2,3,3}-style
 trades pass every SINGLE-coset mass test, but the classes are linear
 ACROSS cosets (step 5), and fewer than rank + 1 linear functionals
 cannot serve every coset (step 6). The exclusion is a covering-rigidity
 fact one level above the covering system.
 
-PREDICTIONS (stated before the run; SCRATCH.md P99 pass 1):
+PREDICTIONS (stated before the run):
  PR1 (rule): off-d-torsion cosets are uncoverable even by the union of
      ALL separators at once (testbed Z/6 x Z/5); the split-case control
      coset (Z/2 x Z/2) IS coverable -- the lemma kills exactly the
@@ -82,7 +82,7 @@ PREDICTIONS (stated before the run; SCRATCH.md P99 pass 1):
      nonzero point; exhaustive censuses at (p, r) = (2,1), (2,2),
      (2,3), (3,1), (3,2) -- true minima reported, all >= r + 1.
  PR5 (rule at these configs): end-to-end adversarial censuses on
-     configs BEYOND the P85 battery, sized so a trade would fit under
+     configs BEYOND the earlier battery, sized so a trade would fit under
      the law: (Z/2)^4 / <e1> (m=3, law 4): all <= 3-gate families
      fail; Z/6 x Z/3 x Z/3 / <(1,1,1)> (m=2, d=6, law 4; a rank-2
      3-socle -- exactly where a {2,3,3} trade would live): all
@@ -90,8 +90,8 @@ PREDICTIONS (stated before the run; SCRATCH.md P99 pass 1):
      d=4, law 3; the e=4 species live): all <= 2-gate families fail.
  PR6 (property): the canonical program meets the law on every PR5
      config (upper bound tight; the law is exact there).
- PR7 (rule at this config; the /end probe, predictions stated at the
-     strategic review before its run): the species analysis at its
+ PR7 (rule at this config; predictions stated before the run):
+     the species analysis at its
      most delicate regime, alpha = v_2(d) = 3 (Z/24 x Z/2 x Z/2 over
      <(3,0,0)>, d = 8, m = 2, law 3; e in {2,4,8} separators
      coexist): unit-position coverers still e = 2 only; 2w-position
@@ -127,8 +127,7 @@ explore_orbit_cost.py P1 (canonical upper bound, proved any L) the
 orbit-cost law reads cost = m(C) + omega(d) exactly -- proved both
 directions for every finite abelian ambient, every cyclic orbit:
 a THEOREM under the naming ladder (complete general proof, no
-computation at specific values -- the repo's first minted use;
-flagged for Anton's audit in the P99 summary).
+computation at specific values -- the repo's first minted use).
 
 Classical contacts: covering systems (Erdos) -- steps 3-6 say the
 kernel-realizable covering systems are affine-linear families, and
@@ -261,7 +260,7 @@ def coset_coverable(G, kernels, c, Cset, y):
     return covered == coset
 
 print("=" * 72)
-print("THE TRADE-EXCLUSION, CLOSED (P99): mechanical verification")
+print("THE TRADE-EXCLUSION, CLOSED: mechanical verification")
 print("=" * 72)
 
 # ---------------------------------------------------------------- I
@@ -449,7 +448,7 @@ for key, maxs in [("A", 3), ("B", 3), ("C", 2), ("E", 2)]:
     check(f"S6{key.lower()}: PR6 config {key}: canonical decides O "
           f"at {ncan} = law {law} gates", ok and ncan == law)
 
-# the /end probe (P99): the species analysis at its most delicate
+# the delicate-regime probe: the species analysis at its most delicate
 # regime, alpha = v_2(d) = 3 (e in {2,4,8} separators coexist).
 # Predictions stated first: unit-position coverers still e = 2 only;
 # 2w-position coverers still {e=2} u {e=4, 2 mod 4} -- the e=8
@@ -471,9 +470,9 @@ for x in socE:
                     ok_2w = False
 print(f"   unit-coverer e-set {sorted(unit_es)}, "
       f"2w-coverer e-set {sorted(twow_es)}")
-check("S5e': /end probe: at alpha = 3 unit-coverers are e = 2 only",
+check("S5e': follow-up: at alpha = 3 unit-coverers are e = 2 only",
       unit_es == {2})
-check("S5e'': /end probe: at alpha = 3 the 2w species is still "
+check("S5e'': follow-up: at alpha = 3 the 2w species is still "
       "{e=2} u {e=4, 2 mod 4} -- e=8 never reaches 2w",
       ok_2w and twow_es == {2, 4})
 

@@ -1,23 +1,22 @@
-"""explore_complexity_ledger.py — chamber twenty-seven: the complexity ledger
+"""explore_complexity_ledger.py — the complexity ledger
 (the fate that DEPENDS on the transparency estimate).
 
-THE QUESTION (ROAD P204 face 1, the deeper fusion). Chamber twenty-six
-(explore_transparency_bridge.py) proved the growth hunt and the MAP
-transparency-density theorem SHARE an analytic object (the {p-1} floor,
-Fouvry/BFI) and a bottom object (the Fermat primes) — but the two tracks only
-TOUCH. Face 1: make a growth FATE DEPEND on a transparency-grade density
-estimate, so a purely combinatorial growth question becomes UNDECIDABLE-until-
-BFI. VERTIGO: a combinatorial growth threshold whose value is a theorem of
-analytic number theory.
+THE QUESTION (the deeper fusion). explore_transparency_bridge.py proved the
+growth work and the transparency-density theorem SHARE an analytic object (the
+{p-1} floor, Fouvry/BFI) and a bottom object (the Fermat primes) — but the two
+tracks only TOUCH. This question: make a growth FATE DEPEND on a transparency-
+grade density estimate, so a purely combinatorial growth question becomes
+UNDECIDABLE-until-BFI: a combinatorial growth threshold whose value is
+a theorem of analytic number theory.
 
-RECON (scratchpad, k<=10000; SCRATCH P204) killed the naive shape. The non-
-transparent DENSITY rate is NOT a robust power law (window log-log slope swings
-+0.12..-0.17), so there is NO magic threshold exponent "theta* = 1 - a" to
-headline. What IS robust: (i) an exact ledger for the dynamical complexity
-log lambda, (ii) a RIGOROUS domination of the complexity ratio alpha by the
-non-transparent density, giving a one-way implication density->1 => alpha->0,
-and (iii) a designed BINARY solvency fate whose universal-thriving is EXACTLY
-the MAP density theorem.
+RECON (k<=10000) killed the naive shape. The non-transparent DENSITY rate is
+NOT a robust power law (window log-log slope swings +0.12..-0.17), so there is
+NO magic threshold exponent "theta* = 1 - a" to headline. What IS robust: (i)
+an exact ledger for the dynamical complexity log lambda, (ii) a RIGOROUS
+domination of the complexity ratio alpha by the non-transparent density,
+giving a one-way implication density->1 => alpha->0, and (iii) a designed
+BINARY solvency fate whose universal-thriving is EXACTLY the transparency-
+density theorem.
 
 THE OBJECTS. Primorial schedule (size order), accumulator A_k = lambda(p_k#) =
 lcm(p_i - 1 : i <= k) = 2^s * D. A prime p_{k+1} is lambda-TRANSPARENT iff
@@ -27,21 +26,21 @@ phi(p_k#) = prod (p_i - 1); log phi = theta(p_k) - O(loglog p_k) (Mertens).
 alpha(k) = log lambda(p_k#) / log phi(p_k#) — the DYNAMICAL COMPLEXITY as a
 fraction of CAPACITY (the period/carousel size vs the unit count).
 
-FROZEN SLATE CL1-CL4 (SCRATCH.md P204; hand-attacked pre-engine. Findings enter
-by a SEPARATE post-run edit copying printed output — BORN FINDINGS-FREE,
-CLAUDE.md):
+PREDICTIONS CL1-CL4 (fixed before the run; worked by hand before this script
+existed; findings below were entered afterward from the script's own printed
+output):
 
   CL1 (the complexity ledger, property exact + observation). log lambda(p_k#) =
     sum over non-transparent p <= p_k of log(the new prime power p forces into
     lambda) — EXACT by lcm (log lcm = sum of increments). Every jump raises
-    EXACTLY ONE prime power (TOWER.md SVII rule): a NEW-prime step forces one
+    EXACTLY ONE prime power (the SVII rule): a NEW-prime step forces one
     brand-new prime, which equals P+(p-1) (the largest prime factor); a POWER-
     BUMP step raises an existing prime's exponent (the Fermat 2-powers etc). So
     the dynamical complexity is the accumulated ROUGH-shifted-prime size. Assert
     the two independent computations of log lambda agree; each nt step increments
     exactly one prime power; every new-prime step's new prime == P+(p-1);
-    new-prime + power-bump == N_nt. HAND: p=11 (k=5), m=10=2*5, lambda(first 4)=
-    lcm(1,2,4,6)=12, 5 is new = P+(10) => a new-prime raise of log 5.
+    new-prime + power-bump == N_nt. hand estimate: p=11 (k=5), m=10=2*5,
+    lambda(first 4)=lcm(1,2,4,6)=12, 5 is new = P+(10) => a new-prime raise of log 5.
 
   CL2 (the domination inequality, property/rule — RIGOROUS, the tie). Each raise
     adds < log(p_k) to log lambda (the new prime power divides p-1 < p_k). Hence
@@ -49,22 +48,22 @@ CLAUDE.md):
     theta(p_k) - O(loglog) and pi(p_k)=k, p_k ~ k ln k:
       alpha(k) < nt_frac(k) * [k * log(p_k) / theta(p_k)], the bracket -> 1.
     So alpha <~ nt_frac, hence transparency-density -> 1 (nt_frac -> 0) IMPLIES
-    alpha -> 0: the MAP density theorem IMPLIES the complexity-crystallization
-    fate. ONE-directional rigor; the converse is heuristic (both hinge on
-    N_nt = o(k), so alpha->0 is ~equivalent to density->1, itself open). Assert
-    log lambda < N_nt*log(p_k) at every milestone; the bracket in (1.0, 1.3);
-    alpha < nt_frac*bracket. HAND: k=1e4, loglam 17237 < 1987*log(104729) =
-    22968; bracket 1.107; alpha 0.165 < 0.199*1.107 = 0.220.
+    alpha -> 0: the transparency-density theorem IMPLIES the complexity-
+    crystallization fate. ONE-directional rigor; the converse is heuristic (both
+    hinge on N_nt = o(k), so alpha->0 is ~equivalent to density->1, itself open).
+    Assert log lambda < N_nt*log(p_k) at every milestone; the bracket in
+    (1.0, 1.3); alpha < nt_frac*bracket. hand estimate: k=1e4, loglam 17237 <
+    1987*log(104729) = 22968; bracket 1.107; alpha 0.165 < 0.199*1.107 = 0.220.
 
   CL3 (alpha -> 0, observation — quantitative crystallization). alpha drifts
     monotone 0.296 (k=50) -> 0.165 (k=1e4), roughly k^-0.11. The breadth world's
-    dynamical complexity is asymptotically NEGLIGIBLE against its capacity: TB3's
+    dynamical complexity is asymptotically NEGLIGIBLE against its capacity: the
     "density-lock cell inside breadth" gets a metric — alpha, the active fraction
     of capacity, -> 0 — while phi (capacity) grows every step. Assert alpha
     strictly decreasing across 50 < 200 < 1000 < 10000; alpha(1e4) < 0.20 <
     alpha(50); alpha(1e4) > 0 (asymptotic, not finite-k crystallization).
 
-  CL4 (the solvency fate, argument/observation — FACE 1 CASHED). Overlay a
+  CL4 (the solvency fate, argument/observation). Overlay a
     reserve R on the primorial schedule: reward rho per transparent step, cost
     1-rho per raise (normalize reward+cost = 1, rho in (0,1)). Then
       R(k) = R_0 + rho*k - N_nt(k).
@@ -72,12 +71,14 @@ CLAUDE.md):
     is EXACT on the tail: R(K) - R(K/2) = (rho - tail_rate) * (K/2), so it flips
     sign precisely at the tail non-transparent rate. rho_c = limsup nt density =
     the OPEN analytic quantity. Therefore the world thrives for EVERY positive
-    reward rho iff transparency-density -> 1 (MAP open problem 1). A BINARY
+    reward rho iff transparency-density -> 1 (the transparency-density
+    conjecture: does the transparency density tend to 1?). A BINARY
     combinatorial growth fate (thrive vs sink) whose universal-thriving IS the
-    MAP theorem candidate — undecidable-until-BFI. Face 1: a fate now DEPENDS on
-    the estimate. Assert sign(R(K)-R(K/2)) == sign(rho - tail_rate) over a rho
-    grid; the crossover sits between rho=0.18 (sink) and rho=0.19 (thrive) in
-    range. HAND: tail_rate ~ 0.184; rho=0.18 -> -19, rho=0.19 -> +31.
+    transparency-density theorem candidate — undecidable-until-BFI: a fate now
+    DEPENDS on the estimate. Assert sign(R(K)-R(K/2)) == sign(rho - tail_rate)
+    over a rho grid; the crossover sits between rho=0.18 (sink) and rho=0.19
+    (thrive) in range. hand estimate: tail_rate ~ 0.184; rho=0.18 -> -19,
+    rho=0.19 -> +31.
 
 DESIGN. Thin import-free number theory (mirrors explore_transparency_bridge.py).
 The accumulator is grown by lcm; log lambda tracked as a float sum of the exact
@@ -89,19 +90,21 @@ HONEST SCOPE. CL1's ledger-sum is EXACT (lcm); the P+ identity and the one-
 prime-power-per-jump split are OBSERVATIONS (100% in range k<=10000, not proven
 for all k). CL2's inequality is RIGOROUS; the converse is the collision
 equivalence theorem (explore_collision_equivalence.py), so alpha -> 0
-UNCONDITIONALLY stays open, exactly equivalent to MAP open problem 1. CL4's threshold is the TAIL limsup (small-k is ~all non-
-transparent; the fate is R -> +inf, not never-dip-below-0). The incumbent is the
-smooth-shifted-prime density (Fouvry / Bombieri-Friedlander-Iwaniec) = MAP open
-problem 1; this chamber MAPS the dependence, it does not prove density -> 1.
+UNCONDITIONALLY stays open, exactly equivalent to the transparency-density
+conjecture (does the transparency density tend to 1?). CL4's threshold is the
+TAIL limsup (small-k is ~all non-transparent; the fate is R -> +inf, not
+never-dip-below-0). The incumbent is the smooth-shifted-prime density (Fouvry /
+Bombieri-Friedlander-Iwaniec) = the transparency-density conjecture; this
+script maps the dependence, it does not prove density -> 1.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (tiers below; run record at bottom; all sections assert).
 
 1. THE COMPLEXITY LEDGER (property exact + observation). log lambda(p_k#) = the
    sum over non-transparent p <= p_k of log(the new prime power p forces into
    lambda) — two independent computations (the running sum of step-increments;
    sum_q v_q log q from the final factor dict) agree to 1.5e-11. Every non-
-   transparent jump with k>1 raises EXACTLY ONE prime power (the TOWER.md SVII
-   rule, now confirmed to k=10000, up from k=2000; no jump ever raises two at
+   transparent jump with k>1 raises EXACTLY ONE prime power (the SVII rule, now
+   confirmed to k=10000, up from k=2000; no jump ever raises two at
    once); the k=1 opener (p=2, p-1=1) adds nothing, lambda(2)=1. The 1986 raises
    split into 1935 NEW-prime steps — each forcing exactly P+(p-1), the largest
    prime factor (100% in range) — and 51 POWER-BUMP steps (raising an existing
@@ -117,21 +120,21 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    p_k ~ k ln k: alpha(k) = log lambda/log phi < nt_frac(k)*[k log p_k/theta(p_k)],
    the bracket decreasing 1.307 (k=50) -> 1.107 (k=10000) toward 1. So
    alpha <~ nt_frac, and transparency-density -> 1 (nt_frac -> 0) IMPLIES
-   alpha -> 0: the MAP density theorem FORCES the complexity-crystallization
-   fate. The inequality is exact; the converse is ALSO a theorem — THE
-   COLLISION EQUIVALENCE (elementary, explore_collision_equivalence.py P228):
-   nt_frac - alpha -> 0 via the write-once bound, so alpha -> 0 <=>
-   density -> 1, the two sides open together.
+   alpha -> 0: the transparency-density theorem FORCES the complexity-
+   crystallization fate. The inequality is exact; the converse is ALSO a
+   theorem — THE COLLISION EQUIVALENCE (elementary,
+   explore_collision_equivalence.py): nt_frac - alpha -> 0 via the write-once
+   bound, so alpha -> 0 <=> density -> 1, the two sides open together.
 
 3. ALPHA -> 0 (observation — quantitative crystallization). alpha = log lambda/
    log phi drifts monotone 0.2963 (k=50) -> 0.2282 (200) -> 0.1997 (1000) ->
    0.1651 (10000), roughly k^-0.11. The breadth world's dynamical complexity is
-   asymptotically negligible against its capacity: TB3's density-lock cell inside
-   breadth (chamber twenty-six) now has a METRIC — alpha, the active fraction of
-   capacity, -> 0 while phi grows every step. alpha(1e4) = 0.165 is still
-   positive: the crystallization is asymptotic, not finite-k.
+   asymptotically negligible against its capacity: the density-lock cell inside
+   breadth (explore_transparency_bridge.py) now has a METRIC — alpha, the
+   active fraction of capacity, -> 0 while phi grows every step. alpha(1e4) =
+   0.165 is still positive: the crystallization is asymptotic, not finite-k.
 
-4. THE SOLVENCY FATE (argument/observation — FACE 1 CASHED). The designed reserve
+4. THE SOLVENCY FATE (argument/observation). The designed reserve
    world R(k) = R_0 + rho*k - N_nt(k) (reward rho per transparent step, cost
    1-rho per raise) THRIVES (R -> +inf) iff rho > limsup nt_frac. The reserve
    dynamics reduce to the density EXACTLY: R(K)-R(K/2) = span*rho - tail_nt =
@@ -143,27 +146,29 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    that tail_rate = 0.1838 falls in (0.18, 0.19): rho=0.18 -> -19 sink,
    rho=0.19 -> +31 thrive). rho_c = limsup nt density = the OPEN analytic
    quantity. So the world thrives for EVERY positive reward iff transparency-
-   density -> 1 (MAP open problem 1). A BINARY combinatorial growth fate whose
-   universal-thriving IS the MAP theorem candidate — undecidable-until-BFI. Face 1
-   cashed: a growth fate now DEPENDS on a transparency-grade estimate, not merely
-   shares a floor with it.
+   density -> 1 (the transparency-density conjecture: does the transparency
+   density tend to 1?). A BINARY combinatorial growth fate whose
+   universal-thriving IS the transparency-density theorem candidate —
+   undecidable-until-BFI. This is cashed: a growth fate now DEPENDS on a
+   transparency-grade estimate, not merely shares a floor with it.
 
 RUN RECORD (this file, ~0.05 s, 14 checks, well under 512 MB, no numpy; all
-sections assert). Frozen slate CL1-CL4 hand-attacked pre-engine (SCRATCH P204).
-Every WORLD-prediction held on the first complete run: the ledger identity (two
-paths agree 1.5e-11), the 1935 new-prime / 51 power-bump split, new prime ==
-P+(p-1) (100%), the domination inequality (every milestone), the bracket -> 1
-(1.307 -> 1.107), alpha 0.296 -> 0.165 monotone, the solvency crossover
-(0.18 sink / 0.19 thrive). Two ASSERTION fixes were needed (NOT world-misses):
-the k=1 opener raises zero prime powers (excluded from the one-per-jump rule and
-the new/bump split), and a mistyped "alpha > 1" clause in the bracket check — the
-frozen slate's numbers were all confirmed, only the boundary logic was corrected.
+sections assert). Predictions CL1-CL4 were worked by hand before this script
+existed. Every WORLD-prediction held on the first complete run: the ledger
+identity (two paths agree 1.5e-11), the 1935 new-prime / 51 power-bump split,
+new prime == P+(p-1) (100%), the domination inequality (every milestone), the
+bracket -> 1 (1.307 -> 1.107), alpha 0.296 -> 0.165 monotone, the solvency
+crossover (0.18 sink / 0.19 thrive). Two ASSERTION fixes were needed (NOT
+world-misses): the k=1 opener raises zero prime powers (excluded from the
+one-per-jump rule and the new/bump split), and a mistyped "alpha > 1" clause in
+the bracket check — the predicted numbers were all confirmed, only the
+boundary logic was corrected.
 
-Chambers: twenty-six = explore_transparency_bridge.py (the identity, the fourth
-bridge, the shared Fermat bottom — the tracks TOUCH); this chamber = the tracks
-DEPEND (a fate's threshold IS the open density quantity). The transparency law =
-TOWER.md SII/SVII; the breadth fate = GROWTH.md (explore_growth_laws.py); the
-spectrum functor = explore_conjecture_bridge.py (chamber twenty-five).
+Related: explore_transparency_bridge.py (the identity, the fourth bridge, the
+shared Fermat bottom — the tracks TOUCH); this script studies where the tracks
+DEPEND (a fate's threshold IS the open density quantity). The transparency law
+is the SII/SVII rule; the breadth fate is explore_growth_laws.py; the spectrum
+functor is explore_conjecture_bridge.py.
 """
 
 import sys
@@ -457,7 +462,7 @@ def section_CL4(recs):
        "CL4: crossover between rho=0.18 (sink) and rho=0.19 (thrive) — the DATA "
        "fact 0.18 < tail_rate < 0.19 (not the algebraic sign identity)")
     print(f"    => the world thrives for EVERY positive reward iff nt density -> 0")
-    print(f"       (transparency-density -> 1 = MAP open problem 1); rho_c = "
+    print(f"       (transparency-density -> 1 = the open density conjecture); rho_c = "
           f"limsup nt density = the OPEN analytic quantity")
     print(f"    a BINARY growth fate whose universal-thriving IS the MAP theorem "
           f"candidate -- undecidable-until-BFI (face 1 cashed)")
@@ -466,7 +471,7 @@ def section_CL4(recs):
 
 def main():
     print("=" * 70)
-    print("CHAMBER TWENTY-SEVEN  -  the complexity ledger (the density-fate)")
+    print("THE COMPLEXITY LEDGER  -  the density-fate")
     print("=" * 70)
     ps, recs, running, loglam, logphi, N_nt = build()
     print(f"trajectory: primorial schedule k=1..{K_MAX}, p_max={ps[-1]}; "

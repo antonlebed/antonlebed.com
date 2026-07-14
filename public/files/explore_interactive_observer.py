@@ -1,17 +1,16 @@
 """
-explore_interactive_observer.py -- THE INTERACTIVE OBSERVER (THE HUNT
-chamber eleven, P153; sibling of explore_growth_laws.py P143 ..
-explore_class_gap.py P152).
+explore_interactive_observer.py -- THE INTERACTIVE OBSERVER (sibling
+of explore_growth_laws.py and explore_class_gap.py).
 
-THE QUESTION. Chambers six/seven ran PASSIVE inference: an observer
-handed the state (the isomorphism class) and nothing else. This
-chamber gives the inhabitant a WATCH (it sees the moves as they
-happen), a PROBE (it may query whether a move is admissible), and a
-HAND (it may inject moves of its own), and asks what each buys, per
-fate. Design + frozen slate PR1-PR9 + paper attack: SCRATCH P153
-passes 1-3 (git).
+THE QUESTION. Earlier studies (the route-amnesia and thermometer
+work) ran PASSIVE inference: an observer handed the state (the
+isomorphism class) and nothing else. This study gives the inhabitant
+a WATCH (it sees the moves as they happen), a PROBE (it may query
+whether a move is admissible), and a HAND (it may inject moves of
+its own), and asks what each buys, per fate, against predictions
+fixed before the run (PR1-PR9) and a paper attack on the mechanism.
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (tier labels below; run record follows; all sections assert).
 
 1. THE WITNESS FAMILY (rule, proved; verified S0). Every thermal
    greedy law is an EXPONENTIAL FAMILY in beta: P_x(m) =
@@ -22,11 +21,12 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    Closed forms: breadth via F(beta) = zeta(beta) prod_{p|N}
    (1 - p^(-beta)) and its two derivatives; depth (D-DYN at 3^t) via
    the full zeta sums minus the wall cofactor's divisors (the
-   wall-priced normalizer, ch. seven). Verified against brute coprime
-   sums with rigorous tail brackets (N = 30, 210; beta 1.5/2/3).
+   wall-priced normalizer, from that earlier study). Verified
+   against brute coprime sums with rigorous tail brackets (N = 30,
+   210; beta 1.5/2/3).
 
 2. THE WITNESS THERMOMETER (rule in range; limit = PNT heuristic,
-   observation; verified S1). Chamber six's finite thermometer --
+   observation; verified S1). An earlier finite thermometer --
    total snapshot information <= an order-1 cap, forever -- is a
    COMPRESSION ARTIFACT, not a law of the world. Along the breadth
    trajectory the PER-MOVE information never dies: I_step(p_k#,
@@ -40,13 +40,14 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    LINEARLY in moves while the state's total is capped: an eternal
    inhabitant that merely watches its world grow accumulates
    unbounded temperature information (the Cramer-Rao floor falls as
-   1/sqrt(moves)); one that only reads the state never beats sd ~ 1. The cap itself recomputed here with a
-   Chebyshev prime tail (Rosser-Schoenfeld pi(x) < 1.26 x/log x):
-   I_state-total in [0.88447, 0.88450] at beta 2 (inside ch. six's
+   1/sqrt(moves)); one that only reads the state never beats sd ~ 1.
+   The cap itself recomputed here with a Chebyshev prime tail
+   (Rosser-Schoenfeld pi(x) < 1.26 x/log x): I_state-total in
+   [0.88447, 0.88450] at beta 2 (inside the earlier bracket of
    [0.8844, 0.8859]), [3.82677, 3.88007] at 1.5, 0.17228 at 3.
-   THE CROSSOVER (slate misses 1-2, adjudicated): the frozen slate
-   predicted monotone approach and one-move > whole-state by
-   k = 5000 at beta 2; measured, the approach is NON-MONOTONE (the
+   THE CROSSOVER (predicted vs. measured): the prediction was a
+   monotone approach and one-move > whole-state by k = 5000 at
+   beta 2; measured, the approach is NON-MONOTONE (the
    dip: small-rung menus are variance-rich -- at k = 3 the menu
    holds comparable-mass moves across octaves, 7 vs 49) and the
    crossover sits at k* in (33000, 100000): I_step passes the whole
@@ -69,7 +70,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    S2 exactly). I_path = I_state + E[I_route posterior]: the
    information watching buys OVER the aged snapshot (state + move
    count) is EXACTLY the Fisher information of the route posterior
-   -- the same normalizer sequence that chamber six proved carries
+   -- the same normalizer sequence that earlier work proved carries
    all route information. Verified on the truncated world (menu
    <= 12, 4 moves, 648 paths, all three quantities computed
    independently and analytically): 0.649817 = 0.446763 + 0.203054,
@@ -113,10 +114,11 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    THE ONLY FOSSILS ARE ARTIFACTS -- and they FORGE: a crystal state
    dressed with geometric scars is state-indistinguishable from
    thermal genesis BY CONSTRUCTION (300 forged worlds fed to the
-   ch.-six MLE: 0.587 read crystal vs the thermal law 1/zeta(2) =
-   0.608, conditional mean beta-hat 1.638 vs ch. six's measured
-   1.635), and a SINGLE 2-scar moves the crystal's reading from
-   infinity to beta-hat = 1.878. False memories are implantable.
+   earlier MLE harness: 0.587 read crystal vs the thermal law
+   1/zeta(2) = 0.608, conditional mean beta-hat 1.638 vs that
+   earlier study's measured 1.635), and a SINGLE 2-scar moves the
+   crystal's reading from infinity to beta-hat = 1.878. False
+   memories are implantable.
    THE DENIABILITY SPLIT: a gcd-scar (push 2 at state 30) has
    probability 0 under thermal D-IND -- SIGNED, certainly artificial
    to any watcher -- yet the resulting state is thermally reachable
@@ -138,21 +140,22 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    q: one composite push raising q's depth to v_q(lambda) + 2, times
    P, with P == 1 mod B (B raises
    every rival door above q: incumbent columns need v_s(lambda') >=
-   e_s + t_s - 2 -- the ch.-four blocker enrichment read as a
+   e_s + t_s - 2 -- an earlier blocker-enrichment result read as a
    CONTROL LAW), P !== 1 mod q; Dirichlet supplies P, Miller-Rabin
    finds it fast (specimens: P = 191 steers 30 to the 7-column;
    P = 15496819561 steers the 3^15 column to 13). 16/16 (state,
-   target) pairs locked. Chamber four's basin geography was
+   target) pairs locked. An earlier study's basin geography was
    decidable; interactively it is PROGRAMMABLE.
 
 7. THE PHOENIX (protocol canonical; DNA law + spectrum law: rules,
    proved; infinitude: criterion, exact; verified S6). Give
    mortality MINIMAL LIFE SUPPORT: run greedy D-TRA; at each death
-   (the state IS the wall W(lambda), ch. nine) inject the least
-   possible move m = 2. Then: (i) THE RUDDER-PRIMED WALL (rule,
-   proved): the wall formula's 2-part 2^(v_2(L)+2) is exactly the
-   2-lock invariant, so the minimal push coincides with the D-DYN
-   greedy pick at every wall (asserted at every death, 6 seeds) --
+   (the state IS the wall W(lambda), explore_selection_frame.py)
+   inject the least possible move m = 2. Then: (i) THE RUDDER-PRIMED
+   WALL (rule, proved): the wall formula's 2-part 2^(v_2(L)+2) is
+   exactly the 2-lock invariant, so the minimal push coincides with
+   the D-DYN greedy pick at every wall (asserted at every death, 6
+   seeds) --
    the phoenix is D-TRA composed with D-DYN's own move, no free
    choice anywhere. (ii) THE FROZEN DNA LAW (rule, proved): pushes
    bump only lambda's 2-part and fills are transparent, so D :=
@@ -183,9 +186,10 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    in witnessing, not in states -- per-move information is bounded
    below in BOTH fates (the depth watcher gets 1.2430/move at
    beta 2, even richer than breadth's ~0.87: its co-finite menu is
-   fatter), so the amnesiac/mnemonic split (ch. seven) is a property
-   of STATES only; every fate's witness remembers linearly, and the
-   gap between watching and reading is exactly the route posterior
+   fatter), so the amnesiac/mnemonic split (established earlier) is
+   a property of STATES only; every fate's witness remembers
+   linearly, and the gap between watching and reading is exactly
+   the route posterior
    (finding 3). Probing: at T = 0 observationally-identical demands
    are everywhere (the chain), and one query -- or one push, read
    existentially -- names the law no eternity of watching could.
@@ -222,13 +226,12 @@ S4 200/200 scar persistence; forgery 0.587 crystal / cond-mean
 S5 relock 200/200 (21 trivial); rudder 16/16, P specimens 7, 191,
 2251, 42967, 258280327, 15496819561. S6 seed-1 windows/thresholds
 exact Fermat; 40 pushes, late fills all 0; seed-7 spectrum; DNA
-frozen at 6 seeds; spectrum law got == want at 6 seeds. Frozen
-slate PR1-PR9 (SCRATCH passes 2-3): PR2-PR9 confirmed; PR1 bands
-held but its two shape sub-predictions MISSED and were upgraded
-(the dip; the located crossover) plus the pole-duel bonus -- the
-slate record continues: predictions are not tame. One harness
-off-by-one (the terminal wall left unfilled) was caught by the
-spectrum-law assert, not by eye.
+frozen at 6 seeds; spectrum law got == want at 6 seeds. Predictions
+PR1-PR9: PR2-PR9 confirmed; PR1 bands held but its two shape
+sub-predictions MISSED and were upgraded (the dip; the located
+crossover) plus the pole-duel bonus. One harness off-by-one (the
+terminal wall left unfilled) was caught by the spectrum-law assert,
+not by eye.
 """
 
 import math
@@ -374,8 +377,9 @@ def lam_fd(state_fd):
 
 
 def W_of(lam):
-    """The transparency wall W(L) as a factor dict (formula, ch. seven:
-    2-part 2^(v2+2) for L even else 2; odd p with (p-1)|L at v_p(L)+1)."""
+    """The transparency wall W(L) as a factor dict (formula from that
+    earlier study: 2-part 2^(v2+2) for L even else 2; odd p with
+    (p-1)|L at v_p(L)+1)."""
     v2 = lam.get(2, 0)
     W = {2: v2 + 2} if v2 >= 1 else {2: 1}
     # enumerate divisors d of L, test p = d+1 odd prime
@@ -561,9 +565,9 @@ for beta in (1.5, 2.0, 3.0):
             / (1 - X ** (-beta)) ** 2)
     SNAP_TOTAL[beta] = (s, s + tail)
 check(0.8844 <= SNAP_TOTAL[2.0][0] and SNAP_TOTAL[2.0][1] <= 0.8859,
-      "S1 snapshot cap disagrees with chamber six's bracket")
+      "S1 snapshot cap disagrees with the earlier bracket")
 print("  SNAPSHOT caps (whole infinite state, recomputed with a "
-      "Chebyshev prime tail; inside ch. six's bracket at beta 2):")
+      "Chebyshev prime tail; inside the earlier bracket at beta 2):")
 for beta in (1.5, 2.0, 3.0):
     lo, hi = SNAP_TOTAL[beta]
     lim = 1 / (beta - 1) ** 2
@@ -601,22 +605,22 @@ print(f"  heuristic limits 1/(beta-1)^2: 4.0 / 1.0 / 0.25 "
       f"(beta = 3 shown only for k <= {K3MAX}: beyond, F - 1 "
       f"underflows float64)")
 
-# PR1 bands (frozen)
+# PR1 bands (fixed before the run)
 check(0.65 <= ivals[(5000, 2.0)] <= 1.35, "PR1 I(5000, 2) band")
 check(0.15 <= ivals[(5000, 3.0)] <= 0.35, "PR1 I(5000, 3) band")
 check(2.8 <= ivals[(5000, 1.5)] <= 5.2, "PR1 I(5000, 1.5) band")
-# SLATE MISS 1 (adjudicated): the approach is NON-MONOTONE -- a dip
-# near k ~ 50 (small-rung menus are variance-rich), then a slow climb.
-# The frozen |I(5000)-1| < |I(3)-1| is FALSE; the measured shape is:
+# The approach is NON-MONOTONE -- a dip near k ~ 50 (small-rung menus
+# are variance-rich), then a slow climb. The prediction
+# |I(5000)-1| < |I(3)-1| does not hold; the measured shape is:
 check(ivals[(50, 2.0)] < ivals[(3, 2.0)], "S1 the dip exists")
 for k1, k2 in zip(KLIST[2:-1], KLIST[3:]):
     check(ivals[(k1, 2.0)] < ivals[(k2, 2.0)],
           f"S1 climb {k1} -> {k2} at beta 2")
-# SLATE MISS 2 (adjudicated): the beta = 2 crossover sits at
-# k* in (33000, 100000) against the RECOMPUTED cap (tighter than
-# chamber six's bracket), not <= 5000. I(40000) = 0.88444 grazes the
-# cap's lower edge within 3e-5, so the fine location is limited by
-# the cap bracket itself; the conservative bracket is asserted:
+# The beta = 2 crossover sits at k* in (33000, 100000) against the
+# recomputed cap (tighter than the earlier bracket), not <= 5000.
+# I(40000) = 0.88444 grazes the cap's lower edge within 3e-5, so the
+# fine location is limited by the cap bracket itself; the
+# conservative bracket is asserted:
 check(ivals[(33000, 2.0)] < SNAP_TOTAL[2.0][0],
       "S1 crossover bracket: below cap at k = 33000")
 check(ivals[(100000, 2.0)] > SNAP_TOTAL[2.0][1],
@@ -631,7 +635,7 @@ for k in KLIST:
               f"PR1 near the pole the state wins, k={k}")
 check(SNAP_TOTAL[1.5][0] <= ivals[(3, 1.5)] <= SNAP_TOTAL[1.5][1] + 0.1,
       "S1 beta=1.5 k=3 sits near the cap (bracket-unresolved)")
-print("  PR1 bands PASS; slate misses 1-2 adjudicated: the dip + the "
+print("  PR1 bands PASS; prediction misses 1-2 adjudicated: the dip + the "
       "located crossover (k* in (33000, 100000) at beta 2; every "
       "tested rung at beta 3; at beta 1.5 the state wins at every "
       "tested k >= 10 while the k = 3 duel is inside the cap "
@@ -937,7 +941,7 @@ for run in range(200):
 print("  200/200 thermal continuations: the 2-scar persists "
       "(multiplication never removes -- the healing rule's dark half)")
 
-# the ch.-six MLE harness
+# the earlier MLE harness
 MLE_PRIMES = [p for p in ALLP if p <= 3000]
 
 

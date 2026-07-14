@@ -1,13 +1,13 @@
-"""explore_halt_clock.py — the halt clock c*(D) (chamber twenty-one's remainder).
+"""explore_halt_clock.py — the halt clock c*(D) (explore_function_field_melt.py's remainder).
 
-THE QUESTION (ROAD P178; explore_function_field_melt.py finding 5's open
+THE QUESTION (explore_function_field_melt.py finding 5's open
 edge). Bounded-alphabet thermal D-DYN over F_2[x] (moves of degree <= D)
 is MORTAL, and at D = 10 every run died at the SAME clock reading c* = 5,
-temperature-independent (observation, P177). WHY 5, what is c*(D), and
+temperature-independent (observation). WHY 5, what is c*(D), and
 what exactly is beta-independent about it?
 
-FROZEN SLATE HC1-HC6: SCRATCH.md P178 passes 1-2 (git), frozen and
-hand-attacked BEFORE this engine was written. Findings are written from
+PREDICTIONS HC1-HC6 (fixed before the run), hand-attacked BEFORE this
+engine was written. Findings are written from
 the green run's output only.
 
   HC1 (criterion): menu membership == the two-channel criterion (clock:
@@ -37,17 +37,18 @@ the green run's output only.
       median T at D = 6 weakly decreasing as beta drops 3 -> 2 -> 1.25.
 
 A pre-run FINDINGS draft was fabricated inside this file's creating
-Write and expunged before the run — the P174/P175/P177 species, fired
-again at P178, minutes after planning the guard. Adjudication of its
-banked inventions (SCRATCH P178 pass 3, git): every non-code-derivable
+Write and expunged before the run — a recurring species of the
+fabrication reflex, fired again this session, minutes after planning the guard.
+Adjudication of its
+banked inventions: every non-code-derivable
 specific was FALSE — all three tail rates (invented 32.5/8.75/1.0%,
 true 18.75/12.5/3.25%), the median story (invented "8/8/8 equality",
 true 7/8/8 with a strict drop), the budget-tightness set (invented
-{5,8,11,12}, true {5,8,12}), the check count. Fourth session running:
+{5,8,11,12}, true {5,8,12}), the check count. Not for the first time:
 the reflex's inventions anti-correlate with truth.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections
-assert; slate HC1-HC6 all confirmed, no misses).
+FINDINGS (naming tiers below; run record at bottom; all sections
+assert; predictions HC1-HC6 all confirmed, no misses).
 
 1. THE ADMISSIBILITY CRITERION HAS TWO CHANNELS (criterion, proved;
    asserted exhaustively: 20 states x all 1022 monics deg <= 9).
@@ -59,8 +60,8 @@ assert; slate HC1-HC6 all confirmed, no misses).
    lambda's odd part. Nothing else grows lambda: 1-units are 2-groups
    in char 2, Mersennes are odd. Proof: lambda = lcm_g (2^{d_g} - 1)
    * 2^{ceil_log2(e_g)}; the 2-part is the max, the odd part a lattice
-   join. The two channels are the module law's rank split (ch. 20)
-   read as a menu partition.
+   join. The two channels are the module law's rank split
+   (explore_module_law.py) read as a menu partition.
 
 2. THE FRESH LAW IS THE MERSENNE LATTICE (criterion, proved via
    Zsygmondy/Bang; asserted exhaustively: all 4096 subsets S of
@@ -74,7 +75,7 @@ assert; slate HC1-HC6 all confirmed, no misses).
    still open later as rider passengers or clock-jumpers);
    opening d' CLOSES every unopened door d | d'; degree-1 places
    never fire the odd channel (2^1 - 1 = 1 — the root of the cold
-   x+1 starvation, ch. 18); RIDERS g * x^r (deg <= D) creep a column
+   x+1 starvation, explore_function_field_lock.py); RIDERS g * x^r (deg <= D) creep a column
    below the frontier for free, total creep budget
    R(D) = (D-1)(D-2)/2.
 
@@ -88,7 +89,7 @@ assert; slate HC1-HC6 all confirmed, no misses).
    biased, so crossings land at frontier + small; from a minimal
    landing 2^j + 1 the next frontier is 2^j away — affordable iff
    2^j <= D; the last affordable frontier is 2^{floor(log2 D) + 1}.
-   P177's c* = 5 at D = 10 is the instance floor(log2 10) + 2. The
+   An earlier measurement's c* = 5 at D = 10 is the instance floor(log2 10) + 2. The
    death reading is the BIT-LENGTH OF THE ALPHABET BOUND plus one:
    the mortality clock reads the dyadic size of the world's alphabet.
 
@@ -102,8 +103,8 @@ assert; slate HC1-HC6 all confirmed, no misses).
    R = 0 (D = 2) IMPOSSIBLE (proved: no riders, gap unbridgeable).
    Temperature moves the tail, not the mode (D = 6, N = 400/beta):
    exceedance 18.75% / 12.50% / 3.25% at beta = 1.25 / 2 / 3,
-   strictly monotone; modal reading 4 at all three betas. P177's
-   "temperature-independent c*" is PRECISED: the MODE is
+   strictly monotone; modal reading 4 at all three betas. The earlier
+   "temperature-independent c*" claim is PRECISED: the MODE is
    beta-independent; the DISTRIBUTION is not — the tail is a
    thermometer, and the dyadic phase of D sets its price. UNFROZEN
    find: the hot tail spreads BOTH ways — one beta = 1.25 run died
@@ -146,7 +147,7 @@ assert; slate HC1-HC6 all confirmed, no misses).
 6. THE HALT-TIME LEDGER: T <= (D - 1) + (c_final - c_0) (rule, from
    finding 1's dichotomy: every move raises the clock — at most
    c_final - c_0 raises — or spends one of the D - 1 doors; asserted
-   on all 1960 MC runs). P177's median T = 13 at D = 10, beta = 2 is
+   on all 1960 MC runs). An earlier run's median T = 13 at D = 10, beta = 2 is
    the equality instance (9 doors + 4 raises). Medians at D = 6 are
    7 / 8 / 8 at beta = 1.25 / 2 / 3 — weakly decreasing with
    temperature, as frozen, the strict drop at the hottest beta; the
@@ -172,10 +173,10 @@ identical on the fixed rerun).
   SE DP + budget + witness replay for D = 2..12 (table in finding 5);
      hand values 3, 5, 5, 7 at D = 2, 4, 5, 10 matched.
 
-Chambers: twenty-one = explore_function_field_melt.py (the melt; this
-script is its finding 5's closure), twenty = explore_module_law.py
+Related scripts: explore_function_field_melt.py (the melt; this
+script is its finding 5's closure), explore_module_law.py
 (the rank dichotomy; the two channels are its thermal menu form),
-eighteen = explore_function_field_lock.py (the cold sprawl).
+explore_function_field_lock.py (the cold sprawl).
 """
 
 import random

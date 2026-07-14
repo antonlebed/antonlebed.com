@@ -1,13 +1,13 @@
 """
-The quantifier ladder: divisor-indexed partial collapses (MOONSHOT probe, P75).
+The quantifier ladder: divisor-indexed partial collapses.
 
-The idempotent-logic entry's named reopen question (LOGIC.md SI):
+The idempotent-logic entry's named reopen question:
 the partial collapses a^m, m | lambda, as a quantifier ladder between
-the identity (m = 1) and the pair's collapse (m = lambda). THE BAR
-(ROAD): a ladder rung must decide something the pair alone cannot --
+the identity (m = 1) and the pair's collapse (m = lambda). THE BAR:
+a ladder rung must decide something the pair alone cannot --
 otherwise it is relabeled collapse and this chart says so.
 
-Builds on the quantifier pair (P66) and envelope (P71): DIA(a) =
+Builds on the quantifier pair and envelope: DIA(a) =
 a^lambda ("true to some degree"), BOX(a) = 1 - (1-a)^lambda ("fully
 true"), the envelope bracketing every NNF formula's classical shadow
 from the two leaf bits, with dependent shadows at repeated leaves
@@ -38,7 +38,7 @@ PREDICTIONS (stated before the run):
     DIA, BOX of m-fold OR = BOX). What repeated leaves compute
     beyond the pair is exactly order information -- the envelope's
     repeated-leaf gap and the ladder are the same object.
- P3 (the bar -- rule + witnesses): the P71 dependent shadow
+ P3 (the bar -- rule + witnesses): the dependent shadow
     BOX(a AND NOT a) = [a(1-a) = 1] = [Phi_6(a) = 0] identically
     (x - x^2 = 1 <=> x^2 - x + 1 = 0); for p != 3 its channel read
     is [ord(a) = 6] = the ladder's FIRST JOIN DEFECT
@@ -81,7 +81,7 @@ PREDICTIONS (stated before the run):
     identity (e = 1) and the collapse (e = 0, i.e. DIA) are the
     lattice's top and bottom: the logic's projection lattice is the
     idempotent lattice of Z/lambda, one level down (the second-log
-    contact, WALLS.md SII).
+    contact).
 
 RESULTS (the run below prints the record; all six confirmed):
   P1 image law exhaustive (p <= 23, all 20 divisors); gate = order

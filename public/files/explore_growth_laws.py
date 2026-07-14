@@ -1,5 +1,5 @@
 """
-explore_growth_laws.py — the self-growing tower (THE FIRST HUNT, P143).
+explore_growth_laws.py — the self-growing tower.
 
 THE QUESTION. The tower is a blueprint: WE chose the primes. Flip it:
 let a number system grow itself. A GROWTH LAW = a structural DEMAND on
@@ -22,7 +22,7 @@ relationally — none mentions "prime":
 Which demands grow WHICH towers? Is the primorial tower an attractor
 of free growth or a knife-edge choice?
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (tier-labeled; run record below; all sections assert).
 
 1. THE LEAST-NEW LEMMA (rule, proved; verified exhaustively N <= 1e5).
    The minimal m >= 2 with gcd(m, N) = 1 is the least prime q NOT
@@ -64,7 +64,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    lambda via 7-1 = 6 — transparency, applied to a deepening move
    instead of a new prime), the greedy's first pick opens the 5-window —
    and then locks onto 5. The depth fate: dynamics-greed abandons CRT
-   breadth entirely and grows a p-adic column. (Answered at P146: the
+   breadth entirely and grows a p-adic column. (Answered: the
    lock is proved certain and the basin map computed — the lock-prime
    law, explore_lock_prime.py; the 40-step scope caveat is retired.)
 
@@ -107,7 +107,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    and is the maximal n with a^(L+1) == a for ALL a (prime squares
    break the all-a form at a = p). Both identities verified against
    Bernoulli numbers computed from scratch (exact Fractions,
-   Pascal-row recurrence — an outside reference per the P129 rule).
+   Pascal-row recurrence).
    W(odd L) = 2 (lambda(n) is even for n >= 3).
 
 7. D-RATE PICKS THE NEXT PRIME (rule, proved + verified k = 1..6,
@@ -134,14 +134,13 @@ The primorial tower is NOT a universal attractor — it is the
 attractor of exactly one demand, independence, which is the CRT
 axiom itself read as a growth demand. Honest scope: threshold-greedy
 laws over ring extensions of Z/N; optimizers sampled at one horizon;
-stochastic laws were subsequently charted at P147
-(explore_thermal_growth.py — the melting asymmetry); additive moves
-and non-cyclic ambients are open (ROAD hunt entry). Honest limit: every law here orders its
+stochastic laws were subsequently charted at
+explore_thermal_growth.py (the melting asymmetry); additive moves
+and non-cyclic ambients are open. Honest limit: every law here orders its
 candidates by SIZE ("least m") — the deleted archimedean place
 returns as the cost axis of growth; the non-archimedean cost theory
-was subsequently written at P145 (explore_size_crystallization.py —
-the crystallization split; doc home TOWER.md §II the archimedean
-axis).
+was subsequently written at explore_size_crystallization.py (the
+crystallization split).
 
 RUN RECORD (python explore_growth_laws.py, ~0.5 s, trivial memory):
   S1 least-new lemma: 100000/100000 (m_min == least non-dividing

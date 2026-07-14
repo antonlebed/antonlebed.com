@@ -1,11 +1,11 @@
 """IRREDUCIBILITY AS ORDER PARAMETER — the depth column's critical clock.
 
-VERTIGO STOCK (a), P165. The witness gap H(history | endpoint) is how much of
+The witness gap H(history | endpoint) is how much of
 a growth trajectory is UNRECOVERABLE from its endpoint: computational
 irreducibility (Wolfram's informal central thesis) made EXACT and DECIDABLE,
 because the growth-world route posteriors are closed-form (route-weight
-cancellation, OBSERVER.md). The established chambers noted route amnesia
-peaks inside the temperature range (breadth: finite beta, chamber six; depth: at
+cancellation). Earlier studies noted route amnesia
+peaks inside the temperature range (breadth: finite beta, an earlier study; depth: at
 the condensation clock beta_col, depth-observer). A peak is not an order
 parameter. This script asks whether
 the peak is a genuine PHASE TRANSITION (a non-analyticity in the depth->infinity
@@ -66,8 +66,8 @@ irreducibility phase transition sits exactly where the tower RE-IMPORTS a place
 (depth = the ultrametric |.|_q returning; breadth = the amnesiac CRT deleting
 all). (observation + the Euler-product limit is exact.)
 
-Run: `python explore_irreducibility_order.py`. Predictions frozen in SCRATCH.md
-(P165) BEFORE the run; asserts adjudicate; printed values read against the hand
+Run: `python explore_irreducibility_order.py`. Predictions (fixed before the
+run); asserts adjudicate; printed values read against the hand
 law. RUN RECORD (63 checks pass, ~5 s): beta_col = 1.49595 (interior root of
 Z_col=1); r(beta_col) = 0.69315 = log2 (max), r' = 1.8e-10, r'' = -2.598 finite;
 Cesaro H/t -> r verified (beta = 1.35, 1.6, 2.0, t to 2e4). S2: 9 column primes
@@ -81,7 +81,7 @@ Z_col(beta_col) = 1.0000 (interior); breadth Z(primes<=1e4) at beta = 1.5, 2, 3
 = 0.00182, 0.00001, 0.00000 -> 0 (Euler product); breadth clocks k = 1..5 =
 1.3778, 1.2478, 1.1966, 1.1673, 1.1518, falling to the pole. Prediction miss
 adjudicated by asserts: the order parameter is the threshold DEPTH a* (the mode
-is a deep suffix {a: Z_a<1}), NOT a count from level 1 (SCRATCH P2 had the
+is a deep suffix {a: Z_a<1}), NOT a count from level 1 (an earlier pass had the
 activation direction inverted; the assert caught the sign, -3.18 vs +0.61).
 """
 

@@ -1,16 +1,15 @@
 """
-The cover-exclusion twins, twin 2: the two-fat-slice exclusion
-(MOONSHOT probe, P89).
+The cover-exclusion twins, twin 2: the two-fat-slice exclusion.
 
-The realizability law's one open direction (LOGIC.md SI,
-explore_realizability.py P4): for d = q*q' a product of two odd
+The realizability law's one open direction (explore_realizability.py,
+prediction 4): for d = q*q' a product of two odd
 primes q < q', no nonzero (Phi_d)-codeword lives inside a triangle
 exponent set E(A, B, D) at D <= q-2 -- proved by the slice forcing
 whenever q' > 3(q-1)/2, censused empty at d = 143 and 221, OPEN in
-the close-prime zone. Bar (the P82-P86 bar): a proof or a refuting
+the close-prime zone. Bar: a proof or a refuting
 witness, never a re-walk census.
 
-THE REDUCTION (derived on paper before any code ran). Slices: write
+THE REDUCTION. Slices: write
 Z/d = Z/q x Z/q' (CRT), c = sum_x delta_x (x) gamma_x. Membership
 c in (Phi_d) is EXACTLY pairwise congruence of the slices mod
 (Phi_q') [evaluation at (zeta, theta): for each primitive theta the
@@ -37,7 +36,7 @@ PREDICTIONS (stated before the run):
     disconnection components group into the matched partitions, and
     any matched partition yields a codeword (distinct level values
     exist for p > r). Verified here PER SCALING CLASS against the
-    kernel census: d = 143 and 221 (P86 calibration -- both must
+    kernel census: d = 143 and 221 (both must
     stay empty/connected) and d = 323 = 17*19, the smallest
     previously-uncensused instance (fresh cross-check AND a new
     exclusion result). Exclusion at D = q-2 closes all D below
@@ -49,7 +48,7 @@ PREDICTIONS (stated before the run):
         (2a - q)(2beta - q') >= q(q' - q + 1).
     Max product over the box (a <= q-1, q'-q+1 <= beta <= q-1,
     both bounds = row capacity) is (q-2)(2q-2-q'): pure counting
-    EXCLUDES every pair with q' > (3q-4)/2 -- reproving the P86
+    EXCLUDES every pair with q' > (3q-4)/2 -- reproving the
     slice-forcing boundary by counting alone (formally inside
     3(q-1)/2, but the only integer between is 3(q-1)/2 itself,
     divisible by 3: the excluded prime sets are IDENTICAL).
@@ -71,11 +70,11 @@ PREDICTIONS (stated before the run):
     B == 1 mod q' has one -- the u = 0, 1 conditions force it).
     Corollary with P2: every gate-feasible config is weak-killed
     inside the proved zone at (11,13) and (13,17) -- the two
-    smallest open pairs are PROVED, before any sweep. (P90: the
+    smallest open pairs are PROVED, before any sweep. (The
     bound became unconditional below half-range -- the counting
     proof, explore_staircase_reduction.py R1 -- lifting the kill
     count from 41 to 46 pairs; see the kill classification.)
- P4 (tested here as a sweep; a PROVED RULE since P92,
+ P4 (tested here as a sweep; a proved rule,
     explore_staircase_reduction.py R12-R14): THE STRONG STAIRCASE
     BOUND, half-range: #{c : f(c) >= D+1-s} <= s+1 for s < (D+1)/2,
     every B (the nested case B == 1 achieves equality; nesting
@@ -93,10 +92,10 @@ PREDICTIONS (stated before the run):
     REFUTING WITNESS -- the composite realizability row falls at
     that pair -- and is reconstructed as an explicit codeword and
     re-verified over F_p.
- P6 (scope probe, added at /end before its first run): the strong
+ P6 (scope probe): the strong
     bound decoupled from pairs -- every prime m <= 53, every
     D in [3, m-2], every B. If it holds, the lemma is native to
-    the interval family (the P90 proof hunt targets the general
+    the interval family (a proof hunt targets the general
     statement); a violation here at an off-pair (m, D) shape would
     narrow the lemma without touching the exclusion.
 
@@ -105,7 +104,7 @@ RESULTS (the run below prints the record; all confirmed):
      every non-unit class: 143 (62 + 24 classes), 221 (98 + 30),
      323 (146 + 36, ~17 s; NEW: d = 323 excluded at D = 15 ->
      D_min(323) = 16 = q_min - 1, extending the composite row's
-     census beyond P86's battery).
+     census beyond the earlier battery).
   P2 identity and boundary brute-checked (all odd-prime pairs
      q <= 31, q' < 3q); gate-closed sanity pair (11,17) rook-
      connected at every B.
@@ -114,7 +113,7 @@ RESULTS (the run below prints the record; all confirmed):
      proved zone is real, not caution. Full-line count <= 1 per
      direction, equality iff B == 1 mod that prime.
   P4 strong half-range bound: ZERO violations across all 534,592
-     profiles -- and since P92 a PROVED RULE at every (m, D, B)
+     profiles -- and now a proved rule at every (m, D, B)
      (explore_staircase_reduction.py R12-R14: lattice counting,
      analytic m >= 213 + exhaustive below). The half-range cut is
      exactly right: every outside-zone weak excess is a fortiori
@@ -125,15 +124,15 @@ RESULTS (the run below prints the record; all confirmed):
   P5 sweep: ALL open-zone pairs q <= 97 (98 pairs, every unit B up
      to inversion, ~125 s): complement rook-CONNECTED everywhere --
      NO witness. Kill classification: weak+gate PROVE 46 of the 98
-     outright (including (11,13) and (13,17); 41 at P89, +5 at P90
-     by the unconditional weak scope: (37,47), (61,79), (79,103),
-     (83,107), (97,127)); and at P91 the staircase closed region
+     outright (including (11,13) and (13,17); 41 by the zoned weak
+     bound, +5 more by the unconditional weak scope: (37,47), (61,79),
+     (79,103), (83,107), (97,127)); and the staircase closed region
      (explore_staircase_reduction.py R7-R11: equicoverage, the
      complementation duality, time reversal, the product bound)
      proves the needed strong-bound instances at (q', q-2) for
      EVERY unit B at ALL 98 pairs -- D = q-2 is odd, so only the
      coverage cap is needed, and the m = q side is equicoverage.
-     At P92 the staircase lemma became a proved rule at EVERY
+     The staircase lemma is a proved rule at EVERY
      (m, D, B), so the zone censuses are now benchmarks of the
      cheap arithmetic test (98/98 at q <= 97; 1103/1130 at
      q <= 400), not the closure's frontier.
@@ -143,8 +142,8 @@ RESULTS (the run below prints the record; all confirmed):
      is native to the interval family, not the pair geometry.
 
 Tier: P1, P2, P3 rule/criterion (proved; code-verified as stated).
-P4: REDUCED at P90 to two caps, PROVED on the closed region at P91,
-and CLOSED at P92 (explore_staircase_reduction.py R12-R14) -- a
+P4: reduced to two caps, proved on the closed region,
+and closed (explore_staircase_reduction.py R12-R14) -- a
 rule with complete coverage at every (m, D, B): TWIN 2'S EXCLUSION
 HOLDS AT EVERY ODD PRIME PAIR (kill algebra + gate + R7/R8 + the
 lemma; no covering system with two fat slices evades at any
@@ -158,7 +157,7 @@ benchmarks of the cheap per-instance tests.
 Classical contacts: Fine-Wilf (a complement gap of length
 >= q+q'-1 forces r = 1 -- every evader gap is shorter); the
 modular postage-stamp / h-basis literature (interval covering
-multiplicities); the coset-cover bound (P85) -- both twins are
+multiplicities); the coset-cover bound -- both twins are
 "a degenerate cover must not beat CRT" statements, and the
 staircase bound is twin 2's version of one-class-per-modulus.
 
@@ -231,7 +230,7 @@ def find_p(d):
     return p
 
 # ------------------------------------------------- the kernel machinery
-# (the P86 tester, explore_realizability.py, copied verbatim -- scripts
+# (the tester from explore_realizability.py, copied verbatim -- scripts
 #  stay standalone)
 
 class CodeTester:
@@ -384,9 +383,9 @@ INF = 10**9
 
 def weak_bound(q, modulus):
     # #{lines >= level} <= 2s+1, s = (q-1) - level. PROVED
-    # unconditionally for s < (D+1)/2 = (q-1)/2 (P90 counting proof,
+    # unconditionally for s < (D+1)/2 = (q-1)/2 (the counting proof,
     # explore_staircase_reduction.py R1 -- any modulus, any interval
-    # positions); the P89 clustering proof adds 8s <= modulus beyond
+    # positions); the clustering proof adds 8s <= modulus beyond
     # half-range. Elsewhere: no claim.
     def b(level):
         s = (q - 1) - level
@@ -545,7 +544,7 @@ print(f"  P4 strong half-range staircase: {strong_viol} violations"
       f" across {profiles} profiles")
 check(strong_viol == 0,
       "P4 strong staircase bound: no violation anywhere swept"
-      " (a proved rule since P92; the sweep stays as its"
+      " (a proved rule -- explore_staircase_reduction.py; the sweep stays as its"
       " independent witness)")
 
 if disconnections:
@@ -581,14 +580,14 @@ check((11, 13) in proved_weak and (13, 17) in proved_weak
       and len(proved_weak) == 46,
       f"weak+gate PROVE the exclusion outright at {len(proved_weak)}"
       f" of {len(pairs)} pairs (every gate-feasible config"
-      f" weak-killed; 41 by the P89 zoned bound, +5 by the P90"
+      f" weak-killed; 41 by the zoned bound, +5 by the"
       f" unconditional scope): {proved_weak}")
 check(len(strong_only) + len(proved_weak) == len(pairs),
       f"P4 algebra universal: every config at every open pair is"
       f" strong-killed -- {len(strong_only)} pairs need the strong"
       f" bound: {strong_only}")
 
-# the P91 staircase closed region: proves the strong-bound instances
+# the staircase closed region: proves the strong-bound instances
 # at (q', q-2) for every unit B (explore_staircase_reduction.py
 # R7-R11; m = q side = equicoverage, D = q-2 odd so the coverage cap
 # alone carries the lemma via the reduction)
@@ -615,7 +614,7 @@ check(not stair_open,
       f"STAIRCASE CLOSURE: the R11 closed region alone proves the"
       f" strong bound at (q', q-2) for every unit B at all"
       f" {len(strong_only)} pending pairs (the arithmetic-test"
-      f" benchmark) -- and since P92 the lemma is a proved rule at"
+      f" benchmark) -- and the lemma is now a proved rule at"
       f" EVERY (m, D, B), so twin 2's exclusion holds at every odd"
       f" prime pair, not just q <= 97")
 
@@ -627,7 +626,7 @@ for (q, qp) in open_zone_pairs(199):
         if not config_kill(q, qp, a, b, sb, sb):
             ok = False
 check(ok, "strong-kill algebra verified through q = 199: with P4 now"
-          " a proved rule (P92), twin 2 closes at EVERY odd prime"
+          " a proved rule (explore_staircase_reduction.py), twin 2 closes at EVERY odd prime"
           " pair unconditionally")
 
 # =======================================================================

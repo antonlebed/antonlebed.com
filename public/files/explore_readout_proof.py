@@ -1,18 +1,16 @@
 """explore_readout_proof.py — THE READOUT THEOREM: the general proof
-of the readout law (the constellation arc's proof session; VERTIGO
-STOCK (a) remainder, ROAD P192).
+of the readout law (the constellation arc's proof session).
 
-THE QUESTION (ROAD P190/P192). The readout law stood at rule in range
+THE QUESTION. The readout law stood at rule in range
 (four censused 2-power windows, e = 2..16 + the e = 12 offsets):
 a 2-power window's arrival classes read (2^m - 1, top 3e/2 - 1)
-digits of 2/pi^e. ROAD named the two gaps that separate rule-in-range
+digits of 2/pi^e. Two gaps separated rule-in-range
 from rule: (1) no free-digit entry beats 3e/2 at c = 1, and (2) the
 carry bookkeeping at arbitrary e. This session closes both by a
 general proof, and spot-falsifies it SIGHT-UNSEEN at e = 32 — a
 window no engine has ever touched.
 
-THE HAND DERIVATION (SCRATCH.md P192 passes 1-3, frozen before this
-file existed).
+THE HAND DERIVATION (frozen before this file existed).
 
 Setup: K/Q_2 totally ramified degree e, f = 1, pi uniformizer,
 w = 2/pi^e a unit with canonical {0,1}-digits w_i (Teichmueller, so
@@ -65,8 +63,8 @@ L4 (THE ON-BRANCH LADDER, top class): summing the L3 list by digit
     THE PAIR RESIDUAL: rho_1 (1 + c_1 w) pi^e with v(1 + c_1) >= e
     (c_1 odd) and v(c_1(w - 1)) = e/2 on-branch => the residual
     lands at 3e/2 EXACTLY — below 3e/2 the ladder is rho-free on
-    every live branch; off-branch it sits above the stop. This is
-    ROAD gap (1) closed; the sigma-split's exact 2-content is
+    every live branch; off-branch it sits above the stop. This
+    closes gap (1); the sigma-split's exact 2-content is
     gap (2).
 L5 (freedom): rho_2's unique boundary monomial has unit coefficient
     c_1 w => rho_2 toggles D_{3e/2}: floor 3e/2 attained and graded.
@@ -83,7 +81,7 @@ THE THEOREM (all censused shapes are corollaries): windows
     5e/4 alone below 3e/2) for EVERY e = 2^s — the censused
     zeta16/zeta32 vectors were instances.
 
-THE FROZEN SLATE (SCRATCH.md P192 pass 3; labels never read orbits;
+PREDICTIONS (fixed before the run; labels never read orbits;
 under the proof EVERY row is load-bearing — a miss at ANY rel
 falsifies the proof, superseding EL5's rel <= 3 / rel >= 4 split):
 
@@ -134,8 +132,7 @@ general ladder vs the frozen per-e ladders (exhaustive where the
 window allows, weight-<= 2 + seeded sample at e = 16 top).
 Run: python prime/code/explore_readout_proof.py
 
-FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output; tiers below).
 
 1. THE READOUT THEOREM (theorem — the proof is general in e, the
    engine verifies it): for every totally ramified f = 1 window
@@ -146,7 +143,7 @@ CLAUDE.md).
    constants at rel-e/2 and rel-5e/4 alone (rel-1 at e = 2; the
    j = 3 constant NEVER enters a window), freedom carried by rho_2
    (top) / rho_1 (intermediate), spectra rigid below freedom on
-   every live branch. ROAD gap (1) closes by the sigma-split: every
+   every live branch. Gap (1) closes by the sigma-split: every
    rho-route lands >= 3e/2 on-branch, the rho_1 pair's residual at
    e + v(c_1(w-1)) = 3e/2 exactly via the forced rel-e/2 constant;
    gap (2) closes because the only in-window carry sites are the two

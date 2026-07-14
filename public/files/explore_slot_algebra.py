@@ -1,16 +1,15 @@
 """explore_slot_algebra.py — THE SLOT-FORM ALGEBRA: the landing form,
 the general forced-slot digit laws, the odd-p triangle, and the true
-orbit action (ROAD P210 face 1; the P198 deep-spectrum remainders).
+orbit action.
 
-THE QUESTION (ROAD P210). explore_deep_spectrum.py charted the
+THE QUESTION. explore_deep_spectrum.py charted the
 post-freedom game but left three algebra gaps: the second slot's
 digit -rho_0(w_3+w_5) is OBSERVATION-tier (three words); the
 eta-orbit invariance constraints are measured, not derived; and the
 odd-p grid -> word bijection is brute at e = 6 only. Derive all
 three as exact algebra.
 
-THE HAND DERIVATION (SCRATCH.md P210 passes 1-4, frozen before this
-file existed).
+THE HAND DERIVATION (derived by hand before this script existed).
 
 P1 (THE LANDING FORM). The one-step map is exact: (1+x)^p - 1 =
    x^p - w pi^e x g(x), g(x) = sum_{j=1}^{p-1} (C(p,j)/p) x^{j-1},
@@ -82,8 +81,7 @@ P4 (THE ORBIT ACTION). pi' = eta pi twists the element, w' =
    plus p-power boosts).
    The true chart word is w_digits(F, w eta^{-e}, eta pi, n).
 
-THE FROZEN SLATE (SCRATCH.md P210 pass 5, frozen before this file
-existed; a miss falsifies its lemma):
+PREDICTIONS (fixed before the run; a miss falsifies its lemma):
 
 SA-A (the landing form, end-to-end): per gate-open censused field
    (the four gate-open e=6 fields + K9 + x^12+3 + x^18+3) and class
@@ -142,8 +140,9 @@ chart words (matched extractor pairs). Labels never read orbits;
 the engine only ever reads measured digits.
 Run: python prime/code/explore_slot_algebra.py
 
-FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output; tiers use
+the standard scale: property / observation / pattern / rule /
+criterion / theorem).
 
 1. THE LANDING FORM (theorem — the P1 identity is exact algebra;
    verified end-to-end rule-in-range): L = p i* + v(1 - w g(x_m)
@@ -169,7 +168,7 @@ CLAUDE.md).
    residual intrusion (the phi/F(u) window products of the hand
    derivation) observed from t = 5 = p at (5,2,1) but ONLY at the
    deferral t = 4 = i-dagger at (3,2,1) — slots proper are
-   reciprocal-exact there; the onset law CLOSED P214: the two-layer
+   reciprocal-exact there; the onset law closed: the two-layer
    law T = Omega^3(1+FB)/(1+K), explore_reciprocal_layer.py.
    D_1 = -(w_{p^m} + w_{rel_c+p^{m-1}}): the
    deep-spectrum observation -rho_0(w_3+w_5) is now derived, and K9's
@@ -209,14 +208,13 @@ CLAUDE.md).
    and is NOT a chart word of any uniformizer. The LAND-15-B word
    IS in the variety: the design is the anchor, third specimen.
 
-PRE-GREEN FAILURES (adjudicated in-session; record in SCRATCH P210,
-git):
+PRE-GREEN FAILURES (adjudicated during development):
 (1) Run 1: the frozen "D_0 = w_0^2 - w_{rel_c} at ALL scopes"
     printed passage cross-terms at (5,1,1) (w_10 w_6 + w_11 w_5 +
     ...): the hand lemma was imprecise — the slot forms are
     PASSAGE-CONDITIONED (reduced mod the earlier forced digits,
     each linear in its own -w_r). The (3,1,1) forms were exact as
-    frozen; conditioning recovers the slate forms at every scope.
+    frozen; conditioning recovers the predicted forms at every scope.
 (2) Runs 2-4: engine scaffolding — regime rels below p^m are
     identically zero (no diagonal to solve); the walker extractor
     first reused w_digits, whose conflated element/helper pair is

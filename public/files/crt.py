@@ -196,7 +196,7 @@ TRUE_THIN_RING  = Ring("TRUE_THIN",  (2, 3, 5, 7, 11, 13),         (1,) * 6)  # 
 THIN_RING       = Ring("THIN",       (2, 3, 5, 7, 11),             (1,) * 5)  # rung k=5
 DATA_RING       = Ring("DATA",       (2, 3, 5, 7),                 (1,) * 4)  # rung k=4
 
-# Legacy fat rings (prime-power channels; abandoned path — record archived P219)
+# Legacy fat rings (prime-power channels; abandoned path — archived)
 TRANS_RING      = Ring("TRANS",      (2, 3, 5, 7, 11, 13, 17), (3, 2, 2, 2, 1, 1, 1))
 TRUE_RING       = Ring("TRUE",       (2, 3, 5, 7, 11, 13),     (3, 2, 2, 2, 1, 1))
 DEEP_RING       = Ring("DEEP",       (2, 3, 5, 7, 11),         (3, 2, 2, 2, 1))
@@ -319,7 +319,7 @@ def delta(ring):
 # k-3 channels reconstruct, and every single-channel error is correctable.
 # Weight matrix (syndrome of +1 in data channel p is -e_p mod parity
 # primes, e_p the data-ring idempotent): all entries nonzero for RAD —
-# no blind spots. The fat ring fails this (fat record archived P219).
+# no blind spots. The fat ring fails this (the fat record is archived).
 
 def _crt_reconstruct_subset(residues_subset, moduli_subset):
     """CRT reconstruction from an arbitrary subset of moduli.
@@ -610,7 +610,7 @@ def _self_test():
     check("ECC clean: all 210 codewords", True)
 
     # Weight matrix: syndrome of +1 in data channel p is -e_p mod parity
-    # (e_p = Z/210 idempotent). Matches the archived HARDWARE.md; all entries nonzero.
+    # (e_p = Z/210 idempotent). Matches the archived hardware record; all entries nonzero.
     expected_w = {11: [6, 4, 5, 10], 13: [1, 5, 9, 3], 17: [3, 2, 7, 1]}
     e210 = {p: idempotent(frozenset([i]), DATA_RING)
             for i, p in enumerate((2, 3, 5, 7))}
@@ -711,7 +711,7 @@ def _self_test():
     check("seed-flower 3-root {3,7} = 11", seed_flower([3, 7])[0] == 11)
     check("seed-flower fat Z/72 = 55", seed_flower([2, 3], [3, 2])[0] == 55)
 
-    # ── Legacy fat rings (kept for fat-era scripts, archived P219) ──────
+    # ── Legacy fat rings (kept for fat-era scripts, archived) ──────
     check("TRANS.N", TRANS_RING.N == 214414200)
     check("TRANS.phi", TRANS_RING.phi == 38707200)
     check("TRANS.lam", TRANS_RING.lam == 1680)

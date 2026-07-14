@@ -1,10 +1,9 @@
 """
 explore_archimedean_dial.py -- THE ARCHIMEDEAN DIAL / THE KNIFE EDGE
-(THE HUNT chamber fourteen, P158; sibling of explore_growth_machine.py
-P157, chamber thirteen). Cashes VERTIGO STOCK (e), P157.
+(sibling of explore_growth_machine.py).
 
-THE QUESTION (VERTIGO STOCK (e), the descent of chamber thirteen).
-Chamber thirteen located Turing-completeness at the DECREMENT for ONE
+THE QUESTION (descending from explore_growth_machine.py).
+explore_growth_machine.py located Turing-completeness at the DECREMENT for ONE
 machine (the growth machine: INC + presence-zero-test, no DEC, decidable;
 restore DEC and it is Minsky-universal). Generalize to the WHOLE
 finite-window family: is EVERY archimedean-free (multiply-only,
@@ -15,15 +14,15 @@ ANSWER -- THE KNIFE EDGE. Universality has TWO ingredients (Minsky): an
 exact ZERO-TEST (branch on "= 0", revisitably) AND a BORROW (a move that
 LOWERS a counter). NEITHER alone is universal:
   - zero-test, NO borrow  -> the growth machine: counters only rise, each
-    test flips once, DECIDABLE (chamber thirteen).
+    test flips once, DECIDABLE (explore_growth_machine.py).
   - borrow, NO zero-test  -> a vector addition system (VAS): reachability
     DECIDABLE (Leroux-Schmitz 2019). A borrow alone is harmless.
   - both                  -> Minsky, UNIVERSAL.
 The tower NATIVELY supplies the exact zero-test -- channel presence
 (p | N?) is reduction at the finite place p, an INTRA-window read, free --
 and NATIVELY deletes the borrow -- size/carry/overflow live only at the
-archimedean place, the one INTER-window coupling the tower removes
-(TOWER.md I). So the tower's finite-window family sits EXACTLY ONE
+archimedean place, the one INTER-window coupling the tower removes.
+So the tower's finite-window family sits EXACTLY ONE
 archimedean import -- a single borrow -- below Turing-completeness: it
 already owns the hard half (the zero-test) for free, and only the deleted
 place stands between it and universality. Memory reading: the zero-test
@@ -58,7 +57,7 @@ value) -> unbounded flips -> the finite quotient goes unsound. The
 down-flip is the borrow's fingerprint = the archimedean act read
 dynamically.
 
-FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
+FINDINGS (run record below; every section asserts).
 
 1. THE ARCHIMEDEAN-FREE FLOOR IS DECIDABLE (rule, proved for the modelled
    class + standard WSTS; verified S1). A finite-window substrate whose
@@ -71,7 +70,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
    "depth >= 3" cannot be flipped by a quotient that does not count the
    INCs; the capped counter counts to its cap then freezes.) The decider
    settles a battery including non-terminating programs, agreeing with the
-   naive simulation wherever it halts. Chamber thirteen's presence-test is
+   naive simulation wherever it halts. The growth machine's presence-test is
    the c = 1 case; the whole archimedean-free family sits on this floor.
 
 2. THE DOWN-FLIP IS THE BORROW (rule; verified S2). Count the zero-test
@@ -95,7 +94,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; every section asserts).
    (control, zero-pattern) quotient node -- the S1 decider is unsound.
    Neither (a) nor (b) alone is universal; their conjunction is.
 
-4. THE DIAL (synthesis -- the chamber's headline; the decidability tiers
+4. THE DIAL (synthesis -- the headline; the decidability tiers
    CITED, the down-flip/zero-branch discriminators verified S2-S3). The
    four rows above, keyed by (zero-test?, borrow-kind). Reading: the borrow
    is the dangerous import -- even a forgetful borrow alone (reset net)
@@ -145,7 +144,7 @@ genuine intermediate archimedean grade (a "safe" forgetful borrow); if
 universal, then ANY borrow flips it and the knife edge is even sharper.
 The decrement case is settled (Minsky); this corner is not.
 
-FROZEN SLATE (SCRATCH P158). Adjudication -- NO MISSES, all confirmed:
+PREDICTIONS (fixed before the run). Adjudication -- NO MISSES, all confirmed:
   PR1 floor decider ......... CONFIRMED (5-program battery all correct;
       P_A + P_C decided LOOP with no terminating forward simulation)
   PR2 down-flip census ...... CONFIRMED (multiply-only MO_1 up=1/down=0,
@@ -421,7 +420,7 @@ def run_minsky(instr, q0, counters, limit=200000):
 # decidable) + S2 (zero down-flips). Re-assert the link here.
 ok(total_down_mo == 0, "(a) zero-test without borrow: monotone, S1 decides it")
 
-# HALTS iff counter 0 is EVEN, else loops (chamber thirteen's witness).
+# HALTS iff counter 0 is EVEN, else loops (explore_growth_machine.py's witness).
 EVENODD = {0: ("JZ", 0, "HALT", 1),
            1: ("DEC", 0, 2),
            2: ("JZ", 0, "odd", 3),

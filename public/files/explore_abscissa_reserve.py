@@ -1,19 +1,19 @@
-"""explore_abscissa_reserve.py -- chamber thirty: the Dirichlet-abscissa reserve
+"""explore_abscissa_reserve.py -- the Dirichlet-abscissa reserve
 (the settled end).
 
-THE QUESTION (ROAD P206 face 1a). Chambers twenty-seven through twenty-nine
-(explore_complexity_ledger / ledger_threshold / reserve_zoo) built reserves whose
-solvency threshold is a CESARO log-average
+THE QUESTION. explore_complexity_ledger.py, explore_ledger_threshold.py, and
+explore_reserve_zoo.py built reserves whose solvency threshold is a CESARO
+log-average
   rho_c(w) = lim Sum_{i<=k} w(p_i) / theta(p_k),      theta(x) = Sum_{p<=x} log p,
 realizing analytic DENSITY constants (Golomb-Dickman, the Poisson-Dirichlet spectrum,
-Artin). Face 1a asks for a genuinely DIFFERENT solvency MECHANISM: a Dirichlet
+Artin). This question asks for a genuinely DIFFERENT solvency MECHANISM: a Dirichlet
 ABSCISSA -- the least s at which the resource series
   D(s) = Sum_p 1/P+(p-1)^s        (P+(m) = largest prime factor of m)
 converges (or equals 1) -- a geometric/analytic criterion, not an average. Does the
 abscissa realize a NEW named constant, of a different KIND than the Cesaro zoo?
 
-THE FRAME (hand-attacked pre-engine, SCRATCH P207; the hardness reading CORRECTED at
-the P208 provenance audit -- THE LITERATURE PIN below). NO new constant -- an INVERSION
+THE FRAME (worked by hand before this script existed; the hardness reading corrected
+by a later literature check -- THE LITERATURE PIN below). NO new constant -- an INVERSION
 plus a degeneracy that IS the finding. The reciprocal weight 1/P+^s reads the SMOOTH
 TAIL of the P+ distribution (small P+), where the Cesaro log-weight log P+ reads the
 BULK (a typical shifted prime has P+(p-1) ~ (p-1)^0.62, huge, contributing ~1/p^0.62s
@@ -27,10 +27,10 @@ The pinning is ONE-DIRECTIONAL: infinitely many B-smooth shifted primes (fixed B
 D(s) diverges for every s; equivalently D(s) finite => every smooth count C_B finite.
 The converse is NOT claimed -- all-counts-finite does not force convergence (the
 per-level counts N(q) = #{p : P+(p-1) = q} could still grow in q), so smooth existence
-(Sigma_1/Pi_2, chamber twenty-five) is a SUFFICIENT certificate for total degeneracy,
-not an equivalent of finiteness.
+(Sigma_1/Pi_2, explore_conjecture_bridge.py) is a SUFFICIENT certificate for total
+degeneracy, not an equivalent of finiteness.
 
-THE LITERATURE PIN (P208 audit -- the fixed-s question is NOT open). Friable-shifted-
+THE LITERATURE PIN (the fixed-s question is NOT open). Friable-shifted-
 prime counts are a THEOREM: #{x < p <= 2x : P+(p-1) <= x^beta} >> x/(log x)^C for every
 beta > 15/(32 sqrt e) = 0.2843.. (Lichtman 2022, arXiv:2211.09641, Thm 1.1 -- won by
 extending the Bombieri-Friedlander-Iwaniec mean-value range; Baker-Harman 1998 gave
@@ -55,15 +55,15 @@ The "third KIND" of reserve is NOT a third constant and NOT a clean third hardne
 the abscissa is the SETTLED end of the distribution -- both ends are governed by one
 circle (shifted-prime level of distribution), open at the bulk, proved at the tail.
 
-FROZEN SLATE AR1-AR4 (hand-attacked pre-engine, SCRATCH P207; findings enter by a
-SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
+PREDICTIONS AR1-AR4 (fixed before the run; worked by hand before this script existed;
+findings below were entered afterward from the script's own printed output):
 
   AR1 (the inversion, observation). Split primes by P+(p-1) > sqrt(p-1) (ROUGH) vs
     <= sqrt(p-1) (SMOOTH-ish). (a) Under the Cesaro weight log P+(p-1): the ROUGH set
     carries the BULK of Sum log P+(p-1) (fraction > 0.85). (b) Under the reciprocal
     weight 1/P+(p-1)^2: the SMALL-q set (P+ in {2,3,5,7,11}) carries the BULK of D(2)
     (fraction > 0.7). The two weights read OPPOSITE ends of the same distribution.
-    HAND: rough density ~ log 2 = 0.69 of primes but a larger share of the log-mass;
+    hand estimate: rough density ~ log 2 = 0.69 of primes but a larger share of the log-mass;
     the reciprocal is dominated by q <= 7 (a typical prime's 1/p^1.2 ~ 0).
 
   AR2 (existence-pinning, argument + observation). (a) D_k(s) = Sum_{i<=k} 1/P+(p_i-1)^s
@@ -71,16 +71,16 @@ SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     substantial share of D_K (> 0.30) at s = 2 and s = 3 -- the opposite of a convergent
     series, whose tail fractions shrink to 0. (Monotonicity alone is vacuous: EVERY positive
     series' partial sums rise, convergent ones included -- so the tail fraction, not the
-    increase, is the diagnostic. [The slate called finiteness at s = 2, 3 open; wrong --
-    it is a theorem that D diverges there: THE LITERATURE PIN, P208 audit.])
-    HAND: D(2) tail ~0.5. (b) The Fermat count (P+(p-1) = 2) is EXACTLY 5 (bounded);
+    increase, is the diagnostic. [This prediction called finiteness at s = 2, 3 open; wrong --
+    it is a theorem that D diverges there: see THE LITERATURE PIN above.])
+    hand estimate: D(2) tail ~0.5. (b) The Fermat count (P+(p-1) = 2) is EXACTLY 5 (bounded);
     the smooth counts C_B(k) = #{i<=k : P+(p_i-1) <= B} for B = 3,5,7 GROW with k. So
     lim_k D_k(s) finite => finitely many B-smooth shifted primes for every B
-    (equivalently: any C_B infinite => D(s) diverges for every s). [The slate's first
-    draft wrote this as an IFF; the converse direction is unproved -- P208 audit.]
-    HAND: Fermat count 5 (3,5,17,257,65537, all <= 104729); C_3 grows small -> teens.
+    (equivalently: any C_B infinite => D(s) diverges for every s). [The first
+    draft wrote this as an IFF; the converse direction is unproved.]
+    hand estimate: Fermat count 5 (3,5,17,257,65537, all <= 104729); C_3 grows small -> teens.
 
-  AR3 (the duality -- headline, argument; hardness reading corrected P208, see THE
+  AR3 (the duality -- headline, argument; hardness reading corrected, see THE
     LITERATURE PIN). Two mechanisms, two ends. Assert numerically in one place:
     bulk-fraction(Cesaro) high AND smooth-fraction(reciprocal) high AND Fermat-count
     = 5 bounded WHILE the smooth-count grows -- so the abscissa has NO nondegenerate
@@ -91,9 +91,9 @@ SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     holds, but the integer B-smooth counts are UNCONDITIONALLY infinite (B-smooth numbers
     are dense and easy), so the integer abscissa degeneracy is PROVABLE while the shifted
     one is conjectural. The SHIFT (the +1) is exactly what turns an easy smoothness fact
-    into the Pierpont existence question -- matching chamber twenty-five's genome ->
+    into the Pierpont existence question -- matching explore_conjecture_bridge.py's genome ->
     spectrum functor (the intervention +1 the non-functorial push).
-    HAND: integer 3-smooth count <= 1e5 ~ (log 1e5)^2/(2 log2 log3) ~ 40, >> shifted ~15.
+    hand estimate: integer 3-smooth count <= 1e5 ~ (log 1e5)^2/(2 log2 log3) ~ 40, >> shifted ~15.
 
 DESIGN. Thin import-free number theory (mirrors explore_reserve_zoo.py /
 explore_ledger_threshold.py). One pass over the first K = 10000 primes (p_max = 104729):
@@ -110,15 +110,15 @@ the smooth-count growth an observation. AR3 is the argument that the abscissa re
 no new analytic constant; its hardness reading is corrected by the pin -- divergence at
 every s < 1/0.2844 ~ 3.52 is a THEOREM (Lichtman/Baker-Harman friable-shifted-prime
 counts, the BFI circle), sigma_c > 3.51, and only sigma_c = +inf stays open, with
-smooth-shifted-prime existence (Pierpont, Pi_2, chamber 25) a SUFFICIENT certificate,
-not an equivalent. AR4 is an observation isolating the shift's signature, which lives
-at the ENDPOINT: integer sigma_c = +inf is provable (3-smooth integers are infinite),
+smooth-shifted-prime existence (Pierpont, Pi_2, explore_conjecture_bridge.py) a SUFFICIENT
+certificate, not an equivalent. AR4 is an observation isolating the shift's signature, which
+lives at the ENDPOINT: integer sigma_c = +inf is provable (3-smooth integers are infinite),
 shifted sigma_c = +inf waits on Pierpont-type infinitude. No new constant is claimed;
 the content is the inversion (two mechanisms read two ends of one distribution) plus
 the corrected hardness map: open density constants at the bulk, proved degeneracy at
 the tail, existence-shaped open content only at the tail's endpoint.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (tiers below; run record at bottom; all sections assert).
 
 1. THE INVERSION (observation). On the single sqrt-partition of the shifted primes
    (P+(p-1) > sqrt(p-1) = ROUGH, 6143 of 9999 = 0.614; else SMOOTH), the two weights read
@@ -135,26 +135,27 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    (D_k(1) 8.07 -> 137.0), and the last decade (k 1000 -> 10000) still carries 0.51 of
    D_k(2) and 0.37 of D_k(3) -- the opposite of a convergent series whose tail fractions
    shrink to 0 (mere monotonicity is vacuous for a positive series). This in-range signal
-   reflects a THEOREM (P208 pin): friable-shifted-prime counts (Lichtman 2022 beta > 0.2843,
-   >> x/(log x)^C per dyadic block) force D(s) = +inf unconditionally for every
-   s < 1/0.2844 ~ 3.52, so sigma_c > 3.51. The climb is carried by SMOOTH SHIFTED PRIMES:
+   reflects a THEOREM (see THE LITERATURE PIN above): friable-shifted-prime counts (Lichtman
+   2022 beta > 0.2843, >> x/(log x)^C per dyadic block) force D(s) = +inf unconditionally for
+   every s < 1/0.2844 ~ 3.52, so sigma_c > 3.51. The climb is carried by SMOOTH SHIFTED PRIMES:
    the Fermat count (P+=2) is frozen at exactly 5 (3,5,17,257,65537 -- conjecturally all
    there are), while the B-smooth counts grow, C_3 12 -> 31, C_5 19 -> 95, C_7 26 -> 196.
    One-directional pinning at the ENDPOINT: any C_B infinite => D(s) diverges for EVERY s
    (sigma_c = +inf); so under the standard conjecture that Pierpont primes are infinite,
    sigma_c = +inf. The converse (all C_B finite => convergence) is unproved and NOT claimed.
 
-3. THE DUALITY (argument -- the headline, corrected P208). The reserve zoo's two solvency
+3. THE DUALITY (argument -- the headline, corrected). The reserve zoo's two solvency
    mechanisms sit at the two ends of the P+ distribution:
      CESARO average  -> BULK (rough P+, 0.746 of log-mass) -> OPEN DENSITY constants
-                        (chambers 27-29: Fouvry-BFI for the Dickman Golomb-Dickman/PD
+                        (explore_complexity_ledger.py / explore_ledger_threshold.py /
+                        explore_reserve_zoo.py: Fouvry-BFI for the Dickman Golomb-Dickman/PD
                         constants, GRH for Artin);
      DIRICHLET absc. -> SMOOTH tail (rough only 0.046 of D(2)) -> NO constant: divergence
                         PROVED for s < ~3.52 (the same BFI circle -- Lichtman extends the
                         BFI mean-value range), open only at the sigma_c = +inf endpoint,
-                        where Pierpont/Fermat existence (Sigma_1/Pi_2, chamber 25) is the
-                        sufficient certificate.
-   So the "third KIND" of reserve the face asked for is neither a third constant nor a
+                        where Pierpont/Fermat existence (Sigma_1/Pi_2, explore_conjecture_bridge.py)
+                        is the sufficient certificate.
+   So the "third KIND" of reserve this question asked for is neither a third constant nor a
    clean third hardness: the abscissa is the SETTLED end -- one circle (shifted-prime
    level of distribution) governs both ends, conjectural at the bulk, proved at the tail,
    existence-shaped only at the tail's endpoint. The honest lateral resolution of the
@@ -167,30 +168,29 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    dense), so the integer sigma_c = +inf is provable outright. The shifted contrast lives
    at the ENDPOINT: fixed-s divergence is a theorem on both sides, but shifted
    sigma_c = +inf waits on Pierpont-type infinitude -- the +1 SHIFT moves an easy
-   smoothness fact to the edge of the friable-shifted-prime literature; chamber 25's
-   genome -> spectrum functor, with the +1 the non-functorial push.
+   smoothness fact to the edge of the friable-shifted-prime literature; matching
+   explore_conjecture_bridge.py's genome -> spectrum functor, with the +1 the non-functorial push.
 
-THE VERTIGO (chamber headline, corrected). The two ways to ask whether a designed-growth
+THE HEADLINE (corrected). The two ways to ask whether a designed-growth
 economy is solvent -- a Cesaro AVERAGE of the cost vs the ABSCISSA of its resource series --
 read the two ends of one distribution, and ONE circle (shifted-prime level of distribution,
 BFI) governs both: the average reads the bulk and lands on OPEN density constants, the
 abscissa reads the smooth tail where the same circle's theorems already force degeneracy,
 leaving existence (Pierpont/Fermat, Sigma_1/Pi_2) only the endpoint. The reserve zoo
-(chambers 27-29) and the fate bridge (chamber 25) are one object seen through the two ends
+(explore_complexity_ledger.py, explore_ledger_threshold.py, explore_reserve_zoo.py) and the
+fate bridge (explore_conjecture_bridge.py) are one object seen through the two ends
 of P+(p-1) -- and the tail end, where existence lives, is the one the theorems already own.
 
 RUN RECORD (this file, ~0.1 s, 13 checks, well under 512 MB, no numpy; all sections assert).
-P208 provenance audit (fresh-model eye over the Opus-authored P201-P207 chain): two
-corrections landed in every home (this docstring, OBSERVER.md, ROAD.md, INDEX.md) --
-(i) the existence-pinning IFF was one-directional (the converse unproved); (ii)
-"finiteness stays open" at s = 2, 3 was factually wrong -- divergence there is a
-theorem (friable shifted primes: Baker-Harman 1998 beta 0.2961, Lichtman 2022
-arXiv:2211.09641 beta 0.2843, counts >> x/(log x)^C per dyadic block; Thm 1.1 +
-intro chronology read in the primary at audit time -- the statement, not the proof).
-The computed findings (the inversion, the growth table, the control)
+A provenance audit caught two corrections needed throughout: (i) the existence-pinning IFF
+was one-directional (the converse unproved); (ii) "finiteness stays open" at s = 2, 3 was
+factually wrong -- divergence there is a theorem (friable shifted primes: Baker-Harman 1998
+beta 0.2961, Lichtman 2022 arXiv:2211.09641 beta 0.2843, counts >> x/(log x)^C per dyadic
+block; Thm 1.1 + intro chronology read in the primary at audit time -- the statement, not
+the proof). The computed findings (the inversion, the growth table, the control)
 were unaffected; the headline was recast from "third hardness" to "the settled end."
-Frozen slate AR1-AR4 hand-attacked pre-engine (SCRATCH P207). Band-absorbed-bias caught (the
-P151 discipline): the first pass's hand thresholds were miscalibrated -- AR1(a) guessed the
+Predictions AR1-AR4 were worked by hand before this script existed. A calibration bias was
+caught: the first pass's hand thresholds were miscalibrated -- AR1(a) guessed the
 rough log-mass fraction > 0.85 (actual 0.7456) and AR4 tested a small-q-band fraction > 0.70
 (actual 0.663) -- so the tests were recast onto the SINGLE sqrt-partition read by BOTH weights,
 which gives the sharp and correct inversion (rough log-mass 0.7456 vs rough reciprocal-mass
@@ -199,11 +199,10 @@ run: the inversion (0.746 / 0.046), the non-vanishing-tail D_k(2) (2.25 -> 12.66
 fraction 0.51), the Fermat bound (exactly 5) with growing smooth counts (C_3 12 -> 31), the
 integer control (C_3 = 100 >> 31, reciprocal rough-fraction 0.0321).
 
-Chambers: twenty-five = explore_conjecture_bridge.py (the fate-conjecture functor, the
-Sigma_1/Pi_2 existence hierarchy); twenty-seven through twenty-nine =
-explore_complexity_ledger / ledger_threshold / reserve_zoo.py (the Cesaro reserve zoo, the
-density constants); this chamber = the abscissa mechanism, the settled end, unifying the two.
-The growth-hunt inside story = OBSERVER.md (the reserve zoo, after the constant-realizer).
+Related: explore_conjecture_bridge.py (the fate-conjecture functor, the Sigma_1/Pi_2
+existence hierarchy); explore_complexity_ledger.py / explore_ledger_threshold.py /
+explore_reserve_zoo.py (the Cesaro reserve zoo, the density constants); this script studies
+the abscissa mechanism, the settled end, unifying the two.
 """
 
 import sys
@@ -500,7 +499,7 @@ def section_AR4(ps):
 
 def main():
     print("=" * 72)
-    print("CHAMBER THIRTY  -  the Dirichlet-abscissa reserve (the settled end)")
+    print("THE DIRICHLET-ABSCISSA RESERVE  -  the settled end")
     print("=" * 72)
     ps, pp, logpp, rough = build()
     print(f"trajectory: primorial schedule k=1..{K_MAX}, p_max={ps[-1]} "

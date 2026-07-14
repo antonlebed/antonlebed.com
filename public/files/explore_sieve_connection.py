@@ -1,4 +1,4 @@
-"""Thread 8: Sieve-theoretic interpretation of the primorial tower.
+"""Sieve-theoretic interpretation of the primorial tower.
 
 The primorial tower IS the Eratosthenes sieve in algebraic form.
 Units of Z/p_k# = integers surviving sieving by the first k primes.
@@ -687,8 +687,8 @@ def main():
      This chart is the prime lens: CRT = sieve decomposition,
      ECC = sieve redundancy, seed-flower = sieve prediction.
      The tower is the object AND the lens, because the sieve is both.
-     (P50: the lens sits inside the places frame -- sieving = reading
-     the finite windows along the primorial trajectory; TOWER.md SI.)
+     (The lens sits inside the places frame -- sieving = reading
+     the finite windows along the primorial trajectory.)
 """)
 
     print("=" * 76)

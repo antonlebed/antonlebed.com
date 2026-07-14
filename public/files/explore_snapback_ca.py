@@ -1,6 +1,6 @@
 """The snap-back CA — dictionary-coded symbols, bijective binding,
-nearest-word cleanup as snap-back (P141; the codeword-semantics
-reading of the ring CA — the MOONSHOT hook that survives the P139 kill
+nearest-word cleanup as snap-back (the codeword-semantics
+reading of the ring CA — a hook that survives an earlier kill
 by construction).
 
 THE OBJECT. Cells hold ring elements drawn from a DICTIONARY: a set of
@@ -10,7 +10,7 @@ Nothing numeric is asked to survive the dynamics — the invariant is the
 dictionary itself, and the dynamics is drawn from the code's own
 symmetry group instead of fought against.
 
-FINDINGS (tiers per CLAUDE.md):
+FINDINGS (naming tiers as below):
 
 1. THE ISOMETRY MENU (rule, proved + verified). Affine maps
    x -> u*x + c (u a unit) preserve the window metric exactly:
@@ -61,7 +61,7 @@ FINDINGS (tiers per CLAUDE.md):
    windows (channel-locality), and a single wrong factor in a window
    stays wrong (units). Two wrong factors can cancel only by residue
    coincidence (measured ~1/p per doubly-hit window). Corollary, from
-   the decoupling law (WALLS.md ring CA chart): under pure binding
+   the decoupling law (the ring CA chart, explore_ring_ca.py): under pure binding
    dynamics the window-p plane of the whole TRAJECTORY depends only on
    the window-p plane of the initial state — FAULT QUARANTINE: a fault
    in window p stays in window p for unbounded time, spreading at most
@@ -98,7 +98,7 @@ FINDINGS (tiers per CLAUDE.md):
    after every arithmetic step; here an entire failed hardware lane
    costs nothing until read time.
 
-6. THE HEIGHT-DEGRADATION LADDER (rule, computed — the P139 kill
+6. THE HEIGHT-DEGRADATION LADDER (rule, computed — an earlier kill
    quantified). The numeric stencil on the height-cut code (RAD lifts
    < 210, d = 4) degrades with running height: the sumset interval
    [0,L] has min distance 4 (L <= 209), 3 (L >= 210: the difference
@@ -124,9 +124,10 @@ arbitrary symbol rules are bought at the snap — which, once paid,
 prepays the coupling toll: post-snap the symbol is a decoded integer
 and any rule on it is free).
 
-CLASSICAL INCUMBENTS (P142 contact — where the arc candidate died;
+CLASSICAL INCUMBENTS (contact with prior literature — where this
+candidate direction was found already owned;
 contact tier: abstracts, publisher pages, metadata, search summaries —
-no full texts read; passes in git, SCRATCH P142). The general form — a
+no full texts read). The general form — a
 dictionary closed under a group action, computed on by the group
 operation, with coset-based correction — is owned: fault-tolerant
 computation via algebraic homomorphisms (Beckmann & Musicus, MIT 1992
@@ -530,7 +531,7 @@ def part4(dic8):
 
 
 # ------------------------------------------------------------------
-# Part 5 — the contrast control: the numeric stencil (the P139 kill)
+# Part 5 — the contrast control: the numeric stencil (an earlier kill)
 # ------------------------------------------------------------------
 
 def part5():
@@ -577,7 +578,7 @@ def part5():
     print("  every one at distance EXACTLY 3 (all parity windows wrong at "
           "once: the difference is a multiple of 210)")
     print("  -> repair = re-derive parity from data = base extension = "
-          "the ABFT shape, every step (the P139 kill, reproduced)")
+          "the ABFT shape, every step (reproduced)")
     print()
 
 

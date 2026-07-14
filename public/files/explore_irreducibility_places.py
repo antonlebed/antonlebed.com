@@ -1,8 +1,8 @@
 """IRREDUCIBILITY CLOCKS READ THE PLACE — the finite-place spectrum of beta_col.
 
-VERTIGO STOCK (a) generalization, P166. P165 found ONE interior irreducibility
-critical clock: the depth 3-column's beta_col ~ 1.4959
-(explore_irreducibility_order.py). The structural law said an interior critical
+This script generalizes an earlier finding: explore_irreducibility_order.py
+found ONE interior irreducibility
+critical clock: the depth 3-column's beta_col ~ 1.4959. The structural law said an interior critical
 point exists iff the fate's normalizer keeps a nonzero infinite-depth limit --
 which happens exactly when the tower RE-IMPORTS a place (depth = one returned
 ultrametric ruler; breadth deletes all -> clocks pile at the zeta pole). This
@@ -52,8 +52,8 @@ sits at the top of the irreducibility temperature. Among odd q, q=3 is the max
 (uniquely blind to the small prime 3). The critical temperature of computational
 irreducibility is a valuation-theoretic invariant: it reads which place returned.
 
-Run: `python explore_irreducibility_places.py`. Predictions frozen in SCRATCH.md
-(P166) BEFORE the run (PR3/PR4 direction corrected by a pre-run hand attack --
+Run: `python explore_irreducibility_places.py`. Predictions fixed
+before the run (PR3/PR4 direction corrected by a pre-run hand attack --
 richness LOWERS beta_col; q=2 tops the spectrum); asserts adjudicate; printed
 values read against the hand law. RUN RECORD (76 checks pass, ~1 s):
 beta* (zeta=2) = 1.72865; spread = 0.2869 (not universal, PR1). The spectrum

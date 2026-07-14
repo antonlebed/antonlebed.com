@@ -1,8 +1,8 @@
 """
-The orbit-cost law (MOONSHOT probe, P85).
+The orbit-cost law.
 
-The gate-budget grading's sharpest residual (LOGIC.md SI), taken with
-the P83 bar: both censused orbit programs read as coset gates + an
+The gate-budget grading's sharpest residual, taken with the
+established bar: both censused orbit programs read as coset gates + an
 order read (pentagon: gate_1(a^2 b^-1) AND the order-5 read; Phi_6:
 gate_1(ab) AND the order-6 read). Is that additive decomposition a
 THEOREM -- a law with a lower-bound mechanism -- or an accident of two
@@ -42,7 +42,7 @@ PREDICTIONS (stated before the run):
     else 2 (Smith form: V/C is cyclic iff the generator's
     coordinates have gcd 1 with n). At rank 1: m = 0 if d = n else
     1 -- the law REPRODUCES the order-cost law omega(d)+1 / omega(n)
-    (P83 P1) exactly, and prices the pentagon (2+1 = 3), Phi_6 at
+    exactly, and prices the pentagon (2+1 = 3), Phi_6 at
     p = 7 (1+2 = 3) and p = 13 (2+2 = 4).
  P2 (rule, proved any L): FORCED SEPARATORS. For each prime q | d,
     separating the generators (bits: [e_i = 1]) from the order-d/q
@@ -81,15 +81,16 @@ PREDICTIONS (stated before the run):
     orbit the residual asks for, and would be the headline.
  P5 (observation): THE NEW SPECIES PRICED. The mixed-generator
     orbit (ord a = 2, ord b = 3, d = 6: C is not the graph of any
-    monomial -- no single coset gate suggests itself, the journal's
-    hunch territory) and the primitive orbit (d = n: O = the
+    monomial -- no single coset gate suggests itself) and the
+    primitive orbit (d = n: O = the
     primitive pairs) obey the same law as the graph orbits.
 
 RESULTS (the run below prints the record; all confirmed):
   I   dlog kernels == field gate shadows computed by pure field
-      arithmetic: 28 distinct at p = 11, 50 at p = 13 (the P83
-      shadow counts); atom condition == generic atom-split decides
-      on 200 random families per prime, zero disagreements.
+      arithmetic: 28 distinct at p = 11, 50 at p = 13 (matching the
+      previously recorded shadow counts); atom condition == generic
+      atom-split decides on 200 random families per prime, zero
+      disagreements.
   II  m(C) by q-rank == exhaustive cut search at all 8 battery
       configs; canonical programs decide O at m + omega gates
       everywhere; rank-1 Z/12 full exhaust reproduces the order-cost
@@ -123,10 +124,10 @@ exhaustively over all class choices at four d including a
 mass-over-1 witness). P4 rule for the swept battery (L <= 3,
 d in {5, 6, 30}, p in {7, 11, 13, 31, 61}; structured legs
 exhaustive GIVEN the proved P2 constraint; the pentagon and Phi_6
-lower bounds are P83's exhaustive censuses, explore_gate_budget.py
+lower bounds are exhaustive censuses from explore_gate_budget.py
 -- cited, not rerun). The general trade-exclusion (this record's
 named residual; whenever m(C) = 1 it is already proved by P3
-alone) is CLOSED at P99: proved for any finite abelian ambient --
+alone) is CLOSED: proved for any finite abelian ambient --
 the law is exact, both directions, every leaf count
 (explore_trade_exclusion.py). P5 observation.
 
@@ -134,7 +135,7 @@ Classical contacts: covering systems of congruences (Erdos) -- the
 trade question IS covering-system existence under kernel
 realizability; B.H. Neumann's lemma (a group covered by k subgroups
 is covered by those of index <= k) bounds trade configurations; the
-subgroup-cell bound (P83) is the ambient Lagrange arithmetic this
+subgroup-cell bound is the ambient Lagrange arithmetic this
 law sharpens on cyclic targets.
 
 Runs standalone, stdlib only. ~70 s, tiny memory.
@@ -191,7 +192,8 @@ def or_all(ms):
     return u
 
 def decides_generic(masks, target, total):
-    """generic atom split (P83's decides) -- cross-check oracle."""
+    """generic atom split -- cross-check oracle (matches the
+    Config.decides method above)."""
     atoms = [total]
     for s in masks:
         nxt = []

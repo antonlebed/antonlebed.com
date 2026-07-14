@@ -1,17 +1,17 @@
-"""explore_ledger_threshold.py — chamber twenty-eight: the fusion's remainders
+"""explore_ledger_threshold.py — the fusion's remainders
 (the collision hinge — where alpha->0 goes analytic-hard, and a nontrivial threshold).
 
-THE QUESTION (ROAD P205 face 1). Chamber twenty-seven (explore_complexity_ledger.py)
+THE QUESTION. explore_complexity_ledger.py
 made a growth FATE depend on the transparency estimate: alpha = log lambda/log phi is
 dominated by the non-transparent density (alpha <~ nt_frac), so density -> 1 IMPLIES
 alpha -> 0, and a designed COUNT-weighted reserve thrives-for-all-reward iff density -> 1
 (threshold rho_c = limsup nt_frac, DEGENERATE at 0 under the conjecture). Two remainders
 burn. (i) Is alpha -> 0 provable UNCONDITIONALLY, or is it genuinely analytic (BV/BFI)?
 (ii) Is there a DESIGNED growth fate whose threshold is a NONTRIVIAL analytic constant,
-not a degenerate 0? VERTIGO: a combinatorial reserve-solvency threshold sitting at an
+not a degenerate 0? Notable if true: a combinatorial reserve-solvency threshold sitting at an
 irrational analytic value.
 
-THE HINGE (found pre-engine, SCRATCH P205): both remainders are the SAME object —
+THE HINGE: both remainders are the SAME object —
 COLLISIONS (a prime power q^a dividing several shifted primes p-1). Let
   N(q^a) = #{prime p <= p_k : q^a | p-1}.
 Then EXACTLY (log lcm = sum of increments; log prod = sum with multiplicity):
@@ -20,7 +20,7 @@ Then EXACTLY (log lcm = sum of increments; log prod = sum with multiplicity):
   collision mass   = log phi - log lambda = Sum_{q^a: N>=1} log q * (N(q^a) - 1).
 So alpha = log lambda/log phi = 1 - collision/log phi: alpha -> 0 IFF collisions absorb
 almost all of capacity. The lcm keeps each hit prime power ONCE; the product pays every
-occurrence. That one distinction runs the whole chamber:
+occurrence. That one distinction runs the whole analysis:
   - alpha (distinct) LOSES the collision mass -> analytic-hard to force to 0 (face i);
   - a SIZE reserve that pays every occurrence KEEPS it -> a positive nontrivial
     constant, the Golomb-Dickman constant (face ii).
@@ -28,20 +28,20 @@ occurrence. That one distinction runs the whole chamber:
 THE OBJECTS. Primorial schedule (size order); accumulator lambda(p_k#) = lcm(p_i-1).
 P+(m) = largest prime factor of m. theta(x) = Sum_{p<=x} log p ~ x (Mertens/PNT).
 log phi(p_k#) = Sum_{i<=k} log(p_i - 1) ~ theta(p_k). The complexity-ledger raise at a
-non-transparent NEW-prime step is dominated by log P+(p-1) (chamber 27, CL1: new prime
-== P+(p-1), 100% in range). Golomb-Dickman constant lambda_GD = 0.6243299... = the mean
-of log P+(n)/log n over integers n (a Dickman integral, irrational).
+non-transparent NEW-prime step is dominated by log P+(p-1) (explore_complexity_ledger.py,
+CL1: new prime == P+(p-1), 100% in range). Golomb-Dickman constant lambda_GD =
+0.6243299... = the mean of log P+(n)/log n over integers n (a Dickman integral, irrational).
 
-FROZEN SLATE FR1-FR4 (SCRATCH P205; hand-attacked pre-engine. Findings enter by a
-SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
+PREDICTIONS (fixed before the run), FR1-FR4:
 
   FR1 (the collision identity, property exact -- the spine). log phi = Sum_{q^a} log q *
     N(q^a) and log lambda = Sum_{q^a} log q * [N(q^a)>=1], both EXACT. Their gap is the
     collision mass Sum (N-1)^+ log q, and alpha = 1 - collision/log phi. Assert: log phi
     recomputed via the N(q^a) multiplicity sum == Sum log(p_i-1) (direct); log lambda via
-    the [N>=1] indicator sum == the lcm ledger (chamber 27); collision == the difference,
-    all to float tol. HAND: k=1e4, log phi ~ theta ~ 1.03e5, log lambda 17237 (ch27),
-    alpha 0.165, collision fraction 1 - 0.165 = 0.835.
+    the [N>=1] indicator sum == the lcm ledger (explore_complexity_ledger.py); collision ==
+    the difference, all to float tol. hand estimate: k=1e4, log phi ~ theta ~ 1.03e5,
+    log lambda 17237 (explore_complexity_ledger.py), alpha 0.165, collision fraction
+    1 - 0.165 = 0.835.
 
   FR2 (the mass-locus, observation -- WHERE the complexity lives). log lambda restricted
     to prime powers q^a <= x^{1/5} (the Linnik-guaranteed-hit range, least prime = 1 mod
@@ -50,7 +50,7 @@ SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     prime, each hit but counted once. That distinct-large-shifted-prime-factor count is
     the crux (a shifted-prime distribution question). Assert: frac(log lambda from
     q^a <= x^{1/5}) < 1e-3; frac(from q <= sqrt x) < 0.05; frac(from q > sqrt x) > 0.9.
-    HAND: x^{1/5}=10.1 -> psi ~ log 2520 = 7.8 vs 17237 (4.5e-4); sqrt x = 324.
+    hand estimate: x^{1/5}=10.1 -> psi ~ log 2520 = 7.8 vs 17237 (4.5e-4); sqrt x = 324.
 
   FR3 (the elementary sandwich, argument -- alpha->0 is analytic, not elementary). Linnik
     gives log lambda >= psi(x^{1/5}) ~ x^{1/5} = o(x) (lower); the elementary a-priori
@@ -59,14 +59,16 @@ SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     alpha (0.165) sits far below the ceiling; the excluded mass IS the collision mass
     (0.835 log phi), whose control is exactly a lower bound on how much large shifted-prime
     factors REPEAT -- a statement in the shifted-prime distribution circle (BV / Fouvry-
-    BFI / Fouvry-Tenenbaum). So alpha -> 0 is IMPLIED BY MAP problem 1 (rigorous, ch27's
-    domination); converse heuristic (near-equivalence, both hinge on N_nt=o(k)); the
-    natural elementary bounds give only alpha <= 1 -- so alpha -> 0 is a consequence of
-    the conjecture, not established unconditionally. Assert: psi(x^{1/5})/log phi < alpha < 1 (the sandwich
-    holds strictly, in range) and the ceiling psi(x) >= log lambda. HAND: psi(10.1)=7.8,
-    log phi~1.03e5 -> lower 7.6e-5 < 0.165 < 1.
+    BFI / Fouvry-Tenenbaum). So alpha -> 0 is IMPLIED BY the transparency-density
+    conjecture (does the transparency density tend to 1?) (rigorous,
+    explore_complexity_ledger.py's domination); converse heuristic (near-equivalence, both
+    hinge on N_nt=o(k)); the natural elementary bounds give only alpha <= 1 -- so
+    alpha -> 0 is a consequence of the conjecture, not established unconditionally.
+    Assert: psi(x^{1/5})/log phi < alpha < 1 (the sandwich
+    holds strictly, in range) and the ceiling psi(x) >= log lambda. hand estimate:
+    psi(10.1)=7.8, log phi~1.03e5 -> lower 7.6e-5 < 0.165 < 1.
 
-  FR4 (the SIZE reserve -- threshold = Golomb-Dickman, observation. FACE ii, the VERTIGO).
+  FR4 (the SIZE reserve -- threshold = Golomb-Dickman, observation; face ii).
     Re-weight the reserve by SIZE, not count: pay the largest-prime-factor size s_p =
     log P+(p-1) of each shifted prime EVERY step (= the ledger raise only on new-prime
     steps -- CL1; transparent and power-bump steps still pay their P+), earn rho*log p.
@@ -74,13 +76,14 @@ SEPARATE post-run edit copying printed output -- BORN FINDINGS-FREE, CLAUDE.md):
     (R -> +inf) iff rho > rho_c = lim Sum log P+(p-1)/theta(p_k) = the shifted-prime
     Golomb-Dickman constant lambda_GD' (~0.6243: Pomerance's conjecture, a THEOREM under
     Elliott-Halberstam -- Granville/Wang, the mean-from-distribution bridge elementary;
-    full PD spectrum Bharadwaj-Rodgers arXiv:2402.11884; unconditionally open --
-    contact P225). NONTRIVIAL, irrational, UNconditionally positive
-    and STABLE -- unlike alpha's decline and unlike ch27's degenerate 0. Assert (the DATA,
+    full PD spectrum Bharadwaj-Rodgers arXiv:2402.11884; unconditionally open).
+    NONTRIVIAL, irrational, UNconditionally positive
+    and STABLE -- unlike alpha's decline and unlike explore_complexity_ledger.py's
+    degenerate 0. Assert (the DATA,
     not the algebraically-forced sign): rho_c(k) in (0.5, 0.65) at every milestone and
     NOT decreasing to 0 (contrast alpha); rho_c > alpha always; the mean of
     log P+(p-1)/log(p-1) tracks rho_c and sits below the classical 0.6243 in range
-    (finite-x, converging up). Sink below the band, thrive above. HAND: rho_c(1e4)
+    (finite-x, converging up). Sink below the band, thrive above. hand estimate: rho_c(1e4)
     expect ~0.56-0.61; rho=0.50 -> sink, rho=0.65 -> thrive.
 
 DESIGN. Thin import-free number theory (mirrors explore_complexity_ledger.py). One pass
@@ -92,26 +95,29 @@ under 512 MB, no numpy. All sections assert.
 HONEST SCOPE. FR1 is EXACT (lcm/product identities). FR2/FR3 quantities are exact IN RANGE
 but the asymptotic reading (mass all in the analytic range; the ceiling gap lives in the
 shifted-prime distribution circle) is an ARGUMENT, not a theorem -- alpha -> 0
-UNCONDITIONALLY stays open (EQUIVALENT to MAP open problem 1, TOWER.md SVII --
-the collision equivalence, explore_collision_equivalence.py; not resolved here). FR4's rho_c is the in-range mean; its
+UNCONDITIONALLY stays open (EQUIVALENT to the transparency-density conjecture (does the
+transparency density tend to 1?) -- the collision equivalence,
+explore_collision_equivalence.py; not resolved here). FR4's rho_c is the in-range mean; its
 equality to the classical Golomb-Dickman 0.6243 is a theorem under Elliott-Halberstam
 (Pomerance's conjecture; Granville/Wang, full PD spectrum Bharadwaj-Rodgers) and open
 unconditionally (best tail: Ding-Wang limsup <= -(7/2)log c) -- what is asserted is that the
 threshold is a positive, stable, nontrivial constant well away from 0 and from alpha, i.e.
-NOT the degenerate ch27 threshold. The incumbent is smooth/rough-shifted-prime analytic
-number theory (Fouvry / BFI / Fouvry-Tenenbaum); this chamber MAPS the dependence.
+NOT the degenerate explore_complexity_ledger.py threshold. The incumbent is
+smooth/rough-shifted-prime analytic number theory (Fouvry / BFI / Fouvry-Tenenbaum);
+this script maps the dependence.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (tier-labeled; run record at bottom; all sections assert).
 
 1. THE COLLISION IDENTITY (property, EXACT -- the spine). With N(q^a) = #{prime
    p <= p_k : q^a | p-1}: log phi(p_k#) = Sum_{q^a} log q * N(q^a) (multiplicity) and
    log lambda(p_k#) = Sum_{q^a} log q * [N(q^a) >= 1] (distinct) -- both recomputed and
    agreeing with the direct Sum log(p_i-1) and the lcm ledger to < 1e-6. Their gap IS
    the collision mass Sum (N-1)^+ log q. At k=10000: log phi = 104389.2, log lambda =
-   17237.2 (= chamber 27), collision = 87152.0, so alpha = log lambda/log phi = 0.1651
+   17237.2 (= explore_complexity_ledger.py), collision = 87152.0, so
+   alpha = log lambda/log phi = 0.1651
    and collision/log phi = 0.8349 (sum 1 exactly). Hence alpha -> 0 IFF collisions
    absorb almost all of capacity: the lcm keeps each hit prime power ONCE, the product
-   pays every occurrence, and that single distinction is the whole chamber.
+   pays every occurrence, and that single distinction is the whole picture.
 
 2. THE MASS-LOCUS (observation -- WHERE the complexity lives). Nearly all of log lambda
    is DISTINCT LARGE primes: the Linnik-guaranteed mass psi(x^{1/5}) (every prime power
@@ -131,64 +137,66 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    collision mass = 0.8349*log phi is exactly what any improvement must supply -- a LOWER
    bound on how much large shifted-prime factors REPEAT, a statement in the shifted-prime
    distribution circle (Bombieri-Vinogradov / Fouvry-BFI / Fouvry-Tenenbaum). alpha -> 0
-   is EQUIVALENT to MAP problem 1 (forward: chamber 27's domination alpha <~ nt_frac;
+   is EQUIVALENT to the transparency-density conjecture (does the transparency density
+   tend to 1?) (forward: explore_complexity_ledger.py's domination alpha <~ nt_frac;
    converse: THE COLLISION EQUIVALENCE, theorem, elementary -- nt_frac - alpha -> 0 via
-   the write-once bound, explore_collision_equivalence.py P228), so the VALUE stays open
+   the write-once bound, explore_collision_equivalence.py), so the VALUE stays open
    exactly as the density conjecture does; the natural elementary bounds on the value give
    only alpha <= 1. (The sandwich locates why the value is hard; the equivalence settles
    the question's shape, not its answer.)
 
-4. THE SIZE RESERVE -- A NONTRIVIAL POSITIVE THRESHOLD (observation. FACE ii, the VERTIGO).
+4. THE SIZE RESERVE -- A NONTRIVIAL POSITIVE THRESHOLD (observation; face ii).
    Re-weight the reserve by SIZE, not count: pay the largest-prime-factor size s_p =
    log P+(p-1) of each shifted prime EVERY step (= the ledger raise only on new-prime
    steps -- CL1; transparent and power-bump steps still pay their P+), earn rho*log p;
    R(k) = rho*theta(p_k) - Sum log P+(p_i-1) thrives iff rho >
    rho_c = lim Sum log P+(p-1)/theta(p_k). rho_c(k) climbs MONOTONE 0.5243 (k=50) ->
    0.5384 (200) -> 0.5630 (1000) -> 0.5791 (10000) -- a nontrivial POSITIVE, stable
-   analytic constant, the opposite of chamber 27's degenerate limsup-density 0. Meanwhile
+   analytic constant, the opposite of explore_complexity_ledger.py's degenerate
+   limsup-density 0. Meanwhile
    alpha DECLINES 0.2963 -> 0.1651, and rho_c > alpha at every milestone. The crossover:
    rho = 0.55 sinks (R = -3036), rho = 0.60 thrives (R = +2184), so the threshold sits at
-   rho_c ~ 0.58 in range. THE VERTIGO: a purely combinatorial reserve-solvency threshold
+   rho_c ~ 0.58 in range. Notably: a purely combinatorial reserve-solvency threshold
    (does the reserve stay solvent for a given reward?) sitting at an IRRATIONAL analytic
    value. Its LIMIT is the Golomb-Dickman constant lambda_GD = 0.6243 under
    Elliott-Halberstam (Dickman governance of P+(p-1): Pomerance's conjecture, conditional
-   proof Granville/Wang; unconditionally open -- contact P225),
+   proof Granville/Wang; unconditionally open),
    but the in-range value does NOT pin it: the POSITIVE CONTROL (same P+ machinery on the
    INTEGERS n <= x) gives the integer mean 0.6636 -> 0.6523, approaching GD from ABOVE,
    while the shifted mean 0.5377 -> 0.5783 approaches from BELOW -- the two STRADDLE 0.6243,
    so finite-x confirms the rig (integer mean in the GD ballpark) and the positive
    nontrivial threshold, but "= lambda_GD" is an asymptotic identification, not a measured
-   constant (a theorem under EH, unconditionally open -- contact P225). The vertigo is
+   constant (a theorem under EH, unconditionally open). The finding is
    robust to the exact value; the identification is the EH-conditional part.
 
-THE UNIFICATION (chamber headline). Both remainders are the SAME collision structure.
+THE UNIFICATION. Both remainders are the SAME collision structure.
 alpha (distinct / lcm) LOSES the collision mass, so it -> 0 -- and forcing that is
 analytic-hard, EQUIVALENT to the density conjecture (the collision equivalence,
 explore_collision_equivalence.py; face i). The SIZE reserve (multiplicity / product) KEEPS
 every occurrence, so its threshold is a positive nontrivial constant (~0.58 in range,
-the Golomb-Dickman constant under EH) (face ii, the vertigo). Collisions are the
+the Golomb-Dickman constant under EH) (face ii). Collisions are the
 hinge: the same prime-power repeats that make the count-threshold degenerate-and-hard
 make the size-threshold an irrational analytic
 value.
 
 RUN RECORD (this file, ~2 s, 14 checks, well under 512 MB, no numpy; all sections assert).
-Frozen slate FR1-FR4 hand-attacked pre-engine (SCRATCH P205). Every WORLD-prediction held
+Predictions FR1-FR4 were fixed before the run. Every prediction held
 on the first complete run: the collision identity (three paths agree < 1e-6, alpha = 0.1651
-= chamber 27), the mass-locus (0.975 of log lambda from q > sqrt x, Linnik-guaranteed
-psi(x^{1/5}) = 4.5e-4 of it), the elementary sandwich (7.5e-5 < 0.1651 < 1), the size
+= explore_complexity_ledger.py), the mass-locus (0.975 of log lambda from q > sqrt x,
+Linnik-guaranteed psi(x^{1/5}) = 4.5e-4 of it), the elementary sandwich
+(7.5e-5 < 0.1651 < 1), the size
 threshold (rho_c climbs 0.524 -> 0.579, positive & stable, alpha declines 0.296 -> 0.165,
-sink 0.55 / thrive 0.60; hand call rho_c(1e4) ~ 0.56-0.61 landed at 0.579). The /check
-POSITIVE CONTROL added post-hoc (integer P+ mean, same machinery) revealed the GD picture
+sink 0.55 / thrive 0.60; hand estimate rho_c(1e4) ~ 0.56-0.61 landed at 0.579). A positive
+control added post-hoc (integer P+ mean, same machinery) revealed the GD picture
 is a STRADDLE -- integer 0.664 -> 0.652 (from above), shifted 0.538 -> 0.578 (from below),
 GD = 0.6243 between -- so "= lambda_GD" is asymptotic conjecture, downgraded from the
 initial "converging toward GD" reading; the positive nontrivial threshold stands.
 
-Chambers: twenty-seven = explore_complexity_ledger.py (the fate that DEPENDS on the
-estimate -- alpha <~ nt_frac, the COUNT reserve degenerate at 0); this chamber = the two
-remainders resolved through collisions (alpha->0 analytic-hard; the SIZE reserve's positive
-nontrivial threshold, Golomb-Dickman under EH). The transparency law = TOWER.md SII/SVII; the density fusion =
-explore_transparency_bridge.py (twenty-six); the spectrum functor = explore_conjecture_
-bridge.py (twenty-five).
+explore_complexity_ledger.py is the fate that DEPENDS on the
+estimate -- alpha <~ nt_frac, the COUNT reserve degenerate at 0; this script resolves the
+two remainders through collisions (alpha->0 analytic-hard; the SIZE reserve's positive
+nontrivial threshold, Golomb-Dickman under EH). The density fusion is
+explore_transparency_bridge.py; the spectrum functor is explore_conjecture_bridge.py.
 """
 
 import sys
@@ -313,7 +321,7 @@ def section_FR1(ps, running, loglam, logphi, Nhit):
     logphi_mult = sum(cnt * log(q) for (q, a), cnt in Nhit.items())
     # log lambda via the hit-indicator sum over prime powers
     loglam_ind = sum(log(q) for (q, a), cnt in Nhit.items() if cnt >= 1)
-    # log lambda via the lcm ledger (direct, chamber 27 path)
+    # log lambda via the lcm ledger (direct, explore_complexity_ledger.py path)
     loglam_lcm = sum(e * log(q) for q, e in running.items())
     collision = sum((cnt - 1) * log(q) for (q, a), cnt in Nhit.items() if cnt >= 1)
     ok(abs(logphi_mult - logphi) < 1e-6 * max(1.0, logphi),
@@ -416,7 +424,7 @@ def section_FR3(ps, loglam, logphi, alpha):
 # =====================================================================
 
 def section_FR4(ps, Pplus, logm, transparent):
-    print("FR4  THE SIZE RESERVE  -  a nontrivial positive threshold (the VERTIGO)")
+    print("FR4  THE SIZE RESERVE  -  a nontrivial positive threshold")
     # rho_c(k) = Sum_{i<=k} log P+(p_i-1) / theta(p_k), at milestones
     mile = [50, 200, 1000, 10000]
     mile = [k for k in mile if k <= K_MAX]
@@ -511,7 +519,7 @@ def section_FR4(ps, Pplus, logm, transparent):
 
 def main():
     print("=" * 72)
-    print("CHAMBER TWENTY-EIGHT  -  the fusion's remainders (the collision hinge)")
+    print("THE COLLISION HINGE  -  the fusion's remainders")
     print("=" * 72)
     ps, running, loglam, logphi, Nhit, Pplus, logm, transparent = build()
     n_tr = sum(transparent)

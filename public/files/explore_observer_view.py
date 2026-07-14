@@ -1,23 +1,23 @@
 """
-explore_observer_view.py -- THE INSIDE VIEW (THE HUNT chamber six,
-P148; sibling of explore_growth_laws.py P143, explore_growth_
-capability.py P144, explore_size_crystallization.py P145,
-explore_lock_prime.py P146, explore_thermal_growth.py P147).
+explore_observer_view.py -- THE INSIDE VIEW (sibling of
+explore_growth_laws.py, explore_growth_capability.py,
+explore_size_crystallization.py, explore_lock_prime.py,
+explore_thermal_growth.py).
 
-THE QUESTION. P143-P147 studied growth from OUTSIDE (seeds, routes,
-temperatures given). Turn the eye around: an observer INSIDE a grown
-world, whose entire epistemic access is the isomorphism class of its
-ring -- the depth profile {(p, v_p(N))}, window vocabulary only (no
-arrival log, no seed tag, no size). What can the world's inhabitant
-know of its own GENESIS -- the temperature, the route, the seed, the
-law, the fate? Design + frozen predictions PR1-PR9: SCRATCH P148
-passes 2-3 (git). The observer's inference engine throughout is the
-thermal D-IND law (P147): state normalizer Z_N(beta) =
+THE QUESTION. Earlier scripts studied growth from OUTSIDE (seeds,
+routes, temperatures given). Turn the eye around: an observer INSIDE a
+grown world, whose entire epistemic access is the isomorphism class of
+its ring -- the depth profile {(p, v_p(N))}, window vocabulary only
+(no arrival log, no seed tag, no size). What can the world's
+inhabitant know of its own GENESIS -- the temperature, the route, the
+seed, the law, the fate? Design and predictions PR1-PR9 were fixed
+before the run. The observer's inference engine throughout is the
+thermal D-IND law: state normalizer Z_N(beta) =
 zeta(beta) * prod_{p|N} (1 - p^(-beta)) - 1 (Euler-factor removal;
 S0 verifies against brute coprime sums with rigorous tail brackets;
 brute-summed for beta >= 5 where the closed form cancels).
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (run record below; all sections assert).
 
 1. THE ROUTE-WEIGHT CANCELLATION (rule, proved). A genesis history
    from seed s to state N is an ordered coprime factorization of N/s
@@ -40,7 +40,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    small-prime-concentrated: p <= 10 carries 93.8% of it at beta = 2
    (83.2% at 1.5, 99.0% at 3). Falsifiability is ASYMMETRIC: one
    depth->=2 column refutes crystal-from-squarefree-genesis outright
-   (the crystal never deepens -- sure, healing rule P143), while no
+   (the crystal never deepens -- sure, the healing rule), while no
    finite observation ever refutes hot growth. Qualifier: the
    crystal side needs the genesis convention; without a seed
    convention beta = inf explains ANY state as a defective seed at
@@ -70,12 +70,12 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    (biased cold), sd 0.263 -- below the unconditional floor, as
    conditioning permits (CR binds unbiased whole-ensemble
    estimators). MLE harness: primes <= 3000, 300 replicates,
-   bisection on the monotone score. (Scope sharpened at P153,
-   chamber eleven: this cap is the STATE's -- an inhabitant that
-   WATCHES the moves gains per-move information bounded below, so
-   watched information grows without bound and passes this whole
-   cap in one late move; the finite thermometer is the snapshot's
-   compression artifact. explore_interactive_observer.py.)
+   bisection on the monotone score. (Scope sharpened later: this cap
+   is the STATE's -- an inhabitant that WATCHES the moves gains
+   per-move information bounded below, so watched information grows
+   without bound and passes this whole cap in one late move; the
+   finite thermometer is the snapshot's compression artifact. See
+   explore_interactive_observer.py.)
 
 4. THE CREATION-STORY TRANSITION + THE STAGED CASCADE (duel rule
    proved; cascade measured on a fine grid with its stage clocks
@@ -103,9 +103,9 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    creation story adds stages one at a time: EACH RUNG OF THE TOWER
    GETS ITS OWN CRITICAL TEMPERATURE -- the beta at which that
    rung's total move mass Z passes 1. The first critical
-   temperatures in the thermal family (the P147 JOURNAL watch item)
+   temperatures in the thermal family (a watch item noted earlier)
    -- properties of the observer's posterior, not of the growth
-   laws (chamber five stands: the laws themselves exhibit none).
+   laws (an earlier finding stands: the laws themselves exhibit none).
 
 5. TEMPERATURE = AMNESIA, NON-MONOTONE + THE HAAR-EDGE ROUTE
    RESIDUE (measured on the grid; limit form proved). The genesis
@@ -139,13 +139,13 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    a KNOWN greedy law the snapshot computes the entire future
    (the laws are deterministic); what no finite snapshot reveals is
    WHICH law is writing the world -- and across laws the fates
-   differ as limit properties (the three supernatural classes, P143
+   differ as limit properties (the three supernatural classes
    -- all-finite-depth / one-infinite / finite), so the law-blind
    observer's fate is undecided at every finite time.
 
 8. THE ANTHROPIC WEIGHT (rule + worked posterior, S7). Conditioning
    a temperature prior on the blueprint (squarefree = all-field
-   windows) reweights it by exactly 1/zeta(beta) (P147 finding 3),
+   windows) reweights it by exactly 1/zeta(beta) (shown earlier),
    and the expected number of defective columns is the prime zeta
    function sum_p p^(-beta) (0.8491 / 0.4522 / 0.1748 at beta = 1.5
    / 2 / 3; finitely many defects a.s. by Borel-Cantelli). Worked:
@@ -155,9 +155,9 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    squarefree?" has a quantitative answer, and it is WEAK: the
    anthropic case for coldness is zeta-capped.
 
-SYNTHESIS -- THE FINITE-MEMORY LAW. (Scoped at P149, chamber seven:
+SYNTHESIS -- THE FINITE-MEMORY LAW. (Scoped by a companion record:
 this is the BREADTH fate's law -- a world grown DEEP remembers its
-genesis at a rate linear in depth; explore_depth_observer.py.)
+genesis at a rate linear in depth; see explore_depth_observer.py.)
 A grown world of the breadth fate retains only
 finitely much information about its own genesis: zeta-capped
 evidence for the ground state (2), an order-1 temperature floor with
@@ -165,8 +165,8 @@ majority false-crystal readings (3), a genesis posterior that
 re-concentrates at both temperature extremes and climbs the staged
 creation cascade between them (4, 5), exponentially many pasts
 absent a genesis decree (6), and a fate no law-blind snapshot
-decides (7). P145 showed the route is authored by the deleted place;
-the inside view shows the author left ALMOST no signature: what
+decides (7). Earlier work showed the route is authored by the deleted
+place; the inside view shows the author left ALMOST no signature: what
 survives is a 3:1 lean toward ascending entry (5) and one anthropic
 factor of 1/zeta (8). An observer inside a squarefree all-primes
 world -- us, if arithmetic were grown -- can bound but never know
@@ -182,14 +182,13 @@ idempotents) could measure beyond the depth profile -- nothing; the
 profile IS the isomorphism class -- but interactive protocols
 (growing the world further and watching) are unexplored.
 
-FROZEN-PREDICTION ADJUDICATION (SCRATCH P148 passes 2-3): PR1-PR3,
-PR7, PR8 CONFIRMED as frozen. PR4 corrected pre-run by hand (80% ->
-55-75% share; measured 65.0%); PR5/PR6 corrected pre-run by the
-route-weight cancellation analysis (monotone amnesia was WRONG --
-the fiat transition was found on paper before the run and confirmed
-by it); PR9 (the false crystal reading) added pre-run, CONFIRMED.
-The pre-run amendment pattern (P146) carried the chamber's two best
-findings.
+PREDICTION ADJUDICATION: PR1-PR3, PR7, PR8 CONFIRMED as fixed. PR4
+corrected pre-run by hand (80% -> 55-75% share; measured 65.0%);
+PR5/PR6 corrected pre-run by the route-weight cancellation analysis
+(monotone amnesia was WRONG -- the fiat transition was found on paper
+before the run and confirmed by it); PR9 (the false crystal reading)
+added pre-run, CONFIRMED. The pre-run amendment pattern carried this
+script's two best findings.
 
 RUN RECORD (python prime/code/explore_observer_view.py, ~2.9 s,
 689,596 checks): S0 normalizer closed form vs brute brackets, both
@@ -379,7 +378,8 @@ def s0():
 # (beta = inf, genesis seed 1) vs thermal beta, both predicting the
 # depth profile. Likelihood ratio over the window [primes <= P]:
 # crystal predicts all depths 1 surely; thermal predicts depth 1 at
-# p w.p. (1 - p^-beta) (the P147 geometric law). LR = prod 1/(1-r).
+# p w.p. (1 - p^-beta) (the geometric law from an earlier study).
+# LR = prod 1/(1-r).
 
 def crystal_step(n):
     for p in PRIMES_1E5:
@@ -389,7 +389,7 @@ def crystal_step(n):
 
 def s1():
     print("S1 the bounded-evidence law")
-    # crystal never deepens (sure; healing rule P143 observer-side)
+    # crystal never deepens (sure; the healing rule, observer-side)
     for seed in (1, 5, 77):
         n, missing_hist = seed, []
         for _ in range(30):

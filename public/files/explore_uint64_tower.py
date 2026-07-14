@@ -1,6 +1,6 @@
 """
-MOONSHOT: THE UINT64 DESIGNED TOWER -- Z/(2^64 - 1) charted whole.
-(P79; n = 6 of the Fermat family whose n = 4 member is the
+THE UINT64 DESIGNED TOWER -- Z/(2^64 - 1) charted whole.
+(n = 6 of the Fermat family whose n = 4 member is the
 internet-checksum ring, explore_checksum_ring.py, and n = 5 the
 machine-word tower, explore_machine_word_tower.py. This is the FIRST
 member OFF the all-Fermat spine: 2^32 + 1 = F_5 = 641 * 6700417,
@@ -60,7 +60,7 @@ Predictions (stated in advance of any run):
       margin: bit_length(SQ) = bit_length(N) = 64, zero whole-bit
       savings. Swept members n = 2..6: sum 1/p < 0.6 at each
       (dominated by 1/3 + 1/5), so the law clears and never buys a
-      whole bit -- consistent with the P76 verdict (large-prime
+      whole bit -- consistent with the earlier verdict (large-prime
       sets only). Beyond n = 6 each member ADDS the reciprocals of
       F_(n-1)'s factors (each factor == 1 mod 2^(n+1), so known
       factorizations move the sum in the sixth decimal); the all-n
@@ -147,7 +147,6 @@ law itself is proved at explore_rns_comparator.py).
 Classical contacts: Euler's 1732 factorization of F_5; Fletcher 1982
 via RFC 1146 (1's-complement accumulators) + the standard mod-(2^w-1)
 definition (fetched 2026-06-12); index-LUT RNS multipliers.
-Doc home: WALLS.md SII (the char-2 mirrors, Fermat-family clause).
 """
 
 import math

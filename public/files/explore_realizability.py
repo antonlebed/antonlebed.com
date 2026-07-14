@@ -1,15 +1,15 @@
 """
-The realizability law at bounded degree (MOONSHOT probe, P86).
+The realizability law at bounded degree.
 
-The curve skeleton's sharp residual (LOGIC.md SI), taken with the
-P82/P83 bar: which torsion orders d does a degree-D curve reach
+The curve skeleton's sharp residual, taken with the
+prior bar: which torsion orders d does a degree-D curve reach
 through the codeword species? The torsion-menu law counts MONOMIALS
 (q_min(d) <= M); degree caps starve exponent reachability separately
 -- before this chart the only censused case was conics missing
-25-torsion (P82-P7). Bar: a LAW for all (d, D), proved mechanisms,
+25-torsion. Bar: a LAW for all (d, D), proved mechanisms,
 exhaustive censuses, never a bare table.
 
-Setting (P82 inherited): a unit pair of torsion order d is
+Setting (inherited from earlier work): a unit pair of torsion order d is
 codeword-species stable for some [f = 0], deg f <= D, iff its
 collected fiber is a nonzero codeword of (Phi_d) in F_p[T]/(T^d - 1).
 Writing the pair as (theta^A, theta^B), theta of order d, the
@@ -98,7 +98,7 @@ the censuses adjudicate):
     {primes q : c(q) <= D} + {composites : q_min <= D + 1}; even
     orders all enter at D = 1 (the antipodal word 1 + T^{d/2},
     A = d/2, B = 1 -- x = -1 in curve clothing). The conics row
-    must reproduce P82: 5, 9, 15 in; 25 out. Degree reads
+    must reproduce the earlier conics census: 5, 9, 15 in; 25 out. Degree reads
     arithmetic the monomial count cannot: the menu law's gate is
     q_min(d) <= M for every d, the degree gate splits prime from
     composite at the same least prime.
@@ -129,7 +129,7 @@ RESULTS (the run below prints the record; all confirmed):
   P3 prime powers 9, 25, 27, 49, 81, 121: exclusion at D = q - 2
      exhaustive over all scaling classes (e.g. 121: 67 classes at
      D = 9, p = 727), realization at D = q - 1 with end-to-end
-     witness: D_min = 2, 4, 2, 6, 2, 10. P82-P7's conic bound
+     witness: D_min = 2, 4, 2, 6, 2, 10. The earlier conic bound
      sharpened: 25-torsion enters at quartics exactly.
   P4 composites 15, 21, 33, 35, 45, 55, 63, 75, 77, 99, 105, 143,
      221: exclusion at D = q_min - 2 exhaustive over all scaling
@@ -138,7 +138,7 @@ RESULTS (the run below prints the record; all confirmed):
      classes, D = 11, p = 443), realization at q_min - 1: D_min =
      q_min - 1 everywhere; no sub-law realization anywhere swept.
   P5 conics row (odd d <= 121): primes {3, 5} + odd multiples of 3
-     -- reproduces P82 (5, 9, 15 in; 25, 35 out); tax witnesses
+     -- reproduces the earlier census (5, 9, 15 in; 25, 35 out); tax witnesses
      (5 vs 25/35: 2 vs 4; 7 vs 49/77: 3 vs 6; 13 vs 143: 5 vs 10).
   P6 verdicts reproduced at second primes: (15, 61), (25, 151),
      (35, 211).
@@ -149,7 +149,7 @@ q <= 149). P3 rule (proved field-free both directions; censuses as
 stated). P4 rule (mechanisms proved for q_min <= 7, for q_min^2 | d,
 and whenever the second prime exceeds 3(q_min - 1)/2; the two-fat-
 slice gap censused at its two smallest instances d = 143, 221;
-taken further P89-P92 -- explore_cover_exclusion.py: rook
+taken further in explore_cover_exclusion.py: rook
 reduction, then the staircase closed region, then the lattice-count
 closure (explore_staircase_reduction.py R12-R14): the strong
 staircase lemma is a proved rule at every instance, so the law
@@ -163,7 +163,7 @@ Z_n (the triangle cover number is its two-denomination triangle
 variant); Lang's torsion-coset theorem (the group species stays
 degree-blind); BCH-flavored support constraints on cyclotomic codes;
 the line pigeonhole is a one-class-per-line CRT count, cousin to the
-orbit-cost law's coset-cover bound (P85).
+orbit-cost law's coset-cover bound.
 
 Runs in ~4 s, tiny memory. ALL CHECKS PASSED (55).
 """
@@ -532,7 +532,7 @@ def law(d):
 conics = sorted(d for d in range(3, 122, 2) if law(d) <= 2)
 check(set(conics) == {3, 5} | {d for d in range(9, 122, 2) if d % 3 == 0},
       f"conics row (odd d <= 121): {{3, 5}} + odd multiples of 3 "
-      f"-- 5, 9, 15 in; 25, 35 out (P82 reproduced)")
+      f"-- 5, 9, 15 in; 25, 35 out (reproduced)")
 check(law(5) == 2 < 4 == law(25) == law(35)
       and law(7) == 3 < 6 == law(49) == law(77)
       and law(13) == 5 < 10 == law(143),

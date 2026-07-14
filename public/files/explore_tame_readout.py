@@ -1,16 +1,15 @@
 """explore_tame_readout.py — THE TAME READOUT: the odd-p face of the
-readout theorem (VERTIGO STOCK (a) remainder, ROAD P196).
+readout theorem.
 
-THE QUESTION (ROAD P192/P196). The readout theorem (P192, proved at
-p = 2) prices every binomial monomial's entry level by its exact
+THE QUESTION. The readout theorem (proved at p = 2 in an earlier
+script) prices every binomial monomial's entry level by its exact
 multinomial 2-content. The sigma-machinery is p-generic — multinomial
 p-content, tau alphabet. Does a tame-thinned ladder drop out of the
 SAME enumeration at odd p, matching the tame face's censused floors
 (explore_tame_face.py: 12/10 at the p = 3 sextics, 30/26 at Q5(zeta25),
 the {13} mid-field ceiling, K9's {12,16,17,18} fork)?
 
-THE HAND DERIVATION (SCRATCH.md P196 passes 1-4, frozen before this
-file existed).
+THE HAND DERIVATION (worked out by hand, before this file existed).
 
 Setup: K/Q_p tot ram degree e, f = 1, odd p, seat i* = e/(p-1).
 Arrival classes: start levels c with c*p^m = i* (m = 0: starters).
@@ -55,8 +54,8 @@ TR6 (THE COINCIDENCE — the p-fold pair-cancellation): rho_i's two
     routes tau_i^{p^m} (one carry, -gamma_1 w) and, at m = 1, tau_i
     (two carries, +w^2) share a level iff i = c(p-1) — rel e, digit
     coefficient w(w - gamma_1): cancels iff w == 1, deferring that
-    freedom by delta (K9's {16,17,18} fork lives here — CHARTED
-    P198, explore_deep_spectrum.py: 16/17 are free-sailing singles
+    freedom by delta (K9's {16,17,18} fork lives here — charted in
+    explore_deep_spectrum.py: 16/17 are free-sailing singles
     at rel_c + i, i > c(p-1); only 18 is the deferral firing at
     rel e + delta). At p = 2,
     i-dagger = c(p-1) = c IS the top-class rho_1 pair whose F_2
@@ -71,7 +70,7 @@ TR7 (corollaries): out-fields land p*i* RIGID at every class; the
     the p = 2 INTERMEDIATE rung functions are literally
     p*i* + min(first-nonzero-digit, 2^mu).
 
-THE FROZEN SLATE (SCRATCH.md P196 pass 4, hand-attacked before this
+THE PREDICTIONS (worked out by hand before this
 file existed; every row load-bearing — a miss falsifies its lemma):
 
 SL-A (p-content): the sigma/Legendre formula == integer-factored
@@ -131,8 +130,7 @@ over F_2 vectors. Labels never read orbits; the engine only ever
 reads MEASURED digits.
 Run: python prime/code/explore_tame_readout.py
 
-FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+FINDINGS (entered post-run, copied from printed output).
 
 1. THE TAME READOUT LAW (theorem — the enumeration proof is general
    in (p, c, m, e); field verification rule-in-range at p = 3, 5):
@@ -163,7 +161,7 @@ CLAUDE.md).
    its delta >= p^m branch (its fields C/D/K9 measure delta =
    CAP/6/3); x^6+3x^3+3 (delta = 3 = p^m) rejoins floor 12 graded
    {12, 13}. The flipped-gate twin x^6+3x-3 (w_0 = 2) lands {9}
-   rigid at both classes. The p = 2 first-digit lock (P187's 9 =
+   rigid at both classes. The p = 2 first-digit lock (9 =
    p*i* + 1) is delta = 1 of the same formula, and the p = 2
    INTERMEDIATE rung functions are p*i* + min(first-nonzero, 2^mu)
    verbatim (all 4096 digit vectors, five rung functions).
@@ -208,8 +206,8 @@ arithmetic ran; the hand lists stood unchanged.
 
 RUN RECORD (python explore_tame_readout.py, 12.4 s, exit 0): 27,707
 checks this module + 40,680 through the imported gear/torsion
-machinery (explore_tame_face counter) = 68,387 (the /check round-2
-re-run: +20 heavy-class presence asserts, one per censused field,
+machinery (explore_tame_face counter) = 68,387 (a later re-run added
+20 heavy-class presence asserts, one per censused field,
 closing law_row's vacuous-pass hole; spectra and deltas unchanged). Landings as printed
 (spectra truncated at six values):
   x^6+3x-3    1->{9}  3->{9}         x^6+3x+3    1->{10} 3->{10,...}

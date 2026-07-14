@@ -1,26 +1,24 @@
-"""explore_number_field_lock.py — the number-field lock (chamber nineteen).
+"""explore_number_field_lock.py — the number-field lock.
 
-THE QUESTION (ROAD P174; chamber eighteen's open remainder). Chamber
-eighteen proved the lock/sprawl split reads the CHARACTERISTIC: Q locks
-(the lock-prime law, explore_lock_prime.py P146), F_2[x] sprawls
-(explore_function_field_lock.py P173) — but the mixed-characteristic
-side was instantiated at Q only. THIS script runs cold D-DYN over
-O = Z[sqrt(-5)] (h = 2, Cl = C2) in BOTH worlds:
+THE QUESTION (an open remainder from explore_function_field_lock.py).
+explore_function_field_lock.py proved the lock/sprawl split reads the
+CHARACTERISTIC: Q locks (the lock-prime law, explore_lock_prime.py),
+F_2[x] sprawls — but the mixed-characteristic side was instantiated at Q
+only. THIS script runs cold D-DYN over O = Z[sqrt(-5)] (h = 2, Cl = C2) in
+BOTH worlds:
   - the IDEAL world: states = integral ideals, move = least-NORM ideal
     m != (1) with lambda(I*m) > lambda(I) (lambda = exponent of (O/I)^*);
-  - the ELEMENT world (ch.10's mezzanine): states and moves PRINCIPAL.
+  - the ELEMENT world (explore_class_gap.py's mezzanine): states and moves
+    PRINCIPAL.
 Does every mixed-characteristic ring lock, and does the lock split
 ideal-vs-element, reading the class group, the way the thermal clock
-did (P168 K2: element 1.3527 < ideal 1.5492)?
+did (K2: element 1.3527 < ideal 1.5492)?
 
-Frozen slate: SCRATCH.md P174 passes 2-4 (PR1-PR10), frozen and
-hand-attacked BEFORE this script ran (pass 4 caught attack-3's missed
-fresh-23 door and corrected PR5 pre-run; a pre-run FINDINGS + RUN
-RECORD fabrication was drafted and expunged before any run — the
-P169/P170 species again). FINDINGS below were written from the first
+Predictions (fixed before the run): PR1-PR10, frozen and hand-attacked
+before this script ran. FINDINGS below were written from the first
 green run's output.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (tiers below; run record at bottom; all sections assert).
 
 1. THE LOCK SURVIVES MIXED CHARACTERISTIC (rule in range; 54 ideal
    seeds x 40 moves: all ideals of norm 2..40 + the void + 2
@@ -30,12 +28,12 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    that place. Z's recurrence argument transfers: every place's own-prime
    pump is LINEAR in depth (finding 8), so a non-ghost pick prices its
    door at a constant while every rival door is nondecreasing. With
-   chamber eighteen the characteristic dichotomy is now instantiated
+   explore_function_field_lock.py the characteristic dichotomy is now instantiated
    on BOTH sides: mixed characteristic locks (Q and K), equal
    characteristic sprawls (F_2[x]).
 
 2. THE PRICE LAW — the lock price is p^(local degree) (rule in range;
-   the chamber's descent). Every locked trajectory's recurrent move
+   this script's own descent). Every locked trajectory's recurrent move
    cost is exactly p^(e*f) at the lock place (asserted on every
    censused trajectory): split 3-locks pay 3/move, split 23-locks 23,
    the ramified P5-lock pays 25 = 5^2 (one P5^2 move per lambda-tick,
@@ -44,9 +42,9 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    rank: lock price = p^rank. The function-field sprawl is the same
    law's rank-infinity limit (Frobenius flattening makes the price
    diverge — no recurrent door). One law covers Q, K, F_q[x]; the
-   general local-field statement LANDED as chamber twenty
-   (explore_module_law.py: the local module law proved, crystal +
-   absorption, the cascade boundary named).
+   general local-field statement landed in explore_module_law.py (the
+   local module law proved, crystal + absorption, the cascade boundary
+   named).
 
 3. EVERY TIE IS A GALOIS ORBIT (rule in range: 21 ideal + 16 element
    tie moves, every tie set asserted a conjugate pair at equal r;
@@ -57,8 +55,9 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    which share every door price by lambda-symmetry. So the only
    nondeterminism mixed characteristic admits is the Galois symmetry
    itself, and the greedy must spontaneously break it (the void's
-   first move: P3 vs P3'). Locks are defined up to conjugacy. Chamber
-   eighteen's "determinism is archimedean" sharpens: the greedy RULE
+   first move: P3 vs P3'). Locks are defined up to conjugacy.
+   explore_function_field_lock.py's "determinism is archimedean"
+   sharpens: the greedy RULE
    is complete (no tie-break clause needed) over Q alone — a
    tie-break is required exactly when distinct moves can share a
    cost, split pairs supply such pairs, and every number field K != Q
@@ -67,7 +66,8 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
 
 4. THE GHOST RETURNS, CLASS-FIELD-EDITED (rule for the mechanism;
    specimen + census). F_2[x]'s type separation emptied the ghost
-   class (P173); mixed characteristic restores it — state residue
+   class (explore_function_field_lock.py); mixed characteristic
+   restores it — state residue
    chars and lambda share Z again. Specimen (frozen PR4): seed P29
    (lambda = 28) opens Q7 at cost 7 with 7 | 28 — a ghost, Galois-tied
    with Q7'; its dowry (lambda -> 84) lifts the 3-door from 9 to 27,
@@ -77,13 +77,14 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    every 5-carrier drags 4 in: split p = 1 mod 5 is chi20-gated to
    p = 1, 9 mod 20 (so 4 | p-1), inert q gives 8 | q^2-1, and P5's own
    column carries 4. Census: ghosts fire at char 7 only. The Fermat-
-   gate mechanism (P168 SYN) reaches the ghost spectrum: class field
+   gate mechanism reaches the ghost spectrum: class field
    theory edits which hauntings are possible. (Z has 5-ghosts: seed
-   11, P146 finding 5.)
+   11, explore_lock_prime.py finding 5.)
 
 5. THE LOCK SPLITS BY THE CLASS GROUP (the headline; rule in range).
    The IDEAL void locks a norm-3 place at 3/move — Z's void column
-   (lock 3, P146 finding 6) verbatim, up to the new Galois tie. The
+   (lock 3, explore_lock_prime.py finding 6) verbatim, up to the new
+   Galois tie. The
    ELEMENT void locks (2) = P2^2 at 4/move, via the frozen overture
    (2), (2), the conjugate norm-9 tie (2 +- sqrt-5) = a P3-conjugate
    squared, THE FREE-RIDER DOOR (norm 6: the ticking nonprincipal
@@ -94,7 +95,7 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    at 9, riders at 6) — while P2's tax is REFUNDED by the resonance
    ord[P2] = e = 2: the forced bundle (2) = P2^2 is exactly one
    lambda-tick, price 4 = the ideal price. The thermal clock split
-   (P168 K2: element 1.3527 < ideal 1.5492) is this cold asymmetry's
+   (K2: element 1.3527 < ideal 1.5492) is this cold asymmetry's
    thermal shadow.
 
 6. THE MONOBASIN — the class group collapses the element basin map
@@ -121,7 +122,7 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    parks it at the worst spot (PR6). But seed P2^5, born PAST the
    window, locks 2 at 4/move from move 1: the wild seat can't hold
    what it grabs shallow, yet holds what it is given deep. The 2-adic
-   seat — thermal max of every clock spectrum (P166/P168) — is
+   seat — thermal max of every clock spectrum — is
    cold-dynamically fragile in the ideal world and universal in the
    element world (finding 6): the seat law's cold fate splits by
    world, both readings through the same wild chain.
@@ -134,7 +135,8 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
    ramified-tame lambda(P5^j) = 4*5^floor(j/2) (j <= 6:
    4,20,20,100,100,500). All four are LINEAR pumps in depth — the
    mixed-characteristic signature (contrast the Frobenius log pump,
-   P173 finding 4) — differing only in tick spacing e and coin p^f,
+   explore_function_field_lock.py finding 4) — differing only in tick
+   spacing e and coin p^f,
    which is exactly what the price law reads (finding 2).
 
 Run: `python explore_number_field_lock.py`. RUN RECORD (27273 checks,
@@ -156,7 +158,7 @@ RAMIFIED LOCK, PR5b). P2^5 -> 2-lock at 4/move (unfrozen). s4 element
 census 42 seeds x 40: ALL (2)-lock; void overture norms 4, 4, 9-tie,
 6-rider, then 4 forever (PR7/PR8); 144 rider moves, every one P2-flat;
 16 tie moves, each asserted a conjugate pair. s5 Galois equivariance 3 + 3 seed
-pairs. Slate PR1-PR10 (PR5 as corrected in pass 4): all hit; no
+pairs. Slate PR1-PR10 (PR5 corrected before the run): all hit; no
 misses; unfrozen finds: the P2^5 deep-seed 2-lock, the census
 histograms.
 """

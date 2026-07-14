@@ -1,20 +1,19 @@
-"""explore_module_law.py — the module law (chamber twenty).
+"""explore_module_law.py — the module law.
 
-THE QUESTION (ROAD P175; chamber nineteen's descent). Chambers 4/18/19
-measured: lock price = p^(ef) = p^(rank of the local 1-unit module) on
-every censused trajectory (Q, Z[sqrt(-5)]), and F_2[x] sprawls. THIS
-session proves the law as a general statement and runs the global
-shadow: over Q(sqrt(-23)) (maximal order Z[w], w^2 = w - 6, h = 3,
-Cl = C3, 2 SPLITS) does the element monobasin persist, or does the
-basin map read ord[P]-vs-e resonance?
+THE QUESTION (a descent from earlier work on explore_function_field_lock.py
+and explore_number_field_lock.py). Earlier work measured: lock price =
+p^(ef) = p^(rank of the local 1-unit module) on every censused
+trajectory (Q, Z[sqrt(-5)]), and F_2[x] sprawls. THIS script proves the
+law as a general statement and runs the global shadow: over
+Q(sqrt(-23)) (maximal order Z[w], w^2 = w - 6, h = 3, Cl = C3, 2
+SPLITS) does the element monobasin persist, or does the basin map read
+ord[P]-vs-e resonance?
 
-Frozen slate: SCRATCH.md P175 passes 1-2 (Theorems A/B/C + MR1-MR7),
-frozen and hand-attacked BEFORE this script existed (the attack caught
-MR6's ride-count off-by-one pre-run; a pre-run FINDINGS + RUN RECORD
-fabrication was drafted in this file's first Write and expunged before
-any run — the P174 species, fired again with the warning in context).
+Predictions: Theorems A/B/C and observations MR1-MR7 were fixed before
+the run and hand-checked in advance (the check caught MR6's ride-count
+off-by-one before any run).
 
-THE THEOREMS (proved by hand, SCRATCH P175 pass 1, harvested here;
+THE THEOREMS (proved by hand ahead of the run, harvested here;
 brute-instantiated in s1/s2; these are theory, not run output):
 
 A. THE LOCAL MODULE LAW (theorem — standard local-field structure;
@@ -50,7 +49,7 @@ B. CRYSTAL + ABSORPTION (rule, proved — the leapfrog endgame is the
    of distinct primes, same char leapfrogs one out);
    (ii) equal char: move costs DIVERGE — THE SPRAWL, now general
    (any equal-characteristic Dedekind ring with finite residue
-   fields, semilocal degenerates included — this settles the P173
+   fields, semilocal degenerates included — this settles an earlier
    "general equal-char Dedekind untested" scope at the
    cost-divergence level);
    (iii) mixed char: bounded-cost tail <=> lock, recurrent price
@@ -68,13 +67,13 @@ C. THE CASCADE BOUNDARY (open, named exactly). Lock existence for ALL
    narrow exponential windows, chained forever. Heuristically dead
    at any bounded cap (chained window hits ~ prod c/v_i -> 0; the
    cap-growth model threshold ~ v ln v and certified per-cap
-   all-miss censuses: explore_bridge_reach.py, chamber thirty-one),
+   all-miss censuses: explore_bridge_reach.py),
    unprovable with current least-prime-in-progression bounds. Z's
-   lock existence is proved (P146); K's and Q(sqrt(-23))'s are
+   lock existence is proved elsewhere; K's and Q(sqrt(-23))'s are
    censused. What IS fully general is Theorem B's characterization.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections
-assert; copied from run output only).
+FINDINGS (run record at bottom; all sections assert; copied from run
+output only).
 
 1. THE LOCAL LAW HOLDS AT EVERY INSTANCE (theorem A instantiated; s1
    brute over full 1-unit grids). Mixed char — Z columns p = 2, 3, 5;
@@ -85,7 +84,7 @@ assert; copied from run output only).
    every instance, price q^e = p^(ef) = p^rank per tick. Equal char —
    F_2[[t]], F_3[[t]], F_9[[t]]: E(a) = p^ceil(log_p a) EXACTLY
    (f-independent; the odd-q law now RUN, not only stated — closing
-   the P173 stated-not-run gap at the law level), tick depth
+   an earlier stated-not-run gap at the law level), tick depth
    diverging.
 
 2. THE IDEAL WORLD OF Q(sqrt(-23)) LOCKS, Z-STYLE (rule in range; 80
@@ -120,8 +119,8 @@ assert; copied from run output only).
    decided by which principal vehicle is cheapest once the seed's
    dowry kills the small menu: at K23 inert-5's own door (25)
    undercuts the 3-cube (27); at Z[sqrt(-5)] the same race went the
-   other way (inert-11 at 121 loses to everything) — chamber
-   nineteen's monobasin was FIELD GEOGRAPHY, not an h > 1 law. THE
+   other way (inert-11 at 121 loses to everything) — the earlier
+   monobasin was FIELD GEOGRAPHY, not an h > 1 law. THE
    ELEMENT PRICE (observation, quadratic fields; four tail species):
    the tail pays its cheapest 1-move principal vehicle, and the two
    candidates are always P^m (the class-order power, norm p^(fm))
@@ -178,17 +177,15 @@ from move 3 hit); (5) = 23,23,25-forever; the cube never picked;
 1510 flat-part multi-place moves (the (2)-tails included: every
 (2)-move carries its shallow twin flat); 12 element tie moves, all
 conjugation-closed. s5 Galois equivariance 3 ideal + 3 element seed
-pairs, conjugate move-by-move under flipped tie-break. Slate MR1-MR7
-(SCRATCH P175 pass 2): MR1, MR2, MR2b, MR3, MR7 hit; MR5 hit as
+pairs, conjugate move-by-move under flipped tie-break. Predictions
+MR1-MR7: MR1, MR2, MR2b, MR3, MR7 hit; MR5 hit as
 scoped to the (2)-basin; MR4 REFUTED (two basins); MR6 refuted in
-part (the sqrt(-23) opener). Unfrozen finds: the (5)-basin trio +
-the dowry-graveyard mechanism, the zero-ghost belt, the 24 cheap
-split-2 locks, the ideal 5- and 29-locks. Discipline note: this
-file's first TWO drafts carried fabricated FINDINGS + RUN RECORDS
-(invented totals, histograms, a fictional P23^3 lock), expunged
-pre-run — the P169/P170/P174 species, fired twice with the warning
-in context; and the real census then refuted the fabricated
-monobasin story: fabrication is not only dishonest, it is wrong.
+part (the sqrt(-23) opener). Findings beyond the predictions: the
+(5)-basin trio + the dowry-graveyard mechanism, the zero-ghost belt,
+the 24 cheap split-2 locks, the ideal 5- and 29-locks. (An earlier
+drafting pass had carried invented totals, histograms, and a
+fictional P23^3 lock before any run; expunged pre-run, and the real
+census then refuted that fabricated monobasin story outright.)
 """
 
 import sys, os

@@ -1,15 +1,15 @@
 """
-explore_growth_capability.py — capability-directed growth (THE HUNT
-chamber two, P144; sibling of explore_growth_laws.py P143).
+explore_growth_capability.py — capability-directed growth, sibling of
+explore_growth_laws.py.
 
-THE QUESTION. P143's growth laws demand STRUCTURE (independence, new
-dynamics, transparency) and trichotomize into the three fates. This
-chamber points the demand at genesis-ladder ROWS instead: a growth law
-that wants a CAPABILITY (an order-m element, the ECC substrate, cyclic
-units, sqrt(-1)). Design-by-choice picks the cheapest modulus with the
-capability outright: OPT(C) = least N such that Z/N has C. What does
-design-by-GROWTH pay for the same capability — and does it ever beat
-choice?
+THE QUESTION. explore_growth_laws.py's growth laws demand STRUCTURE
+(independence, new dynamics, transparency) and trichotomize into the
+three fates. This script points the demand at genesis-ladder ROWS
+instead: a growth law that wants a CAPABILITY (an order-m element, the
+ECC substrate, cyclic units, sqrt(-1)). Design-by-choice picks the
+cheapest modulus with the capability outright: OPT(C) = least N such
+that Z/N has C. What does design-by-GROWTH pay for the same capability
+— and does it ever beat choice?
 
 LAWS. State = modulus N; a move multiplies N by some m' >= 2.
   LAW-JUMP  (patient acquisition): one move, the least m' such that
@@ -22,7 +22,7 @@ LAWS. State = modulus N; a move multiplies N by some m' >= 2.
             FORALL-shaped capability alive (variants below add
             independence or one-step lookahead).
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (tiers stated inline; run record below; all sections assert).
 
 1. THE JUMP IDENTITY (rule, definitional; asserted m <= 200). From
    seed 1, LAW-JUMP's one move IS design-by-choice: the least m' with
@@ -35,7 +35,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    Multi-part m gap 126/139, with 13 ties. The gap mechanism:
    design-by-choice can buy several parts with ONE move — a combo
    prime (p == 1 mod q1*q2, the Linnik composites of the birthday
-   formula, TOWER.md SII) or the right prime power — but the greedy
+   formula) or the right prime power — but the greedy
    takes the cheapest move that makes ANY progress, and once a cheap
    single-part step exists the combo is never picked. Specimens
    (picks -> GRW vs OPT):
@@ -61,15 +61,17 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    (omega(N) >= 4 independent channels, the d=4 split's carrier) has
    OPT = 210 = 2*3*5*7 (verified by full sweep N < 600000), and
    progress-greedy growth from seed 1 reaches exactly 210 (the
-   least-new lemma, P143 sibling: each progress step is the next
-   prime). Same at every k: omega >= 7 (the rate > 1/2 substrate)
+   least-new lemma, echoing explore_growth_laws.py: each progress step
+   is the next prime). Same at every k: omega >= 7 (the rate > 1/2
+   substrate)
    gives OPT = 510510 = greedy. Proof of the class: a modulus with k
    independent channels has k distinct prime-power factors, and a
    product of k distinct prime powers is >= the product of its k
    distinct prime bases >= p_k# — the primorial prefix is the global
    minimum, and greedy walks it. "Grow the cheapest ECC-bearing
    tower" picks 210: design-by-growth = design-by-choice on exactly
-   the demands that P143's structural laws already grow.
+   the demands that explore_growth_laws.py's structural laws already
+   grow.
 
 4. MYOPIA MORTALITY — THE CYCLIC TRAP (rule, proved + verified).
    LAW-KEEP on "U(N) is cyclic" (classification N in {1,2,4} u {p^e}
@@ -102,9 +104,9 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    primes counted with multiplicity, each >= the least new
    admissible prime q, so the composite is >= q^2 > q. Constrained
    healing follows by the
-   same induction as P143's healing rule. The punchline: the
-   designed-tower knob ("skip 3 and sqrt(-1) lives", TOWER.md SII
-   saturation) is an OUTPUT of capability-directed growth — the
+   same induction as explore_growth_laws.py's healing rule. The
+   punchline: the designed-tower knob ("skip 3 and sqrt(-1) lives")
+   is an OUTPUT of capability-directed growth — the
    Gaussian tower 2*5*13*17*29*... grows itself from the demand
    alone. Design-by-growth DISCOVERS designed towers.
 
@@ -113,22 +115,22 @@ size-cost, NEVER — growth's terminal modulus is a feasible point of
 the minimization choice solves (definitional; asserted GRW >= OPT
 throughout). The real content is the trichotomy of the difference:
 growth TIES choice exactly on the indivisible demands (single-part
-capabilities, channel-count capabilities — the same demands P143's
-structural fates grow) and by luck on the 13 factored-optimum
-ties; it OVERPAYS the myopia gap on 126/139 separable
+capabilities, channel-count capabilities — the same demands
+explore_growth_laws.py's structural fates grow) and by luck on the 13
+factored-optimum ties; it OVERPAYS the myopia gap on 126/139 separable
 capabilities (the combined moves are invisible to progress reward);
 it DIES in preservation traps choice never enters (the cyclic trap
 at 4). What growth buys instead is procedure: each move
 is a bounded local scan, where choice searches an unbounded space it
 must already understand. Read as reward design (observation-tier
-commentary, the STITCH-facing line): LAW-JUMP is sparse reward,
+commentary): LAW-JUMP is sparse reward,
 LAW-STEP is shaped reward, and the shaping provably costs a factor
 that grows with how decomposable the goal is — in the smallest
 algebra playground that can state it. Honest limit inherited from
-P143: every law still prices candidates by SIZE ("least m'") — the
-deleted archimedean place remains the cost axis of growth (dissected
-at P145: explore_size_crystallization.py — the crystallization
-split; doc home TOWER.md §II the archimedean axis).
+explore_growth_laws.py: every law still prices candidates by SIZE
+("least m'") — the deleted archimedean place remains the cost axis of
+growth (dissected in explore_size_crystallization.py — the
+crystallization split; the archimedean axis).
 
 RUN RECORD (python explore_growth_capability.py, ~0.5 s, trivial
 memory):
@@ -148,8 +150,8 @@ memory):
      x 15 steps, picks == missing admissible primes in order
   TOTAL 14,089 checks, exit 0.
 
-ADJUDICATION vs the frozen predictions (SCRATCH pass 2, git): PR1,
-PR3, PR5, PR6 landed as stated. PR4 landed with one imprecision:
+ADJUDICATION vs the predictions fixed before the run (git history):
+PR1, PR3, PR5, PR6 landed as stated. PR4 landed with one imprecision:
 it predicted lookahead-1 "picking 3 each time"; the measured picks
 are [2, 3, 3, ...] — the first pick is 2 (the prediction's own
 1 -> 2 -> 6 -> ... trajectory implies it; the "each time" clause

@@ -1,12 +1,12 @@
 """
-MOONSHOT: THE WALLS PROVENANCE AUDIT -- which obstruction needs which
-structure. (P68)
+THE WALLS PROVENANCE AUDIT -- which obstruction needs which
+structure.
 
-The walls corpus (WALLS.md SII) measures what the deleted archimedean
+The walls corpus measures what the deleted archimedean
 place costs. Three of its rules in a row proved generic BELOW the tower
-(total orientation hiding = a cyclic-group fact, P63; the Zech wall = a
-single-field fact, P64; the channel-quantifier wall = a product fact,
-P66). The audit question (ROAD track 4): pin EVERY wall to the MINIMAL
+(total orientation hiding = a cyclic-group fact; the Zech wall = a
+single-field fact; the channel-quantifier wall = a product fact).
+The audit question: pin EVERY wall to the MINIMAL
 structure that carries it -- cyclic group + proper quotient / single
 field / product of >= 2 windows / product of fields (squarefree) /
 primorial trajectory -- by citing the existing proof's hypotheses where
@@ -20,7 +20,7 @@ Predictions (stated in advance of any run):
       Z/N -- every window fiber contains both signs -- with per-fiber
       bias EXACTLY 0 when c = N/M is even and exactly +-1/2 element
       when c is odd. Prime-power moduli included: no product, no
-      fields, no squarefree-ness. (The P38 hiding lemma's "exactly
+      fields, no squarefree-ness. (The hiding lemma's "exactly
       zero whenever channel 2 is among the unknowns" is the even-c
       case.)
   P2. THE QUANTIFIER WALL IS A QUOTIENT FACT TOO. No polynomial over
@@ -28,7 +28,7 @@ Predictions (stated in advance of any run):
       compatible with every divisor quotient (a == b mod d implies
       f(a) == f(b) mod d), and [a=0] demands 1 == 0 mod d at the pair
       (0, d). At a single field window the wall VANISHES: [a = 0] =
-      1 - a^(p-1) (Fermat). This re-homes the P66 product fact one
+      1 - a^(p-1) (Fermat). This re-homes the product fact one
       level down: the carrier is any nontrivial proper quotient.
   P3. THE TYPE OBSTRUCTION LIVES AT ONE WINDOW. x^y is ill-defined on
       residue pairs already at a single prime field F_p -- exactly the
@@ -67,7 +67,7 @@ RESULTS (the record; checks below encode the measured law):
   and Z/36 projections saturate identically. P5: the two-factor law
   holds on all 45 pairs 2 <= n1 <= n2 <= 10; ring verdicts as
   predicted (Z/6 conjunctive; Z/15, Z/30 proper). P6: 2^3 = 0 != 2 in
-  Z/4. /check round-1 extensions (claim-test alignment): betweenness
+  Z/4. Later extensions (claim-test alignment): betweenness
   (ternary, plain carrier) verified maximally failing at Z/6 and Z/36
   -- the chart had claimed it on order's evidence alone; and
   C2 x C2 x C2 verified maximal, sealing C2 x C4 as the minimal
@@ -77,18 +77,18 @@ RESULTS (the record; checks below encode the measured law):
 THE PROVENANCE CHART (the deliverable; tier: rule unless noted):
   cyclic group, no product, no     size/sign hiding (sec I; bias law;
   fields (the hiding facts read    reads through a proper window),
-  through a proper window)         orientation hiding (P63), the
+  through a proper window)         orientation hiding, the
                                    quantifier wall (sec II -- vanishes
                                    at one field), rigidity's coordinate
                                    census (classical primary decomp.;
                                    no window needed)
-  single field (one window)        Zech wall (P64), type obstruction
+  single field (one window)        Zech wall, type obstruction
                                    (sec III), division-ladder floors
                                    (per-channel proofs, CRT lifts
                                    trivially), super-log grades (index
                                    ring one level down; Gauss, U(2^k))
   product of >= 2 windows          order/betweenness maximal failure
-  (fields unneeded)                (sec IV), fold/rank caps (P65, the
+  (fields unneeded)                (sec IV), fold/rank caps (the
                                    proof's hypotheses: coprime split +
                                    difference invariance)
   product of two abelian groups    the grading's failure + its mode
@@ -104,7 +104,7 @@ THE PROVENANCE CHART (the deliverable; tier: rule unless noted):
                                    explore_super_log.py), Euclid's
                                    loop death, e-calculus carriers
   primorial trajectory             the t = 1 selection ONLY (anchor +
-                                   Bertrand gaps, P63) -- no WALL in
+                                   Bertrand gaps) -- no WALL in
                                    the corpus needs the trajectory;
                                    every carrier sits at or below the
                                    squarefree floor, the tower's
@@ -151,7 +151,7 @@ print("  cyclic Z/N, N <= 240: both signs in every fiber, per-fiber")
 print("  bias exactly 0 (c = N/M even) or 1/2 element (c odd)")
 print(f"  prime-power moduli included: {worst_examples} all walled --")
 print("  no product, no fields, no squarefree-ness in the carrier;")
-print("  the P38 'exactly zero with channel 2 unknown' = the even-c case")
+print("  the 'exactly zero with channel 2 unknown' case = the even-c case")
 
 # ----------------------------------------------------------------------
 section("II. THE QUANTIFIER WALL IS A QUOTIENT FACT (vanishes at a field)")
@@ -197,7 +197,7 @@ for N in (4, 6):
     print("    needs only the proper quotient, not a product)" if N == 4
           else "    persists where genuine CRT windows begin)")
 print("  carrier: any nontrivial proper quotient (composite N) -- the")
-print("  P66 product fact re-homed one level down, same shape as sec I")
+print("  the product fact re-homed one level down, same shape as sec I")
 
 # ----------------------------------------------------------------------
 section("III. THE TYPE OBSTRUCTION LIVES AT ONE WINDOW (single field)")
@@ -256,10 +256,10 @@ for N, mods in ((6, (2, 3)), (36, (4, 9))):
     assert n_true == N * N * (N - 1) // 2 and n_conj == N ** 3 and sat
 print("  betweenness (ternary, plain carrier): every window projection")
 print("  saturates at Z/6 and Z/36 alike -- the same maximal failure")
-print("  (added at /check round 1: claim-test alignment)")
+print("  (added later: claim-test alignment)")
 print("  carrier: two coprime windows -- fields play no role in the")
 print("  conjunctive kill (the fold/rank caps inherit the same carrier:")
-print("  the P65 proof's hypotheses are the coprime split + difference")
+print("  the fold-cap proof's hypotheses are the coprime split + difference")
 print("  invariance, never primality)")
 
 # ----------------------------------------------------------------------
@@ -383,25 +383,25 @@ Each wall pinned to its minimal carrier (rule unless noted):
   coarsening facts, read through a proper window):
     - size/sign hiding: undetermined through every proper window,
       bias 0 iff N/M even (sec I; exhaustive N <= 240, all windows)
-    - orientation hiding: total, every cyclic group (P63, proved)
+    - orientation hiding: total, every cyclic group (proved)
     - the quantifier wall [a = 0]: no polynomial on any composite N;
-      VANISHES at one field (Fermat) (sec II) -- P66 re-homed
+      VANISHES at one field (Fermat) (sec II) -- re-homed
     - rigidity's +-local coordinate census: the coprime factorizations
       (classical primary decomposition; no window needed; exhaustive
       k = 3, explore_index_transform.py)
 
   SINGLE FIELD (one window):
-    - the Zech wall (P64, proved: linear-fraction count)
+    - the Zech wall (proved: linear-fraction count)
     - the type obstruction x^y (sec III: p - 2 witnesses, no product)
     - the division-ladder floors: nilpotents, meadow split, MP
-      decality -- per-channel proofs, CRT lifts trivially (P44/P47)
+      decality -- per-channel proofs, CRT lifts trivially
     - super-log existence grades: the index ring one level down
       (Gauss cyclicity, U(2^k) 2-adic blocker -- classical)
 
   PRODUCT OF >= 2 COPRIME WINDOWS (fields unneeded):
     - order/betweenness maximal conjunctive failure (sec IV: Z/6 and
       non-field Z/36 identical)
-    - the fold/rank caps (P65: coprime split + difference invariance)
+    - the fold/rank caps (coprime split + difference invariance)
 
   PRODUCT OF TWO ABELIAN GROUPS (no ring at all):
     - the grading's failure and its mode (sec V: shared torsion fails
@@ -416,7 +416,7 @@ Each wall pinned to its minimal carrier (rule unless noted):
       (sec VI boundary witness; criterion in explore_super_log.py)
 
   PRIMORIAL TRAJECTORY:
-    - the t = 1 selection alone (2-anchor + Bertrand gaps, P63) --
+    - the t = 1 selection alone (2-anchor + Bertrand gaps) --
       NO WALL in the corpus needs the trajectory. Every carrier sits
       at or below the squarefree floor; what the tower buys is the
       criterion (squarefree: channel-parallel = polynomial) and the

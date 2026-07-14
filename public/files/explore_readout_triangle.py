@@ -1,17 +1,15 @@
 """explore_readout_triangle.py — THE TRIANGLE: the full-vector
-designed readout (the readout theorem's designed-engine face; ROAD
-P194, VERTIGO STOCK (a) remainder; the P190-parked triangularity
-hunch).
+designed readout (the readout theorem's designed-engine face; an
+open question; the earlier-parked triangularity hunch).
 
-THE QUESTION (ROAD P194). The readout theorem (P192,
-explore_readout_proof.py) proves every arrival class of a totally
+THE QUESTION. The readout theorem (explore_readout_proof.py)
+proves every arrival class of a totally
 ramified f = 1 window of Q_2 reads a window of the canonical digits
-of w = 2/pi^e; P190's construction kit places the STOP (the first
+of w = 2/pi^e; an earlier construction kit places the STOP (the first
 nonzero). Open: can a designed window place the WHOLE digit vector
 w_1..w_{3e/2-1} — and is the coefficient-to-digit map TRIANGULAR?
 
-THE HAND DERIVATION (SCRATCH.md P194 passes 1-2, frozen before this
-file existed).
+THE HAND DERIVATION (derived by hand before this file existed).
 
 Setup: F(x) = x^e + sum_{i=1}^{e-1} 2 b_i x^i - 2d Eisenstein
 (d odd), pi a root, so with T := sum (b_i/d) pi^i:
@@ -45,7 +43,7 @@ onto {0,1}^{3e/2-1} — every window word printable, each by exactly
 one grid design — and the greedy digit-by-digit solve (flip the
 level-r parameter iff digit r misses) never disturbs the prefix.
 
-THE FROZEN SLATE (SCRATCH.md P194 pass 3, frozen before this file):
+THE PREDICTIONS (fixed before this file existed):
 
 FV1 (bijection census): the full grid's window vectors are pairwise
     distinct = ALL of {0,1}^{3e/2-1} — exhaustive at e = 4 (32),
@@ -61,7 +59,7 @@ FV3 (greedy placement at e = 16): every target word placed exactly,
     a sparse-grid Eisenstein polynomial.
 FV4 (identity row): all-zero parameters = x^e - 2, window all-zero,
     at e = 4, 6, 8, 16.
-FV5 (the P190 kit re-read as triangle rows, hand-frozen):
+FV5 (the earlier kit re-read as triangle rows, hand-derived):
     x^16+2x^8-2 window nonzero EXACTLY {8, 16}; x^16+2x^8-6
     EXACTLY {8}; x^16+4x^4+2x^8-6 EXACTLY {8, 20}.
 FV6 (the game tie, end-to-end): for two placed e = 8 words
@@ -86,7 +84,7 @@ the read.
 Run: python prime/code/explore_readout_triangle.py
 
 FINDINGS (entered post-run, copied from printed output; tiers per
-CLAUDE.md).
+the project's naming conventions).
 
 1. THE TRIANGLE (theorem — the unitriangularity proof is general in
    even e, nowhere using e = 2^s; the engine verifies it
@@ -103,14 +101,14 @@ CLAUDE.md).
    (b_i mod 2 at levels < e; d mod 4 at e; b_i div 2 mod 2 for
    i < e/2 at the levels above e),
    re-encoded bijectively — the readout is a lossless PROGRAMMABLE
-   channel, and P190's stop kit is its first-nonzero shadow.
+   channel, and the earlier stop kit is its first-nonzero shadow.
 
 2. FULL-VECTOR PLACEMENT AT e = 16 (rule in range): all 27 target
    words (24 seeded random + all-ones + all-zeros + the skeleton
    word) placed EXACTLY by the greedy solve, 648 measures total
    (24 per word, the bound), per-step prefix invariant asserted at
    every level. The skeleton word (nonzero exactly {8, 20},
-   zeta32's vector) resolves to [-6,4@4,2@8] — the P190 rung-56
+   zeta32's vector) resolves to [-6,4@4,2@8] — the earlier rung-56
    witness REDISCOVERED by the solver, and by the triangle's
    bijection (finding 1) that design is the UNIQUE grid member
    carrying zeta32's word.
@@ -126,7 +124,7 @@ CLAUDE.md).
    equals 2e + ladder_rel on the measured digits, rigid below
    freedom, starters at 2e + 1 (17/17/33).
 
-4. THE P190 KIT RE-READ (rule in range; FV5): the three hand-frozen
+4. THE EARLIER KIT RE-READ (rule in range; FV5): the three hand-fixed
    triangle rows are exact — x^16+2x^8-2 nonzero exactly {8, 16}
    (beta_8 + the T^2 self-product at level 16), x^16+2x^8-6 exactly
    {8} (delta cancels the T^2 term: "mu mod 4 tunes the rel-16
@@ -134,9 +132,9 @@ CLAUDE.md).
    level 20) — the kit's carry folklore is the triangle's algebra.
 
 PRE-GREEN FAILURES: none — green on the first complete run (the
-three FV5 vectors and the two e = 8 tie predictions were frozen
-from the hand algebra before any code; the P152/P187/P188
-adjudication seat sat empty again, second face in a row).
+three FV5 vectors and the two e = 8 tie predictions were fixed
+from the hand algebra before any code; the pre-run fabrication
+check found nothing again, the second time in a row).
 
 RUN RECORD (python explore_readout_triangle.py, 8.6 s, exit 0):
 117,909 checks passed (50,248 this module + 67,661 imported; the

@@ -1,15 +1,14 @@
 """
-explore_hot_limit.py -- THE HOT LIMIT (THE HUNT chamber eight, P150;
-sibling of explore_growth_laws.py P143 .. explore_depth_observer.py
-P149).
+explore_hot_limit.py -- THE HOT LIMIT (sibling of explore_growth_laws.py
+and explore_depth_observer.py).
 
-THE QUESTION (chamber five's honest scope, verbatim): whether hot
+THE QUESTION (a companion record's honest scope, verbatim): whether hot
 D-DYN opens every window a.s. and deepens without bound -- candidate
 limit Z-hat itself -- was OPEN: "v_r(lambda) can grow spontaneously
-and freeze doors." This chamber closes it. Design + frozen slate
-PR1-PR7: SCRATCH P150 passes 1-3 (git).
+and freeze doors." This script closes it. Design and predictions
+PR1-PR7 were fixed before the run.
 
-FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
+FINDINGS (run record below; all sections assert).
 
 1. THE UPWARD CLOSURE (rule, proved; verified S1). Lambda is
    divisibility-monotone (a | b => lambda(a) | lambda(b): units
@@ -17,20 +16,21 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    lambda(N)} is UPWARD-CLOSED in the divisibility order: m
    admissible and m | m' => m' admissible. Its complement in
    {m >= 2} is the transparent set = the divisors of W(lambda(N))/N
-   (the D-TRA state lemma, chamber five) -- FINITE, downward-closed:
+   (the D-TRA state lemma) -- FINITE, downward-closed:
    A(N) is co-finite, and D-DYN and D-TRA partition the move space
    at every state. The two demands are set-complementary: the
    finite-death demand and the reach-everything demand are
    complements of one another. Clean normalizer form: Z^DYN_N(beta)
    = zeta(beta) - sigma_beta(W/N), sigma_beta(D) = sum_{d | D}
-   d^(-beta) (multiplicative; equals chamber seven's wall discount).
+   d^(-beta) (multiplicative; equals the wall discount from an
+   earlier study).
 
 2. THE UNIFORM OPENING BOUND (rule, proved; verified S2 by exact
    enumeration). For any prime p, the injection m -> pm maps A(N)
    into A(N) (upward closure), so mass(A cap pZ) >= p^(-beta) Z_N
    and P(p | pick | N) >= p^(-beta) -- UNIFORM IN THE STATE, and
    per power P(v_p(pick) >= k | N) >= p^(-beta k). Heat doesn't use
-   doors: the door menu (chamber four) prices MINIMAL moves, and a
+   doors: the door menu (from an earlier study) prices MINIMAL moves, and a
    frozen door (v_p(lambda) grown large) only blocks p's own prime
    power -- p still rides along on p * (any admissible move). The
    door-freeze delicacy dissolves. Exact upper bound alongside:
@@ -45,7 +45,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    lim<- Z/N_t = Z-HAT -- the full profinite completion. For every
    seed and every beta > 1: hot dynamics reaches the TOP of the
    supernatural lattice, deterministically (an a.s.-constant limit,
-   seed-free and temperature-free). Chamber four's basin geography
+   seed-free and temperature-free). An earlier study's basin geography
    (ghosts, dowries, Linnik blockers) is a ZERO-TEMPERATURE
    ARTIFACT: any heat at all merges every basin into one destiny.
    The discontinuity sits at beta = infinity exactly -- the greedy
@@ -70,21 +70,21 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    forever nonempty, and grows the 2-adic column -- mortality's
    absorption additionally uses its BUDGET structure: the admissible
    set is the divisor set of a cofactor that every move strictly
-   consumes (chamber five's deterministic bound). Selection theory
+   consumes (an earlier study's deterministic bound). Selection theory
    over a bare poset needs no ring; two fates are shape-authored,
    the third is shape + budget (selection-frame instance six).
 
 5. THE RADICAL READING + THE FOUR DESTINATIONS (property +
    synthesis; verified S5). Pi_p F_p = Z-hat/J(Z-hat) with J = prod
-   pZ_p (ALGEBRA.md SXII). The destinations table (every D-IND cell
+   pZ_p (standard construction). The destinations table (every D-IND cell
    carries the seed's own profile -- healing adds missing windows,
-   never removes excess powers, chamber three -- so "crystal" and
+   never removes excess powers -- so "crystal" and
    "zeta measure" describe the seed-1 / squarefree-seed case, with
    a general seed's defects persisting as a fixed factor):
        D-TRA, any T ......... W(lambda(seed)), finite (inert)
        D-IND, T = 0 ......... the crystal prod p (all depths 1)
        D-IND, T > 0 ......... the zeta measure (random; entering
-                              depths a.s. finite, geometric -- ch. 5)
+                              depths a.s. finite, geometric)
        D-DYN, T = 0 ......... one column A * q^inf (A = the locked
                               seed's residue)
        D-DYN, T > 0 ......... Z-HAT (all depths infinite, certain)
@@ -107,7 +107,7 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    discount vanishes iff Z_N = zeta(beta) - 1 iff the thermal D-DYN
    law at N is the FREE zeta law P(m) = m^(-beta)/(zeta - 1) over
    ALL m >= 2. At mortality's tombstones, dynamics is pure zeta:
-   the three fates entangle a second time (chamber seven priced
+   the three fates entangle a second time (an earlier study priced
    depth's normalizer by the wall; the wall's own absorbing states
    are where the pricing is exactly free). Specimens: 24, 240, 504.
 
@@ -124,8 +124,8 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    escapes through the co-finite tail every time -- upward closure
    guarantees the exit mass; only its truncated shadow thins.
 
-8. THE FORWARD-CLOCK WATCH (exploratory, S6; JOURNAL P148/P149).
-   Chamber seven's stage clocks (roots of Z_{3^a} = 1) are
+8. THE FORWARD-CLOCK WATCH (exploratory, S6).
+   An earlier study's stage clocks (roots of Z_{3^a} = 1) are
    posterior-side; the watched question was whether they surface in
    any FORWARD observable. Two natural per-step observables at
    column states 3^a, bisected in beta: P(pick deepens 3) crosses
@@ -140,42 +140,42 @@ FINDINGS (tiers per CLAUDE.md; run record below; all sections assert).
    every level. The watch item stays posterior-side.
 
 SCOPE + HONESTY. Multiplicative thermal laws over Z/N at beta > 1
-(the P143 ambient); MC sections run a truncated menu (m <= 500)
-whose in-universe marginals are exact -- findings 1-6 are proved for
-the full law; rates and discount behavior along trajectories are
-truncated-model observations. Additive moves and non-cyclic ambients
-stay open (ROAD hunt entry). The upward-closure law is stated for
-weights m^(-beta); the proof needs only w(pm) = c_p w(m) with
-c_p > 0 and summable w -- wider families are not chased here.
+(the setting used throughout); MC sections run a truncated menu
+(m <= 500) whose in-universe marginals are exact -- findings 1-6 are
+proved for the full law; rates and discount behavior along
+trajectories are truncated-model observations. Additive moves and
+non-cyclic ambients remain open questions. The upward-closure law is
+stated for weights m^(-beta); the proof needs only w(pm) = c_p w(m)
+with c_p > 0 and summable w -- wider families are not chased here.
 
-FROZEN PREDICTIONS (SCRATCH P150 pass 2, amended pass 3 pre-run;
-git; one miss, diagnosed and re-frozen pass 4). Adjudication:
+PREDICTIONS (fixed before the run, amended once pre-run; one miss,
+diagnosed and re-fixed). Adjudication:
   PR1 closure + partition  CONFIRMED (S1: 2000 states x 199 moves,
       zero violations; complement = divisors of W/N exactly)
   PR2 uniform bound ...... CONFIRMED (S2: 30 states x 6 primes x 4
-      betas all in [floor, ceiling]; frozen numeric P(5 | pick | 6,
-      beta 2) = 0.1979261 vs frozen 0.197926, AT the ceiling as
-      frozen; Z_6(2) = 0.332434 as frozen)
+      betas all in [floor, ceiling]; predicted numeric P(5 | pick | 6,
+      beta 2) = 0.1979261 vs measured 0.197926, AT the ceiling as
+      predicted; Z_6(2) = 0.332434 as predicted)
   PR3 MC witnesses ....... (a), (c) CONFIRMED (second window by 40:
       100/100; min v_2(N_300) = 228 >= 30). (b) MISSED FOR p = 11
-      at the frozen 95: 93/100 by step 300 (3, 5, 7: 100/100; 13:
-      87 >= 80). Diagnosis, frozen before the re-run (SCRATCH pass
-      4): the 500-menu truncation cuts the composite-multiple mass
-      11 * (admissible > 45) that the full-law injection counts, so
-      the realized PRE-OPENING rate sits near the proved floor
-      11^(-2) (the all-time in-menu mean, 0.019, is higher only
-      because post-opening deepenings are cheap). The re-frozen
-      600-step leg CONFIRMED: 11 opens 100/100, 13 opens 97/100 by
-      step 600 (frozen >= 95, >= 90). The full-law bound is exact-
-      verified in S2; the miss is the truncated model's, not the
-      theorem's.
-  PR4 depth-rate band .... CONFIRMED as pass-3-amended (mean v_2
+      at the predicted threshold 95: 93/100 by step 300 (3, 5, 7: 100/100; 13:
+      87 >= 80). Diagnosis, made before the re-run: the 500-menu
+      truncation cuts the composite-multiple mass 11 * (admissible
+      > 45) that the full-law injection counts, so the realized
+      PRE-OPENING rate sits near the proved floor 11^(-2) (the
+      all-time in-menu mean, 0.019, is higher only because
+      post-opening deepenings are cheap). The re-run 600-step leg
+      CONFIRMED: 11 opens 100/100, 13 opens 97/100 by step 600
+      (thresholds >= 95, >= 90 as predicted). The full-law bound is
+      exact-verified in S2; the miss is the truncated model's, not
+      the theorem's.
+  PR4 depth-rate band .... CONFIRMED as amended pre-run (mean v_2
       rate 0.8918 in [0.33, 1.5]; per-run min 0.7600 > 0.28, the
       soft line unneeded)
   PR5 wall states ........ CONFIRMED (S4: 24/240/504 self-wall,
       discount 0, Z = zeta - 1, every menu move admissible)
   PR6 seed-freedom ....... CONFIRMED (S3 seed 15: 2, 3, 5, 7 at
-      100/100, 11 at 95/100 by 300, all >= the frozen 90)
+      100/100, 11 at 95/100 by 300, all >= the predicted threshold 90)
   PR7 stratification ..... CONFIRMED (S5: depth-30 zeta-measure
       mass 2^(-58) ~ 3.5e-18 < 1e-17; hot D-DYN power floor
       verified at k = 1, 2, 5, 10)
@@ -196,10 +196,7 @@ v_2 mean 0.8596, v_3 mean 0.3418; discount ranges [0.0000, 0.6144]
 mean 0.0212 / [0.0035, 0.6082] mean 0.0345; mean in-menu P(11 |
 pick) 0.0192 / 0.0160 vs floor 0.00826); S4 tombstones; S5
 stratification; S6 clock watch (clocks + crossings in finding 8;
-min O1-clock gap 0.0008 at a = 2, distinct asserted). Frozen slate
-+ design: SCRATCH P150 passes 1-4 (git; pass 3 carries the deleted
-pre-run fabricated-adjudication note -- the discipline's reason
-made visible).
+min O1-clock gap 0.0008 at a = 2, distinct asserted).
 """
 
 import math
@@ -395,7 +392,7 @@ def s0():
         ok(abs(zeta(b, 20000) - zeta(b, 40000)) < 1e-10, "zeta EM stable")
 
     # lambda vs brute element orders, n <= 300 (verify the classical
-    # facts the whole chamber leans on -- the immune rule)
+    # facts this script leans on -- the immune rule)
     for n in range(2, 301):
         nf = fact(n)
         lam = dict_to_int(lam_of(nf))
@@ -412,7 +409,7 @@ def s0():
            "lambda monotone n -> 2n")
 
     # W(L): brute maximality -- every n <= 4*W with lambda(n) | L
-    # divides W (L <= 12 even, the chamber-5/7 range)
+    # divides W (L <= 12 even, the range studied here)
     for L in (2, 4, 6, 8, 10, 12):
         W = dict_to_int(wall_of(fact(L)))
         for n in range(1, min(4 * W, 25000)):
@@ -627,13 +624,13 @@ def s3():
             ok(second_by_40 >= 99, "PR3a: second window by 40")
             for p in (3, 5, 7):
                 ok(open_by_300[p] >= 95, "PR3b: p=%d opens" % p)
-            # PR3b MISSED for p = 11 at the frozen 95 (92/100, first
-            # run): the 500-menu truncation cuts the composite-
-            # multiple mass 11 * (admissible > 45), so the realized
-            # rate sits near the full-law FLOOR (printed above); the
-            # theorem's bound is exact-verified in S2. Measured-band
-            # tripwire here; the diagnosis leg is the 600-step assert
-            # (frozen pre-re-run, SCRATCH pass 4).
+            # PR3b MISSED for p = 11 at the predicted threshold 95
+            # (92/100, first run): the 500-menu truncation cuts the
+            # composite-multiple mass 11 * (admissible > 45), so the
+            # realized rate sits near the full-law FLOOR (printed
+            # above); the theorem's bound is exact-verified in S2.
+            # Measured-band tripwire here; the diagnosis leg is the
+            # 600-step assert (fixed before the re-run).
             ok(open_by_300[11] >= 85, "p=11 by 300, measured band")
             ok(open_by_300[13] >= 80, "PR3b: p=13 opens >= 80")
             ok(open_by_600[11] >= 95, "diagnosis leg: p=11 by 600")
@@ -675,7 +672,7 @@ def s4():
 def s5():
     print("S5: the four destinations (radical cross-check)")
     # hot D-IND never approaches the radical: geometric depth law
-    # (chamber 5, proved there): P(G_p >= k) = p^(-beta(k-1))
+    # (proved elsewhere): P(G_p >= k) = p^(-beta(k-1))
     mass = 2.0 ** (-2.0 * 29)          # p = 2, beta = 2, depth >= 30
     ok(mass < 1e-17, "zeta-measure depth-30 mass 2^-58 ~ %.2e" % mass)
     # hot D-DYN passes every depth with positive uniform rate:
@@ -727,14 +724,14 @@ def s6():
     for a in range(1, 7):
         nf = fact(3 ** a)
         lam = lam_of(nf)
-        # chamber-7 clock: root of Z_{3^a}(beta) = 1
+        # the companion clock: root of Z_{3^a}(beta) = 1
         c = bisect_root(lambda b: znorm(nf, lam, b) - 1.0, 1.05, 3.0)
         clocks.append(c)
-        # cross-check vs chamber 7's published clocks (a = 1..3)
+        # cross-check vs published clocks from an earlier study (a = 1..3)
         published = {1: 1.5278, 2: 1.5023, 3: 1.4963}
         if a in published:
             ok(abs(c - published[a]) < 5e-4,
-               "clock a=%d matches chamber 7" % a)
+               "clock a=%d matches the depth-fate record" % a)
         # O1 = P(pick divisible by 3) crossing 1/2 (forward)
         cross1.append(bisect_root(
             lambda b: p_open(nf, lam, 3, b)[0] - 0.5, 1.05, 3.0))

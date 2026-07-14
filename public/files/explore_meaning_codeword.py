@@ -1,15 +1,15 @@
 """
-Meaning as codeword (MOONSHOT probe, P98; the last P87 seed):
-operationalize "a meaning" as a ring element and test the three
-properties the seed named -- exact composition/decomposition (VSA
+Meaning as codeword: operationalize "a meaning" as a ring element and
+test the three
+properties named -- exact composition/decomposition (VSA
 binding), snap-to-whole (Gestalt = codeword), element-as-operator
 (activity theory) -- plus the one wall the substrate was expected to
 pay, measured, with its ring-native cure.
 
 Setting: RAD = Z/510510 (rung k=7, tower split: data {2,3,5,7},
 parity {11,13,17}; crt.py). A CONCEPT is a valid ECC codeword -- a
-data value n < 210 carried on all 7 channels. The claim under test is
-the STITCH-shelf sentence (ROAD): binding/unbinding exact where
+data value n < 210 carried on all 7 channels. The claim under test is:
+binding/unbinding exact where
 HRR/SPA's is approximate, and cleanup a DECODER WITH A GUARANTEE
 where the literature's cleanup memory is probabilistic
 nearest-neighbor. Nearest neighbor in the literature: Plate's HRR /
@@ -90,7 +90,7 @@ FINDINGS (tier per item; adjudication recorded after the run):
    minimal 4-window product is 2*3*5*7 = 210 = the scene space,
    exactly sized) (S6).
 
-PREDICTIONS (stated before the run, P86 discipline; SCRATCH pass 1):
+PREDICTIONS (stated before the run):
  PR1: S1 exhaustive + sampled, zero failures.            LANDED.
  PR2: HRR self-noise mean cosine in (0.2, 0.95) at d=512;
       cleanup accuracies reported, no threshold assert.  LANDED (0.710).
@@ -104,8 +104,8 @@ PREDICTIONS (stated before the run, P86 discipline; SCRATCH pass 1):
       0.48%), i.e. an empty second slot, not a survived superposition.
       (ii) The prediction itself was the wrong mechanism for codeword
       fillers: the rate is not ~1e-4 but EXACTLY 0 (noise weight >= d,
-      the minimum-distance argument above) -- the /check round-1 read
-      caught the understatement and S4a now verifies the weight floor.
+      the minimum-distance argument above) -- caught the understatement,
+      and S4a now verifies the weight floor.
  PR5: S5 laws exhaustive on Z/210, sampled on RAD.       LANDED.
  PR6: S6 pipeline exhaustive, zero failures.             LANDED.
 
@@ -114,11 +114,11 @@ Regime: RAD exhaustive where the lexicon is the full 210 (S3a/b/c, S5
 Z/210 rows, S6), 22-concept exhaustive + 3000 random for weight-2
 (S3d/e; the first run's list carried a duplicate 209 -- '23-scene' was
 22 distinct, label fixed round 5), 5000 random weight-3 views for the
-zone-3 census (S3g, the /end probe folded in),
+zone-3 census (S3g, folded in),
 sampled 500-10000 for RAD-sized claims (S1b/c, S4, S5c); HRR at d=512
 and d=64, M=1000, 300 cleanup trials per cell + the ring cell (S2b,
-300/300). /check round 4 note: the original S2b was check(True) and the
-original op_x(1) = x row a Python tautology -- both the S1232 species,
+300/300). Note: the original S2b was check(True) and the
+original op_x(1) = x row a Python tautology -- both vacuous checks,
 replaced by the ring cell and a prose clause (21 -> 20 checks).
 """
 
@@ -365,7 +365,7 @@ def s3_snap_to_whole():
           f"(snapped to {snapped} = {cprime}, a codeword -- never garbage)",
           snapped == cprime and loc is not None)
 
-    # how often does zone 3 fool the decoder? (the /end probe, folded in)
+    # how often does zone 3 fool the decoder? (folded in)
     refuse = illusion = 0
     ok = True
     for _ in range(5000):
@@ -548,7 +548,7 @@ def s6_scene_pipeline():
 if __name__ == "__main__":
     import time
     t0 = time.time()
-    print("MEANING AS CODEWORD -- the exact VSA (P98)")
+    print("MEANING AS CODEWORD -- the exact VSA")
     s1_bind_unbind()
     s2_hrr_contrast()
     s3_snap_to_whole()

@@ -1,14 +1,14 @@
-"""explore_collision_equivalence.py — THE COLLISION EQUIVALENCE (THE PROGRAM step 6):
+"""explore_collision_equivalence.py — THE COLLISION EQUIVALENCE:
 alpha -> 0 <=> transparency density -> 1, made EXACT — the converse is a THEOREM.
 
-THE QUESTION (ROAD P228 = THE PROGRAM step 6). Chamber twenty-seven proved
+THE QUESTION. A companion script (explore_complexity_ledger.py) proved
 density -> 1 IMPLIES alpha -> 0 (the domination inequality, rigorous) and left
-the converse a HEURISTIC ("both hinge on N_nt = o(k)"); chamber twenty-eight
-located alpha -> 0 in the shifted-prime distribution circle. The step-6 target:
-state the sharpest true biconditional — what extra hypothesis closes the
-converse, and which fragment is unconditional?
+the converse a HEURISTIC ("both hinge on N_nt = o(k)"); another companion script
+(explore_ledger_threshold.py) located alpha -> 0 in the shifted-prime distribution
+circle. The open target: state the sharpest true biconditional — what extra
+hypothesis closes the converse, and which fragment is unconditional?
 
-THE ANSWER (found pre-engine, SCRATCH P228 pass 1): NO extra hypothesis is
+THE ANSWER (found by hand before writing the engine): NO extra hypothesis is
 needed. The converse is an elementary theorem, and more: the two sequences are
 asymptotically EQUAL. The hypothesized "mass condition on repeated large
 shifted-prime factors" is FREE — supplied by the lcm's write-once structure,
@@ -19,9 +19,9 @@ prod(p_i - 1); alpha(k) = log lambda/log phi (dynamical complexity vs
 capacity). A step is NON-TRANSPARENT iff (p-1) does not divide the running
 lambda (forces a raise); N_nt(k) = # such steps, nt_frac = N_nt/k.
 (Convention: p = 2 has p-1 = 1 | lambda, transparent under the divisibility
-definition; chamber 27 counted the opener as a raise by convention — a +-1
-that touches nothing asymptotic. This script uses the divisibility
-definition and prints both counts.)
+definition; explore_complexity_ledger.py counted the opener as a raise by
+convention — a +-1 that touches nothing asymptotic. This script uses the
+divisibility definition and prints both counts.)
 An EVENT at prime q = a step at which q's exponent in lambda strictly
 increases; e_q = # events at q; a_q = q's final exponent in lambda(p_k#).
 
@@ -41,7 +41,7 @@ PROOF. Four elementary facts:
        at q adds >= log q to log lambda, so log lambda >= Sum_q e_q log q.
   (E4) A step's total increment is <= log(p-1) < log x (new lambda divides
        old lambda * (p-1)), so log lambda <= N_nt * log x.
-  FORWARD (chamber 27's domination, restated): alpha <= N_nt log x/log phi
+  FORWARD (explore_complexity_ledger.py's domination, restated): alpha <= N_nt log x/log phi
   = nt_frac * [k log x/log phi]; the bracket -> 1 (theta(x)/(pi(x) log x)
   -> 1 by partial summation + Chebyshev; log phi = theta(x) - O(loglog x)
   by Mertens). So alpha <= nt_frac * (1 + O(1/log x)).
@@ -58,41 +58,42 @@ PROOF. Four elementary facts:
   (Why no positive proportion of raises can hide at small primes: there are
   not enough small primes — pi(x/(log x)^3) ~ x/(log x)^4 = o(k), and each
   hosts at most log x/log q events. The sqrt-x scare fails the same way:
-  pi(sqrt x) = o(k) with a_q <= 2 there. The in-range echo is chamber 28's
-  mass-locus, 0.975 of log lambda from q > sqrt x.)
+  pi(sqrt x) = o(k) with a_q <= 2 there. The in-range echo is
+  explore_ledger_threshold.py's mass-locus, 0.975 of log lambda from q > sqrt x.)
 
 COROLLARIES.
-  (C1) alpha -> 0 <=> density -> 1: chamber 27's fate and MAP open problem 1
+  (C1) alpha -> 0 <=> density -> 1: explore_complexity_ledger.py's fate and the
+       transparency-density conjecture (does the transparency density tend to 1?)
        are the SAME statement, unconditionally.
   (C2) The count-reserve threshold rho_c = limsup nt_frac = limsup alpha:
        the threshold IS the complexity ratio's limsup.
-  (C3) With chamber 28's exact identity alpha = 1 - collision/log phi:
+  (C3) With explore_ledger_threshold.py's exact identity alpha = 1 - collision/log phi:
        collisions absorb almost all capacity <=> density -> 1.
   (C4) Reformulation: density -> 1 <=> log lcm{p-1 : p <= x} = o(x) — a pure
        lcm-of-shifted-primes asymptotic.
 
-FROZEN SLATE EQ1-EQ5 (SCRATCH P228 pass 2; hand-attacked pre-engine.
-Findings enter by a SEPARATE post-run edit copying printed output —
-BORN FINDINGS-FREE, CLAUDE.md):
+PREDICTIONS EQ1-EQ5 (fixed before the run, worked out by hand; findings
+enter by a separate post-run edit copying printed output):
 
   EQ1 (the event ledger, exact). Assert: N_nt <= Sum_q e_q (the theorem's E1;
-    equality in range iff every raise touches exactly one prime — chamber 27
-    observed one prime POWER per jump); e_q <= a_q for every q (E2);
+    equality in range iff every raise touches exactly one prime —
+    explore_complexity_ledger.py observed one prime POWER per jump);
+    e_q <= a_q for every q (E2);
     log lambda == Sum_q a_q log q (recomputation, float tol); every step
-    increment <= log(p-1) (E4). HAND: N_nt(10^4) = 1986 divisibility-count
-    (ch27's 1987 includes the opener); Sum e_q == N_nt in range.
+    increment <= log(p-1) (E4). Hand estimate: N_nt(10^4) = 1986 divisibility-count
+    (explore_complexity_ledger.py's 1987 includes the opener); Sum e_q == N_nt in range.
 
   EQ2 (the write-once bound, the theorem's engine face). For y in
     {x^{1/2}, x^{2/3}, x^{0.9}} at every milestone k in {50, 200, 1000,
     5000, 10000}: assert N_nt <= Sum_{q<=y} floor(log x/log q) +
-    log lambda/log y. HAND at k = 10^4, y = sqrt x = 323.6: small term
+    log lambda/log y. Hand estimate at k = 10^4, y = sqrt x = 323.6: small term
     ~ 176, large term 17237/5.78 = 2982, bound ~ 3.16e3 vs N_nt ~ 1986 —
     HOLDS, ratio ~ 1.6 (the theorem is asymptotic; in-range slack expected).
 
   EQ3 (the gap, the equivalence made visible). gap(k) = nt_frac - alpha.
     Assert gap > 0 at every milestone (in range mu/log x ~ 0.75 with mu the
     mean raise size, bracket 1.107, so alpha/nt_frac ~ 0.83 < 1); gap
-    DECREASING across milestones. HAND: gap(50) ~ 0.53 - 0.296 = 0.23;
+    DECREASING across milestones. Hand estimate: gap(50) ~ 0.53 - 0.296 = 0.23;
     gap(10^4) ~ 0.1986 - 0.1651 = 0.034.
 
   EQ4 (the rationing census — the mechanism visible in range). Events split
@@ -100,7 +101,7 @@ BORN FINDINGS-FREE, CLAUDE.md):
     floor(log x/log q) (the a priori cap, ~176 at 10^4) and < 15% of all
     events; the q > sqrt x side > 85%. Predict actual small-events 90-130
     (nearly all 66 primes <= 324 enter lambda, + bumps mostly small).
-    NOTE: chamber 28's mass-locus 0.975 is MASS; this is COUNT.
+    NOTE: explore_ledger_threshold.py's mass-locus 0.975 is MASS; this is COUNT.
 
   EQ5 (bound trend, observation). Write-once bound(y = sqrt x)/N_nt across
     milestones: in (1, 3) at k >= 200, trending down late.
@@ -117,22 +118,25 @@ HONEST SCOPE. The theorem's proof is HAND-DERIVED and elementary; the engine
 verifies its ingredient inequalities (E1-E4, the write-once bound) at every
 milestone and charts the in-range gap — a finite-range consistency check, not
 the proof. What the theorem does NOT give: the VALUE — alpha -> 0 itself stays
-open, now exactly equivalent to MAP open problem 1 (the smooth-shifted-prime
-density circle, Fouvry/BFI); chamber 28's "analytic-hard" reading survives for
+open, now exactly equivalent to the transparency-density conjecture (does the
+transparency density tend to 1? — the smooth-shifted-prime density circle,
+Fouvry/BFI); explore_ledger_threshold.py's "analytic-hard" reading survives for
 the value question, and the EQUIVALENCE question closes. The in-range gap
 (0.22 -> 0.034) converges at log speed — the asymptotic regime is far away, as
 the rate O(loglog x/log x) says it must be.
 
-FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
+FINDINGS (run record at bottom; all sections assert).
 
 1. THE EVENT LEDGER (property, exact — the theorem's E1/E2/E4 in range).
    N_nt = 1986 under the divisibility definition, and Sum_q e_q = 1986
    EXACTLY: zero multi-prime steps in range, so every raise touches exactly
-   one prime (= chamber 27's one-prime-power-per-jump, whose per-jump entries
-   are already per-prime — the same in-range fact, reconfirmed; the p = 2
-   opener forces zero events — ch27's 1987 counted it by convention). e_q <= a_q at every q; log lambda = 17237.2 recomputed from
+   one prime (= explore_complexity_ledger.py's one-prime-power-per-jump, whose
+   per-jump entries are already per-prime — the same in-range fact, reconfirmed;
+   the p = 2 opener forces zero events — explore_complexity_ledger.py's 1987
+   counted it by convention). e_q <= a_q at every q; log lambda = 17237.2 recomputed from
    final exponents to < 1e-6 relative; every step increment <= log(p-1).
-   alpha(10^4) = 0.1651, log phi = 104389.2 (both = chambers 27/28).
+   alpha(10^4) = 0.1651, log phi = 104389.2 (both matching
+   explore_complexity_ledger.py/explore_ledger_threshold.py).
 
 2. THE WRITE-ONCE BOUND (the theorem's engine face — holds everywhere).
    N_nt <= Sum_{q<=y} floor(log x/log q) + log lambda/log y at all 15
@@ -152,27 +156,26 @@ FINDINGS (tiers per CLAUDE.md; run record at bottom; all sections assert).
 4. THE RATIONING CENSUS (the mechanism in range). Events at q <= sqrt x:
    15/26 (0.577) at k=50 -> 117/1986 (0.059) at k=10^4, strictly decreasing,
    always under the a-priori write-once cap (20 -> 176). PREDICTION MISS,
-   recorded: the frozen slate asserted the < 15% band at EVERY milestone;
+   recorded: the prediction asserted the < 15% band at EVERY milestone;
    it holds only from k = 5000 (at tiny k, sqrt x covers most of the prime
    range) — the assertion was corrected post-run to the monotone fall + the
-   k >= 5000 band. The 10^4 hand-count (90-130) was a hit: 117.
+   k >= 5000 band. The 10^4 hand estimate (90-130) was a hit: 117.
 
 5. BOUND TREND (observation). bound/N_nt at y = sqrt x is FLAT ~1.6 in range
    (1.64 -> 1.59); at y = x^{2/3} it decreases 1.65 -> 1.35 — the optimal
    split point grows with x, as the proof's y = x/(log x)^3 choice says.
 
 RUN RECORD (this file, ~2 s, 34 checks, well under 512 MB, no numpy; all
-sections assert). Frozen slate EQ1-EQ5 hand-attacked pre-engine (SCRATCH
-P228). Prediction hits: N_nt = 1986, Sum e_q equality, the bound at every
+sections assert). Predictions EQ1-EQ5 were worked out by hand before the
+run. Prediction hits: N_nt = 1986, Sum e_q equality, the bound at every
 cell with ratio ~1.6 at (10^4, sqrt x), gap 0.23 -> 0.034 positive and
 decreasing, small-events 117 in the predicted 90-130, EQ5's (1, 3) band.
-One prediction MISS (EQ4's 15% band frozen at every milestone, true only
+One prediction MISS (EQ4's 15% band asserted at every milestone, true only
 from k = 5000): the assertion was rescoped post-run; no world number moved.
 
-Chambers: twenty-seven = explore_complexity_ledger.py (the domination, the
-count fate); twenty-eight = explore_ledger_threshold.py (the collision
-identity, the size threshold). This closes their shared open remainder (the
-converse) and THE PROGRAM step 6. Transparency law: TOWER.md SII/SVII.
+Companion scripts: explore_complexity_ledger.py (the domination, the
+count fate); explore_ledger_threshold.py (the collision identity, the size
+threshold). This closes their shared open remainder: the converse.
 """
 
 import sys
@@ -363,7 +366,7 @@ def main():
               f"({frac:.3f}); a-priori cap {cap}")
         ok(small_ev <= cap, f"small events <= write-once cap at k={k}")
         fracs.append(frac)
-    # PREDICTION MISS recorded (run record): the frozen slate asserted < 15%
+    # PREDICTION MISS recorded (run record): the frozen prediction asserted < 15%
     # at EVERY milestone; it holds only from k = 5000 (0.58 at k = 50 — at
     # tiny k, sqrt x covers most of the prime range). The honest in-range
     # content is the monotone FALL of the small-event fraction.

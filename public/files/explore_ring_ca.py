@@ -1,16 +1,16 @@
 """
-The ring CA chart (MOONSHOT probe, P95; the P87 shader-CA seed):
+The ring CA chart (building on an earlier shader-CA seed):
 what replaces Conway's threshold ring-natively?
 
 Setting: cells hold values in a tower ring R = Z/N (squarefree, k
 channels); a CA rule is F: R^n -> R over a neighborhood of size n.
 Conway's Life rule is a THRESHOLD ON A COUNT of alive neighbors -- a
 comparison, i.e. a wall op. The n-variable locality criterion
-(WALLS.md SII: channel-local = compatible = polynomial on squarefree
+(channel-local = compatible = polynomial on squarefree
 rings, verbatim for n variables) settles what pure ring ops can do,
 and the charts below measure the rest.
 
-PREDICTIONS (stated before the run, P86 discipline; adjudication
+PREDICTIONS (stated before the run; adjudication
 recorded per item after the run -- PR1-PR5 landed, PR6's parity law
 landed exact while its rate model missed low, and the run surfaced
 one unpredicted finding, THE FREEZE, below):
@@ -20,8 +20,8 @@ one unpredicted finding, THE FREEZE, below):
      x^(lam-1)) is a polynomial, = channel-local, so the CA it
      generates is the DIRECT PRODUCT of k independent mod-p CAs:
      channel p's trajectory is a function of channel p's initial
-     plane alone. Even the wall-breaker (the meadow inverse,
-     LOGIC.md) is a power map: it breaks measurement walls INSIDE a
+     plane alone. Even the wall-breaker (the meadow inverse)
+     is a power map: it breaks measurement walls INSIDE a
      channel, never the locality wall between channels. (Local =>
      product decomposition holds for any product ring; the
      "= polynomial" leg is squarefree-only, thin boundary Z/4.)
