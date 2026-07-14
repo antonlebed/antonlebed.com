@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Computation — the decidable sibling</title>
+<meta name="description" content="The growing tower read as a machine: increment plus a native zero-test with no borrow — decidable, one archimedean import below Turing-complete — and the recovery chart: the doors that buy universality back, each priced as a read import.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
+:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
+}
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
+}
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+
+/* display equations: the .mathrow wrapper (build.py) is the seatbelt —
+   overflow-x scrolls a too-wide formula inside its own box so the page
+   body never scrolls horizontally, exactly like tables. The font
+   scales down with the viewport (clamp on vw) so on a phone most
+   formulas shrink to fit and the scrollbar never engages; a genuine
+   monster still scrolls locally instead of widening the page. */
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav><a href='/'>Home</a> <a href='/object'>The Object</a> <a href='/growth'>Growth</a> <a href='/computation' class='here'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/constants'>Constants</a></nav></header>
+<main>
+<h1>Computation</h1>
+<p class="lede">The growing tower read as a machine: one borrow short
+of Turing-complete — and the exchange-rate table of what buys
+universality back.</p>
+
+<p>Universality has exactly two ingredients (Minsky): an exact
+<b>zero-test</b> — branch, revisitably, on a counter being zero — and a
+<b>borrow</b> — a move that lowers a counter, reading its value as it
+descends. Neither alone suffices. The machine here is the growth
+apparatus of the <a href="/growth">Growth</a> section, its state read
+as a depth vector; the deleted archimedean place
+(<a href="/object">The Object</a>) delivers its deepest dividend when
+the apparatus is read this way.</p>
+
+<article class="claim" id="growth-machine">
+  <div class="claim-head"><span class="claim-name">The growth machine
+  is not universal</span> <span class="tier">rule</span></div>
+  <p>Read the state as a depth vector (window <i>p</i> ↦ exponent).
+  INC is a push by <i>p</i>; the presence zero-test is exact
+  (independence admits <i>p</i> as a new window iff depth(<i>p</i>) =
+  0); but every growth move and every intervention multiplies
+  <i>N</i> — no operation lowers any depth (the no-decrement law). A
+  counter machine with increment and zero-test but no decrement has
+  decidable halting: counters only rise, each zero-test flips once,
+  and the run is decided on the finite quotient <i>Q</i> ×
+  {0,+}<sup><i>k</i></sup>. Restore the decrement and the same
+  quotient goes unsound — a halts-iff-even Minsky machine splits
+  <i>c</i><sub>0</sub> = 2 from <i>c</i><sub>0</sub> = 3 at the same
+  quotient node. The growth monoid is commutative with write-once
+  presence bits — a well-structured transition system — and the three
+  fates are the WSTS classification of runs: converge, lock,
+  terminate.</p>
+  <p class="scope"><b>Scope.</b> Counter-machine decidability is
+  standard WSTS theory (Finkel–Schnoebelen); Minsky universality is
+  textbook. The contribution is the identification, the threshold at
+  the decrement, and the reading of the decrement as the deleted
+  archimedean place.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_growth_machine.py">
+  <code>explore_growth_machine.py</code></a></p>
+</article>
+
+<p>What growth does compute, it computes witness-readably and
+state-deniably: a monotone endpoint under-determines its history —
+<i>p</i><sub>7</sub># is reached by 7! = 5040 routes collapsing to
+one endpoint — so the state certifies <i>what</i> was computed (the
+move multiset) but never the route.</p>
+
+<article class="claim" id="knife-edge">
+  <div class="claim-head"><span class="claim-name">The knife
+  edge</span> <span class="tier">rule</span></div>
+  <p>The tower owns the zero-test natively — channel presence
+  <i>p</i> | <i>N</i> is reduction at the finite place, an
+  intra-window read — and deletes the borrow natively: size, carry,
+  overflow are the archimedean place, the one inter-window coupling
+  the construction removes. So the finite-window family sits exactly
+  one archimedean import — a single borrow — below Turing-complete.
+  The fingerprint is the down-flip: multiply-only worlds cannot
+  transition a tested counter nonzero → zero, so a finite quotient
+  decides; a borrow un-bounds the flip count and defeats the
+  quotient. The damage is graded: a plain decrement alone (VAS) keeps
+  reachability decidable, a forgetful borrow (reset) already loses
+  reachability while keeping termination, and a plain decrement
+  paired with the native zero-test is exactly Minsky-universal. CRT
+  addition is componentwise — no inter-window carry — while
+  positional addition couples digits through the propagating carry:
+  the deleted place is that coupling, and the borrow is it read as an
+  operation.</p>
+  <p class="scope"><b>Scope.</b> Run-verified: the down-flip
+  invariant, the two-ingredient decomposition, the floor decider, the
+  carry-freedom identity. The decidability/undecidability entries are
+  cited theorems by others (Minsky 1967; Kosaraju–Mayr, Leroux–Schmitz
+  VAS reachability; Dufourd–Finkel–Schnoebelen 1998;
+  Finkel–Schnoebelen 2001). The decidability rests on two deletions:
+  this borrow door, and a second door — depth compared across
+  windows — closed by the residue-field truncation; its machine layer
+  is the comparison threshold below.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_archimedean_dial.py">
+  <code>explore_archimedean_dial.py</code></a></p>
+</article>
+
+<p>What the family collects in exchange is the other half of the
+theory of computation: decidable equivalence, canonical forms by
+construction, self-certification, a reversible core — arithmetic
+without the archimedean place as the decidable, ultrametric,
+non-erasing sibling of universal computation.</p>
+
+<h2>The recovery chart</h2>
+
+<p>The knife edge run backwards: what buys universality <em>back</em>,
+priced in re-imports. Each door below is graded by what it lets the
+machine <b>read</b> of a value as it moves. The first candidate
+invariant — universal iff the destroyed value is read at the deleted
+archimedean place — is false: the first door buys universality with
+zero archimedean contact. What survives as the currency is the derived
+down-move — some readable quantity a move lowers while a test reads
+it — and that quantity need not be stored anywhere: it can be
+synthesized as the difference of two rising ladders.</p>
+
+<article class="claim" id="comparison-threshold">
+  <div class="claim-head"><span class="claim-name">The comparison
+  threshold</span> <span class="tier">rule</span></div>
+  <p>Fatten the growth machine — moves multiply the modulus, depths
+  monotone, still no decrement — and upgrade its tests from presence
+  reads to three-way depth comparisons
+  sign(<i>α</i>·<i>v<sub>p</sub></i> − <i>β</i>·<i>v<sub>q</sub></i> −
+  <i>γ</i>). The purchase is quantized: nothing, then everything. All
+  tests reading one comparison direction <i>v</i><sub>2</sub> −
+  <i>v</i><sub>3</sub> (any offsets, presence reads elsewhere) leave
+  the machine bisimilar to a one-counter machine: halting stays
+  decidable. A second independent comparison is Minsky-complete: with
+  X = <i>v</i><sub>2</sub> − <i>v</i><sub>3</sub>, Y =
+  <i>v</i><sub>3</sub> − <i>v</i><sub>5</sub>, increments and two
+  equality reads run a two-counter Minsky machine step-exactly —
+  every move a multiplication, no depth ever lowered, halting
+  transfers — so the door opens onto full universality, not merely an
+  undecidable question. The borrow synthesis: no ladder is ever
+  lowered, but on the derived counter <i>v</i><sub>2</sub> −
+  <i>v</i><sub>3</sub> the move INC<sub>3</sub> is a value-reading
+  down-move — two increments plus a comparison equal one destruction,
+  at zero archimedean import. The mirror: exact-configuration
+  reachability stays decidable (monotone runs to a fixed target are
+  bounded) while halting goes undecidable.</p>
+  <p class="scope"><b>Scope.</b> The bisimulation and the step-exact
+  simulation are run-verified; one-counter decidability and Minsky
+  universality are cited. Depth beyond 1 means local rings, not
+  residue fields — the door re-imports the depth axis the
+  construction truncates. At exactly two places the linear route is
+  closed (the cone lemma) and the nonlinear gadgets — gated rational
+  multiplication, counters in a register's exponents — fail off the
+  lattice by an exact affine debris; whether that two-place cell
+  admits a universal compile is open (a generalized-Collatz family,
+  Kurtz–Simon).</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_second_ruler.py">
+  <code>explore_second_ruler.py</code></a></p>
+</article>
+
+<article class="claim" id="forgetful-borrow">
+  <div class="claim-head"><span class="claim-name">The forgetful
+  borrow</span> <span class="tier">rule</span></div>
+  <p>A borrow grants power only if it is value-reading. Reset — clear
+  a whole window, the general overflow — zeroes a counter reading
+  nothing on the descent, so paired with the native zero-test (no
+  decrement) the machine collapses past decidable to finite-state:
+  (control, zero-pattern) is a bisimulation quotient, halting is
+  finite-graph reachability, decided exactly even for reset
+  oscillators whose naive forward simulation never ends. Restore a
+  plain decrement and the same quotient goes unsound —
+  <i>v</i> → <i>v</i>−1 flips the sign iff <i>v</i> was exactly 1,
+  the read that un-quotients the value. Safe destruction is real and
+  total: a window can be wiped freely without importing one bit of
+  undecidability. The dangerous borrow is the remembering one — the
+  danger is the reading, not the destruction.</p>
+  <p class="scope"><b>Scope.</b> Generalizes to bounded-threshold
+  tests (invariant min(<i>v</i>, <i>T</i>), quotient <i>Q</i> ×
+  {0..<i>T</i>}<sup><i>k</i></sup>). Reset-net undecidability
+  (increment + decrement + reset, no zero-test) is a joint effect,
+  cited (Dufourd–Finkel–Schnoebelen 1998); this corner removes the
+  decrement, which is exactly why it falls to finite-state.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_reset_corner.py">
+  <code>explore_reset_corner.py</code></a></p>
+</article>
+
+<article class="claim" id="base-extension">
+  <div class="claim-head"><span class="claim-name">The base-extension
+  borrow</span> <span class="tier">rule</span></div>
+  <p>The blueprint's error correction is a height cut — codewords are
+  the elements below a data bound — and the cut is not
+  dynamics-invariant, so any state-evolution use must re-derive
+  parity per step: <b>base extension</b>, setting a window from the
+  CRT lift of the synced others. That re-derivation, taken as a
+  machine primitive, is a borrow, and it buys full universality. On
+  element registers over a growing squarefree window set, subtraction
+  and the zero-test are already native; what is missing is
+  exactness — a window adjoined mid-run is born offset, and the
+  unsynced zero-test lies in both directions (a false zero at the
+  wrap, a false nonzero from the freeze). Base extension is exactly
+  the missing sync: grow-and-extend before each increment keeps every
+  register's lift equal to its counter, the zero-test reads true
+  integer zero, and a two-counter Minsky machine runs step-exactly —
+  on residue fields, no depth axis. The keystone lemma: base
+  extension is not computable by state-independent ring operations —
+  every such composite is channel-local by CRT, so on a window born
+  with a constant it returns a constant, while lift(<i>x</i>) mod
+  <i>p</i> is not constant in <i>x</i>. A program can still rebuild a
+  lift residue from any window source it can <em>name</em> —
+  bounded-source extension is native; what no fixed program reaches
+  is extension from an unboundedly growing source (the addressing
+  wall: finitely many window names and handle registers against
+  unboundedly many windows). The contrast with dictionary codes
+  (<a href="/walls#snap-back">the snap-back guarantee</a>) is
+  operational, not informational: the height-cut syndrome is the
+  aperiodic predicate lift &lt; <i>D</i>, its re-derivation
+  non-ring-computable, while a dictionary syndrome is channel-local
+  and preserved by binding itself — self-checking is free on the
+  decidable side; self-locating is the whole tax.</p>
+  <p class="scope"><b>Scope.</b> The step-exact simulation and the
+  two lies are run-verified; Minsky universality is cited. The
+  keystone lemma is proved for state-independent ring-op composites
+  (any polynomial map, any register count). Whether the door-free
+  machine — growth, ring ops, channel reads, no base extension — is
+  decidable is open.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ecc_borrow.py">
+  <code>explore_ecc_borrow.py</code></a></p>
+</article>
+
+<article class="claim" id="ratchet-theorem">
+  <div class="claim-head"><span class="claim-name">The ratchet
+  theorem</span> <span class="tier">rule</span></div>
+  <p>Add an external hand pushing the growth between machine steps —
+  a policy graded by its read set: blind (a fixed schedule),
+  machine-grade (the machine's own read kinds), door-grade (anything
+  determining the true value: depth comparisons, lift reads, or full
+  watching since birth). On the depth face pushes are absolutely
+  inert: depths never decrease, so every depth-face read atom
+  (presence, threshold) flips at most once per run — a program with
+  <i>k</i> atoms receives at most <i>k</i> flag-flips from
+  <em>any</em> hand, omniscient or uncomputable, over its whole run,
+  and the fate map over all hands factors through a finite branch
+  tree; both hand-game questions (does some hand, does every hand,
+  make it halt?) are decidable. The comparison door cannot be
+  smuggled through move-only pushes: the hand can <em>know</em> the
+  comparison stream, it cannot <em>tell</em> it — the read-side twin
+  of the addressing wall. Bandwidth is the read surface's property:
+  the same publishing protocol that dies at flag exhaustion on the
+  depth face runs forever through one element-face mailbox, channel
+  reads being periodic and re-readable. A door-grade hand therefore
+  buys full universality through a door-free machine — the watching
+  hand syncs each grown window by one native add whose
+  <em>parameter</em> carries its knowledge: base extension performed
+  by the intervener. Below the door nothing moves: a blind hand mints
+  no exactness the machine's own repertoire lacks, and a finite-state
+  machine-grade hand composes away into the machine's own control.
+  Pushes program the basin, never the class; the hand's reads are the
+  whole purchase.</p>
+  <p class="scope"><b>Scope.</b> The monotonicity argument is general
+  for the modelled class — finite control, finite-state hands below
+  the door, arbitrary blind schedules; on ratchet-only read surfaces
+  the inertness holds for any hand whatsoever. The deciders, the flag
+  budget, and the step-exact simulation are run-verified; Minsky
+  universality is cited.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_interactive_hand.py">
+  <code>explore_interactive_hand.py</code></a></p>
+</article>
+
+<p>Across the chart the machine class is set by the composite read
+set — machine plus hand — and never by who moves or what is pushed:
+every door is a read import. The two open doors each import an
+unbounded <em>aperiodic</em> read stream (depth comparisons; lift
+syncs), the decidable side's reads are ratchets — eventually-constant
+streams — and the one open cell, the door-free element machine, is
+exactly the cell whose read streams are unbounded but periodic. An
+interface whose reads are all ratchets admits at most its atom count
+in flips over a whole run — a finite influence tree, never an
+unbounded stream — so undecidability cannot leak across a
+ratchet-read surface, whatever sits behind it.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
