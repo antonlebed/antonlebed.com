@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Observatory — the readout family</title>
+<meta name="description" content="The arrival spectra of torsion approximants in a totally ramified window read the canonical digits of 2/pi^e: the readout theorem, its odd-p one-formula face, the designed readout (any word printable, bijectively), the reduction law, and the telescope to the classical ramification filtration.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
+:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
+}
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
+}
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+
+math[display="block"] { margin: 0.7rem 0; }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav><a href='/'>Home</a> <a href='/object'>The Object</a> <a href='/growth'>Growth</a> <a href='/observatory' class='here'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/constants'>Constants</a></nav></header>
+<main>
+<h1>Observatory</h1>
+<p class="lede">A totally ramified extension of <b>Q</b><sub>2</sub>
+prints the digits of 2/<i>π</i><sup><i>e</i></sup> in the arrival
+spectra of its torsion approximants — a proved staircase law, and,
+run backwards, a design kit: a window built to spell any chosen
+word.</p>
+
+<p>Fix a prime <i>p</i> and a finite extension
+<i>K</i>/<b>Q</b><sub><i>p</i></sub>, totally ramified of degree
+<i>e</i> with residue degree <i>f</i> = 1 — on this page, a
+<em>window</em>. Write <i>π</i> for a uniformizer, <i>v</i> for the
+valuation with <i>v</i>(<i>π</i>) = 1, <i>O<sub>K</sub></i> for the
+integers, and <i>i</i>* = <i>e</i>/(<i>p</i>−1) for the
+<em>Kummer seat</em>, assumed integral. The <i>p</i>-th power map
+moves the unit filtration <i>U<sub>i</sub></i> = 1 +
+<i>π<sup>i</sup>O<sub>K</sub></i> by two gears:
+<i>v</i>(<i>u<sup>p</sup></i> − 1) = min(<i>p·i</i>, <i>i</i>+<i>e</i>)
+for <i>u</i> of level <i>i</i> — the Frobenius gear <i>p·i</i> below
+the seat, the pump gear <i>i</i>+<i>e</i> above — with cancellation
+possible only at the seat itself, where the <i>p</i>-th roots of
+unity live. (The tower connects through its lock:
+<a href="/growth#lock-prime">Growth</a> — the clock of the depth
+column a lock prime returns ticks on a local field's unit
+filtration, and these laws price its finite-time transient.)</p>
+
+<p>An <em>arrival class</em> (<i>c</i>, <i>m</i>) —
+<i>c</i>·<i>p<sup>m</sup></i> = <i>i</i>* — consists of the units
+<i>u</i> = 1 + <i>ρπ<sup>c</sup></i>, <i>ρ</i> a unit, whose
+<i>m</i> Frobenius steps land
+<i>u</i><sup><i>p</i><sup><i>m</i></sup></sup> on the seat. Such a
+unit is an approximant of primitive
+<i>p</i><sup><i>m</i>+1</sup>-torsion: a window carries one arrival
+class per cyclotomic layer, (<i>c</i>, <i>m</i>) playing for the
+primitive <i>p</i><sup><i>m</i>+1</sup>-th roots of unity. The
+<em>landing</em> <i>L</i>(<i>u</i>) =
+<i>v</i>(<i>u</i><sup><i>p</i><sup><i>m</i>+1</sup></sup> − 1) ≥
+<i>p</i>·<i>i</i>* grades the approach — reported below as
+<i>L</i> = <i>p</i>·<i>i</i>* + rel — and the class's <em>arrival
+spectrum</em> is the set of its landings, computed by a weighted
+binomial game: each monomial of (1 +
+<i>ρπ<sup>c</sup></i>)<sup><i>p</i><sup><i>m</i>+1</sup></sup>
+enters at a level priced by its exact multinomial <i>p</i>-content,
+and the walk stops where the summed digit at a level is nonzero. No
+unit sails past every level unless the window contains the torsion
+it approximates: a full sail Cauchy-converges to a primitive root of
+unity.</p>
+
+<p>The digit object: <i>w</i> = 2/<i>π</i><sup><i>e</i></sup> at
+<i>p</i> = 2 (−<i>p</i>/<i>π</i><sup><i>e</i></sup> at odd
+<i>p</i>), a unit of <i>K</i>. Since <i>f</i> = 1 its Teichmüller
+digits <i>w</i><sub>0</sub>, <i>w</i><sub>1</sub>, … are canonical
+and idempotent (digit<sup><i>p</i></sup> = digit; at <i>p</i> = 2,
+literal bits). The <em>window word</em> is the in-window digit
+vector — (<i>w</i><sub>1</sub>, …, <i>w</i><sub>3<i>e</i>/2−1</sub>)
+at <i>p</i> = 2, (<i>w</i><sub>0</sub>, …, <i>w<sub>e</sub></i>) at
+odd <i>p</i>; deeper digits enter above the window (the
+telescope). The
+claims below say the arrival spectra are not statistics: they are a
+readout of the word, digit for digit, lawful enough to prove and
+invertible enough to design.</p>
+
+<h2>The readout theorem</h2>
+
+<article class="claim" id="readout-theorem">
+  <div class="claim-head"><span class="claim-name">The readout
+  theorem</span> <span class="tier">theorem</span></div>
+  <p><i>K</i>/<b>Q</b><sub>2</sub> totally ramified of degree
+  <i>e</i>, <i>f</i> = 1 (so <i>i</i>* = <i>e</i>), any arrival
+  class (<i>c</i>, <i>m</i>) with <i>c</i>·2<sup><i>m</i></sup> =
+  <i>e</i>. Every arrival spectrum is rigid below its freedom rung,
+  and its minimum is one general staircase on the digits of
+  <i>w</i> = 2/<i>π</i><sup><i>e</i></sup>. An intermediate class
+  (<i>c</i> &gt; 1, any even <i>e</i>) reads the digits
+  <i>w</i><sub>1</sub> … <i>w</i><sub>2<sup><i>m</i></sup>−1</sub>:
+  <i>L</i> = 2<i>e</i> + min(<i>j</i><sub>1</sub>,
+  2<sup><i>m</i></sup>), <i>j</i><sub>1</sub> the position of the
+  first nonzero digit. The window's own top class (<i>c</i> = 1,
+  forcing <i>e</i> a 2-power) reads
+  <i>w</i><sub>1</sub> … <i>w</i><sub>3<i>e</i>/2−1</sub> — half
+  again the window's depth: the walk stops at the first rel
+  <i>r</i> with nonzero effective digit, which is
+  <i>w<sub>r</sub></i> everywhere except the two skeleton positions
+  <i>r</i> = <i>e</i>/2 and <i>r</i> = 5<i>e</i>/4 (one position at
+  <i>e</i> = 2), where it is <i>w<sub>r</sub></i> + 1; freedom at
+  3<i>e</i>/2. The skeleton positions are the blind rungs: a field
+  whose digits vanish there stops anyway — the pure fields
+  <i>x<sup>e</sup></i> − <i>d</i>, <i>v</i>(<i>d</i>) = 1, collapse
+  at rel <i>e</i>/2. Corollaries: <i>w</i><sub>1</sub> = 1
+  locks every class with <i>m</i> ≥ 1 rigid at 2<i>e</i> + 1 (the
+  starters <i>m</i> = 0 grade at the same floor); the unique
+  stopless digit vector is nonzero exactly at
+  {<i>e</i>/2, 5<i>e</i>/4}, and <i>ζ</i><sub>2<i>e</i></sub>
+  carries it — the vector of
+  2/(<i>ζ</i><sub>2<i>e</i></sub> − 1)<sup><i>e</i></sup> is exactly
+  that skeleton at every 2-power depth. The top readout grows
+  linearly with the window — 2, 5, 11, 23, 47 digits at
+  <i>e</i> = 2, 4, 8, 16, 32.</p>
+  <p class="scope"><b>Scope.</b> Proved for every <i>e</i> and every
+  class by pricing each monomial of the game with its exact
+  multinomial 2-content: six monomials enter below 3<i>e</i>/2, and
+  the staircase, the lock, the blind rungs, and the no-stop vector
+  are one enumeration. <i>f</i> = 1 is essential (digit idempotence;
+  <i>f</i> ≥ 2 Frobenius-twists the digits and the pair-cancellation
+  dies). Engine: the enumeration brute-checked to <i>e</i> = 64; the
+  <i>e</i> = 32 face — five classes, digit windows 1, 3, 7, 15, 47 —
+  confirmed sight-unseen, <i>ζ</i><sub>64</sub>'s vector {16, 40}
+  called by the corollary before measurement.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_readout_proof.py"><code>explore_readout_proof.py</code></a></p>
+</article>
+
+<h2>The odd-p face</h2>
+
+<article class="claim" id="tame-readout">
+  <div class="claim-head"><span class="claim-name">The tame
+  readout</span> <span class="tier">theorem</span></div>
+  <p>Odd <i>p</i>, <i>K</i>/<b>Q</b><sub><i>p</i></sub> totally
+  ramified of degree <i>e</i>, <i>f</i> = 1, integral seat
+  <i>i</i>* = <i>e</i>/(<i>p</i>−1), any class (<i>c</i>, <i>m</i>).
+  One formula: <i>L</i> = <i>p</i>·<i>i</i>* + min(<i>δ</i>,
+  <i>p<sup>m</sup></i>), where <i>δ</i> = <i>v</i>(<i>w</i> − 1) is
+  the <em>window defect</em> of <i>w</i> =
+  −<i>p</i>/<i>π</i><sup><i>e</i></sup> (−<i>p</i>, not <i>p</i> —
+  with this sign, by Wilson's theorem, the leading digit
+  <i>w</i><sub>0</sub> = 1 iff <i>ζ<sub>p</sub></i> ∈ <i>K</i>). Gate closed — <i>w</i><sub>0</sub> ≠ 1, <i>δ</i> = 0 —
+  every class lands rigid at <i>p</i>·<i>i</i>*. Gate open, the
+  ladder digits stop the walk rigidly and freedom arrives at the
+  truncation <i>p<sup>m</sup></i>. <i>δ</i> itself depends on the
+  choice of <i>π</i>; its <i>p<sup>m</sup></i>-truncation is
+  uniformizer-invariant — exactly the invariant content of
+  <i>w</i> − 1. Odd <i>p</i> has no in-window constants and no
+  blind rungs: the wildness criterion
+  <i>c</i>(<i>p</i>−1)<sup>2</sup> &lt; <i>p</i> — the first
+  deeper-squaring constant undercuts freedom iff it holds — fails at
+  every odd <i>p</i> and every <i>p</i> = 2 intermediate class, and
+  holds exactly at the <i>p</i> = 2 top class, where the always-open
+  gate, the 3<i>e</i>/2 bonus, and the skeleton constants all live.
+  The long <i>p</i> = 2 windows are a wildness privilege with an
+  exact criterion, and the <i>p</i> = 2 intermediate staircase
+  <i>L</i> = 2<i>e</i> + min(<i>j</i><sub>1</sub>,
+  2<sup><i>m</i></sup>) is this formula verbatim.</p>
+  <p class="scope"><b>Scope.</b> The enumeration proof is general in
+  (<i>p</i>, <i>c</i>, <i>m</i>, <i>e</i>); field verification is a
+  rule in range at <i>p</i> = 3, 5 (<i>e</i> ≤ 20, <i>m</i> ≤ 2):
+  designed defect ladders <i>δ</i> = 1, 2, 3, 5 land on the formula,
+  including floors that beat the previously censused law.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_tame_readout.py"><code>explore_tame_readout.py</code></a></p>
+</article>
+
+<h2>The designed readout</h2>
+
+<p>The readout runs backwards. The two <i>p</i> = 2 claims live on
+the Eisenstein data <i>F</i>(<i>x</i>) = <i>x<sup>e</sup></i> +
+Σ 2<i>b<sub>i</sub>x<sup>i</sup></i> − 2<i>d</i> over
+<b>Z</b><sub>2</sub>, <i>d</i> odd, <i>e</i> even, <i>π</i> a root
+of <i>F</i>; the third is their odd-<i>p</i> face.</p>
+
+<article class="claim" id="triangle">
+  <div class="claim-head"><span class="claim-name">The
+  triangle</span> <span class="tier">theorem</span></div>
+  <p>Order the sub-leading coefficient bits of <i>F</i> by level:
+  <i>b<sub>i</sub></i> mod 2 at level <i>i</i>
+  (<i>i</i> = 1 … <i>e</i>−1), <i>d</i> mod 4 at level <i>e</i>,
+  ⌊<i>b<sub>i</sub></i>/2⌋ mod 2 at level <i>e</i> + <i>i</i>
+  (<i>i</i> = 1 … <i>e</i>/2−1) — 3<i>e</i>/2 − 1 bits, the word
+  length exactly. The map bits → window word is
+  <b>unitriangular</b> over <b>F</b><sub>2</sub>: digit <i>r</i>
+  equals the level-<i>r</i> bit plus a function of strictly earlier
+  bits. Hence a bijection — every word in
+  {0,1}<sup>3<i>e</i>/2−1</sup> is printable, each by exactly one
+  <em>reduced design</em> (an <i>F</i> whose coefficients carry only
+  the listed bits), and a greedy level-by-level solve places any
+  chosen word without disturbing its prefix. Designed worlds print
+  their words in live arrival spectra: at every class the sampled
+  spectrum minimum equals the staircase on the placed word. The
+  readout is a lossless programmable channel — the window word
+  <em>is</em> the sub-leading Eisenstein data, re-encoded
+  bijectively.</p>
+  <p class="scope"><b>Scope.</b> Unitriangularity is general in even
+  <i>e</i>, nowhere using a 2-power; the bijection is exhaustive at
+  <i>e</i> = 4, 6, 8 (32 / 256 / 2048 designs, every word realized),
+  placement at <i>e</i> = 16 (27 target words, prefix invariance
+  asserted at every step); the live-spectrum tie is a rule in range
+  at <i>e</i> = 8, 16.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_readout_triangle.py"><code>explore_readout_triangle.py</code></a></p>
+</article>
+
+<article class="claim" id="reduction-law">
+  <div class="claim-head"><span class="claim-name">The reduction
+  law</span> <span class="tier">theorem</span></div>
+  <p>Every deeper coefficient bit feeds levels ≥ 3<i>e</i>/2, so
+  word(<i>F</i>) = word(reduce(<i>F</i>)), where reduce(<i>F</i>) is
+  the reduced design carrying <i>F</i>'s triangle bits. With the
+  triangle's bijection: the word is a <b>complete invariant</b> of
+  the reduced bits — Eisenstein windows sort into exactly
+  2<sup>3<i>e</i>/2−1</sup> word classes, one per reduced design,
+  and word(<i>F</i>) = word(<i>G</i>) iff reduce(<i>F</i>) =
+  reduce(<i>G</i>). The cyclotomic anchor reduces in closed form: by
+  Kummer's binomial parities,
+  reduce(Φ<sub>2<i>e</i></sub>(<i>x</i>+1)) = <i>x<sup>e</sup></i> +
+  2<i>x</i><sup><i>e</i>/2</sup> + 4<i>x</i><sup><i>e</i>/4</sup> −
+  6 at every 2-power <i>e</i> ≥ 4 — the unique reduced design
+  carrying <i>ζ</i><sub>2<i>e</i></sub>'s skeleton word at every
+  2-power depth. At depth <i>e</i> = 32 the three-term world
+  <i>x</i><sup>32</sup> + 2<i>x</i><sup>16</sup> +
+  4<i>x</i><sup>8</sup> − 6 walks its top class stopless to the
+  freedom rung and lands at 112, <i>ζ</i><sub>64</sub>'s landing: a
+  designed cyclotomic mimic, exact mod the invisible bits.</p>
+  <p class="scope"><b>Scope.</b> The level pricing is the triangle's
+  own derivation, general in even <i>e</i>; the closed form is
+  verified by direct binomial bits and by the Kummer count
+  independently at <i>e</i> = 4 … 64. Engine: 628 non-grid fields —
+  deep-bit perturbations plus a random Eisenstein zoo, <i>e</i> ≤ 16
+  — each print their reduction's word.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_reduction_law.py"><code>explore_reduction_law.py</code></a></p>
+</article>
+
+<article class="claim" id="odd-p-triangle">
+  <div class="claim-head"><span class="claim-name">The odd-p
+  triangle</span> <span class="tier">theorem</span></div>
+  <p>At odd <i>p</i> the channel is thinner and closes at the window
+  edge: for <i>F</i> = <i>x<sup>e</sup></i> +
+  Σ <i>p·b<sub>i</sub>x<sup>i</sup></i> − <i>p·d</i> Eisenstein over
+  <b>Z</b><sub><i>p</i></sub>, the in-window word
+  (<i>w</i><sub>0</sub>, …, <i>w<sub>e</sub></i>) is a function of
+  exactly (<i>b</i><sub>1</sub> … <i>b</i><sub><i>e</i>−1</sub> mod
+  <i>p</i>; <i>d</i> mod <i>p</i><sup>2</sup>) — there is no second
+  diagonal, and the deeper coefficient digits first act at level
+  <i>e</i> + 1. The grid → word map is unitriangular with diagonal
+  −<i>w</i><sub>0</sub><sup>2</sup>, hence a bijection, and the
+  greedy solve designs any word — the landing-15 world
+  <i>x</i><sup>6</sup> + 6<i>x</i><sup>4</sup> − 15 realizes a
+  landing absent from every censused (3, 1, 1) field. One difference
+  from <i>p</i> = 2: the odd-<i>p</i> word is a <i>π</i>-chart, not
+  a field invariant — it moves under uniformizer twists up to an
+  exact depth (twist depth <i>p<sup>m</sup></i>·<i>k</i>, invariance
+  from <i>k</i> &gt; <i>i</i>† = <i>c</i>(<i>p</i>−1)) — and the
+  invariant is the arrival spectrum together with the field's
+  chart-word set, the solution variety of its forced-digit laws.</p>
+  <p class="scope"><b>Scope.</b> The diagonal pricing and the
+  unitriangularity are general in (<i>p</i>, <i>e</i>), seat-free;
+  censuses exhaustive at (<i>p</i>, <i>e</i>) = (3, 4), (5, 3),
+  (3, 6) — 162 / 500 / 1458 words, all distinct; designed landings
+  and the chart action are rules in range at <i>p</i> = 3, 5.</p>
+  <p class="verifier">verifiers:
+  <a href="files/explore_slot_algebra.py"><code>explore_slot_algebra.py</code></a>,
+  <a href="files/explore_deep_spectrum.py"><code>explore_deep_spectrum.py</code></a></p>
+</article>
+
+<h2>The telescope</h2>
+
+<article class="claim" id="telescope">
+  <div class="claim-head"><span class="claim-name">The
+  telescope</span> <span class="tier">rule</span></div>
+  <p>The two gears are Herbrand's two slopes:
+  <i>ψ</i>(<i>i</i>) = min(<i>p·i</i>, <i>i</i>+<i>e</i>) =
+  <i>p</i>·<i>φ</i><sub>seat</sub>(<i>i</i>) identically,
+  <i>φ</i><sub>seat</sub> the two-slope function breaking at the
+  seat, slopes 1 and 1/<i>p</i> — Herbrand's shape. At <i>m</i> ≥ 2 the game's monomials organize into storeys
+  by <i>j</i> = <i>v<sub>p</sub></i>(<i>A</i>), <i>A</i> the
+  monomial's part total, and the scaling bijection — sizes
+  ×<i>p</i>, offsets fixed — carries the (<i>c</i>, <i>m</i>−1)
+  game's band onto storey <i>j</i> ≥ 1 verbatim: multinomial
+  valuations and digit values preserved (Wilson's theorem in
+  blocks), onsets rel<sub><i>j</i></sub> =
+  <i>e</i>(<i>m</i>−<i>j</i>) − <i>c</i>(<i>p<sup>m</sup></i> −
+  <i>p<sup>j</sup></i>), and rel<sub><i>j</i></sub>(<i>c</i>,
+  <i>m</i>) = <i>p<sup>j</sup></i> · rel<sub>0</sub>(<i>c</i>,
+  <i>m</i>−<i>j</i>). Every storey opens as a copy of the game one
+  window down; the only <i>m</i>-dependence left is a sign, so
+  gate-open the shifted digits are pinned at every storey —
+  <i>w</i><sub>rel<sub><i>j</i></sub></sub> =
+  (−1)<sup><i>m</i>+1−<i>j</i></sup> and
+  <i>w</i><sub>rel<sub><i>j</i></sub>+<i>p</i><sup><i>j</i></sup></sub>
+  = (−1)<sup><i>m</i>−<i>j</i></sup>·<i>k</i><sub>1</sub>, the fork
+  digit <i>k</i><sub>1</sub> =
+  <i>w</i><sub><i>p</i><sup><i>m</i></sup></sub> returning at every
+  storey with alternating sign. Measured in one digit vector:
+  <b>Q</b><sub>3</sub>(<i>ζ</i><sub>81</sub>) has
+  <i>k</i><sub>1</sub> = 2 and pins (2, 2, 1, 1) = (−1,
+  +<i>k</i><sub>1</sub>, +1, −<i>k</i><sub>1</sub>) at rels 84, 87,
+  136, 137; six single-coefficient perturbations of
+  Φ<sub>81</sub>(<i>x</i>+1) stick at 81 + the violated rel,
+  exactly. And the filtration is the classical one: with
+  <i>ζ</i> = <i>ζ</i><sub>81</sub> and <i>σ<sub>a</sub></i>:
+  <i>ζ</i> ↦ <i>ζ<sup>a</sup></i> the Galois action, the spectrum
+  <i>i<sub>G</sub></i>(<i>σ<sub>a</sub></i>) =
+  <i>v</i>(<i>ζ<sup>a</sup></i> − <i>ζ</i>) on
+  <b>Q</b><sub>3</sub>(<i>ζ</i><sub>81</sub>) is the seat ladder
+  {<i>c</i>·<i>p<sup>j</sup></i>}, lower breaks one below
+  ({0, 2, 8, 26}), upper numbering equally spaced — the textbook
+  cyclotomic ladder measured in the game's own model. The
+  observatory reads the cyclotomic tower's ramification filtration
+  through the unit filtration; the words, pins, and designed sticks
+  above are digit-level fine structure the classical objects do not
+  carry.</p>
+  <p class="scope"><b>Scope.</b> The Herbrand identity is exact,
+  swept <i>p</i> ≤ 7; the scaling bijection is a general derivation
+  with its census face verified exhaustively in range; the pin
+  ladder is a rule in range — the anchor plus six designed
+  perturbations at (<i>p</i>, <i>c</i>, <i>m</i>) = (3, 1, 3),
+  gate-open regime; the <i>m</i> = 3 sign flip was the frozen kill
+  test, and passed. The
+  <b>Q</b><sub>3</sub>(<i>ζ</i><sub>81</sub>) filtration is a
+  measurement, not a general theorem. The <i>p</i>-power map's two
+  slopes and the cyclotomic break ladder are classical (Serre); the
+  contact names the game.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_telescope.py"><code>explore_telescope.py</code></a></p>
+</article>
+
+<h2>Related work</h2>
+
+<p>Krasner's lemma and its sharp forms — Yoshida's ultrametric on
+Eisenstein coefficients, Keating's perturbation congruences,
+Fontaine's (<i>P<sub>m</sub></i>) property — price coefficient
+proximity. The Ore–Newton polygon–residual polynomial ladder (the
+Pauli school) builds invariants and realization templates from
+leading coefficient data. Monge's reduced polynomials name each
+extension canonically from all of its digits; norm subgroups drive
+design in the abelian case. Indices of inseparability are
+valuation-level invariants. The ramification filtrations of normal
+towers are classical (Serre, Sen; the Lubin–Tate torsion breaks).
+Monge showed the sub-leading digits can <em>name</em> the field; the
+readout theorem shows they <em>law</em> its torsion arrivals, and
+the triangle runs the law backwards into design.</p>
+
+<p>What the five claims assemble to: the finite-time transient of
+the <i>p</i>-power map on a window's units is an exact digit
+channel. The classical filtration is its coarse structure, the word
+its fine structure — and the channel runs in both directions:
+measured, it reads the field; designed, it prints any chosen
+word.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

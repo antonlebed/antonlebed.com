@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The Object — the primorial tower</title>
+<meta name="description" content="The definition: the finite filtration of the product of all prime fields, with the archimedean place deleted. Blueprint properties, the tower table, the sieve identity, the genesis ladder, the seed-flower naming.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
+:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
+}
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
+}
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+
+math[display="block"] { margin: 0.7rem 0; }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav><a href='/'>Home</a> <a href='/object' class='here'>The Object</a> <a href='/growth'>Growth</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/constants'>Constants</a></nav></header>
+<main>
+<h1>The Object</h1>
+<p class="lede">The definition, the blueprint, the first fourteen
+rungs — what is born along them, and what they name.</p>
+
+<h2>The identity</h2>
+
+<p>A channel is a residue window: reduction at one finite place. The
+rung <b>Z</b>/<i>p<sub>k</sub></i># reads the first k windows
+simultaneously — every element is a unique k-tuple of residues,
+arithmetic decomposes window by window, no window sees another's
+content:</p>
+
+<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="bold">Z</mi><mi mathvariant="normal">/</mi><msub><mi>p</mi><mi>k</mi></msub><mi mathvariant="normal">#</mi><mtext>  </mtext><mo>≅</mo><mtext>  </mtext><msub><mi mathvariant="bold">F</mi><mn>2</mn></msub><mo>×</mo><msub><mi mathvariant="bold">F</mi><mn>3</mn></msub><mo>×</mo><msub><mi mathvariant="bold">F</mi><mn>5</mn></msub><mo>×</mo><mo>⋯</mo><mo>×</mo><msub><mi mathvariant="bold">F</mi><msub><mi>p</mi><mi>k</mi></msub></msub></mrow><annotation encoding="application/x-tex">\mathbf{Z}/p_k\# \;\cong\; \mathbf{F}_2 \times \mathbf{F}_3 \times
+\mathbf{F}_5 \times \cdots \times \mathbf{F}_{p_k}</annotation></semantics></math></span>
+
+<p>Each rung is nested in the next,
+<b>Z</b>/6 ⊂ <b>Z</b>/30 ⊂ <b>Z</b>/210 ⊂ ⋯, and each is a finite
+section of one ambient object: the product of all prime fields.</p>
+
+<article class="claim" id="limit-object">
+  <div class="claim-head"><span class="claim-name">The limit
+  object</span> <span class="tier">rule</span></div>
+  <p>The inverse limit of the tower along its rungs is the full
+  product of the prime fields, one free residue per prime:</p>
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mrow><mi mathvariant="normal"><munder accentunder="true"><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi></mrow><mo stretchy="true">←</mo></munder></mi><mo>⁡</mo></mrow><mi>k</mi></munder><mi mathvariant="bold">Z</mi><mi mathvariant="normal">/</mi><msub><mi>p</mi><mi>k</mi></msub><mi mathvariant="normal">#</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><munder><mo>∏</mo><mi>p</mi></munder><msub><mi mathvariant="bold">F</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\varprojlim_k \mathbf{Z}/p_k\# \;=\; \prod_p \mathbf{F}_p</annotation></semantics></math></span>
+  <p>Every exponent stays 1, so no <b>Z</b><sub><i>p</i></sub> ever
+  forms: the limit is <i>not</i> the profinite completion
+  <b>Ẑ</b> = ∏<sub><i>p</i></sub> <b>Z</b><sub><i>p</i></sub>. The
+  two differ by exactly the radical,
+  ∏<sub><i>p</i></sub> <b>F</b><sub><i>p</i></sub> =
+  <b>Ẑ</b>/<i>J</i>(<b>Ẑ</b>): the tower's limit is the semisimple
+  quotient.</p>
+  <p class="scope"><b>Scope.</b> The transition maps are
+  channel-forgetting projections (checked exhaustively for k ≤ 5,
+  sampled at k = 6, 7); the identification of the limit is
+  algebraic.</p>
+  <p class="verifier">verifier: <a href="files/explore_limit_object.py">
+  <code>explore_limit_object.py</code></a></p>
+</article>
+
+<h2>The deleted place</h2>
+
+<p>The construction removes exactly one window: the archimedean
+place. Size, sign, comparison, carries, overflow — none is a channel
+quantity, and no reading of a proper subset of windows recovers one:
+to every strict channel subset, the size of an element is essentially
+uniform. Measuring this deletion and its echoes — which functions can
+be read through which windows, and at what price — is its own section
+(Walls).</p>
+
+<p>One blueprint property quietly re-imports what was deleted: the
+error-correction guarantee is a height cut on integer points.
+Redundancy is a property of the integers under a bound, never of the
+product ring — in the limit there is no archimedean place, no height
+cut, and no code.</p>
+
+<h2>The first fourteen rungs</h2>
+
+<p>The table is recomputed from the definitions at every build:
+<i>N</i> = <i>p<sub>k</sub></i># is the modulus, <i>φ</i> counts the
+units, and <i>λ</i> is the Carmichael exponent (below). The
+error-correcting code comes from the tower split — the first k−3
+primes carry data, the last 3 parity, an MDS code of distance 4 from
+k = 4 on (more data than parity from k = 7), so the <b>ECC rate</b>
+is (k−3)/k. <i>N</i> and <i>φ</i> are shown as magnitudes; the exact
+values are in
+<a href="files/explore_lambda_tower.py"><code>explore_lambda_tower.py</code></a>.</p>
+
+<div class='scroll'><table class='tbl'><thead><tr><th>k</th><th>p_k</th><th>N</th><th>phi(N)</th><th>lambda(N)</th><th>transp.</th><th>ECC rate</th></tr></thead><tbody><tr><td>3</td><td>5</td><td>30</td><td>8</td><td>4</td><td></td><td>—</td></tr><tr><td>4</td><td>7</td><td>210</td><td>48</td><td>12</td><td></td><td>1/4</td></tr><tr><td>5</td><td>11</td><td>2,310</td><td>480</td><td>60</td><td></td><td>2/5</td></tr><tr><td>6</td><td>13</td><td>30,030</td><td>5,760</td><td>60</td><td>yes</td><td>3/6</td></tr><tr><td>7</td><td>17</td><td>5.11e5</td><td>92,160</td><td>240</td><td></td><td>4/7</td></tr><tr><td>8</td><td>19</td><td>9.70e6</td><td>1.66e6</td><td>720</td><td></td><td>5/8</td></tr><tr><td>9</td><td>23</td><td>2.23e8</td><td>3.65e7</td><td>7,920</td><td></td><td>6/9</td></tr><tr><td>10</td><td>29</td><td>6.47e9</td><td>1.02e9</td><td>55,440</td><td></td><td>7/10</td></tr><tr><td>11</td><td>31</td><td>2.01e11</td><td>3.07e10</td><td>55,440</td><td>yes</td><td>8/11</td></tr><tr><td>12</td><td>37</td><td>7.42e12</td><td>1.10e12</td><td>55,440</td><td>yes</td><td>9/12</td></tr><tr><td>13</td><td>41</td><td>3.04e14</td><td>4.41e13</td><td>55,440</td><td>yes</td><td>10/13</td></tr><tr><td>14</td><td>43</td><td>1.31e16</td><td>1.85e15</td><td>55,440</td><td>yes</td><td>11/14</td></tr></tbody></table></div>
+
+<article class="claim" id="sieve-identity">
+  <div class="claim-head"><span class="claim-name">The sieve
+  identity</span> <span class="tier">property</span></div>
+  <p>Along the primorial trajectory the tower is the algebraic form of
+  the sieve of Eratosthenes — identity, not analogy: sieving by p is
+  reading the window at p and discarding the zero fiber. The survivors
+  of the k-prime sieve are exactly the units of
+  <b>Z</b>/<i>p<sub>k</sub></i>#; each sieve step is the CRT
+  projection onto one channel; the 2<sup><i>k</i></sup>
+  inclusion–exclusion terms are the 2<sup><i>k</i></sup> idempotents;
+  the survivor count is <i>φ</i>(<i>p<sub>k</sub></i>#), the
+  inclusion–exclusion formula itself.</p>
+  <p class="scope"><b>Scope.</b> A complete dictionary — every tower
+  concept has a sieve counterpart, and the identification is
+  term-by-term.</p>
+  <p class="verifier">verifier: <a href="files/explore_sieve_connection.py">
+  <code>explore_sieve_connection.py</code></a></p>
+</article>
+
+<h2>The genesis ladder</h2>
+
+<p>Reading the rungs as a chronology: which capabilities exist at
+rung k, and for how long. The
+<a href="/walls#provenance-ladder">provenance ladder</a> pins each
+obstruction down to its minimal carrier; the genesis ladder is its
+mirror — each capability pinned up to its birth rung.</p>
+
+<article class="claim" id="genesis-ladder">
+  <div class="claim-head"><span class="claim-name">The genesis
+  ladder</span> <span class="tier">rule</span></div>
+  <p>Channels only accumulate along the trajectory, so a capability's
+  temporal fate is its quantifier shape over channels. An ∃-shaped
+  capability (some channel carries the defining property) is
+  monotone: born at the rung of the least qualifying prime, immortal.
+  A ∀-shaped one is anti-monotone: dead at the rung of the least
+  failing prime, forever — 2 and 3 are permanent vetoes. A
+  conjunction of the two is a window, born and mortal (the Fano-plane
+  structure, born at rung 5, dead at rung 6, is the chart's one
+  specimen); walls are ∃-shaped over substructure, so walls never
+  heal. The chart saturates: every mortal row is dead by rung 6, and
+  the last qualitative birth — an ECC rate above 1/2 — lands at
+  rung 7. Past it, births are parametric and Linnik-priced: an
+  order-m element exists at rung k iff m | <i>λ</i>(<i>k</i>), so its
+  birthday is set by least primes in arithmetic progressions — order
+  23 arrives at rung 15 while order 19 waits until rung 43, and
+  m ≤ 200 already needs the prime 3547 (rung 497).</p>
+  <p>The i specimen: √−1 — the archimedean <em>form</em> of i — dies
+  at rung 2 under 3's veto, while i as rotation (an order-4 element)
+  is born at rung 3, immortal. The tower keeps the turn and discards
+  the square root.</p>
+  <p class="scope"><b>Scope.</b> The fate rule and the birthday
+  formula are proved; accumulation is the only ingredient, so a
+  designed tower chooses its own vetoes (skip 3 and √−1 lives on
+  every rung whose odd primes are ≡ 1 mod 4). The chart is computed
+  per rung with each row's direction verified; the birthday formula
+  is swept exact for m ≤ 200.</p>
+  <p class="verifier">verifier: <a href="files/explore_genesis_ladder.py">
+  <code>explore_genesis_ladder.py</code></a></p>
+</article>
+
+<h2>Growth: lambda and transparency</h2>
+
+<p>The universal period of the power maps at rung k is the Carmichael
+exponent <i>λ</i>(<i>k</i>) = lcm(<i>p</i><sub>1</sub>−1, …,
+<i>p<sub>k</sub></i>−1): every unit satisfies <i>x<sup>λ</sup></i> =
+1. Along the tower it runs 1, 2, 4, 12, 60, 60, 240, 720, 7920,
+55440, … — and the repeats are the interesting part.</p>
+
+<article class="claim" id="transparency-criterion">
+  <div class="claim-head"><span class="claim-name">The transparency
+  criterion</span> <span class="tier">property</span></div>
+  <p>Adding <i>p<sub>k</sub></i> jumps <i>λ</i> iff
+  <i>p<sub>k</sub></i> − 1 introduces a prime-power factor not
+  already present in <i>λ</i>. Otherwise <i>p<sub>k</sub></i> is
+  <b>lambda-transparent</b>: capacity grows (<i>φ</i>, idempotents)
+  but no new dynamical complexity appears. The criterion:
+  <i>p<sub>k</sub></i> is transparent at rung k iff
+  (<i>p<sub>k</sub></i> − 1) | <i>λ</i>(<i>k</i>−1).</p>
+  <p class="scope"><b>Scope.</b> All k, by construction. Computed
+  landscape k = 1..50; the first transparent prime is 13 at k = 6,
+  where <i>φ</i>(13) = 12 divides <i>λ</i>(5) = 60.</p>
+  <p class="verifier">verifier: <a href="files/explore_lambda_tower.py">
+  <code>explore_lambda_tower.py</code></a></p>
+</article>
+
+<p>The tower thus alternates between two growth modes:
+<b>complexity</b> rungs, where <i>λ</i> jumps and new orbit
+periods appear, and <b>capacity</b> rungs, where a transparent prime
+adds space on the same dynamical skeleton. How the balance between
+the two behaves in the limit — the transparency density — is the
+program's central open problem, and lives in the
+<a href="/growth#transparency-density">Growth section</a>.</p>
+
+<h2>Designed towers</h2>
+
+<p>The primorial path is one trajectory through a lattice: <i>any</i>
+squarefree set of primes is a tower ring with the full blueprint —
+fields, meadow, idempotents, an MDS code where the split is sized.
+The sieve identity is primorial-specific; the blueprint is not. The
+Walls section carries the charted specimens, including the
+internet-checksum ring <b>Z</b>/(2<sup>16</sup>−1) and its
+machine-word family.</p>
+
+<h2>The seed-flower</h2>
+
+<p>The CRT Euler characteristic of a sub-ring on m primes
+{<i>p</i><sub>1</sub>, …, <i>p<sub>m</sub></i>} is
+<i>χ</i> = <i>N</i>(1 − <i>m</i> + Σ 1/<i>p<sub>i</sub></i>),
+<i>N</i> = ∏<i>p<sub>i</sub></i>. For m ≥ 2, −<i>χ</i> =
+<i>N</i>(<i>m</i>−1) − Σ <i>N</i>/<i>p<sub>i</sub></i> is a positive
+integer whose prime factors routinely include tower primes the
+sub-ring does not contain: {3, 5} gives −<i>χ</i> =
+(3−1)(5−1) − 1 = 7 — the next prime, never met. One congruence
+governs every such naming.</p>
+
+<article class="claim" id="naming-criterion">
+  <div class="claim-head"><span class="claim-name">The reciprocal
+  naming criterion</span> <span class="tier">criterion</span></div>
+  <p>An absent prime s divides
+  −<i>χ</i>({<i>p</i><sub>1</sub>, …, <i>p<sub>m</sub></i>}) iff</p>
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>p</mi><mn>1</mn><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><mo>+</mo><mo>⋯</mo><mo>+</mo><msubsup><mi>p</mi><mi>m</mi><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><mtext>  </mtext><mo>≡</mo><mtext>  </mtext><mi>m</mi><mo>−</mo><mn>1</mn><mspace></mspace><mspace width="1em"/><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow><mspace width="0.3333em"/><mi>s</mi><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">p_1^{-1} + \cdots + p_m^{-1} \;\equiv\; m-1 \pmod{s},</annotation></semantics></math></span>
+  <p>the inverses taken mod s (divide −<i>χ</i> by <i>N</i> mod s).
+  Corollaries: 2 is never named by a sub-ring not containing it —
+  odd inverses are all ≡ 1 mod 2, so the sum is m, never m−1;
+  −<i>χ</i> is coprime to the sub-ring's own primes
+  (−<i>χ</i> ≡ −<i>N</i>/<i>p</i> mod p) and always odd, so members
+  never divide; and naming is governed by prime size alone — the
+  naming fraction for an absent s converges to 1/s, indifferent to
+  the tower's dynamical structure. The one structured excess: 3 is
+  named by 51% of 3-prime sub-rings at k = 8 against a 33% baseline —
+  the Chebyshev prime-race bias read through the criterion — fading
+  to 1/3 by Dirichlet equidistribution.</p>
+  <p class="scope"><b>Scope.</b> Proved, and checked at 960/960
+  (sub-ring, absent prime) pairs; the 1/s baseline computed at
+  k = 25.</p>
+  <p class="verifier">verifiers: <a href="files/explore_tower_naming.py">
+  <code>explore_tower_naming.py</code></a>,
+  <a href="files/explore_chi_primality.py"><code>explore_chi_primality.py</code></a></p>
+</article>
+
+<article class="claim" id="factorization-rule">
+  <div class="claim-head"><span class="claim-name">The factorization
+  rule</span> <span class="tier">rule</span></div>
+  <p>Call a pair {<i>p<sub>i</sub></i>, <i>p<sub>j</sub></i>} of tower
+  primes a <b>prediction</b> at rung k when its −<i>χ</i> =
+  (<i>p<sub>i</sub></i>−1)(<i>p<sub>j</sub></i>−1) − 1 is itself one
+  of the first k primes — necessarily absent from the pair. New
+  predictions at rung k come from exactly two sources: the twin term
+  {2, <i>p<sub>k</sub></i>} → <i>p<sub>k</sub></i> − 2, firing when
+  <i>p<sub>k</sub></i> − 2 is prime, plus one prediction per
+  factorization <i>p<sub>k</sub></i> + 1 = <i>ab</i> with a + 1 and
+  b + 1 smaller tower primes. (A new prediction must involve
+  <i>p<sub>k</sub></i>; as a pair element its target
+  ≥ 2<i>p<sub>k</sub></i> − 3 escapes the set unless the partner is
+  2, and as a target it forces the factorization.) A rung admitting
+  at least one such factorization is <b>rich</b> — typically a highly
+  composite <i>p<sub>k</sub></i> + 1 (<i>p<sub>k</sub></i> = 71:
+  72 = 2³·3², three new predictions) — and richness requires
+  <i>p<sub>k</sub></i> ≡ 3 (mod 4), both factors of
+  <i>p<sub>k</sub></i> + 1 being even. Censused to 5·10⁷: 599,875 of
+  3,001,134 rungs are rich (20.0%; 40.0% of the 3-mod-4 class), and
+  rich rungs outnumber twin rungs 2.51× with the ratio growing — the
+  factorization term dominates the long-run prediction supply.</p>
+  <p class="scope"><b>Scope.</b> The rule is proved and verified
+  k = 3..24; the census is exhaustive to p ≤ 5·10⁷; sub-rings on
+  three or more primes name primes beyond this count (the naming
+  criterion above governs them).</p>
+  <p class="verifier">verifiers: <a href="files/explore_seed_flower_k8.py">
+  <code>explore_seed_flower_k8.py</code></a>,
+  <a href="files/explore_rich_rungs.py"><code>explore_rich_rungs.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

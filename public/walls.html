@@ -1,639 +1,743 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="What channels cannot see: the size wall, the exponent coordinate and its lookup tax, the missing third coordinate, the size a channel can see, and the cycle that survives. Exact limits, proved.">
-  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="antonlebed.com">
-  <link rel="canonical" href="https://antonlebed.com/walls">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <title>Walls — antonlebed.com</title>
-  <style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Walls — the deletion measured</title>
+<meta name="description" content="What deleting the archimedean place costs: the locality criterion, the hiding lemma and the priced escapes, the exact comparator's cost law, the provenance ladder, the Zech wall, what a base buys, designed towers filling machine words, the exact VSA, and the ring CA.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
 :root {
-  --bg: #0a0c18;          
-  --fg: #e8e8f0;
-  --fg-dim: #888898;
-  --accent: #88ccaa;
-  --link: #6699cc;
-  --border: #1e2233;
-  --card-bg: #10131f;
-  --error: #ff4444;
-  --heal: #44ff88;
-  --detect: #ffd700;
-  --mono: 'Courier New', Courier, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ch-2: #ff5555;
-  --ch-3: #ff8c00;
-  --ch-5: #ffd700;
-  --ch-7: #4caf50;
-  --ch-11: #00bcd4;
-  --ch-13: #5c6bc0;
-  --ch-17: #ab47bc;
-  --ch-19: #7e57c2;
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
 html {
-  font-size: 16px;
   -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: #2d2a52 var(--bg);
+  scrollbar-color: var(--scroll) transparent;
 }
-::-webkit-scrollbar { width: 8px; background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #2d2a52; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3d3870; }
-#atmo-sun {
-  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
-  border-radius: 50%; pointer-events: none; z-index: -1;
-  background: radial-gradient(circle at 50% 50%,
-    #05060c 0%, #0a0c18 52%, #1a0800 68%, #4a1500 80%,
-    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
-  animation: sun-breathe 24s ease-in-out infinite;
-}
-@keyframes sun-breathe {
-  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
-                         0 0 80px 32px rgba(255,120,0,0.13),
-                         0 0 150px 64px rgba(255,80,0,0.05); }
-  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
-                         0 0 105px 46px rgba(255,140,0,0.20),
-                         0 0 185px 82px rgba(255,100,0,0.08); }
-}
-#atmo-stars {
-  position: absolute; top: 0; left: 0;
-  overflow: hidden; pointer-events: none; z-index: -2;
-}
-@media (prefers-reduced-motion: reduce) {
-  #atmo-sun { animation: none; }
-  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
 body {
+  margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--sans);
-  line-height: 1.6;
-  padding: 1rem;
-  max-width: 800px;
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
   margin: 0 auto;
+  padding: 0 1.25rem;
 }
-h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
-h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
-h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
-p  { margin-bottom: 1rem; color: var(--fg-dim); }
-strong { color: var(--fg); font-weight: 600; }
-a { color: var(--link); text-decoration: none; }
-a:hover { text-decoration: underline; }
-code, .mono { font-family: var(--mono); font-size: 0.9rem; }
-.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
-.note { font-size: 0.85rem; color: var(--fg-dim); }
-.ch-2 { color: var(--ch-2); }
-.ch-3 { color: var(--ch-3); }
-.ch-5 { color: var(--ch-5); }
-.ch-7 { color: var(--ch-7); }
-.ch-11 { color: var(--ch-11); }
-.ch-13 { color: var(--ch-13); }
-.ch-17 { color: var(--ch-17); }
-.ch-19 { color: var(--ch-19); }
-.tbl {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.82rem;
-}
-.tbl th, .tbl td {
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--border);
-  text-align: center;
-}
-.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
-.tbl td { font-family: var(--mono); }
-.tbl.left th, .tbl.left td { text-align: left; }
-.tbl .demo td { color: var(--accent); }
-.tbl .transparent td { color: var(--fg-dim); }
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  flex-wrap: wrap;
-}
-.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
-nav {
-  margin: 1.5rem 0;
-  padding: 0.5rem 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.4rem;
-}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
 nav a {
-  color: var(--fg);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.3rem 0.7rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
 }
-nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
-nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
-nav .search-wrap { position: relative; margin-left: auto; }
-nav .search-wrap input {
-  background: var(--card-bg);
-  color: var(--fg);
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  width: 7rem;
-  font-family: var(--sans);
-  transition: width 0.2s, border-color 0.15s;
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
-nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
-nav .search-wrap .search-results {
-  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
-  background: var(--card-bg);
-  border: 1px solid #333;
-  border-radius: 4px;
-  min-width: 14rem;
-  z-index: 100;
-  display: none;
+code { font-size: 0.92em; }
+
+math[display="block"] { margin: 0.7rem 0; }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
 }
-nav .search-wrap .search-results a {
-  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
-  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
 }
-nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
-nav .search-wrap .search-results a:last-child { border-bottom: none; }
-nav .search-wrap .search-results .match-title { color: var(--fg); }
-nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
-nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
-.hero { margin: 2rem 0 1.5rem; text-align: center; }
-.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
-.hero .factorization {
-  font-family: var(--mono);
-  font-size: 0.95rem;
-  color: var(--fg-dim);
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-}
-button {
-  background: #222233;
-  color: var(--fg);
-  border: 1px solid #444466;
-  padding: 0.4rem 0.8rem;
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
   border-radius: 3px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  font-family: var(--sans);
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
 }
-button:hover { background: #333344; border-color: #666688; }
-button:active { background: #444455; }
-input[type="text"], input[type="number"] {
-  background: #111122;
-  color: var(--fg);
-  border: 1px solid #444466;
-  padding: 0.4rem 0.6rem;
-  border-radius: 3px;
-  font-size: 0.9rem;
-  font-family: var(--mono);
-  width: 100%;
-  max-width: 300px;
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
 }
-input:focus { outline: none; border-color: var(--accent); }
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
 footer {
-  margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.8rem;
-  color: var(--fg-dim);
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
   text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
 }
-footer p { margin-bottom: 0.25rem; }
-@media (max-width: 600px) {
-  body { padding: 0.75rem; }
-  .hero h1 { font-size: 1.4rem; }
-  nav .search-wrap { margin-left: 0; flex-basis: 100%; text-align: center; }
-  nav .search-wrap input { width: 60%; max-width: 14rem; }
-  nav .search-wrap input:focus { width: 70%; }
-  nav .search-wrap .search-results { left: 50%; right: auto; transform: translateX(-50%); }
-}
-  </style>
-  <style>
-    .hw-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
-    .hw-ch {
-      font-family: var(--mono); font-size: 0.85rem; padding: 0.3rem 0.5rem;
-      border-radius: 3px; border: 1px solid var(--border); min-width: 3.5rem;
-      text-align: center;
-    }
-    .hw-ch.dark { border-style: dashed; color: var(--fg-dim); }
-    #hw-card select {
-      background: var(--card-bg); color: var(--fg); border: 1px solid var(--border);
-      padding: 0.4rem; border-radius: 3px; font-family: var(--mono);
-    }
-    #hw-result { font-family: var(--mono); font-size: 0.85rem; margin: 0.5rem 0; min-height: 2.4rem; }
-    #hw-result .good { color: var(--heal); }
-    #hw-result .bad { color: var(--error); }
-  </style>
-  <script src="tower.js" defer></script>
-  <script src="atmosphere.js" defer></script>
-  <script src="search.js" defer></script>
+</style>
 </head>
 <body>
-  <div id="atmo-sun" aria-hidden="true"></div>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="tower.html">Tower</a>
-    <a href="growth.html">Growth</a>
-    <a href="heat.html">Heat</a>
-    <a href="crt.html">CRT</a>
-    <a href="walls.html" aria-current="page">Walls</a>
-    <a href="measure.html">Measure</a>
-    <a href="ecc.html">ECC</a>
-    <a href="automata.html">Automata</a>
-    <a href="dynamics.html">Dynamics</a>
-    <a href="prediction.html">Prediction</a>
-    <a href="build.html">Build</a>
-    <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
-  </nav>
+<header class="site"><nav><a href='/'>Home</a> <a href='/object'>The Object</a> <a href='/growth'>Growth</a> <a href='/observatory'>Observatory</a> <a href='/walls' class='here'>Walls</a> <a href='/measure'>Measure</a> <a href='/constants'>Constants</a></nav></header>
+<main>
+<h1>Walls</h1>
+<p class="lede">What deleting the archimedean place costs, measured
+level by level.</p>
 
-<h1>What Channels Cannot See</h1>
-  <p>
-    The CRT decomposition has exact limits, and they are as structural as the
-    decomposition itself. This page charts them at the k&nbsp;=&nbsp;7 demo rung,
-    Z/510,510, where every element is a 7-tuple of remainders mod 2, 3, 5, 7, 11,
-    13, 17 &mdash; small enough that every claim below is proved or checked
-    exhaustively over a stated range. The chart: what no channel reads and what
-    buying it back costs, what a second coordinate system buys and what it
-    taxes, why a third does not exist, what kind of size a channel <em>can</em>
-    compute, and what the channels read of the one order-like structure that
-    survives the deletion &mdash; the ring's own cycle.
-  </p>
+<p>One question runs through everything below: <b>through which
+residue window can an operation be read?</b> The construction keeps
+every finite place and deletes the archimedean one
+(<a href="/object">The Object</a>); the walls here measure that
+deletion and its echoes one level down, and every known escape is
+priced. The three walls proper
+are a trilogy — one statement with one parameter, which level's
+windows. <b>Size</b>: the deleted window at level 0 — no finite
+window reads it, by construction. <b>Zech</b>: readable through no
+window one level down — the addition table of index coordinates is
+incompatible with every nontrivial proper quotient of the index
+ring. <b>Super-log</b>: blocked by the fat window one level down —
+the residue field at 2 is harmless; the fat 2-part
+<i>U</i>(2<sup><i>k</i></sup>), <i>k</i> ≥ 3, is the blocker
+(<a href="files/explore_super_log.py"><code>explore_super_log.py</code></a>).
+Information, structure, existence: three failure modes of the one
+question.</p>
 
-  <h2>The size wall</h2>
-  <p>
-    When the modulus is a product of distinct primes &mdash; every rung of the
-    tower &mdash; a function is computable channel-by-channel exactly when it is a
-    polynomial &mdash; some mix of ring additions and multiplications (proved).
-    Every question of <em>size</em> &mdash; sign, comparison, overflow &mdash;
-    falls outside: none of it is channel-computable at any rung with two or more
-    channels, and no per-channel recoding brings it into view. Any coordinate
-    system that keeps addition parallel hits the same wall.
-  </p>
-  <p>
-    The hiding is exact, not approximate. Fix six of the seven residues of an
-    unknown element and leave mod 17 open: 17 candidates remain, spaced 30,030
-    apart &mdash; an even ladder across the whole ring, splitting the two
-    halves 9 to 8. Leave the mod-2 channel open instead and the two candidates
-    split the halves exactly. Six channels of seven, and the size question is
-    still essentially a coin flip. Positional digits carry size; residues
-    provably cannot.
-  </p>
-  <p>
-    And the hiding is not the tower's doing: in every cyclic
-    ring &mdash; prime-power moduli included &mdash; knowing an element only by
-    its remainder mod a proper divisor of the modulus leaves candidates from
-    both halves, and the split is exactly even whenever the forgotten factor
-    is even (checked for every modulus to 240; the 9-to-8 versus exact-even
-    contrast above is that rule in action); what the rungs specifically buy is
-    where this section opened &mdash; channel-by-channel computable =
-    polynomial.
-  </p>
+<h2>The archimedean wall</h2>
 
-  <div class="card" id="hw-card">
-    <h3>Try to beat the wall</h3>
-    <p class="note" style="margin-bottom:0.75rem;">
-      A random element of Z/510,510 is hidden. You see six of its seven
-      residues &mdash; you choose which channel stays dark. Guess its half:
-      bottom (0 &ndash; 255,254) or top (255,255 &ndash; 510,509). The exact
-      best any strategy can do is the majority side of the candidate ladder
-      &mdash; (p+1)/2 of the dark prime's p candidates: 53% for mod 17 dark,
-      67% for mod 3, exactly 50% for mod 2 &mdash; and reading the ladder
-      out of the six visible residues is itself a full reconstruction, the
-      one thing channels never do for you. Your eyes get the residues; the
-      size stays dark.
-    </p>
-    <div class="controls" style="margin:0.5rem 0;">
-      <label>dark channel:</label>
-      <select id="hw-hide">
-        <option>2</option><option>3</option><option>5</option><option>7</option>
-        <option>11</option><option>13</option><option selected>17</option>
-      </select>
-      <button id="hw-new">New element</button>
-    </div>
-    <div class="hw-row" id="hw-row">
-      <div class="hw-ch">2:0</div><div class="hw-ch">3:0</div>
-      <div class="hw-ch">5:2</div><div class="hw-ch">7:0</div>
-      <div class="hw-ch">11:9</div><div class="hw-ch">13:3</div>
-      <div class="hw-ch dark">17:?</div>
-    </div>
-    <div class="controls" style="margin:0.5rem 0;">
-      <button id="hw-bottom">Bottom half</button>
-      <button id="hw-top">Top half</button>
-    </div>
-    <div id="hw-result">Without JavaScript this stays a worked example: the
-    six residues shown admit 17 candidates spaced 30,030 apart, splitting
-    9 bottom / 8 top &mdash; the prose above is the whole game.</div>
-    <div class="note" id="hw-score"></div>
-  </div>
+<article class="claim" id="locality-criterion">
+  <div class="claim-head"><span class="claim-name">The locality
+  criterion</span> <span class="tier">rule</span></div>
+  <p>Call <i>f</i> : <b>Z</b>/<i>N</i> → <b>Z</b>/<i>N</i>
+  <b>channel-local</b> if <i>f</i>(<i>x</i>) mod <i>p</i> depends only
+  on <i>x</i> mod <i>p</i> for every channel — the
+  parallel-computable functions — and <b>compatible</b> if
+  <i>a</i> ≡ <i>b</i> (mod <i>p</i>) implies <i>f</i>(<i>a</i>) ≡
+  <i>f</i>(<i>b</i>) (mod <i>p</i>) for every <i>p</i> | <i>N</i>. On
+  a squarefree ring these coincide with the polynomial functions:
+  every function on a field is a Lagrange polynomial and the
+  coefficients CRT-glue degreewise. The classic residue-system walls
+  all fall outside: sign [<i>x</i> ≥ <i>N</i>/2], comparison, and
+  overflow are incompatible — explicit witnesses at every channel —
+  hence not channel-locally computable at any rung <i>k</i> ≥ 2. And
+  channel-local bijections compose and invert channel-locally, so the
+  obstruction survives every within-ring change of coordinates,
+  linear or not: the wall is locality, not linearity.</p>
+  <p class="scope"><b>Scope.</b> Proved, one- and
+  <i>n</i>-variable; exhaustive at <b>Z</b>/6 (of 46656 functions,
+  compatible = local = polynomial = 108), constructive lift at
+  <b>Z</b>/30. The equivalence is squarefree-only — <b>Z</b>/4 has 64
+  polynomial functions of 256 channel-local — so the tower's rungs
+  are exactly the regime where channel-parallel = polynomial.</p>
+  <p class="verifier">verifier: <a href="files/explore_size_transform.py">
+  <code>explore_size_transform.py</code></a></p>
+</article>
 
-  <h2>The price of size</h2>
-  <p>
-    The wall is exact, but it is a price, not a prohibition. Every known
-    exact route to size pays a stated cost &mdash; an exact fraction summed
-    at the ring's full width, or a digit-by-digit conversion whose digits
-    chain, depth seven here &mdash; and the third buys comparison back
-    not by recoding the channels, which the wall forbids, but by adding one.
-  </p>
-  <p>
-    The quotient sum &lfloor;x/2&rfloor; + &lfloor;x/3&rfloor; + &hellip; +
-    &lfloor;x/17&rfloor; never decreases as x climbs, and &mdash; the useful
-    surprise &mdash; it is computable channel by channel modulo a fresh
-    modulus: 716,167, the sum of the seven cofactors 510,510/p, which is
-    coprime to the ring automatically (proved, for every set of distinct
-    primes). Size becomes one bolted-on extra channel.
-  </p>
-  <p>
-    The sort the sum induces
-    has ties &mdash; the sum stays flat from x to x&nbsp;+&nbsp;1 exactly
-    when x&nbsp;+&nbsp;1 has no zero residue, 92,160 adjacent pairs here
-    &mdash; and the mod-2 residue, already among the stored residues,
-    breaks every one: quotient sum and parity together make a key that
-    orders the ring strictly (checked exhaustively at this rung). Sign is
-    then one comparison of the key against a fixed constant; overflow, one
-    comparison of the wrapped sum's key against an operand's.
-  </p>
-  <p>
-    The price is the new channel's size. Its modulus is the ring's times
-    the sum of the channel primes' reciprocals &mdash; 1.4 times 510,510
-    here &mdash; so the one channel carrying size is wider than the seven
-    it serves combined. Buying size back beats rebuilding the integer
-    exactly when that reciprocal sum stays below 1, and on the tower it
-    never does: 1/2 + 1/3 + 1/5 already exceeds 1, so every rung from the
-    third up keeps its wall. A ring designed instead from a few large
-    primes flips the verdict &mdash; eight channels of 16 to 32 bits put
-    the comparison key about a tenth narrower than full reconstruction,
-    with every channel still a prime field. The deleted window can be
-    bought back exactly; on the tower's own rungs the price always exceeds
-    the ring.
-  </p>
+<article class="claim" id="hiding-lemma">
+  <div class="claim-head"><span class="claim-name">The hiding
+  lemma</span> <span class="tier">rule</span></div>
+  <p>The hiding is quantitatively sharp: the fiber over a known
+  proper subset of channels is an arithmetic progression, so the sign
+  bit has bias at most half an element over the fiber — and exactly
+  zero whenever channel 2 is among the unknowns. One level up, the
+  totality is the half-coverage law: no archimedean fact about a
+  horizon is certain at or below half coverage, under any
+  budget shape, and a proper divisor's budget never exceeds half —
+  while residue <em>order</em> still leaks statistically from the
+  first window, by an exact accuracy law.</p>
+  <p class="scope"><b>Scope.</b> Proved; exhaustive at <i>k</i> = 4.
+  The half-coverage law and the sub-ring cap are proved
+  general.</p>
+  <p class="verifier">verifiers:
+  <a href="files/explore_size_transform.py"><code>explore_size_transform.py</code></a>,
+  <a href="files/explore_size_crystallization.py"><code>explore_size_crystallization.py</code></a></p>
+</article>
 
-  <h2>The second coordinate system</h2>
-  <p>
-    Multiplication, on the other hand, has a <em>second</em> exact coordinate
-    system. Within each channel the nonzero residues are the powers of one
-    base &mdash; mod 7 the powers of 3 run 1, 3, 2, 6, 4, 5 &mdash; so
-    rewriting residues as exponents turns multiplication into addition, the
-    slide-rule move: 2 &times; 6 becomes exponents 2 + 3 = 5, and
-    3<sup>5</sup> &equiv; 5 &equiv; 2 &times; 6 (mod 7). Composed across
-    channels &mdash; for the invertible elements, the 92,160 of 510,510 with
-    no zero residue &mdash; one multiplication is seven small exponent
-    additions, powering is exponent scaling, and the multiplicative order of
-    an element is a per-channel gcd read (verified exhaustively at k = 7).
-    The price flips: in exponent coordinates <em>addition</em> is the
-    operation that needs a lookup table &mdash; one per channel, 44 entries
-    in all here (Zech's logarithm, the classical device).
-  </p>
-  <p>
-    Each pair of demands has its coordinate system; the three together have
-    none. Residues run + and &times; in parallel but hide size. Exponents make
-    &times; and powering linear but tax +. Positional digits show size but
-    chain every carry. No coordinate system hosts all three &mdash; at
-    Z/30, the small rung where it can be checked completely, the census of
-    coordinate systems is exhaustive.
-  </p>
+<p>Every known exact escape pays one of three prices — a
+classification of the literature, not a theorem over all methods.
+The partial-fraction identity</p>
+<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>x</mi><mi>N</mi></mfrac><mtext>  </mtext><mo>≡</mo><mtext>  </mtext><munder><mo>∑</mo><mrow><mi>p</mi><mo>∣</mo><mi>N</mi></mrow></munder><mfrac><mrow><mo stretchy="false">(</mo><msub><mi>x</mi><mi>p</mi></msub><mtext> </mtext><msub><mi>w</mi><mi>p</mi></msub><mo stretchy="false">)</mo><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mi>p</mi></mrow><mi>p</mi></mfrac><mspace></mspace><mspace width="1em"/><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow><mspace width="0.3333em"/><mn>1</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>w</mi><mi>p</mi></msub><mo>=</mo><mo stretchy="false">(</mo><mi>N</mi><mi mathvariant="normal">/</mi><mi>p</mi><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mi>p</mi><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\frac{x}{N} \;\equiv\; \sum_{p \mid N} \frac{(x_p\, w_p) \bmod p}{p}
+  \pmod 1, \qquad w_p = (N/p)^{-1} \bmod p,</annotation></semantics></math></span>
+<p>makes size channel-additive — but in the circle <b>R</b>/<b>Z</b>,
+and exact comparison needs the full log<sub>2</sub> <i>N</i>-bit sum
+(<i>t</i>-bit truncation fails only near a wraparound, measured).
+Mixed-radix conversion is exact but triangular: depth <i>k</i>, each
+digit gated on the last. And the diagonal function <i>D</i>(<i>x</i>)
+= Σ<sub><i>p</i></sub> ⌊<i>x</i>/<i>p</i>⌋ is channel-linear modulo a
+fresh modulus SQ = Σ<sub><i>p</i></sub> <i>N</i>/<i>p</i>, with
+gcd(<i>N</i>, SQ) = 1 forced for every pairwise-coprime modulus set —
+a ring-sized positional channel bolted on.</p>
 
-  <h2>The ladder ends at two rungs</h2>
-  <p>
-    The two moves do not extend to a third. The residue split turns
-    multiplication into channel-by-channel work, at the price of size; the
-    exponent rewrite turns multiplication into addition, at the price of the
-    lookup table; a third move &mdash; a coordinate system in which
-    <em>powering</em> becomes addition &mdash; generically does not exist.
-  </p>
-  <p>
-    Powering is not a ring operation to begin with: exponents live in a
-    smaller companion ring &mdash; here, raising any element to the power
-    a + 240 gives the same result as the power a (for exponents &ge; 1)
-    &mdash; so the question restarts one ring down. There, channel by
-    channel, the move exists only when the channel's prime p has 8 not
-    dividing p &minus; 1: three quarters of primes pass, one in four is
-    blocked, and at k = 7 the mod-17 channel already fails.
-  </p>
-  <p>
-    And the operation
-    itself runs out of values: power towers &mdash; x to the x to the x, floor
-    on floor &mdash;
-    reduced mod 510,510 stop changing once four floors are up, for any base
-    x &ge; 2 (computed by a recursion checked against exact integer towers),
-    because the chain of companion rings 510,510 &rarr; 240 &rarr; 4 &rarr;
-    2 &rarr; 1 bottoms out. A third coordinate would have almost nothing
-    left to coordinate.
-  </p>
-  <p>
-    A mirror world isolates what the first wall is made
-    of: in polynomial arithmetic, where multiplication has no carries, size
-    is exactly as invisible to channels &mdash; but the workarounds that
-    read size back, silent-failure-prone over the integers, either answer
-    exactly or fail in plain sight there (checked completely at a small
-    ring). Carries are where silent size errors live. Multiplication can be
-    rewritten all the way down to addition; powering, here, cannot: the
-    ladder ends at two rungs.
-  </p>
+<article class="claim" id="exact-comparator">
+  <div class="claim-head"><span class="claim-name">The exact
+  comparator and its cost law</span> <span class="tier">rule</span></div>
+  <p><i>D</i> steps exactly at the multiples of the moduli, so within
+  a <i>D</i>-tie class no channel residue wraps and every channel's
+  residues strictly increase: (<i>D</i>, <i>x</i> mod
+  <i>p</i><sub>min</sub>) is an exact comparator for <em>any</em>
+  squarefree modulus set. The packed key
+  <i>D</i>·<i>p</i><sub>min</sub> + (<i>x</i> mod
+  <i>p</i><sub>min</sub>) is strictly monotone; sign and overflow are
+  each one key compare; a <i>D</i>-only comparator errs — a false
+  &ldquo;equal&rdquo;, never an inversion — on exactly the
+  <i>φ</i>(<i>N</i>) tie pairs the residue repairs. The cost law: the
+  key runs at width log<sub>2</sub> SQ = log<sub>2</sub> <i>N</i> +
+  log<sub>2</sub> Σ<sub><i>p</i></sub> 1/<i>p</i>, so the comparator
+  beats reconstruction iff Σ<sub><i>p</i></sub> 1/<i>p</i> &lt; 1 —
+  never on a rung <i>k</i> ≥ 3, narrowly on designed large-prime sets
+  (~10% of the width at 8 channels of 16–32 bits), where exactness
+  costs the approximate diagonal one residue already in the word and
+  every channel stays a field. The literature's strictly-monotone
+  repairs pay the injectivity floor instead: a strict characteristic
+  on [0, <i>N</i>) takes at least <i>N</i> values, so a
+  characteristic-based comparator computing narrower than
+  log<sub>2</sub> <i>N</i> is forced into the split shape —
+  non-injective <i>D</i> plus a tie-break residue already in the
+  word — and Σ 1/<i>p</i> &lt; 1 prices exactly when the computed
+  part gets under the floor.</p>
+  <p class="scope"><b>Scope.</b> Tie-break lemma proved for any
+  squarefree set; key monotonicity exhaustive at <b>Z</b>/510510. The
+  residue tie-break is the standard sum-of-quotients comparator's own
+  move (Dimauro 1993; Piestrak 2015) — the lemma is its general proof
+  and scope.</p>
+  <p class="verifier">verifier: <a href="files/explore_rns_comparator.py">
+  <code>explore_rns_comparator.py</code></a></p>
+</article>
 
-  <h2>Three walls, one question</h2>
-  <p>
-    The three walls look unrelated &mdash; size is unreadable, the exponent
-    table is uncompressible, the third coordinate is missing &mdash; but they
-    are one statement with one parameter: <strong>through which residue window
-    can the operation be read?</strong> Size: through none &mdash; the reading
-    it lived in is the one the construction deletes, and no channel table of
-    any size substitutes (an information obstruction). The exponent table:
-    addition, rewritten into exponents, cannot be read through any window one
-    ring down &mdash; within each channel, the lookup table is incompatible
-    with every nontrivial proper quotient of that channel's exponent range
-    p &minus; 1 (proved, for every prime p &ge; 5 and every such quotient,
-    composite ones included), so it resists every compression (a
-    structure obstruction). The third coordinate: blocked one
-    ring down by the window at 2 &mdash; a channel's exponent range is not a
-    clean prime field once 8 divides p &minus; 1, and exactly that thickness
-    forbids the move (an existence obstruction). Three failure modes, one
-    question, asked at level zero, then twice one level down.
-  </p>
+<h2>The provenance ladder</h2>
 
-  <h2>The size a channel can see</h2>
-  <p>
-    One floor up, the wall has a counterweight. Take 2&times;2 matrices with
-    entries in the ring: the determinant is a polynomial in the entries, so by
-    the criterion above it is channel-computable &mdash; a genuinely size-like,
-    multiplicative quantity (it composes, it gates invertibility) living
-    <em>inside</em> the locality class where integer size is the wall.
-    It is the multiplicative half of size only &mdash; no remainder arithmetic
-    recovers an ordering &mdash; but at every odd channel it is the whole of
-    what survives: every structure-preserving reading of an odd channel's
-    invertible matrices that lands in commutative territory factors through
-    the determinant (its kernel is exactly the commutator subgroup &mdash;
-    verified at every odd channel of the demo rung; the group fact is
-    classical). The mod-2 channel is the exception here as elsewhere: its
-    matrix group is too small for the determinant to say anything.
-  </p>
-  <p>
-    The same floor shows the deleted window from the other side. A quaternion
-    layer over the ring can be <em>designed</em>: choose which channels go
-    strange &mdash; instead of splitting into 2&times;2 matrices, a chosen
-    channel fattens into a field of p&sup2; elements &mdash; and the choice is
-    free: {3,&thinsp;5}, {7,&thinsp;11}, even a single channel. A classical
-    conservation law says the set of strange places always has even size
-    &mdash; but it counts <em>all</em> the readings of a number, the deleted
-    one included. A visible strange-set of size one is therefore possible:
-    its partner sits at the deleted window (computed: four designed algebras,
-    every verdict at all 7 channels as predicted, 28 of 28; the bookkeeping
-    behind the conservation law is classical, the channel pattern is the
-    tower-side reading).
-  </p>
+<p>Which of these obstructions are the tower's own? Almost none: each
+wall, pinned to the minimal structure that carries it, sits at or
+below the squarefree floor.</p>
 
-  <h2>What replaces order</h2>
-  <p>
-    With size deleted, the ordering of the integers is gone &mdash; and the
-    loss is total, not partial: the channels jointly retain nothing of
-    <em>less-than</em> (exhaustive at Z/210). One relation passes where order
-    fails &mdash; <em>divisibility</em>, one bit per channel: zero here, or
-    not. The zero pattern &mdash; which channels an element has died in
-    &mdash; is the surviving skeleton, and it supports a graded logic with
-    exact certificates, a family of twenty measurement gates, an exact map of
-    how far they reach, a price list for reading, and one door that buys
-    exact identification back. The <a href="measure.html">Measure page</a>
-    charts all of it.
-  </p>
+<article class="claim" id="provenance-ladder">
+  <div class="claim-head"><span class="claim-name">The provenance
+  ladder</span> <span class="tier">rule</span></div>
+  <ul>
+    <li><b>Cyclic group — no product, no fields.</b> The hiding facts
+    are coarsening facts: every proper window <b>Z</b>/<i>M</i> of
+    every <b>Z</b>/<i>N</i> (exhaustive <i>N</i> ≤ 240) leaves both
+    signs in every fiber, bias exactly 0 iff <i>N</i>/<i>M</i> is
+    even, prime-power moduli included; orientation hiding; and the channel quantifier
+    [<i>a</i> = 0] is polynomial on no composite <i>N</i>, while at
+    one field it is Fermat's 1 − <i>a</i><sup><i>p</i>−1</sup> — the
+    wall vanishing.</li>
+    <li><b>Single field.</b> The Zech wall (below); the type
+    obstruction — <i>x<sup>y</sup></i> is ill-defined already at one
+    window, with <i>p</i> − 2 witnesses; the division-ladder floors;
+    the super-log existence grades.</li>
+    <li><b>Product of ≥ 2 coprime windows, fields unneeded.</b>
+    Order's and betweenness's maximal conjunctive failure —
+    <b>Z</b>/6 and the non-field <b>Z</b>/4 × <b>Z</b>/9 fail
+    identically; the fold and rank caps.</li>
+    <li><b>Product of two abelian groups, no ring at all.</b> The
+    grading's failure and its mode; minimal proper carrier
+    <i>C</i><sub>2</sub> × <i>C</i><sub>4</sub> = <i>U</i>(15), so on
+    the trajectory the grading wall first appears at rung 3.</li>
+    <li><b>Product of fields (squarefree).</b> The locality criterion
+    itself (thin boundary <b>Z</b>/4), and the Clifford/meadow
+    blueprint with everything riding it.</li>
+    <li><b>The primorial trajectory.</b> Only the selection theorem —
+    nothing else in the corpus needs it.</li>
+  </ul>
+  <p>No wall needs the trajectory: the hiding is generic to any
+  coarsening of any cyclic group, and the deletion names
+  <em>which</em> window is missing. The mirror chart — capabilities
+  pinned up to their birth rungs, permanent because channels only
+  accumulate, so walls never heal — is the
+  <a href="/object#genesis-ladder">genesis ladder</a>.</p>
+  <p class="verifier">verifier: <a href="files/explore_walls_provenance.py">
+  <code>explore_walls_provenance.py</code></a></p>
+</article>
 
-  <h2>The cycle that survives</h2>
-  <p>
-    One order-like structure does survive the deletion: the ring's own cycle
-    &mdash; 0, 1, 2, &hellip; around the circle and back to 0. It survives as
-    an object; the question is how much of it the channels can read, and the
-    answer is: not even its direction. Pick three distinct positions and ask
-    whether they run clockwise or counterclockwise around the cycle. Reveal
-    any proper subset of the channels &mdash; six of the seven here, or five,
-    or one &mdash; and each position is pinned only to an even ladder of
-    candidates spanning the whole ring, and wherever the visible residues
-    admit a distinct triple at all, they admit it running in <em>both</em>
-    directions (proved). The determined fraction of the direction is exactly
-    zero &mdash; one bit of cyclic orientation costs the entire complement.
-    And this is not a special power of the tower: it is a fact about remainder
-    arithmetic in every cyclic ring, for every proper divisor of the modulus.
-    The tower inherits it at every rung; what the tower adds comes next.
-  </p>
-  <p>
-    What every channel <em>does</em> see of the cycle is the sieve. Step
-    through the ring by any size coprime to the modulus and the mod-p residue
-    returns to zero exactly every p steps: the pattern of zero-crossings
-    around the cycle is the Eratosthenes pattern, and every cycle through the
-    ring shares it. The cycles differ only in the finer braid &mdash; which
-    channel sits where between crossings. The skeleton all the orders have in
-    common is the sieve itself.
-  </p>
-  <p>
-    Among all those cycles, stepping by 1 is still singled out &mdash; and
-    here the primes do the work. Step by t and the hand on channel p advances
-    t mod p of its p marks per tick; step by 1 and the hands sort by channel
-    &mdash; mod 2 fastest, half a turn per tick, then mod 3, down to the
-    largest prime. Stepping by 1 is the <em>only</em> step size that sorts the
-    speeds this way precisely when 2 is among the primes and no prime in the
-    set is more than double the one before it (proved, both directions). Every
-    rung of the tower passes: 2 is there by construction, and prime gaps never
-    double, by Bertrand's postulate. Build a ring from {3,&thinsp;7} instead
-    &mdash; no 2, and 7 more than doubles 3 &mdash; and six different step
-    sizes sort the speeds equally well.
-  </p>
-  <p>
-    The deepest consequence is what happens to induction. Over the integers,
-    &ldquo;keep descending, you must stop&rdquo; powers everything from Euclid's
-    algorithm on up &mdash; and descent there can run unboundedly long before it
-    stops. In the ring, descent through the zero patterns halts in at most k
-    steps at rung k &mdash; the depth is a constant of the <em>ring</em>, not a
-    function of the element &mdash; so every descent loop unrolls into a
-    fixed-depth circuit. Euclid splits in half: the gcd itself is a one-step
-    read of the joint zero pattern (checked exhaustively at small rungs), while
-    Euclid's <em>loop</em> &mdash; divide, take the remainder, repeat &mdash;
-    has no analogue at all: a remainder is a size comparison, and the sizeless
-    substitute just cycles (explicit witness). Division-with-remainder died
-    with the size window; only its purpose survives, and it survives bounded.
-  </p>
+<h2>The second log: index coordinates</h2>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var N = TOWER.N, MODS = TOWER.MODS, COLORS = TOWER.COLORS;
-  var HALF = N / 2;
-  var n = 42, hiddenIdx = 6, answered = true, score = 0, total = 0;
+<p>The unit group is non-cyclic at every rung <i>k</i> ≥ 3
+(<i>λ</i> = lcm(<i>p</i>−1) &lt; ∏(<i>p</i>−1) = <i>φ</i>), so
+<b>Z</b>/<i>N</i> has no primitive root: Napier's move — one discrete
+log turning × into + — exists only through the CRT split.</p>
 
-  function renderRow(revealed) {
-    document.getElementById('hw-row').innerHTML = MODS.map(function(m, i) {
-      var dark = (i === hiddenIdx) && !revealed;
-      var v = TOWER.mod(n, m);
-      return '<div class="hw-ch' + (dark ? ' dark' : '') + '" style="color:' +
-        (dark ? 'var(--fg-dim)' : COLORS[i]) + '">' + m + ':' + (dark ? '?' : v) + '</div>';
-    }).join('');
-  }
+<article class="claim" id="index-transform">
+  <div class="claim-head"><span class="claim-name">The index
+  transform</span> <span class="tier">rule</span></div>
+  <p>Per-channel discrete logs compose with CRT into
+  <i>U</i>(<b>Z</b>/<i>N</i>) ≅ ∏<sub><i>p</i></sub>
+  <b>Z</b>/(<i>p</i>−1), under which multiplication is channel-wise
+  addition, powering is index scaling, multiplicative order is a
+  per-channel gcd read, <i>e</i>-th-root existence and count are
+  per-channel divisibility, and quadratic residuosity is the index
+  parity bit; <i>λ</i> is the index ring's additive exponent.
+  Non-units extend canonically: <i>x</i><sup><i>λ</i>+1</sup> =
+  <i>x</i> for all <i>x</i>, so the multiplicative monoid is a
+  commutative Clifford monoid — the Boolean support lattice carrying
+  the sub-rings' unit groups as grades. In the full log coordinate
+  <i>x</i> ↔ (supp <i>x</i>, indices on supp), the meadow inverse is
+  index negation and &ldquo;log 0 = −∞&rdquo; is realized as grade
+  drop.</p>
+  <p class="scope"><b>Scope.</b> The per-field facts are standard
+  (Zech logarithms, discrete-log number systems); the tower-wide
+  composition is the chart. Bijection exhaustive at <b>Z</b>/510510,
+  full log coordinate exhaustive at <b>Z</b>/210.</p>
+  <p class="verifier">verifier: <a href="files/explore_index_transform.py">
+  <code>explore_index_transform.py</code></a></p>
+</article>
 
-  function newRound() {
-    n = Math.floor(Math.random() * N);
-    hiddenIdx = MODS.indexOf(parseInt(document.getElementById('hw-hide').value));
-    answered = false;
-    renderRow(false);
-    document.getElementById('hw-result').innerHTML =
-      'Six residues showing. Bottom half or top half?';
-  }
+<article class="claim" id="zech-wall">
+  <div class="claim-head"><span class="claim-name">The Zech
+  wall</span> <span class="tier">rule</span></div>
+  <p>The hard operation in index coordinates is addition, and its
+  wall has a different shape than the archimedean wall. The index map
+  recodes each channel independently, so the locality criterion is
+  blind to it: addition stays channel-local, costing one unary Zech
+  table <i>Z</i>(<i>n</i>) = ind(1 + <i>g<sup>n</sup></i>) per
+  channel. The wall lives within the channel: <i>Z</i> is
+  incompatible with every nontrivial proper quotient of
+  <b>Z</b>/(<i>p</i>−1) — every <i>p</i> ≥ 5, every divisor
+  2 ≤ <i>q</i> ≤ (<i>p</i>−1)/2, composite <i>q</i> included — hence
+  not polynomial. A <em>structure</em> obstruction (the table resists
+  compression) where the size wall is an <em>information</em>
+  obstruction (no per-channel table of any size exists). The proof is
+  a linear-fraction count: compatibility mod <i>q</i> demands
+  (1 + <i>ωx</i>)/(1 + <i>x</i>) stay in the index-<i>q</i> subgroup,
+  and for fixed <i>ω</i> ≠ 1 that is linear in <i>x</i> — too few
+  <i>x</i> comply, and every other <i>x</i> yields a violating
+  pair.</p>
+  <p class="scope"><b>Scope.</b> Proved, primitive-root-free;
+  mechanical check over 263 (<i>p</i>, <i>q</i>) pairs,
+  5 ≤ <i>p</i> &lt; 200, all divisors.</p>
+  <p class="verifier">verifier: <a href="files/explore_index_transform.py">
+  <code>explore_index_transform.py</code></a></p>
+</article>
 
-  function guess(saidTop) {
-    if (answered) return;
-    answered = true;
-    total++;
-    var isTop = n >= HALF;
-    var correct = (saidTop === isTop);
-    if (correct) score++;
-    var p = MODS[hiddenIdx], M = N / p, r = n % M;
-    var bottom = 0;
-    for (var j = 0; j < p; j++) if (r + j * M < HALF) bottom++;
-    renderRow(true);
-    document.getElementById('hw-result').innerHTML =
-      'n = ' + n.toLocaleString('en') + ' &mdash; ' + (isTop ? 'top' : 'bottom') +
-      ' half. <span class="' + (correct ? 'good' : 'bad') + '">' +
-      (correct ? 'Correct.' : 'Wrong.') + '</span> The ' + p +
-      ' candidates, spaced ' + M.toLocaleString('en') + ' apart, split ' +
-      bottom + ' bottom / ' + (p - bottom) + ' top.';
-    document.getElementById('hw-score').textContent =
-      'Your hit rate: ' + score + '/' + total +
-      (total ? ' (' + Math.round(100 * score / total) + '%)' : '');
-  }
+<article class="claim" id="rigidity-dichotomy">
+  <div class="claim-head"><span class="claim-name">The rigidity
+  dichotomy</span> <span class="tier">rule</span></div>
+  <p>The coordinate systems in which + is channel-local are exactly
+  the coprime factorizations of <i>N</i> (at <b>Z</b>/30: 4
+  decompositions, the nontrivial partitions of {2, 3, 5}), and
+  demanding × as well changes nothing — addition alone pins the
+  divisor lattice, so the archimedean wall is unavoidable in every
+  +-local coordinate. Multiplication alone is floppy:
+  <i>U</i>(30) has 4 direct decompositions, 3 crossing tower
+  channels. No coordinate hosts (+ local, × additive) — the
+  zero/idempotent grading obstructs — and none hosts (+, ×, size)
+  together: (+, ×) → CRT, (×, powering) → index, (+, size) →
+  positional, all three → nowhere.</p>
+  <p class="scope"><b>Scope.</b> Exhaustive at <i>k</i> = 3 plus
+  standard ingredients.</p>
+  <p class="verifier">verifier: <a href="files/explore_index_transform.py">
+  <code>explore_index_transform.py</code></a></p>
+</article>
 
-  document.getElementById('hw-new').addEventListener('click', newRound);
-  document.getElementById('hw-hide').addEventListener('change', newRound);
-  document.getElementById('hw-bottom').addEventListener('click', function() {
-    if (answered) { newRound(); return; }
-    guess(false);
-  });
-  document.getElementById('hw-top').addEventListener('click', function() {
-    if (answered) { newRound(); return; }
-    guess(true);
-  });
-  newRound();
-});
-</script>
+<h2>What a base buys</h2>
 
-  <footer>
-    <p>Public domain (CC0)</p>
-  </footer>
+<p>The same question one level up: not which window reads an
+operation, but which windows a <em>representation</em> keeps
+readable. Grade a numeration system per query: <b>window-read</b> (a
+function of O(1) digit positions), <b>scan-read</b> (one pass, O(1)
+state — a finite automaton), or <b>walled</b> (unbounded state or
+full reconstruction). By Ostrowski the readings on offer are the
+archimedean window and the finite places — each offering its residue
+ladder and its valuation.</p>
+
+<article class="claim" id="two-readings">
+  <div class="claim-head"><span class="claim-name">The two-readings
+  criterion</span> <span class="tier">criterion</span></div>
+  <p>For greedy numeration on a scale 1 = <i>U</i><sub>0</sub> &lt;
+  <i>U</i><sub>1</sub> &lt; <i>U</i><sub>2</sub> &lt; ⋯, the weighted
+  low prefix (digits 0..<i>j</i>−1) equals <i>n</i> mod
+  <i>U<sub>j</sub></i> for all <i>n</i> and <i>j</i> <b>iff</b> the
+  scale is a divisibility chain (<i>U<sub>j</sub></i> |
+  <i>U<sub>i</sub></i> for <i>i</i> ≥ <i>j</i>). Greedy itself buys
+  order on <em>every</em> scale, chain or not: MSD-first lex order is
+  numeric order. So the archimedean reading comes with greedy, the
+  residue reading comes with the chain, and <b>positional base
+  <i>b</i> — and any divisibility-chain mixed radix — is exactly the
+  coincidence of the two readings: one digit string legible through
+  both windows.</b> That is what a base buys. Zeckendorf keeps only
+  the greedy half — prefixes are not residues, while addition still
+  cascades like carries; its scan-read repair is classical (Frougny:
+  Pisot-scale normalization is a finite transducer).</p>
+  <p class="scope"><b>Scope.</b> Both directions proved; swept
+  exhaustively over all 9139 scales (1, <i>a</i>, <i>b</i>, <i>c</i>)
+  with <i>a</i> &lt; <i>b</i> &lt; <i>c</i> ≤ 40 and all 3876
+  length-5 scales up to 20 — the property holds exactly at the
+  chains.</p>
+  <p class="verifier">verifier: <a href="files/explore_numeration_windows.py">
+  <code>explore_numeration_windows.py</code></a></p>
+</article>
+
+<article class="claim" id="readability-chart">
+  <div class="claim-head"><span class="claim-name">The readability
+  chart</span> <span class="tier">rule</span></div>
+  <table class="chart">
+    <thead>
+      <tr><th>system</th><th>buys</th><th>pays</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>positional base <i>b</i></td>
+      <td>size, order (greedy); addition scan-read;
+      <i>m</i> | <i>n</i> window-read iff rad <i>m</i> | rad <i>b</i>,
+      scan-read for every <i>m</i></td>
+      <td>multiplication and primality walled</td></tr>
+      <tr><td>CRT tuple (the tower)</td>
+      <td>+ and × window-read at depth 1</td>
+      <td>size, order, out-of-set divisibility walled</td></tr>
+      <tr><td>exponent vector</td>
+      <td>×, divisibility, gcd/lcm window-read</td>
+      <td>addition walled outright</td></tr>
+      <tr><td>factorial / primorial chain</td>
+      <td>the residue ladder through every prime</td>
+      <td>unbounded digit alphabet</td></tr>
+    </tbody>
+  </table>
+  <p>Addition in base <i>b</i> is scan-read but never window-read — a
+  carry can be launched from a position that dodges any fixed window;
+  multiplication is walled classically (with recognizable
+  multiplication, Büchi–Bruyère's decidable theory would decide
+  arithmetic; primes are automaton-recognizable in no base —
+  Minsky–Papert, Hartmanis–Shank). The exponent-vector row walls
+  addition by witness: a CRT-built family with constant window
+  vector and unbounded <i>v</i><sub>2</sub>(1 + <i>y</i>) — no fixed
+  window computes any coordinate of a sum. The diagonal is the
+  factorial/primorial mixed radix, a divisibility chain through every
+  prime: the factorial chain eventually window-reads every
+  <i>m</i> | <i>n</i>, the primorial chain exactly the squarefree
+  <i>m</i>. Every row buys a reading and pays a wall: <b>every number
+  system is a choice of which wall to pay.</b></p>
+  <p class="scope"><b>Scope.</b> Rules with witnesses per cell;
+  classical contacts as cited (plus Cobham–Semenov for the cross-base
+  rigidity that makes the chart per-base, Rényi for the non-chain
+  greedy family). The boldface synthesis is an observation over this
+  census, not a theorem.</p>
+  <p class="verifier">verifier: <a href="files/explore_numeration_windows.py">
+  <code>explore_numeration_windows.py</code></a></p>
+</article>
+
+<h2>Designed towers</h2>
+
+<p>The blueprint is not primorial-specific: <em>any</em> squarefree
+set of primes is a tower ring — all-field channels, meadow,
+idempotents, ECC where sized — a free choice of places. The standing
+family fills machine words exactly, and it arrives from
+characteristic 2: the unit group of Conway's nim-field rung
+[0, 2<sup>2<sup><i>n</i></sup></sup>) is cyclic of order
+2<sup>2<sup><i>n</i></sup></sup> − 1 =
+<i>F</i><sub>0</sub>⋯<i>F</i><sub><i>n</i>−1</sub> (telescoping over
+the Fermat numbers), so each nim-rung's index ring is a squarefree
+all-field designed tower on Fermat primes for <i>n</i> ≤ 5
+(<a href="files/explore_nimber_tower.py"><code>explore_nimber_tower.py</code></a>).</p>
+
+<article class="claim" id="checksum-ring">
+  <div class="claim-head"><span class="claim-name">The
+  internet-checksum ring</span> <span class="tier">rule</span></div>
+  <p>The <i>n</i> = 4 member is <b>Z</b>/(2<sup>16</sup> − 1) =
+  <b>Z</b>/(3·5·17·257). RFC 1071's end-around-carry addition is
+  reduction mod 2<sup>16</sup> − 1 and its final complement is ring
+  negation, so every IP/TCP/UDP packet checksum runs whole in this
+  ring and splits by construction into four parallel field checksums,
+  with collapse to the support idempotent in 8 squarings. RFC 1624's
+  incremental update is the ring identity HC′ = HC + <i>m</i> −
+  <i>m</i>′ and splits — each channel updates from <i>m</i> mod
+  <i>p</i>, <i>m</i>′ mod <i>p</i> alone; the boundary bug RFC 1624
+  exists to fix (an update yielding −0 where from-scratch gives +0)
+  lives entirely in the two representatives of the ring's zero
+  class.</p>
+  <p class="verifier">verifier: <a href="files/explore_checksum_ring.py">
+  <code>explore_checksum_ring.py</code></a></p>
+</article>
+
+<article class="claim" id="machine-word">
+  <div class="claim-head"><span class="claim-name">The machine-word
+  tower and the uint64 departure</span> <span class="tier">rule</span></div>
+  <p>At <i>n</i> = 5, <b>Z</b>/(2<sup>32</sup> − 1) =
+  <b>Z</b>/(3·5·17·257·65537): all five known Fermat primes filling
+  one 32-bit word exactly. The fold reduces at width 32 — one
+  end-around carry per add, native to any 32-bit datapath — and the
+  index coordinate stacks: every unit-group factor is cyclic of
+  2-power order, so unit multiplication is five parallel masked index
+  adds (widths 1/2/4/8/16 — a 31-bit index word), and
+  <i>λ</i> = 2<sup>16</sup> collapses any <i>x</i> to its support
+  idempotent in 16 squarings. Fletcher-16/32/64 are the family's
+  checksums: two running sums in 1's-complement arithmetic mod
+  255/65535/2<sup>32</sup>−1 — the members <i>n</i> = 3/4/5 — both
+  splitting per channel, each channel running its own Fletcher. At
+  <i>n</i> = 6 the family leaves the all-Fermat spine
+  (<i>F</i><sub>5</sub> = 641·6700417, Euler): the uint64 tower
+  <b>Z</b>/(2<sup>64</sup> − 1), seven channels in one 64-bit word.
+  Survives verbatim: the fold, squarefree all-field, the incremental
+  split. Splits: the index stack — the two <i>F</i><sub>5</sub>
+  channels need true mod-(<i>p</i>−1) adds, a 64-bit index word
+  against log<sub>2</sub> <i>φ</i> ≈ 63.0. Dies: the cheap-collapse
+  knob — the family's first non-2-power <i>λ</i>, 33 squarings + 13
+  multiplies against the spine's 16 + 0. And the ECC payload is the
+  checksum ring: the tower split's data product is 3·5·17·257 =
+  65535, so the <i>n</i> = 4 member nests as the data space of
+  <i>n</i> = 6 — a 16-bit-word payload riding a 64-bit word at MDS
+  <i>d</i> = 4, one extra payload value dropping <i>d</i> to 3.</p>
+  <p class="scope"><b>Scope.</b> Rules verified per member (fold law
+  exhaustive; incremental split at <i>n</i> = 4, 5, 6; ECC drop
+  exhaustive over subsets). The family's standing poverty:
+  3 | 2<sup><i>w</i></sup> − 1 at exactly the even widths, so every
+  member carries channel 3. Beyond <i>n</i> = 6 the blueprint rides
+  the open all-Fermat-squarefree question.</p>
+  <p class="verifier">verifiers:
+  <a href="files/explore_machine_word_tower.py"><code>explore_machine_word_tower.py</code></a>,
+  <a href="files/explore_uint64_tower.py"><code>explore_uint64_tower.py</code></a></p>
+</article>
+
+<h2>Meaning as codeword</h2>
+
+<p>What does an exact substrate buy a symbol system? Let &ldquo;a
+meaning&rdquo; be a ring element and a <em>concept</em> a valid
+codeword of the tower split — on <b>Z</b>/510510, data windows
+{2, 3, 5, 7}, parity {11, 13, 17}. The three properties folk
+semantics asks for are then theorems of the blueprint.</p>
+
+<article class="claim" id="exact-binding">
+  <div class="claim-head"><span class="claim-name">Exact
+  binding</span> <span class="tier">property</span></div>
+  <p>bind(role, filler) = multiply; unbind = multiply by the meadow
+  inverse. Exact for every unit role and <em>every</em> filler;
+  chained roles unbind in either order. Every element is both datum
+  and operator: op<sub><i>x</i></sub> = multiply-by-<i>x</i>, read
+  back by op<sub><i>x</i></sub>(1) = <i>x</i>, and the operator's
+  reach is its window support — the meadow pseudo-inverse undoes unit
+  actions exactly and recovers the surviving windows for the rest.
+  The contrast: in HRR and the Semantic Pointer Architecture,
+  circular convolution binds and correlation unbinds approximately —
+  the unbound filler returns at cosine ~0.7, never 1 — so every
+  retrieval needs a cleanup memory and is probabilistic. (Binary XOR
+  binding is also exactly self-inverse; what the ring adds is the
+  guaranteed cleanup below and the datum-as-operator structure.)</p>
+  <p class="verifier">verifier: <a href="files/explore_meaning_codeword.py">
+  <code>explore_meaning_codeword.py</code></a></p>
+</article>
+
+<article class="claim" id="snap-to-whole">
+  <div class="claim-head"><span class="claim-name">Snap-to-whole in
+  three exact zones</span> <span class="tier">rule</span></div>
+  <p>A Gestalt is a codeword: MDS <i>d</i> = 4 makes the perceptual
+  basin of attraction a theorem. Any one corrupted window snaps back
+  to the whole, guaranteed (exhaustive: all 210 concepts × all 51
+  corruptions), and any 3 erased windows reconstruct it (all 35
+  patterns). Two corrupted windows are always detected and never
+  mis-snapped — a mis-snap would need 2 + 1 ≥ <i>d</i>, forbidden at
+  <i>d</i> = 4. Three can produce an illusion — the view snaps to a
+  <em>different</em> valid whole, never to garbage — but rarely:
+  0.58% of 5000 random weight-3 views snapped; the rest were detected
+  and refused. Basins are disjoint, exactly 52 tuples per concept:
+  beyond radius 1 the decoder refuses rather than hallucinates.</p>
+  <p class="verifier">verifier: <a href="files/explore_meaning_codeword.py">
+  <code>explore_meaning_codeword.py</code></a></p>
+</article>
+
+<article class="claim" id="superposition-wall">
+  <div class="claim-head"><span class="claim-name">The superposition
+  wall and its cure</span> <span class="tier">rule</span></div>
+  <p>The classical VSA bundle — an elementwise <em>sum</em> of bound
+  pairs — carries no cleanup here, and for codeword fillers the
+  failure is exact: unbinding a two-item sum returns the true filler
+  plus a noise element sharing the second filler's support, and every
+  nonzero codeword has tuple weight ≥ <i>d</i> = 4, so the query sits
+  outside the true concept's radius-1 basin <em>always</em> —
+  retrieval is provably 0 (verified 0/2000; the lone degenerate
+  escape is an <em>empty</em> second item, whose noise is zero). The
+  same <i>d</i> that guarantees the snap forbids the sum. What rescues the sum
+  classically — quasi-orthogonality, bundle noise nearly invisible to
+  a dot product in high dimension — is archimedean
+  concentration-of-measure geometry, not a ring resource: a wall of
+  the deletion read at the representation level. The cure is
+  ring-native: bundle = <em>direct sum</em>. Idempotent slots (roles
+  = channel windows) retrieve every stored item exactly at hard
+  capacity = the channel partition, and multiplicative binding
+  composes inside a slot.</p>
+  <p class="scope"><b>Scope.</b> The limits: capacity is hard (210
+  scenes at this rung; scaled by rungs or designed towers), and
+  codewords carry no similarity gradient — semantic similarity must
+  arrive with a learned embedding. The HRR contrast is a contrast of
+  kind, not a benchmark: on self-inverse substrates exact unbinding
+  is table stakes, and the published factorization benchmarks run on
+  per-coordinate partial credit — exactly the archimedean
+  concentration resource this wall names as missing, and one no rung
+  can buy.</p>
+  <p class="verifier">verifier: <a href="files/explore_meaning_codeword.py">
+  <code>explore_meaning_codeword.py</code></a></p>
+</article>
+
+<p>Grammar comes free of syntax: with AGENT the {2, 3} window,
+PATIENT mod 5, ACTION mod 7, every data value below 210 <em>is</em> a
+valid scene — a bijective grammar — and any 4 of the 7 windows carry
+the whole scene.</p>
+
+<h2>The deletion as dynamics</h2>
+
+<p>Set the ring in motion: cells hold values of
+<b>Z</b>/<i>N</i> and update by a local rule, neighbor by neighbor.
+Two results govern everything such an automaton can do, and they cut
+opposite ways.</p>
+
+<article class="claim" id="decoupling-law">
+  <div class="claim-head"><span class="claim-name">The decoupling law
+  and the coupling toll</span> <span class="tier">rule</span></div>
+  <p>A CA rule built from ring operations (+, ×, constants — hence
+  every power map, every gate, the meadow inverse) is a polynomial,
+  hence channel-local: the automaton is the direct product of k
+  independent mod-p automata, channel p's entire future a function of
+  channel p's initial plane alone. Conversely, any k-tuple of
+  arbitrary per-channel rules is one polynomial rule (Lagrange
+  interpolation per channel, coefficients CRT-glued degreewise):
+  pure-ring automata are <em>exactly</em> the products of arbitrary
+  per-channel automata. Coupled dynamics is therefore bought, not
+  built, and the toll is priced in bits crossing the channel boundary
+  per cell-read: an aliveness bit ([<i>x</i> = 0], or any channel
+  quantifier) costs 1, the support grade [|supp(<i>x</i>)| ≥ t]
+  (supp <i>x</i> = the channels where x is nonzero) costs
+  log₂(<i>k</i>+1), size comparison costs log₂ <i>N</i> — no
+  polynomial computes any of them, and the content never crosses:
+  only quantifier bits do. Conway's Life threshold is bought at the
+  grade tier, and the toll is real — a graded Life on <b>Z</b>/30
+  paying one grade-read per cell per step builds cross-channel mutual
+  information from a channel-independent soup within 20 steps, while
+  its decoupled twin never leaves the sampling floor.</p>
+  <p class="scope"><b>Scope.</b> The rule-equals-polynomial leg needs
+  a squarefree modulus (it fails at <b>Z</b>/4); locality ⇒ product
+  holds for any product ring. Exhaustive rule batteries at
+  <b>Z</b>/6 with three-cell neighborhoods, trajectory invariance at
+  <b>Z</b>/30, the converse construction exact; the Life runs are
+  observations, recorded in the script.</p>
+  <p class="verifier">verifier: <a href="files/explore_ring_ca.py">
+  <code>explore_ring_ca.py</code></a></p>
+</article>
+
+<article class="claim" id="snap-back">
+  <div class="claim-head"><span class="claim-name">The snap-back
+  automaton</span> <span class="tier">rule</span></div>
+  <p>The same isolation quarantines damage. The tower-split code (the
+  Gestalt basin above) survives no arithmetic — under a sum rule its
+  minimum distance degrades with running height, 4 → 3 (values from
+  210) → 2 (2310) → 1 (30030) → 0 (510510), repair a per-step
+  checksum tax — so make the invariant a <em>dictionary closed under
+  the dynamics</em>. Binding-closed dictionaries of units are exactly
+  the subgroups of the unit group; channels being cyclic, a subgroup
+  is a linear code over the exponent space
+  ∏<sub><i>p</i></sub> <b>Z</b>/(<i>p</i>−1) with window distance =
+  exponent Hamming distance: classical coding theory imports
+  wholesale through the index transform. Binding never spreads an
+  error across windows — wrong(<i>xy</i>) ⊆ wrong(<i>x</i>) ∪
+  wrong(<i>y</i>), wrong(<i>x</i>) the set of corrupted windows — and
+  two guarantees follow. <b>Eager</b> — snap
+  each cell to its nearest word before binding: at most t corrupted
+  windows per cell per step gives an exact trajectory forever
+  (verified at the full 3-of-7 budget). <b>Lazy</b> — correction
+  waits until readout: three stuck lanes, open loop, zero
+  maintenance, one snap per cell reads out exactly. Instances: binary
+  linear codes bind-closed as ±1-per-channel words (Hamming [7,4,3]
+  on seven odd channels corrects any one window); a designed tower on
+  places p ≡ 1 (mod 8) holds an order-8 unit whose powers sit at
+  pairwise distance 7, correcting three.</p>
+  <p class="scope"><b>Scope.</b> The fault model is noisy value
+  registers under reliable control — the algorithm-based
+  fault-tolerance stance. The dictionary-closed-under-a-group-action
+  form with coset correction is Beckmann–Musicus and
+  Hadjicostis–Verghese; universal computation on coded data at
+  polylog overhead is Spielman. Binding is the classical transversal
+  gate set, and the decoupling law is the matching wall.</p>
+  <p class="verifier">verifier: <a href="files/explore_snapback_ca.py">
+  <code>explore_snapback_ca.py</code></a></p>
+</article>
+
+<p>Walls are permanent: channels only
+accumulate, so an existence-shaped capability born at a rung never
+dies and a wall never heals. And the deepest reading of the deletion is not a cost at
+all — read as an operation, the missing window is the borrow whose
+absence makes the whole family decidable: the knife edge
+(<a href="/growth#knife-edge">Growth</a>).</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
 </body>
 </html>

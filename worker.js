@@ -5,18 +5,34 @@ export default {
 
     /* 301s for every URL that ever shipped -- generated from the manifest */
     const REDIRECTS = {
-      '/primer': '/tower',
-      '/primer.html': '/tower',
-      '/ring': '/tower',
-      '/ring.html': '/tower',
-      '/seedflower': '/prediction',
-      '/seedflower.html': '/prediction',
-      '/sieve': '/tower',
-      '/sieve.html': '/tower',
-      '/engineering': '/build',
-      '/engineering.html': '/build',
-      '/lab': '/build',
-      '/lab.html': '/build',
+      '/tower': '/object',
+      '/tower.html': '/object',
+      '/crt': '/object',
+      '/crt.html': '/object',
+      '/heat': '/growth',
+      '/heat.html': '/growth',
+      '/ecc': '/object',
+      '/ecc.html': '/object',
+      '/automata': '/walls',
+      '/automata.html': '/walls',
+      '/dynamics': '/object',
+      '/dynamics.html': '/object',
+      '/prediction': '/object',
+      '/prediction.html': '/object',
+      '/build': '/',
+      '/build.html': '/',
+      '/primer': '/object',
+      '/primer.html': '/object',
+      '/ring': '/object',
+      '/ring.html': '/object',
+      '/sieve': '/object',
+      '/sieve.html': '/object',
+      '/seedflower': '/object',
+      '/seedflower.html': '/object',
+      '/engineering': '/',
+      '/engineering.html': '/',
+      '/lab': '/',
+      '/lab.html': '/',
     };
     const redir = REDIRECTS[url.pathname];
     if (redir) return Response.redirect(new URL(redir, url.origin), 301);
@@ -26,7 +42,7 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    /* Bare paths: / -> index.html, /tower -> tower.html */
+    /* Bare paths: / -> index.html, /object -> object.html */
     const path = url.pathname.replace(/\/$/, '') || '/index';
     const page = path.split('/').pop() || 'index';
     return env.ASSETS.fetch(new URL('/' + page + '.html', url.origin));

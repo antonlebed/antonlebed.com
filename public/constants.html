@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Constants — named constants as solvency thresholds</title>
+<meta name="description" content="Designed growth reserves whose solvency thresholds realize the analytic-prime-constant zoo: the realizer identity, a conserved Poisson-Dirichlet rank spectrum summing to 1, density constants, the collision hinge, and the settled Dirichlet-abscissa end.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
+:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
+}
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
+}
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+
+math[display="block"] { margin: 0.7rem 0; }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav><a href='/'>Home</a> <a href='/object'>The Object</a> <a href='/growth'>Growth</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/constants' class='here'>Constants</a></nav></header>
+<main>
+<h1>Constants</h1>
+<p class="lede">Named analytic constants — Golomb–Dickman, a
+Poisson–Dirichlet spectrum, Artin — as the solvency thresholds of
+designed growth economies.</p>
+
+<p>The self-growing tower's asymptotics run on one estimate — the
+density of transparent steps
+(<a href="/growth#transparency-density">Growth</a>) — and its
+dynamical complexity has an exact ledger in the shifted primes
+<i>p</i> − 1 (<a href="/growth#complexity-ledger">the complexity
+ledger</a>). What happens when a growth fate is
+<em>designed</em> to have a numerical threshold? Overlay on the
+primorial schedule a reserve that earns <i>ρ</i> log <i>p</i> at each
+prime and pays a chosen cost <i>w</i>(<i>p</i>) ≥ 0:</p>
+
+<p><i>R</i>(<i>k</i>) = <i>ρ</i>·<i>θ</i>(<i>p<sub>k</sub></i>) −
+Σ<sub><i>i</i>≤<i>k</i></sub> <i>w</i>(<i>p<sub>i</sub></i>),
+&emsp;<i>θ</i>(<i>x</i>) = Σ<sub><i>p</i>≤<i>x</i></sub> log <i>p</i>.</p>
+
+<p>Whether the reserve thrives or sinks is decided by a single
+number, and the numbers that appear are the analytic-prime-constant
+zoo. Every in-range value below is at <i>k</i> = 10<sup>4</sup> (the
+first 10<sup>4</sup> primes, <i>p</i> ≤ 104,729).</p>
+
+<h2>The realizer</h2>
+
+<article class="claim" id="realizer-identity">
+  <div class="claim-head"><span class="claim-name">The realizer
+  identity</span> <span class="tier">rule</span></div>
+  <p><i>R</i>(<i>k</i>) =
+  <i>θ</i>(<i>p<sub>k</sub></i>)·[<i>ρ</i> −
+  <i>S</i>(<i>k</i>)/<i>θ</i>] with <i>S</i> = Σ <i>w</i>, so the
+  reserve thrives (<i>R</i> → +∞) iff <i>ρ</i> exceeds
+  <i>ρ</i><sub>c</sub>(<i>w</i>) = lim Σ
+  <i>w</i>(<i>p<sub>i</sub></i>)/<i>θ</i>(<i>p<sub>k</sub></i>) — the
+  weight's Cesàro log-average, when it converges. Calibration
+  weights land exactly: <i>w</i> = log <i>p</i> realizes
+  <i>ρ</i><sub>c</sub> = 1.000000 — sinking at <i>ρ</i> = 0.9,
+  thriving at 1.1 — and <i>w</i> = ½ log <i>p</i> realizes
+  0.500000. Every
+  nonnegative value is therefore trivially reachable
+  (<i>w</i> = <i>c</i>·log <i>p</i> gives <i>ρ</i><sub>c</sub> =
+  <i>c</i>), and the realizer re-expresses a prime log-average, never
+  derives it. The content is which <em>structured</em> weights land
+  on which <em>named</em> constants — the two families below.</p>
+  <p class="scope"><b>Scope.</b> Elementary (the drift calculus);
+  calibrations exact in range.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_reserve_zoo.py"><code>explore_reserve_zoo.py</code></a></p>
+</article>
+
+<h2>The rank family</h2>
+
+<article class="claim" id="rank-family">
+  <div class="claim-head"><span class="claim-name">The rank
+  family</span> <span class="tier">rule</span></div>
+  <p>Weight <i>w<sub>j</sub></i>(<i>p</i>) =
+  log <i>P<sub>j</sub></i>(<i>p</i>−1), the <i>j</i>-th largest prime
+  factor of <i>p</i> − 1 with multiplicity
+  (<i>P</i><sup>+</sup> denotes <i>P</i><sub>1</sub>, the largest).
+  The factors partition
+  log(<i>p</i>−1) exactly — Σ<sub><i>j</i></sub>
+  log <i>P<sub>j</sub></i>(<i>p</i>−1) = log(<i>p</i>−1) at every
+  prime — so the thresholds <b>sum to 1</b> in the limit:
+  Σ<sub><i>j</i></sub> <i>ρ</i><sub>c</sub><sup>(<i>j</i>)</sup> =
+  log <i>φ</i>/<i>θ</i> → 1, in range 0.999971. The spectrum is
+  ordered, positive, decreasing:
+  <i>ρ</i><sub>c</sub><sup>(1..3)</sup> = 0.5791, 0.1931, 0.0980,
+  tail (ranks ≥ 4) 0.1298. In the limit, under Elliott–Halberstam,
+  it is the Poisson–Dirichlet(1) / Shepp–Lloyd spectrum of the
+  Dickman ordered factorization (0.6243, 0.2096, 0.0883, …); the
+  identification is open unconditionally. The integer positive
+  control — the same machinery on unshifted <i>n</i> ≤ <i>x</i> —
+  gives [0.6523, 0.2006, 0.0789], inside the PD bands and above the
+  shifted value at <i>j</i> = 1: the straddle. Finite range confirms
+  the ordered spectrum and the conservation, not the limit
+  values.</p>
+  <p class="scope"><b>Scope.</b> The partition and the per-<i>k</i>
+  conservation are exact, Σ → 1 elementary; the in-range values are
+  observations. The PD identification is a theorem under
+  Elliott–Halberstam — level of distribution 1 gives the full joint
+  PD(1) law (Bharadwaj–Rodgers, arXiv:2402.11884; the <i>j</i> = 1
+  Dickman case Pomerance's conjecture, EH-proof Granville–Wang) —
+  and open unconditionally: shifted primes hold level ½
+  (Bombieri–Vinogradov), buying restricted-support PD correlations
+  only.</p>
+  <p class="verifier">verifiers:
+  <a href="files/explore_reserve_zoo.py"><code>explore_reserve_zoo.py</code></a>,
+  <a href="files/explore_ledger_threshold.py"><code>explore_ledger_threshold.py</code></a></p>
+</article>
+
+<h2>The density family</h2>
+
+<article class="claim" id="density-family">
+  <div class="claim-head"><span class="claim-name">The density
+  family</span> <span class="tier">rule</span></div>
+  <p>Weight <i>w</i>(<i>p</i>) = log <i>p</i> · 1[<i>E</i>(<i>p</i>)]
+  for an event <i>E</i> of prime density <i>δ</i> realizes
+  <i>ρ</i><sub>c</sub> = <i>δ</i>: the threshold is the density
+  itself (the log-weighted density equals the natural one).
+  <i>E</i> = &ldquo;<i>p</i> ≡ 1 mod 4&rdquo; gives 0.4987 → ½
+  (Dirichlet). <i>E</i> = &ldquo;2 is a primitive root mod
+  <i>p</i>&rdquo; gives 0.3749 — Artin's constant 0.3740 under GRH
+  (Hooley), an infinite Kummer intersection rather than a single
+  Chebotarev class. A
+  density constant is a different kind than the rank family's Dickman
+  size-averages; the one lever <i>w</i> reads both kinds.</p>
+  <p class="scope"><b>Scope.</b> Threshold = density is a rule; the
+  in-range values are observations. The Artin value is Hooley's
+  theorem under GRH; the ½ anchor is Dirichlet's theorem.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_reserve_zoo.py"><code>explore_reserve_zoo.py</code></a></p>
+</article>
+
+<h2>The zoo in one chart</h2>
+
+<p>The three named irrationals are ordered and mutually distinct
+already in range: PD<sub>2</sub> 0.193 &lt; Artin 0.375 &lt;
+<i>λ</i><sub>GD</sub> 0.579.</p>
+
+<table class="chart">
+  <thead>
+    <tr><th>weight <i>w</i>(<i>p</i>)</th>
+    <th>threshold, <i>k</i> = 10<sup>4</sup></th>
+    <th>limit</th><th>the limit's status</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>log <i>P</i><sub>3</sub>(<i>p</i>−1)</td>
+    <td>0.0980</td><td>PD<sub>3</sub> ≈ 0.0883</td>
+    <td>theorem under EH; open unconditionally</td></tr>
+    <tr><td>log <i>P</i><sub>2</sub>(<i>p</i>−1)</td>
+    <td>0.1931</td><td>PD<sub>2</sub> ≈ 0.2096</td>
+    <td>theorem under EH; open unconditionally</td></tr>
+    <tr><td>log <i>p</i> · 1[2 primitive root]</td>
+    <td>0.3749</td><td>Artin 0.3740</td>
+    <td>theorem under GRH (Hooley); open unconditionally</td></tr>
+    <tr><td>log <i>p</i> · 1[<i>p</i> ≡ 1 mod 4]</td>
+    <td>0.4987</td><td>½</td>
+    <td>theorem (Dirichlet)</td></tr>
+    <tr><td>log <i>P</i><sup>+</sup>(<i>p</i>−1)</td>
+    <td>0.5791</td><td><i>λ</i><sub>GD</sub> 0.6243</td>
+    <td>theorem under EH; open unconditionally</td></tr>
+    <tr><td>log <i>p</i></td>
+    <td>1.000000</td><td>1</td>
+    <td>exact (calibration)</td></tr>
+  </tbody>
+</table>
+
+<h2>The hinge</h2>
+
+<p>The size weight log <i>P</i><sup>+</sup>(<i>p</i>−1) — rank 1
+above — lands on a positive constant. A count-weighted
+sibling — earn <i>ρ</i> per step, pay 1 per <i>λ</i>-raise
+(<a href="/growth#complexity-ledger">the complexity ledger</a>'s
+jumps) — has for its threshold the limsup non-transparent density,
+degenerate at 0 exactly when the transparency density → 1: the open
+conjecture itself. One distinction explains the split. Here
+<i>φ</i>(<i>p<sub>k</sub></i>#) =
+∏<sub><i>i</i>≤<i>k</i></sub>(<i>p<sub>i</sub></i> − 1) is the rung's
+unit count (its capacity) and <i>λ</i>(<i>p<sub>k</sub></i>#) =
+lcm(<i>p<sub>i</sub></i> − 1) its universal period (its dynamical
+complexity).</p>
+
+<article class="claim" id="collision-hinge">
+  <div class="claim-head"><span class="claim-name">The collision
+  hinge</span> <span class="tier">property</span></div>
+  <p>log <i>φ</i> counts every hit of every prime power in the
+  shifted primes with multiplicity; log <i>λ</i> counts each hit
+  power once. Their gap is the <b>collision mass</b> — prime powers
+  dividing several shifted primes — and
+  <i>α</i> = log <i>λ</i>/log <i>φ</i> = 1 − collision/log <i>φ</i>,
+  exactly. In range the collision mass is 0.8349 of capacity
+  (<i>α</i> = 0.1651), and nearly all of log <i>λ</i> is distinct
+  large primes: the mass from primes above
+  √<i>p<sub>k</sub></i> is 0.9749, while the Linnik-guaranteed range
+  — prime powers up to <i>p<sub>k</sub></i><sup>1/5</sup> — carries
+  4.5·10<sup>−4</sup>. Elementary
+  bounds sandwich <i>α</i> only between the Linnik floor
+  7.5·10<sup>−5</sup> and 1, and <i>α</i> → 0 is <em>equivalent</em>
+  to the transparency-density conjecture
+  (<a href="/growth#collision-equivalence">the collision
+  equivalence</a>, elementary), so forcing it amounts to a
+  lower bound on how much large shifted-prime factors <em>repeat</em>
+  — the shifted-prime distribution circle. The hinge: the count
+  reserve (lcm, distinct) loses the collision mass — its threshold is
+  0 iff transparency density → 1, the open conjecture itself; the
+  size reserve (product, multiplicity) keeps every occurrence — its
+  threshold is positive and stable in range
+  (<i>λ</i><sub>GD</sub> under EH). One distinction, both fates.</p>
+  <p class="scope"><b>Scope.</b> The identity is exact (three
+  computations agree to 10<sup>−6</sup>, <i>k</i> ≤ 10<sup>4</sup>);
+  the mass-locus is an observation; the equivalence is a theorem —
+  it settles the question's shape, not its value.</p>
+  <p class="verifier">verifiers:
+  <a href="files/explore_ledger_threshold.py"><code>explore_ledger_threshold.py</code></a>,
+  <a href="files/explore_complexity_ledger.py"><code>explore_complexity_ledger.py</code></a>,
+  <a href="files/explore_collision_equivalence.py"><code>explore_collision_equivalence.py</code></a></p>
+</article>
+
+<h2>The settled end</h2>
+
+<article class="claim" id="abscissa-reserve">
+  <div class="claim-head"><span class="claim-name">The abscissa
+  reserve</span> <span class="tier">observation</span></div>
+  <p>A genuinely different solvency mechanism — the least <i>s</i> at
+  which <i>D</i>(<i>s</i>) = Σ<sub><i>p</i></sub>
+  1/<i>P</i><sup>+</sup>(<i>p</i>−1)<sup><i>s</i></sup> converges,
+  the abscissa <i>σ</i><sub>c</sub>, rather than an average —
+  realizes <em>no</em> constant,
+  and the reason is an inversion. The Cesàro log-weight reads the
+  bulk of the <i>P</i><sup>+</sup> distribution (0.7456 of its mass
+  on the rough set <i>P</i><sup>+</sup> &gt; √(<i>p</i>−1)); the
+  reciprocal weight reads the smooth tail (0.0461 rough — the band
+  <i>P</i><sup>+</sup> ≤ 11 alone carries 0.7638 of
+  <i>D</i>(2)). That tail is carried by smooth shifted primes —
+  <i>P</i><sup>+</sup> = 2 exactly the Fermat primes, frozen at 5 in
+  range; <i>P</i><sup>+</sup> = 3 the Pierpont primes — and
+  <i>D<sub>k</sub></i>(2) climbs 2.25 → 12.66 with a non-vanishing
+  tail. Divergence is a theorem at every computed exponent:
+  friable-shifted-prime counts force <i>D</i>(<i>s</i>) = +∞ for
+  every <i>s</i> &lt; 1/0.2844 ≈ 3.52, so <i>σ</i><sub>c</sub> &gt;
+  3.51 and only the endpoint <i>σ</i><sub>c</sub> = +∞ stays open —
+  where Pierpont infinitude is a sufficient certificate, not an
+  equivalent. The integer control isolates the shift at that
+  endpoint: unshifted smooth counts are unconditionally infinite
+  (3-smooth 100 vs the shifted 31 in range), so the integer endpoint
+  is provable while the shifted one waits.</p>
+  <p class="scope"><b>Scope.</b> The inversion and the climb are
+  observations, <i>k</i> ≤ 10<sup>4</sup>. The fixed-<i>s</i>
+  divergence is Lichtman's theorem (arXiv:2211.09641, Thm 1.1, won by
+  extending the Bombieri–Friedlander–Iwaniec mean-value range;
+  Baker–Harman 1998 before it); the endpoint is open.</p>
+  <p class="verifier">verifier:
+  <a href="files/explore_abscissa_reserve.py"><code>explore_abscissa_reserve.py</code></a></p>
+</article>
+
+<p>One circle governs the whole page: the shifted-prime level of
+distribution — Bombieri–Vinogradov at ½, Elliott–Halberstam at 1, the
+Fouvry / Bombieri–Friedlander–Iwaniec range extensions between. The
+Cesàro average reads the bulk of <i>P</i><sup>+</sup>(<i>p</i>−1),
+where the constants are open — the PD spectrum under EH, Artin under
+GRH. The abscissa reads the smooth tail, where the same circle's
+theorems already force degeneracy, leaving existence only the
+endpoint. The two ways to ask whether a designed economy is solvent
+read the two ends of one distribution — and the tail end, where
+existence lives, is the one the theorems already own.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

@@ -1,371 +1,236 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="The primorial tower: the integers read through every residue window at once, with the size window deleted. The Eratosthenes sieve is its prime lens. Independent channels, MDS error correction — all by construction.">
-  <meta property="og:image" content="https://antonlebed.com/og-image.jpg">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="antonlebed.com">
-  <link rel="canonical" href="https://antonlebed.com/">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <title>antonlebed.com — The Primorial Tower</title>
-  <style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The Primorial Tower</title>
+<meta name="description" content="Working notes on the primorial tower: the rings Z/p_k# built from the first k primes. Verified claims at stated tiers, each citing its verifier script.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
 :root {
-  --bg: #0a0c18;          
-  --fg: #e8e8f0;
-  --fg-dim: #888898;
-  --accent: #88ccaa;
-  --link: #6699cc;
-  --border: #1e2233;
-  --card-bg: #10131f;
-  --error: #ff4444;
-  --heal: #44ff88;
-  --detect: #ffd700;
-  --mono: 'Courier New', Courier, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ch-2: #ff5555;
-  --ch-3: #ff8c00;
-  --ch-5: #ffd700;
-  --ch-7: #4caf50;
-  --ch-11: #00bcd4;
-  --ch-13: #5c6bc0;
-  --ch-17: #ab47bc;
-  --ch-19: #7e57c2;
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
 html {
-  font-size: 16px;
   -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: #2d2a52 var(--bg);
+  scrollbar-color: var(--scroll) transparent;
 }
-::-webkit-scrollbar { width: 8px; background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #2d2a52; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3d3870; }
-#atmo-sun {
-  position: absolute; top: 22px; left: 32px; width: 88px; height: 88px;
-  border-radius: 50%; pointer-events: none; z-index: -1;
-  background: radial-gradient(circle at 50% 50%,
-    #05060c 0%, #0a0c18 52%, #1a0800 68%, #4a1500 80%,
-    #8B2500 90%, #CC5500 96%, #FF8C00 100%);
-  animation: sun-breathe 24s ease-in-out infinite;
-}
-@keyframes sun-breathe {
-  0%, 100% { box-shadow: 0 0 32px 10px rgba(255,60,0,0.32),
-                         0 0 80px 32px rgba(255,120,0,0.13),
-                         0 0 150px 64px rgba(255,80,0,0.05); }
-  50%      { box-shadow: 0 0 48px 18px rgba(255,80,0,0.48),
-                         0 0 105px 46px rgba(255,140,0,0.20),
-                         0 0 185px 82px rgba(255,100,0,0.08); }
-}
-#atmo-stars {
-  position: absolute; top: 0; left: 0;
-  overflow: hidden; pointer-events: none; z-index: -2;
-}
-@media (prefers-reduced-motion: reduce) {
-  #atmo-sun { animation: none; }
-  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
 body {
+  margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--sans);
-  line-height: 1.6;
-  padding: 1rem;
-  max-width: 800px;
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
   margin: 0 auto;
+  padding: 0 1.25rem;
 }
-h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
-h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.5rem; color: var(--fg); }
-h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.25rem; color: var(--fg-dim); }
-p  { margin-bottom: 1rem; color: var(--fg-dim); }
-strong { color: var(--fg); font-weight: 600; }
-a { color: var(--link); text-decoration: none; }
-a:hover { text-decoration: underline; }
-code, .mono { font-family: var(--mono); font-size: 0.9rem; }
-.crt-tuple { font-family: var(--mono); letter-spacing: 0.05em; }
-.note { font-size: 0.85rem; color: var(--fg-dim); }
-.ch-2 { color: var(--ch-2); }
-.ch-3 { color: var(--ch-3); }
-.ch-5 { color: var(--ch-5); }
-.ch-7 { color: var(--ch-7); }
-.ch-11 { color: var(--ch-11); }
-.ch-13 { color: var(--ch-13); }
-.ch-17 { color: var(--ch-17); }
-.ch-19 { color: var(--ch-19); }
-.tbl {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.82rem;
-}
-.tbl th, .tbl td {
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--border);
-  text-align: center;
-}
-.tbl th { background: var(--card-bg); color: var(--fg-dim); font-weight: normal; }
-.tbl td { font-family: var(--mono); }
-.tbl.left th, .tbl.left td { text-align: left; }
-.tbl .demo td { color: var(--accent); }
-.tbl .transparent td { color: var(--fg-dim); }
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-.card h3 { margin-top: 0; color: var(--accent); font-size: 0.9rem; }
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  flex-wrap: wrap;
-}
-.controls label { font-family: var(--mono); font-size: 0.85rem; color: var(--fg-dim); }
-nav {
-  margin: 1.5rem 0;
-  padding: 0.5rem 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.4rem;
-}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
 nav a {
-  color: var(--fg);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.3rem 0.7rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
 }
-nav a:hover { color: var(--fg); background: #ffffff08; border-color: #ffffff10; text-decoration: none; }
-nav a[aria-current="page"] { color: var(--accent); background: #88ccaa10; border-color: #88ccaa30; }
-nav .search-wrap { position: relative; margin-left: auto; }
-nav .search-wrap input {
-  background: var(--card-bg);
-  color: var(--fg);
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  width: 7rem;
-  font-family: var(--sans);
-  transition: width 0.2s, border-color 0.15s;
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
-nav .search-wrap input:focus { width: 10rem; border-color: var(--accent); outline: none; }
-nav .search-wrap .search-results {
-  position: absolute; top: 100%; right: 0; margin-top: 0.3rem;
-  background: var(--card-bg);
-  border: 1px solid #333;
-  border-radius: 4px;
-  min-width: 14rem;
-  z-index: 100;
-  display: none;
+code { font-size: 0.92em; }
+
+math[display="block"] { margin: 0.7rem 0; }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
 }
-nav .search-wrap .search-results a {
-  display: block; padding: 0.4rem 0.6rem; font-size: 0.8rem;
-  color: var(--fg-dim); border-bottom: 1px solid var(--border);
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
 }
-nav .search-wrap .search-results a:hover { background: #1a1a2a; color: var(--fg); text-decoration: none; }
-nav .search-wrap .search-results a:last-child { border-bottom: none; }
-nav .search-wrap .search-results .match-title { color: var(--fg); }
-nav .search-wrap .search-results .match-desc { font-size: 0.7rem; }
-nav .search-wrap .search-results mark { background: #ffd70033; color: var(--fg); border-radius: 1px; }
-.hero { margin: 2rem 0 1.5rem; text-align: center; }
-.hero h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
-.hero .factorization {
-  font-family: var(--mono);
-  font-size: 0.95rem;
-  color: var(--fg-dim);
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-}
-button {
-  background: #222233;
-  color: var(--fg);
-  border: 1px solid #444466;
-  padding: 0.4rem 0.8rem;
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
   border-radius: 3px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  font-family: var(--sans);
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
 }
-button:hover { background: #333344; border-color: #666688; }
-button:active { background: #444455; }
-input[type="text"], input[type="number"] {
-  background: #111122;
-  color: var(--fg);
-  border: 1px solid #444466;
-  padding: 0.4rem 0.6rem;
-  border-radius: 3px;
-  font-size: 0.9rem;
-  font-family: var(--mono);
-  width: 100%;
-  max-width: 300px;
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
 }
-input:focus { outline: none; border-color: var(--accent); }
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
 footer {
-  margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.8rem;
-  color: var(--fg-dim);
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
   text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
 }
-footer p { margin-bottom: 0.25rem; }
-@media (max-width: 600px) {
-  body { padding: 0.75rem; }
-  .hero h1 { font-size: 1.4rem; }
-  nav .search-wrap { margin-left: 0; flex-basis: 100%; text-align: center; }
-  nav .search-wrap input { width: 60%; max-width: 14rem; }
-  nav .search-wrap input:focus { width: 70%; }
-  nav .search-wrap .search-results { left: 50%; right: auto; transform: translateX(-50%); }
-}
-  </style>
-  
-  <script src="tower.js" defer></script>
-  <script src="atmosphere.js" defer></script>
-  <script src="search.js" defer></script>
+</style>
 </head>
 <body>
-  <div id="atmo-sun" aria-hidden="true"></div>
-  <nav>
-    <a href="index.html" aria-current="page">Home</a>
-    <a href="tower.html">Tower</a>
-    <a href="growth.html">Growth</a>
-    <a href="heat.html">Heat</a>
-    <a href="crt.html">CRT</a>
-    <a href="walls.html">Walls</a>
-    <a href="measure.html">Measure</a>
-    <a href="ecc.html">ECC</a>
-    <a href="automata.html">Automata</a>
-    <a href="dynamics.html">Dynamics</a>
-    <a href="prediction.html">Prediction</a>
-    <a href="build.html">Build</a>
-    <div class="search-wrap"><input type="text" placeholder="Search..." aria-label="Search pages"><div class="search-results"></div></div>
-  </nav>
+<header class="site"><nav><a href='/' class='here'>Home</a> <a href='/object'>The Object</a> <a href='/growth'>Growth</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/constants'>Constants</a></nav></header>
+<main>
+<h1>The Primorial Tower</h1>
+<p class="lede">Working notes on one mathematical object, kept by a
+small research program.</p>
 
-<div class="hero">
-    <h1>The Primorial Tower</h1>
-    <p class="factorization">the integers, read through every residue window at once,
-    with the size window deleted</p>
-  </div>
+<p>The k-th primorial is the product of the first k primes,
+<i>p<sub>k</sub></i># = 2·3·5⋯<i>p<sub>k</sub></i>. The ring
+<b>Z</b>/<i>p<sub>k</sub></i># splits by the Chinese Remainder
+Theorem into k independent channels, one per prime:</p>
 
-  <p>
-    There are many exact ways to read a whole number. Its remainder mod 2 is one
-    &mdash; a single bit, even or odd. Its remainder mod 3 is another, mod 5 another:
-    one <strong>residue window</strong> per prime, each blind to all the others. And
-    there is exactly one more reading, the familiar one: <em>size</em> &mdash; how big
-    a number is, its sign, which of two is larger. The <strong>primorial tower</strong>
-    keeps the residue windows &mdash; all of them at once &mdash; and deletes the size
-    reading. The ring Z/(2&middot;3&middot;5&middot;&hellip;&middot;p<sub>k</sub>),
-    built on the product of the first k primes, reads the first k windows
-    simultaneously: the Chinese Remainder Theorem splits it into one independent
-    prime-field channel per window. One ring per k, each nested in the next &mdash;
-    that sequence is the tower.
-  </p>
+<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="bold">Z</mi><mi mathvariant="normal">/</mi><msub><mi>p</mi><mi>k</mi></msub><mi mathvariant="normal">#</mi><mtext>  </mtext><mo>≅</mo><mtext>  </mtext><msub><mi mathvariant="bold">F</mi><mn>2</mn></msub><mo>×</mo><msub><mi mathvariant="bold">F</mi><mn>3</mn></msub><mo>×</mo><msub><mi mathvariant="bold">F</mi><mn>5</mn></msub><mo>×</mo><mo>⋯</mo><mo>×</mo><msub><mi mathvariant="bold">F</mi><msub><mi>p</mi><mi>k</mi></msub></msub></mrow><annotation encoding="application/x-tex">\mathbf{Z}/p_k\# \;\cong\; \mathbf{F}_2 \times \mathbf{F}_3 \times
+\mathbf{F}_5 \times \cdots \times \mathbf{F}_{p_k}</annotation></semantics></math></span>
 
-  <p>
-    Read the windows in the order of the primes and you are running the
-    <strong>sieve of Eratosthenes</strong>: &ldquo;remove the multiples of p&rdquo; is
-    exactly &ldquo;read the window at p and discard what reads zero.&rdquo; The sieve,
-    in algebraic form, is the tower's prime lens &mdash; the same object is a structure
-    worth studying and a machine for studying primes.
-  </p>
+<p>Every channel is a prime field, and no channel sees another's
+content. The <b>primorial tower</b> is the sequence of these rings,
+each nested in the next:
+<b>Z</b>/6 ⊂ <b>Z</b>/30 ⊂ <b>Z</b>/210 ⊂ <b>Z</b>/2310 ⊂ ⋯</p>
 
-  <p>
-    A worked split: 17 read through the first three windows is
-    (<span class="ch-2">1</span>, <span class="ch-3">2</span>,
-    <span class="ch-5">2</span>) &mdash; remainder 1 mod 2, 2 mod 3, 2 mod 5 &mdash;
-    and no other number from 0 to 29 reads that way: in Z/30 the three windows
-    together <em>are</em> the number. Arithmetic splits the same way:
-    17 + 5 = 22 is (<span class="ch-2">1</span>,&thinsp;<span class="ch-3">2</span>,&thinsp;<span class="ch-5">2</span>)
-    + (<span class="ch-2">1</span>,&thinsp;<span class="ch-3">2</span>,&thinsp;<span class="ch-5">0</span>)
-    = (<span class="ch-2">0</span>,&thinsp;<span class="ch-3">1</span>,&thinsp;<span class="ch-5">2</span>),
-    each window reduced on its own, none seeing another.
-  </p>
+<p>By Ostrowski's theorem, the ways to measure a rational number are
+the finite places — one per prime, each read through its residue
+window — plus exactly one more: the archimedean place, where size,
+sign, and order live. The tower is what remains of the integers when
+every finite window is kept and the archimedean one is deleted. What
+that deletion costs, and what it buys, is most of what these notes
+measure.</p>
 
-  <p>
-    This site is an exercise in <strong>minimal emergence</strong> &mdash; how much
-    structure you can get from the fewest moving parts. The tower is constructed, not
-    discovered, and the interesting question is never &ldquo;is this surprising?&rdquo;
-    but <strong>&ldquo;what can you see from here, and what can you build with
-    it?&rdquo;</strong>
-  </p>
+<p>The tower is constructed, not discovered: its properties hold by
+axiom at every rung. The working question is never "is this
+surprising?" but "what can we see from here?"</p>
 
-  <h2>What the construction gives you</h2>
-  <p>
-    Independent channels (zero mutual information between windows &mdash; a theorem,
-    not an approximation), bijective arithmetic, built-in error correction (from
-    k&nbsp;=&nbsp;7 onward the last three channels act as parity and the code is
-    maximum distance separable &mdash; the ring <em>is</em> the code), total division
-    among the sieve's survivors, torus geometry. All of it holds <em>by
-    construction</em>, at every rung. One problem with 510,510 possibilities becomes
-    seven problems with at most 17 possibilities each.
-  </p>
+<h2>How to read these notes</h2>
 
-  <h2>What no channel sees</h2>
-  <p>
-    The deletion is structural, and it is measurable. Every question of size &mdash;
-    sign, comparison, overflow &mdash; is computable in no channel, provably, and no
-    per-channel recoding brings it into view; even six channels of seven leave the
-    sign of an element essentially a coin flip. Multiplication has a second exact
-    coordinate system with its own price; a third does not exist. The
-    <a href="walls.html">Walls page</a> charts these limits exactly &mdash; they are
-    as structural as the decomposition itself. And the deletion leaves a survivor:
-    the <a href="measure.html">Measure page</a> charts what replaces order once size
-    is gone &mdash; a graded logic with exact certificates, how far it reaches, and
-    what reading it costs.
-  </p>
+<p>Every result is stated as a <b>claim block</b>: a name, a tier, the
+precise statement, its scope, and the script that verifies it. The
+tiers: <b>property</b> (follows from the construction) ·
+<b>observation</b> (computed, not proved) · <b>pattern</b> (observed
+across many k, no proof) · <b>rule</b> (proved algebraically, or
+verified exhaustively across a stated range) · <b>criterion</b>
+(necessary and sufficient, proved) · <b>theorem</b> (complete general
+proof — reserved). Cited scripts are downloadable where linked, with
+the CRT library <code>crt.py</code> beside them; each script's header
+states what it checks.</p>
 
-  <h2>What the prime lens shows</h2>
-  <p>
-    Taken in prime order, the tower is the sieve, and it sees ahead of itself:
-    transparency sorts new primes into ones that add complexity and ones that only add
-    capacity, and sub-rings name primes they have never met. The
-    <a href="tower.html">Tower page</a> is the lens itself &mdash; every sieve step a
-    channel, the first 14 rungs, the two growth modes; the Prediction page shows how
-    far it sees.
-  </p>
+<article class="claim" id="blueprint">
+  <div class="claim-head"><span class="claim-name">The blueprint</span>
+  <span class="tier">property</span></div>
+  <p>At every rung, by construction: the k channels are independent —
+  arithmetic decomposes window by window and no channel carries
+  information about another; every channel is a prime field; encoding
+  is bijective (an element <i>is</i> its residue tuple, losslessly);
+  division is total via the meadow pseudo-inverse; the
+  2<sup><i>k</i></sup> idempotents index the sub-rings, one per subset
+  of the primes; and elements live on the k-torus
+  <i>T</i><sup><i>k</i></sup>, one angular coordinate per channel.</p>
+  <p class="scope"><b>Scope.</b> Every rung
+  <b>Z</b>/<i>p<sub>k</sub></i>#, all k — these are axioms of the
+  construction, not findings.</p>
+  <p class="verifier">verifier: <code>crt.py</code> self-test, 87
+  checks; the library is parametric over rungs.</p>
+</article>
 
-  <h2>What grows when nothing chooses</h2>
-  <p>
-    Strip the designer out and the tower grows itself: one demand &mdash; every
-    new piece independent of the whole &mdash; rebuilds it exactly, while rival
-    demands fall down one prime's well or die at a wall. The
-    <a href="growth.html">Growth page</a> runs that story cold &mdash; three
-    fates, the one-prime well, what commitment costs in other number worlds
-    &mdash; and the <a href="heat.html">Heat page</a> turns the temperature
-    knob: what a grown world remembers of its own genesis, and the machine
-    one borrow short of a general-purpose computer.
-  </p>
+<h2>The sections</h2>
+<ul class='sections'><li><a href='/object'>The Object</a> — The definition: the finite filtration of the product of all prime fields, with the archimedean place deleted. Blueprint properties, the tower table, the sieve identity, the genesis ladder, the seed-flower naming.</li><li><a href='/growth'>Growth</a> — Growth laws: a demand plus a greedy move. The three fates, the lock, the module law's price p^rank, thermal growth and the zeta measure, the inside view's exact ledger and clock spectrum, the function-field melt, the phoenix, the machine one borrow short of Turing-complete, and the transparency-density open problem.</li><li><a href='/observatory'>Observatory</a> — The arrival spectra of torsion approximants in a totally ramified window read the canonical digits of 2/pi^e: the readout theorem, its odd-p one-formula face, the designed readout (any word printable, bijectively), the reduction law, and the telescope to the classical ramification filtration.</li><li><a href='/walls'>Walls</a> — What deleting the archimedean place costs: the locality criterion, the hiding lemma and the priced escapes, the exact comparator's cost law, the provenance ladder, the Zech wall, what a base buys, designed towers filling machine words, the exact VSA, and the ring CA.</li><li><a href='/measure'>Measure</a> — The idempotent algebra: exact Boolean logic on the idempotents, a graded logic with a located defect elsewhere, the quantifier pair, envelope, and ladder, words and curves graded by exact prices, the orbit-cost theorem, and evidence on the ring.</li><li><a href='/constants'>Constants</a> — Designed growth reserves whose solvency thresholds realize the analytic-prime-constant zoo: the realizer identity, a conserved Poisson-Dirichlet rank spectrum summing to 1, density constants, the collision hinge, and the settled Dirichlet-abscissa end.</li></ul>
 
-  <h2>Explore</h2>
-  <p>
-    Every demo computes live in your browser &mdash; type a number and watch it split
-    into channels, corrupt a channel and watch the ring heal it, pick primes and see
-    what they predict. The same structure runs in silicon and over radio: FPGA
-    pipelines proving millions of exhaustive checks, an ESP32 mesh catching every
-    injected error over the air. Every page also reads complete without JavaScript:
-    the worked examples are in the text, the demos let you make your own.
-  </p>
-  <p class="note">
-    Claims here state their strength: <em>by construction</em> (follows from the
-    definition), <em>computed</em> (verified over a stated range), or
-    <em>measured</em> (read off real hardware).
-  </p>
+<p>Also: <a href="/claims">Claims</a> — every claim on the site, one
+line each.</p>
 
-  <footer>
-    <p>Public domain (CC0)</p>
-  </footer>
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
 </body>
 </html>
