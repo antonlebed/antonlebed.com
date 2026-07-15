@@ -169,7 +169,9 @@ registers against unboundedly many windows) -- but no decidability
 proof is offered: the bare class is the row's named open residual, a
 finite control over unboundedly many independent finite windows with
 broadcast ops (broadcast-protocol-shaped, but with an unbounded
-family of window alphabets). The one-parity cut
+family of window alphabets). (The residual has since settled
+UNIVERSAL -- a sparse one-window encoding the walls above do not
+touch: explore_frontier_rider.py.) The one-parity cut
 used in section 5(a) is detection-only (distance 2); it is used for
 syndrome shape, not for a correction claim. Base extension's cost
 status in RNS engineering is cited context, not run.

@@ -186,7 +186,8 @@ two-counter universality is cited, not re-derived; the mailbox and
 sync simulations verify step-exactness and halting transfer on witness
 batteries. Whether the BARE element class is decidable stays open
 (explore_ecc_borrow.py's residual) -- machine-grade hands are shown to
-add nothing to it, not to decide it. The relativization of a composite
+add nothing to it, not to decide it. (The residual has since settled
+UNIVERSAL: explore_frontier_rider.py.) The relativization of a composite
 to an uncomputable blind schedule is standard oracle relativization,
 noted for scope. The universal rudder's relock rule and the scar
 ledger's basin facts are proved in explore_interactive_observer.py and
