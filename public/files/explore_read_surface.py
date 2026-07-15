@@ -11,7 +11,11 @@ THE QUESTION. The recovery chart ends on an interface statement:
 questions posed through a boundary whose read atoms are RATCHETS
 (monotone one-shot flags) stay decidable whatever sits behind the
 boundary, while a boundary exposing RE-READABLE reads is wide enough
-to carry everything. This script builds the smallest composite that
+to carry everything. (The bulk-free general form of that statement
+has since been refuted -- one flag's flip TIMING carries the halting
+problem into an unbounded bulk, explore_flip_timing.py; the
+surviving scope is bulks of finite timing resolution, which this
+composite's flag-word-driven bulk inhabits.) This script builds the smallest composite that
 puts the statement at risk: a BULK (a finite-control machine) coupled
 to a CORE that is genuinely Turing-universal (a two-counter machine
 run bare on the frontier rider), through two boundaries in turn --
