@@ -117,11 +117,13 @@ numpy. All sections assert.
 HONEST SCOPE. The theorem's proof is HAND-DERIVED and elementary; the engine
 verifies its ingredient inequalities (E1-E4, the write-once bound) at every
 milestone and charts the in-range gap — a finite-range consistency check, not
-the proof. What the theorem does NOT give: the VALUE — alpha -> 0 itself stays
-open, now exactly equivalent to the transparency-density conjecture (does the
-transparency density tend to 1? — the smooth-shifted-prime density circle,
-Fouvry/BFI); explore_ledger_threshold.py's "analytic-hard" reading survives for
-the value question, and the EQUIVALENCE question closes. The in-range gap
+the proof. What the theorem does NOT give: the VALUE. Since this script was
+written, alpha -> 0 itself was PROVED (explore_lcm_shifted_primes.py: the
+equivalent form log lcm{p-1 : p <= x} = o(x) has an elementary unconditional
+sieve proof), so the transparency-density statement is now a theorem too. What
+stays open is the RATE'S CONSTANT (Golomb-Dickman under Elliott-Halberstam) —
+explore_ledger_threshold.py's "analytic-hard" reading survives for that value
+question only, not for the vanishing. The in-range gap
 (0.22 -> 0.034) converges at log speed — the asymptotic regime is far away, as
 the rate O(loglog x/log x) says it must be.
 

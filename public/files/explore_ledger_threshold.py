@@ -1,6 +1,14 @@
 """explore_ledger_threshold.py — the fusion's remainders
 (the collision hinge — where alpha->0 goes analytic-hard, and a nontrivial threshold).
 
+SETTLING POINTER (a later analysis): remainder (i) below asks "is alpha -> 0 provable
+UNCONDITIONALLY, or genuinely analytic (BV/BFI)?" — ANSWERED: unconditionally,
+elementarily (explore_lcm_shifted_primes.py: log lcm{p-1:p<=x} = o(x) by a sieve
+UPPER bound; NOT a lower bound on factor repeats — that was the misread here).
+So every "alpha->0 analytic-hard / not unconditional / stays open / density
+conjecture" below is superseded: the VANISHING is proved; only remainder (ii)'s
+CONSTANT (the size threshold, Golomb-Dickman) stays BFI/EH-hard.
+
 THE QUESTION. explore_complexity_ledger.py
 made a growth FATE depend on the transparency estimate: alpha = log lambda/log phi is
 dominated by the non-transparent density (alpha <~ nt_frac), so density -> 1 IMPLIES

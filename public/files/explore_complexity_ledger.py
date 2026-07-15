@@ -1,6 +1,14 @@
 """explore_complexity_ledger.py — the complexity ledger
 (the fate that DEPENDS on the transparency estimate).
 
+SETTLING POINTER (a later analysis): this file calls the transparency-density
+fate "undecidable-until-BFI". That was the status when density -> 1 was open. It
+is now PROVED (explore_lcm_shifted_primes.py: log lcm{p-1:p<=x} = o(x) by an
+elementary sieve UPPER bound, no BFI), so the designed solvency fate is SETTLED
+(thrives for every positive reward), not undecidable. Only the fate's RATE
+CONSTANT (the size threshold, Golomb-Dickman) stays BFI/EH-hard. Read every
+"undecidable-until-BFI" / "open density conjecture" below with that scope.
+
 THE QUESTION (the deeper fusion). explore_transparency_bridge.py proved the
 growth work and the transparency-density theorem SHARE an analytic object (the
 {p-1} floor, Fouvry/BFI) and a bottom object (the Fermat primes) — but the two

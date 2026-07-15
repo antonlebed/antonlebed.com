@@ -10,7 +10,7 @@ depths, or FIND THE OBSTRUCTION (reachability in the demand lattice).
 
 ANSWER: the obstruction. The growth machine is NOT Turing-complete; its
 halting-shaped question is DECIDABLE. The single missing primitive is
-the DECREMENT -- and the decrement is the archimedean CARRY, the
+the DECREMENT -- and the decrement is the archimedean BORROW, the
 DELETED PLACE. The finite-window world is sub-universal
 for the same reason the tower has no size.
 
@@ -127,7 +127,7 @@ FINDINGS (run record below; every section asserts).
 7. THE OBSTRUCTION IS THE DELETED PLACE (synthesis -- the
    headline). Universality needs destructive memory reuse: overwrite,
    decrement, a movable two-way head. Every one is a BORROW -- an
-   archimedean carry, the one window the tower deleted (size,
+   archimedean act at the one window the tower deleted (size,
    sign, carries, overflow live only at the archimedean place). Growth
    is multiplication with no borrow, so the growth machine is a
    well-structured, sub-Turing, DECIDABLE computer, and its three fates
