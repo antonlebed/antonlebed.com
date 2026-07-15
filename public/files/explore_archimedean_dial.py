@@ -142,7 +142,10 @@ unresolved -- is INC + exact-zero-test + reset (no decrement) universal,
 or does its halting stay decidable? If decidable, the tower admits a
 genuine intermediate archimedean grade (a "safe" forgetful borrow); if
 universal, then ANY borrow flips it and the knife edge is even sharper.
-The decrement case is settled (Minsky); this corner is not.
+The decrement case is settled (Minsky); this corner was open at this
+record's writing. (It has since settled DECIDABLE, and stronger,
+finite-state -- the forgetful borrow is value-blind:
+explore_reset_corner.py.)
 
 PREDICTIONS (fixed before the run). Adjudication -- NO MISSES, all confirmed:
   PR1 floor decider ......... CONFIRMED (5-program battery all correct;

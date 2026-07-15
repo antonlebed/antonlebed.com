@@ -138,7 +138,11 @@ FINDINGS (run record below; every section asserts).
    question (explore_interactive_observer.py) -- the machine's behavior is
    number-theoretic-deterministic, not programmable-universal. The
    growth machine is the DELETED PLACE read as computation: subtract
-   the archimedean window and you subtract Turing-completeness.
+   the archimedean window and you subtract Turing-completeness. (A
+   claim about this machine's world -- moduli and their monotone
+   growth; the ring's ELEMENT class over the same growth has since
+   settled universal with no archimedean import:
+   explore_frontier_rider.py.)
 
 SCOPE + HONESTY. The no-decrement law is by construction (multiply-only)
 and verified exhaustively over a finite battery of states x operations;
