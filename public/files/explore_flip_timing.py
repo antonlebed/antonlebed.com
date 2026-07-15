@@ -180,8 +180,9 @@ the halt bit inside the state tuple (equality-compared in the order)
 instead of using the standard upward-closed-target (coverability)
 convention; S4(ii) was rewritten to that convention and the run
 repeated green. S1-S3 were not altered after their first green run.
-One cosmetic simplification (decide_sim's dead final return) was
-made after the green run; the rerun printed identically.
+Two cosmetic simplifications (decide_sim's dead final return;
+bulk_step's redundant terminal-mode expression) were made after the
+green run; each rerun printed identically.
 """
 
 # ---------------------------------------------------------------- #
@@ -263,7 +264,7 @@ def bulk_step(prog, conf, flag):
     (mode, t, budget, mconf)."""
     mode, t, budget, mconf = conf
     if mode == BHALT or mode == DEAD:
-        return conf if mode == DEAD else conf
+        return conf
     if mode == WAIT:
         if flag:
             return (SIM, t, t, (0, 0, 0))
