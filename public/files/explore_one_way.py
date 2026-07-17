@@ -66,7 +66,14 @@ FINDINGS (tiers per the standard naming scale; run record below).
    design space (junk menus over pools |J2| = 15, |J3| = 17, subsets
    <= 4): 112 designs tuned at beta = 1, ZERO tuned at beta = 1 AND
    beta = 2 simultaneously -- verified S2. Fully-general multi-route
-   rigidity beyond the exchange class: OPEN (named).
+   rigidity beyond the exchange class: OPEN (named). (Both of this
+   finding's opens have since settled -- explore_rogue_world.py: the
+   quarantine theorem proves fully-general multi-route rigidity for
+   every coprime demand at every age, no exchange hypothesis; and
+   drift-free menus are NOT necessary outside the coprime class -- a
+   designed drifting world that recycles primes holds a two-route
+   dated fiber uniform at every beta, the rogue world there. D-MEM
+   beyond exchange closure stays open.)
 
 3. THE TUNED AMNESIAC (constructions, exact; the fixed-beta answer is
    YES). At one designed temperature the balance criterion is a
@@ -106,6 +113,13 @@ FINDINGS (tiers per the standard naming scale; run record below).
    only where menus never drift (a single-route world is uniform
    vacuously, drift or not); the fixed-beta construction is the only
    many-window escape, and it is tuned.
+   (SCOPE CORRECTED since, explore_rogue_world.py: the beta-free
+   re-fusion "uniform over >= 2 routes at all beta ==> zero drift"
+   holds ONLY in the coprime (many-window) class -- and there
+   VACUOUSLY, the quarantine theorem barring all-beta multi-route
+   uniformity outright. Outside coprimality it is FALSE: the rogue
+   world has nonzero menu drift and two routes uniform at every beta.
+   The unqualified equivalence here was a many-window corner claim.)
 
 5. THE FOOTPRINT LAW (observation across beta-grid x supports;
    verified S5). In plain truncated D-IND the route posterior's ONLY
