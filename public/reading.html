@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Reading — the geometry every window shares</title>
+<meta name="description" content="The mirror deletion — floating point as the dual rung, one reading criterion across both poles — and the windows beyond the positional pair: the reading lemma, the wall criterion, the continued-fraction grid, the conductor law's delay instrument, and the redundant cover that splits the two gates.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>/* THE REBUILD SPEC (P219): a working mathematician's notes set
+   properly. Quiet page, ~70ch measure, light + dark, ONE accent,
+   system fonts for prose, prerendered MathML for math. No decoration:
+   no starfield, no hero, no animation. */
+
+/* dark only — no toggle, no light mode, zero JS (Anton, P221).
+   color-scheme: dark tells the browser the canvas + UA controls are
+   dark, so first paint is dark with no white flash. */
+:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;          /* the one accent: warm amber */
+  --rule: #33363b;
+  --card: #1c1f23;
+  --scroll: #3f434a;          /* thin scrollbar thumb */
+  --scroll-hover: #565b63;
+}
+
+* { box-sizing: border-box; }
+/* thin, theme-colored scrollbars; stable gutter so the bar never
+   shifts the centered column (pure CSS, no JS) */
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 70ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 0.9rem;
+  font-size: 0.92rem;
+}
+nav a.here { color: var(--fg); }
+nav a:hover { color: var(--accent); }
+
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+
+/* display equations: the .mathrow wrapper (build.py) is the seatbelt —
+   overflow-x scrolls a too-wide formula inside its own box so the page
+   body never scrolls horizontally, exactly like tables. The font
+   scales down with the viewport (clamp on vw) so on a phone most
+   formulas shrink to fit and the scrollbar never engages; a genuine
+   monster still scrolls locally instead of widening the page. */
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+
+/* THE CLAIM BLOCK — the atomic unit: name, tier badge, statement,
+   scope, verifier line. */
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+
+/* tables: monospace, scroll inside their own box, never the page */
+.scroll { overflow-x: auto; }
+/* full-width: the table occupies the whole text measure, like the
+   prose above and below it (not shrink-to-content left-aligned) */
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  /* numeric columns right-align so the spread reads clean — content
+     meets each column's right edge, no ragged trailing gap */
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+/* first column (k) left-aligned flush-left, last column flush-right —
+   the row spans exactly the text measure, margin to margin */
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+
+/* prose-cell charts (readability chart, measurement table): full
+   width like .tbl, but wrapped text cells, left-aligned, prose font */
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+
+ul.sections { padding-left: 1.2rem; }
+ul.sections li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav><a href='/'>Home</a> <a href='/object'>The Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/reading' class='here'>Reading</a> <a href='/measure'>Measure</a> <a href='/constants'>Constants</a></nav></header>
+<main>
+<h1>Reading</h1>
+<p class="lede">The mirror deletion, and the geometry every window
+shares.</p>
+
+<p>The tower keeps every finite place and deletes the archimedean
+window (<a href="/object">The Object</a>); what that deletion costs is
+measured on <a href="/walls">Walls</a>. Two more constructions sit
+beside it: the <b>mirror deletion</b>, which keeps <em>only</em> the
+archimedean window, and the <b>continued-fraction grid</b>, which is
+not positional at all. A single vocabulary prices all of them: a
+<b>window</b> is a nested grid of cells refining toward a point, and
+what it reads at bounded lookahead is what is Lipschitz at cell scale
+in its own metric.</p>
+
+<h2 id="second-deletion">The second deletion</h2>
+
+<p>Every wall on <a href="/walls">Walls</a> measures one deletion —
+every finite place kept, the archimedean window removed. The mirror
+deletion keeps <em>only</em> the archimedean window, and its rung
+element is already in every machine: a floating-point number — sign,
+exponent, <i>t</i> leading digits — with the precision ladder as the
+mirror of the window ladder. Both deletions embed the integers whole,
+so both pose one question with the poles swapped: what does a window
+compute of arithmetic at finite precision? The fiber geometry inverts
+— a finite window's fibers are arithmetic progressions, the dual
+window's are sign-definite contiguous intervals; progressions hide
+size, intervals hide residue. Reading <b>at lookahead <i>c</i></b>
+means the output window at precision <i>t</i> is a function of the
+input window at precision <i>t</i> + <i>c</i> — at the trailing end,
+<i>f</i>(<i>n</i>) mod <i>b<sup>t</sup></i> from <i>n</i> mod
+<i>b</i><sup><i>t</i>+<i>c</i></sup>.</p>
+
+<article class="claim" id="two-pole-criterion">
+  <div class="claim-head"><span class="claim-name">The two-pole
+  reading criterion</span> <span class="tier">rule</span></div>
+  <p>A window reads <i>f</i> at bounded lookahead <b>iff</b> <i>f</i>
+  is <b>Lipschitz at cell scale in the window's own metric</b> and the
+  image of each deep input cell <b>fits one output cell</b>. Cell
+  scale is load-bearing: the readable class contains below-the-top
+  digit permutations whose pointwise ratios are unbounded; at ball
+  windows cell scale and pointwise coincide. The fitting clause is where
+  windows differ, and it follows from the cell family's Lebesgue
+  number:</p>
+  <table class="chart">
+    <thead>
+      <tr><th>window</th><th>metric</th><th>cells</th><th>fitting</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>trailing, any digit set</td><td><i>b</i>-ultrametric <i>d<sub>b</sub></i></td>
+      <td>cosets = balls</td><td>automatic (strong triangle)</td></tr>
+      <tr><td>leading, non-redundant</td><td>log metric</td>
+      <td>partition, Lebesgue number 0</td><td>degenerates to alignment</td></tr>
+      <tr><td>leading, redundant</td><td>log metric</td>
+      <td>overlapping cover</td><td>bought by the cover</td></tr>
+    </tbody>
+  </table>
+  <p>At the trailing end readability <em>is</em> Lipschitz, verbatim:
+  reading at lookahead <i>c</i> is the statement
+  <i>d<sub>b</sub></i>(<i>f n</i>, <i>f n</i>′) ≤
+  <i>b<sup>c</sup></i> <i>d<sub>b</sub></i>(<i>n</i>, <i>n</i>′), the
+  minimal lookahead exactly max(0, ⌈log<sub><i>b</i></sub>
+  Lip<sub><i>b</i></sub>(<i>f</i>)⌉) — multiplication is nonexpanding,
+  free at <i>c</i> = 0, and ⌊<i>n</i>/<i>v</i>⌋ is Lipschitz iff
+  rad <i>v</i> | rad <i>b</i>: the trailing division gate is a
+  <i>b</i>-adic Lipschitz fact. No digit set changes this end — a
+  redundant prefix's completions fill a full coset, cosets are equal
+  or disjoint — so redundancy is a leading-end-only door. At the
+  leading end every scaling is a log-metric isometry, so the whole
+  gate is alignment: non-redundant, ⌊(<i>u</i>/<i>v</i>)<i>n</i>⌋ is
+  window-local iff rad <i>u</i> | rad <i>b</i> with the denominator
+  free (long division emits digits MSB-first from bounded remainder
+  state); redundant digits {−<i>a</i>..<i>a</i>}, 2<i>a</i> + 1 &gt;
+  <i>b</i>, make the cells an overlapping cover and both radical gates
+  dissolve — every rational slope reads at bounded delay, within one
+  digit of the Lebesgue bound. The lookahead unifies as
+  log<sub><i>b</i></sub>(Lipschitz constant) plus a window margin: 0
+  at ultrametric windows,
+  log<sub><i>b</i></sub>(2<i>a</i>/(2<i>a</i> − <i>b</i> + 1)) at
+  redundant covers, and infinite — a wall — at misaligned
+  non-redundant reads. Catastrophic cancellation is the criterion's
+  negative space: subtraction's log-metric blowup at its zero
+  locus.</p>
+  <p class="scope"><b>Scope.</b> The four regimes verified under the
+  one statement at stated scopes. Component tiers: the trailing
+  instance proved, elementary; the coset rigidity a two-line proof;
+  the numerator criterion a rule (the boundary-preimage method); the
+  rational-slope delay law a rule at scanned digit sets (2,1), (4,2),
+  (10,6).</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_lipschitz.py"><code>explore_dual_lipschitz.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_locality.py"><code>explore_dual_locality.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_redundant.py"><code>explore_dual_redundant.py</code></a></p>
+</article>
+
+<article class="claim" id="crown-exchange">
+  <div class="claim-head"><span class="claim-name">The exchange of
+  crown and blind spot</span> <span class="tier">property</span></div>
+  <p>A product's exponent is read from the operand exponents up to 1,
+  but equality, comparison of nearby values, and the zero-test of a
+  <em>difference</em> are unreadable at every finite precision: one
+  deep fiber realizes difference exponents {0..5}, both signs, and
+  zero. The finite pole's crown capability — the exact zero-test, a
+  residue is zero or it is not, in every window — is exactly the dual
+  pole's blind spot, and the dual pole's native reads — size, sign,
+  order — are exactly what the tower's deletion removes: the two poles
+  exchange crown capability and blind spot. The redundant purchase
+  does not close the gap; it pays with it: behind the cover, sign is
+  non-local at every lookahead, comparison blurs across 3 cells
+  against the non-redundant window's 1, and the window cannot read its
+  own exponent. Redundancy is the archimedean deletion performed a
+  second time, inside the archimedean window — what it buys is
+  arithmetic, what it spends is the archimedean data itself.</p>
+  <p class="scope"><b>Scope.</b> Property with witnesses at stated
+  scopes. The redundant order reads (sign, order blur, normalization)
+  are rules, the order-blur law an iff, at both scanned redundant
+  systems.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_pole.py"><code>explore_dual_pole.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_redundant.py"><code>explore_dual_redundant.py</code></a></p>
+</article>
+
+<article class="claim" id="two-ends-law">
+  <div class="claim-head"><span class="claim-name">The two-ends
+  law</span> <span class="tier">rule</span></div>
+  <p>Base <i>b</i>'s trailing digits read exactly the finite places
+  <i>p</i> | <i>b</i>; its leading digits perfectly hide exactly the
+  same places — the bias of [<i>n</i> ≡ <i>r</i> (mod <i>p</i>)] on a
+  deep leading fiber is exactly zero iff <i>p</i> | <i>b</i>, and
+  otherwise nonzero on every deep fiber, with a derived attained
+  ceiling. One numeration, two ends: the same primes exactly readable
+  at one end, exactly invisible at the other. The same radical
+  condition runs the arithmetic in exchange — trailing multiplication
+  free, division gated by rad <i>v</i> | rad <i>b</i>; leading
+  division free, multiplication gated by rad <i>u</i> | rad <i>b</i> —
+  one condition on opposite parts of the fraction: each end freely
+  reads the operation whose carry flow points away from it. And where
+  a price survives, each pole prices in its own metric's arithmetic.
+  Dividing by <i>v</i> costs the trailing end
+  max<sub><i>p</i></sub> ⌈<i>v<sub>p</sub></i>(<i>v</i>)/<i>v<sub>p</sub></i>(<i>b</i>)⌉
+  digits — a maximum over places — while multiplying by <i>u</i> costs
+  the redundant leading end ⌈Σ<sub><i>p</i></sub>
+  <i>v<sub>p</sub></i>(<i>u</i>) log<sub><i>b</i></sub> <i>p</i> +
+  margin⌉ — a sum over places: the product formula surfacing as the
+  two poles' price sheet.</p>
+  <p class="scope"><b>Scope.</b> The hiding law, the two-ends law, and
+  the exchange are rules at stated scopes; the pricing is an identity,
+  measured.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_pole.py"><code>explore_dual_pole.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_locality.py"><code>explore_dual_locality.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_lipschitz.py"><code>explore_dual_lipschitz.py</code></a></p>
+</article>
+
+<h2>The reading lemma</h2>
+
+<p>The criterion above names a metric and a cell family and nothing
+else — so it generalizes past the positional pair. A window is a
+metric measure geometry (<i>X</i>, <i>d</i>, <i>μ</i>,
+{<i>C<sub>t</sub></i>}): a metric, a measure, and a nested cover
+sequence with mesh <i>δ<sub>t</sub></i> → 0 and Lebesgue numbers
+<i>ℓ<sub>t</sub></i>. A reader of <i>f</i> at lookahead <i>c</i> maps
+each deep input cell into an output cell containing its image,
+refinement-compatibly: the chosen output cells nest as the input
+refines, so the output is one committed digit stream.</p>
+
+<article class="claim" id="reading-lemma">
+  <div class="claim-head"><span class="claim-name">The reading
+  lemma</span> <span class="tier">rule</span></div>
+  <p>If <i>f</i> is Lipschitz with constant <i>L</i>, it fits
+  cell-to-cell at lookahead <i>c</i> once
+  <i>L</i>·<i>δ</i><sub><i>t</i>+<i>c</i></sub> &lt;
+  <i>ℓ<sub>t</sub></i> — per-level fitting, which is readability
+  outright where cells nest. Necessity is coarse: Lipschitz at cell
+  scale, pointwise at ball windows. Three cover shapes give three
+  regimes — balls of an ultrametric
+  (<i>ℓ<sub>t</sub></i> = <i>δ<sub>t</sub></i>, fitting automatic,
+  margin 0); a partition of a connected space
+  (<i>ℓ<sub>t</sub></i> = 0, the lemma silent — readability a per-map
+  alignment question); an overlapping cover with
+  <i>ℓ<sub>t</sub></i> = <i>ρδ<sub>t</sub></i> (fitting bought at
+  margin log<sub><i>b</i></sub>(1/<i>ρ</i>)). At overlapping covers a
+  redundant cell's children keep the overlap only in its interior, so
+  the committed stream departs from the per-level bound by at most one
+  digit — both directions realized at scanned witnesses; the bound is
+  exact where cells nest. And readability is <em>metric</em>, not
+  topological: even-position digit extraction is uniformly continuous
+  — readable at growing modulus 2<i>t</i> — and readable at no bounded
+  lookahead.</p>
+  <p class="scope"><b>Scope.</b> Rule at scanned scopes; the two-pole
+  regimes above are its positional instances.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_reading_geometry.py">
+  <code>explore_reading_geometry.py</code></a></p>
+</article>
+
+<article class="claim" id="wall-criterion">
+  <div class="claim-head"><span class="claim-name">The wall
+  criterion</span> <span class="tier">rule</span></div>
+  <p>At partition covers the lemma is silent, and the permanent-wall
+  half of the alignment question is answered by the cover's <b>vertex
+  set</b> ∂ — the cell-boundary points, which stay cell endpoints at
+  every deeper level. For <i>f</i> continuous and strictly monotone at
+  an irrational input <i>y</i>, emission grows without bound iff
+  <i>f</i>(<i>y</i>) ∉ ∂: an image <em>on</em> a vertex is interior to
+  every image interval, the vertex's two sides agree only to its own
+  depth, and emission freezes at a computable constant forever — where
+  a rate stall only slows it. A map's permanent walls are exactly
+  <i>f</i><sup>−1</sup>(∂) ∖ ∂, its rationalizing set. Redundant
+  covers dissolve every wall — a positive Lebesgue number leaves no
+  map with a modulus of continuity walled. Wall exposure is therefore
+  the size of the vertex set, and the continued fraction's — all of
+  <b>Q</b> — is the largest a rational-vertex grid can have (base
+  <i>b</i>: <b>Z</b>[1/<i>b</i>] ⊂ <b>Q</b>). The cross-window
+  witness: <i>x</i>² walls permanently at √(1/3) in the
+  continued-fraction grid and reads on in base 10.</p>
+  <p class="scope"><b>Scope.</b> Rule at scanned scopes — the maps
+  <i>x</i>² (walls at every scanned √<i>r</i>) and
+  √<i>x</i> (wall-free: a rational square root forces a rational
+  input); the cure realized at every scanned wall of <i>x</i>².</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_nonlinear.py"><code>explore_cf_nonlinear.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_redundant.py"><code>explore_cf_redundant.py</code></a></p>
+</article>
+
+<h2 id="third-deletion">The third deletion: the continued-fraction window</h2>
+
+<p>Precision <i>t</i> = the first <i>t</i> partial quotients; the cell
+of [<i>a</i><sub>0</sub>; <i>a</i><sub>1</sub>, …,
+<i>a<sub>t</sub></i>] is a Stern–Brocot interval; cells partition the
+irrationals at each depth and nest across depths. This is the first
+window here that is not positional — the first whose cell mesh is not
+a function of digit depth. It carries <em>two</em> metrics: the
+ultrametric on quotient strings, where reading at lookahead <i>c</i>
+is verbatim Lipschitz, and the value metric, where integer Möbius maps
+have honest Lipschitz constants. Their exchange rate is the Gauss-map
+entropy π²/(6 ln 2) almost everywhere (Shannon–McMillan–Breiman), with
+real fluctuations — the all-1s chain (the golden ratio <i>φ</i>) runs
+at the floor 2 ln <i>φ</i>, the fattest cells. A positional window is
+exactly the zero-variance case, where the two metrics are one ruler —
+so bounded lookahead forks here into <b>digit-delay</b> (quotients
+consumed minus emitted) and <b>scale-delay</b> (log of precision
+consumed over emitted), and the two disagree for real. The window's
+own measure is the Gauss measure, and the Gauss–Kuzmin digit law is
+this window's mirror of Benford — the invariant measure read through
+the digit grid (both classical, run as controls).</p>
+
+<article class="claim" id="unit-gate">
+  <div class="claim-head"><span class="claim-name">The unit
+  gate</span> <span class="tier">rule</span></div>
+  <p>An integer Möbius map with det = ±1 reads continued-fraction
+  streams at bounded digit-delay: every nonnegative-entry unimodular
+  map is a positive word in three exact transducers — the Stern–Brocot
+  factorization — and delays add over a fixed word. A map with
+  det ≠ ±1 is not boundedly readable: every one owns a mismatched
+  witness. The sharp print is 2<i>φ</i> = [3; 4, 4, 4, …] with
+  <i>φ</i>³ = 2 + √5 exactly, so emitting <i>t</i> quotients of
+  2<i>φ</i> consumes 3<i>t</i> quotients of <i>φ</i> — delay linear.
+  Non-unimodularity does not stall every orbit — (2<i>x</i>, √2) reads
+  at delay zero, since 2√2 keeps √2's rate — it guarantees witnesses
+  exist. Necessity is proved at quadratic streams: readability
+  transports through unimodular factors (Smith normal form), reducing
+  the gate to the scalings <i>x</i> → <i>nx</i>, where <i>φ</i> is a
+  universal witness — a matched rate would force the multiplier
+  automorph to be a power of <i>φ</i>, which floor rigidity (the
+  period trace is strictly increasing in every digit) reserves for the
+  all-1s word alone. Serret's theorem — equal CF tails ⇔
+  GL(2, <b>Z</b>)-equivalence — is the classical shadow: readable
+  multiplication is, again, the window's native units.</p>
+  <p class="scope"><b>Scope.</b> Positive direction proved for
+  nonnegative words, word-free at quadratic streams; sign-crossing at
+  general streams unscanned. Necessity proved at quadratic streams
+  from proved pieces (floor rigidity, rate forcing, Serret
+  transport).</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_window.py"><code>explore_cf_window.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_conductor.py"><code>explore_cf_conductor.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_flow.py"><code>explore_cf_flow.py</code></a></p>
+</article>
+
+<article class="claim" id="conductor-law">
+  <div class="claim-head"><span class="claim-name">The conductor
+  law</span> <span class="tier">rule</span></div>
+  <p>At a quadratic stream the rate is arithmetic. The tail's
+  period-matrix eigenvalue equals <i>ε</i><sup><i>i</i>(<i>y</i>)</sup>
+  — <i>ε</i> the field's fundamental unit, <i>i</i>(<i>y</i>) the unit
+  index of the multiplier order of the lattice
+  <b>Z</b> + <b>Z</b><i>y</i> — so the cell-scale rate is
+  <i>r</i>(<i>y</i>) = 2 <i>i</i>(<i>y</i>) <i>R<sub>K</sub></i> /
+  <i>ℓ</i>(<i>y</i>) (<i>R<sub>K</sub></i> the regulator,
+  <i>ℓ</i> the period length), and a measured stall ratio is
+  (<i>i</i><sub>out</sub>/<i>i</i><sub>in</sub>)·(<i>ℓ</i><sub>in</sub>/<i>ℓ</i><sub>out</sub>).
+  The delay is an instrument: the stall slope of <i>x</i> →
+  <i>nx</i> measures the unit index of a conductor order. Where the
+  classical index ceiling is not attained, the law follows the
+  realized index and the deficit is the ring class number. And the law
+  is map-blind: any monotone C¹ map with nonzero derivative is
+  conductor-priced at quadratic orbits — the map enters only through
+  which output orbit it selects.</p>
+  <p class="scope"><b>Scope.</b> Rule at 17 measured pairs including
+  four sight-unseen; the automorph identity
+  <i>η</i> = <i>ε<sup>i</sup></i> exact at all 53 scanned pairs (the
+  eigenvalue identity itself is classical); map-blindness proved at
+  the flow layer's scope, measured within 1% at all six scanned
+  nonlinear pairs.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_conductor.py"><code>explore_cf_conductor.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_nonlinear.py"><code>explore_cf_nonlinear.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_flow.py"><code>explore_cf_flow.py</code></a></p>
+</article>
+
+<article class="claim" id="commitment-bound">
+  <div class="claim-head"><span class="claim-name">The commitment
+  bound and rate forcing</span> <span class="tier">rule</span></div>
+  <p>Every scanned window's digit process is the shift of an expanding
+  map whose per-digit scale ln |<i>T</i>′| is the roof of a suspension
+  flow, and the flow's entropy is exactly 1 (Rokhlin's and Abramov's
+  formulas): entropy per digit equals scale per digit, a positional
+  window being the constant-roof case. The continued fraction's
+  suspension is the modular geodesic flow (Artin, Series), where a
+  quadratic tail rides a closed geodesic of flow period
+  2 ln <i>η</i> = 2 <i>i</i> <i>R<sub>K</sub></i> per tail period —
+  the conductor rate is the per-orbit return-time mean (the roof
+  identity: over one tail period the product of complete quotients
+  equals <i>η</i>, verified exactly at 25 tails). On this flow the
+  <b>commitment deficit</b> <i>D</i>(<i>n</i>) = scale(image interval)
+  − scale(committed cell) obeys 0 ≤ <i>D</i>(<i>n</i>) ≤
+  3 ln(<i>A</i> + 2) + O(1) for monotone C¹ maps at badly approximable
+  non-vertex outputs (quotients ≤ <i>A</i>): every reader is
+  <b>scale-synced</b> regardless of the map — the scale clock always
+  syncs, only the digit clock forks. <b>Rate forcing</b>: at an
+  eventually periodic tail with quadratic output, emission is
+  (<i>r</i><sub>in</sub>/<i>r</i><sub>out</sub>)·<i>n</i> + O(1) with
+  the ratio rational — digit delay is bounded iff the rates match,
+  else linear with the mismatch sign, both signs realized. At a wall
+  the deficit grows linearly instead: measured slope at
+  (<i>x</i>², √2) is 1.7627 = 2 ln(1 + √2) to four decimals — the cusp
+  excursion that never returns.</p>
+  <p class="scope"><b>Scope.</b> Both proved at stated scope — the
+  bound by scale accounting plus bad approximability, the forcing
+  verified at ten pairs including two designed run-ahead witnesses.
+  The ergodic vocabulary (suspension, roof, Abramov's formula) is
+  classical import; the reading layer on top is the content.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_flow.py">
+  <code>explore_cf_flow.py</code></a></p>
+</article>
+
+<article class="claim" id="ladder-law">
+  <div class="claim-head"><span class="claim-name">The redundant cover
+  and the ladder law</span> <span class="tier">rule</span></div>
+  <p>The window's native redundant cover adds to the Stern–Brocot
+  cells the <b>straddle chains</b>: at a vertex <i>v</i> with Farey
+  parents (<i>l</i>, <i>r</i>), the chain cell
+  <i>S<sub>k</sub></i>(<i>v</i>) runs between the <i>k</i>-th mediants
+  and contains <i>v</i> in its interior at every <i>k</i>. The
+  alphabet is the exact-real-arithmetic classic — the root straddle is
+  the image (1/2, 2) of the modified Stern–Brocot digit M (Niqui's
+  {L, R, M} digit set), and productivity for Möbius maps is classical
+  (Gosper, Vuillemin, Edalat–Potts); what the overlap does and cannot
+  do is the content. The <b>ladder law</b>: the cover cells containing
+  a point <i>z</i> are <i>z</i>'s own cell ladder plus a chain segment
+  of exactly <i>K</i>(<i>v</i>, <i>z</i>) =
+  ⌊1/(<i>q<sub>v</sub></i>²|<i>z</i> − <i>v</i>|) −
+  <i>q</i><sub>far</sub>/<i>q<sub>v</sub></i>⌋ rungs at each
+  approached vertex — at a convergent, <i>K</i> equals the next
+  partial quotient verbatim; at a rational the chain is infinite. The
+  cover is graded: rank steps by +1 along every child relation, so
+  overlap adds routes, never length. The two gates then split.
+  <b>The wall gate falls</b>: <i>x</i>² reads √2, √3, √(3/2) through
+  the chain with never-freezing emission, ln <i>k</i> slope equal to
+  the input's scale rate to four decimals — the emitted stream is an
+  infinite redundant representation of the rational output, the
+  continued-fraction mirror of 0.1999… <b>The rate gate stands</b>:
+  the maximal rank of a cover cell containing the image equals the
+  plain tree position at every sampled depth — ladder spacing is orbit
+  data no overlap changes, so rate forcing survives redundancy
+  verbatim. And a delay's <em>sign</em> belongs to the clock: the same
+  pair (2<i>x</i>, <i>φ</i>) stalls at 1/3 in the quotient clock and
+  runs ahead at 4/3 in the tree clock (<i>φ</i>³ = 2 + √5 makes both
+  exact) — only the mismatch belongs to the orbit, and the scale clock
+  is the invariant ruler.</p>
+  <p class="scope"><b>Scope.</b> The ladder law's closed form exact at
+  every scanned node (510 nodes × 12 depths); the rank grading a
+  property on every child relation; the wall cure and the rate gate
+  rules at scanned scopes.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_redundant.py">
+  <code>explore_cf_redundant.py</code></a></p>
+</article>
+
+<h2>The two gates</h2>
+
+<article class="claim" id="two-gates">
+  <div class="claim-head"><span class="claim-name">The two gates
+  across windows</span> <span class="tier">pattern</span></div>
+  <p>Every window here gates its multiplication-like maps by the same
+  shape: <b>readable at bounded delay iff the map is a unit of the
+  window's native structure.</b></p>
+  <table class="chart">
+    <thead>
+      <tr><th>window</th><th>native structure</th><th>gated map</th><th>the gate</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>trailing <i>b</i>-adic</td><td><b>Z</b>[1/<i>b</i>]</td>
+      <td>⌊<i>x</i>/<i>v</i>⌋</td><td>rad <i>v</i> | rad <i>b</i></td></tr>
+      <tr><td>leading, non-redundant</td><td><b>Z</b>[1/<i>b</i>] on the scale circle</td>
+      <td>⌊(<i>u</i>/<i>v</i>)<i>x</i>⌋</td><td>rad <i>u</i> | rad <i>b</i></td></tr>
+      <tr><td>continued fraction</td><td>M<sub>2</sub>(<b>Z</b>) on quotient strings</td>
+      <td>(<i>ax</i> + <i>b</i>)/(<i>cx</i> + <i>d</i>)</td><td>det = ±1</td></tr>
+    </tbody>
+  </table>
+  <p>Nonlinear maps sit under a second gate, orthogonal to units — the
+  wall criterion: <i>x</i>² reads <i>φ</i> at bounded delay (its orbit
+  ratio is 1) while walling permanently at √2 (its image is a vertex).
+  Redundancy splits the gates by shape, and the split is verified at
+  both poles. The redundant leading window dissolves its gate
+  wholesale, because positional roofs are constant — scale rates
+  always match there, so the only gate was boundary alignment, which
+  any positive Lebesgue number kills. The redundant continued-fraction
+  cover dissolves only the wall gate — its roofs are orbit-pinned, so
+  overlap extends terminated ladders (rationals: walls cured) while
+  never raising the reachable rank at an irrational (rate forcing
+  survives). One purchase — a positive Lebesgue number — two fates,
+  decided by whether the window's roof is constant or carries orbit
+  data.</p>
+  <p class="scope"><b>Scope.</b> Each row a rule at its own scopes;
+  the cross-window generality is a pattern over these windows, not a
+  proof.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_lipschitz.py"><code>explore_dual_lipschitz.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_window.py"><code>explore_cf_window.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cf_redundant.py"><code>explore_cf_redundant.py</code></a></p>
+</article>
+
+<p>Deletion is the price of locality: a window reads exactly what is
+continuous in the geometry its deletion leaves it, and every wall,
+door, and certificate — at the two ends of a numeration, and along
+the continued fraction's grid — is that statement's positive or
+negative space.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
