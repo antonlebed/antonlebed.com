@@ -150,7 +150,17 @@ it is a theorem about the modelled repertoire (breadth, dynamics,
 push, phoenix, scar, heal), not a claim that no exotic future
 "intervention" could be defined to decrement -- but any such
 intervention would have to DIVIDE N, leaving the growth world (the
-window depths are exponents in a modulus you build by multiplying). The
+window depths are exponents in a modulus you build by multiplying).
+It is also a theorem about DEPTHS, and the depths are not the only
+counters. A DERIVED quantity can fall while every depth rises: the
+slack v_l(odd lambda(N)) - v_l(N) + 1 decrements on every transparent
+push, and out of it a two-counter Minsky machine runs on pushes alone.
+The verdict below therefore holds for the SUPPORT-BLIND repertoire
+probed here -- admissibility read off prime support and squarefreeness
+-- and fails for a demand law whose admissible moves are the ones that
+raise lambda, since that law's own probe reads the slack guard exactly.
+See explore_slack_machine.py, which builds the machine and prices the
+missing read at one bit per push. The
 monotone-counter decidability is standard (well-structured transition
 systems, Finkel-Schnoebelen 2001; Minsky universality and undecidable
 halting, Minsky 1967; VASS reachability decidable, Mayr/Kosaraju,
