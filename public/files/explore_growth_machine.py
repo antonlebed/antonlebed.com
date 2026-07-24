@@ -154,7 +154,8 @@ window depths are exponents in a modulus you build by multiplying).
 It is also a theorem about DEPTHS, and the depths are not the only
 counters. A DERIVED quantity can fall while every depth rises: the
 slack v_l(odd lambda(N)) - v_l(N) + 1 decrements on every transparent
-push, and out of it a two-counter Minsky machine runs on pushes alone.
+push, and out of it a Minsky machine runs on pushes alone, at any
+number of counters.
 The verdict below therefore holds for the SUPPORT-BLIND repertoire
 probed here -- admissibility read off prime support and squarefreeness
 -- and fails for a demand law whose admissible moves are the ones that

@@ -131,8 +131,8 @@ scope: "multiply-only worlds have zero down-flips" holds of depths and
 is FALSE of the world. A quantity derived from the state can down-flip
 unboundedly with no borrow anywhere -- the slack
 v_l(odd lambda(N)) - v_l(N) + 1 does, twice per cycle of a program that
-interleaves its instructions -- and a two-counter Minsky machine is
-built on exactly that. So the down-flip diagnoses a borrow only among
+interleaves its instructions -- and a Minsky machine is built on
+exactly that. So the down-flip diagnoses a borrow only among
 counters that are depths; the knife-edge location below survives with
 that scope attached, and what actually separates the cases is whether
 the machine may READ the derived counter.
