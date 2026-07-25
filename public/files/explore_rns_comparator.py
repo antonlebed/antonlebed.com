@@ -126,7 +126,7 @@ b. THE CRITERION AND THE FIELD'S COST AXIS ARE DIFFERENT AXES. The
    an arbitrary constant) while saving too little width to pay for it
    -- the field's own sample sets already sit on the sum 1/p < 1
    branch (Electronics 2020's "M and SQ differ by 3-5 bits" is SQ
-   NARROWER; computed in-session: {13,15,17} has SQ/N = 0.2024, SQ
+   NARROWER; computed here: {13,15,17} has SQ/N = 0.2024, SQ
    2.30 bits under N). What the criterion adds is the exact law on
    the width axis (SQ/N = sum 1/p, both directions) and the branch
    the field's sets never visit: many-small-prime sets -- every

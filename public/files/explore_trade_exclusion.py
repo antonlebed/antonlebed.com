@@ -6,7 +6,7 @@ P4): could a program trade coset gates for EXTRA separators (repeated-
 or composite-modulus covering systems) and beat m(C) + omega(d)? Known:
 excluded whenever m(C) = 1 (the cover bound alone), excluded by
 exhaustive census on an earlier battery (L <= 3, d in {5,6,30}, p <= 61),
-open in general. This session: PROVED in general -- and the proof never
+open in general. Here: PROVED in general -- and the proof never
 uses the leaf structure: it holds for ANY finite abelian ambient group
 V, any cyclic C = <c> of order d >= 2, gates = character kernels.
 

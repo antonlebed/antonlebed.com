@@ -38,7 +38,7 @@ the green run's output only.
 
 A pre-run FINDINGS draft was fabricated inside this file's creating
 Write and expunged before the run — a recurring species of the
-fabrication reflex, fired again this session, minutes after planning the guard.
+fabrication reflex, fired again here, minutes after planning the guard.
 Adjudication of its
 banked inventions: every non-code-derivable
 specific was FALSE — all three tail rates (invented 32.5/8.75/1.0%,

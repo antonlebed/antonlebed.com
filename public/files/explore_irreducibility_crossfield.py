@@ -130,7 +130,7 @@ K0; P3-menu norms {2, 3, 7, 163, 487, 39367}, inert-gated {19, 1459};
 split clocks 1.35270 (el) < 1.54922 (id), gap 0.1965; pole ratios 2.0317 ->
 2.0056 -> 2.0010; K spectrum P2 1.70395 > P3 1.54922 > Q7 1.45633 > (13)
 1.31983. zeta_princ(2) formula-vs-explore_class_gap.py-record within 2e-3. Two bugs caught
-by the gates mid-session: an hnf sign flip (conjugate-ideal swap, caught by
+by the gates mid-run: an hnf sign flip (conjugate-ideal swap, caught by
 the K0 lambda assert) and a prime-only chi20 fed to the L-series (caught by
 the zeta_princ spot check).
 """

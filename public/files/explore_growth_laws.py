@@ -103,7 +103,7 @@ FINDINGS (tier-labeled; run record below; all sections assert).
    values: |im J| = Z/24, Z/240, Z/504, ... in pi_3, pi_7, pi_11,
    ...; the denominator formula is the classical von Staudt-Clausen
    refinement used in Adams' J-homomorphism work — attribution at
-   memory tier, no primary read this session). The mortality fate's
+   memory tier, no primary read behind it). The mortality fate's
    tombstones are the stable-homotopy constants.
    Separately (do not fuse): the squarefree KERNEL of W(L) equals
    denominator(B_L) = prod_{(p-1)|L} p (von Staudt-Clausen proper)

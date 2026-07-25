@@ -154,7 +154,7 @@ INC / ZERO-TEST 0.000; the erasure ordering (RESET > DEC) is asserted
 (computed), read against explore_reset_corner.py's cited power ordering (RESET < DEC) -- no
 self-referential assert on the imported ranks.
 ONE PROBE ARTIFACT caught pre-adjudication (the same species of surprise
-as explore_selection_frame.py's mid-session fix -- read the
+as explore_selection_frame.py's mid-run fix -- read the
 output against the hand law): S4's first per-step probe sampled (a+i) mod 5,
 period 5, so 20 samples held only 5 DISTINCT states and erasure_bits charged
 the duplication as fake fan-in (k=2 erasure 1.0, not 0). The translation is

@@ -1,12 +1,12 @@
 """explore_readout_proof.py — THE READOUT THEOREM: the general proof
-of the readout law (the constellation arc's proof session).
+of the readout law (the constellation arc's proof).
 
 THE QUESTION. The readout law stood at rule in range
 (four censused 2-power windows, e = 2..16 + the e = 12 offsets):
 a 2-power window's arrival classes read (2^m - 1, top 3e/2 - 1)
 digits of 2/pi^e. Two gaps separated rule-in-range
 from rule: (1) no free-digit entry beats 3e/2 at c = 1, and (2) the
-carry bookkeeping at arbitrary e. This session closes both by a
+carry bookkeeping at arbitrary e. Both are closed here by a
 general proof, and spot-falsifies it SIGHT-UNSEEN at e = 32 — a
 window no engine has ever touched.
 

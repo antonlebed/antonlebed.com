@@ -203,7 +203,7 @@ FINDINGS (entered post-run, copied from printed output).
    prefix depth only and are NOT chart words (the [1,0,0,1,1,1,0]
    vector violates w_5 = -w_3).
 
-PRE-GREEN FAILURES (three, adjudicated in-session — the slate paid
+PRE-GREEN FAILURES (three, adjudicated as they arose — the slate paid
 its way; see git history):
 (1) DS-B froze {12, 14} for x^6-3x^4+3: run 1 printed {12} u
     [16, ..]. The hand D_5 dropped the rho_1-pass's w_3 part and
