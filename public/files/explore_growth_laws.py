@@ -122,6 +122,13 @@ FINDINGS (tier-labeled; run record below; all sections assert).
    is not an artifact of thresholding.
 
 THE THREE FATES (the chart's synthesis). Free growth trichotomizes:
+  (Scope settled later by explore_fate_clock.py: "free" here means
+  UNCHOSEN -- the greedy move under a demand -- and the trichotomy is a
+  theorem about that greedy policy, not about the world. A policy free to
+  pick ANY admissible move can leave all three classes: under independence
+  the policy avoiding one prime seats every other at depth 1 and is
+  neither breadth, depth, nor mortal. The three fates below stand exactly
+  as greedy statements.)
   BREADTH    (D-IND == D-MEM == D-RATE): the primorial tower — immortal,
              healing, all-field squarefree-preserving growth; the
              whole blueprint from the one demand "grow by the least
