@@ -89,9 +89,12 @@ FINDINGS (tier-labeled; run record below; all sections assert).
    seed 73, lambda = 72, climbs to W(72) = 20,174,525,280 in 13 steps
    and dies). Transparent growth is MORTAL.
 
-   THE WALL IDENTITY (verified L <= 12; the identity itself is
-   self-verified here, the homotopy reading is textbook): for even L,
-   W(L) = denominator(B_L / 2L):
+   THE WALL IDENTITY (verified L <= 12 here; the identity itself is
+   self-verified here, the homotopy reading is textbook. Later:
+   explore_headroom.py carries the same check to every even L <= 112,
+   56/56, because the pointwise tombstones -- the states equal to their
+   own wall -- reach lambda = 106 and this range did not cover them):
+   for even L, W(L) = denominator(B_L / 2L):
 
      L        2    4    6    8    10    12
      W(L)    24  240  504  480   264  65520
