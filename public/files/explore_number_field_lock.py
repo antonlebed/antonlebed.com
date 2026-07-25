@@ -56,6 +56,15 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    nondeterminism mixed characteristic admits is the Galois symmetry
    itself, and the greedy must spontaneously break it (the void's
    first move: P3 vs P3'). Locks are defined up to conjugacy.
+   (Settled since, by explore_greedy_image_nf.py: in the IDEAL world
+   this is a proof and not a census — a door costs N(place)^r, always
+   a power of its rational prime, so equal costs lie over one rational
+   prime and only a split prime carries two places — while the ELEMENT
+   world keeps it as a measurement, a bundle being able to straddle two
+   rational primes. And the per-MOVE statement does not lift to the
+   trajectory: two independent conjugate ties compose into four limits,
+   more than the group has elements, so the set of reachable limits is
+   an orbit only when at most one tie fires.)
    explore_function_field_lock.py's "determinism is archimedean"
    sharpens: the greedy RULE
    is complete (no tie-break clause needed) over Q alone — a
