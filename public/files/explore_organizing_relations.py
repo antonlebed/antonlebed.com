@@ -556,7 +556,8 @@ for x in range(N3):
         assert ideal == set(range(0, N3, outside))
         assert e_union in ideal and e_union * e_union % N3 == e_union
 print("  (x, y) = (e_{supp x OR supp y}) -- exhaustive at Z/30, all 900")
-print("  ideals: gcd needs ZERO descent steps, just the support union")
+print("  PAIRS (the 8 ideals of Z/30, each hit many times): gcd needs")
+print("  ZERO descent steps, just the support union")
 for x in range(N4):
     for y in range(N4):
         g = math.gcd(math.gcd(x, y), N4)
