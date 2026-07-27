@@ -50,6 +50,7 @@ export default {
       '/object': 'object',
       '/growth': 'growth',
       '/computation': 'computation',
+      '/computation/recovery': 'recovery',
       '/observatory': 'observatory',
       '/walls': 'walls',
       '/reading': 'reading',
