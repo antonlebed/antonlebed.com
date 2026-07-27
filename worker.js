@@ -34,6 +34,7 @@ export default {
       '/lab': '/',
       '/lab.html': '/',
       '/constants': '/growth/constants',
+      '/reading': '/walls/reading',
     };
     const redir = REDIRECTS[url.pathname];
     if (redir) return Response.redirect(new URL(redir, url.origin), 301);
@@ -57,7 +58,9 @@ export default {
       '/computation/recovery': 'recovery',
       '/observatory': 'observatory',
       '/walls': 'walls',
-      '/reading': 'reading',
+      '/walls/numbers': 'numbers',
+      '/walls/meaning': 'meaning',
+      '/walls/reading': 'reading',
       '/measure': 'measure',
       '/claims': 'claims',
     };
