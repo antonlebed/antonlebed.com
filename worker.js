@@ -65,6 +65,7 @@ export default {
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',
+      '/learning': 'learning',
       '/claims': 'claims',
     };
     const page = PAGES[url.pathname.replace(/(.)\/$/, '$1')];

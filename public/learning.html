@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Learning — descent in reader space</title>
+<meta name="description" content="Learning as monotone exact descent over a finite space of readers, every comparison a big-integer comparison: the commitment funnel and the one corner it is blind to, the bottom lemma beneath it, what a resource environment buys, and the destination universality that makes the optimum a function of metabolism rather than of data — with the loss-side door where that stops.">
+<link rel="canonical" href="https://antonlebed.com/learning">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/learning' aria-current='page'>Learning</a></nav></header>
+<main>
+<h1>Learning</h1>
+<p class="lede">Learning as exact descent in reader space — no
+gradients, no floats, every comparison a big-integer comparison — and
+where the destination such a descent reaches stops being independent
+of the data.</p>
+
+
+
+<p>A <b>stream</b> here is the continued-fraction expansion of a real
+number, arriving digit by digit, and a <b>map</b> is a function
+applied to it. After n digits the value is pinned to a
+<b>cylinder</b> <i>I<sub>n</sub></i>, and what a reader is certain of
+about the output is the <b>image interval</b> <i>J<sub>n</sub></i> =
+<i>f</i>(<i>I<sub>n</sub></i>) — these nest and shrink as digits
+arrive. A <b>row</b> is one (map, stream) pair, and a slate of rows is
+what stands in for training data throughout.</p>
+
+<p>The window carries its own cell family: the Stern–Brocot cells plus
+the straddle chains standing at their <b>vertices</b> — a cell's
+vertex being the mediant of its two endpoints, the fraction whose
+numerator and denominator are their sums — overlapping, and graded by
+<b>rank</b>, which steps by one along every child relation
+(<a href="/walls/reading#ladder-law">the redundant cover</a>). A
+<b>reader</b> is a commitment policy on that cover — at each step it
+may commit cells containing the current image, and a commitment is a
+<b>ratchet</b>: never undone, and permanently sound, since a cell
+containing <i>J<sub>n</sub></i> contains every later image. What is
+left to choose is which route to take past a vertex, the tree child or
+the chain, and how long to wait before committing, so a <b>policy</b>
+is four coordinates — a route preference at tree cells, a route
+preference at straddles, and two <b>patiences</b>, one per cell class.
+A class at patience <i>p</i> commits a candidate only once it has
+contained the image for <i>p</i>+1 consecutive steps; patience 0 is
+<b>greedy</b>, committing on sight, and patience ∞ refuses the class
+outright, the policy refusing both being the <b>refuser</b>.</p>
+
+<p>Two exact rulers price a policy over a counted window. The
+<b>deficit</b> is the product of the committed cells' lengths over the
+counted steps — the price the commitment bound already puts on this
+window (<a href="/walls/reading#commitment-bound">the commitment
+bound</a>) — and it is infinite for as long as a committed cell is.
+The <b>clock loss</b> is the lag, in whole steps, of the reader's
+committed scale behind the stream's own emission: how many images ago
+the reader's cell was the current one. Neither is order-isomorphic to
+the other, since the clock quantizes scale by the stream's local rate.
+Both compare by cross-multiplying big integers, so no float and no
+derivative enters any decision, and <b>descent</b> is the matching
+finite-graph notion: neighbouring policies differ in one coordinate, a
+move is taken only when it strictly lowers the loss, and a <b>stall</b>
+is a policy with no strictly better neighbour.</p>
+
+<p>Resources enter as settings rather than as policy coordinates: a
+<b>rank budget</b> <i>B</i> of cover-rank units per input step, and a
+<b>bank</b> of capacity <i>W</i> holding what a step does not spend.
+What the policy gains is one coordinate for spending them, the
+<b>drawdown schedule</b>, capping what a single step may withdraw —
+spend-all at one end, withholding at the other. The pair
+(<i>B</i>, <i>W</i>) is the reader's <b>metabolism</b>, and what it is
+spent against is the row's <b>demand</b>: the rank per input step that
+row asks for, about one per digit at the golden ratio and about eight
+at [0; 8, 8, …]. And descent
+runs on the <b>behavioural quotient</b> — policies identified when
+their committed-cell traces over the counted window agree — because
+two policies with identical traces cannot be ordered by any loss
+reading that window, so their tie is structural rather than
+signal-starved, and unquotiented coordinates manufacture stalls that
+the honest space does not have.</p>
+
+<h2>The landscape</h2>
+
+<article class="claim" id="funnel">
+  <div class="claim-head"><span class="claim-name">The funnel and its
+  one blind corner</span> <span class="tier">rule</span></div>
+  <p>With no budget in force the deficit is a perfect loss over the
+  committing policies: monotone strict descent converges from every
+  one of them to the exact global optimum — greedy in both classes,
+  and route-free — and the sole trap is total refusal, which sits on a
+  flat plateau of infinite loss where every single-coordinate
+  neighbour prices infinite too. The corner is a real trap and not a
+  shallow basin: a stalled reader's shortfall grows quadratically in
+  the horizon, the per-step deficit growing like the step times the
+  stream's scale rate. Two window-native cures address it, both
+  working at the original space and <em>separating</em> when the
+  patience axis grows. The <b>signal cure</b> refines the comparator
+  lexicographically — finite deficit beats infinite, and two infinite
+  policies compare by their committed-scale shortfall, the finite part
+  of the infinite loss — and converges from every start at any plateau
+  width, because that shortfall orders the plateau however far it
+  extends. The <b>move cure</b> keeps the plain comparator and widens
+  the move set with the patience diagonals; it is radius-bounded,
+  stalling exactly where the whole neighbourhood is infinite, since
+  the blind region grows with the axis while a move set's radius is
+  fixed. Signal cures scale; move cures are sized to the plateau they
+  were designed against.</p>
+  <p class="scope"><b>Scope.</b> Exhaustive at both spaces — 100
+  policies on the patience axis (0, 1, 2, 3, ∞) and 324 on the
+  extended axis (0…7, ∞) — over eight rows whose streams are quadratic
+  irrationals, so their expansions are eventually periodic, including
+  the <b>wall row</b> (<i>x</i>², √2), where the map sends the stream
+  to a vertex and the window can never resolve it
+  (<a href="/walls/reading#wall-criterion">the wall criterion</a>).
+  Horizon 120, counted from step 8. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ratchet_learner.py"><code>explore_ratchet_learner.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_bootstrap_cures.py"><code>explore_bootstrap_cures.py</code></a></p>
+</article>
+
+<article class="claim" id="bottom-lemma">
+  <div class="claim-head"><span class="claim-name">The bottom
+  lemma</span> <span class="tier">rule</span></div>
+  <p>Fix a bounded nondegenerate interval. The cover cells containing
+  it form a sub-poset with an inclusion <em>minimum</em>, and greedy
+  <b>multi-commit</b> — taking commit moves within one input step for
+  as long as any remains available — reaches that minimum in any
+  preference order: the containing cells are finitely many, every
+  commit move strictly raises rank, and local confluence holds in
+  three cases, so Newman's lemma applies. Two corollaries follow. <b>Confluence</b>:
+  at greedy patience the committed cell sequence is preference-free,
+  which is why the optimum above is route-free. <b>Pointwise global
+  optimality</b>: greedy patience dominates every policy at every
+  step, in any policy space of this family — so the unresourced
+  optimum carries nothing stream-specific, and nothing about it can be
+  learned from data at all. The single-reference hypothesis is tight:
+  at mixed patience the fixed point can depend on preference. In the
+  partition cover — the tree cells alone, where the containing cells
+  form one nested chain — loss is instead pointwise monotone in
+  patience, strictly where the compared losses are finite, with total
+  refusal worst.</p>
+  <p class="scope"><b>Scope.</b> The lemma and the partition valley
+  proved for this cover and move set; the engine checks the lemma's
+  statement at every counted step (169,082 containments) and the
+  tightness witness is a policy at the scope above.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_bootstrap_cures.py">
+  <code>explore_bootstrap_cures.py</code></a></p>
+</article>
+
+<h2>What the optimum depends on</h2>
+
+<article class="claim" id="resource-stages">
+  <div class="claim-head"><span class="claim-name">The start-delay and
+  catch-up laws</span> <span class="tier">rule</span></div>
+  <p>Pointwise optimality consumes unbounded multi-commit, so a rank
+  budget breaks its proof and prices the coordinates that proof made
+  free. <b>The start-delay law</b>: under a binding budget a
+  patience-<i>p</i> reader's initial rank gap is never erased, so the
+  patience valley is strict where the unthrottled reader had it flat.
+  <b>The catch-up threshold law</b>: greedy at budget <i>B</i> matches
+  the unthrottled loss exactly once <i>B</i> reaches a per-row
+  threshold — the ceiling of mean demand, where fluctuation is bounded
+  and warm-up debt coverable — and never on exponential demand, the
+  wall row's per-step deficit growing linearly in the step so that no
+  finite budget catches up. A threshold read off a coarse budget grid
+  is an interval and not a value: the coarse grid records 4 where the
+  finer measures 3. Banking moves exactly one threshold on the slate,
+  and by warm-up funding rather than by smoothing — a row whose greedy
+  reader waits while the first digits arrive banks that step's income
+  and later repays the debt that warm-up left, taking that row's
+  threshold from 2 to 1. Off the optimum, route-locking is real: 83
+  strict wins for a withholding schedule over spend-all, an early
+  cheap commit steering a preference-fixed route past a better later
+  cell. Every one of them is strictly off the optimum, where the
+  schedule coordinate makes no difference at all.</p>
+  <p class="scope"><b>Scope.</b> Exhaustive at budgets 1, 2, 4, 8 and
+  unthrottled, bank caps 0, 2, 4, 8, over the eight quadratic rows,
+  horizon 120. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_throttled_reader.py"><code>explore_throttled_reader.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_banking_reader.py"><code>explore_banking_reader.py</code></a></p>
+</article>
+
+<article class="claim" id="destination-universality">
+  <div class="claim-head"><span class="claim-name">Destination
+  universality</span> <span class="tier">rule</span></div>
+  <p>Each row's <b>argmin class</b> is the set of behaviours
+  minimizing that row's loss. At every setting one universal policy
+  sits in <em>every</em> row's argmin class, and transfer gaps — the
+  excess a policy picked on one ensemble of rows pays on another — are
+  exactly zero: under the deficit on the eight quadratic rows at every
+  budget and cap, and under the clock loss, taken with the deficit as
+  tiebreak and taken alone, on all nine rows, the one aperiodic
+  non-quadratic row included. Within this family, no loss tried lets
+  training data pick
+  the destination. What the optimum does depend on is the resource
+  environment: at exactly one setting, (<i>B</i>, <i>W</i>) = (4, 2),
+  the route order inverts and the universal set shifts — verbatim
+  under both losses. The shift being loss-invariant exhausts both
+  layers for stream dependence at once: the allocation layer (route,
+  patience, drawdown schedule) and the loss layer (scale units against
+  whole steps). A reader adapts to its metabolism, never to its data;
+  what descent learns here is how to spend, not what the stream
+  says.</p>
+  <p class="scope"><b>Scope.</b> Exact and exhaustive at the stated
+  scope and nowhere beyond it — this policy space, these nine rows,
+  horizon 120, these two losses. Toy scale, and the statement is about
+  this family of exact readers: outside it universality can fail, and
+  the law of when it fails is <a href="#data-door">the data
+  door</a>.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_throttled_reader.py"><code>explore_throttled_reader.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_banking_reader.py"><code>explore_banking_reader.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_scale_clock.py"><code>explore_scale_clock.py</code></a></p>
+</article>
+
+<h2>What strict descent cannot see</h2>
+
+<article class="claim" id="blindness-census">
+  <div class="claim-head"><span class="claim-name">The blindness
+  census</span> <span class="tier">pattern</span></div>
+  <p>Every stall found at scope, with the cure the species takes.</p>
+  <table class="chart">
+    <thead>
+      <tr><th>species</th><th>what stalls</th><th>cure</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>the plateau (space-born)</td>
+      <td>a blind region of unbounded width — total refusal, where
+      every neighbour prices infinite and the comparator has no
+      signal</td>
+      <td>a SIGNAL: lexicographic refinement by the loss's own finite
+      part; radius-free, so it scales with the plateau</td></tr>
+      <tr><td>the degeneracy (space-born)</td>
+      <td>a flat quotient fiber — behaviourally identical policies
+      tied into a flat, manufactured by resource abundance (a full
+      bank smooths two patiences into one trace)</td>
+      <td>the QUOTIENT: descend counted-window behaviours rather than
+      coordinates, on which the species cannot form</td></tr>
+      <tr><td>the ruler disagreement (loss-born)</td>
+      <td>two exact losses over one window ordering an edge oppositely
+      — the coarse ruler dams the fine one's gradient, so the
+      deficit's own exit is clock-blocked and the class stalls under
+      the clock order alone</td>
+      <td>two-move LOOKAHEAD, or descending the finer ruler across the
+      coarse ruler's plateaus</td></tr>
+    </tbody>
+  </table>
+  <p>A fourth species held a seat and lost it: coordination blindness,
+  the scarcity trap, cured by a diagonal move — on the quotient the
+  trapped class merges with its behavioural twin one route flip from
+  the bottom, so the diagonal cure was two ordinary moves through a
+  twin-flat and the honest space never had the disease. What the
+  survivors have in common is an open conjecture: every
+  stall found here is a <em>tie</em> artifact, and two instruments
+  dissolve them all — refine the ruler where coarseness starves the
+  signal, quotient the space where coordinates outnumber behaviours.
+  At scope the pair suffices, lexicographic deficit descent on the
+  behavioural quotient stalling nowhere off the optimum at any setting
+  scanned. Whether that is a theorem of exact reader spaces is
+  open.</p>
+  <p class="scope"><b>Scope.</b> A census over the settings scanned,
+  not a classification of exact reader spaces. The two space-born
+  species and their cures are rules at the scopes above; the ruler
+  disagreement is a single specimen, at (<i>B</i>, <i>W</i>) = (2, 0)
+  with escape radius 2, and whether it is knife-edge or a family is
+  open.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_bootstrap_cures.py"><code>explore_bootstrap_cures.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_scale_clock.py"><code>explore_scale_clock.py</code></a></p>
+</article>
+
+<h2>The data door</h2>
+
+<article class="claim" id="data-door">
+  <div class="claim-head"><span class="claim-name">The data
+  door</span> <span class="tier">rule</span></div>
+  <p>Universality above is a property of (space, loss) jointly, and
+  the loss is the axis that breaks it. Relax exactly what the loss
+  reads — a decision-valued prediction score, where the committed
+  state alone guesses which side of its cell's vertex the stream will
+  land on, and is charged for a miss — and destination universality
+  dies. The rows' argmin classes stop intersecting under both orders,
+  the score alone and the score with the deficit beneath it as
+  tiebreak;
+  greedy leaves the argmin on six of nine rows, and eight rows are
+  perfectly predictable in-family but by <em>different</em> policies.
+  Two hand lemmas locate the door. <b>Collapse</b>: any local proper
+  score — one a truthful prediction minimizes — read against the flat
+  belief on the committed cell telescopes back into the family of
+  losses that see only the committed-cell trace, so leaving that
+  family takes a discrete decision. <b>Coarsening</b>: the ratchet
+  state is coarser than the public past, so the honest score is a
+  function of the state alone. <b>The door has no width.</b> Each
+  counted step carries one <b>future bit</b> — which side the stream
+  in fact took — and each of the 112 of them, taken alone as the top
+  order with the full deficit beneath it, already empties the
+  intersection, while zero bits restore it: a step at zero rather than
+  a threshold. So the price of data is
+  not conserved across bandwidth: thinning the scored bits collapses
+  it, and at a single scored bit a row's specialist ties the pooled
+  winner's miss total outright, losing only the deficit tiebreak.
+  <b>&ldquo;Reads the stream&rdquo; is not the law</b>, and
+  it fails from both sides. Losses consulting future bits only in
+  their <em>values</em> keep universality whenever the per-row
+  orderings they induce never move, and at this scope they never do:
+  467 of the 475 within-row pairs that tie in value are identical in
+  trace, so a tiebreak sitting below the deficit has nothing to act
+  on. Meanwhile 146 losses that read nothing of the stream at all —
+  indicators of a band of deficit values, row-uniform functions of the
+  deficit alone — break universality outright. What does break is
+  every non-degenerate loss tried whose top order consults future
+  bits, the perverse direction included: no universal anti-predictor
+  exists either.</p>
+  <p class="scope"><b>Scope.</b> The hand lemmas proved. Everything
+  else exact and exhaustive on one frozen arena — the unresourced
+  behavioural quotient, 100 policies in 38 classes, nine rows, horizon
+  120 — and over the loss species tried, which is what makes the
+  surviving criterion statements patterns at scope rather than
+  rules.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_prediction_door.py"><code>explore_prediction_door.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_bandwidth_dial.py"><code>explore_bandwidth_dial.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_score_criterion.py"><code>explore_score_criterion.py</code></a></p>
+</article>
+
+<article class="claim" id="keep-law">
+  <div class="claim-head"><span class="claim-name">The keep law</span>
+  <span class="tier">rule</span></div>
+  <p>An empty intersection turns out to be the generic case, so the
+  thing needing a law is the <em>keep</em>. Order classes by
+  containment of their committed cells, step by step and row by row;
+  a loss whose optimum is pulled monotonically toward one extreme of
+  that order keeps universality, and both extremes exist. The greedy
+  class is <b>pointwise-tightest</b> — its
+  committed cell contained in every class's cell at every counted step
+  on every row, two steps from the bottom lemma and confirmed against
+  a cell family that is massively non-laminar — 76,058 sites where two
+  classes' cells overlap without either containing the other, so no
+  chain argument reaches it — and the refuser is
+  <b>pointwise-coarsest</b> by construction, holding the root cell
+  throughout. All four monotone loss species tried keep, each through
+  the extreme class its direction points at. For the losses that
+  simply reward landing in a band of deficit values, the criterion is
+  exact and proved. Rank a row's classes by their deficit, and a
+  class's <b>hull</b> is the interval its rank spans across the rows;
+  a clean band keeps if and only if it contains some class's hull —
+  the class it then hands every row at once. That hull spectrum is
+  bimodal, and the gap is the mechanism behind generic emptiness: the
+  refuser has hull width 0 to 2, every adapted class at least
+  85 of the 117 ranks, so adaptation makes a class's standing
+  violently row-dependent and only refusal is row-stable. The law is
+  sufficiency-only, and a band pair shows it: 213 keepers built from
+  two disjoint bands exist, and in 201 of them the universal optimum
+  set contains neither extreme — a keep handed out by where the values
+  happen to fall, not by monotone structure.</p>
+  <p>What holding data costs is read off the same arena. Within a row,
+  the committed geometry exhausts the visible: no loss tried separates
+  any of the 475 within-row pairs of classes whose committed cells
+  agree, step for step, on that row. So data content is a cross-row
+  quantity, witnessed only where two rows collide in geometry —
+  canonically at the golden near-twins, the two rows on which
+  <i>φ</i>² = <i>φ</i> + 1 acts as a translation of the cover tree and
+  which therefore agree in geometry on 32 of the 38 classes. The price
+  is then structural rather than statistical: the optimum set becomes
+  the row's fingerprint, an advantage on one row costs loss on the
+  pooled slate wherever it is not free (measured exchange rates of 4:1
+  to 15:1 at full bandwidth), and no adapted optimum keeps its
+  cross-row standing.</p>
+  <p class="scope"><b>Scope.</b> The coarse extreme, the hull
+  criterion and the two-band construction proved; the tight extreme
+  proved from the bottom lemma and engine-confirmed at the arena
+  above; the loss-species results exhaustive there. Toy scale.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_keep_law.py">
+  <code>explore_keep_law.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
