@@ -239,8 +239,8 @@ F1 THE COST MONOID SURVIVES, AND A NUMBER RING'S ELEMENT MENU IS STILL A
    handed the tick (explore_class_schedule.py); F2 is where that hand-over
    is priced, and it is the port's one real cost.
 
-F2 AND THAT COST IS A SECOND COLUMN -- THE LADDER, WHICH THE COLOUR DOES NOT
-   DETERMINE (the SCHEDULE-side reading is this file's; the ring-side facts
+F2 AND THAT COST IS A SECOND COLUMN -- THE LADDER, WHICH THE SUPPLY DOES NOT
+   CARRY (the SCHEDULE-side reading is this file's; the ring-side facts
    under it are cited, not remeasured). Every item of a function field's
    walker shares ONE ladder, the doubling tick. A number ring gives each item
    its own, and both arithmetic facts behind that are already filed over all
@@ -268,7 +268,7 @@ F2 AND THAT COST IS A SECOND COLUMN -- THE LADDER, WHICH THE COLOUR DOES NOT
    <= 60 over depths 1..14 as a BICONDITIONAL against the filed criterion, so
    that an agreement at a p - 1 <= e place would count against it too: 32
    agree, 3 part from depth 3 on, 35 of 35 on the criterion. So the column is
-   a formula in the colour except where p <= e + 1 -- these two rings' places
+   a formula in the colour and its gap except where p <= e + 1 -- these two rings' places
    over 2, though a ring in which 3 ramified would carry a head there too.
    (PR6 as first drafted named the wildly ramified place alone. It was
    corrected at the FREEZE against that filed criterion, before any run: the
