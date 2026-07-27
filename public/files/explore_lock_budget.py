@@ -51,6 +51,14 @@ TRANSPLANT FLAGS, fixed at the freeze.
     reported as such.
  4. From the ideal world to the element world. Everything here is the IDEAL
     world; an element move seats a bundle and is not covered by any of it.
+    (SINCE SETTLED, and the argument DOES cover it, by not having to reach
+    several places at all. The element tails were already measured flat by
+    both rings' own element censuses; what was missing was why. The
+    recurrent vehicle's form is a core at its door times the minimal
+    representative of the class that power must cancel, so the price
+    FACTORS: the first factor is flat by F1's valuation argument verbatim,
+    and the second is a table lookup on a finite group, fixed once the door
+    is. explore_element_schedule_nf.py F3.)
 
 THE HAND-ATTACK, on paper before any engine code.
 
