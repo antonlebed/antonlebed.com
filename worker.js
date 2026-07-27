@@ -51,6 +51,7 @@ export default {
       '/': 'index',
       '/object': 'object',
       '/growth': 'growth',
+      '/growth/limit': 'limit',
       '/growth/inside': 'inside',
       '/growth/thermal': 'thermal',
       '/growth/constants': 'constants',
