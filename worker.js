@@ -62,6 +62,8 @@ export default {
       '/walls/meaning': 'meaning',
       '/walls/reading': 'reading',
       '/measure': 'measure',
+      '/measure/worlds': 'worlds',
+      '/measure/price': 'price',
       '/claims': 'claims',
     };
     const page = PAGES[url.pathname.replace(/(.)\/$/, '$1')];
