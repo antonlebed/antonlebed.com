@@ -33,6 +33,7 @@ export default {
       '/engineering.html': '/',
       '/lab': '/',
       '/lab.html': '/',
+      '/constants': '/growth/constants',
     };
     const redir = REDIRECTS[url.pathname];
     if (redir) return Response.redirect(new URL(redir, url.origin), 301);
@@ -49,13 +50,15 @@ export default {
       '/': 'index',
       '/object': 'object',
       '/growth': 'growth',
+      '/growth/inside': 'inside',
+      '/growth/thermal': 'thermal',
+      '/growth/constants': 'constants',
       '/computation': 'computation',
       '/computation/recovery': 'recovery',
       '/observatory': 'observatory',
       '/walls': 'walls',
       '/reading': 'reading',
       '/measure': 'measure',
-      '/constants': 'constants',
       '/claims': 'claims',
     };
     const page = PAGES[url.pathname.replace(/(.)\/$/, '$1')];
