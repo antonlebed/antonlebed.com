@@ -42,9 +42,23 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    /* Bare paths: / -> index.html, /object -> object.html */
-    const path = url.pathname.replace(/\/$/, '') || '/index';
-    const page = path.split('/').pop() || 'index';
+    /* Every URL the site has, mapped to its page file -- dist is flat,
+       the URLs nest. EXACT match: a path the manifest does not carry is
+       not a page here, however plausibly it is spelled. */
+    const PAGES = {
+      '/': 'index',
+      '/object': 'object',
+      '/growth': 'growth',
+      '/computation': 'computation',
+      '/observatory': 'observatory',
+      '/walls': 'walls',
+      '/reading': 'reading',
+      '/measure': 'measure',
+      '/constants': 'constants',
+      '/claims': 'claims',
+    };
+    const page = PAGES[url.pathname.replace(/(.)\/$/, '$1')];
+    if (!page) return new Response(null, {status: 404});
     return env.ASSETS.fetch(new URL('/' + page + '.html', url.origin));
   }
 };
