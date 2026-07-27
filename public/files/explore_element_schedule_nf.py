@@ -251,9 +251,18 @@ F2 AND THAT COST IS A SECOND COLUMN -- THE LADDER, WHICH THE COLOUR DOES NOT
    units are still squaring rather than stepping (explore_tick_pump.py).
    Neither is rediscovered here, and the second is not a statement about
    ramification, two of the three being unramified.
-   WHAT IS THIS FILE'S is the consequence for the SUPPLY. A colour is
-   (norm, class), a colour does not determine a ladder, so the matrix cannot
-   give the door and the ring must hand a further column over. The model
+   WHAT IS THIS FILE'S is the consequence for the SUPPLY. The matrix is a
+   COUNT of items per colour, so it carries no per-place ladder at all and
+   cannot give the door: the ring must hand a further column over. The reason
+   is the SUPPLY's shape and not a colour being too coarse HERE, which is how
+   PR6's phrasing reads and is not what these two rings show -- in a
+   quadratic ring the norm fixes the gap outright, a rational prime being
+   split or ramified and not both, so colour determines ladder at every place
+   of both universes. A colour fails to determine a ladder at higher degree,
+   where two places over one prime can share a norm and differ in e; over a
+   quadratic ring the column is a further column because it is not in the
+   matrix, which is the weaker premise and the one the walker actually
+   needs. The model
    lam(N, gap, a) = (N - 1)*rad(N)^ceil((a-1)/gap) is what a colour plus a
    gap CAN give, and it is read against the engines at the 35 places of norm
    <= 60 over depths 1..14 as a BICONDITIONAL against the filed criterion, so
@@ -813,7 +822,7 @@ def s4_synthesis(menus, tails, heads):
     print("  tails: %s"
           % "; ".join("%s %d locks, costs %s, max ratio %.2f"
                       % (r[0], r[2], r[3], r[4]) for r in tails))
-    print("  ladder column parts from the colour at %d place(s): %s"
+    print("  ladder column parts from the colour+gap model at %d place(s): %s"
           % (len(heads),
              ", ".join("%s %s" % (h[0], NF.show_place(h[1])) for h in heads)))
 
