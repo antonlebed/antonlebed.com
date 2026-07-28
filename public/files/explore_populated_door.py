@@ -56,12 +56,18 @@ THE HAND-ATTACK, on paper before the engine, and it killed a prediction.
   cyclic. Unramified is no defence. Every ramified column is a staircase
   of step 2 besides.
 
-  What survives is stronger than what died. Check the PRIME-TO-p part of
-  all seven columns in play: Z[i] ram (2-powers, q-1 = 1), Z[sqrt-5] ram2
-  (2-powers, q-1 = 1) and ram5 (4*5^k, q-1 = 4), Z[w] ram23 (22*23^k,
-  q-1 = 22) and split2 (2-powers, q-1 = 1), odd split ((p-1)p^(a-1)),
-  inert ((q^2-1)p^(a-1)). All seven have prime-to-p part CONSTANT = q - 1
-  at every a >= 1. So for a SEATED place (e >= 1) that factor already
+  What survives is stronger than what died, and it is STRUCTURAL rather
+  than a table fact. (O/P^a)^* is k^* x U_1/U_a with k^* cyclic of order
+  q - 1 and U_1/U_a a p-group, so the exponent's PRIME-TO-p PART IS q - 1
+  at every a >= 1, whatever shape the p-part takes. That is why the
+  non-cyclic columns above cost nothing here: they differ from the
+  standard ones only in the p-part, which is the half the door condition
+  is about. All seven columns in play instance it -- Z[i] ram (2-powers,
+  q-1 = 1), Z[sqrt-5] ram2 (2-powers, q-1 = 1) and ram5 (4*5^k, q-1 = 4),
+  Z[w] ram23 (22*23^k, q-1 = 22) and split2 (2-powers, q-1 = 1), odd
+  split ((p-1)p^(a-1)), inert ((q^2-1)p^(a-1)) -- and S1 checks them,
+  which is a check on the ENGINES' hand-derived tables and not on the
+  structure theory. So for a SEATED place (e >= 1) that factor already
   divides lambda(P^e) and hence L, the prime-to-p clause of the door
   condition is discharged for free at every column shape, and the door
   reduces to a single p-adic valuation:
@@ -75,8 +81,12 @@ THE HAND-ATTACK, on paper before the engine, and it killed a prediction.
   Decompose that integer. L is an lcm, so v_p(L) is a MAX over seated Q of
   v_p(lambda(Q^(e_Q))), and the terms sort into three kinds:
     - Q = P itself:      v_p(lambda(P^e)).
-    - Q over p, Q != P:  v_p(q_Q - 1) + (e_Q - 1) = e_Q - 1, since N(Q) is
-      a power of p and N(Q) - 1 is prime to p. An EXPONENT route.
+    - Q over p, Q != P:  v_p(lambda(Q^e_Q)), a pure p-power's valuation
+      since N(Q) - 1 is prime to p. It moves with Q's DEPTH -- e_Q - 1
+      where the column is standard, e_Q - 2 at Z[w]'s split places over
+      2 -- so what enters is the depth and not any cardinality. Writing
+      it as one formula is the error this slate had already killed. An
+      EXPONENT route.
     - Q over l != p:     v_p(lambda(Q^(e_Q))) = v_p(N(Q) - 1), with the
       exponent ABSENT -- l^(e_Q - 1) is prime to p. A RESIDUE route,
       computable from residue cardinalities alone.
@@ -137,12 +147,13 @@ THE SECTIONS.
   S6  how far it runs: the planted drive at F9 (v).
 
 F1 A SEATED PLACE'S DOOR IS ONE p-ADIC VALUATION, AND THE STATE REACHES IT
-   THROUGH ONE INTEGER (rule in range; 96 (ring, kind, p) classes checked to
-   depth 40 for the invariant it rests on, then 717 seated readings over
-   three rings and seven seeds, 0 off). Every column in play has
-   prime-to-p part CONSTANT at q - 1 for a >= 1, so for a seated place that
-   factor already divides L and the door condition loses its prime-to-p
-   clause entirely:
+   THROUGH ONE INTEGER (PROPERTY, not a range result -- it follows from the
+   structure of (O/P^a)^*; the 96 (ring, kind, p) classes at depth 40 and
+   the 717 seated readings, 0 off, check that the ENGINES implement that
+   structure). (O/P^a)^* is k^* x U_1/U_a with k^* cyclic of order q - 1
+   and U_1/U_a a p-group, so lambda's prime-to-p part is q - 1 at every
+   a >= 1. For a seated place that factor already divides L, the door
+   condition loses its prime-to-p clause entirely, and what is left is:
 
        door_pop(P, e, st) = least r with v_p(lambda(P^(e+r))) > v_p(L).
 
@@ -153,6 +164,12 @@ F1 A SEATED PLACE'S DOOR IS ONE p-ADIC VALUATION, AND THE STATE REACHES IT
    COLUMN, its exponent and v_p(L) -- not on its ring or its place -- and
    finds 188 distinct keys with 0 clashes, 60 of them hit by more than one
    ring, so the determinism is cross-ring rather than one walk's habit.
+   AND BECAUSE IT IS A PROPERTY, ITS SCOPE IS NOT THESE THREE RINGS. The
+   structure it rests on holds at every place of every Dedekind domain, so
+   the identity is the door law for any ring this engine shape can walk --
+   the three rings are where it is CHECKED, not where it is true. Which
+   also means the widening cannot be escaped by choosing a friendlier ring:
+   only a state whose invariant carries no surplus p-part escapes it.
 
 F2 THE CLOSED FORM EXISTS AND ITS SCOPE IS THE CYCLIC UNIT GROUP (rule in
    range; 413 standard readings and 304 non-standard). Where the column is
@@ -170,8 +187,11 @@ F3 THE CROSS-PRIME SUPPLY IS RESIDUE CARDINALITY AND NOTHING ELSE, WHICH IS
    THE QUESTION ANSWERED YES (rule in range; every cross-p term at all 717
    readings). v_p(L) is a max over seated places, and the terms sort into
    two kinds that enter by different mechanisms:
-     - a place Q over the SAME p contributes v_p(lambda(Q^e_Q)) = e_Q - 1,
-       its EXPONENT, since N(Q) - 1 is prime to p;
+     - a place Q over the SAME p contributes v_p(lambda(Q^e_Q)), a pure
+       p-power's valuation since N(Q) - 1 is prime to p, which moves with
+       Q's own DEPTH -- e_Q - 1 at a standard column but e_Q - 2 at Z[w]'s
+       split places over 2, so the route is named by what enters it and
+       never by a single formula;
      - a place Q over a DIFFERENT prime contributes v_p(N(Q) - 1), its
        RESIDUE CARDINALITY, with its exponent absent -- l^(e_Q-1) is prime
        to p, so how deep Q stands is invisible.
@@ -590,10 +610,11 @@ def s4_routes(rows):
     section("S4  THE ROUTES: which seated place supplies v_p(L), and by "
             "which of the two mechanisms")
     print("  v_p(L) is a MAX over seated places. The hand-attack sorts the")
-    print("  terms into an EXPONENT route (a place over the SAME p, which")
-    print("  contributes e_Q - 1) and a RESIDUE route (a place over another")
-    print("  prime, which contributes v_p(N(Q) - 1) with its exponent")
-    print("  ABSENT). F11 guessed the first, F9 named the second.")
+    print("  terms into an EXPONENT route (a place over the SAME p, whose")
+    print("  contribution is a pure p-power's valuation and so moves with")
+    print("  its own DEPTH) and a RESIDUE route (a place over another prime,")
+    print("  which contributes v_p(N(Q) - 1) with its exponent ABSENT).")
+    print("  F11 guessed the first, F9 named the second.")
     mods = dict((r, m) for r, m, _ in RINGS)
     same_hits, cross_hits, resid_bad = [], [], []
     for r in rows:
@@ -633,14 +654,14 @@ def s4_routes(rows):
             print("      %s specimen: %-11s %s at e=%d, v_p(L)=%d, excess %d"
                   % (lbl, r['ring'], r['pl'], r['e'], r['vpL'], r['excess']))
 
-    # Why one route is empty. A same-p place contributes its EXPONENT, so it
-    # can only set v_p(L) by standing DEEPER than the place being read. The
-    # support shape decides whether any state has two such places at all.
+    # Why one route is empty. A same-p place's contribution moves with its
+    # depth, so it can only set v_p(L) by standing DEEPER than the place
+    # being read. The support shape decides whether any state has two.
     print()
     print("  WHY THE EXPONENT ROUTE IS EMPTY, measured rather than guessed --")
     print("  the first reading here refuted the obvious answer. A same-p")
-    print("  place contributes e_Q - 1, so it can only set v_p(L) by standing")
-    print("  DEEPER than the place read. The depth histogram is NOT the")
+    print("  place's contribution grows with its depth, so it can only set")
+    print("  v_p(L) by standing DEEPER than the place read. The histogram is")
     print("  reason: count places above exponent 1, split by seed --")
     hist = {}
     for r in rows:
