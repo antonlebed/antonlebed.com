@@ -124,16 +124,16 @@ print("""
   Thus kappa -> 1 - 2/(k*ln(k)) -> 1. The torus gets rounder.
 """)
 
-print(f"  {'k':>3} {'sum(p_i-2)':>12} {'degree':>8} {'kappa':>12} {'1-k/deg':>12} {'kappa_D':>10}")
+print(f"  {'k':>3} {'sum(p_i-2)':>12} {'degree':>8} {'kappa':>12} {'1-k/deg':>12} {'kappa(2)':>10}")
 print(f"  {'-'*62}")
 for r in rows:
     k = r['k']
     ps = r['primes']
     deg = r['deg']
     kappa = r['kappa_OR']
-    kappa_D = Fraction(0, 1)  # D channel: (2-2)/deg = 0 always
+    kappa_2 = Fraction(0, 1)  # the 2-channel: (2-2)/deg = 0 always
     print(f"  {k:>3} {sum(p-2 for p in ps):>12} {deg:>8} {float(kappa):>12.6f} "
-          f"{1 - k/deg:>12.6f} {float(kappa_D):>10.6f}")
+          f"{1 - k/deg:>12.6f} {float(kappa_2):>10.6f}")
 
 
 # Per-channel curvature for new prime at each rung
@@ -254,10 +254,10 @@ for r in rows:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# VI. D-INVISIBILITY ACROSS THE TOWER
+# VI. 2-INVISIBILITY ACROSS THE TOWER
 # ═══════════════════════════════════════════════════════════════════════
 
-section("VI. D-INVISIBILITY — DOES IT HOLD AT EVERY RUNG?")
+section("VI. 2-INVISIBILITY — DOES IT HOLD AT EVERY RUNG?")
 
 print("""
   At k=7, all odd-prime sub-rings have odd -chi, so 2 never divides -chi.
@@ -283,7 +283,7 @@ for r in rows:
     print(f"  k={k:>2}: {count:>5} odd-prime sub-rings. All -chi odd: "
           f"{'YES' if all_odd else 'NO — VIOLATION!'}")
 
-print(f"\n  D-invisibility holds at every rung tested. The proof is algebraic:")
+print(f"\n  2-invisibility holds at every rung tested. The proof is algebraic:")
 print(f"  for odd primes {{p_i}}, N=prod(p_i) is odd, each N/p_j is odd,")
 print(f"  so -chi = N*(s-1) - sum(N/p_j) has parity (s-1) - s = -1 mod 2 = odd.")
 
@@ -505,17 +505,21 @@ print("""
    Chord half-life = ln(2)/(2*sin^2(pi/p_k)) (controlled by largest prime).
    The tower diffuses slower as it grows — more dimensions, longer to mix.
 
-3. GEOMETRY DOES NOT FACTOR THROUGH LAMBDA. Not a split of domain --
-   {p_i} determines {p_i - 1} and conversely, so both sides below are
-   functions of the same prime set. The content is the witness in
-   section I: lambda is CONSTANT at 55,440 across k=10..14 while the
-   degree runs 119 -> 267 and curvature, both gaps and the shell
-   distribution move with it. So no geometric quantity is a function
-   of lambda. The mechanism is that a geometric quantity reads a
-   channel's SIZE, and lambda reads the multiplicative structure of
-   p - 1, which size does not determine.
+3. NO VARYING GEOMETRIC QUANTITY FACTORS THROUGH LAMBDA. Not a split
+   of domain -- {p_i} determines {p_i - 1} and conversely, so both
+   sides below are functions of the same prime set. The content is the
+   witness in section I: lambda is CONSTANT at 55,440 across k=10..14
+   while the degree runs 119 -> 267 and curvature, the chord gap and
+   the shell distribution move with it. None of those is a function of
+   lambda. The scope is exactly "varying": the HAMMING spectral gap is
+   min(p_i) = 2 at every rung, and a constant is trivially a function
+   of anything, so it is the one geometric quantity this witness
+   cannot separate -- and the only one, since 2 is in every rung.
+   The mechanism is that a geometric quantity reads a channel's SIZE,
+   and lambda reads the multiplicative structure of p - 1, which size
+   does not determine.
 
-4. D-INVISIBILITY HOLDS AT EVERY RUNG (k=3..14, verified). The proof
+4. 2-INVISIBILITY HOLDS AT EVERY RUNG (k=3..14, verified). The proof
    is algebraic and k-independent: odd-prime sub-rings always have
    odd -chi, so 2 never divides -chi.
 
