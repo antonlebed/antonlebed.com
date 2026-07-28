@@ -428,6 +428,17 @@ F8 WHAT IS LEFT OPEN. (i) The image over a headed ladder, per F7 -- the
    widening is measured at ONE ring and one state; how far a populated
    door can run above the ladder's, and whether the excess is bounded by
    the state's own residue characteristics, is unasked.
+   (ANSWERED SINCE, explore_populated_door.py F1, F3 and F7: the door is
+   the least r with v_p(lambda(P^(e+r))) > v_p(L), a PROPERTY rather than
+   a range result, so the state reaches a seated place through that one
+   integer. The residue characteristics do not bound the excess, they SET
+   it -- a place over another prime supplies v_p(N(Q) - 1) exactly, so
+   planting a split place over 257 drives this same door to 17. What
+   survives here unchanged is the attribution of the walked reading.
+   Also corrected: the carrier below is one of TWO routes, not the
+   carrier -- a place over the SAME rational prime supplies through its
+   DEPTH instead, and that route fires at 0 of 717 readings because no
+   walked state seats two places of equal characteristic, F4.)
 
 RUN RECORD. One process, CPython, no BLAS. Wall 0.5 s, peak working set
 35.8 MB against memwatch.py's 512 MB ceiling. 1166 checks here over 10

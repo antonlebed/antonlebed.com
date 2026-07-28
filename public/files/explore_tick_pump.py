@@ -618,6 +618,16 @@ F11 A RING NEVER SEATS ITS RAMIFIED PLACE, AND STRANDS ONE THAT IS PLANTED
    transfer AT THESE TWO RINGS; in general a populated door is at or above
    the ladder's, with the excess set by another place's residue field --
    which no ladder in the family can express.)
+   (AND SETTLED SINCE, explore_populated_door.py F1, F4 and F5. The excess
+   has a formula, so the transfer is correctable rather than false: a
+   seated place's door is the least r with v_p(lambda(P^(e+r))) > v_p(L),
+   which makes the state visible to it as ONE integer. The 472 readings
+   above measured the SEATED column and not these two rings -- off that
+   column both of them widen too, at 20.0% and 12.6% of their unseated
+   readings. And the risk guessed here, other places over the same
+   rational prime, is the real second route but fires nowhere: no walked
+   state seats two places of equal characteristic, so it needs a state
+   the walker cannot build.)
    AND IT DOES NOT TOUCH THE FILED IDEAL LIMIT THEOREM, whose exponent ceiling
    (explore_greedy_limit.py L0) is derived from a tick that DOUBLES: there
    every exponent ever written is 0, 1 or the tick at its own clock plus 1, so
