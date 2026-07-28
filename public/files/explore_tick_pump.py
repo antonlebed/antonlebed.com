@@ -541,6 +541,17 @@ F11 A RING NEVER SEATS ITS RAMIFIED PLACE, AND STRANDS ONE THAT IS PLANTED
    from the void seed to the lock and 40 moves past it, plus one planted seed
    per ramified place). The mixed law's one arithmetic consequence, and it is
    testable with the rings already built.
+   (SINCE NARROWED, and the surviving scope is the two rings walked here.
+   The first clause is geography, not a law: a third quadratic ring, Z[i],
+   seats its ramified place from the void UNPLANTED -- there it is the
+   cheapest opening at 4, that ring having no place of norm 3 or 4 at all --
+   and then strands it at exponent 3. The STRAND is what generalises, and it
+   gains its first unplanted instance. What decides the seating is not the
+   product this section prices with: the product is what a place charges
+   once its ladder is PERIODIC, and F1's own head -- the leading depths at
+   the places with p - 1 <= e -- comes first, so a walk pays the head and
+   never reaches the tail the product names. explore_gaussian_runaway.py
+   findings 1, 2 and 4.)
    From the void, K5 locks on a split place of norm 3 at cost 3 and K23 on one
    of norm 3 at cost 3; the support is FLAT at both -- one place above
    exponent 1 and it is the lock's own vehicle -- and NO ramified place is

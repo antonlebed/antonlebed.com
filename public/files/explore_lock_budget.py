@@ -317,7 +317,16 @@ F8 WHAT IS LEFT OPEN. (i) Everything here is the IDEAL world. An element
    move seats a BUNDLE and its recurrent vehicle is a product of places, so
    whether an element walk's price is flat is untested -- and it is the one
    world where the lock is already known to do something the ideal world
-   cannot (it swallows a tie, explore_greedy_image_nf.py F5). (ii) The
+   cannot (it swallows a tie, explore_greedy_image_nf.py F5).
+   (ANSWERED SINCE, explore_element_schedule_nf.py F3: it is flat, and the
+   bundle is why the question was mis-framed rather than why it was hard.
+   That file pins the recurrent vehicle's FORM, so the price FACTORS -- the
+   first factor flat by this file's own valuation argument verbatim, the
+   second a table lookup on a finite group and constant once the door is
+   fixed. So the element world needs no argument of its own; it is this
+   mechanism composed with the rider being a price. The transplant flag
+   above was right that the argument covers one place and a move seats
+   several, and wrong that it therefore had to reach several.) (ii) The
    exact-tick corner is now a named and unexplored region of the schedule
    family: the limit theorem, the degree ceiling and the image counts are
    all derived at b > 1, and what the IMAGE is at an exact tick is unasked.
