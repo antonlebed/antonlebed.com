@@ -289,6 +289,15 @@ F1 THE TICK LADDER IS LAMBDA'S JUMP SET, AND A NUMBER RING'S GAP IS ITS
    K_P and e = (p-1)p^t, and the two conditions part at 8 of 23 places read
    across 20 local fields — including both inert places over 2, which no
    ring here has. The 90 hold because every ring here is quadratic.
+   AND THE LADDER THIS SECTION HANDS A PLACE IS THE TAIL ALONE, which is not
+   the ladder the sections below read. explore_headed_ladder.py F1 finds
+   a walk reading TWO numbers off a ladder -- the SUP gap deciding where it
+   stops and how many coordinates stand deep, the tail deciding what the
+   runaway pays -- which a constant ladder cannot tell apart. So the tail
+   gap is still the ramification index and it is only HALF of what a place
+   hands the dynamics: the sup is 2 at K23's two SPLIT places over 2, 3 at
+   Z[sqrt +-2], 4 at K5's ramified place over 2, 5 at Z[i], and 6 and 12
+   outside the quadratic range.
 
 F2 THE POSITIVE CONTROL (rule in range; 60 states per row, the other walker
    advanced by THIS walker's move so no tie convention can make them agree by
@@ -374,9 +383,13 @@ F5 THE LIMIT'S SHAPE SURVIVES EVERY LADDER UNDER A GLOBAL CLOCK, AND UNDER A
    SO THE FILED READING REFINES. explore_lock_budget.py F7 has locality
    deciding the limit's shape; what decides it is the gap AT A PER-ITEM
    CLOCK, and locality is what makes the gap visible to the price at all. A
-   number ring keeps its flat support because its gap is 1 or 2, not because
-   its clock is local: the gap-3 cell is local too and carries three runaway
-   coordinates. (SCOPED SINCE, F9: those three are ONE runaway and two
+   local clock is not itself the deciding axis either: the gap-3 cell is
+   local too and carries three runaway coordinates. (CORRECTED SINCE,
+   explore_headed_ladder.py F2: this passage read "a number ring keeps its
+   flat support because its gap is 1 or 2", and it does not -- a ring's
+   HEADED places stand at sup 3, 4 and 5, and the count above exponent 1
+   reads the SUP gap -- the tail deciding the recurrent price instead.
+   The ring's flat support is F11's arithmetic, not this cell.) (SCOPED SINCE, F9: those three are ONE runaway and two
    STRANDS -- items carried above exponent 1 and then priced out -- which is
    a distinction "how many stand above exponent 1" cannot make.)
    AND THE PER-ITEM CLOCK CARRIES NO STATE (proved -- hand-attack D -- and
@@ -508,10 +521,15 @@ F10 THE STOP LAW AND THE LIMIT SURVIVE THE FOUR-INGREDIENT CROSS, AND THE ONE
        F5's "1, 1, 3, 6 at gaps 1, 2, 3, 5" is the CORNER DIAL's reading and
        not a function of the gap. What is dial-free is the number ring's own
        corner: the exact and gap-2 ladders read exactly 1 at all 14 of their
-       degree-visible cells, so "a number ring keeps its flat support because
-       its gap is 1 or 2" survives the whole cross. At the degree-blind price
-       the gap-2 ladder reads 61, so that corner is dial-free over the price's
-       degree-visible range and not over the family.
+       degree-visible cells, and that survives the whole cross. At the
+       degree-blind price the gap-2 ladder reads 61, so it is dial-free over
+       the price's degree-visible range and not over the family.
+       (CORRECTED SINCE, explore_headed_ladder.py F2: this cell was read as
+       carrying "a number ring keeps its flat support because its gap is 1 or
+       2", and it does not -- a ring's headed places stand at sup 3, 4 and 5,
+       where the gap-5 cell carries six coordinates above exponent 1. The
+       ring's flat support is F11's arithmetic; this corner is about gaps 1
+       and 2 and about nothing else.)
    PR10'S KILL FIRED AND THE MISS IS THE FINDING. At the degree-blind price
    the exact ladder STOPS and keeps its runaway, while every ladder whose gap
    ever EXCEEDS 1 climbs with ZERO runaways under a global clock -- the three
@@ -588,6 +606,18 @@ F11 A RING NEVER SEATS ITS RAMIFIED PLACE, AND STRANDS ONE THAT IS PLANTED
    the per-item clock of F5 is a ring's door in a populated state and not only
    at a lone place, which is what lets the product law be read off a ring at
    all.
+   (NARROWED SINCE, explore_headed_ladder.py F9: the 472 readings are over
+   the TWO rings this file walks, and the conclusion does not survive the
+   third. At Z[i]'s locked state the ramified place's door is 7 where its
+   lone-place door is 5 -- a number explore_gaussian_runaway.py had already
+   printed, as that strand's price of 128 against 32. The carrier is not
+   "another place over the same rational prime" as guessed above but a place
+   over a DIFFERENT one: the INERT place over 3 has residue field F_9, so
+   its lambda carries q - 1 = 8, and that 2-part swallows the two ladder
+   steps the place over 2 would have escaped at. What survives is the
+   transfer AT THESE TWO RINGS; in general a populated door is at or above
+   the ladder's, with the excess set by another place's residue field --
+   which no ladder in the family can express.)
    AND IT DOES NOT TOUCH THE FILED IDEAL LIMIT THEOREM, whose exponent ceiling
    (explore_greedy_limit.py L0) is derived from a tick that DOUBLES: there
    every exponent ever written is 0, 1 or the tick at its own clock plus 1, so
