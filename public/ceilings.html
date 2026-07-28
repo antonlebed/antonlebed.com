@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Ceilings — evaluations that know their own optimum</title>
+<meta name="description" content="Evaluations whose Bayes-optimal score is derived rather than estimated: four designed families on the deleted archimedean place, each with a closed-form ceiling, an exact dial naming the cells where the evidence is worthless, and a constant-cost achiever — and the two things that deadness turns out to depend on, the score asked and the prior assumed.">
+<link rel="canonical" href="https://antonlebed.com/learning/ceilings">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/learning' class='up'>Learning</a></nav><nav class='sub' aria-label='Learning'><a href='/learning'>The reader descent</a> <a href='/learning/forgetting'>Forgetting</a> <a href='/learning/ceilings' aria-current='page'>Ceilings</a></nav></header>
+<main>
+<h1>Ceilings</h1>
+<p class="lede">Evaluations whose best possible score is derived rather
+than estimated: what the optimum is, which members of the family the
+evidence is worthless on, and what attaining it costs — every value in
+closed form, on families designed so that there is one.</p>
+
+<p>An <b>eval</b> here is a triple: a task family with a <b>prior</b>
+over its instances, an <b>evidence channel</b> the solver is shown, and
+a <b>score</b>. Its <b>ceiling</b> is the Bayes-optimal expected score —
+what the best conceivable solver gets, with no solver required to
+exhibit it — and its <b>floor</b> is the prior's own best score with the
+evidence severed, computed by direct summation rather than set at a
+rhetorical one half. Each member of the family is a <b>cell</b>, and a
+cell is <b>interior</b> when floor &lt; ceiling &lt; 1 and <b>dead</b>
+when ceiling = floor, which says the evidence buys nothing there. A
+ceiling is <b>tight</b> when some computable procedure of stated cost
+meets it — an <b>achiever</b>; the Bayes posterior meeting the Bayes
+optimum is a definition and claims nothing, so the content is the
+closed form together with the achiever's price. Two scores are asked
+throughout: <b>0-1 accuracy</b>, which pays for a correct answer, and
+<b>log-loss</b>, which pays for the probability assigned to the truth.</p>
+
+<p>The first eval known to carry its own ceiling was not designed for
+it. A grown world's history has an exactly computable posterior given
+its finished state, so induction on such worlds scores a
+compression-driven inducer against a literal Bayes value instead of
+against other solvers
+(<a href="/growth/inside#knowable-ledger">the ledger of the
+knowable</a>). Whether that was an accident of that one construction
+is the question the families below answer, and they are built from
+unrelated material.</p>
+
+<p>That material is the archimedean deletion: rings of residues, which
+carry arithmetic and no notion of size. Fix <i>N</i> squarefree — a
+product of at least two distinct primes — and draw from Z/<i>N</i>
+uniformly: a single element <i>x</i>, or, in two of the four families
+below, an ordered pair or triple of distinct elements. A <b>channel</b>
+is one residue mod <i>p</i>; the solver is shown a proper subset of the
+channels, whose product is the <b>modulus</b> <i>M</i>, leaving the
+<b>unknown cofactor</b> <i>c</i> = <i>N</i>/<i>M</i>. What the evidence
+pins is a <b>fiber</b>: for a single element, the <i>c</i> ring
+elements sharing the shown residues, an arithmetic progression of step
+<i>M</i>; for a pair or a triple, one such progression per point. The
+task asked is always archimedean — a question about size or order,
+which the ring does not carry
+(<a href="/walls#hiding-lemma">the hiding lemma</a>) — so each eval
+attaches an exact number to a limit otherwise stated qualitatively. A
+cell here is one pair (ring, shown subset), the family is every cell,
+and a <b>dial</b> is the exact arithmetic condition naming which cells
+are dead.</p>
+
+<p>Every family below is designed, and each ceiling is derived from that
+design: exact in rational arithmetic, proved by hand, and confirmed cell
+by cell across the stated range. That is what makes deadness a
+certificate here and its failure boundaries algebraic. It is also the
+scope. These are toy rings of at most a few tens of thousands of
+elements, and no number on this page is a ceiling for a benchmark built
+by anyone else.</p>
+
+<h2>The anatomy</h2>
+
+<article class="claim" id="parity-dial">
+  <div class="claim-head"><span class="claim-name">The sign bit and the
+  parity dial</span> <span class="tier">rule</span></div>
+  <p>Ask for the sign bit [2<i>x</i> ≥ <i>N</i>] — which half of the
+  ring <i>x</i> fell in. The Bayes ceiling is exactly
+  (<i>c</i>+1)/2<i>c</i> when the unknown cofactor is odd and exactly
+  1/2 when it is even, with no third behaviour. The proof is three
+  lines: the fiber is an arithmetic progression, so its below-count is
+  ⌈<i>c</i>/2 − <i>r</i>/<i>M</i>⌉ at shown residue <i>r</i>, which is
+  <i>c</i>/2 for every <i>r</i> at even <i>c</i> and takes exactly two
+  values at odd <i>c</i>. Because <i>N</i> is squarefree, <i>c</i> is
+  even precisely when 2 divides <i>N</i> and channel 2 is among the
+  unknowns, so this family's dial is a single arithmetic bit — is
+  channel 2 read — and its dead cells are exactly the cells where it is
+  not. At odd <i>N</i> there are none: every proper subset lifts
+  strictly off the floor. The log-loss ceiling is the same dichotomy in
+  entropy dress: the binary entropy
+  <i>H</i><sub>2</sub>((<i>c</i>+1)/2<i>c</i>) nats at odd <i>c</i> and
+  log 2 at even. And the achiever costs a constant per query:
+  <b>reconstruct</b> the shown residues into the single residue
+  <i>r</i> = <i>x</i> mod <i>M</i>, which the Chinese remainder theorem
+  does in one modular pass, then answer &ldquo;below&rdquo; iff
+  2<i>r</i> &lt; <i>M</i> — one reconstruction and one comparison. This
+  is the exact Bayes value of a qualitative fact the hiding lemma
+  already carried, that the fiber's sign bias is at most half an element
+  and exactly zero without channel 2.</p>
+  <p class="scope"><b>Scope.</b> The closed form is proved for every
+  squarefree <i>N</i> and every proper divisor <i>M</i>; the
+  confirmations are exhaustive over the 602 cells of the 57 rings built
+  from the first six primes, largest <i>N</i> = 30030, exact in
+  rationals with entropies to 1e-12 nats. 211 cells sit at the floor and
+  all 211 are the 2-unknown cells; the achiever was enumerated on the
+  362 cells with <i>N</i> ≤ 2310. Uniform prior; 0-1 and log-loss
+  scores. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_eval_ceiling.py"><code>explore_eval_ceiling.py</code></a></p>
+</article>
+
+<article class="claim" id="threshold-theorem">
+  <div class="claim-head"><span class="claim-name">The threshold
+  theorem</span> <span class="tier">rule</span></div>
+  <p>The sign bit is the predicate [<i>x</i> ≥ <i>t</i>] at the
+  midpoint, so the dial can be asked at every threshold. Write
+  <i>t</i> = <i>qM</i> + <i>s</i> with 0 ≤ <i>s</i> &lt; <i>M</i>; a
+  fiber's below-count is <i>q</i> + [<i>r</i> &lt; <i>s</i>], so exactly
+  two fiber types exist and the ceiling is the no-evidence floor
+  max(<i>t</i>, <i>N</i>−<i>t</i>)/<i>N</i> everywhere except where
+  <i>c</i> is odd <em>and</em> <i>t</i> lies strictly inside the middle
+  fiber window (<i>mM</i>, (<i>m</i>+1)<i>M</i>),
+  <i>m</i> = (<i>c</i>−1)/2. Inside that window the ceiling is
+  (<i>c</i>+1)/2<i>c</i>, independent of where in the window <i>t</i>
+  sits. So the even half of the parity dial survives verbatim at every
+  threshold — even <i>c</i> is dead at all of them — while the odd half
+  deforms from a parity condition into a window condition. What does
+  depend on <i>t</i> is the lift over the floor, the tent
+  min(<i>s</i>, <i>M</i>−<i>s</i>)/<i>N</i>, maximal at the midpoint:
+  the sign bit is the extremal member of its own family, sitting at the
+  top of the tent. The achiever is unchanged and stays exactly tight.</p>
+  <p class="scope"><b>Scope.</b> The closed form proved for every
+  squarefree <i>N</i>, proper divisor <i>M</i> and threshold; confirmed
+  exhaustively on the 40,914 (cell, threshold) slices of the 194 cells
+  over 37 rings with <i>N</i> ≤ 500, every one of the 2,697 interior
+  slices carrying the tent exactly, plus 2,508 boundary-sampled slices
+  up to <i>N</i> = 2310. Uniform prior. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_anatomy.py"><code>explore_ceiling_anatomy.py</code></a></p>
+</article>
+
+<h2>Which channels pay</h2>
+
+<article class="claim" id="inverted-dial">
+  <div class="claim-head"><span class="claim-name">The orientation
+  ceiling and the inverted dial</span> <span class="tier">rule</span></div>
+  <p>Change the task shape. Take a uniform ordered triple of distinct
+  points of Z/<i>N</i>, show all three residues mod <i>M</i>, and ask
+  for the triple's cyclic orientation — a relation whose fibers are not
+  intervals. Translating the base point to 0 leaves a difference pair
+  (<i>a</i>, <i>b</i>) with orientation positive iff <i>a</i> &lt;
+  <i>b</i> as integers, and the fiber posterior is uniform on a product
+  of ladders, so the positive count is a staircase threshold count on a
+  <i>c</i>-by-<i>c</i> grid. A fiber whose two shown differences are
+  distinct and nonzero leans by exactly (<i>c</i>+1)/2<i>c</i> toward
+  the residue order; a fiber where they agree, or where one is zero,
+  is exactly balanced. Weighting the fiber classes gives the
+  ceiling</p>
+  <div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle scriptlevel="0" displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mtext>  </mtext><mo>+</mo><mtext>  </mtext><mfrac><mrow><mi>c</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>M</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>M</mi><mo>−</mo><mn>2</mn><mo stretchy="false">)</mo></mrow><mrow><mn>2</mn><mtext> </mtext><mo stretchy="false">(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>N</mi><mo>−</mo><mn>2</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tfrac{1}{2} \;+\; \frac{c\,(M-1)(M-2)}{2\,(N-1)(N-2)}</annotation></semantics></math></span></div>
+  <p>which lifts off the floor exactly when <i>M</i> ≥ 3. The hiding
+  here is total in the strongest sense, and proved to be
+  independently — the fraction of triples the shown channels
+  <em>determine</em> is 0 on every cell, no fiber ever deciding
+  (<a href="/walls#orientation-hiding">cyclic orientation is totally
+  hidden</a>) — and the skew inside that total hiding is nonetheless
+  real, and priced. The dial inverts against the sign bit: the sole
+  dead subset is {2}, where the sign bit lived in channel 2 alone. So
+  does the channel ordering. Single channels obey the same formula at
+  <i>M</i> = <i>p</i>, worth zero at <i>p</i> = 2 and strictly
+  increasing in <i>p</i>, making the best single channel the largest
+  prime read, where for the sign bit channel 2 was the only single
+  channel worth anything at all. Which channels pay is a property of
+  the task, not of the ring.</p>
+  <p class="scope"><b>Scope.</b> The ceiling proved for every squarefree
+  <i>N</i> and proper divisor <i>M</i>; exhaustive on all 194 cells over
+  the 37 rings with <i>N</i> ≤ 500, where 19 cells sit at the floor and
+  all 19 are the subset-{2} cells. The reduction to difference pairs is
+  checked against raw triple evidence at <i>N</i> = 30 over every proper
+  divisor before the scan is read. The log-loss ceiling matches its own
+  closed form to 1e-12 nats and the achiever — two residue subtractions
+  and one comparison — is exactly tight. Uniform prior. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_anatomy.py"><code>explore_ceiling_anatomy.py</code></a></p>
+</article>
+
+<article class="claim" id="constant-dial">
+  <div class="claim-head"><span class="claim-name">The comparison
+  ceiling and the constant dial</span> <span class="tier">rule</span></div>
+  <p>Ask the archimedean question of two hidden elements at once:
+  [<i>x</i> &lt; <i>y</i>] on a uniform ordered pair of distinct
+  elements, with both residues mod <i>M</i> shown. A fiber with unequal
+  shown residues is a product of two full <i>c</i>-ladders and leans by
+  (<i>c</i>+1)/2<i>c</i>; a fiber with equal ones is exactly balanced,
+  since as many ordered distinct pairs ascend as descend. Weighting
+  them, the unknown cofactor cancels and the ceiling is</p>
+  <div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle scriptlevel="0" displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mtext>  </mtext><mo>+</mo><mtext>  </mtext><mfrac><mrow><mi>M</mi><mo>−</mo><mn>1</mn></mrow><mrow><mn>2</mn><mtext> </mtext><mo stretchy="false">(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tfrac{1}{2} \;+\; \frac{M-1}{2\,(N-1)}</annotation></semantics></math></span></div>
+  <p>against a floor of exactly 1/2. This family has <em>no</em> dead
+  cells: every proper subset lifts, <i>M</i> = 2 included. That is a
+  third dial shape — a constant one, where the sign bit's dial was
+  parity and orientation's was inversion — and the value depends on the
+  ring and the shown modulus alone, not on how much is hidden. The
+  achiever reconstructs both residues, orders them, and answers a fixed
+  way on a tie, at two reconstructions and one comparison; the best
+  single channel is again the largest prime read. These rings do admit
+  an exact comparator, but it buys exactness by importing an extra
+  coordinate and reading every channel
+  (<a href="/walls#exact-comparator">the exact comparator and its cost
+  law</a>); this is the other end of the same question — what a proper
+  subset alone is worth, with nothing imported.</p>
+  <p class="scope"><b>Scope.</b> The ceiling, the floor and the
+  log-loss form proved; exhaustive on the 362 cells of the 49 rings with
+  <i>N</i> ≤ 2310, with the achiever enumerated exactly on the 116 cells
+  with <i>N</i> ≤ 210 and the entropy strictly below log 2 on every
+  cell. Uniform prior on the pair. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_dials.py"><code>explore_ceiling_dials.py</code></a></p>
+</article>
+
+<article class="claim" id="skew-unit">
+  <div class="claim-head"><span class="claim-name">The skew unit and the
+  price of doing less</span> <span class="tier">observation</span></div>
+  <p>Four task shapes, four dials, and one number underneath all of
+  them. Every interior mechanism above reduces to a staircase
+  threshold count on a <i>c</i>-ladder, and the per-fiber skew
+  (<i>c</i>+1)/2<i>c</i> is what such a count yields: it is the sign
+  bit's whole ceiling, the threshold family's interior value, the lean
+  of an orientation fiber before dilution by the fraction of fibers that
+  lean at all, and the lean of a comparison fiber before ties. The dials
+  say which cells are alive and differ across the four; what a live cell
+  is worth keeps reducing to the same unit.</p>
+  <p>The families also price their own cheaper solvers, by their own
+  laws one level coarser. A solver that reads a single channel, or drops
+  one, is the same eval at a smaller modulus — <i>M</i> = <i>p</i> for
+  the single channel — so the cost of doing less is a difference of two
+  instances of the family's own closed form rather than a separate
+  measurement. At <i>N</i> = 2310 with channels {2, 3, 5} shown, the
+  sign bit's joint ceiling is 39/77, the best single channel is worth
+  578/1155, and the gap is 1/165.</p>
+  <p class="scope"><b>Scope.</b> The recurrence of the skew unit is an
+  observation across the four instances, each of whose ceilings is
+  separately proved and confirmed at the ranges the blocks above state.
+  The self-similarity of the single-channel law is a rule, proved and
+  exhaustive on the same cells. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_eval_ceiling.py"><code>explore_eval_ceiling.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_anatomy.py"><code>explore_ceiling_anatomy.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_dials.py"><code>explore_ceiling_dials.py</code></a></p>
+</article>
+
+<h2>Whether the evidence is worthless</h2>
+
+<article class="claim" id="score-relative-deadness">
+  <div class="claim-head"><span class="claim-name">Deadness is
+  score-relative</span> <span class="tier">rule</span></div>
+  <p>Call the set of thresholds at which a cell is dead its <b>floor
+  set</b>, one per score. At the midpoint threshold — the sign bit —
+  the two floor sets agree, both holding exactly the even-<i>c</i>
+  cells, and that agreement is a coincidence of that one threshold.
+  Across the rest of the family they diverge sharply. The log-loss floor set is the
+  thin set of thresholds divisible by <i>M</i> — where <i>s</i> = 0
+  makes every fiber the same type, so the posterior does not move at
+  all — while the 0-1 floor set is nearly everything, every threshold
+  outside the odd-<i>c</i> middle window. Off that window the posterior
+  does move; it simply never crosses one half, so a decision score
+  cannot spend what a log score is paid for. At any threshold outside
+  the window and not divisible by <i>M</i>, then, the two scores
+  disagree outright about whether the evidence is worth anything:
+  &ldquo;the evidence is worthless&rdquo; is not one statement but one
+  per score. What survives the choice of score is the structural core,
+  the thresholds divisible by <i>M</i>, where posterior equals prior.
+  Robustness across a family is what makes a statement of this kind
+  portable — the same test the strongest amnesia grade applies to a
+  forgotten datum, flatness at every weight rather than at a named one
+  (<a href="/learning/forgetting#certificate-grades">the four
+  grades</a>).</p>
+  <p class="scope"><b>Scope.</b> Proved, and exhaustive on the threshold
+  family's 40,914 slices: 4,599 in the log floor set against 38,217 in
+  the 0-1 floor set, entropies to 1e-12 nats. The structural core's
+  independence of the prior is the window law below. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_anatomy.py"><code>explore_ceiling_anatomy.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_dials.py"><code>explore_ceiling_dials.py</code></a></p>
+</article>
+
+<article class="claim" id="window-law">
+  <div class="claim-head"><span class="claim-name">The window law and
+  the resonance</span> <span class="tier">rule</span></div>
+  <p>The prior was the one knob held fixed above. Replace the uniform
+  prior by the geometric <b>tilt</b>, <i>P</i>(<i>x</i>) proportional to
+  <i>θ</i><sup><i>x</i></sup> for a positive rational <i>θ</i>; within a
+  fiber the weights become a geometric ladder in
+  <i>q</i> = <i>θ</i><sup><i>M</i></sup>, and every value — ceiling,
+  floor and conditional entropy — stays closed-form. A fiber's
+  below-mass exceeds one half exactly when its below-count exceeds</p>
+  <div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>Q</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo>=</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mi>q</mi></msub><mfrac><mrow><mn>1</mn><mo>+</mo><msup><mi>q</mi><mi>c</mi></msup></mrow><mn>2</mn></mfrac></mrow><annotation encoding="application/x-tex">Q^{*} = \log_{q} \frac{1 + q^{c}}{2}</annotation></semantics></math></span></div>
+  <p>and since a cell offers exactly two fiber types, one apart, its
+  interior thresholds are exactly one fiber window of <i>M</i>−1
+  thresholds located at ⌊<i>Q</i><sup>*</sup>⌋. One live window at every
+  prior in the family, with the law naming which. The uniform prior is
+  the degenerate point of that picture:
+  <i>Q</i><sup>*</sup> → <i>c</i>/2, which lands on an integer exactly
+  when <i>c</i> is even, so the parity dial is a <b>resonance</b> of
+  <i>θ</i> = 1 rather than an invariant of the anatomy — every tilt off
+  it frees the even cells. A single fixed threshold is the brittle
+  object: the sign bit dies at every tilt scanned, its even-<i>c</i>
+  half structurally, since the midpoint threshold sits on a fiber
+  boundary there and is dead at every prior in the family, and its
+  odd-<i>c</i> half at an algebraic death boundary,
+  2<i>q</i><sup><i>m</i></sup> = 1 + <i>q</i><sup><i>c</i></sup> with
+  <i>m</i> = (<i>c</i>−1)/2 the middle fiber's index, whose root at
+  <i>c</i> = 3 is the reciprocal golden ratio. The family self-repairs
+  where its extremal member does not: the window slides toward the
+  bottom fiber as <i>q</i> → 0 and toward the top as <i>q</i> → ∞, and
+  never empties.</p>
+  <p class="scope"><b>Scope.</b> The window law, the resonance and the
+  sign bit's fragility proved; exhaustive on the 116 cells with
+  <i>N</i> ≤ 210 across a nine-point <i>θ</i> grid at every threshold —
+  1,044 sweeps — plus 234 spot points up to <i>N</i> = 2310. The
+  <i>θ</i> = 1 grid point reproduces the uniform law exactly, and the
+  reflection identity, that tilting by 1/<i>θ</i> and reflecting the
+  threshold leaves the ceiling unchanged, holds throughout. All 39
+  even-<i>c</i> cells are interior at each of the eight tilts and none
+  at uniform; every sign-bit cell is dead at each of the eight. One
+  prior family: whether other priors also yield a single window is
+  open. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_dials.py"><code>explore_ceiling_dials.py</code></a></p>
+</article>
+
+<p>What these families make exact is a statement about the phrase
+&ldquo;remaining headroom&rdquo;. Headroom is a gap between a ceiling
+and a score, and the ceiling moves with the score asked and with the
+prior assumed — enough, in these families, for two scores to disagree
+about whether the evidence is worth anything, and for a family's dead
+cells to be an artifact of one prior. Where the family is designed,
+both dependencies are written down: the dial, the window, and the
+boundary each of them fails at.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
