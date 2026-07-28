@@ -63,6 +63,7 @@ export default {
       '/walls/numbers': 'numbers',
       '/walls/meaning': 'meaning',
       '/walls/reading': 'reading',
+      '/walls/algebra': 'algebra',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',

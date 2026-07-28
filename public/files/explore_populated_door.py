@@ -265,7 +265,12 @@ F8 WHAT IS LEFT OPEN. (i) The unboundedness argument leans on Z[i]'s
    here covers it. (iii) The three rings are quadratic and imaginary; a
    place of residue degree above 2, where q - 1 can carry a large p-part at
    a SMALL rational prime, is not walked and is exactly where the residue
-   route should bite hardest. (iv) Whether the correction term can be
+   route should bite hardest. SETTLED BY explore_cubic_undercut.py,
+   which walks one: what residue degree 3 buys is a
+   cheaper CARRIER and not a longer reach, a supply of 7 costing norm 8
+   there against 29 at degree <= 2. What survives unchanged is the rest of
+   (iii)'s sentence: the excess itself is unbounded already at degree 1,
+   which is F7. (iv) Whether the correction term can be
    carried by any schedule the family admits is answered NO by F3's own
    shape -- an item's price there is a function of its own exponent -- but
    what a family that admits c(item, state) does to the four laws is a
