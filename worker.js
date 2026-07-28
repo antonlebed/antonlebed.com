@@ -50,6 +50,7 @@ export default {
     const PAGES = {
       '/': 'index',
       '/object': 'object',
+      '/object/structure': 'structure',
       '/growth': 'growth',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
