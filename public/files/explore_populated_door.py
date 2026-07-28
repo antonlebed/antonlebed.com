@@ -164,10 +164,14 @@ F1 A SEATED PLACE'S DOOR IS ONE p-ADIC VALUATION, AND THE STATE REACHES IT
    COLUMN, its exponent and v_p(L) -- not on its ring or its place -- and
    finds 188 distinct keys with 0 clashes, 60 of them hit by more than one
    ring, so the determinism is cross-ring rather than one walk's habit.
-   AND BECAUSE IT IS A PROPERTY, ITS SCOPE IS NOT THESE THREE RINGS. The
-   structure it rests on holds at every place of every Dedekind domain, so
-   the identity is the door law for any ring this engine shape can walk --
-   the three rings are where it is CHECKED, not where it is true. Which
+   AND BECAUSE IT IS A PROPERTY, ITS SCOPE IS NOT THESE THREE RINGS -- but
+   it is not unconditional either. The splitting needs a FINITE residue
+   field: it is what makes k^* cyclic of order q - 1 and what makes that
+   order coprime to |1 + m|, so the two factors separate. Granted that, the
+   identity is the door law at every place of every Dedekind domain with
+   finite residue fields, which is every ring and every function field this
+   corpus walks -- the three rings are where it is CHECKED, not where it is
+   true. Drop finiteness and the argument goes, not merely the check. Which
    also means the widening cannot be escaped by choosing a friendlier ring:
    only a state whose invariant carries no surplus p-part escapes it.
 
