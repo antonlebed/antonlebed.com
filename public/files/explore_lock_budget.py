@@ -262,7 +262,9 @@ F6 AND THE LOCK/SPRAWL DICHOTOMY IS THAT SAME AXIS, SO THE TWO ARE ONE FACT
    and the linear side is the whole CONSTANT-GAP family with the gap equal
    to the ramification index, measured at 90 places. The "table anomaly"
    this finding tolerates below is the principal-unit filtration's predicted
-   HEAD, present at exactly the places with p - 1 <= e.)
+   HEAD, present at exactly the places with p - 1 <= e -- true of these
+   places, but not the criterion: explore_head_width.py F2 needs f = 1,
+   mu_p in K_P and e = (p-1)p^t.)
    (rule in range; a lone place deepened with nothing else seated, doors read
    at depths 1..24, over both number rings' place kinds and three function-
    field degrees, the function field's pump imported from its own engine).

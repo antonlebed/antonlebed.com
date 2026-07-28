@@ -341,7 +341,9 @@ sides of the comparison. S1: the supply matrices over the norm-30 window,
 every class's minimal representative of WIDTH 1 at both rings (so the failed
 gate does not arise over a number ring either), the path MINREP equal to the
 ring's at every class, and the ladder column parting at 3 places of 35, the
-biconditional against p - 1 <= e holding at all 35.
+biconditional against p - 1 <= e holding at all 35 -- which is a fact about
+those 35 quadratic places, the head's actual criterion being f = 1 with mu_p
+in K_P and e = (p-1)p^t (explore_head_width.py F2).
 S2: 334 and 341 states, 0 menu mismatches, 0 offsets winning, 177 tying, 0
 ties that are two divisors, 0 with a core outside the rider set, and every
 rider-set place among the attaining cores. S3: 26 and 27 locks, 0 non-flat -- a

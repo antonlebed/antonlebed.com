@@ -284,6 +284,11 @@ F1 THE TICK LADDER IS LAMBDA'S JUMP SET, AND A NUMBER RING'S GAP IS ITS
    explore_lock_budget.py F6 files as a table anomaly costing "one door of 2"
    is the mixed-characteristic filtration's own head, and it is predicted
    rather than tolerated.
+   CORRECTED BY explore_head_width.py F2: "p - 1 <= e" is a true statement
+   ABOUT these 90 places and not a criterion. A head needs f = 1, mu_p in
+   K_P and e = (p-1)p^t, and the two conditions part at 8 of 23 places read
+   across 20 local fields — including both inert places over 2, which no
+   ring here has. The 90 hold because every ring here is quadratic.
 
 F2 THE POSITIVE CONTROL (rule in range; 60 states per row, the other walker
    advanced by THIS walker's move so no tie convention can make them agree by
