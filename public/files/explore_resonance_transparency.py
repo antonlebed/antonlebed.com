@@ -407,9 +407,9 @@ print("""
 
 4. ON/OFF BALANCE. For prime p, the on-fraction over one orbit is
    floor(lambda/p)/lambda ~ 1/p. Large primes are mostly OFF (small
-   gate contribution). Transparent primes have exactly the same
-   on/off balance as non-transparent primes of the same size — the
-   balance depends on p, not on transparency.
+   gate contribution). The balance is fixed by p alone, so it does not
+   factor through transparency: it cannot report whether (p-1) divides
+   lambda, and it moves whenever p moves whether or not lambda does.
 
 5. THE GEOMETRY/DYNAMICS INTERFACE. The Ramanujan sum F(n) lives at
    the intersection:

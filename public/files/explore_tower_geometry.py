@@ -505,10 +505,15 @@ print("""
    Chord half-life = ln(2)/(2*sin^2(pi/p_k)) (controlled by largest prime).
    The tower diffuses slower as it grows — more dimensions, longer to mix.
 
-3. GEOMETRY DOES NOT SEE LAMBDA. Curvature, degree, gaps, shells all
-   depend on {p_1,...,p_k} directly, not on lcm(p_i - 1) = lambda.
-   A transparent prime and a non-transparent prime of the same size
-   contribute identical geometry. Lambda is dynamical, not metric.
+3. GEOMETRY DOES NOT FACTOR THROUGH LAMBDA. Not a split of domain --
+   {p_i} determines {p_i - 1} and conversely, so both sides below are
+   functions of the same prime set. The content is the witness in
+   section I: lambda is CONSTANT at 55,440 across k=10..14 while the
+   degree runs 119 -> 267 and curvature, both gaps and the shell
+   distribution move with it. So no geometric quantity is a function
+   of lambda. The mechanism is that a geometric quantity reads a
+   channel's SIZE, and lambda reads the multiplicative structure of
+   p - 1, which size does not determine.
 
 4. D-INVISIBILITY HOLDS AT EVERY RUNG (k=3..14, verified). The proof
    is algebraic and k-independent: odd-prime sub-rings always have
