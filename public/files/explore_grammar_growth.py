@@ -195,7 +195,7 @@ prefix), the two converge: collision-driven growth is a stream-independent count
 to BOUNDARY scale for natural data; destination-scale stream-dependence needs a data
 family engineered to concentrate many distinctions on one skipped prime. Honest limit: hand-designed, toy scope,
 the 5-prime pool (where the door is EASIEST -- larger pools only raise the
-unique-need scale), and these encodings and grammar families; the feature-base law
+unique-need scale), and these encodings and grammar families; the base-SUFFICIENCY law
 and the compositional-collapse identity are rules (mechanism-proved), the
 regime verdict is an observation at scope.
 
