@@ -1478,7 +1478,16 @@ def reading(w):
     """The shape with the deep coordinate's own exponent FORGOTTEN -- what a
     limit records, a divisor carrying no finite exponent at the place it sends
     to infinity. Two states differing only in how far the clock has carried
-    its own item reach one limit (explore_schedule_image.py F4)."""
+    its own item reach one limit (explore_schedule_image.py F4).
+
+    SCOPED TO A GLOBAL CLOCK, which this function carried silently until
+    explore_headed_image.py F1 measured it. Naming the deep coordinate as the
+    LAST CLOCK MOVER is sound here only because F5's limit theorem puts
+    exactly one coordinate above exponent 1, and that theorem is a
+    global-clock law: under a per-item clock the last clock mover is the
+    recurrent item at 4.6% of states. S4 below runs GLOBAL only, so nothing
+    in this file rests on the wider reading; a per-item image needs
+    explore_headed_image.py's rebuilt one and a determinacy test besides."""
     if not w.clocks:
         return w.shape()
     _, d, slot, _, _ = w.clocks[-1]
