@@ -94,8 +94,10 @@ THE HAND-ATTACK, on paper before any engine code.
  D. AND A PER-ITEM CLOCK CARRIES NO STATE AT ALL. Under one tick per item the
     tick after a landing is next_S(max(T_item, e)) = next_S(e) by induction
     from T = 1, so the tick is a FUNCTION of the item's own exponent. The
-    price is then exactly f(d, gap(e)) -- which is a ring's door verbatim --
-    and the state is the exponents alone.
+    price is then exactly f(d, gap(e)) -- which is a LONE place's door
+    verbatim, and a RING's only where no two seated places share a residue
+    characteristic, a ring giving one tick per characteristic and not one per
+    place (explore_block_clock.py) -- and the state is the exponents alone.
 
  E. THE CEILING WITH THE LADDER AS A PARAMETER. The stalest an item can be at
     tick T_k is T_k - T_{k-1}, having been landed at T_{k-1} + 1; its rival
@@ -395,8 +397,12 @@ F5 THE LIMIT'S SHAPE SURVIVES EVERY LADDER UNDER A GLOBAL CLOCK, AND UNDER A
    AND THE PER-ITEM CLOCK CARRIES NO STATE (proved -- hand-attack D -- and
    checked at 8922 (state, item) pairs, 0 off). Every item's tick is next_S
    of its own exponent, so the price is exactly f(d, gap(e)) and the state is
-   the exponent multiset alone. That is a ring's door verbatim, and it is
-   what lets the orbit-size lemma transfer to the per-item cells at all.
+   the exponent multiset alone. That is a LONE place's door verbatim, and a
+   RING's only where no two seated places share a residue characteristic --
+   a ring shares one tick across every place of one characteristic, which is
+   a BLOCK clock and neither end of this file's dial (explore_block_clock.py)
+   -- and it is what lets the orbit-size lemma transfer to the per-item cells
+   at all.
 
 F6 THE DEGREE CEILING IS A PROPERTY OF GEOMETRIC LADDERS ONLY, AND ITS
    DIVERGENCE IS REAL RATHER THAN AN ARTEFACT (rule in range; the planted
