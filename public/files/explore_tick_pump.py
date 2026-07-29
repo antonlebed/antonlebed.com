@@ -427,8 +427,8 @@ F6 THE DEGREE CEILING IS A PROPERTY OF GEOMETRIC LADDERS ONLY, AND ITS
    canonical continuation's clock census reads {1} at every ladder over both
    ring supplies, far below every bound in the table.
 
-F7 AT A BOUNDED GAP THE IMAGE SETTLES, AND ITS SIZE IS NOT A FUNCTION OF THE
-   GAP (rule in range; the readings of the states LIVE at move budgets 4 to
+F7 AT A BOUNDED GAP THE IMAGE SETTLES, AND ITS SHAPE COUNT IS NOT A FUNCTION
+   OF THE GAP (rule in range; the readings of the states LIVE at move budgets 4 to
    12, branching on every minimal-cost tie, two ring supplies). Read AT the
    budget rather than cumulatively -- a state passed through on the way is
    not a limit, and a cumulative count carries every transient -- the reading
@@ -437,9 +437,16 @@ F7 AT A BOUNDED GAP THE IMAGE SETTLES, AND ITS SIZE IS NOT A FUNCTION OF THE
    supply the settled sets have 3, 6, 4 and 4 members at gaps 1, 2, 3 and 5,
    and 5, 28, 90 and 12396 with the supply's item identities put back; over
    h5's, 1, 1, 1 and 2. So the answer to "which tiny" is: finite, settled by
-   budget 8, and NOT monotone in the gap -- the gap-2 ladder reaches MORE
-   limits than the gap-5 one, which kills the natural reading that a wider
-   gap buys a bigger image. Two of the four counts, 3 and 6, are not powers
+   budget 8, and NOT monotone in the gap AT THE SHAPE COUNT AND AT ONE
+   SUPPLY -- F_2[x]'s gap-2 ladder reaches MORE shapes than its gap-5 one,
+   which kills the natural reading that a wider gap buys a bigger image only
+   there. The two counts are not one number and they order differently: with
+   the item identities restored the count RISES at every gap, 5, 28, 90,
+   12396 -- and that pair is measured at F_2[x] ALONE, h5 carrying only its
+   shape counts 1, 1, 1, 2, which are non-decreasing and discriminate
+   nothing. So the natural reading survives at the count that has the places
+   in it, and the non-monotonicity is a fact about the abstract readings over
+   one supply. Two of the four SHAPE counts, 3 and 6, are not powers
    of 2 at all, a second and independent witness that the ring's measured 2^t
    is its sample's shape rather than the formula's.
    THE SCOPE, which the column headings do not carry: a SETTLED set is the
