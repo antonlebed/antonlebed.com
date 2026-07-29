@@ -290,7 +290,8 @@ FINDINGS.
      D-MEM hosts BOTH, by finding 5's padding (the pad is a new prime
        every time, so the idempotent count grows).
    Each law in the first column still hosts the OTHER instruction: the
-   coprime import is exactly what D-IND and D-SEMI admit, and the
+   increment is a fresh prime coprime to the state, which D-IND and
+   D-SEMI both admit, and the
    transparent push IS the decrement (a push of a SEATED l is transparent
    iff delta_l >= 1, the lambda-move criterion read the other way and at
    the criterion's own scope, a first push moving lambda for another
@@ -1191,7 +1192,8 @@ def s7_hosting_table():
     print("      -- so D-MEM hosts both instructions, and S3 says it cannot read")
     print()
     print("    each law in the first column hosts the OTHER instruction:")
-    print("      the coprime import is what D-IND and D-SEMI admit, and the")
+    print("      the increment is a fresh prime coprime to the state, which")
+    print("      D-IND and D-SEMI both admit, and the")
     print("      transparent push IS the decrement (a SEATED l's push is")
     print("      transparent iff delta_l >= 1)")
     print()
