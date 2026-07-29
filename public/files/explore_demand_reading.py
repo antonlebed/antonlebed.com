@@ -119,7 +119,7 @@ S6 THE AUTONOMOUS RUN. If S5 holds, the machine can be made
    inadmissible. [The HAND-DRIVEN contrast in this section was added
    AFTER the run, and it is what corrects finding 7: with the moves
    supplied by a hand the law is consulted only as a probe, so a
-   sighted law that hosts nothing drives the machine perfectly well.
+   sighted law that cannot host the machine drives it perfectly well.
    The design above did not think to ask, and the square was first
    written as though hosting were required unconditionally.]
 
@@ -289,10 +289,16 @@ FINDINGS.
        unbounded counter.
      D-MEM hosts BOTH, by finding 5's padding (the pad is a new prime
        every time, so the idempotent count grows).
+   Each law in the first column still hosts the OTHER instruction: the
+   coprime import is exactly what D-IND and D-SEMI admit, and the
+   transparent push IS the decrement (a push of l is transparent iff
+   delta_l >= 1, the lambda-move criterion read the other way, which is
+   exactly when the decrement does anything). So the column is a law
+   missing ONE of the pair and never a law hosting neither.
    With finding 4 the two axes are independent, and the filed laws fill
    all four cells:
 
-                     hosts nothing        hosts both
+                     hosts one            hosts both
        blind         D-IND, D-SEMI        D-MEM
        sighted       D-TRA                D-DYN == D-ORD
 
@@ -303,7 +309,7 @@ FINDINGS.
        probe): universality is exactly SIGHTEDNESS. The transparency
        law drives all three programs step for step against the
        reference while making 104 moves it rejects itself, so a law
-       that hosts nothing still buys the machine when something else
+       that cannot host the machine still buys it when something else
        supplies the moves.
      LAW-AUTONOMOUS (every move MADE is admissible): universality is
        sighted AND hosting, which exactly one filed law is. Here D-MEM
@@ -336,7 +342,7 @@ FINDINGS.
    exactly that, annexing the one fate that holds under every policy.
    The honest statement is that fate is decidable-by-policy rather than
    by demand, and that the fate with no policy freedom is precisely the
-   one whose law hosts nothing.
+   one whose law cannot host the machine.
 
 SCOPE AND CAVEATS. The classification covers the SIX filed demand laws
 and no more; a seventh predicate could land anywhere in the square, and
@@ -1029,7 +1035,7 @@ def hand_run(x0, program=PARITY, budget=200):
     come from the hand irrespective of admissibility and the law supplies only
     the probe, so a SIGHTED law drives the branch whether or not its admissible
     set could carry the run. Transparency is the law on purpose: it is the one
-    that hosts nothing. Returns the count of moves MADE that it rejects -- the
+    that cannot host the machine. Returns the count of moves MADE it rejects -- the
     price of dropping autonomy, paid in inadmissible moves.
     """
     PR = {"x": COUNTERS[0], "y": COUNTERS[1]}
@@ -1182,7 +1188,11 @@ def s7_hosting_table():
           % ("yes" if mem_ok else "NO"))
     print("      -- so D-MEM hosts both instructions, and S3 says it cannot read")
     print()
-    print("    THE SQUARE               hosts nothing        hosts both")
+    print("    each law in the first column hosts the OTHER instruction:")
+    print("      the coprime import is what D-IND and D-SEMI admit, and the")
+    print("      transparent push IS the decrement (transparent iff delta_l >= 1)")
+    print()
+    print("    THE SQUARE               hosts one            hosts both")
     print("      blind                  D-IND, D-SEMI        D-MEM")
     print("      sighted                D-TRA                D-DYN == D-ORD")
     print("    hand-driven, universality = the SIGHTED row (S6);")
