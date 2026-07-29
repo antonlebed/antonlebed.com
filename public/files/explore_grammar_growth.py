@@ -116,13 +116,25 @@ FINDINGS (tiers inline; run record below; all sections assert).
    = suffix, must-separate = different suffix) never produces a difference ==
    0 mod B: form = enc(stem)*B^L + enc(suffix), so a cross-suffix difference is
    congruent to a nonzero suffix-difference mod B (|Delta suffix| < B). Hence for a
-   squarefree B every feature difference is resolved by some prime factor of B, so the
-   grown substrate is CONTAINED IN B's prime factors (rule) and is exactly them when
-   the stream forces each (observed): B = 30 (= 2*3*5) grows [2, 3, 5]. When B's
-   factors lie OUTSIDE the pool (prime B = 29), the feature distinctions are base-free
-   relative to the pool and grow the generic prefix [2, 3, 5, 7, 11]. Either way two
-   same-base feature streams grow the IDENTICAL set and transfer with ZERO residual --
-   the grown set is fixed by the ENCODING's base, not the grammar. (The same-suffix, different-stem pairs ARE a sublattice
+   squarefree B, B's own prime factors SUFFICE -- every feature difference is resolved
+   by one of them: a difference not divisible by squarefree B must escape at least one
+   of B's prime factors, or their product would divide it (rule, by that mechanism; S1
+   confirms it at each base as prod(pool factors) dividing no demanded difference,
+   which at these bases coincides with the no-multiple check since every factor of 30
+   and of 35 lies in the pool -- confirmation, not a second proof). WHAT LEAST-NEW ACTUALLY GROWS IS A SEPARATE QUESTION, and its answer
+   is where those factors sit IN THE POOL, because greedy walks the pool
+   smallest-first and halts as soon as what it holds divides none of the demand.
+   Sufficiency does not give containment and the run shows it: B = 30 (= 2*3*5),
+   whose factors are the pool's three smallest, grows exactly [2, 3, 5]; B = 35
+   (= 5*7), whose factors sit higher, grows [2, 3, 5, 7] -- the pool below them and
+   then the one it needs, NOT contained in {5, 7}; and when B's factors lie OUTSIDE
+   the pool entirely (prime B = 29) the feature distinctions are base-free relative
+   to the pool and grow the generic prefix [2, 3, 5, 7, 11]. In EVERY case two
+   same-base feature streams grow the IDENTICAL set and transfer with ZERO residual,
+   which is the finding: the grown set is fixed by the ENCODING's base, not the
+   grammar. (An earlier statement of this finding claimed the containment as a rule
+   from the sufficiency argument, which does not carry it; B = 35 is the case that
+   separates the two, and the sufficiency half is what was actually proved.) (The same-suffix, different-stem pairs ARE a sublattice
    mod {2,3,5} -- 140 of 140 divisible by 30, S4 -- but they share the feature label,
    so all 140 drop out of D: the U_q sublattice of explore_collision_growth.py
    recreated by the base and rendered task-invisible.)
@@ -189,8 +201,10 @@ regime verdict is an observation at scope.
 
 RUN RECORD (python explore_grammar_growth.py, ~1 s, trivial memory):
   S0 controls: 3000 resolve==product==CRT-tuple; {1,2}->[2,3]; 770->[3]; enc([1,2])=12
-  S1 feature:  B=30 -> [2,3,5] (base factors), B=29 -> [2,3,5,7,11]; siblings cross 0;
-     no feature diff = 0 mod B; matched generic -> [2,3,5,7,11]
+  S1 feature:  B=30 (factors [2,3,5]) -> [2,3,5]; B=35 (factors [5,7]) -> [2,3,5,7],
+     NOT contained in its factors; B=29 (no pool factor) -> [2,3,5,7,11]; siblings
+     cross 0 at all three; B's factors resolve the whole demand at each; no feature
+     diff = 0 mod B; matched generic -> [2,3,5,7,11]
   S2 comp:     same-lexeme demand [1,2,3,4] = offset-diffs; |D| 431 < control 644;
      both grow [2,3,5,7,11]
   S3 crux:     unique-need (cov-1) in all 5 families, min cov 0-1; worst
@@ -199,16 +213,20 @@ RUN RECORD (python explore_grammar_growth.py, ~1 s, trivial memory):
   S4 transplant: 140/140 same-suffix diffs divisible by 30; 0 leak into feature D
   S5 door:     spread offsets 17 unique-need vs natural 1; designed t=770 -> [3],
      3-sublattice sibling -> [2,5,7] skips 3, gap 1
-  TOTAL 3023 checks, exit 0.
+  TOTAL 3027 checks, exit 0.
 
 ADJUDICATION vs the predictions fixed before the run (git history). PR2 (compositional
 collapse) and PR4 (base = task-invisible sublattice) landed as predicted. PR5's
 HEADLINE (the door opens only under a designed encoder) landed, but its incidental
 "min cov >= 2 for natural offsets" clause fell with PR3's (fusional-nat has one cov-1
 difference); the door-only-by-design conclusion held via the gap-size mechanism below,
-not via absence of unique-need. PR1 was REFINED: the feature task does not
-grow the generic prefix but the BASE's prime factors -- indistinguishable from
-generic only when the base is prime; the wall-survival half held. PR3 as literally
+not via absence of unique-need. PR1 was REFINED: the feature task grows the
+generic prefix only when the base has no factor in the pool, and otherwise
+grows whatever greedy's smallest-first walk halts on given that the base's own
+factors suffice -- which is the base's factors when they sit lowest in the pool
+(B = 30) and a superset when they do not (B = 35 -> [2,3,5,7] against factors
+{5,7}), so the two-way "generic prefix or the base's factors" reading this
+adjudication first recorded is a third case short; the wall-survival half held. PR3 as literally
 stated ("min cov >= 2, no unique-need difference") was REFUTED -- natural grammar DOES
 carry unique-need (cov-1, even cov-0) differences -- but the KILL it was defending
 (the wall survives) held by a SHARPER mechanism the run surfaced: the operative
@@ -409,7 +427,7 @@ def sole_resolvers(D, pool=POOL5):
 
 def s1_feature():
     print("\nS1: the FEATURE substrate tracks the BASE, not the grammar (PR1/PR4)")
-    for B in (30, 29):
+    for B in (30, 29, 35):
         rng = random.Random(11)
         fA, ns, nf = concat_forms(rng, 10, 5, B)
         DA = diffs_of(labeling_from(fA, lambda i, j: j))     # label = suffix
@@ -419,22 +437,37 @@ def s1_feature():
         SB = grow_least_new(DB, POOL5)
         cross = len(unresolved_diffs(SA, DB))
         no_mult = not any(d % B == 0 for d in DA)   # single-digit suffix mechanism
-        kind = "primorial" if B == 30 else "prime"
-        print(f"  B={B:2d} ({kind:9s}): A->{SA}, B->{SB}, cross A->B {cross}; "
-              f"min cov {min_cov(DA)}; no diff = 0 mod B: {no_mult}")
+        kind = {30: "low factors", 29: "prime", 35: "high factors"}[B]
+        fac = [p for p in POOL5 if B % p == 0]
+        print(f"  B={B:2d} ({kind:12s}) pool factors {fac}: A->{SA}, B->{SB}, "
+              f"cross A->B {cross}; min cov {min_cov(DA)}; no diff = 0 mod B: {no_mult}")
+        # the SUFFICIENCY of B's factors is the rule; whether least-new STAYS
+        # inside them is a separate question, and the answer is where those
+        # factors sit in the pool -- greedy walks it smallest-first.
+        # NOTE this check is not independent evidence at these bases: every
+        # prime factor of 30 and of 35 lies in the pool, so prod(fac) == B and
+        # the condition coincides with no_mult above. It is stated separately
+        # because it is the SUFFICIENCY property, and it would part from
+        # no_mult at a base with a factor outside the pool (B = 26 -> fac [2]).
+        check(not fac or all(d % prod(fac) != 0 for d in DA),
+              f"B={B}: B's own factors failed to resolve the whole demand")
         if B == 30:
             check(set(SA) <= {2, 3, 5} and set(SB) <= {2, 3, 5},
                   "feature/B=30 grew beyond the base primes")
             check(no_mult, "a feature diff was 0 mod B (multi-digit suffix?)")
             check(cross == 0, "same-base feature streams do not transfer")
-        else:
+        elif B == 29:
             check(any(p > 5 for p in SA), "prime base did not grow past the base primes")
+        else:
+            check(not set(SA) <= set(fac),
+                  "B=35: least-new stayed inside the base factors after all")
     rng = random.Random(99)
     gen = grow_least_new(diffs_of({x: rng.randrange(5) for x in range(30000)}), POOL5)
     print(f"  matched generic (5 classes over 0..29999) -> {gen}")
     check(set(gen) > {2, 3, 5}, "generic did not exceed the base primes")
-    print("  => the feature substrate = the primes DIVIDING THE BASE (B=30 -> {2,3,5});")
-    print("     the ENCODING sets the content, the grammar does not")
+    print("  => B's own factors always suffice; what greedy grows is set by where")
+    print("     they sit in the pool (B=30 -> [2,3,5]; B=35 -> [2,3,5,7], not {5,7}).")
+    print("     Either way the ENCODING sets the content, the grammar does not")
 
 
 # ---------------------------------------- S2: the compositional collapse
