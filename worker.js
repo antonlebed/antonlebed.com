@@ -69,6 +69,7 @@ export default {
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',
       '/learning': 'learning',
+      '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
       '/learning/ceilings': 'ceilings',
       '/claims': 'claims',
