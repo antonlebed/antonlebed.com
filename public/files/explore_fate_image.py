@@ -125,7 +125,7 @@ Q7 THE DEAD CELL. A run whose limit has finite support and no infinite
    exponent is a run with a finite limit, and a state that only ever
    multiplies by 2 or more cannot take infinitely many moves inside a finite
    limit -- so such a run HALTS. Predict that the square cell (sighted,
-   hosts nothing) is therefore forced mortal, and that this is why the
+   hosts one) is therefore forced mortal, and that this is why the
    mortality law sits exactly there.
    KILL: a live law in that cell, i.e. a law that reads lambda, hosts no
    unbounded depth, and still runs forever.
@@ -232,7 +232,7 @@ F2 THE SQUARE DECIDES TWO COORDINATES OF THE IMAGE AND NOT THE IMAGE
    The correspondence is over the five FILED laws, and this is its boundary,
    found by attacking the axis rather than by assuming it.
    What the square does NOT decide is the image:
-   independence and semisimplicity share the (blind, hosts nothing) cell and
+   independence and semisimplicity share the (blind, hosts one) cell and
    have different images -- same two coordinates, exponents free against
    exponents pinned to 1, verified by semisimplicity stalling at step 1 on a
    target wanting exponent 2. So the square is a coordinate map, not a
@@ -245,7 +245,7 @@ F3 MORTALITY IS THE BOTTOM CORNER OF THE IMAGE, AND THE SQUARE DOES NOT
    finite integer, every move multiplies by at least 2, so a run with that
    limit halts -- mortality is the corner where both coordinates bottom out,
    and a law is mortal exactly when its image holds that corner.
-   The cell half does not. It read "the cell (sighted, hosts nothing) buys
+   The cell half does not. It read "the cell (sighted, hosts one) buys
    finite support from its reading and forbids depth by its hosting, so it
    cannot hold a live law", and the quantifier is wrong in the first clause:
    sighted makes finite support AVAILABLE, not compulsory, so a law there may
@@ -547,10 +547,10 @@ def adm_dynamics(f, m):
 # name -> (predicate, reading, hosting) with the square position FILED, not
 # derived here (explore_demand_reading.py owns it).
 LAWS = [
-    ("independence", adm_independence, "blind", "hosts nothing"),
-    ("semisimplicity", adm_semisimplicity, "blind", "hosts nothing"),
+    ("independence", adm_independence, "blind", "hosts one"),
+    ("semisimplicity", adm_semisimplicity, "blind", "hosts one"),
     ("new-idempotents", adm_newidem, "blind", "hosts both"),
-    ("transparency", adm_transparency, "sighted", "hosts nothing"),
+    ("transparency", adm_transparency, "sighted", "hosts one"),
     ("dynamics", adm_dynamics, "sighted", "hosts both"),
 ]
 
@@ -1214,7 +1214,7 @@ def s5_square(wit):
     print("  members and live forever. The attack is one law again --")
     print("  FRESH-DYNAMICS, m admissible iff m is a prime not dividing N and")
     print("  lambda(N*m) > lambda(N): it reads lambda (sighted), it never")
-    print("  revisits a prime so it hosts no decrement (hosts nothing), and:")
+    print("  revisits a prime so it hosts no decrement (hosts one), and:")
     fd = lambda f, m: (m >= 2 and is_prime(m) and not f.get(m)
                        and lam_f(mul_f(f, m)) > lam_f(f))
     fresh_live = runs_forever(fd, {})

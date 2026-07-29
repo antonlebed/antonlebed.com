@@ -291,9 +291,11 @@ FINDINGS.
        every time, so the idempotent count grows).
    Each law in the first column still hosts the OTHER instruction: the
    coprime import is exactly what D-IND and D-SEMI admit, and the
-   transparent push IS the decrement (a push of l is transparent iff
-   delta_l >= 1, the lambda-move criterion read the other way, which is
-   exactly when the decrement does anything). So the column is a law
+   transparent push IS the decrement (a push of a SEATED l is transparent
+   iff delta_l >= 1, the lambda-move criterion read the other way and at
+   the criterion's own scope, a first push moving lambda for another
+   reason -- which is exactly when the decrement does anything). So the
+   column is a law
    missing ONE of the pair and never a law hosting neither.
    With finding 4 the two axes are independent, and the filed laws fill
    all four cells:
@@ -1190,7 +1192,8 @@ def s7_hosting_table():
     print()
     print("    each law in the first column hosts the OTHER instruction:")
     print("      the coprime import is what D-IND and D-SEMI admit, and the")
-    print("      transparent push IS the decrement (transparent iff delta_l >= 1)")
+    print("      transparent push IS the decrement (a SEATED l's push is")
+    print("      transparent iff delta_l >= 1)")
     print()
     print("    THE SQUARE               hosts one            hosts both")
     print("      blind                  D-IND, D-SEMI        D-MEM")
