@@ -1492,11 +1492,15 @@ def reading(w):
 
 
 def image_at(npl, sch, pump, cls, budget, dcap):
-    """(distinct limit readings, summed orbit size) reachable in AT MOST
-    `budget` moves, branching on every minimal-cost tie. Cumulative, not read
-    at the budget alone: a walk that locks reaches the same reading at every
-    later budget, and a count read at one budget would report a branch tree's
-    WIDTH where the question is how many limits there are.
+    """Per budget, one row each: (budget, distinct limit readings of the states
+    LIVE at exactly that budget, summed orbit size), branching on every
+    minimal-cost tie. Read AT the budget and never cumulatively -- a state
+    passed through on the way is not a limit, and a cumulative count carries
+    every transient. What answers the question is a set that stops MOVING
+    rather than one that stops growing: a walk that locks holds the same
+    reading at every later budget, so the support ceasing to change is the
+    limit set itself, while a set still moving at the last budget is no image
+    at all.
 
     The orbit sum weights each reading by explore_schedule_image.py's
     multinomial, which is a lemma about the SYMMETRY of the move model: the
