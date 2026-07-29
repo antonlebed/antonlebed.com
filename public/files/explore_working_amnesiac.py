@@ -268,8 +268,9 @@ FINDINGS (tiers per the standard naming scale; run record below).
 6. THE MATCHING GAP QUANTIFIED (observation). Necessity (no mass
    majority) is far from sufficiency once weights are unequal:
    ALL 118 searchable non-majority breadth fibers fail to cure
-   (the 72 over-cap fibers were never majority-tested and stay
-   outside this count). In uniform-weight fibers necessity IS
+   (the 72 over-cap fibers sit outside this count; finding 4
+   reports their partition-free majority test). In uniform-weight
+   fibers necessity IS
    sufficiency (L4); the gap between the two is exactly the
    exact-subset-sum structure of the weight family -- the working
    clause's true price surface.
