@@ -295,7 +295,7 @@ the channels, so 2^7 = 128 subset-indexed eigenvalues:
   lambda_S = sum_{{i not in S}} (p_i - 1) + sum_{{i in S}} (-1)
            = degree - sum_{{i in S}} p_i
 
-They are NOT 128 distinct values, and this section used to say they were.
+They are NOT 128 distinct VALUES.
 lambda_S depends on S only through the SUM of its primes, so the spectrum
 is the subset sums reflected through the degree, and subsets sharing a sum
 collide -- {{2,5}} and {{7}} both give 7. The distinct count is below.
