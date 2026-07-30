@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The price of a read — gates, word ops, and evidence</title>
+<meta name="description" content="What deciding a condition costs: the orbit-cost law, which fixes the gate count of a stable torsion orbit exactly and in any finite abelian group; the height floor, where opening the alphabet buys the count down to one gate and pays in word operations without bound; and the ring's valuation read as evidence — one rank-1 test in every semiring, and an e-calculus that cannot fabricate.">
+<link rel="canonical" href="https://antonlebed.com/measure/price">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure' class='up'>Measure</a> <a href='/learning'>Learning</a></nav><nav class='sub' aria-label='Measure'><a href='/measure'>The graded logic</a> <a href='/measure/worlds'>Words and curves</a> <a href='/measure/price' aria-current='page'>The price of a read</a></nav></header>
+<main>
+<h1>The price of a read</h1>
+<p class="lede">What deciding a condition costs in gates and in word
+operations, and what the ring's own valuation does to evidence.</p>
+
+<p>A rung of the tower is <b>Z</b>/<i>N</i> with <i>N</i> the product
+of the first k primes, one <b>channel</b> per prime, and the
+archimedean place deleted (<a href="/walls">Walls</a>), so nothing
+here is priced by size. A measurement program is a <b>word</b> — a
+formula over the leaves, the input variables, in MUL/INV/NOT, where
+INV is the meadow inverse (channel-wise inverse on the support, 0
+elsewhere, so division is total) and dropping NOT leaves the
+<b>monomial</b> alphabet, the <i>a<sup>i</sup>b<sup>j</sup></i> with
+exponents in <b>Z</b>. Words are read by the gates
+gate<sub><i>m</i></sub>(<i>w</i>) = [<i>w</i><sup><i>m</i></sup> = 1],
+which decide order divisibility channel by channel
+(<a href="/measure#quantifier-ladder">the quantifier ladder</a>). What
+a program is asked to decide is a <b>shadow</b>: an exact Boolean
+condition on the ring. Three budgets can pay for one — the alphabet
+the word is built from, the number of word operations, the number of
+gates — and which of them binds is set by the alphabet level
+(<a href="/measure#measurement-table">the measurement table</a>). At
+the monomial level the gate count is exact and provably so; open the
+alphabet to the whole meadow and deciding any residue drops to a single
+gate, at a word-op price with no ceiling.</p>
+
+<h2>Gate count and word ops</h2>
+
+<article class="claim" id="orbit-cost-law">
+  <div class="claim-head"><span class="claim-name">The orbit-cost
+  law</span> <span class="tier">theorem</span></div>
+  <p>At the monomial level, gate shadows are exactly the character
+  kernels of the discrete-log torus, and a stable torsion orbit — the
+  generators of the cyclic group <i>C</i> = ⟨(<i>a</i>, <i>b</i>, …)⟩
+  of order <i>d</i> — costs exactly <i>m</i>(<i>C</i>) +
+  <i>ω</i>(<i>d</i>) monomial gates (<i>ω</i> the number of distinct
+  prime factors), <i>m</i>(<i>C</i>) the minimal number of monomial
+  equations cutting <i>C</i> exactly = the rank of the ambient
+  modulo <i>C</i> (at two leaves: 1 if <i>d</i> = <i>n</i>, else
+  2) — coset gates plus order read. Upper: the
+  canonical program — <i>m</i>(<i>C</i>) gates cutting <i>C</i>,
+  then for each prime <i>q</i> | <i>d</i> one gate on a frame word — a
+  word of full order <i>d</i> on the orbit.
+  Lower: forced separators — per prime <i>q</i> | <i>d</i>, its own
+  gate — plus covering rigidity (the trade-exclusion): any coset the
+  membership gates fail to kill must be covered by separator slices,
+  slices are pinned, and every rank the membership gates drop comes
+  back, gate for gate, in separators — no covering system with
+  repeated or composite moduli ever beats
+  <i>t</i> + <i>s</i> ≥ <i>m</i>(<i>C</i>) + <i>ω</i>(<i>d</i>).
+  The lower bound never uses the leaf structure, so the law holds in
+  any finite abelian ambient group. At one leaf the law is the
+  order-cost law (rule, proved field-free both directions):
+  [ord <i>x</i> = <i>d</i>] costs exactly <i>ω</i>(<i>d</i>) + 1,
+  dropping to <i>ω</i>(<i>n</i>) at <i>d</i> = <i>n</i> —
+  primitivity reads one gate cheaper exactly at the top — and
+  filters — [<i>x</i> = 1] and the
+  gate<sub><i>m</i></sub>(<i>ab</i>⁻¹) rungs of
+  <a href="/measure/worlds#word-profile-theorem">the equality
+  grading</a> — cost exactly 1. On the orbits: the pentagon reads at
+  3 = 2 + 1 gates against its cut cost of 5 collected monomials —
+  deciding a locus and cutting it are different currencies, neither
+  dominating; the Φ<sub>6</sub> orbit reads at 3 at <i>p</i> = 7 and
+  4 at <i>p</i> = 13, so per-channel prices are not uniform across a
+  rung. Character kernels make a readout's atoms — the smallest sets
+  its gates can tell apart — obey Lagrange arithmetic: the
+  subgroup-cell bound (rule, proved), the ambient form the law
+  sharpens on cyclic targets.</p>
+  <p class="scope"><b>Scope.</b> Theorem proved both directions, any
+  finite abelian ambient. Censuses stand as verification: all
+  337,054,176 structured ≤ 4-gate candidates at the three-leaf
+  <i>m</i>(<i>C</i>) = 3 orbit, four fresh configurations sized so a
+  trade would fit under the law; the one-leaf law exhaustive over
+  lattice sweeps <i>n</i> = 6..360 plus boundary targets at
+  <i>n</i> = 2310.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_orbit_cost.py"><code>explore_orbit_cost.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_trade_exclusion.py"><code>explore_trade_exclusion.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_gate_budget.py"><code>explore_gate_budget.py</code></a></p>
+</article>
+
+<article class="claim" id="height-floor">
+  <div class="claim-head"><span class="claim-name">The height
+  floor</span> <span class="tier">rule</span></div>
+  <p>The meadow level collapses gate count to 1 —
+  gate<sub>1</sub> of a decision word — at a price moved wholly into
+  word ops: only cum(<i>L</i>) distinct words — the running total of
+  the formula-counting recurrence — exist at cost ≤ <i>L</i>, so the
+  dearest residue's decision-word cost grows without bound with
+  <i>p</i>. That cost is the constant's height
+  <i>h<sub>p</sub></i>(<i>c</i>), the fewest word operations that
+  build <i>c</i> from one graded leaf, and it carries the whole
+  price: [<i>x</i> = <i>c</i>] is decided by one gate and at most
+  <i>h<sub>p</sub></i>(<i>c</i>) + 2 word ops. The deleted place
+  returns as the price of
+  omniscience: <em>which</em> residue you decide carries a height
+  tax that grows without bound.
+  <a href="/measure/worlds#meadow-wall-breaker">The wall-breaker
+  word</a> is optimal — <i>h<sub>p</sub></i>(−1) = 6 exactly at
+  <i>p</i> = 5, 7, the cheapest nontrivial constant (observation;
+  heights are not monotone: <i>h</i>(4) &lt; <i>h</i>(3) at
+  <i>p</i> = 7) — and one ring gate reads all <i>k</i> channels in
+  parallel, so every per-channel price above is already the
+  ring's.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_gate_budget.py">
+  <code>explore_gate_budget.py</code></a></p>
+</article>
+
+<h2>Measuring evidence</h2>
+
+<p>Every set <i>S</i> of channels has its own idempotent
+<i>e<sub>S</sub></i> — residue 1 on <i>S</i>, 0 off it — and those
+2<sup><i>k</i></sup> elements are the layer on which the ring's logic
+is exactly Boolean
+(<a href="/measure#graded-logic">the graded logic</a>). That layer
+carries a valuation (observation): disjoint join is ring sum
+(<i>e<sub>S</sub></i><i>e<sub>T</sub></i> = 0 implies
+<i>e</i><sub><i>S</i>∪<i>T</i></sub> = <i>e<sub>S</sub></i> +
+<i>e<sub>T</sub></i>), so additive strengths are exactly
+channel-weight functionals, while the canonical counting valuation
+<i>μ</i>(<i>e<sub>S</sub></i>) = 1/∏(excluded <i>p</i>) is
+multiplicative — <i>μ</i>(<i>S</i>∧<i>T</i>)<i>μ</i>(<i>S</i>∨<i>T</i>) =
+<i>μ</i>(<i>S</i>)<i>μ</i>(<i>T</i>) — additive in the log domain:
+the strength of a truth value is the log-mass of what it
+<em>excludes</em>, content rather than chance. That valuation is
+where statistics attaches.</p>
+
+<article class="claim" id="semiring-rank-one-test">
+  <div class="claim-head"><span class="claim-name">One test, every
+  semiring</span> <span class="tier">rule</span></div>
+  <p>For product-form <i>f</i> the ring-total factorizes per channel
+  in any commutative semiring (the generalized distributive law +
+  CRT), and <i>f</i> equals the normalized product of its own
+  channel marginals iff <i>f</i> is product-form — a
+  semiring-indexed rank-1 test, exact in each of the three semirings
+  tested. On relations the verdicts are semiring-stable (a 0/1
+  product form can be taken with 0/1 factors — the lemma needs only
+  that the semiring has no zero divisors): equality and divisibility
+  pass, order fails, at all three points tested. The walls do not
+  depend on the temperature — Bayesian sum, tropical max, and
+  Boolean feasibility agree on what cannot factor.</p>
+  <p class="scope"><b>Scope.</b> Exhaustive at <b>Z</b>/30
+  (sum/max/Boolean) and <b>Z</b>/210 (Boolean + sum); the
+  classical family is the generalized distributive law
+  (Aji–McEliece) and valuation algebras (Shenoy–Shafer) — ours is
+  the tower-side composition.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_evidence_calculus.py">
+  <code>explore_evidence_calculus.py</code></a></p>
+</article>
+
+<article class="claim" id="evidence-one-directional">
+  <div class="claim-head"><span class="claim-name">Evidence is
+  one-directional</span> <span class="tier">rule</span></div>
+  <p>An <b>e-variable</b> is a nonnegative statistic of mean at most
+  1 under the null — the capital of a bet against it. The support
+  cylinder <i>A<sub>S</sub></i> = {<i>x</i> :
+  <i>x</i>·<i>e<sub>S</sub></i> = <i>x</i>} has exact probability
+  <i>μ</i>(<i>e<sub>S</sub></i>), so
+  <i>E<sub>S</sub></i> = 1[<i>A<sub>S</sub></i>]/<i>μ</i>(<i>e<sub>S</sub></i>)
+  is an exact e-variable, and the product of two is an e-variable
+  iff the two events are CRT-independent
+  (<i>S</i> ∪ <i>T</i> = all channels) — the multiplicative
+  valuation law is the bookkeeping. The classicality e-variable
+  reads the defect <i>δ</i>(<i>x</i>) = <i>x</i>² − <i>x</i>;
+  composing it with the collapse
+  <i>x</i> → <i>x</i><sup><i>λ</i></sup> returns
+  ∏<sub><i>p</i>∈<i>S</i></sub> <i>p</i>/2 for <em>every</em>
+  <i>x</i> (mean 105/8 at <b>Z</b>/210 with <i>S</i> = all
+  channels): the measurement fabricates
+  classicality, and the e-calculus is exactly the frame that rejects
+  it — bets precede measurement, e-processes on the ring adapted to
+  the pre-collapse filtration. Merging shows the same arrow: min and
+  harmonic merges are e-valid on all pairs, the arithmetic merge is
+  exactly tight (the Vovk–Wang canonical merge, exact on the ring),
+  and past it merges die — quadratic with an exact witness of mean
+  &gt; 1.346, max-merge at worst mean exactly 2 − 1/<i>N</i>. The
+  max-tropical end fabricates evidence, the min-tropical end only
+  wastes it: the same one-directionality as
+  <a href="/measure#quantifier-pair">the pair's</a> destructive
+  interference under OR — truth can be lost, never fabricated — now
+  enforced by a formalism. The e-calculus is not a third semiring
+  point but a second-order axis (bets over masses) anchored at the
+  summing end, whose log-shadow is the tropical valuation.</p>
+  <p class="scope"><b>Scope.</b> The product rule exhaustive at
+  <b>Z</b>/30 and <b>Z</b>/210 (all idempotent pairs;
+  <b>Z</b>/510510 all 128² by count formula, spot-enumerated); the
+  merge verdicts are the script's record. The e-value frame is
+  Shafer–Vovk's, the merges Vovk–Wang's — the ring composition is
+  the claim.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_evidence_calculus.py">
+  <code>explore_evidence_calculus.py</code></a></p>
+</article>
+
+<p>Degree quantifiers come free with the ring, channel quantifiers
+cost the deleted place, and complete knowledge of a residue costs a
+height that grows without bound — measurement without size is not
+measurement without price, and the price list is exact.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

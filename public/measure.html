@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Measure — measurement without size</title>
+<meta name="description" content="The idempotent algebra: exact Boolean logic on the idempotents, a graded logic whose every failure is located in the defect ideal, the quantifier pair, envelope and ladder, and the measurement table charting what each level of read decides and what it costs.">
+<link rel="canonical" href="https://antonlebed.com/measure">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure' class='up'>Measure</a> <a href='/learning'>Learning</a></nav><nav class='sub' aria-label='Measure'><a href='/measure' aria-current='page'>The graded logic</a> <a href='/measure/worlds'>Words and curves</a> <a href='/measure/price'>The price of a read</a></nav></header>
+<main>
+<h1>Measure</h1>
+<p class="lede">Measurement without size: what the ring decides about
+its own elements, and the exact price of each read.</p>
+
+<ul class='children'><li><a href='/measure/worlds'>Words and curves</a> — the two worlds the logic grades — words and curves</li><li><a href='/measure/price'>The price of a read</a> — what a read costs: the orbit-cost law and the ring's valuation</li></ul>
+
+<p>A rung of the tower is <b>Z</b>/<i>N</i> with <i>N</i> the product
+of the first k primes, one <b>channel</b> per prime
+(<a href="/object">The Object</a>), and the construction deletes the
+archimedean place, so nothing below is measured by size
+(<a href="/walls">Walls</a>). What remains is the ring's own
+instrument: the power map ◇<i>a</i> = <i>a</i><sup><i>λ</i></sup> =
+<i>e</i><sub>supp(<i>a</i>)</sub>, where <i>λ</i> = lcm(<i>p</i>−1) is
+the exponent of the unit group and supp <i>a</i> the channels on which
+<i>a</i> is nonzero. It sends every element to an <b>idempotent</b>
+(<i>e</i>² = <i>e</i>: one 0/1 residue per channel, so
+2<sup><i>k</i></sup> of them) — the one marking its own support.
+Around that map sit a graded logic, a quantifier pair, and a ladder of
+order gates, each level of read with an exact reach and an exact
+price.</p>
+
+<h2>The graded logic</h2>
+
+<article class="claim" id="graded-logic">
+  <div class="claim-head"><span class="claim-name">The graded
+  logic</span> <span class="tier">rule</span></div>
+  <p>The ring polynomials AND = <i>ab</i>, OR = <i>a</i>+<i>b</i>−<i>ab</i>,
+  NOT = 1−<i>a</i>, IMP = 1−<i>a</i>+<i>ab</i> restrict to exact
+  Boolean logic on the 2<sup><i>k</i></sup> idempotents —
+  intersection, union, complement — and the residuation law
+  (<i>x</i> AND <i>a</i>) ≤ <i>b</i> iff <i>x</i> ≤ (<i>a</i> IMP
+  <i>b</i>) holds over all 128³ idempotent triples of
+  <b>Z</b>/510510. On the rest of the ring the same polynomials give
+  a graded logic whose every failing Boolean law fails inside the
+  <b>defect ideal</b> generated by <i>δ</i>(<i>x</i>) =
+  <i>x</i>² − <i>x</i>: the idempotents of any commutative ring form
+  a Boolean algebra under these connectives (standard), so a law's
+  LHS − RHS vanishes in
+  <b>Z</b>[<i>x</i>]/(<i>x<sub>i</sub></i>² − <i>x<sub>i</sub></i>) —
+  every failure is a combination Σ <i>δ</i>(<i>x<sub>i</sub></i>)·<i>g<sub>i</sub></i>.
+  The eleven charted laws each deform in a <em>single</em> variable —
+  each holds whenever that one variable is classical, the others
+  arbitrary: excluded middle by +<i>δ</i>, contradiction by
+  −<i>δ</i>, absorption by <i>δ</i>(1−<i>b</i>), the two
+  distributivities by <i>δ</i>·<i>bc</i> and
+  −<i>δ</i>(1−<i>b</i>)(1−<i>c</i>), modus ponens by
+  −<i>δ</i>(1−<i>b</i>); De Morgan, double negation, and
+  contraposition survive identically. Truth is per-channel:
+  <i>δ</i> vanishes on channel <i>p</i> iff the residue reads 0 or 1,
+  so supp <i>δ</i>(<i>a</i>) is exactly the non-classical channels of
+  <i>a</i>. The graded region has no internal order
+  (<i>a</i> ≤ <i>a</i> already needs idempotence): degrees are not
+  ordered as in fuzzy logic, they are <em>located</em>.</p>
+  <p class="scope"><b>Scope.</b> The defect-ideal law proved; the
+  deformation identities verified exhaustively at <b>Z</b>/30 and on
+  20,000 triples at <b>Z</b>/510510.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_idempotent_logic.py">
+  <code>explore_idempotent_logic.py</code></a></p>
+</article>
+
+<article class="claim" id="defect-calculus">
+  <div class="claim-head"><span class="claim-name">The defect
+  calculus</span> <span class="tier">rule</span></div>
+  <p>The defect composes exactly: <i>δ</i>(NOT <i>a</i>) =
+  <i>δ</i>(<i>a</i>), and <i>δ</i>(<i>a</i> AND <i>b</i>) =
+  <i>δ</i>(<i>a</i>)<i>δ</i>(<i>b</i>) + <i>δ</i>(<i>a</i>)<i>b</i> +
+  <i>a</i><i>δ</i>(<i>b</i>) — a twisted Leibniz rule (twist
+  <i>a</i> → <i>a</i>²) whose NOT-conjugates are the OR and IMP laws.
+  Additively <i>δ</i>(<i>a</i>+<i>b</i>) = <i>δ</i>(<i>a</i>) +
+  <i>δ</i>(<i>b</i>) + 2<i>ab</i>, the polarization that dies in
+  characteristic 2 — channel 2 is wholly classical
+  (<b>F</b><sub>2</sub> = {0, 1}), so the graded logic lives on the
+  odd channels. Nesting in the four connectives therefore never
+  creates non-classicality: supp <i>δ</i>(<i>F</i>) lies inside the
+  union of the inputs' defect supports for every AND/OR/NOT/IMP
+  formula <i>F</i>. Bare ring + escapes the scope, its polarization
+  2<i>ab</i> creating defect from two classical truths
+  (<i>δ</i>(1+1) = 2). A non-classical channel is classicalized in
+  exactly two ways per binary connective — absorption (partner 0 for
+  AND, 1 for OR) or its own inverse (partner <i>x</i>⁻¹ for AND, the
+  NOT-mirror for OR) — and NOT never cancels.</p>
+  <p class="scope"><b>Scope.</b> Proved by substitution; verified
+  exhaustively at <b>Z</b>/30 and on 20,000 pairs at <b>Z</b>/510510;
+  the classicalization census over all <i>p</i> ≤ 23, all
+  non-classical residues.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_idempotent_logic.py">
+  <code>explore_idempotent_logic.py</code></a></p>
+</article>
+
+<h2>The quantifier pair</h2>
+
+<p>The power map is the logic's measurement, and it comes as a
+conjugate pair quantifying the <em>degree</em> of truth within a
+channel. Quantifying over channels instead is walled — [<i>a</i> = 0]
+is not channel-local
+(<a href="/walls#locality-criterion">the locality criterion</a>) — so
+degree quantifiers come free and channel quantifiers cost the deleted
+place. What such a measurement is asked to decide is a <b>shadow</b>:
+an exact Boolean condition on the ring — [<i>a</i> = 0],
+[ord <i>a</i> = <i>d</i>], [<i>ab</i> = 1] — and every reach and every
+price in this section is the reach or the price of deciding one.</p>
+
+<article class="claim" id="quantifier-pair">
+  <div class="claim-head"><span class="claim-name">The quantifier
+  pair</span> <span class="tier">rule</span></div>
+  <p>◇<i>a</i> = <i>a</i><sup><i>λ</i></sup> reads &ldquo;true to
+  some degree&rdquo; (channel 1 iff residue ≠ 0); its De Morgan
+  conjugate □<i>a</i> = 1 − (1−<i>a</i>)<sup><i>λ</i></sup> reads
+  &ldquo;fully true&rdquo; (1 iff residue = 1); and ◇NOT = NOT□
+  exactly — the measurement's NOT-failure is NOT exchanging the pair,
+  not NOT breaking. ◇ commutes with AND exactly (fields), □ with OR
+  exactly; each leaks on the dual connective at the same per-channel
+  count: two true channels disjoin to false under ◇ iff
+  (1−<i>x</i>)(1−<i>y</i>) = 1 — exactly <i>p</i> − 2 of the
+  (<i>p</i>−1)² true-true pairs per channel, so under ◇ truth can be
+  lost, never fabricated — exactly as □ gains truth over AND by
+  inversion. Over uniform random pairs the per-channel mismatch
+  (<i>p</i>−2)/<i>p</i>² predicts a tuple-level rate of 0.4237 at
+  <b>Z</b>/510510; measured 0.4234. Mixed-form T, 4/5, K,
+  necessitation, and the Halmos closure law hold exactly: an
+  S5-shaped pair. The pair's gap is the defect measurement:
+  ◇<i>a</i> − □<i>a</i> = ◇<i>δ</i>(<i>a</i>) — &ldquo;true to some
+  degree and false to some degree&rdquo; is exactly the non-classical
+  region.</p>
+  <p class="scope"><b>Scope.</b> Leak laws proved by substitution,
+  census <i>p</i> ≤ 23; the gap identity exhaustive over all
+  channels.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_idempotent_logic.py"><code>explore_idempotent_logic.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_quantifier_envelope.py"><code>explore_quantifier_envelope.py</code></a></p>
+</article>
+
+<article class="claim" id="quantifier-envelope">
+  <div class="claim-head"><span class="claim-name">The quantifier
+  envelope</span> <span class="tier">rule</span></div>
+  <p>The pair turns measurement into a two-sided certificate for
+  every connective formula (AND/OR/NOT/IMP; bare + stays outside the
+  scope): push NOT to the leaves — the input variables; De Morgan
+  survives off the lattice — and keep per leaf only the two bits
+  (◇<i>a</i>,
+  □<i>a</i>). The Boolean evaluations roof <i>U</i> (◇ at positive
+  leaves, NOT□ at negated — exact there, by the conjugacy) and floor
+  <i>L</i> (□ / NOT◇) bracket the true shadow channel-wise,
+  <i>L</i> ≤ □<i>F</i> ≤ ◇<i>F</i> ≤ <i>U</i>, by an induction whose
+  two inequality slots are exactly the one-directional leak laws.
+  <i>U</i> = 0 certifies the shadow false, <i>L</i> = 1 fully true,
+  <i>U</i> = <i>L</i> the verdict outright — a Kleene-style two-sided
+  evaluation computed in-ring; ◇ alone certifies only falsity, □
+  alone only truth, so the two-sided decision needs the pair. Slack
+  is located — the uncertainty region lies inside the union of the
+  inputs' defect supports, so classical-input channels are always
+  certified — and counted: the same <i>p</i> − 2 mismatch sets, now
+  as envelope slack at the dual-connective nodes. Read-once formulas
+  achieve both ends of the bracket at <i>p</i> = 5, 7, 11 (rule for
+  the swept family — exhaustive, trees to 4 leaves — observation
+  beyond); at <i>p</i> = 3 the envelope can overshoot — the graded
+  region of <b>F</b><sub>3</sub> is the single self-inverse point −1,
+  forcing (−1) OR (−1) = 0 and (−1) AND (−1) = 1, the <i>p</i> = 3
+  rigidity — and dependent shadows sit inside the bracket at
+  <i>p</i> ≡ 1 mod 3: <i>a</i> AND NOT <i>a</i> is fully true
+  wherever <i>δ</i>(<i>x</i>) = −1 is solvable, the floor stuck at
+  0. The worked decision procedure — certified verdicts under a
+  classical-leaning mixture, zero wrong certificates over censuses
+  and ring-level streams, the ◇-only mask erring at an exactly
+  enumerated nonzero rate — is the script's record.</p>
+  <p class="scope"><b>Scope.</b> The bracket proved; sharpness as
+  tiered above.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_quantifier_envelope.py">
+  <code>explore_quantifier_envelope.py</code></a></p>
+</article>
+
+<article class="claim" id="quantifier-ladder">
+  <div class="claim-head"><span class="claim-name">The quantifier
+  ladder</span> <span class="tier">rule</span></div>
+  <p>The pair is the two ends of one family: for <i>m</i> | <i>λ</i>
+  the partial collapse ◇<sub><i>m</i></sub> <i>a</i> =
+  <i>a</i><sup><i>m</i></sup> filters — <i>m</i> | <i>m</i>′ makes
+  <i>a</i><sup><i>m</i>′</sup> a function of
+  <i>a</i><sup><i>m</i></sup> — and the bit-valued gate
+  gate<sub><i>m</i></sub>(<i>a</i>) = □(<i>a</i><sup><i>m</i></sup>)
+  reads the order: [ord <i>a</i> | <i>m</i>] per channel.
+  gate<sub>1</sub> = □, gate<sub><i>λ</i></sub> = ◇, monotone along
+  the divisor lattice, meet-exact
+  (gate<sub>gcd</sub> = gate<sub><i>m</i></sub> AND
+  gate<sub><i>m</i>′</sub>), gcd-complete, outputs on the idempotent
+  lattice — <i>d</i>(<i>λ</i>) genuine quantifiers between
+  &ldquo;fully true&rdquo; and &ldquo;true to some degree&rdquo; (at
+  <b>Z</b>/510510: <i>λ</i> = 240 and 20 of them, all distinct).
+  Repeated leaves <em>are</em> the ladder: □ of the <i>m</i>-fold AND
+  of one leaf is
+  gate<sub><i>m</i></sub> — what a repeated leaf computes beyond the
+  pair is exactly order information. The ladder bar (a rung must
+  decide what the pair cannot) is met by the envelope's own dependent
+  shadow: □(<i>a</i> AND NOT <i>a</i>) = [Φ<sub>6</sub>(<i>a</i>) = 0]
+  identically, and 6 — the smallest non-prime-power order — is the
+  ladder's first join defect, so the shadow is gate<sub>6</sub> AND
+  NOT(gate<sub>2</sub> OR gate<sub>3</sub>). Pair-decidability of
+  this shadow is the splitting law of <b>Q</b>(<i>ζ</i><sub>6</sub>):
+  split channels <i>p</i> ≡ 1 mod 3 blind the pair, inert channels
+  are vacuously false, and the ramified <i>p</i> = 3 is pinned by the
+  rigidity — which <em>is</em> Φ<sub>6</sub>'s ramification
+  (disc −3), the ladder folding there (gate<sub>6</sub> =
+  gate<sub>2</sub>). The ladder decides the shadow on every channel
+  with zero errors, on a formula where the pair-only floor is
+  identically 0 (at <b>Z</b>/510510 the ladder earns exactly channels
+  7 and 13). Its own wall: the leaf ladder measures exactly the joint
+  order profile (ord <i>a</i>, ord(1−<i>a</i>)) — shadows with
+  non-cyclotomic root conditions escape
+  ([<i>a</i>²(1−<i>a</i>) = 1] first collides at <i>p</i> = 11), and
+  [<i>ab</i> = 1] escapes every single-leaf measurement: relative
+  order is not a leaf quantity. Beneath the gates, the power maps
+  that are honest projections are exactly the idempotent exponents
+  <i>e</i>² ≡ <i>e</i> mod <i>λ</i> —
+  2<sup><i>ω</i>(<i>λ</i>)</sup> Hall projections splitting
+  truth-degree by <i>λ</i>'s primes (at <b>Z</b>/510510: 8): the
+  logic's projection lattice is the idempotent lattice of the
+  exponent ring <b>Z</b>/<i>λ</i>, one level down
+  (<a href="/walls/numbers#index-transform">index coordinates</a>).</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_quantifier_ladder.py">
+  <code>explore_quantifier_ladder.py</code></a></p>
+</article>
+
+<h2>The measurement table</h2>
+
+<article class="claim" id="measurement-table">
+  <div class="claim-head"><span class="claim-name">The measurement
+  table</span> <span class="tier">rule</span></div>
+  <p>The whole hierarchy is one chart. A measurement program is a
+  <em>word</em> — a formula over the leaves in MUL/INV/NOT, the
+  meadow alphabet, INV being the meadow inverse that inverts each
+  unit channel and fixes 0, so division is total; dropping NOT leaves
+  the monomial alphabet, whose words are the
+  <i>a<sup>i</sup>b<sup>j</sup></i> with exponents in <b>Z</b>. A word
+  is read by gates
+  gate<sub><i>m</i></sub>(<i>w</i>) = [<i>w</i><sup><i>m</i></sup> = 1]
+  under a Boolean readout, and its three budgets — alphabet level,
+  word ops, gate count — bind one per level, the gate-budget
+  grading. The measurement walls are the table's ∞ rows: monomial
+  gates are orbit-constant, so an orbit-splitting shadow has no
+  finite monomial-gate price at <em>any</em> count — and every
+  alphabet wall falls at a deeper row until the meadow closure breaks
+  the last, the wall returning as a price that grows without bound
+  (<a href="/measure/price#height-floor">the height floor</a>).</p>
+  <table class="chart">
+    <thead>
+      <tr><th>read</th><th>decides exactly — price</th><th>first wall</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>the pair ◇, □ (one leaf, one read)</td>
+      <td>the two degree bits; the envelope bracket — two bits per
+      leaf</td>
+      <td>dependent shadows (the floor stuck at 0)</td></tr>
+      <tr><td>the ladder gate<sub><i>m</i></sub> (one leaf,
+      repeated)</td>
+      <td>the order profile — one gate per divisor</td>
+      <td>non-cyclotomic roots; relative order [<i>ab</i> = 1]</td></tr>
+      <tr><td>words gate<sub><i>m</i></sub>(<i>a<sup>i</sup>b<sup>j</sup></i>)
+      (monomial alphabet)</td>
+      <td>leaf dlogs up to one shared unit; every multiplicative
+      coset; the equality grading — an orbit: <i>m</i>(<i>C</i>) +
+      <i>ω</i>(<i>d</i>) gates</td>
+      <td>additive lines, bar the crystallographic skeleton (orders
+      1, 2, 3, 6)</td></tr>
+      <tr><td>affine letters added {<i>a</i>, <i>b</i>, 1−<i>a</i>,
+      1−<i>b</i>}</td>
+      <td>the order profile refined (<i>p</i> = 11); the ±1-ratio
+      lines</td>
+      <td>[<i>a</i> + <i>b</i> = 3] still blind</td></tr>
+      <tr><td>the meadow closure (the wall-breaker)</td>
+      <td>[<i>x</i> = <i>c</i>] for every residue — complete; one
+      gate + <i>h<sub>p</sub></i>(<i>c</i>) + 2 word ops → ∞</td>
+      <td>none — the wall moves into the price</td></tr>
+      <tr><th colspan="3">the cut side — what holds
+      order-<i>d</i> torsion</th></tr>
+      <tr><td>a shadow of <i>M</i> monomials</td>
+      <td>the codeword species iff <i>q</i><sub>min</sub>(<i>d</i>) ≤
+      <i>M</i> (the menu law)</td>
+      <td><i>q</i><sub>min</sub>(<i>d</i>) &gt; <i>M</i> is
+      invisible, bar the whole-group species</td></tr>
+      <tr><td>a shadow of degree <i>D</i></td>
+      <td><i>D</i><sub>min</sub> = 1 (even <i>d</i>); Θ(√<i>q</i>)
+      (prime <i>q</i>); <i>q</i><sub>min</sub>(<i>d</i>) − 1 (other
+      odd <i>d</i> — the tax)</td>
+      <td>the ≥3-factor close-second-prime zone (value open)</td></tr>
+    </tbody>
+  </table>
+  <p>The symbols the chart carries: dlog is the discrete log of a
+  unit in its channel; <i>ω</i>(<i>d</i>) is the number of distinct
+  prime factors of <i>d</i> and <i>q</i><sub>min</sub>(<i>d</i>) its
+  least prime factor; <i>m</i>(<i>C</i>) is the minimal number of
+  monomial equations cutting an orbit's group <i>C</i> exactly; and
+  <i>h<sub>p</sub></i>(<i>c</i>) is the height of the residue
+  <i>c</i>, the fewest word operations that build it from one graded
+  leaf. A torsion
+  order is of the <em>codeword species</em> for a shadow when the
+  shadow's fiber over it is a nonzero codeword of a cyclotomic cyclic
+  code, and of the whole-group species when that fiber vanishes
+  identically. The word and cut rows are charted on
+  <a href="/measure/worlds">Words and curves</a>, the price column on
+  <a href="/measure/price">The price of a read</a>.</p>
+  <p class="scope"><b>Scope.</b> Every row is one of this section's
+  claims at its stated tier; the ∞-row mechanism (orbit-constancy of
+  monomial gates) is proved.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_gate_budget.py">
+  <code>explore_gate_budget.py</code></a></p>
+</article>
+
+<h2>Words and curves</h2>
+
+<p><span id="word-profile-theorem"></span><span
+id="crystallographic-skeleton"></span><span
+id="meadow-wall-breaker"></span><span id="fiber-criterion"></span><span
+id="torsion-menu-law"></span><span id="realizability-law"></span><span
+id="two-fat-slice-exclusion"></span>Two leaves fix each other's
+discrete logs up to one shared unit and nothing further: every
+multiplicative coset is decided, while the additive world stays blind
+except for a skeleton of orders 1, 2, 3, 6 — the crystallographic
+restriction, arriving as a fact about words. Past degree 1 the
+question inverts, and which loci <em>hold</em> torsion is settled by a
+coding bound: a shadow of <i>M</i> monomials sees an order only if
+that order's least prime is at most <i>M</i>, unless it swallows the
+whole orbit — <a href="/measure/worlds">Words and curves</a>.</p>
+
+<h2>The price of a read</h2>
+
+<p><span id="orbit-cost-law"></span><span id="height-floor"></span><span
+id="semiring-rank-one-test"></span><span
+id="evidence-one-directional"></span>A stable torsion orbit costs
+exactly <i>m</i>(<i>C</i>) + <i>ω</i>(<i>d</i>) monomial gates —
+proved both directions, and in any finite abelian group, not just this
+one. The meadow level buys that count down to a single gate and pays
+for it in word operations, where the deleted place returns as a height
+tax that grows without bound. The same page carries what the logic's
+own valuation does to evidence: one rank-1 test valid in every
+semiring, and an e-calculus that can waste evidence but never
+fabricate it — <a href="/measure/price">The price of a read</a>.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

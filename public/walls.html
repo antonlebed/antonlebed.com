@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Walls — the deletion measured</title>
+<meta name="description" content="What deleting the archimedean place costs: the locality criterion, the hiding lemma and the priced escapes, the exact comparator's cost law, what replaces order, the total hiding of cyclic orientation, why induction is a finite-rung artifact, the provenance ladder that pins every wall to the structure carrying it, and whether the deletion is necessary at all.">
+<link rel="canonical" href="https://antonlebed.com/walls">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+.muted { color: var(--muted); }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls' class='up'>Walls</a> <a href='/measure'>Measure</a> <a href='/learning'>Learning</a></nav><nav class='sub' aria-label='Walls'><a href='/walls' aria-current='page'>The archimedean wall</a> <a href='/walls/numbers'>Number systems</a> <a href='/walls/meaning'>Meaning</a> <a href='/walls/reading'>Reading</a> <a href='/walls/algebra'>The division algebras</a></nav></header>
+<main>
+<h1>Walls</h1>
+<p class="lede">What deleting the archimedean place costs, measured
+level by level.</p>
+
+<ul class='children'><li><a href='/walls/numbers'>Number systems</a> — index transforms, the Zech wall, and designed towers</li><li><a href='/walls/meaning'>Meaning</a> — the ring as a live medium: exact binding and its tolls</li><li><a href='/walls/reading'>Reading</a> — the reading geometry: windows, gates, and what a cover buys</li><li><a href='/walls/algebra'>The division algebras</a> — Cayley–Dickson climbed over one channel, and where it floors</li></ul>
+
+<p>One question runs through the whole section: <b>through which
+residue window can an operation be read?</b> The construction keeps
+every finite place and deletes the archimedean one
+(<a href="/object">The Object</a>): a rung is <b>Z</b>/<i>N</i> with
+<i>N</i> the product of the first k primes, one <b>channel</b> per
+prime. The walls measure that deletion
+and its echoes one level down, and every known escape is priced. The
+three walls proper are a trilogy — one statement with one parameter,
+which level's windows. <b>Size</b>: the deleted window at level 0 — no
+finite window reads it, by construction. <b>Zech</b>: readable through
+no window one level down — recode a channel by a discrete logarithm, so
+that × becomes +, and the addition table of those index coordinates is
+incompatible with every nontrivial proper quotient of the ring the
+indices live in, <b>Z</b>/(<i>p</i>−1)
+(<a href="/walls/numbers#zech-wall">Number systems</a>).
+<b>Super-log</b>: blocked one level down by a unit group that is not
+cyclic — the residue field at 2 is harmless; the 2-part
+<i>U</i>(2<sup><i>k</i></sup>), <i>k</i> ≥ 3, is the blocker
+(<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_super_log.py"><code>explore_super_log.py</code></a>).
+Information, structure, existence: three failure modes of the one
+question.</p>
+
+<h2>The archimedean wall</h2>
+
+<article class="claim" id="locality-criterion">
+  <div class="claim-head"><span class="claim-name">The locality
+  criterion</span> <span class="tier">rule</span></div>
+  <p>Call <i>f</i> : <b>Z</b>/<i>N</i> → <b>Z</b>/<i>N</i>
+  <b>channel-local</b> if <i>f</i>(<i>x</i>) mod <i>p</i> depends only
+  on <i>x</i> mod <i>p</i> for every channel — the
+  parallel-computable functions — and <b>compatible</b> if
+  <i>a</i> ≡ <i>b</i> (mod <i>p</i>) implies <i>f</i>(<i>a</i>) ≡
+  <i>f</i>(<i>b</i>) (mod <i>p</i>) for every <i>p</i> | <i>N</i>. On
+  a squarefree ring these coincide with the polynomial functions:
+  every function on a field is a Lagrange polynomial and the
+  coefficients CRT-glue degreewise. The classic residue-system walls
+  all fall outside: sign [<i>x</i> ≥ <i>N</i>/2], comparison, and
+  overflow are incompatible — explicit witnesses at every channel —
+  hence not channel-locally computable at any rung <i>k</i> ≥ 2. And
+  channel-local bijections compose and invert channel-locally, so the
+  obstruction survives every within-ring change of coordinates,
+  linear or not: the wall is locality, not linearity.</p>
+  <p class="scope"><b>Scope.</b> Proved, one- and
+  <i>n</i>-variable; exhaustive at <b>Z</b>/6 (of 46656 functions,
+  compatible = local = polynomial = 108), constructive lift at
+  <b>Z</b>/30. The equivalence is squarefree-only — <b>Z</b>/4 has 64
+  polynomial functions of 256 channel-local — so the tower's rungs
+  are exactly the regime where channel-parallel = polynomial.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_size_transform.py">
+  <code>explore_size_transform.py</code></a></p>
+</article>
+
+<article class="claim" id="hiding-lemma">
+  <div class="claim-head"><span class="claim-name">The hiding
+  lemma</span> <span class="tier">rule</span></div>
+  <p>The hiding is quantitatively sharp: the fiber over a known
+  proper subset of channels is an arithmetic progression, so the sign
+  bit has bias at most half an element over the fiber — and exactly
+  zero whenever channel 2 is among the unknowns. One level up, the
+  totality is the half-coverage law: no archimedean fact about a
+  horizon is certain at or below half coverage, under any
+  budget shape, and a proper divisor's budget never exceeds half —
+  while residue <em>order</em> still leaks statistically from the
+  first window, by an exact accuracy law.</p>
+  <p class="scope"><b>Scope.</b> Proved; exhaustive at <i>k</i> = 4.
+  The half-coverage law and the sub-ring cap are proved
+  general.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_size_transform.py"><code>explore_size_transform.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_size_crystallization.py"><code>explore_size_crystallization.py</code></a></p>
+</article>
+
+<p>Every known exact escape pays one of three prices — a
+classification of the literature, not a theorem over all methods.
+The partial-fraction identity</p>
+<div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>x</mi><mi>N</mi></mfrac><mtext>  </mtext><mo>≡</mo><mtext>  </mtext><munder><mo>∑</mo><mrow><mi>p</mi><mo>∣</mo><mi>N</mi></mrow></munder><mfrac><mrow><mo stretchy="false">(</mo><msub><mi>x</mi><mi>p</mi></msub><mtext> </mtext><msub><mi>w</mi><mi>p</mi></msub><mo stretchy="false">)</mo><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mi>p</mi></mrow><mi>p</mi></mfrac><mspace></mspace><mspace width="1em"/><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow><mspace width="0.3333em"/><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\frac{x}{N} \;\equiv\; \sum_{p \mid N} \frac{(x_p\, w_p) \bmod p}{p}
+  \pmod 1</annotation></semantics></math></span></div>
+<p>with cofactor <i>w<sub>p</sub></i> = (<i>N</i>/<i>p</i>)<sup>−1</sup>
+mod <i>p</i> makes size channel-additive — but in the circle
+<b>R</b>/<b>Z</b>,
+and exact comparison needs the full log<sub>2</sub> <i>N</i>-bit sum
+(<i>t</i>-bit truncation fails only near a wraparound, measured).
+Mixed-radix conversion is exact but triangular: depth <i>k</i>, each
+digit gated on the last. And the diagonal function <i>D</i>(<i>x</i>)
+= Σ<sub><i>p</i></sub> ⌊<i>x</i>/<i>p</i>⌋ is channel-linear modulo a
+fresh modulus SQ = Σ<sub><i>p</i></sub> <i>N</i>/<i>p</i>, with
+gcd(<i>N</i>, SQ) = 1 forced for every pairwise-coprime modulus set —
+a ring-sized positional channel bolted on.</p>
+
+<article class="claim" id="exact-comparator">
+  <div class="claim-head"><span class="claim-name">The exact
+  comparator and its cost law</span> <span class="tier">rule</span></div>
+  <p><i>D</i> steps exactly at the multiples of the moduli, so within
+  a <i>D</i>-tie class no channel residue wraps and every channel's
+  residues strictly increase: (<i>D</i>, <i>x</i> mod
+  <i>p</i><sub>min</sub>) is an exact comparator for <em>any</em>
+  squarefree modulus set. The packed key
+  <i>D</i>·<i>p</i><sub>min</sub> + (<i>x</i> mod
+  <i>p</i><sub>min</sub>) is strictly monotone; sign and overflow are
+  each one key compare; a <i>D</i>-only comparator errs — a false
+  &ldquo;equal&rdquo;, never an inversion — on exactly the
+  <i>φ</i>(<i>N</i>) tie pairs the residue repairs. The cost law: the
+  diagonal's dot product runs at width log<sub>2</sub> SQ =
+  log<sub>2</sub> <i>N</i> +
+  log<sub>2</sub> Σ<sub><i>p</i></sub> 1/<i>p</i>, so the comparator
+  beats reconstruction iff Σ<sub><i>p</i></sub> 1/<i>p</i> &lt; 1 —
+  never on a rung <i>k</i> ≥ 3, narrowly on designed large-prime sets
+  (~10% of the width at 8 channels of 16–32 bits), where exactness
+  costs the approximate diagonal one residue already in the word and
+  every channel stays a field. The literature's strictly-monotone
+  repairs pay the injectivity floor instead: a strict characteristic
+  on [0, <i>N</i>) takes at least <i>N</i> values, so a
+  characteristic-based comparator computing narrower than
+  log<sub>2</sub> <i>N</i> is forced into the split shape —
+  non-injective <i>D</i> plus a tie-break residue already in the
+  word — and Σ 1/<i>p</i> &lt; 1 prices exactly when the computed
+  part gets under the floor.</p>
+  <p class="scope"><b>Scope.</b> Tie-break lemma proved for any
+  squarefree set; key monotonicity exhaustive at <b>Z</b>/510510. The
+  residue tie-break is the standard sum-of-quotients comparator's own
+  move (Dimauro 1993; Piestrak 2015) — the lemma is its general proof
+  and scope.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_rns_comparator.py">
+  <code>explore_rns_comparator.py</code></a></p>
+</article>
+
+<h2>What replaces order</h2>
+
+<p>Over <b>Z</b> the order relation organizes everything — induction,
+descent, Euclid, comparison — and it is the deleted place. The
+comparator above buys it back, but by bolting on a channel rather than
+by reading the k already there. Commit to the residue tuples as they
+stand, never reconstructing the value, and the question is which
+relation the existing windows organize. The
+<a href="#locality-criterion">locality criterion</a> has a
+relation-shaped form that decides it: call <i>R</i>
+<b>channel-conjunctive</b> when it equals the conjunction of its own
+channel projections. Those projections are the unique minimal
+conjunctive candidate, so equality there is the whole test.</p>
+
+<article class="claim" id="conjunctive-split">
+  <div class="claim-head"><span class="claim-name">The conjunctive
+  split</span> <span class="tier">rule</span></div>
+  <p>Equality and divisibility pass — divisibility's conjunct at
+  <i>p</i> being &ldquo;<i>y<sub>p</sub></i> = 0 or
+  <i>x<sub>p</sub></i> ≠ 0&rdquo;. Order, cyclic betweenness and the
+  order-grading ord(<i>x</i>) | ord(<i>y</i>) fail, in two different
+  ways. Order and betweenness fail <em>maximally</em>: every channel
+  projection saturates, so the conjunction is the full relation and the
+  channels retain nothing. The grading fails <em>properly</em> — its
+  projections are proper, the residue pair (3, 1) at channel 7 occurring
+  in no true pair, because covering an order 6 depends on the orders the
+  other channels have available. Cyclifying buys no escape:
+  btw(0, <i>a</i>, <i>b</i>) holds exactly when <i>a</i> &lt; <i>b</i>
+  and betweenness is translation-invariant, so the ternary relation is
+  interdefinable with order and carries the entire size wall.</p>
+  <p>A second, orthogonal axis sharpens the split — the
+  <b>consumption partition</b>, per channel the coarsest partition
+  through which <i>R</i> factors. Divisibility reads one bit per
+  channel, {0 | rest}: the valuation. The grading reads the order class
+  and conflates 0 with 1 — support-blind, so the valuation bit and the
+  order class are independent coordinates. Order and betweenness need
+  the discrete
+  partition at every channel — no per-channel compression at all, which
+  is the <a href="#hiding-lemma">hiding lemma</a> read
+  relation-side.</p>
+  <p>The survivors then collapse to one relation. Divisibility is
+  support reverse-inclusion (<i>x</i> | <i>y</i> iff supp <i>y</i> ⊆
+  supp <i>x</i>) and Green's ≤<sub><i>J</i></sub> is support inclusion:
+  the same idempotent lattice read in opposite directions. So what
+  replaces order is <b>location</b> — support, where an element lives —
+  refined by <b>torsion</b>, its grade, how it turns. The refinement is
+  thin: almost every element of ∏<sub><i>p</i></sub>
+  <b>F</b><sub><i>p</i></sub> sits at the top grade, and so do fixed
+  integers (for <i>n</i> = 2 the lcm of ord<sub><i>p</i></sub>(<i>n</i>)
+  over <i>p</i> ≤ 10⁴ already swallows every prime power ≤ 32), so only
+  support separates <b>Z</b> from the bulk — and in the limit every
+  support stratum is Haar-null, though it thins slowly: the largest
+  stratum still measures 0.05 at 10⁴ channels. The bulk fans into
+  continuum-many null worlds.</p>
+  <p class="scope"><b>Scope.</b> The conjunctive test is exhaustive at
+  <b>Z</b>/210, the ternary relations at <b>Z</b>/30; the consumption
+  partition's swap test is exhaustive at <b>Z</b>/30, with the grading's
+  order-class read confirmed at <b>Z</b>/210. The grading's onset is
+  rung 3 — at <b>Z</b>/6 it is still conjunctive, and the failure is a
+  shared-torsion group fact rather than a tower one.
+  The two collapses are algebraic; the top-grade density is computed to
+  300 channels and monotone there, its limit resting on Dirichlet plus
+  Borel–Cantelli, and the stratum measures on Mertens.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_organizing_relations.py">
+  <code>explore_organizing_relations.py</code></a></p>
+</article>
+
+<article class="claim" id="orientation-hiding">
+  <div class="claim-head"><span class="claim-name">Cyclic orientation is
+  totally hidden</span> <span class="tier">rule</span></div>
+  <p>The split above leaves order and betweenness needing every channel
+  at full resolution. This is how far that goes. A known proper subset of
+  channels — modulus <i>M</i> — pins each point of a triple to its own
+  uniform ladder of <i>N</i>/<i>M</i> positions, and among the triples
+  completing those three ladders, <em>both</em> orientations occur. The
+  fraction of cyclic orientation the known channels determine is therefore
+  not small; it is exactly&nbsp;0.</p>
+  <p>The proof is three lines and uses no property of the modulus beyond
+  <i>c</i> ≥ 2. Orientation is translation-invariant,
+  so move the triple's base point to 0, where betweenness is integer
+  comparison on (0, <i>N</i>). Each remaining ladder holds an element
+  ≤ <i>M</i> and an element ≥ (<i>c</i> − 1)<i>M</i>, for
+  <i>c</i> = <i>N</i>/<i>M</i> ≥ 2; pairing the two extremes one way and
+  then the other realizes both orientations. Exactly one configuration
+  escapes — all three residues equal at <i>c</i> = 2 — and it asks for
+  three distinct points on a two-point ladder, so it holds no triple at
+  all. An empty case, not an exception.</p>
+  <p>Primality is unused, squarefree-ness is unused, the primorial
+  trajectory is unused: this is a fact about cyclic groups and their
+  coarsenings, holding at every rung and at every designed tower alike.
+  One bit of cyclic orientation costs the entire complement — the
+  <a href="#hiding-lemma">hiding lemma</a> in its sharpest relation-side
+  form.</p>
+  <p class="scope"><b>Scope.</b> Proved for every <b>Z</b>/<i>N</i> and
+  every proper divisor <i>M</i>. Ground truth enumerated over all
+  <i>N</i> ≤ 72 against every proper divisor — 252 pairs, non-squarefree
+  <i>N</i> included: the empty class arises exactly at the antipodal
+  diagonal, and the extreme-pair witnesses hold everywhere. The claim is
+  DETERMINACY, not independence: both orientations occurring in every class
+  says nothing about their frequencies, and what the known channels leak
+  statistically is the separate law above.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_coupling_order.py">
+  <code>explore_coupling_order.py</code></a></p>
+</article>
+
+<article class="claim" id="bounded-descent">
+  <div class="claim-head"><span class="claim-name">Nothing plays
+  unbounded induction</span> <span class="tier">rule</span></div>
+  <p>At a rung, descent is <em>rung-bounded</em>: strict support chains
+  have length exactly k+1, attained for k ≤ 12. Recursion depth is a
+  constant of the ring, not a function of the element, so
+  support-descent recursions are bounded loops — circuits, not
+  while-loops. Euclid splits along the same seam. The gcd <em>ideal</em>
+  is a one-step support read, (<i>x</i>, <i>y</i>) generated by the
+  support idempotent <i>e</i><sub>supp <i>x</i> ∪ supp <i>y</i></sub>,
+  while Euclid's <em>loop</em> has no analogue in the ring: the sizeless
+  remainder <i>x</i>(1 − <i>e</i><sub>supp <i>y</i></sub>) enters a
+  2-cycle and never terminates. Division with remainder died with the
+  deleted place and only its purpose survives. In the limit both
+  surviving lattices — support and grade — have infinite descending
+  chains, dropping one prime at a time and dividing one prime out at a
+  time, so well-founded descent does not survive either.
+  The trade against <b>Z</b> is exact: <b>Z</b> is well-founded with
+  unbounded recursion depth, the tower is bounded-depth at every rung
+  with no well-foundedness in the limit. Induction is a finite-rung
+  artifact; bounded descent is what replaces it.</p>
+  <p class="scope"><b>Scope.</b> Chain lengths attained k ≤ 12; the gcd
+  ideal exhaustive over all 900 pairs of <b>Z</b>/30, whose eight ideals
+  each recur many times, with gcd(<i>x</i>, <i>y</i>, <i>N</i>) the
+  product of the jointly dead channels at <b>Z</b>/210; the
+  non-termination is a witness. The bounded-loop shape is the
+  Meyer–Ritchie one.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_organizing_relations.py">
+  <code>explore_organizing_relations.py</code></a></p>
+</article>
+
+<h2>The provenance ladder</h2>
+
+<p>Which of these obstructions are the tower's own? Almost none: each
+wall, pinned to the minimal structure that carries it, sits at or
+below the squarefree floor.</p>
+
+<article class="claim" id="provenance-ladder">
+  <div class="claim-head"><span class="claim-name">The provenance
+  ladder</span> <span class="tier">rule</span></div>
+  <ul>
+    <li><b>Cyclic group — no product, no fields.</b> The hiding facts
+    are coarsening facts: every proper window <b>Z</b>/<i>M</i> of
+    every <b>Z</b>/<i>N</i> (exhaustive <i>N</i> ≤ 240) leaves both
+    signs in every fiber, bias exactly 0 iff <i>N</i>/<i>M</i> is
+    even, prime-power moduli included; orientation hiding; and the channel quantifier
+    [<i>a</i> = 0] is polynomial on no composite <i>N</i>, while at
+    one field it is Fermat's 1 − <i>a</i><sup><i>p</i>−1</sup> — the
+    wall vanishing.</li>
+    <li><b>Single field.</b> The
+    <a href="/walls/numbers#zech-wall">Zech wall</a>; the type
+    obstruction — <i>x<sup>y</sup></i> is ill-defined already at one
+    window, with <i>p</i> − 2 witnesses; the division-ladder floors;
+    the super-log existence grades.</li>
+    <li><b>Product of ≥ 2 coprime windows, fields unneeded.</b>
+    Order's and betweenness's maximal conjunctive failure —
+    <b>Z</b>/6 and the non-field <b>Z</b>/4 × <b>Z</b>/9 fail
+    identically; the fold and rank caps.</li>
+    <li><b>Product of two abelian groups, no ring at all.</b> The
+    grading's failure and its mode; minimal proper carrier
+    <i>C</i><sub>2</sub> × <i>C</i><sub>4</sub> = <i>U</i>(15), so on
+    the trajectory the grading wall first appears at rung 3.</li>
+    <li><b>Product of fields (squarefree).</b> The locality criterion
+    itself (thin boundary <b>Z</b>/4), and the <b>meadow</b>
+    blueprint with everything riding it — division total by a
+    pseudo-inverse at every element, <i>x</i>′ with
+    <i>x</i>·<i>x</i>′·<i>x</i> = <i>x</i> and 0′ = 0, the
+    multiplicative monoid graded by support.</li>
+    <li><b>The primorial trajectory.</b> One result, and it is a
+    SELECTION rather than an obstruction: among the
+    <i>φ</i>(<i>N</i>) translation-invariant cyclic orders the ring
+    carries, the trajectory's own shape — the channel at 2, and
+    Bertrand's postulate on the gaps — singles one out.</li>
+  </ul>
+  <p>No wall needs the trajectory: the hiding is generic to any
+  coarsening of any cyclic group, and the deletion names
+  <em>which</em> window is missing. The mirror chart — capabilities
+  pinned up to their birth rungs, permanent because channels only
+  accumulate, so walls never heal — is the
+  <a href="/object#genesis-ladder">genesis ladder</a>.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_walls_provenance.py">
+  <code>explore_walls_provenance.py</code></a></p>
+</article>
+
+<h2 id="dissolution">What a wall-free design would need</h2>
+
+<p>A wall in the design at hand is no evidence that the wall is
+necessary, so the archimedean one was put to the other question: is
+there a substrate holding both of the capabilities the deletion trades
+between? Two are at stake. <b>Flat-role independence</b> is what the
+CRT windows give — channels carrying roles with no channel's read
+depending on where any other sits, order-invariant by construction. A
+<b>native positional read</b> is the other: a magnitude built of
+digits, a digit's place being its weight, which is the structure
+unbounded nesting runs on. The tower has the first outright and buys
+the second with a <b>borrow</b> — a re-import of the deleted place,
+priced on <a href="/computation/recovery">The recovery chart</a>. Three
+casts asked one substrate for both at once — the tower with a
+prime-power channel kept, the mirror pole, and an integrated algebra
+carrying a second operation — each reading back unbounded binary
+branching with matching, bracket nesting, and asking whether the
+independence survived it.</p>
+
+<article class="claim" id="dissolution-verdict">
+  <div class="claim-head"><span class="claim-name">The deletion is
+  resource-forced</span> <span class="tier">observation</span></div>
+  <p>At none of the three do the two capabilities co-habit, and what
+  blocks them is <em>resource</em> rather than the particular ring. CRT
+  independence requires coprime channels that do not couple; a
+  positional magnitude <em>is</em> the carry-coupling of its digits, so
+  asking for both asks one structure to couple and not couple. They
+  exchange across the poles: the tower has independence and borrows
+  magnitude, while its mirror at the other pole — a floating-point
+  number, which keeps only the archimedean window and deletes every
+  finite one (<a href="/walls/reading#second-deletion">Reading</a>) —
+  has magnitude and no independent algebra at all, its only native
+  binding being carry-coupled size.</p>
+  <p>The obvious first escape does not move the wall, which is worth
+  knowing before proposing it: keep one prime's powers as well —
+  <b>Z</b>/(<i>p<sup>t</sup></i>·<i>m</i>) with <i>m</i> squarefree and
+  coprime to <i>p</i> — and the digit read is still division by the
+  base, native only where the base is invertible, and an invertible
+  base is an infinite value. What the prime-power register buys is a
+  native valuation: a ratchet in depth, not a tree. Any dissolution
+  along this line would re-import the whole deleted place rather than a
+  minimal piece of it.</p>
+  <p>That verdict rested on one beam — a single commutative ring, where
+  a channel either couples or does not — and dropping the beam does not
+  escape. Give one integrated algebra a second, non-commutative
+  operation and the axis becomes branching: a structure of fixed
+  resource has a finite image, so it cannot injectively receive an
+  unbounded domain, and branching either wraps or grows the magnitude,
+  which is the deleted place again. The statement generalizes from
+  &ldquo;no single commutative ring&rdquo; to no fixed-resource binding
+  algebra at all — the <b>impossible triple</b>: unbounded branching,
+  fixed resource, flat-role independence, no substrate holding all
+  three. The priced
+  door is recorded and refused: a rung times a floating-point register
+  does put flat roles in the windows and magnitude in the register, but
+  it re-attaches the whole deleted place as a co-factor, and binding
+  register-side structure to a window-side role crosses the CRT
+  boundary, which is the borrow. Two substrates stapled, and the staple
+  is the borrow.</p>
+  <p class="scope"><b>Scope.</b> Observation at toy scope: codes and
+  readers hand-designed throughout, nothing learned. The third cast
+  swept three corners of its own design space — commutative,
+  factor-permuting, coordinate-mixing — and that is where
+  &ldquo;resource-forced&rdquo; comes from: the finite-image argument,
+  exhibited on <i>S</i><sub>3</sub> and
+  SL<sub>2</sub>(<b>F</b><sub>2</sub>), three principled corners and not
+  an exhaustion over finite algebras. A genuinely different
+  integrated algebra is therefore open rather than impossible: the
+  absence of a found design is not evidence that none exists. One
+  partial did land — those non-commutative operations are invertible,
+  so undoing a nesting step, which a valuation ratchet cannot express,
+  is recovered natively: a real dissolution of that one wall, and of
+  nothing in the triple.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_merge_dissolution.py"><code>explore_merge_dissolution.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_dual_merge.py"><code>explore_dual_merge.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_noncommutative_merge.py"><code>explore_noncommutative_merge.py</code></a></p>
+</article>
+
+<p>The deepest reading of the deletion is not a cost at all — read as
+an operation, the missing window is the borrow whose absence makes the
+tower's depth face (moduli and their monotone growth) decidable: the
+knife edge (<a href="/computation#knife-edge">Computation</a>).</p>
+
+<h2 id="number-systems">Number systems</h2>
+
+<p><span id="index-transform"></span><span id="zech-wall"></span><span
+id="rigidity-dichotomy"></span><span id="two-readings"></span><span
+id="readability-chart"></span><span id="checksum-ring"></span><span
+id="machine-word"></span>Ask the same question of coordinates rather
+than of operations and the walls change kind: recoding each channel by
+a discrete logarithm turns × into + and leaves addition walled by a
+<em>structure</em> obstruction where size is an <em>information</em>
+one, a positional base turns out to be exactly where two readings of
+one digit string coincide, and the designed tower filling a 16-bit
+word is the ring every internet checksum runs in —
+<a href="/walls/numbers">Number systems</a>.</p>
+
+<h2 id="the-ring-at-work">Meaning</h2>
+
+<p><span id="exact-binding"></span><span id="snap-to-whole"></span><span
+id="superposition-wall"></span><span id="decoupling-law"></span><span
+id="snap-back"></span>Run the same ring as a live medium and one
+minimum distance decides both halves of a symbol system built on it:
+any single corrupted window snaps back to its whole, and the classical
+superposition bundle provably never retrieves. Set it in motion and no
+rule made of ring operations couples two channels at all, so every
+coupling is bought at a price in bits —
+<a href="/walls/meaning">Meaning</a>.</p>
+
+<h2 id="second-deletion">The second deletion</h2>
+
+<p><span id="two-pole-criterion"></span><span id="crown-exchange"></span><span
+id="two-ends-law"></span>Every wall above measures one deletion — every finite place kept,
+the archimedean window removed. The mirror deletion keeps <em>only</em>
+the archimedean window: a floating-point number is the dual rung, its
+fibers hiding residue exactly where a finite window's fibers hide
+size. Its walls corpus, the reading criterion that covers both poles,
+and the windows beyond the positional pair — the continued-fraction
+grid and the geometry every window shares — are on
+<a href="/walls/reading">Reading</a>.</p>
+
+<h2>The division algebras</h2>
+
+<p>Climb Cayley–Dickson doubling over one channel rather than over
+<b>R</b> and division is gone by the second doubling everywhere and at
+four of the seven channels by the first, the classical
+finite-field walls total from the quaternion floor up. What the split
+floors keep is a multiplicative size that <em>is</em> channel-local —
+the composition norm, where integer size is the wall above — and at
+the quaternion floor the channels where the algebra stays a division
+ring turn out to be a design knob: the ramification set is chosen, and
+the tower-visible half of it can have odd size because the partner
+sits at the deleted place —
+<a href="/walls/algebra">The division algebras</a>.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
