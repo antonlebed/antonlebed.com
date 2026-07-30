@@ -59,7 +59,7 @@ THE HAND-ATTACK, on paper before any engine code.
     the least uncovered degree D, at price D, taken while D < c * T/2.
  L4 THE LADDER IS EVERY DEGREE. 2^d - 1 carries a prime factor no smaller
     2^e - 1 carries for every d other than 1 and 6 -- BANG's theorem, the
-    base-2 case of Zsygmondy, whose two exceptions are exactly those -- and
+    base-2 case of Zsigmondy, whose two exceptions are exactly those -- and
     at the one that bites, 2^6 - 1 = 3^2 * 7, a square of 3 is needed that
     no smaller 2^e - 1 supplies. So no degree is covered before it is
     opened; degree 1 is covered from the start. The

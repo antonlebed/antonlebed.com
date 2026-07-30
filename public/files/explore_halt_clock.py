@@ -16,7 +16,7 @@ the green run's output only.
       deg <= 9, on a battery of constructed + MC-reached states.
   HC2 (fresh law): the odd channel's divisibility is the Mersenne
       lattice: 2^d - 1 | lcm_{d' in S}(2^{d'} - 1) iff some d' in S is
-      a multiple of d — UNIFORMLY for d >= 2, including the Zsygmondy
+      a multiple of d — UNIFORMLY for d >= 2, including the Zsigmondy
       exception d = 6 (3^2 is the honorary primitive: ord_9(2) = 6).
       Exhaustive over S subset of {1..12}, d = 2..14.
   HC3 (mode law): modal halt reading = floor(log2 D) + 2 at
@@ -64,11 +64,11 @@ assert; predictions HC1-HC6 all confirmed, no misses).
    (explore_module_law.py) read as a menu partition.
 
 2. THE FRESH LAW IS THE MERSENNE LATTICE (criterion, proved via
-   Zsygmondy/Bang; asserted exhaustively: all 4096 subsets S of
+   Zsigmondy/Bang; asserted exhaustively: all 4096 subsets S of
    {1..12} x d = 2..14). The degree-d fresh door is open iff NO open
    degree is a multiple of d: 2^d - 1 | lcm_{d' in S}(2^{d'} - 1) iff
    d | d' for some d' in S. (<=) direct; (=>) the primitive prime of
-   2^d - 1 (Zsygmondy), UNIFORM even at the exception d = 6, where
+   2^d - 1 (Zsigmondy), UNIFORM even at the exception d = 6, where
    63 = 3^2 * 7 has no primitive prime but ord_9(2) = 6 makes 3^2 the
    honorary primitive. Corollaries: the odd channel fires at most
    once per degree — one fresh 2^d - 1 ever (same-degree places can

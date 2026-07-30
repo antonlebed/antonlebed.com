@@ -79,7 +79,7 @@ degree 1 born covered) over a supply of n items at each degree 1..D.
  H4 THE RING'S OWN COVERING RULE CANNOT STOP THE LADDER, and the reason is a
     theorem rather than a measurement. Read as a covering rule, the ring's
     test is that (base^d - 1) divide the accumulated invariant of the seated
-    set. BANG's theorem -- the base-2 case of Zsygmondy -- gives 2^d - 1 a
+    set. BANG's theorem -- the base-2 case of Zsigmondy -- gives 2^d - 1 a
     prime factor that no smaller 2^e - 1 carries, for every d but 1 and 6. A
     prime that enters the invariant only by opening d itself cannot be there
     before d is opened, so no degree but 6 can ever be covered for free, and
@@ -315,7 +315,7 @@ F5 THE CYCLOTOMIC COVERING RULE CANNOT STOP A LADDER, AND BANG'S THEOREM IS
    Every row here has INTEGER degrees and a single base, which is the function
    field's shape and not a number ring's: there a degree is a log-norm, the
    test runs over residue fields whose orders are unrelated primes, and
-   nothing plays Zsygmondy's part. So the covering rule is exonerated exactly
+   nothing plays Zsigmondy's part. So the covering rule is exonerated exactly
    where the ladder is known not to stop, and becomes the leading SUSPECT
    where it is known to -- which is the reverse of the reading these rows
    invite and the reason the next question is a norm-indexed supply rather
