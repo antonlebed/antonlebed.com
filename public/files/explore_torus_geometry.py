@@ -284,19 +284,24 @@ print(f"    Powered rings break this: tau = {tau_pw} > {idem_pw} = |Idem|.")
 # V. HAMMING GRAPH ADJACENCY SPECTRUM
 # ═══════════════════════════════════════════════════════════════════════
 
-section("V. HAMMING GRAPH SPECTRUM (128 eigenvalues)")
+section("V. HAMMING GRAPH SPECTRUM (128 SUBSETS, 53 VALUES)")
 
 print(f"""
 The CRT Hamming graph is H = K_2 [] K_3 [] ... [] K_17 (Cartesian product).
 K_p has adjacency eigenvalues: (p-1) with multiplicity 1, and -1 with
-multiplicity (p-1). The product graph has 2^7 = 128 distinct eigenvalues,
-one per subset S of channels:
+multiplicity (p-1). The product graph has one eigenvalue per subset S of
+the channels, so 2^7 = 128 subset-indexed eigenvalues:
 
   lambda_S = sum_{{i not in S}} (p_i - 1) + sum_{{i in S}} (-1)
            = degree - sum_{{i in S}} p_i
+
+They are NOT 128 distinct values, and this section used to say they were.
+lambda_S depends on S only through the SUM of its primes, so the spectrum
+is the subset sums reflected through the degree, and subsets sharing a sum
+collide -- {{2,5}} and {{7}} both give 7. The distinct count is below.
 """)
 
-# Compute all 128 eigenvalues
+# Compute all 128 subset-indexed eigenvalues
 hamming_evs = []
 for mask in range(128):
     active = [i for i in range(7) if mask & (1 << i)]
@@ -324,6 +329,21 @@ for i, (ev, mask, active, mult) in enumerate(hamming_evs[-5:]):
 total_mult = sum(m for _, _, _, m in hamming_evs)
 print(f"\n  Total multiplicity = {total_mult:,} (should be {RAD_RING.N:,})")
 assert total_mult == RAD_RING.N
+
+# The distinct count, and why it is that: the REACHABLE subset sums.
+distinct_evs = {ev for ev, _, _, _ in hamming_evs}
+total_p = sum(PRIMES)
+reachable = {deg_rad - ev for ev in distinct_evs}
+missing = sorted(set(range(total_p + 1)) - reachable)
+print(f"\n  Distinct eigenvalues = {len(distinct_evs)} of {len(hamming_evs)} subsets")
+print(f"  Subset sums run 0..{total_p}: {total_p + 1} candidates, unreachable {missing}")
+print(f"  {total_p + 1} - {len(missing)} = {len(distinct_evs)}. The missing set is closed under")
+print(f"  s -> {total_p} - s, since a subset and its complement sum to {total_p}; only")
+print(f"  1, 4 and 6 carry information (1 is below the smallest prime, and 4 and 6")
+print(f"  would need 2+2 and 3+3).")
+assert len(distinct_evs) == 53
+assert {total_p - r for r in reachable} == reachable
+assert missing == [1, 4, 6, 52, 54, 57]
 
 # Key eigenvalues
 print(f"\n  Spectral gap = degree - second EV = {deg_rad} - {hamming_evs[1][0]} "
@@ -852,6 +872,14 @@ print(f"""
 8. OLLIVIER-RICCI, SQUAREFREE. Z/2 is FLAT (kappa = 0). Z/17 is most
    curved (kappa = 15/51 = 5/17). Total Ollivier-Ricci curvature = 44/51.
    Curvature numerators p-2 sum to 44 = 2^2 * 11.
+
+9. THE SPECTRUM IS A SUBSET-SUM PROBLEM, AND HAS 53 VALUES, NOT 128.
+   lambda_S = degree - sum_{{i in S}} p_i depends on S only through the
+   sum, so subsets sharing a sum collide: {{2,5}} and {{7}} both give 7.
+   Subset sums run 0..58, six are unreachable (1, 4, 6 and their
+   reflections 52, 54, 57), and 59 - 6 = 53. The missing set is
+   symmetric because a subset and its complement sum to 58, so only
+   1, 4 and 6 carry information. Section V asserts all of it.
 """)
 
 print("=" * 72)
