@@ -197,19 +197,33 @@ TOWER_PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
 def primorial_ring(k):
     """Rung k of the squarefree tower: Z/(p_1 ... p_k), every channel a
     prime field. This is the canonical family — a Ring is named by its rung
-    index and nothing else, so k is always the TOTAL channel count."""
-    ps = TOWER_PRIMES[:k]
-    return Ring(f"k={k}", ps, (1,) * k)
+    index and nothing else, so k is always the TOTAL channel count.
+
+    Both constructors RAISE past the end of TOWER_PRIMES rather than
+    truncating. A slice would return rung 12 for any larger k, quietly, and
+    a caller asking for a rung it cannot have deserves the error: the fixed
+    ring constants these replaced could not have this failure, so it arrived
+    with the parameterization.
+    """
+    if not 1 <= k <= len(TOWER_PRIMES):
+        raise ValueError(f"rung {k} outside 1..{len(TOWER_PRIMES)}")
+    return Ring(f"k={k}", TOWER_PRIMES[:k], (1,) * k)
 
 
 def powered_ring(k):
     """The prime-power variant of rung k: the same k primes, but the first
     four channels raised to (3, 2, 2, 2). Channels 2, 3, 5, 7 stop being
     fields, so the ring stops being a meadow — which is the only reason this
-    family is kept. Defined for k >= 4."""
-    ps = TOWER_PRIMES[:k]
-    exps = (3, 2, 2, 2) + (1,) * (k - 4)
-    return Ring(f"k={k} powered", ps, exps)
+    family is kept.
+
+    Requires k >= 4, and enforces it. Below 4 the exponent tuple is LONGER
+    than the prime tuple, and Ring pairs them with zip, so the ring builds
+    with a correct N and an exponents field disagreeing with its own primes
+    and with its own k — a wrong object rather than a failure.
+    """
+    if not 4 <= k <= len(TOWER_PRIMES):
+        raise ValueError(f"powered rung {k} outside 4..{len(TOWER_PRIMES)}")
+    return Ring(f"k={k} powered", TOWER_PRIMES[:k], (3, 2, 2, 2) + (1,) * (k - 4))
 
 
 # The two rungs the reference tables are written against. They carry their
@@ -562,6 +576,28 @@ def _self_test():
     check("k=5 lam", primorial_ring(5).lam == 60)
     check("k=4 N", primorial_ring(4).N == 210)
     check("k=4 lam", primorial_ring(4).lam == 12)
+    # Every rung's exponent tuple must match its own prime tuple: Ring pairs
+    # them with zip, which truncates, so a mismatch is silent in N and shows
+    # only here. This is the check the fixed ring constants never needed.
+    for kk in range(1, len(TOWER_PRIMES) + 1):
+        r = primorial_ring(kk)
+        assert len(r.exponents) == len(r.primes) == r.k == kk
+        if kk >= 4:
+            pw = powered_ring(kk)
+            assert len(pw.exponents) == len(pw.primes) == pw.k == kk
+    check("rung exponent/prime tuples agree, k=1..12", True)
+    # Out-of-range and sub-4 powered raise instead of returning a wrong ring.
+    for bad in (0, len(TOWER_PRIMES) + 1):
+        try:
+            primorial_ring(bad); assert False
+        except ValueError:
+            pass
+    for bad in (3, len(TOWER_PRIMES) + 1):
+        try:
+            powered_ring(bad); assert False
+        except ValueError:
+            pass
+    check("constructors reject out-of-range rungs", True)
     # The two constructors agree with the named rungs on the shared index.
     check("k=7 is RAD", primorial_ring(7).moduli == RAD_RING.moduli)
     check("k=7 powered N", powered_ring(7).N == 214414200)
