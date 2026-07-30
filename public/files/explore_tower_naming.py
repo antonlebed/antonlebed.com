@@ -475,7 +475,7 @@ def main():
      p=3 is named by 18/35 triples at k=8 (vs 11.7 expected from 1/3).
      Exact formula: C(r2,2)*C(r1,1)/C(k-1,3) where r2,r1 are counts of
      tower primes = 2,1 mod 3. The Chebyshev prime race bias (more small
-     primes ≡ 2 mod 3) creates persistent p=3 over-representation.
+     primes = 2 mod 3) creates persistent p=3 over-representation.
 
   5. 30/56 AT k=8 DECOMPOSED.
      Naming triples = those where at least one absent prime s divides
