@@ -480,7 +480,7 @@ def main():
   5. 30/56 AT k=8 DECOMPOSED.
      Naming triples = those where at least one absent prime s divides
      -chi = 2pqr - pq - pr - qr. Non-naming triples mostly have PRIME
-     -chi (e.g., {D,K,E}->29, {D,K,b}->43, {D,K,L}->71). When -chi
+     -chi (e.g. {2,3,5}->29, {2,3,7}->43, {2,3,11}->71). When -chi
      is prime and not in the tower set, no tower prime can divide it.
 """)
 

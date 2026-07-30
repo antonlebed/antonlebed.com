@@ -131,7 +131,7 @@ from itertools import combinations
 from math import gcd, prod
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from crt import (RAD_RING, DATA_RING, encode, decode, decode_partial,
+from crt import (RAD_RING, primorial_ring, encode, decode, decode_partial,
                  ecc_encode, ecc_syndrome, ecc_correct, idempotent,
                  mod_inverse)
 
@@ -164,7 +164,7 @@ def support_channels(x, ring):
 
 def s1_bind_unbind():
     print("\nS1. EXACT BIND/UNBIND (bind = multiply, unbind = meadow inverse)")
-    R = DATA_RING  # Z/210, exhaustive
+    R = primorial_ring(4)  # Z/210, exhaustive
     units = [r for r in range(R.N) if gcd(r, R.N) == 1]
     fails = 0
     for r in units:
@@ -474,7 +474,7 @@ def s5_element_as_operator():
     # op_x(1) = x is an IDENTITY (the multiplicative unit reads the datum
     # back -- faithfulness through 1 is free by construction), so it gets
     # a prose clause, not a check that cannot fail.
-    R = DATA_RING  # Z/210, exhaustive
+    R = primorial_ring(4)  # Z/210, exhaustive
     fails_meadow = fails_supp = fails_img = 0
     for x in range(R.N):
         px = meadow_pinv(x, R)

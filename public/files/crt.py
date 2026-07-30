@@ -1,10 +1,11 @@
 """CRT arithmetic library for the primorial tower — rings Z/p_k#.
 
 Parametric: a Ring is any product of coprime prime-power moduli, but the
-canonical objects are the THIN tower rungs (squarefree, all channels prime
-fields). RAD = Z/510510 (k=7) is the reference rung; RUNG5 = Z/9699690
+canonical objects are the squarefree tower rungs, where every channel is a
+prime field. RAD = Z/510510 (k=7) is the reference rung; RUNG5 = Z/9699690
 (k=8) is the next. Provides:
-  - Ring definitions (thin tower rungs + legacy fat rings)
+  - Ring constructors, indexed by the rung k: squarefree, and the
+    prime-power variant that raises the first four channels
   - CRT encode/decode (decompose <-> reconstruct)
   - Per-channel arithmetic on CRT tuples
   - ECC: tower split (first k-3 data, last 3 parity), syndrome,
@@ -189,17 +190,33 @@ class Ring:
         return f"Ring({self.name}, N={self.N}, k={self.k})"
 
 
-# The thin tower (canonical: squarefree, every channel a prime field)
-RAD_RING        = Ring("RAD",        (2, 3, 5, 7, 11, 13, 17),     (1,) * 7)  # rung k=7
-RUNG5_RING      = Ring("RUNG5",      (2, 3, 5, 7, 11, 13, 17, 19), (1,) * 8)  # rung k=8
-TRUE_THIN_RING  = Ring("TRUE_THIN",  (2, 3, 5, 7, 11, 13),         (1,) * 6)  # rung k=6
-THIN_RING       = Ring("THIN",       (2, 3, 5, 7, 11),             (1,) * 5)  # rung k=5
-DATA_RING       = Ring("DATA",       (2, 3, 5, 7),                 (1,) * 4)  # rung k=4
+# The first primes, in order — the tower's channels.
+TOWER_PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
 
-# Legacy fat rings (prime-power channels; abandoned path — archived)
-TRANS_RING      = Ring("TRANS",      (2, 3, 5, 7, 11, 13, 17), (3, 2, 2, 2, 1, 1, 1))
-TRUE_RING       = Ring("TRUE",       (2, 3, 5, 7, 11, 13),     (3, 2, 2, 2, 1, 1))
-DEEP_RING       = Ring("DEEP",       (2, 3, 5, 7, 11),         (3, 2, 2, 2, 1))
+
+def primorial_ring(k):
+    """Rung k of the squarefree tower: Z/(p_1 ... p_k), every channel a
+    prime field. This is the canonical family — a Ring is named by its rung
+    index and nothing else, so k is always the TOTAL channel count."""
+    ps = TOWER_PRIMES[:k]
+    return Ring(f"k={k}", ps, (1,) * k)
+
+
+def powered_ring(k):
+    """The prime-power variant of rung k: the same k primes, but the first
+    four channels raised to (3, 2, 2, 2). Channels 2, 3, 5, 7 stop being
+    fields, so the ring stops being a meadow — which is the only reason this
+    family is kept. Defined for k >= 4."""
+    ps = TOWER_PRIMES[:k]
+    exps = (3, 2, 2, 2) + (1,) * (k - 4)
+    return Ring(f"k={k} powered", ps, exps)
+
+
+# The two rungs the reference tables are written against. They carry their
+# own names because the tables and the tower documentation cite them by
+# name; every other rung is referred to by its index alone.
+RAD_RING   = Ring("RAD",   TOWER_PRIMES[:7], (1,) * 7)   # Z/510510
+RUNG5_RING = Ring("RUNG5", TOWER_PRIMES[:8], (1,) * 8)   # Z/9699690
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -532,28 +549,32 @@ def _self_test():
         assert condition, f"FAIL: {name}"
         passed += 1
 
-    # ── Thin tower constants ────────────────────────────────────────────
+    # ── Squarefree tower constants ──────────────────────────────────────
     check("RAD.N", RAD_RING.N == 510510)
     check("RAD.phi", RAD_RING.phi == 92160)
     check("RAD.lam", RAD_RING.lam == 240)
     check("RUNG5.N", RUNG5_RING.N == 9699690)
     check("RUNG5.phi", RUNG5_RING.phi == 1658880)
     check("RUNG5.lam", RUNG5_RING.lam == 720)
-    check("TRUE_THIN.N", TRUE_THIN_RING.N == 30030)
-    check("TRUE_THIN.lam", TRUE_THIN_RING.lam == 60)
-    check("THIN.N", THIN_RING.N == 2310)
-    check("THIN.lam", THIN_RING.lam == 60)
-    check("DATA.N", DATA_RING.N == 210)
-    check("DATA.lam", DATA_RING.lam == 12)
+    check("k=6 N", primorial_ring(6).N == 30030)
+    check("k=6 lam", primorial_ring(6).lam == 60)
+    check("k=5 N", primorial_ring(5).N == 2310)
+    check("k=5 lam", primorial_ring(5).lam == 60)
+    check("k=4 N", primorial_ring(4).N == 210)
+    check("k=4 lam", primorial_ring(4).lam == 12)
+    # The two constructors agree with the named rungs on the shared index.
+    check("k=7 is RAD", primorial_ring(7).moduli == RAD_RING.moduli)
+    check("k=7 powered N", powered_ring(7).N == 214414200)
+    check("k=6 powered N", powered_ring(6).N == 12612600)
+    check("k=5 powered N", powered_ring(5).N == 970200)
 
     # ── Tower split defaults ────────────────────────────────────────────
     check("RAD split", RAD_RING.data_channels == (0, 1, 2, 3)
           and RAD_RING.parity_channels == (4, 5, 6))
     check("RUNG5 split", RUNG5_RING.data_channels == (0, 1, 2, 3, 4)
           and RUNG5_RING.parity_channels == (5, 6, 7))
-    check("k<7 all-data", DATA_RING.parity_channels == ()
-          and THIN_RING.parity_channels == ()
-          and TRUE_THIN_RING.parity_channels == ())
+    check("k<7 all-data", all(primorial_ring(k).parity_channels == ()
+                              for k in (4, 5, 6)))
     check("n_data override", Ring("t", (2, 3, 5), (1, 1, 1), n_data=2)
           .parity_channels == (2,))
 
@@ -563,10 +584,11 @@ def _self_test():
     for n in [0, 1, 510510, 9699689]:
         check(f"RUNG5 roundtrip({n})", decode(encode(n, RUNG5_RING), RUNG5_RING) == n)
 
-    # Exhaustive round-trip on DATA (the RAD data space)
-    for n in range(DATA_RING.N):
-        assert decode(encode(n, DATA_RING), DATA_RING) == n
-    check("DATA exhaustive roundtrip", True)
+    # Exhaustive round-trip on rung 4, which is RAD's data space
+    r4 = primorial_ring(4)
+    for n in range(r4.N):
+        assert decode(encode(n, r4), r4) == n
+    check("k=4 exhaustive roundtrip", True)
 
     # ── CRT arithmetic on RAD ───────────────────────────────────────────
     a, b_val = 42, 137
@@ -609,10 +631,11 @@ def _self_test():
         assert ecc_syndrome(cw, RAD_RING) == (0, 0, 0)
     check("ECC clean: all 210 codewords", True)
 
-    # Weight matrix: syndrome of +1 in data channel p is -e_p mod parity
-    # (e_p = Z/210 idempotent). Matches the archived hardware record; all entries nonzero.
+    # Weight matrix: syndrome of +1 in data channel p is -e_p mod parity,
+    # where e_p is the Z/210 idempotent. Every entry is nonzero, which is
+    # what makes each single-channel error visible in all three parities.
     expected_w = {11: [6, 4, 5, 10], 13: [1, 5, 9, 3], 17: [3, 2, 7, 1]}
-    e210 = {p: idempotent(frozenset([i]), DATA_RING)
+    e210 = {p: idempotent(frozenset([i]), primorial_ring(4))
             for i, p in enumerate((2, 3, 5, 7))}
     for j, q in enumerate((11, 13, 17)):
         row = [e210[p] % q for p in (2, 3, 5, 7)]
@@ -711,25 +734,23 @@ def _self_test():
     check("seed-flower 3-root {3,7} = 11", seed_flower([3, 7])[0] == 11)
     check("seed-flower fat Z/72 = 55", seed_flower([2, 3], [3, 2])[0] == 55)
 
-    # ── Legacy fat rings (kept for fat-era scripts, archived) ──────
-    check("TRANS.N", TRANS_RING.N == 214414200)
-    check("TRANS.phi", TRANS_RING.phi == 38707200)
-    check("TRANS.lam", TRANS_RING.lam == 1680)
-    check("TRUE.N", TRUE_RING.N == 12612600)
-    check("DEEP.N", DEEP_RING.N == 970200)
+    # ── The prime-power variant at rung 7 ───────────────────────────────
+    pw7 = powered_ring(7)
+    check("k=7 powered phi", pw7.phi == 38707200)
+    check("k=7 powered lam", pw7.lam == 1680)
     for n in [0, 42, 88200, 214414199]:
-        check(f"TRANS roundtrip({n})", decode(encode(n, TRANS_RING), TRANS_RING) == n)
-    check("OMEGA_TRANS", omega(TRANS_RING) == 26801776)
-    full_fat = encode(42, TRANS_RING)
+        check(f"k=7 powered roundtrip({n})", decode(encode(n, pw7), pw7) == n)
+    check("k=7 powered omega", omega(pw7) == 26801776)
+    full_pw = encode(42, pw7)
     ok = True
     for ch in range(7):
-        bad = list(full_fat)
-        bad[ch] = (bad[ch] + 1) % TRANS_RING.moduli[ch]
-        corr, loc = ecc_correct(tuple(bad), TRANS_RING)
-        if loc != ch or corr != full_fat:
+        bad = list(full_pw)
+        bad[ch] = (bad[ch] + 1) % pw7.moduli[ch]
+        corr, loc = ecc_correct(tuple(bad), pw7)
+        if loc != ch or corr != full_pw:
             ok = False
-    check("TRANS ECC channel sweep, delta=1", ok)
-    check("490 split (fat)", encode(pow(490, 1680, TRANS_RING.N), TRANS_RING)
+    check("k=7 powered ECC channel sweep, delta=1", ok)
+    check("490 split, powered", encode(pow(490, 1680, pw7.N), pw7)
           == (0, 1, 0, 0, 1, 1, 1))
 
     elapsed = time.time() - start
