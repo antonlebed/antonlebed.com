@@ -276,7 +276,7 @@ FINDINGS.
    UNIFORMISATION -- write the move's own lambda for the lcm and the wall's
    own exponent for the payment and both branches disappear -- and the
    frozen expression is kept in the engine behind a flag so the failure is
-   printed rather than corrected out of sight. The lesson is the mint's
+   printed rather than corrected out of sight. The lesson is the prediction's
    own: the hand derivation was written in the vocabulary of odd primes
    and carried to 2 without a second thought, which is the marked
    transplant one level down from where the design marked it.

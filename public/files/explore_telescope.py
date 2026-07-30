@@ -80,7 +80,7 @@ T4 (THE CLASSICAL CONTACT — honest scope). (a) IDENTITY: the clock
 THE PREDICTIONS (fixed and committed
 before this file existed; every m = 3 pin line is an m = 2 -> m = 3
 TRANSPLANT and every e = 54 diagonal-read line an e = 18 -> e = 54
-transplant, NAMED per the standing discipline):
+transplant, and each is NAMED as one):
 
 TS-A (symbolic): rel_j(c,m) = p*rel_{j-1}(c,m-1) and
    rel_j(pc,m-1) = rel_{j+1}(c,m) over p in {2,3,5,7}, c in

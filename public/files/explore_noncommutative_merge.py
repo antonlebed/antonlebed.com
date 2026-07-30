@@ -15,7 +15,7 @@ loses independence) or does NOT (CRT → keeps independence, loses recursion). C
 three drops it: give the substrate a SECOND, NON-commutative structural op. Does
 branching read natively while the flat-role independence (explore_structure_
 dependence.py, the tower reads it NATIVELY) SURVIVES — on ONE integrated algebra?
-The trap the discipline names: two substrates STAPLED is the priced door in
+The trap to avoid: two substrates STAPLED is the priced door in
 disguise (explore_dual_merge.py THE PRICED DOOR); the honest read is whether ONE
 algebra carries both natively or the cross-op read is the borrow.
 
@@ -29,7 +29,7 @@ equals RL (the multiset collapse of explore_structure_dependence.py; the branchi
 kill of explore_recursion_growth.py A3). The one thing a non-commutative op can add
 is exactly this: distinguish LR from RL. So cast three tests the BRANCHING readback.
 
-WHOSE VOCABULARY (the freeze, per the mint discipline). Three suspicions, all
+WHOSE VOCABULARY (fixed before any engine code was written). Three suspicions, all
 TRANSPLANTS, all flagged and put at risk:
   [T1] "a finite structural op (permutation group / matrix monoid over a fixed
        ring) caps branching depth = a RATCHET" is transplanted from the depth-face

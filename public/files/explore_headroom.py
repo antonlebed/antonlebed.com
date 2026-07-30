@@ -223,8 +223,8 @@ FINDINGS.
    gcd(m, V) -- truncated subtraction in the exponents, finding 1's lossy
    law. This is what the non-monotonicity of V actually is: V(Nm) > V(N)
    exactly when G' > gcd(m, V(N)) -- ALGEBRA, not a measurement, since G'
-   is defined as V(Nm)*gcd/V and the two counts cannot differ; the frozen
-   slate offered it as a prediction and the rig cannot fail it, so what
+   is defined as V(Nm)*gcd/V and the two counts cannot differ; it was
+   offered as a prediction and the rig cannot fail it, so what
    the 16165 rising moves of 23084 buy is the SIZE of the rising set and
    nothing about the equivalence. Headroom can JUMP only where lambda
    moves -- opening a door admits a whole new prime power to the wall

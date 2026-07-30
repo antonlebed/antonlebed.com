@@ -260,7 +260,7 @@ stream correction (explore_reading_geometry.py), not re-verified
 here.
 
 RUN RECORD: ALL ENGINES PASS, < 1 s, exit 0 bare (failure path
-fired twice during the mint: the m + 30 horizon FAILs above). E0
+fired twice while this rig was built: the m + 30 horizon FAILs above). E0
 three controls (bounded read, rate stall, finite Mobius hug); E1
 six-witness wall table; E2 six-row conductor table as quoted; E3
 three-hug table with the giant-commitment depths; E4 two frozen +

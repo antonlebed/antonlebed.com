@@ -51,7 +51,7 @@ THE THREE SPLITS (the native/blind boundary, at the embedding level).
      gradient). Either way a re-import.
 
 THE HAND-DERIVATION (frozen pre-engine; adjudicated in the RUN RECORD).
-  Convention (re-derived, mint guard): phi_hom(s) = prod(u[c] for c in s) mod N,
+  Convention (re-derived from the engine, never remembered): phi_hom(s) = prod(u[c] for c in s) mod N,
   empty -> 1; u[c] a fixed random unit per symbol. Transform sending the citation
   cell to cell c: T_c = phi(anchor_c) * inv(phi(anchor_cite)) (inv = pow(., -1, N),
   exact since phi of a unit product is a unit). Applied to query lexeme q:
@@ -210,7 +210,7 @@ anagram collisions, prefix/suffix homophony), not as an analogy-accuracy drop --
 first framing of PR2 (an accuracy drop proportional to the anagram fraction) was
 caught wrong on paper before the engine, because colliding forms map to one ring
 element and the exact-match check still passes each. No engine surprise this run; the
-mint's pre-engine hand-attack absorbed the one design error.
+pre-engine hand-attack absorbed the one design error.
 """
 
 import os

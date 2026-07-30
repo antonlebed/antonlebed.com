@@ -263,7 +263,7 @@ rays are classical); the wall itself remains a property of the
 which ray the output is.
 
 RUN RECORD: ALL ENGINES PASS, ~1.1 s, exit 0 bare. The check()
-failure path fired live during the mint: the first run printed two
+failure path fired live while this rig was built: the first run printed two
 D >= 0 FAILs, traced to the empty-emission startup convention (the
 sharpening note in E3's design), not to the bound — every
 nonempty-emission depth satisfies D >= 0 exactly.

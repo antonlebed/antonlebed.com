@@ -19,7 +19,7 @@ role independence (explore_structure_dependence.py, the §I control the tower re
 NATIVELY) SURVIVE on a substrate that carries native division? The verdict needs
 BOTH answers on ONE substrate.
 
-WHOSE VOCABULARY (the freeze, per the mint discipline). Two suspicions, both
+WHOSE VOCABULARY (fixed before any engine code was written). Two suspicions, both
 TRANSPLANTS, both flagged and put at risk:
   [T1] "the magnitude wall dissolves to precision — a PRECISION RATCHET" is
        transplanted from the DEPTH-face ratchet (explore_recursion_growth.py

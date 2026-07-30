@@ -94,8 +94,8 @@ THE HAND-ATTACK, on paper before any engine code.
     for the runaway and PERMANENT for a strand, which stands shallow forever.
     Two consequences, and they pull opposite ways:
       - the stop law should SURVIVE, the recurrent price falling back to the
-        lone gap. This is the slate's SAFETY MARGIN and the mint says
-        distrust it: it is the half derived from a picture rather than from
+        lone gap. This is the slate's SAFETY MARGIN and a margin is the half
+        to distrust: it is the half derived from a picture rather than from
         an inequality.
       - the min-over-products law should NOT survive as stated. An item's
         recurrent price is price(degree, POPULATED door at its standing
@@ -315,8 +315,8 @@ F4 THE STOP LAW BREAKS, ONLY WHERE THE TAG GROWS WITHOUT BOUND, AND THE
    explore_tick_pump.py F10's two-curve law failing -- where the only cells
    of its own 112 that fail at all, the 12 degree-blind ones, fail at the
    second.
-   AND THE HAND-ATTACK'S SAFETY MARGIN WAS THE WRONG HALF, which the mint
-   says to expect. C argued the widening is self-correcting -- an item that
+   AND THE HAND-ATTACK'S SAFETY MARGIN WAS THE WRONG HALF, which is the
+   half to expect. C argued the widening is self-correcting -- an item that
    pays a widened door LANDS past M and then pays its lone gap -- and that
    is true of an item that MOVES. At tag = degree no item moves at all: 122
    items are seated, ZERO stand above exponent 1, and there is no runaway.

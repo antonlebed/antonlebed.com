@@ -260,7 +260,7 @@ by counted-window behavior), not a richer signal.
 
 Run record. The first run exited 1 at eight checks: three frozen
 predictions refuted honestly (C2's every-row strictness and C4's
-disjointness stance — margins of the mint; C5's funnel claim,
+disjointness stance — both margins of the pre-run predictions; C5's funnel claim,
 refuted by the real discovery), and the frozen K2 ladder's r2 rung
 was found unimplemented in the rig (a rig gap closed post-run).
 The post-run edits implemented r2, added the diagonal probe, the

@@ -239,7 +239,7 @@ F3 C3 CONFIRMED — the bottom lemma's engine leg: the four
    enumerated containing cell at every counted step of every row:
    169082 containments, 0 violations, 1420 route choices faced
    across the quartet.
-F4 C4 PART-REFUTED, the honest half of the mint. The global
+F4 C4 PART-REFUTED, the honest half of the prediction. The global
    minimum of the grown space is the greedy quartet (as the
    pointwise-optimality corollary demands), the funnel survives
    growth (no finite policy stalls above the minimum anywhere),

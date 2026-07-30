@@ -19,7 +19,7 @@ re-importing the full magnitude/order the tower deleted, on which Merge is a
 NATIVE read while the flat-role nativeness (the structure-dependence reading,
 explore_structure_dependence.py) SURVIVES?
 
-WHOSE VOCABULARY (the freeze, per the mint discipline). The suspicion is written
+WHOSE VOCABULARY (fixed before any engine code was written). The suspicion is written
 in the vocabulary of the two-halves UNIFICATION (explore_element_merge.py §II.3):
 the wall = {order/count RELATION, MAGNITUDE}. That is the CURRENT design's
 diagnosis; the dissolution hunt must not inherit it as a verdict. It is MARKED as
@@ -45,7 +45,7 @@ to p. By CRT it splits as Z/p^t x Z/m:
     designed INTERMEDIATE between the tower and the dual pole (the mirror
     deletion; records in explore_dual_pole.py). The nesting mechanism is a native
     ALGEBRAIC structure (the p-adic filtration), NOT a bracket string recorded
-    verbatim and read by a bolted-on stack — the trap the discipline names
+    verbatim and read by a bolted-on stack — the trap to avoid
     (re-importing a Turing tape proves nothing); it is explicitly avoided.
 
 THE NATIVE READ SET (fixed-ring, the frontier-rider set applied to Z/p^t x Z/m).
