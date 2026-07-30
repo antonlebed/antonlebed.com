@@ -1,8 +1,13 @@
 """Cunningham-chain miss bias — fluke or correlation?
 
-At k=7 the Cunningham chain {41, 83, 167} was missed whole (~1% under
-the independent random model). This script tests whether chain
-membership correlates misses, at the right scale.
+At k=7 the Cunningham chain {41, 83, 167} was missed whole. Under the
+independent random model P(miss) = (1 - 1/s)^(2^k - 1) the three
+per-prime probabilities are 0.0435, 0.2145, 0.4664 and the joint miss
+is 0.44%. (An earlier header here read ~1%, which is the same event
+priced at the k=7 AGGREGATE miss rate 0.219 cubed rather than at each
+prime's own probability; the model this script tests is the per-prime
+one.) Rare either way, and this script tests whether chain membership
+correlates misses, at the right scale.
 
 THE RIGHT OBJECT. In the fixed window (p_k, 10 p_k] misses die out by
 k ~ 11 (2^k subsets vs a window growing like 10 p_k), so "test at
