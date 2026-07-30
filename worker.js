@@ -54,6 +54,7 @@ export default {
       '/growth': 'growth',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
+      '/growth/clock': 'clock',
       '/growth/inside': 'inside',
       '/growth/thermal': 'thermal',
       '/growth/constants': 'constants',
