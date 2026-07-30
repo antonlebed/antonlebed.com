@@ -137,6 +137,17 @@ counters that are depths; the knife-edge location below survives with
 that scope attached, and what actually separates the cases is whether
 the machine may READ the derived counter.
 
+SETTLING POINTER (explore_frontier_rider.py). The sub-universality
+verdict here is the DEPTH face's -- moduli and their monotone growth --
+and that is now its whole scope: the ELEMENT class over growing windows
+has since settled UNIVERSAL BARE, with no base extension, no depth read
+and no comparison, a counter riding the growth frontier as a residue in
+one pointed window. So "the tower is one borrow short of universal" is
+a statement about depth counters and not about the tower; what the
+element face shows is that the frontier itself supplies the allocator
+the borrow was wanted for (explore_minimal_carrier.py). Everything
+below stands at that scope, the dial and the knife edge included.
+
 SCOPE + HONESTY. The floor (finding 1) is proved for the modelled class
 (pushes + monotone threshold tests) and shown constructively; the general
 statement rests on standard WSTS theory + Dickson's lemma. The DIAL's
