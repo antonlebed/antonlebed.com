@@ -117,6 +117,12 @@ THE HAND-ATTACK, on paper before any engine code.
   still not derivable from the MATRIX: the filtration is fixed by (p, e, f)
   and a colour carries only q = p^f -- 23 = P*Q^2 at the cubic ring being
   two places of one colour whose columns part (explore_cubic_ring.py F4).
+  [Corrected in a later audit: "fixed by (p, e, f)" overstates.
+  Z[sqrt3] and Z[sqrt-3] share (p, e, f) = (3, 2, 1) at their ramified
+  places over 3 and part in the HEAD (explore_head_width.py), so
+  (p, e, f) fix the tail gap and the sequence is the completion's. The
+  reduction here needs only the weaker true half: a colour carries less
+  than the sequence, which the 23 = P*Q^2 witness shows directly.]
 
 DISTRUST THE MARGIN. The derived half is (b), twice -- from the module
 structure at a tame place and by hand at Z[i]'s plateau. The VIBES half was
