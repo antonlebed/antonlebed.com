@@ -219,7 +219,11 @@ F1 BOTH HAND COLUMNS HOLD, AND THE COLUMN'S TAME/WILD LINE IS e < p - 1,
    level shifts (Z[w]'s split places over 2 run one 2-power BELOW
    standard, X here runs one ABOVE), and Y's phase shift -- and the line
    that predicts deviation is the logarithm's e < p - 1, which both
-   ramified places fail while one is tame and one wild.
+   ramified places fail while one is tame and one wild. [The geometries
+   are features, not a partition: Z[w]'s pair also carries excess 1 --
+   its completion is Q_2, whose column 1, 2, 2, 4, 8 plateaus once --
+   so its below-standard tail is a headed column's displacement, and
+   the HEADLESS level shift is X's alone.]
 
 F2 THE MAXIMALITY ARGUMENT THE ROADMAP OWED, COMPUTED (property;
    Dedekind's criterion evaluated in-engine at 2 and 3, the census over
