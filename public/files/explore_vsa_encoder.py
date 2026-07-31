@@ -38,7 +38,7 @@ THE TWO HALVES.
       the SAME paradigm both additively and multiplicatively and compare.
 
 THE HAND-DERIVATION (frozen pre-engine; adjudicated in the RUN RECORD).
-  Convention (re-derived, mint guard): bind = multiply; unbind of b by a is
+  Convention (re-derived from the engine, not recalled): bind = multiply; unbind of b by a is
   b * a^-1 (a^-1 = pow(a, -1, N) exact iff gcd(a, N) = 1, else the meadow pinv,
   which recovers surviving windows). The transform sending a -> b is T = b * a^-1
   (T*a = b), applied to the query. Hand pair (N = 510510): L1 = 19, L2 = 23,
