@@ -47,7 +47,10 @@ trichotomy, each cell as its own window realizes it: ring
 completion (base-b — all integer mult continuous), odometer
 completion (Zeckendorf — units only), discrete completion (golden
 positional — no window at all); general beyond these three windows
-it is the conjecture the next storey tests.
+it is the conjecture the next storey tests (that storey ran:
+explore_ostrowski_window.py — silver, bronze, sqrt(3)-1 all
+complete to odometers, rule at scanned scope; beyond those windows,
+still the conjecture).
 
 PREDICTIONS, FIXED BEFORE THE RUN (as observables)
 --------------------------------------------------
