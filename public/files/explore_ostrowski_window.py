@@ -212,8 +212,10 @@ these four windows the statement stays the conjecture it was.
 (Settled since: explore_constant_a_borrow.py proves the xa half at
 EVERY constant-a window, a >= 2, and explore_period2_borrow.py at
 every [0; 1, a, 1, a, ...] period-2 window — so all four windows
-here carry proved cells; the unit-gate statement's other halves,
-and every other window, stay as stated.)
+here carry proved cells — and explore_period3_borrow.py proves the
+x2 half at the period-3 window [0; 1, 1, 2, ...], where the flip
+rides the parity of the comb length; the unit-gate statement's
+other halves, and every other window, stay as stated.)
 """
 
 import sys
