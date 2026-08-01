@@ -77,7 +77,10 @@ down-carry. Both proofs run entirely on the recurrence identity
 a q_k = q_{k+1} - q_{k-1}; the conjugate enters neither explicitly.
 The maps 3n, n//2 at silver, and all gated maps at the bronze and
 period-2 windows, remain rule at scanned scope
-(explore_ostrowski_window.py F2).
+(explore_ostrowski_window.py F2). (Settled since:
+explore_constant_a_borrow.py generalizes this proof to every
+constant-a window, so x3 at bronze is now a theorem; 3n, n//2 at
+silver and the period-2 window's maps stay rule as stated.)
 
 THE DESIGN (checks, exhaustive where marked; greedy silver
 extraction only — no closed form from the proof enters the digit
