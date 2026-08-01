@@ -150,9 +150,14 @@ FINDINGS (run record below; every frozen prediction landed).
   square: Cl_m = Z/2 x Z/2.
   F4 CONFIRMED, with structure the slate did not predict: 7 of 21
   pairs entangled, rho in {2, 3, 4, 11, 16}, and the largest residuals
-  sit at CONJUGATE pairs -- the two places over one rational prime
-  with equal eps-order: P17(r=6) * P17(r=11) prints rho=16 (joint 16
-  against product 256) and P23(r=5) * P23(r=18) prints rho=11. The
+  sit at CONJUGATE pairs -- the two places over one rational prime,
+  where the norm equation ties the residues: N(eps) = -1 makes the
+  residue at one conjugate place the negated inverse of the other, so
+  the joint image is about one place's size while the product is its
+  square -- P17(r=6) * P17(r=11) prints rho=16 (joint 16 against
+  product 256), P23(r=5) * P23(r=18) rho=11 (joint 44), P7(r=3) *
+  P7(r=4) rho=3 (joint 12): every conjugate pair entangled, at
+  unequal eps-orders in two of the three. The
   odd-odd -1 mechanism fired where predicted (P7(r=3) * P23(r=5), the
   one odd-odd entangled pair). VERDICT: the compact factor's deletion
   is NOT per-term -- the local factor prices per-term (CRT), and the
