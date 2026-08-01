@@ -210,8 +210,10 @@ n+1, while every rational integer m >= 2 — a unit in NONE of these
 orders — is gated, with delay growing with range (E6). Beyond
 these four windows the statement stays the conjecture it was.
 (Settled since: explore_constant_a_borrow.py proves the xa half at
-EVERY constant-a window, a >= 2 — the unit-gate statement's other
-halves, and every non-constant window, stay as stated.)
+EVERY constant-a window, a >= 2, and explore_period2_borrow.py at
+every [0; 1, a, 1, a, ...] period-2 window — so all four windows
+here carry proved cells; the unit-gate statement's other halves,
+and every other window, stay as stated.)
 """
 
 import sys
