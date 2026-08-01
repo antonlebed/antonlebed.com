@@ -191,6 +191,9 @@ F5  THE PROOF SEED (observation, banked for the proof leg). The W2
     behind it is not extracted here; (0, q_K) is checked by hand
     NOT to be a witness (2 q_K is the legal digit 2 at K), so the
     borrow needs receptive low digits, as the Zeckendorf comb did.
+    (Settled: the family is the even Pell comb and the theorem is
+    proved — explore_silver_discontinuity.py; this entry survives
+    as the seed record.)
 
 THE READING. The third storey's answer at its tested scope: at
 every tested real quadratic Ostrowski window the completion is an
