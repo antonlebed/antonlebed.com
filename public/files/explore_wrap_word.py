@@ -69,6 +69,10 @@ automaticity needs the marks at powers of an integer, Ostrowski
 automaticity over a quadratic irrational needs them at the denominators
 of its convergents, which grow like powers of a quadratic unit. sqrt(e)
 is transcendental (Hermite), so it is neither.
+SUPERSEDED BY (5), AND WRONG WHERE IT IS SHARPEST: the ratio is 2, an
+integer, so the last two sentences invert the real answer. The step that
+fails is the density -- see finding 2. The reasoning ABOUT the ratio
+stands and is what made the measured 2 legible on sight.
 
 (4) THE PHRASE HAS NO REFERENT AS WRITTEN. "Ostrowski-automatic over the
 expansion of sqrt g" names a continued fraction of a VARIABLE -- g is the
@@ -91,6 +95,17 @@ THE KILL, AS OBSERVABLES THE RIG PRINTS (fixed before the engine).
 Either way the residue questions themselves are separately observable:
 whether a class is permanently empty is printed as a first-hit index or
 as NONE at the horizon.
+  ADJUDICATED (post-run): NEITHER BRANCH FIRED. No kernel saturated, so
+  LIVES missed; the slope came in at 1.43 against a band of [1.8, 2.2],
+  so DIES missed too. The two branches were written to look exhaustive
+  and were not -- DIES welded a kernel observable to a slope observable
+  with an AND, so a right kernel reading was voided by a wrong slope
+  prediction. The lesson is the weld, not the band: a kill naming two
+  independent observables needs them adjudicated separately, or a
+  surprise in either one silently disarms the whole criterion. What
+  actually decided the question was the singleton VALUES, which no
+  branch named because the first slate did not expect them to be
+  exactly anything.
 
 SECTIONS.
 
@@ -275,8 +290,12 @@ run record at the end).
    initialization edge) and 3 * 2^n -- all 22 of them out to gap
    5000012, ratios printing as 2.000 with no exception. This is the
    whole of the word's non-polynomial content, and it is what makes the
-   count logarithmic: S(D)/ln D = 1.470 at the horizon, which is
-   1/ln 2 = 1.443 and not the 2 the density heuristic gave. THE
+   count logarithmic: S(D) = 2 + floor(log2(D/3)) exactly, so
+   S(D)/ln D = 1.426 at the horizon gap 5000012, converging to
+   1/ln 2 = 1.443 from below and nowhere near the 2 the density
+   heuristic gave -- the shortfall at any finite horizon being the
+   2 - log2(3) = +0.415 offset of the two edge singletons, divided by
+   ln D. THE
    HEURISTIC NAMED THE WRONG RARE EVENT: it computed the AVERAGE count
    per gap value (2 - 2/v) and read the deficit as a density, when the
    deficit is not spread at all -- it is one event per doubling. An
@@ -331,9 +350,10 @@ run record at the end).
    never in its scope.
 
 SCOPE + HONESTY. Findings 1, 2 and 3 are proved by the offset
-recurrence and hold for every v, with the initialization edge
-(the max(2, .) floor, and the anomalous singleton at gap 2) checked
-computationally rather than argued. Finding 4's procedure is proved by
+recurrence and hold for every v >= 4, which is where the offset's closed
+form is checked and below which s(v-1) has no value: the singletons at
+gaps 2 and 3 are initialization edges, verified computationally and not
+argued, and every singleton from 6 up is derived. Finding 4's procedure is proved by
 construction and checked against brute enumeration only for L <= 60 and
 landings to k = 2000000; larger L is a wider check, not a different
 argument. Finding 5's automaticity leg is the one OBSERVATION here: a
@@ -347,7 +367,8 @@ RUN RECORD (python prime/code/memwatch.py prime/code/explore_wrap_word.py;
 16 checks, all sections assert). S1 2437 landings to t = 1500000,
 census {0: 408, 1: 407, 2: 204, 3: 407, 5: 1011} reproduced exactly.
 S2 10^7 landings, non-decreasing, max multiplicity 2, largest gap
-5000012. S3 22 singletons, S(D)/ln D = 1.470, values 2 and 3 * 2^n,
+5000012. S3 22 singletons, S(D)/ln D = 1.426 at D = 5000012, values
+2 and 3 * 2^n,
 late ratios 2.000. S3b recurrence exact for v = 4..100009; closed forms
 exact on 199999 landings, t = 5 to 10001803491; 15 coincidences, all at
 3 * 2^n. S4 class 4 empty at every horizon, weights 2.000/2.000/1.000/
@@ -498,9 +519,15 @@ def s3_drift():
         s = sum(1 for x in singles if x <= D)
         if s:
             print(f"  10^{e:<5} {s:<6} {s / math.log(D):.3f}")
-    slope = len(singles) / math.log(singles[-1]) if singles else 0.0
-    print(f"  S(D)/ln D = {slope:.3f} at the horizon "
-          f"(the first slate predicted 2.0, band [1.8, 2.2])")
+    # D is the HORIZON GAP, the same D the decade table uses -- dividing
+    # by the last singleton instead would report a different number for
+    # the same count.
+    slope = len(singles) / math.log(prev) if singles else 0.0
+    print(f"  S(D)/ln D = {slope:.3f} at D = {prev} (the horizon gap); "
+          f"the first slate predicted 2.0, band [1.8, 2.2]")
+    print(f"  asymptote 1/ln 2 = {1 / math.log(2):.3f}, approached from "
+          f"below by the {2 - math.log2(3):+.3f} offset of the two edge "
+          f"singletons")
     tail = singles[-12:]
     ratios = [b / a for a, b in zip(tail, tail[1:])]
     print(f"  singleton values: {singles[:14]} ...")
