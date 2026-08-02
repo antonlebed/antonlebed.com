@@ -373,9 +373,12 @@ recurrence and hold for every v >= 4, which is where the offset's closed
 form is checked and below which s(v-1) has no value: the singletons at
 gaps 2 and 3 are initialization edges, verified computationally and not
 argued, and every singleton from 6 up is derived. Finding 4's procedure is proved by
-construction and checked against brute enumeration only for L <= 60 and
+construction and checked against enumeration only for L <= 60 and
 landings to k = 2000000; larger L is a wider check, not a different
-argument. Finding 5's automaticity leg is the one OBSERVATION here: a
+argument. That enumeration runs off the closed-form GENERATOR rather
+than the concrete rider, so what pins it to the machine is S1, which
+runs the rider tick by tick and finds the two identical -- the chain is
+two links and both are checked, but it is a chain and not one check. Finding 5's automaticity leg is the one OBSERVATION here: a
 finite kernel test at a capped depth is evidence of non-automaticity in
 those three bases, never proof, and prefix comparison makes the counts a
 lower bound. Nothing here touches the machine class, the landing lemma
