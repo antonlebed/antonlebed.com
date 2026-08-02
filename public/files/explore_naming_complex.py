@@ -139,8 +139,13 @@ F1  THE CRITERION IS A WEIGHT SUM, and the set size is not part of it.
   them.  The off-by-one congruence sum 1/p_i = m disagrees with divisibility on
   777 of the pairs it was run over, so the agreement is not vacuous.  Class
   counts match the coefficients of prod_p (1 + x^{w_s(p)}) mod x^s - 1 exactly
-  at (s,k) = (5,8), (7,9), (11,9), (13,7), (29,9).  Tier: RULE (proved from
-  -chi = N(g - 1) with gcd(N,s) = 1; exhaustive over the stated range).
+  at (s,k) = (5,8), (7,9), (11,9), (13,7), (29,9).  Tier: CRITERION (proved from
+  -chi = N(g - 1) with gcd(N,s) = 1; exhaustive over the stated range).  One
+  correction to how S0 above words it, that wording being left as written: a
+  power set is a vector space only for symmetric difference, and g is additive
+  over DISJOINT unions, so the precise object is a linear form in the
+  INDICATOR VECTOR -- naming is one linear equation over Z/s and the named sub-rings are
+  its solution set.
 
 F2  THE WEIGHT READS ONLY p mod s, so naming reads only the RESIDUE CENSUS.
   Exhaustively over all 2,047 non-empty sub-rings of the pool at each of
