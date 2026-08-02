@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Ceilings — evaluations that know their own optimum</title>
-<meta name="description" content="Evaluations whose Bayes-optimal score is derived rather than estimated: four designed families on the deleted archimedean place, each with a closed-form ceiling, an exact dial naming the cells where the evidence is worthless, and a constant-cost achiever — and the two things that deadness turns out to depend on, the score asked and the prior assumed.">
+<meta name="description" content="Evaluations whose Bayes-optimal score is derived rather than estimated: four designed families on the deleted archimedean place, each with a closed-form ceiling, an exact dial naming the cells where the evidence is worthless, and a constant-cost achiever — the two things that deadness turns out to depend on, the score asked and the prior assumed, and what four standard Bayes-error estimators do when scored against an optimum that is known exactly.">
 <link rel="canonical" href="https://antonlebed.com/learning/ceilings">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -166,7 +166,9 @@ footer {
 <p class="lede">Evaluations whose best possible score is derived rather
 than estimated: what the optimum is, which members of the family the
 evidence is worthless on, and what attaining it costs — every value in
-closed form, on families designed so that there is one.</p>
+closed form, on families designed so that there is one, and what that
+exactness measures when it is turned on the procedures that estimate
+such an optimum without one.</p>
 
 <p>An <b>eval</b> here is a triple: a task family with a <b>prior</b>
 over its instances, an <b>evidence channel</b> the solver is shown, and
@@ -512,6 +514,225 @@ about whether the evidence is worth anything, and for a family's dead
 cells to be an artifact of one prior. Where the family is designed,
 both dependencies are written down: the dial, the window, and the
 boundary each of them fails at.</p>
+
+<h2>Scoring an estimator</h2>
+
+<p>A closed form for the optimum is also a measuring device. Read the
+threshold family as a classification problem: draw <i>x</i> uniformly
+from Z/<i>N</i>, hand over the residues mod <i>M</i>, and ask for the
+label [<i>x</i> ≥ <i>t</i>]. Write <i>η<sub>r</sub></i> for the
+probability that label is 1 given fiber <i>r</i> — at most two values,
+since the fiber below-count takes at most two — and the
+<b>Bayes error</b> <i>R</i>* is one minus the ceiling: the smallest
+error rate any rule can attain, here a rational number known exactly
+rather than a quantity to be estimated. Read the floor the same way
+and it is the <b>no-evidence value</b>, the error rate of the best
+constant answer.</p>
+
+<p>An <b>estimator</b> takes <i>n</i> such draws and returns an
+estimate of <i>R</i>* with a stated 95% interval; call half that
+interval's width its <b>half-bar</b>. Two properties of an estimator
+are then measurable against truth rather than against another
+estimate: its
+<b>bias</b>, the mean estimate minus <i>R</i>*, and its
+<b>coverage</b>, the fraction of trials whose own interval contains
+<i>R</i>*. Four standard estimators are run, in two families. The
+<b>plug-in</b> pair fits a majority rule to the sample and scores it —
+<b>resubstitution</b> on the same data, <b>held-out</b> on a withheld
+half. The <b>bracket</b> pair reports an interval that comes from a
+theorem rather than from a fitted rule: the 1-nearest-neighbour
+<b>Cover–Hart</b> bracket, built from the nearest-neighbour error
+rate, and a <b>divergence</b> bracket built from the number of edges
+of a minimum spanning tree that join points of opposite label.</p>
+
+<p>Five slices are read — a cell together with a threshold — chosen
+from the dial rather than from a scan: three at the floor, two inside
+the window, at four sample sizes from 500 to 32,000, forty trials
+each. At three of them <i>t</i> is divisible by <i>M</i>, so every
+fiber carries the same <i>η<sub>r</sub></i>; one of those three is the
+<b>knife slice</b>, where that common value is exactly 1/2 and every
+rule is therefore optimal.</p>
+
+<article class="claim" id="coverage-map">
+  <div class="claim-head"><span class="claim-name">The coverage
+  map</span> <span class="tier">observation</span></div>
+  <p>Every one of the five slices breaks at least one of
+  resubstitution, held-out and the Cover–Hart bracket at some sample
+  size, and none of the breakages is visible from inside the
+  estimator that carries it: each interval is
+  computed the same way whether it is right or wrong, and only the
+  closed form says which. Which of the two <em>point</em> protocols
+  breaks is slice-dependent, and the ordering inverts. At the knife
+  slice resubstitution covers 0.00–0.03 while held-out covers
+  0.93–0.97; at the widest floor slice resubstitution starts at 0.00
+  and recovers only at the largest <i>n</i> while held-out falls
+  0.90, 0.50, 0.25, 0.15. Neither of them is simply the good one, so a
+  practitioner who validated a pipeline on any single slice would
+  carry the wrong conclusion to the next. Coverage alone does not
+  settle it either: both brackets cover at 0.90 or better at every
+  slice and every <i>n</i>, and buy that by containing the
+  no-evidence value along with the truth. And at the knife slice a
+  bracket's coverage
+  measures a cap rather than an estimator, since its upper end is held
+  at 1/2, which no binary Bayes error can exceed, and the truth there
+  <em>is</em> 1/2.</p>
+  <p class="scope"><b>Scope.</b> Computed on the five dial-chosen
+  slices at <i>n</i> = 500, 2000, 8000, 32000, forty trials each, one
+  fixed seed, 0-1 score, uniform prior. Nominal coverage 0.95
+  throughout. Two of the five slices are interior rather than floor
+  slices, and the protocols find them no harder: what the window moves
+  is the no-evidence baseline, not what an estimator does. A positive
+  control — a two-fiber Bernoulli problem with <i>R</i>* = 0.15, far
+  from 1/2 — passes through the same sampler and the same estimator
+  code before any grid result is read. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_ruler.py"><code>explore_ceiling_ruler.py</code></a></p>
+</article>
+
+<article class="claim" id="ruler-placement">
+  <div class="claim-head"><span class="claim-name">Placement on a thin
+  edge</span> <span class="tier">rule</span></div>
+  <p>Two of the failures are structural rather than small-sample, and
+  neither is a fact about these rings. At the knife slice
+  resubstitution's deficit is the mean absolute deviation of a fair
+  binomial, ½√(2<i>M</i>/π<i>n</i>), while its own half-bar is the
+  binomial 95% one, 1.96√(1/4<i>n</i>): both shrink as
+  1/√<i>n</i>, so their ratio
+  √(2<i>M</i>/π)/1.96 is free of <i>n</i> — 1.5766 derived, and
+  −1.48, −1.55, −1.56, −1.59 printed across the four sample sizes. The
+  point estimate is consistent, its bias running −0.0644 to −0.0087;
+  the interval is not, and coverage stays at 0.00–0.03 at every sample
+  size, so more data never repairs it. Held-out fails in the opposite
+  direction: its coverage falls monotonically as <i>n</i> grows,
+  because it scores a fitted rule whose excess over the optimum decays
+  with the probability that some fiber's empirical majority flips,
+  while its reported precision decays as 1/√<i>n</i>. A tightening
+  interval reads as improving evidence, and here it is not.</p>
+  <p>Both reappear with no ring anywhere. The same protocols through
+  the same code, on <i>M</i> bare Bernoulli fibers, reproduce the
+  ratio at −1.52 to −1.62 and the falling series at 0.88, 0.68, 0.23,
+  0.25. A dial the ring cannot turn — the distance <i>δ</i> of
+  <i>η</i> from 1/2 — locates the interval failure in the band
+  2<i>δ</i>√(<i>n</i>/<i>M</i>) ≲ 1, and one sixty-fourth of distance
+  already restores the interval at <i>n</i> = 8000. So what a designed
+  family contributes is not the failure but the <b>placement</b>: its
+  floor cells sit at <i>η</i> = 1/2 exactly, on a band about that
+  wide, with the truth a rational number. Calibrated position on a
+  thin edge, and not a cause.</p>
+  <p class="scope"><b>Scope.</b> The rule is the ring-free
+  reappearance: derived by hand off the ring and confirmed at the
+  grid's own
+  <i>M</i>, <i>η</i> and <i>n</i>. The two failure mechanisms are
+  observations — closed forms derived asymptotically and confirmed at
+  four sample sizes. The falling series is stated as a direction and
+  not as rates: it survives all three tie-breaks of the fitted rule's
+  arbitrary empty-fiber choice, the two harsher ones falling further,
+  while two random streams of one setting differ by 0.12, which is the
+  scale of forty-trial coverage noise. The band's location was a
+  margin guess in the design and broke: the crossing sits nearer 1/2
+  than √(<i>M</i>/<i>n</i>). 0-1 score, uniform prior. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_ruler.py"><code>explore_ceiling_ruler.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_boundary.py"><code>explore_ruler_boundary.py</code></a></p>
+</article>
+
+<article class="claim" id="one-bracket">
+  <div class="claim-head"><span class="claim-name">One bracket,
+  correct and empty</span> <span class="tier">rule</span></div>
+  <p>The two bracket estimators are not two bounds. Once <i>n</i> ≫
+  <i>M</i> every test point has an exact residue match, so the
+  1-nearest-neighbour rule returns a random same-fiber training label
+  and its error tends to Σ<sub><i>r</i></sub>
+  <i>P</i>(<i>r</i>)·2<i>η<sub>r</sub></i>(1−<i>η<sub>r</sub></i>) —
+  1/2, 24/49 and 60/121 on the slices run, with measured gaps at most
+  0.0007 at the largest <i>n</i>. The Henze–Penrose divergence the
+  spanning-tree estimator targets has the exact value
+  <i>E</i>[(2<i>η</i>−1)²] here, and (1 − that)/2 is the same quantity
+  again, so the two are one bracket read at two statistics. A second
+  estimator family therefore buys a different way of estimating the
+  bound and never a second opinion on it. Its equality case is this
+  family's own window: the lower endpoint's shortfall is the Jensen
+  gap of |2<i>η<sub>r</sub></i>−1|, which vanishes exactly when that
+  is constant across fibers — when <i>t</i> is divisible by
+  <i>M</i>, or inside
+  the odd-<i>c</i> middle window. Off the window the endpoint is
+  strictly conservative, by at most 0.0178 across the profile.</p>
+  <p>What that one bound can certify is the sharper question, and the
+  answer is a fact about the bound and not about either protocol that
+  reads it. Read exactly,
+  with no sampling anywhere, the bracket excludes the no-evidence
+  value at 2 of the 14 in-window thresholds and contains it at the
+  other 12; add the sampling half-bar at <i>n</i> = 8000 and it
+  excludes it at none. The family's own exact lift there is the tent's
+  7/105, and the bracket's width is still 0.0838 at the largest
+  <i>n</i>. A bracket can be correct at every slice and unable to
+  certify that the evidence is worth anything, with the emptiness
+  located in the bound rather than in the sample.</p>
+  <p class="scope"><b>Scope.</b> The identity of the two brackets and
+  the tightness set are derived by hand and confirmed in exact
+  rational arithmetic on all 35 (slice, threshold) pairs the file
+  touches; the certification counts are computed on the 30-threshold
+  profile of the <i>N</i> = 105 cell at <i>n</i> = 8000, forty trials.
+  The stated bar for the spanning-tree statistic is binomial and
+  overstates its real dispersion by 1.75 to 2.75 times at every slice
+  and sample size, a tree's edges being dependent — so its coverage
+  buys nothing on top of the bound's own slack. Two estimator
+  families, 0-1 score, uniform prior. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_ruler.py"><code>explore_ceiling_ruler.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_divergence.py"><code>explore_ruler_divergence.py</code></a></p>
+</article>
+
+<article class="claim" id="unidentified-tree">
+  <div class="claim-head"><span class="claim-name">The tree the data
+  does not fix</span> <span class="tier">observation</span></div>
+  <p>A spanning-tree estimator needs a distance, and on residues there
+  is none: every pair of points in the same fiber sits at distance
+  zero, so any spanning tree of a fiber's points is a genuine minimum
+  spanning tree and the statistic is not a function of the sample.
+  Fed the rows in class order — what concatenating two label arrays
+  hands a deterministic routine — each fiber contributes exactly one
+  edge joining opposite labels, so the estimate is a function of the
+  fiber count alone: 0.0005 at <i>n</i> = 32,000 at all four slices
+  with <i>M</i> = 15, with across-trial spread 0.0000 and coverage
+  0.00, identically where the truth is 3/7 and where it is 1/2. It
+  converges to the assertion that the labels are perfectly separable.
+  Shuffling the rows — which changes no datum — moves the same
+  estimator to 0.4897.</p>
+  <p>Those two are not the extremes. A fiber's zero-weight edges admit
+  a spanning tree of the complete bipartite graph between its two
+  label classes whenever both are present, and every edge of that tree
+  joins opposite labels, so across genuine minimum spanning trees of
+  one sample the reported bracket runs from [0, 0] to [1/2, 1/2]: the
+  identified set is the whole interval a binary Bayes error can
+  occupy. That is not a perturbed answer but the absence of one, and
+  it is a question of whether the estimator is defined on data of this
+  shape rather than of how well it does. What the repair needs is not
+  randomness but a tree whose shape does not consult the labels; the
+  labels are then exchangeable across its edges and the expected
+  cross-label count is the population quantity whatever the tree, so a
+  deterministic order is fine and class order is not. An exact
+  Euclidean minimum spanning tree on a jittered embedding, built by
+  geometry and blind to labels, agrees with the shuffle — 233.1
+  same-fiber cross edges against 239.8 at <i>n</i> = 500.</p>
+  <p class="scope"><b>Scope.</b> Computed on the five slices at four
+  sample sizes, forty trials, with the mechanism and the identified
+  set derived rather than measured; the label-blind control is a
+  single configuration at <i>n</i> = 500, its agreement inside a
+  conservative Poisson bound. Categorical evidence is what forces the
+  non-identification: the residues carry no order and no size, so
+  every within-fiber distance is zero and the tree has nothing to
+  minimize. 0-1 score, uniform prior. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_divergence.py"><code>explore_ruler_divergence.py</code></a></p>
+</article>
+
+<p>Each of these is invisible from inside the estimator that carries
+it, and none of them needs an unusual protocol: they are what four
+standard procedures do on a family whose answer happens to be known.
+A benchmark's headroom is a function of the score and the prior; an
+estimator's stated precision is a claim about a truth it does not
+have.</p>
 
 </main>
 <footer>
