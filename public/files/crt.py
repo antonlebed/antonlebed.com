@@ -531,6 +531,15 @@ def hamming_neighbors(residues, ring):
 
 def euler_characteristic(ring):
     """CRT Euler characteristic: chi = N * (1 - k + sum(1/q_i)).
+
+    The object it belongs to is the CLIQUE COMPLEX of the neighbour graph
+    (the Cartesian product of complete graphs on the moduli, every complete
+    subgraph filled in as a simplex).  Its maximal cliques are the lines --
+    all coordinates but one fixed -- so every simplex of size >= 2 sits in
+    exactly one of the L = sum(N/q_i) lines, and the alternating count is
+    N + sum_i (N/q_i)(1 - q_i) = N * (1 - k + sum 1/q_i).  The complex is a
+    wedge of circles, so chi = 1 - b1 and there is no homology above the
+    first for it to be averaging over.
     Uses exact integer arithmetic via common denominator."""
     from fractions import Fraction
     s = Fraction(1 - ring.k)
