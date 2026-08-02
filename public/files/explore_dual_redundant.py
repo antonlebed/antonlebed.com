@@ -181,7 +181,12 @@ F3 THE DELAY LAW (rule at 19 scanned scopes; the formula conjectured
    EVERY m — the numerator gate rad(m) | rad(b) DISSOLVES — and the
    minimal lookahead matched the predicted closed form at every
    scanned point: c_min(m) = v_b(m) + ceil(log_b(2a*m0 /
-   (2a - b + 1))) for b-coprime part m0 > 1; pure b-powers sit at
+   (2a - b + 1))) for b-coprime part m0 > 1 (matched at the scopes
+   below and AT THOSE ONLY: swept later at 2a - b + 1 = 2, the form
+   overpredicts by one digit at m = 2 for each of (3,2), (5,3),
+   (7,4) and at m = 5 for (3,2) — explore_redundant_lookback.py,
+   where the same margin loses the same digit for addition);
+   pure b-powers sit at
    c_min = v exactly (x10 at (10,6) is 1, not the formula's 2).
    Measured tables: (2,1): x1:0, x2:1, x3:3, x4:2, x5:4, x6:4,
    x7:4, x9:5, x10:5, x12:5; (4,2): x2:2, x3:2, x5:3, x6:3;
@@ -196,7 +201,11 @@ F3 THE DELAY LAW (rule at 19 scanned scopes; the formula conjectured
 F4 THE ADDITION LAW (rule): X + Y exactly local at c_min = 2 at
    (2,1) and c_min = 1 at (10,6) — the game feasible at the
    predicted c and infeasible one below (b^c (2a - b + 1) >= 4a
-   tight at both) — with the greedy adder exact on all 59049
+   tight at both, and AT BOTH ONLY: swept later over 58 symmetric
+   systems, that inequality is sufficient and overpredicts by one
+   digit at every 2a - b + 1 = 2 system, the exact threshold being
+   c = 1 iff 2a - b + 1 >= 2 and b >= 3 —
+   explore_redundant_lookback.py) — with the greedy adder exact on all 59049
    length-5 pairs at (2,1) and all 28561 length-2 pairs at (10,6);
    negation digitwise (c = 0); n + s exact through the adder for
    s = 1, 3, -5. The shift wall dissolves.
