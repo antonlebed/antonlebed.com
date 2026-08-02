@@ -523,9 +523,20 @@ print("""
    is algebraic and k-independent: odd-prime sub-rings always have
    odd -chi, so 2 never divides -chi.
 
-5. SHELL CONCENTRATION. The shell polynomial concentrates: mean distance
-   grows with k, but median stays at or below k/2. Most elements are at
-   "moderate" distance — the torus is well-connected.
+5. SHELL CONCENTRATION. The shell polynomial concentrates near the TOP,
+   not the middle: the median distance is k-1 from k=3 through k=11 and
+   k-2 at k=12 and k=13 -- near the top, never near k/2 -- and the
+   fraction at distance k/2 or more runs 73% (k=3), 98% (k=6), 99.7%
+   (k=8), 99.95% (k=10), not monotone in k. Almost every element is far
+   from any fixed reference point. The mean is exactly sum(1 - 1/p_i) = k - sum(1/p_i)
+   for every k, by linearity of expectation over the coordinate
+   indicators, so it grows as k - O(log log k) by Mertens.
+   (Settled 2026-06: the mean's proof and the identity making it the
+   naming weight sum are explore_weight_thresholds.py; what survives here
+   is the shell polynomial itself and the concentration figures. The
+   earlier reading of this line — "median stays at or below k/2, most
+   elements at moderate distance" — was the distribution read from the
+   wrong end and is withdrawn.)
 
 6. LAMBDA-PHI RATIO. log(lambda)/log(phi) trends toward ~0.3. This is
    the "dynamical dimension" of the tower — lambda uses ~30% of the
