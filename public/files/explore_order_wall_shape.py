@@ -183,13 +183,17 @@ F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
    second, the loss being in the parameterization and not the values.
 
 F5 THE FACTORIZATION, and it is the finding. Sign is the product of
-   per-digit state maps in a finite TRANSITION MONOID -- sizes 10, 8,
-   8, 3, 31, 65, 14 over the seven systems -- and computing that
-   product with a BALANCED TREE bracketing rather than a left-to-right
-   scan agrees with brute force on every string at every system. So the
-   order reads factor as [window-0 map] then [associative reduction]:
-   the reduction is what the wall is made of, it has no data-dependent
-   chain, and a log-depth circuit evaluates it.
+   per-digit state maps in a finite TRANSITION MONOID -- sizes 3 and 3
+   at the controls and 10, 8, 8, 3, 31, 65, 14 at the seven redundant
+   systems -- and computing that product with a BALANCED TREE
+   bracketing rather than a left-to-right scan agrees with brute force
+   on every string at all nine. So SIGN factors as [window-0 map] then
+   [associative reduction]: the reduction is what the wall is made of,
+   it has no data-dependent chain, and a log-depth circuit evaluates
+   it. The other order reads ride sign rather than being swept --
+   comparison is the sign of a digitwise difference into the doubled
+   digit set, which is redundant at the same radix and so takes the
+   same construction, and equality is that difference against zero.
 
 F6 WHAT THAT SETTLES ABOUT THE PATENTS' CLAIM. Their measure charges
    the reduction NOTHING, because a monoid product is not a carry
