@@ -263,6 +263,30 @@ F3 THE POWER OF 2 IS THE SUPPLY WIDTH'S DOING, AND EXHAUSTION ON A SUPPLY
    product over its openings and could be a power of 2. So what is ruled out
    is exhaustion on a supply that HAS the void tie, and capacity exhaustion in
    general is not ruled out as a lock's mechanism by anything here.
+   (SINCE SETTLED, and the guess above is exactly right. An untied supply
+   exhausts to a pure product: the image is a SUM over the deep coordinate's
+   HOMES of a product over the other openings, of which the form here is the
+   two-home case, so the "+1" is a SECOND HOME and nothing else, the sum
+   carrying one term per home -- 128, 64
+   and 64 at width 2 and 243 and 81 at width 3, across three independent
+   tie-breaks. What that lifts is the ARITHMETIC half of the objection only:
+   a degree there is a LOG-NORM and not a residue degree, so the rational
+   primes alone make the degree set unbounded, its supply never runs out, and
+   capacity is not available to it as a stop either way. Where
+   the arithmetic points instead is F6's STOPPED ladder, where the tie is
+   unbroken too -- though its n^2 + 2n is THREE families over those two homes,
+   F6's first and third both sitting at home 1 (deep at degree 1, with degree
+   2 empty or flat), since a stop leaves degree 2 optionally opened. So that
+   image departs from a pure product for two
+   reasons and the tie is only one of them.
+   explore_void_untie.py F1, F2, F3.)
+   (AND THAT LAST STEP IS SINCE REFUTED: the two reasons are ONE. Every
+   opening a stopped walk makes happens at tick 1, where a degree is opened
+   only by attaining the void menu's minimum -- which is what a home IS -- so
+   the optionally opened degree is the OTHER HOME and a tie-break removes both
+   at once. A stopped image is a product over the homes ALONE, at most two of
+   them, and F6's n^2 + 2n is (n+1)^2 - 1. The rest of the paragraph stands.
+   explore_stopped_untie.py F1, F2.)
 
 F4 WHAT STOPS A LADDER IS A COVERED SET THAT OUTRUNS IT, WHICH NO RULE RUN
    HERE KEYED TO THE SEATED SET DOES AND A RULE KEYED TO THE CLOCK DOES, AND
