@@ -302,8 +302,10 @@ run record at the end).
    average is not a density unless the deviations are independent, and
    here they are perfectly correlated by the reset.
 
-3. CLASS 4 MOD 6 IS EMPTY FOR EVERY k -- a genuine arithmetic
-   obstruction, not a horizon artifact (rule; S4). Since s(v) = 3 * 2^n,
+3. CLASS 4 MOD 6 IS EMPTY FOR EVERY k AT THIS FRONTIER OFFSET -- a
+   genuine arithmetic obstruction, not a horizon artifact, and not a
+   fact about the supply either (rule; S4, scoped by S7 and finding 6).
+   Since s(v) = 3 * 2^n,
    the term 2 s(v) = 6 * 2^n vanishes mod 6, so the landings mod 6 are
    exactly v*v - 1 and v*v - v - 1; over v mod 6 those take the values
    {5, 0, 3, 2, 3, 0} and {5, 5, 1, 5, 5, 1}. Four is in neither list.
@@ -349,6 +351,23 @@ run record at the end).
    the conjecture leaned on was never needed, because the object was
    never in its scope.
 
+6. THE SUPPLY OWNS THE DOUBLING; THE FRONTIER OFFSET OWNS THE RESIDUES
+   (rule; S7, asked by the audit and not by either slate above).
+   Everything in findings 1-4 was derived at ONE offset, the sibling
+   rig's pregrow = 2, and the two halves separate cleanly. The DOUBLING
+   is structural: across offsets 0, 1, 2, 3, 5, 10, 17 and 40 the
+   singletons are always a seed followed by exact ratio-2 steps -- seed
+   3 at offset 0, 2 at offset 1, 5 at offset 5, 7 at offset 40 -- which
+   is forced, since the offset recurrence never reads the offset, it
+   only counts down and resets. The RESIDUE answers are not: shifting
+   the start shifts every landing, and only pregrow = 2 excludes class 4
+   mod 6, every other offset tested hitting all six classes. So the
+   mod-6 exclusion of finding 3 is a fact about the sibling rig's
+   initialization and never about the sqrt supply, and the decidability
+   of finding 4 is what survives generally -- the same derivation runs
+   at any fixed offset, with the seed read off the run rather than
+   assumed to be 3.
+
 SCOPE + HONESTY. Findings 1, 2 and 3 are proved by the offset
 recurrence and hold for every v >= 4, which is where the offset's closed
 form is checked and below which s(v-1) has no value: the singletons at
@@ -360,7 +379,11 @@ argument. Finding 5's automaticity leg is the one OBSERVATION here: a
 finite kernel test at a capped depth is evidence of non-automaticity in
 those three bases, never proof, and prefix comparison makes the counts a
 lower bound. Nothing here touches the machine class, the landing lemma
-or the supply oracle, all of which are the sibling's and stand.
+or the supply oracle, all of which are the sibling's and stand. And
+findings 1 through 4 are stated AT THE SIBLING RIG'S FRONTIER OFFSET,
+which finding 6 is the measurement of: the doubling survives any offset,
+the residue answers do not, and no claim here is a claim about every
+sublinear supply.
 
 RUN RECORD (python prime/code/memwatch.py prime/code/explore_wrap_word.py;
 13.3 s wall clock, 54.1 MB peak working set against the 512 MB ceiling,
@@ -374,10 +397,14 @@ exact on 199999 landings, t = 5 to 10001803491; 15 coincidences, all at
 3 * 2^n. S4 class 4 empty at every horizon, weights 2.000/2.000/1.000/
 2.000/5.000, mod-60 38 of 60 at both 10^4 and 10^7. S5 controls 2 and
 21-plateau; no base saturates. S6 procedure == brute for all L in 2..60.
+S7 eight frontier offsets, every one a seed then exact doubling; only
+pregrow = 2 excludes class 4 mod 6.
 Verdict: the residue problem is CLOSED -- the wrap word has a closed
-form, the mod-6 exclusion is a theorem-grade obstruction rather than an
-artifact, the extracted question class is decided by a finite check, and
-the Sturmian framing the question arrived in had no referent.
+form, the extracted question class is decided by a finite check, the
+mod-6 exclusion is a proved obstruction at the rig's own offset rather
+than an artifact of the horizon (and not a property of the supply,
+which is what S7 is for), and the Sturmian framing the question arrived
+in had no referent.
 """
 
 import math
@@ -786,6 +813,58 @@ def s6_decision_procedure():
     return excl
 
 
+# ================================================================ #
+# S7 -- what the initialization owns                                #
+# ================================================================ #
+
+PREGROWS = (0, 1, 2, 3, 5, 10, 17, 40)
+
+def s7_initialization():
+    """THE THIRD SLATE, frozen before this section's code and asked by
+    the audit rather than by the first two: everything above was derived
+    at ONE frontier offset, the sibling rig's pregrow = 2. Which of it
+    belongs to the SUPPLY and which to that choice?
+
+    Predicted (hand): the DOUBLING is structural -- the offset recurrence
+    never mentions the offset, it only counts down and resets -- so every
+    initialization gives a seed followed by exact doublings, with only
+    the seed moving. The RESIDUE answers are not structural: shifting the
+    start shifts every landing, so the mod-6 exclusion is a fact about
+    pregrow = 2 and not about the supply. Kill: a pregrow whose singleton
+    ratios are not 2 would refute the first half; every pregrow excluding
+    class 4 mod 6 would refute the second."""
+    print("== S7  which of this belongs to the supply, and which to the "
+          "offset ==")
+    print("  pregrow  singleton seed + ratios          classes hit mod 6")
+    all_doubling = True
+    excluders = []
+    for pg in PREGROWS:
+        fires = rider_landings(400000, pregrow=pg)
+        gaps = [b - a for a, b in zip([0] + fires, fires)]
+        mult = Counter(gaps)
+        top = max(mult)
+        singles = sorted(d for d, n in mult.items() if n == 1 and d < top)
+        ratios = [b / a for a, b in zip(singles[1:], singles[2:])]
+        if not all(r == 2.0 for r in ratios):
+            all_doubling = False
+        hit = sorted(set(t % 6 for t in fires))
+        if 4 not in hit:
+            excluders.append(pg)
+        print(f"  {pg:<8} seed {singles[:2]}, then "
+              f"{'x2 exactly' if all(r == 2.0 for r in ratios) else 'NOT x2'}"
+              f"        {hit}")
+    ok(all_doubling,
+       f"the DOUBLING is structural: every offset in {PREGROWS} gives a "
+       f"seed then exact x2 -- the offset recurrence never reads the "
+       f"frontier offset, it only counts down and resets")
+    ok(excluders == [2],
+       f"the mod-6 EXCLUSION is not: only pregrow {excluders} excludes "
+       f"class 4, and the others hit all six -- so that exclusion is a "
+       f"fact about the sibling rig's initialization, never about the "
+       f"sqrt supply, and every residue claim here inherits that scope")
+    return excluders
+
+
 if __name__ == "__main__":
     s1_closed_form_control()
     s2_alphabet()
@@ -794,4 +873,5 @@ if __name__ == "__main__":
     s4_residues()
     s5_automaticity()
     s6_decision_procedure()
+    s7_initialization()
     print(f"\nALL SECTIONS PASS ({CHECKS} checks)")
