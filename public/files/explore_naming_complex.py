@@ -82,6 +82,11 @@ P4 -- NO SYMMETRY CARRIES THE DIVISIBILITY.  Derived on paper: the factors
   s, has a fixed vertex.
   KILL (observable): a brute-force Aut order other than 12, or any sampled
   order-s automorphism with no fixed vertex.
+  AND THE SAMPLE ALONE CANNOT FAIL, which is why it does not stand alone:
+  with s absent, no fixed-point-free coordinate is CONSTRUCTIBLE, so the
+  0 it returns is the arithmetic restated and not a test.  C4 below splits
+  the instrument from the signal by running the same detector where the
+  hypothesis fails.
 
 P5 -- THE WEIGHT LAW AND WHAT IT SUBSUMES.  S0's weight w_s(p) = 1 - p^{-1}
   reads only p mod s, so the criterion is a function of the RESIDUE CENSUS of
@@ -120,6 +125,11 @@ POSITIVE CONTROLS (run and read BEFORE any verdict below them).
   C3  A NEGATIVE control on P3: a cycle basis of a RANDOM induced subgraph of
       the same vertex count as a slice must not be forced to full rank -- the
       rank routine is shown able to report a deficiency at all.
+  C4  A NEGATIVE control on P4: the fixed-vertex detector run on complexes
+      whose factor SIZES are divisible by s -- legitimate complexes, primality
+      being unused in the b1 form -- where an order-s element covering such a
+      coordinate by s-cycles genuinely has no fixed vertex.  The detector must
+      report free there, or its 0 above measures nothing.
 
 FINDINGS (entered after the run; every prediction survived).
 
@@ -181,7 +191,11 @@ F6  THE DIVISIBILITY IS NOT SYMMETRY-BORNE -- and this is the one thing the
   Sym(p_m) and s divides no p_i.  Brute-force Aut(K_2 [] K_3) = 12 = |Sym(2)| *
   |Sym(3)| confirms the structure theorem on the one case small enough to
   enumerate; 94 sampled non-identity order-s automorphisms across five S and
-  five absent s gave 0 without a fixed vertex.  So the covering exists only up
+  five absent s gave 0 without a fixed vertex -- and that 0 is only worth
+  reading because C4 makes the same detector say FREE on all three complexes
+  whose sizes s divides, which is where the absence hypothesis is doing the
+  work.  C4 also caught its own first version: a control putting ONE s-cycle
+  on a coordinate of size 4 leaves two points fixed, and the detector said so.  So the covering exists only up
   to homotopy, and X(S) is no REGULAR s-fold cover: the quotient graph is
   X(S) modulo no symmetry it has, which is as far as a free-action argument
   reaches -- a non-regular covering map out of X(S) is untouched by it.  The
@@ -571,6 +585,25 @@ def run_symmetry():
                     free_found += 1
     print(f"  non-identity order-s automorphisms sampled: {trials}   "
           f"with NO fixed vertex: {free_found}")
+
+    print("\n  NEGATIVE CONTROL -- the detector must report a free element "
+          "where")
+    print("  the hypothesis fails, i.e. where s DOES divide a factor size.")
+    for mods, s in [([2, 3, 5], 5), ([2, 3, 5], 3), ([4, 9], 2)]:
+        sigmas = []
+        for q in mods:
+            sigma = list(range(q))
+            if q % s == 0:
+                for c in range(q // s):
+                    base = c * s
+                    for i in range(s):
+                        sigma[base + i] = base + (i + 1) % s
+            sigmas.append(sigma)
+        fixpts = [[x for x in range(len(sg)) if sg[x] == x] for sg in sigmas]
+        free = any(not f for f in fixpts)
+        print(f"  sizes {str(tuple(mods)):<12} s={s}  divides a size: "
+              f"{any(q % s == 0 for q in mods)}   detector says fixed-point-free: "
+              f"{free}")
     print("\n  the covering reading, on the named sub-rings of the first 7 primes")
     shown = 0
     for m in range(2, 5):
