@@ -399,7 +399,8 @@ def monoid_product_check(b, a, n):
     K = clamp_bound(b, a)
     states = list(range(-(K + 1), K + 2))
     idx = {s: i for i, s in enumerate(states)}
-    gen = {d: tuple(step(v, d, b, K) for v in states) for d in range(-a, a + 1)}
+    gen = {d: tuple(step(v, d, b, K) for v in states)
+           for d in range(-a, a + 1)}
 
     def compose(f, g):
         return tuple(g[idx[f[i]]] for i in range(len(states)))
