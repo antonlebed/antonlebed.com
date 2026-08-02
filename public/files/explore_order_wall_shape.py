@@ -171,10 +171,12 @@ F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
    an object actually pays against the PARAMETERS the family gives you
    to pay them with. A digit set's redundancy is normally dialled as
    the one scalar rho, which governs ADDITION's lookahead; sign's state
-   answers to a/(b-1) instead; and "is it redundant", 2a+1 > b, is a
-   third cut agreeing with neither. One word over two independent costs,
-   marking neither -- and no amount of dialling rho finds the second,
-   the loss being in the parameterization rather than in the values.
+   answers to a/(b-1) instead. And the word "redundant" is exactly
+   rho >= 1, a coarsening of the FIRST parameter -- so it reports on
+   the cost addition pays and carries nothing about the cost sign pays.
+   One dial, two costs, the dial a blunt reading of one of them -- and
+   no amount of turning it finds the other, the loss being in the
+   parameterization rather than in the values.
 
 F5 THE FACTORIZATION, and it is the finding. Sign is the product of
    per-digit state maps in a finite TRANSITION MONOID -- sizes 10, 8,
