@@ -312,8 +312,13 @@ output; run record at the end).
    halting on landing = 4 mod 6 loops forever, and only this word's
    arithmetic can certify that. Completeness of the sound decider on
    the canonical sqrt supply reduces exactly to this word's arithmetic
-   (quasi-Beatty: the Sturmian/Ostrowski-automatic neighborhood,
-   conjectured decidable) -- a SUPPLY question, not a machine question.
+   -- a SUPPLY question, not a machine question.
+   SINCE CLOSED, and the guess in this paragraph was wrong: the word is
+   not quasi-Beatty in any useful sense and the Sturmian neighborhood
+   named no object. The wrap times have a CLOSED FORM, the mod-6
+   exclusion of class 4 is a proved obstruction rather than a measured
+   one, and the residue questions are decided by a finite check
+   (explore_wrap_word.py).
 
 SCOPE + HONESTY. The landing lemma, both killers, the decider's verdicts
 with their certificates, and the supply-oracle detector are
@@ -1034,12 +1039,12 @@ def s5_wrap_word():
   THE RESIDUAL, SHARPENED: completeness of the sound decider on the
   CANONICAL sqrt supply reduces to the arithmetic of this word -- given
   the wrap-time sequence t_k, decide questions like 'is t_k = a (mod L)
-  for some k'. The word is quasi-Beatty (gaps non-decreasing, bounded
-  multiplicity), the neighborhood where Sturmian/Ostrowski-automatic
-  decision procedures live. This is a SUPPLY question, not a machine
-  question: the machine's own contribution to halting is settled by the
-  landing lemma + the three-verdict decider; what remains open is the
-  number theory of the chosen supply schedule.
+  for some k'. This is a SUPPLY question, not a machine question: the
+  machine's own contribution to halting is settled by the landing lemma
+  + the three-verdict decider. SINCE ANSWERED: the wrap times are
+  closed-form, class 4 mod 6 is excluded for every k by a proof, and the
+  residue questions are decided by a finite check
+  (explore_wrap_word.py).
 """)
 
 
