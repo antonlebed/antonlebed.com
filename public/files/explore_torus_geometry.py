@@ -687,25 +687,48 @@ print(f"""
 section("XI. MIXING TIME COMPARISON")
 
 print(f"""
-Mixing time of random walk on the CRT Hamming graph:
-  t_mix ~ degree / (spectral gap) = degree / min(q_i)
+Relaxation time of the random walk, ONE instrument on both graphs:
+
+  t_rel = degree / (smallest nonzero Laplacian eigenvalue)
+
+On the CRT Hamming graph the Laplacian is the sum of the per-channel
+Laplacians, whose nonzero eigenvalues are the moduli themselves, so the
+gap is min(q_i).  On the cycle Z/N the degree is 2 and the gap is
+2 - 2cos(2pi/N), which is ~ 4pi^2/N^2 -- the quadratic that makes a
+cycle slow.  Reading both with the same formula is the point: a
+comparison of two DIFFERENT conventions would measure the conventions.
+
+The cycle gap is evaluated as 4 sin^2(pi/N), never as 2 - 2cos(2pi/N).
+They are the same number and the second is unusable here: at N = 2.1e8
+the cosine sits within 1e-15 of 1, so the subtraction cancels away all
+but about one significant digit and the printed relaxation time comes
+out ~3% low.  The sine form has no cancellation at any N.
 """)
 
-# CRT mixing vs cyclic mixing
+# CRT mixing vs cyclic mixing, same instrument on both
 for ring, name in [(RAD_RING, "k=7"), (POWERED_7, "k=7 powered")]:
     deg = hamming_degree(ring)
     gap = min(ring.moduli)
-    t_mix_crt = deg / gap
-    # Cyclic mixing time ~ N^2 / degree (standard result for cycle graph)
-    t_mix_cyclic = ring.N  # rough: cyclic mixing ~ N
-    ratio = t_mix_cyclic / t_mix_crt
-    print(f"  {name}: degree = {deg}, gap = {gap}, t_mix(CRT) ~ {t_mix_crt:.0f}")
-    print(f"    Cyclic t_mix ~ {ring.N:,}. CRT/cyclic ratio: {ratio:.0f}x faster")
+    t_rel_crt = deg / gap
+    gap_cycle = 4.0 * sin(pi / ring.N) ** 2
+    t_rel_cyclic = 2.0 / gap_cycle
+    ratio = t_rel_cyclic / t_rel_crt
+    print(f"  {name}: N = {ring.N:,}, degree = {deg}, gap = {gap}, "
+          f"t_rel(CRT) ~ {t_rel_crt:.1f}")
+    print(f"    Cycle Z/N: degree 2, gap {gap_cycle:.3e}, "
+          f"t_rel ~ {t_rel_cyclic:.3e} (~ N^2/2pi^2)")
+    print(f"    CRT/cyclic ratio: {ratio:.3e}x faster")
 
 print(f"""
-  CRT decomposition dramatically accelerates mixing by turning a
-  long 1D walk into a short walk on a product of small complete graphs.
-  The 7 independent channels mix simultaneously.
+  The separation is not a constant factor and not a factor of N: the
+  cycle's relaxation time is QUADRATIC in N while the product graph's
+  is degree/min(q_i), a ratio of two small integers that barely moves
+  as the tower grows.  Both walks visit the same N elements; only one
+  of them has to travel to reach them.  The k channels mix at once
+  because the Laplacian is their sum, so the slowest channel alone sets
+  the gap -- which is why the SMALLEST modulus is the bottleneck and a
+  powered tower, whose smallest modulus is 8 rather than 2, relaxes
+  faster than the squarefree one despite being 420 times larger.
 """)
 
 
@@ -858,10 +881,14 @@ print(f"""
    the largest sub-ring that fits inside rung 7 without 17. The coloring
    prime determines the maximum non-conflicting subset.
 
-6. MIXING ACCELERATION. CRT decomposition turns a walk on Z/510510
-   (510510 steps to mix) into a walk on the product graph (51/2 ~ 26
-   steps). The 7 independent channels mix simultaneously. ~20,000x
-   speedup over cyclic.
+6. MIXING ACCELERATION, AND IT IS QUADRATIC RATHER THAN LINEAR. Read
+   with one instrument on both graphs -- degree over the smallest
+   nonzero Laplacian eigenvalue -- the cycle Z/510510 relaxes in
+   ~1.3e10 steps and the product graph in 51/2 ~ 26, a factor 5.2e8.
+   The cycle's time is ~ N^2/2pi^2, so the separation GROWS like N and
+   is not the ~20,000x a linear reading of the cycle would report. The
+   7 channels mix at once because the Laplacian is their sum, so the
+   smallest modulus alone sets the gap.
 
 7. BETTI-IDEMPOTENT CORRESPONDENCE. beta_d(T^7) = C(7,d) = number of
    weight-d idempotents. Sum = 128 = 2^7. The 490 split — zero residues

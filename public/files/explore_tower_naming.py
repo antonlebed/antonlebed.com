@@ -459,24 +459,32 @@ def main():
   2. THREADS 1 AND 2 ARE INDEPENDENT.
      Q1: Transparency does NOT affect 2-prime prediction count.
          Both transparent and non-transparent rungs: avg = 0.96/rung.
-     Q2: 3-prime naming fraction is NOT systematically different at
-         transparent vs non-transparent rungs (confounded by position).
+     Q2: the 3-prime naming fraction DOES read higher at transparent
+         rungs -- 0.7346 against 0.6963 averaged over k>=4 -- and that
+         gap is position, not transparency.  The fraction climbs with k
+         over the whole range printed above (0.000 at k=3 to 0.794 at
+         k=50, rising in trend and not at every step -- k=11, 12, 17,
+         21, 22, 25 and 29 each read below their predecessor) and the
+         transparent rungs sit later in the tower, so any statistic
+         averaging over them without controlling for k inherits the
+         trend.  The comparison as run cannot separate the two.
      Q3: Naming targets track the 1/s baseline regardless of transparency.
          Avg actual/baseline: 1.05 (trans) vs 1.04 (non-trans).
      Lambda-transparency and seed-flower naming measure DIFFERENT
      properties of the tower. They are largely independent.
 
-  3. NAMING IS GOVERNED BY PRIME SIZE, NOT TOWER STRUCTURE.
-     The dominant predictor of naming frequency is 1/s (Bayesian baseline).
-     Deviations come from finite-sample residue bias (Chebyshev), not from
-     transparency, plateaus, or any tower-specific property.
-     (Settled later, explore_naming_complex.py: what survives is the second
-     half -- no tower-specific property enters -- and the measurements above.
-     The first half is superseded.  Naming reads each member's RESIDUE mod s,
-     not its size: the criterion is a sum of weights 1 - p^{-1} that depend
-     on p mod s alone, so a member = 1 mod s is invisible whatever its size.
-     The 1/s baseline is then a character-sum bound, not a Bayesian prior,
-     and the Chebyshev reading of the deviation stands.)
+  3. NO TOWER-SPECIFIC PROPERTY ENTERS NAMING.
+     The naming frequency of an absent s tracks 1/s, and the deviations
+     come from finite-sample residue bias (Chebyshev), not from
+     transparency, plateaus, or any other tower quantity -- which is what
+     the tables above measure and all they measure.
+     WHAT SETS THE FREQUENCY IS THE RESIDUE, NOT THE SIZE
+     (explore_naming_complex.py, settling a reading this section first
+     stated the other way): the criterion is a sum of weights 1 - p^{-1}
+     depending on p mod s alone, so a member = 1 mod s is invisible
+     whatever its size, and the 1/s figure is a character-sum bound
+     rather than a Bayesian prior.  The Chebyshev reading of the
+     deviation stands unchanged.
 
   4. 3-DOMINANCE EXPLAINED.
      p=3 is named by 18/35 triples at k=8 (vs 11.7 expected from 1/3).
