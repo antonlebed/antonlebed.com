@@ -263,7 +263,7 @@ the two-slack verdict of finding 6).
    is 0.00 at every cell at every n, and the
    estimate converges to the assertion that the classes are
    perfectly separable. A shuffle of the input rows -- no change to
-   the data -- moves the same estimator to 0.4897, and finding 5
+   the data -- moves the same statistic to 0.4897, and finding 5
    says what the shuffle is actually buying.
    AND THE TWO REGIMES ARE NOT THE EXTREMES, they are two points in
    a range that covers the whole answer (derived, not measured).

@@ -111,8 +111,9 @@ the design).
       n = 8000, not near sqrt(M/n) = 0.043 as frozen. The slate's
       kill predictions were derived and held; its boundary location
       was a margin guess and broke (the kill/margin split, again).
-      The knife band is NARROW: one sixty-fourth from 1/2 already
-      restores the interval at this n.
+      The knife band is NARROW: one sixty-fourth from 1/2 lifts
+      coverage from 0.00 to 0.85 at this n, still short of the
+      nominal 0.95, and one thirty-second restores it outright.
 
   F4 (S3b, post-hoc leg, its mini-slate fixed before it ran —
       observation, one M, one seed). The crossing is a function of
