@@ -157,24 +157,26 @@ F3 SIGN IS NOT FINITE-WINDOW AT ANY OF THEM (rule, exhaustive). The
    put it out of reach. Without this row the finding would have been
    filed as a redundancy price by its placement alone.
 
-F6 SO THE REGIME SHOWS IN THE STATE, WHICH IS THE ONLY PLACE LEFT FOR
-   IT (rule at the swept systems). Monoid sizes: 3 and 3 at the
-   non-redundant controls, 10, 8, 8, 3 at the redundant systems with
-   a <= b-1, and 31, 65, 14 above that line. What sets the state is
-   K = floor(a/(b-1)) and NOT the slack rho -- and the two are
-   independent, which the table shows outright: (3,2) and (5,3) share
-   rho = 2 and carry 5 states against 3, because a/(b-1) is 1 at one
-   and 0.75 at the other. The cone is constant across every regime and
-   the state is not, so sign's whole cost sits in the state.
+F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
+   systems). Sign's whole cost sits in the state, the cone being
+   constant everywhere -- but the state count 2K+3, K = floor(a/(b-1)),
+   CUTS ACROSS the redundancy boundary rather than marking it: 3 at
+   both non-redundant controls AND at (5,3), which is redundant, while
+   (3,2) shares (5,3)'s slack rho = 2 and carries 5, a/(b-1) being 1 at
+   one and 0.75 at the other. Monoid sizes tell the same story one step
+   coarser -- 3 and 3 at the controls, 10, 8, 8, 3 below a = b-1, and
+   31, 65, 14 above it -- and K alone does not fix them either, since
+   10, 8, 8 and 14 all sit at K = 1.
    **AND THE GENERAL FORM OF THAT IS WORTH STATING**: count the COSTS
    an object actually pays against the PARAMETERS the family gives you
    to pay them with. A digit set's redundancy is normally dialled as
    the one scalar rho, which governs ADDITION's lookahead; sign's state
-   answers to a/(b-1) instead. One parameter, two independent costs --
-   and no amount of dialling rho finds the second, the loss being in
-   the parameterization rather than in the values.
+   answers to a/(b-1) instead; and "is it redundant", 2a+1 > b, is a
+   third cut agreeing with neither. One word over two independent costs,
+   marking neither -- and no amount of dialling rho finds the second,
+   the loss being in the parameterization rather than in the values.
 
-F4 THE FACTORIZATION, and it is the finding. Sign is the product of
+F5 THE FACTORIZATION, and it is the finding. Sign is the product of
    per-digit state maps in a finite TRANSITION MONOID -- sizes 10, 8,
    8, 3, 31, 65, 14 over the seven systems -- and computing that
    product with a BALANCED TREE bracketing rather than a left-to-right
@@ -183,7 +185,7 @@ F4 THE FACTORIZATION, and it is the finding. Sign is the product of
    the reduction is what the wall is made of, it has no data-dependent
    chain, and a log-depth circuit evaluates it.
 
-F5 WHAT THAT SETTLES ABOUT THE PATENTS' CLAIM. Their measure charges
+F6 WHAT THAT SETTLES ABOUT THE PATENTS' CLAIM. Their measure charges
    the reduction NOTHING, because a monoid product is not a carry
    chain; ours charges it EVERYTHING, because F3 says no bounded window
    sees it. Both claims are true of the same object and neither is a
