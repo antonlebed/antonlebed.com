@@ -538,9 +538,19 @@ print("""
    elements at moderate distance" — was the distribution read from the
    wrong end and is withdrawn.)
 
-6. LAMBDA-PHI RATIO. log(lambda)/log(phi) trends toward ~0.3. This is
-   the "dynamical dimension" of the tower — lambda uses ~30% of the
-   available complexity (measured by phi). Stable across jumps and plateaus.
+6. LAMBDA-PHI RATIO. log(lambda)/log(phi) — how much of the available
+   complexity, measured by phi, the dynamics actually uses. It is NOT
+   stable across jumps and plateaus, and this table is the wrong range to
+   read a limit off: over k=3..14 it falls 0.6667 -> 0.3107, and every
+   step of that fall is a PLATEAU, where lambda is frozen while phi keeps
+   growing, so the ratio must decline by construction. A jump can lift it
+   (k=9, k=10) or not (k=8), depending on the jump's size. The table ends
+   inside the four-rung plateau k=11..14, which is why its last value
+   looks like a destination.
+   The ~0.3 is real but belongs to a wider sweep: explore_lambda_tower.py
+   runs to k=50 and finds the ratio oscillating in 0.29-0.36 from k=25 on,
+   with no trend — that is where a "uses ~30% of the available complexity"
+   reading is earned, and not here.
 
 7. EULER CHARACTERISTIC PRIMALITY. -chi is prime for 82% (k=4) down
    to 45% (k=8) of size>=2 sub-rings, decaying toward zero as the
