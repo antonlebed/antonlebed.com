@@ -170,13 +170,15 @@ F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
    **AND THE GENERAL FORM OF THAT IS WORTH STATING**: count the COSTS
    an object actually pays against the PARAMETERS the family gives you
    to pay them with. A digit set's redundancy is normally dialled as
-   the one scalar rho, which governs ADDITION's lookahead; sign's state
-   answers to a/(b-1) instead. And the word "redundant" is exactly
-   rho >= 1, a coarsening of the FIRST parameter -- so it reports on
-   the cost addition pays and carries nothing about the cost sign pays.
-   One dial, two costs, the dial a blunt reading of one of them -- and
-   no amount of turning it finds the other, the loss being in the
-   parameterization rather than in the values.
+   the one scalar rho -- which is itself only half of what ADDITION's
+   lookahead needs, that law reading c = 1 iff rho >= 2 AND b >= 3
+   (explore_redundant_lookback.py; a rho-only threshold is radix-blind
+   and breaks at radix 2). Sign's state answers to a/(b-1), which
+   appears in neither. And the word "redundant" is exactly rho >= 1, a
+   coarsening of one component of the first pair, so it reports bluntly
+   on the cost addition pays and carries nothing about the cost sign
+   pays. One dial, two costs -- and no amount of turning it finds the
+   second, the loss being in the parameterization and not the values.
 
 F5 THE FACTORIZATION, and it is the finding. Sign is the product of
    per-digit state maps in a finite TRANSITION MONOID -- sizes 10, 8,
