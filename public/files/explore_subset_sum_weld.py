@@ -80,8 +80,8 @@ reproduce two numbers it did not derive, both established elsewhere: the 53
 distinct Hamming eigenvalues at k=7 with unreachable {1,4,6,52,54,57}
 (verify_algebra.py::test_hamming_spectrum), and the k=7 read of s=41 -- the
 seven inverses {21,14,33,6,15,19,29} reaching 37 of 41 residues and missing
-every naming target (explore_missed_primes.py).  A failure on either means the harness is wrong and no
-kill/survive reading below is admissible.
+every naming target (explore_missed_primes.py).  A failure on either means
+the harness is wrong and no kill/survive reading below is admissible.
 
 Run: python prime/code/explore_subset_sum_weld.py  (9s, peak 98.2MB)
 
@@ -162,7 +162,8 @@ transfer is a claim about that primitive.
 WHAT THE THREE REGIMES ARE, stated once.  Finite group: wrap-around piles 2^k sums
 into s slots, coverage is cheap above the log threshold, and the shortfall is
 positional noise.  Bounded interval of Z: no wrap, so the interior fills by
-copy-and-shift overlap and only the ENDS stay thin -- the deficit is a boundary constant.
+copy-and-shift overlap and only the ENDS stay thin -- the deficit is a
+boundary constant.
 Ordered with real weights: the range is still bounded, but it is cut into a
 CONTINUUM of slots, so the sums never pile and an exact hit is a coincidence
 rather than a shortfall.  ONE discriminator across all three, the ratio of 2^k to
@@ -173,7 +174,10 @@ ends, which is the whole of why it is the cheap one.
 
 RUN RECORD.  Python 3, Windows.  Control PASS/PASS.  P1 286,107 triples, 0
 disagreements.  P2a k=2..30 exhaustive.  P2b k=6..9 over primes s in [50,400].
-P3 400 trials per cell, seed 20250609.  Measured under memwatch.py: wall 9.0s,
+P3 400 trials per cell, seed 20250609; the target is drawn uniformly over
+[0, sum w], which includes the two endpoints the empty and full sets always
+reach, so each rate is inflated by ~2/(sum w + 1) -- negligible at the sums
+here and it does not move the transition.  Measured under memwatch.py: wall 9.0s,
 peak working set 98.2 MB against the 512 MB ceiling.
 """
 
