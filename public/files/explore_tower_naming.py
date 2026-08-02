@@ -470,6 +470,13 @@ def main():
      The dominant predictor of naming frequency is 1/s (Bayesian baseline).
      Deviations come from finite-sample residue bias (Chebyshev), not from
      transparency, plateaus, or any tower-specific property.
+     (Settled later, explore_naming_complex.py: what survives is the second
+     half -- no tower-specific property enters -- and the measurements above.
+     The first half is superseded.  Naming reads each member's RESIDUE mod s,
+     not its size: the criterion is a sum of weights 1 - p^{-1} that depend
+     on p mod s alone, so a member = 1 mod s is invisible whatever its size.
+     The 1/s baseline is then a character-sum bound, not a Bayesian prior,
+     and the Chebyshev reading of the deviation stands.)
 
   4. 3-DOMINANCE EXPLAINED.
      p=3 is named by 18/35 triples at k=8 (vs 11.7 expected from 1/3).

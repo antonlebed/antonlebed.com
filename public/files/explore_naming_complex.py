@@ -133,15 +133,16 @@ F1  THE CRITERION IS A WEIGHT SUM, and the set size is not part of it.
   -chi = N(g - 1) with gcd(N,s) = 1; exhaustive over the stated range).
 
 F2  THE WEIGHT READS ONLY p mod s, so naming reads only the RESIDUE CENSUS.
-  Over sub-rings of the first 12 primes: 0 census violations at s = 3, 5, 7,
-  11, 13 (26 to 820 distinct censuses each); 2,346 adjunctions of a prime
-  p = 1 (mod s) changed naming 0 times.  Recorded 2-invisibility is the
+  Exhaustively over all 2,047 non-empty sub-rings of the pool at each of
+  s = 3, 5, 7, 11, 13: 0 census violations (41 to 1,151 distinct censuses
+  each); 3,392 adjunctions of a prime p = 1 (mod s) changed naming 0 times.
+  Recorded 2-invisibility is the
   degenerate case (mod 2 every odd prime has weight 0, so g = 0 never reaches
   1) and needs no parity argument of its own.  Recorded 3-dominance holds at
   EVERY size in the form "named iff #{p = 2 mod 3} = 2 (mod 3)": 0 violations
-  over all sub-rings of the pool, and it returns the recorded 18/35 at m = 3,
-  k = 8.  Tier: RULE (one-line proof from the weight law; exhaustive as
-  stated).
+  over all 2,047 sub-rings of the pool, and it returns the recorded 18/35 at
+  m = 3, k = 8.  Tier: RULE (one-line proof from the weight law; exhaustive
+  over the stated pool).
 
 F3  THE 1/s BASELINE IS A BOUND, NOT A FIT.  |count - 2^n/s| sits under the
   character-sum bound in all 10 (s, n) cells run, s in {3,5,7,11,13} and
@@ -589,16 +590,17 @@ def run_weight_law():
     census_bad = 0
     for s in (3, 5, 7, 11, 13):
         table = {}
-        for m in range(1, 7):
-            for S in combinations([p for p in pool12 if p != s], m):
+        pool = [p for p in pool12 if p != s]
+        for m in range(1, len(pool) + 1):
+            for S in combinations(pool, m):
                 key = tuple(sorted(p % s for p in S))
                 named = neg_chi(list(S)) % s == 0
                 if key in table and table[key] != named:
                     census_bad += 1
                 table[key] = named
-        print(f"  s={s:<3} distinct censuses: {len(table):<5} "
-              f"census collisions disagreeing on naming: 0" if not census_bad
-              else f"  s={s:<3} CENSUS FAILURE")
+        print(f"  s={s:<3} sub-rings {2 ** len(pool) - 1:<5} "
+              f"distinct censuses {len(table):<5} "
+              f"censuses disagreeing on naming: {census_bad}")
     print(f"  total census violations: {census_bad}")
 
     print("\n  (b) s-invisibility: p = 1 (mod s) can be adjoined or deleted freely")
@@ -607,7 +609,7 @@ def run_weight_law():
         invisible = [p for p in pool12 if p % s == 1 and p != s]
         others = [p for p in pool12 if p != s and p % s != 1]
         for q in invisible:
-            for m in range(1, 6):
+            for m in range(0, len(others) + 1):
                 for S in combinations(others, m):
                     inv_tested += 1
                     a = neg_chi(list(S)) % s == 0
@@ -618,12 +620,14 @@ def run_weight_law():
 
     print("\n  (c) 3-dominance at every size: named iff #{p = 2 mod 3} = 2 (mod 3)")
     dom_bad = 0
-    for m in range(1, 9):
-        for S in combinations([p for p in pool12 if p != 3], m):
+    dom_pool = [p for p in pool12 if p != 3]
+    for m in range(1, len(dom_pool) + 1):
+        for S in combinations(dom_pool, m):
             named = neg_chi(list(S)) % 3 == 0
             rule = sum(1 for p in S if p % 3 == 2) % 3 == 2
             dom_bad += named != rule
-    print(f"  violations over all sub-rings of the pool: {dom_bad}")
+    print(f"  violations over all {2 ** len(dom_pool) - 1} sub-rings of the "
+          f"pool: {dom_bad}")
     k8 = [2, 3, 5, 7, 11, 13, 17, 19]
     others = [p for p in k8 if p != 3]
     hit = sum(1 for S in combinations(others, 3)
