@@ -7,15 +7,17 @@ a purchase and its price; F3 below withdraws the second half, the
 non-locality being no more redundancy's than any signed-digit
 window's. A live engineering stream asserts
 the opposite-sounding thing in the same representation: four patents on
-comparison and equality of redundant-form numbers, whose independent
-claims recite that the comparator "generate[s] said second result prior
-to completion of a carry signal propagation from the least significant
-digit to the most significant digit" (US 7395304 claim 1; US 6763368
-claim 1 recites the same bound as "independent of any propagation path
-to facilitate carry signal propagation from the least significant digit
-to the most significant digit"; US 6813628 and US 6826588 carry it in
-their abstracts as "without requiring carry propagation", the last of
-the four reaching magnitude comparison and not equality alone).
+comparison and equality of redundant-form numbers. What they recite is
+a bound on carry propagation. US 7395304 claim 1 has the comparator
+"generate said second result prior to completion of a carry signal
+propagation from the least significant digit to the most significant
+digit"; US 6763368 claim 1 gives the same bound as "independent of any
+propagation path to facilitate carry signal propagation from the least
+significant digit to the most significant digit". US 6813628 and
+US 6826588 were read at their abstracts and descriptions rather than
+their claims, the claim text not being in the retrieved documents, and
+carry it there as "without requiring carry propagation"; the second of
+those reaches magnitude comparison and not equality alone.
 
 Both are true and they are not the same quantity. Reading all four at
 their claims settles which quantity each names, and the answer is not
