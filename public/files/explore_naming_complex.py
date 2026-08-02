@@ -182,8 +182,10 @@ F6  THE DIVISIBILITY IS NOT SYMMETRY-BORNE -- and this is the one thing the
   |Sym(3)| confirms the structure theorem on the one case small enough to
   enumerate; 94 sampled non-identity order-s automorphisms across five S and
   five absent s gave 0 without a fixed vertex.  So the covering exists only up
-  to homotopy: the quotient graph is not a quotient OF X(S), and the classical
-  route from a prime to an Euler characteristic is unavailable here.
+  to homotopy, and X(S) is no REGULAR s-fold cover: the quotient graph is
+  X(S) modulo no symmetry it has, which is as far as a free-action argument
+  reaches -- a non-regular covering map out of X(S) is untouched by it.  The
+  classical route from a prime to an Euler characteristic is unavailable.
   Tier: RULE (proved; the run is the check).
 
 WHAT THIS SETTLES.  The homology supplies the OBJECT and the embedding law,
