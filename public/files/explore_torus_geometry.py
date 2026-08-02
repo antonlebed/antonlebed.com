@@ -119,7 +119,7 @@ print(f"     Max distance = N/2 = {RAD_RING.N // 2}")
 # Spectral gaps for each metric
 gap_chord_rad = 4 * sin(pi / max(PRIMES))**2  # chord distance, w=2
 gap_chord_pw = 4 * sin(pi / max(POWERED_7.moduli))**2
-gap_hamming_rad = min(PRIMES)  # Hamming gap = smallest modulus
+gap_hamming_rad = min(PRIMES)  # Hamming SPECTRAL gap = smallest modulus
 gap_hamming_pw = min(POWERED_7.moduli)
 
 print(f"\n  SPECTRAL GAPS:")
@@ -133,13 +133,14 @@ print(f"  {'Chord':<20} {gap_chord_rad:>12.6f} {gap_chord_pw:>12.6f} "
 # Gap duality
 print(f"""
   GAP DUALITY (squarefree):
-    Hamming gap controlled by SMALLEST channel: Z/{min(PRIMES)}.
-    Chord gap controlled by LARGEST channel: Z/{max(PRIMES)}.
+    Hamming SPECTRAL gap controlled by SMALLEST channel: Z/{min(PRIMES)}.
+    Chord SPECTRAL gap controlled by LARGEST channel: Z/{max(PRIMES)}.
+    (Both are spectral. The metric Hamming gap is 1 on every rung.)
     Two complementary views of the same torus.
 
   GAP DUALITY (powered):
-    Hamming gap controlled by Z/{min(POWERED_7.moduli)} = Z/2^3.
-    Chord gap controlled by Z/{max(POWERED_7.moduli)} = Z/7^2.
+    Hamming SPECTRAL gap controlled by Z/{min(POWERED_7.moduli)} = Z/2^3.
+    Chord SPECTRAL gap controlled by Z/{max(POWERED_7.moduli)} = Z/7^2.
     Same duality, different channels.
 """)
 
@@ -509,18 +510,26 @@ print(f"\n  CHROMATIC NUMBER chi(H) = max(p_i) = {max(PRIMES)}")
 print(f"  INDEPENDENCE NUMBER alpha = N / max(p_i) = {RAD_RING.N} / {max(PRIMES)}")
 alpha = RAD_RING.N // max(PRIMES)
 print(f"    = {alpha:,} = {factor_str(alpha)}")
-print(f"    = Z/30030 = rung 6")
+print(f"    = |Z/30030|, the modulus of rung 6 -- a size, see below")
 
 # Compare with the powered ring
 alpha_pw = POWERED_7.N // max(POWERED_7.moduli)
 print(f"\n  Powered: chi(H) = max(q_i) = {max(POWERED_7.moduli)} = 7^2")
 print(f"       alpha = N/49 = {alpha_pw:,}")
 
-# When squarefree, the largest non-conflicting set IS the 6-prime sub-ring
-print(f"\n  CHROMATIC-DEPTH THEOREM (squarefree):")
-print(f"    The largest independent set in rung 7's Hamming graph = {alpha:,}")
-print(f"    = Z/30030 = rung 6, the same ring with 17 dropped.")
-print(f"    The largest non-conflicting set is the ring WITH the coloring prime removed.")
+# The coincidence with the rung below is a CARDINALITY, not a set.
+_witness = 17 * (2 * 5 * 7 * 11 * 13)          # 170170, divisible by 17
+_diff = [p for p in RAD_RING.moduli if _witness % p != 0]
+print(f"\n  CHROMATIC DEPTH (squarefree), and what it does NOT say:")
+print(f"    The largest independent set in rung 7's Hamming graph has")
+print(f"    {alpha:,} elements, which is also |Z/30030| = the rung below.")
+print(f"    That is a COINCIDENCE OF SIZE.  The obvious candidate set --")
+print(f"    the multiples of the coloring prime, a copy of Z/30030 sitting")
+print(f"    inside -- is not independent: 0 and {_witness:,} are both")
+print(f"    divisible by 17 and differ in the {_diff} channel alone,")
+print(f"    so they are adjacent.  Independent sets of the right size do")
+print(f"    exist, by taking the 17-coordinate to be minus the sum of the")
+print(f"    others; none of them is a sub-ring.")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -634,8 +643,7 @@ below is simpler.
 
 # Compare key quantities across the tower
 squarefree_tower = [(primorial_ring(k), f"k={k}") for k in (4, 5, 6, 7)]
-powered_tower = [(primorial_ring(4), "k=4")] + [
-    (powered_ring(k), f"k={k} powered") for k in (5, 6, 7)]
+powered_tower = [(powered_ring(k), f"k={k} powered") for k in (4, 5, 6, 7)]
 
 print(f"  SQUAREFREE TOWER:")
 print(f"  {'Ring':<12} {'N':>10} {'deg':>5} {'tau':>5} {'|Idem|':>7} {'kappa_cross':>12}"
@@ -664,12 +672,21 @@ for ring, name in powered_tower:
           f"{str(kappa_c):>12} {chi:>15,}")
 
 print(f"""
-  THE PHASE TRANSITION:
-    Squarefree tower: kappa_cross = 0 everywhere (tau = 2^k = |Idem|).
-    Powered tower:    kappa_cross = 23/27 everywhere (from k=5 onward).
+  WHAT SEPARATES, AND IT IS NOT A RUNG:
+    Squarefree tower: kappa_cross = 0 at every k (tau = 2^k = |Idem|).
+    Powered tower:    kappa_cross = 23/27 at every k, k=4 included.
 
-    The boundary is k=4 -> k=5 powered: squarefree -> prime-power channels.
-    This is the SAME boundary as:
+    So the two columns are flat and the step is between the FAMILIES,
+    not between two rungs of one. This table used to put the squarefree
+    k=4 ring in the powered column's first row, which made 23/27 look
+    like it switched on at k=5; the real powered rung 4 is Z/88200 and
+    reads 23/27 like the rest. The constant 23/27 is the exponent tuple
+    (3,2,2,2) alone -- tau/|Idem| = (4*3*3*3)/2^4 per powered channel
+    set, with every squarefree channel contributing a factor of 2 to
+    both -- so it cannot depend on k at all.
+
+    The separation is squarefree against prime-power channels, the same
+    line as:
       - Meadow -> non-meadow
       - Von Neumann regular -> non-regular
       - All channels fields -> some channels rings
@@ -722,8 +739,12 @@ for ring, name in [(RAD_RING, "k=7"), (POWERED_7, "k=7 powered")]:
 print(f"""
   The separation is not a constant factor and not a factor of N: the
   cycle's relaxation time is QUADRATIC in N while the product graph's
-  is degree/min(q_i), a ratio of two small integers that barely moves
-  as the tower grows.  Both walks visit the same N elements; only one
+  is degree/min(q_i).  That second one is not constant either -- the
+  degree grows like k^2 ln k / 2 while the squarefree gap stays at 2,
+  so it climbs with the tower from the 25.5 printed above -- but it
+  grows in k where the cycle grows in N, and N is exponential in k.
+  Both walks visit the
+  same N elements; only one
   of them has to travel to reach them.  The k channels mix at once
   because the Laplacian is their sum, so the slowest channel alone sets
   the gap -- which is why the SMALLEST modulus is the bottleneck and a
@@ -749,13 +770,20 @@ The d-th Betti number = number of weight-d idempotents.
 """)
 
 # The 490 split as a cell decomposition
-print(f"  THE 490 SPLIT AS A CELL DECOMPOSITION:")
+print(f"  THE 490 SPLIT.  490 is an ELEMENT of Z/510510 -- 2*5*7^2 -- whose")
+print(f"  residues are zero at 2, 5, 7 and units at 3, 11, 13, 17, so it cuts")
+print(f"  the seven channels 3 against 4.  (Not the data/parity split, which")
+print(f"  cuts 4 against 3 and shares no part with it.)")
 print(f"    DEAD (zero residues)  = {{2, 5, 7}}      weight-3 idempotent,")
 print(f"                            beta_3 = C(7,3) = {comb(7,3)}")
 print(f"    ALIVE (unit residues) = {{3, 11, 13, 17}} weight-4 idempotent,")
 print(f"                            beta_4 = C(7,4) = {comb(7,4)}")
 print(f"    Both beta_3 = beta_4 = 35 = {factor_str(35)}.")
-print(f"    The 490 split IS a Poincare-dual cell decomposition of T^7.")
+print(f"    The two halves sit at COMPLEMENTARY WEIGHTS, 3 and 4, so their")
+print(f"    Betti numbers agree by Poincare duality on T^7: C(7,3) = C(7,4).")
+print(f"    That is the whole content -- a pair of complementary idempotents")
+print(f"    is not a cell decomposition, and any complementary pair of")
+print(f"    channel subsets would do the same.")
 
 # All C(7,k) mod 7 = 0 for 1 <= k <= 6
 print(f"\n  DIVISIBILITY BY b = 7:")
@@ -856,15 +884,29 @@ print(f"""
 section("XV. KEY FINDINGS")
 
 print(f"""
-1. GAP DUALITY. The Hamming gap is controlled by the SMALLEST channel
-   (2, the bridge). The chord gap by the LARGEST (17). Two complementary
-   views of T^7: the smallest channel controls topology, the largest
-   controls spectroscopy.
+1. GAP DUALITY, AND BOTH GAPS ARE SPECTRAL. The Hamming graph's
+   SPECTRAL gap is min(p_i), set by the SMALLEST channel (2, the
+   bridge); the chord kernel's spectral gap is 2 sin^2(pi/max modulus),
+   set by the LARGEST (17). Two complementary views of T^7: the
+   smallest channel controls one, the largest the other.
+   THE WORD 'GAP' IS NOT THE METRIC ONE HERE, and the distinction is
+   worth the line because the metric reading is trivial: the smallest
+   HAMMING DISTANCE between two distinct elements is 1 on every rung by
+   construction, since changing one channel is always available, so no
+   channel controls it. The chord metric's own minimum is
+   4 sin^2(pi/p_max), which differs from the chord SPECTRAL gap above by
+   a factor of 2 and is a different quantity.
 
-2. CURVATURE PHASE TRANSITION. The squarefree tower has kappa_cross = 0
-   everywhere (tau = 2^k = |Idem|). Powered, kappa_cross = 23/27. The
-   boundary is rung 4 -> rung 5 powered: squarefree -> prime-power. This
-   is the SAME boundary as meadow, regularity, and lattice structure.
+2. THE CROSS-LATTICE STEP IS BETWEEN THE FAMILIES, NOT ALONG EITHER.
+   kappa_cross = (tau - |Idem|)/tau is 0 at every squarefree rung
+   (tau = 2^k = |Idem|) and 23/27 at every powered rung, k=4 included.
+   Both columns are constant, so there is no rung at which anything
+   turns on -- 23/27 is a function of the exponent tuple (3,2,2,2) and
+   of nothing else, k entering both tau and |Idem| as the same factor of
+   2 per squarefree channel. What separates is squarefree against
+   prime-power channels, the same line as meadow, regularity and
+   lattice structure. This was reported as a transition at rung 4 -> 5
+   because the powered column's first row held the squarefree ring.
 
 3. HEAT KERNEL DUALITY. The Hamming heat kernel has Z/2 as the slowest
    channel (smallest Laplacian eigenvalue: 2/51). The chord heat kernel
@@ -876,10 +918,14 @@ print(f"""
    2 can never divide -chi. The bridge is invisible from inside —
    you have to cross it to know it exists.
 
-5. CHROMATIC-DEPTH THEOREM. chi(H) = 17 at rung 7: the largest prime
-   colors the graph. The independence number alpha = 30030 = rung 6 =
-   the largest sub-ring that fits inside rung 7 without 17. The coloring
-   prime determines the maximum non-conflicting subset.
+5. CHROMATIC DEPTH, AND ITS COINCIDENCE IS A SIZE. chi(H) = 17 at
+   rung 7: the largest prime colors the graph, and the independence
+   number is N/17 = 30030 because each of the 30030 lines in the
+   17-channel is a clique and the bound is attained. 30030 is also the
+   modulus of rung 6, which is a coincidence of CARDINALITY and nothing
+   more -- the multiples of 17 form a copy of Z/30030 inside rung 7 and
+   are NOT independent, 0 and 170170 differing in the 3-channel alone.
+   No maximum independent set here is a sub-ring.
 
 6. MIXING ACCELERATION, AND IT IS QUADRATIC RATHER THAN LINEAR. Read
    with one instrument on both graphs -- degree over the smallest
@@ -891,10 +937,13 @@ print(f"""
    smallest modulus alone sets the gap.
 
 7. BETTI-IDEMPOTENT CORRESPONDENCE. beta_d(T^7) = C(7,d) = number of
-   weight-d idempotents. Sum = 128 = 2^7. The 490 split — zero residues
-   at {{2, 5, 7}} (weight 3), unit residues at {{3, 11, 13, 17}} (weight
-   4) — is a Poincare-dual cell decomposition. Interior Betti numbers
-   C(7,d)/7 = {{1,3,5,5,3,1}}: palindromic, using only {{1, 3, 5}}.
+   weight-d idempotents. Sum = 128 = 2^7. The 490 split — the element
+   2*5*7^2, zero at {{2, 5, 7}} and a unit at {{3, 11, 13, 17}} — cuts the
+   channels at complementary weights 3 and 4, so beta_3 = beta_4 = 35 by
+   Poincare duality. That is a property of ANY complementary pair of
+   channel subsets, so it is not a fact about 490 and not a cell
+   decomposition.
+   Interior Betti numbers C(7,d)/7 = {{1,3,5,5,3,1}}: palindromic.
 
 8. OLLIVIER-RICCI, SQUAREFREE. Z/2 is FLAT (kappa = 0). Z/17 is most
    curved (kappa = 15/51 = 5/17). Total Ollivier-Ricci curvature = 44/51.
