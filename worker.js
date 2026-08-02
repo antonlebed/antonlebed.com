@@ -51,6 +51,7 @@ export default {
       '/': 'index',
       '/object': 'object',
       '/object/structure': 'structure',
+      '/object/frequency': 'frequency',
       '/growth': 'growth',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
