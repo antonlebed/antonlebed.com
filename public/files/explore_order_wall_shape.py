@@ -106,10 +106,11 @@ RESOURCE. Pure-Python integer enumeration, no numpy. Per cell the
 enumeration is capped near 3e5 strings; whole run is seconds and a few
 MB, far inside the 512MB default.
 
-FINDINGS. Both controls passed and every prediction held. Seven
-symmetric systems, four at a <= b-1 and three at a >= b, exhaustive to
-the widths the budget allows (b,a,n): (2,1,11), (3,2,7), (4,3,6),
-(5,3,6), (2,2,7), (2,3,6), (3,3,6). Run: 4.2 s.
+FINDINGS. Both positive controls passed and every prediction held. Nine
+symmetric systems, exhaustive to the widths the budget allows (b,a,n).
+Seven REDUNDANT, four of them at a <= b-1 and three above: (2,1,11),
+(3,2,7), (4,3,6), (5,3,6), (2,2,7), (2,3,6), (3,3,6). Two BALANCED and
+non-redundant, the slack-zero control: (3,1,11), (5,2,7). Run: 5.7 s.
 
 F1 THE LEADING-NONZERO LAW (rule, exhaustive at the stated widths).
    Where a <= b - 1 the sign is the sign of the first nonzero digit on
