@@ -623,7 +623,8 @@ print("""
 2. TRUNCATION COMPLETENESS (observation, k <= 22). Complete at zero
    floor by the criterion; at floor 0.002 (power-of-two rounded) with
    |B| <= 3 the union covers all 16,586 collided values over the 10
-   validation rungs, zero false hits.
+   validation rungs, zero false hits. |B| <= 3 is where the enumeration
+   was CUT, not a measured depth: |B| <= 2 was never run.
 
 3. CELL-SUM FORMULA (rule, verified k <= 22). The pattern-collision
    rate is exactly a nested-threshold sum of counting functions over
@@ -636,7 +637,9 @@ print("""
 
 4. VALUE BIAS (observation, all 18 rungs). cellsum >= value rate
    always; gap 0.00-0.24, largest when the rate is low (collided
-   values carry more representing patterns than survivors).
+   values carry more representing patterns than survivors). Those gaps
+   are LOWER BOUNDS from k=18 up, where the cap drops relations from
+   the union; uncapped they can only widen.
    As a value-rate predictor the formula is PATTERN-tier: it tracks
    (high cellsum -> high rate) with a known one-sided bias.
    OUT-OF-SAMPLE HIT at k=37: predicted 0.74..0.98 before any
