@@ -257,16 +257,19 @@ output).
    the super-critical band is the OPEN CELL: equidistribution
    observed, no elementary mechanism proves it.
 
-RUN RECORD. ALL 153 CHECKS PASS, 41.4 s wall clock; 85.9 MB peak
+RUN RECORD. ALL 155 CHECKS PASS, 43.3 s wall clock; 85.9 MB peak
 working set against the 512 MB ceiling (memwatch, at the 147-check
-stage — the audit-added controls retain no new data). First run: 146
+stage — the controls added since retain no new data). First run: 146
 checks, all eight predictions PR1-PR8 confirmed as frozen. Second run
 added the second-freeze mark-law check. The audit then added the
 pregrow sweep and the direct-solver control (a findings draft had
 misread the constant 2 shared by c = 3 and c = 5 as the pregrow
 itself), and the c = 6, 8 mark checks (a draft had extended the shared
 seed 3 to EVERY even power from two instances — the same species one
-level up). No other slips found between the freezes and the runs.
+level up); a later audit added the c = 6, 8 tick-rider bisimulations,
+which those mark checks had run without while the design sentence
+promised one per supply. No other slips found between the freezes and
+the runs.
 """
 
 import math
@@ -508,6 +511,7 @@ def s1_parity():
        f"(doubling, the even-parity shape)")
     for cc in [6, 8]:
         mm, MM = make_power(cc)
+        bisimulate(f"c={cc}", mm, MM, 1000000)
         sts, orr = window_stats(MM, 10 ** 9)
         _, mks = offsets_and_marks(MM, sts, orr)
         ok(len(mks) >= 3 and all(mks[i] == 3 * 2 ** i
