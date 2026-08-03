@@ -1,16 +1,22 @@
-"""Seed-flower at k=8: does the prediction property extend to Z/9699690?
+"""Seed-flower at k=8: does the naming of absent primes extend to Z/9699690?
 
-At k=7 (RAD, 127 sub-rings), chain-consecutive 2-prime pairs predict absent
-tower primes — proved as algebraic identities. At k=8 (+19, 255 sub-rings),
-two new predictions appear:
-  {3, 11} -> 19  (was intruder at k=7, now tower prime at k=8)
+Call a pair {p, q} of tower primes a PREDICTION when its -chi =
+(p-1)(q-1) - 1 is itself a tower prime — necessarily absent from the pair.
+At k=7 (RAD, 127 sub-rings) there are five; four are proved as algebraic
+identities under the consecutive-prime parametrization
+(explore_seed_flower_proof.py), the fifth is the linear 2-root law p - 2.
+At k=8 (+19, 255 sub-rings), two new predictions appear:
+  {3, 11} -> 19  (19 was an intruder at k=7, now a tower prime at k=8)
   {2, 19} -> 17
 
-This script maps all 255 non-empty thin sub-rings of Z/9699690, checks whether
-the prediction/smoothness/naming structure extends, and identifies the root
-patterns (2-rooted, 3-rooted) that generate predictions at arbitrary k.
+This script maps all 255 non-empty thin sub-rings of Z/9699690, checks how
+the prediction/smoothness/naming structure extends, identifies the root
+patterns (2-rooted, 3-rooted) that generate every prediction at k <= 8, and
+verifies the p_k+1 factorization rule against an exhaustive pair scan for
+k = 3..24.
 
 Run: python prime/code/explore_seed_flower_k8.py
+Resources: ~13 MB peak working set, ~0.3 s wall (memwatch, 512 MB ceiling).
 """
 
 from itertools import combinations
@@ -90,15 +96,12 @@ def compute_all_subrings(primes):
 
 def main():
     print("=" * 76)
-    print("SEED-FLOWER AT k=8: extending the prediction property to Z/9699690")
+    print("SEED-FLOWER AT k=8: do the absent-prime predictions extend to Z/9699690?")
     print("=" * 76)
     print()
     print("Z/9699690 = 2*3*5*7*11*13*17*19.  8 channels, 255 non-empty sub-rings.")
-    print("Lambda = lcm(1,2,4,6,10,12,16,18) = 720.")
-    print()
-
     lam = lcm_list([p - 1 for p in PRIMES_8])
-    print(f"  Verify: lambda(k=8) = {lam}")
+    print(f"Lambda = lcm(p_i - 1, i=1..8) = {lam}.")
     print()
 
     results_7 = compute_all_subrings(PRIMES_7)
@@ -108,7 +111,7 @@ def main():
     # I. 2-PRIME PREDICTIONS: k=7 vs k=8
     # ═══════════════════════════════════════════════════════════════
 
-    section("I. 2-PRIME CHAIN PREDICTIONS")
+    section("I. 2-PRIME PREDICTIONS")
 
     print("""
 For thin Z/(p*q): -chi = (p-1)(q-1) - 1.
@@ -154,10 +157,11 @@ A pair {p,q} PREDICTS prime r if -chi = r, r is a tower prime, r not in {p,q}.
     # II. ROOT PATTERNS
     # ═══════════════════════════════════════════════════════════════
 
-    section("II. ROOT PATTERNS — why D and K generate the most predictions")
+    section("II. ROOT PATTERNS -- why roots 2 and 3 generate every prediction")
 
     print("""
-For {p_root, p_target}: -chi = (p_root - 1)(p_target - 1) - 1.
+The ROOT of a pair is its smaller prime, so each pair is classified once.
+For {root, p}, p > root: -chi = (root - 1)(p - 1) - 1.
 The root's totient controls the growth rate:
   2-rooted (totient 1): -chi = p - 2     (twin prime offset)
   3-rooted (totient 2): -chi = 2p - 3    (Sophie-Germain-flavored)
@@ -165,21 +169,20 @@ The root's totient controls the growth rate:
   7-rooted (totient 6): -chi = 6p - 7    (fastest growth)
 """)
 
-    roots = [(2, 'D'), (3, 'K'), (5, 'E'), (7, 'b')]
-    for root, name in roots:
+    for root in [2, 3, 5, 7]:
         tot = root - 1
-        print(f"  {name}-rooted (totient {tot}): -chi = {tot}*p - {tot+1}")
+        print(f"  {root}-rooted (totient {tot}): -chi = {tot}*p - {tot+1}")
         hits = []
         for p in PRIMES_8:
-            if p == root:
+            if p <= root:
                 continue
             nc = (root - 1) * (p - 1) - 1
             hit = is_prime(nc) and nc in set(PRIMES_8) and nc != root and nc != p
             status = f"= {nc:>3} = {NAMES.get(nc, '?')}" if hit else f"= {nc:>3} = {factor_str(nc)}"
             marker = "  <-- PREDICTION" if hit else ""
             hits.append(hit)
-            print(f"    {{{name},{NAMES[p]}}}  ({tot})*({p-1})-1 {status}{marker}")
-        print(f"    Predictions from {name}-root: {sum(hits)}")
+            print(f"    {{{root},{NAMES[p]}}}  ({tot})*({p-1})-1 {status}{marker}")
+        print(f"    Predictions with root {root}: {sum(hits)}")
         print()
 
     # ═══════════════════════════════════════════════════════════════
@@ -189,7 +192,8 @@ The root's totient controls the growth rate:
     section("III. ALGEBRAIC IDENTITIES FOR NEW PREDICTIONS")
 
     print("""
-At k=7, four chain predictions are algebraic identities:
+At k=7, four predictions are algebraic identities under the
+consecutive-prime parametrization (explore_seed_flower_proof.py):
   {2,5}->3: (2x+1)(x-2)=0    {2,7}->5: (3x+1)(x-2)=0     (x = p_1)
   {3,5}->7: (2y-1)(y-3)=0    {3,7}->11: 2y(y-3)=0        (y = p_2)
 
@@ -201,8 +205,8 @@ New at k=8:
 
     # {2, 19} -> 17
     print("  {2, 19} -> 17:")
-    print(f"    -chi = (D-1)(R-1) - 1 = R - 2 = 19 - 2 = 17 = X")
-    print(f"    For p=2: -chi = p - 2 for ANY p. This is the 2-root identity.")
+    print(f"    -chi = (2-1)(19-1) - 1 = 19 - 2 = 17")
+    print(f"    For root 2: -chi = p - 2 for ANY p. This is the 2-root identity.")
     print(f"    It predicts whenever p-2 is prime AND in the tower set.")
     print(f"    Connection: p and p-2 are a TWIN PRIME PAIR.")
     print(f"    At k=8, twin pairs in tower set: (5,3), (7,5), (13,11), (19,17).")
@@ -219,14 +223,14 @@ New at k=8:
 
     # {3, 11} -> 19
     print("  {3, 11} -> 19:")
-    print(f"    -chi = (K-1)(L-1) - 1 = 2*10 - 1 = 19 = R")
-    print(f"    For K=3: -chi = 2(p-1) - 1 = 2p - 3 for any p.")
+    print(f"    -chi = (3-1)(11-1) - 1 = 2*10 - 1 = 19")
+    print(f"    For root 3: -chi = 2(p-1) - 1 = 2p - 3 for any p.")
     print()
-    print(f"    Algebraic identity: set 2p-3 = R where R is a target prime.")
-    print(f"    Then p = (R+3)/2. Need p to be an tower prime.")
-    print(f"    R=19: p = 11. CHECK: {{3,11}} -> 19. Correct.")
+    print(f"    The 3-root law: set 2p - 3 = r where r is a target prime.")
+    print(f"    Then p = (r+3)/2. Need p to be a tower prime.")
+    print(f"    r=19: p = 11. CHECK: {{3,11}} -> 19. Correct.")
     print()
-    print(f"    3-root predicts R whenever (R+3)/2 is an tower prime and R != K.")
+    print(f"    Root 3 predicts r whenever (r+3)/2 is a tower prime and r != 3.")
     k_predictions = []
     for p in PRIMES_8:
         if p == 3:
@@ -239,13 +243,17 @@ New at k=8:
 
     # Check: does {3,11}->19 have a polynomial factoring like the k=7 ones?
     print("  Polynomial analysis for {3, 11} -> 19:")
-    print(f"    11 = 4*3 - 1, so -chi = (3-1)(4*3-2) - 1 = 2*10 - 1 = 19.")
-    print(f"    In general (y = p_2): -chi = (y-1)(4y-2) - 1 = 4y^2 - 6y + 1.")
-    print(f"    Setting equal to 19: 4y^2 - 6y - 18 = 2(2y+3)(y-3) = 0.")
-    print(f"      Roots: y=0 or y=3. ALGEBRAIC IDENTITY! Same form as {{3,7}}->11.")
+    print(f"    11 = 4*3 - 1, so with y = p_2 and partner 4y - 1:")
+    print(f"    -chi = (y-1)(4y-2) - 1 = 4y^2 - 6y + 1.")
+    print(f"    Setting equal to the constant 19: 4y^2 - 6y - 18 = 2(2y+3)(y-3) = 0.")
+    print(f"      Roots: y = 3 and y = -3/2.")
     print()
-    print(f"    Factor (y-3) is the chain uniqueness root (same as all k=7 3-rooted proofs).")
-    print(f"    Factor (2y+3) evaluates to 9 = 3^2 at y=3.")
+    print(f"    The (y-3) factor RESTATES the arithmetic: 19 enters as a constant,")
+    print(f"    so y = 3 is a root exactly when this pair's -chi equals 19 -- one")
+    print(f"    numeric check, not a new identity. The four k=7 identities carry")
+    print(f"    more: there the target is itself parametrized by the")
+    print(f"    consecutive-prime rules (explore_seed_flower_proof.py), so the")
+    print(f"    factorization constrains the generation rules, not one pair.")
     print()
 
     # ═══════════════════════════════════════════════════════════════
@@ -386,7 +394,7 @@ New at k=8:
     # IX. THE SCALING LAW
     # ═══════════════════════════════════════════════════════════════
 
-    section("IX. PREDICTION GROWTH: THE p_k+1 FACTORIZATION THEOREM")
+    section("IX. PREDICTION GROWTH: THE p_k+1 FACTORIZATION RULE")
 
     print("""
 New predictions at rung k come from two sources:
@@ -396,6 +404,10 @@ New predictions at rung k come from two sources:
 
 So: new_preds(k) = twin(p_k) + |{(a,b): ab = p_k+1, a+1 and b+1 primes < p_k}|.
 Primes where p+1 is highly factorable are "rich" rungs for the seed-flower.
+
+The "scan" column is the INDEPENDENT check: the number of predictions at
+rung k counted by exhaustive scan over all pairs of the first k primes.
+The rule holds iff the cumulative formula total matches it at every rung.
 """)
 
     def first_k_primes(k_val):
@@ -407,9 +419,20 @@ Primes where p+1 is highly factorable are "rich" rungs for the seed-flower.
             n += 1
         return ps
 
+    def count_predictions_scan(primes_list):
+        s = set(primes_list)
+        n = 0
+        for a_i in range(len(primes_list)):
+            for b_i in range(a_i + 1, len(primes_list)):
+                nc = (primes_list[a_i] - 1) * (primes_list[b_i] - 1) - 1
+                if nc in s and nc != primes_list[a_i] and nc != primes_list[b_i]:
+                    n += 1
+        return n
+
     cum_preds = 0
-    print(f"  {'k':>3} {'p_k':>4} {'p_k+1':>6} {'twin':>5} {'#tgt':>5} {'new':>4} {'total':>5}  target factorizations")
-    print(f"  {'-'*78}")
+    mismatches = []
+    print(f"  {'k':>3} {'p_k':>4} {'p_k+1':>6} {'twin':>5} {'#tgt':>5} {'new':>4} {'total':>5} {'scan':>5}  target factorizations")
+    print(f"  {'-'*84}")
     for k_test in range(3, 25):
         primes_k = first_k_primes(k_test)
         pk = primes_k[-1]
@@ -425,8 +448,17 @@ Primes where p+1 is highly factorable are "rich" rungs for the seed-flower.
                     facts.append((a + 1, bv + 1))
         new_count = twin_val + len(facts)
         cum_preds += new_count
+        scan = count_predictions_scan(primes_k)
+        if scan != cum_preds:
+            mismatches.append((k_test, cum_preds, scan))
         fact_str = ", ".join(f"{{{p},{q}}}" for p, q in facts) if facts else "-"
-        print(f"  {k_test:>3} {pk:>4} {pk+1:>6} {twin_val:>5} {len(facts):>5} {new_count:>4} {cum_preds:>5}  {fact_str}")
+        print(f"  {k_test:>3} {pk:>4} {pk+1:>6} {twin_val:>5} {len(facts):>5} {new_count:>4} {cum_preds:>5} {scan:>5}  {fact_str}")
+
+    if mismatches:
+        print(f"\n  MISMATCH (k, formula, scan): {mismatches}")
+    else:
+        print(f"\n  VERIFIED k=3..24: the cumulative formula total equals the")
+        print(f"  exhaustive pair scan at every rung.")
 
     # ═══════════════════════════════════════════════════════════════
     # X. KEY FINDINGS
@@ -443,11 +475,15 @@ Primes where p+1 is highly factorable are "rich" rungs for the seed-flower.
    2p-3 pairs. These generate all predictions at k<=8. At k=9, 5-root
    contributes {{5,7}}->23 (first higher-root prediction).
 
-3. THE {{3,11}}->19 PREDICTION IS AN ALGEBRAIC IDENTITY:
-   4y^2 - 6y - 18 = 2(2y+3)(y-3) = 0 at y=3.
-   Same (y-3) uniqueness root as all 3-rooted proofs at k=7.
+3. THE {{3,11}}->19 PREDICTION FOLLOWS THE 3-ROOT LAW -chi = 2p - 3.
+   Its polynomial form 4y^2 - 6y - 18 = 2(2y+3)(y-3) has the root
+   y = 3, but with the target 19 entering as a constant that root
+   restates the arithmetic; the content of the k=7 identities (target
+   parametrized by the consecutive-prime rules,
+   explore_seed_flower_proof.py) does not transfer.
 
-4. THE p_k+1 FACTORIZATION THEOREM:
+4. THE p_k+1 FACTORIZATION RULE (verified k=3..24 against the
+   exhaustive pair scan, section IX):
    New predictions at rung k = twin(p_k) + #factorizations of p_k+1
    as (p_i-1)(p_j-1) with p_i, p_j both smaller tower primes.
    "Rich" rungs are those where p_k+1 is highly composite (e.g.,
