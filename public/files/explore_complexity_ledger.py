@@ -135,8 +135,15 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    bound, so alpha -> 0 <=> density -> 1, the two sides open together.
 
 3. ALPHA -> 0 (observation — quantitative crystallization). alpha = log lambda/
-   log phi drifts monotone 0.2963 (k=50) -> 0.2282 (200) -> 0.1997 (1000) ->
-   0.1651 (10000), roughly k^-0.11. The breadth world's dynamical complexity is
+   log phi drifts 0.2963 (k=50) -> 0.2282 (200) -> 0.1997 (1000) ->
+   0.1651 (10000), roughly k^-0.11. Monotone across those MILESTONES only:
+   per rung alpha is a sawtooth, rising at 1969 of the 9998 steps to k=10^4
+   and still rising at k=9999. It rises only where lambda moves, so every
+   rise sits inside the 1986 non-transparent rungs and every transparent
+   rung strictly lowers it — the rise count is the density read again
+   rather than a second measurement of it (the same trap the alpha
+   sections of explore_asymptotic_density.py and explore_density_extended.py
+   now name). The breadth world's dynamical complexity is
    asymptotically negligible against its capacity: the density-lock cell inside
    breadth (explore_transparency_bridge.py) now has a METRIC — alpha, the
    active fraction of capacity, -> 0 while phi grows every step. alpha(1e4) =
