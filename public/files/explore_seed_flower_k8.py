@@ -157,7 +157,7 @@ A pair {p,q} PREDICTS prime r if -chi = r, r is a tower prime, r not in {p,q}.
     # II. ROOT PATTERNS
     # ═══════════════════════════════════════════════════════════════
 
-    section("II. ROOT PATTERNS -- why roots 2 and 3 generate every prediction")
+    section("II. ROOT PATTERNS -- why roots 2 and 3 generate every k=8 prediction")
 
     print("""
 The ROOT of a pair is its smaller prime, so each pair is classified once.
@@ -482,8 +482,8 @@ The rule holds iff the cumulative formula total matches it at every rung.
    parametrized by the consecutive-prime rules,
    explore_seed_flower_proof.py) does not transfer.
 
-4. THE p_k+1 FACTORIZATION RULE (verified k=3..24 against the
-   exhaustive pair scan, section IX):
+4. THE p_k+1 FACTORIZATION RULE ({'verified k=3..24 against the exhaustive'
+   if not mismatches else 'MISMATCHED against the'} pair scan, section IX):
    New predictions at rung k = twin(p_k) + #factorizations of p_k+1
    as (p_i-1)(p_j-1) with p_i, p_j both smaller tower primes.
    "Rich" rungs are those where p_k+1 is highly composite (e.g.,
