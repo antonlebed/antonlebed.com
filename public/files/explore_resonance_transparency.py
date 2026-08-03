@@ -23,7 +23,8 @@ FINDINGS (all computed by this script; ranges as stated per item):
    jump the spectrum's DOMAIN grows (new orbit positions); at a plateau
    the domain is fixed and the new gate re-weights it. The relative
    gain in distinct F values separates cleanly: 0.64..1.50 per jump
-   against 0.00..0.18 per plateau (section V).
+   from k=4 up against 0.00..0.18 per plateau (section V; the k=3 row
+   prints ratio 0.00 only as the empty-predecessor guard).
 
 3. TWO KINDS OF ENRICHMENT — AND THE FIRST PLATEAU SHOWS ONLY ONE
    (observation). At the k=6 plateau the distinct-F count is UNCHANGED
@@ -432,7 +433,9 @@ print("""
    - PLATEAU: lambda unchanged, so the domain is fixed.
      Existing positions get re-weighted by the new gate.
    The RELATIVE gain in distinct F values separates cleanly:
-   0.64..1.50 per jump against 0.00..0.18 per plateau (section V).
+   0.64..1.50 per jump from k=4 up against 0.00..0.18 per plateau
+   (section V; the k=3 row prints ratio 0.00 only as the
+   empty-predecessor guard).
 
 3. TWO KINDS OF ENRICHMENT — AND THE FIRST PLATEAU SHOWS ONLY ONE.
    - At a jump, the spectrum gets WIDER (more positions, more values).
