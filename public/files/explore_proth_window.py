@@ -177,9 +177,9 @@ FINDINGS.
   1. EVERY CONTROL PASSES AND EVERY HAND NUMBER REPRODUCES (S1): the
      eight readings V(2^a) = 65535 for a = 10..17, the criterion on the
      witness pair for every d <= 60, gain(2^11, 7) = 3930230577 =
-     3 * 7 * 13 * 97 * 193 * 769 exactly, all 22 primality verdicts the
-     derivation leans on, and lambda_1 != lambda_2 on all 96 pool
-     pairs.
+     3 * 7 * 13 * 97 * 193 * 769 exactly, all 20 primality verdicts the
+     derivation leans on (7 primes, 13 composites, none repeated), and
+     lambda_1 != lambda_2 on all 96 pool pairs.
 
   2. THE PRIME-POWER OBSERVATION IS REFUTED (S2; prediction 2 lands).
      The pair (2048, 4096), blind at V = 65535, keeps every d = 2..27
@@ -255,8 +255,8 @@ reduction (A), and the ladder base B0 (D); the window table's door
 mechanism is proved per printed cell, its extrapolation to all a is
 not; occupancy figures are measurements at the stated depths.
 
-RUN RECORD. Python 3, no third-party dependencies, 17.3 s wall clock,
-peak working set 68.0 MB under the memory watchdog (limit 512 MB). Four
+RUN RECORD. Python 3, no third-party dependencies, 17.0 s wall clock,
+peak working set 68.1 MB under the memory watchdog (limit 512 MB). Four
 sections, ALL CHECKS PASS; the positive control runs first and a
 failure aborts the run before any verdict is read. The first run (eight
 original targets) and the extension (the saturated targets) printed
@@ -333,7 +333,7 @@ def s1_control():
 
     prime_side = [12289, 7681, 97, 193, 257, 769, 65537]
     comp_side = [1537, 3073, 6145, 5121, 10241, 4609, 9217, 11265,
-                 2049, 4097, 8193, 16385, 32769, 2 ** 13 + 1, 2 ** 14 + 1]
+                 2049, 4097, 8193, 16385, 32769]
     check(all(is_prime(p) for p in prime_side),
           "a door the derivation needs prime is not")
     check(not any(is_prime(c) for c in comp_side),
