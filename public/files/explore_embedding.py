@@ -189,6 +189,12 @@ fusional extreme); the homomorphism identity and the position-length trade are r
 verdict are observations at scope. Reopen-guard: a native, non-metric, codebook-free
 rule that generalizes held-out FUSIONAL forms -- e.g. a partial-regularity
 (inflection-class) embedding whose class assignment is itself ring-native.
+(Settled 2026-08, explore_similarity_carrier.py: the guard fired for
+TAXONOMY-SHAPED inflection classes -- agreement depth along the tower
+filtration reads a ball-constant class exactly, so held-out fusional forms
+complete with no metric and no codebook; what that carrier provably refuses
+is non-ultrametric similarity, the chain shape. This finding's own scope
+survives: reading class membership off the SURFACE still costs what it says.)
 
 RUN RECORD (python explore_embedding.py, ~1 s, trivial memory):
   S0 controls: homomorphism law (2000); hand pair T_ed*'jm' == phi('jmed'); anagram
