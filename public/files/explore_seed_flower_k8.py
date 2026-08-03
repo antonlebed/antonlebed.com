@@ -252,8 +252,9 @@ New at k=8:
     print(f"    so y = 3 is a root exactly when this pair's -chi equals 19 -- one")
     print(f"    numeric check, not a new identity. The four k=7 identities carry")
     print(f"    more: there the target is itself parametrized by the")
-    print(f"    consecutive-prime rules (explore_seed_flower_proof.py), so the")
-    print(f"    factorization constrains the generation rules, not one pair.")
+    print(f"    consecutive-prime rules (explore_seed_flower_proof.py), so each")
+    print(f"    identity holds across the whole seed family, with the seed its")
+    print(f"    only prime root -- a uniqueness statement, not one check.")
     print()
 
     # ═══════════════════════════════════════════════════════════════
