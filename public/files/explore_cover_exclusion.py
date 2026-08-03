@@ -149,10 +149,12 @@ HOLDS AT EVERY ODD PRIME PAIR (kill algebra + gate + R7/R8 + the
 lemma; no covering system with two fat slices evades at any
 two-prime d, any D <= q-2). P5 observation at the swept range.
 The realizability law's composite row now rests on: slice forcing
-(q' > 3(q-1)/2), counting gate (q' > (3q-4)/2, subsumes), and the
-staircase lemma (every remaining pair, unconditional); the weak
-staircase (46 close pairs) and the zone censuses survive as
-benchmarks of the cheap per-instance tests.
+(q' > 3(q-1)/2), counting gate (q' > (3q-4)/2, subsumes), the
+staircase lemma (every remaining pair, unconditional), and past two
+prime factors the gon theorem + coset collapse
+(explore_multiprime_exclusion.py); the weak staircase (46 close
+pairs) and the zone censuses survive as benchmarks of the cheap
+per-instance tests.
 
 Classical contacts: Fine-Wilf (a complement gap of length
 >= q+q'-1 forces r = 1 -- every evader gap is shorter); the

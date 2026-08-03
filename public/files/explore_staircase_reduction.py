@@ -258,9 +258,11 @@ alone) survive as the arithmetic-test benchmark (S15); R1's
 weak+gate classification (46 of 98) stays in
 explore_cover_exclusion.py IV as the gate-only benchmark; the
 unconditional closure is asserted there too. The >=3-factor
-close-second-prime zone (slice-forcing scope only) remains open --
-differences there are (Phi_m)-codewords, not constants; it needs
-its own idea.
+close-second-prime zone -- where differences are (Phi_m)-codewords,
+not constants -- closed on its own idea: the gon theorem + coset
+collapse (explore_multiprime_exclusion.py), which needs none of the
+staircase machinery; the staircase remains the two-prime storey's
+proof, where the collapse's finish has no third channel to use.
 
 Checks below: S1 weak bound at arbitrary positions (random sweep +
 strong-bound non-vacuity witness); S2 involution exact + inverse

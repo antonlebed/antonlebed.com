@@ -153,8 +153,10 @@ taken further in explore_cover_exclusion.py: rook
 reduction, then the staircase closed region, then the lattice-count
 closure (explore_staircase_reduction.py R12-R14): the strong
 staircase lemma is a proved rule at every instance, so the law
-holds at EVERY two-prime d; residual = the >=3-factor close zone
-only). P5 rule (follows from
+holds at EVERY two-prime d; and the >=3-factor close zone closes by
+the gon theorem + coset collapse
+(explore_multiprime_exclusion.py) -- the law is a proved rule at
+every odd composite non-prime-power d). P5 rule (follows from
 P2-P4 on their scopes). Realizability is monotone in D (E grows),
 so each exclusion at D closes everything below.
 
