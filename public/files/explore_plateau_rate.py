@@ -41,8 +41,11 @@ What this script settles:
    with N(x) = #patterns of prime-product <= x, b = lambda/p_k,
    t_c = max over applicable relations of min(b, lam*prod(B)/prod(A)).
    The pattern-collision rate is a CLOSED COUNTING COMPUTATION -- no
-   spectrum enumeration. Matches the measured pattern rate exactly at
-   every k <= 22.
+   spectrum enumeration. The UNCAPPED sum matches the measured pattern
+   rate to float precision at every k <= 22. Read it against IV's full
+   column, not its cellsum column: from k=18 up the enumeration exceeds
+   the 300-relation cap, and the capped sum is a different quantity
+   (0.74 against a patrate of 0.75 at k=22).
 
 4. VALUE BIAS (observation). The census rate counts distinct VALUES;
    the formula counts PATTERNS. Collided values carry more representing
@@ -53,9 +56,12 @@ What this script settles:
 
 5. DIRECT FACTORABILITY REFUTED AT SCALE (observation). k=31, 34, 36
    have ZERO direct representations of p_k - 1 over {q-1} yet collide
-   64-84% -- the small-k story "factorability marks the extremes" was
-   window poverty, not law. In rich windows the B != empty relations
-   (window patterns that already contain B) carry the rate.
+   64-84%. At k <= 22 the two groups do separate -- unfactorable 0.50
+   to 0.60, factorable 0.70 to 1.00 -- but never into the bands the
+   story was once quoted with (see II), and past k=30 they do not
+   separate at all. Window poverty, not law. In rich windows the
+   B != empty relations (window patterns that already contain B) carry
+   the rate.
 
 Census: 18 plateau rungs k = 6..37 (was 10 through k <= 22). Values are
 carried as signed denominators s*e (machine-word ints, not
@@ -74,7 +80,7 @@ RUN RECORD. `python memwatch.py explore_plateau_rate.py`, one process,
 CPython, no BLAS: peak working set 330.2 MB, peak commit 324.8 MB
 against memwatch's 512 MB ceiling, wall 780.6 s. The k=36 and k=37
 censuses (119.5 s, 148.8 s) and their cell-sum rows (136.6 s, 176.3 s)
-dominate; everything through k=34 is 90 s together.
+dominate; the census rows through k=34 are 86.6 s together.
 
 WHY THE ENVELOPE IS IN THE HEADER AT ALL: holding the full-budget old
 spectrum cost over 1 GB at k=37 -- it was killed at a 1024 MB ceiling,
@@ -640,7 +646,9 @@ print("""
    reps at k=31/34/36 yet rates 0.83/0.64/0.84. What sets the rate is
    the budget-weighted relation census -- in rich windows dominated by
    B != empty relations -- not the factorability of p_k - 1 over {q-1}
-   per se. The k <= 22 factorability story was window poverty.
+   per se. At k <= 22 the groups separate (unfactorable 0.50-0.60,
+   factorable 0.70-1.00) without matching the bands the story quoted;
+   past k=30 they do not separate. Window poverty, not law.
 
 6. UNIVERSALITY OF THE TOP APPLICABILITY (observation, k <= 22). The
    largest single-relation applicability (mu1 in III) is 0.20-0.23 at
