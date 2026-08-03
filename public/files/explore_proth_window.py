@@ -227,8 +227,9 @@ FINDINGS.
      at every depth, exactly the flaw named. The designed targets
      deliver: W(55440) hosts a pair at floor 47 (states of 31 and 51
      digits) and W(480720240) at floor 81 = 3^4 (states of 264 and 453
-     digits). The two mistyped-constant slips of the second freeze are
-     recorded above; the accidental target W(36988560) stays, floor 23,
+     digits). The second freeze's two arithmetic slips (a mistyped
+     constant; a door slip in the floor-81 derivation) are recorded
+     above; the accidental target W(36988560) stays, floor 23,
      populated and attained.
 
   6. THE FLOOR IS ATTAINED AT EVERY POPULATED TARGET (S4; prediction 6

@@ -146,7 +146,13 @@ FINDINGS.
      carrying a pair is 11 at lambda <= 150, 17 at 300, and 17 again at
      600. It moves, so the observable did not fire -- but it stalled on the
      last doubling, which is weak evidence and is why finding 3 is a
-     reduction and not a verdict.
+     reduction and not a verdict. (Settled since, in reach though not in
+     the tail, by explore_proth_window.py: every member's lambda is a
+     multiple of an explicit base, the base-multiple sweep reaches
+     lambda in the billions, occupancy is dense -- membership above 80
+     percent of base multiples, every target populated by k <= 6 -- and
+     designed readings host pairs at floors 47 and 81, each attained.
+     The stall here was the flat sweep's, not the classes'.)
 
   4. THE THRESHOLD IS NOT ITSELF READABLE (observation; 52 classes with
      three or more members below 1500). 34 of them carry more than one
@@ -165,7 +171,11 @@ FINDINGS.
      they are not, 22 of 944 unordered tests failing, N = 16 and N = 32 staying
      blind under 4 and under 7 and splitting at 28. That is the primes of a
      move failing to decouple, seen from the blindness side. The
-     observation stands and its proof is open.
+     observation stands and its proof is open. (Settled since, by
+     explore_proth_window.py: REFUTED past the pool -- the pair
+     (2^11, 2^12), blind at V = 65535, keeps every d <= 27 blind and
+     splits first at 28 = 2^2 * 7, the door 12289 = 3 * 2^12 + 1; the
+     within-pool count stands as measured, a cap artifact.)
 
   6. THE RESOLVING SET IS A UNION OF LAMBDA-FIBRES AND NOTHING TIDIER
      (theorem for the fibres, 1533/1533; measurement for the rest). Two
