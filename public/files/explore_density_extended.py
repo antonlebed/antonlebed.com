@@ -186,8 +186,10 @@ def main():
 
   If S(k)/pi(p_k) -> 1, lambda eventually contains ALL small primes,
   which would force density -> 1. That is a SUFFICIENT condition, and
-  the table below refutes it -- S/pi falls throughout. It was never a
-  necessary one, and the reason is the second measurement here: a rung
+  the table below gives it no support: S/pi runs DOWN from 0.50 to 0.22
+  in range -- not monotonically, it ticks up at k=750 and k=1750 -- and
+  in-range behaviour cannot refute a limit anyway. It was never a
+  necessary condition, and the reason is the second measurement: a rung
   does not need S to be large, it needs S to contain the few primes
   dividing ITS OWN p-1, and omega(p-1) is about 3. Sparse against
   pi(p_k) and ample against omega(p-1) are not in tension; the two
@@ -249,7 +251,18 @@ def main():
     section("V. ALPHA TREND")
     # =================================================================
 
-    print(f"\n  {'k':>6} {'log2(lam)':>10} {'log2(phi)':>10} {'alpha':>8}")
+    print("""
+  alpha = log(lambda)/log(phi). It falls across the range, and it is NOT
+  an independent reading of that fall: lambda's log gain on a transparent
+  rung is exactly zero, so log lambda collects only the non-transparent
+  rungs while log phi collects all of them, and alpha is capped by the
+  non-transparent share throughout. It is pushed down BY transparency
+  rather than explaining it -- the derivation and the per-rung assertion
+  are in explore_asymptotic_density.py section VI, the rigorous form
+  (the domination inequality) in explore_complexity_ledger.py.
+""")
+
+    print(f"  {'k':>6} {'log2(lam)':>10} {'log2(phi)':>10} {'alpha':>8}")
     print(f"  {'-' * 38}")
 
     running_phi = 1
@@ -329,9 +342,9 @@ def main():
         h2 = sum(ty[tn // 2:]) / (tn - tn // 2)
 
         print(f"""
-  Read those two lines together before using either. The exponent nearly
-  halves and the fit loses more than half its explained variance when one
-  window of the twenty is removed: the decay this model reports is carried
+  Read those two lines together before using either. The exponent falls
+  by a third and the fit loses nearly 60% of its explained variance when
+  one window of the twenty is removed: the decay this model reports is carried
   mostly by the drop out of k <= 100, not by the range it was fitted over.
   Over the {tn} windows past k=200 the rate falls from a mean of {h1:.4f} to
   {h2:.4f}, correlation {tr:+.2f} -- a real decline, and far too noisy to carry
@@ -412,9 +425,11 @@ def main():
      = {sum(1 for t in tower[-100:] if t['transparent'])/100:.2f}.
 
   2. S(k) IS SPARSE, AND THAT WAS NEVER THE OBSTACLE. |S({K_MAX})| =
-     {final['s_k']} distinct primes in lambda, S/pi(p_k) = {final['s_k'] / K_MAX:.4f} and falling
-     from 0.50 at k=10 -- so the sufficient condition section III sets
-     up, S/pi -> 1 forcing density -> 1, is refuted in range. The
+     {final['s_k']} distinct primes in lambda, S/pi(p_k) = {final['s_k'] / K_MAX:.4f}, down from 0.50
+     at k=10 though not monotonically (it ticks up at k=750 and k=1750)
+     -- so the sufficient condition section III sets up, S/pi -> 1
+     forcing density -> 1, gets no support in range. It is not refuted
+     either: nothing computed at finite k can refute a limit. The
      density rises anyway, and no bias in the p-1 values is needed to
      explain it: a rung asks S only for the primes dividing its OWN
      p-1, and omega(p-1) has mean {mean_omega:.2f} and max {max(omegas)} here. Comparing
@@ -430,9 +445,10 @@ def main():
      construction).
 
   4. CONVERGENCE -- the decay is real and the FIT IS NOT USABLE. The
-     window fit f(k) ~ {C:.4f}/k^{a:.4f} loses half its explained variance
-     (R^2 {r2:.3f} -> {r2_1:.3f}) and nearly half its exponent when one of the
-     twenty windows is dropped, and past k=200 the rate falls only from
+     window fit f(k) ~ {C:.4f}/k^{a:.4f} loses nearly 60% of its explained
+     variance (R^2 {r2:.3f} -> {r2_1:.3f}) and a third of its exponent ({a:.3f} ->
+     {a1:.3f}) when one of the twenty windows is dropped, and past k=200
+     the rate falls only from
      a mean of {h1:.3f} to {h2:.3f} at correlation {tr:+.2f}. Tested one step out of
      range it fails outright: at k=10000 it predicts f = {C / 10000 ** a:.4f} where
      explore_complexity_ledger.py measures 0.1986, low by
