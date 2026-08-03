@@ -35,8 +35,8 @@ section VIII, which is read as a local trend only.
 
 Findings, tiers and their controls: section XI.
 
-Run: python prime/code/explore_asymptotic_density.py  (~2 s, well under
-the 512MB analysis ceiling -- integers and dicts only)
+Run: python prime/code/explore_asymptotic_density.py  (well under a
+second; integers and dicts only, far under the 512MB analysis ceiling)
 """
 
 import sys
@@ -594,10 +594,12 @@ def main():
      0.3255 at k={K_MAX}, and below it at every rung from k=6 on. Alpha is
      pushed down BY transparency. Property (the zero gain follows from
      the definition of the lcm); the cap is verified k=2..{K_MAX}.
-     Same fact one scale down: explore_tower_geometry.py finding 6 reads
-     this ratio's fall across k=3..14 and finds every step of it a
-     lambda PLATEAU, which is this mechanism at run length rather than
-     in aggregate.
+     The corpus already holds this at two other scales, and the reading
+     above was the odd one out. explore_complexity_ledger.py proves the
+     domination inequality alpha <~ nt_frac rigorously and runs it to
+     k=10000; explore_tower_geometry.py finding 6 reads the same ratio's
+     fall across k=3..14 and finds every step of it a lambda PLATEAU --
+     this mechanism at run length rather than in aggregate.
 
   5. THE BLOCKING SPLIT, and the frequency question that does not exist.
      Of {n_nontrans} non-transparent primes, {new_prime_blocks} are blocked by a prime NEW to
