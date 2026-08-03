@@ -1,9 +1,8 @@
 """Plateau collision mechanism -- what controls the spectral gain at plateaus.
 
 An earlier run measured: plateau rungs k=11..14 gain FEW distinct F values
-(60/20/41/70; ratios 0.05-0.18) where jumps gain many (0.64-1.50), and
-k=6's exact zero was total collision. Open question: what controls the
-collision count?
+(60/20/41/70; gain ratios 0.05-0.18, against 0.64-1.50 at the jumps below
+k=15), and k=6 gained exactly zero. Open question: what controls the gain?
 
 This script settles the mechanism. Three pieces, all algebraic:
 
@@ -184,7 +183,7 @@ print(f"  {'-' * 64}")
 
 distinct_at = {}
 prev = 0
-P20_GAINS = {6: 0, 11: 60, 12: 20, 13: 41, 14: 70}
+PRIOR_GAINS = {6: 0, 11: 60, 12: 20, 13: 41, 14: 70}
 for k in range(3, K_TABLE + 1):
     ps = ALL_PRIMES[:k]
     lam = tower_lambda(ps)
@@ -208,9 +207,9 @@ for k in range(3, K_TABLE + 1):
         assert swept_f == subset_f, f"subset method disagrees at k={k}"
         sweep_note = "OK"
 
-    if k in P20_GAINS:
-        assert gain == P20_GAINS[k], (
-            f"k={k}: gain {gain} != predicted {P20_GAINS[k]}")
+    if k in PRIOR_GAINS:
+        assert gain == PRIOR_GAINS[k], (
+            f"k={k}: gain {gain} != predicted {PRIOR_GAINS[k]}")
 
     print(f"  {k:>3} {ps[-1]:>4} {step:>8} {lam:>8,} {leaves:>9,} "
           f"{distinct:>11} {gain:>6} {sweep_note:>7}")
@@ -237,7 +236,7 @@ print(f"  {'k':>3} {'p_k':>4} {'budget':>9} {'|W|':>5} {'collide':>8} "
 print(f"  {'-' * 58}")
 
 plateau_data = {}
-for k in sorted(P20_GAINS):
+for k in sorted(PRIOR_GAINS):
     ps = ALL_PRIMES[:k]
     p_new = ps[-1]
     lam = tower_lambda(ps)
@@ -249,7 +248,7 @@ for k in sorted(P20_GAINS):
 
     collided = {v for v in window if v in rescaled}
     gain = len(window) - len(collided)
-    gain_ii = len(distinct_at[k]) - len(distinct_at[k - 1]) if k > 3 else 0
+    gain_ii = len(distinct_at[k]) - len(distinct_at[k - 1])
     ok = gain == gain_ii
     plateau_data[k] = (old_vals, window, collided)
 
@@ -329,8 +328,7 @@ print(f"  {'k':>3} {'p_k':>4} {'type':>8} {'lambda':>12} {'patterns':>9} "
       f"{'distinct F':>11} {'gain':>6} {'|W|':>6} {'collide':>8} {'sec':>6}")
 print(f"  {'-' * 84}")
 
-prev_vals = distinct_at[K_TABLE]
-prev = len(prev_vals)
+prev = len(distinct_at[K_TABLE])
 for k in range(K_TABLE + 1, K_EXTENDED + 1):
     ps = ALL_PRIMES[:k]
     p_new = ps[-1]
@@ -359,7 +357,7 @@ for k in range(K_TABLE + 1, K_EXTENDED + 1):
     print(f"  {k:>3} {p_new:>4} {step:>8} {lam:>12,} {leaves:>9,} "
           f"{distinct:>11} {gain:>6} {w_note:>6} {c_note:>8} "
           f"{elapsed:>6.1f}")
-    prev_vals, prev = vals, distinct
+    prev = distinct
 
 print("\n  Relations at the new plateaus:")
 for k in range(K_TABLE + 1, K_EXTENDED + 1):
@@ -370,11 +368,15 @@ for k in range(K_TABLE + 1, K_EXTENDED + 1):
     old_vals, window, collided = plateau_data[k]
     relations = Counter()
     for (s, d) in collided:
-        d_u = d // (p_new - 1)
+        d_u, rem = divmod(d, p_new - 1)
+        assert rem == 0, "collision without (p_k - 1) | D"
         s_t = window[(s, d)]
         s_u = old_vals[(-s, d_u)]
         a = tuple(sorted(set(s_u) - set(s_t)))
         b = tuple(sorted(set(s_t) - set(s_u)))
+        assert prod(q - 1 for q in a) == (p_new - 1) * prod(q - 1 for q in b) \
+            and (len(a) + len(b)) % 2 == 1, \
+            f"relation check failed at k={k}: A={a} B={b}"
         relations[(a, b)] += 1
     print(f"\n  k={k} (p_k={p_new}, p_k-1={p_new - 1}): "
           f"|W|={len(window)}, collided={len(collided)}, "
@@ -399,10 +401,13 @@ print("""
 1. PATTERN CRITERION (criterion, proved). A gate pattern S occurs among
    n=1..lambda iff prod(S) <= lambda. Frees the dynamical spectrum from
    the O(lambda*k) sweep: pruned subset enumeration reaches any rung
-   whose admissible-pattern count is tractable (k=22 here, seconds).
+   whose admissible-pattern count is tractable -- the k=22 rung costs
+   0.1 s, timed in section V's own sec column.
 
-2. PLATEAU DECOMPOSITION (criterion, proved; verified k=6, 11..14,
-   18..22). At a plateau, V_k = W union c*V_{k-1}, with W the old
+2. PLATEAU DECOMPOSITION (rule, proved algebraically; verified k=6,
+   11..14, 18..22). Not a criterion: it is an IDENTITY between value
+   sets, not a necessary-and-sufficient condition on anything.
+   At a plateau, V_k = W union c*V_{k-1}, with W the old
    spectrum through the p_k window (budget lambda/p_k) and
    c = -1/(p_k-1) injective. The gain is EXACTLY the uncovered window:
    gain = |W| - |W intersect c*V_{k-1}|.
@@ -414,7 +419,7 @@ print("""
    budget. Collisions are number theory: the multiplicative structure
    of the shifted primes q-1, the same objects that drive transparency.
 
-4. WHAT CONTROLS THE COUNT (the opening question, answered). Two factors:
+4. WHAT CONTROLS THE GAIN (the opening question, answered). Two factors:
    the window size |W| (set by the budget lambda/p_k) and the collision
    rate, set by the relation richness of p_k - 1 over {q-1}. At k=11..14
    the windows are nearly equal (133/135/135/139), so the variation
@@ -425,16 +430,22 @@ print("""
    side). But factorability alone is not the rate: 40 = 4*10 factors
    directly yet collides only 70% (k=13) -- the rate is the
    budget-weighted census of ALL relations. k=6 was total coverage of a
-   3-value window. Same story at k=18..22: highly factorable 60 and 72
-   collide 91% and 92% (gains 350, 382); 66, 70, 78 collide 50-60%
+   3-value window. The SAME predicate sorts k=18..22, and is no more
+   than a marker there either: 60 and 72 are directly representable
+   over the shifted primes -- (7-1)*(11-1) and (2-1)*(7-1)*(13-1), both
+   printed in section V -- and collide 91% and 92% (gains 350, 382);
+   66, 70 and 78 have no direct representation and collide 55-60%
    (gains 1663-2257).
 
 5. TRANSPARENT PRIMES ARE DOUBLY REDUNDANT (observation). A plateau
    means (p_k-1) | lambda -- p_k's dynamics embed in the existing orbit.
    The collision criterion shows the SPECTRAL side: when p_k - 1 also
-   factors multiplicatively over {q-1}, even the new gate's VALUES
-   embed in the rescaled old spectrum. Dynamical redundancy and
-   spectral redundancy are separate layers, both driven by p-1.
+   factors multiplicatively over {q-1}, PART of what the new gate
+   contributes embeds in the rescaled old spectrum too. Part, never
+   all: every plateau measured here past k=6 has a POSITIVE gain -- 92%
+   of the window dies at k=21 against 50% at k=14, and only k=6's
+   3-value window went entirely. Dynamical redundancy and spectral
+   redundancy are separate layers, both driven by p-1.
 """)
 
 print("=" * 72)
