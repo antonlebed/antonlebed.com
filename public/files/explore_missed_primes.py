@@ -12,6 +12,7 @@ for the primes p_i in sub-ring S. So s is "missed" at rung k iff no subset
 of {p_1,...,p_k} satisfies this congruence — a SUBSET SUM problem in Z/s.
 
 Run: python prime/code/explore_missed_primes.py
+Runs in about 7 s, peak memory under 15 MB.
 """
 
 from math import prod
@@ -153,7 +154,7 @@ print(f"  It needed 19 — the NEXT prime after 17 — to break through.")
 section("III. MISSED PRIMES MAP (k=3..12)")
 
 print("""
-  For each rung k, find ALL primes p_{k+1} < s < 10*p_k that are
+  For each rung k, find ALL primes p_k < s <= max(10*p_k, 100) that are
   NOT predicted by any sub-ring. These are the tower's blind spots.
 """)
 
@@ -199,8 +200,14 @@ for k in range(3, K_MAX + 1):
 section("IV. ABSORPTION TRACKING — WHEN DOES EACH MISS GET CURED?")
 
 print("""
-  For each missed prime at rung k, find the smallest rung k' >= k
-  where it first gets predicted.
+  For each missed prime, find the smallest rung where it first gets
+  predicted. Prediction is MONOTONE in k (property: the rung-k
+  sub-rings are a subfamily of the rung-(k+1) sub-rings), so a prime
+  unpredicted at its absorption rung minus one is unpredicted at EVERY
+  smaller rung. The in_survey column below therefore records only when
+  the survey window max(10*p_k, 100) first CONTAINS the prime — the
+  miss itself always dates back to the smallest rungs. Persistence is
+  measured by the absorption rung alone, never by the survey lag.
 """)
 
 # Collect all missed primes across rungs
@@ -227,7 +234,7 @@ for k in range(3, K_MAX + 1):
                     predicted.add(s_val)
     predicted_at[k] = predicted
 
-print(f"  {'miss':>6} {'first_k':>8} {'absorbed_k':>12} {'absorbing sub-ring':>30}")
+print(f"  {'miss':>6} {'in_survey':>9} {'absorbed_k':>12} {'absorbing sub-ring':>30}")
 print(f"  {'-'*60}")
 
 absorption = []
@@ -260,7 +267,11 @@ for first_k, miss in sorted(all_missed, key=lambda x: (x[1], x[0])):
     abs_str = str(absorbed_k) if absorbed_k else ">12"
     sub_str = str(absorber) if absorber else "?"
     absorption.append((miss, first_k, absorbed_k, absorber))
-    print(f"  {miss:>6} {first_k:>8} {abs_str:>12} {sub_str:>30}")
+    print(f"  {miss:>6} {first_k:>9} {abs_str:>12} {sub_str:>30}")
+
+latest = sorted(absorption, key=lambda t: -(t[2] if t[2] else 99))[:4]
+print(f"\n  Latest absorptions in the survey (the persistence ranking): "
+      + ", ".join(f"{m} (k={a})" for m, _, a, _ in latest))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -292,15 +303,20 @@ for k in range(4, K_MAX + 1):
         continue
 
     observed_rate = n_missed / n_check
-    # Expected miss rate: average over checked primes of (1-1/s)^{2^k - 1}
+    # Expected miss rate: average over checked primes of (1-1/s)^{2^k - 1}.
+    # The model treats primes independently, so the expected miss count is
+    # a sum of Bernoullis: sd = sqrt(sum p(1-p)), z = (obs - exp)/sd.
     n_subsets = 2**k - 1
-    expected_misses = sum((1 - 1/s)**n_subsets for s in check_primes)
+    probs = [(1 - 1/s)**n_subsets for s in check_primes]
+    expected_misses = sum(probs)
     expected_rate = expected_misses / n_check
+    sd = sum(p * (1 - p) for p in probs) ** 0.5
+    z = (n_missed - expected_misses) / sd if sd > 1e-9 else 0.0
 
     print(f"  k={k:>2}: checked {n_check:>3} primes, "
           f"missed {n_missed:>2} ({observed_rate:>6.1%}), "
-          f"expected ~{expected_misses:>5.1f} ({expected_rate:>6.1%})  "
-          f"[2^k-1 = {n_subsets}]")
+          f"expected ~{expected_misses:>5.1f} ({expected_rate:>6.1%}), "
+          f"z = {z:>+5.1f}  [2^k-1 = {n_subsets}]")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -450,10 +466,12 @@ print(f"  Next in chain: 2*167+1 = {next_chain} = "
       f"{dict(factorize(next_chain))}  prime? {is_prime(next_chain)}")
 print(f"  Chain terminates at 167 (335 = 5*67 is composite).")
 
-# 83's persistence
-print(f"\n  83 is the MOST PERSISTENT miss in the data:")
-print(f"    First missed at k=3, not absorbed until k=9 (lag = 6 rungs)")
-print(f"    Absorbing sub-ring: {{11, 19, 23}}")
+# The chain's absorptions (rungs from the section IV table; persistence
+# is the absorption rung — the monotonicity note there)
+print(f"\n  The chain's absorptions: 41 at k=8, 83 and 167 at k=9 — the")
+print(f"    latter two tied with 163 for the k=7 window's last absorptions")
+print(f"    (section IV; the survey-wide latest is 281, absorbed at k=11).")
+print(f"    83's absorbing sub-ring: {{11, 19, 23}}")
 chi_absorber = neg_chi([11, 19, 23])
 print(f"    -chi({{11,19,23}}) = {chi_absorber}")
 print(f"    {chi_absorber} / 83 = {chi_absorber // 83}")
@@ -486,7 +504,7 @@ avg_hit = sum(r for _, _, r in hit_lpf) / len(hit_lpf) if hit_lpf else 0
 print(f"    Mean P+(s-1)/s for missed: {avg_missed:.3f}")
 print(f"    Mean P+(s-1)/s for hit:    {avg_hit:.3f}")
 if avg_missed > avg_hit:
-    print(f"    Missed primes have {avg_missed/avg_hit:.1f}x larger relative P+ factor.")
+    print(f"    Missed primes have {avg_missed/avg_hit:.2f}x larger relative P+ factor.")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -555,28 +573,38 @@ print("""
 
 3. CUNNINGHAM CHAIN {41, 83, 167}. All three missed at k=7. Each
    term is 2p+1 of the previous. 83-1 = 2*41, 167-1 = 2*83. The
-   chain terminates (335 = 5*67). 83 is the most persistent miss
-   in all data: lag 6 rungs, absorbed at k=9 by {11,19,23}.
+   chain terminates (335 = 5*67). Absorptions: 41 at k=8, 83 and
+   167 at k=9 (83 by {11,19,23}), tied with 163 for the k=7
+   window's last. Whether chained primes miss TOGETHER is tested
+   at scale in explore_cunningham_bias.py (verdict: no bias).
 
 4. MISSED PRIMES ARE SUBSET-SUM FAILURES. A prime s is missed at
    rung k iff {p_i^{-1} mod s : i=1..k} has no subset with sum
-   equal to |S|-1 mod s. This is a RANDOM process: with k values
-   in Z/s and 2^k - 1 subsets, the probability of missing s is
-   approximately (1 - 1/s)^(2^k - 1).
+   equal to |S|-1 mod s. The criterion is deterministic; the MODEL
+   treats the inverses as uniform random values, giving miss
+   probability approximately (1 - 1/s)^(2^k - 1) over the 2^k - 1
+   subsets. The model's fit is finding 5; its tier is pattern.
 
-5. RANDOM MODEL MATCHES. Observed vs expected miss rates:
-   k=7: 21.9% vs 22.6%. k=8: 8.8% vs 9.0%. Near-perfect fit.
-   Miss rate decreases exponentially with k (2^k subsets vs Z/s).
+5. RANDOM MODEL CONSISTENT AT EVERY RUNG. Observed vs expected
+   miss counts agree within sampling noise across k=4..12: the
+   worst rung is k=4 (17 missed vs 14.0 expected, z = +1.5); the
+   quoted pair k=7 (21.9% vs 22.6%) and k=8 (8.8% vs 9.0%) sit at
+   |z| <= 0.1. Miss rate decreases exponentially with k (2^k
+   subsets vs Z/s).
 
-6. ABSORPTION IS FAST. Missed primes are typically absorbed within
-   1-2 rungs, as each new prime doubles the number of sub-rings.
-   The longest lag observed is 6 rungs (83, first missed at k=3).
+6. PERSISTENCE IS THE ABSORPTION RUNG. Prediction is monotone in k
+   (the rung-k sub-rings are a subfamily of the rung-(k+1) ones),
+   so a "first missed at" rung is a survey-window artifact, never
+   an object property. Every miss in the surveyed range is
+   absorbed by k=11; the persistence ranking is 281 (k=11), then
+   83, 163, 167 (all k=9).
 
-7. NO P+ SIGNAL. The largest prime factor of (s-1) does NOT predict
-   misses: P+(s-1)/s averages 0.192 for missed vs 0.184 for hit
-   (1.04x, no meaningful difference). Cunningham chain members have
-   high P+ (83-1=2*41, 167-1=2*83) but smooth primes are also
-   missed (41-1=2^3*5, 109-1=2^2*3^3). Misses are genuinely random.
+7. NO P+ SIGNAL AT k=7. The largest prime factor of (s-1) shows no
+   separation: P+(s-1)/s averages 0.192 over the 7 missed vs 0.184
+   over the 25 hit (1.04x). Cunningham chain members have high P+
+   (83-1=2*41, 167-1=2*83) but smooth primes are also missed
+   (41-1=2^3*5, 109-1=2^2*3^3). A 7-prime sample decides nothing
+   alone; the at-scale null is explore_cunningham_bias.py's.
 """)
 
 print("=" * 72)
