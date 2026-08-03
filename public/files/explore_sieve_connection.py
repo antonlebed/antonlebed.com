@@ -61,7 +61,7 @@ FINDINGS (all computed by this script; ranges as stated per item):
    geometry/dynamics split is explore_tower_geometry.py's).
 
 Run: python prime/code/explore_sieve_connection.py
-  (~1 s, peak working set 13.9 MB under the 512 MB watchdog)
+  (~1 s, peak working set 14.0 MB under the 512 MB watchdog)
 """
 
 from math import gcd, prod, cos, pi, exp, log
@@ -304,15 +304,17 @@ def main():
     print(f"  Verifying at k=7, N={N7}:")
     print()
     print(f"  {'n':>8} {'gcd(n,N)':>10} {'c_N(n)':>10} {'Mobius':>10} "
-          f"{'F(n)':>12} {'product':>12}")
-    print(f"  {'-' * 68}")
+          f"{'c_N/phi':>12} {'gate prod':>12}")
+    print(f"  {'-' * 70}")
 
     test_ns = [1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 30, 42, 210, N7]
 
+    all_ok = True
     for n in test_ns:
         g = gcd(n, N7)
         c_N = ramanujan_sum(n, N7)
         mu_sum = sum(mobius(N7 // d) * d for d in range(1, g + 1) if g % d == 0)
+        c_over_phi = Fraction(c_N, phi7)
 
         F_product = Fraction(1)
         for p in all_primes[:7]:
@@ -321,15 +323,17 @@ def main():
             else:
                 F_product *= Fraction(-1, p - 1)
 
-        F_val = float(F_product)
+        ok = (c_N == mu_sum) and (c_over_phi == F_product)
+        all_ok = all_ok and ok
 
         print(f"  {n:>8} {g:>10} {c_N:>10} {mu_sum:>10} "
-              f"{F_val:>12.6f} {float(F_product):>12.6f}  "
-              f"{'OK' if c_N == mu_sum else 'MISMATCH'}")
+              f"{float(c_over_phi):>12.6f} {float(F_product):>12.6f}  "
+              f"{'OK' if ok else 'MISMATCH'}")
 
     print()
-    print("  c_N(n) = Mobius sum: verified for all test values.")
-    print("  F(n) = product of per-channel sieve factors: verified.")
+    print(f"  c_N(n) = Mobius sum, and c_N(n)/phi = per-channel gate product")
+    print(f"  (compared exactly, as fractions): "
+          f"{'verified for all test values' if all_ok else 'MISMATCH SOMEWHERE'}.")
     print()
     print("  THE DICTIONARY ENTRY:")
     print("    Ramanujan sum = Mobius function summed over divisor lattice")
