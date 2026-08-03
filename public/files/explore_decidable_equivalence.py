@@ -87,7 +87,15 @@ LOAD-BEARING at scale where a rival PAYS to simulate it is an exploitation
 question this probe does NOT answer (explore_expressiveness_perimeter.py's
 deferred edge; a fair-fight lesson learned from an earlier exploitation
 attempt). No edge is claimed here -- this probe establishes the dividend
-is REAL and names the fair fight for the exploitation phase.
+is REAL and names the fair fight for the exploitation phase. (Settled
+since, by reading the incumbents' own literature: the CRT-tuple normal
+form is the residue number system's defining lemma, homomorphic-encryption
+implementations already run residue decomposition as the standard
+representation, and the residue-code revival's own hardware comparison
+favors binary-native Reed-Solomon by roughly an order of magnitude in
+silicon -- the fight closed without a claim, exact incumbents already at
+the point; the compute-through property survives at memory-ECC niche
+scale.)
 
 SCOPE + HONESTY. RUN-verified: the element normal form (S1), the per-channel
 polynomial canonical form and its function-equivalence decider incl. the x^5=x

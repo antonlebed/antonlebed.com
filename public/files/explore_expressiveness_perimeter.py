@@ -63,7 +63,13 @@ the tower's edge must be its NATIVE LAWS load-bearing where a rival PAYS to
 simulate, and whether the mod-gate-layer edge is load-bearing at scale is an
 exploitation question this probe does NOT answer (a fair-fight lesson from
 an earlier exploitation attempt: the edge must survive the rival simulating
-it at table stakes).
+it at table stakes). (Settled since, by reading the incumbents' own
+literature: Cooper's quantifier elimination on an order-free conjunction
+bottoms out in Chinese-remainder brute force over the residues, so on the
+shared fragment a general engine already collapses to the same residue
+lookup, and small-modulus table-lookup arithmetic is the residue number
+system field's standing hardware practice -- the deferred edge closed
+without a claim: exact incumbents already sit at the point.)
 
 THE DYNAMIC LIFT + A CORRECTION TO AN EARLIER LEAD (synthesis + cited, S4). The STATIC
 predicate class is regular/periodic. Add the growth DYNAMICS (INC + native
