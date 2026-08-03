@@ -40,7 +40,8 @@ FINDINGS (all computed by this script; ranges as stated per item):
    the individual prime sieve's hit/miss decision; the product form is
    CRT independence = sieve independence (section IV).
 
-4. NAMING NEVER HITS THE SUCCESSOR IN RANGE (observation, k=3..9).
+4. THE FULL RING NEVER NAMES ITS SUCCESSOR IN RANGE (observation,
+   k=3..9).
    The reciprocal criterion -- s | -chi iff sum(1/p_i) = m-1 (mod s),
    proved in explore_tower_naming.py -- read as sieve prediction: the
    full-ring -chi does name absent primes (53 at k=7), but it names
@@ -511,15 +512,16 @@ def main():
     print()
 
     print("  Sieve interpretation:")
-    print("    The Eratosthenes sieve has BUILT-IN REDUNDANCY at every rung k >= 7.")
-    print("    Losing up to 3 prime sieves (any 3) still allows full reconstruction")
-    print("    of the data. The redundancy is structural -- it comes from the CRT")
-    print("    decomposition, not from any external code.")
+    print("    The Eratosthenes sieve has BUILT-IN REDUNDANCY at every rung k >= 4")
+    print("    (more data than parity from k = 7). Losing up to 3 prime sieves")
+    print("    (any 3) still allows full reconstruction of the data. The redundancy")
+    print("    is structural -- it comes from the CRT decomposition, not from any")
+    print("    external code.")
     print()
 
     rate_data = []
     for k in range(4, K_MAX + 1):
-        n_data = 4 if k <= 7 else k - 3
+        n_data = k - 3
         n_parity = k - n_data
         if n_parity < 3:
             continue
@@ -664,7 +666,8 @@ def main():
      prime sieve's hit/miss decision; the product form is sieve
      independence via CRT (section IV; explore_moment_resonance.py).
 
-  4. NAMING NEVER HITS THE SUCCESSOR IN RANGE (observation, k=3..9).
+  4. THE FULL RING NEVER NAMES ITS SUCCESSOR IN RANGE (observation,
+     k=3..9).
      The full-ring -chi names absent primes but named p_{{k+1}} at no
      tested rung, and the k=7 naming fraction falls with sub-sieve
      size (sections V, X).
