@@ -565,11 +565,19 @@ def main():
 
     final_density = tower[-1]['density']
     final_trans = tower[-1]['trans_count']
+    half_k = K_MAX // 2
+    half_density = tower[half_k - 1]['density']
+    trend = 'rising' if final_density > half_density else 'flat or falling'
+    n_runs2 = sum(1 for _, l in runs if l >= 2)
+    mean_run = sum(l for _, l in runs) / len(runs)
+    longest_run = max(l for _, l in runs)
 
     print(f"""
-  1. DENSITY AT k={K_MAX}: {final_density:.4f} ({final_trans}/{K_MAX-1} transparent), {'rising' if tower[-1]['density'] > tower[K_MAX//2-1]['density'] else 'flat or falling'} --
-     it was {tower[K_MAX//2-1]['density']:.4f} at k={K_MAX//2}, and the 50-rung windows run
-     0.48, 0.64, 0.66, 0.82. Observation, this range only. That it tends to
+  1. DENSITY AT k={K_MAX}: {final_density:.4f}
+     ({final_trans}/{K_MAX-1} transparent), and still {trend} at the top
+     of the range -- it was {half_density:.4f} at k={half_k}. The 50-rung windows
+     run 0.48, 0.64, 0.66 and then 0.82 over the last 49.
+     Observation, this range only. That it tends to
      1 is a theorem, but not one this script establishes -- the proof is
      an elementary sieve bound on log lcm{{p-1 : p <= x}}, general in x
      and computing at no specific k (explore_lcm_shifted_primes.py).
@@ -619,17 +627,19 @@ def main():
      this mechanism at run length rather than in aggregate.
 
   5. THE BLOCKING SPLIT, and the frequency question that does not exist.
-     Of {n_nontrans} non-transparent primes, {new_prime_blocks} are blocked by a prime NEW to
-     lambda and {bump_only_blocks} by a power bump alone. A blocking prime can enter
+     Of {n_nontrans} non-transparent primes, {new_prime_blocks} are blocked by a
+     prime NEW to lambda and {bump_only_blocks} by a power bump alone.
+     A blocking prime can enter
      as new AT MOST ONCE in the whole tower -- once q is in lambda it
      stays -- so "which primes block most often" is all 1s by
      construction and is not a table worth printing; the repeat count
      above is 0 and could not have been anything else. What the blockers
      carry is their ORDER of entry, not a frequency.
 
-  6. RUNS. Transparent rungs come in runs -- {sum(1 for _, l in runs if l >= 2)} of length >= 2,
-     mean {sum(l for _, l in runs) / len(runs):.2f}, longest {max(l for _, l in runs)} at k=78..90 (p=397..463). A run is
-     exactly a lambda plateau, by finding 4's zero-gain control.
+  6. RUNS. Transparent rungs come in runs --
+     {n_runs2} of length >= 2, mean {mean_run:.2f}, longest
+     {longest_run} at k=78..90 (p=397..463). A run is exactly a
+     lambda plateau, by finding 4's zero-gain control.
 
   7. SIEVE READING. The density measures how self-sufficient the sieve
      becomes: lambda accumulates prime powers, and a new p-1 is more

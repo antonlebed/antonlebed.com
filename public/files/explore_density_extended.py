@@ -418,27 +418,32 @@ def main():
     # =================================================================
 
     final = tower[-1]
+    last_win = sum(1 for t in tower[-100:] if t['transparent'])
+    sk = final['s_k']
+    s_pi = sk / K_MAX
+    max_om = max(omegas)
+    npc, pbc = new_prime_count, power_bump_count
     print(f"""
   1. DENSITY AT k={K_MAX}: {final['density']:.4f}
      ({final['trans_count']}/{K_MAX-1} transparent).
-     Window k={K_MAX-99}-{K_MAX}: {sum(1 for t in tower[-100:] if t['transparent'])}/100
-     = {sum(1 for t in tower[-100:] if t['transparent'])/100:.2f}.
+     Window k={K_MAX-99}-{K_MAX}: {last_win}/100 = {last_win/100:.2f}.
 
   2. S(k) IS SPARSE, AND THAT WAS NEVER THE OBSTACLE. |S({K_MAX})| =
-     {final['s_k']} distinct primes in lambda, S/pi(p_k) = {final['s_k'] / K_MAX:.4f}, down from 0.50
-     at k=10 though not monotonically (it ticks up at k=750 and k=1750)
+     {sk} distinct primes in lambda, S/pi(p_k) = {s_pi:.4f}, down from
+     0.50 at k=10 though not monotonically (it ticks up
+     at k=750 and k=1750)
      -- so the sufficient condition section III sets up, S/pi -> 1
      forcing density -> 1, gets no support in range. It is not refuted
      either: nothing computed at finite k can refute a limit. The
      density rises anyway, and no bias in the p-1 values is needed to
      explain it: a rung asks S only for the primes dividing its OWN
-     p-1, and omega(p-1) has mean {mean_omega:.2f} and max {max(omegas)} here. Comparing
-     {final['s_k']} against pi(p_k) = {K_MAX} answers a question no rung asks.
+     p-1, and omega(p-1) has mean {mean_omega:.2f} and max {max_om} here.
+     Comparing {sk} against pi(p_k) = {K_MAX} answers a question no rung asks.
      Observation, k=2..{K_MAX}.
 
-  3. NON-TRANSPARENT BREAKDOWN. {new_prime_count} rungs blocked by a prime new to
-     lambda, {power_bump_count} by a power bump alone. New-prime blocks dominate, and
-     each new prime can enter exactly once -- so the {new_prime_count} equals the
+  3. NON-TRANSPARENT BREAKDOWN. {npc} rungs blocked by a prime new
+     to lambda, {pbc} by a power bump alone. New-prime blocks
+     dominate, and each new prime can enter exactly once -- so the {npc} equals the
      number of distinct primes entering, not a frequency over them
      (section IV's max-new-powers-per-jump of 1 is why the two counts
      coincide, and that ceiling is an observation in range, not a
@@ -446,13 +451,14 @@ def main():
 
   4. CONVERGENCE -- the decay is real and the FIT IS NOT USABLE. The
      window fit f(k) ~ {C:.4f}/k^{a:.4f} loses nearly 60% of its explained
-     variance (R^2 {r2:.3f} -> {r2_1:.3f}) and a third of its exponent ({a:.3f} ->
-     {a1:.3f}) when one of the twenty windows is dropped, and past k=200
-     the rate falls only from
-     a mean of {h1:.3f} to {h2:.3f} at correlation {tr:+.2f}. Tested one step out of
-     range it fails outright: at k=10000 it predicts f = {C / 10000 ** a:.4f} where
+     variance (R^2 {r2:.3f} -> {r2_1:.3f}) and a third of its exponent
+     ({a:.3f} -> {a1:.3f}) when one of the twenty windows is dropped, and past k=200
+     the rate falls only from a mean of {h1:.3f} to {h2:.3f} at
+     correlation {tr:+.2f}. Tested one step out of range it fails
+     outright: at k=10000 it predicts f = {C / 10000 ** a:.4f} where
      explore_complexity_ledger.py measures 0.1986, low by
-     {(0.1986 - C / 10000 ** a)/0.1986*100:.0f}% of the measured value. So this script supplies
+     {(0.1986 - C / 10000 ** a)/0.1986*100:.0f}% of the measured value.
+     So this script supplies
      evidence that the non-transparent fraction declines over
      k=2..{K_MAX} and supplies NOTHING about the rate. That the density
      tends to 1 is a theorem and is not this fit's to support: the
