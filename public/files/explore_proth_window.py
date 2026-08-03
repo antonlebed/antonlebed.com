@@ -16,7 +16,7 @@ must reproduce).
 
   (A) THE ROUTE THAT REPLACES COPRIME CLOSURE. Call the resolving set R
   prime-power ROOTED if every resolver has a resolving prime-power
-  DIVISOR. Rootedness is strictly weaker than coprime closure -- the
+  DIVISOR. Rootedness is weaker than coprime closure -- the
   known closure witness (N = 16, 32 blind under 4 and under 7, split at
   28) has the divisor 2 resolving, so it does not touch rootedness --
   and rootedness alone gives the observation: a least resolver that is
@@ -222,8 +222,8 @@ FINDINGS.
      -- member counts run 4824..5957 of 6000 base multiples at the
      eight original targets, 1499 of 1500 and 99 of 100 at the
      saturated ones -- so the binding constraint on exhibiting large
-     floors is the floor a target is DESIGNED to carry, never the
-     depth: the kill-shape rung print stalls at its list's own maximum
+     floors is the floor a target is DESIGNED to carry, not the depth,
+     at every depth tried: the kill-shape rung print stalls at its list's own maximum
      at every depth, exactly the flaw named. The designed targets
      deliver: W(55440) hosts a pair at floor 47 (states of 31 and 51
      digits) and W(480720240) at floor 81 = 3^4 (states of 264 and 453
