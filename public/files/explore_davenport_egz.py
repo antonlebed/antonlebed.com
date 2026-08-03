@@ -2,7 +2,9 @@
 
 An extension of an earlier finding: missed primes are subset-sum failures in Z/s:
 a prime s is missed at rung k iff {p_i^{-1} mod s : i=1..k} has no subset
-summing to |S|-1 mod s. The random model P(miss) ~ (1-1/s)^(2^k-1) fits well.
+summing to |S|-1 mod s. The random model P(miss) ~ (1-1/s)^(2^k-1) matches the
+observed miss rates within sampling noise at every measured rung (the
+companion missed-primes record carries the per-rung comparison).
 
 Question: how does this connect to the Davenport constant D(Z/n) = n and
 the Erdos-Ginzburg-Ziv (EGZ) theorem?
@@ -245,11 +247,12 @@ print("""
   subgroup or coset of Z/s? If gcd of the values generates a proper
   subgroup, only that subgroup's cosets are reachable.
 
-  For Z/s with s prime, there are no non-trivial subgroups (it's a field).
-  So coverage failure is NOT due to subgroup obstruction — it's purely
-  a coupon-collector effect with too few subsets.
-
-  Verify: the inverse values at each k always generate all of Z/s.
+  For Z/s with s prime this is a PROPERTY, not a finding: Z/s has no
+  non-trivial additive subgroups (it is a field), and every inverse is
+  nonzero, so the values generate all of Z/s by construction. Coverage
+  failure is therefore purely a coupon-collector effect — too few
+  subsets. The gcd printout below ILLUSTRATES the property; it cannot
+  fail while s is prime, so it confirms nothing beyond the arithmetic.
 """)
 
 for s_test in [41, 67, 97]:
@@ -278,8 +281,10 @@ print("""
   to 0 mod n. In our context, if we had 2s-1 tower primes, we'd be
   guaranteed an s-element subset summing to 0 mod s.
 
-  But k << s typically (k=7 with s up to ~170). EGZ doesn't directly
-  apply — it's a guarantee for WORST-CASE inputs with enough elements.
+  But k << s typically (the companion missed-primes survey reads rung
+  k=7 against primes up to its window edge 10*p_7 = 170 — a window
+  choice, not an object bound). EGZ doesn't directly apply — it's a
+  guarantee for WORST-CASE inputs with enough elements.
   Our setting has FEW elements (k) but MANY subsets (2^k).
 
   The relevant bound: with k "random" values in Z/s, full coverage
@@ -291,15 +296,17 @@ print("""
 print(f"  {'s':>5} {'EGZ needs':>10} {'observed k':>11} {'savings':>8}")
 print(f"  {'-'*40}")
 
-for s, k_full, lg2, ratio in thresholds[:20]:
+for s, k_full, lg2, ratio in thresholds:
     egz_needs = 2 * s - 1
     savings = egz_needs / k_full
     print(f"  {s:>5} {egz_needs:>10} {k_full:>11} {savings:>8.0f}x")
 
 if thresholds:
+    mean_savings = sum((2 * s - 1) / k for s, k, _, _ in thresholds) / len(thresholds)
     print(f"\n  EGZ requires O(s) elements for worst-case guarantee.")
     print(f"  The tower achieves full coverage with O(log s) elements.")
-    print(f"  Savings: ~{thresholds[0][0] // thresholds[0][1]}x fewer elements needed.")
+    print(f"  Mean savings over {len(thresholds)} primes: "
+          f"{mean_savings:.1f}x fewer elements needed.")
     print(f"\n  Why? EGZ handles adversarial inputs. Our values (prime inverses)")
     print(f"  are pseudo-random in Z/s, so coverage is MUCH faster.")
 
@@ -331,7 +338,7 @@ print("""
 print(f"  {'s':>5} {'D(Z/s)':>7} {'D_eff':>6} {'D/D_eff':>8} {'log2(s)':>8}")
 print(f"  {'-'*40}")
 
-for s, k_full, lg2, ratio in thresholds[:20]:
+for s, k_full, lg2, ratio in thresholds:
     D = s
     D_eff = k_full
     print(f"  {s:>5} {D:>7} {D_eff:>6} {D/D_eff:>8.1f} {lg2:>8.2f}")
@@ -364,7 +371,7 @@ print("""
 print(f"  {'s':>5} {'k_obs':>6} {'k_coupon':>9} {'k_log2':>7} {'obs/coupon':>11}")
 print(f"  {'-'*45}")
 
-for s, k_full, lg2, ratio in thresholds[:20]:
+for s, k_full, lg2, ratio in thresholds:
     H_s = sum(1.0 / i for i in range(1, s + 1))
     k_coupon = log2(s * H_s)
     obs_coupon_ratio = k_full / k_coupon
@@ -427,11 +434,15 @@ print("""
 
 composites = [35, 55, 77, 91, 119, 143, 161, 187]
 
-print(f"  {'n':>5} {'factored':>12} {'k_usable':>9} {'k_full':>7} {'log2(n)':>8}")
+# k_vals counts the coprime inverses actually summed; k_rung is the tower
+# rung consumed to collect them (the factors of n sit in the tower and are
+# skipped, so k_rung >= k_vals by the number of skipped factors).
+print(f"  {'n':>5} {'factored':>12} {'k_vals':>7} {'k_rung':>7} {'log2(n)':>8}")
 print(f"  {'-'*48}")
 
 for n in composites:
-    coprime_primes = [p for p in ALL_PRIMES[:30] if gcd(p, n) == 1]
+    coprime_idx = [i for i, p in enumerate(ALL_PRIMES[:30]) if gcd(p, n) == 1]
+    coprime_primes = [ALL_PRIMES[i] for i in coprime_idx]
 
     k_full = None
     for num_vals in range(2, min(len(coprime_primes), 16) + 1):
@@ -443,12 +454,12 @@ for n in composites:
 
     f = factorize(n)
     f_str = "*".join(f"{p}^{e}" if e > 1 else str(p) for p, e in sorted(f.items()))
-    n_skipped = sum(1 for p in ALL_PRIMES[:30] if gcd(p, n) > 1)
 
     if k_full is not None:
-        print(f"  {n:>5} {f_str:>12} {k_full:>9} {k_full:>7} {log2(n):>8.2f}")
+        k_rung = coprime_idx[k_full - 1] + 1
+        print(f"  {n:>5} {f_str:>12} {k_full:>7} {k_rung:>7} {log2(n):>8.2f}")
     else:
-        print(f"  {n:>5} {f_str:>12} {'?':>9} {'>16':>7} {log2(n):>8.2f}")
+        print(f"  {n:>5} {f_str:>12} {'>16':>7} {'?':>7} {log2(n):>8.2f}")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -546,16 +557,19 @@ print("""
 
   3. EGZ IS INAPPLICABLE. EGZ guarantees zero-sum at 2s-1 elements
      (fixed size). The tower achieves full coverage at k ~ log_2(s),
-     which is ~29x fewer elements on average over s in [73, 199],
-     because 2^k subsets grow exponentially. (The ~14x below is a
-     different ratio — against the Davenport constant D(Z/s) = s, not
-     against EGZ's 2s-1.) EGZ addresses worst-case inputs; the tower's
-     prime inverses are well-distributed (pseudo-random in Z/s).
+     which is 28.4x fewer elements on average over s in [73, 199]
+     (mean printed in section V), because 2^k subsets grow
+     exponentially. (The 14.2x below is a different ratio — against
+     the Davenport constant D(Z/s) = s, not against EGZ's 2s-1.)
+     EGZ addresses worst-case inputs; the tower's prime inverses are
+     well-distributed (pseudo-random in Z/s).
 
-  4. SUBGROUP OBSTRUCTION ABSENT. Since s is prime, Z/s has no proper
-     subgroups. Coverage failure is purely a counting effect: too few
-     subsets to hit all s residues. Confirmed: gcd of inverse values
-     is always 1 (generates all of Z/s at every k).
+  4. SUBGROUP OBSTRUCTION ABSENT (property). Since s is prime, Z/s
+     has no proper additive subgroups and every inverse is nonzero,
+     so the values generate all of Z/s by construction — the gcd
+     printout in section IV illustrates this and cannot fail.
+     Coverage failure is purely a counting effect: too few subsets
+     to hit all s residues.
 
   5. NAMING << FULL COVERAGE (observation, 26 primes). Naming needs
      one (size, target) hit; full coverage needs all s residues. Mean
@@ -565,7 +579,7 @@ print("""
   6. D_eff = O(log s). The effective Davenport constant for 2^k
      subsets is D_eff ~ log_2(s * ln(s)), vs D(Z/s) = s. The
      exponential advantage: each new prime doubles the sub-ring
-     count. D(Z/s)/D_eff ~ 14x on average for s in [73, 199].
+     count. D(Z/s)/D_eff = 14.2x on average for s in [73, 199].
 """)
 
 print("=" * 72)
