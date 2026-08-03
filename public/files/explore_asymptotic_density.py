@@ -340,6 +340,8 @@ def main():
     prev_lam = 1
     max_trans_gain = 0.0
     nt_log = 0.0
+    cap_holds_at = 0
+    worst_slack = None
     print(f"  {'k':>5} {'log2(lam)':>10} {'log2(phi)':>10} {'alpha':>8} "
           f"{'nontrans share':>15}")
     print(f"  {'-' * 54}")
@@ -357,6 +359,11 @@ def main():
         if t['lambda'] > 1 and running_phi > 1:
             alpha = log(t['lambda']) / log(running_phi)
             share = nt_log / log(running_phi)
+            slack = share - alpha
+            assert slack >= -1e-12, (t['k'], alpha, share)
+            cap_holds_at += 1
+            if worst_slack is None or slack < worst_slack[1]:
+                worst_slack = (t['k'], slack)
             if t['k'] <= 20 or t['k'] % 20 == 0:
                 print(f"  {t['k']:>5} {log2(t['lambda']):>10.1f} "
                       f"{log2(running_phi):>10.1f} {alpha:>8.4f} "
@@ -365,6 +372,14 @@ def main():
     print(f"\n  Control: lambda's largest log gain over the "
           f"{n_trans_all} transparent rungs = {max_trans_gain:.3e} "
           f"(zero, as the mechanism above requires).")
+    print(f"  Cap alpha <= nontrans share ASSERTED at all {cap_holds_at} "
+          f"rungs k=2..{K_MAX}, not just the ones tabulated;")
+    print(f"  tightest at k={worst_slack[0]}, slack {worst_slack[1]:.4f}. It is "
+          f"a property, not a range fact: each")
+    print(f"  raise adds log(a prime power dividing p-1) <= log(p-1), so "
+          f"log lambda <= the")
+    print(f"  non-transparent sum at every k (the domination inequality, "
+          f"explore_complexity_ledger.py).")
 
     # =================================================================
     section("VII. THEORETICAL PREDICTION")
@@ -579,7 +594,7 @@ def main():
      45.2%, which is 19.6pp WORSE than predicting "transparent" for
      everything. Only (log p)^2 earns the word determinant, at 75.9%
      (+11.1pp, 20.9% rough-transparent) -- and the threshold that works
-     is the one that grows like log p, not like a power of p. Pattern,
+     is the polylogarithmic one, not either power of p tested. Pattern,
      k=2..{K_MAX}.
 
   4. ALPHA IS THE DENSITY READ A SECOND TIME, NOT A PREDICTOR OF IT.
@@ -591,9 +606,11 @@ def main():
      lcm does not move. So log lambda collects contributions only from
      non-transparent rungs while log phi collects every rung, which caps
      alpha by the non-transparent share of log phi -- 0.2282 against
-     0.3255 at k={K_MAX}, and below it at every rung from k=6 on. Alpha is
-     pushed down BY transparency. Property (the zero gain follows from
-     the definition of the lcm); the cap is verified k=2..{K_MAX}.
+     0.3255 at k={K_MAX}, and the cap is asserted at all {cap_holds_at} rungs, not
+     only the tabulated ones. Alpha is pushed down BY transparency.
+     PROPERTY, not a range fact, in both halves: the zero gain follows
+     from the definition of the lcm, and the cap from each raise adding
+     at most log(p-1).
      The corpus already holds this at two other scales, and the reading
      above was the odd one out. explore_complexity_ledger.py proves the
      domination inequality alpha <~ nt_frac rigorously and runs it to
