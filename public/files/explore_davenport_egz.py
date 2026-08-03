@@ -545,11 +545,11 @@ section("XI. KEY FINDINGS")
 print("""
   Summary of the Davenport / EGZ connection:
 
-  1. COVERAGE THRESHOLD (observation, 26 primes s=73..199). Full
+  1. COVERAGE THRESHOLD (pattern, 26 primes s=73..199). Full
      subset-sum coverage of Z/s requires k_full ~ 1.36 * log_2(s)
      tower primes. Ratio k_full/log_2(s): mean 1.36, range [1.25, 1.50].
 
-  2. COUPON COLLECTOR MODEL (observation, 26 primes). The threshold
+  2. COUPON COLLECTOR MODEL (pattern, 26 primes). The threshold
      k ~ log_2(s * H(s)) where H(s) = sum(1/i, i=1..s) predicts
      k_full almost exactly: mean observed/predicted = 1.008. Subset
      sums behave like near-independent draws despite correlation.
@@ -571,7 +571,7 @@ print("""
      Coverage failure is purely a counting effect: too few subsets
      to hit all s residues.
 
-  5. NAMING << FULL COVERAGE (observation, 26 primes). Naming needs
+  5. NAMING << FULL COVERAGE (pattern, 26 primes). Naming needs
      one (size, target) hit; full coverage needs all s residues. Mean
      k_pred = 7.2 vs k_full = 9.6 (gap = 2.3 rungs). This explains
      why the miss rate from the earlier finding drops faster than full coverage.
