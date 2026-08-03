@@ -1,18 +1,21 @@
 """Plateau collision mechanism -- what controls the spectral gain at plateaus.
 
 An earlier run measured: plateau rungs k=11..14 gain FEW distinct F values
-(60/20/41/70; gain ratios 0.05-0.18, against 0.64-1.50 at the jumps below
-k=15), and k=6 gained exactly zero. Open question: what controls the gain?
+(60/20/41/70; gain ratios 0.05-0.18, against 0.64-1.50 at the jumps k=4..14
+-- k=3 has no ratio, there being no previous spectrum to divide by), and
+k=6 gained exactly zero. Open question: what controls the gain?
 
 This script settles the mechanism. Three pieces, all algebraic:
 
-1. PATTERN CRITERION (proved). The gate pattern of n is the set S of
-   tower primes dividing n. S occurs among n=1..lambda iff
+1. PATTERN CRITERION (criterion, proved). The gate pattern of n is the
+   set S of tower primes dividing n. S occurs among n=1..lambda iff
    prod(S) <= lambda: n = prod(S) realizes exactly S, and any n with
    pattern S is a multiple of prod(S). This replaces the O(lambda*k)
    sweep with a pruned subset enumeration -- rungs far past k=14 open up.
 
-2. PLATEAU DECOMPOSITION (proved). At a plateau rung k (lambda fixed),
+2. PLATEAU DECOMPOSITION (rule, proved algebraically -- an IDENTITY
+   between value sets, not a condition, so not a criterion). At a
+   plateau rung k (lambda fixed),
    every n=1..lambda either is divisible by p_k (gate 1: F_k = F_{k-1})
    or is not (gate c = -1/(p_k - 1): F_k = c * F_{k-1}). The admissible
    old patterns are unchanged (same lambda), so the distinct-value sets
@@ -25,7 +28,7 @@ This script settles the mechanism. Three pieces, all algebraic:
    The gain at a plateau is the part of the window that the rescaled
    spectrum fails to cover.
 
-3. COLLISION CRITERION (proved). F values are canonical fractions
+3. COLLISION CRITERION (criterion, proved). F values are canonical fractions
    s/D with s = (-1)^(#OFF), D = prod_{q OFF}(q-1). A window value s/D
    dies (collides) iff (p_k - 1) | D and (-s, D/(p_k-1)) is an old
    value. Writing both patterns by their ON-sets and cancelling common
@@ -412,7 +415,8 @@ print("""
    c = -1/(p_k-1) injective. The gain is EXACTLY the uncovered window:
    gain = |W| - |W intersect c*V_{k-1}|.
 
-3. COLLISION CRITERION (criterion, proved). A window value s/D dies iff
+3. COLLISION CRITERION (criterion, proved; the relation form asserted at
+   every collided value, k=6, 11..14 and 18..22). A window value s/D dies iff
    (p_k-1) | D and (-s, D/(p_k-1)) is an old value -- equivalently iff
    a multiplicative relation prod_A(q-1) = (p_k-1)*prod_B(q-1) holds
    over disjoint sets of old primes, |A|+|B| odd, within the lambda
