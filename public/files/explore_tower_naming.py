@@ -14,12 +14,10 @@ Discovery: the reciprocal naming criterion.
 Run: python prime/code/explore_tower_naming.py
 """
 
-import sys
-sys.path.insert(0, '.')
 from itertools import combinations
 from math import prod, gcd
 from collections import Counter
-from prime.code.crt import factorize, is_prime
+from crt import factorize, is_prime
 
 
 def first_n_primes(n):
@@ -457,7 +455,7 @@ def main():
      Verified 960/960 at k=8. Unifies all naming conditions.
      Corollary: 2-invisibility (immediate from parity argument).
 
-  2. THREADS 1 AND 2 ARE INDEPENDENT.
+  2. TRANSPARENCY AND NAMING ARE INDEPENDENT.
      Q1: Transparency does NOT affect 2-prime prediction count.
          Both transparent and non-transparent rungs: avg = 0.96/rung.
      Q2: the 3-prime naming fraction DOES read higher at transparent

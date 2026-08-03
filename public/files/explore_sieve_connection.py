@@ -1,31 +1,76 @@
-"""Sieve-theoretic interpretation of the primorial tower.
+"""Sieve-theoretic reading of the primorial tower: the dictionary.
 
-The primorial tower IS the Eratosthenes sieve in algebraic form.
-Units of Z/p_k# = integers surviving sieving by the first k primes.
-The tower's algebraic structure (CRT, idempotents, ECC, seed-flower,
-Ramanujan sum) should all have sieve-theoretic meanings.
+Along the primorial trajectory the tower is the algebraic form of the
+sieve of Eratosthenes -- identity, not analogy. Units of Z/p_k# are the
+integers surviving sieving by the first k primes; CRT is the sieve
+factored into independent per-prime parts. This script states the
+term-by-term dictionary and verifies every row that computes.
 
-This script builds the dictionary:
-  I.   Units = sieve survivors, Mertens density
-  II.  Idempotents = inclusion-exclusion projectors
-  III. -chi in sieve language: what does seed-flower naming count?
-  IV.  Ramanujan sum = Mobius inversion on the sieve
-  V.   Seed-flower naming = sieve predicting beyond its boundary
-  VI.  ECC = sieve redundancy
+Sections:
+  I.    Units = sieve survivors (Mertens density)
+  II.   Idempotents = inclusion-exclusion projectors
+  III.  -chi = N*(d_mean - 1): the mean-distance identity
+  IV.   Ramanujan sum = Mobius inversion on the sieve
+  V.    Naming read as sieve prediction (the reciprocal criterion)
+  VI.   Sieve survivor classes (the 2^k profile partition)
+  VII.  ECC = sieve redundancy, with direct reconstruction
+  VIII. The dictionary table
+  IX.   Quantitative: -chi against phi across the tower
+  X.    Sub-sieve naming census at k=7
+  XI.   Findings
+
+FINDINGS (all computed by this script; ranges as stated per item):
+
+1. THE IDENTITY (property). Units are survivors by the definition of
+   coprimality, and the idempotent lattice IS the inclusion-exclusion
+   computation: the sum over all 128 idempotents of (-1)^|S| * N/prod(S)
+   equals phi(N) = 92160 at k=7 (section II).
+
+2. -CHI IS A MEAN-DISTANCE MULTIPLE (property, algebra; printed
+   k=2..7). -chi = N*(d_mean - 1) where d_mean = sum(1 - 1/p_i) is the
+   mean CRT Hamming distance from 0 of a UNIFORM ring element (channel
+   i is nonzero with probability 1 - 1/p_i). Not a statement about the
+   survivors: every unit sits at distance exactly m, all its channels
+   nonzero; the mean is over the whole ring (sections III, IX).
+
+3. RAMANUJAN SUM = MOBIUS INVERSION (property; verified at 16 values,
+   k=7). c_N(n) = sum over d | gcd(n,N) of mu(N/d)*d, and the frequency
+   moment F(n) = c_N(n)/phi(N) factors into per-channel gates
+   [1 if p|n else -1/(p-1)] (explore_moment_resonance.py). The gate is
+   the individual prime sieve's hit/miss decision; the product form is
+   CRT independence = sieve independence (section IV).
+
+4. NAMING NEVER HITS THE SUCCESSOR IN RANGE (observation, k=3..9).
+   The reciprocal criterion -- s | -chi iff sum(1/p_i) = m-1 (mod s),
+   proved in explore_tower_naming.py -- read as sieve prediction: the
+   full-ring -chi does name absent primes (53 at k=7), but it names
+   p_{k+1} at NO tested rung k=3..9 (section V). And at k=7 the naming
+   fraction FALLS with sub-sieve size: 0.571 at m=2 down to 0.095 at
+   m=5 and 0 at m>=6 (section X).
+
+5. ECC IS SIEVE REDUNDANCY, RECONSTRUCTION CHECKED (computed, k=7).
+   Any 4 of the 7 prime sieves determine a codeword: verified by
+   direct CRT reconstruction of every one of the 210 codewords from
+   each of the 35 four-channel subsets (section VII). The capacity
+   reason: every 4-subset's product is >= 210, the data modulus.
+
+6. LAMBDA IS THE SURVIVORS' DYNAMICAL PERIOD (property). lambda =
+   lcm(p_i - 1) is the exponent of the survivor group, and
+   transparency -- (p-1) | lambda -- reads as: adding sieve prime p
+   leaves the multiplicative dynamics unchanged (section VIII; the
+   geometry/dynamics split is explore_tower_geometry.py's).
 
 Run: python prime/code/explore_sieve_connection.py
+  (~1 s, peak working set 13.9 MB under the 512 MB watchdog)
 """
 
-import sys
-sys.path.insert(0, '.')
-from math import gcd, prod, log, cos, pi
+from math import gcd, prod, cos, pi, exp, log
 from itertools import combinations
 from collections import Counter, defaultdict
 from fractions import Fraction
-from prime.code.crt import (
-    is_prime, primes_up_to, factorize, euler_phi, carmichael_lambda,
-    mod_inverse, Ring, encode, decode, all_idempotents
-)
+from crt import is_prime, factorize, Ring, all_idempotents
+
+EULER_GAMMA = 0.5772156649015329
 
 
 def first_n_primes(n):
@@ -36,10 +81,6 @@ def first_n_primes(n):
             ps.append(c)
         c += 1
     return ps
-
-
-def lcm(a, b):
-    return a * b // gcd(a, b)
 
 
 def mobius(n):
@@ -65,6 +106,19 @@ def ramanujan_sum(n, N):
     return round(total)
 
 
+def crt_combine(residues, moduli):
+    M = prod(moduli)
+    x = 0
+    for r, m in zip(residues, moduli):
+        Mi = M // m
+        x += r * Mi * pow(Mi, -1, m)
+    return x % M
+
+
+def mertens_approx(p):
+    return exp(-EULER_GAMMA) / log(p)
+
+
 def section(title):
     print(f"\n{'=' * 76}")
     print(f"  {title}")
@@ -75,7 +129,7 @@ def main():
     K_MAX = 12
 
     print("=" * 76)
-    print("  THREAD 8: THE SIEVE-THEORETIC INTERPRETATION")
+    print("  THE SIEVE-THEORETIC INTERPRETATION")
     print("  The primorial tower as the Eratosthenes sieve in algebraic form")
     print("=" * 76)
 
@@ -93,8 +147,6 @@ def main():
   As k grows, this approaches e^{-gamma}/ln(p_k) (Mertens' theorem).
 """)
 
-    EULER_GAMMA = 0.5772156649015329
-
     print(f"  {'k':>3} {'p_k':>4} {'N':>14} {'phi':>14} {'density':>10} "
           f"{'Mertens':>10} {'ratio':>8}")
     print(f"  {'-' * 68}")
@@ -104,11 +156,11 @@ def main():
         N = prod(ps)
         phi = prod(p - 1 for p in ps)
         density = phi / N
-        mertens_approx = exp_neg_gamma_over_ln(ps[-1])
-        ratio = density / mertens_approx if mertens_approx > 0 else 0
+        approx = mertens_approx(ps[-1])
+        ratio = density / approx
 
         print(f"  {k:>3} {ps[-1]:>4} {N:>14,} {phi:>14,} {density:>10.6f} "
-              f"{mertens_approx:>10.6f} {ratio:>8.4f}")
+              f"{approx:>10.6f} {ratio:>8.4f}")
 
     # =================================================================
     section("II. IDEMPOTENTS = INCLUSION-EXCLUSION PROJECTORS")
@@ -120,7 +172,7 @@ def main():
 
   In sieve language, e_S projects onto "the part visible through primes in S."
   The inclusion-exclusion formula for counting sieve survivors IS the sum
-  over the idempotent lattice weighted by Mobius values.
+  over the idempotent lattice weighted by the alternating signs.
 """)
 
     k_demo = 7
@@ -135,8 +187,7 @@ def main():
     print(f"  {2**k_demo} idempotents, {phi} units")
     print()
 
-    ie_sum = 0
-    print(f"  {'subset':>30} {'|S|':>4} {'e_S':>10} {'mu(-1)^|S|':>10} "
+    print(f"  {'subset':>30} {'|S|':>4} {'e_S':>10} {'(-1)^|S|':>10} "
           f"{'N/prod(S)':>10}")
     print(f"  {'-' * 70}")
 
@@ -146,13 +197,11 @@ def main():
         S_primes = [ps[i] for i in channels]
         complement = [ps[i] for i in range(k_demo) if i not in channels]
         N_comp = prod(complement) if complement else 1
-        mu_sign = (-1) ** len(channels)
+        sign = (-1) ** len(channels)
         S_label = "{" + ",".join(str(p) for p in S_primes) + "}" if S_primes else "{}"
 
-        ie_sum += mu_sign * N_comp
-
         print(f"  {S_label:>30} {len(channels):>4} {val:>10} "
-              f"{mu_sign:>10} {N_comp:>10}")
+              f"{sign:>10} {N_comp:>10}")
 
     print(f"  ... (showing |S| <= 4 of {2**k_demo} total)")
     print()
@@ -161,8 +210,8 @@ def main():
     for channels, val in idems:
         complement = [ps[i] for i in range(k_demo) if i not in channels]
         N_comp = prod(complement) if complement else 1
-        mu_sign = (-1) ** len(channels)
-        ie_full += mu_sign * N_comp
+        sign = (-1) ** len(channels)
+        ie_full += sign * N_comp
 
     print(f"  Inclusion-exclusion sum = {ie_full}")
     print(f"  phi(N) = {phi}")
@@ -172,27 +221,22 @@ def main():
     print("  Projecting onto e_S selects elements divisible by primes NOT in S.")
 
     # =================================================================
-    section("III. -CHI IN SIEVE LANGUAGE")
+    section("III. -CHI = N*(d_mean - 1): THE MEAN-DISTANCE IDENTITY")
     # =================================================================
 
     print("""
-  For thin sub-ring on primes {p_1,...,p_m}:
+  For a thin sub-ring on primes {p_1,...,p_m}:
     -chi = N*(m-1) - sum(N/p_i)
 
   Rewrite:
     -chi = sum_{i} (N - N/p_i) - N
-         = sum_{i} N*(1 - 1/p_i) - N
          = N * (sum(1 - 1/p_i) - 1)
          = N * (d_mean - 1)
 
-  where d_mean = sum(1 - 1/p_i) = mean Hamming distance from 0 on the
-  CRT torus. So -chi measures how "spread out" the sieve survivors are
-  on the torus, scaled by the ring size.
-
-  Equivalently:
-    -chi = (k-1)*N - (N - phi + higher_IE_terms)  ... not quite
-
-  Let's compute -chi alongside other sieve quantities.
+  where d_mean = sum(1 - 1/p_i) is the mean CRT Hamming distance from 0
+  of a UNIFORM ring element: channel i is nonzero with probability
+  (p_i - 1)/p_i. The mean is over the WHOLE ring -- the survivors
+  themselves all sit at distance exactly m, every channel nonzero.
 """)
 
     print(f"  {'primes':>25} {'N':>8} {'phi':>8} {'-chi':>8} "
@@ -200,18 +244,17 @@ def main():
     print(f"  {'-' * 80}")
 
     for m in range(2, 8):
-        for combo in [all_primes[:m]]:
-            ps_sub = list(combo)
-            N_sub = prod(ps_sub)
-            phi_sub = prod(p - 1 for p in ps_sub)
-            nc = neg_chi(ps_sub)
-            non_units = N_sub - phi_sub
-            d_mean = sum(1 - 1/p for p in ps_sub)
-            n_d_1 = N_sub * (d_mean - 1)
+        ps_sub = all_primes[:m]
+        N_sub = prod(ps_sub)
+        phi_sub = prod(p - 1 for p in ps_sub)
+        nc = neg_chi(ps_sub)
+        non_units = N_sub - phi_sub
+        d_mean = sum(1 - 1/p for p in ps_sub)
+        n_d_1 = N_sub * (d_mean - 1)
 
-            label = "{" + ",".join(str(p) for p in ps_sub) + "}"
-            print(f"  {label:>25} {N_sub:>8} {phi_sub:>8} {nc:>8} "
-                  f"{non_units:>8} {d_mean:>8.4f} {n_d_1:>8.1f}")
+        label = "{" + ",".join(str(p) for p in ps_sub) + "}"
+        print(f"  {label:>25} {N_sub:>8} {phi_sub:>8} {nc:>8} "
+              f"{non_units:>8} {d_mean:>8.4f} {n_d_1:>8.1f}")
 
     print()
     print("  -chi = N*(d_mean - 1) exactly (by algebra). Verified above.")
@@ -219,15 +262,8 @@ def main():
 
     print("  Sieve interpretation of -chi:")
     print("    N/p_i = count of multiples of p_i in {0,...,N-1} = 'sieved by p_i'")
-    print("    sum(N/p_i) = total sieving hits (with overlap)")
-    print("    N*(k-1) = (k-1) copies of the full set")
-    print("    -chi = N*(k-1) - sum(N/p_i) = excess of 'positions' over 'sieve hits'")
-    print()
-    print("  So -chi counts: for each sieve prime, how many elements it DOESN'T hit,")
-    print("  minus one full copy of N (to avoid overcounting the 'free' copy).")
-    print("  In other words: -chi = sum(survivors_per_channel) - N")
-    print("  where survivors_per_channel(p_i) = N*(1 - 1/p_i) = N - N/p_i.")
-
+    print("    N - N/p_i = survivors of the single sieve p_i alone")
+    print("    -chi = sum(survivors_per_channel) - N")
     print()
     print("  Verification:")
     for m in range(2, 8):
@@ -275,7 +311,7 @@ def main():
 
     for n in test_ns:
         g = gcd(n, N7)
-        c_N = ramanujan_sum(n, N7) if N7 <= 510510 else None
+        c_N = ramanujan_sum(n, N7)
         mu_sum = sum(mobius(N7 // d) * d for d in range(1, g + 1) if g % d == 0)
 
         F_product = Fraction(1)
@@ -286,15 +322,10 @@ def main():
                 F_product *= Fraction(-1, p - 1)
 
         F_val = float(F_product)
-        expected_c = int(F_product * phi7)
 
-        if c_N is not None:
-            print(f"  {n:>8} {g:>10} {c_N:>10} {mu_sum:>10} "
-                  f"{F_val:>12.6f} {float(F_product):>12.6f}  "
-                  f"{'OK' if c_N == mu_sum else 'MISMATCH'}")
-        else:
-            print(f"  {n:>8} {g:>10} {'(skip)':>10} {mu_sum:>10} "
-                  f"{F_val:>12.6f} {float(F_product):>12.6f}")
+        print(f"  {n:>8} {g:>10} {c_N:>10} {mu_sum:>10} "
+              f"{F_val:>12.6f} {float(F_product):>12.6f}  "
+              f"{'OK' if c_N == mu_sum else 'MISMATCH'}")
 
     print()
     print("  c_N(n) = Mobius sum: verified for all test values.")
@@ -306,25 +337,25 @@ def main():
     print("    Product structure = independence of prime sieves (CRT)")
 
     # =================================================================
-    section("V. SEED-FLOWER = SIEVE PREDICTING BEYOND ITS BOUNDARY")
+    section("V. NAMING READ AS SIEVE PREDICTION")
     # =================================================================
 
     print("""
   When -chi({p_1,...,p_m}) is divisible by absent prime s, the sub-sieve
   "names" s -- a prime beyond its boundary.
 
-  By the reciprocal criterion: s | -chi iff sum(1/p_i) = m-1 (mod s).
+  By the reciprocal criterion (proved, explore_tower_naming.py):
+  s | -chi iff sum(1/p_i) = m-1 (mod s).
 
   Sieve interpretation: the STRUCTURE of the sub-sieve (the reciprocal
-  sum of its primes) constrains which primes can appear beyond it.
-  This is not a sieve-theoretic accident -- it's a structural prediction.
-
-  Question: does the divisibility pattern of -chi relate to classical
-  sieve bounds (Brun, Selberg, Bombieri-Vinogradov)?
+  sum of its primes) constrains which primes can appear beyond it --
+  not a sieving operation, but a number-theoretic property of the
+  sieve primes themselves.
 """)
 
-    print("  Predictions at each rung (thin tower):")
-    print(f"  {'k':>3} {'primes':>30} {'-chi':>14} {'divides':>30}")
+    print("  Named absent primes at each rung (thin tower);")
+    print("  divisor search bounded at 500 -- larger prime factors are not shown:")
+    print(f"  {'k':>3} {'primes':>30} {'-chi':>14} {'names (<500)':>30}")
     print(f"  {'-' * 80}")
 
     for k in range(2, 10):
@@ -333,22 +364,22 @@ def main():
         label = "{" + ",".join(str(p) for p in ps) + "}"
         divs = [q for q in range(2, min(nc + 1, 500)) if nc % q == 0 and is_prime(q)]
         beyond = [q for q in divs if q not in ps]
-        div_str = ",".join(str(q) for q in beyond[:10])
-        if len(beyond) > 10:
-            div_str += f"... ({len(beyond)} total)"
+        div_str = ",".join(str(q) for q in beyond)
         print(f"  {k:>3} {label:>30} {nc:>14,} {div_str:>30}")
 
     print()
 
-    print("  The full ring -chi at each rung predicts primes beyond p_k:")
+    print("  Does the full-ring -chi name its own successor p_{k+1}?")
     print()
 
+    successor_named = []
     for k in range(3, 10):
         ps = all_primes[:k]
         nc = neg_chi(ps)
         p_next = all_primes[k]
 
         hits_next = (nc % p_next == 0)
+        successor_named.append(hits_next)
         inv_sum = sum(pow(p, -1, p_next) for p in ps) % p_next
         target = (k - 1) % p_next
 
@@ -359,10 +390,9 @@ def main():
               f"names p_{{k+1}}: {hits_next}")
 
     print()
-    print("  When the reciprocal sum of the first k primes hits (k-1) mod p_{k+1},")
-    print("  the sieve 'sees' the next prime. This is a structural constraint on")
-    print("  how prime reciprocals distribute -- not a sieving operation, but a")
-    print("  number-theoretic property of the sieve primes themselves.")
+    print(f"  Successor named at any tested rung k=3..9: {any(successor_named)}.")
+    print("  The criterion asks the reciprocal sum of the first k primes to hit")
+    print("  (k-1) mod p_{k+1}; at every tested rung it misses.")
 
     # =================================================================
     section("VI. SIEVE SURVIVOR CLASSES AND THEIR STRUCTURE")
@@ -374,8 +404,7 @@ def main():
   to a non-empty subset S of {p_1,...,p_k}: elements divisible by
   exactly the primes in S.
 
-  Class size |C_S| = product(1/p for p in S) * product((p-1)/p for p not in S) * N
-            = N * product(1/p_i, i in S) * product(1 - 1/p_j, j not in S)
+  Class size |C_S| = N * product(1/p_i, i in S) * product(1 - 1/p_j, j not in S)
 
   The unit class (S = empty) has size phi(N).
 """)
@@ -417,8 +446,9 @@ def main():
               f"{size/N:>10.6f}")
 
     print()
-    print("  The unit class (sieve survivors) is the largest single class.")
-    print("  Adding each prime sieve halves it approximately (factor (p-1)/p).")
+    print("  The unit class (sieve survivors) is the largest single class,")
+    print("  tied by {2}; each added sieve prime p scales a class by 1/p or")
+    print("  (p-1)/p.")
 
     # =================================================================
     section("VII. ECC = SIEVE REDUNDANCY")
@@ -429,13 +459,13 @@ def main():
   for codewords. In sieve terms: the coarse sieve (small primes) determines
   the fine sieve (large primes) for the 210 codeword residue classes.
 
-  More precisely: the 210 codewords embed Z/210 into Z/510510. Each
-  codeword class is a single residue mod 210, mapped to a unique element
-  of Z/510510 by CRT. The large-prime channels carry redundant information.
-
-  The MDS property (d=4) means: any 4 channels suffice to reconstruct.
-  In sieve terms: ANY 4 of the 7 prime sieves determine the full
-  sieve profile. The minimum information needed is 4 primes.
+  The 210 codewords embed Z/210 into Z/510510: codeword n is the integer
+  n in {0,...,209}, read on all seven channels. The MDS property (d=4)
+  says any 4 channels reconstruct. Two checks below:
+    - capacity: the product of the 4 chosen primes is >= 210, so a
+      codeword's residue mod that product determines it;
+    - reconstruction: every codeword CRT-recovered from its 4 residues
+      alone and compared against the original.
 """)
 
     ps7 = all_primes[:7]
@@ -446,44 +476,46 @@ def main():
     print(f"  Codewords: {data_N} out of {N7} elements ({data_N/N7*100:.4f}%)")
     print()
 
-    print("  Any 4 channels reconstruct (MDS d=4):")
-    print(f"  {'channels':>30} {'product':>10} {'recovers?':>10}")
-    print(f"  {'-' * 55}")
+    print(f"  {'channels':>30} {'product':>10} {'capacity':>10} {'recovered':>12}")
+    print(f"  {'-' * 68}")
 
     all_4subsets = list(combinations(range(7), 4))
-    all_recover = True
+    subsets_ok = 0
     shown = 0
     for subset in all_4subsets:
         sub_primes = [ps7[i] for i in subset]
         sub_N = prod(sub_primes)
-        recovers = (sub_N >= data_N)
+        capacity = (sub_N >= data_N)
+        recovered = sum(
+            1 for n in range(data_N)
+            if crt_combine([n % p for p in sub_primes], sub_primes) == n
+        )
+        ok = capacity and recovered == data_N
+        if ok:
+            subsets_ok += 1
         label = "{" + ",".join(str(p) for p in sub_primes) + "}"
-        if shown < 10 or not recovers:
-            print(f"  {label:>30} {sub_N:>10} {'YES' if recovers else 'NO':>10}")
+        if shown < 10 or not ok:
+            print(f"  {label:>30} {sub_N:>10} {'YES' if capacity else 'NO':>10} "
+                  f"{recovered:>7}/{data_N}")
             shown += 1
-        if not recovers:
-            all_recover = False
 
     if shown < len(all_4subsets):
         print(f"  ... ({len(all_4subsets)} total 4-subsets)")
 
     print()
-    print(f"  All 4-subsets recover: {all_recover}")
+    print(f"  Subsets passing both checks: {subsets_ok}/{len(all_4subsets)}")
     print()
 
     print("  Sieve interpretation:")
     print("    The Eratosthenes sieve has BUILT-IN REDUNDANCY at every rung k >= 7.")
-    print("    Losing up to 3 prime sieves (any 3!) still allows full reconstruction")
+    print("    Losing up to 3 prime sieves (any 3) still allows full reconstruction")
     print("    of the data. The redundancy is structural -- it comes from the CRT")
     print("    decomposition, not from any external code.")
     print()
 
     rate_data = []
     for k in range(4, K_MAX + 1):
-        ps = all_primes[:k]
-        n_data = 4
-        if k > 7:
-            n_data = k - 3
+        n_data = 4 if k <= 7 else k - 3
         n_parity = k - n_data
         if n_parity < 3:
             continue
@@ -493,8 +525,8 @@ def main():
     print("  ECC rate improves as the tower grows:")
     print(f"  {'k':>3} {'data':>5} {'parity':>7} {'rate':>8}")
     print(f"  {'-' * 28}")
-    for k, nd, np, r in rate_data:
-        print(f"  {k:>3} {nd:>5} {np:>7} {r:>8.3f}")
+    for k, nd, np_, r in rate_data:
+        print(f"  {k:>3} {nd:>5} {np_:>7} {r:>8.3f}")
 
     # =================================================================
     section("VIII. THE SIEVE DICTIONARY")
@@ -510,81 +542,33 @@ def main():
   CRT channel p              individual prime sieve mod p
   CRT decomposition          factoring the sieve into independent parts
   phi(N)                     count of sieve survivors (Mertens product)
-  lambda(N)                  multiplicative period of survivors
+  lambda(N)                  exponent of the survivor group
   Transparency               (p-1)|lambda -- no new multiplicative orders
   Idempotent e_S             inclusion-exclusion projector for subset S
   Sum over idempotents       Legendre sieve formula (IE for phi)
   Ramanujan sum c_N(n)       Mobius inversion over the divisor lattice
   Per-channel gate factor    individual prime sieve decision (hit/miss)
   Product of factors         CRT independence = sieve independence
-  -chi(sub-ring)             N*(d_mean - 1): spread of survivors on torus
-  Seed-flower naming         reciprocal sum constraint on primes beyond boundary
+  -chi(sub-ring)             N*(d_mean - 1): mean distance of a uniform
+                             element from 0, minus one, times N
+  Naming criterion           reciprocal-sum constraint on absent primes
   ECC (rate 4/7 at k=7)     sieve redundancy: 4 primes determine all 7
   MDS (d=4)                  any 4 of 7 prime sieves reconstruct the data
   Codeword                   residue class consistent across all channels
 
-  KEY INSIGHT: The tower is not ANALOGOUS to the sieve. It IS the sieve.
-  CRT is the algebraic decomposition of the Eratosthenes sieve.
-  Every tower property is a sieve property seen through algebraic lenses.
+  The tower is not ANALOGOUS to the sieve; along the primorial
+  trajectory it IS the sieve (property -- the identification is
+  term-by-term above, each computable row verified in its section).
 """)
 
     # =================================================================
-    section("IX. WHAT THE SIEVE FRAME REVEALS")
-    # =================================================================
-
-    print("""
-  1. THE TOWER IS BOTH OBJECT AND LENS.
-     As an algebraic object, it has structure (geometry, ECC, meadow).
-     As a sieve, it sees primes (seed-flower, prediction horizon).
-     These are not competing frames -- they're two views of the same thing.
-     The sieve IS algebraic. The algebra IS a sieve.
-
-  2. SEED-FLOWER IS SIEVE PREDICTION.
-     When sum(1/p_i) = m-1 (mod s), the sub-sieve's reciprocal structure
-     "locks onto" prime s. This is not the sieve FINDING primes (that's
-     what the sieve does by definition). It's the sieve's ALGEBRAIC
-     STRUCTURE encoding information about primes beyond its range.
-     The reciprocal sum is a structural invariant of the sub-sieve.
-
-  3. ECC IS STRUCTURAL SIEVE REDUNDANCY.
-     The Eratosthenes sieve has more channels than it needs. At k=7,
-     any 4 of 7 prime sieves determine the full profile. This redundancy
-     is inherent in the CRT structure -- it's not added, it's discovered.
-     As k grows, the rate approaches 1: more and more of the sieve is
-     "free" redundancy.
-
-  4. THE RAMANUJAN SUM UNIFIES RESONANCE AND SIEVE.
-     The frequency moment F(n) = c_N(n)/phi(N) is simultaneously:
-       - A resonance function (the Ramanujan sum,
-         explore_moment_resonance.py)
-       - A sieve characteristic function (Mobius inversion, this file)
-     The per-channel factoring IS the independence of prime sieves.
-
-  5. LAMBDA IS THE SIEVE'S DYNAMICAL PERIOD.
-     Lambda = lcm(p_i - 1) is the period of the multiplicative group of
-     sieve survivors. Transparency (p-1 | lambda) means: adding prime p
-     to the sieve doesn't change the multiplicative dynamics.
-     Geometry/dynamics split (explore_tower_geometry.py): geometry =
-     sieve structure,
-     dynamics = sieve survivor group action.
-
-  6. IDEMPOTENTS ARE SIEVE PROJECTORS.
-     The 2^k idempotents project onto subsets of prime sieves. Their
-     lattice IS the inclusion-exclusion lattice. The IE formula for
-     phi(N) is literally the sum over idempotents weighted by Mobius.
-     This connects the algebraic structure to classical analytic NT.
-""")
-
-    # =================================================================
-    section("X. QUANTITATIVE: -CHI AND SIEVE SURVIVOR STRUCTURE")
+    section("IX. QUANTITATIVE: -CHI AGAINST PHI ACROSS THE TOWER")
     # =================================================================
 
     print("""
   How does -chi relate to phi across the tower?
   -chi = N*(k-1) - sum(N/p_i)
   phi = N * product(1-1/p_i)
-
-  Ratio -chi/phi tells us how many "spread units" per survivor.
 """)
 
     print(f"  {'k':>3} {'N':>14} {'phi':>14} {'-chi':>14} "
@@ -603,23 +587,23 @@ def main():
               f"{ratio_phi:>10.4f} {ratio_N:>10.6f}")
 
     print()
-    print("  -chi/N = d_mean - 1 = k - 1 - sum(1/p_i), growing as k - O(log log k).")
-    print("  -chi/phi grows faster: the sieve survivors are increasingly 'spread'")
-    print("  on the torus relative to their count.")
+    print("  -chi/N = d_mean - 1 = k - 1 - sum(1/p_i), growing as k - O(log log k)")
+    print("  by Mertens. -chi/phi grows faster because the survivor density")
+    print("  phi/N also falls (Mertens product) while d_mean grows.")
 
     # =================================================================
-    section("XI. SUB-SIEVE NAMING: WHICH PRIMES DOES EACH SUB-SIEVE SEE?")
+    section("X. SUB-SIEVE NAMING CENSUS AT k=7")
     # =================================================================
 
     print("""
-  At k=7, there are 2^7-1 = 127 non-empty sub-sieves. For each, compute
-  -chi and check which tower primes it "sees" (divides).
-
-  Group by sub-sieve size. The question: do larger sub-sieves see more?
+  At k=7, there are 2^7-1 = 127 non-empty sub-sieves; the census below
+  covers the 120 of size m >= 2 (a single prime has -chi = -1, which
+  no prime divides). For each, compute -chi and check which TOWER primes it
+  "sees" (divides). Group by sub-sieve size: do larger sub-sieves see
+  more?
 """)
 
     ps7 = all_primes[:7]
-    N7 = prod(ps7)
 
     size_stats = defaultdict(lambda: {'total': 0, 'naming': 0, 'primes_seen': Counter()})
 
@@ -646,63 +630,54 @@ def main():
         print(f"  {m:>7} {s['total']:>7} {s['naming']:>7} {frac:>7.3f} {seen_str:>30}")
 
     print()
+    print("  The naming fraction FALLS as the sub-sieve grows: larger")
+    print("  sub-sieves see fewer of the tower's own primes.")
+    print()
 
-    beyond_ps7 = [p for p in all_primes[7:15] if p <= 100]
-    print(f"  Beyond-boundary primes named by full ring -chi:")
     nc_full = neg_chi(ps7)
-    named_beyond = [p for p in range(2, 200) if is_prime(p) and p not in ps7 and nc_full % p == 0]
+    named_beyond = [p for p in range(2, 200)
+                    if is_prime(p) and p not in ps7 and nc_full % p == 0]
+    print(f"  Beyond-boundary primes named by the full-ring -chi (search < 200):")
     print(f"    -chi({','.join(str(p) for p in ps7)}) = {nc_full}")
-    print(f"    Prime divisors beyond p_7=17: {named_beyond[:15]}")
+    print(f"    Prime divisors beyond p_7=17 and below 200: {named_beyond}")
 
     # =================================================================
-    section("XII. KEY FINDINGS")
+    section("XI. FINDINGS")
     # =================================================================
 
-    print("""
-  1. THE PRIMORIAL TOWER IS THE ERATOSTHENES SIEVE.
-     Not an analogy. An identity. Z/p_k# IS the ring of the k-prime sieve.
-     CRT IS the sieve's algebraic decomposition. Units ARE survivors.
+    print(f"""
+  1. THE IDENTITY (property). Units are survivors by the definition of
+     coprimality; the idempotent lattice IS the inclusion-exclusion
+     computation (sum over idempotents = phi, verified k=7, section II).
 
-  2. THE SIEVE DICTIONARY IS COMPLETE.
-     Every tower concept (idempotent, -chi, Ramanujan sum, ECC, lambda,
-     transparency, seed-flower) has an exact sieve-theoretic meaning.
-     The dictionary is not forced -- it's structural.
+  2. -CHI IS A MEAN-DISTANCE MULTIPLE (property; printed k=2..7).
+     -chi = N*(d_mean - 1), d_mean the mean CRT Hamming distance from 0
+     of a UNIFORM ring element -- the whole ring, not the survivors,
+     who all sit at distance exactly m (sections III, IX).
 
-  3. THE IDENTITY QUESTION IS RESOLVED.
-     The tower is BOTH an algebraic object AND a lens on primes, because
-     the Eratosthenes sieve is both. The sieve is an algebraic object
-     (Z/p_k# with CRT). The sieve sees primes (by construction).
-     These are not competing frames. They are the same frame.
+  3. RAMANUJAN SUM = MOBIUS INVERSION (property; verified at 16 values,
+     k=7). The frequency moment's per-channel gate is the individual
+     prime sieve's hit/miss decision; the product form is sieve
+     independence via CRT (section IV; explore_moment_resonance.py).
 
-  4. SEED-FLOWER IS THE SIEVE'S STRUCTURAL PREDICTION.
-     The reciprocal naming criterion (sum(1/p_i) = m-1 mod s) is a
-     number-theoretic constraint that connects the sieve's internal
-     structure to primes beyond its boundary. This is genuinely new --
-     it's not the sieve operating (that's Legendre/Brun/Selberg), but
-     the sieve's algebraic invariants carrying predictive information.
+  4. NAMING NEVER HITS THE SUCCESSOR IN RANGE (observation, k=3..9).
+     The full-ring -chi names absent primes but named p_{{k+1}} at no
+     tested rung, and the k=7 naming fraction falls with sub-sieve
+     size (sections V, X).
 
-  5. RAMANUJAN SUM UNIFIES THREADS 3 AND 8.
-     The frequency moment is simultaneously a resonance function and
-     a Mobius-inversion sieve formula. Per-channel factoring = sieve
-     independence. This was always one concept, seen from two sides.
+  5. ECC IS SIEVE REDUNDANCY, RECONSTRUCTION CHECKED (computed, k=7).
+     {subsets_ok}/{len(all_4subsets)} four-channel subsets recover all
+     {data_N} codewords by direct CRT reconstruction (section VII).
 
-  6. IMPLICATIONS FOR THE FRAME.
-     This chart is the prime lens: CRT = sieve decomposition,
-     ECC = sieve redundancy, seed-flower = sieve prediction.
-     The tower is the object AND the lens, because the sieve is both.
-     (The lens sits inside the places frame -- sieving = reading
-     the finite windows along the primorial trajectory.)
+  6. LAMBDA IS THE SURVIVORS' DYNAMICAL PERIOD (property). lambda is
+     the exponent of the survivor group; transparency reads as: adding
+     sieve prime p leaves the multiplicative dynamics unchanged
+     (section VIII; explore_tower_geometry.py).
 """)
 
     print("=" * 76)
     print("  Done.")
     print("=" * 76)
-
-
-def exp_neg_gamma_over_ln(p):
-    import math
-    GAMMA = 0.5772156649015329
-    return math.exp(-GAMMA) / math.log(p)
 
 
 if __name__ == "__main__":

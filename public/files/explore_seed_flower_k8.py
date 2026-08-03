@@ -13,12 +13,10 @@ patterns (2-rooted, 3-rooted) that generate predictions at arbitrary k.
 Run: python prime/code/explore_seed_flower_k8.py
 """
 
-import sys
-sys.path.insert(0, '.')
 from itertools import combinations
 from math import prod
 from collections import Counter
-from prime.code.crt import factorize, is_prime, lcm_list
+from crt import factorize, is_prime, lcm_list
 
 PRIMES_7 = [2, 3, 5, 7, 11, 13, 17]
 PRIMES_8 = [2, 3, 5, 7, 11, 13, 17, 19]

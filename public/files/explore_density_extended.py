@@ -39,11 +39,9 @@ Run: python prime/code/explore_density_extended.py  (well under a second;
 integers and dicts only, far under the 512MB analysis ceiling)
 """
 
-import sys
-sys.path.insert(0, '.')
 from math import gcd, log, log2, sqrt
 from collections import Counter
-from prime.code.crt import is_prime, factorize
+from crt import is_prime, factorize
 
 
 def lcm(a, b):
@@ -76,7 +74,7 @@ def main():
     K_MAX = 2000
 
     print("=" * 76)
-    print("  THREAD 10 EXTENSION: DENSITY TO k=2000")
+    print("  TRANSPARENCY DENSITY, EXTENDED TO k=2000")
     print("  Stronger evidence, S(k) growth, convergence model")
     print("=" * 76)
 

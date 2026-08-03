@@ -39,10 +39,8 @@ Run: python prime/code/explore_asymptotic_density.py  (well under a
 second; integers and dicts only, far under the 512MB analysis ceiling)
 """
 
-import sys
-sys.path.insert(0, '.')
 from math import gcd, log, log2
-from prime.code.crt import is_prime, factorize
+from crt import is_prime, factorize
 
 
 def lcm(a, b):
@@ -69,7 +67,7 @@ def main():
     K_MAX = 200
 
     print("=" * 76)
-    print("  THREAD 10: ASYMPTOTIC DENSITY OF TRANSPARENCY")
+    print("  ASYMPTOTIC DENSITY OF TRANSPARENCY")
     print("  Does the fraction of transparent primes converge?")
     print("=" * 76)
 

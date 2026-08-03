@@ -223,13 +223,11 @@ complex handled is X({2,3,5,7}) at 210 vertices, 1,365 edges, 1,540 triangles.
 Run: python prime/code/explore_naming_complex.py
 """
 
-import sys
-sys.path.insert(0, '.')
 from itertools import combinations
 from math import prod
 from random import Random
 
-from prime.code.crt import is_prime
+from crt import is_prime
 
 PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23]
 
