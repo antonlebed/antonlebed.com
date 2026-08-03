@@ -25,8 +25,10 @@ What this script settles:
    own relation); the OBSERVATION is that the truncation loses
    nothing: |B| <= 3 with applicability bound >= 0.002 (power-of-two
    rounded) covers all 16,586 collided values across the 10 validation
-   rungs, zero false hits. The deepest needed relations are |B| = 3,
-   prod(B) ~ 10^5, killing one window value each (k=21).
+   rungs, zero false hits. |B| <= 3 is where the enumeration was CUT,
+   so "3 is deep enough" is what the zero misses show; whether |B| <= 2
+   would also suffice is untested, the shallower cap never having been
+   run.
 
 3. CELL-SUM FORMULA (rule, pattern measure; proved + verified k <= 22).
    Within a fixed ON/OFF assignment (cell) of the ACTIVE primes (those
@@ -55,13 +57,26 @@ What this script settles:
    window poverty, not law. In rich windows the B != empty relations
    (window patterns that already contain B) carry the rate.
 
-Census: 18 plateau rungs k = 6..37 (was 10 through k <= 22). Spectra
-are enumerated as signed denominators s*e (machine-word ints, not
-(sign, ~10^56-bigint) tuples) -- the k=37 census holds 4.7M values and
-stays under the 512MB line; big-rung spectra are never retained.
+Census: 18 plateau rungs k = 6..37 (was 10 through k <= 22). Values are
+carried as signed denominators s*e (machine-word ints, not
+(sign, ~10^56-bigint) tuples), and the old spectrum at the full budget
+is never built at all: gate B is |W| membership questions, so the census
+streams the old DFS against the window's targets (gate_census). Peak
+residency is the WINDOW, and the window is the smaller object by an
+order of magnitude at the big rungs.
 
-Run: python prime/code/explore_plateau_rate.py        (~13 min: the
-k=36/37 value censuses and their cell-sum rows dominate)
+RUN RECORD. `python memwatch.py explore_plateau_rate.py`, one process,
+CPython, no BLAS: peak working set 330.2 MB, peak commit 324.8 MB
+against memwatch's 512 MB ceiling, wall 780.6 s. The k=36 and k=37
+censuses (119.5 s, 148.8 s) and their cell-sum rows (136.6 s, 176.3 s)
+dominate; everything through k=34 is 90 s together.
+
+WHY THE ENVELOPE IS IN THE HEADER AT ALL: holding the full-budget old
+spectrum cost over 1 GB at k=37 -- it was killed at a 1024 MB ceiling,
+having already been killed at 512 -- while the header of the day said
+the census stayed under 512. Queried-not-enumerated is what buys the
+324.8 MB, and the number is recorded here so the next edit that wants a
+resident spectrum has to argue with a measurement.
 """
 
 from math import prod, lcm
@@ -155,9 +170,11 @@ def spectrum_set(primes, budget):
     D = phi/e, e = prod(p-1 over the ON primes), is stored as s*e.
     e <= budget <= lambda (< 2^62 through K_CENSUS=37; a bump past a
     lambda jump only costs int width), so the set holds machine-word ints
-    instead of (sign, ~10^56-bigint) tuples -- the big censuses stay
-    under the 512MB line -- and the DFS leaf skips the phi//e division
-    (~300M leaves at k=37)."""
+    instead of (sign, ~10^56-bigint) tuples, and the DFS leaf skips the
+    phi//e division (~300M leaves at k=37).
+
+    Only ever called on the WINDOW budget lambda/p_k. The full-budget
+    spectrum is far too big to hold (gate_census)."""
     k = len(primes)
     out = set()
 
@@ -172,6 +189,66 @@ def spectrum_set(primes, budget):
 
     rec(0, 1, 1, 0)
     return out
+
+
+def gate_census(old, p_new, lam, phi, want_values):
+    """Window size and the two gate counts at a plateau rung, holding
+    nothing of size |old spectrum|.
+
+    The old spectrum at the full budget lambda is the largest object in
+    reach here -- tens of millions of values by k=36 -- and it is only
+    ever QUERIED: gate B asks, for one window value at a time, whether
+    ONE specific old value exists. Materializing it to answer |W| yes/no
+    questions is what put the k=37 row past 1 GB. So the gate-A survivors
+    are turned into their gate-B TARGETS up front and the old DFS is
+    STREAMED against that set, deleting each target as it is hit. Peak
+    residency is |W|, not |V_{k-1}|; a repeated old value costs a lookup
+    and no memory, and the leaf count is unchanged.
+
+    GATE B IMPLIES GATE A, which is what lets ONE set do the whole job:
+    every old value's denominator e_old is a product of (q-1) over old
+    primes, so e_old | phi always -- and gate B asks for e_old = e*(p_k-1),
+    so a window value with a gate-B partner has e*(p_k-1) | phi, which IS
+    gate A. Gate A is therefore counted separately (for the P[A] column)
+    but never gates the search: the window itself is the lookup table, and
+    a hit DELETES its entry, which both counts each window value once and
+    shrinks the only large object as the stream runs.
+
+    Returns (|W|, n_A, n_AB, collided) -- collided the (s, D) value set
+    when want_values, else None."""
+    pm1 = p_new - 1
+    window = spectrum_set(old, lam // p_new)
+    nw = len(window)
+
+    # gate A: (p_k - 1) | D for D = phi/e  <=>  e*(p_k - 1) | phi
+    n_a = sum(1 for se in window if phi % ((se if se > 0 else -se) * pm1) == 0)
+
+    k = len(old)
+    n_ab = 0
+    collided = set() if want_values else None
+
+    def rec(i, pr, e, m):
+        nonlocal n_ab
+        if i == k:
+            t = e if (k - m) % 2 == 0 else -e
+            # gate B run backwards: this old value answers the window
+            # value se with -se*(p_k - 1) == t, if that value is live
+            if t % pm1 == 0:
+                se = -(t // pm1)
+                if se in window:
+                    window.discard(se)
+                    n_ab += 1
+                    if want_values:
+                        collided.add((1 if se > 0 else -1,
+                                      phi // (se if se > 0 else -se)))
+            return
+        p = old[i]
+        rec(i + 1, pr, e, m)
+        if pr * p <= lam:
+            rec(i + 1, pr * p, e * (p - 1), m + 1)
+
+    rec(0, 1, 1, 0)
+    return nw, n_a, n_ab, collided
 
 
 def find_A(target, qs, prime_budget, forbid):
@@ -332,26 +409,11 @@ for k in PLATEAUS:
     pm1 = p_new - 1
     phi = prod(p - 1 for p in old)
     t0 = perf_counter()
-    old_vals = spectrum_set(old, lam)
-    window = spectrum_set(old, lam // p_new)
-    n_a = n_ab = 0
-    collided = set() if k <= K_VALIDATE else None
-    for se in window:
-        e = abs(se)
-        # gate A: (p_k - 1) | D for D = phi/e  <=>  e*(p_k - 1) | phi
-        if phi % (e * pm1) == 0:
-            n_a += 1
-            # gate B: (-s, D/(p_k - 1)) is an old value <=> denominator
-            # e*(p_k - 1) with flipped sign is in the old spectrum
-            if -se * pm1 in old_vals:
-                n_ab += 1
-                if collided is not None:
-                    collided.add((1 if se > 0 else -1, phi // e))
+    nw, n_a, n_ab, collided = gate_census(old, p_new, lam, phi,
+                                          want_values=k <= K_VALIDATE)
     el = perf_counter() - t0
-    nw = len(window)
     rate = n_ab / nw
     census[k] = collided
-    del old_vals, window      # big-rung spectra are never retained
     print(f"  {k:>3} {pm1:>5} {nw:>9,} {n_ab:>9,} {rate:>6.2f} "
           f"{n_a / nw:>6.2f} {n_ab / n_a:>7.2f} {el:>6.1f}", flush=True)
     assert abs(rate - RATE_ANCHORS[k]) < 0.005, \
@@ -379,8 +441,14 @@ for k in census:
           f"{'; '.join(rep_strs) if rep_strs else '-'}")
 
 print("""
-  k <= 22 suggested "factorable p-1 collides 85-92%, unfactorable
-  50-60%". The extension kills it: k=31 (126), k=34 (138), k=36 (150)
+  The story this table was once read as -- "factorable p-1 collides
+  85-92%, unfactorable 50-60%" -- is not even true of the k <= 22 rows
+  it was read from: the unfactorable half holds (0.50-0.60, five rungs),
+  but the factorable half is 1.00, 0.85, 0.70, 0.91, 0.92, and k=13's
+  0.70 sits inside the unfactorable band's neighbourhood while k=6's
+  1.00 sits above the quoted one. Factorability was never the rate; at
+  k <= 22 it was a loose upper tendency in a budget-poor window.
+  The extension removes even that: k=31 (126), k=34 (138), k=36 (150)
   have ZERO direct reps yet collide 83% / 64% / 84%. Rich windows have
   many patterns already containing B, so B != empty relations do the
   work that direct (B = empty) relations do in poor windows.
@@ -465,15 +533,18 @@ section("IV. CELL-SUM: pattern rate exactly, value rate to a known bias")
 print("""
   patrate = (1/N(b)) * sum over cells c of the active primes of
             count(inactive, t_c / prod(ON(c)))
-  -- counting only, no spectrum. Exactness check (vs III), then the full
-  table with the value bias. Big rungs use the top-%d relations by
-  applicability bound (cap checked against the full union at k <= 24:
-  asserted to lose < 0.02).
+  -- counting only, no spectrum. Every rung with more than %d relations
+  sums only the top ones by applicability bound -- that is k=18 upward,
+  not just the big rungs -- so TWO cell sums are reported: cellsum is that
+  capped union, full is the uncapped one (computed through k <= 24, and
+  asserted to sit within 0.02 of the capped). The exactness claim is
+  about FULL against patrate -- read those two columns, not cellsum
+  against patrate, which the cap can separate. bias is cellsum - rate.
 """ % T_CAP)
 
 print(f"  {'k':>3} {'p-1':>5} {'#rel':>6} {'used':>5} {'cellsum':>8} "
-      f"{'patrate':>8} {'rate':>6} {'bias':>6} {'sec':>6}")
-print(f"  {'-' * 60}")
+      f"{'full':>8} {'patrate':>8} {'rate':>6} {'bias':>6} {'sec':>6}")
+print(f"  {'-' * 70}")
 
 for k in census:
     ps = ALL[:k]
@@ -487,18 +558,25 @@ for k in census:
                                        ub_floor=0.01 if k >= 30 else 0.002)
     used = rels[:T_CAP]
     cs = cell_sum(old, p_new, lam, used)
-    full = cs
-    if k <= 24 and len(rels) > T_CAP:
+    # the capped cellsum is NOT the quantity the exactness claim is about:
+    # where the cap bites, the union it sums is short by the dropped
+    # relations. full is the uncapped union, and it is what the assert
+    # below compares to the measured pattern rate -- so it is PRINTED,
+    # or the table shows 0.74 against a patrate of 0.75 and no evidence
+    capped = len(rels) > T_CAP
+    full = None if capped else cs
+    if k <= 24 and capped:
         full = cell_sum(old, p_new, lam, rels)
         assert full - cs < 0.02, \
             f"k={k}: T_CAP={T_CAP} loses {full - cs:.3f} of the union"
     el = perf_counter() - t0
     pr = patrates.get(k)
     pr_s = f"{pr:>8.2f}" if pr is not None else f"{'-':>8}"
+    full_s = f"{full:>8.2f}" if full is not None else f"{'-':>8}"
     rate = RATE_ANCHORS[k]
     print(f"  {k:>3} {p_new - 1:>5} {len(rels):>6} {len(used):>5} "
-          f"{cs:>8.2f} {pr_s} {rate:>6.2f} {cs - rate:>6.2f} {el:>6.1f}",
-          flush=True)
+          f"{cs:>8.2f} {full_s} {pr_s} {rate:>6.2f} {cs - rate:>6.2f} "
+          f"{el:>6.1f}", flush=True)
     if pr is not None:
         # THE exactness claim: the full cell-sum equals the measured
         # pattern-union rate to float precision (same integers, same
@@ -537,8 +615,11 @@ print("""
 3. CELL-SUM FORMULA (rule, verified k <= 22). The pattern-collision
    rate is exactly a nested-threshold sum of counting functions over
    active-prime cells -- a closed a priori computation from the
-   relation census of p_k - 1; no spectrum enumeration. Matches the
-   measured pattern rate at every validation rung.
+   relation census of p_k - 1; no spectrum enumeration. The UNCAPPED
+   sum (IV, the full column) equals the measured pattern rate to float
+   precision at every validation rung. The capped column is a different
+   quantity and does not: at k=22 it prints 0.74 against a patrate of
+   0.75, which is the 300-relation cap and not a failure of the rule.
 
 4. VALUE BIAS (observation, all 18 rungs). cellsum >= value rate
    always; gap 0.00-0.24, largest when the rate is low (collided
@@ -555,12 +636,15 @@ print("""
    per se. The k <= 22 factorability story was window poverty.
 
 6. UNIVERSALITY OF THE TOP APPLICABILITY (observation, k <= 22). The
-   largest single-relation applicability (mu1 in III, exact) is
-   0.20-0.23 at every validation rung past k=6 (0.33 at k=6's 3-value
-   window) -- essentially the membership probability of the cheapest
-   B prime in the pattern ensemble, a property of the budget, not of
-   p_k. (Big rungs report only rounded upper bounds; exact mu
-   unmeasured there.)
+   largest single-relation applicability (mu1 in III) is 0.20-0.23 at
+   every validation rung past k=6, against rates that range 0.50-0.92
+   over those same rungs -- so no single relation tracks the rate, and
+   the flatness is the finding. (0.33 at k=6, whose window holds 3
+   values.) Two scopes: mu1 is a max over the 50 best BOUND candidates,
+   exact within that set and not proved to be the global max; and the
+   big rungs report rounded upper bounds only, so mu1 is unmeasured
+   past k=22. WHY it is flat is not measured here -- the pattern
+   ensemble's own membership probabilities were never computed.
 """)
 
 print("=" * 72)
