@@ -248,7 +248,7 @@ print("""
   subgroup, only that subgroup's cosets are reachable.
 
   For Z/s with s prime this is a PROPERTY, not a finding: Z/s has no
-  non-trivial additive subgroups (it is a field), and every inverse is
+  non-trivial additive subgroups (its order is prime), and every inverse is
   nonzero, so the values generate all of Z/s by construction. Coverage
   failure is therefore purely a coupon-collector effect — too few
   subsets. The gcd printout below ILLUSTRATES the property; it cannot
