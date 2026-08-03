@@ -642,8 +642,9 @@ def main():
   7. SIEVE READING. The density measures how self-sufficient the sieve
      becomes: lambda accumulates prime powers, and a new p-1 is more
      often absorbed whole. Non-transparent primes are expected never to
-     stop appearing -- safe primes p = 2q+1 are reliably non-transparent
-     and conjectured infinite -- only to thin, which is all the
+     stop appearing -- safe primes p = 2q+1 are always non-transparent
+     (proved: the safe-prime rule, explore_prime_gaps.py) and
+     conjectured infinite -- only to thin, which is all the
      vanishing forces.
 
   8. CONVENTION. p_1 = 2 satisfies the criterion vacuously (1 | 1) and is
