@@ -3,8 +3,8 @@
 An extension of an earlier finding: missed primes are subset-sum failures in Z/s:
 a prime s is missed at rung k iff {p_i^{-1} mod s : i=1..k} has no subset
 summing to |S|-1 mod s. The random model P(miss) ~ (1-1/s)^(2^k-1) matches the
-observed miss rates within sampling noise at every measured rung (the
-companion missed-primes record carries the per-rung comparison).
+observed miss rates within sampling noise at every measured rung
+(explore_missed_primes.py carries the per-rung comparison).
 
 Question: how does this connect to the Davenport constant D(Z/n) = n and
 the Erdos-Ginzburg-Ziv (EGZ) theorem?
@@ -281,8 +281,8 @@ print("""
   to 0 mod n. In our context, if we had 2s-1 tower primes, we'd be
   guaranteed an s-element subset summing to 0 mod s.
 
-  But k << s typically (the companion missed-primes survey reads rung
-  k=7 against primes up to its window edge 10*p_7 = 170 — a window
+  But k << s typically (explore_missed_primes.py reads rung k=7
+  against primes up to its window edge 10*p_7 = 170 — a window
   choice, not an object bound). EGZ doesn't directly apply — it's a
   guarantee for WORST-CASE inputs with enough elements.
   Our setting has FEW elements (k) but MANY subsets (2^k).
