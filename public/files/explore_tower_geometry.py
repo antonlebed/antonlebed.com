@@ -3,8 +3,8 @@
 How does curvature, spectral gap, heat kernel, and mixing change as
 you climb the tower? Does the geometry see lambda plateaus vs jumps?
 
-Thread 4 (torus geometry) extended beyond k=7.
-Cross-links: Thread 1 (lambda), Thread 3 (resonance).
+Torus geometry extended beyond k=7. Cross-links: the lambda sequence
+(explore_lambda_tower.py) and resonance (explore_moment_resonance.py).
 
 Run: python prime/code/explore_tower_geometry.py
 """

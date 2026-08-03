@@ -1,6 +1,8 @@
 """Resonance and transparency — the geometry/dynamics interface.
 
-Thread 3 x Thread 4 cross-link. The Ramanujan sum F(n) factors as:
+The Ramanujan resonance chain (explore_moment_resonance.py) crossed
+with the geometry/dynamics split (explore_tower_geometry.py). The
+Ramanujan sum F(n) factors as:
   F(n) = product_{p|N} [1 if p|n, else -1/(p-1)]
 
 Static F depends on {p_i} only (geometry side). But the *dynamical*
@@ -11,7 +13,38 @@ without extending the orbit. Non-transparent primes extend both.
 Question: does the dynamical resonance carry different information at
 transparent vs non-transparent steps?
 
+FINDINGS (all computed by this script; ranges as stated per item):
+
+1. STATIC RESONANCE IS TRANSPARENCY-BLIND (property). The off-gate
+   -1/(p-1) depends only on p, never on whether (p-1) | lambda — read
+   off the factorization above; printed k=4..14 in section I.
+
+2. DYNAMICAL RESONANCE SEES TRANSPARENCY (observation, k=3..14). At a
+   jump the spectrum's DOMAIN grows (new orbit positions); at a plateau
+   the domain is fixed and the new gate re-weights it. The relative
+   gain in distinct F values separates cleanly: 0.64..1.50 per jump
+   against 0.00..0.18 per plateau (section V).
+
+3. TWO KINDS OF ENRICHMENT — AND THE FIRST PLATEAU SHOWS ONLY ONE
+   (observation). At the k=6 plateau the distinct-F count is UNCHANGED
+   (17 -> 17, gain 0): re-weighting alone, no new values, yet entropy
+   still rises (+0.11 nats, section VII) because the weights move. The
+   deep plateaus k=11..14 do mint new values (60, 20, 41, 70) — finer
+   subdivision of fixed positions. Jumps add more: entropy delta
+   +0.15..+0.34 over the k=7..10 jumps against +0.11 at the one
+   plateau the entropy table reaches (k=6; sections II, V, VII).
+
+4. ON/OFF BALANCE DOES NOT FACTOR THROUGH TRANSPARENCY (property).
+   The on-count of prime p over one orbit is floor(lambda/p) — exact
+   division only when p | lambda — so the balance is set by p alone
+   and cannot report whether (p-1) | lambda.
+
+5. THE INTERFACE IS LAMBDA (synthesis of 1-3). WHICH gates fire and
+   HOW STRONG they are is geometry; HOW MUCH of that gate structure
+   one orbit exposes is set by lambda, the dynamical quantity.
+
 Run: python prime/code/explore_resonance_transparency.py
+  (~1 s, peak working set 18.9 MB under the 512 MB watchdog)
 """
 
 from math import gcd, prod, lcm, log, cos, pi
@@ -241,7 +274,8 @@ print("""
 
   In resonance terms: for n=1..lambda, the pattern of whether p|n repeats
   with period p. Since lambda is unchanged, the number of n in [1,lambda]
-  divisible by p is lambda/p (exactly, since p | N | lambda*some_factor).
+  divisible by p is floor(lambda/p) — exact division only when p | lambda
+  (it is not here: 13 does not divide 60).
 
   Compare: for a non-transparent prime p, (p-1) does NOT divide the old
   lambda, so adding p extends lambda by a factor of lcm(old_lam, p-1)/old_lam.
@@ -253,7 +287,7 @@ print(f"  At k=6 (p=13 transparent), lambda=60.")
 print(f"  How many of n=1..60 have 13|n? = floor(60/13) = {60 // 13}")
 print(f"  These n get gate=1 for channel 13. The other {60 - 60//13} get gate=-1/12.")
 print()
-print(f"  At k=10 (p=29, jump), lambda goes 720->55440.")
+print(f"  At k=10 (p=29, jump), lambda goes 7920->55440.")
 print(f"  How many of n=1..55440 have 29|n? = {55440 // 29}")
 print(f"  At k=11 (p=31, plateau), lambda stays 55440.")
 print(f"  How many of n=1..55440 have 31|n? = {55440 // 31}")
@@ -389,7 +423,7 @@ print("""
    only on p, not on whether (p-1)|lambda. Adding any prime p modifies
    the spectrum identically: multiply F(n) by -1/(p-1) for n not
    divisible by p. This is the resonance face of the geometry/dynamics
-   split (Thread 4).
+   split (explore_tower_geometry.py).
 
 2. DYNAMICAL RESONANCE SEES TRANSPARENCY. The dynamical spectrum
    (F(n) for n=1..lambda) changes differently at jumps vs plateaus:
@@ -397,13 +431,17 @@ print("""
      New orbit positions appear with new F values.
    - PLATEAU: lambda unchanged, so the domain is fixed.
      Existing positions get re-weighted by the new gate.
-   Information gain (new distinct F values) is larger at jumps.
+   The RELATIVE gain in distinct F values separates cleanly:
+   0.64..1.50 per jump against 0.00..0.18 per plateau (section V).
 
-3. TWO KINDS OF ENRICHMENT.
+3. TWO KINDS OF ENRICHMENT — AND THE FIRST PLATEAU SHOWS ONLY ONE.
    - At a jump, the spectrum gets WIDER (more positions, more values).
-   - At a plateau, the spectrum gets FINER (same positions, more
-     distinct values via new gate subdivisions).
-   Both increase entropy, but jumps increase it more.
+   - At the k=6 plateau the distinct-F count is UNCHANGED (17 -> 17):
+     re-weighting alone, yet entropy still rises (+0.11 nats) because
+     the weights move. The deep plateaus k=11..14 do mint new values
+     (60, 20, 41, 70) — finer subdivision of fixed positions.
+   Jumps add more entropy: +0.15..+0.34 over k=7..10 against +0.11 at
+   the one plateau the entropy table reaches.
 
 4. ON/OFF BALANCE. For prime p, the on-fraction over one orbit is
    floor(lambda/p)/lambda ~ 1/p. Large primes are mostly OFF (small

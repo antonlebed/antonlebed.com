@@ -250,7 +250,8 @@ def main():
 
   This IS the Mobius inversion applied to the sieve.
 
-  From Thread 3, the frequency moment F(n) = c_N(n)/phi(N) factors:
+  From the resonance chain (explore_moment_resonance.py), the
+  frequency moment F(n) = c_N(n)/phi(N) factors:
     F(n) = product_{p|N} [1 if p|n, -1/(p-1) if p does not divide n]
 
   The per-channel factor IS the individual prime sieve:
@@ -552,17 +553,19 @@ def main():
      As k grows, the rate approaches 1: more and more of the sieve is
      "free" redundancy.
 
-  4. THE RAMANUJAN SUM UNIFIES THREADS 3 AND 8.
+  4. THE RAMANUJAN SUM UNIFIES RESONANCE AND SIEVE.
      The frequency moment F(n) = c_N(n)/phi(N) is simultaneously:
-       - A resonance function (Thread 3: Ramanujan sum)
-       - A sieve characteristic function (Thread 8: Mobius inversion)
+       - A resonance function (the Ramanujan sum,
+         explore_moment_resonance.py)
+       - A sieve characteristic function (Mobius inversion, this file)
      The per-channel factoring IS the independence of prime sieves.
 
   5. LAMBDA IS THE SIEVE'S DYNAMICAL PERIOD.
      Lambda = lcm(p_i - 1) is the period of the multiplicative group of
      sieve survivors. Transparency (p-1 | lambda) means: adding prime p
      to the sieve doesn't change the multiplicative dynamics.
-     Geometry/dynamics split (Thread 4): geometry = sieve structure,
+     Geometry/dynamics split (explore_tower_geometry.py): geometry =
+     sieve structure,
      dynamics = sieve survivor group action.
 
   6. IDEMPOTENTS ARE SIEVE PROJECTORS.

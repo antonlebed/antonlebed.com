@@ -1,6 +1,7 @@
 """Cross-thread: seed-flower at plateau vs jump.
 
-Links thread 1 (lambda/transparency) with thread 2 (seed-flower/naming).
+Links the lambda/transparency sequence (explore_lambda_tower.py) with
+seed-flower naming (explore_seed_flower_k8.py).
 
 Three questions:
   Q1: Does transparency correlate with 2-prime prediction count?
@@ -57,7 +58,7 @@ def main():
 
     print("=" * 76)
     print("  SEED-FLOWER AT PLATEAU VS JUMP")
-    print("  Cross-thread: transparency (thread 1) x naming (thread 2)")
+    print("  Cross-thread: transparency x naming")
     print("=" * 76)
     print(f"\n  Tower: k=1..{K_MAX}, primes 2..{primes[-1]}.")
 

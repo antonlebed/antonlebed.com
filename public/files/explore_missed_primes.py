@@ -1,10 +1,11 @@
 """Missed primes — why does 41 escape prediction at k=7?
 
-Thread 7 open question. At rung k=7, the tower predicts 14 of the first 15
-primes beyond p_7=17 — only 41 is missed. Why? Does it get absorbed at k=8?
-Is there a pattern to which primes resist prediction?
+The open question left by explore_prediction_horizon.py. At rung k=7,
+the tower predicts 14 of the first 15 primes beyond p_7=17 — only 41 is
+missed. Why? Does it get absorbed at k=8? Is there a pattern to which
+primes resist prediction?
 
-The reciprocal naming criterion (Thread 2, proved): s | -chi(S) iff
+The reciprocal naming criterion (proved): s | -chi(S) iff
   sum(p_i^{-1} mod s) = |S| - 1   (mod s)
 for the primes p_i in sub-ring S. So s is "missed" at rung k iff no subset
 of {p_1,...,p_k} satisfies this congruence — a SUBSET SUM problem in Z/s.
