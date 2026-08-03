@@ -61,9 +61,14 @@ Census: 18 plateau rungs k = 6..37 (was 10 through k <= 22). Values are
 carried as signed denominators s*e (machine-word ints, not
 (sign, ~10^56-bigint) tuples), and the old spectrum at the full budget
 is never built at all: gate B is |W| membership questions, so the census
-streams the old DFS against the window's targets (gate_census). Peak
-residency is the WINDOW, and the window is the smaller object by an
-order of magnitude at the big rungs.
+streams the old DFS and asks each old value which window value it answers
+(gate_census). Peak residency is the WINDOW alone. The old spectrum is only
+about 2.2x the window (measured, k=24..33), so the saving is not one huge
+object against a small one -- it is holding ONE structure where the old
+design held the window AND a spectrum twice its size. Peak commit fell from
+1111 MB to 324.8 MB. The two are not fitted to each other: a fixed
+interpreter-and-relations baseline sits under both, and the counts above are
+measured only to k=33, the rungs where the full spectrum still fits.
 
 RUN RECORD. `python memwatch.py explore_plateau_rate.py`, one process,
 CPython, no BLAS: peak working set 330.2 MB, peak commit 324.8 MB
@@ -196,14 +201,16 @@ def gate_census(old, p_new, lam, phi, want_values):
     nothing of size |old spectrum|.
 
     The old spectrum at the full budget lambda is the largest object in
-    reach here -- tens of millions of values by k=36 -- and it is only
+    reach here -- 2.1x to 2.5x the window over k=24..33, measured, e.g.
+    888,180 against 383,872 at k=33 -- and it is only
     ever QUERIED: gate B asks, for one window value at a time, whether
     ONE specific old value exists. Materializing it to answer |W| yes/no
-    questions is what put the k=37 row past 1 GB. So the gate-A survivors
-    are turned into their gate-B TARGETS up front and the old DFS is
-    STREAMED against that set, deleting each target as it is hit. Peak
-    residency is |W|, not |V_{k-1}|; a repeated old value costs a lookup
-    and no memory, and the leaf count is unchanged.
+    questions is what put the k=37 row past 1 GB. So the question is run
+    BACKWARDS instead: the old DFS is STREAMED, and each old value is
+    asked which window value it would answer -- t -> -t/(p_k-1) -- which
+    is a lookup and never a store. Peak residency is |W|, not |V_{k-1}|;
+    a repeated old value costs a lookup and no memory, and the leaf count
+    is unchanged.
 
     GATE B IMPLIES GATE A, which is what lets ONE set do the whole job:
     every old value's denominator e_old is a product of (q-1) over old
