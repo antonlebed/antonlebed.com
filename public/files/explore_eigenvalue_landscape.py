@@ -9,6 +9,7 @@ moments, and structure. The spectral fingerprint theorem guarantees
 all 18,144 eigenvalues are distinct.
 
 Run: python prime/code/explore_eigenvalue_landscape.py
+Run record: 0.3 s wall, 21 MB peak (memwatch, 512 MB limit).
 """
 
 from math import cos, sin, pi, sqrt, log2, gcd, prod
@@ -73,11 +74,9 @@ section("II. FULL EIGENVALUE ENUMERATION")
 print(f"\nComputing all {total_classes:,} eigenvalue classes...")
 
 # Each class is indexed by (c0, ..., c6) where ci in {0, ..., floor(pi/2)}.
-# The eigenvalue uses weight = 1 per channel when squarefree (each channel
-# is GF(p), natural weight = 1).
-# ACTUALLY: the library uses weight=2 by default. For squarefree rings,
-# weight = 1 is more natural (degree = k = 7, not 2k = 14).
-# Let's compute BOTH and see which reveals more structure.
+# Two normalizations differ by the constant factor 2: the library weighs
+# each channel 2 (degree 2k); this script computes weight 1 (degree k = 7)
+# and prints both where a comparison needs the library's convention.
 
 # Precompute cosine tables per channel
 cos_table = []
@@ -178,7 +177,7 @@ print(f"  Var/deg  = {var_w1/degree_w1:.6f}")
 # Variance, squarefree: Z/2 contributes Var(cos) = 1, odd primes 1/2.
 # Total = 1 + 6*(1/2) = 4 = (k+1)/2. Powered (all q >= 3): k/2.
 print(f"  Expected: (k+1)/2 = {(degree_w1+1)/2:.6f}  (the 2-channel gives 1, not 1/2)")
-print(f"  Fat formula (k/2): {degree_w1/2:.6f}")
+print(f"  Powered formula (k/2): {degree_w1/2:.6f}")
 
 # Skewness and kurtosis
 m3 = sum((ev - mean_w1)**3 * mult for ev, _, _, mult in classes) / total_w
@@ -193,7 +192,7 @@ print(f"  Skewness       = {skewness:.6f}  (expected: 1/32 = {1/32:.6f})")
 print(f"  Source: 3 only. cos^3 mean over GF(3) = 1/4. Powered (Z/9): 0.")
 
 print(f"\n  Excess kurtosis = {kurtosis:.6f}")
-print(f"  Fat formula: -3/(2k) = {-3/(2*degree_w1):.6f}")
+print(f"  Powered formula: -3/(2k) = {-3/(2*degree_w1):.6f}")
 print(f"  Sub-Gaussian (platykurtic): {'YES' if kurtosis < 0 else 'NO'}")
 
 
@@ -234,7 +233,7 @@ print(f"  Match: {'YES' if abs(gap - sf_gap) < 1e-10 else 'NO'}")
 pw_gap = 2 * sin(pi / max(POWERED_7.moduli))**2
 print(f"\n  POWERED (k=7): 2*sin^2(pi/49) = {pw_gap:.6f}")
 print(f"  Squarefree/powered gap ratio = {sf_gap / pw_gap:.2f}x")
-print(f"  Thin has WIDER gap (easier to distinguish neighbors)")
+print(f"  Squarefree has the WIDER gap (easier to distinguish neighbors)")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -296,18 +295,35 @@ for m in sorted(mult_dist.keys()):
     total = m * count
     print(f"{m:<15} {count:>10} {total:>15,} {total/RAD_RING.N:>10.4f}")
 
-# The maximum multiplicity = 2^6 = 64 (all odd channels at interior class)
-# Actually: Z/2 has 2 classes both with mult 1. Z/p (odd) has (p-1)/2 interior
-# classes with mult 2 and 1 class (c=0) with mult 1.
-# So max mult = 1 * 2^6 = 64 (Z/2 at c=0 or c=1 gives mult 1,
-# but we need all 6 odd primes at interior: each contributes factor 2)
-# Wait: Z/2 has classes c=0 (mult 1) and c=1 (mult 1). Both mult 1.
-# For 6 odd primes, each at an interior class: mult = 2^6 = 64.
-# So max mult = 1 * 64 = 64.
+# Z/2 has two classes, both multiplicity 1. Each odd p has (p-1)/2
+# interior classes of multiplicity 2 and one class (c=0) of multiplicity
+# 1. Max = 2^6 = 64: all six odd channels interior, whatever the 2-channel.
 
 print(f"\nMax multiplicity = 2^6 = {2**6} (all odd primes at interior class)")
 print(f"  These are the 'generic' elements, far from 0 in every channel")
 print(f"Min multiplicity = 1 (at least one channel at extremal class)")
+
+# Where the largest orbits sit: walk the sorted spectrum from the bottom.
+run_64 = 0
+while classes[run_64][3] == 64:
+    run_64 += 1
+first_break_mult = classes[run_64][3]
+bottom200_min = min(m for _, _, _, m in classes[:200])
+first_32 = next(i for i, c in enumerate(classes) if c[3] == 32)
+print(f"\nLowest-class run of multiplicity 64: {run_64} classes, broken by "
+      f"multiplicity {first_break_mult} at position {run_64 + 1}")
+print(f"Bottom 200 classes: minimum multiplicity {bottom200_min} "
+      f"(first multiplicity-32 class at position {first_32 + 1})")
+
+# The mass sits low: split the eigenvalue RANGE at its midpoint.
+mid_ev = (classes[0][0] + classes[-1][0]) / 2
+lo_classes = sum(1 for ev, _, _, _ in classes if ev < mid_ev)
+lo_elements = sum(m for ev, _, _, m in classes if ev < mid_ev)
+print(f"\nBottom half of the eigenvalue range (ev < {mid_ev:.4f}):")
+print(f"  {lo_classes:,} / {len(classes):,} classes  = "
+      f"{lo_classes/len(classes):.1%}")
+print(f"  {lo_elements:,} / {RAD_RING.N:,} elements = "
+      f"{lo_elements/RAD_RING.N:.1%}")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -321,7 +337,7 @@ print("-" * 72)
 
 special = [
     ("0 (void)", 0),
-    ("1 (sigma)", 1),
+    ("1 (seed)", 1),
     ("-1", RAD_RING.N - 1),
     ("2", 2),
     ("3", 3),
@@ -376,37 +392,30 @@ for ev, _, ct, mult in near_zero:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# IX. THE EIGENVALUE SPECTRUM vs LAMBDA = 240
+# IX. THE SPECTRUM IN 24 BINS
 # ═══════════════════════════════════════════════════════════════════════
 
-section("IX. CONNECTION TO LAMBDA = 240")
+section("IX. THE SPECTRUM IN 24 BINS")
 
-print(f"\nRung 7 lambda = {RAD_RING.lam} = |roots(E8)|")
-
-# How many eigenvalue classes have ev > 0 (spectral "positive cone")?
-# The degree = 7, and the eigenvalue range is roughly [-4, 7].
-# Let's look at eigenvalue * 240 / 7 to project onto [0, 240] scale
-print(f"\nScaling: ev_scaled = 240 * (ev + |ev_min|) / (7 + |ev_min|)")
-print(f"  Maps [{ev_min_w1:.4f}, 7] -> [0, 240]")
-
-ev_range = degree_w1 - ev_min_w1
-scale = 240 / ev_range
-
-# Count classes in equal-width bins across [0, 240]
-nbins_240 = 24  # 24 bins of width 10
-ev_bins = [0] * nbins_240
+# Equal-width bins across the actual eigenvalue range, classes and
+# elements per bin — the shape behind section VI's low-mass lean.
+nbins24 = 24
+bin_w = (ev_max_w1 - ev_min_w1) / nbins24
+bin_classes = [0] * nbins24
+bin_elements = [0] * nbins24
 for ev, _, _, mult in classes:
-    scaled = (ev - ev_min_w1) * scale
-    b = min(int(scaled / 10), nbins_240 - 1)
-    ev_bins[b] += 1
+    b = min(int((ev - ev_min_w1) / bin_w), nbins24 - 1)
+    bin_classes[b] += 1
+    bin_elements[b] += mult
 
-print(f"\n  {'Bin (scaled)':>15} {'Classes':>10}")
-print(f"  {'-'*30}")
-for i in range(nbins_240):
-    lo = i * 10
-    hi = (i + 1) * 10
-    bar = '#' * (ev_bins[i] // 10)
-    print(f"  [{lo:>3}, {hi:>3}) {ev_bins[i]:>10} {bar}")
+print(f"\n  {'Bin':>21} {'Classes':>8} {'Elements':>10}")
+print(f"  {'-'*42}")
+for i in range(nbins24):
+    lo = ev_min_w1 + i * bin_w
+    hi = lo + bin_w
+    bar = '#' * (bin_classes[i] // 40)
+    print(f"  [{lo:>8.3f}, {hi:>8.3f}) {bin_classes[i]:>8} "
+          f"{bin_elements[i]:>10,} {bar}")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -505,10 +514,14 @@ print(f"  But NOT equal to {total_classes} because zero channels break the facto
 # For Z/2: c=0 has mult 1, c=1 has mult 1
 # For odd p: c=0 has mult 1, interior c has mult 2 (no p/2 case for odd p)
 
-# How many classes have all channels nonzero?
+# Classes with every channel nonzero hold exactly the units: all
+# residues nonzero mod every p_i is coprimality to N.
 all_nonzero = sum(1 for _, _, ct, _ in classes if all(c > 0 for c in ct))
+unit_elements = sum(m for _, _, ct, m in classes if all(c > 0 for c in ct))
 print(f"\nClasses with all channels nonzero: {all_nonzero:,}")
-print(f"  These are unit eigenvalue classes (correspond only to units + 0-distance elements)")
+print(f"  Elements they hold: {unit_elements:,} = phi(N) = "
+      f"{RAD_RING.phi:,} -- exactly the units")
+assert unit_elements == RAD_RING.phi
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -517,16 +530,8 @@ print(f"  These are unit eigenvalue classes (correspond only to units + 0-distan
 
 section("XII. EIGENVALUE ARITHMETIC")
 
-# The eigenvalue of a product: lambda(a*b) != lambda(a) + lambda(b)
-# But there might be interesting structure.
-
-# Instead, look at the CHORD DISTANCE interpretation.
-# eigenvalue(n) = degree - chord_distance_sq(n)
-# chord_distance_sq = sum 4*sin^2(πr/p)
-# At w=1: eigenvalue(n) = 7 - sum 2*sin^2(πr/p) = 7 - sum (1 - cos(2πr/p))
-# Wait: eigenvalue(w=1) = sum cos(2πr/p).
-# chord_sq(w=1) = sum 2*sin^2(πr/p) = sum (1 - cos(2πr/p)) = 7 - eigenvalue.
-# So chord_sq = 7 - ev. ev = 7 - chord_sq.
+# The chord identity at weight 1: chord_sq(n) = sum 2*sin^2(pi*r/p)
+# = sum (1 - cos(2*pi*r/p)) = 7 - eigenvalue(n).
 
 # Per-channel chord contributions
 print(f"\nPer-channel chord distance^2 = 1 - cos(2*pi*c/p):")
@@ -556,50 +561,42 @@ for ev_int in sorted(int_ev_count.keys()):
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# XIII. THE 240 ROOTS OF E8 — EIGENVALUE AT LAMBDA
+# XIII. THE HALF-COUNT FUNCTION ACROSS CHANNELS
 # ═══════════════════════════════════════════════════════════════════════
 
-section("XIII. THE CASCADE CONNECTION")
+section("XIII. THE HALF-COUNT FUNCTION")
 
-print(f"""
-The per-channel eigenvalue class count d(p) = floor(p/2) + 1 IS the cascade
-function from the Cascade-Weyl theorem.
+# d(q) = floor(q/2) + 1 counts a channel's eigenvalue classes; the total
+# is its product across channels — a property, part of the fingerprint
+# theorem's statement (explore_spectral_theorem.py).
+d = lambda q: q // 2 + 1
 
-The CASCADE-SPECTRAL THEOREM:
-  Total eigenvalue classes = product of d(p_i) over the tower primes
-                           = d(2)*d(3)*d(5)*d(7)*d(11)*d(13)*d(17)
-                           = 2 * 2 * 3 * 4 * 6 * 7 * 9
-                           = 18,144
-
-The SAME function d(q) = floor(q/2) + 1 that:
-  (a) counts eigenvalue classes per channel (spectral theory)
-  (b) builds the cascade chain converging to 2 (ring theory)
-  (c) recovers exceptional Lie group orders via cascade products
-""")
-
-# Per-channel class products
-products = per_ch_classes  # [2, 2, 3, 4, 6, 7, 9]
-print(f"  Per-channel class counts: {products}")
-
+print(f"\nPer-channel class count d(q) = floor(q/2) + 1:")
 print(f"\n  Channel   p    d(p)   d(p) factored")
 print(f"  {'-'*40}")
-# Each class count factors back into the tower's own primes.
-class_forms = ["2", "2", "3", "2^2", "2*3", "7", "3^2"]
-for p, c, form in zip(PRIMES, per_ch_classes, class_forms):
-    print(f"  Z/{p:<8} {p:<4} {c:<6} {form}")
+for p in PRIMES:
+    fd = factorize(d(p))
+    form = "*".join(f"{q}^{e}" if e > 1 else str(q)
+                    for q, e in sorted(fd.items()))
+    print(f"  Z/{p:<8} {p:<4} {d(p):<6} {form}")
+print(f"\n  Total classes = product = {prod(d(p) for p in PRIMES):,}")
 
-# The cascade chain (Cascade-Weyl theorem):
-# d(17)=9, d(9)=5, d(5)=3, d(3)=2, d(2)=2 (fixed point)
-# d(13)=7, d(7)=4, d(4)=3, d(3)=2
-# d(11)=6, d(6)=4, d(4)=3, d(3)=2
-print(f"""
-  Cascade chains from the tower primes:
-    d(17)=9 -> d(9)=5 -> d(5)=3 -> d(3)=2 -> d(2)=2 (fixed)
-    d(13)=7 -> d(7)=4 -> d(4)=3 -> d(3)=2
-    d(11)=6 -> d(6)=4 -> d(4)=3 -> d(3)=2
+# Iterating d from any modulus descends to the fixed point 2.
+print(f"\n  d iterated from the top three channels:")
+for p in (17, 13, 11):
+    chain = [p]
+    while chain[-1] != 2:
+        chain.append(d(chain[-1]))
+    print(f"    {' -> '.join(map(str, chain))}")
 
-  The eigenvalue landscape lives on the cascade lattice.
-""")
+print("""
+An observation, recorded as a curiosity: products along d's iteration
+chains meet exceptional Weyl group orders -- 8*5*3*2 = 240, 9*5*3*2 =
+270, 7*4*3*2 = 168, and 240*270*168*64 = |W(E8)| with 64 = |Idem(Z/30030)|
+(verify_algebra.py::test_cascade_weyl). Deflation: every exceptional
+Weyl order is {2,3,5,7}-smooth because exceptional rank <= 8 keeps the
+factor 11 out of |W|, so small primes are forced by rank, not by tower
+structure (verify_algebra.py::test_rank_barrier).""")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -632,9 +629,16 @@ for pct, ev in cdf_points:
 
 # Median eigenvalue
 median_ev = cdf_points[4][1] if len(cdf_points) > 4 else 0
+mode_cl = max(int_ev_count.items(), key=lambda kv: kv[1])
+elem_ev_count = Counter()
+for ev, _, _, mult in classes:
+    elem_ev_count[round(ev)] += mult
+mode_el = max(elem_ev_count.items(), key=lambda kv: kv[1])
 print(f"\n  Median eigenvalue: {median_ev:.6f}")
 print(f"  Mean eigenvalue:   {mean_w1:.6f}")
-print(f"  Mode: near ev = 0 (most classes cluster around 0)")
+print(f"  Modal integer-rounded ev: {mode_cl[0]} over classes "
+      f"({mode_cl[1]:,} classes), {mode_el[0]} over elements "
+      f"({mode_el[1]:,} elements)")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -644,10 +648,13 @@ print(f"  Mode: near ev = 0 (most classes cluster around 0)")
 section("XV. KEY FINDINGS")
 
 print(f"""
-1. CASCADE-SPECTRAL THEOREM. Per-channel eigenvalue class count d(p)
-   = floor(p/2)+1 IS the cascade function from the Cascade-Weyl theorem.
-   Total classes = product d(p_i) = 2*2*3*4*6*7*9 = 18,144 = 2^5*3^4*7.
-   The SAME function that builds Lie group orders counts spectral classes.
+1. HALF-COUNT FACTORIZATION (property). Per-channel class count d(p)
+   = floor(p/2)+1; total = 2*2*3*4*6*7*9 = 18,144 = 2^5*3^4*7 — part of
+   the fingerprint theorem's statement. Products along d's iteration
+   chains meeting exceptional Weyl orders (240*270*168*64 = |W(E8)|) is
+   an observation recorded as a curiosity, deflated by the rank barrier:
+   exceptional Weyl orders are {{2,3,5,7}}-smooth because rank <= 8 keeps
+   the factor 11 out, not because of tower structure.
 
 2. SQUAREFREE VARIANCE FORMULA. Var = (k+1)/2, NOT k/2. The 2-channel
    contributes variance 1 (only {+1,-1}), other channels contribute 1/2.
@@ -668,12 +675,11 @@ print(f"""
    Raising exponents multiplies the class count by d(p^e)/d(p) per channel.
 
 7. MULTIPLICITY STRUCTURE. Max = 64 = 2^6 (all odd channels at interior
-   class). Min = 1. The run of max-multiplicity classes at the floor is
-   60 classes long and then breaks — a count of 200 already contains a
-   class of multiplicity 32, so "the bottom classes all carry the max"
-   is true only of that run and was stated here without one. What holds
-   without a bound is that the MASS sits low: the bottom half of the
-   eigenvalue range holds 43.9% of the classes but 58.4% of the elements.
+   class), min = 1. The 60 lowest classes all carry multiplicity 64; the
+   run breaks at position 61 with a class of multiplicity 32. The mass
+   sits low: the bottom half of the eigenvalue range holds 43.9% of the
+   classes but 58.4% of the elements (7,958 / 18,144 and
+   298,376 / 510,510).
 """)
 
 print("=" * 72)
