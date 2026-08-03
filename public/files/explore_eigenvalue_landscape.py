@@ -651,8 +651,9 @@ print(f"""
 1. HALF-COUNT FACTORIZATION (property). Per-channel class count d(p)
    = floor(p/2)+1; total = 2*2*3*4*6*7*9 = 18,144 = 2^5*3^4*7 — part of
    the fingerprint theorem's statement. Products along d's iteration
-   chains meeting exceptional Weyl orders (240*270*168*64 = |W(E8)|) is
-   an observation recorded as a curiosity, deflated by the rank barrier:
+   chains meeting three exceptional-order factors (240, 270, 168 —
+   composing |W(E8)| with 64 = |Idem(Z/30030)|) is an observation
+   recorded as a curiosity, deflated by the rank barrier:
    exceptional Weyl orders are {{2,3,5,7}}-smooth because rank <= 8 keeps
    the factor 11 out, not because of tower structure.
 
