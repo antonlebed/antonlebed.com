@@ -270,7 +270,10 @@ F4  THE RIVAL INSTRUMENT FIRES HARDEST WHERE THE TERM IS EXACTLY ZERO
     reading the MODEL rather than the estimate, and pays for it by
     detecting misspecification rather than the term: the two come
     apart completely here, because min of a group mean equals the mean
-    of the mins whenever a group sits on one side of 1/2. Its cost is
+    of the mins whenever EVERY CELL of the group sits on one side of
+    1/2 --- the condition is per cell and not on the group mean, which
+    a group of 0.1, 0.1, 0.1, 0.1, 0.9 (mean 0.26, mean of mins 0.1)
+    already breaks. Its cost is
     paid in the instrument reading below, where holding false alarms
     to 10% forces a threshold of 549 --- set by this world.
 
