@@ -511,18 +511,28 @@ the worlds an instrument: a tool that ESTIMATES such a posterior from
 samples can be scored on its bias and on what its stated uncertainty
 actually covers. An inference-style <b>deletion audit</b> is such a
 tool. It holds samples of a system's behavior with the audited datum
-still present (the <b>member</b> class), samples with it absent
-(<b>non-member</b>), and samples from the state under audit; it models
-the audited distribution as a <b>mixture</b> of the two classes; and it
-reports the non-member weight <i>π</i> — the <b>forgetting rate</b> — as
-its verdict, with a <b>bootstrap band</b>, the {5%, 95%} quantiles of the
-estimate over resamples of the audited set, as its stated uncertainty.
-In the depth column that mixture model is not an assumption: the fiber
-over 2<sup><i>a</i></sup>3<sup><i>b</i></sup> splits by first move into
-two classes whose mixing weight is exactly the first-move posterior
+still present (the <b>member</b> class) and samples with it absent
+(<b>non-member</b>), and estimates from them what the state under audit
+still holds. Two published audits from two estimator families were
+scored here. The <b>population</b> family models the audited set as a
+<b>mixture</b> of the two classes and reports the non-member weight
+<i>π</i> — the <b>forgetting rate</b> — as its verdict, with a
+<b>bootstrap band</b>, the {5%, 95%} quantiles of the estimate over
+resamples of the audited set, as its stated uncertainty. The
+<b>per-example</b> family scores one sample at a time: it fits a
+Gaussian to each class's scores from <b>shadow</b> runs — fresh
+replicates with the datum planted or withheld — and states a per-sample
+<b>membership probability</b>, the posterior of membership under the two
+fits at equal prior, deciding member above ½; the probability itself is
+its stated uncertainty. In the depth column both targets are exact: the
+fiber over 2<sup><i>a</i></sup>3<sup><i>b</i></sup> splits by first move
+into two classes whose mixing weight is exactly the first-move posterior
 (<i>a</i>/(<i>a</i>+<i>b</i>), <i>b</i>/(<i>a</i>+<i>b</i>)) — the count
-leak's own law — so an audit fed class-conditional fiber samples has the
-exact Fraction as its target, and every miss is the estimator's.</p>
+leak's own law — and the class-conditional distributions of the audit
+feature are themselves exact hypergeometric Fractions, so the mixture
+weight, the membership posterior per feature value and the best
+achievable accuracy are all exact targets, and every miss is the
+estimator's.</p>
 
 <article class="claim" id="deletion-audit-ruler">
   <div class="claim-head"><span class="claim-name">The flip and the
@@ -559,6 +569,59 @@ exact Fraction as its target, and every miss is the estimator's.</p>
   <p class="verifier">verifier:
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_deletion_ruler.py"><code>explore_deletion_ruler.py</code></a></p>
 </article>
+
+<article class="claim" id="membership-ruler">
+  <div class="claim-head"><span class="claim-name">The exact call and
+  the miscalibrated probability</span>
+  <span class="tier">observation</span></div>
+  <p>The per-example audit was run against the same world at the same
+  target placements, the audit feature the same windowed count of
+  2-moves, at shadow counts 8, 32 and 128 per class — the last its own
+  published setting — with 400 replicates per cell. Its two outputs are
+  the membership call, scored as <b>balanced accuracy</b> — accuracy
+  averaged over equal-size member and non-member sets — and the stated
+  membership probability, scored on <b>calibration</b>: its distance
+  from the exact posterior, weighted by the audited fiber's own mass.
+  They come apart.</p>
+  <p><b>The call is essentially exact.</b> At shadow count 128 the
+  fitted rule's balanced accuracy matches the exact best achievable
+  accuracy to within 4·10<sup>−4</sup> in every cell.</p>
+  <p><b>The stated probability is not, and more data makes the
+  statement worse.</b> The mean stated probability converges not to the
+  exact posterior but to what the Gaussian fits give in the
+  infinite-shadow limit — a hand-derivable value that is OVERCONFIDENT
+  at interior cells (0.830 stated where the posterior is 11/15) and
+  UNDERCONFIDENT exactly where the truth is certain (0.951 stated where
+  the posterior is 1) — so the calibration error plateaus at a floor
+  instead of vanishing. And the fraction of audited mass stated MORE
+  extreme than its exact posterior rises with shadow data, 0.57 to 0.81
+  at one placement, because more data does not cure the miscalibrated
+  limit — it concentrates every replicate onto it. The mechanism needs
+  no worlds: on a designed two-atom feature the fit states 0.985 where
+  the exact posterior is 0.9, a Gaussian tail pricing a far atom at its
+  squared distance where the true distribution holds linear mass.</p>
+  <p class="scope"><b>Scope.</b> Observation: one audit tool of the
+  per-example likelihood-ratio family, run as its own algorithm states —
+  Gaussian fits to the two shadow-score populations — on scalar window
+  features, one world family, one seed stream. A positive control with
+  the Gaussian model well-specified calibrates and gates the run. The
+  limit miscalibration is a fact about the estimator's model class on
+  discrete features, reproduced ring-free on the two-atom cell.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_membership_ruler.py"><code>explore_membership_ruler.py</code></a></p>
+</article>
+
+<p>One direction, two mechanisms. Two tools from two estimator
+families, scored in the same worlds against exact posteriors, fail the
+same way: the stated certainty outruns the accuracy behind it — a band
+narrowing with data while its coverage stays low, a stated probability
+strictly more extreme than the posterior it estimates on a mass
+fraction that grows with the tool's own data axis. The verdicts
+themselves largely survive; what does not survive is the precision each
+tool claims for them. The same shape holds of
+<a href="/learning/ceilings">the estimators scored on the ceiling
+families</a>, where the quantity under estimate is a best achievable
+error rather than a posterior.</p>
 
 </main>
 <footer>
