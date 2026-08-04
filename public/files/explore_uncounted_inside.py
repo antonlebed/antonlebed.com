@@ -315,8 +315,12 @@ F6  THE ANSWER IS NO, AND THE FAILURE IS ANTI-MONOTONE IN THE DAMAGE
     converged gaps through. The 0.432 is then not a partial success but
     the knife cells whole plus a residue: 130 detections across the
     2400 non-knife bad trials, every one of them at the two smallest
-    sample sizes of one arm, where that arm's gap had not finished
-    converging.
+    sample sizes of one arm, where that arm's b had not yet settled
+    onto its gap --- the gap being an exact constant, 29/150 =
+    0.19333 on W_CLEAR, while b reads 0.18971 at n = 500 and 0.19344 at
+    n = 32000 (4000 draws each, standard errors 0.00031 and 0.00004,
+    computed separately from the run above). It is b that converges
+    here and never the gap, which is what "converged gap" abbreviates.
     So the direction is knowable from inside only where the uncounted
     term is still MOVING. That is what an exact-truth ruler is for,
     and it is why the companion rig's plane had to be measured against
