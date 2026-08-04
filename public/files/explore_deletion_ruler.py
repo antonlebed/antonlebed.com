@@ -91,7 +91,11 @@ those moments gives second roots -113/65 and 17/10 -- far outside
 [0, 1] in both. So the symmetry of (ii) is exact in S and ABSENT in the
 world cells rather than approximate, and both world cells are
 IDENTIFIED. Whatever their flip rate below reads, it is not a second
-minimum competing.
+minimum competing. (WHAT IT IS, settled by explore_flip_level.py:
+with the vertex outside [0, 1] the estimate is monotone in
+A = var_u - var_m alone, so the flip is exactly the level set of A cut
+at G/2 - B/4 -- the in-box root drifting past 1/2. The rates printed
+below follow from the exact class moments with nothing fitted.)
 
 THE MEASUREMENT. For each cell and each audit size
 n in {50, 200, 1000}: R = 200 independent replicates; each replicate
