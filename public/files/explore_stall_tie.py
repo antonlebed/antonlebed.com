@@ -74,11 +74,17 @@ L2 (THE SPINE THEOREM, proved by hand; the engine leg is
         the lex order ranks any finite-patience class strictly
         better (finite beats infinite).
    THEOREM (this cover, this move set, any nested strictly
-   shrinking stream, any horizon): on the spine subspace
-   {pt = pc}, with the diagonal patience step as the move,
-   lexicographic deficit descent on the behavioral quotient has NO
-   stall off the bottom, and the bottom is greedy patience. The
-   closing shape is a theorem on the spine.
+   shrinking stream, any horizon, every finite patience below the
+   counted-window start — so every counted commitment is licensed
+   and finite): on the spine subspace {pt = pc}, with the diagonal
+   patience step as the move, lexicographic deficit descent on the
+   behavioral quotient has NO stall off the bottom, and the bottom
+   is greedy patience. The closing shape is a theorem on the
+   spine. (The patience bound is load-bearing for strictness: a
+   patience at or past the window start leaves infinite counted
+   cells at finite patience, and an exact finite-part tie between
+   distinct spine classes becomes designable — length-1 cells
+   exist.)
 
 L3 (where the general theorem must be fought). Off the spine the
    reader holds two references of different ages and the fixed
@@ -215,8 +221,12 @@ F4 THE STRICT TRAP EXISTS — K2 fired; both halves refuted in the
    ln. The trade re-derived by hand: ln(1785/1786) +
    ln(3841490/3645909) = -0.00056 + 0.05225 = +0.0517.
 F5 Every specimen's escape radius through the cure graph is 2:
-   two-move lookahead cures every stall this corpus has found,
-   the parent's disagreement stall included.
+   two-move lookahead cures every FINITE-LOSS stall this corpus
+   has found, the parent's disagreement stall included. (The
+   refusal plateau is the standing exception and is not one of
+   these: its radius grows with the patience axis, which is why
+   its cure is a signal rather than a move —
+   explore_bootstrap_cures.py, the cure separation.)
 F6 C5 CONFIRMED, and the tie door is open but innocent at scope:
    exactly one adjacent equal-deficit pair of distinct behaviors
    in 448 landscapes (h3t12/dbl, horizon 16, (1, 0)); no
@@ -238,8 +248,9 @@ spaces; it settles as a dichotomy.
      measurement ties) is FALSE as stated; the instrument pair
      (refine the ruler, quotient the space) does not suffice in
      general. What survives at every specimen: escape radius 2 —
-     no stall found to date, tie-born or trade-born, survives
-     two-move lookahead.
+     no FINITE-LOSS stall found to date survives two-move
+     lookahead (the infinite-loss plateau stays the signal cure's
+     customer; its radius is unbounded in the axis).
 
 Run record. The first run exited 0 in ~14 s, all controls and
 spine checks green on the first run; the forge found the six
