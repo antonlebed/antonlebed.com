@@ -75,6 +75,7 @@ export default {
       '/learning': 'learning',
       '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
+      '/learning/audits': 'audits',
       '/learning/ceilings': 'ceilings',
       '/learning/uncertainty': 'uncertainty',
       '/claims': 'claims',

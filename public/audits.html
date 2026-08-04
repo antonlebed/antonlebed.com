@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Deletion audits — two tools against an exact target</title>
+<meta name="description" content="Two published deletion audits scored against a posterior known exactly rather than estimated: a population tool whose estimate crosses the midpoint at a rate its own coefficients predict and which silently returns a number its equation has no solution for, a per-example tool whose call is exact and whose stated probability converges to the wrong limit, and what an auditor with no truth can compute about the stability of their own verdict.">
+<link rel="canonical" href="https://antonlebed.com/learning/audits">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/learning' class='up'>Learning</a></nav><nav class='sub' aria-label='Learning'><a href='/learning'>The reader descent</a> <a href='/learning/substrate'>The substrate door</a> <a href='/learning/forgetting'>Forgetting</a> <a href='/learning/audits' aria-current='page'>Deletion audits</a> <a href='/learning/ceilings'>Ceilings</a> <a href='/learning/uncertainty'>Stated uncertainty</a></nav></header>
+<main>
+<h1>Deletion audits</h1>
+<p class="lede">Two published tools that estimate how much of a datum a
+system still holds, run against a target known exactly rather than
+estimated: what each one gets right, what its stated uncertainty
+covers, and what an auditor holding no truth can compute about the
+stability of their own verdict.</p>
+
+<p>The target comes from a family of small <b>grown worlds</b>
+(<a href="/learning/forgetting">the amnesia certificate</a> is what
+they were built for). A state is a positive integer, a <b>move</b>
+multiplies it by a member of that state's <b>menu</b>, and a
+<b>route</b> is the sequence of moves from the seed state 1, its
+product being the state it ends at. One world is used throughout: the
+<b>depth column</b>, whose menu is the constant {2, 3} at every state,
+so a state 2<sup><i>a</i></sup>3<sup><i>b</i></sup> is reached by every
+arrangement of <i>a</i> twos and <i>b</i> threes, all of them equally
+likely. The <b>fiber</b> of a state is the set of routes reaching it,
+and the <b>posterior</b> of a function of the route is its conditional
+distribution on that fiber. The function audited here is the first
+move, whose posterior at 2<sup><i>a</i></sup>3<sup><i>b</i></sup> is
+exactly (<i>a</i>/(<i>a</i>+<i>b</i>), <i>b</i>/(<i>a</i>+<i>b</i>)) —
+the <b>count leak</b>, a state's own exponents naming what it still
+tells about how it started.</p>
+
+<p>That exactness is what makes a world an instrument rather than a
+subject. A tool that <em>estimates</em> such a posterior from samples
+can be scored on its bias and on what its stated uncertainty actually
+covers, the number it aims at being a rational fixed in advance; and
+the exponents (<i>a</i>, <i>b</i>) place that number wherever a run
+wants it. An inference-style <b>deletion audit</b> is such a tool. It
+holds samples of a system's behavior with the audited datum
+still present (the <b>member</b> class) and samples with it absent
+(<b>non-member</b>), and estimates from them what the state under audit
+still holds. Two published audits from two estimator families were
+scored here. The <b>population</b> family models the audited set as a
+<b>mixture</b> of the two classes and reports the non-member weight
+<i>π</i> — the <b>forgetting rate</b> — as its verdict, with a
+<b>bootstrap band</b>, the {5%, 95%} quantiles of the estimate over
+resamples of the audited set, as its stated uncertainty. The
+<b>per-example</b> family scores one sample at a time: it fits a
+Gaussian to each class's scores from <b>shadow</b> runs — fresh
+replicates with the datum planted or withheld — and states a per-sample
+<b>membership probability</b>, the posterior of membership under the two
+fits at equal prior, deciding member above ½; the probability itself is
+its stated uncertainty. Both tools' targets are exact here: the fiber
+splits by first move into the two classes, so their mixing weight
+<em>is</em> the count leak, and the class-conditional distributions of
+the audit feature are themselves exact hypergeometric Fractions — which
+makes the mixture weight, the membership posterior at each feature
+value and the best achievable accuracy all exact, and every miss the
+estimator's.</p>
+
+<article class="claim" id="deletion-audit-ruler">
+  <div class="claim-head"><span class="claim-name">The flip and the
+  band</span> <span class="tier">observation</span></div>
+  <p>The population audit was run against the depth column: fresh
+  member, non-member and audited samples each replicate, the audit
+  feature a count of 2-moves over the three positions after the first,
+  200 replicates per cell
+  at audit sizes 50, 200 and 1000, the exponents (<i>a</i>, <i>b</i>)
+  placing the target at 1/2, 1/5 and 4/5. The estimator fits the audited set's
+  COVARIANCE — a variance here, the feature being a single number —
+  against the mixture's predicted covariance, and does not use
+  its own model's mean equation, though that equation identifies the
+  weight linearly. Two consequences print.</p>
+  <p><b>The flip.</b> The predicted covariance is invariant under
+  <i>π</i> ↔ 1 − <i>π</i> whenever the two class covariances are equal,
+  so there the objective has twin minima and no sample size separates
+  them: on equal-variance Gaussian cells — no worlds involved — the
+  estimate lands nearer 1 − <i>π</i> than <i>π</i> in about half the
+  replicates at every audit size, a truth of 0.2 read as 0.8. In the
+  world cells the two class variances differ substantially — by factors
+  of about 1.4 and 1.75 — and the audit there is identified outright:
+  the objective's second solution lies far outside the interval the
+  weight is searched in, so there is no second minimum to land on. The
+  flip persists anyway, fading with data while staying substantial at
+  working sizes: 28% of replicates at one target placement at audit
+  size 200, 10% at 1000. What produces it there is not a rival minimum
+  but the ordinary spread of a single number. Where the objective's
+  vertex falls outside the interval the weight is searched in, the
+  estimate is a monotone function of one quantity — the audited set's
+  variance less the member class's — so it crosses the midpoint exactly
+  when that quantity crosses a threshold the two class samples fix, and
+  a flip is the solution itself drifting past the midpoint rather than
+  any silent fallback. The rate then follows from the exact class
+  moments with nothing fitted: 0.387, 0.283 and 0.099 predicted at the
+  three audit sizes against 0.385, 0.280 and 0.100 measured.</p>
+  <p><b>The band.</b> The bootstrap band covers the exact Fraction at
+  69–86% across the world cells at every audit size, never near the 90%
+  its quantile levels would suggest — and the band NARROWS with data
+  while the coverage stays where it was: a stated precision tightening
+  while the miss it should cover does not shrink.</p>
+  <p class="scope"><b>Scope.</b> Observation: one audit tool's
+  low-order-moment estimator, one seed stream, scalar features,
+  one world family. The twin-minima invariance follows from that
+  estimator's objective alone and is reproduced ring-free on Gaussian
+  cells. The mixture model holds exactly at fiber inputs by
+  construction; nothing here scores an audit whose feature model must be
+  taken on faith.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_deletion_ruler.py"><code>explore_deletion_ruler.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flip_level.py"><code>explore_flip_level.py</code></a></p>
+</article>
+
+<article class="claim" id="two-cuts">
+  <div class="claim-head"><span class="claim-name">Two silent
+  failures, two cuts of one number</span>
+  <span class="tier">observation</span></div>
+  <p>Write out what that estimator solves. With <i>A</i> the audited
+  set's variance less the member class's, <i>B</i> the squared gap
+  between the two class means and <i>G</i> the class-variance gap plus
+  <i>B</i>, the audit minimizes (<i>A</i> − <i>πG</i> +
+  <i>π</i>²<i>B</i>)² over the <b>box</b>, the interval [0, 1] the
+  weight is searched in. Only <i>A</i> moves with the audited set. So
+  the equation the tool means to solve has a solution in the box
+  exactly when the measured <i>A</i> falls in the range that
+  <i>A</i>(<i>p</i>) = <i>Gp</i> − <i>Bp</i>² sweeps over the box —
+  and when it does not, the tool returns the box-constrained
+  minimizer with no solution behind it, silently. That is not rare
+  at working sizes: at one target placement it happens in 0.525,
+  0.400 and 0.237 of fresh replicates at audit sizes 50, 200 and
+  1000, and in 0.564, 0.431 and 0.301 of the resamples the band is
+  built from.</p>
+  <p>The rate is set by a margin in the coefficients and carries no
+  term for the audit feature at all: it is a normal tail at the
+  distance from <i>A</i> to the nearer edge of that range, over the
+  spread of the measured <i>A</i>. Across eighteen cells the largest
+  deviation is 0.125 at the smallest audit size and 0.069 from size
+  200 up; the three excluded cells are ones where the two class
+  variances differ by exactly the squared mean gap, which makes the
+  range degenerate to a point and voids the arithmetic. Coarsening the
+  audit feature acts through that margin and through nothing else —
+  quantizing a continuous feature to three levels shrinks the margin
+  twenty-two-fold and reproduces the world cells' plateau — and it is
+  not monotone in the number of levels.</p>
+  <p>Two different failures answer to the one name. Where the
+  two solutions are complex the objective has a strict interior minimum and
+  the fallback lands on the <b>vertex</b>, the turning point
+  <i>G</i>/2<i>B</i>; where they are real and both outside the box the
+  fallback lands on a box endpoint instead. The first is 99–100% of the events
+  at every quantized cell and the second 16–65% of them at the world
+  cells. And at both world cells the endpoint it lands on is the one
+  <em>nearest</em> the truth — 0 against a truth of 1/5, 1 against 4/5
+  — so this failure is invisible in a flip count, which asks only
+  whether the estimate crossed the midpoint.</p>
+  <p>The two are cuts of the same scalar at two different levels. No
+  solution is the measured <i>A</i> past an <em>edge</em> of the
+  range; a flip is that same number past its <em>half-box</em> value
+  <i>G</i>/2 − <i>B</i>/4. Whenever the vertex lies outside the box
+  the half-box value is strictly interior to the range — by
+  construction, the midpoint being interior to the box — so the two
+  events can overlap only beyond the far edge. That overlap is not
+  uniformly small: 1.8% of replicates and 7% of flips at audit size
+  200, but 16.5% and 37% at size 50, where the far-edge fallback is
+  fat.</p>
+  <p class="scope"><b>Scope.</b> Observation for the rate, over 18 of
+  21 cells — a continuous Gaussian sweep, its three-level quantization
+  and the two world cells, at three audit sizes, 400 replicates each,
+  one seed stream. The degenerate case is derived and not modelled; no
+  cell here sweeps through it. The two-level geometry is a property of
+  the objective. Controls read before any of it: the exact
+  hypergeometric moments reproduce the two world cells' population
+  solutions in exact rational arithmetic with zero difference, the
+  samplers recover the exact class variances to 0.0022, and the
+  continuous sweep reproduces the audit's own recorded trajectory. The
+  frozen tolerance was a single bar over all cells and it failed at the
+  smallest audit size in both directions — over by 0.125 at one cell,
+  under by 0.111 at another — so what degrades there is the normal
+  approximation and not a term with a sign; two candidate causes act
+  only at that size and this rig does not separate them. One audit
+  tool, scalar features, one world family. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_noroot_margin.py"><code>explore_noroot_margin.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flip_level.py"><code>explore_flip_level.py</code></a></p>
+</article>
+
+<article class="claim" id="self-reported-instability">
+  <div class="claim-head"><span class="claim-name">The self-report is
+  compressed</span> <span class="tier">rule</span></div>
+  <p>That half-box cut has four inputs, and three of them are available
+  to an auditor who has no truth: the measured <i>A</i> from the audited
+  sample, and <i>G</i> and <i>B</i> from the two class samples. The
+  fourth is the cut's <em>direction</em>, which turns on which side of
+  the midpoint the true weight sits — precisely what an audit is for.
+  So what the cut buys from inside is not a flip rate. It is the
+  probability that a fresh sample's estimate would land on the other
+  side of the midpoint from the number in hand: an instability of the
+  auditor's own verdict, which equals the flip risk when that verdict
+  is on the truth's side and its complement when it is not, and is
+  alarming either way. It survives the missing direction by being a
+  statement about the sign of one scalar, <i>D</i> = <i>A</i> −
+  (<i>G</i>/2 − <i>B</i>/4): two replicates land on opposite sides of
+  the midpoint exactly when their <i>D</i>s differ in sign, and both
+  carry the same unknown direction.</p>
+  <p>Scored as a forecast of that event, the statement needs two
+  corrections and neither of them is the spread. The spread is solved:
+  estimating the fourth moments from the same sample that produced
+  <i>A</i> matches a resampled spread to 1.5% at the worst of nine
+  rows and under 0.7% at the other eight, against an error in the form
+  itself that reaches a factor of 5.4. What has to change is which spread —
+  <i>D</i> reads all three samples and the member class's variance
+  enters it and <i>A</i> with opposite signs, so the substitution runs
+  16% narrower at one cell and 11% wider at the other, with no fixed
+  sign — and that the spread is <em>predictive</em>, the auditor
+  centring on their own <i>D</i> rather than on the population's,
+  which costs a factor √2.</p>
+  <p>Corrected, the statement is still compressed. Write <i>μ</i> for
+  |<i>D</i>| over the spread of <i>D</i>. The stated number equals
+  that form's own expectation to within 0.009 at every world row,
+  so what follows is the form and not the arithmetic. As <i>μ</i>
+  sweeps 0.37 to 2.47 the two-sided normal model of the event sweeps
+  0.459 down to 0.013 while the statement moves only 0.286 to 0.073 —
+  and the model is not the measurement: the realized rate sits
+  <em>above</em> it at five of the six rows, by up to 0.061, and below
+  it only at the largest <i>μ</i>, so the verdict holds on either
+  reading and harder on the realized one. The statement is right in
+  the mean at <i>μ</i> ≈ 1.1 alone. Below that it under-warns; above
+  it, it over-warns, decaying asymptotically like Φ(−<i>μ</i>/√3)
+  against the event's 2Φ(−<i>μ</i>), so the ratio diverges: the
+  warning becomes unboundedly conservative exactly where the audit's
+  number is most stable, and under-warns where it is least. The cause
+  is exact rather than a tuning miss — a predictive spread is the
+  optimal answer under a flat prior on <i>D</i>, where a fixed cell
+  holds <i>D</i> at a point.</p>
+  <p>What earns the number its place anyway is that the case it cannot
+  cover announces itself from inside. The whole derivation assumes the
+  vertex lies outside the box, and the replicate's own
+  <i>G</i>/2<i>B</i> needs no truth to compute. On a cell built to put
+  the population vertex inside the box it fires on 95–100% of
+  replicates; on the two world cells, where the derivation holds, it
+  fires on 0–29% and stands down as the audit grows. The condition is
+  one a design controls — the two class variances differing by no more
+  than the squared gap between their means — and at equality the test
+  reads excluded where the law still holds, so it errs conservative
+  and never the other way. Where it does fire the estimate is not a
+  number at all: two solutions sit in the box in 6–24% of replicates,
+  both zeroing the objective exactly, and which one wins is decided by
+  floating-point residue and the order the candidates are tried, the
+  upper taking it 0.42–0.51 of the time.</p>
+  <p class="scope"><b>Scope.</b> The compression is a rule: derived,
+  then confirmed against printed output at three cells and three audit
+  sizes, 300 replicate pairs per row. A per-row rate carries about
+  0.03 of noise, which is why the law is argued from the form's own
+  expectation and never from a single row. The two corrections are
+  derivations applied together, so nothing run isolates one; they need
+  not even agree in direction, and at one cell they do not. What is
+  measured is the per-row mean, which is the only sense of calibration
+  available to a truth-free statement here: within a cell the rate
+  conditional on the replicate in hand takes two values decided by
+  <i>D</i>'s sign, the statement reads |<i>D</i>| alone and is not
+  independent of that sign, so a diagram binned on the statement must
+  slope and does. A mixture over the two values is perfectly
+  calibrated and needs the truth. Controls read before any of it: the
+  marginal flip rate tracks the rates on record within 0.052 at every
+  row, and the realized pair rate tracks its own pooled prediction
+  within 0.039 at all nine. One audit tool, scalar features, one world
+  family, one seed stream. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flip_risk.py"><code>explore_flip_risk.py</code></a></p>
+</article>
+
+<article class="claim" id="membership-ruler">
+  <div class="claim-head"><span class="claim-name">The exact call and
+  the miscalibrated probability</span>
+  <span class="tier">observation</span></div>
+  <p>The per-example audit was run against the same world at the same
+  target placements, the audit feature the same count of
+  2-moves, at shadow counts 8, 32 and 128 per class — the last its own
+  published setting — with 400 replicates per cell. Its two outputs are
+  the membership call, scored as <b>balanced accuracy</b> — accuracy
+  averaged over equal-size member and non-member sets — and the stated
+  membership probability, scored on <b>calibration</b>: its distance
+  from the exact posterior, weighted by the audited fiber's own mass.
+  They come apart.</p>
+  <p><b>The call is essentially exact.</b> At shadow count 128 the
+  fitted rule's balanced accuracy matches the exact best achievable
+  accuracy to within 4·10<sup>−4</sup> in every cell.</p>
+  <p><b>The stated probability is not, and more data does not cure
+  it.</b> The mean stated probability converges not to the exact
+  posterior but to the hand-derivable limit of the Gaussian fits:
+  overconfident at interior cells — 0.830 stated at the top shadow
+  count where the posterior is 11/15 — and underconfident exactly where
+  the truth is certain, 0.951 stated where the posterior is 1. The
+  limit is deterministic, so the calibration error settles at a
+  positive floor instead of vanishing. And the fraction of audited
+  mass stated MORE extreme than its exact posterior rises with shadow
+  data, 0.57 to 0.81
+  at one placement, because more data does not cure the miscalibrated
+  limit — it concentrates every replicate onto it. The mechanism needs
+  no worlds: on a designed two-atom feature the fit states 0.985 where
+  the exact posterior is 0.9, a Gaussian tail pricing a far atom at its
+  squared distance where the true distribution holds linear mass.</p>
+  <p class="scope"><b>Scope.</b> Observation: one audit tool of the
+  per-example likelihood-ratio family, run as its own algorithm states —
+  Gaussian fits to the two shadow-score populations — on scalar window
+  features, one world family, one seed stream. A positive control with
+  the Gaussian model well-specified calibrates and gates the run. The
+  limit miscalibration is a fact about the estimator's model class on
+  discrete features, reproduced ring-free on the two-atom cell.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_membership_ruler.py"><code>explore_membership_ruler.py</code></a></p>
+</article>
+
+<p>The two tools' stated uncertainties fail in the same direction: the
+stated certainty outruns the accuracy behind it — a band narrowing with data while its coverage
+stays low, a stated probability strictly more extreme than the
+posterior it estimates, which more shadow data concentrates rather
+than cures. Their mechanisms are unrelated, and the direction belongs
+to neither of them. It is a property of the uncertainty statement, and
+these two tools are two instances of it:
+<a href="/learning/uncertainty#uncounted-term">the statement&rsquo;s own two
+laws</a> are measured on a target held exactly, where what a statement
+counts and what it omits can be read apart — including
+<a href="/learning/uncertainty#nonidentified-bound">what changing only the
+statement kind</a> does to the population tool's own ambiguity. What the
+silent no-solution regime costs is not a direction at all: it is a
+verdict with no equation behind it, reported in the same format as one
+that has an equation behind it.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
