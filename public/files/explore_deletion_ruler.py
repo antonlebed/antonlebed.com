@@ -82,9 +82,16 @@ THE CELLS.
   W1   world cell (a,b) = (5,5):  pi = 1/2, leak zero.
   W2   world cell (a,b) = (12,3): pi = 1/5.
   W3   world cell (a,b) = (2,8):  pi = 4/5.
-World-cell class variances are close but unequal (hypergeometric
-window counts at neighbouring compositions), so the symmetry of (ii)
-is approximate there and exact only in S.
+World-cell class variances were taken here for close but unequal
+(hypergeometric window counts at neighbouring compositions), with the
+symmetry of (ii) approximate there and exact only in S. THAT IS WRONG,
+and the exact hypergeometric moments settle it: the ratios are 0.727 at
+W2 and 1.750 at W3, and solving the covariance-matching objective at
+those moments gives second roots -113/65 and 17/10 -- far outside
+[0, 1] in both. So the symmetry of (ii) is exact in S and ABSENT in the
+world cells rather than approximate, and both world cells are
+IDENTIFIED. Whatever their flip rate below reads, it is not a second
+minimum competing.
 
 THE MEASUREMENT. For each cell and each audit size
 n in {50, 200, 1000}: R = 200 independent replicates; each replicate
