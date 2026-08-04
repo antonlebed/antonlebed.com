@@ -27,8 +27,8 @@ What this script settles:
    rounded) covers all 16,586 collided values across the 10 validation
    rungs, zero false hits. |B| <= 3 is where the enumeration was CUT,
    so "3 is deep enough" is what the zero misses show; whether |B| <= 2
-   would also suffice is untested, the shallower cap never having been
-   run.
+   would also suffice is untested here (settled since: it does not --
+   37 values need depth 3; explore_collision_depth.py).
 
 3. CELL-SUM FORMULA (rule, pattern measure; proved + verified k <= 22).
    Within a fixed ON/OFF assignment (cell) of the ACTIVE primes (those

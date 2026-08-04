@@ -310,7 +310,9 @@ F4 WHAT STOPS A LADDER IS A COVERED SET THAT OUTRUNS IT, WHICH NO RULE RUN
    rule is FED BY the very openings it would have to get ahead of -- which is
    the mechanism and not a proof over the whole kind, since a seated-set rule
    covering everything below 2^d would outrun the ladder and no rule like that
-   was run. What does outrun it here is a covered set that grows with the
+   was run (settled since: run, and it does NOT stop the ladder -- no
+   seated-set rule can, the frontier price being frozen between openings
+   against a doubling clock; explore_seated_cover.py). What does outrun it here is a covered set that grows with the
    CLOCK, doubling where the ladder steps by one: at
    "covered while d <= c*T" the ladder is dead at c = 1 on
    both void branches and at c = 1/2 only on the branch whose deep item has
