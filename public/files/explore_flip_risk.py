@@ -388,6 +388,16 @@ F7  WHAT THIS DOES NOT SETTLE, and the one thing it hands forward.
     instrument that beats it will have to come from outside the family.
     It needs no new world: the same three cells and the same drawn
     samples score all of it.
+    (Settled on those same cells by explore_flip_floor.py, and the
+    suspecting sentence above is FALSE as written: a SHARPENED arm does
+    not over-warn at large mu. What survives is a trade -- no member of
+    the family is right at both ends, the exponent being bought with the
+    small-mu value. The compression itself is a LAW rather than a
+    property of any form: every such arm's mean is the folded
+    convolution E[Phi(-|mu + Z|/s)], of which the sqrt 3 and sqrt 2
+    above are the s = sqrt 2 and s = 1 cases. The instrument from
+    outside the family was built, and it does not escape the divergence
+    either.)
 
 PRINTED OUTPUT (verbatim). Row 1 per size: n, marginal flip rate, the
 rate on record, the realized pair rate, 2q(1 - q) from this run's own
