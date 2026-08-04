@@ -81,10 +81,10 @@ L2 (THE SPINE THEOREM, proved by hand; the engine leg is
    behavioral quotient has NO stall off the bottom, and the bottom
    is greedy patience. The closing shape is a theorem on the
    spine. (The patience bound is load-bearing for strictness: a
-   patience at or past the window start leaves infinite counted
-   cells at finite patience, and an exact finite-part tie between
-   distinct spine classes becomes designable — length-1 cells
-   exist.)
+   patience past the window start leaves infinite counted cells
+   at finite patience, and with both compared patiences past it
+   an exact finite-part tie between distinct spine classes
+   becomes designable — length-1 cells exist.)
 
 L3 (where the general theorem must be fought). Off the spine the
    reader holds two references of different ages and the fixed
