@@ -34,7 +34,7 @@ and this rig is built to break either:
   such guarantee, which is what makes it the only kind that CAN be ---
   an asymmetry, not a symmetry: nothing here forces a fit to fail in
   the bad direction, and the knife arm's own stated bar turns out to be
-  3.14 times the true dispersion.
+  3.10 to 3.26 times the true dispersion.
 
   THE RATE LAW.  Whether data cures it is decided by the trajectory of
   the uncounted term b(n) against the counted half-width h(n). Three
@@ -195,7 +195,7 @@ F1  CONTROL: A2 IS THE CORPUS'S KNIFE CELL (the control, passed). The
     (-1.48 to -1.59 there at 40 trials, 1.573 to 1.595 here at 400),
     which is mostly the trial count and is not claimed as a result. One
     thing the arm does add: the stated bar is the wrong size in its own
-    right at that cell (h/sigma = 3.14, too WIDE), so what destroys the
+    right at that cell (h/sigma 3.10 to 3.26, too WIDE), so what destroys the
     coverage there is the bias and not the bar.
 
 F2  THE SIGN LAW HOLDS ON ONE SIDE ONLY, AND ITS USUAL COROLLARY DOES
@@ -209,8 +209,8 @@ F2  THE SIGN LAW HOLDS ON ONE SIDE ONLY, AND ITS USUAL COROLLARY DOES
     measurement forces, both against the law's own first statement:
       - the ASYMMETRY is the content. What is forced is that a bound
         cannot be overconfident, not that a fit must be: A1 is a fit
-        and covers at nominal, and the knife arm's stated bar is 3.14
-        times the true dispersion, so a fitted bar can be too WIDE and
+        and covers at nominal, and the knife arm's stated bar is 3.10
+        to 3.26 times the true dispersion, so a fitted bar can be too WIDE and
         its failure direction is unguaranteed rather than guaranteed
         bad. A fit is the only kind that CAN fail downward, which is
         enough to explain why every documented overconfident specimen
@@ -241,7 +241,7 @@ F3  THE RATE LAW, THREE REGIMES ON ONE DIAL (observation; the placing
     coverage passes 1/2 where the uncounted term equals the stated
     half-width (0.555 at |b|/h = 0.911). That reading needs h to
     outrun the true sd, which holds at every fit arm here (h/sigma
-    about 1.9 to 2.1, and 3.14 at the knife): at b = h the near tail
+    about 1.9 to 2.1, and 3.10 to 3.26 at the knife): at b = h the near tail
     contributes 1/2 and the far tail Phi(-2h/sigma) is negligible.
 
 F4  COVERAGE IS A FUNCTION OF TWO RATIOS, AND OF NOTHING ELSE
