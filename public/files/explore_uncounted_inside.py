@@ -231,9 +231,15 @@ F3  A CONVERGED TERM IS IN THE KERNEL OF BOTH INSTRUMENTS (property
     has access to the target, and each replaces it differently. The
     drift term differences it away outright, reading b(n) - b(n/2).
     The bootstrap term does something subtler and more damaging: it
-    measures the estimator's bias against ITS OWN estimand under the
-    fitted distribution, which for a misspecified model is the model's
-    limit and not the truth. Split b(n) into the part that decays and
+    measures the estimator's bias against ITS OWN estimand --- the
+    number its arithmetic returns on the whole population --- which
+    for a misspecified model is the model's limit and not the truth.
+    Note WHERE that comes from, since the natural reading is wrong: the
+    resampling here is from the RAW EMPIRICAL distribution over the 2M
+    (cell, label) categories, which is saturated and not pooled. What
+    drops the gap is the ESTIMAND, not what is resampled --- which is
+    the same point this finding's headline makes.
+    Split b(n) into the part that decays and
     the gap between the model's limit and the target --- the bootstrap
     reports the first and drops the second by construction, the drift
     differences the second away, and the two arrive at one kernel from
@@ -244,9 +250,9 @@ F3  A CONVERGED TERM IS IN THE KERNEL OF BOTH INSTRUMENTS (property
     the drift term 0.140, 0.008, 0.026, 0.012, 0.036. What the reach
     actually rests on is the MODEL CLASS and not the resampling: the
     converged part of b is the gap between what the class can express
-    and the target, and no functional of the fitted distribution
-    computed INSIDE that class can identify it, there being nothing in
-    the class that names the target. So the kernel is not a property of
+    and the target, and no statistic whose ESTIMAND is the class's own
+    functional can identify it, there being nothing in the class that
+    names the target. So the kernel is not a property of
     these two arithmetics but of staying inside --- which is exactly
     why the one instrument that escapes it, in F4, escapes by fitting a
     RICHER model, and why the escape buys detection of the MODEL rather
