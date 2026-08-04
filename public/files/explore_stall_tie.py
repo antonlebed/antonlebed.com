@@ -2,8 +2,8 @@
 
 THE QUESTION
 ------------
-The reader-descent corpus's blindness table closes on a conjecture
-(LEARNER.md, the closing shape): every stall strict descent found is
+The reader-descent corpus's blindness table closes on a conjecture,
+its closing shape: every stall strict descent found is
 a TIE artifact, and two instruments dissolve them all — REFINE THE
 RULER where coarseness starves the signal, QUOTIENT THE SPACE where
 coordinates outnumber behaviors. At the scanned grid the pair
@@ -83,7 +83,8 @@ L2 (THE SPINE THEOREM, proved by hand; the engine leg is
 L3 (where the general theorem must be fought). Off the spine the
    reader holds two references of different ages and the fixed
    point is preference-dependent (the single-reference hypothesis
-   of the bottom lemma is TIGHT — LEARNER.md II), so no L1-style
+   of the bottom lemma is TIGHT — the policy-level witness in
+   explore_bootstrap_cures.py), so no L1-style
    containment argument exists; under resources the landscape is
    measurably path-dependent (route-locking, the start-delay law).
    Any counterexample to H1/H2 lives at mixed patience, under
@@ -211,7 +212,7 @@ F4 THE STRICT TRAP EXISTS — K2 fired; both halves refuted in the
    (5/1786 < 1/357, cross-multiplication 1785 < 1786) and worse
    at step 14 (5/3645909 > 1/768298), net +0.0517 ln; the route
    flip costs +1.14 ln at step 12 alone; patience up costs +10.6
-   ln. The trade re-derived by hand in-session: ln(1785/1786) +
+   ln. The trade re-derived by hand: ln(1785/1786) +
    ln(3841490/3645909) = -0.00056 + 0.05225 = +0.0517.
 F5 Every specimen's escape radius through the cure graph is 2:
    two-move lookahead cures every stall this corpus has found,
