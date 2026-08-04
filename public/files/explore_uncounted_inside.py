@@ -292,9 +292,13 @@ F6  THE ANSWER IS NO, AND THE FAILURE IS ANTI-MONOTONE IN THE DAMAGE
     (observation, 27 cells: 17 GOOD at coverage 0.90 or above, 10 BAD
     below 0.80, one grey excluded at 0.828). As single-sample rules at
     a threshold holding false alarms to 0.10 over the GOOD cells'
-    trials, the three detectors caught 0.432 (bootstrap term), 0.196
-    (drift), 0.167 (goodness of fit) of the BAD cells' trials. The
-    best of them is not weakly informative but SPECIFIC: cell by cell
+    trials, the bootstrap term caught 0.432 and the drift term 0.196 of
+    the BAD cells' 4000 trials. The goodness-of-fit statistic is defined
+    only on the pooled arms, so its 0.167 is read over the 6 BAD cells
+    it exists on --- 2400 trials, a pool excluding all four knife cells,
+    which is where the bootstrap scores 1.000. The three rates are
+    therefore three readings and not one comparison. The bootstrap term
+    is not weakly informative but SPECIFIC: cell by cell
     it detected 1.000, 1.000, 1.000, 1.000 at the four knife cells and
     then 0.302, 0.022, 0.000, 0.000 as the true |b|/h rose 4.328,
     8.836, 17.706, 35.500, and 0.000 at both bad cells of the mild
