@@ -575,22 +575,6 @@ def anatomy(spec, idx):
           % (basin, len(mem)))
     print("    escape radius through the cure graph %s"
           % escape_radius(s, nbrs, qranks))
-
-def escape_radius(s, nbrs, qranks):
-    """Fewest cure-graph moves from s to any class ranked below s."""
-    seen, front, radius = {s}, [s], 0
-    while front:
-        radius += 1
-        nxt = []
-        for u in front:
-            for t in nbrs[u]:
-                if qranks[t] < qranks[s]:
-                    return radius
-                if t not in seen:
-                    seen.add(t)
-                    nxt.append(t)
-        front = nxt
-    return None
     tied = [t for t in nbrs[s] if SC.cmp_comp(qloss[s], qloss[t]) == 0]
     worse = [t for t in nbrs[s]
              if SC.cmp_comp(qloss[t], qloss[s]) > 0]
@@ -615,6 +599,22 @@ def escape_radius(s, nbrs, qranks):
              all(ranks2[t] >= ranks2[s] for t in nbrs[s]))
     print("    per-step-lex retest: still stalls %s" % still)
     return "flat-exit" if has_exit else "flat-basin"
+
+def escape_radius(s, nbrs, qranks):
+    """Fewest cure-graph moves from s to any class ranked below s."""
+    seen, front, radius = {s}, [s], 0
+    while front:
+        radius += 1
+        nxt = []
+        for u in front:
+            for t in nbrs[u]:
+                if qranks[t] < qranks[s]:
+                    return radius
+                if t not in seen:
+                    seen.add(t)
+                    nxt.append(t)
+        front = nxt
+    return None
 
 # ----------------------------------------------------------------- #
 # E6: deep dissection of the hand-checkable specimen (added after
@@ -678,11 +678,11 @@ def main():
     e3_mechanism(imgs)
     specimens, n_ties = e4_forge()
     kinds = []
-    for i, spec in enumerate(specimens[:5]):
+    for i, spec in enumerate(specimens[:8]):
         kinds.append(anatomy(spec, i + 1))
-    if len(specimens) > 5:
+    if len(specimens) > 8:
         print("  (%d further specimens not printed)"
-              % (len(specimens) - 5))
+              % (len(specimens) - 8))
     if not specimens:
         print("\n  -> DESERT (K4): zero stalls across the battery")
     else:
