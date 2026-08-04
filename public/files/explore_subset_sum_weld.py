@@ -151,7 +151,13 @@ THE SAME AS BEING EXPLAINED.  A fine enough weight supply produces the desert on
 its own -- but this rig's weights are random reals and the fibers' are
 interior-normalizer products, and nothing here shows the latter are fine in that
 sense.  The standing verdict is untouched: a scope fact and not a theorem, since
-no argument says those products cannot tie.  What the transfer buys is a REASON to
+no argument says those products cannot tie.  [Settled in part since:
+explore_rogue_world.py's quarantine theorem makes the all-beta half a theorem
+(coprimality bars every all-temperature tie) and realizes tying worlds exactly
+where this verdict points, in the coarse (recycled-prime) supply;
+explore_tie_world.py extends the beta = 1 desert to age 4 and puts a designed
+tie to strict work.  The single-beta desert beyond age 4, and this rig's own
+feasibility-primitive scope, stand.]  What the transfer buys is a REASON to
 expect the measurement rather than a second measurement of it, plus a direction --
 a tie must come from COARSE masses, so hunting a tying world means hunting a
 coarse one, and the search that found none was searching a fine one.

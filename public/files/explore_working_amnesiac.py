@@ -296,7 +296,12 @@ claims on uniform-weight fibers rest on the equal-weight witness
 (all betas at once), not the beta grid; breadth S-verdicts rest
 on the grid plus K2's injectivity scan. (c) The tie desert and
 the matching gap are scope facts, not theorems -- no argument yet
-says breadth Z-products can never tie. (d) g = age is scanned
+says breadth Z-products can never tie. [Settled in part since:
+explore_rogue_world.py's quarantine theorem bars all-beta breadth
+ties at any age, and designed recycled-prime worlds tie freely;
+explore_tie_world.py extends the beta = 1 desert to age 4. Ties
+at one beta beyond age 4 stay open; the matching gap stands.]
+(d) g = age is scanned
 only in W_D and W_T (breadth age fibers exceed the cap by far).
 (e) Min-states is exact only on searched (<= 8 route) fibers.
 
