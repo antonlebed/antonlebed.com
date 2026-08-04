@@ -76,6 +76,7 @@ export default {
       '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
       '/learning/ceilings': 'ceilings',
+      '/learning/uncertainty': 'uncertainty',
       '/claims': 'claims',
     };
     const page = PAGES[url.pathname.replace(/(.)\/$/, '$1')];

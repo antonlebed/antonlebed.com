@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Stated uncertainty — estimators against a known optimum</title>
+<meta name="description" content="What four standard Bayes-error estimators do when the optimum they estimate is derived rather than estimated: where each stated interval breaks and which breakages are structural, why two bracket estimators are one bracket, a statistic the data does not determine at all, and the two laws that decide the direction a stated uncertainty fails in — the sign of the error its own model cannot count, and the rate at which that error runs against the half-width the model does count.">
+<link rel="canonical" href="https://antonlebed.com/learning/uncertainty">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/measure'>Measure</a> <a href='/learning' class='up'>Learning</a></nav><nav class='sub' aria-label='Learning'><a href='/learning'>The reader descent</a> <a href='/learning/substrate'>The substrate door</a> <a href='/learning/forgetting'>Forgetting</a> <a href='/learning/ceilings'>Ceilings</a> <a href='/learning/uncertainty' aria-current='page'>Stated uncertainty</a></nav></header>
+<main>
+<h1>Stated uncertainty</h1>
+<p class="lede">What four standard estimators of a best-possible score
+do when that score is known exactly rather than estimated — where each
+one’s stated interval breaks, which of the breakages are structural,
+and what decides the direction a stated uncertainty fails in.</p>
+
+<p>The families this reads are built on the archimedean deletion:
+rings of residues, which carry arithmetic and no notion of size
+(<a href="/learning/ceilings">the ceilings they carry</a> are derived
+in closed form, which is what makes them usable here). Fix <i>N</i>
+squarefree, draw <i>x</i> from Z/<i>N</i> uniformly, and show the
+solver the residues modulo a proper divisor <i>M</i>, leaving the
+<b>unknown cofactor</b> <i>c</i> = <i>N</i>/<i>M</i>. What the shown
+residues pin is a <b>fiber</b>: the <i>c</i> ring elements sharing
+them, an arithmetic progression of step <i>M</i>. One pair (ring,
+shown residues) is a <b>cell</b>.</p>
+
+<p>The task is a single archimedean bit. Read it as a classification
+problem: hand over the residues and ask for the label
+[<i>x</i> ≥ <i>t</i>] at a fixed <b>threshold</b> <i>t</i>. Write
+<i>η<sub>r</sub></i> for the probability that label is 1 given
+fiber <i>r</i> — at most two values, since the fiber below-count takes
+at most two — and the <b>Bayes error</b> <i>R</i>* for the smallest
+error rate any rule can attain, here a rational number known exactly
+rather than a quantity to be estimated. The error rate of the best
+constant answer is the <b>no-evidence value</b>, and the gap between
+the two is the <b>lift</b> the residues buy. A threshold is
+<b>interior</b> where the lift is positive and at the <b>floor</b>
+where it is zero, the residues buying nothing there. The interior
+thresholds of one cell form a single run, its <b>window</b>, across
+which the lift rises and falls while <i>R</i>* itself does not
+move.</p>
+
+<p>An <b>estimator</b> takes <i>n</i> such draws and returns an
+estimate of <i>R</i>* with a stated 95% interval; call half that
+interval’s width its <b>half-bar</b>. Two properties of an estimator
+are then measurable against truth rather than against another
+estimate: its
+<b>bias</b>, the mean estimate minus <i>R</i>*, and its
+<b>coverage</b>, the fraction of trials whose own interval contains
+<i>R</i>*. Four standard estimators are run, in two families. The
+<b>plug-in</b> pair fits a majority rule to the sample and scores it —
+<b>resubstitution</b> on the same data, <b>held-out</b> on a withheld
+half. The <b>bracket</b> pair reports an interval that comes from a
+theorem rather than from a fitted rule: the 1-nearest-neighbour
+<b>Cover–Hart</b> bracket, built from the nearest-neighbour error
+rate, and a <b>divergence</b> bracket built from the number of edges
+of a minimum spanning tree that join points of opposite label.</p>
+
+<p>Five <b>slices</b> are read — a slice being a cell together with a
+threshold — chosen from the exact dial that names the dead cells
+rather than from a scan: three at the floor, two interior, at four
+sample sizes from 500 to 32,000, forty trials each.
+At three of them <i>t</i> is divisible by <i>M</i>, so every fiber
+carries the same <i>η<sub>r</sub></i>; one of those three is the
+<b>knife slice</b>, where that common value is exactly 1/2 and every
+rule is therefore optimal.</p>
+
+<article class="claim" id="coverage-map">
+  <div class="claim-head"><span class="claim-name">The coverage
+  map</span> <span class="tier">observation</span></div>
+  <p>Every one of the five slices breaks at least one of
+  resubstitution, held-out and the Cover–Hart bracket at some sample
+  size, and none of the breakages is visible from inside the
+  estimator that carries it: each interval is
+  computed the same way whether it is right or wrong, and only the
+  closed form says which. Which of the two <em>point</em> estimators
+  breaks is slice-dependent, and the ordering inverts. At the knife
+  slice resubstitution covers 0.00–0.03 while held-out covers
+  0.93–0.97; at the widest floor slice resubstitution starts at 0.00
+  and recovers only at the largest <i>n</i> while held-out falls
+  0.90, 0.50, 0.25, 0.15. Neither of them is simply the good one, so a
+  practitioner who validated a pipeline on any single slice would
+  carry the wrong conclusion to the next. Coverage alone does not
+  settle it either: both brackets cover at 0.90 or better at every
+  slice and every <i>n</i>, and buy that by containing the
+  no-evidence value along with the truth. And at the knife slice a
+  bracket's coverage
+  measures a cap rather than an estimator, since its upper end is held
+  at 1/2, which no binary Bayes error can exceed, and the truth there
+  <em>is</em> 1/2.</p>
+  <p class="scope"><b>Scope.</b> Computed on the five dial-chosen
+  slices at <i>n</i> = 500, 2000, 8000, 32000, forty trials each, one
+  fixed seed, 0-1 score, uniform prior. Nominal coverage 0.95
+  throughout. Two of the five slices are interior rather than floor
+  slices, and the four find them no harder: what the window moves
+  is the no-evidence baseline, not what an estimator does. A positive
+  control — a two-fiber Bernoulli problem with <i>R</i>* = 0.15, far
+  from 1/2 — passes through the same sampler and the same estimator
+  code before any grid result is read. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_ruler.py"><code>explore_ceiling_ruler.py</code></a></p>
+</article>
+
+<article class="claim" id="ruler-placement">
+  <div class="claim-head"><span class="claim-name">Placement on a thin
+  edge</span> <span class="tier">rule</span></div>
+  <p>Two of the failures are structural rather than small-sample, and
+  neither is a fact about these rings. At the knife slice
+  resubstitution's deficit is the mean absolute deviation of a fair
+  binomial, ½√(2<i>M</i>/π<i>n</i>), while its own half-bar is the
+  binomial 95% one, 1.96√(1/4<i>n</i>): both shrink as
+  1/√<i>n</i>, so their ratio
+  √(2<i>M</i>/π)/1.96 is free of <i>n</i> — 1.5766 derived, and
+  −1.48, −1.55, −1.56, −1.59 printed across the four sample sizes. The
+  point estimate is consistent, its bias running −0.0644 to −0.0087;
+  the interval is not, and coverage stays at 0.00–0.03 at every sample
+  size, so more data never repairs it. At the widest floor slice
+  held-out fails in the opposite direction, its coverage falling
+  monotonically as <i>n</i> grows through the series above — and only
+  there, since at the narrow floor slice the same estimator's coverage
+  climbs with <i>n</i>. It scores a fitted rule whose excess over the
+  optimum decays
+  with the probability that some fiber's empirical majority flips,
+  while its reported precision decays as 1/√<i>n</i>. A tightening
+  interval reads as improving evidence, and here it is not.</p>
+  <p>Both reappear with no ring anywhere. The same estimators through
+  the same code, on <i>M</i> bare Bernoulli fibers, reproduce the
+  ratio at −1.52 to −1.62 and the falling series at 0.88, 0.68, 0.23,
+  0.25. A dial the ring cannot turn — the distance <i>δ</i> of
+  <i>η</i> from 1/2 — locates the interval failure in the band
+  2<i>δ</i>√(<i>n</i>/<i>M</i>) ≲ 1: at <i>n</i> = 8000 one
+  sixty-fourth of distance from 1/2 already raises coverage from 0.00
+  to 0.85, and one thirty-second restores it outright. So what a
+  designed family contributes is not the failure but the
+  <b>placement</b>: its floor cells sit at <i>η</i> = 1/2 exactly, on
+  a band about that wide, with the truth a rational number.
+  Calibrated position on a thin edge, and not a cause.</p>
+  <p class="scope"><b>Scope.</b> The rule is the ring-free
+  reappearance: derived by hand off the ring and confirmed at the
+  grid's own
+  <i>M</i>, <i>η</i> and <i>n</i>. The two failure mechanisms are
+  observations — closed forms derived asymptotically and confirmed at
+  four sample sizes. The falling series is stated as a direction and
+  not as rates: it survives all three tie-breaks of the fitted rule's
+  arbitrary empty-fiber choice, the two harsher ones falling further,
+  while two random streams of one setting differ by 0.12, which is the
+  scale of forty-trial coverage noise. The band's location was a
+  margin guess in the design and broke: the crossing sits nearer 1/2
+  than √(<i>M</i>/<i>n</i>). 0-1 score, uniform prior. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_ruler.py"><code>explore_ceiling_ruler.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_boundary.py"><code>explore_ruler_boundary.py</code></a></p>
+</article>
+
+<article class="claim" id="one-bracket">
+  <div class="claim-head"><span class="claim-name">One bracket,
+  correct and empty</span> <span class="tier">rule</span></div>
+  <p>The two bracket estimators are not two bounds. Once <i>n</i> ≫
+  <i>M</i> every test point has an exact residue match, so the
+  1-nearest-neighbour rule returns a random same-fiber training label
+  and its error tends to Σ<sub><i>r</i></sub>
+  <i>P</i>(<i>r</i>)·2<i>η<sub>r</sub></i>(1−<i>η<sub>r</sub></i>) —
+  1/2, 24/49 and 60/121 on the slices run, with measured gaps at most
+  0.0007 at the largest <i>n</i>. The Henze–Penrose divergence the
+  spanning-tree estimator targets has the exact value
+  <i>E</i>[(2<i>η</i>−1)²] here, and (1 − that)/2 is the same quantity
+  again, so the two are one bracket read at two statistics. A second
+  estimator family therefore buys a different way of estimating the
+  bound and never a second opinion on it. Its equality case is this
+  family's own window: the lower endpoint's shortfall is the Jensen
+  gap of |2<i>η<sub>r</sub></i>−1|, which vanishes exactly when that
+  is constant across fibers — when <i>t</i> is divisible by
+  <i>M</i>, or inside
+  the odd-<i>c</i> middle window. Off the window the endpoint is
+  strictly conservative, by at most 0.0178 across the thirty
+  thresholds run.</p>
+  <p>That one bound is also too weak to certify this family's own
+  lift, and that too is a fact about the bound rather than about
+  either estimator reading it. Read exactly,
+  with no sampling anywhere, the bracket excludes the no-evidence
+  value at 2 of the 14 in-window thresholds and contains it at the
+  other 12; add the sampling half-bar at <i>n</i> = 8000 and it
+  excludes it at none. The family's own exact lift there is
+  7/105, and the sampled divergence bracket is still 0.0838 wide at
+  the largest <i>n</i>. A bracket can be correct at every slice and
+  unable to
+  certify that the evidence is worth anything, with the emptiness
+  located in the bound rather than in the sample.</p>
+  <p class="scope"><b>Scope.</b> The identity of the two brackets and
+  the tightness set are derived by hand and confirmed in exact
+  rational arithmetic on all 35 (slice, threshold) pairs the file
+  touches, and both are the rule the badge states; the certification
+  counts are observations, computed on the 30-threshold profile of the
+  <i>N</i> = 105 cell at <i>n</i> = 8000, forty trials.
+  Its high coverage has two independent sources and neither is
+  accuracy: the truth sits at the exact bracket's lower endpoint on
+  all five slices, so containing it costs nothing at the top, and the
+  stated bar is binomial where a tree's edges are dependent, which
+  overstates the statistic's real dispersion by 1.75 to 2.75 times at
+  every slice and sample size. Two estimator families, 0-1 score,
+  uniform prior. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_ruler.py"><code>explore_ceiling_ruler.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_divergence.py"><code>explore_ruler_divergence.py</code></a></p>
+</article>
+
+<article class="claim" id="unidentified-tree">
+  <div class="claim-head"><span class="claim-name">The tree the data
+  does not fix</span> <span class="tier">observation</span></div>
+  <p>A spanning-tree estimator needs a distance, and the only one the
+  evidence offers — how many shown residues two points differ in —
+  puts every pair of points in the same fiber at distance zero. So any
+  spanning tree of a fiber's points is a genuine minimum spanning
+  tree, and the statistic is not a function of the sample.
+  Fed the rows in class order — what concatenating two label arrays
+  hands a deterministic routine — each fiber contributes exactly one
+  edge joining opposite labels, so the statistic is a function of the
+  fiber count alone: the cross-label fraction reads 0.0005 at
+  <i>n</i> = 32,000 at all four slices with <i>M</i> = 15, with
+  across-trial spread 0.0000, identically where the truth is 3/7 and
+  where it is 1/2, and the bracket it maps to — [0.0001, 0.0007] —
+  covers at 0.00. It converges on the assertion that the labels are
+  perfectly separable. Shuffling the rows, which changes no datum,
+  moves the same statistic to 0.4897.</p>
+  <p>Those two are not the extremes. A fiber's zero-weight edges admit
+  a spanning tree of the complete bipartite graph between its two
+  label classes whenever both are present, and every edge of that tree
+  joins opposite labels, so across genuine minimum spanning trees of
+  one sample the reported bracket runs from [0, 0] to [1/2, 1/2]. The
+  <b>identified set</b> — the values the data leaves possible once the
+  estimator's arbitrary choices are allowed to range — is therefore
+  the whole interval a binary Bayes error can occupy. That is not a
+  perturbed answer but the absence of one, and
+  it is a question of whether the estimator is defined on data of this
+  shape rather than of how well it does. What the repair needs is not
+  randomness but a tree whose shape does not consult the labels; the
+  labels are then exchangeable across its edges and the expected
+  cross-label count is the population quantity whatever the tree, so a
+  deterministic order is fine and class order is not. An exact
+  Euclidean minimum spanning tree on a jittered embedding, built by
+  geometry and blind to labels, agrees with the shuffle — 233.1
+  same-fiber cross edges against 239.8 at <i>n</i> = 500.</p>
+  <p class="scope"><b>Scope.</b> Computed on the five slices at four
+  sample sizes, forty trials, with the mechanism and the identified
+  set derived rather than measured; the label-blind control is a
+  single configuration at <i>n</i> = 500, its agreement inside a
+  conservative Poisson bound. Categorical evidence is what forces the
+  non-identification: the residues carry no order and no size, so
+  every within-fiber distance is zero and the tree has nothing to
+  minimize. 0-1 score, uniform prior. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_divergence.py"><code>explore_ruler_divergence.py</code></a></p>
+</article>
+
+<p>Each of these is invisible from inside the estimator that carries
+it, and none of them needs an unusual estimator: they are what four
+standard procedures do on a family whose answer happens to be known.
+What the design buys is not a better estimate but the position of the
+truth: chosen rather than found, exact, and not itself an estimate.
+Read across the four, the failures share no mechanism — one prices
+sampling noise and omits its own bias at the same rate, one reports a
+precision that decays faster than its fitted rule's excess over the
+optimum, one is not identified at all — which leaves open what, if
+anything, they do share.</p>
+
+<article class="claim" id="uncounted-term">
+  <div class="claim-head"><span class="claim-name">The uncounted
+  term</span> <span class="tier">observation</span></div>
+  <p>What fails is the <b>statement</b> rather than the estimator. A
+  stated interval is computed from the estimator's own model, so it
+  can price only error that model has a coordinate for; error outside
+  the model is <b>uncounted</b> and reaches the comparison against
+  truth without ever entering the arithmetic. Two properties follow,
+  both measured against one exact target — the same Bayes error, held
+  as a rational number — across six arms differing only in what their
+  statement knows.</p>
+  <p>The first is an <em>asymmetry</em>. Call a statement a
+  <b>bound</b> when its uncounted term has a known sign: fit the
+  majority rule on half the draw, score it on the other half, state
+  the one-sided upper confidence limit, and the slack carried is the
+  rule's excess over the optimum, which cannot be negative. No dial
+  setting made such a statement overconfident — coverage 0.963–0.988
+  against its own one-sided nominal 0.975 across eight cells,
+  including a knife world with every <i>η<sub>r</sub></i> at 1/2,
+  where a <b>fit</b> statement on that same world covers 0.015–0.035.
+  What is forced is that one direction and not its mirror. A fit is
+  merely the only kind that <em>can</em> fail downward, and nothing
+  makes it: the knife fit's own half-bar is 3.14 times
+  <i>σ</i>, the true spread of its estimate across trials — too wide,
+  not too narrow. The usual corollary is false too. That bound
+  excluded the no-evidence value in every trial on the clear world, so
+  conservatism is forced by the sign and emptiness is not: what the
+  two brackets above show is their own slack.</p>
+  <p>The second decides whether more data cures it, and it is one
+  ratio — the uncounted term <i>b</i> against the half-bar <i>h</i>
+  the statement does count. Three regimes, on the same plug-in code
+  and the same target throughout. Where the model contains the truth,
+  <i>b</i>/<i>h</i> falls 0.032 to 0.002 and coverage sits at nominal:
+  0.955, 0.945, 0.932, 0.953. At the knife the two shrink at one rate,
+  the ratio holds at 1.573–1.595, and coverage is flat at 0.035,
+  0.015, 0.025, 0.035 — sample size irrelevant. And where the model
+  cannot hold the truth — the fifteen cells pooled into three groups,
+  each carrying four rates on one side of 1/2 and one just past it —
+  the ratio grows 0.259 to 1.781 while coverage falls 0.915, 0.875,
+  0.555, 0.045, the bias sitting on the exact pooling gap 7/750 from
+  the second sample size on. Nothing there degrades except the claim.
+  The crossing has a location: coverage passes 1/2 where the uncounted
+  term equals the stated half-bar, which holds wherever that half-bar
+  outruns <i>σ</i>, as it does by about a factor of two at every fit
+  arm run.</p>
+  <p>The two are one fact. Across six arms, both statement kinds,
+  three worlds and four sample sizes, measured coverage is what the
+  pair of ratios <i>b</i>/<i>σ</i> and <i>h</i>/<i>σ</i> predicts and
+  nothing else enters — largest deviation 0.0133, mean 0.0049 over
+  twenty-eight cells. Mechanisms that read as distinct act only by
+  moving those two numbers, and the direction a statement fails in is
+  set by which region of that plane its construction can reach.</p>
+  <p class="scope"><b>Scope.</b> Observation throughout, at 400 trials
+  per cell and <i>n</i> = 500 to 32,000 over <i>M</i> = 15 uniform
+  cells with exact rational targets. Each arm's regime follows from
+  its construction; its trajectory does not. The two-ratio formula
+  follows from approximate normality of the estimate, and what is
+  measured is that the approximation holds at every cell. A control is
+  read before any of it: the knife arm reproduces the constant derived
+  above, √(2<i>M</i>/π)/1.96 = 1.5766, at 1.573–1.595 — a differently
+  written estimator on a differently built world landing on the same
+  closed form. The third regime is read on the small pooling gap
+  because a large one leaves no trajectory to see: the same pooling on
+  groups that straddle 1/2 gives a gap twenty times wider and coverage
+  0.000 at every <i>n</i>. Two of the four overconfidence mechanisms
+  on record here are instantiated — the equal-rate omitted bias and a
+  model class that cannot hold the truth — plus the bound kind; two
+  more were not run. Every arm's bias has a known cause, so nothing is
+  said about whether an uncounted term is detectable from inside.
+  0-1 score, uniform prior. Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_uncounted_term.py"><code>explore_uncounted_term.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
