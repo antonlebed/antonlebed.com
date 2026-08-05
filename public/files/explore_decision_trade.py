@@ -194,15 +194,16 @@ F4 WHAT THE ANSWER CLOSES AND WHAT IT OPENS. (a) The
    never needed its budget: what a conserved budget manufactures
    is not the trade but its ASSEMBLY into a full local minimum.
    (c) The sharpened open is exactly that assembly. An
-   unresourced stall would have to hold the LATE-WINNER end of a
-   trade against every neighbor it beats non-pointwise — that
-   ingredient is now proven abundant — yet by the prior census at
+   unresourced stall must beat every neighbor in total, and
+   wherever the neighbor wins the first differing counted step
+   that beat IS a trade with the stall at the late-winner end —
+   the ingredient now proven abundant — yet by the prior census at
    overlapping scope (zero stalls, zero adjacent value ties,
    explore_stall_unresourced.py) no stall forms: every trade's
    late winner still finds a strictly improving move elsewhere in
    its neighborhood. Whether a world can deny it one — stack
-   trades until a single policy wins its whole neighborhood late
-   — is the assembly question, a different species from the one
+   trades until a single policy beats its whole neighborhood —
+   is the assembly question, a different species from the one
    this rig closes.
 
 THE VERDICT. A preference decision alone, with no conserved
