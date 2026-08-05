@@ -357,6 +357,13 @@ F6  THE ANSWER IS NO, AND THE FAILURE IS ANTI-MONOTONE IN THE DAMAGE
     be REWEIGHTED into the functional's own coordinates --- testing not
     whether the model is wrong but whether it is wrong where the target
     reads it --- is the live repair this leaves.
+
+    [BOTH OPENS ARE SETTLED by explore_uncounted_corner.py, which
+    occupies the corner with a data-thinning shrinkage weight rather
+    than a growing model class (correcting this paragraph's guess):
+    the corner splits the subsampling family --- the bootstrap blind
+    by an exact identity, the drift's power RISING with n --- and the
+    reweighted test works, detecting the term and not the model.]
 """
 
 import os
