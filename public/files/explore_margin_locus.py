@@ -134,7 +134,11 @@ F3 THE EXACT LAW EXTENDS [rule, exhaustive at the same grid; since
    (every radix-2 cell reads 2 out to rho = 5). P-C held.
 
 F4 THE LOCUS IS THE WEDGE, NOT THE SLACK, AND K2 FIRED [rule,
-   exhaustive at the same grid]. The margin overpredicts at 31
+   exhaustive at the same grid; since PROVED at the criterion's
+   scope for addition — never underpredicting (F5's half included)
+   and one digit exactly on the wedge, explore_margin_wedge.py —
+   this census surviving as the check on that chain; the scaling
+   walk of F6 stays a scanned rule]. The margin overpredicts at 31
    cells, always by exactly one digit, and is exact at 183; the miss
    set is EXACTLY the predicted wedge {law grants 1 and
    b * rho < 2W}, matched at 214/214 cells. The rho census of the

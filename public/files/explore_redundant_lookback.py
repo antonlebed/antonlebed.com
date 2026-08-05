@@ -192,7 +192,10 @@ F6 THE SIBLING BOUND CARRIES THE SAME DEFECT AT THE SAME CLASS
    (Settled downstream: over asymmetric contiguous digit sets the
    loss locus is a wedge in radix and slack, not a slack value, and
    the exact law gains an endpoint clause at rho = 2 --
-   explore_margin_locus.py.)
+   explore_margin_locus.py; the margin story is since PROVED at the
+   criterion's scope for addition -- never underpredicting, one
+   digit exactly on the wedge, explore_margin_wedge.py -- while the
+   scaling bound's walk of the same wedge stays a scanned rule.)
 
 RUN RECORD: pure Python, integers only, no imports beyond the
 standard library; the largest state set is a few hundred residues.
