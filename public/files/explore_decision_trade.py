@@ -177,8 +177,9 @@ F3 THE FLAGSHIP WITNESS, hand-verified. World head (2,) period
    for three steps (17/48825 three times) while the (0,1) side's
    grid subdivides through (149/261348916 three times, 6.415 ln
    finer per step); the profiles re-merge at step 12 and stay
-   identical to the horizon. Net comeback 15.9995 ln as printed
-   (3 * 6.415 - 3.244). Early loss, late gain, no conserved quantity
+   identical to the horizon. Net comeback 15.9995 ln as printed —
+   three collections against one payment. Early loss, late gain,
+   no conserved quantity
    anywhere — the mechanism is L3's transient misalignment
    verbatim: the early winner's own subdivision point sits inside
    the shrinking references and its counted lengths freeze. A
