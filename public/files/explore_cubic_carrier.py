@@ -260,14 +260,16 @@ F5 THE SUPPLY BITES ONLY WHILE THE CONSUMER IS SHALLOW, AND THE CARRIER
    whatever the consumer is, and only a carrier supplying k >= 2 could
    buy a ramified consumer any more room.
    THE STANDARD LADDER IS THE SCOPE OF THAT, and it is narrower than the
-   sentence reads: a HEADED consumer climbs slower than the standard
-   count, so its self-supply is ceil((a-1-x)/e_P) with x the head's depth
-   shift, and the window is a <= e_P*(k-1) + 1 + x -- depth 2 at an
-   unramified consumer over 2 and 3 in Z[i], where this file's own
-   consumers over 7 are headless and sit at the single depth as stated
-   (explore_carrier_window.py, which also prices k >= 2: cheap at l = 2
-   and not at any l this file's degree-3 route can reach). Every reading
-   below is a k = 1 reading at a headless consumer and is unaffected.
+   sentence reads: the window above is the HEADLESS one, exact at a
+   consumer whose column holds no extra flat step and departing from
+   k = 2 on at one that does -- wider at some, NARROWER at others, with
+   no single correction, since a head's transient makes a column climb
+   fast at the bottom before it flattens (explore_carrier_window.py,
+   which also prices k >= 2: cheap at l = 2 and at no l this file's
+   degree-3 route can reach). The k = 1 reading is untouched -- the
+   window is the single depth 1 at every consumer measured, headed or
+   not -- and this file's own consumers over 7 are headless anyway, so
+   every reading below stands as stated.
    The window does not merely
    happen to hold: the raised door prices the consumer OUT of the menu
    -- a door of 2 costs its norm SQUARED -- so the walk stops moving it
