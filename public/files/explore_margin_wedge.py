@@ -63,8 +63,8 @@ exactly one digit, every time.
 THE DESIGN, frozen before the engine. The rig checks every object
 the derivation constructs, against pure arithmetic on a wide grid
 and against the residual safety game's fixed points on the census
-grid (the game engine is explore_lookahead_proof.py's, carried
-verbatim).
+grid (the game engine is explore_lookahead_proof.py's fixed-point
+iteration, its helpers inlined).
 
 P-A The controls come back: (2,1) at c_min = 2 and (10,6) at
     c_min = 1 through this code path, and the census grid
