@@ -167,8 +167,8 @@ F2 THE SPECIES ANSWERS YES, AND THE TRADE IS UBIQUITOUS — K2, at
    IDENTICAL references at every step and the entire divergence
    is the route bits: preference alone, nothing else different.
    C2's guess was right on existence, too narrow on locus: trades
-   are not a route-edge specialty but the generic state of a
-   divergent edge (about 1 in 13).
+   are not a route-edge specialty but routine on divergent edges
+   of every kind, about 1 in 13.
 
 F3 THE FLAGSHIP WITNESS, hand-verified. World head (2,) period
    (1,4,4) under sq, horizon 16, route diagonal (0,1)-(1,0) at
@@ -177,8 +177,8 @@ F3 THE FLAGSHIP WITNESS, hand-verified. World head (2,) period
    for three steps (17/48825 three times) while the (0,1) side's
    grid subdivides through (149/261348916 three times, 6.415 ln
    finer per step); the profiles re-merge at step 12 and stay
-   identical to the horizon. Net comeback 3 * 6.415 - 3.244 =
-   16.000 ln. Early loss, late gain, no conserved quantity
+   identical to the horizon. Net comeback 15.9995 ln as printed
+   (3 * 6.415 - 3.244). Early loss, late gain, no conserved quantity
    anywhere — the mechanism is L3's transient misalignment
    verbatim: the early winner's own subdivision point sits inside
    the shrinking references and its counted lengths freeze. A

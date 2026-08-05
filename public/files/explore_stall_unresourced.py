@@ -273,7 +273,10 @@ F5 THE SHARPENED OBSTRUCTION (what the cell now costs to settle).
    a preference decision redirects the ratchet without conserving
    anything. What a proof of the cell must supply is exactly what
    this rig could not: an argument that a decision cannot buy a
-   late gain with an early loss.
+   late gain with an early loss. (Since settled: no such argument
+   exists — explore_decision_trade.py exhibits the trade in exact
+   arithmetic, ubiquitously, and the surviving open is why trades
+   never assemble into a stall.)
 
 THE VERDICT. The unresourced off-spine cell is NOT settled as a
 theorem, and it is no longer a shrug. It is stall-free at every
