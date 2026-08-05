@@ -91,7 +91,13 @@ L3 (where the general theorem must be fought). Off the spine the
    point is preference-dependent (the single-reference hypothesis
    of the bottom lemma is TIGHT — the policy-level witness in
    explore_bootstrap_cures.py), so no L1-style
-   containment argument exists; under resources the landscape is
+   containment argument exists (SUPERSEDED: one exists on
+   the DECISION-FREE sub-family — where no commit-loop iteration
+   was offered both candidates, containment holds along a
+   patience-down move with zero exceptions in 188,928 pairs,
+   explore_stall_unresourced.py. What survives is the scope this
+   rig used it in: no containment argument covering the off-spine
+   space AT LARGE); under resources the landscape is
    measurably path-dependent (route-locking, the start-delay law).
    Any counterexample to H1/H2 lives at mixed patience, under
    resources, or both.
