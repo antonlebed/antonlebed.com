@@ -251,7 +251,9 @@ itself freezes at odd a stays underived. And the failed trivial
 class is its own specimen: the input family that lands ON the
 boundary is exactly the max-string family one level down,
 non-convergent by the same parity mechanism — the witness's
-mechanism and its failure mode are one fact.
+mechanism and its failure mode are one fact. (Class membership
+since certified at every window here: explore_class_criterion.py,
+one member of each parity plus the state period.)
 """
 
 import os

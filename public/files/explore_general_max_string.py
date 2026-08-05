@@ -184,7 +184,12 @@ cell is only CLASS EXISTENCE -- a both-parity nontrivial residue
 class of (q_K + u q_{K-r}, p_K + u p_{K-r}) mod m -- whose knob
 budget is arithmetic per window (V1 m=5 needed r = 3), and whose
 general proof is the storey's remaining open beside the odd-a
-comb freeze.
+comb freeze. (Since settled: explore_class_criterion.py certifies
+a class at every cell here -- one member of each parity plus the
+state period -- and proves existence is NOT general: at a
+constant-a window and odd prime m a class exists iff the rank of
+apparition z(m) = 2 mod 4, and the golden window is provably
+empty at m = 3, 5, 7.)
 """
 
 import sys
