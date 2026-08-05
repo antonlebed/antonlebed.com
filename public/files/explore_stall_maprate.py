@@ -191,9 +191,10 @@ F5 SCOPE CAPS, named: the E3 budget (40,000) exhausted before
 THE VERDICT. K3 - the widened design space still refuses:
 observation (adversarial search at stated scope, exact
 arithmetic). No unresourced id/dbl stall exists at digits to 256
-and horizons 9-20 across ~3,000 census landscapes and 70,000
-forge evaluations, while the same detector reproduces all three
-sq specimens. The map-rate threshold reading strengthens with a
+and horizons 9-20 across 2,764 distinct census landscapes (3,086
+runs; E5 re-censuses the h=10 cells) and 70,000 forge
+evaluations, while the same detector reproduces all three sq
+specimens. The map-rate threshold reading strengthens with a
 measured shape: a slow map's best stall margin walks to zero
 like 1/(digit cap) and never crosses, so the named target is
 the derivation - a proof that a rate-preserving map bounds the
