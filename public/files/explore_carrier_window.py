@@ -201,9 +201,11 @@ FINDINGS.
      off it. Scored against the window computed as max{a : self-supply
      < k} from the measured column, that closed form is EXACT at every
      headless consumer read -- Z at 3 and at 7, the inert place over 2,
-     and the ramified place of Q(sqrt3) -- at every k in range, 16 of 16
-     readings. At a HEADED consumer it is wrong, and that is the finding:
-     the formula describes the column a place has when it has no head.
+     and the ramified place of Q(sqrt3) -- at every k in range, 14 of 14
+     readings, a reading whose window runs off the end of its own brute
+     column being CENSORED rather than scored. At a HEADED consumer it
+     is wrong, and that is the finding: the formula describes the column
+     a place has when it has no head.
 
   F4 BUT THE HEAD DOES NOT SIMPLY WIDEN THE WINDOW -- IT ERRS IN BOTH
      DIRECTIONS, AND NOT AT ALL AT k = 1. Three readings, none of them
@@ -216,8 +218,9 @@ FINDINGS.
            -- SURVIVES intact, and survives at headed places too.
        (b) From k = 2 a headed consumer departs, and at Z's place over 2
            and the split place of Q(sqrt17) it is WIDER by exactly 1 at
-           k = 2, 3, 4; at Q(sqrt-3) wider by 1 at k = 2 and 3 and back
-           to EQUAL at k = 4.
+           k = 2, 3, 4; at Q(sqrt-3) wider by 1 at k = 2 and 3, its k = 4
+           reading censored. Of 15 scored readings at headed consumers
+           only the four at k = 1 match.
        (c) At Q(i)'s ramified place over 2 the departure runs the other
            way first: NARROWER by 1 at k = 2 (window 2 against a filed 3)
            before running wider by 2 at k = 3 and 4. A head can COST a
@@ -277,14 +280,24 @@ column is not scored. The asymptotic fit is reported separately and is
 not what any window claim rests on.
 
 RUN RECORD. One process, 0.3s wall, peak working set 12.8 MB against the
-512 MB default (memwatch). 15 asserted checks pass, S1 first: the odd
-rational columns read the standard count exactly, and the split place
-over 7 in Q(sqrt2) reproduces Z's column at 7 term for term, which is
-what says the lattice machinery reads a PLACE. The first run's asserts
-also caught a mis-scoped control of my own -- it quoted the corpus's 29
-as the cheapest v_7 = 1 supplier, which is the degree <= 2 figure, where
-this table is unbounded in degree and correctly prints the norm-8
-degree-3 carrier; both are now checked.
+512 MB default (memwatch). 170 asserted checks pass, the controls first.
+S1 is the agreement control: the odd rational columns read the standard
+count exactly, and the split place over 7 in Q(sqrt2) reproduces Z's
+column at 7 term for term, which is what says the lattice machinery reads
+a PLACE. S1 can only reach the shape whose column is not in question, so
+the ramified and inert paths -- where the finding lives -- carry a
+STRUCTURAL control instead, asserted at every depth of every quadratic
+column: the residue ring has index N(P)^a, its unit group has order
+N(P)^a - N(P)^(a-1), and the exponent divides that order. A differential
+control sits beside them, Q(sqrt3) against Q(sqrt-3), identical in
+(l, e, f) and differing only in mu_l.
+
+Three of this file's own errors were caught by its asserts or by
+recomputing a printed number rather than by reading the prose, and each is
+recorded where it bit: a control that quoted a degree-bounded figure
+against a degree-unbounded table (S2), a window derived from an asymptotic
+fit (F5), and a window scored at the end of its own column, which is
+censored rather than measured (S5).
 """
 
 import os
@@ -430,7 +443,8 @@ class QuadOrder(object):
         """Places over ell as (e, f, lattice-basis of P). The lattice is a
         2x2 column pair [(a,b),(c,e)] of Z-coordinates on {1, w}, read from
         the factorization of x^2 - t*x - n mod ell."""
-        roots = [r for r in range(ell) if (r * r - self.t * r - self.n) % ell == 0]
+        roots = [r for r in range(ell)
+                 if (r * r - self.t * r - self.n) % ell == 0]
         if not roots:
             return [(1, 2, self.hnf([(ell, 0), (0, ell)]))]
         if len(roots) == 2:
@@ -532,10 +546,28 @@ def column_quad(O, ell, e_want, f_want, cap=INDEX_CAP):
         reps = [(x, y) for x in range(h11) for y in range(h22)]
         units = [u for u in reps if not QuadOrder.in_lattice(u, P)]
         one = QuadOrder.reduce((1, 0), Pa)
-        col.append(lam_of_group(
+        lam = lam_of_group(
             units,
             lambda u, v, L=Pa: QuadOrder.reduce(O.mul(u, v), L),
-            one))
+            one)
+        # STRUCTURAL CONTROL on the ramified and inert paths, which S1
+        # cannot reach: S1 only checks the machinery where it agrees with
+        # Z, and that is the one shape whose column is not in question.
+        # Here the residue ring must have index N(P)^a, its unit group must
+        # have order N(P)^a - N(P)^(a-1), and the exponent must divide that
+        # order -- three facts a lattice bug breaks and a correct one
+        # cannot.
+        npl = QuadOrder.index(P)
+        ok(QuadOrder.index(Pa) == npl ** a,
+           "P^%d has index %d, not N(P)^a = %d"
+           % (a, QuadOrder.index(Pa), npl ** a))
+        ok(len(units) == npl ** a - npl ** (a - 1),
+           "unit count at depth %d is %d, not %d"
+           % (a, len(units), npl ** a - npl ** (a - 1)))
+        ok((npl ** a - npl ** (a - 1)) % lam == 0,
+           "exponent %d does not divide the unit group order at depth %d"
+           % (lam, a))
+        col.append(lam)
         a += 1
         Pa = QuadOrder.lat_mul(Pa, P, O)
     return col
@@ -629,15 +661,18 @@ def s1_control():
 
 
 def s2_floor():
-    section("S2  THE PRICE -- least carrier norm supplying v_l = k, any degree")
-    print("  floor is l^k + 1; belt is norm <= %d (measured, not a bound)" % BELT)
+    section("S2  THE PRICE -- least carrier norm supplying v_l = k,"
+            " any degree")
+    print("  floor is l^k + 1; belt is norm <= %d (measured, not a bound)"
+          % BELT)
     print("   l    k   least q      p^f      floor   attains  in belt")
     rows = {}
     for ell in [q for q in range(2, L_MAX) if is_prime(q)]:
         for k in range(1, K_MAX + 1):
             got = least_carrier_norm(ell, k)
             if got is None:
-                print("  %2d  %3d      -- none under the scan cap --" % (ell, k))
+                print("  %2d  %3d      -- none under the scan cap --"
+                      % (ell, k))
                 continue
             q, p, f = got
             floor = ell ** k + 1
@@ -658,7 +693,8 @@ def s2_floor():
     print("  cheapest v_7 = 1 supplier at residue degree <= 2: norm %d"
           " (the corpus's undercut baseline)" % lo)
     ok(lo == 29, "the degree <= 2 baseline for l=7 is not the corpus's 29")
-    walk2 = [k for k in range(1, K_MAX + 1) if rows.get((2, k), 10 ** 9) <= BELT]
+    walk2 = [k for k in range(1, K_MAX + 1)
+             if rows.get((2, k), 10 ** 9) <= BELT]
     print("  k reachable inside the belt at l=2: %s" % walk2)
     for ell in [q for q in range(3, L_MAX) if is_prime(q)]:
         ws = [k for k in range(1, K_MAX + 1)
@@ -717,7 +753,8 @@ def s4_quadratic_columns():
 
 def s5_window(rows, rat, quad):
     section("S5  THE WINDOW REPRICED -- self-supply, excess, and the depth")
-    print("  filed:     self-supply = ceil((a-1)/e_P),  window a <= e_P(k-1)+1")
+    print("  filed:     self-supply = ceil((a-1)/e_P),"
+          "  window a <= e_P(k-1)+1")
     print("  corrected: self-supply = ceil((a-1-x_P)/e_P),")
     print("             window a <= e_P(k-1) + 1 + x_P      (P5 as frozen,")
     print("             which read the shift as e_P*x_P in VALUE, is REFUTED:")
@@ -762,21 +799,39 @@ def s5_window(rows, rat, quad):
               ("Z at 7: e=1 f=1, headless", rat[7][0], 7, 1)]
     places += [(tag, col, ell, e)
                for (d, ell, e, f, tag, col, vs, x, hp) in quad]
-    verdicts = {}
+    scored = {"headless": [0, 0], "headed": [0, 0]}   # [matching, total]
     for (tag, col, ell, e) in places:
+        headed = "headless" not in tag and (
+            excess_of(col, ell, e)[0] or 0) > 0
         for k in range(1, 5):
             filed = e * (k - 1) + 1
             if filed > len(col):
                 continue
             tw = true_window(col, ell, k)
+            if tw == len(col):
+                # the window ran off the end of the brute: it is >= tw, not
+                # = tw, and a censored reading is not a reading. Scoring one
+                # as "same" would credit the closed form with an agreement
+                # nothing measured.
+                print("  %-36s  %d  >=%2d  %5d  CENSORED (window off the"
+                      " end of the column)" % (tag, k, tw, filed))
+                continue
+            verd = ("same" if tw == filed else
+                    "WIDER  +%d" % (tw - filed) if tw > filed else
+                    "NARROWER %d" % (tw - filed))
+            bucket = scored["headed" if headed else "headless"]
+            bucket[1] += 1
             if tw == filed:
-                verd = "same"
-            elif tw > filed:
-                verd = "WIDER  +%d" % (tw - filed)
-            else:
-                verd = "NARROWER %d" % (tw - filed)
-            verdicts.setdefault(tag, []).append((k, tw, filed, verd))
+                bucket[0] += 1
             print("  %-36s  %d  %4d  %5d  %s" % (tag, k, tw, filed, verd))
+    print("  headless: %d of %d readings match the filed form"
+          % tuple(scored["headless"]))
+    print("  headed:   %d of %d readings match the filed form"
+          % tuple(scored["headed"]))
+    ok(scored["headless"][0] == scored["headless"][1],
+       "a headless consumer departed from the filed window")
+    ok(scored["headed"][1] > 0 and scored["headed"][0] < scored["headed"][1],
+       "no headed consumer departed -- the finding has evaporated")
     # the two readings the closed form gets wrong, asserted so they cannot
     # quietly come back: k = 1 never widens, and a head can NARROW.
     for (tag, col, ell, e) in places:
