@@ -183,7 +183,14 @@ F5 THE DESIGNED STALL AT THE SCANNED SCOPE. At horizon 16 under
    the counted window at the cut), stall class the single policy
    sigma = (0, 1), patience (2, 0), margins +0.2839 to +12.5761
    over five finite neighbor classes (hand-check: stall ln total
-   -82.87 against the nearest neighbor's -82.58). So
+   -82.87 against the nearest neighbor's -82.58). Exactly one of
+   its five edges is a trade — the patience-down class wins the
+   first counted step by 1/114 against 1/106 and loses the total —
+   and the stall wins the other four at their first differing
+   step (cross-multiplied from the printed profiles), so the
+   designed stall holds one late win and beats the rest outright,
+   where the horizon-12 flagship holds every finite edge as a
+   trade. So
    stall-freeness at ANY horizon is a battery property, not a
    cell property. The id and dbl cells' climbs all end at
    negative local maxima (best -0.7388 ln at horizon 12, -1.0997
