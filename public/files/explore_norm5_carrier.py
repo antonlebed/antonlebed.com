@@ -1111,8 +1111,8 @@ def s6_sweep(arms, cap=SWEEP_CAP):
         cls = sorted({sq_class(r[0]) for r in per_arm["C ramified"]
                       if r[0] % 8 == m})
         n = sum(1 for r in per_arm["C ramified"] if r[0] % 8 == m)
-        print("    d = %d mod 8:  door(s) %s   (%d fields, %d completion(s) %s)"
-              % (m, sorted(by_res[m]), n, len(cls), cls))
+        print("    d = %d mod 8:  door(s) %s   (%d fields, %d completion(s)"
+              " %s)" % (m, sorted(by_res[m]), n, len(cls), cls))
         ok(len(by_res[m]) == 1,
            "d = %d mod 8 gives more than one door: %s" % (m, by_res[m]))
     for c in sorted(by_cls):
