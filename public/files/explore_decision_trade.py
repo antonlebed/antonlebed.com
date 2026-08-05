@@ -213,7 +213,11 @@ existence by exact-arithmetic witness, re-derived by hand (F3),
 with 10,174 instances at the stated scope. The abundance figures
 and the edge-kind census are observations at that scope. The
 unresourced cell's stall question stays open and is now the
-assembly question (F4c).
+assembly question (F4c). (Since settled YES:
+explore_stall_assembly.py exhibits unresourced strict stalls —
+one trade window held at the horizon cut — in plain worlds at
+horizons 11-12 and by three designed bursts at horizon 16; what
+survives of this rig's desert reading is its battery scope.)
 
 Run record. The first run exited 0 in ~15 s with all controls
 green and 10,174 trades. Post-run edits, no prediction band
