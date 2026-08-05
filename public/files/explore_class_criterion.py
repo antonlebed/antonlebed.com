@@ -166,6 +166,9 @@ MEASURED class into a proved one with a three-number certificate
 now a theorem at all 24 arbitrary-period cells and all 6 witness
 cells. The remaining opens move up a level: the odd-a comb freeze,
 and whether z(m) = 2 mod 4 has a density statement worth filing.
+(Since settled, both: explore_odd_a_freeze.py proves the freeze —
+the absorption lemma — and explore_apparition_density.py files
+the density.)
 """
 
 import sys
