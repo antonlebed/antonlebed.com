@@ -171,8 +171,9 @@ def repunit(b, c):
 
 
 def win_set(b, am, ap, c):
-    """Greatest fixed point of the residual safety game (the engine of
-    explore_lookahead_proof.py, carried verbatim)."""
+    """Greatest fixed point of the residual safety game (the
+    fixed-point iteration of explore_lookahead_proof.py, with the
+    injected set built inline)."""
     S = list(range(-2 * am, 2 * ap + 1))
     lo, hi = -am * repunit(b, c), ap * repunit(b, c)
     win = set(range(lo, hi + 1))
