@@ -155,7 +155,8 @@ F2 THE WIDENED CENSUS REFUSES: zero stalls in 2,108 id/dbl
    C2's guess paid - the best id/dbl margin rises above the old
    -0.73 plateau - yet every cell stays negative.
 
-F3 THE FRONTIER: SUPREMUM ZERO, NOT ATTAINED, AT RATE 1/D. The
+F3 THE FRONTIER: THE MARGIN WALKS TO ZERO AT RATE 1/D AND NEVER
+   CROSSES. The
    forge's best margins at the shortest horizons sit within
    thousandths of stalling and scale inversely with the digit
    cap D: at h=10 dbl the same climb shape gives -0.007752 ln at
