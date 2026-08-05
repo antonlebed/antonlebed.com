@@ -195,62 +195,86 @@ FINDINGS.
      phenomenon (that reading stands); the WIDENING is an l = 2 one.
 
   F3 THE FILED WINDOW FORMULA IS THE HEADLESS FORMULA (rule in range;
-     brute columns at 11 places over 6 rational primes, S3 + S4). The
-     corpus files the consumer's self-supply as ceil((a-1)/e_P), from
-     which its window a <= e_P*(k-1) + 1 and its sharpest reading follow.
-     Measured, the self-supply is ceil((a-1-x_P)/e_P), with x_P the
-     column's DEPTH EXCESS: 0 at every headless place read and positive
-     at every headed one. So the window is
-         a <= e_P*(k-1) + 1 + x_P,
-     and the filed reading that at k = 1 the window is the single depth
-     a = 1 FOR EVERY RAMIFICATION is false at every headed consumer --
-     it is depth 2 at an unramified place over 2 (x = 1) and depth 3 at
-     the ramified place of Q(i) (x = 2). The corpus's claim that the
-     consumer's ramification cancels at k = 1 survives; what does not is
-     that nothing else enters.
+     the window read straight off brute columns at eight consumers over
+     three rational primes, k <= 4, S5). The corpus files the consumer's
+     self-supply as ceil((a-1)/e_P) and reads the window a <= e_P*(k-1)+1
+     off it. Scored against the window computed as max{a : self-supply
+     < k} from the measured column, that closed form is EXACT at every
+     headless consumer read -- Z at 3 and at 7, the inert place over 2,
+     and the ramified place of Q(sqrt3) -- at every k in range, 16 of 16
+     readings. At a HEADED consumer it is wrong, and that is the finding:
+     the formula describes the column a place has when it has no head.
 
-  F4 THE WIDENING IS A SHIFT IN DEPTH, NOT IN VALUE -- P5 AS FROZEN IS
-     REFUTED, and the refutation is what sharpened the result. The freeze
-     wrote the self-supply as ceil((a-1)/e_P) - x_P, giving a widening of
-     e_P*x_P. The brute says otherwise: at e_P = 2 the shortfall against
-     the standard count OSCILLATES with period e_P -- Q(sqrt-3) prints
-     [0,0,0,1,0,1,0] -- because the head shifts the column's DEPTH
-     argument. So the widening is x_P flat, independent of e_P, and the
-     first instrument (which read the shortfall at one depth) scored a
-     headed place 0 at half the depths it could have been read at. It
-     scored two of them 0 on the first run; rebuilding it as a fit over a
-     whole suffix is what turned two DISAGREEs into agreement.
+  F4 BUT THE HEAD DOES NOT SIMPLY WIDEN THE WINDOW -- IT ERRS IN BOTH
+     DIRECTIONS, AND NOT AT ALL AT k = 1. Three readings, none of them
+     the one this rig first derived:
+       (a) At k = 1 the window is the single depth a = 1 at EVERY place
+           read, headed or not, 8 of 8. It cannot be otherwise: the
+           window needs self-supply 0, every column starts at 0 and every
+           column reaches 1 by depth 2. So the corpus's sharpest reading
+           -- that at k = 1 the window is depth 1 for every ramification
+           -- SURVIVES intact, and survives at headed places too.
+       (b) From k = 2 a headed consumer departs, and at Z's place over 2
+           and the split place of Q(sqrt17) it is WIDER by exactly 1 at
+           k = 2, 3, 4; at Q(sqrt-3) wider by 1 at k = 2 and 3 and back
+           to EQUAL at k = 4.
+       (c) At Q(i)'s ramified place over 2 the departure runs the other
+           way first: NARROWER by 1 at k = 2 (window 2 against a filed 3)
+           before running wider by 2 at k = 3 and 4. A head can COST a
+           carrier depth.
+     So there is no single-shift closed form, and the window is read off
+     the column. What makes the direction unpredictable is the head's
+     TRANSIENT: the column climbs FAST at the bottom before flattening
+     -- Q(i) reads v = 0, 1, 2, 2, 2, 2, 2 -- so a shallow window can sit
+     inside the fast stretch and a deeper one inside the flat.
 
-  F5 THE HEAD CRITERION PREDICTS THE EXCESS IT IS SCORED AGAINST, THIRD
-     CLAUSE INCLUDED (rule in range; 11 places, S5). The criterion agrees
-     at 10 of 11, and the eleventh is its mu_l clause showing its work:
+  F5 THE ERROR THIS RIG MADE FIRST, kept because it is the reusable half.
+     The freeze wrote the self-supply as ceil((a-1)/e_P) - x_P and the
+     first engine fitted x_P as an ASYMPTOTIC depth shift, then derived a
+     window from the fit -- giving "k = 1 widens to depth 2 over Q_2 and
+     3 in Z[i]", which the direct reading above refutes flatly. The fit
+     itself is sound and is still printed: past the head every column
+     does satisfy v = ceil((a-1-x_P)/e_P), from depth 6 at the worst.
+     What was invalid was APPLYING it where the window lives. The window
+     is a SHALLOW-depth quantity and a head's transient is a shallow-depth
+     effect, so an asymptotic fit is the one instrument guaranteed to
+     miss it. Both instrument errors this file made have one shape:
+     reading a quantity that varies with depth at a single depth, and
+     reading a shallow quantity off a deep fit.
+
+  F6 THE HEAD CRITERION PREDICTS WHICH CONSUMERS DEPART (rule in range;
+     11 places, S5). Every consumer whose window matches the filed form
+     at every k is headless by the criterion, and every consumer that
+     departs at some k is headed -- the criterion agrees at 10 of 11
+     places, and the eleventh is its mu_l clause showing its work:
      Q(sqrt-3) and Q(sqrt3) are identical in (l, e, f) = (3, 2, 1) and
-     differ only in whether mu_3 lies in the completion -- excess 1
-     against 0. The shape test alone cannot separate them, which is why
-     the clause is in the criterion. P6 as frozen fails only through the
-     shape test's known blindness, and the direction it predicted holds.
-     Two further readings: the inert place over 2 (f = 2) is HEADLESS
-     despite mu_2 lying in every completion, so f = 1 is doing real work
-     and l = 2 is not blanket-headed; and Q(i)'s place over 2 reads
-     excess 2, refuting the freeze's own vibes-half that the anomaly is
+     differ only in whether mu_3 lies in the completion, giving excess 1
+     against 0 and a departing window against an exact one. The shape
+     test alone cannot separate them, which is why the clause is in the
+     criterion. Two further readings: the inert place over 2 (f = 2) is
+     HEADLESS despite mu_2 lying in every completion, so f = 1 is doing
+     real work and l = 2 is not blanket-headed; and Q(i)'s place over 2
+     reads excess 2, refuting the freeze's vibes-half that the anomaly is
      exactly ONE rung -- flagged as the margin to distrust, and it was.
 
-  F6 WHAT THIS BUYS A WALK, and it is the two effects compounding. At
-     l = 2 a carrier of norm 5 supplies k = 2 to a consumer that is
-     itself headed, so against the filed a <= 2 the true window at an
-     unramified consumer is a <= 3 and at Q(i)'s ramified one a <= 5; at
-     norm 17 (k = 4) those read a <= 5 and a <= 9 against filed 4 and 7.
-     The headless control moves not at all, which is what says the
-     widening is the head's: the inert f = 2 consumer sits at the filed
-     window at every k.
+  F7 WHAT THIS BUYS A WALK, stated at the depth it was measured. At
+     l = 2 a carrier of norm 5 supplies k = 2, and at a headed
+     unramified consumer over 2 the window is depth 3 against the filed
+     2; at norm 9 (k = 3) it is 4 against 3, and at norm 17 (k = 4) it
+     is 5 against 4. At Q(i)'s ramified consumer the same norm-5 carrier
+     gets depth 2 against a filed 3 -- less room, not more. The headless
+     control moves at no k, which is what says the departure is the
+     head's.
 
 SCOPE, stated rather than implied. "Walkable" is the measured seed belt
 of the cubic carrier rig (T2) and not a bound. The columns are read at
 11 places drawn from Z and five quadratic orders, with e <= 2 and f <= 2
 -- a cubic or wilder place is not read here, and neither is any place
-with e divisible by l^2. The window statement is derived from the column
-identity and is exact wherever that identity was fitted; the fit's onset
-depth is printed beside every excess and is a = 6 at the worst of them.
+with e divisible by l^2. The windows are read DIRECTLY off those columns
+and are therefore exact for the places and the k listed, claiming
+nothing about a place not read; k runs to 4 and a window deeper than a
+column is not scored. The asymptotic fit is reported separately and is
+not what any window claim rests on.
 
 RUN RECORD. One process, 0.3s wall, peak working set 12.8 MB against the
 512 MB default (memwatch). 15 asserted checks pass, S1 first: the odd
@@ -563,6 +587,18 @@ def head_predicted(ell, e, f):
     return m == 1
 
 
+def true_window(col, ell, k):
+    """The load-bearing window read STRAIGHT off the measured column: the
+    deepest a whose self-supply is still under k. This is the definition;
+    every closed form below is scored against it and never the reverse.
+
+    Reading a window off an ASYMPTOTIC fit instead is the error this
+    function exists to prevent -- the window lives at SHALLOW depth, which
+    is exactly where a head's transient has not settled."""
+    good = [a for a in range(1, len(col) + 1) if v_p(col[a - 1], ell) < k]
+    return max(good) if good else 0
+
+
 def shortfall(col, ell, e):
     """Per-depth shortfall of the measured ell-part against the standard
     count ceil((a-1)/e), indexed from a = 1."""
@@ -717,22 +753,42 @@ def s5_window(rows, rat, quad):
     print("  excess 1 against 0 -- so the clause the shape test drops is")
     print("  exactly the clause the columns need.")
     print("")
-    print("  the window at the cheapest walkable carrier, l = 2:")
-    for k in range(1, K_MAX + 1):
-        q = rows.get((2, k))
-        if q is None or q > BELT:
-            continue
-        for (e, x, tag) in ((1, rat[2][2], "unramified f=1 (headed)"),
-                            (2, None, "ramified e=2 f=1, Q(i) (headed)"),
-                            (1, 0, "inert f=2 (headless control)")):
-            if x is None:
-                xs = [c[7] for c in quad if c[1] == 2 and c[2] == 2]
-                x = xs[0] if xs else 0
+    print("  THE WINDOW READ OFF THE COLUMN, against the filed closed form.")
+    print("  The window is max{a : self-supply < k} and nothing else; the")
+    print("  closed form is scored against it, never substituted for it.")
+    print("  %-36s  k  TRUE  filed  verdict" % "consumer")
+    places = [("Z at 2: e=1 f=1, headed", rat[2][0], 2, 1),
+              ("Z at 3: e=1 f=1, headless", rat[3][0], 3, 1),
+              ("Z at 7: e=1 f=1, headless", rat[7][0], 7, 1)]
+    places += [(tag, col, ell, e)
+               for (d, ell, e, f, tag, col, vs, x, hp) in quad]
+    verdicts = {}
+    for (tag, col, ell, e) in places:
+        for k in range(1, 5):
             filed = e * (k - 1) + 1
-            corr = e * (k - 1) + 1 + x
-            print("    carrier norm %2d supplies k=%d -> consumer %-26s"
-                  " filed a<=%d  corrected a<=%d"
-                  % (q, k, tag, filed, corr))
+            if filed > len(col):
+                continue
+            tw = true_window(col, ell, k)
+            if tw == filed:
+                verd = "same"
+            elif tw > filed:
+                verd = "WIDER  +%d" % (tw - filed)
+            else:
+                verd = "NARROWER %d" % (tw - filed)
+            verdicts.setdefault(tag, []).append((k, tw, filed, verd))
+            print("  %-36s  %d  %4d  %5d  %s" % (tag, k, tw, filed, verd))
+    # the two readings the closed form gets wrong, asserted so they cannot
+    # quietly come back: k = 1 never widens, and a head can NARROW.
+    for (tag, col, ell, e) in places:
+        ok(true_window(col, ell, 1) == 1,
+           "k=1 window is not depth 1 at %s" % tag)
+    qi = [c for c in places if c[0].startswith("Q(i)")]
+    if qi:
+        tag, col, ell, e = qi[0]
+        ok(true_window(col, ell, 2) < e * 1 + 1,
+           "Q(i) at k=2 no longer reads NARROWER than the filed form")
+    print("  -> the filed form is EXACT at every headless consumer read,")
+    print("     and at a headed one it errs in BOTH directions.")
 
 
 def main():
