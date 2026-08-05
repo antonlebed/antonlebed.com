@@ -122,7 +122,10 @@ F3 THE FIELD'S THRESHOLD IS RADIX-BLIND, AND IT BREAKS AT RADIX 2
    contradicted either, every symmetric rho = 2 system being forced to
    odd radix r = 2a - 1 and reading at look-back 1 throughout.
 
-F4 THE EXACT LAW [rule, exhaustive over the 58 systems above]:
+F4 THE EXACT LAW [rule, exhaustive over the 58 systems above; since
+   PROVED as a criterion for every radix and every contiguous digit
+   set, symmetric sets included, in explore_lookahead_proof.py —
+   this sweep survives as the check on that proof]:
 
        c_min = 1  iff  rho >= 2 and r >= 3,   else  c_min = 2.
 

@@ -119,7 +119,10 @@ F2 RHO = 2 SPLITS BY SHAPE [rule, exhaustive at the stated grid].
    min = 1 witness (its min is a, and rho = 2 forces a >= 2). P-B
    held, including the min = 0 clause the hand-run predicted.
 
-F3 THE EXACT LAW EXTENDS [rule, exhaustive at the same grid]:
+F3 THE EXACT LAW EXTENDS [rule, exhaustive at the same grid; since
+   PROVED as a criterion for every radix and every contiguous digit
+   set in explore_lookahead_proof.py — this census survives as the
+   check on that proof]:
 
        c_min = 1  iff  rho >= 2 and b >= 3
                        and not (rho = 2 and min(am, ap) = 1),
