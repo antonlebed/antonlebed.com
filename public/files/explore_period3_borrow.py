@@ -174,6 +174,13 @@ each input tooth for a >= 3, so only a = 2 lets the cascade
 restructure the whole string; why the surviving tooth's
 neighborhood still stripes at even a and freezes at odd a is not
 derived here — the open leg's first question.
+
+SETTLED SINCE (pointer; the record above is frozen): the a = 3
+witness question closed via the certified boundary family
+(explore_max_string_witness.py, explore_class_criterion.py), and
+the parity split is now a theorem at all a — the absorption lemma
+and the closed forms on both sides live in
+explore_odd_a_freeze.py.
 """
 
 import sys
