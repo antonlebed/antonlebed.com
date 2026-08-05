@@ -162,12 +162,15 @@ F3 THE FRONTIER: THE MARGIN WALKS TO ZERO AT RATE 1/D AND NEVER
    cap D: at h=10 dbl the same climb shape gives -0.007752 ln at
    D = 64 and -0.001949 at D = 256 - a factor 3.98 for a x4
    widening - and at h=9 the D = 256 climbs end at -0.0039 (id)
-   and -0.0019 (dbl). Hand-check from the exact loss triples
+   and -0.0019 (dbl). A second pair, across instruments: the h=9
+   id best moves from -0.0156 (cap 64, the census's burst7.D64)
+   to -0.0039 (cap 256, the climb) - factor 4.0 again. Hand-check
+   from the exact loss triples
    (the margins are ratios of exact rationals): the binding-edge
    ratios are 33538/33799 (h=10 dbl, D=64, ln = -0.007752),
    527362/528391 (h=10 dbl, D=256), 16973823/17040128 (h=9 id,
    D=256) - each within ~1 part in 10^4 of a one-cell ratio like
-   128/129 or 256/257 but NOT equal to it, so the near-miss is
+   128/129, 512/513 or 256/257 but NOT equal to it, so the near-miss is
    structural, not a single clean identity. The adversarial
    optimum under a slow map approaches zero from below as the
    design space widens and never reaches it at any scanned
