@@ -6,7 +6,8 @@ THE QUESTION. The margin story for redundant addition — the Lebesgue
 heuristic b^c * rho >= 2W never underpredicts the lookahead, and
 overpredicts by exactly one digit precisely on the wedge
 rho*(b-2) < 2*(b-1) intersected with the law's c = 1 region — was a
-rule at grid scope (354 game cells across explore_margin_locus.py and
+rule at grid scope (explore_margin_locus.py's 214 contiguous cells,
+with the symmetric sweeps' margin rows behind them,
 explore_redundant_lookback.py) while the lookahead law above it is
 proved (explore_lookahead_proof.py: c = 1 iff
 rho >= sigma := ceil(am/(b-1)) + ceil(ap/(b-1)), every radix, every
@@ -140,8 +141,9 @@ Lebesgue margin never underpredicts at any lookahead, and
 overpredicts by exactly one digit precisely on the wedge
 (b >= 3, rho = 2, min endpoint != 1) union (b = 3, rho = 3),
 equivalently {rho >= sigma} intersected with
-{rho*(b-2) < 2*(b-1)}. The 354 game cells' margin columns are now
-the check on the chain rather than the evidence for a rule. What
+{rho*(b-2) < 2*(b-1)}. The census's 214 game cells, re-measured
+here, are now the check on the chain rather than the evidence for
+a rule. What
 stays scanned: the slope bound's one-digit loss on the same wedge
 is the scaling rigs' rule, not touched here.
 
