@@ -193,14 +193,17 @@ F4 WHAT THE ANSWER CLOSES AND WHAT IT OPENS. (a) The
    does not exist. (b) The budgeted burst trap's trade shape
    never needed its budget: what a conserved budget manufactures
    is not the trade but its ASSEMBLY into a full local minimum.
-   (c) The sharpened open is exactly that assembly: these
-   landscapes carry thousands of trades and, by the prior census
-   at overlapping scope (zero stalls, zero adjacent value ties,
-   explore_stall_unresourced.py), not one stall — every trade's
-   first-step winner still has SOME other strictly improving
-   move. Why trades never close into a cycle of the cure graph's
-   neighborhoods is the assembly question, and it is a different
-   species from the one this rig closes.
+   (c) The sharpened open is exactly that assembly. An
+   unresourced stall would have to hold the LATE-WINNER end of a
+   trade against every neighbor it beats non-pointwise — that
+   ingredient is now proven abundant — yet by the prior census at
+   overlapping scope (zero stalls, zero adjacent value ties,
+   explore_stall_unresourced.py) no stall forms: every trade's
+   late winner still finds a strictly improving move elsewhere in
+   its neighborhood. Whether a world can deny it one — stack
+   trades until a single policy wins its whole neighborhood late
+   — is the assembly question, a different species from the one
+   this rig closes.
 
 THE VERDICT. A preference decision alone, with no conserved
 budget behind it, CAN buy a late gain with an early loss: rule —
