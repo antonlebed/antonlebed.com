@@ -178,7 +178,8 @@ derived here — the open leg's first question.
 SETTLED SINCE (pointer; the record above is frozen): the a = 3
 witness question closed via the certified boundary family
 (explore_max_string_witness.py, explore_class_criterion.py), and
-the parity split is now a theorem at all a — the absorption lemma
+the parity split is now a theorem at every a >= 3 (a = 2 is this
+rig's own theorem above) — the absorption lemma
 and the closed forms on both sides live in
 explore_odd_a_freeze.py.
 """
