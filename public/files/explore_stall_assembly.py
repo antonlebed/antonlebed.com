@@ -196,7 +196,10 @@ F5 THE DESIGNED STALL AT THE SCANNED SCOPE. At horizon 16 under
    negative local maxima (best -0.7388 ln at horizon 12, -1.0997
    at 16): at this scope only the sq map's squared shrink rate
    amplifies a late collection deep enough to hold a whole
-   neighborhood — an observation, not a wall.
+   neighborhood — an observation, not a wall. (Settled at widened
+   scope by explore_stall_maprate.py: digits to 256 and horizons
+   9-20, id and dbl still refuse, the best slow-map margin
+   walking to zero like 1/(digit cap) without crossing.)
 
 F6 THE CURE SURVIVES. Every specimen — both census stalls and the
    designed one — has escape radius exactly 2 through the cure
