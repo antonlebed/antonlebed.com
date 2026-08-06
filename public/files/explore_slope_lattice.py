@@ -228,15 +228,27 @@ VERDICT, by piece, since they do not share a tier.
     scope, and it contains the proved length test as its g_c = 1
     case: feasible at lookahead c iff the forward orbit of the start
     class under t |-> b t + kappa stays saturated.
-  - BEYOND n <= 2a + 1 the same criterion is a RULE, verified at 1833
-    cells across two grids sharing no window and a phased slice, with
-    no counterexample and no near miss. The load-bearing 586 of those
-    are the g_c > 1 ones: at g_c = 1 the criterion is the length test
-    and the length test is already proved, so those 1247 cells check
-    the machinery without extending the claim.
+  - BEYOND n <= 2a + 1 the same criterion held at all 1833 cells of
+    this scope, across two grids sharing no window and a phased
+    slice, with no counterexample and no near miss -- and it is
+    nonetheless FALSE in general. The scope's cap on the SLOPE was
+    hiding the counterexamples, not its cap on the lookahead:
+    explore_slope_tree.py finds 19 of them once slopes run past 9/8,
+    the smallest at (b,a) = (2,1) slope 12/5 with c = 2. What is true
+    is a TREE condition, proved there with no hypothesis, of which
+    this criterion is the depth-J shadow. The load-bearing 586 of the
+    1833 are the g_c > 1 ones: at g_c = 1 the criterion is the length
+    test and the length test is already proved, so those 1247 cells
+    check the machinery without extending the claim.
   - THE SPARSE WINNING SET is exactly the states whose class survives
-    that orbit -- a union of classes mod g_c, PROVED inside the
-    hypothesis and a RULE outside it.
+    that orbit -- a union of classes mod g_c -- PROVED inside the
+    hypothesis, and REFUTED outside it by the same 19 cells, where
+    membership depends on the state's residue mod N rather than on
+    its class.
+  - THE FEASIBILITY VERDICT this rig reports is untouched, and is now
+    proved entire: kappa is built from the start state, so the start
+    class is the one class the map FIXES, and the criterion collapses
+    there to "the start class is saturated" (explore_slope_tree.py).
   - THE NAIVE STEP-g_c LATTICE is REFUTED and swaps in place.
 
 WHAT IT COST TO SEE. The band read as a gap in the LAW for as long as
