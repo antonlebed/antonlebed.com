@@ -42,14 +42,15 @@ sit at the SAME cell:
   (ii) any tree door X holds, Y holds, and it is the SAME door: a
        child strictly containing X's reference strictly contains
        Y's, and at most one child contains a given interval (the
-       left child needs the interval strictly below the mediant,
-       the right strictly above — exclusive).
+       left child needs the interval strictly below the two
+       children's shared endpoint, the right strictly above —
+       exclusive).
 So Y's menu is X's plus at most one FRESHER-ONLY DOOR (present
 exactly when X's reference straddles the cell's mediant or X's
 reference does not yet exist, while Y's fits one side), and the
 first differing choice has exactly two shapes:
   (a) NESTED DESCENT — X halts on an empty menu and commits; Y
-      takes the fresher-only door and descends strictly inside
+      takes the fresher-only door and descends properly inside
       X's committed cell.
   (b) THE SEED — the cell prefers tree (st = 0 at a tree cell,
       ss = 1 at a straddle cell), X is doorless with a LIVE chain
