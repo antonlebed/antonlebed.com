@@ -197,7 +197,7 @@ E5 the away-side exclusion (same provenance as E4b: the review
    index alone, which must NOT be empty or that exclusion is
    decorative).
 Exact big-integer arithmetic for every verdict; estimated run
-three to six minutes; memory trivial; exit nonzero on any check
+ten minutes; memory trivial; exit nonzero on any check
 failure.
 
 FINDINGS (entered after the run; ALL CHECKS PASS, exit 0)
@@ -303,7 +303,8 @@ point's side), where the traced cases die by chain resync but no
 enumeration closes the family. The law stays a rule at widened
 scope; the remaining owe is one enumeration, not a mechanism.
 
-Run record. SIX runs, about four minutes each; E1 through E4
+Run record. SEVEN runs — about four minutes each through the
+sixth, about ten once E6 joined; E1 through E4
 print identically across every run that reached them. Runs one
 to three produced the record above: the first exited 1 because
 S5b — declared a tallied guess, with K3 scoping every S3-S5 miss
