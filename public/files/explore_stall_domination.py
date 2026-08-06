@@ -177,7 +177,8 @@ F2 THE DOMINATION CENSUS SPLITS BY MAP. Identity: EXHAUSTIVE - all
    guess falls exactly where L4 warned: the law is a fact of the
    MAP-ALIGNMENT pair, exhaustive for the identity embedding,
    dented by dbl's alignment shift (dbl adds alignment, never
-   rate - the parent's L2), broken wholesale by sq's compounding.
+   rate - the parent's L2), broken by sq's compounding at every
+   stall specimen (F3).
 
 F3 THE SQ BREAK CONFIRMED. All three sq specimens reproduce and
    every finite-loss neighbor of every stall class concedes at one
@@ -199,9 +200,10 @@ FOR THE IDENTITY MAP at scope - no unresourced id stall exists
 where the domination law holds, the law holds without exception at
 the scanned scope (rule: 9,401 classes, exhaustive at stated
 scope), and the one-cell wall (L3) is proved for this cover given
-it - while for dbl the pointwise skeleton has 92 net-only
-witnesses (K2: the law is false as stated there) and the refusal
-keeps only its measured aggregate margins. What remains open is
+it - while for dbl the nested form fails in 632 classes, 540
+keeping a step-for-step shorter neighbor and 92 only their
+aggregate margin (K2: the law is false as stated there), so the
+dbl refusal keeps only its measured margins. What remains open is
 L4: deriving the domination law itself - the routing-step case
 analysis, for which the identity map is now the sharp target,
 its measured law having zero exceptions to survive.
