@@ -91,33 +91,64 @@ Htop <= E and Lbot >= -E grant by construction. Hence
 
     Htop - Lbot + 1 >= L b^c   ==>   the game is feasible at c.
 
-(5) NECESSITY -- THE t-STEP INJECTION. Over t steps from the maximum
-H the opponent plays x_1..x_t and the state becomes
-b^t H + (L/v) u X - L b^c E, where X and E both range over the
-CONTIGUOUS run sum(b^(t-i) x_i) of length 2a(b^t - 1)/(b - 1) + 1 --
-contiguous because D is, which is where the non-contiguity of the
-one-step injected set u D is repaired. Choose t with that run at
-least L b^c long. When gcd(u, b) = 1, u is invertible modulo L b^c,
-so u X covers EVERY residue class mod L b^c; each class must find a
-representative in [Lbot, Htop], forcing Htop - Lbot + 1 >= L b^c.
-The E it needs is in range: the bound of (1) makes the required
-|b^t H + (L/v) u X| / (L b^c) at most a b^t / (b - 1) exactly.
+(5) NECESSITY -- THE RESIDUE CLASS THE READER CANNOT MOVE. Suppose
+the game is feasible at c, so the winning set W -- the greatest
+invariant set inside the flush window -- holds the start state and,
+from any state in it, answers EVERY injection with an emission back
+inside it. Play t steps from the start m_0 = phi. Whatever the
+reader emits,
 
-(6) THE CRITERION AND THE IDENTITY. With (4) and (5), for
-gcd(u, b) = 1 the game is feasible at lookahead c IFF
-Htop - Lbot + 1 >= L b^c; and where it is feasible, (1) and (2)
-bound the fixed point inside [Lbot, Htop] while (4) makes that
-interval invariant, so THE WINNING SET IS EXACTLY [Lbot, Htop].
-c_min is the least c meeting the inequality.
+    m_t = b^t m_0 - (b-1) phi r_t + (L u / v) X - L b^c E,
+    X = sum b^(t-i) x_i,   E = sum b^(t-i) e_i,
 
-(7) WHERE gcd(u, b) > 1. Step (5) weakens: u X covers only the
-multiples of g_c = gcd(u, b^c) mod L b^c, so necessity loosens to
-Htop - Lbot >= L b^c - g_c while (4) is untouched. The extreme case
+and the emission term is a MULTIPLE of L b^c. So modulo L b^c the
+reader's whole play is invisible and only X, the opponent's, is
+left:
+
+    m_t = b^t m_0 - (b-1) phi r_t + (L u / v) X   (mod L b^c).
+
+X ranges over every integer of [-a r_t, a r_t] -- contiguous
+because D covers a complete residue system mod b, which is what
+redundancy IS -- and t is free, so take 2 a r_t + 1 >= L b^c: a run
+of at least L b^c consecutive integers. Then (L u / v) X runs
+through every multiple of g_c = gcd(L u / v, L b^c) mod L b^c,
+which is L b^c / g_c distinct classes, and the reader survives all
+of it by hypothesis. So W holds a point in each: L b^c / g_c
+points, pairwise congruent mod g_c and pairwise distinct, hence
+spanning at least (L b^c / g_c - 1) g_c. With W inside
+[Lbot, Htop] by (1) and (2),
+
+    feasible at c  ==>  Htop - Lbot + 1 >= L b^c - g_c + 1,
+
+and at g_c = 1 that is the length test itself. The earlier route --
+drive the state from its maximum H to a named target and check that
+the emission doing it is attainable -- needed a range that does not
+close in general, the required emission exceeding the attainable
+run by up to a/(b-1). Tracking only the RESIDUE CLASS removes the
+need for it: the emissions are supplied by the reader's own winning
+strategy and never have to be anything in particular, which is why
+the argument that would not close from the maximum closes from
+anywhere.
+
+(6) THE CRITERION AND THE IDENTITY. With (4) and (5), at g_c = 1
+the game is feasible at lookahead c IFF Htop - Lbot + 1 >= L b^c --
+an IFF with nothing computed in it; and where it is feasible, (1)
+and (2) bound the fixed point inside [Lbot, Htop] while (4) makes
+that interval invariant, so THE WINNING SET IS EXACTLY
+[Lbot, Htop]. c_min is the least c meeting the inequality.
+
+(7) WHERE g_c > 1 THE SLACK IS EXACTLY g_c - 1. (5) is stated for
+every g_c and grants only Htop - Lbot + 1 >= L b^c - g_c + 1, while
+(4) is untouched -- so the length test still SUFFICES everywhere
+and withholds only inside a band of width g_c - 1, which is where
+the game can grant against it. The extreme case
 is exact by hand: at u = b^s, v = 1, c = s the endpoint bound gives
 E = 0, so the winning set is {0}, which IS invariant (emit e = x),
-while at c = s - 1 the bound is negative and the set is empty --
-pure b-power slopes read at max(0, s) exactly, with the b-power
-case sitting in precisely the gap step (5) leaves open.
+while at c = s - 1 the bound is negative and the set is empty -- so
+b-power slopes b^s with s >= 0 read at s exactly, by hand and
+inside the band, which is where every b-power slope sits. What the
+hand argument does NOT reach is s < 0, and F4 below is what lives
+there.
 
 (8) THE LEBESGUE BOUND IS THE CRITERION WITH THE FLOORS DROPPED.
 The scanned bound's condition v b^c (2a - b + 1) >= 2 a u is
@@ -149,6 +180,18 @@ P-E THE gcd CELLS: at gcd(u, b) > 1 the criterion is reported
 P-F PHASES NEVER RAISE THE DELAY, and the window-shaped phase 1/2
     lowers it exactly where the endpoint bound binds right while
     the window binds left ((2,1) 3/5 and (10,6) 1/3, both 1 -> 0).
+P-H THE NECESSITY BOUND, the conclusion of the rewritten (5):
+    EVERY feasible cell of both grids, phased and unphased, has
+    span >= L b^c - g_c + 1. At g_c = 1 that is the length test the
+    rig already checks, so the content is the g_c > 1 cells -- and
+    the cells where the game grants while the length test withholds
+    must land inside the band, span in
+    [L b^c - g_c + 1, L b^c - 1].
+P-I THE MECHANISM, checked rather than its conclusion alone: at a
+    feasible cell the winning set meets at least L b^c / g_c
+    distinct residue classes mod L b^c -- every class at g_c = 1.
+    A conclusion can hold for a reason the argument does not give;
+    this is the step the argument actually walks.
 P-G THE SIDE CHECK: E at u = 2, v = 1, z = 1, c = 1 equals
     a - ceil(a/(b-1)), addition's H1, at every radix and reach in
     the sweep -- the shape-aware margin is one object across the
@@ -172,6 +215,12 @@ K5 A phase raising c_min above its phase-0 value -> the shift
 K6 A cell where the criterion's c_min and the Lebesgue bound differ
    by 2 or more -> (8) is wrong and the "within one digit" scanned
    statement was never the rounding gap.
+
+K7 A feasible cell with span < L b^c - g_c + 1 -> the residue
+   argument of (5) is wrong and necessity does not close.
+K8 A feasible cell whose winning set meets fewer than L b^c / g_c
+   classes mod L b^c -> (5)'s covering step is wrong even where its
+   conclusion survives.
 
 POSITIVE CONTROL, run and read before any verdict line: P-A whole.
 
@@ -248,45 +297,67 @@ F6 THE SIDE CHECK PAYS: ONE MARGIN, TWO OPERATIONS. E at u = 2,
    below. The wedge is a rounding gap in a size-only heuristic,
    not a loss belonging to either operation.
 
+F7 THE OPEN STEP CLOSES, AND IT CLOSES FOR EVERY g_c AT ONCE. The
+   rewritten (5) predicts span >= L b^c - g_c + 1 at every feasible
+   cell, and 1832/1832 feasible cells hold it -- both grids plus
+   the phased scope, 648 of them at g_c > 1, K7 never fired. The
+   content of that number is the 54 cells where the length test
+   withholds while the game grants: they are the criterion's whole
+   gap, and every one of them lands in the band of width g_c - 1
+   the bound leaves open, which is the same statement as K7 not
+   firing and is reported once. And the MECHANISM is checked
+   apart from the conclusion, since a conclusion can hold for a
+   reason the argument never gives: at 8/8 sampled cells, phased
+   and unphased, the winning set meets at least L b^c / g_c
+   residue classes mod L b^c -- every class where g_c = 1. K8
+   never fired.
+
 VERDICT, by piece, since they do not share a tier.
   - The endpoint bound (1), the window bound (2), the phase shift
-    lemma (3), and the SUFFICIENCY of the span criterion (4) are
-    PROVED for every radix b >= 2, every symmetric redundant digit
-    set, every rational slope and every phase, with no computation
-    at specific values load-bearing.
+    lemma (3), the SUFFICIENCY of the span criterion (4) and the
+    NECESSITY bound (5) are PROVED for every radix b >= 2, every
+    symmetric redundant digit set, every rational slope and every
+    phase, with no computation at specific values load-bearing.
   - The winning set equals [Lbot, Htop] wherever the criterion
     grants: PROVED -- (4) gives the containment one way and (1)
     with (2) the other.
-  - NECESSITY, hence the criterion as an IFF and c_min as the
-    least granting c: a RULE, verified at 1974/1974 g_c = 1 cells
-    across TWO GRIDS SHARING NO WINDOW -- 505 over the four scanned
-    windows at 43 slopes and four lookaheads, and 1469 over eleven
-    further windows including radices 7, 8 and 9 the corpus had
-    never scanned, at slopes to 9/9 -- plus 48 phased cells. The
-    second grid exists because the first could not tell a law from
-    an artifact of its own four windows. The t-step argument of (5)
-    closes it whenever
-    the emission it needs is in range, and THAT RANGE CHECK DOES
-    NOT CLOSE IN GENERAL: the required emission can exceed the
-    attainable run by a/(b-1). That is the one open step, and
-    closing it would promote the whole criterion.
+  - THE CRITERION AT g_c = 1 IS AN IFF, PROVED: (4) grants and (5)
+    forbids at the same span, so c_min is the least granting c. It
+    was a rule verified at 1974/1974 g_c = 1 cells across two grids
+    sharing no window -- 505 over the four scanned windows at 43
+    slopes and four lookaheads, 1469 over eleven further windows
+    including radices 7, 8 and 9 the corpus had never scanned, at
+    slopes to 9/9, plus 48 phased cells -- and those cells are now
+    the CHECK on the derivation rather than the evidence for the
+    law, which is what the second grid was built to make possible.
+    What closed it was not a sharper range check but dropping the
+    one the earlier route needed: track the residue class, which no
+    emission can move, instead of driving the state to a target.
+  - AT g_c > 1 THE LENGTH TEST STILL SUFFICES and can withhold, by
+    at most the band of width g_c - 1 that (5) leaves: PROVED as a
+    bound, with the 54 withholding cells of F7 measured inside it.
+    The criterion is not an iff there and (7) says why.
   - The negative-power law of F4 is the criterion at c = 0
-    unpacked, so it is a RULE at the same scope and inherits the
-    same open step.
+    unpacked at g_c = 1 (u = 1, v = b^t makes the injection step 1),
+    so it is PROVED at the same scope.
   - The shipped max(0, s) clause is REFUTED and swaps in place.
 
-WHERE THE MACHINERY STOPPED TRAVELING. Addition's residue-count
-step survives the transplant only as the t-step argument of (5),
-and only at g_c = 1: addition has S = D + D contiguous and its own
-emission lattice coprime to nothing in particular, so the question
-never arose there. Scaling injects u D, an arithmetic progression,
-and the shared factor between that progression's step and the
-emission lattice is the whole of what does not travel.
+WHERE THE MACHINERY STOPPED TRAVELING, AND WHAT IT COST. Addition's
+residue-count step survives the transplant as (5)'s covering
+argument, and it survives WHOLE -- but only at g_c = 1: addition
+has S = D + D contiguous and its emission lattice coprime to
+nothing in particular, so the question never arose there. Scaling
+injects u D, an arithmetic progression, and the shared factor
+between that progression's step and the emission lattice is the
+whole of what does not travel -- it does not weaken the argument,
+it bounds the scope the argument is exact on, and outside that
+scope it leaves a band of known width rather than silence.
 
 RUN RECORD: pure Python, integers only, standard library; largest
 winning set ~10,700 residues at (10,6) slope 7/8 lookahead 3, far
-under the analysis memory ceiling; 8.4s wall clock against a ~60s
-estimate. Prints reproduced by:
+under the analysis memory ceiling; 30.0s wall clock against a ~25s
+estimate, the necessity sweep of F7 being most of the rise from the
+8.4s the first five sections ran in. Prints reproduced by:
 python prime/code/explore_slope_proof.py
 """
 
@@ -581,8 +652,7 @@ def s3b_disjoint_grid():
     with the one above: if 505/505 were an artifact of the four
     scanned windows, this is where it shows."""
     print("\n== THE CRITERION ON A DISJOINT GRID ==")
-    other = [(5, 3), (5, 4), (6, 3), (6, 5), (7, 4), (8, 5), (9, 5),
-             (9, 8), (7, 6), (3, 3), (2, 2)]
+    other = DISJOINT
     assert not (set(other) & set(WINDOWS)), "grids must not overlap"
     bad, suff, n1, n2 = [], [], 0, 0
     for (b, a) in other:
@@ -610,6 +680,65 @@ def s3b_disjoint_grid():
           f"{len(suff)}")
     ok(not bad, f"K3: criterion fails off the first grid at {bad[:3]}")
     ok(not suff, f"K3: sufficiency fails off the first grid {suff[:3]}")
+
+
+DISJOINT = [(5, 3), (5, 4), (6, 3), (6, 5), (7, 4), (8, 5), (9, 5),
+            (9, 8), (7, 6), (3, 3), (2, 2)]
+
+
+def s5_necessity(cap_c=3):
+    """(5)'s conclusion and (5)'s mechanism, checked separately: the
+    span bound at every feasible cell of both grids, and the classes
+    the winning set actually meets (P-H, P-I)."""
+    print("\n== THE NECESSITY BOUND AND ITS MECHANISM (P-H, P-I) ==")
+    scope = [(b, a, u, v, 0, 1, cap_c) for (b, a, u, v, _) in cells(cap_c)]
+    scope += [(b, a, u, v, 0, 1, 2) for (b, a) in DISJOINT
+              for u in range(1, 10) for v in range(1, 10)
+              if 2 * a + 1 > b and gcd(u, v) == 1]
+    scope += [(b, a, u, v, w, z, cap_c) for (b, a) in WINDOWS
+              for (u, v) in [(1, 3), (3, 5), (5, 3), (2, 5)]
+              for (w, z) in [(1, 2), (2, 3), (3, 5), (1, 7)]]
+    bad, band, n, ngc = [], [], 0, 0
+    for (b, a, u, v, w, z, cap) in scope:
+        for c in range(cap + 1):
+            if not rgame(b, a, c, u, v, w, z)[0]:
+                continue
+            n += 1
+            g = lattice_gcd(b, c, u, v, w, z)
+            _, _, span, need = interval(b, a, c, u, v, w, z)
+            if g > 1:
+                ngc += 1
+            if span < need - g + 1:
+                bad.append((b, a, u, v, w, z, c, span, need, g))
+            elif span < need:
+                band.append((b, a, u, v, w, z, c, span, need, g))
+    print(f"  {n} feasible cells over both grids plus phases "
+          f"({ngc} of them at g_c > 1): "
+          f"{n - len(bad)}/{n} meet span >= L b^c - g_c + 1")
+    print(f"  cells the length test withholds and the game grants: "
+          f"{len(band)}, every one inside the band of width g_c - 1")
+    if band:
+        print(f"    sample (b,a,u,v,w,z,c,span,need,g_c): {band[:3]}")
+    ok(not bad, f"K7: necessity bound violated at {bad[:3]}")
+
+    print("  the covering step itself, on the winning sets:")
+    mech, m = [], 0
+    for (b, a, u, v, w, z, c) in [(2, 1, 1, 3, 0, 1, 1), (2, 1, 5, 3, 0, 1, 2),
+                                  (10, 6, 7, 3, 0, 1, 1), (4, 2, 3, 4, 0, 1, 1),
+                                  (2, 1, 2, 1, 0, 1, 1), (2, 1, 1, 3, 1, 7, 1),
+                                  (4, 2, 1, 4, 0, 1, 1), (10, 6, 1, 3, 1, 3, 1)]:
+        feas, win = rgame(b, a, c, u, v, w, z)
+        if not feas:
+            continue
+        m += 1
+        g = lattice_gcd(b, c, u, v, w, z)
+        need = (v * z // gcd(v, z)) * b ** c
+        classes = len({x % need for x in win})
+        if classes < need // g:
+            mech.append((b, a, u, v, w, z, c, classes, need, g))
+    print(f"    {m - len(mech)}/{m} sampled winning sets meet at least "
+          f"L b^c / g_c classes mod L b^c")
+    ok(not mech, f"K8: the covering step fails at {mech[:3]}")
 
 
 def s4_side_check(cap_c=3):
@@ -667,6 +796,7 @@ def main():
     s2_bpowers(cap_c)
     s3_phases(cap_c)
     s3b_disjoint_grid()
+    s5_necessity(cap_c)
     s4_side_check(cap_c)
     print()
     if FAILURES:
