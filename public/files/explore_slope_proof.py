@@ -107,16 +107,15 @@ left:
 
     m_t = b^t m_0 - (b-1) phi r_t + (L u / v) X   (mod L b^c).
 
-X ranges over every integer of [-a r_t, a r_t] -- contiguous
-because D covers a complete residue system mod b, which is what
-redundancy IS -- and t is free, so take 2 a r_t + 1 >= L b^c: a run
-of at least L b^c consecutive integers. Then (L u / v) X runs
-through every multiple of g_c = gcd(L u / v, L b^c) mod L b^c,
-which is L b^c / g_c distinct classes, and the reader survives all
-of it by hypothesis. So W holds a point in each: L b^c / g_c
-points, pairwise congruent mod g_c and pairwise distinct, hence
-spanning at least (L b^c / g_c - 1) g_c. With W inside
-[Lbot, Htop] by (1) and (2),
+X ranges over every integer of [-a r_t, a r_t] -- contiguous because D
+covers a complete residue system mod b, which redundancy grants with a
+digit to spare -- and t is free, so take 2 a r_t + 1 >= L b^c: a run
+of at least L b^c consecutive integers. Then (L u / v) X runs through
+every multiple of g_c = gcd(L u / v, L b^c) mod L b^c, which is
+L b^c / g_c distinct classes, and the reader survives all of it by
+hypothesis. So W holds a point in each: L b^c / g_c points, pairwise
+congruent mod g_c and pairwise distinct, hence spanning at least
+(L b^c / g_c - 1) g_c. With W inside [Lbot, Htop] by (1) and (2),
 
     feasible at c  ==>  Htop - Lbot + 1 >= L b^c - g_c + 1,
 
@@ -722,17 +721,18 @@ def s5_necessity(cap_c=3):
     ok(not bad, f"K7: necessity bound violated at {bad[:3]}")
 
     print("  the covering step itself, on the winning sets:")
+    spots = [(2, 1, 1, 3, 0, 1, 1), (2, 1, 5, 3, 0, 1, 2),
+             (10, 6, 7, 3, 0, 1, 1), (4, 2, 3, 4, 0, 1, 1),
+             (2, 1, 2, 1, 0, 1, 1), (2, 1, 1, 3, 1, 7, 1),
+             (4, 2, 1, 4, 0, 1, 1), (10, 6, 1, 3, 1, 3, 1)]
     mech, m = [], 0
-    for (b, a, u, v, w, z, c) in [(2, 1, 1, 3, 0, 1, 1), (2, 1, 5, 3, 0, 1, 2),
-                                  (10, 6, 7, 3, 0, 1, 1), (4, 2, 3, 4, 0, 1, 1),
-                                  (2, 1, 2, 1, 0, 1, 1), (2, 1, 1, 3, 1, 7, 1),
-                                  (4, 2, 1, 4, 0, 1, 1), (10, 6, 1, 3, 1, 3, 1)]:
+    for (b, a, u, v, w, z, c) in spots:
         feas, win = rgame(b, a, c, u, v, w, z)
         if not feas:
             continue
         m += 1
         g = lattice_gcd(b, c, u, v, w, z)
-        need = (v * z // gcd(v, z)) * b ** c
+        need = interval(b, a, c, u, v, w, z)[3]   # never recomputed
         classes = len({x % need for x in win})
         if classes < need // g:
             mech.append((b, a, u, v, w, z, c, classes, need, g))
