@@ -322,6 +322,17 @@ theorem: exhausting the NEAR-SIDE endpoint-equality branches
 point's side), where the traced cases die by chain resync but no
 enumeration closes the family. The law stays a rule at widened
 scope; the remaining owe is one enumeration, not a mechanism.
+(Both sentences are settled by explore_ladder_entry.py and the
+owe was never paid: the enumeration is not needed, because the
+flank cannot reach a cell where such a branch could matter --
+the door that would put it there cannot open until the chain
+reference has already maxed the ladder it leads onto. The law is
+a THEOREM there, under the identity map at the whole
+chain-preferring slice, so the tier above is superseded upward
+rather than narrowed. What the lemma rests on is sharpened again
+by explore_reference_families.py: two index inequalities read at
+the door, neither Farey rigidity nor phase. Every measurement in
+this record stands as printed.)
 
 Run record. SEVEN runs — about four minutes each through the
 sixth, about ten once E6 joined; E1 through E4
