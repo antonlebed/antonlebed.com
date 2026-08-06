@@ -541,7 +541,16 @@ and 2 and 3 are not necessary breakers (14,939 and 18,735
 G2-respecting doors at those determinants). What separates a
 determinant-2 reference that respects G2 from one that does not is
 untested, and it is now the last place a lattice fact is doing work
-in this corpus.
+in this corpus. (SETTLED since, by explore_g2_separator.py: the
+determinant was a proxy for a DECOMPOSITION. A reference is a finite
+union of maximal tree cells; the one holding the point reaches
+sigma + 1 by a lemma about the strict containment every door
+enforces; and G2 holds exactly when the pieces the point does NOT
+occupy reach it too. Determinant 1 is sufficient because such a
+reference is its own occupied piece. What survives from the sentences
+above is the MEASUREMENT — the per-determinant table this rig printed
+is reproduced there exactly — and what does not is "keyed to the
+determinant".)
 
 Run record. THREE runs plus a smoke test of the gate leg. The first
 carried H1 to H3 and H5 and printed the family sort; it also failed
