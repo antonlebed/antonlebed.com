@@ -1,0 +1,457 @@
+"""CHAIN-PREFERRING PERSISTENCE: what gates the nesting law — the
+map, the regime, and the crossing geometry.
+
+THE QUESTION
+------------
+explore_seed_exclusion.py left the chain-preferring nesting law a
+rule at census scope: a reader preferring the chain at both cell
+kinds ((st, ss) = (1, 0)) has its tree-patience-down run nested
+pointwise at every step under the identity map — 14,680 pairs,
+zero exceptions — and the named owe was a persistence proof: from
+a nested pair state, drift never happens. This rig asks what that
+proof may assume: is the law a property of the commit loop alone
+(any image stream), or does it consume the identity map's special
+structure? And whichever way, what is the exact geometry of a
+drift when one exists?
+
+THE NAMED CLASS (imported verbatim)
+-----------------------------------
+Cover, streams, maps, cells and the lockstep pair walk are the
+parents' (explore_scale_clock.py, explore_seed_exclusion.py).
+Policies (1, 0, pt, pc), pt in {2, 3, INF} x pc in {1, 2, 3},
+each against its tree-patience-down (INF lowered to 3). Pair
+badness = any step whose committed intervals fail nested-or-equal
+in either direction (closed containment).
+
+HAND-ATTACK (fixed before the engine; the derivation this rig
+checks)
+------------------------------------------------------------
+Both runs' committed cells always contain the stream point (every
+cell entered contains a reference, every reference contains the
+current image, and the images nest onto the point). Write w for a
+vertex (a cell's mediant), cell(w) for the tree cell whose
+mediant w is, L_j = l + j*w for its chain points on the stream
+point's side, S_q(w) for the straddle of index q at w.
+
+D1 THE CROSSING CATALOG. Two cells around the stream point can
+   fail to nest only as S_q(w) x a flank cell whose interior
+   holds an endpoint of S_q(w) — a tree cell (L_i, w) with i < q,
+   or a straddle at the vertex L_q itself. Straddles at deeper
+   vertices nest inside shallower ones; all other pairs nest.
+   (Proved by enumerating the cells whose interior holds L_q: the
+   straddle right-reach v + j*L_i has coordinate ratio at most 2,
+   below L_q's ratio, for every intermediate vertex.)
+D2 PATH-FOLLOWING. The two runs share the chain reference. If the
+   elder run's micro-path ever lands on a cell of the fresher
+   run's path, it follows the same decisions until it halts:
+   chain candidates are a function of cell and chain reference
+   alone, and a door child containing the elder tree reference
+   contains the fresher one, children being interior-disjoint. So
+   from a met cell, the fresher commit nests inside the elder's.
+D3 CHAIN RESYNC. A chain-preferring run passing a straddle
+   family's entry cell with a live candidate always chains, to
+   the index kmax which is a function of vertex and chain
+   reference alone — so both runs passing there land in the SAME
+   straddle: the pair re-equalizes at every live chain vertex.
+D4 KMAX MONOTONICITY. References only shrink, so kmax at a fixed
+   vertex never decreases over steps, and a run's straddle index
+   always equals kmax at the step it entered or deepened. Hence
+   no run ever doors out of S_k(w) while the other holds a
+   DEEPER straddle at w — the deeper index would exceed the
+   current kmax.
+D5 THE REGIME SPLIT. The fresher run's tree reference t and the
+   shared chain reference c are members of one nested reference
+   chain, hence comparable, with discrete indices: either t is at
+   least as fresh as c (pc >= pt - 1, "fresh regime") or t is at
+   least one step staler than the PREVIOUS chain reference
+   (pc <= pt - 2, "stale regime"). In the fresh regime a drift
+   needs t to poke past a chain vertex that c sits strictly
+   inside of — impossible for t inside c: the door direction
+   argument is map-free. In the stale regime the drift shape is
+   live unless the references' SHAPE forbids it.
+D6 FAREY RIGIDITY (the identity map's private property). Under
+   the identity map every reference is a continued-fraction
+   cylinder: a Farey interval (endpoint determinant +-1). A Farey
+   interval holding a vertex u strictly interior contains all of
+   cell(u); equivalently a reference strictly inside a straddle
+   never holds the straddle's vertex interior. Moreover the
+   pivots of the point's descent are its convergents; for a pivot
+   w = conv_sigma the cylinders hold w interior before index
+   sigma, touch w as an endpoint exactly at sigma, and sit
+   strictly on the point's side after; the only cylinder of the
+   form (L_j, w) is (L_1, w). These exclusions close the stale
+   drift shapes traced by hand, except a residual family of
+   endpoint-equality branches (references with an endpoint
+   exactly at a semiconvergent, doors blocked by the strict
+   containment test) not yet exhausted — so the identity law is
+   expected to survive every scan below while remaining a rule
+   with a proved skeleton, not yet a theorem.
+Under sq and dbl the references are images of cylinders and the
+determinant is not +-1: a reference can straddle a vertex while
+hugging it, blocking the elder run's chasing door forever — the
+drift shape D5 leaves live. Scouting found such drifts; this rig
+freezes the claims.
+
+PREDICTIONS, fixed before the engine ran
+----------------------------------------
+S1 [gate, positive control] The three sq stall specimen worlds
+   (near-miss, flagship, designed) each show at least one bad
+   step in some (1, 0) pair under sq; the same digit streams
+   under id show none. A detector that cannot see the sq drift
+   proves nothing about id (K1).
+S2 [the id law, widened] Exhaustive scans over the frozen digit
+   alphabets below, identity map, all nine policy pairs: ZERO bad
+   steps. A single miss kills the law and the specimen is the
+   finding (K2).
+S3 [the map gate] The same scans under sq and dbl show bad pairs
+   in both maps.
+S4 [the regime law] Every off-identity bad pair sits in the stale
+   regime: pc <= pt - 2 for finite pt, pc <= 2 for the
+   INF-lowered pair. Zero fresh-regime failures under any map.
+S5 [the crossing geometry] GUESS, marked as such: at every
+   off-identity first-crossing, (a) one committed cell is a
+   straddle with an interval endpoint strictly interior to the
+   other cell (the catalog shape D1), and (b) the straddle
+   committer's tree reference holds that endpoint vertex strictly
+   interior WITHOUT containing the vertex's cell — the shape
+   Farey rigidity forbids under id. Tallied, exceptions printed;
+   a miss is a finding about the catalog, not a dead rig.
+
+KILL CRITERIA (observables, meaning weighed after the run)
+----------------------------------------------------------
+K1 An S1 control miss: the walk or detector is broken — no
+   verdicts.
+K2 An S2 miss: the identity law is dead at the printed specimen.
+K3 Otherwise every tally prints as a finding; S4/S5 misses scope
+   the derivation, not the rig.
+
+ENGINE
+------
+E1 the controls (S1): the three sq stall specimens under sq and
+   under id, all nine pairs.
+E2 the identity scan (S2): exhaustive digit products, id —
+   alphabets {1,2,3,40}^6, {1,2,3}^7, {1,2,4,9,30}^7,
+   {1,2,7,25}^8, {1,3,5,80}^7, {1,2}^10, {1,2,3}^9, {1}^16.
+E3 the map contrast (S3, S4): {1,2,3,40}^6 and {1,2,4,9,30}^6
+   under sq and dbl; per bad pair the (pt, pc) tally and the
+   regime split.
+E4 the crossing read (S5): for every E3 bad pair, re-walk to the
+   first bad step, classify the committed pair against the
+   catalog, and test the committer's tree reference for the
+   rigidity violation; print the first specimens per map.
+Exact big-integer arithmetic for every verdict; estimated run
+three to six minutes; memory trivial; exit nonzero on any check
+failure.
+
+FINDINGS (entered after the run; ALL CHECKS PASS, exit 0)
+----------------------------------------------------------------
+F1 THE CONTROLS HOLD. Each of the three sq stall specimens drifts
+   in exactly one policy pair ((1, 0, 3, 1) every time); the same
+   digit streams under the identity map never drift.
+F2 THE IDENTITY LAW AT EXHAUSTIVE SCOPE. 1,683,324 pair runs —
+   eight complete digit products up to {1,2,7,25}^8 and
+   {1,2}^10, nine policy pairs each — with ZERO bad steps. The
+   census evidence (14,680 curated-world pairs) widens by two
+   orders of magnitude and the law survives digit values far
+   outside the curated pools.
+F3 THE MAP GATE AND THE REGIME LAW. The same commit loop drifts
+   as soon as the map moves off the identity: sq 2,620 bad pairs
+   (2,440 at (pt, pc) = (3, 1), 23 at (INF, 1), 157 at
+   (INF, 2)), dbl 1,006 (all at (3, 1)). Every bad pair sits in
+   the stale regime — the fresher run's tree reference strictly
+   staler than the shared chain reference — and the fresh regime
+   shows zero failures under every scanned map: the door
+   direction argument (D5) is map-free, as predicted.
+F4 ONE CATALOG, TWO MECHANISMS. All 3,626 off-identity crossings
+   classify into the catalog shape (a committed straddle with an
+   interval endpoint strictly interior to the other committed
+   cell). The door-block mechanism splits by map: sq's 2,440
+   finite-patience crossings ALL show the rigidity violation —
+   the committer's tree reference holds the vertex strictly
+   interior without containing the vertex's cell, the shape a
+   Farey interval cannot take (printed specimen: reference
+   (25/9, 49/16), determinant -41, straddling the vertex 3); the
+   180 sq crossings at INF patience need no blocked reference
+   (that reader holds no tree reference and doors never open);
+   dbl's 1,006 crossings show ZERO violations — dbl blocks by
+   ENDPOINT EQUALITY (specimen: tree reference (10/3, 7/2) with
+   its right end exactly at the vertex 7/2, so the strict
+   containment test refuses the chasing door at the shared
+   endpoint), the doubling map aligning cylinder endpoints onto
+   the vertex lattice. The two failure families the hand
+   derivation named are exactly the two mechanisms the maps
+   realize.
+F5 THE AWAY-SIDE EXCLUSION (property, from the convergent
+   coordinates). For a pivot w = conv_sigma the away-side
+   straddle endpoints are R_j(w) = (1 + j) conv_sigma -
+   conv_{sigma-1} — a NEGATIVE coefficient — while every
+   identity-map reference endpoint from index sigma - 1 onward
+   is a non-negative combination of the same two convergents,
+   and consecutive convergents are independent; older endpoints
+   have too small a denominator. So no identity reference
+   endpoint ever equals an away-side straddle endpoint: dbl's
+   door-block shape is impossible under the identity map.
+
+THE VERDICT. The chain-preferring nesting law is the identity
+map's law, not the commit loop's: off the identity the same
+readers drift abundantly, always in the stale regime, always in
+the catalog's crossing shape, by exactly the two mechanisms the
+hand derivation isolated — the non-Farey interior straddle (sq)
+and the vertex-lattice endpoint equality (dbl). Under the
+identity map the derivation now stands as a proved skeleton —
+path-following (D2), chain resync (D3), kmax monotonicity (D4),
+the crossing catalog (D1), Farey rigidity killing the interior
+shape (D6), and the away-side exclusion (F5) killing the
+endpoint shape on the far side — plus the measured law at
+1,683,324-run exhaustive scope. What remains open for the
+theorem: exhausting the NEAR-SIDE endpoint-equality branches
+(references ending exactly at a semiconvergent on the stream
+point's side), where the traced cases die by chain resync but no
+enumeration closes the family. The law stays a rule at widened
+scope; the remaining owe is one enumeration, not a mechanism.
+
+Run record. Three runs. The first exited 1: S5b — declared a
+tallied guess above, with K3 scoping every S3-S5 miss as a
+finding — had been wired as an exit-affecting check; the wiring
+was corrected to match the predictions as fixed (S3-S5 print
+with their tallies; the gates are S1 and S2), no prediction or
+threshold touched. The second run crashed on a summary
+format string after all sections printed; fixed. The third run
+is the record; E1 and E2 printed identical figures across all
+three runs. About four minutes each.
+"""
+
+import sys
+import itertools
+
+import explore_scale_clock as SC
+import explore_seed_exclusion as SE
+
+FAILURES = []
+
+
+def check(name, ok):
+    tag = "PASS" if ok else "FAIL"
+    print("  [%s] %s" % (tag, name))
+    if not ok:
+        FAILURES.append(name)
+
+
+POLS = [(1, 0, pt, pc)
+        for pt in (2, 3, None)
+        for pc in (1, 2, 3)]
+
+ID_SCANS = [
+    ((1, 2, 3, 40), 6),
+    ((1, 2, 3), 7),
+    ((1, 2, 4, 9, 30), 7),
+    ((1, 2, 7, 25), 8),
+    ((1, 3, 5, 80), 7),
+    ((1, 2), 10),
+    ((1, 2, 3), 9),
+    ((1,), 16),
+]
+
+MAP_SCANS = [
+    ((1, 2, 3, 40), 6),
+    ((1, 2, 4, 9, 30), 6),
+]
+
+SPECIMENS = (("near-miss", SE.NEARMISS),
+             ("flagship", SE.FLAGSHIP),
+             ("designed", SE.DESIGNED))
+
+
+def is_stale(pol):
+    _, _, pt, pc = pol
+    if pt is None:
+        return pc <= 2
+    return pc <= pt - 2
+
+
+def bad_pairs(digs, mp, horizon):
+    J = SC.images(SC.cylinders(list(digs)), mp)[:horizon]
+    out = []
+    for pol in POLS:
+        pd = SE.run_pair(J, pol, horizon)
+        if pd["last_bad"] is not None:
+            out.append((pol, pd))
+    return out
+
+
+def walk_cells(J, pol, horizon):
+    """Lockstep walk keeping per-step committed cells and refs."""
+    st, ss, pt, pc = pol
+    ptd = 3 if pt is None else pt - 1
+    Cx = Cy = SC.ROOT
+    rows = []
+    for n in range(horizon):
+        rtx = J[n - pt] if pt is not None and n - pt >= 0 else None
+        rty = J[n - ptd] if n - ptd >= 0 else None
+        rc = J[n - pc] if pc is not None and n - pc >= 0 else None
+        Cx, _ = SE.commit_step(Cx, rtx, rc, st, ss)
+        Cy, _ = SE.commit_step(Cy, rty, rc, st, ss)
+        rows.append((Cx, Cy, rtx, rty, rc))
+    return rows
+
+
+def strictly_inside(x, iv):
+    lo, hi = iv
+    return SC.lt(lo, x) and SC.lt(x, hi)
+
+
+def covers(ref, iv):
+    lo, hi = iv
+    return SE.frac_le(ref[0], lo) and SE.frac_le(hi, ref[1])
+
+
+def vertex_cell(cell, endpoint_is_left):
+    """The tree cell of a straddle interval's endpoint vertex:
+    for S_k at v born of (l, r), the left endpoint l + k*v has
+    cell (l + (k-1)*v, v); mirror on the right."""
+    _, v, l, r, _, k = cell
+    if endpoint_is_left:
+        prev = (l[0] + (k - 1) * v[0], l[1] + (k - 1) * v[1])
+    else:
+        prev = (r[0] + (k - 1) * v[0], r[1] + (k - 1) * v[1])
+    return prev, v
+
+
+def classify_crossing(Cx, Cy, rtx, rty):
+    """Catalog test at a bad step: find a straddle among the two
+    committed cells with an interval endpoint strictly interior
+    to the other; then test the committer's tree reference for
+    the rigidity violation at that vertex. Returns (matched,
+    violated, vertex) for the first matching shape, or
+    (False, False, None)."""
+    for P, Q, t in ((Cx, Cy, rtx), (Cy, Cx, rty)):
+        if P[0] != "S":
+            continue
+        mL, mR = SC.interval(P)
+        qiv = SC.interval(Q)
+        for u, left in ((mL, True), (mR, False)):
+            if not strictly_inside(u, qiv):
+                continue
+            cl, cr = vertex_cell(P, left)
+            civ = (cl, cr) if SC.lt(cl, cr) else (cr, cl)
+            viol = (t is not None and strictly_inside(u, t)
+                    and not covers(t, civ))
+            return True, viol, u
+    return False, False, None
+
+
+def e1_controls():
+    print("\nE1  THE CONTROLS (sq specimens vs their id streams)")
+    sq_bad = id_bad = 0
+    for name, digs in SPECIMENS:
+        h = len(digs)
+        nb_sq = len(bad_pairs(digs, "sq", h))
+        nb_id = len(bad_pairs(digs, "id", h))
+        sq_bad += (nb_sq > 0)
+        id_bad += nb_id
+        print("  %-9s sq bad pols: %d   id bad pols: %d"
+              % (name, nb_sq, nb_id))
+    check("S1a every sq specimen drifts in some pair", sq_bad == 3)
+    check("S1b the same streams under id never drift", id_bad == 0)
+
+
+def e2_id_scan():
+    print("\nE2  THE IDENTITY SCAN (exhaustive, frozen alphabets)")
+    total_runs = 0
+    total_bad = 0
+    for alpha, h in ID_SCANS:
+        nb = 0
+        n = 0
+        for digs in itertools.product(alpha, repeat=h):
+            hits = bad_pairs(digs, "id", h)
+            n += len(POLS)
+            if hits:
+                nb += len(hits)
+                for pol, pd in hits[:3]:
+                    print("  ID DRIFT digs=%s pol=%s states=%s"
+                          % (digs, pol, pd["states"]))
+        total_runs += n
+        total_bad += nb
+        print("  id %s^%d: %d pair runs, %d bad"
+              % (set(alpha), h, n, nb))
+    check("S2 zero id bad pairs across all scans (%d runs)"
+          % total_runs, total_bad == 0)
+
+
+def e3_e4_maps():
+    print("\nE3/E4  THE MAP CONTRAST AND THE CROSSING READ")
+    tallies = {}
+    viol_by = {}
+    fresh_bad = 0
+    n_bad = n_class = n_viol = 0
+    shown = {}
+    for mp in ("sq", "dbl"):
+        for alpha, h in MAP_SCANS:
+            for digs in itertools.product(alpha, repeat=h):
+                J = SC.images(SC.cylinders(list(digs)), mp)[:h]
+                for pol in POLS:
+                    pd = SE.run_pair(J, pol, h)
+                    if pd["last_bad"] is None:
+                        continue
+                    n_bad += 1
+                    key = (mp, pol[2], pol[3])
+                    tallies[key] = tallies.get(key, 0) + 1
+                    if not is_stale(pol):
+                        fresh_bad += 1
+                        print("  FRESH-REGIME BAD: %s %s %s"
+                              % (mp, digs, pol))
+                    rows = walk_cells(J, pol, h)
+                    bad_n = next(
+                        i for i, s in enumerate(pd["states"])
+                        if s in ("OVERLAP", "INVERTED"))
+                    Cx, Cy, rtx, rty, _ = rows[bad_n]
+                    m, v, u = classify_crossing(Cx, Cy, rtx, rty)
+                    n_class += m
+                    n_viol += v
+                    cm, vm = viol_by.get(mp, (0, 0))
+                    viol_by[mp] = (cm + m, vm + v)
+                    if m and shown.get(mp, 0) < 2:
+                        shown[mp] = shown.get(mp, 0) + 1
+                        print("  %s specimen digs=%s pol=%s "
+                              "step=%d vertex=%d/%d viol=%s"
+                              % (mp, digs, pol, bad_n,
+                                 u[0], u[1], v))
+    for key in sorted(tallies, key=str):
+        print("  bad tally %s: %d" % (key, tallies[key]))
+    ok3 = (any(k[0] == "sq" for k in tallies)
+           and any(k[0] == "dbl" for k in tallies))
+    print("  [%s] S3 sq and dbl both drift (finding, not a gate)"
+          % ("pred-HIT" if ok3 else "pred-MISS"))
+    print("  [%s] S4 fresh-regime bad pairs: %d (finding)"
+          % ("pred-HIT" if fresh_bad == 0 else "pred-MISS",
+             fresh_bad))
+    for mp in sorted(viol_by):
+        c_m, v_m = viol_by[mp]
+        print("  S5 %s: catalog %d/%d, rigidity violations %d/%d"
+              % (mp, c_m, c_m, v_m, c_m))
+    print("  [%s] S5a all %d crossings classify (finding)"
+          % ("pred-HIT" if n_class == n_bad else "pred-MISS",
+             n_bad))
+    print("  [%s] S5b rigidity violations %d/%d (finding)"
+          % ("pred-HIT" if n_viol == n_bad else "pred-MISS",
+             n_viol, n_bad))
+
+
+def main():
+    print("CHAIN-PREFERRING PERSISTENCE: the map gate, the regime,"
+          " the crossing geometry")
+    e1_controls()
+    e2_id_scan()
+    e3_e4_maps()
+    print()
+    if FAILURES:
+        print("FAILURES: %d" % len(FAILURES))
+        for f in FAILURES:
+            print("  " + f)
+        return 1
+    print("ALL CHECKS PASS")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
