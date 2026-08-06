@@ -215,8 +215,14 @@ At distance one the domination law stays MEASURED, its anatomy now
 sharp: nesting is a patience-down monopoly, the exists-choice of
 member is load-bearing (F4), the from-INF legs are universal, and
 what a derivation still owes is exactly why SOME member's
-tree-patience-down always ends nested (id, 9,401 of 9,401). The sq stalls sit outside the theorem's reach in the
-pinned residue (F5) — consistent with their stallhood.
+tree-patience-down always ends nested (id, 9,401 of 9,401).
+(Taken up by explore_seed_exclusion.py: the divergence seed is
+pre-window and benign under id, nested drift the real break
+path, and the chain-preferring nesting law settles 5,774 of the
+9,401 classes — the owe splits into chain-preferring persistence
+and pre-window confinement.) The sq stalls sit outside the
+theorem's reach in the pinned residue (F5) — consistent with
+their stallhood.
 
 Run record. THREE runs. The first gated at E3: T5's GUESS was
 wired as hard checks (the parent domination rig's own recorded

@@ -211,7 +211,12 @@ aggregate margin (K2: the law is false as stated there), so the
 dbl refusal keeps only its measured margins. What remains open is
 L4: deriving the domination law itself - the routing-step case
 analysis, for which the identity map is now the sharp target,
-its measured law having zero exceptions to survive.
+its measured law having zero exceptions to survive. (Taken up
+twice: explore_shift_telescope.py builds the exists-neighbor at
+cure distance 2 by exact delay, avoiding the routing case
+analysis outright; explore_seed_exclusion.py instruments
+distance 1, where the open derivation is now chain-preferring
+persistence plus pre-window confinement.)
 
 Run record. The first run gated at E1: the near-miss control band
 was mistyped (-0.0078 for -0.0075) against the parent's printed
