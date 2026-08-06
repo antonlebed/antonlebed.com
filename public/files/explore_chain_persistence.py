@@ -146,6 +146,16 @@ E4b the door-block shapes (added by the review of this record,
    crossing, the committing run's block shape —
    rigidity, endpoint equality at the vertex, no tree reference,
    or other — split by map and by finite/infinite patience.
+E5 the away-side exclusion (same provenance as E4b: the review
+   checked F5's hand argument, found its coefficient case
+   analysis incomplete at one index, and wired the check the
+   repaired argument needs): over complete digit products, can
+   any identity cylinder endpoint equal an away-side straddle
+   endpoint (1 + j) conv_sigma - conv_{sigma-1}? Tallied at
+   j >= 1 (the straddle case, which must be empty) and at j = 0
+   (the boundary the repaired argument excludes by the straddle
+   index alone, which must NOT be empty or that exclusion is
+   decorative).
 Exact big-integer arithmetic for every verdict; estimated run
 three to six minutes; memory trivial; exit nonzero on any check
 failure.
@@ -193,13 +203,26 @@ F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S. All
 F5 THE AWAY-SIDE EXCLUSION (property, from the convergent
    coordinates). For a pivot w = conv_sigma the away-side
    straddle endpoints are R_j(w) = (1 + j) conv_sigma -
-   conv_{sigma-1} — a NEGATIVE coefficient — while every
-   identity-map reference endpoint from index sigma - 1 onward
-   is a non-negative combination of the same two convergents,
-   and consecutive convergents are independent; older endpoints
-   have too small a denominator. So no identity reference
-   endpoint ever equals an away-side straddle endpoint: dbl's
-   door-block shape is impossible under the identity map.
+   conv_{sigma-1}, with j the straddle index — a NEGATIVE second
+   coefficient — while consecutive convergents are independent,
+   so an equality forces its coefficients to match. Reference
+   endpoints from index sigma onward are non-negative
+   combinations of the same two convergents (the convergent
+   recurrence has non-negative coefficients), and endpoints older
+   than index sigma - 1 have denominators below q_sigma, which
+   the away-side endpoints exceed for every j >= 1. The one
+   endpoint the coefficient argument does NOT cover is index
+   sigma - 1's far end, conv_{sigma-1} + conv_{sigma-2} =
+   conv_sigma - (a_sigma - 1) conv_{sigma-1}, which is a negative
+   combination exactly when a_sigma >= 2: matching coefficients
+   there forces j = 0, and a straddle's index is at least 1. So
+   no identity reference endpoint ever equals an away-side
+   straddle endpoint, and the straddle-index bound is
+   load-bearing rather than decorative — at j = 0 the
+   coincidences are real and common (E5: zero coincidences in
+   491,520 straddle-index checks, against 45,056 in 94,208 at
+   j = 0). dbl's door-block shape is impossible under the
+   identity map.
 
 THE VERDICT. The chain-preferring nesting law is the identity
 map's law, not the commit loop's: off the identity the same
@@ -229,7 +252,14 @@ engine entry states: a review of this record found F4's
 two-mechanism reading resting on ONE traced dbl specimen,
 computed the full tally outside the rig, and then wired the leg
 so the record prints it — the numbers were known before that run,
-and E1 through E4 printed identically across all four. The second run crashed on a summary
+and E1 through E4 printed identically across all four. A fifth
+run added E5 the same way: the same review found F5's coefficient
+case analysis incomplete at index sigma - 1 (where the endpoint
+is a NEGATIVE combination whenever the next partial quotient is
+at least 2, so the exclusion there rests on the straddle index
+and not on the coefficient signs), repaired the argument, and
+wired the scan that checks both its halves. E1 through E4b are
+identical across runs four and five. The second run crashed on a summary
 format string after all sections printed; fixed. The third run
 is the record; E1 and E2 printed identical figures across all
 three runs. About four minutes each.
@@ -270,6 +300,10 @@ MAP_SCANS = [
     ((1, 2, 3, 40), 6),
     ((1, 2, 4, 9, 30), 6),
 ]
+
+AWAY_ALPHA = (1, 2, 3, 5)
+AWAY_H = 7
+AWAY_JMAX = 5
 
 SPECIMENS = (("near-miss", SE.NEARMISS),
              ("flagship", SE.FLAGSHIP),
@@ -489,12 +523,56 @@ def e3_e4_maps():
         print("    %-22s %d" % (str(key), shapes[key]))
 
 
+def convergents(digs):
+    p2, q2, p1, q1 = 0, 1, 1, 0
+    out = []
+    for a in digs:
+        p, q = a * p1 + p2, a * q1 + q2
+        out.append((p, q))
+        p2, q2, p1, q1 = p1, q1, p, q
+    return out
+
+
+def e5_away_side():
+    """The away-side exclusion (F5) machine-checked: can any
+    identity reference endpoint equal an away-side straddle
+    endpoint (1 + j) conv_sigma - conv_{sigma-1}? j >= 1 is the
+    straddle case; j = 0 is the boundary the argument excludes by
+    the straddle index alone, and it must show real coincidences
+    or that exclusion is decorative."""
+    print("\nE5  THE AWAY-SIDE EXCLUSION (identity cylinders)")
+    n_chk = [0, 0]
+    n_hit = [0, 0]
+    for digs in itertools.product(AWAY_ALPHA, repeat=AWAY_H):
+        cv = convergents(list(digs))
+        ends = [e for iv in SC.cylinders(list(digs)) for e in iv]
+        for s in range(1, len(cv)):
+            for j in range(0, AWAY_JMAX + 1):
+                a = ((1 + j) * cv[s][0] - cv[s - 1][0],
+                     (1 + j) * cv[s][1] - cv[s - 1][1])
+                if a[1] <= 0:
+                    continue
+                slot = 0 if j == 0 else 1
+                n_chk[slot] += 1
+                if any(eq_frac(e, a) for e in ends):
+                    n_hit[slot] += 1
+    print("  j >= 1 (straddles): %d checks, %d coincidences"
+          % (n_chk[1], n_hit[1]))
+    print("  j = 0  (boundary):  %d checks, %d coincidences"
+          % (n_chk[0], n_hit[0]))
+    check("S6a no identity endpoint meets an away-side straddle "
+          "endpoint", n_hit[1] == 0)
+    check("S6b the j = 0 boundary really does coincide, so the "
+          "straddle-index bound is load-bearing", n_hit[0] > 0)
+
+
 def main():
     print("CHAIN-PREFERRING PERSISTENCE: the map gate, the regime,"
           " the crossing geometry")
     e1_controls()
     e2_id_scan()
     e3_e4_maps()
+    e5_away_side()
     print()
     if FAILURES:
         print("FAILURES: %d" % len(FAILURES))
