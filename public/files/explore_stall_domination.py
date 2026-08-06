@@ -189,11 +189,16 @@ F3 THE SQ BREAK CONFIRMED. All three sq specimens reproduce and
 
 F4 THE WALL CONSTANTS MET WITH EQUALITY. The near-miss margin
    equals -ln(1 + 1/R) exactly at R = 33538/261 = 128.498 (under
-   the dbl bound 132 at D = 64), and the map-rate id record equals
-   its cap at R = 255.996 (under the id bound 258 at D = 256): the
-   frontier optimum's binding loss ratio IS a single parent/child
-   refinement ratio - every other counted step cancels exactly -
-   so the 1/D walk is the one-cell wall's own asymptotic.
+   the dbl bound 132 at D = 64), and its cells were traced by
+   hand before this rig was written: the binding edge is one
+   mediant step (endpoint denominators 33538 and 33799 =
+   33538 + 261) and the other counted step's cells coincide. The
+   map-rate id record equals its cap at R = 255.996 (under the id
+   bound 258 at D = 256); at horizon 9 the counted window is one
+   step, so its loss ratio is one cell-pair ratio by
+   construction, though its cells were not re-traced (the climb's
+   world is not in the frozen record). The 1/D walk is the
+   one-cell wall's own asymptotic.
 
 THE VERDICT. Between K2 and K3, split by map: the reduction CLOSES
 FOR THE IDENTITY MAP at scope - no unresourced id stall exists
