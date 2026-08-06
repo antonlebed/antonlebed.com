@@ -238,7 +238,12 @@ F4 THE RATIONAL-SLOPE DELAY LAW (rule at 17 scanned slope scopes
    form says 0 — the form is the per-level Lebesgue bound of the
    reading lemma, and the exact (game) delay deviates from it by
    one digit in either direction. The generality conjecture is
-   dead; the 17-scope exactness above stands.]
+   dead; the 17-scope exactness above stands. The b-power half is
+   dead as a general claim too: explore_slope_proof.py derives the
+   delay as a closed form and finds (4,2) slope 1/4 at 1, not
+   max(0, s) = 0 — NEGATIVE b-powers read 0 iff a >= b - 1 and 1
+   otherwise, at every depth. The scoped cells here all satisfy
+   a >= b - 1, which is why the scan never saw it.]
 F5 THE PHASE-SHAPE LAW (rule at scanned scopes; NEW — it corrects
    two frozen spots, see the run record): each non-redundant
    window's unique free rounding phase is its own CELL SHAPE.
