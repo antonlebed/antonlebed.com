@@ -274,7 +274,11 @@ H5 WHY THE MAP BREAKS IT, IN ONE SENTENCE. The ladder index is a
    breaks the lemma anyway, because G4's step silently reads one
    reference STEP as one partial quotient. The surviving scope of
    everything below is unchanged: it is all stated under the
-   identity map, where the two coincide.) Under sq and dbl a
+   identity map, where the two coincide. And superseded once more at
+   P680: it is not about cylinders either -- the two finenesses stay
+   tied at every door where the tree reference is fine enough and
+   the chain reference finer, on the image of a cylinder as readily
+   as on one.) Under sq and dbl a
    reference is the image of a cylinder, the two finenesses
    decouple, and a run can walk off the ladder at an index the other
    run later chains past. The accidental proof of this is at
@@ -293,7 +297,15 @@ until the chain reference has already maxed the ladder the door
 leads onto. The chain-preferring nesting law under the identity map
 is a theorem at the whole chain-preferring policy slice, and the
 map is where it fails because the map is where a reference stops
-being a Farey interval.
+being a Farey interval. (That last clause is superseded twice over
+by explore_reference_families.py, and the theorem above is not: what
+the lemma needs is neither Farey rigidity nor phase but two index
+inequalities read AT THE DOOR -- the tree reference at index >=
+sigma + 1 and the chain reference finer still -- which determinant-2
+families satisfy at thousands of their own doors. The map is where
+those two stop being GUARANTEED, not where they stop holding. The
+surviving scope of everything above is unchanged, all of it stated
+under the identity map, where the guarantee is total.)
 
 Run record. THREE runs. The first two took about ninety seconds
 each; the third added E5 and runs about four minutes. The first found
