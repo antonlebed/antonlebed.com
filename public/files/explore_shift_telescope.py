@@ -215,8 +215,7 @@ At distance one the domination law stays MEASURED, its anatomy now
 sharp: nesting is a patience-down monopoly, the exists-choice of
 member is load-bearing (F4), the from-INF legs are universal, and
 what a derivation still owes is exactly why SOME member's
-tree-patience-down always dodges the routing divergence (id, 9,401
-of 9,401). The sq stalls sit outside the theorem's reach in the
+tree-patience-down always ends nested (id, 9,401 of 9,401). The sq stalls sit outside the theorem's reach in the
 pinned residue (F5) — consistent with their stallhood.
 
 Run record. THREE runs. The first gated at E3: T5's GUESS was
