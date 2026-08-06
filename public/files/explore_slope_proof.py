@@ -336,6 +336,14 @@ VERDICT, by piece, since they do not share a tier.
     at most the band of width g_c - 1 that (5) leaves: PROVED as a
     bound, with the 54 withholding cells of F7 measured inside it.
     The criterion is not an iff there and (7) says why.
+    (SETTLED SINCE, and this record is not rewritten for it:
+    explore_slope_lattice.py closes the band by replacing the LENGTH
+    test with a per-CLASS saturation test that decides the game at
+    every g_c, the length test being its one-class case. What
+    survives here unchanged is the bound itself, the fact that the
+    LENGTH test alone is not an iff at g_c > 1, and every count
+    below -- the 54 included, which that file reproduces exactly on
+    this scope.)
   - The negative-power law of F4 is the criterion at c = 0
     unpacked at g_c = 1 (u = 1, v = b^t makes the injection step 1),
     so it is PROVED at the same scope.
