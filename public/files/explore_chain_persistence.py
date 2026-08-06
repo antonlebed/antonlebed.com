@@ -231,7 +231,14 @@ F2 THE IDENTITY LAW AT EXHAUSTIVE SCOPE, AND THE POLICY SET
 F3 THE MAP GATE AND THE REGIME LAW. The same commit loop drifts
    as soon as the map moves off the identity: sq 2,620 bad pairs
    (2,440 at (pt, pc) = (3, 1), 23 at (INF, 1), 157 at
-   (INF, 2)), dbl 1,006 (all at (3, 1)). Every bad pair sits in
+   (INF, 2)), dbl 1,006 (all at (3, 1)). (These count bad pair
+   RUNS, and E2's two map alphabets share the digits 1 and 2, so
+   the 64 streams of {1,2}^6 are scanned under each map twice: the
+   DISTINCT crossings are 2,606 and 998, checked in
+   explore_ladder_entry.py E5. Every claim below quantifies over
+   all of them, and a universal claim is indifferent to the
+   multiplicity; only a count of specimens is not.) Every bad pair
+   sits in
    the stale regime — the fresher run's tree reference strictly
    staler than the shared chain reference — and the fresh regime
    shows zero failures under every scanned map: the door
