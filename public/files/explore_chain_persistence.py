@@ -71,10 +71,19 @@ D5 THE REGIME SPLIT. The fresher run's tree reference t and the
    least as fresh as c (pc >= pt - 1, "fresh regime") or t is at
    least one step staler than the PREVIOUS chain reference
    (pc <= pt - 2, "stale regime"). In the fresh regime a drift
-   needs t to poke past a chain vertex that c sits strictly
-   inside of — impossible for t inside c: the door direction
-   argument is map-free. In the stale regime the drift shape is
-   live unless the references' SHAPE forbids it.
+   needs the FLANK run's tree reference to poke past a chain
+   vertex that c sits strictly inside of — impossible when that
+   reference is inside c, since the straddle committer chained
+   to the index c fits, so c and everything inside it lies
+   strictly within the straddle and cannot hold its endpoint:
+   the door opens, the flank run descends, and the argument
+   never mentions the map. This reaches the FRESHER run's
+   reference, which the fresh regime puts inside c; the elder's
+   is one step staler and can sit outside, so the derivation
+   covers the fresher-run-flanks role only — which E4c reports
+   is the role every observed crossing takes (the elder commits
+   the straddle in all 3,626). In the stale regime the drift
+   shape is live unless the references' SHAPE forbids it.
 D6 FAREY RIGIDITY (the identity map's private property). Under
    the identity map every reference is a continued-fraction
    cylinder: a Farey interval (endpoint determinant +-1). A Farey
@@ -156,8 +165,10 @@ E4c the bad-state kinds (same provenance as E4b: the word
    CROSSING carries the catalog, and a bad state could equally
    be an INVERTED containment — the elder run's cell strictly
    inside the fresher's — which is not a crossing at all): the
-   first bad state per pair, plus whether any step of that pair
-   is ever INVERTED.
+   first bad state per pair, whether any step of that pair is
+   ever INVERTED, and WHICH run committed the straddle, since
+   the refused door belongs to the other one and that decides
+   whose tree reference D5's regime argument has to reach.
 E5 the away-side exclusion (same provenance as E4b: the review
    checked F5's hand argument, found its coefficient case
    analysis incomplete at one index, and wired the check the
@@ -202,7 +213,12 @@ F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S.
    inverted containment: all 3,626 first bad states are OVERLAP,
    and no step of any bad pair is ever INVERTED (E4c) — the
    elder run's cell never sits strictly inside the fresher's,
-   under either map. All 3,626 classify into the catalog shape
+   under either map. The same tally fixes the ROLES, which is
+   what D5's regime argument needs: the ELDER run commits the
+   straddle in every one of the 3,626, so the refused door is
+   always the fresher run's — the reference the fresh regime
+   puts inside the chain reference, and the one case the
+   argument covers. All 3,626 classify into the catalog shape
    (a committed straddle with an interval endpoint strictly
    interior to the other committed cell), and the E4b tally
    partitions their door blocks with no remainder and no
@@ -283,7 +299,9 @@ there is a NEGATIVE combination whenever the next partial
 quotient is at least 2, so the exclusion rests on the straddle
 index and not on the coefficient signs — with the argument
 repaired and both its halves checked; and E4c, after the review
-asked what the word CROSSING was resting on.
+asked what the word CROSSING was resting on — extended in the
+same pass with the straddle committer's role, once the review
+found D5 stated for both roles and derived for one.
 """
 
 import sys
@@ -388,6 +406,22 @@ def vertex_cell(cell, endpoint_is_left):
 
 def eq_frac(a, b):
     return a[0] * b[1] == b[0] * a[1]
+
+
+def straddle_role(Cx, Cy):
+    """Which run committed the straddle whose endpoint sits
+    inside the other's cell — 'elder' (the parent policy) or
+    'fresher' (its tree-patience-down). The door that was
+    refused belongs to the OTHER one, which is what decides
+    whose tree reference the regime argument must reach."""
+    for lbl, P, Q in (("elder", Cx, Cy), ("fresher", Cy, Cx)):
+        if P[0] != "S":
+            continue
+        mL, mR = SC.interval(P)
+        qiv = SC.interval(Q)
+        if any(strictly_inside(u, qiv) for u in (mL, mR)):
+            return lbl
+    return "none"
 
 
 def block_shape(Cx, Cy, rtx, rty):
@@ -516,7 +550,8 @@ def e3_e4_maps():
                           block_shape(Cx, Cy, rtx, rty))
                     shapes[sk] = shapes.get(sk, 0) + 1
                     kk = (mp, pd["states"][bad_n],
-                          "INVERTED" in pd["states"])
+                          "INVERTED" in pd["states"],
+                          straddle_role(Cx, Cy))
                     kinds[kk] = kinds.get(kk, 0) + 1
                     if m and shown.get(mp, 0) < 2:
                         shown[mp] = shown.get(mp, 0) + 1
@@ -544,7 +579,7 @@ def e3_e4_maps():
           % ("pred-HIT" if n_viol == n_bad else "pred-MISS",
              n_viol, n_bad))
     print("  E4c the bad-state kinds (map, first bad state, any "
-          "INVERTED step at all):")
+          "INVERTED step at all, straddle committer):")
     for key in sorted(kinds, key=str):
         print("    %-34s %d" % (str(key), kinds[key]))
     print("  E4b the door-block shapes (map, patience, shape):")
