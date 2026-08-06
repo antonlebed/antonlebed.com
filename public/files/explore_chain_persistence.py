@@ -36,11 +36,15 @@ point's side, S_q(w) for the straddle of index q at w.
 D1 THE CROSSING CATALOG. Two cells around the stream point can
    fail to nest only as S_q(w) x a flank cell whose interior
    holds an endpoint of S_q(w) — a tree cell (L_i, w) with i < q,
-   or a straddle at the vertex L_q itself. Straddles at deeper
-   vertices nest inside shallower ones; all other pairs nest.
-   (Proved by enumerating the cells whose interior holds L_q: the
-   straddle right-reach v + j*L_i has coordinate ratio at most 2,
-   below L_q's ratio, for every intermediate vertex.)
+   or a straddle at the vertex L_q itself, which reaches from
+   below L_q up past it. Straddles at the INTERMEDIATE vertices
+   L_i, i < q, are the ones that nest rather than cross; all
+   other pairs nest. (Proved by enumerating the cells whose
+   interior holds L_q: an intermediate vertex's straddle reaches
+   right only to w + j*L_i, whose coordinate ratio against
+   (L_{i-1}, w) stays at most 2 and so falls short of L_q's,
+   while the straddles AT L_q are exactly the family that
+   brackets it.)
 D2 PATH-FOLLOWING. The two runs share the chain reference. If the
    elder run's micro-path ever lands on a cell of the fresher
    run's path, it follows the same decisions until it halts:
@@ -51,8 +55,10 @@ D2 PATH-FOLLOWING. The two runs share the chain reference. If the
 D3 CHAIN RESYNC. A chain-preferring run passing a straddle
    family's entry cell with a live candidate always chains, to
    the index kmax which is a function of vertex and chain
-   reference alone — so both runs passing there land in the SAME
-   straddle: the pair re-equalizes at every live chain vertex.
+   reference alone — the engine reads the vertex's two parents
+   too, but a vertex determines them (each has one Farey parent
+   pair) — so both runs passing there land in the SAME straddle:
+   the pair re-equalizes at every live chain vertex.
 D4 KMAX MONOTONICITY. References only shrink, so kmax at a fixed
    vertex never decreases over steps, and a run's straddle index
    always equals kmax at the step it entered or deepened. Hence
