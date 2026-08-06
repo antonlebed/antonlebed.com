@@ -73,9 +73,10 @@ D3 THE GENERAL FORM. Every rational interval is a finite union of
    does interval arithmetic over arbitrary rational endpoints, but it
    does not decompose such an interval into maximal unimodular cells;
    the precision control there is the nesting of the successive images,
-   not a piece count. So the construction above is stated here as an
-   elementary property of the tree and is not cited to that line of
-   work.)
+   not a piece count. One source read, not the whole line: so the
+   construction above is stated here as an elementary property of the
+   tree and is attributed to nobody, which is what the read settles and
+   all it settles.)
 D4 WHERE THE SEPARATOR MUST LIVE. C_j is an interval, so J lies inside
    C_j exactly when every piece does: index(J) is the MINIMUM over the
    pieces. That is a triviality. The content is which piece attains it.
