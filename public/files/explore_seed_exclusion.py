@@ -208,8 +208,9 @@ F4 THE HEALING AND THE SQ CONTRAST. From-INF badness always
    the INF-only classes. Under sq the same instrument shows the
    stall members' badness PERSISTING into the window (both
    census stalls fail at the window's first step; the designed
-   stall oscillates, fails at 9, and fires the scan's only
-   counted-window seed at step 14): the id/sq split is the
+   stall oscillates, fails at 9, and fires a counted-window seed
+   at step 14 — the only one in any printed tally, the id census
+   having none anywhere): the id/sq split is the
    window's relation to the bad phase — transient and early
    against recurrent.
 F5 THE CHAIN-PREFERRING NESTING LAW, AND ITS PARTIAL COVERAGE
@@ -238,7 +239,8 @@ divergence is the nested descent, so its paper derivation owes
 exactly one statement: nested persistence for chain-preferring
 readers (drift measured absent there). Selection by that law
 settles 5,774 of the 9,401 classes. The residue's 3,627 classes
-witness only at prefer-tree bits, where counted nesting holds
+witness only at bit pairs carrying a tree preference at one or
+both cell kinds, where counted nesting holds
 because every bad phase (and every seed) sits pre-window: the
 distance-one law's remaining owes are therefore NAMED — the
 chain-preferring persistence proof, and the pre-window
