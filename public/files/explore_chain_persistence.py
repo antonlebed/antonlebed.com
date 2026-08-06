@@ -220,9 +220,9 @@ F2 THE IDENTITY LAW AT EXHAUSTIVE SCOPE, AND THE POLICY SET
    {1,2,3}^9 and its runs are re-runs — 3,696,980 of the runs
    carry distinct coverage, and both figures are stated because
    the smaller one is what the scope means. The
-   census evidence (14,680 curated-world pairs) widens by two
-   orders of magnitude and the law survives digit values far
-   outside the curated pools.
+   census evidence (14,680 curated-world pairs) widens by better
+   than two orders of magnitude and the law survives digit
+   values far outside the curated pools.
 F3 THE MAP GATE AND THE REGIME LAW. The same commit loop drifts
    as soon as the map moves off the identity: sq 2,620 bad pairs
    (2,440 at (pt, pc) = (3, 1), 23 at (INF, 1), 157 at
@@ -230,7 +230,9 @@ F3 THE MAP GATE AND THE REGIME LAW. The same commit loop drifts
    the stale regime — the fresher run's tree reference strictly
    staler than the shared chain reference — and the fresh regime
    shows zero failures under every scanned map: the door
-   direction argument (D5) is map-free, as predicted.
+   direction argument (D5) is map-free, as predicted — derived
+   for the flanking role every observed crossing takes (F4) and
+   measured for both.
 F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S.
    Every off-identity failure really is a CROSSING and never an
    inverted containment: all 3,626 first bad states are OVERLAP,
