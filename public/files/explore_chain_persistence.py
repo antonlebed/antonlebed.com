@@ -82,7 +82,12 @@ D5 THE REGIME SPLIT. The fresher run's tree reference t and the
    is one step staler and can sit outside, so the derivation
    covers the fresher-run-flanks role only — which E4c reports
    is the role every observed crossing takes (the elder commits
-   the straddle in all 3,626). In the stale regime the drift
+   the straddle in all 3,626; explore_near_side.py finds that
+   tally order-dependent — at 2,945 of them BOTH cells are
+   straddles — and replaces it with the direction-specific fact
+   the argument actually needs, that the ELDER's near endpoint
+   lies strictly inside the fresher's cell in all 3,626). In the
+   stale regime the drift
    shape is live unless the references' SHAPE forbids it.
 D6 FAREY RIGIDITY (the identity map's private property). Under
    the identity map every reference is a continued-fraction
@@ -243,7 +248,13 @@ F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S.
    straddle in every one of the 3,626, so the refused door is
    always the fresher run's — the reference the fresh regime
    puts inside the chain reference, and the one case the
-   argument covers. All 3,626 classify into the catalog shape
+   argument covers. (Scoped by explore_near_side.py: the
+   committer test runs elder-first and at 2,945 of the 3,626 BOTH
+   cells are straddles, so this tally reports an order and not a
+   role. What survives, direction-specific and universal, is that
+   the ELDER's NEAR endpoint sits strictly inside the fresher's
+   cell in all 3,626 — which is the fact the regime argument
+   leans on, and the roles read the same way round.) All 3,626 classify into the catalog shape
    (a committed straddle with an interval endpoint strictly
    interior to the other committed cell), and the E4b tally
    partitions their door blocks with no remainder and no
