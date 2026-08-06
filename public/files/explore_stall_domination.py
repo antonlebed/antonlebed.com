@@ -168,11 +168,12 @@ F2 THE DOMINATION CENSUS SPLITS BY MAP. Identity: EXHAUSTIVE - all
    cells nested-or-equal at every counted step), zero exceptions.
    Doubling: 11,303 nested + 540 shorter + 92 NET - ninety-two
    classes have no pointwise-dominating cure neighbor and still
-   lose on aggregate, the witnesses sitting in burst and
-   head-period worlds (first witness burst7.D8, horizon 10: class
-   sigma=(0,1) patience (2,0), whose best neighbor concedes step 9
-   and wins on net). Zero classes grade STALLED anywhere - 21,336
-   classes, the map-rate refusal reproduced a third way. So C2's
+   lose on aggregate, the printed witnesses sitting in burst,
+   head-period and spike worlds (first witness burst7.D8, horizon
+   10: class sigma=(0,1) patience (2,0), whose best neighbor
+   concedes step 9 and wins on net). Zero classes grade STALLED
+   anywhere among the 21,336 - the map-rate refusal reproduced a
+   third way. So C2's
    guess falls exactly where L4 warned: the law is a fact of the
    MAP-ALIGNMENT pair, exhaustive for the identity embedding,
    dented by dbl's alignment shift (dbl adds alignment, never
