@@ -238,7 +238,12 @@ tree-patience-down run nested pointwise at EVERY step — 14,680
 pairs, zero exceptions — and by Lemma D its only equal-cell
 divergence is the nested descent, so its paper derivation owes
 exactly one statement: nested persistence for chain-preferring
-readers (drift measured absent there). Selection by that law
+readers (drift measured absent there). (Taken up by
+explore_chain_persistence.py: that owe is the IDENTITY MAP'S,
+not the commit loop's — the law holds at exhaustive scope under
+id and fails abundantly under sq and dbl — and the persistence
+argument is now a proved skeleton whose surviving open piece is
+the near-side endpoint-equality enumeration.) Selection by that law
 settles 5,774 of the 9,401 classes. The residue's 3,627 classes
 witness only at bit pairs carrying a tree preference at one or
 both cell kinds, where counted nesting holds

@@ -139,6 +139,13 @@ E4 the crossing read (S5): for every E3 bad pair, re-walk to the
    first bad step, classify the committed pair against the
    catalog, and test the committer's tree reference for the
    rigidity violation; print the first specimens per map.
+E4b the door-block shapes (added by the review of this record,
+   which had computed the tally outside the rig to check F4's
+   mechanism claim — the leg exists so the record prints what its
+   prose states, and its numbers were known before it ran): per
+   crossing, the committing run's block shape —
+   rigidity, endpoint equality at the vertex, no tree reference,
+   or other — split by map and by finite/infinite patience.
 Exact big-integer arithmetic for every verdict; estimated run
 three to six minutes; memory trivial; exit nonzero on any check
 failure.
@@ -162,24 +169,26 @@ F3 THE MAP GATE AND THE REGIME LAW. The same commit loop drifts
    staler than the shared chain reference — and the fresh regime
    shows zero failures under every scanned map: the door
    direction argument (D5) is map-free, as predicted.
-F4 ONE CATALOG, TWO MECHANISMS. All 3,626 off-identity crossings
-   classify into the catalog shape (a committed straddle with an
-   interval endpoint strictly interior to the other committed
-   cell). The door-block mechanism splits by map: sq's 2,440
-   finite-patience crossings ALL show the rigidity violation —
-   the committer's tree reference holds the vertex strictly
-   interior without containing the vertex's cell, the shape a
-   Farey interval cannot take (printed specimen: reference
-   (25/9, 49/16), determinant -41, straddling the vertex 3); the
-   180 sq crossings at INF patience need no blocked reference
-   (that reader holds no tree reference and doors never open);
-   dbl's 1,006 crossings show ZERO violations — dbl blocks by
-   ENDPOINT EQUALITY (specimen: tree reference (10/3, 7/2) with
-   its right end exactly at the vertex 7/2, so the strict
-   containment test refuses the chasing door at the shared
-   endpoint), the doubling map aligning cylinder endpoints onto
-   the vertex lattice. The two failure families the hand
-   derivation named are exactly the two mechanisms the maps
+F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S. All
+   3,626 off-identity crossings classify into the catalog shape
+   (a committed straddle with an interval endpoint strictly
+   interior to the other committed cell), and the E4b tally
+   partitions their door blocks with no remainder and no
+   overlap: sq finite-patience 2,440 RIGIDITY — the committer's
+   tree reference holds the vertex strictly interior without
+   containing the vertex's cell, the shape a Farey interval
+   cannot take (printed specimen: reference (25/9, 49/16),
+   determinant -41, straddling the vertex 3); sq infinite-
+   patience 180 NO-REF — that reader holds no tree reference, so
+   no door can open and no block is needed; dbl 1,006 ENDPOINT —
+   zero rigidity violations, every one blocked by a reference
+   endpoint sitting EXACTLY at the crossing vertex (printed
+   specimen: reference (10/3, 7/2), right end exactly the vertex
+   7/2, so the strict containment test refuses the chasing door
+   at the shared endpoint), the doubling map aligning cylinder
+   endpoints onto the vertex lattice. Not one crossing under
+   either map falls outside the three. The two blocking families
+   the hand derivation named are exactly the two the maps
    realize.
 F5 THE AWAY-SIDE EXCLUSION (property, from the convergent
    coordinates). For a pivot w = conv_sigma the away-side
@@ -215,7 +224,12 @@ tallied guess above, with K3 scoping every S3-S5 miss as a
 finding — had been wired as an exit-affecting check; the wiring
 was corrected to match the predictions as fixed (S3-S5 print
 with their tallies; the gates are S1 and S2), no prediction or
-threshold touched. The second run crashed on a summary
+threshold touched. A fourth run added E4b, whose provenance its
+engine entry states: a review of this record found F4's
+two-mechanism reading resting on ONE traced dbl specimen,
+computed the full tally outside the rig, and then wired the leg
+so the record prints it — the numbers were known before that run,
+and E1 through E4 printed identically across all four. The second run crashed on a summary
 format string after all sections printed; fixed. The third run
 is the record; E1 and E2 printed identical figures across all
 three runs. About four minutes each.
@@ -317,6 +331,37 @@ def vertex_cell(cell, endpoint_is_left):
     return prev, v
 
 
+def eq_frac(a, b):
+    return a[0] * b[1] == b[0] * a[1]
+
+
+def block_shape(Cx, Cy, rtx, rty):
+    """At a crossing, the door-block shape of the run that
+    committed the straddle: 'rigidity' (its tree reference holds
+    the crossing vertex strictly interior without containing the
+    vertex's cell), 'endpoint' (a reference endpoint sits exactly
+    at the vertex), 'no-ref' (that run holds no tree reference at
+    all), or 'other'."""
+    for P, Q, t in ((Cx, Cy, rtx), (Cy, Cx, rty)):
+        if P[0] != "S":
+            continue
+        mL, mR = SC.interval(P)
+        qiv = SC.interval(Q)
+        for u, left in ((mL, True), (mR, False)):
+            if not strictly_inside(u, qiv):
+                continue
+            if t is None:
+                return "no-ref"
+            cl, cr = vertex_cell(P, left)
+            civ = (cl, cr) if SC.lt(cl, cr) else (cr, cl)
+            if strictly_inside(u, t) and not covers(t, civ):
+                return "rigidity"
+            if eq_frac(t[0], u) or eq_frac(t[1], u):
+                return "endpoint"
+            return "other"
+    return "unclassified"
+
+
 def classify_crossing(Cx, Cy, rtx, rty):
     """Catalog test at a bad step: find a straddle among the two
     committed cells with an interval endpoint strictly interior
@@ -382,6 +427,7 @@ def e3_e4_maps():
     print("\nE3/E4  THE MAP CONTRAST AND THE CROSSING READ")
     tallies = {}
     viol_by = {}
+    shapes = {}
     fresh_bad = 0
     n_bad = n_class = n_viol = 0
     shown = {}
@@ -410,6 +456,9 @@ def e3_e4_maps():
                     n_viol += v
                     cm, vm = viol_by.get(mp, (0, 0))
                     viol_by[mp] = (cm + m, vm + v)
+                    sk = (mp, "INF" if pol[2] is None else "fin",
+                          block_shape(Cx, Cy, rtx, rty))
+                    shapes[sk] = shapes.get(sk, 0) + 1
                     if m and shown.get(mp, 0) < 2:
                         shown[mp] = shown.get(mp, 0) + 1
                         print("  %s specimen digs=%s pol=%s "
@@ -435,6 +484,9 @@ def e3_e4_maps():
     print("  [%s] S5b rigidity violations %d/%d (finding)"
           % ("pred-HIT" if n_viol == n_bad else "pred-MISS",
              n_viol, n_bad))
+    print("  E4b the door-block shapes (map, patience, shape):")
+    for key in sorted(shapes, key=str):
+        print("    %-22s %d" % (str(key), shapes[key]))
 
 
 def main():
