@@ -203,7 +203,12 @@ measured shape: a slow map's best stall margin walks to zero
 like 1/(digit cap) and never crosses, so the named target is
 the derivation - a proof that a rate-preserving map bounds the
 late collection strictly below the divergence bill, with the
-1/D approach as the bound's own asymptotic.
+1/D approach as the bound's own asymptotic. (Taken up by
+explore_stall_domination.py: both frontier margins equal
+-ln(1 + 1/R) at a single refinement's lopsidedness R - a
+one-cell wall - and the reduction closes for id on a domination
+law measured exhaustively at scope; the law's derivation stays
+open.)
 
 Run record. The first run (E1-E4) exited 0 in ~4 min: K3 at
 horizons 10-20 with the h=10 dbl climb printing -0.0078 ln,
