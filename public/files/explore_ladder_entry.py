@@ -274,8 +274,9 @@ H5 WHY THE MAP BREAKS IT, IN ONE SENTENCE. The ladder index is a
    breaks the lemma anyway, because G4's step silently reads one
    reference STEP as one partial quotient. The surviving scope of
    everything below is unchanged: it is all stated under the
-   identity map, where the two coincide. And superseded once more at
-   P680: it is not about cylinders either -- the two finenesses stay
+   identity map, where the two coincide. And superseded once more by
+   that script's later legs: it is not about cylinders either -- the
+   two finenesses stay
    tied at every door where the tree reference is fine enough and
    the chain reference finer, on the image of a cylinder as readily
    as on one.) Under sq and dbl a
