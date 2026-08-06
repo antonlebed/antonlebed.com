@@ -74,6 +74,7 @@ export default {
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',
       '/learning': 'learning',
+      '/learning/stalls': 'stalls',
       '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
       '/learning/audits': 'audits',
