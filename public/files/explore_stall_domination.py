@@ -90,8 +90,9 @@ PREDICTIONS, fixed before the engine ran
 C1 [controls, gate]
    (i)  The recovered near-miss world (digits 1,2,64,1,2,1,64,1,1,2,
         dbl, horizon 10 — the map-rate rig's h=10 D=64 frontier
-        optimum, re-derived by rerunning its census-and-climb this
-        session) evaluates to best margin in (-0.0080, -0.0075) ln
+        optimum, re-derived by rerunning that census and climb
+        before this rig was written) evaluates to best margin in
+        (-0.0080, -0.0075) ln
         with binding-edge loss ratio exactly 33538/33799.
    (ii) The assembly flagship (321212121212, sq, horizon 12)
         reproduces as a strict stall with best margin in
