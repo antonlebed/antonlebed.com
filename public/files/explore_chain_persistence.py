@@ -180,6 +180,12 @@ F1 THE CONTROLS HOLD. Each of the three sq stall specimens drifts
 F2 THE IDENTITY LAW AT EXHAUSTIVE SCOPE. 1,683,324 pair runs —
    eight complete digit products up to {1,2,7,25}^8 and
    {1,2}^10, nine policy pairs each — with ZERO bad steps. The
+   eight are not eight independent scopes: the walk is
+   prefix-deterministic (a step's state reads only the digits up
+   to it), so {1,2,3}^7 is covered by {1,2,3}^9 and its 19,683
+   runs are re-runs — 1,663,641 of the runs carry distinct
+   coverage, and both figures are stated because the smaller one
+   is what the scope means. The
    census evidence (14,680 curated-world pairs) widens by two
    orders of magnitude and the law survives digit values far
    outside the curated pools.
@@ -258,29 +264,26 @@ point's side), where the traced cases die by chain resync but no
 enumeration closes the family. The law stays a rule at widened
 scope; the remaining owe is one enumeration, not a mechanism.
 
-Run record. Three runs. The first exited 1: S5b — declared a
-tallied guess above, with K3 scoping every S3-S5 miss as a
-finding — had been wired as an exit-affecting check; the wiring
-was corrected to match the predictions as fixed (S3-S5 print
-with their tallies; the gates are S1 and S2), no prediction or
-threshold touched. A fourth run added E4b, whose provenance its
-engine entry states: a review of this record found F4's
-two-mechanism reading resting on ONE traced dbl specimen,
-computed the full tally outside the rig, and then wired the leg
-so the record prints it — the numbers were known before that run,
-and E1 through E4 printed identically across all four. A fifth
-run added E5 the same way: the same review found F5's coefficient
-case analysis incomplete at index sigma - 1 (where the endpoint
-is a NEGATIVE combination whenever the next partial quotient is
-at least 2, so the exclusion there rests on the straddle index
-and not on the coefficient signs), repaired the argument, and
-wired the scan that checks both its halves. A sixth run added
-E4c, the same review asking what the word CROSSING was resting
-on. E1 through E4 print identically across runs four, five and
-six. The second run crashed on a summary
-format string after all sections printed; fixed. The third run
-is the record; E1 and E2 printed identical figures across all
-three runs. About four minutes each.
+Run record. SIX runs, about four minutes each; E1 through E4
+print identically across every run that reached them. Runs one
+to three produced the record above: the first exited 1 because
+S5b — declared a tallied guess, with K3 scoping every S3-S5 miss
+as a finding — had been wired as an exit-affecting check, and
+the wiring was corrected to match the predictions as fixed (S3
+through S5 print with their tallies; the gates are S1 and S2),
+no prediction or threshold touched; the second crashed on a
+summary format string after all sections had printed; the third
+carried F1 to F5. Runs four to six each added a leg for a review
+of this record, in the order the review found them and with the
+numbers known before the leg ran (each leg's engine entry says
+so): E4b, after F4's two-mechanism reading was found resting on
+ONE traced dbl specimen; E5, after F5's coefficient case
+analysis was found incomplete at index sigma - 1 — the endpoint
+there is a NEGATIVE combination whenever the next partial
+quotient is at least 2, so the exclusion rests on the straddle
+index and not on the coefficient signs — with the argument
+repaired and both its halves checked; and E4c, after the review
+asked what the word CROSSING was resting on.
 """
 
 import sys
