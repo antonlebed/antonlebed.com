@@ -87,7 +87,12 @@ G4 THE LADDER-ENTRY LEMMA (identity map, stale regime pc <= P - 1).
    holds inside (l, w) is inside (L_a, w). The lagging bucket is
    empty.
 G5 WHAT THE MAP BREAKS. G2 and G3 are the identity map's private
-   property — they are statements about CYLINDERS. Under sq and dbl
+   property — they are statements about CYLINDERS. (Superseded in
+   part by explore_reference_families.py, which sorts reference
+   FAMILIES rather than maps: G2 holds at every determinant-1
+   reference, cylinder or not, and G3 fails nowhere at all, in any
+   family. Neither is private to cylinders. What IS private is the
+   step G4 takes from them, below.) Under sq and dbl
    a reference is the image of a cylinder, the determinant is no
    longer +-1, and a reference fine enough to open a door on the
    ladder need not have maxed the ladder. The map-neutral form of
@@ -115,7 +120,7 @@ S4 [G3] At every chain move under the identity map whose chain
    reference has index at least sigma + 2, the index taken equals
    a_{sigma+1}. Zero exceptions (K4).
 S5 [G4, the consequence] Under the identity map, in the stale
-   regime, ZERO doors from a tree cell into the near child of a
+   regime, ZERO doors from a tree cell into EITHER child of a
    CONVERGENT vertex, and every door out of a straddle at a
    convergent vertex taken at index k = a_{sigma+1}. And the
    map-neutral form: zero exit-index violations.
@@ -185,8 +190,13 @@ H1 THE THREE LEMMAS HOLD AT CENSUS SCOPE, EXACTLY. Over the four
    derivation, not its evidence.
 H2 THE STALE REGIME IS CLOSED, AND THE SPLIT IS NOT DECORATIVE.
    Under the identity map, in the stale regime: ZERO doors from a
-   tree cell into a convergent vertex's near child (against 720,498
-   in the fresh regime), every one of the 177,186 straddle exits
+   tree cell into EITHER child of a convergent vertex (against
+   720,498 in the fresh regime) — the tally keys the cell doored out
+   of and so forbids both children, where G4 needs only the NEAR
+   one, and an empty superset is the stronger statement (the child
+   split is explore_reference_families.py's, which measured both
+   children entered in quantity wherever such doors occur at all) —
+   every one of the 177,186 straddle exits
    taken at the maxed index (against 259,612 fresh exits, EVERY one
    of them below it), and zero exit-index violations in 2,447,520
    exits (against 626,722 violations in 7,263,472 fresh ones). The
@@ -256,11 +266,20 @@ H5 WHY THE MAP BREAKS IT, IN ONE SENTENCE. The ladder index is a
    a tree reference fine enough to open a door on the ladder is
    necessarily coarser than a chain reference that has already maxed
    that ladder — a statement about cylinders, hence about
-   determinant +-1. Under sq and dbl a reference is the image of a
-   cylinder, the two finenesses decouple, and a run can walk off the
-   ladder at an index the other run later chains past. The
-   accidental proof of this is at MAP_RUNS: at P = 0 under a map the
-   descent to contain the current image is a harmonic slog past the
+   determinant +-1. (The "hence" is superseded by
+   explore_reference_families.py: the statement is about cylinders
+   and does NOT reduce to determinant +-1. A determinant-1 family
+   out of phase with the digits — every Stern-Brocot node rather
+   than the partial-quotient subsequence — keeps G1, G2 and G3 and
+   breaks the lemma anyway, because G4's step silently reads one
+   reference STEP as one partial quotient. The surviving scope of
+   everything below is unchanged: it is all stated under the
+   identity map, where the two coincide.) Under sq and dbl a
+   reference is the image of a cylinder, the two finenesses
+   decouple, and a run can walk off the ladder at an index the other
+   run later chains past. The accidental proof of this is at
+   MAP_RUNS: at P = 0 under a map the descent to contain the current
+   image is a harmonic slog past the
    commit loop's runaway guard, because no chain move is coarse
    enough to collapse the run of doors — under the identity map the
    same descent is one chain move, which is G4's mechanism showing
@@ -490,8 +509,8 @@ def e2_identity():
           "lands on the maxed ladder index",
           sum(v for k, v in tally.items()
               if k[0] == "G3" and k[2] is False) == 0)
-    check("S5a no stale-regime door from a tree cell into a "
-          "convergent vertex's near child",
+    check("S5a no stale-regime door from a tree cell into either "
+          "child of a convergent vertex",
           tally.get(("door", "stale", "conv", "T"), 0) == 0)
     check("S5b every stale-regime door out of a straddle at a "
           "convergent vertex leaves at the maxed index",
