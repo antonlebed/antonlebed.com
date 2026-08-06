@@ -132,6 +132,18 @@ S5 [the crossing geometry] GUESS, marked as such: at every
    Farey rigidity forbids under id. Tallied, exceptions printed;
    a miss is a finding about the catalog, not a dead rig.
 
+S7 [the policy completion, frozen before E6 ran] The nine pairs
+   E2 scans are pt in {2, 3, INF} x pc in {1, 2, 3}, while the
+   census this widens ran pt in {1, 2, 3, INF} against the base
+   axis {0, 1, 2, 3, INF} for pc — so E2 is exhaustive in
+   STREAMS and short of the census in POLICIES, and "widens the
+   census" is not earned until the missing eleven pairs run.
+   GUESS: they behave like the nine — zero bad steps under the
+   identity map over the same alphabets. A miss is the more
+   interesting outcome by far: it would put the law's boundary
+   inside the policy set rather than at the map, and the first
+   specimen is then the finding.
+
 KILL CRITERIA (observables, meaning weighed after the run)
 ----------------------------------------------------------
 K1 An S1 control miss: the walk or detector is broken — no
@@ -169,6 +181,11 @@ E4c the bad-state kinds (same provenance as E4b: the word
    ever INVERTED, and WHICH run committed the straddle, since
    the refused door belongs to the other one and that decides
    whose tree reference D5's regime argument has to reach.
+E6 the policy completion (S7, added by the same review): the
+   eleven chain-preferring pairs E2 omits — pt = 1 against every
+   pc, and pc in {0, INF} against every pt — over E2's alphabets
+   under the identity map, so the scan's policy set matches the
+   census's chain-preferring slice exactly.
 E5 the away-side exclusion (same provenance as E4b: the review
    checked F5's hand argument, found its coefficient case
    analysis incomplete at one index, and wired the check the
@@ -188,15 +205,21 @@ FINDINGS (entered after the run; ALL CHECKS PASS, exit 0)
 F1 THE CONTROLS HOLD. Each of the three sq stall specimens drifts
    in exactly one policy pair ((1, 0, 3, 1) every time); the same
    digit streams under the identity map never drift.
-F2 THE IDENTITY LAW AT EXHAUSTIVE SCOPE. 1,683,324 pair runs —
-   eight complete digit products up to {1,2,7,25}^8 and
-   {1,2}^10, nine policy pairs each — with ZERO bad steps. The
-   eight are not eight independent scopes: the walk is
-   prefix-deterministic (a step's state reads only the digits up
-   to it), so {1,2,3}^7 is covered by {1,2,3}^9 and its 19,683
-   runs are re-runs — 1,663,641 of the runs carry distinct
-   coverage, and both figures are stated because the smaller one
-   is what the scope means. The
+F2 THE IDENTITY LAW AT EXHAUSTIVE SCOPE, AND THE POLICY SET
+   COMPLETED (S7 held). 3,740,720 pair runs with ZERO bad steps:
+   E2's 1,683,324 over eight complete digit products up to
+   {1,2,7,25}^8 and {1,2}^10 at nine policy pairs, plus E6's
+   2,057,396 at the eleven pairs E2 omitted — pt = 1 against
+   every pc, and pc in {0, INF} against every pt — so the scan's
+   policy set is now exactly the census's chain-preferring slice
+   (four tree patiences x five chain patiences = twenty pairs)
+   and "widens the census" is earned in both dimensions rather
+   than one. The eight products are not eight independent
+   scopes: the walk is prefix-deterministic (a step's state
+   reads only the digits up to it), so {1,2,3}^7 is covered by
+   {1,2,3}^9 and its runs are re-runs — 3,696,980 of the runs
+   carry distinct coverage, and both figures are stated because
+   the smaller one is what the scope means. The
    census evidence (14,680 curated-world pairs) widens by two
    orders of magnitude and the law survives digit values far
    outside the curated pools.
@@ -273,7 +296,7 @@ path-following (D2), chain resync (D3), kmax monotonicity (D4),
 the crossing catalog (D1), Farey rigidity killing the interior
 shape (D6), and the away-side exclusion (F5) killing the
 endpoint shape on the far side — plus the measured law at
-1,683,324-run exhaustive scope. What remains open for the
+3,696,980-run exhaustive scope. What remains open for the
 theorem: exhausting the NEAR-SIDE endpoint-equality branches
 (references ending exactly at a semiconvergent on the stream
 point's side), where the traced cases die by chain resync but no
@@ -301,7 +324,11 @@ index and not on the coefficient signs — with the argument
 repaired and both its halves checked; and E4c, after the review
 asked what the word CROSSING was resting on — extended in the
 same pass with the straddle committer's role, once the review
-found D5 stated for both roles and derived for one.
+found D5 stated for both roles and derived for one. A seventh
+run added E6, the review having found E2 exhaustive in streams
+but eleven policy pairs short of the census slice it claimed to
+widen; S7 was frozen before that leg ran. Estimated and actual
+run time rises to about ten minutes with E6 in.
 """
 
 import sys
@@ -587,6 +614,34 @@ def e3_e4_maps():
         print("    %-22s %d" % (str(key), shapes[key]))
 
 
+POLS_REST = [(1, 0, pt, pc)
+             for pt in (1, 2, 3, None)
+             for pc in (0, 1, 2, 3, None)
+             if (pt, pc) not in
+             [(a, b) for a in (2, 3, None) for b in (1, 2, 3)]]
+
+
+def e6_policy_completion():
+    """S7: the chain-preferring pairs E2 does not scan, so the
+    policy set matches the census's slice."""
+    print("\nE6  THE POLICY COMPLETION (identity, the %d pairs E2"
+          " omits)" % len(POLS_REST))
+    n = nb = 0
+    for alpha, h in ID_SCANS:
+        for digs in itertools.product(alpha, repeat=h):
+            J = SC.images(SC.cylinders(list(digs)), "id")[:h]
+            for pol in POLS_REST:
+                n += 1
+                pd = SE.run_pair(J, pol, h)
+                if pd["last_bad"] is not None:
+                    nb += 1
+                    if nb <= 3:
+                        print("  ID DRIFT digs=%s pol=%s states=%s"
+                              % (digs, pol, pd["states"]))
+    print("  %d pair runs over the same alphabets, %d bad" % (n, nb))
+    check("S7 zero id bad pairs at the completing policies", nb == 0)
+
+
 def convergents(digs):
     p2, q2, p1, q1 = 0, 1, 1, 0
     out = []
@@ -636,6 +691,7 @@ def main():
     e1_controls()
     e2_id_scan()
     e3_e4_maps()
+    e6_policy_completion()
     e5_away_side()
     print()
     if FAILURES:
