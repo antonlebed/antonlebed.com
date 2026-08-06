@@ -152,6 +152,12 @@ E4b the door-block shapes (added by the review of this record,
    crossing, the committing run's block shape —
    rigidity, endpoint equality at the vertex, no tree reference,
    or other — split by map and by finite/infinite patience.
+E4c the bad-state kinds (same provenance as E4b: the word
+   CROSSING carries the catalog, and a bad state could equally
+   be an INVERTED containment — the elder run's cell strictly
+   inside the fresher's — which is not a crossing at all): the
+   first bad state per pair, plus whether any step of that pair
+   is ever INVERTED.
 E5 the away-side exclusion (same provenance as E4b: the review
    checked F5's hand argument, found its coefficient case
    analysis incomplete at one index, and wired the check the
@@ -185,8 +191,12 @@ F3 THE MAP GATE AND THE REGIME LAW. The same commit loop drifts
    staler than the shared chain reference — and the fresh regime
    shows zero failures under every scanned map: the door
    direction argument (D5) is map-free, as predicted.
-F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S. All
-   3,626 off-identity crossings classify into the catalog shape
+F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S.
+   Every off-identity failure really is a CROSSING and never an
+   inverted containment: all 3,626 first bad states are OVERLAP,
+   and no step of any bad pair is ever INVERTED (E4c) — the
+   elder run's cell never sits strictly inside the fresher's,
+   under either map. All 3,626 classify into the catalog shape
    (a committed straddle with an interval endpoint strictly
    interior to the other committed cell), and the E4b tally
    partitions their door blocks with no remainder and no
@@ -264,8 +274,10 @@ case analysis incomplete at index sigma - 1 (where the endpoint
 is a NEGATIVE combination whenever the next partial quotient is
 at least 2, so the exclusion there rests on the straddle index
 and not on the coefficient signs), repaired the argument, and
-wired the scan that checks both its halves. E1 through E4b are
-identical across runs four and five. The second run crashed on a summary
+wired the scan that checks both its halves. A sixth run added
+E4c, the same review asking what the word CROSSING was resting
+on. E1 through E4 print identically across runs four, five and
+six. The second run crashed on a summary
 format string after all sections printed; fixed. The third run
 is the record; E1 and E2 printed identical figures across all
 three runs. About four minutes each.
@@ -468,6 +480,7 @@ def e3_e4_maps():
     tallies = {}
     viol_by = {}
     shapes = {}
+    kinds = {}
     fresh_bad = 0
     n_bad = n_class = n_viol = 0
     shown = {}
@@ -499,6 +512,9 @@ def e3_e4_maps():
                     sk = (mp, "INF" if pol[2] is None else "fin",
                           block_shape(Cx, Cy, rtx, rty))
                     shapes[sk] = shapes.get(sk, 0) + 1
+                    kk = (mp, pd["states"][bad_n],
+                          "INVERTED" in pd["states"])
+                    kinds[kk] = kinds.get(kk, 0) + 1
                     if m and shown.get(mp, 0) < 2:
                         shown[mp] = shown.get(mp, 0) + 1
                         print("  %s specimen digs=%s pol=%s "
@@ -524,6 +540,10 @@ def e3_e4_maps():
     print("  [%s] S5b rigidity violations %d/%d (finding)"
           % ("pred-HIT" if n_viol == n_bad else "pred-MISS",
              n_viol, n_bad))
+    print("  E4c the bad-state kinds (map, first bad state, any "
+          "INVERTED step at all):")
+    for key in sorted(kinds, key=str):
+        print("    %-34s %d" % (str(key), kinds[key]))
     print("  E4b the door-block shapes (map, patience, shape):")
     for key in sorted(shapes, key=str):
         print("    %-22s %d" % (str(key), shapes[key]))
