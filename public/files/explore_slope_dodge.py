@@ -272,6 +272,18 @@ VERDICT, by piece.
     class would need the intersection of two arithmetic progressions
     of survivor intervals under different multipliers, and no cell of
     this census has one to look at.
+    [SETTLED since by explore_slope_twolevel.py, as to EXISTENCE and not
+    as to the assembly: such a class exists and is ordinary, 262
+    witnesses sitting below N = 6000, the smallest at radix 2 with
+    digits {-1, 0, 1}, slope 40/9 and lookahead 3. No widening of a
+    census reaches one -- every sweep here and there caps the slope
+    NUMERATOR, and the witness needs u = 40 at v = 9. What reaches it is
+    a deficit law: wherever 2a/(b-1) is an integer, g divides the span
+    deficit plus one, so a mismatch-capable cell has EXACTLY ONE
+    saturated class. The hypothesis this file's OBSERVATION is
+    conditioned on is therefore FALSE in general, and the surviving
+    scope of the floor-sum pair is the one stated above it -- the 55
+    cells of this census, where it is exact.]
 
 RUN RECORD: pure Python, integers only, standard library; the parent
 rig's cell, w_tree and wide_scope imported rather than copied, so the
