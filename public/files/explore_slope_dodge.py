@@ -283,7 +283,16 @@ VERDICT, by piece.
     saturated class. The hypothesis this file's OBSERVATION is
     conditioned on is therefore FALSE in general, and the surviving
     scope of the floor-sum pair is the one stated above it -- the 55
-    cells of this census, where it is exact.]
+    cells of this census, where it is exact.
+    And CLOSED since by explore_slope_assemble.py, which retires (T)
+    rather than meeting it: the ambient interval is level 0 of the same
+    run-condition family, so every inclusion-exclusion term containing
+    it is an enumeration of the block, the one lattice term left is a
+    single pairwise intersection, and a gcd reduction makes that two
+    floor-sums. Closed at 2346 of 2346 class tests below N = 3000, and
+    the level COUNT turns out not to be the quantity: a contained level
+    leaves the union, so what the formula needs is containment WIDTH
+    at most 2, which every class measured has.]
 
 RUN RECORD: pure Python, integers only, standard library; the parent
 rig's cell, w_tree and wide_scope imported rather than copied, so the
