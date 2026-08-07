@@ -209,12 +209,19 @@ F5 THE WINNING-SET RULE IS FALSE. K5 FIRES. Of the 53 residual cells
    AND THE PREDICTION IN (M) WAS HALF WRONG, which is the useful
    half. It said the first counterexample would need J >= 3. The
    smallest is at J = 2: (b=2, a=1) slope 12/5, c = 2, g = 4, n = 5,
-   tree width 3 of 5. What hid the counterexample from the old scope
-   was its SLOPE cap of 9/8, not its depth -- every mismatch dodges at
-   level j = 1, and what decides dodgeability is the tree width
-   2a + 1 against n, which a bigger slope numerator moves as freely
-   as a bigger c does. The three-distance reading of (M) was right
-   about the mechanism and wrong about which dial reaches it.
+   tree width 3 of 5, and the mismatches run over J = 2, 3, 4, 5, 6
+   alike. (M) was right about the MECHANISM and wrong about the dial:
+   every extra state in all 19 cells dodges at level j = 1, so what
+   decides dodgeability is the tree width 2a + 1 against n, and DEPTH
+   is not the dial that reaches it. THE DIAL IS THE DIGIT SET. All 19
+   sit at the redundancy FLOOR -- 2a + 1 <= b + 1, the narrowest
+   digit set that is still redundant and so the narrowest possible
+   tree -- and 18 of them at pairs neither old grid contained,
+   (3,1), (5,2) and (10,5). The single mismatch at an old pair,
+   (2,1), needed a slope past the old cap of 9/8, which is the whole
+   of what that cap was hiding. The floor is where to look and is NOT
+   a criterion: 50 of the 53 residual cells read sit at it too, and
+   the 3 above it carry no mismatch.
 
 F6 THE SHIPPED CLAIM SURVIVES, AND NOT BY LUCK. K7 never fired: over
    6984 cells (N <= 20000; 6673 larger not read) the criterion's
@@ -670,7 +677,7 @@ def s3_census_and_hunt(cap_N=4000):
         print(f"    (b={row[0]},a={row[1]}) slope {row[2]}/{row[3]} "
               f"phase {row[4]}/{row[5]} c={row[6]}: g={row[7]} |W|={row[8]}")
     print(f"  MISMATCHES W* != W: {len(mismatches)}")
-    for (b, a, u, v, w, z, c, ce, W, star, bad) in mismatches[:8]:
+    for (b, a, u, v, w, z, c, ce, W, star, bad) in mismatches:
         extra = sorted(W - star)
         m0 = extra[0]
         t0 = m0 % ce["g"]

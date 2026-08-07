@@ -233,8 +233,10 @@ VERDICT, by piece, since they do not share a tier.
     slice, with no counterexample and no near miss -- and it is
     nonetheless FALSE in general. The scope's cap on the SLOPE was
     hiding the counterexamples, not its cap on the lookahead:
-    explore_slope_tree.py finds 19 of them once slopes run past 9/8,
-    the smallest at (b,a) = (2,1) slope 12/5 with c = 2. What is true
+    explore_slope_tree.py finds 19 of them, all at the redundancy
+    FLOOR 2a + 1 <= b + 1 where the reachable tree is narrowest, and
+    18 at (b,a) pairs neither grid here contains; the smallest is
+    (b,a) = (2,1) slope 12/5 with c = 2. What is true
     is a TREE condition, proved there with no hypothesis, of which
     this criterion is the depth-J shadow. The load-bearing 586 of the
     1833 are the g_c > 1 ones: at g_c = 1 the criterion is the length
