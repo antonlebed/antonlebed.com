@@ -70,6 +70,7 @@ export default {
       '/walls/dual': 'dual',
       '/walls/redundant': 'redundant',
       '/walls/reading': 'reading',
+      '/walls/quadratic': 'quadratic',
       '/walls/algebra': 'algebra',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
