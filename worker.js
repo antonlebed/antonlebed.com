@@ -68,6 +68,7 @@ export default {
       '/walls/numbers': 'numbers',
       '/walls/meaning': 'meaning',
       '/walls/dual': 'dual',
+      '/walls/redundant': 'redundant',
       '/walls/reading': 'reading',
       '/walls/algebra': 'algebra',
       '/measure': 'measure',
