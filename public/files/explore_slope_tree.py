@@ -458,7 +458,8 @@ def is_residual(b, a, ce):
     if gcd(b, ce["g"]) == 1 or ce["J"] == 1:
         return False
     f, A, g, J = ce["f"], ce["A"], ce["g"], ce["J"]
-    for t in {m % g for m in range(ce["lo"], min(ce["hi"], ce["lo"] + g - 1) + 1)}:
+    hi_scan = min(ce["hi"], ce["lo"] + g - 1)
+    for t in {m % g for m in range(ce["lo"], hi_scan + 1)}:
         tau = preperiod(f, t, g)
         for j, x in enumerate(orbit(f, t, J - 1), start=1):
             if j < tau and x not in A:
