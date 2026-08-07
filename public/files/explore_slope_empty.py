@@ -228,6 +228,13 @@ J4 THE MIDDLE IS A GAP IN y, NOT A SPARSE SOURCE. Of the two mechanisms
    window's emptiness is a THREE-DISTANCE statement about sigma/n --
    the instrument explore_slope_dodge.py already reads its survivors
    with, one level up. This file does not take that step.
+   (Settled since, by explore_slope_window.py: the window is empty of
+   ATTAINABLE y and not merely of the class's own, at 3508 of these
+   3516 pairs, so the object is sigma as this paragraph says. What does
+   NOT survive is the instrument named for it -- b^Delta is 4 at 2784
+   of the pairs and never above 36 over this population, so the
+   attainable set is a handful of points and the emptiness owes a
+   finite check rather than a gap theorem.)
 
 J5 THE CENSUS PUSHED 2.5x AND NEITHER KILL FIRED. At N <= 150,000:
    29233 cells, a width distribution of {1: 1057482, 2: 23996,
@@ -281,7 +288,8 @@ VERDICT, by piece.
     because it names the exact 48 places to look.
   - THE THREE-DISTANCE READING of the window (J4) is a FRAME and not a
     result: sigma.y mod n < b^Delta is derived, the gap statement it
-    would need is not attempted here.
+    would need is not attempted here (and turns out not to be what it
+    needs -- explore_slope_window.py).
 
 J7 AND THE COMPOSITION DOES NOT SURVIVE THE WIDER CENSUS. Run at
    N <= 150,000 -- the scope the cap was already asserted over -- the
