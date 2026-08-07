@@ -185,15 +185,17 @@ F2 THE ENDPOINT BOUND IS FREE, AND THE REGION IS THE INTERVAL. Of the
    674/674. So (K)'s one borrowed step costs nothing and the residue
    reduction is reading the right region. K2 and K3 never fired.
 
-F3 THE GAME IS A TREE-AVOIDANCE CONDITION, EXACTLY. Where (K) claims
-   -- 0 < span <= N -- (L)'s set equals the measured winning set at
-   674/674. The rest of the old scope is measured rather than
-   dropped: 496 cells have an empty I and the game returns nothing at
-   496/496, and 1733 have span > N, where uniqueness fails and (K)
-   does not reach -- the game returns I at 1733/1733 there anyway. So
-   the span test is what the PROOF needs and not what the phenomenon
-   needs, and the three classes account for the whole 2903-cell
-   scope. K4 never fired.
+F3 THE GAME IS A TREE-AVOIDANCE CONDITION, EXACTLY. Where (K)
+   argues -- 0 < span <= N -- (L)'s set equals the measured winning
+   set at 674/674. The rest of the old scope is measured rather than
+   dropped, and it is not a residue: 496 cells have an empty I and
+   the game returns nothing at 496/496, and 1733 have span > N, where
+   the already-proved length test grants and hands over I itself,
+   which is exactly what the tree condition names there since B is
+   empty -- the game returns I at 1733/1733. So the span test is the
+   boundary between two proofs rather than a limit on one, the three
+   classes account for the whole 2903-cell scope, and the tree law
+   has no unproved cells anywhere. K4 never fired.
 
 F4 THE EXTENDED CENSUS REACHES DEPTH. Residual cells by depth J:
    2 -> 25, 3 -> 10, 4 -> 9, 5 -> 8, 6 -> 3. That is 30 with J >= 3,
@@ -238,7 +240,14 @@ F7 BECAUSE THE START CLASS IS THE ONE CLASS THE MAP FIXES. kappa is
    explore_slope_tail.py left cannot contain it. Two consequences.
    The delay criterion is PROVED ENTIRE, for every radix, every
    symmetric redundant digit set, every rational slope and every
-   phase: no hypothesis, no residual, no cell count. And it collapses
+   phase: no residual, no cell count, and nothing beyond the
+   redundancy the setting already assumes. The one clause that could
+   have qualified it does not: feasibility also needs the start state
+   to LIE in I, and it always does whenever I is non-empty -- a
+   non-empty I forces E >= 0, a phase in [0,1) puts phi in [0, L),
+   and the flush window runs from -a r_c L to (a r_c + 1) L - 1, so
+   phi sits inside it and I contains phi. Measured too: 0 of 6984
+   cells have the start state outside a non-empty I. And it collapses
    to a ONE-CLASS test, the orbit contributing nothing, verified
    6984/6984 -- the game is feasible at lookahead c iff the single
    class phi mod g_c is saturated, and c_min is the least c at which
@@ -260,11 +269,19 @@ F8 AND THE WINNING SET STOPS BEING A UNION OF CLASSES IN THE SAME
 VERDICT, by piece, since they do not share a tier.
   - THE TREE LAW. W = { m in I : T_j(m) misses B for all j >= 1 } is
     PROVED for every radix, every symmetric redundant digit set,
-    every rational slope and every phase. It has two hypotheses and
-    each is used once: redundancy, to make the j-fold digit sums an
-    interval (inherited from (C)), and the span test, to make the
-    representative in I unique. Exact at 674/674, and the 1733 cells
-    where the span test fails come back exact anyway.
+    every rational slope and every phase -- with no residue of
+    unproved cells, because its hypothesis TILES with the one already
+    proved. Redundancy is used once, at (C), to make the j-fold digit
+    sums an interval. The span test is used once, to give the target
+    residue a representative in I, and it covers span <= N. Where
+    span >= N the length test of explore_slope_proof.py GRANTS, and
+    what it grants is that I itself is the winning set -- while B is
+    empty there, so the tree condition is vacuous and names I too.
+    The two agree at span = N and between them leave nothing, so no
+    cell of any scope needs measuring for this. Exact at 674/674
+    where (K) argues, and I returned at 1733/1733 where the length
+    test does, which are CHECKS on the two proofs and not evidence
+    for either.
   - THE SATURATION CRITERION'S WINNING-SET CLAUSE IS FALSE beyond the
     region explore_slope_tail.py proved. It is not a rule awaiting
     more cells and it is not repairable by a wider digit set: 19
