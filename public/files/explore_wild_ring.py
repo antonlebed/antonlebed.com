@@ -284,6 +284,12 @@ F5 THE WALKED SURPLUS IS ZERO AT FOUR OF FIVE RINGS AND 1 AT THE FIFTH,
    two cubic engines: the stop law's measured half gains a fifth and
    sixth ring at surplus 0, and what it still lacks is a THEOREM about
    greedy support growth, not more ladders.
+   [SETTLED LATER -- explore_support_growth.py supplies that theorem and
+   the race never runs: every norm a MOVE seats is at most the largest
+   cost the walk pays, so the seatable cross-supply is capped by the
+   budget, and the 3 above sits exactly at its own ceiling. What survives
+   here unchanged is the five-ring measurement itself; what is superseded
+   is only this paragraph's closing verdict that a bound was still owed.]
 
 F6 THE LONE AND POPULATED MENUS PART AT 409 OF 720 STEPS, IN THREE OF
    THE FIVE RINGS (rule in range; the roadmap's free read-off, every
