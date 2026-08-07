@@ -212,7 +212,13 @@ F5 THE WINNING-SET RULE IS FALSE. K5 FIRES. Of the 53 residual cells
    half. It said the first counterexample would need J >= 3. The
    smallest is at J = 2: (b=2, a=1) slope 12/5, c = 2, g = 4, n = 5,
    tree width 3 of 5, and the mismatches run over J = 2, 3, 4, 5, 6
-   alike. (M) was right about the MECHANISM and wrong about the dial:
+   alike. (M) was right about the MECHANISM and wrong about the dial, and
+   the frozen text names its own error: it read J = 2 as "n only
+   just exceeds 2a + 1", which is false -- J = 2 means
+   2a + 1 < n <= 2a(b+1) + 1, so n may exceed the tree width by a
+   factor of nearly b, and there is room to dodge at J = 2 after
+   all: the smallest counterexample has width 3 against n = 5.
+   Correctly:
    every extra state in all 19 cells dodges at level j = 1, so what
    decides dodgeability is the tree width 2a + 1 against n, and DEPTH
    is not the dial that reaches it. THE DIAL IS THE DIGIT SET. All 19
