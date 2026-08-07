@@ -225,14 +225,19 @@ F5 THE RESIDUAL IS ALMOST ALL RIDER'S REACH, NOT ABSENCE OF A CERTIFICATE
    fresh core instead. Another 32, the whole exhaustive-region ODD-ODD
    residual, are refused on BOTH sides for a core that can still be seated
    FRESH -- the state the discount of F6 out-competes.
-   ONLY 12 PAIRS carry a branch with no cheaper witness at all -- a genuine
-   absence rather than a hypothesis this lemma cannot meet, and all 12 are
-   ODD-EVEN with a fresh member on the other side. So the open species no
-   longer divide into "has a certificate" and "has none"; they divide at the
-   line the GENUS draws, which is the line the older certificate drew too.
-   One lemma, one blind spot, and the blind spot is a ring-design question
-   rather than a missing argument -- for all but a dozen pairs, which are the
-   only place the lemma is simply not enough.
+   The last 12, all ODD-EVEN with a fresh member on the other side, carry a
+   branch whose cheapest witness does not clear the SLACK -- which is what
+   this rig's tag records and all it records. (Read off the pairs since, in
+   explore_the_twelve.py: none of the twelve lacks a cheaper witness. Eight
+   are tied with one exactly and four are cheaper than one by less than the
+   genus, all twelve in the element world where the slack is the genus; and
+   the refusing state's unique minimal move certifies the target one step
+   later, so all twelve separate. What this paragraph should no longer be
+   read as saying is that any pair here carries a genuine absence.) So the
+   open species no longer divide into "has a certificate" and "has none";
+   they divide at the line the GENUS draws, which is the line the older
+   certificate drew too. One lemma and one blind spot, and the blind spot is
+   a ring-design question rather than a missing argument.
 
 F6 THE RIDER'S DISCOUNT -- an UNFROZEN find, and it replaces a prediction of
    this rig's own that the run refuted (rule in range, S7; every fall in the
@@ -258,10 +263,9 @@ F7 WHAT IS STILL OPEN, sharpened rather than closed. The 74-pair and 32-pair
    in aggregate. And a place inside the rider's reach has no certificate in
    any world -- the DEPTH species entire, and the CLASS species below the
    genus -- which is the readmission regime the capacity bound already
-   files, and is the LARGER of the two things between the undercut and every
-   species here. The smaller is the 12 pairs of F5, where the lemma's
-   hypotheses hold and no cheaper witness exists at all: those want a
-   different argument rather than a different ring.
+   files, and is now the ONLY thing between the undercut and every species
+   here: the 12 pairs of F5 read as the smaller half when this was written,
+   and explore_the_twelve.py closes them where they stand.
 
 THE DESIGN, in seven sections after the control.
 
@@ -329,7 +333,8 @@ one ridable; ideal ODD-EVEN 3401 rejoins plus 868 delayed and 0 uncovered;
 element ODD-EVEN 74 uncovered and ODD-ODD 32, all 106 at a fallen minimum.
 1866 uncovered pairs in all, filed under BOTH branches' refusals: 1822 with a
 branch inside the rider's reach, 32 with a core still seatable fresh on both
-sides, and 12 with a branch that has no cheaper witness at all. The certificate and the rejoin detector
+sides, and 12 with a branch whose cheapest witness does not clear the slack.
+The certificate and the rejoin detector
 never both fired, and every certified pair was also read against the
 ENGINE's menu at the successor. S5: 60972 of 60972 older certificates
 covered. S7, at the first three minimal vehicles of each walked
@@ -1274,10 +1279,11 @@ def main():
              if "ridable" not in k[1] and "no-undercut" not in k[1])
     print("  by REASON: %d refused for the rider's reach, %d for a core that"
           % (ride, el))
-    print("  can still be seated fresh, and %d for a genuine want of a "
-          "cheaper" % hard)
-    print("  witness -- the last being the only place this lemma is not "
-          "enough")
+    print("  can still be seated fresh, and %d for a cheapest witness that "
+          "does not" % hard)
+    print("  clear the SLACK -- which is not the same as having none, and "
+          "the last")
+    print("  group is read off the pairs in explore_the_twelve.py")
 
     print("\n  ODD-ODD by divisibility of the two degrees")
     for tag, table in (("exhaustive", ex), ("trajectory", tr)):
