@@ -36,7 +36,13 @@ three one line each.
 
   THE COST LIMIT. Combine: under a P-only run, every OTHER place Q has a
   cost that is nondecreasing (B) and eventually CONSTANT, with a value
-  computable at the moment the run starts. Divisibility of lam(Q^(e+r))
+  computable at the moment the run starts.
+  [CORRECTED POST-RUN -- "eventually constant" is the finite case only,
+  and the same paragraph names the other two lines down: where every r
+  divides, the door climbs with v_p(L) forever and the cost diverges. The
+  statement that survives is that the LIMIT is computable at the start,
+  finite or infinite; S3 reads five infinite ones and none of them is a
+  constant.] Divisibility of lam(Q^(e+r))
   into L splits into its p-part and its prime-to-p part; the prime-to-p
   part of L is frozen (C) while v_p(L) grows without bound, so the p-part
   condition is eventually satisfied for every r. Hence
@@ -264,8 +270,11 @@ F3 THE LOCK PERMANENCE CERTIFICATE, AND THE WITNESS THAT PROVES NOTHING
    at step 1 a rival stood at cost 5 against C* = 8 and only Lemma B's
    climb, not the witness, put it out of reach. The certificate is
    SUFFICIENT and one-sided, so its step is an upper bound on the true
-   lock step. And the measured door period is 1 at all 12: every vehicle's
-   recurrent price is a single constant, not a cycle, so C* is that price.
+   lock step. And a witnessed door period is part of the
+   certificate, not a decoration -- without one, C* is a max over a sample
+   rather than a supremum over the future. It reads 1 at all 12: every
+   vehicle's recurrent price is a single constant and not a cycle, so C*
+   IS that price.
 
 F4 THE COST LIMIT IS A CLOSED FORM, AND FIVE RIVALS ARE PRICED OUT FOREVER
    (theorem for the form; rule in range, 196 rival readings across 12
@@ -319,7 +328,7 @@ proves permanence, never existence -- and the refusal in F5 is a pattern
 over five rings with a mechanism, not a theorem.
 
 RUN RECORD. `python explore_support_growth.py` (memwatch). One process,
-CPython, no BLAS. 2648 checks, 1.0 s wall, peak working set 26.0 MB under
+CPython, no BLAS. 2660 checks, 1.0 s wall, peak working set 26.5 MB under
 the 512 MB ceiling. S1: 576 Lemma A readings over five rings, the filed
 wild-ring lock reproduced (place over 5 at cost 5, support 3^2 * 5^10 at
 step 12), 480 menu readings against the imported engine, 0 off. S2: 49920
@@ -547,7 +556,12 @@ def certificate(M, trace, i):
         c = cost_of(M, pl, st0.get(pl, 0), L0)
         if m is None or c < m:
             m = c
-    return vpl, Cstar, period, m, (m is None or Cstar < m)
+    # Without a witnessed period, C* is a max over a sample rather than a
+    # supremum over the future, and the certificate would be unsound: a
+    # cost cycle longer than the simulation could exceed it unseen. No
+    # period, no certificate.
+    return vpl, Cstar, period, m, (period is not None
+                                   and (m is None or Cstar < m))
 
 
 def certified_lock(M, trace):
@@ -781,6 +795,9 @@ def s4_certificate(walks, locks):
             print("  %-12s %-19s %s" % (name, sname, "NO CERTIFIED LOCK"))
             continue
         vpl, Cstar, period, m, passed = cert
+        ok(period is not None,
+           "%s/%s: a certificate passed with no witnessed door period"
+           % (name, sname))
         ncert += 1
         ok(all(t[1] == vpl for t in tr[i:]),
            "%s/%s: the certificate passed at step %d and the walk left %s"
