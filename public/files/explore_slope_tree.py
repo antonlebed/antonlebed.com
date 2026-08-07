@@ -202,7 +202,12 @@ F4 THE EXTENDED CENSUS REACHES DEPTH. Residual cells by depth J:
    which the old scope had none of, and it is what makes the next
    finding a measurement rather than a guess.
 
-F5 THE WINNING-SET RULE IS FALSE. K5 FIRES. Of the 53 residual cells
+F5 THE WINNING-SET RULE IS FALSE. K5 FIRES. (Since settled:
+   explore_slope_dodge.py reads the 2 cells left unread here -- both
+   mismatch, making the census 21 of 55 -- and gives the condition
+   below J in closed form, which explains the floor and the level this
+   finding could only measure. Every count below is this run's and
+   stands.) Of the 53 residual cells
    read (N <= 4000; 2 larger not read), W* differs from W at 19, and
    rgame replayed at the smallest confirms the game against (L) and
    against the criterion: game |W| = 13 = (L)'s, criterion |W*| = 9.
