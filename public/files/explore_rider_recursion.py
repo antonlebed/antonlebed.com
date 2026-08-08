@@ -276,9 +276,9 @@ whose second unit comes from an open. S2: 964 eras, 0 mismatched. S3: the
 cycles exhibited, both of PR3's bounds asserted per branch, the tick's own
 doubling asserted at every seed and every branch asserted to close its cycle,
 pre-period 0 or 1 and length 1, 2 or 4, with 4 gamma at h5 and 4 at g2. S4:
-every branch's deep places first asserted to lie in DISTINCT cells -- the verdict being per cell and the list per place -- and
-then all 150 branches' sorted into unbounded, bounded and stranded with
-nothing left over. Slate PR1-PR6: all six hit; no
+every branch's deep places first asserted to lie in DISTINCT cells -- the
+verdict being per cell and the list per place -- and then all 150 branches'
+sorted into unbounded, bounded and stranded with nothing left over. Slate PR1-PR6: all six hit; no
 kill fired. SUPERSEDED at the run: the reading that g2's steady state carries
 FOUR rider cells and would predict a uniform five deep places -- that count
 was taken over a WINDOW of the sequence rather than over its cycle, and the
