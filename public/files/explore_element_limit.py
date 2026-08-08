@@ -245,7 +245,8 @@ FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
     steady state -- after the last non-principal open the only move that is
     not an open is the clock's, so the only cells a rider can reach are those
     of the minimal representatives the clock's class summons; and a rule in
-    range, asserted at every branch carried, together with the clock's having
+    range, asserted at every branch of every complete branch set -- the cap no
+    longer bites, so "carried" and "all" coincide -- together with the clock's having
     changed hands INSIDE the transient or not at all -- the premise that no
     move but the clock's deepens anything is not assumed either, it is what
     the same assertion reads off `grew`, whose every entry is a RIDER unit).
@@ -278,9 +279,19 @@ FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
     classes at g2 and one of three at h5, and the settling step as never 3;
     the complete sweep reads six, FOUR classes at each ring, and a branch
     that settles at 3. Every one of those columns moved, and every one moved
-    by GAINING a value -- a truncated sweep here understates a range and
-    never widens one, the branches dropped being ones whose continuations
-    were never walked at all. E4's further clause -- that these coordinates
+    by GAINING a value, and that direction is FORCED and not luck: `branches`
+    truncates by keeping a PREFIX of a deterministic generation order (states
+    in list order, each one's ties sorted, dedup by state key), so the set
+    carried at a lower cap is a prefix-subset of the set carried at a higher
+    one, and every S2 column being a sorted SET over that list can only gain
+    values as the cap rises. So a sweep that hits its cap understates a range
+    and can never widen one. That is not left as a reading of the code: S1(e)
+    re-runs the sweep at caps of 12, 24 and 96 and asserts each result is a
+    prefix of the live one, state key by state key, at every ring -- and its
+    cap-12 drops come to 8 at h5 and 31 at g2, which is the 39 the cap-12 rig
+    reported, so the reproduction is confirmed from a second direction. The
+    guarantee is a fact about THIS truncation and not about truncation in
+    general; a sweep sampling its branches some other way would have none. E4's further clause -- that these coordinates
     grow WITHOUT BOUND -- is untouched by any of that, and the cap was never
     the knob for it: completeness settles HOW MANY coordinates a branch ends
     with at a fixed walk length, while unboundedness is a claim about one
@@ -327,7 +338,7 @@ FE8 THE CANONICAL CONTINUATION PICKS AN OUTCOME HERE, NOT ONLY AN ORDER
     shape to be read off one continuation, does not hold in the element
     world, which is why every column of S2 is reported over ALL branches.
 
-THE DESIGN, in four sections after the control.
+THE DESIGN: a control in five parts, then three sections.
 
  S1 THE POSITIVE CONTROL, run before any census is read.
     (a) THE CELL COUNTS (PE1): the group-ring construction above, its counts
@@ -340,6 +351,15 @@ THE DESIGN, in four sections after the control.
         degree-2 place clocked and a rational place at exponent 2, where the
         menu must prefer the rational place; and the same state with that
         rational place at exponent 1, where it must NOT.
+    (d) WHERE THE PRINCIPAL PLACES ARE (PE4): every degree in range with no
+        place of class 0, and the least class-0 population above the last of
+        them -- read off the cell counts, so it is what FE2's bounded initial
+        stretch is bounded BY and not a summary of the walk.
+    (e) THE SWEEP'S CAP, and which way a capped column errs: the sweep re-run
+        at caps below the live one, each result asserted to be a PREFIX of the
+        live one. This is the control for the SCOPE claim rather than for a
+        number, and it is also the only exercise the cap-bitten branch of S2's
+        report gets, the live cap of 192 biting nowhere.
  S2 THE LONG WALK, every tie choice followed over a first stretch and each
     distinct state continued canonically, with the tick, the opened degrees,
     the doublings and the rider ledger printed per branch.
@@ -349,8 +369,8 @@ THE DESIGN, in four sections after the control.
     settling step, and the support above exponent 1 with every unit
     attributed.
 
-Run: `python explore_element_limit.py`. RUN RECORD (6703681 checks, ~87 s,
-peak 49.4 MB). S1 control: the group-ring construction reproducing the
+Run: `python explore_element_limit.py`. RUN RECORD (6715133 checks, ~88 s,
+peak 49.9 MB, the highest of three runs). S1 control: the group-ring construction reproducing the
 engine's own class census at all 12 built degrees of all six rings, with Q of
 degree 0, 2, 2, 2, 2 and 4 and no low-degree input at all below genus 2; the
 light menu equal to the engine's in cost and in every type's multiplicity at
@@ -361,10 +381,14 @@ rings with a place of degree 2. S2: 300 moves per branch, 2 to 120 branches
 per ring against a cap of 192 that NO ring reaches, so every branch set is
 complete and no state is dropped anywhere; 44765 moves read -- ticks of 512
 and 1024 with 291 to 295 places seated and 9 or 10 doublings, the final clock
-reading (1, 0) or (2, 0) at F_2[x], (1, 1) at h2 and h4, (2, 0) at h3, and
-any of the four non-principal rational classes at both h5 and g2. The cap's
+reading (1, 0) or (2, 0) at F_2[x], (1, 1) at h2 and h4, (2, 0) at h3, and a
+rational place of class 1, 2, 3 or 4 at both h5 and g2 -- which at h5 is every
+non-principal class there is and at g2 is four of fourteen. The cap's
 own STAR branch is exercised by lowering it, not by this run: at 12 it bites
-g2 and h5 and five S2 columns read narrower (FE6). S3: the era ledger, opens doubling to 128 per era against rider units
+g2 and h5 and five S2 columns read narrower (FE6). S1(e): the sweep re-run at
+caps 12, 24 and 96 at all six rings, every result a PREFIX of the live one,
+the cap-12 drops reading 8 at h5 and 31 at g2 -- the 39 the cap-12 rig
+reported. S3: the era ledger, opens doubling to 128 per era against rider units
 peaking at 6 in g2's fifth era and running 0, 1 or 2 from the sixth on. S4: the orbit law and the
 windowed permanence asserted at every branch of every ring, the window
 opening by step 9 of 300. Slate PE1-PE9: PE1 to PE5 hit; PE8 and PE9 carry no
@@ -1027,12 +1051,20 @@ def canon(ties):
     return sorted(ties)[0]
 
 
-def branches(L):
+def branches(L, cap=None):
     """Every distinct state reachable by any tie choice over the first
     stretch, CAPPED -- the number of states dropped is returned with them,
     because a ring that hits the cap has a branch set this rig has NOT
     enumerated, and every column read over its branches is scoped to the
-    ones carried."""
+    ones carried.
+
+    The truncation keeps a PREFIX of a deterministic order -- states in list
+    order, each one's ties sorted, dedup by state key -- so a lower cap
+    returns a prefix of what a higher one returns. That is what makes a
+    capped column an UNDERSTATED range rather than an unrelated one, and it
+    is not left as a reading of this code: `cap_monotone` asserts it."""
+    if cap is None:
+        cap = BRANCH_CAP
     dropped = [0]
     cur = [light_of(L, L.name)]
     for _ in range(BRANCH_N):
@@ -1047,12 +1079,43 @@ def branches(L):
                     continue
                 seen.add(k)
                 nxt.append(s2)
-        if len(nxt) > BRANCH_CAP:
-            TRUNC["branch-cap"] += len(nxt) - BRANCH_CAP
-            dropped[0] += len(nxt) - BRANCH_CAP
-            nxt = nxt[:BRANCH_CAP]
+        if len(nxt) > cap:
+            if cap == BRANCH_CAP:
+                TRUNC["branch-cap"] += len(nxt) - cap
+            dropped[0] += len(nxt) - cap
+            nxt = nxt[:cap]
         cur = nxt
     return cur, dropped[0]
+
+
+def cap_monotone(ladder, caps=(12, 24, 96)):
+    """THE SCOPE CONTROL. The docstring's claim that a capped sweep only ever
+    UNDERSTATES a range rests on the truncation being prefix-preserving. Run
+    the sweep at caps below the live one and assert each result is a prefix of
+    the live one, state key by state key. Without this the claim is a reading
+    of `branches`; with it, it is measured. It is also the only place the
+    STARRED, cap-bitten branch of S2's report is exercised at all, the live
+    cap biting nowhere."""
+    print("  Sweeps run at caps below the live %d, each asserted to be a"
+          % BRANCH_CAP)
+    print("  PREFIX of the live sweep -- which is what makes a capped column")
+    print("  an understated range and not an unrelated one.")
+    print("\n  ring     cap   states  dropped  prefix of the live sweep")
+    for L in ladder:
+        full = [key_of(s) for s in branches(L)[0]]
+        for cap in caps:
+            if cap >= BRANCH_CAP:
+                continue
+            got, dropped = branches(L, cap)
+            keys = [key_of(s) for s in got]
+            ok(keys == full[:len(keys)],
+               "%s: the cap-%d sweep is not a prefix of the cap-%d one"
+               % (L.name, cap, BRANCH_CAP))
+            ok(len(keys) <= len(full),
+               "%s: the cap-%d sweep carries MORE states than the cap-%d one"
+               % (L.name, cap, BRANCH_CAP))
+            print("  %-8s %-5d %-7d %-8d %s"
+                  % (L.name, cap, len(keys), dropped, "yes"))
 
 
 def vehicle(delta):
@@ -1114,6 +1177,9 @@ def main():
            % (L.name, lo[1]))
         print("  %-8s %-33s %-12d %d"
               % (L.name, str(bad) if bad else "none", lo[0], lo[1]))
+
+    section("S1(e)  THE SWEEP'S CAP, AND WHICH WAY A CAPPED COLUMN ERRS")
+    cap_monotone(ladder)
 
     section("S2  THE LONG WALK")
     print("  Every tie choice followed for %d moves, each distinct state then"
