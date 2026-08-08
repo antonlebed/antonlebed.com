@@ -179,7 +179,17 @@ FR1 THE RECURSION IS THE WALK, ERA FOR ERA (rule in range -- six rings, every
     FOLLOWS the era they land in. And no rider unit past the window ever
     arrives without a clock move, which is asserted rather than assumed --
     without it the era-by-era comparison would be comparing two different
-    ledgers.
+    ledgers. WHAT PR1 DOES NOT CONTROL, and the record would overstate it by
+    silence: the class-to-cells lookup is the WALKER'S OWN -- `summon` reads
+    `rep[negc[scale(gamma, r)]]`, the same expression the walker's `delta_of`
+    reads -- so a match cannot certify that lookup, only the increment
+    SEQUENCE and the alignment feeding it. Which is the right division of
+    labour rather than a hole: the lookup is what the walker's own engine
+    control certifies, menus compared type by type against the ring engine at
+    every state, and duplicating it here would have tested this rig's copy of
+    it instead. The two independent things PR1 does test are the door's
+    increments -- recomputed here from the doubling COUNT rather than from a
+    tick carried along -- and which era's units subtract from which move's.
 
 FR2 THE SEED IS READ OFF THE DOOR, NOT FITTED (rule in range -- 964 clock
     moves past the window at six rings, none of them taking a core longer
