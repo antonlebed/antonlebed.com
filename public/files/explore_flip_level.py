@@ -192,10 +192,14 @@ F2  THE FLIP IS A LEVEL SET OF A-hat, AND THE LAW IS EXACT (rule,
     vertex enters the box in 70 / 15 / 0 replicates at W2 and
     111 / 29 / 1 at W3, so at the smallest audit size more than a
     quarter of W3's replicates sit outside the derivation entirely.
-    What happens there is not measured -- an earlier column that
+    What happens there is not measured HERE -- an earlier column that
     appeared to measure it was reporting its own arbitrary direction
     coding, which is why the split is printed as scored/unscored and
-    not as one agreement rate.
+    not as one agreement rate. It is measured since
+    (explore_flip_inbox.py): the set-aside splits into five regimes by
+    this file's own argmin tag, four of them exactly determined, and on
+    61% of it the side of 1/2 is fixed by the two class samples with
+    A-hat absent.
 
 F3  WHAT A FLIP IS: THE IN-BOX ROOT DRIFTING PAST 1/2, NOT THE SILENT
     FALLBACK (observation, both cells). PR6 confirmed and then some --

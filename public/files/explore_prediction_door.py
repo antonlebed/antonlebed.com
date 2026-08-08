@@ -219,10 +219,13 @@ E3  THE PRICE. The readability partition under the pure order is
     stream-driven, so this loss COMPLETES set-level readability
     rather than creating it -- explore_bandwidth_dial.py) -- while
     a SINGLE adapted state almost never pins
-    its row: six of nine rows have ZERO row-exclusive argmin
+    its row: seven of nine rows have ZERO row-exclusive argmin
     classes (only sq/sqrt2 6/32 and sq/phi 1/7 have any), so at the
     state level most optima remain possibilistic about their
-    stream. The ensemble of optima reads the data; an individual
+    stream -- and possibilistic is where the grade stops: the
+    posterior on such a fiber tilts with the co-optimum counts
+    rather than staying uniform (explore_door_grades.py).
+    The ensemble of optima reads the data; an individual
     optimum can still deny it. The exchange rate prints: the
     pooled winner (one class, 171 total misses) is row-optimal on
     six rows and pays specialist advantage 56 / 56 / 12 on sq/phi,
