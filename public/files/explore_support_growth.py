@@ -481,7 +481,7 @@ def cost_of(M, pl, e, L, ceiling=None):
 def menu(M, st, L):
     """(cost, place, door) at the cheapest place, ties broken by place_key
     -- the imported engine's rule with infinite doors admitted."""
-    best, arg = None, None
+    best, arg, arg_r = None, None, None
     for pl in M.UNIVERSE:
         nrm = M.place_norm(pl)
         if best is not None and nrm > best:
@@ -493,9 +493,9 @@ def menu(M, st, L):
         if best is None or c < best or (c == best
                                         and M.place_key(pl)
                                         < M.place_key(arg)):
-            best, arg = c, (pl, r)
+            best, arg, arg_r = c, pl, r
     assert best is not None, "every place in the universe is priced out"
-    return best, arg[0], arg[1]
+    return best, arg, arg_r
 
 
 def step(M, st, L):
