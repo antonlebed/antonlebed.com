@@ -181,10 +181,14 @@ FR2 THE SEED IS READ OFF THE DOOR, NOT FITTED (rule in range -- 964 clock
     every increment after that.
 
 FR3 THE STATE CYCLES ALMOST IMMEDIATELY (rule in range). The pre-period is 0
-    or 1 at every ring and branch and the cycle length is 1, 2 or 4 -- the
-    order of 2 modulo the odd part of h, as predicted, and the pre-period
-    never exceeds the 2-adic valuation of h. The cycle is exhibited, so the
-    dichotomy stops being a dichotomy and becomes a verdict.
+    or 1 at every ring and branch and the cycle length is 1, 2 or 4. Both
+    bounds the slate named hold, and both are ASSERTED rather than read off
+    the table: the length divides the order of 2 modulo the odd part of h,
+    and the pre-period is at most the 2-adic valuation of h PLUS ONE -- the
+    plus one carrying the whole clause at h5 and g2, whose h are 5 and 15
+    and whose valuation is therefore 0 against branches that do take a
+    pre-period of 1. The cycle is exhibited, so the dichotomy stops being a
+    dichotomy and becomes a verdict.
 
 FR4 THE ANSWER: YES AT h5 AND g2, AND EXACTLY THREE COORDINATES AT EACH
     (proved for the steady state, and a rule in range at every branch of
@@ -201,7 +205,9 @@ FR5 g2'S SPREAD IS THE TRANSIENT'S, AND THE BOTTOM OF IT IS THE STEADY STATE
     gamma alone -- one distinct support per gamma at every ring, which is
     PR5's kill missing -- so the recursion predicts the SAME three unbounded
     coordinates at every g2 branch, and the printed spread of 3 to 6 deep
-    places decomposes exactly: 3 unbounded, 0 or 1 bounded, 0 to 3 stranded.
+    places decomposes exactly: 3 unbounded, 0 or 1 bounded, 0 to 3 stranded
+    -- three columns whose ranges are read separately and whose SUM at each
+    branch is that branch's own deep count, so the maxima are not addable.
     Nothing outside those three ever appears. So the count the sweep reads
     over branches was never a statement about the mechanism, and the number
     that is -- the count that survives -- is its MINIMUM. The same reading
@@ -233,16 +239,16 @@ FR7 THE TWO VERDICTS DO NOT REST ON THE SAME HYPOTHESIS. Both inherit FE2 --
     with no principal place (4, 4, 4, 5 and 7 at the five rings that have
     one) a margin worth printing rather than a formality.
 
-Run: `python explore_rider_recursion.py`. RUN RECORD (1994 checks, ~87 s, peak
-48.5 MB under memwatch, the walk being 300 moves on each of 150 branches over
+Run: `python explore_rider_recursion.py`. RUN RECORD (2294 checks, ~87 s, peak
+48.3 MB under memwatch, the walk being 300 moves on each of 150 branches over
 six rings and the recursion itself free). S1 control: every one of the 964
 post-window clock moves taking exactly the door's increment; the label-
 arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
 -- and coinciding with the group version at h2 and h4, where the detector is
 therefore vacuous and says so; h2's era ledger reproduced including the era
 whose second unit comes from an open. S2: 964 eras, 0 mismatched. S3: the
-cycles exhibited, pre-period 0 or 1 and length 1, 2 or 4, with 4 gamma at h5
-and 4 at g2. S4: every branch's deep places first asserted to lie in
+cycles exhibited and both of PR3's bounds asserted per branch, pre-period 0 or
+1 and length 1, 2 or 4, with 4 gamma at h5 and 4 at g2. S4: every branch's deep places first asserted to lie in
 DISTINCT cells -- the verdict being per cell and the list per place -- and
 then all 150 branches' sorted into unbounded, bounded and stranded with
 nothing left over. Slate PR1-PR6: all six hit; no
@@ -574,6 +580,22 @@ def main():
             npre, nc, cyc, cyc_cells, pre_cells = cycle_of(s, gam, cell, T0, r0)
             ok(npre + nc <= s.h * s.h, "%s: pre-period %d plus cycle %d "
                "exceeds h^2 = %d" % (L.name, npre, nc, s.h * s.h))
+            # PR3's KILL, which the h^2 bound above is far too loose to
+            # fire: the state is (T mod h, r mod h) and T's own orbit is
+            # the powers of 2, so the pre-period cannot outlast 2's and the
+            # length must divide 2's order on the odd part. Without these
+            # two the slate named a kill the rig could not have fired.
+            v2, odd = 0, s.h
+            while odd % 2 == 0:
+                v2, odd = v2 + 1, odd // 2
+            o2, x = 1, 2 % odd
+            while x != 1 % odd:
+                x, o2 = (2 * x) % odd, o2 + 1
+            ok(npre <= v2 + 1, "%s: pre-period %d over the 2-adic valuation "
+               "of h = %d plus one" % (L.name, npre, v2))
+            ok(o2 % nc == 0, "%s: cycle length %d does not divide the order "
+               "%d of 2 modulo the odd part %d of h"
+               % (L.name, nc, o2, odd))
             classes = tuple(sorted(set(s.GR.negc[s.GR.scale(gam, r)]
                                        for _T, r in cyc)))
             verdicts[(L.name, bi)] = (cell, npre, nc, cyc_cells, pre_cells)
