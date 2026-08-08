@@ -300,9 +300,11 @@ F6 THE LONE AND POPULATED MENUS PART AT 409 OF 720 STEPS, IN THREE OF
    Z[sqrt-5], Z[i] and this ring, plus the voids of Z[i] and this ring;
    Z[sqrt-5]'s VOID walk never parts, and neither does any walk of
    Z[w] or the -23 cubic. Two mechanisms in
-   the specimens: a STRAND is cheap under lone pricing and wide under
-   populated (Z[sqrt-5] planted over 5: the lone menu names the strand
-   itself at step 1), and a COVERED OPENING is cheap under lone pricing
+   the specimens: a SEATED place is re-priced by the state (Z[sqrt-5]
+   planted over 5, step 1: the true menu deepens the planted place while
+   the lone menu names the split place over 3 -- the print is (step, TRUE
+   winner, LONE winner) and an earlier reading of this line had the two
+   the wrong way round), and a COVERED OPENING is cheap under lone pricing
    and priced out by the populated invariant (here: the lone menu names
    X at price 4 at step 2-3 of every walk while the true menu prices X
    at 32 and rising -- F4's invisibility, seen from the menu side; at
@@ -312,11 +314,20 @@ F6 THE LONE AND POPULATED MENUS PART AT 409 OF 720 STEPS, IN THREE OF
    steps -- while the SURPLUS half of the widening (door excess at a
    seated place) fired only at Z[i]'s one state. The five walks where
    the menus never part are Z[w]'s two, the -23 cubic's two, and
-   Z[sqrt-5]'s void; WHY those five agree is not settled by this sweep
-   -- the -23 cubic's planted walk holds a gap-2 strand from step 0 and
-   its menus still agree, so "all columns gap-1" is not the condition
-   -- and the parting specimens share only that some place is priced
-   across the argmin by one rule and not the other.
+   Z[sqrt-5]'s void. WHY those five agree is SETTLED by
+   explore_menu_parting.py, which reproduces this sweep step for step:
+   every widened lone winner across the twelve walks is UNSEATED, 410 of
+   410 -- so the seated re-pricing never selects -- and 409 of those 410
+   part, so the widening is necessary and not sufficient, what parts a
+   menu being the widening losing the argmin rather than the widening.
+   (Of the 410, 293 are covered openings proper: norm above 2 with N - 1
+   dividing L. The other 117 are norm-2 places, covered at their second
+   rung, where that reading says nothing about the state.) The condition
+   is not a COARSE invariant -- cheapest norm, presence of a norm-2
+   place, void against planted all disagree with the verdict -- and the
+   five agreeing walks agree for two reasons: four never carry a covered
+   lone winner, and Z[w]'s planted walk carries exactly one and survives
+   it.
 
 RUN RECORD. `python explore_wild_ring.py` (memwatch). One process,
 CPython, no BLAS. 176 checks, 4.3 s wall, peak working set 23.1 MB under
