@@ -35,6 +35,15 @@ bounded at a computable exponent. The dichotomy is trivial; that the side is
 DECIDABLE per ring, off a recursion with no free parameter, is the finding
 this rig is aimed at.
 
+ONE STEP THE ABOVE TAKES FOR GRANTED, AND IT IS THE ONE THE WALK CANNOT
+COVER. T' = 2T holds only while the clock's landing at T + 1 + w stays at or
+under 2T, that is while w <= T - 1, and past the walk's last era nothing
+measures that. It is not an extra hypothesis: w can never exceed the largest
+multiplicity the clock's own cell carries in any of the h minimal
+representatives -- a constant of the ring -- so the condition is decided ONCE
+at the seed tick and holds forever after, T only doubling. S3 asserts it
+there rather than leaving the extrapolation to be read as obvious.
+
 W IS A COUNT, NOT A FLAG. The obvious reading -- w = 1 exactly when the rider
 lands back on the clock -- is right at the five rings whose minimal
 representatives are single points and wrong in general: at g2 a
@@ -239,16 +248,17 @@ FR7 THE TWO VERDICTS DO NOT REST ON THE SAME HYPOTHESIS. Both inherit FE2 --
     with no principal place (4, 4, 4, 5 and 7 at the five rings that have
     one) a margin worth printing rather than a formality.
 
-Run: `python explore_rider_recursion.py`. RUN RECORD (2294 checks, ~87 s, peak
-48.3 MB under memwatch, the walk being 300 moves on each of 150 branches over
+Run: `python explore_rider_recursion.py`. RUN RECORD (2444 checks, ~87 s, peak
+48.5 MB under memwatch, the walk being 300 moves on each of 150 branches over
 six rings and the recursion itself free). S1 control: every one of the 964
 post-window clock moves taking exactly the door's increment; the label-
 arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
 -- and coinciding with the group version at h2 and h4, where the detector is
 therefore vacuous and says so; h2's era ledger reproduced including the era
 whose second unit comes from an open. S2: 964 eras, 0 mismatched. S3: the
-cycles exhibited and both of PR3's bounds asserted per branch, pre-period 0 or
-1 and length 1, 2 or 4, with 4 gamma at h5 and 4 at g2. S4: every branch's deep places first asserted to lie in
+cycles exhibited, both of PR3's bounds asserted per branch and the tick's own
+doubling asserted at every seed, pre-period 0 or 1 and length 1, 2 or 4, with
+4 gamma at h5 and 4 at g2. S4: every branch's deep places first asserted to lie in
 DISTINCT cells -- the verdict being per cell and the list per place -- and
 then all 150 branches' sorted into unbounded, bounded and stranded with
 nothing left over. Slate PR1-PR6: all six hit; no
@@ -596,6 +606,21 @@ def main():
             ok(o2 % nc == 0, "%s: cycle length %d does not divide the order "
                "%d of 2 modulo the odd part %d of h"
                % (L.name, nc, o2, odd))
+            # THE STEP THE RECURSION TAKES FOR GRANTED WHEN IT RUNS PAST
+            # THE WALK. T' = 2T holds only while the clock's landing at
+            # T + 1 + w stays at or under 2T, i.e. while w <= T - 1. Inside
+            # the walk PR1's era-by-era match covers it; past the walk
+            # nothing does, and it is the one place the extrapolation could
+            # quietly be a different recursion. w is bounded by the largest
+            # multiplicity the clock's own cell has in ANY of the h minimal
+            # representatives -- a constant of the ring -- so the condition
+            # is decided once, at the seed tick, and holds forever after,
+            # T only doubling.
+            wmax = max(s.rep[c].get(cell, 0) for c in range(s.h))
+            ok(wmax + 1 <= T0, "%s: the clock's cell takes up to %d units "
+               "from a single representative against a seed tick of %d, so "
+               "T' = 2T is not guaranteed past the walk"
+               % (L.name, wmax, T0))
             classes = tuple(sorted(set(s.GR.negc[s.GR.scale(gam, r)]
                                        for _T, r in cyc)))
             verdicts[(L.name, bi)] = (cell, npre, nc, cyc_cells, pre_cells)
