@@ -1051,7 +1051,7 @@ def canon(ties):
     return sorted(ties)[0]
 
 
-def branches(L, cap=None):
+def branches(L, cap=None, record=True):
     """Every distinct state reachable by any tie choice over the first
     stretch, CAPPED -- the number of states dropped is returned with them,
     because a ring that hits the cap has a branch set this rig has NOT
@@ -1080,7 +1080,7 @@ def branches(L, cap=None):
                 seen.add(k)
                 nxt.append(s2)
         if len(nxt) > cap:
-            if cap == BRANCH_CAP:
+            if record:
                 TRUNC["branch-cap"] += len(nxt) - cap
             dropped[0] += len(nxt) - cap
             nxt = nxt[:cap]
@@ -1095,18 +1095,33 @@ def cap_monotone(ladder, caps=(12, 24, 96)):
     the live one, state key by state key. Without this the claim is a reading
     of `branches`; with it, it is measured. It is also the only place the
     STARRED, cap-bitten branch of S2's report is exercised at all, the live
-    cap biting nowhere."""
+    cap biting nowhere.
+
+    Every sweep here passes record=False. This control runs the LIVE cap too,
+    and S2's dropped-state total must count that cap's drops ONCE -- at a
+    lowered BRANCH_CAP, which is the whole point of the control, a recording
+    call here would double S2's figure."""
+    below = [c for c in caps if c < BRANCH_CAP]
+    if not below:
+        print("  VACUOUS at this cap: every rehearsal cap %s is at or above"
+              % (list(caps),))
+        print("  the live %d, so there is no lower sweep to compare against."
+              % BRANCH_CAP)
+        print("  A control that silently checks nothing is worse than none,")
+        print("  hence this notice. At a cap this low S2's own STARRED report")
+        print("  is doing the scoping directly, and the prefix property that")
+        print("  makes a capped column an UNDERSTATED range goes unchecked --")
+        print("  lower the rehearsal caps with the live one to restore it.")
+        return
     print("  Sweeps run at caps below the live %d, each asserted to be a"
           % BRANCH_CAP)
     print("  PREFIX of the live sweep -- which is what makes a capped column")
     print("  an understated range and not an unrelated one.")
     print("\n  ring     cap   states  dropped  prefix of the live sweep")
     for L in ladder:
-        full = [key_of(s) for s in branches(L)[0]]
-        for cap in caps:
-            if cap >= BRANCH_CAP:
-                continue
-            got, dropped = branches(L, cap)
+        full = [key_of(s) for s in branches(L, record=False)[0]]
+        for cap in below:
+            got, dropped = branches(L, cap, record=False)
             keys = [key_of(s) for s in got]
             ok(keys == full[:len(keys)],
                "%s: the cap-%d sweep is not a prefix of the cap-%d one"
