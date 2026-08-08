@@ -292,24 +292,25 @@ FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
     reported, so the reproduction is confirmed from a second direction. The
     guarantee is a fact about THIS truncation and not about truncation in
     general; a sweep sampling its branches some other way would have none. E4's
-    further clause -- that these coordinates grow WITHOUT BOUND -- is untouched
-    by any of that, and the cap was never the knob for it: completeness settles
-    HOW MANY coordinates a branch ends with at a fixed walk length, while
-    unboundedness is a claim about one coordinate as the walk runs on, whose
-    knob is the walk. It stays open here. The rate is about one unit an era at
-    the depth walked, and h2 is the standing warning that a rider income can
-    simply stop, its clock's own
-    having ceased the moment the parity of its increment locked. What the
-    steady state does hand a derivation, straight off the door arithmetic at
-    the head of this file and visible in S4's doubling column: a clock move
-    takes r = T + 1 - e and so lands the clock at exactly T + 1, where
+    further clause -- that these coordinates grow WITHOUT BOUND -- was never
+    the cap's to settle: completeness settles HOW MANY coordinates a branch
+    ends with at a fixed walk length, while unboundedness is a claim about one
+    coordinate as the walk runs on. It is settled in explore_rider_recursion.py
+    and settled by ARITHMETIC rather than by a longer walk, straight off the
+    door at the head of this file and visible in S4's doubling column: a clock
+    move takes r = T + 1 - e and so lands the clock at exactly T + 1, where
     ceil_log2 turns over and the tick becomes 2T -- so the NEXT move's
     increment is T minus whatever rider units the clock itself took in
     between (h5 stands at T + 1 at most doublings and at T + 2 at the two
     where its clock took a rider), and the rider that move summons lands in
-    the class -(T - those units) * gamma. Unboundedness at a class is that
-    sequence returning to it forever, which is arithmetic on the increments
-    and not a walk to be widened. ONE HAZARD FOR ANYONE COMPUTING THAT
+    the class -(T - those units) * gamma. The state (T mod h, r mod h) is
+    FINITE, so a cell fed inside the eventual cycle is fed forever: the answer
+    is the clock alone at F_2[x], h2, h3 and h4 -- h2's w = 0 being an
+    absorbing state and not merely an observed stop -- and THREE unbounded
+    coordinates at h5 and at g2, on every branch. Which makes the deep-place
+    counts above the transient talking, their MINIMUM the mechanism: g2's 3 to
+    6 is 3 unbounded plus 0 or 1 bounded plus 0 to 3 stranded.
+    ONE HAZARD FOR ANYONE COMPUTING THAT
     SEQUENCE: a class here is an INDEX into the group ring's Cayley table and
     the labelling is not the canonical one, so r * gamma is `scale` and the
     negation is `negc` -- written as "-r*gamma mod h" on the labels it yields
@@ -402,8 +403,10 @@ opening by step 9 of 300. Slate PE1-PE9: PE1 to PE5 hit; PE8 and PE9 carry no
 kill and simply printed; PE6's kill missed for want of its antecedent (FE5);
 PE7's kill FIRED (FE7). REFUTED at the run: the hand-attack's headline that the
 element clock ends at degree 1 at every ring (E3), and the handover's premise
-that the opened cores' classes equidistribute (FE2). LEFT UNSETTLED: E4's
-clause that the rider-fed coordinates grow without bound (FE6).
+that the opened cores' classes equidistribute (FE2). LEFT UNSETTLED at the run
+and SETTLED SINCE, by arithmetic and in explore_rider_recursion.py rather than
+by anything this rig could have printed: E4's clause that the rider-fed
+coordinates grow without bound (FE6).
 THE HARNESS, forced to fail rather than trusted -- each of the following was
 MADE to fail in a scratch run, not argued. A cell count off by one is caught
 at degree 3 of the first ring; a door off by one makes the light menu
