@@ -274,9 +274,9 @@ arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
 therefore vacuous and says so; h2's era ledger reproduced including the era
 whose second unit comes from an open. S2: 964 eras, 0 mismatched. S3: the
 cycles exhibited, both of PR3's bounds asserted per branch, the tick's own
-doubling asserted at every seed and every branch asserted to close its cycle, pre-period 0 or 1 and length 1, 2 or 4, with
-4 gamma at h5 and 4 at g2. S4: every branch's deep places first asserted to lie in
-DISTINCT cells -- the verdict being per cell and the list per place -- and
+doubling asserted at every seed and every branch asserted to close its cycle,
+pre-period 0 or 1 and length 1, 2 or 4, with 4 gamma at h5 and 4 at g2. S4:
+every branch's deep places first asserted to lie in DISTINCT cells -- the verdict being per cell and the list per place -- and
 then all 150 branches' sorted into unbounded, bounded and stranded with
 nothing left over. Slate PR1-PR6: all six hit; no
 kill fired. SUPERSEDED at the run: the reading that g2's steady state carries
@@ -537,7 +537,8 @@ def main():
     for step, r, pre, rid in rows[:7]:
         print("  %-5d %-5d %-9d %-10d %d"
               % (step, tick_at(s, step), pre, r, rid.get(cell, 0)))
-    w_tail = [rid.get(cell, 0) for _st, _r, _p, rid in rows if _st > window_of(s)]
+    win2 = window_of(s)
+    w_tail = [rid.get(cell, 0) for _st, _r, _p, rid in rows if _st > win2]
     ok(set(w_tail) == set([0]), "h2: the clock still takes rider units past "
        "the window: %s" % w_tail)
     print("  every era past the window at step %d takes w = 0, and w = 0 maps"
