@@ -241,22 +241,25 @@ F1 THE SUPPORT BOUND: A GREEDY WALK NEVER SEATS A PLACE COSTLIER THAN THE
    ball, and under a certified lock (F3) that ball stops growing.
 
 F2 THE RACE IS SETTLED BY A BUDGET AND NEVER RUNS AS A RATE COMPARISON
-   (theorem, given the carrier floor it consumes; the ceiling read at all
-   12 swept walks). The route's floor prices a surplus of k at a seated
-   norm of at least p^k + 1 -- supply costs exponentially in what it
-   supplies -- while F1 caps every seated norm by the largest cost paid C.
-   So the cross-supply a walk can seat is at most log_p C, and the rig
-   reads the p-free form log_2 C, which bounds every characteristic at
-   once and is the one comparable across a table. The two
-   exponential rates never meet: the walk cannot afford the carrier at
-   any surplus its own budget does not already permit. The ceiling reads
-   1 to 3 across the sweep against supplies that are 0 at nine walks and 1
-   at Z[sqrt-5]'s planted place over 2; the exception is Z[i], where BOTH
-   walks seat the corpus's filed maximum of 3 -- v_2(N - 1) at the inert
-   place over 3 -- and it sits EXACTLY at its own ceiling, floor(log_2 9)
-   being 3. The largest supply anybody has measured is
-   the largest one the budget allows, which is why five rings kept
-   returning the same small number.
+   (theorem, given the carrier floor it consumes; the ceiling read at all 12
+   swept walks). The route's floor prices a surplus of k at a seated norm of
+   at least p^k + 1 -- supply costs exponentially in what it supplies -- while
+   F1 caps every seated norm by the largest cost paid C. So the cross-supply a
+   walk can seat is at most log_p C, and the rig reads the p-free form log_2
+   C, which bounds every characteristic at once and is the one comparable
+   across a table. The two exponential rates never meet: the walk cannot
+   afford the carrier at any surplus its own budget does not already permit.
+   The ceiling reads 1 to 3 across the sweep against supplies that are 0 at
+   nine walks and 1 at Z[sqrt-5]'s planted place over 2; the exception is
+   Z[i], where BOTH walks seat the corpus's filed maximum of 3 -- v_2(N - 1)
+   at the inert place over 3 -- and it sits EXACTLY at its own ceiling,
+   floor(log_2 9) being 3. That tightness is not depth and should not be read
+   as any: the ceiling is attained precisely when the seated norm's N - 1 is a
+   PURE power of p, and 9 - 1 = 8 is. The reading worth keeping is that the
+   largest supply anybody has measured is the largest one the budget allows,
+   not that the two agree by anything but arithmetic. The largest supply
+   anybody has measured is the largest one the budget allows, which is why
+   five rings kept returning the same small number.
 
 F3 THE LOCK PERMANENCE CERTIFICATE, AND THE WITNESS THAT PROVES NOTHING
    (theorem for the certificate; rule in range for its 12 of 12, five
@@ -301,8 +304,10 @@ F5 THE SURPLUS DICHOTOMY IS EXACT, AND GREEDY REFUSES ITS DIVERGENT SIDE
    the frozen side -- 0 of 12 walks diverge, every surplus at move 500
    equal to its value at move 60 -- because no walk ever seats a second
    place under its own vehicle's characteristic. Planting one does not
-   force it either (0 of 4): the planted place BECOMES the vehicle at both
-   quadratic rings, and at both cubic rings the lock leaves the
+   force it either (0 of 4): the planted place BECOMES the vehicle at the
+   two quadratic rings that admit the seed -- Z[i] has no second place
+   over its vehicle's prime at all -- and at both cubic rings the lock
+   leaves the
    characteristic entirely, moving from the place over 5 to the place over
    11. The mechanism is one line and is the same one as F4's: a seated
    place has its first rung covered, so it is CHEAPER than its unseated
@@ -315,6 +320,18 @@ F5 THE SURPLUS DICHOTOMY IS EXACT, AND GREEDY REFUSES ITS DIVERGENT SIDE
    GREEDY and not about the dynamics, and the object that is bounded
    outright is the SUPPORT.
 
+F6 NO WALK CYCLES: 140 SEEDS OVER FIVE RINGS AND EVERY ONE CERTIFIES
+   (pattern, 140 seeds, 200 moves each; the last probe run here, its slate in
+   S7's docstring). Between the two laws sits a shape neither forbids: the
+   dichotomy stops the OPENINGS for a bounded gap, and the certificate proves
+   a CANDIDATE permanent, so a walk alternating forever among places it has
+   already seated -- opening nothing, settling on nothing -- would satisfy
+   both and be a third case. Every seed on one or two of each ring's six
+   cheapest places, at exponents 1 and 3, certifies a lock instead. That is
+   not a proof and the gap between the two laws is still formally open; what
+   it says is that the cycle is not sitting in easy reach, and a seed hunting
+   one now has 140 misses to beat.
+
 WHAT THIS LEAVES. The stop law's populated-door readings are safe for a
 reason the corpus was not using: not that the surplus is small, but that
 doors are monotone in the invariant (Lemma B), so a surplus can only ever
@@ -325,10 +342,15 @@ surplus is frozen from the certified lock step on, so 500 moves and
 infinity read the same number. What is NOT settled is whether every
 greedy walk locks at all -- the certificate is conditional on a lock and
 proves permanence, never existence -- and the refusal in F5 is a pattern
-over five rings with a mechanism, not a theorem.
+over five rings with a mechanism, not a theorem. The gap between the two
+laws is named and hunted in F6 and it stayed empty. And every ring read
+here is MIXED characteristic, which is the locking side of the dichotomy
+by construction: Lemmas A, B and C and both bounds are proved and carry
+over, but the certificate has never been RUN where gaps are unbounded,
+and a function-field walk is the reading this file does not have.
 
 RUN RECORD. `python explore_support_growth.py` (memwatch). One process,
-CPython, no BLAS. 2660 checks, 1.0 s wall, peak working set 26.5 MB under
+CPython, no BLAS. 2661 checks, 1.0 s wall, peak working set 26.2 MB under
 the 512 MB ceiling. S1: 576 Lemma A readings over five rings, the filed
 wild-ring lock reproduced (place over 5 at cost 5, support 3^2 * 5^10 at
 step 12), 480 menu readings against the imported engine, 0 off. S2: 49920
@@ -338,7 +360,8 @@ door period 1 at every one. S5: 12 walks at 500 moves, 0 divergent. S6: 4
 designed walks 0 divergent, 4 round-2 walks all 4 divergent. P1-P6 hit;
 P7 hit vacuously, which is what fired the second slate; Q1-Q3's K6 fired
 (the designed seed does not diverge) and Q4 hit, the two together being
-F5.
+F5. S7 was run last, after the sections above: 140 seeds, no cycle,
+which is F6.
 """
 
 import os
@@ -357,6 +380,7 @@ SIM_MOVES = 200     # moves of P-only future simulated for the certificate
 RIVAL_NORM = 60     # places whose doors are read against door_inf
 BRUTE_DEPTH = 12    # depths a column is read for Lemma A
 LOCK_R = 10         # consecutive identical vehicles that witness a lock
+CYCLE_MOVES = 200   # moves per seed in the cycle hunt
 
 
 def ok(cond, msg):
@@ -398,13 +422,13 @@ def load_rings():
     rings = []
     for name, M in quads:
         rings.append((name, M, [pl for pl in M.UNIVERSE
-                                if _is_ramified(M, pl)]))
+                                if _is_ramified(pl)]))
     rings.append(("-23 cubic", C3, [pl for pl in C3.UNIVERSE if pl[1] > 1]))
     rings.append(("Z[2^(1/3)]", W3, [pl for pl in W3.UNIVERSE if pl[1] > 1]))
     return rings
 
 
-def _is_ramified(M, pl):
+def _is_ramified(pl):
     """A quadratic engine tags its places by kind rather than by (e, f)."""
     return pl[0] == 'ram'
 
@@ -413,7 +437,7 @@ def show_pl(M, pl):
     return "%s/N%d" % (str(pl), M.place_norm(pl))
 
 
-def seeds_of(M, rams):
+def seeds_of(rams):
     out = [("void", {})]
     for pl in rams:
         out.append(("planted %s" % str(pl), {pl: 1}))
@@ -479,21 +503,18 @@ def step(M, st, L):
     return menu(M, st, L)
 
 
-def walk(M, seed, moves, record=None):
+def walk(M, seed, moves):
     """Greedy walk from a seed. Returns the trace: per step the cost, the
-    place, the door, the state and the invariant. `record` is a callback
-    fired after each move for the columns that need every step."""
+    place, the door, the state and the invariant."""
     st = dict(seed)
     L = M.lam_state(st)
     trace = []
-    for i in range(moves):
+    for _ in range(moves):
         cost, pl, r = step(M, st, L)
         st = dict(st)
         st[pl] = st.get(pl, 0) + r
         L = M.lam_state(st)
         trace.append((cost, pl, r, dict(st), L))
-        if record is not None:
-            record(i, cost, pl, r, st, L)
     return trace
 
 
@@ -514,7 +535,10 @@ def witness_step(trace):
 def door_inf(M, pl, e, L, p):
     """The eventual door at pl under a P-only run in characteristic p: the
     least r whose lambda's prime-to-p part fails to divide L, or None
-    where every r divides -- a place priced out forever."""
+    where every r divides -- a place priced out forever. The 200 is a
+    search cap and not a claim: a true door beyond it would be reported
+    as infinite, which S3 would then catch, since it requires an
+    infinite prediction to be still CLIMBING at the horizon."""
     for r in range(1, 200):
         lam = prime_to_p(M.lam_P(pl, e + r), p)
         if L % lam != 0:
@@ -602,10 +626,10 @@ def s1_control(rings):
             base = M.place_norm(pl) - 1
             for a in range(1, BRUTE_DEPTH + 1):
                 lam = M.lam_P(pl, a)
-                ok(lam % base == 0 if base else True,
+                ok(lam % base == 0,
                    "%s: lam(%s^%d) = %d is not a multiple of N - 1 = %d"
                    % (name, pl, a, lam, base))
-                q = lam // base if base else lam
+                q = lam // base
                 ok(q == p ** v_p(q, p),
                    "%s: lam(%s^%d)/(N-1) = %d is not a power of %d"
                    % (name, pl, a, q, p))
@@ -646,7 +670,7 @@ def s1_control(rings):
     print("  answer at all.")
     nmenu = 0
     for rname, M, rams in rings:
-        for sname, seed in seeds_of(M, rams):
+        for sname, seed in seeds_of(rams):
             st, L = dict(seed), M.lam_state(seed)
             for _ in range(40):
                 c1, p1, r1 = menu(M, st, L)
@@ -891,7 +915,7 @@ def s5_support_and_surplus(walks, locks):
 
 
 # ------------------------------- S6 the designed co-characteristic seed
-def s6_designed(rings, walks, locks):
+def s6_designed(rings, locks):
     section("S6  THE DESIGNED CO-CHARACTERISTIC SEED -- the dichotomy's "
             "other side, constructed because no walk supplied it")
     print("  Plant, one at a time, every place sharing the void walk's")
@@ -1011,12 +1035,56 @@ def s6_designed(rings, walks, locks):
     return rows, rows2
 
 
+# ------------------------------------------------ S7 the cycle hunt
+def s7_cycle_hunt(rings):
+    """THE QUESTION, frozen before this section was written (this section was
+    written last, after everything above had printed, and its slate is
+    one line): the certificate
+    proves a candidate vehicle permanent, and the lock/sprawl dichotomy
+    stops the OPENINGS, and between the two sits a shape neither rules
+    out -- a walk alternating forever among places it has already seated,
+    opening nothing and settling on nothing. Hunt one.
+    THE PREDICTION: none exists in these rings, so every seed certifies.
+    THE KILL: one seed walks the horizon with no certified lock, which
+    would make the cycle real and "locks" a third case rather than two."""
+    section("S7  THE CYCLE HUNT -- a walk that opens nothing and settles "
+            "on nothing would sit between the two laws, so look for one")
+    print("  Every seed on one or two places drawn from each ring's six")
+    print("  cheapest, at exponent 1 and 3, walked %d moves." % CYCLE_MOVES)
+    print()
+    print("  %-12s %-8s %-10s %s" % ("ring", "seeds", "certified", "cycles"))
+    total, cycles = 0, []
+    for name, M, rams in rings:
+        cheap = list(M.UNIVERSE)[:6]
+        seeds = [("void", {})]
+        for a in cheap:
+            seeds.append((str(a), {a: 1}))
+            seeds.append(("%s^3" % str(a), {a: 3}))
+            for b in cheap:
+                if M.place_key(b) > M.place_key(a):
+                    seeds.append(("%s,%s" % (a, b), {a: 1, b: 1}))
+        ncert = 0
+        for sname, seed in seeds:
+            tr = walk(M, seed, CYCLE_MOVES)
+            i, cert = certified_lock(M, tr)
+            if i is None:
+                cycles.append((name, sname))
+            else:
+                ncert += 1
+            total += 1
+        print("  %-12s %-8d %-10d %d"
+              % (name, len(seeds), ncert, len(seeds) - ncert))
+    print("  %d seeds, %d with no certified lock." % (total, len(cycles)))
+    ok(not cycles, "a walk with no certified lock: %s" % str(cycles[:3]))
+    return total
+
+
 def main():
     rings = load_rings()
     n_lemA, n_menu = s1_control(rings)
     walks = []
     for name, M, rams in rings:
-        for sname, seed in seeds_of(M, rams):
+        for sname, seed in seeds_of(rams):
             walks.append((name, M, sname, seed, walk(M, seed, HORIZON)))
     locks = {}
     for name, M, sname, seed, tr in walks:
@@ -1025,7 +1093,8 @@ def main():
     n_riv = s3_cost_limit(walks, locks)
     ncert = s4_certificate(walks, locks)
     rows = s5_support_and_surplus(walks, locks)
-    des, des2 = s6_designed(rings, walks, locks)
+    des, des2 = s6_designed(rings, locks)
+    n_cyc = s7_cycle_hunt(rings)
 
     section("VERDICT -- the predictions read against what printed")
     print("  P1 %d Lemma A readings, %d menu readings, the filed lock:"
@@ -1041,6 +1110,7 @@ def main():
           % (len(des), sum(1 for r in des if r[7])))
     print("  Q4 %d round-2 walks, %d divergent: see S6"
           % (len(des2), sum(1 for r in des2 if r[7])))
+    print("  Q5 %d seeds hunted for a cycle, none found: see S7" % n_cyc)
     print("\n  %d checks passed." % CHECKS)
 
 
