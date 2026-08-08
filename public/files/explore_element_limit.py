@@ -120,11 +120,15 @@ TRANSPLANT FLAGS, fixed at the freeze.
     about the menu, controlled at S1(b) against the engine, not assumed.
  4. From ring to ring: nothing. h = 1 is walked as the degenerate control
     where the element world IS the ideal world.
- 5. From the branches walked to all branches: NOTHING. Every tie choice is
-    followed only over the first stretch and only up to a cap, and past that
+ 5. From the branches walked to all branches: NOTHING BEYOND THE STRETCH.
+    Every tie choice is followed over the first stretch, and past that
     stretch every walk is canonical -- so a column read "over all branches"
-    means over the branches CARRIED, and the rig prints which rings hit the
-    cap. No count here is a statement about all trajectories.
+    is over every branch of the STRETCH and over one continuation of each.
+    The cap on states carried is a separate scope and the rig prints whether
+    it bit: at a cap under the widest ring's branch set the columns are over
+    the branches CARRIED and the ring is starred, and at a cap above every
+    ring's the starred clause is not in play at all. Either way no count
+    here is a statement about all TRAJECTORIES.
 
 THE PREDICTIONS, fixed before any engine code, each naming what the rig
 PRINTS. What they mean is weighed after the run.
@@ -199,12 +203,14 @@ FE2 GREEDY WILL NOT PAY A RIDER IT CAN AVOID, SO THE FRESH RIDER FLOW DRIES
 
 FE3 THE RIDER RATE IS CONSTANT PER ERA WHILE THE ERA LENGTH DOUBLES (rule in
     range, six rings, 10 or 11 eras each). The opens per era double away --
-    1, 0, 0, 2, 4, 8, 16, 32, 64, 128 at F_2[x] and h2, and the same shape at
-    every other ring -- while the rider units placed in an era never exceed
-    SIX anywhere and never grow with the era. The peak is g2's fifth era, and
-    it is a peak because four of its six units come from OPENS, which is the
-    dying transient; from the sixth era on every ring places 0, 1 or 2 units
-    per era and every one of them comes from a DEEPENING move. After the initial stretch the ONLY rider source is the clock's own
+    1, 0, 0, 2, 4, 8, 16, 32, 64, 128 at F_2[x], with h2's 1, 0, 0, 2, 2, 10
+    settling onto the same 16, 32, 64, 128 from the seventh era on and the
+    same shape at every other ring -- while the rider units placed in an era
+    never exceed SIX anywhere and never grow with the era. The peak is g2's
+    fifth era, and it is a peak because four of its six units come from OPENS,
+    which is the dying transient; from the sixth era on every ring places
+    0, 1 or 2 units per era and every one of them comes from a DEEPENING
+    move. After the initial stretch the ONLY rider source is the clock's own
     move, one per era by construction, so the total rider intake after k
     doublings is O(k) -- LOGARITHMIC in the tick against a clock that
     doubles. The race the handover set up as linear against exponential is
@@ -261,23 +267,46 @@ FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
     because the transient can strand one before the clock settles: h2 and h4
     read ONE deep place on some branches and TWO on others while their steady
     state is single-coordinate on all of them. Where gamma has larger order
-    the limit gains coordinates on every branch carried -- h5 ends with three
-    places above exponent 1 on all twelve (a clock at 513 and two rational
-    places at 6 and 3, both built from riders alone) and g2 with three to
-    five. h5 and g2 are the two rings whose sweep hit the cap, so those two
-    are the ones whose branch sets are incomplete (flag 5). E4's
-    further clause -- that those coordinates grow WITHOUT BOUND -- is NOT
-    settled here and should not be read out of the shape: the rate is about
-    one unit an era at the depth walked, and h2 is the standing warning that
-    a rider income can simply stop, its clock's own having ceased the moment
-    the parity of its increment locked.
+    the limit gains coordinates on every branch -- h5 ends with three places
+    above exponent 1 on all TWENTY (a clock at 513 and two rational places at
+    6 and 3, both built from riders alone) and g2 with three to SIX over all
+    120. Those two counts are over COMPLETE branch sets: the sweep's cap
+    stands at 192 and no ring reaches it, which the run prints. THE CAP WAS
+    LOAD-BEARING AND NOT DECORATIVE, so the completeness is worth its cost --
+    at a cap of 12 the sweep carried 12 of g2's 120 states and read the
+    deep-place count as three to FIVE, the final clock as one of two rational
+    classes at g2 and one of three at h5, and the settling step as never 3;
+    the complete sweep reads six, FOUR classes at each ring, and a branch
+    that settles at 3. Every one of those columns moved, and every one moved
+    by GAINING a value -- a truncated sweep here understates a range and
+    never widens one, the branches dropped being ones whose continuations
+    were never walked at all. E4's further clause -- that these coordinates
+    grow WITHOUT BOUND -- is untouched by any of that, and the cap was never
+    the knob for it: completeness settles HOW MANY coordinates a branch ends
+    with at a fixed walk length, while unboundedness is a claim about one
+    coordinate as the walk runs on, whose knob is the walk. It stays open
+    here. The rate is about one unit an era at the depth walked, and h2 is
+    the standing warning that a rider income can simply stop, its clock's own
+    having ceased the moment the parity of its increment locked. What the
+    steady state does hand a derivation, straight off the door arithmetic at
+    the head of this file and visible in S4's doubling column: a clock move
+    takes r = T + 1 - e and so lands the clock at exactly T + 1, where
+    ceil_log2 turns over and the tick becomes 2T -- so the NEXT move's
+    increment is T minus whatever rider units the clock itself took in
+    between (h5 stands at T + 1 at most doublings and at T + 2 at the two
+    where its clock took a rider), and the rider that move summons lands in
+    the class -(T - those units) * gamma. Unboundedness at a class is that
+    sequence returning to it forever, which is arithmetic on the increments
+    and not a walk to be widened.
 
 FE7 A DEGREE-1 CLOCK IS NOT PERMANENT, AND THE COUNTEREXAMPLE IS A RIDER
     TAKING THE CLOCK (PE7's kill fired; observation, one ring). At g2 the
     rational place of class 2 carries the first THREE doublings and carries
     them as a RIDER, not as a core -- the literal thing the handover asked
     about -- and then loses the clock to the rational place of class 1 at
-    step 4, which holds the remaining seven. So the ideal world's permanence
+    step 4, which holds the remaining seven. Over g2's complete branch set the
+    clock changes hands at step 2, 3 or 4 or never, and the step-3 branch is
+    one the truncated sweep did not carry. So the ideal world's permanence
     lemma fails here as stated. What survives is the windowed form, asserted
     at every branch: the clock changes hands inside the TRANSIENT -- at or
     before the last open that summoned a rider, which is measured and not
@@ -287,12 +316,14 @@ FE8 THE CANONICAL CONTINUATION PICKS AN OUTCOME HERE, NOT ONLY AN ORDER
     (observation, six rings, the first 40 steps of each branch, the declined
     move compared by its VEHICLE -- which cells it raises and by how much --
     and not by its delta, since a delta carries the from-exponent and would
-    score a move as lost merely because the state moved under it; measuring
-    it the robust way leaves every figure below unchanged, so the losses are
-    real and not relabelling). A declined minimal type re-priced at the
-    successor of the taken one is still minimal at 6 of 6, 7 of 8, 6 of 6,
-    12 of 12 and 32 of 32 types over the first five rings -- and at only 46
-    of 85 at g2. The ideal world's reordering lemma, which is what entitles a
+    score a move as lost merely because the state moved under it. That makes
+    the vehicle the CONSERVATIVE measure and not merely the tidier one: a
+    delta can only fail to match where a vehicle matches, never the reverse,
+    so the delta count would report strictly MORE types lost and the failure
+    below is understated rather than manufactured). A declined minimal type
+    re-priced at the successor of the taken one is still minimal at 6 of 6,
+    7 of 8, 6 of 6, 12 of 12 and 52 of 52 types over the first five rings --
+    and at only 466 of 719 at g2. The ideal world's reordering lemma, which is what entitles a
     shape to be read off one continuation, does not hold in the element
     world, which is why every column of S2 is reported over ALL branches.
 
@@ -318,20 +349,22 @@ THE DESIGN, in four sections after the control.
     settling step, and the support above exponent 1 with every unit
     attributed.
 
-Run: `python explore_element_limit.py`. RUN RECORD (1534551 checks, ~16 s,
-peak 28.9 MB). S1 control: the group-ring construction reproducing the
+Run: `python explore_element_limit.py`. RUN RECORD (6703681 checks, ~87 s,
+peak 49.4 MB). S1 control: the group-ring construction reproducing the
 engine's own class census at all 12 built degrees of all six rings, with Q of
 degree 0, 2, 2, 2, 2 and 4 and no low-degree input at all below genus 2; the
 light menu equal to the engine's in cost and in every type's multiplicity at
 90 states over six rings, 127 types and 1864 vehicles read, every walk ended
 by the trimmed universe rather than by the walk length; and the planted
 undercut firing at exponent 3 and refusing to fire at exponent 1 at the five
-rings with a place of degree 2. S2: 300 moves per branch, 2 to 12 branches
-per ring with 39 states dropped at the two rings that hit the cap (h5, g2),
-10308 moves read -- ticks of 512 and 1024 with 291 to 295 places
-seated and 9 or 10 doublings, the final clock reading (1, 0) or (2, 0) at
-F_2[x], (1, 1) at h2 and h4, (2, 0) at h3, one of three rational places at h5
-and one of two at g2. S3: the era ledger, opens doubling to 128 per era against rider units
+rings with a place of degree 2. S2: 300 moves per branch, 2 to 120 branches
+per ring against a cap of 192 that NO ring reaches, so every branch set is
+complete and no state is dropped anywhere; 44765 moves read -- ticks of 512
+and 1024 with 291 to 295 places seated and 9 or 10 doublings, the final clock
+reading (1, 0) or (2, 0) at F_2[x], (1, 1) at h2 and h4, (2, 0) at h3, and
+any of the four non-principal rational classes at both h5 and g2. The cap's
+own STAR branch is exercised by lowering it, not by this run: at 12 it bites
+g2 and h5 and five S2 columns read narrower (FE6). S3: the era ledger, opens doubling to 128 per era against rider units
 peaking at 6 in g2's fifth era and running 0, 1 or 2 from the sixth on. S4: the orbit law and the
 windowed permanence asserted at every branch of every ring, the window
 opening by step 9 of 300. Slate PE1-PE9: PE1 to PE5 hit; PE8 and PE9 carry no
@@ -391,7 +424,7 @@ CHECKS = 0
 DEG_CAP = 1200       # the light walker's own universe bound, asserted against
 WALK_N = 300         # moves per light walk, the branched stretch included
 BRANCH_N = 8         # moves over which every tie choice is followed
-BRANCH_CAP = 12      # distinct states carried through the branched stretch
+BRANCH_CAP = 192     # distinct states carried through the branched stretch
 ENGINE_DMAX = 12     # the place universe the engine control builds
 ENGINE_N = 40        # moves of the engine walk the control compares against
 REJOIN_N = 40        # steps over which the declined tie types are re-priced
@@ -1111,12 +1144,22 @@ def main():
                  sorted(x if x is not None else -1 for x in steps),
                  sorted(deep), rejoin[1], rejoin[0]))
     PHASE[0] = "control"
-    print("\n  A STAR marks a ring whose branch sweep hit the cap, %d states"
-          % TRUNC["branch-cap"])
-    print("  being dropped in all, so at those rings every column above is")
-    print("  over the branches CARRIED and not over all of them. And past the")
-    print("  branched stretch every ring is canonical, so no column here is a")
-    print("  statement about all trajectories at any ring.")
+    if TRUNC["branch-cap"]:
+        print("\n  A STAR marks a ring whose branch sweep hit the cap of %d,"
+              % BRANCH_CAP)
+        print("  %d states being dropped in all, so at those rings every"
+              % TRUNC["branch-cap"])
+        print("  column above is over the branches CARRIED and not over all")
+        print("  of them.")
+    else:
+        print("\n  NO RING hit the cap of %d, so every branches column above"
+              % BRANCH_CAP)
+        print("  is the ring's COMPLETE branch set over the stretch, and a")
+        print("  column read over branches is read over all of them. A ring")
+        print("  that ever does hit it is STARRED here instead, its columns")
+        print("  scoped to the branches carried.")
+    print("  Past the branched stretch every ring is canonical, so no column")
+    print("  here is a statement about all TRAJECTORIES at any ring.")
     print("\n  A settling step of -1 means the clock never changed hands. The")
     print("  last column is the ideal world's reordering lemma put to the")
     print("  question here, where nothing proves it: a declined minimal type")
