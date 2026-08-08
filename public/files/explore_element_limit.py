@@ -308,7 +308,12 @@ FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
     where its clock took a rider), and the rider that move summons lands in
     the class -(T - those units) * gamma. Unboundedness at a class is that
     sequence returning to it forever, which is arithmetic on the increments
-    and not a walk to be widened.
+    and not a walk to be widened. ONE HAZARD FOR ANYONE COMPUTING THAT
+    SEQUENCE: a class here is an INDEX into the group ring's Cayley table and
+    the labelling is not the canonical one, so r * gamma is `scale` and the
+    negation is `negc` -- written as "-r*gamma mod h" on the labels it yields
+    classes the walk contradicts (`scale(3, 2)` is 2 at h5, where 3*2 mod 5
+    is 1).
 
 FE7 A DEGREE-1 CLOCK IS NOT PERMANENT, AND THE COUNTEREXAMPLE IS A RIDER
     TAKING THE CLOCK (PE7's kill fired; observation, one ring). At g2 the
