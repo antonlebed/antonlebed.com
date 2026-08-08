@@ -190,6 +190,13 @@ FR1 THE RECURSION IS THE WALK, ERA FOR ERA (rule in range -- six rings, every
     it instead. The two independent things PR1 does test are the door's
     increments -- recomputed here from the doubling COUNT rather than from a
     tick carried along -- and which era's units subtract from which move's.
+    AND THE AGREEMENT IS WORTH WHAT THE WALK COVERED, which is asserted per
+    branch rather than assumed: every branch runs 4 to 9 eras past its own
+    pre-period against cycles of length 1 to 4, so every one CLOSES its
+    cycle at least once and the match is over the stretch the verdict is
+    read off. It is tight where it matters -- g2's shortest branch walks
+    exactly four eras past a pre-period against a cycle of exactly four,
+    which is one full period and not a margin.
 
 FR2 THE SEED IS READ OFF THE DOOR, NOT FITTED (rule in range -- 964 clock
     moves past the window at six rings, none of them taking a core longer
@@ -258,16 +265,16 @@ FR7 THE TWO VERDICTS DO NOT REST ON THE SAME HYPOTHESIS. Both inherit FE2 --
     with no principal place (4, 4, 4, 5 and 7 at the five rings that have
     one) a margin worth printing rather than a formality.
 
-Run: `python explore_rider_recursion.py`. RUN RECORD (2521 checks, ~87 s, peak
-48.9 MB under memwatch, the walk being 300 moves on each of 150 branches over
+Run: `python explore_rider_recursion.py`. RUN RECORD (2671 checks, ~87 s, peak
+48.5 MB under memwatch, the walk being 300 moves on each of 150 branches over
 six rings and the recursion itself free). S1 control: every one of the 964
 post-window clock moves taking exactly the door's increment; the label-
 arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
 -- and coinciding with the group version at h2 and h4, where the detector is
 therefore vacuous and says so; h2's era ledger reproduced including the era
 whose second unit comes from an open. S2: 964 eras, 0 mismatched. S3: the
-cycles exhibited, both of PR3's bounds asserted per branch and the tick's own
-doubling asserted at every seed, pre-period 0 or 1 and length 1, 2 or 4, with
+cycles exhibited, both of PR3's bounds asserted per branch, the tick's own
+doubling asserted at every seed and every branch asserted to close its cycle, pre-period 0 or 1 and length 1, 2 or 4, with
 4 gamma at h5 and 4 at g2. S4: every branch's deep places first asserted to lie in
 DISTINCT cells -- the verdict being per cell and the list per place -- and
 then all 150 branches' sorted into unbounded, bounded and stranded with
@@ -590,6 +597,7 @@ def main():
           "the cycle  cells it summons")
     verdicts, distinct = {}, {}
     for L in ladder:
+        eras_seen = []
         for bi, s in enumerate(shapes[L.name]):
             _st0, last = EL.settling(s)
             cell, gam = last[0], last[0][1]
@@ -631,6 +639,18 @@ def main():
                "from a single representative against a seed tick of %d, so "
                "T' = 2T is not guaranteed past the walk"
                % (L.name, wmax, T0))
+            # AND THE WALK MUST HAVE SEEN THE CYCLE. Every verdict below is
+            # the CYCLE's, and PR1's agreement is worth what the walk
+            # covered: a branch whose post-window eras run out inside the
+            # pre-period would have the recursion matching on exactly the
+            # stretch that decides nothing, with the deciding stretch
+            # unmeasured. Assert the walk runs a full period past the
+            # pre-period, not merely into it.
+            ok(len(past) >= npre + nc, "%s: %d eras past the window against "
+               "a pre-period of %d and a cycle of %d, so the walk never "
+               "closes the cycle the verdict is read off"
+               % (L.name, len(past), npre, nc))
+            eras_seen.append(len(past) - npre)
             classes = tuple(sorted(set(s.GR.negc[s.GR.scale(gam, r)]
                                        for _T, r in cyc)))
             verdicts[(L.name, bi)] = (cell, npre, nc, cyc_cells, pre_cells)
@@ -642,6 +662,10 @@ def main():
             print("  %-8s %-3d %-6d %-9d %-11d %-6d %-21s %s"
                   % (L.name, shapes[L.name][0].h, gam, distinct[L.name][row],
                      npre, nc, list(classes), list(cells)))
+        print("           eras walked past the pre-period, per branch: %s -- "
+              "the verdict is the CYCLE's, so a branch that never closed one "
+              "would have PR1 agreeing only where nothing is decided"
+              % sorted(set(eras_seen)))
 
     section("S4  THE VERDICT")
     print("  PR4, PR5, PR6. Every deep place of every branch sorted by what")
