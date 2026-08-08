@@ -237,10 +237,11 @@ FS8 THE TWO RINGS DIFFER BY WHERE THE TRANSIENT LEAVES THE INCREMENT
     r = 1 or 2, residues its own cycle also carries, so 8 of its 20 branches
     take a pre-period and NONE of them escapes -- nothing outside the cycle
     to stop. The genus-2 ring seeds at r = 5, 6 or 7 on 89 of its 120
-    branches, residues its cycle never returns to, and those are exactly the
-    branches whose walk prints a coordinate that deepens past the window and
-    stops. So "why only there" is answered: not the class number, not the
-    group, not a subgroup -- the seed.
+    branches, residues its cycle never returns to, which is what a stopping
+    coordinate needs -- and 77 of those 89 walks print one, the other 12
+    being FS9's over-report and not a second mechanism. So "why only there"
+    is answered: not the class number, not the group, not a subgroup -- the
+    seed.
 
 FS9 THE CLASS LEVEL OVER-REPORTS, AND THE BRIDGE IS A SET IDENTITY (rule in
     range, all 150 branches). A class the cycle never summons again is not the
