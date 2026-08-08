@@ -242,14 +242,14 @@ FE5 THE DEGREE-2 CLOCK SURVIVES THE ELEMENT WORLD -- and the prediction that
     proof of it, though void as an argument here, was not wrong as a verdict.
 
 FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
-    steady state -- after the last non-principal open the only move that is
-    not an open is the clock's, so the only cells a rider can reach are those
-    of the minimal representatives the clock's class summons; and a rule in
-    range, asserted at every branch of every complete branch set -- the cap no
-    longer bites, so "carried" and "all" coincide -- together with the clock's having
+    steady state -- after the last non-principal open the only move that is not
+    an open is the clock's, so the only cells a rider can reach are those of
+    the minimal representatives the clock's class summons; and a rule in range,
+    asserted at every branch of every complete branch set -- the cap no longer
+    bites, so "carried" and "all" coincide -- together with the clock's having
     changed hands INSIDE the transient or not at all -- the premise that no
-    move but the clock's deepens anything is not assumed either, it is what
-    the same assertion reads off `grew`, whose every entry is a RIDER unit).
+    move but the clock's deepens anything is not assumed either, it is what the
+    same assertion reads off `grew`, whose every entry is a RIDER unit).
     Write gamma for the
     clock's class. Every place other than the clock that deepens after the
     window lies in the orbit {minrep(-m*gamma)}, and gains its units as a
@@ -291,13 +291,14 @@ FE6 THE DEEP COORDINATES ARE THE CLOCK AND ITS CLASS ORBIT (proved for the
     cap-12 drops come to 8 at h5 and 31 at g2, which is the 39 the cap-12 rig
     reported, so the reproduction is confirmed from a second direction. The
     guarantee is a fact about THIS truncation and not about truncation in
-    general; a sweep sampling its branches some other way would have none. E4's further clause -- that these coordinates
-    grow WITHOUT BOUND -- is untouched by any of that, and the cap was never
-    the knob for it: completeness settles HOW MANY coordinates a branch ends
-    with at a fixed walk length, while unboundedness is a claim about one
-    coordinate as the walk runs on, whose knob is the walk. It stays open
-    here. The rate is about one unit an era at the depth walked, and h2 is
-    the standing warning that a rider income can simply stop, its clock's own
+    general; a sweep sampling its branches some other way would have none. E4's
+    further clause -- that these coordinates grow WITHOUT BOUND -- is untouched
+    by any of that, and the cap was never the knob for it: completeness settles
+    HOW MANY coordinates a branch ends with at a fixed walk length, while
+    unboundedness is a claim about one coordinate as the walk runs on, whose
+    knob is the walk. It stays open here. The rate is about one unit an era at
+    the depth walked, and h2 is the standing warning that a rider income can
+    simply stop, its clock's own
     having ceased the moment the parity of its increment locked. What the
     steady state does hand a derivation, straight off the door arithmetic at
     the head of this file and visible in S4's doubling column: a clock move
@@ -337,11 +338,12 @@ FE8 THE CANONICAL CONTINUATION PICKS AN OUTCOME HERE, NOT ONLY AN ORDER
     delta can only fail to match where a vehicle matches, never the reverse,
     so the delta count would report strictly MORE types lost and the failure
     below is understated rather than manufactured). A declined minimal type
-    re-priced at the successor of the taken one is still minimal at 6 of 6,
-    7 of 8, 6 of 6, 12 of 12 and 52 of 52 types over the first five rings --
-    and at only 466 of 719 at g2. The ideal world's reordering lemma, which is what entitles a
-    shape to be read off one continuation, does not hold in the element
-    world, which is why every column of S2 is reported over ALL branches.
+    re-priced at the successor of the taken one is still minimal at 6 of 6, 7
+    of 8, 6 of 6, 12 of 12 and 52 of 52 types over the first five rings -- and
+    at only 466 of 719 at g2. The ideal world's reordering lemma, which is what
+    entitles a shape to be read off one continuation, does not hold in the
+    element world, which is why every column of S2 is reported over ALL
+    branches.
 
 THE DESIGN: a control in five parts, then three sections.
 
@@ -374,35 +376,34 @@ THE DESIGN: a control in five parts, then three sections.
     settling step, and the support above exponent 1 with every unit
     attributed.
 
-Run: `python explore_element_limit.py`. RUN RECORD (6715133 checks, ~88 s,
-peak 49.9 MB, the highest of three runs). S1 control: the group-ring construction reproducing the
-engine's own class census at all 12 built degrees of all six rings, with Q of
-degree 0, 2, 2, 2, 2 and 4 and no low-degree input at all below genus 2; the
-light menu equal to the engine's in cost and in every type's multiplicity at
-90 states over six rings, 127 types and 1864 vehicles read, every walk ended
-by the trimmed universe rather than by the walk length; and the planted
-undercut firing at exponent 3 and refusing to fire at exponent 1 at the five
-rings with a place of degree 2. S2: 300 moves per branch, 2 to 120 branches
-per ring against a cap of 192 that NO ring reaches, so every branch set is
-complete and no state is dropped anywhere; 44765 moves read -- ticks of 512
-and 1024 with 291 to 295 places seated and 9 or 10 doublings, the final clock
-reading (1, 0) or (2, 0) at F_2[x], (1, 1) at h2 and h4, (2, 0) at h3, and a
-rational place of class 1, 2, 3 or 4 at both h5 and g2 -- which at h5 is every
-non-principal class there is and at g2 is four of fourteen. The cap's
-own STAR branch is exercised by lowering it, not by this run: at 12 it bites
-g2 and h5 and five S2 columns read narrower (FE6). S1(e): the sweep re-run at
-caps 12, 24 and 96 at all six rings, every result a PREFIX of the live one,
-the cap-12 drops reading 8 at h5 and 31 at g2 -- the 39 the cap-12 rig
-reported. S3: the era ledger, opens doubling to 128 per era against rider units
-peaking at 6 in g2's fifth era and running 0, 1 or 2 from the sixth on. S4: the orbit law and the
-windowed permanence asserted at every branch of every ring, the window
+Run: `python explore_element_limit.py`. RUN RECORD (6715133 checks, ~88 s, peak
+49.9 MB, the highest of three runs). S1 control: the group-ring construction
+reproducing the engine's own class census at all 12 built degrees of all six
+rings, with Q of degree 0, 2, 2, 2, 2 and 4 and no low-degree input at all
+below genus 2; the light menu equal to the engine's in cost and in every type's
+multiplicity at 90 states over six rings, 127 types and 1864 vehicles read,
+every walk ended by the trimmed universe rather than by the walk length; and
+the planted undercut firing at exponent 3 and refusing to fire at exponent 1 at
+the five rings with a place of degree 2. S2: 300 moves per branch, 2 to 120
+branches per ring against a cap of 192 that NO ring reaches, so every branch
+set is complete and no state is dropped anywhere; 44765 moves read -- ticks of
+512 and 1024 with 291 to 295 places seated and 9 or 10 doublings, the final
+clock reading (1, 0) or (2, 0) at F_2[x], (1, 1) at h2 and h4, (2, 0) at h3,
+and a rational place of class 1, 2, 3 or 4 at both h5 and g2 -- which at h5 is
+every non-principal class there is and at g2 is four of fourteen. The cap's own
+STAR branch is exercised by lowering it, not by this run: at 12 it bites g2 and
+h5 and five S2 columns read narrower (FE6). S1(e): the sweep re-run at caps 12,
+24 and 96 at all six rings, every result a PREFIX of the live one, the cap-12
+drops reading 8 at h5 and 31 at g2 -- the 39 the cap-12 rig reported. S3: the
+era ledger, opens doubling to 128 per era against rider units peaking at 6 in
+g2's fifth era and running 0, 1 or 2 from the sixth on. S4: the orbit law and
+the windowed permanence asserted at every branch of every ring, the window
 opening by step 9 of 300. Slate PE1-PE9: PE1 to PE5 hit; PE8 and PE9 carry no
 kill and simply printed; PE6's kill missed for want of its antecedent (FE5);
-PE7's kill FIRED (FE7). REFUTED at the run: the hand-attack's headline that the element clock
-ends at degree 1 at every ring (E3), and the handover's premise that the
-opened cores' classes equidistribute (FE2). LEFT UNSETTLED: E4's clause that
-the rider-fed coordinates grow without bound (FE6).
-
+PE7's kill FIRED (FE7). REFUTED at the run: the hand-attack's headline that the
+element clock ends at degree 1 at every ring (E3), and the handover's premise
+that the opened cores' classes equidistribute (FE2). LEFT UNSETTLED: E4's
+clause that the rider-fed coordinates grow without bound (FE6).
 THE HARNESS, forced to fail rather than trusted -- each of the following was
 MADE to fail in a scratch run, not argued. A cell count off by one is caught
 at degree 3 of the first ring; a door off by one makes the light menu
