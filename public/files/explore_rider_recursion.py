@@ -226,15 +226,15 @@ FR6 A THIRD KIND OF COORDINATE, AND ONLY g2 HAS IT (observation, one ring,
 
 FR7 THE TWO VERDICTS DO NOT REST ON THE SAME HYPOTHESIS. Both inherit FE2 --
     no fresh open summons a rider again, read off cell counts exact to degree
-    1200 against a walk that reaches degree 293 -- but only one of them can
+    1200 against walks that reach degrees 291 to 293 -- but only one of them can
     be hurt by it. A late rider ADDS units, so it cannot stop an unbounded
     coordinate; it could restart a bounded one. FR4's YES is therefore
     firmer than FR6's stopping, and the same asymmetry makes the last degree
     with no principal place (4, 4, 4, 5 and 7 at the five rings that have
     one) a margin worth printing rather than a formality.
 
-Run: `python explore_rider_recursion.py`. RUN RECORD (1844 checks, ~87 s, peak
-48.2 MB under memwatch, the walk being 300 moves on each of 150 branches over
+Run: `python explore_rider_recursion.py`. RUN RECORD (1994 checks, ~87 s, peak
+48.5 MB under memwatch, the walk being 300 moves on each of 150 branches over
 six rings and the recursion itself free). S1 control: every one of the 964
 post-window clock moves taking exactly the door's increment; the label-
 arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
@@ -242,8 +242,10 @@ arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
 therefore vacuous and says so; h2's era ledger reproduced including the era
 whose second unit comes from an open. S2: 964 eras, 0 mismatched. S3: the
 cycles exhibited, pre-period 0 or 1 and length 1, 2 or 4, with 4 gamma at h5
-and 4 at g2. S4: the deep places of all 150 branches sorted into unbounded,
-bounded and stranded with nothing left over. Slate PR1-PR6: all six hit; no
+and 4 at g2. S4: every branch's deep places first asserted to lie in
+DISTINCT cells -- the verdict being per cell and the list per place -- and
+then all 150 branches' sorted into unbounded, bounded and stranded with
+nothing left over. Slate PR1-PR6: all six hit; no
 kill fired. SUPERSEDED at the run: the reading that g2's steady state carries
 FOUR rider cells and would predict a uniform five deep places -- that count
 was taken over a WINDOW of the sequence rather than over its cycle, and the
@@ -615,6 +617,17 @@ def main():
                "recursion does not summon them"
                % (L.name, bi, sorted(after - set(cyc_cells) - set(pre_cells))))
             places = EL.deep_places(s)
+            # THE SORT IS BY CELL AND THE THING SORTED IS A PLACE, so two
+            # deep places in one cell would inherit one verdict between them
+            # and the three counts below would not be counting what they
+            # say. The walker asserts singleton cells only for the RIDER
+            # TARGETS; the clock's cell and any stranded one are outside
+            # that guarantee, so assert it here over exactly the places
+            # being sorted.
+            ok(len(set((d, c) for d, c, _e, _co, _ri in places))
+               == len(places), "%s branch %d: two deep places share a cell, "
+               "so the verdict below is per-cell over a per-place list: %s"
+               % (L.name, bi, places))
             deep.add(len(places))
             u = b = t = 0
             for d, c, _e, _co, _ri in places:
