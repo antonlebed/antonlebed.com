@@ -214,7 +214,15 @@ FR3 THE STATE CYCLES ALMOST IMMEDIATELY (rule in range). The pre-period is 0
     plus one carrying the whole clause at h5 and g2, whose h are 5 and 15
     and whose valuation is therefore 0 against branches that do take a
     pre-period of 1. The cycle is exhibited, so the dichotomy stops being a
-    dichotomy and becomes a verdict.
+    dichotomy and becomes a verdict. (Both bounds are RANGE facts and neither
+    is a law: explore_increment_group.py sweeps the same recursion over
+    arbitrary groups and reaches cycles at 9x the tick's period and
+    pre-periods of 83. What that sweep proves instead is the reverse
+    divisibility -- the tick's own period divides every cycle. It also shows a
+    LENGTH here belongs to the modulus THIS rig carries and not to the
+    recursion, mod h at the gamma = 0 ring still carrying the tick; the CELLS
+    each part summons, which is what every verdict below is read off, are the
+    same at every branch either way, so the verdicts stand unchanged.)
 
 FR4 THE ANSWER: YES AT h5 AND g2, AND EXACTLY THREE COORDINATES AT EACH
     (proved for the steady state, and a rule in range at every branch of
