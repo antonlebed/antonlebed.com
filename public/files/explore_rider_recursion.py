@@ -248,8 +248,8 @@ FR7 THE TWO VERDICTS DO NOT REST ON THE SAME HYPOTHESIS. Both inherit FE2 --
     with no principal place (4, 4, 4, 5 and 7 at the five rings that have
     one) a margin worth printing rather than a formality.
 
-Run: `python explore_rider_recursion.py`. RUN RECORD (2444 checks, ~87 s, peak
-48.5 MB under memwatch, the walk being 300 moves on each of 150 branches over
+Run: `python explore_rider_recursion.py`. RUN RECORD (2521 checks, ~87 s, peak
+48.9 MB under memwatch, the walk being 300 moves on each of 150 branches over
 six rings and the recursion itself free). S1 control: every one of the 964
 post-window clock moves taking exactly the door's increment; the label-
 arithmetic recursion run alongside and DISAGREEING with the walk at h5 and g2
@@ -647,8 +647,9 @@ def main():
         for bi, s in enumerate(shapes[L.name]):
             _st0, last = EL.settling(s)
             cell, gam = last[0], last[0][1]
-            _c, _npre, _nc, cyc_cells, pre_cells = verdicts[(L.name, bi)]
+            _c, npre, _nc, cyc_cells, pre_cells = verdicts[(L.name, bi)]
             win = window_of(s)
+            past = [r for r in clock_moves(s)[0] if r[0] > win]
             after = set()
             for step, c2, _s2, kind, _n, _pre in s.units:
                 if step > win and kind == "rider":
@@ -700,10 +701,23 @@ def main():
                 if (d, c) in pre_cells:
                     lastera = max(st for st, c2, _s2, k, _n, _p in s.units
                                   if c2 == (d, c) and k == "rider")
-                    lastclk = max(st for st, _r, _p, _rd in clock_moves(s)[0])
-                    ok(lastera < lastclk, "%s: the pre-period cell %s took a "
-                       "unit at step %d, at or after the walk's last clock "
-                       "move at %d" % (L.name, (d, c), lastera, lastclk))
+                    # WHERE IT MUST STOP IS THE PRE-PERIOD'S END, not the
+                    # walk's. "Its last unit came before the walk's last
+                    # clock move" would pass for a coordinate still being
+                    # fed every second era, which is the reading this
+                    # claim exists to exclude; the recursion says the last
+                    # unit lands at or before the pre-period's own last
+                    # move, and there are enough walked eras past that for
+                    # the difference to bite.
+                    ok(npre > 0, "%s: cell %s is filed as pre-period-only "
+                       "at a branch whose pre-period is empty"
+                       % (L.name, (d, c)))
+                    ok(lastera <= past[npre - 1][0],
+                       "%s: the pre-period cell %s took a unit at step %d, "
+                       "past the pre-period's last clock move at step %d of "
+                       "%d walked past the window"
+                       % (L.name, (d, c), lastera, past[npre - 1][0],
+                          len(past)))
                     stopped.add(((d, c), e))
         print("  %-8s %-12s %-10s %-8s %-9s %s"
               % (L.name, sorted(deep), sorted(unb), sorted(bnd),
