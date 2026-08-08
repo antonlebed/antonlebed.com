@@ -443,7 +443,7 @@ def s3_reduction():
         flag = "" if a == b else "   DISAGREE -- K3"
         if a != b:
             bad += 1
-        if bad or d in (-1, -6, 2, 3, 7, 15):
+        if a != b or d in (-1, -6, 2, 3, 7, 15):
             print("    d = %4d  min-over-units %s  column door %s%s"
                   % (d, a, b, flag))
     print("    %d ramified fields to |d| <= %d, %d disagreements"
@@ -524,12 +524,31 @@ if __name__ == "__main__":
     print("=" * 70)
     print("THE RAMIFIED CONSUMER'S DOOR -- derived from the unit group")
     print("=" * 70)
-    s1_control()
+    vbad, colok = s1_control()
     print()
-    s2_identity()
+    idbad = s2_identity()
     print()
-    s3_reduction()
+    redbad = s3_reduction()
     print()
-    s4_closed_form()
+    offres, outside = s4_closed_form()
     print()
-    s5_mechanism()
+    sbad, jlow = s5_mechanism()
+
+    # One line naming which kill-shape fired, so a reader of the output
+    # alone -- not of this file -- knows whether any verdict above stands.
+    print()
+    fired = []
+    if vbad or not colok:
+        fired.append("K1 (control)")
+    if idbad:
+        fired.append("K2 (identity)")
+    if redbad:
+        fired.append("K3 (reduction)")
+    if offres or outside:
+        fired.append("K4 (closed form)")
+    if jlow:
+        fired.append("K5 (the minimum's seat)")
+    if sbad:
+        fired.append("the s-formula")
+    print("VERDICT: " + ("every prediction held; no kill-shape fired"
+                         if not fired else "FIRED -- " + ", ".join(fired)))
