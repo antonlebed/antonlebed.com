@@ -262,7 +262,12 @@ H1  THE TWO-RANGE VERDICT IS NOT THE WINDOW'S VERDICT AT THIS CELL,
     holders, whose declines run LONGER than the movers'. So the
     re-read stays a sweep over EVERY bounded cell and cannot be
     narrowed to the columns that look like this one.
-H2  THE VALUE LAW IS A GAP INTERVAL WITH A ROOF AT 2B + 1, AND THE
+H2  REPRODUCED UNDER A SECOND CLASSIFIER: all 92 cells at zero misses
+    under the run-length rule, which reads one table at the data's own
+    depth and takes no range set at all (explore_cascade_rule.py H2).
+    Both sharp clauses survive intact. The law is not an artifact of
+    the instrument that found it.
+    THE VALUE LAW IS A GAP INTERVAL WITH A ROOF AT 2B + 1, AND THE
     ROOF IS THE ABSORPTION LEMMA'S OWN BOUNDARY (rule at scanned
     scope; Q2, Q6's ratio reading, and Q10 all die, ROOF-DOUBLE
     lands 4 of 4). At the half-period stride r = 3 of
