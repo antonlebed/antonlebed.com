@@ -7,7 +7,12 @@ b-adic, leading positional, continued fraction (the records live in
 explore_reading_geometry.py and the explore_cf_*.py scripts) — and
 is conjectured general: a window's multiplication-like maps are
 readable at bounded delay iff the map is a unit of the window's
-native structure. This script builds a FOURTH window, neither
+native structure. (SETTLED SINCE, 2026-08: the general form is not
+unit-ness but the LIPSCHITZ condition on the completion, unit-ness
+being what it comes to at a window with a shift action — every window
+named above has one. What this script measures is unaffected;
+explore_nonquadratic_window.py and explore_continuity_converse.py
+carry the correction.) This script builds a FOURTH window, neither
 positional nor continued-fraction, and measures the gate there.
 
 THE WINDOW. The trailing Zeckendorf window on Z. Digits by greedy

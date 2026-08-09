@@ -203,7 +203,14 @@ trichotomy's ring cell stays exclusive to non-unit rational bases
 (b-adic), the discrete cell to the unit positional base (Bergman);
 the whole quadratic Ostrowski family sits in the odometer cell.
 And the gate tracks the unit group of the order at the scope
-tested: the readable multiplication-like maps are the shift action
+tested (SETTLED SINCE, 2026-08: unit-ness is a periodicity artifact
+and the roof carries no unit information at all — the gate is the
+LIPSCHITZ condition on the completion, which is what these windows'
+unit-ness comes to where a shift action exists. The readings below
+stand at their own scope, every window here being quadratic and so
+eventually periodic; explore_nonquadratic_window.py takes the gate off
+periodicity and explore_continuity_converse.py fixes its strength):
+the readable multiplication-like maps are the shift action
 of the fundamental unit (phi, 1+sqrt(2), (3+sqrt(13))/2,
 2+sqrt(3) — each the unit of its window's order) and the odometer
 n+1, while every rational integer m >= 2 — a unit in NONE of these
