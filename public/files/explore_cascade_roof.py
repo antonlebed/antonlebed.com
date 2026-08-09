@@ -27,6 +27,12 @@ one-way, so bounded cells are the suspect ones and gated cells are not.
 Nine cells are therefore owed a third range before any criterion is
 scored against them, and the same debt is owed by the two-class family
 whose 84 cells explore_cascade_span.py F6 reports at two ranges.
+(Settled later, explore_cascade_second.py H1: the one-way direction is
+the range CEILING, which is the direction this rig deepens along and
+the one its debt is paid in. Lowering the range FLOOR gates by
+construction, so every BOUNDED verdict scored below -- the cubic's
+five, e - 2's three, the two-class family's -- is an upper-bound
+reading at a fixed floor. No verdict printed here is superseded.)
 
 DO NOT IMPORT THE CONSTANT. The threshold 30 was calibrated on ONE
 family at P = 3 and nothing measured says it is universal rather than
