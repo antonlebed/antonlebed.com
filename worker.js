@@ -83,6 +83,13 @@ export default {
       '/learning/ceilings': 'ceilings',
       '/learning/uncertainty': 'uncertainty',
       '/claims': 'claims',
+      '/claims/object': 'claims-object',
+      '/claims/growth': 'claims-growth',
+      '/claims/computation': 'claims-computation',
+      '/claims/observatory': 'claims-observatory',
+      '/claims/walls': 'claims-walls',
+      '/claims/measure': 'claims-measure',
+      '/claims/learning': 'claims-learning',
     };
     const page = PAGES[url.pathname.replace(/(.)\/$/, '$1')];
     if (!page) return new Response(null, {status: 404});
