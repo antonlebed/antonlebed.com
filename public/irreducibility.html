@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Irreducibility — how much of a genesis is beyond recovery</title>
+<meta name="description" content="Computational irreducibility made exact: the per-move route-entropy rate's critical clock, one at every finite place and carried across the tested fields, the four layers of the deep clock, and the mode staircase quantizing the genesis transition on a breathing column.">
+<link rel="canonical" href="https://antonlebed.com/growth/irreducibility">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth' class='up'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/measure'>Measure</a> <a href='/learning'>Learning</a></nav><nav class='sub' aria-label='Growth'><a href='/growth'>The growth laws</a> <a href='/growth/limit'>The image and limit</a> <a href='/growth/schedule'>The pricing schedule</a> <a href='/growth/clock'>The clock</a> <a href='/growth/rings'>Which rings walk</a> <a href='/growth/dial'>The clock dial</a> <a href='/growth/inside'>The inside view</a> <a href='/growth/irreducibility' aria-current='page'>Irreducibility</a> <a href='/growth/thermal'>Thermal and density</a> <a href='/growth/constants'>Constants</a></nav></header>
+<main>
+<h1>Irreducibility</h1>
+<p class="lede">How much of a grown world's genesis is beyond recovery
+from its endpoint — an exact quantity here, with a critical
+temperature: one clock at every finite place.</p>
+
+<p>The worlds are grown by a <b>growth law</b>: a structural demand
+plus a greedy move, extend the modulus by the least admissible
+<i>m</i> ≥ 2, the argmin softened into
+<a href="/growth/thermal">thermal selection</a> — admissible moves
+picked with probability proportional to <i>m</i><sup>−<i>β</i></sup>
+at temperature <i>β</i> &gt; 1. Each demand realizes one of the three
+<a href="/growth#three-fates">fates</a>; the two on stage here:
+<b>breadth</b> (independence) seats every prime, and <b>depth</b> (the
+period <i>λ</i> must grow) collapses onto one prime's <b>column</b> —
+the state a power of that prime forever. Boltzmann numerators cancel between histories
+(complete multiplicativity), so the posterior over the routes a dated
+endpoint could have taken is exact, and all route information lives
+in the <b>normalizers</b> — the thermal mass of what each
+intermediate world could have done otherwise. What such a posterior
+retains of the generator is the ledger of
+<a href="/growth/inside">the inside view</a>; this page reads what it
+loses of the route — the irrecoverable share of a genesis — as a
+function of temperature, and finds it organized by a spectrum of
+critical points, one clock at every finite place.</p>
+
+<article class="claim" id="clock-spectrum">
+  <div class="claim-head"><span class="claim-name">The clock
+  spectrum</span> <span class="tier">observation</span></div>
+  <p>How much of a genesis is beyond recovery from its endpoint is an
+  exact quantity here — computational irreducibility with closed-form
+  route posteriors — and it has a critical point the thermodynamics
+  cannot see. The per-move route-entropy rate is analytic in β, a
+  smooth crossover peaking at log 2 — at a breathless column,
+  ramification 1; with breathing the peak sits strictly below — at
+  the critical clock
+  <i>β</i><sub>col</sub> (the root of the depth column's thermal
+  normalizer <i>Z</i><sub>col</sub>(<i>β</i>) = 1; ≈ 1.496 for the
+  3-column). What reorganizes there is the genesis <em>mode</em>: the
+  unbounded-depth tail's occupation jumps 0 → 1, and the depth to
+  which the origin stays uncertain — a correlation length — climbs as
+  Θ(ln 1/(<i>β</i>−<i>β</i><sub>col</sub>)), walking the column's
+  <b>transparent</b> prime family — those whose arrival leaves
+  <i>λ</i> where it stood — one entry at a time (the clock gap is
+  governed by the next unincluded family prime: measured slope −1.499
+  against −<i>β</i><sub>col</sub> = −1.496, R² = 0.99997), so it
+  diverges exactly iff that family is infinite. The structural law:
+  an interior critical point exists iff the fate's normalizer keeps a
+  nonzero unbounded-depth limit — depth's does; breadth's clocks pile
+  up only at the ζ pole. Every finite place carries its own clock:
+  <i>β</i><sub>col</sub> at the locked column's prime q is rooted in that column's
+  transparent set, which is q's residue-and-power data (2 transparent
+  for every q, 5 iff q ≡ 1 mod 4, a prime uniquely blind to its own
+  column), so the finite places of <b>Q</b> map into the interval
+  (1, <i>β</i>*), <i>β</i>* = 1.7286 the root of ζ(β) = 2, richer
+  transparent sets pulling the clock lower. The top is the 2-adic
+  seat: the q = 2 clock, 1.6045, cancels its own powers and sees only
+  the Fermat primes — the poorest transparent family, the highest
+  clock — so the
+  divergence question at the seat, its transparent family being the
+  Fermat primes, is the Fermat-prime question.
+  The reading survives a change of field: over
+  <b>F</b><sub>2</sub>[<i>x</i>] the clock equation clears to a
+  polynomial in 2<sup>−<i>β</i></sup> (the degree-1 clock solves
+  2<sup>−<i>β</i></sup> = 1 − 1/√2 exactly; same-degree places share
+  a clock), over <b>Z</b>[√−5] the clock splits by the class-group
+  characters (the 3-column's element clock 1.3527 below its ideal
+  1.5492, the pair's ratio reading h near the pole), and in every
+  tested field the highest clock sits at the place whose residue
+  field has two elements — Ostrowski's census of the places, read
+  thermodynamically.</p>
+  <p class="scope"><b>Scope.</b> The rate's analyticity and the
+  structural law are exact statements about the closed-form
+  normalizers; the spectrum values, orderings, and the seat law are
+  computed across the tested families; the correlation length's
+  divergence is pinned, column by column, to the finiteness of the
+  column's transparent prime family (the walk is measured at the
+  3-column; the per-column pinning is read from the ordering of each
+  column's mode steps) — settled where the family is provably finite, open at
+  the 2-adic seat and the 3-column.</p>
+  <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_irreducibility_order.py">
+  <code>explore_irreducibility_order.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_irreducibility_places.py"><code>explore_irreducibility_places.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_irreducibility_crossfield.py"><code>explore_irreducibility_crossfield.py</code></a></p>
+</article>
+
+<article class="claim" id="clock-factorization">
+  <div class="claim-head"><span class="claim-name">The clock
+  factorization</span> <span class="tier">rule</span></div>
+  <p>A column at a place of any global field has a
+  <b>ramification index</b> <i>e</i>, the number of times the place's
+  own uniformizer divides the rational prime <i>p</i> beneath it, and
+  past a finite transient its period <i>λ</i> rises once every
+  <i>e</i> deepenings — a <b>tick</b>. Between ticks the outside
+  entrants of the transparent set stand still while the column's own
+  contribution to it shrinks, so the clock is not one number: it
+  cycles through exactly <i>e</i> of them, and the
+  <b>deep clock</b> is the root of that same normalizer read at the
+  states sitting immediately before a tick. Four layers, and each
+  reads a different datum of the field. THE VALUE reads the limit
+  transparent set alone — which primes eventually arrive
+  transparently, its <b>entrants</b>, and at what exponent, fixed by
+  the field's splitting law and the period tables of its ramified
+  places — and reads
+  nothing of the finite-time detail beneath it, because an entrant's
+  exponent cap is divisibility-monotone in <i>λ</i> and <i>λ</i> never
+  falls, so the limit set is path-free. Two witnesses, one on each side:
+  <b>Q</b>(√3) and <b>Q</b>(<i>ζ</i><sub>3</sub>) carry columns with
+  the same local data (<i>p</i>, <i>e</i>, <i>f</i>) = (3, 2, 1) —
+  prime, ramification, residue degree — and opposite
+  fine structure, yet their clocks 1.4475 and 1.3336 are separated by
+  the transparent set alone: the first admits the single entrant 2 and
+  nothing else ever, the second a long family of split primes, and
+  transplanting either field's unit
+  chain onto the other moves neither root. <b>Q</b>(√2) and
+  <b>Q</b>(√−2) run the other way, sharing one chain and still
+  landing at 1.4861 against 1.6318, their transparent sets parting on
+  whether 3 splits. Same
+  chain, different clock; same set, same clock. What that pair
+  witnesses is the invariance and not a direction: two fields also
+  carry two zeta functions, so the ordering ACROSS fields is not the
+  within-<b>Q</b> rule above that richer sets sit lower. THE ACCUMULATION SET
+  reads <i>e</i>: the <i>e</i> values are the limit value times the
+  partial sums of 1 + <i>p</i><sup>−<i>β</i></sup> +
+  <i>p</i><sup>−2<i>β</i></sup> + ⋯, one value per term and
+  <i>e</i> terms, the deep clock's being the bare 1. Four of
+  them over <b>Q</b>(<i>ζ</i><sub>8</sub>) and one over <b>Q</b>
+  itself, whose 2-column has <i>e</i> = 1 and does not breathe at all.
+  THE PHASE reads torsion — whether the field already contains a
+  <i>p</i>-th root of unity flips which deepenings the pre-tick states
+  fall on. And the finite-time TRANSIENT is the only layer that reads
+  the fine structure of the <i>p</i>-power map on the field's units —
+  the arrival-graded object the
+  <a href="/observatory">Observatory</a> measures, visible in the
+  normalizer at finite depth wherever a field carries one, and
+  nowhere at the limit.</p>
+  <p class="scope"><b>Scope.</b> The blindness is proved from the
+  two limit facts stated, given that a state's transparent moves are
+  the divisors of one cofactor, and inherits the tier of the local
+  period tables it is computed over; the layer readings are a rule in
+  range over eight columns — <b>Q</b>, <b>Q</b>(√2), <b>Q</b>(√−2),
+  <b>Q</b>(<i>i</i>), <b>Q</b>(√−5), <b>Q</b>(<i>ζ</i><sub>3</sub>),
+  <b>Q</b>(<i>ζ</i><sub>8</sub>), <b>Q</b>(√3) — each deep clock
+  computed three ways, through the field's true unit chain, through a
+  counterfactual chain carrying no fine structure, and at the limit
+  set, agreeing to 10<sup>−9</sup>; convergence is exact rather than
+  asymptotic, the pre-tick normalizer equalling its limit past the
+  last entrant threshold. Residue degree above 1 and the non-abelian
+  cubics are outside the census.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_clock_factorization.py">
+  <code>explore_clock_factorization.py</code></a></p>
+</article>
+
+<article class="claim" id="mode-staircase">
+  <div class="claim-head"><span class="claim-name">The mode
+  staircase</span> <span class="tier">rule</span></div>
+  <p>On a breathing column — ramification <i>e</i> ≥ 2 — the genesis
+  mode does not jump once: it quantizes into <i>e</i> geometric steps,
+  one at each of the column's <i>e</i> clocks. The mode's occupation
+  climbs 0, 1/<i>e</i>, …, 1, beginning at the <b>bracket clock</b> —
+  the one rooted at the just-ticked states, the breath's other end
+  from the deep clock — and completing at the deep clock: the pre-tick
+  states join the mode last. In a mixed-characteristic window the
+  depths that have joined between consecutive clocks form a residue
+  stripe mod <i>e</i>, and the
+  stripe's phase — which residues are in — reads the field's unit
+  chain:
+  <b>Q</b>(√3) and <b>Q</b>(<i>ζ</i><sub>3</sub>), the twin columns
+  whose clock values the chain provably cannot move, carry
+  complementary stripes (even against odd), and transplanting either
+  chain onto the other flips the stripe while every step's clock holds
+  to 10<sup>−9</sup>. The mode's geography reads the torsion that the
+  clock values, all <i>e</i> of them, are blind to. And breathing is
+  taxed: the per-move route-entropy rate stays analytic through every
+  step — all <i>e</i> transitions are geometric — and its peak sits
+  strictly below log 2 whenever <i>e</i> ≥ 2 (by 3.3·10<sup>−3</sup>
+  at √3 up to 9.8·10<sup>−3</sup> at <i>ζ</i><sub>8</sub>): a peak at
+  log 2 needs a fair per-move coin, and the clocks being distinct, at
+  most one stripe's can sit at 1/2 at any one temperature. Perfect
+  per-move irreducibility is exclusive to breathless columns. Each
+  step's correlation length walks that step's own transparent family —
+  constant at √3, whose family is provably finite (a first-order-like
+  jump, bounded unconditionally); the Fermat entry thresholds at the
+  2-adic columns (4, 6, 10, 18 over <b>Q</b> — bounded past 65537 iff
+  the Fermat set is finite); <i>ζ</i><sub>3</sub>'s family
+  2·3<sup><i>i</i></sup> + 1 exactly, the onset depth climbing
+  linearly in the family index — so whether a column's transition is a
+  sharp jump or long-ranged is pinned to its family's finiteness:
+  settled at √3, an open prime-family problem at the others, with the
+  standard heuristics putting the 2-adic seat (its Fermat sum
+  convergent: a sharp jump) and the <i>ζ</i><sub>3</sub> column (its
+  family sum divergent: long-ranged) on opposite sides.</p>
+  <p class="scope"><b>Scope.</b> The step ordering is proved from the
+  accumulation set; the quantization, the stripes, the tax and the
+  correlation-length walks are a rule in range over the tested columns
+  (√3, <i>ζ</i><sub>3</sub>, <i>ζ</i><sub>8</sub>, the 2-adic
+  columns); the chain-transplant invariance is measured to
+  10<sup>−9</sup>; the transition order is settled where the
+  transparent family is provably finite and open where its finiteness
+  is a prime-family question.</p>
+  <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_mode_staircase.py">
+  <code>explore_mode_staircase.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_astar_slope.py"><code>explore_astar_slope.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

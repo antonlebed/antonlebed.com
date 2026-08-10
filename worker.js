@@ -61,6 +61,7 @@ export default {
       '/growth/rings': 'rings',
       '/growth/dial': 'dial',
       '/growth/inside': 'inside',
+      '/growth/irreducibility': 'irreducibility',
       '/growth/thermal': 'thermal',
       '/growth/constants': 'constants',
       '/computation': 'computation',
