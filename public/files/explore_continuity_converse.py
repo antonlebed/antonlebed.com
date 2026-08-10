@@ -318,7 +318,10 @@ halves become one line each. What was doing the work all along is a
 claim nobody had stated, that on the arithmetic maps the middle class
 is empty, so that continuity and the Lipschitz condition cannot be
 told apart there. That claim is now measured at the five windows the
-arithmetic maps ran at, and it holds at every one. It also explains why the
+arithmetic maps ran at, and it holds at every one. (Measured since,
+2026-08, at a second family — the four quadratic trailing windows,
+where it also holds at every tested map:
+explore_quadratic_middle.py.) It also explains why the
 conjecture looked
 load-bearing: the corpus's own kills all land in the strongest class,
 which makes the weak hypothesis look sufficient. And the leg's aimed

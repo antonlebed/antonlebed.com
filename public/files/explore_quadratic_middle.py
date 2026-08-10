@@ -206,8 +206,8 @@ F3  THE MIDDLE CLASS IS EMPTY ON THE ARITHMETIC MAPS AT THE
     0 or 1 across all three depth-indexed ranges, at all four
     windows. No map settles; nothing sits between the odometer's
     settled column and the cap-pinned rest. The emptiness claim the
-    reading gate rests on is now measured by two instruments at two
-    window families — the b-adic row and four continued-fraction
+    reading gate rests on is now measured at two window families,
+    one observable read by two independent rigs — the b-adic row and four continued-fraction
     windows (explore_continuity_converse.py), and here four
     quadratic Ostrowski windows including the one whose x2 kill is
     a theorem. P4 lands; the counterexample hunt comes home empty.
@@ -239,7 +239,7 @@ unbounded modulus, and the family where it was likeliest — the
 non-positional windows where nothing rational is a unit — refuses
 it: every tested arithmetic map pins to the cap, the odometer
 settles, and nothing lands between. The emptiness the reading gate
-rests on now stands measured at two instruments and two families.
+rests on now stands measured at two window families by two rigs.
 What the rig found instead of a counterexample is a mechanism
 split: the pack-down compression that inhabits MIDDLE at
 positional windows dies at the odometer ones, killed by the same
