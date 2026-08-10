@@ -326,8 +326,11 @@ H4  THE SCALE A RUN IS MEASURED AGAINST IS THE SEQUENCE PERIOD, AND
     largeness scale misses the VALUE LAW at 3 of 25 pairs, and the
     three are precisely its three bounded cells, (8,4), (8,5) and
     (9,4), each carrying a longest run of 5 -- at or above 3 and below
-    6. The value law's whole bounded set is the cells whose runs sit
-    strictly between the two scales. So a scale that calls the
+    6. Every bounded cell AMONG THE 25 SWEPT PAIRS sits with its run
+    strictly between the two scales, which is what makes the miss
+    systematic rather than an edge; whether that holds across the value
+    law's full 92-cell bounded set is not measured here and the kill
+    does not need it. So a scale that calls the
     aperiodic window right is a scale that breaks the periodic law,
     and e - 2's agreement is a fact about e - 2 rather than evidence
     for the scale.

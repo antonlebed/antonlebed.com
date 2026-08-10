@@ -286,8 +286,9 @@ H6  WHAT THE RULE IS NOT, said because a green over 302 cells invites
     window. They part at every graded window, 3
     against 6, moving 175 of F3's 210 cells. The sequence period is the
     entitled one, and what settles that is not the derivation but the value
-    law: the largeness scale misses it at exactly its three bounded cells,
-    each carrying a run of 5, between the two scales. An aperiodic window has
+    law: the largeness scale misses it at every bounded cell among the 25
+    pairs swept, each carrying a run of 5, between the two scales. An
+    aperiodic window has
     neither length, so the rule is family-specific to periodic quotient
     sequences BY DERIVATION and the refusal is not a gap to be closed. **
     Two further
