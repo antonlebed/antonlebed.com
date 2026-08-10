@@ -219,7 +219,7 @@ H3  THE RUN-LENGTH RULE, the banked shape observable made precise
     period P, read the excess column c(t) = max(0, A(t) - t + 1) at ONE
     table to the data's own depth and split it into maximal nonzero
     runs. A peak at or above C_MAX is SATURATED; a run of length >= P
-    is the single-deep-witness signature and GATES; runs shorter than P,
+    cannot be a local feature of the period and GATES; runs shorter than P,
     recurring at the period, are a local obstruction and read BOUNDED;
     a table of depth below P + 1 is REFUSED. The discriminator is not
     the decline of exactly 1 per depth -- a periodic bump declines by 1
