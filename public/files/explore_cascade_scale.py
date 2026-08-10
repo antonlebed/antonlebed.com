@@ -228,6 +228,9 @@ S3  THE GRADED CONTROL AND THE VALUE SWEEP (Q2, Q3, Q4). The four
 S4  THE SCALE (Q5, Q6, Q7). The diagonal at its own period, the graded
     map at r = 2 under both scales, and the two aperiodic windows.
     Read only after S2 and S3, per D5.
+S5  THE DISCRIMINATOR (Q8). The swept pairs at r = 3 under the
+    LARGENESS scale, against the value law. Added after S4 printed,
+    on the fifth slate below the predictions, which says why.
 
 RESOURCE: the rule takes ONE range, so the re-read of a surface costs a
 fraction of what establishing it did -- but C4 needs the retired
