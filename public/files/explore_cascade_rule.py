@@ -209,7 +209,11 @@ H3  THE RUN-LENGTH RULE, the banked shape observable made precise
     every diagonal read, Q3 green over every cell it tracked). At a
     window of period P, read the excess column c(t) = max(0, A(t) -
     t + 1) at ONE table to the data's own depth and split it into
-    maximal nonzero runs. A peak at or above C_MAX is SATURATED; a run
+    maximal nonzero runs. A peak at or above C_MAX is SATURATED
+    (2026-08: the ceiling is CALIBRATION rather than a property of the
+    column -- the trusted bounded corpus's excess peaks stop at 5, no
+    intrinsic replacement exists, and one past that maximum is the
+    honest form; explore_saturation_twins.py); a run
     of length >= P cannot be a local feature of the period and GATES;
     runs shorter than P, recurring at the period, are a local
     obstruction and read BOUNDED; a table of depth below P + 1 is
