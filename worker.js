@@ -34,7 +34,9 @@ export default {
       '/lab': '/',
       '/lab.html': '/',
       '/constants': '/growth/constants',
-      '/reading': '/walls/reading',
+      '/walls/reading': '/reading',
+      '/walls/quadratic': '/reading/quadratic',
+      '/walls/redundant': '/reading/redundant',
     };
     const redir = REDIRECTS[url.pathname];
     if (redir) return Response.redirect(new URL(redir, url.origin), 301);
@@ -68,10 +70,10 @@ export default {
       '/walls/numbers': 'numbers',
       '/walls/meaning': 'meaning',
       '/walls/dual': 'dual',
-      '/walls/redundant': 'redundant',
-      '/walls/reading': 'reading',
-      '/walls/quadratic': 'quadratic',
       '/walls/algebra': 'algebra',
+      '/reading': 'reading',
+      '/reading/quadratic': 'quadratic',
+      '/reading/redundant': 'redundant',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',
@@ -88,6 +90,7 @@ export default {
       '/claims/computation': 'claims-computation',
       '/claims/observatory': 'claims-observatory',
       '/claims/walls': 'claims-walls',
+      '/claims/reading': 'claims-reading',
       '/claims/measure': 'claims-measure',
       '/claims/learning': 'claims-learning',
     };
