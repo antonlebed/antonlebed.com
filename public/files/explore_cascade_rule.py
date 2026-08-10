@@ -39,9 +39,9 @@ D1  THE CAP IS NOT A PARAMETER OF THE COLUMN, IT IS A TRUNCATION OF IT.
     it is on the page. This is what makes the two readings below
     derivable from ONE table, and it is checked and not assumed (Q7).
 D2  THE INSTRUMENT WAS CAPPED BELOW ITS DATA. T_MAX = 10 is the shared
-    cap. Usable depth K(N) - 1 over this grid runs to 13 at N = 100000
-    and to 16 at N = 300000, so between three and six depths of readable
-    column were being discarded at every cell -- and the whole
+    cap. Usable depth K(N) - 1 over the r = 2 map's grid runs 9 to 15 at
+    N = 100000 and 10 to 16 at N = 300000, so up to six depths of
+    readable column were being discarded -- and the whole
     cross-range apparatus exists because one table could not decide,
     which is the shape of a workaround standing where a root cause was.
     Reading to the data's own depth costs 3.02 s -> 3.10 s per cell,
@@ -196,7 +196,10 @@ H2  THE r = 3 VALUE LAW IS INSTRUMENT-INDEPENDENT (rule at scanned
     for. The law was established under a classifier whose verdict is a
     two-point comparison across a range SET, at an instrument cap of
     10; it survives a classifier that reads ONE table, has no range set
-    in it at all, and reads to depth 13-16. The public page therefore
+    in it at all, and reads those 92 cells at depths running 12 to 20,
+    52 of them at 13. The deep cap of 20 BINDS at exactly one cell,
+    (2, 2), and that cell is delay-0, so no verdict here rests on a
+    table this rig truncated. The public page therefore
     needs no word about its cells -- and its scope line, which said the
     ranges are part of the claim, can be replaced by the stronger fact
     rather than merely softened.
@@ -244,9 +247,11 @@ H5  THE DEPTH RECOVERY IS A CALIBRATION FACT AND NOT A MAP FACT, and
     the two halves have to be said together or either one misleads
     (F3, F5). The shared cap T_MAX = 10 was below the data at almost
     every cell: usable depth runs to 13 at N = 100000 and to 16 at
-    N = 300000, and the grid discards 72 depths in one row alone --
+    N = 300000, and one row of the grid discards 72 depths --
     while a deeper table costs 3.02 s against 3.10 s. Yet in the r = 2
-    map the recovered depth moves NO cell, and that is DERIVED before it
+    map -- whose depths run 10 to 16 at N = 300000, against the cap of
+    10 -- the recovered depth moves NO cell, and that is DERIVED before
+    it
     is counted: truncating to the cap can only SHORTEN a run and lower a
     peak (D1), so a cell bounded at the data depth has every run below
     the period at the cap too and is bounded there -- the converse of
