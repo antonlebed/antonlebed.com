@@ -80,7 +80,9 @@ not-a-ring half is a THEOREM, no range cap. x3 and the floor
 divisions remain rule at scanned scope (explore_completion_atlas.py
 F4); the Zeckendorf x3 lesson (the spread carry 3F_k = F_{k+2} +
 F_{k-2} defeats the comb) transplants untested here [TRANSPLANT:
-3 q_k = q_{k+1} + q_{k-1} - q_{k-3} is not even a positive sum].
+3 q_k = q_{k+1} + q_k + q_{k-3}, immediate from Lemma A, keeps a
+copy at position k — the triple carry never clears its own tooth,
+unlike doubling's].
 
 THE DESIGN (checks, greedy extraction only — no closed form from
 the proof enters the digit path)
@@ -129,8 +131,8 @@ F4  THE THREE-PHASE THEOREM EXACT IN RANGE: greedy digits of 2 T_K
     checked: 2 T_43 = 597858019470, the phase-7 comb
     {0, 1, 5, 8, ..., 44}.
 F5  INPUT AGREEMENT EXACTLY K+4 at every pair (T_K, T_{K+4}) in
-    range (P5 met) — past the atlas's scan ceiling of 17 by K = 39
-    onward, unbounded by the theorem.
+    range (P5 met) — past the atlas's scan ceiling of 17 from
+    K = 15 on (agreement 19), unbounded by the theorem.
 F6  THE KILL DIGIT AS STATED: least differing image digit 1 at
     K = 3 mod 12, 0 at K = 7, 11 mod 12 — never above 1 (P6 met).
 F7  THE THREE LIMIT STRINGS, distinct and stable: low-16 digits

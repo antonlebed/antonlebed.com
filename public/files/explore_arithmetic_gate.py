@@ -197,7 +197,12 @@ F5  THE VERDICT. All three verdict lines TRUE. The derivation
     is classical, checked here as E1/E2 rather than assumed): on a
     trailing positional or irrational-Ostrowski window, an
     arithmetic map x m or floor(n/m) is continuous iff Lipschitz —
-    the middle class meets the arithmetic maps in the empty set,
+    the middle class meets the arithmetic maps in the empty set —
+    ("both shapes" throughout means the two this proof addresses;
+    the completion atlas later realized a FOURTH shape at trailing
+    Tribonacci, explore_completion_atlas.py, where the emptiness is
+    a rule at scanned scope and the x2 half a theorem,
+    explore_tribonacci_discontinuity.py) —
     with the two scanning rigs (explore_continuity_converse.py,
     explore_quadratic_middle.py) as independent instruments. What
     the proof leaves open is exactly one shape: a completion that is
