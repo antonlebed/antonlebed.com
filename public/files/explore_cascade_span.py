@@ -324,7 +324,12 @@ F4  THE POSITIONS DO NOT DECIDE (rule at scanned scope; P3's kill
     The graded control puts a number on it: 5 of its 30 cells miss
     F4's law read on the set,
     four of them the half-period cell r = P and one a genuine
-    parity-cell flip (P = 5, caps 2/4, r = 7, even residue and gated). The
+    parity-cell flip (P = 5, caps 2/4, r = 7, even residue and gated).
+    ** The flip was the classifier: under the run-length rule the
+    misses are 4 of 30 and all four are the half-period cell, r = 7
+    at that window reading bounded as the parity law asks
+    (explore_cascade_scale.py H2). F4's WITNESS is untouched -- the
+    three swapped pairs still differ, 3 of 3. ** The
     control that makes this a measurement rather than an artifact:
     A = B is literally the designed family and prints F4's parity of
     r mod 3 exactly at A = 2, 3 and 5. So the verdict is not a
@@ -377,6 +382,11 @@ F5  AND WHAT THE VALUES DO IS CONCENTRATED IN ONE CELL, WHOSE OWN
     and not a law, which the full grid refutes: six of 64 pairs move
     a second cell, two at min >= 6, and whole rows move r = 2 above
     the grid (explore_cascade_values.py H4).
+    ** THERE IS NO SECOND CELL: all 25 swept pairs print the parity
+    law with r = P the only departure, so every move recorded in this
+    paragraph -- at r = 5 as well as at r = 2 -- was the classifier
+    (explore_cascade_scale.py H3). What survives above is the r = P
+    clause, and it survives EXACTLY rather than nearly. **
 F6  THE TWO-CLASS FAMILY IS BUILT AND IT CONTAINS WHAT IT WAS BUILT
     TO CONTAIN (observation; P4's fork kill misses -- 16 cells carry
     a large-onto-large drop). Eight windows at P = 4..7 with large

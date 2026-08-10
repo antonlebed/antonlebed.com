@@ -238,7 +238,18 @@ nothing else.
 FINDINGS (each at its own tier)
 -------------------------------
 H1  THE SPLIT HELD AT BOTH WINDOWS WITH NO PERIOD (rule at scanned
-    scope; P3's re-read, zero movers of EIGHT). The cubic's r = 2, 4,
+    scope; P3's re-read, zero movers of EIGHT).
+    ** THE SPLIT IS STILL THE RETIRED CLASSIFIER'S, AND NO INSTRUMENT
+    THE CORPUS TRUSTS HAS REPLACED IT. That classifier has no fixed
+    point in the range SET (explore_cascade_rule.py H1) and none in
+    the instrument CAP either (explore_cascade_scale.py H5). The
+    run-length rule cannot re-read it: both windows are APERIODIC, so
+    it refuses the cubic at 7 of 8 strides and e - 2 at 4 of 8, and
+    the refusal is entitlement rather than a gap -- the only cheaper
+    scale available at an aperiodic window breaks the value law at
+    exactly its three bounded cells (explore_cascade_scale.py H4). So
+    H1, and H2 and H3 which read off it, stand where they were and
+    are owed a THIRD instrument, not a re-read. ** The cubic's r = 2, 4,
     6, 7, 8 and e - 2's r = 2, 5, 8 -- every bounded stride either
     window has, and the cells the campaign owed a third range -- all
     hold at 300000. Eight and not the nine the leg was aimed with: that
@@ -339,6 +350,10 @@ H4  THE FLIP SIGNATURE IS NOT IN THE COLUMN, AND THE AUDIT STAYS A
     like, and the cost of the guard cannot be argued down.
 H5  THE TWO-CLASS FAMILY AT THREE RANGES: F6'S VERDICT STANDS AND ITS
     COUNT MOVES BY TWO (rule at scanned scope; P7's kill fires, small).
+    ** AND IT STANDS UNDER THE RUN-LENGTH RULE TOO, at 16 rather than
+    17, five cells moving and none of them either mover below
+    (explore_cascade_scale.py H1). This family is the one finding
+    here the rule can reach, being periodic. **
     All 84 cells of the eight P = 4..7 windows re-read at 300000. The
     two-range pass reproduces F6's 19 gap-parity disagreements exactly,
     which is what makes the comparison a measurement; two cells move

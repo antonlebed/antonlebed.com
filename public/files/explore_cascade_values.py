@@ -329,7 +329,15 @@ H3  THE PRODUCT CLAUSE IS THE min = 2 WALL, GENERALIZED -- AND ITS
     -- so its evidence is the B = 4 row's step from gated at A = 7 to
     bounded at A = 8, plus two empty rows. It is the weakest of the
     three clauses and the one a new row cannot strengthen.
-H4  THE SECOND CELL IS NOT A SMALL-VALUE FACT (Q5's kill fires). The
+H4  THE SECOND CELL IS NOT A SMALL-VALUE FACT (Q5's kill fires).
+    ** SUPERSEDED IN FULL: there is no second cell. Every verdict in
+    this finding is the retired classifier's, and under the
+    run-length rule all 25 swept pairs print the parity law with
+    r = P the only departure -- the r = 5 movers, the r = 2 movers
+    and the region above the grid alike (explore_cascade_rule.py H1
+    for the region, explore_cascade_scale.py H3 for the pairs). What
+    survives is the r = 3 VALUE LAW this rig established, reproduced
+    at zero misses under a classifier with a fixed point. ** The
     parent rig's three movers reproduce exactly -- (4, 8) and (4, 9)
     gate r = 5, (8, 5) gates r = 2 -- and they are three of six in
     the 8x8 grid alone, two of which ((8, 6), (9, 6)) have

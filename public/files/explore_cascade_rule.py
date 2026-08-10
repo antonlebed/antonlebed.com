@@ -278,7 +278,19 @@ H6  WHAT THE RULE IS NOT, said because a green over 302 cells invites
     9 and 5, and e - 2's r = 7, whose run is 6. There is no period to
     measure any of them against. That is a scope limit and not a red control --
     C3's own text fixed it before the run -- but it is the open end: what plays
-    the period's role at an aperiodic window is not answered here. Two further
+    the period's role at an aperiodic window is not answered here.
+    ** IT IS ANSWERED NOW, IN THE NEGATIVE (explore_cascade_scale.py H4, H6).
+    Two recurrence lengths are fixed by a window's own data with no further
+    choice -- the quotient SEQUENCE's and its LARGENESS pattern's -- and a
+    rule that picked any other would be reading a parameter rather than the
+    window. They part at every graded window, 3
+    against 6, moving 175 of F3's 210 cells. The sequence period is the
+    entitled one, and what settles that is not the derivation but the value
+    law: the largeness scale misses it at exactly its three bounded cells,
+    each carrying a run of 5, between the two scales. An aperiodic window has
+    neither length, so the rule is family-specific to periodic quotient
+    sequences BY DERIVATION and the refusal is not a gap to be closed. **
+    Two further
     limits. Q3's one-way law held at every cell it was tracked at -- strides 1
     and 2 over F3's 210, stride 3 over F4's 92, 0 violations -- which supports
     H1's insertion argument but does not prove it, and says nothing about the
