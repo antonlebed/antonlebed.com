@@ -222,24 +222,31 @@ F4  THE POSITIONAL MIDDLE WITNESS DOES NOT TRANSPLANT (observation,
     doubling. So at the quadratic windows MIDDLE has no known
     member of ANY kind — not only do the arithmetic maps avoid it,
     the one engineered witness class collapses into DISCONTINUOUS
-    when carried there. The middle class being arithmetic-free at
-    positional windows but possibly EMPTY OUTRIGHT at odometer
-    windows is a sharper dichotomy than the one hunted, and is left
-    as the open edge.
+    when carried there. What dies at the odometer windows is the
+    COMPRESSION mechanism, not the class: a locally constant
+    stretcher — constant on each "lowest nonzero digit at position
+    k" cell, sent to an integer whose lowest nonzero digit sits at
+    position k/2 rounded up — is continuous with modulus about 2t
+    and Lipschitz at no constant, an integer map, so MIDDLE is
+    inhabited there by design (a derivation, not a print of this
+    rig). The sharpening is therefore about mechanisms: pack-down
+    compression inhabits MIDDLE at positional windows and falls to
+    the down-carry at odometer ones, while the designed stretcher
+    inhabits it everywhere.
 
 THE READING. The hunt was for an arithmetic map continuous at an
 unbounded modulus, and the family where it was likeliest — the
 non-positional windows where nothing rational is a unit — refuses
-it: every arithmetic map pins to the cap, the odometer settles, and
-nothing lands between. The emptiness the reading gate rests on now
-stands measured at two instruments and two families. What the rig
-found instead of a counterexample is a sharpening: the engineered
-middle witness itself dies at the odometer windows, so the class
-that is merely arithmetic-free at positional windows may be empty
-of everything at quadratic ones — the down-carry does not
-distinguish arithmetic from designed maps, and whether ANY
-continuous non-Lipschitz self-map of a quadratic odometer
-completion exists at all is the question this leaves standing.
+it: every tested arithmetic map pins to the cap, the odometer
+settles, and nothing lands between. The emptiness the reading gate
+rests on now stands measured at two instruments and two families.
+What the rig found instead of a counterexample is a mechanism
+split: the pack-down compression that inhabits MIDDLE at
+positional windows dies at the odometer ones, killed by the same
+down-carry as doubling, while the class itself stays inhabited
+there by the designed stretcher of F4 — so MIDDLE is everywhere a
+class of DESIGNED maps, entered by compression only where carries
+go up, and entered by arithmetic nowhere yet measured.
 """
 
 from bisect import bisect_right
