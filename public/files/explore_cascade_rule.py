@@ -103,7 +103,8 @@ D6  THE TWO AXES AND THEIR SIGNS. At fixed N, raising the cap only
     grows, so runs only extend or merge and BOTH the longest run and the
     peak are monotone -- which is what carries the verdict, gating being
     a condition on the run and saturation on the peak. A cell gated at N
-    is therefore gated at every larger N. Q3 makes every cell a chance to refute it.
+    is therefore gated at every larger N. Q3 makes every cell a chance to
+    refute it.
 D7  THE DEPTH THE RULE OWES, and it is the honest form of a minimum
     common-depth check. The signature is a run of length >= P, so a
     table of depth below P + 1 cannot carry one and every cell would
@@ -205,27 +206,28 @@ H2  THE r = 3 VALUE LAW IS INSTRUMENT-INDEPENDENT (rule at scanned
     rather than merely softened.
 H3  THE RUN-LENGTH RULE, the banked shape observable made precise
     (the rule; C1 green at 9 windows and all 54 strides, C2 green at
-    every diagonal read, Q3 green over every cell it tracked). READ C1's
-    GREEN FOR WHAT IT IS. The run-against-period threshold was chosen by
-    reading the c columns OF THOSE NINE WINDOWS after the first
-    candidate died on them, so C1 is a consistency check on the
-    successor and not an independent control of it -- a control has to
-    differ from the treatment in one variable, and here it supplied the
-    variable. What is independent is Q4: the r = 3 value law was
-    established at another rig, by another classifier, before this rule
-    existed, and its 92 cells reproduce at zero misses with no
-    parameter of this rule fitted to them. The map's 210 cells are
-    independent in the same way and are the reason C2 counts. At a window of
-    period P, read the excess column c(t) = max(0, A(t) - t + 1) at ONE
-    table to the data's own depth and split it into maximal nonzero
-    runs. A peak at or above C_MAX is SATURATED; a run of length >= P
-    cannot be a local feature of the period and GATES; runs shorter than P,
-    recurring at the period, are a local obstruction and read BOUNDED;
-    a table of depth below P + 1 is REFUSED. The discriminator is not
+    every diagonal read, Q3 green over every cell it tracked). At a
+    window of period P, read the excess column c(t) = max(0, A(t) -
+    t + 1) at ONE table to the data's own depth and split it into
+    maximal nonzero runs. A peak at or above C_MAX is SATURATED; a run
+    of length >= P cannot be a local feature of the period and GATES;
+    runs shorter than P, recurring at the period, are a local
+    obstruction and read BOUNDED; a table of depth below P + 1 is
+    REFUSED. The discriminator is not
     the decline of exactly 1 per depth -- a periodic bump declines by 1
     too -- but whether the decline OUTLASTS the period. The rule takes
     no range set, so it has the fixed point the old rule lacked:
     adding a range cannot change a verdict already read.
+    READ C1's GREEN FOR WHAT IT IS. The run-against-period threshold was
+    chosen by reading the c columns OF THOSE NINE WINDOWS after the
+    first candidate died on them, so C1 is a consistency check on the
+    successor and not an independent control of it -- a control has to
+    differ from the treatment in one variable, and here it supplied the
+    variable. What is independent is Q4: the r = 3 value law was
+    established at another rig, by another classifier, before this rule
+    existed, and its 92 cells reproduce at zero misses with no parameter
+    of this rule fitted to them. The map's 210 cells are independent in
+    the same way and are the reason C2 counts.
 H4  THE FIRST CANDIDATE DIED AT ITS OWN POSITIVE CONTROL, and that is
     the run's most transferable fact. The CLOSING RULE -- does the
     column return to zero inside the table, with the trailing zeros as
@@ -258,12 +260,12 @@ H5  THE DEPTH RECOVERY IS A CALIBRATION FACT AND NOT A MAP FACT, and
     the direction that matters. All 210 are bounded at the data depth,
     so all 210 are bounded at the cap; F6 counts it at 210 of 210. H1 is
     therefore a verdict about the RULE and not about the depth, and
-    saying the region died of truncation would be wrong. What the depth buys is the calibration
-    itself: C1 scores 0 misses at data depth and 4 at cap 10, the
-    designed family's gated strides r = 6 and r = 8 at P = 5 reading
-    bounded when their runs are cut short of the period. The old cap
-    could not have certified this rule, which is why the rule was not
-    available to be written at the old instrument.
+    saying the region died of truncation would be wrong. What the depth buys is
+    the calibration itself: C1 scores 0 misses at data depth and 4 at cap 10,
+    the designed family's gated strides r = 6 and r = 8 at P = 5 reading
+    bounded when their runs are cut short of the period. The old cap could not
+    have certified this rule, which is why the rule was not available to be
+    written at the old instrument.
 H6  WHAT THE RULE IS NOT, said because a green over 302 cells invites
     more than it earned -- and 54 of the strides behind it are the ones
     the threshold was read off (H3), so the independent count is 302
@@ -274,15 +276,14 @@ H6  WHAT THE RULE IS NOT, said because a green over 302 cells invites
     -- r = 1 at both windows and e - 2's r = 4 -- and misses three
     gated strides outright: the cubic's r = 3 and r = 5, whose runs are
     9 and 5, and e - 2's r = 7, whose run is 6. There is no period to
-    measure any of them against. That is a scope limit and not a red control -- C3's own
-    text fixed it before the run -- but it is the open end: what plays
-    the period's role at an aperiodic window is not answered here.
-    Two further limits. Q3's one-way law held at every cell it was
-    tracked at -- strides 1 and 2 over F3's 210, stride 3 over F4's 92,
-    0 violations -- which supports H1's insertion argument but does not
-    prove it, and says nothing about the strides it did not track. And the rule inherits the parent
-    digit path and c_min row unchanged, so anything wrong there is
-    wrong here identically.
+    measure any of them against. That is a scope limit and not a red control --
+    C3's own text fixed it before the run -- but it is the open end: what plays
+    the period's role at an aperiodic window is not answered here. Two further
+    limits. Q3's one-way law held at every cell it was tracked at -- strides 1
+    and 2 over F3's 210, stride 3 over F4's 92, 0 violations -- which supports
+    H1's insertion argument but does not prove it, and says nothing about the
+    strides it did not track. And the rule inherits the parent digit path and
+    c_min row unchanged, so anything wrong there is wrong here identically.
 
 THE DESIGN
 ----------
@@ -310,22 +311,20 @@ the depth-bias demonstration; the cost is the two deep ones.
 RUN RECORD (the estimate first, then what it cost)
 Per cell at four ranges: 0.08 + 0.25 + 0.92 + 3.04 = 4.3 s at two
 strides, measured. Estimated F1 ~5 s, F2 ~3 min, F3 210 cells ~15 min,
-F4 92 cells at three strides ~7 min: ABOUT 25 MINUTES TOTAL, stop at 50. Ran: F1 0.3 s, F2 159 s, F3 938 s, F4 561 s, F5 29 s, F6 667 s --
-40 minutes over six stages, inside the stop. F5 and F6 were not in the
-estimate: F5 prices the cap against the calibration (H5), and F6 counts
-two columns F3 held in its tables and printed only where a cell moved
--- the r = 1 stride and the cap-10 comparison, both of which H1 and H5
-had claimed over all 210 before anything printed them. Peak commit
-298 MB at F4, under memwatch at 512 throughout; the ~310 MB estimate
-was close. F2 was run twice more: once on the candidate H4 buries, and
-once after C3's refusal switch was corrected to match its own frozen
-text.
-That is over the ten-minute line and the necessity is the claim's own
-shape: Q4 reproduces a law stated over a grid, cell for cell, and a
-sample of the grid reproduces nothing. Stages run one at a time
-(argv) so no single call is open-ended. Peak memory ~310 MB at
-N = 300000 with the deeper strings, under memwatch at 512.
-"""
+F4 92 cells at three strides ~7 min: ABOUT 25 MINUTES TOTAL, stop at 50. Ran:
+F1 0.3 s, F2 159 s, F3 938 s, F4 561 s, F5 29 s, F6 667 s -- 40 minutes over
+six stages, inside the stop. F5 and F6 were not in the estimate: F5 prices the
+cap against the calibration (H5), and F6 counts two columns F3 held in its
+tables and printed only where a cell moved -- the r = 1 stride and the cap-10
+comparison, both of which H1 and H5 had claimed over all 210 before anything
+printed them. Peak commit 298 MB at F4, under memwatch at 512 throughout; the
+~310 MB estimate was close. F2 was run twice more: once on the candidate H4
+buries, and once after C3's refusal switch was corrected to match its own
+frozen text. That is over the ten-minute line and the necessity is the claim's
+own shape: Q4 reproduces a law stated over a grid, cell for cell, and a sample
+of the grid reproduces nothing. Stages run one at a time (argv) so no single
+call is open-ended. Peak memory ~310 MB at N = 300000 with the deeper strings,
+under memwatch at 512. """
 
 import os
 import sys
