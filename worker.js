@@ -59,6 +59,7 @@ export default {
       '/growth/schedule': 'schedule',
       '/growth/clock': 'clock',
       '/growth/rings': 'rings',
+      '/growth/carrier': 'carrier',
       '/growth/dial': 'dial',
       '/growth/inside': 'inside',
       '/growth/irreducibility': 'irreducibility',

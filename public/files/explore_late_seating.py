@@ -141,7 +141,10 @@ landed; both controls clean.
 F1 THE WINNER-KIND DICHOTOMY (rule, proved; premises machine-checked).
    When the void's step-1 winner is split or inert of odd norm (both
    governed rings' winners are; an unramified winner over 2 is outside
-   the induction, hand-attack B), the walk seats exactly
+   the induction, hand-attack B -- SETTLED SINCE,
+   explore_even_winner.py: six rings hand one the void and monogamy is
+   every unramified winner's, a norm-2 winner's minimum falling to the
+   floor 2 where this induction's stays constant), the walk seats exactly
    one place EVER: the winner's column climbs strictly (checked to depth
    21 at both rings), so its door is 1 and the menu minimum is a constant
    n0 from step 1 on, while every rival lost the void menu at >= n0 and is
