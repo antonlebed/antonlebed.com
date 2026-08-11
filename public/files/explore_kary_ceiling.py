@@ -222,7 +222,7 @@ now engine-verified exactly at every b >= 1 cell of the tilt grid:
   upward side alive) -- and at a >= 1 they die AGAIN from q_up on;
   only a = 0 saturation is dead exactly on (0, 1], its q_up being
   infinite. a = 0 unsaturated cells are alive at every tilt (q_lo = 0,
-  q_up infinite). At M > k the arc is the SYMMETRIC band
+  q_up infinite). At M > k with a >= 1 the arc is the SYMMETRIC band
   (rho_a, 1/rho_a) -- both P7 asserts held: min positive y1 = 1 on
   the lower side AND min positive y1' = 1 on the upper side, so the
   lower edge is the (a, 2a+1) resonance root and the upper its
