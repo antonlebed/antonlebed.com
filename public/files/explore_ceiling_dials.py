@@ -123,7 +123,11 @@ POSTERIOR mechanics below are re-derived, not carried).
   slice q = 1, where Q* = c/2 sits ON an integer exactly when c is
   even -- even-c deadness at all t is a resonance of the uniform
   point, not an anatomy invariant; any tilt moves Q* off the integer
-  and even c comes alive in its one window. The uniform interior
+  and even c comes alive in its one window. (Settled since,
+  explore_tilt_resonance.py: true of every RATIONAL tilt -- none is
+  ever resonant, proved -- while one algebraic irrational resonant
+  tilt exists per 0 < B < c with 2B != c, where the window closes
+  again; this file's grid claims all survive.) The uniform interior
   value's t-independence is a second q = 1 degeneracy: under tilt
   the interior value moves with s. DEAD CELLS: s = 0 makes every
   fiber the same type, so posterior = prior at BOTH scores, at EVERY

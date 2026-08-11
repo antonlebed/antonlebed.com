@@ -225,7 +225,9 @@ explored (explore_ceiling_dials.py): under a geometric tilt
 the threshold ceiling stays closed-form, the interior collapses to
 ONE sliding fiber window, and the even-c deadness of this file is a
 RESONANCE of the uniform point (Q* = c/2 integral iff c even) that
-every tilt lifts. (d) The orientation
+every tilt lifts (since sharpened, explore_tilt_resonance.py: every
+rational tilt lifts it, proved; per 2B != c pair one algebraic
+irrational tilt is again resonant). (d) The orientation
 model is ordered distinct triples; cyclic relabelings preserve
 orientation, so each cyclically-labeled instance is counted three
 times and the quotient leaves every fiber value and the ceiling
