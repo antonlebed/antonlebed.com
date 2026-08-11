@@ -185,6 +185,13 @@ F2 THE MENU HALF ALONE DOES NOT SEE 14 MERGES, AND EVERY ONE IS
    class 1 survive while the pairs among classes {2, 3, 4} part; at g2
    every degree-1 pair parts while the degree-2 and degree-4 inverse pairs
    survive -- an open reading whose witnesses sit in the k2 records.
+   [Settled by explore_menu_invisibility.py: menu verdicts transport
+   along every supply-preserving automorphism, this rig's region starved
+   the transported witnesses, and 12 of the 14 survivors fall to them or
+   to states built to price the difference; the two that stand are
+   exactly the pairs whose summoned riders never differ outside the
+   merge, and that criterion is verified both ways at every same-degree
+   pair. This record keeps the region-scoped counts as frozen.]
 
 F3 THE THREE OBSERVABLES GENUINELY PART, so "faithful" is three claims.
    The aut-orbit merge survives the menus (F2), breaks the state space
@@ -224,8 +231,9 @@ the ACTIVE colours of the walked-plus-constructed region; a coarsening
 merging only colours that region never touches is unrefuted by
 construction. The number rings are untouched (T2): their coarsest
 question carries the ladder column as an extra axis. And the open residue
-in F2 -- what, beyond aut-conjugacy, decides menu survival -- is named,
-not answered.
+in F2 -- what, beyond aut-conjugacy, decides menu survival -- is named
+here, not answered; it is answered in explore_menu_invisibility.py (the
+telltale criterion, F2's note above).
 
 RUN RECORD. One process, CPython, no BLAS. Wall 1.6 s, peak working set
 ~18 MB against the 512 MB ceiling. 4845 checks here, plus the imported
