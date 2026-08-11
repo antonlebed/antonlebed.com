@@ -171,8 +171,9 @@ F6 DESIGNED CONTROL (PR5 met). The 163-and-3 seed at K5: step 1 pays 5
 
 WHAT IS LEFT OPEN. Nothing of the void question: the sibling rig
 explore_late_seating.py settles it both ways -- the winner-kind
-dichotomy (an unramified void winner locks the menu at its own norm,
-proved) and the void late seating its quadratic-ring factory exhibits
+dichotomy (an unramified void winner of odd norm locks the menu at its
+own norm, proved) and the void late seating its quadratic-ring factory
+exhibits
 at Z[sqrt(-30)], the two-ram shape this file's dichotomy points at.
 This file is that record's SCALE companion: the ~3000-walk sweep, the
 per-ram census behind the residue-characteristic dichotomy, the zero

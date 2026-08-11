@@ -145,7 +145,8 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    lock's 9 is well above the void's cheapest 4, so that gap is real and
    the rule is a measurement. (SETTLED SINCE, explore_late_seating.py:
    the missing half is a winner-kind dichotomy — proved where the void's
-   winner is split or inert, and genuinely FALSE where it is ramified,
+   winner is split or inert of odd norm, and genuinely FALSE where it is
+   ramified,
    Z[sqrt(-30)] seating a second ramified place from the void at step 3.
    What survives here is Z[i]'s own record: one ram, seated first.)
 
