@@ -14,12 +14,16 @@ every negative-norm quadratic unit by Moree (J. Theorie des Nombres
 de Bordeaux 8, 1996), computes the density of {p : 2^e || z(p)} as an
 alternating sum of reciprocal degrees of the fields
 K_{r,s} = Q(sqrt D, theta^(1/2^r), zeta_{2^s}), theta = -alpha^2,
-via the Chebotarev density theorem. The degrees are FULL - no
-entanglement corrects the naive price - and the reason is the norm:
-N(alpha) = -1 is negative, hence not a square in the real field
-Q(sqrt D), so Q(sqrt alpha)/Q is not normal (Halter-Koch's
-criterion), which blocks every degree collapse in the 2-power Kummer
-tower. Moree's Theorem 3 then states exactly the scanned quantities:
+via the Chebotarev density theorem. The KUMMER-LAYER degrees -
+adjoining 2-power roots of theta over the cyclotomic base - are
+FULL, and the reason is the norm: N(alpha) = -1 is negative, hence
+not a square in the real field Q(sqrt D), so Q(sqrt alpha)/Q is not
+normal (Halter-Koch's criterion), which blocks every collapse in
+that layer. The one collapse anywhere is classical and cyclotomic -
+sqrt 2 inside Q(zeta_8) at D = 2 - and it moves only the joint
+distribution of (split, v2(p-1)): that shift is the whole Pell
+correction, and the free-half conditional it leaves untouched.
+Moree's Theorem 3 then states exactly the scanned quantities:
 density of z = 2 mod 4 is 1/3 for D > 2 and 7/24 for D = 2 -
 unconditional theorems. (Our alpha at window a is a negative-norm
 unit of O_D for D the squarefree kernel of a^2 + 4, D = 2 exactly on
