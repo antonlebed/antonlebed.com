@@ -65,8 +65,11 @@ rule.
     odd norm contributes lambda(P^1) = N(P) - 1, even there -- so
     v_2(L) climbs with the walk and the char-2 rams' doors climb with
     it. The odd-char
-    rams (R5, R23) are fed only by p = 1 mod q seatings, so their doors
-    CAN stall -- but their floor price (norm >= 5^1, 23^1) sits at or
+    rams' (R5, R23) doors widen only when their next ladder rung
+    divides L, and the divisors a rung waits for (the factors of q - 1
+    first, powers of q above) enter L only through seatings whose
+    lambda carries them, so their doors CAN stall -- but their floor
+    price (norm >= 5^1, 23^1) sits at or
     above the small-norm menu the void keeps affordable. Whether that
     accounting closes is what S3's margins print.
 
@@ -148,9 +151,11 @@ F4 THE RESIDUE-CHARACTERISTIC DICHOTOMY (pattern at three rings; the
    place of ODD norm -- only places over 2 have even norm -- so every
    seating off the char-2 fibre feeds v_2 of the invariant and a char-2
    ram's door climbs in lockstep with the menu (at Z[i] every split
-   prime is 1 mod 4, feeding v_2 twice over); an odd-char ram's rungs
-   above the first are fed only by p = 1 mod q seatings, which a seed
-   need never contain -- the stall. T1's sketch held per ring; retired.
+   prime is 1 mod 4, feeding v_2 twice over); an odd-char ram's door
+   widens only when its next ladder rung divides L, and the divisors a
+   rung waits for (the factors of q - 1 first, powers of q above) a
+   seed's L need never carry -- the stall. T1's sketch held per ring;
+   retired.
 F5 THE TRANSIENT REDUCTION HOLDS (PR2, PR6 met). 3109 walks, 0
    monotone violations, 0 post-lock violations, 0 unlocked. The
    hand-attack C derivation stands on checked premises: a strict late
