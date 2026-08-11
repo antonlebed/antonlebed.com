@@ -133,7 +133,12 @@ half: THEOREMS (proved above, asserted at every scanned prime).
 The density VALUES: pattern (12 windows, odd primes to 10^6; the
 one unproved ingredient is Kummer independence at the split free
 half — measured 0.3331/0.1670 against naive 1/3 and 1/6, no
-visible correction at this bound).
+visible correction at this bound). [Settled since: the Kummer
+independence is a proved theorem — Hasse's density method, run by
+Lagarias (1985) and Moree (1996, Theorem 3), the degrees full
+because N(alpha) = -1 is not a square in real Q(sqrt D) — so the
+densities are theorems; the per-layer fingerprint is verified in
+explore_kummer_layers.py.]
 
 THE ODD-POWER SHARING LAW (theorem, explains the identical rows).
 v2(ord x^j) = v2(ord x) for odd j, so windows whose alpha are odd
