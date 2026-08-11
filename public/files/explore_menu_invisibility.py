@@ -218,13 +218,28 @@ F5 THE LAW (rule in range; six rings, asserted at every same-degree pair
    orbits -- the necessary condition the old inventory measured was the
    telltale criterion's shadow.
 
+F6 THE WIDTH CHANNEL IS CLOSED, so the two absolute survivors are
+   region-free by derivation and not only by attack. At a principal swap
+   only the pair cores' vehicles change (context cores keep their items,
+   doors and riders; the pair colours' door/cost multiset is symmetric
+   under the swap), so with an empty telltale set the projected menus
+   can differ only if the tie list's DEDUP acts asymmetrically -- a pair
+   core's raw vehicle coinciding with a context core's at one state and
+   its mirror failing to at the other, the shape the genus-2 exception
+   fired on. The scan: every pair-core vehicle at every door in the
+   window against every context core's at every door -- 0 collisions at
+   both absolute pairs (43 and 47 pair vehicles). Doors beyond the
+   window cannot collide at all: a collision puts the pair core's own
+   exponent inside a context rider, and rider exponents are bounded by
+   the minreps' content, far below the window.
+
 WHAT THIS RIG DOES NOT CLAIM. The law is verified at the six rings'
 active colours; "invisible" quantifies over the states this rig and its
 parent could reach or build, made absolute only where the telltale set is
 empty. The number rings carry the ladder column and are untouched (T2).
 
 RUN RECORD. One process, CPython, no BLAS. Wall 1.5 s, peak working set
-21.3 MB (memwatch) against the 512 MB ceiling. 736 checks here, plus the rebuilt
+21.3 MB (memwatch) against the 512 MB ceiling. 738 checks here, plus the rebuilt
 region's own (the imported machinery re-runs its tree walk, pair sweep
 and constructed stage).
 """
@@ -704,6 +719,51 @@ def main():
     print("telltale -- iff the two colours' summoned riders agree outside")
     print("the merge at every door. Final count: %d invisible, %d parting"
           " aut-conjugate pairs." % (fin_inv, fin_prt))
+
+    # ---------------------------------------------------------------- S7
+    section("S7  THE WIDTH CHANNEL CLOSED -- no pair-core vehicle can wear "
+            "a context vehicle's shape")
+    print("at a principal swap only the pair cores' vehicles change, and")
+    print("with no telltale door their projections match pairwise -- the")
+    print("one residual channel is raw-vehicle COINCIDENCE with a context")
+    print("core, which the tie list dedups asymmetrically. For each")
+    print("absolute pair, every pair-core vehicle at every door in the")
+    print("window is checked against every context core's at every door:")
+    print("no collision means the merged tie widths are forced equal and")
+    print("the invisibility is region-free.\n")
+    for L, ctx, pairs, aut, conj in world:
+        sup = ctx[0]
+        for mk in conj:
+            if pairs[mk]["k2"]:
+                continue
+            A, B = sorted(mk)
+            if telltale_table(sup, A, B)[0] is not None:
+                continue
+            coll = 0
+            pair_veh = set()
+            for X in (A, B):
+                for i in range(sup.cnt[X]):
+                    for n in range(1, NWIN + 1):
+                        want = sup.neg(sup.mul(n, X[1]))
+                        rep = sup.reps[want][0]
+                        v = CS.vehicle(sup, (X[0], X[1], i), n, rep)
+                        pair_veh.add(tuple(sorted(v.items())))
+            for C in sorted(sup.colours):
+                if C in (A, B):
+                    continue
+                for i in range(sup.cnt[C]):
+                    for m in range(1, NWIN + 1):
+                        want = sup.neg(sup.mul(m, C[1]))
+                        rep = sup.reps[want][0]
+                        v = CS.vehicle(sup, (C[0], C[1], i), m, rep)
+                        if tuple(sorted(v.items())) in pair_veh:
+                            coll += 1
+            ok(coll == 0, "%s: %s ~ %s has %d pair/context vehicle"
+               " collisions -- the width channel is open"
+               % (L.name, A, B, coll))
+            print("%-8s %s ~ %s  0 collisions over %d pair vehicles"
+                  " against every context core's, doors 1..%d"
+                  % (L.name, A, B, len(pair_veh), NWIN))
 
     print("\n%d checks passed here, plus the rebuilt region's own." % CHECKS)
 
