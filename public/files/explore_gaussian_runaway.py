@@ -143,7 +143,11 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    opening never gets cheaper in absolute terms. What is NOT argued is
    that the menu's own minimum cannot rise past it later — at Z[i] the
    lock's 9 is well above the void's cheapest 4, so that gap is real and
-   the rule is a measurement.
+   the rule is a measurement. (SETTLED SINCE, explore_late_seating.py:
+   the missing half is a winner-kind dichotomy — proved where the void's
+   winner is split or inert, and genuinely FALSE where it is ramified,
+   Z[sqrt(-30)] seating a second ramified place from the void at step 3.
+   What survives here is Z[i]'s own record: one ram, seated first.)
 
 3. THE HEAD IS A FILED OBJECT AND ITS WIDTH IS NOT — and the width is
    what the walk cannot buy (rule in range; the ladder brute-forced from
