@@ -48,7 +48,11 @@ THE HAND-ATTACK, on paper before any engine code.
     TRANSIENT, which is finite. The open half is a transient question.
 
  B. THE INSTANT-LOCK INDUCTION (the provable half). Suppose the void's
-    step-1 winner P0 is split or inert, norm n0. At the void L = 1 and
+    step-1 winner P0 is split or inert of ODD norm n0 -- so e = 1 with
+    p >= 3 puts it under the tame staircase and its column climbs
+    strictly; an unramified place over 2 (norm 2's column holds a flat
+    step) is outside this induction, and no walked ring hands one the
+    void. At the void L = 1 and
     lam_P(P0, 1) >= 2 does not divide 1, so the door is 1 and the opening
     costs n0. Thereafter, while the walk only deepens P0, L = lam_P(P0, e)
     and lam_P(P0, e+1) = p * lam_P(P0, e) never divides L: the door stays
@@ -135,7 +139,9 @@ FINDINGS, entered after the run from printed output. All six predictions
 landed; both controls clean.
 
 F1 THE WINNER-KIND DICHOTOMY (rule, proved; premises machine-checked).
-   When the void's step-1 winner is split or inert, the walk seats exactly
+   When the void's step-1 winner is split or inert of odd norm (both
+   governed rings' winners are; an unramified winner over 2 is outside
+   the induction, hand-attack B), the walk seats exactly
    one place EVER: the winner's column climbs strictly (checked to depth
    21 at both rings), so its door is 1 and the menu minimum is a constant
    n0 from step 1 on, while every rival lost the void menu at >= n0 and is
