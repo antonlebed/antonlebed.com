@@ -232,7 +232,11 @@ N4 THE UPPER ARC HAS ITS CRITERION, AND tau' = h IS A PROPERTY. The
    2188 where the tightest coordinate needs a wrap the criterion is not
    derived over. That last is what this line still owes -- the COUNT
    generalized past m = 0, the CRITERION did not, and redoing (H) over the
-   reduced form is the next thing it wants. What it is already is the
+   reduced form is the next thing it wants (later paid, and no new form
+   was needed: explore_slope_wrap.py proves the same inequality total --
+   a wrapping descent deposits a landing carry below the step, itself
+   below b^Delta, so every wrapped pair is non-empty while the
+   inequality fails of itself). What it is already is the
    ceiling argument the upper arc lacked, in the lower arc's own shape: its
    hypothesis n h > 2a b^Delta -- printed to hold at all 10,852
    non-contained pairs, not only where the census forces it -- with a
