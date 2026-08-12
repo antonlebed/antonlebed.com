@@ -218,7 +218,8 @@ FINDINGS (all sections assert; copied from run output only).
      explore_element_cascade.py -- 11.8% of these same fields at
      tau_K <= 4 -- the per-place reading covers at LEAST eight times as
      much, that 11.8% being an upper bound on the tau route for finding
-     2's reason, and covers it with the UNLOOSENED walk. But the 97% is the range's
+     2's reason, and covers it with the UNLOOSENED walk. But the 97% is
+     the range's
      number and not the world's, and finding 2 is why: |D| <= 1000 sits
      entirely under the floor's cap of 4000, so this census samples
      exactly the region where the reading is alive. Quote 97% only with
@@ -430,7 +431,8 @@ for D in range(-3, -CTRL_D - 1, -1):
             disagree.append((D, p))
 ok(not disagree,
    f"C1: agrees with the box search on every fundamental |D| <= {CTRL_D} "
-   f"and every p < {CTRL_P} ({len(disagree)} disagreements, {time.time()-t0:.1f}s)")
+   f"and every p < {CTRL_P} ({len(disagree)} disagreements, "
+   f"{time.time()-t0:.1f}s)")
 
 hits, exact = 0, True
 for D in range(-3, -CTRL_D - 1, -1):
@@ -534,7 +536,8 @@ for t in (10, 50, 100, 250, 500, BOUND):
     n_le = sum(1 for v in L1s if v <= t)
     print(f"    L_1 <= {t:>5}: {n_le:>4} of {len(rows)} "
           f"({100.0 * n_le / len(rows):5.1f}%)")
-print(f"    fields with L_1 > {BOUND}: {len(over)}  {[r[0] for r in over][:12]}")
+print(f"    fields with L_1 > {BOUND}: {len(over)}  "
+      f"{[r[0] for r in over][:12]}")
 print(f"    (mean L over the same fields, for scale: "
       f"{sum(r[2] for r in rows) / len(rows):.1f}; {time.time()-t0:.1f}s)")
 ok(len(over) <= 0.10 * len(rows),
@@ -643,7 +646,8 @@ mis = [D for D, _, L1 in allrows
 att = [D for D, _, L1 in allrows if L1 == floor_of[D]]
 even_att = [D for D in att if D % 2 == 0]
 print(f"    floor attained at {len(att)} of {len(allrows)} fields "
-      f"({100.0*len(att)/len(allrows):.1f}%), of which even D: {len(even_att)}")
+      f"({100.0*len(att)/len(allrows):.1f}%), of which even D: "
+      f"{len(even_att)}")
 ok(not mis,
    f"POST-HOC A  L_1 hits the floor exactly when D is odd and (|D|+1)/4 "
    f"is prime ({len(mis)} mismatches)")
