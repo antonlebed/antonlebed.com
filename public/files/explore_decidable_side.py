@@ -64,6 +64,14 @@ bandwidth is O(1) per op. Two consequences:
   shift the phase; it is NOT frozen at setup), while a program that keeps
   growing kills the pulse (each step's youngest window is nonzero, so the
   AND is never all-zero).
+  (Settled since by explore_born_at_zero.py, which proves the normal
+  form under this principle: the uniform repertoire is any fixed
+  integer recurrence in the age, not only a constant or t mod m, and
+  an addressed window's value need not be transfer-built -- a masked
+  componentwise value reads per-window through the sparse zero-test.
+  What every argument here actually used survives exactly: a fixed
+  window's content evolves inside (Z/m)^r under the shared op word.
+  The bounded-live claim stays the conjectured half.)
   PERIOD-AND-FREEZE. A faithful unbounded counter needs a register whose
   FIRING zero-test has UNBOUNDED period. Addressed signals have period
   <= the bounded live value B; the CRT pulse's firing period is lcm(the

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>The recovery chart — what buys universality back</title>
-<meta name="description" content="The knife edge run backwards, priced in re-imports: the comparison threshold's quantized purchase, the forgetful and base-extension borrows, the frontier rider that needs no door at all, the supply law beneath them, and the read surface where decidability turns out to live jointly.">
+<meta name="description" content="The knife edge run backwards, priced in re-imports: the comparison threshold's quantized purchase, the forgetful and base-extension borrows, the frontier rider that needs no door at all, the supply law beneath them with the normal form that proves its principle, and the read surface where decidability turns out to live jointly.">
 <link rel="canonical" href="https://antonlebed.com/computation/recovery">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -422,7 +422,10 @@ growth rate of <i>m<sub>g</sub></i>.</p>
   <b>bandwidth</b>: every arithmetic operation is componentwise, so
   value crosses windows only through the zero-test — one bit out —
   and the frontier singleton — one unit in. Two consequences, both
-  measured: an addressed live value is bounded by a program constant,
+  measured: an addressed value that <em>faithfully tracks a count</em>
+  is bounded by a program constant — the raw residue is not, since a
+  masked componentwise value can put any residue at an addressed
+  window and read it back one bit at a time through the zero-test —
   and a faithful register's zero-test fires at a period fixed by the
   program — growing extends the period, and a data-dependent freeze
   is the very counter it was meant to build.</p>
@@ -436,13 +439,96 @@ growth rate of <i>m<sub>g</sub></i>.</p>
   battery (Minsky universality cited); the cap
   lemma, the carry gadget, and the lcm freeze are proved by
   construction. That <em>no</em> construction counts on a sublinear
-  supply — general decidability of the o(<i>g</i>) class — is
-  conjectured on the born-at-zero principle, argued from the
-  operation semantics, not machine-checked over all machines.</p>
+  supply — general decidability of the o(<i>g</i>) class — remains
+  conjectured, but no longer on an argued principle: born-at-zero is
+  proved (next block), and what is left open is the single residual
+  the proof isolates.</p>
   <p class="verifier">verifiers:
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_bit_supply.py"><code>explore_bit_supply.py</code></a>,
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sqrt_supply.py"><code>explore_sqrt_supply.py</code></a>,
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_decidable_side.py"><code>explore_decidable_side.py</code></a></p>
+</article>
+
+<article class="claim" id="normal-form">
+  <div class="claim-head"><span class="claim-name">The suffix-evaluation
+  normal form</span> <span class="tier">theorem</span></div>
+  <p>Born-at-zero is not a principle the constructions keep running
+  into; it is a normal form on the whole machine. Write the <b>op
+  word</b> for the sequence of operations a run has executed so far,
+  and call the step that mints a fresh window a <b>grow</b>. Then along
+  any run, the content of register <i>i</i> at a window born at time
+  <i>τ</i> with modulus <i>m</i> is
+  <i>E<sub>i</sub></i>(the op word since <i>τ</i>) mod <i>m</i>, where
+  <i>E<sub>i</sub></i> is the free evaluation of that suffix over the
+  integers from the all-zero state. The induction on the op word is
+  short: reduction mod <i>m</i> is a ring homomorphism, so the
+  componentwise operations commute with it; write-constant writes one
+  integer; a grow never touches an old window; and the <b>frontier
+  singleton</b> — the register reading 1 at the freshest window and 0
+  at every older one, which is what makes a window addressable at
+  all — is 1 − ONES, a register write-constant set to 1 and then
+  complemented after a grow, so it introduces no case of its own.</p>
+  <p>The registers therefore carry no information beyond the op word.
+  A window's whole content is a function of its own modulus and the
+  suffix since its birth; two windows of equal age and modulus are
+  identical forever; and the configuration abstracts to the control
+  state plus the <em>set</em> of pairs (a window's column — its
+  <i>r</i>-tuple of register contents — and its modulus), with every
+  operation broadcast to all pairs and a grow inserting the zero pair.
+  That reset-broadcast structure holds for every program on every
+  supply, with no hypothesis on the growth rate. The window pool is a
+  delay line of the op stream sampled mod the supply, and not writable
+  memory.</p>
+  <p>What it buys is a reduction. After a run's last grow the whole
+  configuration lives in the finite space of control states times
+  ∏<sub><i>k</i></sub>(<b>Z</b>/<i>m<sub>k</sub></i>)<sup><i>r</i></sup>,
+  and the machine reads no input between grows — the supply is
+  consulted only at a grow. So the plain decider is complete for every
+  run with finitely many grows: simulate; answer HALT on halt; answer
+  LOOP at the first repeat of the <em>full</em> configuration, control
+  state and every window's column, with no grow between the two
+  occurrences. That certificate is sound — equal configurations have
+  equal futures, and the repeated segment holds no grow, window counts
+  being monotone and equal at its ends — and by pigeonhole it always
+  lands. Deciding halting on a supply therefore reduces to
+  semi-deciding that a run grows infinitely often: if every
+  forever-growing program admits a finite certificate of growing
+  forever, halting is decidable, since halt, loop and growth
+  certificates searched in parallel leave one always landing — and an
+  undecidable supply must carry forever-growing programs no
+  certificate scheme covers. Completeness makes &ldquo;grows forever&rdquo;
+  co-semi-decidable for free, its complement being exactly
+  halt-or-loop. The naive rule refuted below repeats a
+  <em>compressed</em> signature, and that compression is the whole
+  difference: the exact repeat is sound and exponentially patient, the
+  compressed one fast and wrong.</p>
+  <p>One sharpening the proof forces on the block above: a window
+  evolving under the shared op word realizes any fixed integer
+  polynomial recurrence in its age, not only a constant or the age mod
+  its own modulus. Fibonacci runs as a growing-window clock, its
+  zero-set at modulus <i>m</i> the multiples of the <b>rank of
+  apparition</b> α(<i>m</i>) — the least index at which <i>m</i>
+  divides a Fibonacci number — and the global zero-test fires as a
+  period-60 pulse at frozen moduli 2, 3, 4, 5. The capacity arguments
+  are untouched, having only ever used that a fixed window evolves
+  inside (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup> under the shared word,
+  which is the normal form itself.</p>
+  <p class="scope"><b>Scope.</b> The normal form is proved by induction
+  on the op word; the randomized run — 5,571 window checkpoints across
+  60 random programs on the sublinear, linear and bounded supplies,
+  zero mismatches — is a cross-check and never the proof. The decider
+  battery is rule tier: HALT, a certified LOOP far inside its
+  pigeonhole bound, and NO-CERTIFICATE at the step cap on a
+  forever-growing program — the residual class, by design — with both
+  positive controls passed before any verdict was read. The zero-sets and the pulse are run-verified at
+  moduli 2, 3, 4, 5. One direction of the reduction is proved —
+  certifiability gives decidability — and the converse is not claimed:
+  &ldquo;grows forever&rdquo; is co-semi-decidable, and nothing here makes it
+  semi-decidable. Certifying infinite growth is the residual the block
+  above leaves open, and it cannot be supply-uniform, the planted-bit
+  supply below refuting that by construction.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py"><code>explore_born_at_zero.py</code></a></p>
 </article>
 
 <article class="claim" id="landing-dichotomy">
@@ -461,8 +547,9 @@ growth rate of <i>m<sub>g</sub></i>.</p>
   forever: the faithful counter never re-zeros. The
   o(<i>g</i>)/Ω(<i>g</i>) boundary is the same line a third time —
   capacity cap, class placement, fire landing.</p>
-  <p>The naive halting test — declare a loop at the first repeated
-  signature — is phase-blind, and doubly unsound: a plain frozen
+  <p>The naive halting test — declare a loop at the first repeat of a
+  signal's compressed <b>signature</b>, its kind and phase rather than
+  its contents — is phase-blind, and doubly unsound: a plain frozen
   pulse of period 60 already draws a false loop against a true halt,
   and a riding signal's growing gaps fool it unboundedly. The sound
   replacement is a three-verdict decider — HALT with the halt time;
@@ -560,7 +647,10 @@ growth rate of <i>m<sub>g</sub></i>.</p>
   named and the coverage bound never exceeded across 61
   supply–modulus pairs. Two things remain open: the conjecture that
   every sublinear program's signals reduce to the four kinds, on the
-  bandwidth principle, and the classification's own open cell, the
+  bandwidth principle — the normal form above widens what a
+  growing-uniform signal may be, to any fixed integer recurrence in
+  the age, without touching the four-way split — and the
+  classification's own open cell, the
   band between ⌈√<i>g</i>⌉ and <i>g</i>, where the evidence is
   observation only.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_pending_fires.py">
