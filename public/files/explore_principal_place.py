@@ -73,7 +73,15 @@ THE HAND-DERIVATION (pre-engine, on paper).
           L_1 ~ 2h * ln(2h).
 
       Over |D| <= 1000 the class number reaches 28, so the heuristic
-      tops out near 225 -- comfortably below 1000. Since h grows like
+      tops out near 225 -- comfortably below 1000. [CORRECTION, made at
+      the audit and left in place because the slate is a frozen record:
+      28 is misread off the tau_K census's LARGEST-tau field, which is
+      not its largest-h one. The class number over this range reaches
+      36, so the heuristic's ceiling is 308. Neither number changes what
+      the prediction says or how the run answers it -- finding 4 has the
+      heuristic wrong in KIND -- and the misreading is recorded rather
+      than repaired because it is the one place a neighbouring census's
+      number was carried without being recomputed.] Since h grows like
       sqrt|D| (Siegel), the heuristic grows like sqrt|D|*log|D|, and the
       bound 1000 should start to bite somewhere around |D| ~ 10^4. That
       is a prediction the extended sweep can hit or miss.
@@ -161,8 +169,13 @@ measurement of tau_K and is simply not the coverage statistic.
 
 FINDINGS (all sections assert; copied from run output only).
 
-  1. THE FLOOR: L_1 >= |D|/4, EXACTLY, AND IT IS ATTAINED (property,
-     proved post-hoc; 0 violations over 6079 fields). The slate did not
+  1. THE FLOOR: L_1 >= |D|/4, EXACTLY, AND IT IS ATTAINED (theorem over
+     every imaginary quadratic field, both directions proved; derived
+     post-hoc, and controlled at 0 violations over 6079 fields). The
+     tier is the corpus's own for an elementary unconditional statement
+     holding at its whole scope with no computation in it -- the same
+     one the inhabited residual carries -- and "property" would
+     under-claim a proof that needs no range. The slate did not
      see it and the run made it unmissable -- no band above |D| = 5000
      had a single field under the bound, and a first-hit process with a
      lower tail cannot print a clean 100.0%. It is the same completion
@@ -176,17 +189,22 @@ FINDINGS (all sections assert; copied from run output only).
      and D = 1 - 4c_0 makes gcd(c_0, D) = 1, so a prime c_0 is
      unramified and principal by that very representation; while at
      D = 0 mod 4 the floor value |D|/4 DIVIDES D, hence ramifies, hence
-     is never rank-1 -- and no even discriminant attains the floor.
-     The floor knows nothing about the class group and holds at every h.
+     is never rank-1 -- and no even discriminant attains the floor. The
+     converse needs no more than the definition: L_1 is an odd prime, so
+     if it equals the floor then the floor IS an odd prime, and the even
+     case is excluded by the ramification just given. The floor knows
+     nothing about the class group and holds at every h.
 
   2. SO THE COVERAGE IS A FINITE SET, AND THE FLOOR NAMES IT (rule,
      proved + verified to |D| = 20000). At sweep bound P, no field with
      |D| > 4P holds a principal rank-1 characteristic below P AT ALL.
      At P = 1000 that leaves 1217 fundamental discriminants, of which
      856 (70.3%) are closed and the other 4862 fields in the sweep are
-     closed by nothing. The tau_K <= 4 route reaches 36 of the same
-     1217 (3.0%). So the per-place reading is the wider of the two by
-     24x over the range where either lives -- and BOTH are finite-set
+     closed by nothing. At most 36 of the same 1217 (3.0%) are reached
+     by the tau route -- that is the count with tau_K <= 4, which is
+     necessary and not sufficient, so the rival is being over-counted in
+     its own favour. So the per-place reading is the wider of the two by
+     at least 24x over the range where either lives -- and BOTH are finite-set
      readings. Neither scales, and the uniform front is untouched:
      hand-derivation (6) hands the primorial witness L_1 >= L > P for
      free, so the residual of the principal reading is inhabited at
@@ -198,8 +216,9 @@ FINDINGS (all sections assert; copied from run output only).
      D = -815 (h = 30); the nine survivors are D = -479, -671, -815,
      -831, -863, -887, -959, -983, -991. Against finding 3 of
      explore_element_cascade.py -- 11.8% of these same fields at
-     tau_K <= 4 -- the per-place reading covers eight times as much, and
-     covers it with the UNLOOSENED walk. But the 97% is the range's
+     tau_K <= 4 -- the per-place reading covers at LEAST eight times as
+     much, that 11.8% being an upper bound on the tau route for finding
+     2's reason, and covers it with the UNLOOSENED walk. But the 97% is the range's
      number and not the world's, and finding 2 is why: |D| <= 1000 sits
      entirely under the floor's cap of 4000, so this census samples
      exactly the region where the reading is alive. Quote 97% only with
@@ -211,8 +230,9 @@ FINDINGS (all sections assert; copied from run output only).
      |D| <= 1000, then 35.8%, 65.0%, 100.0%, 100.0%. Hand-derivation
      (4) predicted a crossover near |D| ~ 10^4 from the class number
      alone; it sits at 4000 and is forced by the floor. The heuristic
-     2h*ln(2h) undershoots the measured mean L_1 by 3-7x at every class
-     number, and it is wrong in KIND rather than in constant: it models
+     2h*ln(2h) undershoots the measured mean L_1 at every one of the 34
+     class numbers in range, by 2.88x (at h = 20) to 8.56x (at h = 3),
+     and it is wrong in KIND rather than in constant: it models
      L_1 as a first hit in a density-1/(2h) set starting from the
      bottom, and below |D|/4 that set is EMPTY. The density itself is
      not what failed -- C4 measures it at 0.887 to 0.980 of 1/(2h) over
@@ -676,6 +696,12 @@ print("=" * 72)
 # field with |D| >= 4*BOUND can hold a principal rank-1 place below
 # BOUND at all. The comparison against the tau_K route is made over that
 # same capped range, which is the only range where either is alive.
+# tau_K <= 4 is counted as an UPPER BOUND on that route and not as its
+# reach: it is necessary but not sufficient, the tau = 3 and tau = 4
+# walks being swept only to 700 and 500, so a field with tau_K in {3, 4}
+# whose least rank-1 characteristic lies above its own tau's bound is
+# counted here and is not in fact closed. The over-count runs in favour
+# of the rival, which is the safe direction for the comparison below.
 cap = 4 * BOUND
 inrange = [(D, h, L1, tk) for D, h, L1, tk in big if -D <= cap]
 closed = [r for r in inrange if r[2] <= BOUND]
@@ -683,15 +709,15 @@ tau4 = [r for r in inrange if r[3] <= 4]
 print(f"    fundamental discriminants with |D| <= {cap}: {len(inrange)}")
 print(f"    of them closed by a principal rank-1 char below {BOUND}: "
       f"{len(closed)} ({100.0*len(closed)/len(inrange):.1f}%)")
-print(f"    of them reached by the tau_K <= 4 sweep: {len(tau4)} "
-      f"({100.0*len(tau4)/len(inrange):.1f}%)")
+print(f"    of them with tau_K <= 4, an UPPER BOUND on the tau route's "
+      f"reach: {len(tau4)} ({100.0*len(tau4)/len(inrange):.1f}%)")
 print(f"    fields with |D| > {cap} closed by this route: 0, by POST-HOC A")
 ok(all(r[2] > BOUND for r in big if -r[0] > cap),
    f"POST-HOC C  no field with |D| > {cap} has L_1 <= {BOUND} "
    f"({sum(1 for r in big if -r[0] > cap)} fields checked)")
 ok(len(closed) > len(tau4),
    f"POST-HOC C  the principal route reaches more of the capped range "
-   f"than the tau_K <= 4 sweep ({len(closed)} against {len(tau4)})")
+   f"than the tau route's upper bound ({len(closed)} against {len(tau4)})")
 
 print()
 print(f"{sum(PASS)}/{len(PASS)} checks pass")
