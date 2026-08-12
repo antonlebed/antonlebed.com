@@ -107,11 +107,21 @@ C. THE CASCADE BOUNDARY (the REDUCTION is a rule, proved by hand in the
    a GENERATOR. Writing tau_K for the least bound such that every ideal
    class holds an ideal of norm <= tau_K (Minkowski gives one;
    tau_K = 1 iff h = 1), P^(v+2) principalizes at norm <= tau_K*p^(v+2),
-   so step (2) survives with that constant and v_p still diverges — but
-   step (3)'s cap loosens to m < tau_K*p. The reduction therefore holds
-   verbatim in the ideal world of every char-0 ring and in the element
-   world of every PID; an element world with h > 1 needs the ladder
-   re-walked at cap tau_K*p.
+   so step (2)'s door survives with that constant attached — but the
+   other two steps do not survive, and they fail differently. Step (1)
+   is powered by the single-place lemma, which is exactly what dies
+   here, so cost divergence has to be RE-ESTABLISHED: the pigeonhole
+   would run over IDEALS of bounded norm rather than places, and then
+   ask whether a place deepened infinitely often INSIDE bundles still
+   absorbs the tail. Plausible — the censused element seeds lock at
+   4/move where the ideal price is 2, a bounded recurrent price with a
+   passenger tax on it — and not proved. Step (3)'s cap simply loosens,
+   to m < tau_K*p. So the reduction holds verbatim in the ideal world of
+   every char-0 ring, and in the element world of every PID (there a
+   single place's power is principal, so the crystal lemma and the door
+   both come back at tau_K = 1); an element world with h > 1 owes an
+   absorption argument first and a ladder re-walked at cap tau_K*p
+   second.
    WHAT STAYS OPEN is the ladder's death, unchanged: heuristically dead
    at any bounded cap (chained window hits ~ prod c/v_i -> 0; the
    cap-growth model threshold ~ v ln v and certified per-cap
