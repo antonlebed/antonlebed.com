@@ -115,8 +115,10 @@ PREDICTIONS (fixed before any engine code; hand-derived above).
 
 WHAT A CLEAN RUN BUYS, and what it does not. It does not prove the
 cascade boundary closed: the reduction itself is cited from
-explore_module_law.py and read rather than checked there, and the sweep
-is an initial segment and not all primes. What it buys is a rule of the
+explore_module_law.py and read rather than checked there -- it has
+SINCE been proved in that section, for the ideal world, so the citation
+now carries a scope where it carried a debt -- and the sweep is an
+initial segment and not all primes. What it buys is a rule of the
 form "the boundary is closed at every characteristic below P_MAX",
 which by (b) closes every ring possessing a rank-1 characteristic below
 P_MAX -- and that is a statement about RINGS, which is what the residual

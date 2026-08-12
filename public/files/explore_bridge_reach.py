@@ -199,8 +199,11 @@ worlds — the content is the design + the alphabet law, not new
 analytic number theory; every S-conjecture stays open. Chart levels
 are surface-quantifier classifications of the natural formulations.
 The R4 kill claims are per-char, bounded-cap, modulo the module-law
-reduction (explore_module_law.py C — cited, not re-derived); the
-full ALL-trajectory boundary stays open. Primality is deterministic
+reduction (explore_module_law.py C — cited, not re-derived here).
+That reduction has since been PROVED in that section, for the ideal
+world; so what stood as a modulo is now a scope, and these claims
+read over ideal dynamics. The full ALL-trajectory boundary stays
+open. Primality is deterministic
 below 3.317e24 and strong-PRP above (hit claims only; all-miss
 certificates carry printed factors or MR-composite proofs).
 

@@ -220,9 +220,10 @@ FINDINGS (printed output copied from the run).
    step spends) -- which is the lock.
 
 5. WHAT THIS DOES TO THE BOUNDARY (scope stated exactly). Modulo the
-   explore_module_law.py C reduction, cited and not re-derived: a
-   char-0 trajectory with a rank-1 place over 2, 3 or 5 LOCKS,
-   unconditionally. Every number ring has rank-1 places at infinitely
+   explore_module_law.py C reduction, cited and not re-derived here --
+   and since PROVED in that section for the ideal world, which turns
+   this modulo into a scope: a char-0 trajectory with a rank-1 place
+   over 2, 3 or 5 LOCKS, unconditionally in the ideal world. Every number ring has rank-1 places at infinitely
    many chars (Chebotarev), so the open content is no longer a wander
    RATE at all -- it is the residual family of rings whose rank-1
    chars all avoid 2, 3 and 5, and for each such char the walk is a
