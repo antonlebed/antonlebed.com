@@ -324,7 +324,21 @@ content is a function of constants + w + its own born-0 registers, and
 only iterated w-transfer accumulates value), not machine-checked
 exhaustively over all machines, so the decidable verdict for o(g)
 remains a strong CONJECTURE -- but on the born-at-zero principle, a much
-firmer footing than "these three schemes happen to fail." The cap W_d^2 is the
+firmer footing than "these three schemes happen to fail."
+(SETTLED SINCE, two ways, and this paragraph's own wording is what they
+correct. The born-at-zero principle is no longer argued: it is the
+suffix-evaluation normal form, proved by induction on the op word in
+explore_born_at_zero.py, which also reduces the open half to one
+residual -- semi-deciding that a run grows infinitely often. And
+"general decidability of the o(g) regime" above names the MACHINE-side
+capacity conjecture only; it is not the same statement as halting being
+decidable on an o(g) supply, since the supply's own arithmetic is a
+second channel and an untame supply carries halting facts with every
+cap intact -- explore_pending_fires.py and explore_supply_tameness.py.
+What survives here unchanged is the capacity material: the cap lemma,
+the carry gadget, the re-basing argument, the lcm freeze, and the
+linear-rate boundary.)
+The cap W_d^2 is the
 best case of the top-migratable family; a specific program's W_d is
 whatever its frozen lower bases multiply to, always a constant. The
 sqrt supply uses m_g = max(2, ceil(sqrt g)) to avoid the degenerate
