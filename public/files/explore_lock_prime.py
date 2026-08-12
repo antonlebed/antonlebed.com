@@ -140,7 +140,12 @@ questions. Whether wander length is UNBOUNDED over seeds is open — the
 candidate mechanism is a 2-adic ghost ladder (5, 17, 97, 193, 257,
 7681, ...: each the least prime with v2(p-1) exceeding the
 accumulated dowry), but the blocker bookkeeping is delicate and no
-construction is claimed; the max wander over the census range is a
+construction is claimed [that bookkeeping is done in
+explore_ghost_wander.py, and the ladder fails on COST, not on
+supply: every listed rung is prime, and 7681 costs more than the
+door it would have to undercut. The question settled there is the
+CASCADE ladder's, so unboundedness of the ghost wander over seeds —
+this script's own quantity — stays open]; the max wander over the census range is a
 measured output (RUN RECORD), with the wander-3 specimen 20231
 asserted individually in S5.
 
