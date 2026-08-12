@@ -204,7 +204,10 @@ FINDINGS (all sections assert; copied from run output only).
      by the tau route -- that is the count with tau_K <= 4, which is
      necessary and not sufficient, so the rival is being over-counted in
      its own favour. So the per-place reading is the wider of the two by
-     at least 24x over the range where either lives -- and BOTH are finite-set
+     at least 23x over the range where either lives (856/36 = 23.8, and
+     the 36 being an upper bound is what fixes the direction to round in:
+     a larger rival count lowers the ratio, so the floor is 23 and not
+     24) -- and BOTH are finite-set
      readings. Neither scales, and the uniform front is untouched:
      hand-derivation (6) hands the primorial witness L_1 >= L > P for
      free, so the residual of the principal reading is inhabited at
