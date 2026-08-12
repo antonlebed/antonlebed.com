@@ -56,6 +56,7 @@ export default {
       '/object/frequency': 'frequency',
       '/growth': 'growth',
       '/growth/fields': 'fields',
+      '/growth/cascade': 'cascade',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
       '/growth/clock': 'clock',
