@@ -59,18 +59,66 @@ B. CRYSTAL + ABSORPTION (rule, proved — the leapfrog endgame is the
    are NOT monotone); a ticking deepening leaves the column OWNING
    v_p; external v_p-raises cost > p^(v+1).
 
-C. THE CASCADE BOUNDARY (open, named exactly). Lock existence for ALL
-   trajectories in general char 0 reduces to ruling out an infinite
-   carrier ladder: a non-locking trajectory needs, at every stage and
-   for every char with a rank-1 place, a fresh carrier q_R = m*p^(v+1)+1
-   (m < p^(1+w)) cheaper than the virgin p-door — Proth-form primes in
-   narrow exponential windows, chained forever. Heuristically dead
+C. THE CASCADE BOUNDARY (the REDUCTION is a rule, proved by hand in the
+   ideal world; what stays open is the ladder's death, not the
+   reduction). Lock existence for ALL trajectories in general char 0
+   reduces to ruling out an infinite carrier ladder: a non-locking
+   trajectory needs, at every stage and for EVERY char with a rank-1
+   place, a fresh carrier q_R = m*p^(v+1)+1 (m <= p-1) cheaper than the
+   virgin p-door — Proth-form primes in narrow exponential windows,
+   chained forever.
+   THE DERIVATION, three steps, over a norm-finite Dedekind ring of
+   char 0 under cold D-DYN (the least-norm lambda-growing move):
+   (1) NON-LOCK MAKES COSTS DIVERGE. If infinitely many moves cost
+       <= B, each deepens a place of norm <= B (moves are single-place,
+       B) and there are finitely many such places, so one is picked
+       infinitely often at bounded cost and B(i) absorbs the tail — a
+       lock. So along a non-locking trajectory cost_n -> infinity.
+   (2) EVERY RANK-1 CHAR CAPS THE COST, WHICH IS WHY THE DEMAND IS A
+       CONJUNCTION. Let P be rank-1 over p (e = f = 1, so K_P = Q_p
+       exactly and theorem A reads E(a) = p^(a-1)) and let
+       v = v_p(lambda_n). Deepening P to depth v+2 raises v_p, and it
+       costs at most p^(v+2) (2^(v+3) at p = 2, the extra Z/2): a
+       lambda-growing move available whatever the state. Greedy is
+       minimal, so cost_n <= p^(v_p(lambda_n)+2) — for every rank-1
+       char at once. With (1), v_p(lambda_n) -> infinity at every one
+       of them SIMULTANEOUSLY. The trajectory does not get to choose
+       which characteristic to keep unsettled: each one caps its cost
+       independently at every stage, so it must defeat all of them.
+   (3) THE RISES NEED OUTSIDE CARRIERS, AND THE DOOR CAPS THEIR SIZE.
+       By (2) v_p rises infinitely often. Only finitely many rises can
+       run through a place OVER p: there are finitely many such places
+       and a recurrent one owns v_p at the constant price p^rank (A, B),
+       which is bounded and contradicts (1). At a place Q not over p,
+       lambda(Q^b) = lcm(N(Q)-1, E_Q(b)) with E_Q(b) a power of Q's own
+       residue char, so the p-part can only come from N(Q)-1 — whence
+       the carrier form p^(v+1) | N(Q)-1, paid at face value N(Q). And
+       greedy against the door of (2) gives N(Q) = m*p^(v+1)+1 <
+       p^(v+2), i.e. m <= p-1: THE CAP IS PINNED AT w = 0 by the door
+       alone (the budget inequality reaches the same pin by a different
+       route, explore_ghost_wander.py). A place opens once, so the
+       carriers are all distinct: the ladder, chained forever, at every
+       rank-1 char.
+   So the conjunction is real and the disjunction reading is refuted:
+   breaking ONE characteristic closes the ring, which is what turns a
+   sweep over primes into a statement about rings.
+   WHAT IT ASSUMES, exactly: THE IDEAL WORLD. Element moves are not
+   single-place — B's door lemma dies there — so the door is charged on
+   a GENERATOR. Writing tau_K for the least bound such that every ideal
+   class holds an ideal of norm <= tau_K (Minkowski gives one;
+   tau_K = 1 iff h = 1), P^(v+2) principalizes at norm <= tau_K*p^(v+2),
+   so step (2) survives with that constant and v_p still diverges — but
+   step (3)'s cap loosens to m < tau_K*p. The reduction therefore holds
+   verbatim in the ideal world of every char-0 ring and in the element
+   world of every PID; an element world with h > 1 needs the ladder
+   re-walked at cap tau_K*p.
+   WHAT STAYS OPEN is the ladder's death, unchanged: heuristically dead
    at any bounded cap (chained window hits ~ prod c/v_i -> 0; the
    cap-growth model threshold ~ v ln v and certified per-cap
    all-miss censuses: explore_bridge_reach.py),
    unprovable with current least-prime-in-progression bounds. Z's
    lock existence is proved elsewhere; K's and Q(sqrt(-23))'s are
-   censused. What IS fully general is Theorem B's characterization.
+   censused.
 
 FINDINGS (run record at bottom; all sections assert; copied from run
 output only).
