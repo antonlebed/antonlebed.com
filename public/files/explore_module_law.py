@@ -102,26 +102,25 @@ C. THE CASCADE BOUNDARY (the REDUCTION is a rule, proved by hand in the
    So the conjunction is real and the disjunction reading is refuted:
    breaking ONE characteristic closes the ring, which is what turns a
    sweep over primes into a statement about rings.
-   WHAT IT ASSUMES, exactly: THE IDEAL WORLD. Element moves are not
-   single-place — B's door lemma dies there — so the door is charged on
-   a GENERATOR. Writing tau_K for the least bound such that every ideal
-   class holds an ideal of norm <= tau_K (Minkowski gives one;
-   tau_K = 1 iff h = 1), P^(v+2) principalizes at norm <= tau_K*p^(v+2),
-   so step (2)'s door survives with that constant attached — but the
-   other two steps do not survive, and they fail differently. Step (1)
-   is powered by the single-place lemma, which is exactly what dies
-   here, so cost divergence has to be RE-ESTABLISHED: the pigeonhole
-   would run over IDEALS of bounded norm rather than places, and then
-   ask whether a place deepened infinitely often INSIDE bundles still
-   absorbs the tail. Plausible — the censused element seeds lock at
-   4/move where the ideal price is 2, a bounded recurrent price with a
-   passenger tax on it — and not proved. Step (3)'s cap simply loosens,
-   to m < tau_K*p. So the reduction holds verbatim in the ideal world of
-   every char-0 ring, and in the element world of every PID (there a
-   single place's power is principal, so the crystal lemma and the door
-   both come back at tau_K = 1); an element world with h > 1 owes an
-   absorption argument first and a ladder re-walked at cap tau_K*p
-   second.
+   WHERE IT WAS DERIVED, and where it now holds: the three steps are
+   written above for THE IDEAL WORLD, element moves not being
+   single-place, and all three carry over — the first by a repair, the
+   second with a constant, the third with a loosening
+   (explore_element_cascade.py, which owns the element-world derivation
+   and re-walks the ladder under it). Step (1)'s pigeonhole moves from
+   PLACES of bounded norm to IDEALS of bounded norm, both finite for the
+   same reason, and the always-available constant-price move becomes a
+   power of the recurrent BUNDLE rather than of the place: cost
+   divergence survives at a field constant max(N(A)^e, p^(n*h)) in place
+   of p^rank — the passenger tax finding 3 prints as 4/move where the
+   ideal price is 2. Step (2)'s door is charged on a GENERATOR, at
+   tau_K = max over ideal classes of the LEAST NORM in the class (a
+   value, exactly computable, not merely the Minkowski bound that
+   dominates it; tau_K = 1 iff h = 1), so P^(v+2) principalizes at norm
+   <= tau_K*p^(v+2). Step (3)'s cap loosens to m < tau_K*p. So the
+   reduction holds in the ideal world of every char-0 ring and in the
+   element world of every number field, the cap being the only thing the
+   class group moves.
    WHAT STAYS OPEN is the ladder's death, unchanged: heuristically dead
    at any bounded cap (chained window hits ~ prod c/v_i -> 0; the
    cap-growth model threshold ~ v ln v and certified per-cap
