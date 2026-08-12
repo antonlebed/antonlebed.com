@@ -55,6 +55,7 @@ export default {
       '/object/structure': 'structure',
       '/object/frequency': 'frequency',
       '/growth': 'growth',
+      '/growth/fields': 'fields',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
       '/growth/clock': 'clock',
