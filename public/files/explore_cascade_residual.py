@@ -133,8 +133,8 @@ named here and not measured.
 FINDINGS.
 
   1. THE RESIDUAL IS INHABITED AT EVERY BOUND, SO NO SWEEP EMPTIES IT
-     (rule, proved; the argument is hand-derivation (3) and the engine
-     only controls it). For every P the primorial field
+     (theorem: the argument is hand-derivation (3), complete for every P
+     with no computation in it, and the engine only controls it). For every P the primorial field
      Q(sqrt(2*3*...*P)) has every prime <= P dividing its discriminant,
      hence ramified, hence not rank-1: L > P, checked at every odd
      P <= 97 and printed with its witness (H3). So extending
@@ -179,9 +179,10 @@ FINDINGS.
      L ~ 1.4 log|D| loglog|D| reads 71 where the top champion has
      L = 127, so it is quoted only to be refused. What the law describes
      is the measured extremal family to 10^8 in degree 2; for an
-     arbitrary field the best proved statement is the GRH-conditional
-     L << (log|disc|)^2, and the unconditional ones are far weaker
-     still. Claiming the retail case cheap BECAUSE of a bound would
+     arbitrary field what is available is conditional -- effective
+     Chebotarev under GRH giving L << (log|disc|)^2 -- and nothing
+     measured here replaces it. Claiming the retail case cheap BECAUSE
+     of a bound would
      claim for every ring what was measured of one family's extremes --
      which is what hand-derivation (6) reached for before the run, and
      it is left standing there as the expectation it was, corrected here
