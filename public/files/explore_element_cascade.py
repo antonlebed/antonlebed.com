@@ -47,9 +47,9 @@ THE HAND-DERIVATION (pre-engine, on paper).
         moment. A has finitely many places, so one place P | A, of
         residue characteristic p, ticks-and-owns infinitely often.
         (1c) THE ALWAYS-AVAILABLE MOVE SURVIVES PRINCIPALITY. P's depth
-        goes to infinity, hence past the local threshold (<= 3, theorem
-        A), past which each e_P of further depth is exactly one
-        lambda_p-tick. So A^(e_P) is a legal element move at EVERY step,
+        goes to infinity, hence past theorem A's local threshold
+        b > e_P/(p-1), past which each e_P of further depth is exactly
+        one lambda_p-tick. So A^(e_P) is a legal element move at EVERY step,
         at the constant cost C = N(A)^(e_P), raising P's column p-part by
         one: whenever P owns v_p(lambda), it is lambda-growing and greedy
         pays at most C. The ideal world got this from P^e alone; here the
@@ -58,21 +58,26 @@ THE HAND-DERIVATION (pre-engine, on paper).
         (1d) OWNERSHIP IS NOT TAKEN BACK CHEAPLY, AND GREEDY NEVER PAYS
         DEARLY TO TAKE IT. Fix n0 late enough that P is past threshold
         and p^(v+1) > C, v = v_p(lambda) at n0; just after A is applied
-        at n0, P owns v_p. Ownership can pass only three ways. To another
-        place P' over p: it must climb through equality with P, and at
-        equality a tick at P' is lambda-growing at P's own constant
-        recurrent price, which in the element world is the class-order
-        price N(P')^m <= p^(n*h). To a carrier Q not over p already held:
-        its p-part is fixed at opening (lambda(Q^b) = lcm(N(Q)-1,
-        E_Q(b)), E_Q a power of Q's own residue characteristic), so it
-        cannot rise, and P's p-part passes it in finitely many
-        A-applications. To a FRESH carrier: that costs more than
-        p^(v+1) > C, and greedy never buys it while a C-priced growing
-        move is available. So from n0 on every move costs at most
-        max(C, p^(n*h)): a bounded-cost tail, i.e. a LOCK, contradicting
-        non-lock. Hence cost_n -> infinity along a non-locking element
-        trajectory. The repair costs ONE constant, and it is a field
-        constant rather than a p-dependent one.
+        at n0, P owns v_p. Ownership can pass only three ways, and NONE
+        of them escapes a bounded price. To a carrier Q not over p
+        already held: its p-part is frozen at opening (lambda(Q^b) =
+        lcm(N(Q)-1, E_Q(b)) with E_Q a power of Q's own residue
+        characteristic, so only N(Q)-1 carries p), and P's own p-part
+        passes it in finitely many A-applications. To a FRESH carrier off
+        p: owning v_p there demands p^(v+1) | N(Q)-1, hence a norm above
+        p^(v+1) > C, and greedy never buys that while a C-priced growing
+        move is live. To another place P' OVER p -- the one transfer that
+        can actually happen, and it needs no argument about how P' got
+        there, since a place over p offers its own lambda-growing move at
+        a CONSTANT price: the class-order power N(P')^m <= p^(n*h), the
+        element world's reading of theorem B's recurrent p^rank. So the
+        owner of v_p is, from n0 on, always one of the finitely many
+        places over p, each of them selling a growing move at a fixed
+        price, and every move costs at most max(C, p^(n*h)): a
+        bounded-cost tail, i.e. a LOCK, contradicting non-lock. Hence
+        cost_n -> infinity along a non-locking element trajectory. The
+        repair costs ONE constant, and it is a field constant rather than
+        a p-dependent one.
   (2) THE DOOR CONSTANT, DEFINED EXACTLY. tau_K = max over ideal classes
       c of min{N(a) : a in c}. Then the element door is at most
       tau_K * p^(v+2); tau_K = 1 iff h = 1 (a class of least norm 1 is
@@ -105,8 +110,12 @@ THE HAND-DERIVATION (pre-engine, on paper).
       form's a. So tau_K = max a over reduced forms, and a <= sqrt(|D|/3)
       is the reduction bound. At D = -23 the reduced forms are (1,1,6)
       and (2,+-1,3), so h = 3 and tau_K = 2 -- against a Minkowski bound
-      of 3.05, and matching the element census's 4/move where the ideal
-      price is 2 (explore_module_law.py findings 3, 4).
+      of 3.05. RESIST reading that 2 into the element census's 4/move
+      against an ideal price of 2: those agree by COINCIDENCE at this
+      field. The census's factor is the tail's VEHICLE menu, the rational
+      (p) at norm p^min(fm,n) = p^n = 4 (explore_module_law.py finding 4),
+      a lock price; tau_K is the padding on a DOOR at a rank-1 place. Two
+      quantities, two mechanisms, equal here and not in general.
 
 PREDICTIONS (fixed before any engine code beyond the timing probe noted
 under HOW THIS RIG GOT HERE, which is where E5's standing comes from).
@@ -131,8 +140,8 @@ under HOW THIS RIG GOT HERE, which is where E5's standing comes from).
   E4 (THE QUESTION; rule in range if it holds). At tau = 2, 3 and 4,
      every odd prime p below that tau's sweep bound has a certified death
      rung below RUNG_CAP. OBSERVABLE: the printed count of primes still
-     climbing at the cap, per tau. KILL: that count is nonzero at any tau -- the
-     deaths would then stop being generic under the loosening, the
+     climbing at the cap, per tau. KILL: that count is nonzero at any
+     tau -- the deaths stop being generic under the loosening, the
      element-world statement would not be the ideal-world one with a
      constant attached, and the /growth/fields sweep block would owe an
      explicit statement of which world it lives in.
@@ -155,13 +164,17 @@ under HOW THIS RIG GOT HERE, which is where E5's standing comes from).
 WHAT A CLEAN RUN BUYS. Hand-derivation (1) carries the reduction's step
 (1) into the element world, (2)-(3) carry step (2) and loosen step (3),
 and a clean E4 walks the loosened ladder to its death at every odd
-characteristic below P_MAX. Together those close the cascade boundary in
-the ELEMENT world of every char-0 ring whose tau_K is at most 4 and which
-has a rank-1 characteristic below P_MAX -- where the ideal-world close
-reached the element world only at h = 1. What it does not buy: the
-ladder's death is still certified per rung by arithmetic rather than
-proved (explore_cascade_chars.py hand-derivation (4) is unchanged by the
-loosening), the sweep is an initial segment, and tau_K > 4 is untouched.
+characteristic below that tau's own bound. Together those close the
+cascade boundary in the ELEMENT world of a char-0 ring holding a rank-1
+characteristic below the bound BELONGING TO ITS OWN tau -- 1000 at
+tau_K <= 2, 700 at 3, 500 at 4, the bound falling exactly where the ring
+needs it most -- against an ideal-world close that reached the element
+world only at h = 1. Reading tau_K there is the safe direction, tau_P at
+the place being at most it. What it does not buy: the ladder's death is
+still certified per rung by arithmetic rather than proved
+(explore_cascade_chars.py hand-derivation (4) is unchanged by the
+loosening), each sweep is an initial segment, and tau_K > 4 is
+untouched.
 
 FINDINGS (run record at bottom; all sections assert; copied from run
 output only).
@@ -173,6 +186,10 @@ output only).
      below 500. The ladder is not saved by the loosening: it is DELAYED
      by it, the death rung deepening by roughly a factor of tau (mean
      D_tau/D_1 = 1.97, 2.82, 3.61 at tau = 2, 3, 4) and always arriving.
+     Each of those means is taken over its OWN tau's swept range, so they
+     summarise three walks and are not a controlled series in tau; the
+     probe's equal-range clock, 1.5 / 12.6 / 48.0 / 88.9 s at p <= 400,
+     is the one measurement here that does hold the range fixed.
      The maxima move with it: 62 at p = 719 (tau = 1) becomes 116 at
      p = 859 (tau = 2), and 137 at p = 499 (tau = 4). So the element
      world's statement IS the ideal world's with a constant attached,
@@ -181,12 +198,15 @@ output only).
   2. tau_K MEASURED RATHER THAN BOUNDED, AND AT K23 IT IS 2 (rule; the
      reduced-form instrument, controlled at five known class numbers).
      Q(sqrt(-23)) has reduced forms (1,1,6) and (2,+-1,3), so h = 3 and
-     tau_K = 2 exactly, against a Minkowski bound of 3.05. That 2 is the
-     factor the element census already printed and did not name: seeds
-     locking at 4/move where the ideal price is 2
-     (explore_module_law.py findings 3 and 4). The working constant is
-     the measurement, not the bound, and a smaller tau is directly a
-     stronger close.
+     tau_K = 2 exactly, against a Minkowski bound of 3.05. The working
+     constant is the measurement, not the bound, and a smaller tau is
+     directly a stronger close. It is NOT the element census's 4/move
+     against an ideal 2, however nearly that reads: that factor is the
+     tail's vehicle menu (the rational (p) at p^min(fm,n) = p^n = 4,
+     explore_module_law.py finding 4), a lock price rather than a door's
+     padding. The two agree at this field and have no reason to in
+     general -- p^(n-ef) is a splitting fact and tau_K a class-group
+     one.
 
   3. BUT tau_K GROWS LIKE THE DISCRIMINANT'S ROOT, so a wider sweep is
      the wrong instrument for the rest (observation; 305 fundamental
@@ -213,8 +233,10 @@ output only).
      1000 -- strictly more rings than the PIDs the ideal-world scope
      reached, and reached without any loosening at all. Principal
      degree-1 places are those splitting completely in the Hilbert class
-     field, so they carry density 1/(h*n) > 0 in every number field and
-     the only question is how far down the first one sits. That is the
+     field, so they carry POSITIVE density in every number field, and
+     1/(h*n) exactly when K/Q is Galois -- H/Q is Galois only then, so
+     the clean constant is the quadratic case's and not the general one.
+     The only question left is how far down the first one sits. That is the
      quantity a coverage census should have measured, and it is not this
      rig's.
 
@@ -246,9 +268,12 @@ first two bear on how much E4 is worth.
   400 < p <= 500 at tau = 4. E5, formed after those probes printed their
   max death rungs, is a description and not a prediction, which is why it
   is scored and never counted. What the bounds cannot be is
-  verdict-selected: they were fixed from the clock while every probe
-  already showed a clean E4 beneath them, so lowering one could only
-  discard a settled prime and never hide an unsettled one.
+  verdict-selected: they were fixed from the clock BEFORE this run, and no
+  probe at any bound ever produced a survivor, so there was never an
+  unsettled prime for a bound to be drawn around. Note which way the
+  probed regions sit -- a SUBSET of the bound at tau = 2 and tau = 4,
+  coinciding with it at tau = 3 -- so at two of the three the stretch the
+  bound genuinely adds was settled by this run and by nothing earlier.
 
   A FLAT BOUND WAS TRIED FIRST AND COST TWO HOURS FOR NOTHING. The first
   attempt swept every tau to 1000 and ran 6833 s (peak working set
@@ -558,9 +583,9 @@ worst = max(fields, key=lambda r: r[2])
 print(f"    largest tau_K in range: {worst[2]} at D = {worst[0]} "
       f"(h = {worst[1]}); mean tau_K = "
       f"{sum(tk for _, _, tk in fields) / len(fields):.2f}")
+_ratios = [tk / minkowski_bound(D) for D, _, tk in fields]
 print(f"    ratio tau_K / Minkowski, mean "
-      f"{sum(tk / minkowski_bound(D) for D, _, tk in fields) / len(fields):.3f}"
-      f", worst {max(tk / minkowski_bound(D) for D, _, tk in fields):.3f}")
+      f"{sum(_ratios) / len(_ratios):.3f}, worst {max(_ratios):.3f}")
 
 print()
 print("=" * 72)

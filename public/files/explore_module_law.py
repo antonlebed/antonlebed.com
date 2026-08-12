@@ -112,9 +112,9 @@ C. THE CASCADE BOUNDARY (the REDUCTION is a rule, proved by hand in the
    same reason, and the always-available constant-price move becomes a
    power of the recurrent BUNDLE rather than of the place: cost
    divergence survives at a field constant max(N(A)^e, p^(n*h)) in place
-   of p^rank — the passenger tax finding 3 prints as 4/move where the
-   ideal price is 2. Step (2)'s door is charged on a GENERATOR, at
-   tau_K = max over ideal classes of the LEAST NORM in the class (a
+   of p^rank, a bounded recurrent price of the kind finding 3 censuses.
+   Step (2)'s door is charged on a GENERATOR, at tau_K = max over ideal
+   classes of the LEAST NORM in the class (a
    value, exactly computable, not merely the Minkowski bound that
    dominates it; tau_K = 1 iff h = 1), so P^(v+2) principalizes at norm
    <= tau_K*p^(v+2). Step (3)'s cap loosens to m < tau_K*p. So the
