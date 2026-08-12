@@ -670,11 +670,19 @@ head = "".join(f"{f'<={hi}':>10}" for _, hi in dbands)
 print(f"    mean L_1 / (|D|/4){'':>4}{head}      all")
 rowspread = []
 for h0, h1 in HB:
-    cells, alln = [], []
+    cells, alln, thin = [], [], []
     for lo, hi in dbands:
         part = [r for r in allrows if lo < -r[0] <= hi and h0 <= r[1] <= h1]
+        # A cell is blank ONLY when it is empty. A thin cell is printed
+        # with its count beside it rather than hidden behind a dash: a
+        # dash that means "too few to show" is indistinguishable from one
+        # that means "no such fields", and the second is a fact about the
+        # class number's growth that this table is partly here to show.
         cells.append(sum(r[2] / (-r[0] / 4.0) for r in part) / len(part)
-                     if len(part) >= 10 else None)
+                     if part else None)
+        if 0 < len(part) < 10:
+            thin.append(f"h in [{h0}, {h1 if h1 < 10**6 else ''}] "
+                        f"at |D| <= {hi}: n = {len(part)}")
         alln.extend(part)
     if not alln:
         continue
@@ -686,6 +694,8 @@ for h0, h1 in HB:
                   for c in cells) +
           f"{sum(r[2] / (-r[0] / 4.0) for r in alln) / len(alln):>9.2f}"
           f"  (n = {len(alln)})")
+    for t in thin:
+        print(f"      thin cell, weigh it accordingly: {t}")
 print(f"    widest spread along any single h row: {max(rowspread):.2f}")
 
 print()
