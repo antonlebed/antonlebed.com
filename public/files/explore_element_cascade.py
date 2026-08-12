@@ -238,7 +238,13 @@ output only).
      the clean constant is the quadratic case's and not the general one.
      The only question left is how far down the first one sits. That is the
      quantity a coverage census should have measured, and it is not this
-     rig's.
+     rig's. [SETTLED SINCE, by explore_principal_place.py: that least
+     principal rank-1 characteristic has a FLOOR of |D|/4 with no
+     class-group content in it, so the coverage this per-place reading
+     buys is a FINITE set of fields -- wider than the tau route over the
+     range where either lives, and stopping just as surely. What stands
+     here is the per-place mechanism; what does not is any suggestion
+     that reading it per-place is what makes the close scale.]
 
   5. THE PARITY LAW IS INDEPENDENT OF tau (E6). Across every rung of
      every ladder at all four tau, the accepted odd-multiplier carriers
