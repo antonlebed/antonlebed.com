@@ -289,8 +289,11 @@ FINDINGS (tiers per the standard naming scale; run record below).
    this file). All TEN graded objects -- the escape specimen, the two
    families at two vector choices each, the three lifted sporadics, the
    t = 6 identity and the t = 12 instance -- read delta = 1, which for
-   the six one-dimensional ones is forced and for the four
-   two-dimensional ones is the finding. Level 0 is not merely
+   the five one-dimensional ones is forced and for the five
+   two-dimensional ones is the finding. The split is the printed dim
+   column and not a recount: dim = 2 at the escape and at all four
+   family lifts, dim = 1 at the three sporadics, the t = 6 identity and
+   the t = 12 instance. Level 0 is not merely
    unoccupied but unreachable, for the reason finding 0 (i) gives; the
    delta = 0 the run printed once came from an object carrying a
    coefficient 2, a transcription error caught by that object's own
