@@ -85,6 +85,7 @@ export default {
       '/learning/stalls': 'stalls',
       '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
+      '/learning/collisions': 'collisions',
       '/learning/audits': 'audits',
       '/learning/ceilings': 'ceilings',
       '/learning/uncertainty': 'uncertainty',
