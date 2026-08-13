@@ -286,7 +286,15 @@ FINDINGS (tiers per the standard naming scale; run record below).
    classifies t <= 10, so these two are observations about two objects
    and say nothing about their size pairs.
 
-THE HEADLINE. The mechanism DOES escape the images of one variable, and
+THE HEADLINE (settled further by explore_menu_faces.py, which supplies
+the instrument finding 3 says is missing: a collision restricts to every
+FACE of its Newton polytope, and the DESCENT DIMENSION built on that
+reads the two factorizations jointly. Under it this file's escape is the
+cyclotomic identity seen on an edge, so "escapes the images of one
+variable" survives exactly as written and "escapes one variable" does
+not -- the mechanism is inherited from one variable on a face, at every
+object this corpus or the literature reaches below t = 12). The
+mechanism DOES escape the images of one variable, and
 the corpus was looking in the wrong place with the wrong instrument. The
 escape needs menu sizes 2 and 5, not 4; the size pairs reachable by
 sizes <= 4 are either settled unique by theorem (t = 4, 8, 9) or forced
