@@ -201,7 +201,10 @@ FINDINGS (tiers per the standard naming scale; run record below).
    census scope). (Settled since: "far from factorial" does not
    follow from a collision count -- 2*6 = 3*4 holds in Z -- and the
    surviving reading of every number below is COLLISIONS and not
-   factorizations; FORGET.md carries the corrected statement.)
+   factorizations. The semiring is non-factorial all the same, on
+   the one-variable witness this record's own contract collision
+   carries; whether that reaches past one variable is not measured
+   here.)
    Menu Dirichlet polynomials collide ubiquitously:
    4849 colliding pairs across 4487 product classes at
    scope. The partition (the two classifications overlap; printed
