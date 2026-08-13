@@ -292,7 +292,11 @@ FINDINGS (tiers per the standard naming scale; run record below).
    confirms, minimizing at w = (-1, 0) for F2 against w = (8, 0) for F1.
 
 6. NOTHING HERE REACHES delta >= 2 (observation, over every object in
-   this file). All TEN graded objects -- the escape specimen, the two
+   this file; the scope clause is load-bearing and the corollary's own
+   target has since been hit -- explore_descent26.py exhibits a delta = 2
+   collision at t = 12, past every object this file grades, so what stands
+   below is a statement about these ten and never about the question).
+   All TEN graded objects -- the escape specimen, the two
    families at two vector choices each, the three lifted sporadics, the
    t = 6 identity and the t = 12 instance -- read delta = 1, which for
    the five one-dimensional ones is forced and for the five

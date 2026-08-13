@@ -308,6 +308,11 @@ FINDINGS (tiers per the standard naming scale; run record below).
    found no size-5 seed at all under 16, which is consistent with either
    answer and settles neither. The wider (3,4) walk is the cheaper move
    and this is the reason it is not the informative one.
+   BUILT, by explore_descent26.py, and the room was real but not used the
+   way this finding expected: the box {2..24} holds 55 size-6 seeds, 46 of
+   them at core rank 3, and none of those 46 carries a collision. The
+   delta = 2 collision that half does hold is seeded by a rank-2 seed, so
+   the rank this finding chased is not what supplies the mechanism.
 
 HOW THE PREDICTIONS AND KILLS LANDED. PR0, PR1 and PR3 held as written.
 PR2 SPLIT: the sweep re-found 336, and its second clause -- that every

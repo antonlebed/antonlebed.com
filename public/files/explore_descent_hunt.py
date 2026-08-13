@@ -241,6 +241,13 @@ FINDINGS (tiers per the standard naming scale; run record below).
    bound rather than in this box. A rank-3 seed IS available at size 6
    (size 5 is undecided there), so the room is the (2,6) half and not a
    wider (3,4) walk.
+   SETTLED by explore_descent26.py, which walked that half: the corridor is
+   OCCUPIED. A delta = 2 collision exists at t = 12 -- dim = 2, every proper
+   face of its polygon enumerated exactly -- so finding 1's reading above
+   holds for the (3,4) box and is FALSE as a statement about t = 12. What
+   survives unrestricted is the OTHER half of finding 5, the confinement to
+   product dimension <= 2, which that file re-measured where the seed side
+   was free to break it and found intact.
 
 HOW THE PREDICTIONS AND KILLS LANDED. PR0, PR1, PR2, PR3 and PR4 all held
 as written; PR5 was deliberately not predicted and findings 5 and 6 are
