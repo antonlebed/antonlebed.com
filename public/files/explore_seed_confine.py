@@ -9,7 +9,7 @@ pairs at dimension 3 or 4 collides. All 336 collisions sit at dimension
 <= 2. Finding 6 reads the consequence for the delta >= 2 front: if the
 confinement is a law, the only surviving corridor is dim = 2 with
 delta = 2, and a hunt at higher dimension is a hunt where there is nothing
-to find. So what the confinement IS decides where the campaign spends
+to find. So what the confinement IS decides where this line of work spends
 next, and it is asked before any wider sweep.
 
 The cheap deflation on offer: every walked pair carries a SEED, so a
@@ -168,7 +168,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    over each separately and only the in-frame block carries checks.
    (ii) S4 IS NEW. S3's reading turned out to rest on a bound on the
    SEED's core rank, and whether that bound is a fact about the box
-   decides the campaign's next spend, so the stage that tests it was
+   decides this line of work's next spend, so the stage that tests it was
    added with its own hand argument.
    (iii) TWO CHOICES S2 MAKES THAT THE DESIGN DOES NOT STATE. Where BOTH
    halves are seeds the file reads the SIZE-3 half as the seed and the
@@ -203,7 +203,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    8, and a product is 0/1 exactly when it has 12 terms -- the two
    readings are one test, since 3 x 4 = 12 is what the term-count law
    gives when no support collapses. So 265 of the 336 carry a coefficient
-   above 1 and sit OUTSIDE the frame the campaign's question is asked in:
+   above 1 and sit OUTSIDE the frame this line of work's question is asked in:
    explore_menu_faces.py mints delta for two factorizations of a
    0/1-COEFFICIENT product, and explore_descent_hunt.py finding 1 reports
    the 336 as "collisions at t = 12". The in-frame population is 71.
@@ -263,7 +263,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    splits as two shorter segments, so at n = 2 the law is false and
    1 + x^3 = (1 + x)(1 - x + x^2) is the standing witness against it --
    the very factor the absorption sentence above runs on. What the bound
-   gives the campaign: rank 2 at size 4, so the (3,4) seed side is capped
+   gives this line of work: rank 2 at size 4, so the (3,4) seed side is capped
    at 2 at every bound, with the widened size-4 box reading 1 seed at
    rank 1 and 43 at rank 2 and none above; and rank 3 requiring size 5 or
    more, which is where finding 7 picks it up.
@@ -299,7 +299,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    holds outside its box; this says the (3,4) half cannot host a
    higher-dimensional collision on the seed side AT ANY BOUND, the rank
    bound being proved rather than sampled, and that a rank-3 seed IS
-   available at size 6 -- the (2,6) half the campaign carries as an
+   available at size 6 -- the (2,6) half this line of work carries as an
    instrument design. SIZE 5 IS NOT SETTLED HERE and the sentence stops
    short of it: 5 is a prime term count, so a size-5 seed is exactly a
    Z-reducible core, and whether a 5-point support of rank 3 can have a
@@ -607,7 +607,7 @@ def stage2(pairs, cores, gensof, seeds, byp):
               f" offrank={offrank}")
     check("S2 the sweep re-finds the published 336 collisions",
           len(found) == 336)
-    # THE FRAME. The campaign's object is a 0/1-COEFFICIENT product
+    # THE FRAME. This line of work's object is a 0/1-COEFFICIENT product
     # (explore_menu_faces.py mints delta for one), and the term-count law
     # says a 3-term and a 4-term 0/1 menu multiply to 12 terms exactly when
     # nothing collapses. So the two readings are the same test, and a
@@ -640,7 +640,7 @@ def read_block(label, rows, checked):
     Run over the in-frame collisions and again over the ones outside the
     frame, because the two are different objects and a figure quoted over
     their union is a figure about neither. Only the IN-FRAME block carries
-    checks -- the frame is where the campaign's question lives.
+    checks -- the frame is where this line of work's question lives.
     """
     print(f"\n  --- {label}: {len(rows)} collisions ---")
     if not rows:
@@ -721,7 +721,7 @@ def stage4():
     S3's in-frame reading caps the product dimension at the SEED's own core
     rank, and every seed in the sweep's box has rank <= 2. Whether that is
     a fact about the box decides whether a wider sweep can host a
-    higher-dimensional collision at all -- which is the campaign's next
+    higher-dimensional collision at all -- which is this line of work's next
     spend. The hand argument, on paper before this stage was written:
     four exponent vectors of affine rank 3 are four affinely independent
     points, so all four are vertices and the Newton polytope is a

@@ -211,7 +211,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    {0,1,2}+{0,2} have the same sumset {0,1,2,3,4} and the same mass 6,
    and their convolutions differ (1+2x+x^2+x^3+x^4 against
    1+x+2x^2+x^3+x^4). So the supports cannot be the mechanism, and this
-   is the THIRD time this campaign has aimed at work the literature had
+   is the THIRD time this line of work has aimed at work the literature had
    already done.
 
 2. THE PRODUCTIVE RESIDUE IS THE OTHER HALF OF THE SUPPORT READING, AND
@@ -220,7 +220,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    polytope. The DESCENT DIMENSION defined above grades a collision by
    the smallest face that already sees the difference, and unlike the
    product's variable count and the negative factor's Newton dimension
-   -- the campaign's two spectators, both reading one factor at a time
+   -- this line of work's two spectators, both reading one factor at a time
    -- it is a function of the two factorizations jointly. Its levels run
    from 1 to dim (finding 0 (i)), and what a level buys is the LOCATION
    of the mechanism: the smallest face already carrying it, and the
@@ -306,7 +306,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    products-agree check and by nothing else.
 
 THE HEADLINE. The support reading is classical and strictly weaker, but
-its second half -- the faces -- is the instrument the campaign was
+its second half -- the faces -- is the instrument this line of work was
 missing, because it is the first observable that reads the two
 factorizations jointly. Read through it, every collision the corpus and
 the literature hold below t = 12 is a ONE-VARIABLE identity plus the

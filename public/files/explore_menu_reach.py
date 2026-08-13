@@ -86,7 +86,7 @@ WHAT THAT BUYS, hand-derived here before any engine code.
      the NEGATIVE FACTOR -- does not fire on (c) either. The second
      variable enters through the CO-FACTOR, and a dimension-1 negative
      factor is compatible with a mechanism that is not a one-variable
-     image. This is the second spectator in this campaign: the first was
+     image. This is the second spectator in this line of work: the first was
      the product's variable count, raised for free by a monomial factor.
 
 THE SPECIMEN, hand-built from (c) at the freeze. Read u = 5, v = 3 and
@@ -326,7 +326,7 @@ after the run, never before).
       collinearity derivation (b) is wrong.
   K5: a negative Z-irreducible factor of Newton dimension >= 2 anywhere
       -- the corrected conjecture dies too. This is the outcome worth
-      hunting and the one the campaign has never had.
+      hunting and the one this line of work has never had.
 
 HONEST LIMITS carried into the reading. (i) S3 is exhaustive only over
 the four size pairs and the two boxes named there; the size-5 menus the

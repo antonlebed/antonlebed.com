@@ -251,7 +251,7 @@ H1  THE SPLIT HELD AT BOTH WINDOWS WITH NO PERIOD (rule at scanned
     H1, and H2 and H3 which read off it, stand where they were and
     are owed a THIRD instrument, not a re-read. ** The cubic's r = 2, 4,
     6, 7, 8 and e - 2's r = 2, 5, 8 -- every bounded stride either
-    window has, and the cells the campaign owed a third range -- all
+    window has, and the cells this line of work owed a third range -- all
     hold at 300000. Eight and not the nine the leg was aimed with: that
     list carried e - 2's r = 6, which prints ZERO repairs and is
     delay-0, so it can no more move than its r = 3, which the same list

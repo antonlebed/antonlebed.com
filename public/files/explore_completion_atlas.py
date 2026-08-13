@@ -70,7 +70,7 @@ the Zeckendorf mechanism (2F_k = F_{k+1} + F_{k-2}) with the carry
 descending three positions instead of two. So the expectation is the
 odometer cell's phenomenology transplanted [TRANSPLANT: intuition
 imported from the quadratic storey]: x m and floor division torn, the
-odometer +1 Lipschitz. What is genuinely open — and the campaign's
+odometer +1 Lipschitz. What is genuinely open — and this line of work's
 second storey — is whether any arithmetic map prints the MIDDLE
 signature here: the proof of arithmetic-middle emptiness covers rings
 and circle-cut odometers, and neither mechanism applies over T^2,
@@ -124,7 +124,7 @@ P3  E3 diameters shrink; successive ratios within a factor of 2 of
     0.2956.
 P4  E4: +1 LIPSCHITZ; x2, x3, floor/2, floor/3 all PINNED. (KILL for
     the transplant: an arithmetic map neither Lipschitz nor pinned —
-    the MIDDLE signature — which would be the campaign's positive
+    the MIDDLE signature — which would be this line of work's positive
     find: an arithmetic middle member at the fourth shape, where the
     emptiness proof's two mechanisms both fail to reach.)
 P5  E5 zero violations, both controls.
@@ -150,7 +150,7 @@ F4  THE GATE AT THE FOURTH SHAPE SPLITS EXACTLY AS THE PROVED CELLS
     cellmates' images differ at digit 0), while the max column
     climbs (the class split's same-class pairs). The emptiness
     pattern extends to the T^2 shape at scanned scope: P4 met, the
-    transplant held, the campaign's second storey finds no middle
+    transplant held, this line of work's second storey finds no middle
     member where the proof's two mechanisms both fail to reach.
 F5  CENSUS CONTROLS EXACT: factorial chain zero violations at
     m = 3, 6, 7, 10 (delays 1, 1, 2, 5 — the chain's own delays,

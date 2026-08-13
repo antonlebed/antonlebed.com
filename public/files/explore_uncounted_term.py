@@ -141,7 +141,7 @@ KILL-SHAPES, AS OBSERVABLES
   Q1 outside its band: the rig is broken and nothing else is read.
   Q6's largest deviation above 0.08: the direction is not a
     two-parameter phenomenon, the sign law is a genre observation, and
-    the campaign is a funeral.
+    this line of work is a funeral.
   Q5 violated at any cell: the sign law is FALSE outright and the
     fit/bound split is decoration.
 

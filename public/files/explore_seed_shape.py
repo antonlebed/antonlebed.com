@@ -89,7 +89,7 @@ DESIGN, four stages.
     exactly two Z-irreducible factors, each with exactly two terms (what
     the law leaves available at a composite size).
  S2 THE WIDENED CENSUS. Sizes 2 and 3 over {2..64}, size 4 over {2..32} --
-    which is the widening the campaign priced as its fallback, and it
+    which is the widening this line of work priced as its fallback, and it
     captures {2,4,16,32}, the size-4 half of the corpus's one graded t = 12
     point, which every box here has so far excluded. Printed: the seed
     count at each size, the seeds themselves in full at sizes 2 and 3, and
@@ -262,8 +262,8 @@ FINDINGS (tiers per the standard naming scale; run record below).
    solutions inside a box by hand, and that is worth keeping because the
    criterion is the part that looked hard.
 
-5. SIZE 4 IS A DIFFERENT ANIMAL, AND THE ONE EXCEPTION IS THE POINT THE
-   CAMPAIGN ALREADY CARES ABOUT (observation, 44 seeds among the 31,465
+5. SIZE 4 IS A DIFFERENT ANIMAL, AND THE ONE EXCEPTION IS THE POINT THIS
+   LINE OF WORK ALREADY CARES ABOUT (observation, 44 seeds among the 31,465
    size-4 menus of {2..32}). Neither size-3 mechanism survives: exactly 1
    of the 44 has collinear exponent vectors, and 0 of the 44 carry a
    1 + w + w^2 factor. So the one-variable shape that IS the seed set at
@@ -278,7 +278,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    collisions read 2 -- the 336 the sweep prints include 265 outside the
    0/1 frame (explore_seed_confine.py finding 1).
 
-6. THE WIDENING THE CAMPAIGN PRICED AS ITS FALLBACK IS DONE, AND IT
+6. THE WIDENING THIS LINE OF WORK PRICED AS ITS FALLBACK IS DONE, AND IT
    CAPTURES THE POINT THE SWEEP COULD NOT REACH (measurement). The size-4
    box here is {2..32} against the reach file's {2..24}, and {2,4,16,32}
    is inside it and is a seed. explore_descent_hunt.py finding 3 records
@@ -306,7 +306,7 @@ FINDINGS (tiers per the standard naming scale; run record below).
    are 2*{1,2,32}, 2*{1,4,16}, 2*{1,16,32}, 3*{1,4,16} and 4*{1,4,16}.
    The box survives on the
    PARTNER side, where nothing here touches it. That is the design
-   variable the campaign named, moved: a (3,4) walk no longer needs a
+   variable this line of work named, moved: a (3,4) walk no longer needs a
    size-3 box, only a size-4 one.
 
 RUN RECORD (this file, under memwatch.py at the 512MB default, 126.7 s

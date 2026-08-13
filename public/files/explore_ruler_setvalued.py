@@ -310,7 +310,7 @@ never fired.
 KILL-SHAPE: MISSED, on the basis frozen. Per-atom size excess over the
 method's own oracle does NOT print median AND max of 0 for both methods
 at either live cell: Mondrian's max excess is 1 or more at every sample
-size at TILT-3 and at TILT-4-WIDE. The campaign continues.
+size at TILT-3 and at TILT-4-WIDE. This line of work continues.
 
 WHAT THE RUN SAYS, at the honest tier.
 
@@ -335,7 +335,7 @@ WHAT THE RUN SAYS, at the honest tier.
    THIS IS THE SAME HYPOTHESIS FAILING TWICE, IN OPPOSITE DIRECTIONS.
    Atomicity is what voids the conditional-coverage impossibility
    (Vovk's non-atom clause, quoted above) and it is also what voids
-   SLW's optimal form. The campaign was built to check one such
+   SLW's optimal form. This line of work was built to check one such
    hypothesis against the family before scoring; the run says the
    discipline was needed twice and the slate only checked once.
    (SUPERSEDED IN ITS SECOND HALF by explore_ruler_barecell.py: the form
@@ -872,7 +872,7 @@ def main():
 
     print()
     print("KILL-SHAPE READ: median AND max excess both 0 at TILT-3 and")
-    print("TILT-4-WIDE for BOTH methods would end the campaign.")
+    print("TILT-4-WIDE for BOTH methods would end this line of work.")
 
 
 if __name__ == "__main__":
