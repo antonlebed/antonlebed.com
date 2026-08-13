@@ -230,10 +230,16 @@ FINDINGS (tiers per the standard naming scale; run record below).
    core pair and an identical identity. The same collapse runs on the other
    side of the ledger -- the 16 collisions at delta = 1 are the box's two
    size-2 seeds, which finding 4 shows carry one core between them, against
-   eight distinct size-6 partners. So the walk's 24 collisions are 9 objects:
-   one at delta 2 and eight at delta 1. Quoting 24 would be quoting menu
-   clothes, the species explore_seed_shape.py finding 4 caught in a hand
-   enumeration and this file catches in its own headline count.
+   eight size-6 partner MENUS. Those eight menus are SEVEN objects:
+   {4,6,8,12,16,24} is 2x {2,3,4,6,8,12}, a pure scaling of the exponent
+   vectors that the content division undoes, so the pair carries one core
+   (explore_descent26_wide.py finding 7, which lists every object of this
+   box). So the walk's 24 collisions are 8 objects: one at delta 2 and seven
+   at delta 1. Quoting 24 would be quoting menu clothes, the species
+   explore_seed_shape.py finding 4 caught in a hand enumeration -- and the
+   collapse has to be run on BOTH sides of the pair, this file having first
+   reported 9 by dividing content out on the side its reasoning was about and
+   counting the other side by menu.
 
 3. NON-UNIQUENESS IS STILL CONFINED TO PRODUCT DIMENSION 2, AT THE SIZE
    PAIR WHERE THE SEED SIDE WAS FREE OF IT (observation, 24 instances, all
@@ -259,7 +265,10 @@ FINDINGS (tiers per the standard naming scale; run record below).
    bought the collision that no face explains. Whatever selects the
    witness, it is not the rank.
 
-4. THE FRAME TRAP DID NOT FIRE HERE (measurement, 24 instances; the
+4. THE FRAME TRAP DID NOT FIRE IN THIS BOX (measurement, 24 instances; the
+   reading that it is absent at this SIZE PAIR does not survive a wider box --
+   explore_descent26_wide.py finding 3 takes 4 of 26 objects outside the frame
+   at {2..32}, so what is measured below is a population and not the pair; the
    mechanism below is a SUGGESTION and nothing here tests it). At (3,4)
    the frame trap was the
    story: 265 of 336 products carried a coefficient above 1
@@ -298,7 +307,14 @@ FINDINGS (tiers per the standard naming scale; run record below).
 
 7. AND THE COLLISION CONDITION AT THAT CORE IS ONE SIGN SCAN (rule, proved
    in the hand-attack and verified against the counter at 201,288 pairs, 0
-   disagreements). Where the size-6 partner's core is a single Z-irreducible
+   disagreements. GENERALIZED AND CORRECTED BY explore_descent26_wide.py:
+   its hand-attack shows the derivation uses nothing about THIS core -- it
+   holds at every seed whose core is two Z-factors with exactly one negative
+   -- and adds the clause this file's population could not reach, that where
+   the partner's core EQUALS the seed's nonnegative factor the product is
+   unique, those two partitions being one factorization. That case cannot
+   arise below, p carrying 2 terms against q's 6, so every figure here
+   stands). Where the size-6 partner's core is a single Z-irreducible
    factor q -- 100,644 of the box's 100,947 menus -- the product is
    non-unique exactly when (1 - x0 + x0^2) * q has no negative coefficient.
    The derivation is four rejected partitions and one surviving one, and it
