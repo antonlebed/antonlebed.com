@@ -215,8 +215,16 @@ FINDINGS (tiers per the standard naming scale; run record below).
    variable, the contract's cyclotomic regrouping among them) and
    474 involving at least two primes -- e.g. the transfer
    collision {2},{3,6} vs {3},{2,4} (equal products
-   6^-beta + 12^-beta). Non-unique factorization is the generic
-   state of the normalizer semiring, not a cyclotomic curiosity.
+   6^-beta + 12^-beta). COLLISION is the generic state of the
+   normalizer semiring; NON-UNIQUE FACTORIZATION is not, and the
+   two were conflated here. Superseded in scope by
+   explore_menu_factorization.py, which grades every one of these
+   products: 6 of the 4487 factor non-uniquely and the other 4481
+   are regroupings, so 4839 of the 4849 collisions above are
+   compatible with unique factorization. What survives from this
+   record is the collision census itself -- the counts in this
+   finding, which that file reproduces exactly -- and the
+   realization scan of finding 4.
 
 4. REALIZATION'S TEETH ARE EXACTLY THE SINGLETON DEGENERACY
    (observation at scan scope, one direction proved). The
