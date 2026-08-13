@@ -198,8 +198,12 @@ FINDINGS (tiers per the standard naming scale; run record below).
    is exactly the recycled-prime privilege.
 
 3. THE SEMIRING COLLIDES GENERICALLY (observation, exhaustive at
-   census scope). Menu Dirichlet polynomials are far from
-   factorial: 4849 colliding pairs across 4487 product classes at
+   census scope). (Settled since: "far from factorial" does not
+   follow from a collision count -- 2*6 = 3*4 holds in Z -- and the
+   surviving reading of every number below is COLLISIONS and not
+   factorizations; FORGET.md carries the corrected statement.)
+   Menu Dirichlet polynomials collide ubiquitously:
+   4849 colliding pairs across 4487 product classes at
    scope. The partition (the two classifications overlap; printed
    directly): the scaling family Z_A * Z_{cB} = Z_{cA} * Z_B
    supplies 4369 (111 of which are also one-prime); the 480
@@ -241,9 +245,9 @@ BOTH WAYS as a dichotomy on the coprimality axis. Designed worlds
 that may recycle primes realize the abstract normalizer collision
 as a closed two-route fiber -- flat at every temperature with
 distinct menu multisets, so robust flatness does not force the
-weight-side witness -- and such collisions are generic (the
-semiring is far from factorial, realization failing only at the
-singleton degeneracy). Coprime worlds sit on the other side: the
+weight-side witness -- and such collisions are generic
+(realization failing only at the singleton degeneracy; the
+"far from factorial" gloss is retired, see finding 3's note). Coprime worlds sit on the other side: the
 quarantine theorem removes the exchange-closure hypothesis and
 makes all-temperature amnesia impossible with more than one route
 at any age. What forgetting a route robustly truly costs is prime
