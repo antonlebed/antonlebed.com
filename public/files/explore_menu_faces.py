@@ -274,6 +274,13 @@ FINDINGS (tiers per the standard naming scale; run record below).
    beside (4,4) at 90; (2,6) is past every menu size any sweep in this
    corpus has reached, size 5 already being outside them. Between the
    two there is exactly one graded point, S4's t = 12 instance.
+   (SETTLING POINTER, added later: the 18-minute price is wrong by about
+   4.4x -- the walk is bounded by the seed count, not the menu count --
+   and (3,4) has since been swept. Every collision it holds reads
+   delta = 1, and non-uniqueness there turns out to be confined to
+   product dimension <= 2. The corollary above is untouched; what changes
+   is only that its cheap half is no longer unswept. See
+   explore_descent_hunt.py.)
 
 5. THE MONOMIAL-CONTENT DIVISION IS LOAD-BEARING (observation, and F2 is
    the witness). At <w,a> > 0 the second family induces {1+v^3, 1+v}

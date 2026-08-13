@@ -135,6 +135,13 @@ DESIGN, four stages.
     remaining pairs (3,4) and (4,4) are 18 and 90 minutes, far over the
     wall-clock line, and they are the two the literature leaves open, so
     sweeping them would buy a box-sized answer to an unbounded question.
+    (SETTLING POINTER, added later: the (3,4) figure is wrong by about
+    4.4x. The per-pair rate stands -- 2.6 ms measured against the 2.1 ms
+    quoted -- but the PAIR COUNT does not: the walk is bounded by the SEED
+    count, not the menu count, so (3,4) is 85,253 pairs and runs in just
+    over four minutes. It has since been swept, with the descent dimension
+    graded on every collision it holds; see explore_descent_hunt.py. The
+    (4,4) figure rests on the same derivation and remains unmeasured.)
  S3b THE OPEN RUNGS, as named constructions rather than a sweep. The
     hand-derived t = 12 instance below is checked directly, and so is
     the t = 16 doubling that the same reasoning predicts stays unique.
