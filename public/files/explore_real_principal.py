@@ -219,7 +219,14 @@ THE FINDINGS.
       The floor therefore explains the h = 1 end and nothing
       above it. A SECOND mechanism, graded by the class number, is doing
       most of the work -- and it was doing it on the imaginary side too,
-      where the floor was available to absorb the blame.
+      where the floor was available to absorb the blame. (SETTLED by
+      explore_principal_share.py: it is not a second mechanism. The share
+      is a function of p and climbs to within a few per cent of nominal
+      by p ~ 10^4, and at the scale L_1 is read it is short by enough to
+      be the same ORDER as this undershoot -- so what survives here is
+      the grading, not the count of mechanisms. The grading is the NARROW
+      class number's, and the genus congruences named below are refuted
+      as its carrier.)
 
       THE SLATE'S OWN DEFECT, RECORDED. P2 named TWO thresholds for one
       claim: "within 2x at every class number" in the prediction and
@@ -268,6 +275,8 @@ THE FINDINGS.
       the very bottom of that range, where equidistribution is worst.
       Measuring the share as a function of p, rather than pooled over
       the range, is the next thing this asks, and it is unmeasured here.
+      (MEASURED by explore_principal_share.py, on both signs of D and
+      against the genus characters directly.)
 
 RUN RECORD: wall 0.3 s, pure integer arithmetic, no arrays
 held beyond one principal cycle per field. Controls first and all three
