@@ -57,6 +57,7 @@ export default {
       '/growth': 'growth',
       '/growth/fields': 'fields',
       '/growth/cascade': 'cascade',
+      '/growth/principal': 'principal',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
       '/growth/clock': 'clock',
