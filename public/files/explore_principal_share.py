@@ -248,8 +248,8 @@ THE FINDINGS.
           h+ = 16   0.716  0.629  0.843
 
       Every stratum is nearer 1 in the top bin than in the bottom one,
-      which is K1's observable, and by the top bin the deficit is 2-4%
-      at every h+ below 12. The climb is not monotone at the small
+      which is K1's observable, and by the top bin the deficit is at
+      most 5.4% at every h+ through 8 and at most 8.5% through 12. The climb is not monotone at the small
       strata -- h+ = 16 dips in the middle bin on 11 fields, h+ = 5 and
       10 on 8 and 9 -- and the field counts are printed beside every
       entry because that is what says which wiggles are readable. So the
@@ -271,7 +271,9 @@ THE FINDINGS.
       D itself a prime discriminant, ONE genus, the genus factor
       identically 1 by derivation (3) -- the narrow share is still
       0.885, 0.843 and 0.716 of nominal at h+ = 3, 5 and 7 in the bottom
-      bin, which is as short as the all-t table is at comparable h+
+      bin -- on 20, 8 and 4 fields, so the h+ = 3 row is the one carrying
+      the refutation -- which is as short as the all-t table is at
+      comparable h+
       (0.662 at h+ = 8). A deficit of full size sits at exactly the
       fields where the named mechanism can produce none. So the
       congruence explanation offered for it is not underdetermined by
@@ -348,8 +350,9 @@ THE FINDINGS.
       A share of 0.332 lengthens a first hit by about 3.0x, and 0.403 by
       about 2.5x, against the incumbent's measured undershoots of 2.27x
       at wide h = 4 and 3.23x at wide h = 6 -- whose fields carry
-      h+ = 8 and 12 respectively wherever N(eps) = +1, which is the bulk
-      of them (81 of 85 at h+ = 8). So the effect at the right scale is
+      h+ = 8 and 12 respectively wherever N(eps) = +1, which is about
+      two thirds of them: 81 of the 117 fields at wide h = 4 carry
+      h+ = 8, and 17 of the 27 at wide h = 6 carry h+ = 12. So the effect at the right scale is
       the same ORDER as the thing it was supposed to explain, where the
       pooled reading bought only 1.33x of 3.23x. THIS IS NOT A DIVISION
       AND IS NOT PRINTED AS ONE: the rig prints the share, and pairing
@@ -360,11 +363,16 @@ THE FINDINGS.
       work -- the grading is one mechanism read at the wrong scale.
 
       The imaginary column shows the contrast the floor makes and is why
-      it is printed beside: at p <= 100 the imaginary share is exactly
-      0.000 from h = 9 up, every field there having |D| > 400 and hence
-      a floor above the bin. Nothing about equidistribution is visible
-      in that column, which is precisely the confusion the real side
-      was needed to break.
+      it is printed beside: at p <= 100 the share rounds to 0.000 at
+      every h from 9 up but one, and across that whole population --
+      869 fields -- exactly ONE carries a principal split prime below
+      100 (|D| = 296, h = 10, which is the 0.016 the h = 10 row prints).
+      The floor is most of that and not all of it: 26 of those fields
+      have |D| <= 400 and so a floor inside the bin, and at h >= 9 a
+      nominal 1/h over the dozen split primes there leaves about one
+      expected hit anyway. Either way nothing about equidistribution is
+      READABLE in that column, which is precisely the confusion the
+      real side was needed to break.
 
 RUN RECORD: wall 4.9 s, 1216 real and 1217 imaginary fundamental
 discriminants, odd primes to 10000, pure integer arithmetic. All four
