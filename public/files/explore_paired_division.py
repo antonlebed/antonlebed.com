@@ -81,6 +81,17 @@ THE HAND-DERIVATION (pre-engine, on paper).
       this question is a prediction at all, and the fact that it is
       forced is part of the finding rather than a compromise in it.
 
+      A cell can empty: a thin stratum whose only split prime in some
+      bin belongs to the field being left out leaves no denominator. The
+      convention is q = 0 there, and the COUNT of such cells is printed
+      rather than buried, because the convention is not neutral -- it
+      forbids a hit where the data are silent and so pushes the
+      prediction LATE, which is the direction the residual runs. What
+      makes it safe is not the count being small but C3b sharing it: the
+      reference regenerates under the full share and is then read by
+      this same leave-one-out, empty cells and all, so whatever the
+      convention costs is inside the number every ratio is compared to.
+
   (3) THE MARGIN TO DISTRUST IS THE ONE THIS CREATES. The predicted mean
       is a convex function of the small early q's -- roughly 1/q in the
       bottom bins -- so NOISE in the leave-one-out share INFLATES the
@@ -479,11 +490,11 @@ THE FINDINGS.
       stratification rather than a second phenomenon -- which is also
       why the imaginary side is not evidence for or against F5.
 
-RUN RECORD: wall 22.7 s, 1216 real and 1217 imaginary fundamental
+RUN RECORD: wall ~23 s, 1216 real and 1217 imaginary fundamental
 discriminants, odd primes to 1000 with the follow-up re-sweeping the
 real side to 10000, 60 replicates for each of the two reference
 distributions, pure integer arithmetic with per-field float
-accumulation. All five controls green and read first -- C5 found the
+accumulation, and K3's flatness regression over the printed ratios. All five controls green and read first -- C5 found the
 least principal split prime equal to the imported L_1 at all 2433
 fields of both signs; C1 found predicted equal to measured EXACTLY at
 all 583 wide-h = 1 fields; C2 reproduced explore_real_principal.py's
@@ -885,7 +896,6 @@ def main():
 
     # C1 -- the identity at h = 1.
     ones = [f for f in real if f["h"] == 1]
-    grp = {"k": ones}
     loo_shares(ones, CAP)
     worst, n1 = 0.0, 0
     for f in ones:
