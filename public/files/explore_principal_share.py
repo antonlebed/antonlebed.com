@@ -177,6 +177,16 @@ THE POSITIVE CONTROLS, run and read FIRST.
       agree EXACTLY at every field and every bin, since the principal
       genus is then the principal class.
 
+  C5. GENUS DIVISIBILITY, WHICH PINS THE CLASS NUMBERS THEMSELVES.
+      2^(t-1) is the order of a QUOTIENT of the narrow class group, so
+      it must DIVIDE h+ at every field of either sign. Nothing else here
+      tests the imaginary class number above h = 1 -- C1 pins only the
+      h+ = 1 fields, and a wrong count at any larger h would relabel a
+      whole row of every imaginary table without moving a single share.
+      This is the cheap independent check that closes that hole, and it
+      is a genuine one: it is derived from the genus theory rather than
+      from the counting loop it audits.
+
   C4. THE DEFINITE FORM TEST AGAINST THE INCUMBENT LOOP. On the
       imaginary side the form test must agree with
       explore_real_principal.py's is_principal_imag -- the u^2 + |D|y^2
@@ -375,14 +385,17 @@ THE FINDINGS.
       real side was needed to break.
 
 RUN RECORD: wall 4.9 s, 1216 real and 1217 imaginary fundamental
-discriminants, odd primes to 10000, pure integer arithmetic. All four
-controls green and read first -- C1 found every one of 976 h+ = 1
+discriminants, odd primes to 10000, pure integer arithmetic. All five
+controls green and read first -- C5 was added by the audit that followed
+and is counted among them, on the hole it names: C1 found every one of
+976 h+ = 1
 field-bins carrying a share of exactly 1 at both signs; C2 reproduced
 the incumbent's wide share at h = 1..8 with no stratum off by more than
 5e-5; C3 found no narrow-principal place outside the principal genus and
 exact agreement at all 4224 one-class-per-genus field-bins; C4 agreed
 with the incumbent's u^2 + |D|y^2 loop at 14941 of 14941 pairs, which is
-what licenses the definite-form test past that loop's practical range.
+what licenses the definite-form test past that loop's practical range;
+and C5 found 2^(t-1) dividing h+ at all 2433 fields of both signs.
 Three measurements here are POST-HOC and say so where they are printed:
 K5 and K6 were frozen after the first four kills and before their own
 engine, and K7's finer bottom bin was added last -- the frozen tables
@@ -923,7 +936,18 @@ def main():
                 agree4 += 1
     print("pairs compared: %d, agreements: %d" % (pairs4, agree4))
 
-    if bad1 or bad2 or bad3 or bad3b or pairs4 != agree4:
+    print("\n=== C5  GENUS DIVISIBILITY 2^(t-1) | h+ (control) ===")
+    bad5 = tested5 = 0
+    for name, rows in (("real", real), ("imag", imag)):
+        for D, h, hplus, neps, t, c in rows:
+            tested5 += 1
+            if hplus % 2 ** (t - 1):
+                bad5 += 1
+                print("  MISMATCH %s D=%d: h+=%d, 2^(t-1)=%d"
+                      % (name, D, hplus, 2 ** (t - 1)))
+    print("fields tested: %d, divisibility failures: %d" % (tested5, bad5))
+
+    if bad1 or bad2 or bad3 or bad3b or bad5 or pairs4 != agree4:
         print("\nCONTROLS FAILED -- results not read.")
         return 1
 
