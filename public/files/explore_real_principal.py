@@ -226,7 +226,13 @@ THE FINDINGS.
       be the same ORDER as this undershoot -- so what survives here is
       the grading, not the count of mechanisms. The grading is the NARROW
       class number's, and the genus congruences named below are refuted
-      as its carrier.)
+      as its carrier. DIVIDED by explore_paired_division.py: fed back as
+      the model's own density that share OVERSHOOTS, leaving a residual
+      FLAT in the class number -- so the grading is the RAW undershoot's
+      and not the priced one's. And the h = 1 end is not the floor's
+      either: the same constant density run over the field's own split
+      sequence rather than as a draw over all odd primes reads 1.00
+      there, so the 1.15 above is this model's FORM.)
 
       THE SLATE'S OWN DEFECT, RECORDED. P2 named TWO thresholds for one
       claim: "within 2x at every class number" in the prediction and
