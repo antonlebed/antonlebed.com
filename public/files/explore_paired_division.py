@@ -344,7 +344,8 @@ THE FINDINGS.
 
       The incumbent's undershoot of 1.15x to 3.23x is not reduced by
       the local density, it is REVERSED: with the measured share in
-      hand the model runs 10-30% LATE. So the answer to the question
+      hand the model runs LATE, by 8% of the measured mean at h = 7
+      to 29% at h = 5. So the answer to the question
       the roadmap asked -- does the share account for the first hit
       exactly -- is no in a direction nobody had named. The share is
       not merely the same ORDER as the undershoot, it is slightly
@@ -352,12 +353,18 @@ THE FINDINGS.
 
   F2. AND THE RESIDUAL IS FLAT IN h, WHICH IS THE FINDING THAT CLOSES
       THE OLD QUESTION (pattern; P3 SURVIVES). The ratios above run
-      0.865, 0.887, 0.802, 0.714, 0.896, 0.924, 0.841 across h = 2..8:
-      no direction, and a spread inside the small strata's own
-      sampling. The incumbent's ratio CLIMBED, 1.15 to 3.23, and that
-      climb was the whole evidence for "a second mechanism graded by
-      the class number". The grading is gone. What is left is not
-      graded by h and so is not that mechanism, whatever else it is.
+      0.865, 0.887, 0.802, 0.714, 0.896, 0.924, 0.841 across h = 2..8,
+      and flatness is measured rather than eyeballed: regressing the
+      ratio on h with each stratum weighted by 1/sd^2 of its own
+      reference gives a slope of -0.0049 +/- 0.0141 (z = -0.34) about a
+      weighted mean of 0.849, with a chi^2 of 2.64 on 6 degrees of
+      freedom -- a constant fits the seven strata better than their
+      error bars demand. The same regression on the constant model,
+      which is the contrast, gives +0.3199 +/- 0.0141 (z = +22.6) and a
+      chi^2 of 634. That climb was the whole evidence for "a second
+      mechanism graded by the class number". The grading is gone. What
+      is left is not graded by h and so is not that mechanism, whatever
+      else it is.
 
   F3. THE INCUMBENT'S RESIDUAL AT h = 1 WAS MODEL FORM (observation;
       P4 SURVIVES). At h = 1 there is no density deficit available --
@@ -586,7 +593,7 @@ def imag_fields(plist):
 # -------------------------------------------------------------- the model
 
 def first_hit(splits, qs, cap):
-    """(conditional mean, mass, cdf-below, pmf-at) for the measured L_1.
+    """(sum of p times its first-hit probability, total mass below cap).
 
     The model of derivation (1): the field's own split sequence, each
     prime a hit with its own probability. Everything is conditioned on
@@ -1006,6 +1013,34 @@ def main():
             continue
         print("     %-6d %10.3f %10.3f %10.3f %10.3f"
               % (h, prev[h], r["ratio"], ppit[h], r["pit"]))
+
+    # K3's observable made numeric. "Flat in h" was read off the column by
+    # eye on the first pass, and a claim that retires a mechanism should
+    # not rest on that. The slope of the ratio against h, each stratum
+    # weighted by 1/sd^2 of its OWN reference, is what says flat -- printed
+    # beside the same slope for the constant model, which is the thing the
+    # flatness is a contrast with.
+    print("\n[K3] is the residual FLAT in h? weighted slope of the ratio "
+          "on h:")
+    for src, lbl in ((rows, "local-share model"),
+                     (crows, "constant model")):
+        pts = [(r["key"], r["ratio"], ref[r["key"]]["sd"]) for r in src
+               if isinstance(r["key"], int) and r["key"] > 1
+               and r["key"] in ref and ref[r["key"]]["sd"] > 0]
+        w = [1.0 / sd ** 2 for _, _, sd in pts]
+        S = sum(w)
+        Sx = sum(wi * x for wi, (x, _, _) in zip(w, pts))
+        Sy = sum(wi * y for wi, (_, y, _) in zip(w, pts))
+        Sxx = sum(wi * x * x for wi, (x, _, _) in zip(w, pts))
+        Sxy = sum(wi * x * y for wi, (x, y, _) in zip(w, pts))
+        det = S * Sxx - Sx * Sx
+        slope = (S * Sxy - Sx * Sy) / det
+        se = (S / det) ** 0.5
+        mean = Sy / S
+        chi2 = sum(wi * (y - mean) ** 2 for wi, (_, y, _) in zip(w, pts))
+        print("     %-18s slope %+7.4f +/- %.4f (z = %+5.2f), mean %.4f, "
+              "chi2 %.2f on %d dof"
+              % (lbl, slope, se, slope / se, mean, chi2, len(pts) - 1))
 
     # ------------------------------------------- PA: the bin resolution
     print("\n=== THE FOURTH SLATE ===")
