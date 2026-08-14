@@ -241,7 +241,15 @@ FINDINGS (all sections assert; copied from run output only).
      bottom, and below |D|/4 that set is EMPTY. The density itself is
      not what failed -- C4 measures it at 0.887 to 0.980 of 1/(2h) over
      100,000 primes -- so the failure is entirely in where the walk
-     starts.
+     starts. (SETTLED, and the word "entirely" is what was wrong.
+     explore_real_principal.py ran the same statistic where the floor
+     does not exist and found the undershoot surviving; then
+     explore_principal_share.py found why -- the density C4 verified
+     over 100,000 primes is not the density at the BOTTOM of the range,
+     where L_1 is read and where the principal share falls to about a
+     third of nominal. What survives here is that the floor is real,
+     that it is the crossover's cause, and that it accounts for the
+     start; what dies is "entirely".)
 
   5. THE MULTIPLE OVER THE FLOOR IS A FUNCTION OF NEITHER VARIABLE
      ALONE (observation). Binning L_1/(|D|/4) by class number and by
