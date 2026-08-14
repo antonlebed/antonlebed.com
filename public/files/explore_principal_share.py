@@ -389,7 +389,7 @@ THE FINDINGS.
       work -- the grading is one mechanism read at the wrong scale.
       (DIVIDED by explore_paired_division.py, which builds that model on
       this share leave-one-out and finds it OVERSHOOTS: the ratio of
-      measured to predicted runs 0.865 to 0.924 across h = 2..8, flat
+      measured to predicted runs 0.714 to 0.924 across h = 2..8, flat
       rather than climbing, so the retirement above holds and the sign
       of what is left is the opposite one.)
 
