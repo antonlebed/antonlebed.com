@@ -785,6 +785,10 @@ def sweep_imag(plist):
             row[2] += nar          # narrow = wide at D < 0
             row[3] += gen
             row[4] += nar and gen
+        # h+ = h at D < 0 (the units are roots of unity, so narrow and
+        # wide coincide), and the N(eps) slot is a PLACEHOLDER: there is
+        # no fundamental unit here for its sign to be. Only K6 reads that
+        # slot and only on the real rows.
         out.append((D, h, h, +1, len(chars), c))
     return out
 
