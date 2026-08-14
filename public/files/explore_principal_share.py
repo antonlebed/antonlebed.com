@@ -359,9 +359,10 @@ THE FINDINGS.
   F6. THE POOLED SHARE UNDERSTATED THE EFFECT BY ABOUT A FACTOR OF TWO,
       AND AT THE SCALE L_1 IS READ IT IS THE SAME ORDER AS THE WHOLE
       UNDERSHOOT (observation, POST-HOC REFINEMENT -- the bottom edge at
-      100 was added after the first prints and the frozen tables above
-      keep their own edges). L_1 has a mean in the tens, so the bin it
-      actually lives in is 1-100, and the pooled 1-1000 reading averages
+      100 was added after the first prints and the earlier tables above
+      keep their own edges). 94.2% of the fields' L_1 land at or below
+      100 (mean 25.7, median 11), so the bin it actually lives in is
+      1-100, and the pooled 1-1000 reading averages
       that against a decade where the deficit is already half gone:
 
           h+          1-100   100-1000   1-1000 (pooled)
@@ -386,6 +387,11 @@ THE FINDINGS.
       order and the direction, which is enough to retire the claim that
       a SECOND mechanism graded by the class number is doing most of the
       work -- the grading is one mechanism read at the wrong scale.
+      (DIVIDED by explore_paired_division.py, which builds that model on
+      this share leave-one-out and finds it OVERSHOOTS: the ratio of
+      measured to predicted runs 0.865 to 0.924 across h = 2..8, flat
+      rather than climbing, so the retirement above holds and the sign
+      of what is left is the opposite one.)
 
       The imaginary column shows the contrast the floor makes and is why
       it is printed beside: at p <= 100 the share rounds to 0.000 at
