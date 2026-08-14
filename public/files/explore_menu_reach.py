@@ -281,7 +281,12 @@ FINDINGS (tiers per the standard naming scale; run record below).
    instance -- has a Newton polygon of dimension >= 2. What remains
    open, and is now the sharp statement because it outlived the frame
    it was born in, is whether a negative irreducible factor of a
-   0/1-coefficient POLYNOMIAL must have collinear exponents at all. The
+   0/1-coefficient POLYNOMIAL must have collinear exponents at all.
+   (SETTLED SINCE, and the answer is NO: the full-dimension collision's
+   seed core is (x0 + 1)(x0^2 x1 + x0^2 - x0 x1 + x1^2 + x1), whose
+   second factor is Z-irreducible, negative and of Newton dimension 2 --
+   explore_descent26.py and explore_descent26_why.py. What survives here
+   is the scope this file actually walked, where the maximum is 1.) The
    object is the polynomial and not the product: a product of two menus
    need not have 0/1 coefficients, while its Z-factors are exactly the
    two menus' own, so the menus are where the property lives.
