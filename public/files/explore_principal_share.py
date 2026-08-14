@@ -68,6 +68,13 @@ THE HAND-DERIVATION (pre-engine, on paper).
       where share_genus is the fraction lying in the principal genus and
       share_within the fraction of THOSE that are narrow principal. The
       nominals multiply the same way: 1/h+ = (1/2^(t-1)) x (2^(t-1)/h+).
+      THE FACTORIZATION IS PER FIELD AND PER BIN, AND THE PRINTED
+      COLUMNS DO NOT MULTIPLY: every table here averages a RATIO over
+      fields, and a mean of products is not a product of means, so
+      K2a's column times K2b's does not reproduce K1's and is not meant
+      to -- 0.720 x 0.843 = 0.607 against K1's 0.662 at h+ = 8. What the
+      decomposition licenses is reading each factor's own TREND, which
+      is what it is used for.
       So the deficit the pooled reading found has to sit in one factor or
       the other, and which one it sits in is the whole finding. The
       suspicion names the genus factor. Nothing in the pooled number
@@ -208,13 +215,16 @@ BEFORE the second engine, and flagged as post-hoc for that reason.
 
   P5. THE GRADING IS |D|'s, AND h IS ITS PROXY. Cut the same share ratio
       two ways at once -- by h+ and by |D| band. If the grading is |D|'s,
-      the ratio falls DOWN a column (fixed h+, rising |D|) and is flat
-      ACROSS a row (fixed |D|, rising h+).
+      the ratio falls ALONG a row (fixed h+, rising |D|) and is flat DOWN
+      a column (fixed |D|, rising h+). The parentheticals are the
+      operative definitions; the row/column words read the other way
+      round when this was written, before the table existed to have
+      axes, and are corrected here to match what it prints.
 
   K5 kills P5: the printed two-way table of the share ratio by (h+, |D|
      band), on both signs -- the imaginary side carrying the wider h
      range at equal |D| and so the sharper read. A ratio that falls
-     across a row at fixed |D| by as much as it falls down a column
+     down a column at fixed |D| by as much as it falls along a row
      kills P5, and the class number keeps its grading.
 
   WHAT K5's ANSWER THEN OWES, frozen before its own engine. If the
@@ -259,10 +269,14 @@ THE FINDINGS.
 
       Every stratum is nearer 1 in the top bin than in the bottom one,
       which is K1's observable, and by the top bin the deficit is at
-      most 5.4% at every h+ through 8 and at most 8.5% through 12. The climb is not monotone at the small
-      strata -- h+ = 16 dips in the middle bin on 11 fields, h+ = 5 and
-      10 on 8 and 9 -- and the field counts are printed beside every
-      entry because that is what says which wiggles are readable. So the
+      most 5.4% at every h+ through 8 and at most 8.5% through 12. The
+      climb is not monotone at the small strata, and in two different
+      places: h+ = 16 dips in the MIDDLE bin (0.716, 0.629, 0.843, on 11
+      fields), while h+ = 5 and h+ = 10 dip in the TOP one (0.994 then
+      0.946, and 0.934 then 0.915, on 8 and 9 fields). Neither breaks
+      K1, whose observable is the top bin against the bottom, and the
+      field counts are printed beside every entry because that is what
+      says which wiggles are readable. So the
       deficit is a BOTTOM-OF-RANGE effect and not a standing shortfall,
       and the equidistribution reading of it is the right one.
 
@@ -310,15 +324,16 @@ THE FINDINGS.
   F4. THE GRADING IS THE CLASS NUMBER'S AND NOT THE DISCRIMINANT'S
       (observation; P5 KILLED). The confound is real and it is
       answered. Cut both ways at once on the real side, at p <= 1000:
-      down a column at fixed h+ = 8 the ratio reads 0.662, 0.628, 0.661,
+      along a row at fixed h+ = 8 the ratio reads 0.662, 0.628, 0.661,
       0.687 across the |D| bands to 1000, 2000, 3000, 4000 -- flat, with
       no direction; across the row at fixed |D| in 3000-4000 it reads
       1.000, 0.947, 0.884, 0.805, 0.797, 0.687 at h+ = 1, 2, 3, 4, 6, 8.
       The imaginary side agrees in the bin clear of the floor
       (3000-10000): h+ = 16 gives 0.883, 0.907, 0.872, 0.971 across the
-      |D| bands and h+ = 32 gives 0.657, 0.897, 0.961, both flat or
-      rising, while down the h column at fixed |D| in 2000-3000 the
-      ratio falls 0.923 to 0.603 between h = 6 and h = 44.
+      four |D| bands and h+ = 32 gives 0.657, 0.897, 0.961 across the
+      three it populates, both flat or rising, while down the column at
+      fixed |D| in 2000-3000 the ratio falls 0.923 to 0.603 between
+      h = 6 and h = 44.
 
       THE ONE PLACE THE ANSWER LOOKS DIFFERENT, AND WHY IT IS NOT. The
       imaginary cut at 1000 < p <= 3000 DOES fall with |D| at fixed h
@@ -821,8 +836,9 @@ def two_way(rows, title, bs):
     """The share ratio in ONE prime bin, cut by class number AND |D| band.
 
     h grows with |D|, so a one-way cut by h cannot say which of the two
-    grades the deficit. This cuts both at once: down a column is |D|
-    rising at fixed h, across a row is h rising at fixed |D|."""
+    grades the deficit. This cuts both at once: rows are class numbers
+    and columns are |D| bands, so along a row is |D| rising at fixed h,
+    and down a column is h rising at fixed |D|."""
     print("\n%s" % title)
     acc = {}
     for D, h, hplus, neps, t, c in rows:
