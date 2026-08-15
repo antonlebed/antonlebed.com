@@ -284,7 +284,7 @@ identity that happens to fit.
 THAT FRONT IS CLOSED: explore_monoid_correction.py derives E_m in three
 cases, and finds that where the admissible values MERGE -- most of the
 levels -- the word range sits inside them outright, so E_m is simply the
-number of length-m words and the machine drops out of the count.
+number of VALUES a length-m word can take, and the machine drops out.
 """
 
 import os
