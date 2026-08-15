@@ -405,7 +405,8 @@ FINDINGS.
       primes whose place is principal is (1/6 . q_split + 1/2 . 1/3)
       over 2/3 -- which is 1/3 at R = D and 4/9 at R = M. Measured, the
       38 read a mean share of 0.3232 (range 0.283-0.360) and the 45 read
-      0.4318 (0.364-0.486): each within 3% of its own value -- at
+      0.4318 (0.364-0.486): each low by about 3% of its own value -- 3.0%
+      and 2.8% -- at
       R = D that 3% is the bottom-of-range share deficit and nothing else
       can enter, and at R = M it is a NET of the opposing departures F3
       measures, the same size by coincidence rather than by mechanism --
