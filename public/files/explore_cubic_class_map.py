@@ -495,6 +495,18 @@ FINDINGS.
       group is Z/3 and both non-trivial classes are inverse to each
       other. Naming which structure does that is the front this leaves
       open, and it is a question about h = 3 and not about degree 3.
+      (SETTLED SINCE, by explore_cubic_split_triple.py: the stratum holds
+      two arithmetics, 38 of the 83 fields carrying ONE class at all
+      three places over every totally split prime and the other 45
+      carrying three, so the 1.583 is the gap between two means and the
+      index reads 0.220 and 0.252 inside them. WHAT SURVIVES HERE
+      UNCHANGED is every number above -- the three references, the null
+      spread and the reading that the stratum is not sampling and not the
+      level -- since all of them are correct about a population this file
+      had no instrument to split. What does NOT survive is the closing
+      sentence's implication that the heterogeneity is a property of the
+      class number: it is a property of the field, and the class number
+      is only where the two kinds happen to be able to coexist.)
 
   F4. THE NOMINAL DENSITY IS WRONG AT A CYCLIC CUBIC FIELD, BY A FACTOR
       OF 3/7, AND THE CORRECTION IS DERIVED RATHER THAN FITTED (rule,
