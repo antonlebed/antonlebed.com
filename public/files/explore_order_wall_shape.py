@@ -69,7 +69,7 @@ P-B THE LAW BREAKS AT a >= b, and the smallest witness is hand-derived:
 
 P-C FINITE STATE SURVIVES THE BREAK. Sign is computed by a
     most-significant-first automaton over a bounded state: run
-    v <- b*v + d, and once |v| > a/(b-1) the tail can never overturn it
+    v <- b*v + d, and once |v| >= a/(b-1) the tail can never overturn it
     (|tail| < a*b^m/(b-1) against |v|*b^m), so the state clamps to two
     absorbing verdicts. The live states are the integers |v| <= K with
     K = floor(a/(b-1)), giving 2K + 3 states in all. This is predicted
