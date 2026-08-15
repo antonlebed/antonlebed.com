@@ -503,6 +503,18 @@ FINDINGS.
       tested by enumerating each family over the WHOLE population rather
       than over its H > 1 part.
 
+      SETTLING POINTER (explore_cubic_regime_sorter.py). That test was
+      run and the answer is NO, in both directions: 24 of the 45 uniform
+      fields have r = 1 and 35 of the 38 degenerate ones have r = 0. The
+      reasoning in the paragraph above is wrong in one place and it is
+      the same place both times -- the count (3^r - 1)/2 is the count of
+      cubic fields of a FUNDAMENTAL discriminant, and d_K = -2891 =
+      7^2 * (-59) is not one, so its family of three sits at conductor 7
+      where a ray class group does the counting and 2 and 3 are legal
+      sizes. What survives here is the COLUMN and not its reading: the
+      association it measures is real, and what it tracks is the
+      conductor rather than the 3-rank.
+
 RUN RECORD. `python prime/code/memwatch.py python
 prime/code/explore_cubic_split_triple.py`. One process, CPython, no BLAS.
 10 checks, 237.4 s wall, peak working set 76.4 MB against memwatch's
