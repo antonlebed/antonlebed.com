@@ -281,8 +281,10 @@ higher rank, the ideal is the part fixed by the state count, and everything
 that escapes the reach lives in the higher-rank quotient. A formula for E_m
 is therefore a count of the monoid ABOVE its ideal rather than a lattice
 identity that happens to fit.
-THAT FRONT IS CLOSED: explore_monoid_correction.py derives E_m, and the
-constraint that binds it turns out to be the word range and not the machine.
+THAT FRONT IS CLOSED: explore_monoid_correction.py derives E_m in three
+cases, and finds that where the admissible values MERGE -- most of the
+levels -- the word range sits inside them outright, so E_m is simply the
+number of length-m words and the machine drops out of the count.
 """
 
 import os
