@@ -251,8 +251,12 @@ F3 SO THE DIGIT SET ENTERS THE CORRECTION AT FULL RESOLUTION, AND THE
    split levels, where it fires at 178 of 1448. That is the
    sharp form of what M4 could only describe, and it is NOT the form this
    file first wrote down. The leading term n^2 + n + 1 reads am only
-   through R- = ceil(am/(b-1)); the correction reads am and ap DIRECTLY,
-   at every merged level, through the word count of F2 -- so the residue's
+   through R- = ceil(am/(b-1)); the correction reads am + ap DIRECTLY, at
+   every merged level, through the word count of F2 -- the SUM and not the
+   split, that word count being a function of am + ap alone, which is the
+   same fact explore_monoid_quotient.py F3 later reads off the algebra:
+   two all-merged cells sharing b, the sum and the level count carry
+   isomorphic quotients. So the residue's
    extra resolution is not the defect but the reach's own fractional part
    in full, and the defect's job is to decide, above the merge, whether the
    words or the machine are the tighter constraint. The corpus's sharpest
