@@ -321,20 +321,35 @@ is on <a href="/reading/redundant">Redundant arithmetic</a>.</p>
   <i>b</i><i>s</i> + <i>d</i> on the digits <i>d</i>: once |<i>s</i>|
   &gt; <i>a</i>/(<i>b</i> −
   1) no continuation can outweigh what is already accumulated, and the
-  run clamps to one of two absorbing verdicts. The live states are the
-  integers |<i>s</i>| ≤ <i>K</i> with <i>K</i> = ⌊<i>a</i>/(<i>b</i> −
-  1)⌋, so the machine holds 2<i>K</i> + 3 <b>states</b> in all — 3 to 9
-  across the systems run — and it reproduces brute-force sign exactly on
-  every string at every one of them. That count is an upper bound: the
-  derivation licenses absorbing at ⌈<i>a</i>/(<i>b</i> − 1)⌉ and the
-  machine absorbs one step later, the two coinciding except where
-  <i>b</i> − 1 divides <i>a</i>, and a surplus state costs correctness
-  nothing — which is why agreement with brute force cannot detect
-  one.</p>
+  run clamps to one of two absorbing verdicts. Call <i>a</i>/(<i>b</i> −
+  1) the <b>normalized reach</b>: how many radix steps of headroom one
+  side of the digit set buys. The minimal number of <b>states</b> is
+  2⌈<i>a</i>/(<i>b</i> − 1)⌉ + 1, and the rounding is the ceiling. A tail
+  of <i>m</i> digits takes every value in its whole range, because the
+  digit set covers, so a live state is distinguishable from an absorbing
+  one exactly when some tail drives it to zero — which happens iff its
+  value is strictly below the reach. The two states sitting <em>at</em>
+  the reach, which exist only where <i>b</i> − 1 divides <i>a</i>, are
+  never driven to zero and merge away.</p>
+  <p>A machine built to the floor instead holds 2<i>K</i> + 3 states,
+  <i>K</i> = ⌊<i>a</i>/(<i>b</i> − 1)⌋ — 3 to 9 across the systems run —
+  and reproduces brute-force sign exactly on every string at every one of
+  them while carrying a surplus pair wherever that divisibility holds. A
+  surplus state costs correctness nothing, which is why agreement with
+  brute force cannot detect one, and the floor was an artifact of where
+  such a machine clamps rather than a fact about sign. Over an
+  asymmetric set {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} the count
+  is ⌈<i>a</i><sup>−</sup>/(<i>b</i> − 1)⌉ +
+  ⌈<i>a</i><sup>+</sup>/(<i>b</i> − 1)⌉ + 1, and the two ceilings attach
+  to the <em>opposite</em> sides from the obvious reading: a positive
+  prefix can be overturned only by a negative tail, so it stays live
+  while it is below <i>a</i><sup>−</sup>/(<i>b</i> − 1). Symmetric sets
+  cannot see that crossing, both sides being equal there.</p>
   <p>Each digit is therefore a map on a finite state set, and the
   numeral's sign is the composite of its digits' maps — a product in the
   finite <b>transition monoid</b> those maps generate under composition,
-  of size 3 to 65 here. So sign is a per-digit map at lookahead 0
+  of size 3 to 65 across these systems on the floor-built machine above.
+  So sign is a per-digit map at lookahead 0
   followed by that monoid's product, and the wall lies entirely in the
   product: the minimal number of leading digits determining the sign is
   the full width at every system and every width run, never <i>n</i> − 1
@@ -349,10 +364,11 @@ is on <a href="/reading/redundant">Redundant arithmetic</a>.</p>
   <p>Where <i>a</i> ≤ <i>b</i> − 1 the verdict has a law simpler than
   the product — the <b>leading-nonzero law</b>: the sign is the first
   nonzero digit's, and a numeral is zero iff every digit is 0, a
-  zero-test at lookahead 0 on a per-digit predicate. The monoid does not
-  shrink to meet it, carrying 10, 8, 8 and 3 elements across the four
-  redundant systems below that line; what the law says is that its
-  product is not needed there. Above that line it fails, the smallest
+  zero-test at lookahead 0 on a per-digit predicate. That region is
+  exactly where the reach ceiling is 1, so the minimal machine there has
+  three states — seen only zeros, negative, positive — which is the law's
+  own machine: below the line the law is not a shortcut past the product
+  but <em>is</em> the minimal object. Above that line it fails, the smallest
   witness sitting at radix 2 with digits {−2..2}: the string (1, −2) has
   value zero behind a nonzero lead.</p>
   <p>The full width is not redundancy's price. At slack ρ =
@@ -361,28 +377,47 @@ is on <a href="/reading/redundant">Redundant arithmetic</a>.</p>
   determining prefix is the full width just the same: sign is comparison
   against zero, zero sits on a cell boundary, and the non-redundant
   window's one-cell ambiguity already puts it out of reach. Neither does
-  the state mark the regime. 2<i>K</i> + 3 cuts across the redundancy
+  the state mark the regime. The count cuts across the redundancy
   boundary rather than tracking it — 3 states at both non-redundant
-  controls and at radix 5 with {−3..3}, which is redundant, while radix
-  3 with {−2..2} shares that system's slack ρ = 2 and carries 5. One
-  dial, two costs: "redundant" is exactly ρ ≥ 1, and ρ enters the price
-  the arithmetic side pays without settling it — the window margin
-  above, the one a redundant cover buys, is
-  log<sub><i>b</i></sub>(2<i>a</i>/ρ), which needs the digit bound too —
-  while sign's state answers to <i>a</i>/(<i>b</i> − 1), on which the
-  word reports nothing. Comparison and equality ride sign: comparison is
-  the sign of a digitwise difference into the doubled set
+  controls and at radix 5 with {−3..3}, which is redundant — and it is
+  not a function of the slack either: at ρ = 3, radix 4 with {−3..3}
+  carries 3 states while radix 2 with {−2..2} carries 5. One dial, two
+  costs, and the two costs turn out to be one function read twice.
+  "Redundant" is exactly ρ ≥ 1, and ρ enters the price the arithmetic
+  side pays without settling it — the window margin above, the one a
+  redundant cover buys, is log<sub><i>b</i></sub>(2<i>a</i>/ρ), which
+  needs the digit bound too. What settles both is the reach: addition
+  spends ⌈<i>x</i>/(<i>b</i> − 1)⌉ slack units on a side of reach
+  <i>x</i> (<a href="/reading/redundant">Redundant arithmetic</a>) and
+  sign spends ⌈<i>x</i>/(<i>b</i> − 1)⌉ states, plus the one state that
+  is the all-zeros class. The same ceiling of the same reach, priced in
+  two currencies — and ρ, the dial the word coarsens, carries neither.
+  Comparison and equality ride sign: comparison is the sign of a
+  digitwise difference into the doubled set
   {−2<i>a</i>..2<i>a</i>}, redundant at the same radix and so covered by
-  the same construction, and equality is that difference against
-  zero.</p>
+  the same construction, and equality is that difference against zero.
+  So comparison costs 2⌈(<i>a</i><sup>−</sup> +
+  <i>a</i><sup>+</sup>)/(<i>b</i> − 1)⌉ + 1 states — and it is
+  <em>blind to the crossing</em>, the digitwise difference of an
+  asymmetric set being symmetric whatever the split was. Ordering a
+  redundant stream therefore costs strictly more state than reading its
+  sign, except where both reaches are small enough to share one
+  ceiling.</p>
   <p class="scope"><b>Scope.</b> Rules, exhaustive at the swept widths
   over nine symmetric digit sets — seven redundant and two balanced
-  non-redundant, the latter the control that places the full width. Not
-  a theorem: the widths are bounded by enumeration. The state count is
-  an upper bound and no minimality is claimed. Comparison and equality
-  are reasoned from sign rather than swept.</p>
-  <p class="verifier">verifier:
-  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_order_wall_shape.py"><code>explore_order_wall_shape.py</code></a></p>
+  non-redundant, the latter the control that places the full width. The
+  full-width and factorization claims are not theorems: the widths are
+  bounded by enumeration. Component tiers differ for the state count.
+  The symmetric minimal count is a <b>theorem</b> for contiguous
+  covering digit sets, proved by the tail argument above and verified
+  exhaustively at 107 systems to radix 12; the asymmetric count is a
+  <b>rule</b>, verified at 456 systems with the distinguishing argument
+  carried over but reachability of the top state confirmed rather than
+  proved. Comparison's count follows from sign's; comparison and
+  equality are otherwise reasoned from sign rather than swept.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_order_wall_shape.py"><code>explore_order_wall_shape.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sign_minimal.py"><code>explore_sign_minimal.py</code></a></p>
 </article>
 
 <article class="claim" id="two-ends-law">

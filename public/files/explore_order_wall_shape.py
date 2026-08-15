@@ -140,6 +140,11 @@ F2 SIGN IS FINITE-STATE AT EVERY SYSTEM (rule, exhaustive at the
    the licensed threshold exactly. Surplus states cost correctness
    nothing, which is why the brute-force check cannot detect them and
    is not evidence of minimality.
+   (SETTLED SINCE, by explore_sign_minimal.py: the minimal count is
+   2*ceil(a/(b-1)) + 1, so the surplus pair is real and sits exactly
+   where predicted here, at five of these seven systems. What survives
+   of this row is the upper bound and the reason the check cannot see
+   the surplus; the floor is not the statistic the count answers to.)
 
 F3 SIGN IS NOT FINITE-WINDOW AT ANY OF THEM (rule, exhaustive). The
    minimal number of leading digits determining the sign is the FULL
@@ -169,6 +174,14 @@ F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
    coarser -- 3 and 3 at the controls, 10, 8, 8, 3 below a = b-1, and
    31, 65, 14 above it -- and K alone does not fix them either, since
    10, 8, 8 and 14 all sit at K = 1.
+   (SETTLED SINCE, by explore_sign_minimal.py: the CUTS-ACROSS verdict
+   holds at the minimal count too, but this row's WITNESS for it does not.
+   (3,2) and (5,3) carry 5 against 3 only because the clamped machine
+   holds a surplus pair; minimally both are 3, and rho = 2 is the one
+   slack value at which the minimal count IS a function of rho. The
+   generic witness is rho = 3, where (4,3) carries 3 and (2,2) carries 5.
+   The monoid sizes above are the clamped machine's and are not restated
+   there.)
    **AND THE GENERAL FORM OF THAT IS WORTH STATING**: count the COSTS
    an object actually pays against the PARAMETERS the family gives you
    to pay them with. A digit set's redundancy is normally dialled as
@@ -185,7 +198,11 @@ F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
 F5 THE FACTORIZATION, and it is the finding. Sign is the product of
    per-digit state maps in a finite TRANSITION MONOID -- sizes 3 and 3
    at the controls and 10, 8, 8, 3, 31, 65, 14 at the seven redundant
-   systems -- and computing that product with a BALANCED TREE
+   systems (the CLAMPED machine's, as F4's parenthesis says of its own
+   row; the SYNTACTIC sizes are 3, 3, 3, 3, 16, 43, 14 at the same seven
+   and 3 at both controls -- explore_sign_monoid.py, which reproduces
+   the clamped numbers here exactly from the same build) -- and
+   computing that product with a BALANCED TREE
    bracketing rather than a left-to-right scan agrees with brute force
    on every string at all nine. So SIGN factors as [window-0 map] then
    [associative reduction]: the reduction is what the wall is made of,
