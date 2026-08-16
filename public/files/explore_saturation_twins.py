@@ -80,9 +80,13 @@ D5  WHAT C_MAX THEN IS. If S2 confirms the bounded ceiling and S3 the
 D6  THE RUN HALF IS ALREADY IMPLIED AT THE DEEPEST RANGE; THE PEAK HALF
     IS NOT. Every trusted-bounded LABEL at N = 300000 is a recorded
     verdict -- the graded map's 210 cells read bounded there
-    (explore_cascade_rule.py H1), the value law's bounded cells re-read
-    there (explore_cascade_values.py), the designed family's strides
-    fixed by the residue law -- and the rule gates any run reaching the
+    (explore_cascade_rule.py H1) and the value law's bounded cells
+    re-read there (explore_cascade_values.py). The designed family is
+    the weaker warrant of the three and is named as one: its labels come
+    from the residue law, which carries no range set, so at this range
+    the label is a law applied and not a verdict recorded, and whether
+    the rule still agrees with it there is something the arm's own print
+    answers (F6). And the rule gates any run reaching the
     window's period, 6 at the graded window and 3 to 5 at the designed
     one. So longest run <= 5 follows from the labels themselves and no
     measurement can move it. PEAK does not follow: the excess
@@ -243,7 +247,15 @@ F6  THE CEILING IS UNMOVED AT THE DEEPEST RANGE, AND ONLY THE GATED
     below the saturation threshold of 10. The live half is well inside
     that: the edge-open bounded columns, the only ones D6 leaves
     uncapped by a run bound, number 58 graded, 1 designed and 0 value,
-    and the largest peak among all of them is 3.
+    and the largest peak among all of them is 3. The margin is two
+    values and not one: the constant is one past the bounded ceiling and
+    the shallowest aperiodic peak the split needs saturated is 7, so a
+    ceiling of 6 would still issue 7 and still reproduce the split, and
+    only a bounded column at 7 or above would have forced a choice.
+    D6's weakest warrant also holds at this range: the designed family's
+    bounded strides print max run 2 against periods of 3, 4 and 5, so
+    the rule agrees with the residue label at every one of them and the
+    label applied there is not a label the reading has to assume.
     And the bounded side does not MOVE with depth while the gated side
     does. Between the two ranges the arm printed, the graded map's
     (longest run, peak) histogram is identical entry for entry --
