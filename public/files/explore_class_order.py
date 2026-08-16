@@ -67,6 +67,16 @@ THE HAND-DERIVATION (pre-engine, on paper).
       already pinned that count to 2^(t-1) at every field of both signs,
       so a third quantity is in the agreement for free.
 
+      AND THE SORTING OF PRIMES INTO CLASSES IS AMBIGUOUS WHERE THE DIAL
+      IS NOT. A split prime's two places carry INVERSE classes -- the two
+      square roots of D mod 4p give (p, b, c) and (p, -b, c) -- and the
+      sweep takes one of them, so which of C and C^-1 a prime is counted
+      in is a choice of square root. It cannot reach any statistic read
+      here: C and C^-1 have the same ORDER, the same ambiguity and the
+      same q, so every dial in this rig is invariant under the choice.
+      What WOULD be sensitive is any statistic separating a class from
+      its inverse, and none is asked for.
+
   (4) THE RIVAL DIAL IS THE SMALLEST REPRESENTED PRIME, AND IT IS THE
       REPAIR OF THE ONE DIAL THAT DIED. Probe 1 killed the class MINIMUM
       m(C) -- the least value a class represents -- as a grading, and the
