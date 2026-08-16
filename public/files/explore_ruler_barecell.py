@@ -284,11 +284,17 @@ be optimal because cost at an atom depends only on the COUNT taken
 there. All seven bare cells agree with the certificate exactly. So do
 FLAT-3 (2.0000) and DEAD-7 (4.9333), whose 15 atoms are identical, which
 collapses their search to one over how many atoms sit at each size.
-TILT-3 and TILT-4-WIDE cannot be searched at M = 15 and 105 with
-distinct atoms, and nothing is claimed of them beyond a positive
+TILT-3 and TILT-4-WIDE cannot be searched HERE at M = 15 and 105 with
+distinct atoms, so this file claims nothing of them beyond a positive
 penalty. Nine of eleven exact, two bounded, and no number below rests on
 the incomplete step -- the run prints that 9/11 and names the two it
-cannot search.
+cannot search. Both were later solved exactly by a different algorithm
+(explore_ruler_optimum.py), which is where their penalties stop being
+floors: +0.0805 at TILT-3, whose certificate OVERSTATES, and +0.1033 at
+TILT-4-WIDE, whose certificate turns out to be exact once its tied fill
+is computed rather than greedily approximated past the sum cap below.
+The table's two bracketed entries are what THIS rig printed and are left
+standing as its record.
 
   cell           M  k | E|Ocond| E|Omarg| OPT (certificate)        |     t* mult | PENALTY
   TILT-3        15  3 |   1.0000   1.0000 0.9288 exact (LP 0.9008) | 0.7160   10 | +0.0712  (ring)
