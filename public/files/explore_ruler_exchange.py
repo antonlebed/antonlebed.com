@@ -300,6 +300,17 @@ agrees exactly (2.0 against 2.0), which is how 28.5% of a weighted
 sweep went unseen behind a single witness. The other two are the
 tilted ring cells, whose penalties are therefore FLOORS and not values
 -- an overstated optimum moves a penalty measured against it only up.
+
+SETTLED SINCE, and the paragraph above is left standing as this file's
+own record. explore_ruler_optimum.py solves both tilted cells exactly by
+a different algorithm, so all three unequal-weight cells are searched
+and neither penalty is a floor any longer: +0.0805 at TILT-3 and
++0.1033 at TILT-4-WIDE. The direction predicted here holds -- both moved
+UP -- and the reason splits, which this file could not have seen: at
+TILT-3 the certificate does overstate, while at TILT-4-WIDE it is EXACT
+and was merely uncomputable past the parent's sum cap. What survives
+here unchanged is everything the sweep measured, the equal-weight
+derivation, and the two routes.
 """
 
 import os
