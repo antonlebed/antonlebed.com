@@ -251,7 +251,12 @@ F6  THE CEILING IS UNMOVED AT THE DEEPEST RANGE, AND ONLY THE GATED
     print (5, 5) at both; over that same depth the GATED maxima rise,
     the value grid's from 13 to 15 and the designed family's from 18
     to 19, and the graded population's edge-open count falls from 73
-    to 58 as columns close rather than grow. Depth moves the gated
+    to 58 with its spectrum unchanged. That last pair is an AGGREGATE
+    reading and not a per-column one: an unchanged histogram with a
+    lower open count is what closure without growth looks like, but it
+    is equally consistent with one column growing while another
+    shrinks, and the arm stores no column-to-column correspondence
+    across ranges to tell those apart. Depth moves the gated
     populations AWAY from the ceiling and does not move the bounded
     ones at all, so the gap the constant sits in widens with the
     reading rather than closing.
