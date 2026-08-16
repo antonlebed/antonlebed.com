@@ -683,7 +683,8 @@ def s5_report(n, control):
           " does not cap (D6):")
     for popname, g in sorted(bnd.items()):
         print(f"    {popname:10s} open {len(g['open']):3d}  "
-              f"max peak among them {g['open_peak']:2d} at {g['open_at']}")
+              f"max peak among them {g['open_peak']:2d} at {g['open_at']}"
+              f"{'  (deepest 8 by peak listed)' if len(g['open']) > 8 else ''}")
         for key, pk, ln in sorted(g["open"], key=lambda x: -x[1])[:8]:
             print(f"      {key} peak {pk} run {ln}")
     cmax_peak = max(g["peak"] for g in bnd.values())
