@@ -252,6 +252,14 @@ F6  THE CEILING IS UNMOVED AT THE DEEPEST RANGE, AND ONLY THE GATED
     the shallowest aperiodic peak the split needs saturated is 7, so a
     ceiling of 6 would still issue 7 and still reproduce the split, and
     only a bounded column at 7 or above would have forced a choice.
+    One thing about the control is worth the reader's attention, since
+    its PASS does not say it: P6's verdict is invariant on the very axis
+    this arm varies. It passes at N = 3000 as readily as at 100000 --
+    the cell counts are range-free and the ceilings hold at every range
+    read -- so a run that silently used the wrong N would still print
+    GREEN. What witnesses the range is the OBSERVABLE and not the
+    verdict: the graded and value keys carry n, and the gated maxima
+    move with it. Read those, not the GREEN.
     D6's weakest warrant also holds at this range: the designed family's
     bounded strides print max run 2 against periods of 3, 4 and 5, so
     the rule agrees with the residue label at every one of them and the
