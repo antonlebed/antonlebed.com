@@ -139,18 +139,25 @@ F1 THE CONTROLS HOLD (S0, S1). Every detector fired on its fabricated
 
 F2 THE RUNG LAW IS THE RAMP'S (S2, PR1; K1 at 0 over both schedules, all
    100 grid cells). At f = d^2 * sigma and at f = d + sigma alike, every
-   strand rests one above a ramp rung at or below the seat. The depth SETS
-   are the standing schedule's own at every ladder that strands -- {3, 5}
-   at (2, 4), {3, 5, 9} at (2, 8), {2} at (3, 2) -- so the price moved
-   which items rest there and never where resting happens.
+   strand rests one above a ramp rung at or below the seat. The occupied
+   depth sets follow the admitted count and stay top segments of ONE rung
+   set per ladder: the headed per-item sets coincide with the standing
+   schedule's -- {3, 5} at (2, 4), {3, 5, 9} at (2, 8), {2} at (3, 2),
+   {3} at (2, 2) -- while the splice-free psi(2, 3) drops to {5} at the
+   squared price from the standing {3, 5} (computed in the audit,
+   standing grid), its shallow rung vacated WITH its admitted items. So
+   the price moves which rungs are OCCUPIED and never where resting
+   happens.
 
 F3 THE FILL IS TOP-DOWN AT BOTH SCHEDULES (S2, PR2; the strict read at 0).
    Every cell's depth set is a top segment of its per-item cell's, at
-   every ladder and both schedules. The FROZEN pair wording fired 14 times,
-   all on the empty-base case -- a first fill from an empty coarser cell
-   counts as a "too-deep gain" as written -- and every one of those gains
-   is exactly the deepest depth the finer partitions hold, which is the
-   top-down law doing precisely what it says. The wording was frozen
+   every ladder and both schedules. The FROZEN pair wording fired at 14
+   pairs in each grid, 28 in all, every one on the empty-base case -- a
+   first fill from an empty coarser cell counts as a "too-deep gain" as
+   written -- and every one of those gains is a top segment of the depths
+   the finer partitions hold (27 of the 28 the deepest alone, the
+   alpha = 2 (2, 8) one-to-three-blocks pair gaining {5, 9}), which is
+   the top-down law doing precisely what it says. The wording was frozen
    against nonempty bases; the strict top-segment read is the meaning, and
    both are printed.
 
@@ -171,12 +178,14 @@ F5 THE BUDGET SURVIVES BOTH PRICES (S2, PR4; K4 at 0). The flat tail
    equal to the tail gap at alpha = 2 (1^alpha = 1) and to 1 + tail gap
    additive.
 
-F6 ONE RISER, AND THE ONE SLOW CELL SETTLES ON ITS CENSUS (S2, S4, PR6;
-   K6 at 0, K5 at one cell resolved). Exactly one item rises at every
-   cell. The additive Z[2^1/8] per-item cell is the one uncrossed
-   120-move read in the file -- the widest admitted set, 7 items still
-   climbing -- and K5's window read moved it 14 -> 20. Re-read settled: by
-   400 moves it has crossed and prints 20 strands {3, 5, 9} = its own A,
+F6 ONE RISER AT EVERY CROSSED CELL, AND THE ONE SLOW CELL SETTLES ON ITS
+   CENSUS (S2, S4, PR6; K6 at 0, K5 at one cell resolved). Exactly one
+   item rises at 99 of the 100 grid cells; the additive Z[2^1/8]
+   per-item cell is the one uncrossed 120-move read in the file -- the
+   widest admitted set, 7 items still climbing, its transient longer
+   than the window -- and K5's window read moved it 14 -> 20. Re-read
+   settled: by 400 moves it has crossed with exactly ONE riser, flat
+   minimum 9 = 1 + tail, and prints 20 strands {3, 5, 9} = its own A,
    identical at 1200. A moved count was a transient still running, not a
    window artifact, and the vacuity hazard the hand-attack named is why
    the crossing is printed rather than trusted.
@@ -438,10 +447,10 @@ def s4_window(npl, grids):
             cls = dict(BC.PARTITIONS)[ptag]
             for n in (LONG, 3 * LONG):
                 c = HB.read(pump, cls, sch, npl, cross, n=n)
-                print("      %s %s %s at %4d moves: crossed %s, %d strands "
-                      "%s against\n      A = %d %s"
-                      % (stag, tag, ptag, n,
-                         "yes" if c["crossed"] else "NO",
+                print("      %s %s %s at %4d moves: %d riser(s), crossed %s, "
+                      "flat %s,\n      %d strands %s against A = %d %s"
+                      % (stag, tag, ptag, n, len(c["run"]),
+                         "yes" if c["crossed"] else "NO", str(c["flat"]),
                          len(c["strand"]), c["depths"], a, list(adep)))
 
 
