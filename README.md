@@ -2,11 +2,14 @@
 
 The deployed site for [antonlebed.com](https://antonlebed.com) — working
 notes on the primorial tower: the rings Z/p_k# built from the first k
-primes. Static HTML/CSS, zero client JS, math prerendered to MathML at
-build time, served via Cloudflare Workers.
+primes, and the mathematics found around them. Static HTML/CSS, zero
+client JS, math prerendered to MathML at build time, served via
+Cloudflare Workers.
 
-- `public/` — the site (8 pages), plus `public/files/` — the verifier
-  scripts the claims cite, downloadable and runnable
+- `public/` — the site: sections of claim-block pages, each section with
+  a generated claims index listing every claim, its tier and its verifier
+- `public/files/` — every verifier script the claims cite, downloadable
+  and runnable (Python; a few need numpy/scipy, the rest are stdlib)
 - `worker.js` — Cloudflare Worker: static assets, bare-path routing,
   301 redirects for every URL that ever shipped
 
