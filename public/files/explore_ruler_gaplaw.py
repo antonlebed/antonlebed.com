@@ -222,7 +222,10 @@ and the certificate's strictly-above set collapses, so the profile at
 the limit is not the limit of the profiles. Also open: whether the
 free box's flattening ceiling (exactly 6 here) is an instance of a
 general law relating coefficient height to the multiplicity of the
-root 1, and the Diophantine regime n <= 50, where the minimum has no
+root 1 (since settled by explore_flatten_height.py: it is -- the
+pure-product law, exhaustive over a two-dial chart in atoms and
+height; what survives of this open is a proof of extremality), and
+the Diophantine regime n <= 50, where the minimum has no
 moment structure and is priced only by the box scan.
 """
 
