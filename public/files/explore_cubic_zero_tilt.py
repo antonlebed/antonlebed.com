@@ -195,6 +195,22 @@ THE HAND-DERIVATION (pre-engine, on paper).
       the measurement to, and it is a prediction of the suppression with
       NO principality shortfall in it at all.
 
+      AND ITS SPREAD IS NOT THE BINOMIAL ONE AT THAT RATE, because the
+      prediction is a function of the SAME primes. Write n3 for the
+      all-principal count, nE0 for the equal-but-nonzero one and
+      nE = n3 + nE0; every unequal prime carries, so the measurement is
+      q_meas = (n - nE0)/n while the prediction is q_pred = 1 - 2nE/(3n),
+      and the difference telescopes:
+
+          q_meas - q_pred = (2*n3 - nE0) / (3n) = (n3 - nE/3) / n.
+
+      The whole comparison is therefore ONE count -- whether the fraction
+      of the equal class that is all-principal is 1/3 -- and its null is
+      n3 ~ Binomial(nE, 1/3), of spread sqrt(nE*2/9) and NOT the spread of
+      a Binomial(n, q) at the predicted rate. The two differ by a factor
+      1.6 here, and the second is the wrong one: it prices a variability
+      the difference does not have, both terms moving together with nE.
+
   (7) WHERE THE SHARE DEFICIT ALREADY LIVES, AND WHY EVERY READ IS BINNED.
       explore_cubic_class_map.py F2 locates the principal-share deficit AT
       SMALL p -- short in the bottom bin at every class number and back at
@@ -294,15 +310,19 @@ FINDINGS.
       against the uniform model's 7/9 = 0.7778  -- ABOVE the model by a factor
       1.106, and derivation (8) says where it should land if the all-equal
       suppression were acting ALONE and nothing else were: 0.8556. Measured
-      0.8603, which is 0.45 of the binomial spread at that rate (0.0105) and
-      lies on the FAR side of it, not short. So a principality shortfall among
-      totally split primes is not merely unmeasured, it is BOUNDED -- at the
-      level the spread carries, which the bound first written here set too
-      tight by a factor of about 1.7. The estimate of a shortfall is
-      0.8556 - 0.8603 = -0.0047 with a spread of 0.0105, so the two-spread
-      upper limit is 0.016 in q_split, one part in fifty of 7/9; 0.010, one
-      part in eighty, sits half a spread from the measurement and excludes
-      nothing. The point estimate has the wrong sign for a shortfall at all. The per-place share says the same in the
+      0.8603, on the FAR side of it, not short. So a principality shortfall
+      among totally split primes is not merely unmeasured, it is BOUNDED, and
+      derivation (8)'s telescoping is what makes the bound readable: the whole
+      comparison is the single count n3 = 87 of the 245 all-equal triples
+      against the 1/3 suppression alone predicts, a fraction 0.3551 at
+      z = +0.72. In q_split units the shortfall estimate is -0.0047 with a
+      spread of 0.0065, so the two-spread upper limit is 0.0083, ONE PART IN
+      NINETY of 7/9, and the point estimate has the wrong sign for a shortfall
+      at all. Two earlier levels stood here and both priced the wrong
+      variance -- one part in eighty from no derivation, then one part in
+      fifty off the Binomial(n, 0.8556) spread of 0.0105, which is 1.6x too
+      wide because it treats a prediction computed from these primes as an
+      external constant. The per-place share says the same in the
       second unit, reading 0.3380 where the suppression-only model gives
       exactly 1/3, since scaling the equal class while keeping its internal 1 :
       2 split leaves E[z] = 1. Against that, the partial primes' bottom bin is
