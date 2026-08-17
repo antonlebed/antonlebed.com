@@ -399,9 +399,16 @@ FINDINGS.
       unsaturated lattice can only move a field from D toward M and never
       the reverse. The 38 are a positive certificate. The M side's
       non-equalities are the direction that needs saturation, and C3 is
-      where an unsaturated lattice would surface -- 892 split primes
+      where an unsaturated lattice would surface -- the split primes
       carrying no principal place, every one of which must have equal
-      classes by derivation (6), and every one of which does.
+      classes by derivation (6), and every one of which does. (THE COUNT
+      HERE READ 892 AND IS 753, corrected from
+      explore_cubic_transposition.py's C6, which re-counts it: 892 is the
+      DEGENERATE regime's split total from the line above, transcribed
+      one quantity across. 753 = 595 at R = D and 158 at R = M, and it
+      reconciles with the equal-class decomposition 1137 = 245 + 892 at
+      384 all-principal equal triples. The control's verdict is
+      untouched, the identity holding at every one of them.)
       AND THE TWO GROUPS' PRINCIPAL SHARES LAND ON THEIR OWN DERIVED
       VALUES, which was not frozen; at the degenerate group it is the
       finding's best independent support and at the other it is weaker,
