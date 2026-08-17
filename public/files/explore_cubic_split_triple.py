@@ -142,7 +142,13 @@ THE HAND-DERIVATION (pre-engine, on paper).
                   or all of it. Zero would make EVERY partially split
                   prime principal, which F1's measured shares exclude at
                   both regimes, so it is all of it and q_partial = 1/3
-                  whatever R is. That is why the two regimes' shares
+                  whatever R is. (SUPERSEDED IN ITS ARGUMENT AND NOT IN
+                  ITS ANSWER, by explore_cubic_transposition.py: a
+                  transposition Frobenius realizes a COSET and not a
+                  subgroup, so the menu here is wrong and a realized set
+                  of size 1 need not be the trivial class -- what
+                  survives is the conclusion q_partial = 1/h, proved
+                  there at every h from the ramification of N over K.) That is why the two regimes' shares
                   differ only through q_split.
       THE TWO SIDES OF THAT AGREEMENT ARE NOT EQUALLY STRONG, and F3's
       joint reading is why. At R = D both q's are 1/3, so the share is
