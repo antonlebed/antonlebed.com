@@ -348,7 +348,10 @@ which is the room growing while the optimum stops chasing it.
 
 WHAT THIS LEAVES OPEN. The criterion is sufficient and not necessary,
 and the census says how far short: 6,035 of the 13,678 exact unequal
-cells are exact for a reason it cannot see. Nothing here bounds the
+cells are exact for a reason it cannot see. (The threshold was later
+raised off the lattice to the box the certificate's own sizes pin --
+explore_ruler_boundedgap.py: 492 of the 6,035 recovered, and the
+geometric death below proved structural rather than a loose constant.) Nothing here bounds the
 spend fraction away from 1 -- that it never reaches 1 is measured over
 15,882 cells and not derived. And the walk's cost is not uniform: W-400
 took 3.9M search nodes against W-10's one, which no property of the cell

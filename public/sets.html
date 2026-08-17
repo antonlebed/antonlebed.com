@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Prediction sets — a coverage guarantee against the exact optimum</title>
+<meta name="description" content="A set-valued predictor scored where the optimum is an exact computation: the marginal coverage guarantee holds as advertised while one subpopulation receives the empty set, and the rule the standard construction converges to closes its coverage with an overshoot that bounds how far from cheapest it can be — and an arithmetic threshold on that overshoot proves it optimal with nothing searched.">
+<link rel="canonical" href="https://antonlebed.com/learning/sets">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/measure'>Measure</a> <a href='/learning' class='up'>Learning</a></nav><nav class='sub' aria-label='Learning'><a href='/learning'>The reader descent</a> <a href='/learning/stalls'>Stalls</a> <a href='/learning/substrate'>The substrate door</a> <a href='/learning/forgetting'>Forgetting</a> <a href='/learning/collisions'>Menu collisions</a> <a href='/learning/audits'>Deletion audits</a> <a href='/learning/sets' aria-current='page'>Prediction sets</a> <a href='/learning/ceilings'>Ceilings</a> <a href='/learning/uncertainty'>Stated uncertainty</a></nav></header>
+<main>
+<h1>Prediction sets</h1>
+<p class="lede">A guarantee is the strongest form a stated uncertainty
+takes, and the narrowest: a set-valued predictor's promised coverage
+holds exactly as advertised while the coverage read on one
+subpopulation alone falls to zero — the optimum it converges to
+abandons that subpopulation as the cheapest way to keep the promise.
+What the rule's own overshoot then buys is a bound on how far from
+cheapest it can be, and a test that sometimes proves it exactly
+optimal with nothing searched.</p>
+
+<p>Published tools that estimate a quantity state their uncertainty as
+a number attached to the estimate, and what such numbers actually
+cover is measured at <a href="/learning/audits">the deletion
+audits</a>. A <b>set-valued</b> predictor states its uncertainty
+differently: it returns not a label but a <b>prediction set</b>, and
+<b>split conformal</b>, the standard construction, sizes that set by
+thresholding a fitted score — an estimated posterior — at a level
+calibrated on held-out data, so that the set holds the true label with
+a stated probability. That probability is its <b>marginal
+coverage</b>, an average over the whole population, and it holds by
+construction — which is exactly why it cannot rank two such
+predictors. Two things it does not touch. One is how SMALL the sets
+are — the property that would rank two predictors, and one with no
+reference point on natural data, the smallest admissible set being
+unknown. The other is where the coverage sits: an <b>atom</b> is a
+value of the predictor's input carrying positive mass, and coverage AT
+an atom — the same probability read on that input alone — is not what
+a marginal guarantee asks for. It is attainable here, the inputs being
+finitely many and a predictor calibrated within each of them
+delivering it; the marginal statement simply does not ask. Hand-set
+cells pin both: a <b>cell</b> is a finite set of weighted atoms, each
+carrying an exact conditional distribution — its <b>posterior</b> —
+over three labels, every value a rational fixed by hand, so the
+optimum each claim below is scored against is a computation rather
+than an estimate.</p>
+
+<article class="claim" id="abandoned-atom">
+  <div class="claim-head"><span class="claim-name">The abandoned
+  atom</span> <span class="tier">property</span></div>
+  <p>The cell: eight atoms of equal mass 1/8, three labels, every
+  posterior set by hand as an exact rational. Seven atoms are peaked,
+  their best labels running from 0.80 up to 0.86; the eighth is flat, at
+  (0.40, 0.32, 0.28). Against a bar of
+  0.70, the smallest average set size any rule can reach while covering
+  0.70 marginally is exactly 7/8 of a label, and the rule that reaches
+  it is seven singletons and the EMPTY SET at the eighth atom. Those
+  seven best labels sum to 5.81, which over eight atoms is a marginal
+  coverage of 0.72625 — past the bar on their own — so abandoning the
+  eighth is the cheapest way to meet the constraint rather than a
+  failure to meet it.</p>
+  <p>Which atom that happens to is fixed exactly, and not by degree.
+  Minimizing expected set size subject to marginal coverage is a
+  pointwise problem once the constraint is priced: a label enters the
+  set at an atom when its conditional probability clears one
+  <b>operative level</b>, the same level at every atom, set by the whole
+  population. At the level itself the objective is indifferent to taking
+  the label or leaving it, so a label sitting exactly there may go either
+  way; below it there is no such freedom, and an atom receives the empty
+  set precisely when its own best label falls strictly below that level.
+  Here the level is 4/5. The seventh
+  atom peaks at exactly 4/5 and is kept; the eighth peaks at 2/5 and is
+  not. That eighth atom is not rare, not down-weighted and not
+  adversarial. It is outnumbered.</p>
+  <p>Split conformal thresholds a posterior at one global level, so this
+  is the rule it converges to. At this cell its exact worst-atom
+  coverage is 0.0000 at every sample size, while its marginal coverage
+  holds between 0.7262 and 0.7275 across them; sixteen-fold more data
+  does not move the zero. Its mean set size sits 0.003 above the optimum
+  at the smallest sample and on it at the two larger. The zero is the
+  method meeting its specification, not missing it. Here one
+  subpopulation handed nothing at all belongs to the constraint the tool
+  is sold on, and nothing meeting that constraint more cheaply removes
+  it.</p>
+  <p class="scope"><b>Scope.</b> Property, and the derivation is the
+  equal-weight one: every label costs the same, so a rule's cost is that
+  constant times the NUMBER of labels it takes, and for a fixed number
+  the most coverage available is that many largest posteriors anywhere —
+  which is the threshold structure, and the abandonment condition with
+  it. That argument uses nothing about this cell but the equal masses,
+  and it holds at any number of atoms, any number of labels and any
+  marginal coverage asked of it (rule). Where atoms carry unequal weight
+  it does not merely go unfinished, it fails, and densely: over a
+  designed sweep of weighted
+  cells the same <b>recipe</b> — every label above the level, plus the
+  ones sitting exactly at it, filled in as cheaply as they close the
+  coverage still owed — costs strictly more than the true optimum at 5,447 of
+  19,125. A cheap label below the level bought in place of a dearer one
+  above it is one of the two routes to that excess, and 2,463 of those
+  cells have no optimum that avoids it. Equal masses are
+  what this cell has, so its level, its condition and its abandoned
+  eighth atom stand; what has moved is the boundary drawn around them.
+  This cell's optimum is also an exact computation in
+  rational arithmetic, confirmed against an exhaustive search over
+  per-atom size vectors — exhaustive over the rules that can be optimal,
+  cost at an atom depending only on how many labels are
+  taken there. The coverage and set-size figures beside it are
+  observations: one set-valued protocol at sample sizes 2000, 8000 and
+  32000, 40 trials each, one seed stream, every coverage summed from the
+  true masses so that no held-out estimate enters the quantity the
+  guarantee is about. Hand-set categorical cells, three labels.
+  Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_barecell.py"><code>explore_ruler_barecell.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_exchange.py"><code>explore_ruler_exchange.py</code></a></p>
+</article>
+
+<article class="claim" id="overshoot-bound">
+  <div class="claim-head"><span class="claim-name">The overshoot bounds
+  the error</span> <span class="tier">rule</span></div>
+  <p>The recipe closes the coverage still owed with labels sitting
+  exactly at the operative level, and such a label covers its own cost
+  times that level — so the fill generally lands PAST the bar rather
+  than on it. Write <i>D</i> for that <b>overshoot</b>, the marginal
+  coverage the recipe delivers above the bar it was asked for, and
+  <i>t</i>* for the operative level. Then the recipe costs at most
+  <i>D</i>/<i>t</i>* more than the cheapest rule meeting the same bar,
+  at every cell, equal weights or not.</p>
+  <p>An overshoot of zero therefore certifies the recipe optimal: a fill
+  landing exactly on the bar cannot be beaten. So the recipe's failure
+  at unequal weights needs a positive overshoot to happen at all, and a
+  small one caps how far off the recipe can be. The cap is nowhere
+  tight: over the 15,799 unequal-weight cells carrying a positive
+  overshoot, the share of <i>D</i>/<i>t</i>* the recipe actually
+  overspends averages 0.18 and reaches 1 at none of them.</p>
+  <p>Where the atoms carry equal weight the bound forces exactness
+  outright, which is the equal-weight derivation
+  <a href="#abandoned-atom">the abandoned atom</a> rests on, reached a
+  second way. Every label costs the same there, so any two rules' costs
+  differ by a whole multiple of that one cost; and a fill that closes
+  the coverage as cheaply as it can carries no removable label, so
+  dropping any one of its labels would leave the bar unmet — which puts
+  the overshoot below the coverage that label carried, and
+  <i>D</i>/<i>t</i>* below one label's cost. A non-negative whole
+  multiple of a cost, smaller than that cost, is zero.</p>
+  <p class="scope"><b>Scope.</b> Rule: proved for any finite set of
+  weighted atoms, any labels and any bar. What is new is the answer and
+  not the machinery — both steps behind it are standard. Relax the
+  minimization of set size under the coverage constraint to let a label
+  be taken in part: the recipe's cost sits exactly <i>D</i>/<i>t</i>*
+  above the relaxed value, which is complementary slackness, and no rule
+  costs less than it. The identity is checked in exact rational
+  arithmetic at 19,270 scorings over 19,269 cells and no cell disagrees.
+  The overspend share is an observation over the same designed sweep of
+  weighted cells, exhaustive over the ones carrying a positive
+  overshoot — the exact ones among them included, which is what makes
+  0.18 a reading on the cap and not on a failure rate.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_surplus.py"><code>explore_ruler_surplus.py</code></a></p>
+</article>
+
+<article class="claim" id="exactness-threshold">
+  <div class="claim-head"><span class="claim-name">The exactness
+  threshold</span> <span class="tier">rule</span></div>
+  <p>A positive overshoot bounds the recipe's excess without deciding
+  it. What decides it is the arithmetic of the weights. A rule's cost
+  is &Sigma; <i>s</i><sub>r</sub><i>w</i><sub>r</sub> over its per-atom
+  set sizes, and the sizes are integers — so if the recipe is not
+  optimal, its excess over the optimum is a nonzero element of the
+  <b>cost lattice</b>, the set of values
+  &Sigma; <i>c</i><sub>r</sub><i>w</i><sub>r</sub> over integer
+  coefficients, hence at least that lattice's smallest positive value
+  <i>g</i>. With the excess capped at <i>D</i>/<i>t</i>*, that is the
+  test: <i>D</i>/<i>t</i>* &lt; <i>g</i> proves the recipe optimal,
+  with no optimum computed and nothing searched. The equal-weight
+  derivation above is this test's special case — there <i>g</i> is one
+  label's cost, and a fill that closes the coverage as cheaply as it
+  can keeps <i>D</i>/<i>t</i>* under it — so at equal weights the test
+  fires everywhere.</p>
+  <p>The threshold can be raised without touching the proof. The excess
+  is not an arbitrary lattice element: it is
+  &Sigma; (<i>s</i><sub>r</sub> − <i>s'</i><sub>r</sub>)<i>w</i><sub>r</sub>
+  over the recipe's own sizes and some optimal rule's, and a size lies
+  between 0 and the number of labels — so each coefficient lies in a
+  box the recipe's own sizes pin, and the threshold rises to the
+  <b>anchored gap</b> <i>g</i><sub>A</sub>, the smallest positive value
+  over that box, never below <i>g</i> and still needing no optimum.
+  Over the designed sweep the plain test decides 55.9% of the cells
+  where the recipe is exact and the anchored one 59.5%, and neither
+  ever fires at any of the 5,447 cells where the recipe overstates.</p>
+  <p>Where the atom weights are geometric the test decides nothing, and
+  structurally rather than by a loose constant. On a family of cells
+  holding one posterior menu over fifteen atoms with weights
+  proportional to <i>&theta;</i><sup>r</sup>, <i>&theta;</i> rising
+  toward 1, the lattice's <i>g</i> collapses across thirty-six orders
+  of magnitude while <i>g</i><sub>A</sub> decouples from it and
+  declines just five — and still sits at least 4.8 orders under
+  <i>D</i>/<i>t</i>* at every member. What holds it down is difference
+  vectors of small support: vectors on six consecutive atoms alone land
+  under every member's <i>D</i>/<i>t</i>*, whatever sizes the recipe
+  carries. At the one member whose recipe is exact — the one place a
+  firing would have been correct — the anchoring raises the threshold
+  six orders and <i>D</i>/<i>t</i>* still sits five above it; at the
+  other eight the recipe overstates, so no sound test could fire and
+  their silence measures nothing. And at a second geometric cell, 105
+  atoms wide, whose box no enumeration touches, one small-support
+  vector at 1.8&middot;10<sup>−7</sup> against a
+  <i>D</i>/<i>t</i>* of 4.3&middot;10<sup>−6</sup> proves the miss
+  outright.</p>
+  <p class="scope"><b>Scope.</b> The test, its anchored raise and the
+  monotonicity <i>g</i><sub>A</sub> ≥ <i>g</i> are rules, proved; the
+  machinery is standard — the cap behind the test is complementary
+  slackness for the relaxed program, the step from threshold to
+  exactness is the usual rounding argument, and a feasible solution
+  matching the relaxation's bound rounded to the cost lattice is the
+  round-up certificate the cutting-stock literature studies as the
+  integer round-up property and solvers deploy as an
+  objective-integrality reduction; at this shape the relaxation's value
+  is one greedy scan. The census figures are exhaustive, exact in
+  rational arithmetic, over the same designed sweep as above — 125
+  posterior menus crossed with 153 weight vectors — at 19,270 scorings
+  with zero firings at the overstating cells. The geometric family is
+  read at nine members with <i>&theta;</i> = (<i>n</i>−1)/<i>n</i>,
+  <i>n</i> = 3 to 1000, the anchored gap enumerated exactly by
+  meet-in-the-middle at fifteen atoms; whether that gap has a closed
+  form over its small-support vectors is not derived, and nothing here
+  claims one. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_surplus.py"><code>explore_ruler_surplus.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ruler_boundedgap.py"><code>explore_ruler_boundedgap.py</code></a></p>
+</article>
+
+<p>A guarantee cannot be overconfident about what it covers; what it
+can do is say nothing about anything else, and the quantity that would
+rank two such predictors is in the second class. The tools that state
+a number instead of a set fail in a direction of their own, measured
+against the same kind of exactly held target:
+<a href="/learning/uncertainty">stated uncertainty</a>.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

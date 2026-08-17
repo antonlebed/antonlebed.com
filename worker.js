@@ -89,6 +89,7 @@ export default {
       '/learning/forgetting': 'forgetting',
       '/learning/collisions': 'collisions',
       '/learning/audits': 'audits',
+      '/learning/sets': 'sets',
       '/learning/ceilings': 'ceilings',
       '/learning/uncertainty': 'uncertainty',
       '/claims': 'claims',
