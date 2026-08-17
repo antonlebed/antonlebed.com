@@ -29,6 +29,14 @@ DERIVATION rather than a guess.
     door at or above P is ever taken after the crossing -- ties at exactly
     P lose to the splice by the menu's own sort, the splice sitting at
     degree 1 and slot 0, the lowest key in the tie list.
+    THE HYPOTHESIS THIS STEP HIDES, separated out later by deleting each
+    in turn (explore_price_hypotheses.py): "nothing priced in (B, P) is
+    ever created again" is a claim about a STANDING item, whose door grows
+    with the tick -- and a growing door costs more only if the price is
+    nondecreasing in the DOOR. That is a property of the price and a
+    fourth hypothesis, distinct from the ladder's own monotonicity in
+    time; every schedule this corpus prices with happens to have it, and
+    a price falling in the door breaks this step and the identity with it.
  B. THE RUNAWAY IS DEGREE 1, SLOT 0, always: born degree, cheapest splice,
     first in every tie. Exactly one item crosses.
  C. SO THE PER-ITEM CENSUS IS A FORMULA -- the ADMISSION CENSUS A. For each

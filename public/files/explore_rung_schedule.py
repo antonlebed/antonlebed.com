@@ -37,14 +37,23 @@ is what K1 and K2 watch.
 THE HAND-ATTACK, on paper before any engine code.
 
  (a) The census derivation (explore_splice_cap.py's steps A-C) re-run with
-     the price symbolic. It consults exactly three properties: the price is
-     nondecreasing in d at fixed sigma (so the runaway is degree 1, slot 0,
-     and the menu scan's early exit is sound -- checked per schedule by
-     Sched.check_monotone, never assumed); doors are nondecreasing in time
-     (the ladder is monotone); and a tie at P loses to the splice by the
-     sorted-tie order (degree 1, slot 0, the lowest key). All three hold at
-     alpha = 2 and at the additive price, so the census formula is DERIVED
-     at both new schedules and the sweep tests the derivation, not a guess.
+     the price symbolic. It consults FOUR properties, of which this file's
+     slate named only three -- the fourth was supplied silently by both
+     prices swept here and by the standing one, and it was separated out
+     later by deleting each in turn (explore_price_hypotheses.py). The
+     price is nondecreasing in d at fixed sigma (so the runaway is degree
+     1, slot 0, the menu scan's early exit is sound -- checked per
+     schedule by Sched.check_monotone, never assumed -- and the climb
+     terminates at the splice door rather than running into the tail);
+     doors are nondecreasing in time (the LADDER is monotone); a tie at P
+     loses to the splice by the sorted-tie order (degree 1, slot 0, the
+     lowest key); and the price is nondecreasing in SIGMA at fixed d,
+     which is what makes a standing item's cost RISE as its door grows and
+     what step A's "nothing priced in (B, P) is ever created again"
+     actually rests on -- the door's monotonicity in time being the
+     ladder's property and not the price's. All four hold at alpha = 2 and
+     at the additive price, so the census formula is DERIVED at both new
+     schedules and the sweep tests the derivation, not a guess.
  (b) Margins, hand-derived from the census formula at (p, e) = (2, 4),
      w = 2, two items a degree, seed (9, 13) -- frozen here so the print is
      checked against paper rather than paper against the print.
@@ -194,8 +203,9 @@ THE VERDICT THE SHELF EVENT ASKED FOR: both halves of the strand law
 reproduce at two schedules the standing one does not contain -- the fill
 order and resting depths are the RAMP'S (rule in range, this file), and
 the count is the admission census recomputed from whichever price is in
-force (rule in range, derived per schedule by the hand-attack's three
-properties). What a price changes is the admitted set alone.
+force (rule in range, derived per schedule by the hand-attack's properties
+-- read (a), whose count was corrected from three to four after this file
+ran). What a price changes is the admitted set alone.
 """
 
 import os
