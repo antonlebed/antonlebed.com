@@ -230,9 +230,13 @@ a loose constant of the lattice argument.
 WHAT THIS LEAVES OPEN. The anchored gap's slow decline on the walk
 (7e-08 at n = 3 down to 1e-12 at n = 1000) is measured, not derived;
 the window evidence points at a closed form over difference vectors
-weighted (1-theta)^j theta^r, and nothing here derives it. And the 492
-gained cells are 8.2% of what the lattice missed: which grid geometries
-the anchoring helps is read off one /20 grid only.
+weighted (1-theta)^j theta^r, and nothing here derives it. (Since
+derived: the decline is a flattening law over the depths to which the
+box lets a vector vanish at 1 -- explore_ruler_gaplaw.py, which also
+locates the moment regime this law governs at n past about 50.) And
+the 492 gained cells are 8.2% of what the lattice missed: which grid
+geometries the anchoring helps is read off one /20 grid only, and
+stays open.
 """
 
 import os
