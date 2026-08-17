@@ -296,9 +296,13 @@ FINDINGS.
       suppression were acting ALONE and nothing else were: 0.8556. Measured
       0.8603, which is 0.45 of the binomial spread at that rate (0.0105) and
       lies on the FAR side of it, not short. So a principality shortfall among
-      totally split primes is not merely unmeasured, it is BOUNDED: anything
-      above about 0.010 in q_split -- one part in eighty -- would have shown,
-      and the sign is wrong for one. The per-place share says the same in the
+      totally split primes is not merely unmeasured, it is BOUNDED -- at the
+      level the spread carries, which the bound first written here set too
+      tight by a factor of about 1.7. The estimate of a shortfall is
+      0.8556 - 0.8603 = -0.0047 with a spread of 0.0105, so the two-spread
+      upper limit is 0.016 in q_split, one part in fifty of 7/9; 0.010, one
+      part in eighty, sits half a spread from the measurement and excludes
+      nothing. The point estimate has the wrong sign for a shortfall at all. The per-place share says the same in the
       second unit, reading 0.3380 where the suppression-only model gives
       exactly 1/3, since scaling the equal class while keeping its internal 1 :
       2 split leaves E[z] = 1. Against that, the partial primes' bottom bin is
