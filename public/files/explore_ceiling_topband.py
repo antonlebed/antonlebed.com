@@ -524,15 +524,11 @@ def read_one(d, cx, a, b, c, O):
            for (p, e, f, name, P) in small):
         return 1, 'cert', gp, None
     prevH = None
-    H = None
-    rel = None
     for (box, cap) in RUNGS:
         rows2 = CFS.harvest_relations(O, gp, box=box, cap=cap)
         H = CFS.hermite_order(rows2, len(gp))
-        if H is not None:
-            if H == prevH:
-                return H, ('relH1' if H == 1 else 'H'), gp, rows2
-            rel = rows2
+        if H is not None and H == prevH:
+            return H, ('relH1' if H == 1 else 'H'), gp, rows2
         prevH = H
     return None
 
