@@ -281,8 +281,9 @@ THE PREDICTIONS, WEIGHED.
  P4 PASSES: the increment's four cumulative levels are strictly
     decreasing.
  P5 PASSES: uniform reads 1.0006 to 1.0031 everywhere read; the plant
-    reads 1.2599 at the smallest cut, non-increasing along the
-    ladder, 1.0337 in the top band.
+    reads 1.2599, 1.2763, 1.2321, 1.1681 along the ladder --
+    non-increasing within the frozen 0.02 slack, the second point
+    rising 0.016 above the first -- and 1.0337 in the top band.
  P6 PASSES: the floor moves the z by 0.09; the estimator gap is
     0.0048.
 
@@ -291,8 +292,8 @@ prime/code/memwatch.py python prime/code/explore_ceiling_topband.py`.
 One process, CPython, no BLAS. 188 checks here and 8 in the imported
 degree-3 chain, 876.6 s wall, peak working set 205.5 MB against
 memwatch's 512 MB ceiling. 4865 of 4868 fields kept; 3 excluded under
-T4 (discriminants -7699, -7771, -23928; 0.2% of the complex
-population against the 1% kill); 1283 mapped complex fields with H > 1;
+T4 (discriminants -7699, -7771, -23928 -- the kill asserted the share
+under 1% and the run passed); 1283 mapped complex fields with H > 1;
 the pin 167 fields and 13635 partial places with 0 failures, 9 sample
 lattices needing a deeper rung (T8). EARLIER ATTEMPTS, all before any
 science print: one killed by memwatch at 514 MB commit (T9's cause),
