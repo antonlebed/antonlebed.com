@@ -244,7 +244,9 @@ THE FINDINGS.
     falling on to 0.0115 +- 0.0012 by 10^4, and 0.121 to 0.054 at
     degree 3. A bookkeeping ceiling would flatten under the
     subtraction; both curves keep their shape, and the degree with no
-    hard zero shows the larger excess.
+    hard zero runs the larger excess in point estimate at every shared
+    cut -- at joint z of 1.15, 1.43, 2.21 and 0.46, a consistent
+    ordering the errors do not establish.
 
  F4 THE TAIL EXCLUDES A CONSTANT AND A 1/log LAW (observation, degree 2
     alone, where the primes reach 10^4). The surplus level - 1 falls
