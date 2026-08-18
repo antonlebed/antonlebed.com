@@ -253,8 +253,10 @@ THE FINDINGS.
     The cumulative reading is DILUTED by its own small primes, so the
     true tail sits lower still and the exclusion holds a fortiori. What
     the asymptote is -- zero, or a small positive constant -- this
-    range cannot say: the 10^4 point still sits nine of its own sigmas
-    above 1.
+    range cannot say: even the excess at 10^4, the smallest surplus
+    measured here, sits nine of its own sigmas above zero, and the
+    cumulative reading cannot separate a vanishing tail from a small
+    constant one while its own small primes dominate the count.
 
  F5 THE ONE PLACE A SEPARATION WOULD SHOW FIRST (observation, recorded
     and not claimed). In the top shared band the two degrees part
