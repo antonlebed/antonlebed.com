@@ -369,7 +369,13 @@ FINDINGS.
     either. It is the per-place form of the ladder
     explore_class_level.py grades by a class's order at degree 2,
     where the generators sit at a ceiling and everything below falls
-    away -- the same direction, low orders short.
+    away -- the same direction, low orders short. (Settled by
+    explore_cubic_order_level.py, which rewrites this table as LEVELS and
+    reads the two sides against each other: the CEILING half ports and
+    fits one constant, the FALLS-AWAY half does not and the range is why,
+    and only the three composite strata here are entitled to say either --
+    at a prime h the generator cell is the trivial cell divided by h - 1.
+    What survives of this clause unqualified is the direction it names.)
 
  F4 THE REGIME SPLIT IS INVISIBLE TO A SINGLE PLACE (observation; S5,
     corollary (a)). At h = 3 the 38 degenerate fields and the 45 others
@@ -422,7 +428,12 @@ FINDINGS.
     measurements, while any other order cell's dispersion is UNMEASURED
     -- F3's shape is an ordering of cells and survives a common rescaling
     whatever it is, which is the property that makes it readable without
-    one.
+    one. (The generator cell's dispersion is no longer unmeasured:
+    explore_cubic_order_level.py reads it on the 26 fields of composite h,
+    where it is not this cell's own residual mirrored, and finds it under-
+    dispersed too over p < 1000. The scope stated here was right when
+    written and the cell it names is still the only one THIS file
+    measures.)
 
  F8 A NUMBER THE CORPUS QUOTED TWICE WAS ONE QUANTITY (observation; C6,
     added at the audit). The split primes at h = 3 carrying NO principal
