@@ -250,9 +250,10 @@ THE FINDINGS.
     band sits 1.8 of its sigma below 1 -- consistent with no surplus
     at all -- while degree 2's sits four of its own above. The two
     curves agree along the lower cuts and part company exactly where
-    the primes outgrow this degree's surplus, so the ceiling is not
-    one curve across degrees: what is shared is the DECAY SHAPE, not
-    the asymptote's timing.
+    the primes outgrow this degree's surplus, so the two ceilings are
+    not one curve: what survives the separation is consistency of the
+    decay along the lower cuts, and nothing here establishes a shared
+    shape beyond that consistency.
 
  F3 THE SEPARATION HOLDS ON THE DISJOINT SAMPLE ALONE (observation).
     The increment population -- 1047 admissible fields, none shared
