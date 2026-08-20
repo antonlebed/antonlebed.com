@@ -312,7 +312,9 @@ FINDINGS (tiers per the standard naming scale; run record below).
    Minkowski-decomposable Newton polytope is not decided by the simplex
    argument, which needs the points to be exactly four. The box scan
    found no size-5 seed at all under 16, which is consistent with either
-   answer and settles neither. The wider (3,4) walk is the cheaper move
+   answer and settles neither. (Settled since by explore_seed_rank_law.py,
+   which proves the cell empty: a seed of size n >= 5 has core rank
+   <= n - 3.) The wider (3,4) walk is the cheaper move
    and this is the reason it is not the informative one.
    BUILT, by explore_descent26.py, and the room was real but not used the
    way this finding expected: the box {2..24} holds 55 size-6 seeds, 46 of
