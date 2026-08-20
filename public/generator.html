@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The generator ceiling — the class that generates runs long at both degrees, and what carries it</title>
+<meta name="description" content="The principal shortfall at small primes read class by class at two degrees: the classes of small order short, the generating class long at one constant across both degrees over a matched range — a point on a decaying curve that fractures at the top of the range, the degree-2 side one term of the explicit formula, carried exactly by the populations whose Frobenius is a square, and the degree-3 partial side a fixed count of primes per field that term does not touch.">
+<link rel="canonical" href="https://antonlebed.com/growth/generator">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth' class='up'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/measure'>Measure</a> <a href='/learning'>Learning</a></nav><nav class='sub' aria-label='Growth'><a href='/growth'>The growth laws</a> <a href='/growth/fields'>Growth over other fields</a> <a href='/growth/cascade'>The cascade boundary</a> <a href='/growth/principal'>Principal places</a> <a href='/growth/triple'>The split triple</a> <a href='/growth/generator' aria-current='page'>The generator ceiling</a> <a href='/growth/limit'>The image and limit</a> <a href='/growth/schedule'>The pricing schedule</a> <a href='/growth/clock'>The clock</a> <a href='/growth/rings'>Which rings walk</a> <a href='/growth/carrier'>The shopped carrier</a> <a href='/growth/dial'>The clock dial</a> <a href='/growth/inside'>The inside view</a> <a href='/growth/irreducibility'>Irreducibility</a> <a href='/growth/thermal'>Thermal and density</a> <a href='/growth/constants'>Constants</a></nav></header>
+<main>
+<h1>The generator ceiling</h1>
+<p class="lede">The principal shortfall at small primes read class by class
+at degree 2 and degree 3: the classes of small order run short, the
+class that generates the group runs long, and at one constant across
+both degrees over a matched range — a point on a decaying curve rather
+than a constant, and a curve that fractures at the top of the range,
+the degree-2 side carried by one classical term and the degree-3 side a
+fixed count of primes that term does not touch.</p>
+
+<p>A place of a number field is <b>principal</b> when the ideal it names
+is generated by a single element, and its <b>ideal class</b> is that
+ideal taken modulo the principal ones; the classes form a finite group
+under multiplication, the <b>class group</b>, of size the <b>class
+number</b> <i>h</i>, and the principal places are the ones in its
+<b>trivial class</b>. The <b>order</b> of a class is the least power of
+it that is trivial, and a class whose order is the whole class number
+<b>generates</b> the group — such a class exists exactly when the group
+is cyclic. Sort a field's <b>degree-1 places</b> — those whose residue
+field is the prime field — over the primes below a cut into the classes
+they land in: under the model that distributes them evenly each class
+takes one in <i>h</i>, and the <b>level</b> of a class is its observed
+count over that nominal, 1 when the sorting is even. Read over the
+fields of one class number — a <b>stratum</b> — the levels form a table
+indexed by the class number and the order.</p>
+
+<p>Two such tables stand on the pages beside this one. Over a quadratic
+field (<a href="/growth/principal">Principal places</a>) the two places
+over a split prime carry inverse classes, and the sorting runs over the
+<b>narrow class group</b> — form classes up to proper equivalence, of
+order <i>h</i>⁺, which is <i>h</i> over an imaginary field and twice it
+over a real field whose fundamental unit has norm +1. Over a cubic field
+(<a href="/growth/triple">The split triple</a>) a prime carrying all
+three degree-1 places is <b>totally split</b> and one carrying a single
+degree-1 place beside a place of degree 2 is <b>partially split</b>; how
+a prime splits is recorded by its <b>Frobenius</b>, a conjugacy class in
+the Galois group of the field's closure — the identity at a totally
+split prime and, the cubic closure's group being the symmetric group
+<i>S</i><sub>3</sub>, a transposition at a partially split one. A cubic
+field is <b>complex</b> when it has one real embedding and <b>totally
+real</b> when it has three. The table read here at degree 3 is the
+partially split primes', whose one degree-1 place the class group
+constrains not at all, and both tables are short in the same shape.</p>
+
+<article class="claim" id="generator-ceiling">
+  <div class="claim-head"><span class="claim-name">The generator ceiling
+  across degrees, and what carries it</span>
+  <span class="tier">observation</span></div>
+  <p>The partially split primes' principal share runs short of one in the
+  class number at the bottom of the range and climbs toward it
+  (<a href="/growth/triple#split-regimes">the two-populations block</a>),
+  and the deficit does not close at the top of the range. Read over the 18,689
+  partially split primes of the 227 complex cubic fields of discriminant to 6000 whose
+  class number exceeds 1, against each field's own profile of class ORDERS, the principal
+  cell runs — as a standardized deviation <i>z</i> of its count from its
+  nominal — −12.1, −6.1, −4.1, −2.8 across the four prime bins — the odd primes below 1000 cut at
+  30, 100 and 300:
+  shrinking at every step, and a measured residual at the top rather than a
+  vanishing, since those binomial <i>z</i> are floors on their own magnitude.
+  <a href="/growth/triple#cubic-dispersion">The index of dispersion</a> —
+  a count's spread over the spread independence gives — taken on that
+  same principal cell over the 227 field cells of the top bin rather than over the
+  fields of one class number, reads 0.526 there, which carries −2.8 to −3.9.
+  None of it touches the derivation of that one in the class number,
+  which is a Chebotarev asymptotic no count
+  below 1000 reaches. And the orders grade the shortfall's shape, the low ones
+  short and the highest long — where half of that is bookkeeping and the
+  rest is not. A stratum's order cells sum to its place count, so a short
+  trivial class has to inflate the others; what says the order grades
+  anything is that the MIDDLE orders are short as well, leaving the surplus
+  on the top order instead of spread across the rest by size. The same shape stands at degree 2, where <a
+  href="/growth/principal#order-grading">the prime-power term behind that
+  shortfall</a> is read over a whole field rather than one place at a time — and
+  the two tables have been read against each other, in one denomination:
+  the level, whose nominal is 1 by derivation at both degrees.
+  The cells where the order equals the class number — the classes that
+  generate — sit at one constant — the <b>ceiling</b> — across the strata at both degrees over
+  the shared range: 1.0935 here against a degree-2 mean of 1.0932, each
+  inside the other's spread, on two populations sharing no field, two
+  splitting types, an ordinary class group against a narrow one. That
+  number is a point on a curve rather than a constant of either
+  arithmetic: with the prime cut made a parameter, both ceilings decay
+  toward 1 — 1.25 to 1.10 at degree 3 and 1.19 to 1.09 at degree 2 over
+  cuts 250 to 1000 on fixed field sets, replicating out of sample on a
+  disjoint cubic population four times the size — and at
+  degree 2, whose primes reach 10,000, the surplus falls from 0.193 to
+  0.024, a factor of 8 where a 1/log decay allows 1.7, so the tail is
+  neither a constant nor logarithmic. Nor is the ceiling bookkeeping: a
+  short trivial cell forces the others above 1 on average, but the
+  excess over that forced mean decays the same way at both degrees. And
+  the top of the shared range decides against one curve: with the cubic
+  population widened to 1,274 fields at discriminants to 24,000, the
+  band of primes from 630 to 1000 reads 0.978 ± 0.012 at degree 3
+  against 1.043 ± 0.010 at degree 2 — a separation of four joint
+  spreads, holding at three restricted to the original strata and at
+  four on the disjoint new fields alone. Degree 2 sits four of its own
+  spreads above 1 exactly where degree 3 is consistent with 1: the cubic
+  surplus exhausts inside the shared range while degree 2's persists
+  past it, so the two ceilings are not one curve — what survives is the
+  decay's consistency along the lower cuts.</p>
+  <p>What carries the persistence is the prime-power term of the
+  Chebotarev explicit formula, and a population carries its leading
+  piece — the prime SQUARES — exactly when its Frobenius class is a
+  square in its Galois group. The formula counts prime powers at weight
+  1/<i>k</i> at the <i>k</i>-th power; a count of primes omits them and so runs short of the main
+  term in the classes the powers land in — one half for each prime below
+  √<i>x</i> whose Frobenius squares into the class, a third per cube, the
+  ramified ideals at one half each on the classes of order at most 2.
+  Put that weight back per field and prime window and the quadratic
+  surplus is removed exactly: the imaginary top band from 1.0426 to
+  1.0001 ± 0.0097, the imaginary tail from 1.0240 to 1.0000 ± 0.0011
+  below 10,000, the real top band from 1.0613 to 1.0151 ± 0.0066 — and
+  the degree-2 table beneath the ceiling flattens with it, the trivial
+  class's fall being the inert primes' squares — an inert prime being one whose ideal stays
+  prime in the field — all of them principal. The population degree 3
+  reads is the PARTIALLY split primes' degree-1 place, whose Frobenius
+  is a transposition, and a transposition is never a square in the
+  symmetric group <i>S</i><sub>3</sub>, the Galois group of the closure:
+  that population carries no prime-square term at
+  all — its levels move by at most 0.0017 under the cube term — which is
+  why the complex cubic and
+  the totally real cubic (top band 1.0167 ± 0.0100, the combined primes
+  630 to 10,000 at 1.0042 ± 0.0025) exhaust alike, on 1 in every band,
+  where both quadratic populations hold, the real quadratic at
+  1.061 ± 0.007 in the top band. And the cubic's
+  TOTALLY split places, whose Frobenius is the identity, carry the term
+  as the formula says: on the 1,274 fields their cumulative ladder
+  1.115, 1.086, 1.063, 1.048 over cuts 250 to 1000 corrects to 1.045,
+  1.022, 1.010, 1.004 ± 0.005, and their top band 1.019 ± 0.014 raw
+  reads 0.991 ± 0.013 corrected. So the fracture runs between square
+  and non-square Frobenius classes — not between quadratic and cubic
+  places, not between the two signs of the discriminant, whose ceilings
+  agree at the tail and whose narrow and ideal class groups read one
+  verdict, and not by the <b>unit rank</b> — the number of independent units of
+  infinite order, 0 and 1 over the two quadratic signs, 1 and 2 over the
+  two cubic ones — which decides nothing at any measured value. The two cubic populations are not resolved from
+  each other — 2.4 joint spreads apart, on
+  opposite sides of 1, the complex side unmeasured past 1000 — whether
+  they share one asymptote is open. What the partially split primes DO
+  carry is a second object, and read as a COUNT rather than a level it is
+  not a ladder: the generating class's excess is a fixed number of primes
+  per field — 3.0 ± 0.3, 3.5 ± 0.4, 4.3 ± 0.6 and 3.8 ± 0.7 at cuts 250,
+  400, 630 and 1000, a ratio of 1.26 ± 0.26 across the range where the
+  prime-power term's shape would read 2.27 — in place by cut 250 and flat
+  after it, not repaid within the range; the level's 1.246 to 1.096 over
+  those cuts is that count over a growing denominator, and the top band's
+  1 is the same count over a window that holds none of it. No prime-power
+  term touches it, and the real quadratic residual it was once paired
+  with has resolved into one narrow class and a classical prime race
+  (<a href="/growth/principal#order-grading">what the shortfall is</a>),
+  so it stands alone, not derived.</p>
+  <p class="scope"><b>Scope.</b> Observation, the prime-power term classical and its
+  accounting verified in range. The order grading and the top-bin
+  residual are read on the 18,689 partially split primes of the 227
+  complex cubic fields of class number above 1 at discriminants to 6000, and
+  the dispersion index that rescales those <i>z</i> is measured on the
+  principal cell it rescales and is carried to no other. The
+  cross-degree curve is read on frozen field sets — at discriminants to 6000, the 24 fields of class numbers 4 and 6 among the 227 walked,
+  those being the only strata where the generating cell is free (a
+  stratum's cells sum to its place count, so at a prime class number
+  that cell is the trivial one restated) — the count per field on those
+  same 24 fields, an observation — and for the top-band
+  separation 1,274 cyclic-class-group fields at discriminants to
+  24,000 over the six composite strata from 4 to 12 — against 224
+  imaginary quadratic fields over five strata, each cut's error bar
+  measured at that cut. The real quadratic reading adds 2,086 real quadratic
+  fields at discriminants to 16,000, 524 of them in readable strata,
+  read in the narrow class group with the ordinary class group's view printed
+  beside it; the totally real cubic read adds the 28,072 totally real cubic
+  fields at discriminants to 530,000, 406 usable under the widened
+  population's eligibility. Every widened or added population runs
+  through the same estimators as the one before it and reprints that
+  one's frozen figures before its own number is read.
+  The prime-power accounting re-reads those same frozen populations
+  with the correction added per field and window, the raw column
+  reprinting the earlier populations' figures inside 0.0015 first and the arithmetic
+  progressions to 10⁷ over 77 prime moduli as the control (the
+  non-residue lead 1.15 · π(√<i>x</i>)/π(<i>x</i>) at eight spreads, 0.9
+  corrected); the cubic populations omit the prime 2 and the ramified primes,
+  printed as an unallocated bound, zero in every band above 300.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cubic_transposition.py">
+  <code>explore_cubic_transposition.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cubic_order_level.py">
+  <code>explore_cubic_order_level.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_curve.py">
+  <code>explore_ceiling_curve.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_topband.py">
+  <code>explore_ceiling_topband.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_realquad.py">
+  <code>explore_ceiling_realquad.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_realcubic.py">
+  <code>explore_ceiling_realcubic.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_fourthcell.py">
+  <code>explore_ceiling_fourthcell.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_squares.py">
+  <code>explore_ceiling_squares.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_ceiling_constant.py">
+  <code>explore_ceiling_constant.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
