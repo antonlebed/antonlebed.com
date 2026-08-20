@@ -310,6 +310,11 @@ THE FINDINGS.
     complex-cubic-like supply would dissolve the supply wall
     instead; none exists at degree 3, and the quartic (2,1)
     signature is a different engine, recorded as the open route.
+    (Settled 2026-08-20: explore_ceiling_fourthcell.py ran the
+    priced read at cap 530000 -- the fourth cell exhausts, on 1 in
+    every band against both quadratic populations' held surplus, one
+    place law across the design. This file's census, first read and
+    price stand as the cap-100000 record.)
 
 THE PREDICTIONS, WEIGHED.
 
