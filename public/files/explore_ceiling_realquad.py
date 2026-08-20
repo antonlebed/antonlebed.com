@@ -220,7 +220,13 @@ THE FINDINGS.
     the hard zero is a definite-form accident the persistence never
     needed, and what carries it is the quadratic place itself --
     whatever of the binary form's arithmetic survives losing both the
-    minimum and the rank-0 unit group.
+    minimum and the rank-0 unit group. (Settled 2026-08-20,
+    explore_ceiling_squares.py: the surplus is the explicit formula's
+    prime-power term, removed exactly on the imaginary side and to
+    three quarters here; it is carried by any population whose
+    Frobenius class is a square in its Galois group, the quadratic
+    place being one such. This file's measurements stand as the
+    record of what was to be explained.)
 
  F3 THE TWO SIGNS' CEILINGS AGREE AT BOTH ENDS OF THE LADDER AND PART
     IN THE MIDDLE (observation). Real: 1.1867, 1.1654, 1.1247, 1.1041

@@ -352,7 +352,12 @@ THE FINDINGS.
     quadratic place keeps it at rank 0 and rank 1 -- one place law
     across all four cells of the form-by-rank design, the unit rank
     deciding nothing at any measured value. The cumulative ceiling
-    is real and decays (1.1562 +- 0.0088 at cut 250).
+    is real and decays (1.1562 +- 0.0088 at cut 250). (Settled
+    2026-08-20, explore_ceiling_squares.py: the law's carrier is the
+    square map on the Galois group, not the form -- a transposition
+    Frobenius is never a square, so the partial primes every cubic
+    cell reads carry no prime-square term; the measurements here
+    stand as the record of the fourth cell.)
 
  F3 WHAT THE TWO FORMLESS CELLS DO AND DO NOT SHARE (observation).
     The totally real top band sits +2.44 sigma above the frozen
