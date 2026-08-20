@@ -210,8 +210,12 @@ that run's print).
 
   TIERS. The repaired simplex law and rank <= n - 3 at n >= 5: property,
   proved (hand-attack (1)-(3)), with F1 as its in-range check. The
-  floor(n/2) ceiling: rule in range through n = 8, pattern beyond. Its
-  attainment at every n >= 4: property, by construction (F3). The
+  floor(n/2) ceiling: rule in range through n = 8, pattern beyond (as
+  recorded; since settled -- explore_seed_rank_nine.py carries the n = 9
+  and n = 10 cells, and the ceiling's proof, the polytope half from the
+  literature and a clean-triangle lemma, stands in the docs that cite
+  both files). Its attainment at every n >= 4: property, by construction
+  (F3). The
   many-variable negative factors: observation.
 
   RUN RECORD. Rehearsal at {2..12}, 1.1 s, every stage exercised: its
