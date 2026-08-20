@@ -124,7 +124,9 @@ figure below is that run's print).
       factor is an absorbed cyclotomic" is FALSE as stated and true of
       the univariate restriction in this cell; whether a seed's negative
       factor can carry no cyclotomic restriction at all is not asked
-      here.
+      here (settled since by explore_seed_torsion.py: two size-6 seeds of
+      {2..24} carry a negative factor with no torsion zero at all, and all
+      nine size-8 seeds of {2..20} are torsion-rooted).
 
   TIERS. F1: rule in range (n = 9 over {2..24}, n = 10 over {2..20}) for
   the ceiling; the theorem's in-range check. F2: property, by

@@ -89,6 +89,7 @@ export default {
       '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
       '/learning/collisions': 'collisions',
+      '/learning/seeds': 'seeds',
       '/learning/audits': 'audits',
       '/learning/sets': 'sets',
       '/learning/ceilings': 'ceilings',
