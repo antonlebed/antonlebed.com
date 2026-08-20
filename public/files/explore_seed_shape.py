@@ -232,9 +232,11 @@ FINDINGS (tiers per the standard naming scale; run record below).
    1 + u + v" and irreducible, which ASSERTS the irreducibility rather
    than deriving it, a monomial substitution carrying no factorization
    back on its own. The derivation is the SIMPLEX LAW at n = 3 -- three
-   points of affine rank 2 are affinely independent, so the Newton
-   polytope is a triangle, Minkowski-indecomposable, and the core is
-   irreducible because its content is divided out. That reduction was
+   points of affine rank 2 make the core a 0/1 trinomial with
+   independent exponents, which is irreducible outright (the trinomial
+   lemma of explore_seed_rank_law.py; the triangle's indecomposability,
+   which this line first leaned on, is not enough by itself, a simplex
+   being the sum of two of its own homothets). That reduction was
    the mechanism this file read off the census rather than a proof it
    supplied (honest limit (ii)), and it now has one;
    and the classical half is credited here without its source having

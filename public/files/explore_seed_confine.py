@@ -254,13 +254,19 @@ FINDINGS (tiers per the standard naming scale; run record below).
    size-5 menus of {2..16} -- 0 reducible at every size). THE SIMPLEX
    LAW: n exponent vectors of affine rank n - 1 are affinely independent,
    so all n are vertices and the Newton polytope is an (n-1)-SIMPLEX; a
-   simplex of dimension >= 2 is Minkowski-indecomposable; a product's
-   Newton polytope is the Minkowski sum of its factors'; and the core has
-   its content divided out, so no factor is a monomial. Hence such a core
-   is Z-IRREDUCIBLE and cannot be a seed, which is the bound.
+   product's Newton polytope is the Minkowski sum of its factors', and a
+   simplex's summands are its own homothets, so both factors' polytopes
+   are scaled copies of the simplex and their faces over any triangular
+   2-face are triangles -- which would factor that face's 0/1 trinomial,
+   with independent exponents, and the trinomial lemma of
+   explore_seed_rank_law.py says it does not. Hence such a core is
+   Z-IRREDUCIBLE and cannot be a seed, which is the bound.
+   (Indecomposability alone, which this record first argued from, does
+   not reach the conclusion: a simplex is the sum of two of its
+   homothets.)
    THE HYPOTHESIS n >= 3 IS LOAD-BEARING and the audit that generalized
-   this is what found it: indecomposability fails for a SEGMENT, which
-   splits as two shorter segments, so at n = 2 the law is false and
+   this is what found it: a SEGMENT has no triangular face and splits as
+   two shorter segments, so at n = 2 the law is false and
    1 + x^3 = (1 + x)(1 - x + x^2) is the standing witness against it --
    the very factor the absorption sentence above runs on. What the bound
    gives this line of work: rank 2 at size 4, so the (3,4) seed side is capped
@@ -730,14 +736,18 @@ def stage4():
     spend. The hand argument, on paper before this stage was written:
     four exponent vectors of affine rank 3 are four affinely independent
     points, so all four are vertices and the Newton polytope is a
-    3-SIMPLEX; a simplex is Minkowski-indecomposable; the Newton polytope
-    of a product is the Minkowski sum of the factors'; and the content is
-    already divided out, so no factor is a monomial. Hence a size-4 core of
+    3-SIMPLEX; the Newton polytope of a product is the Minkowski sum of
+    the factors', a simplex's summands are its own homothets, and a
+    homothet's face over a triangular 2-face is a triangle, so that face's
+    0/1 trinomial would factor, which the trinomial lemma of
+    explore_seed_rank_law.py forbids. Hence a size-4 core of
     rank 3 is Z-IRREDUCIBLE and can never be a seed, and with the size-3
     seeds collinear (explore_seed_shape.py finding 3) every seed of size
     <= 4 has core rank <= 2. Five points of rank 3 are NOT forced to be a
     simplex, so the argument stops at size 4 -- and the boundary control
-    below is that a rank-3 seed does appear at size 5.
+    below looked for a rank-3 seed at size 5 and found its box empty
+    (finding 0 (v)); explore_seed_rank_law.py later proved that cell
+    empty at every bound.
     """
     print("\n=== S4  the seed-rank bound, and where it stops ===")
     t0 = time.time()
@@ -778,9 +788,10 @@ def stage4():
     # GENERAL form owes. n points of affine rank n-1 are affinely
     # independent, so the Newton polytope is an (n-1)-simplex -- the
     # argument never used n = 4. Its hypothesis is n >= 3 and that is
-    # load-bearing rather than tidy: indecomposability holds for simplices
-    # of dimension >= 2 and FAILS for a segment, which splits as two
-    # shorter segments, so at n = 2 the law is false and 1 + x^3 =
+    # load-bearing rather than tidy: a simplex of dimension >= 2 has a
+    # triangular face for the trinomial lemma to bite on and a segment
+    # has none, splitting as two shorter segments, so at n = 2 the law is
+    # false and 1 + x^3 =
     # (1 + x)(1 - x + x^2) is the standing witness against it. For n >= 3
     # the law is: a size-n menu whose core has rank n-1 is Z-irreducible
     # and never a seed, so every seed of size n has core rank <= n-2. It
