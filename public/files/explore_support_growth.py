@@ -330,7 +330,9 @@ F6 NO WALK CYCLES: 140 SEEDS OVER FIVE RINGS AND EVERY ONE CERTIFIES
    cheapest places, at exponents 1 and 3, certifies a lock instead. That is
    not a proof and the gap between the two laws is still formally open; what
    it says is that the cycle is not sitting in easy reach, and a seed hunting
-   one now has 140 misses to beat.
+   one now has 140 misses to beat. [SETTLED SINCE: explore_one_vehicle.py
+   proves the third case empty -- a walk that opens finitely many places
+   locks on exactly one of them -- and realizes it where the columns thin.]
 
 WHAT THIS LEAVES. The stop law's populated-door readings are safe for a
 reason the corpus was not using: not that the surplus is small, but that
@@ -343,7 +345,8 @@ infinity read the same number. What is NOT settled is whether every
 greedy walk locks at all -- the certificate is conditional on a lock and
 proves permanence, never existence -- and the refusal in F5 is a pattern
 over five rings with a mechanism, not a theorem. The gap between the two
-laws is named and hunted in F6 and it stayed empty. And every ring read
+laws is named and hunted in F6 and it stayed empty (closed by proof since,
+explore_one_vehicle.py). And every ring read
 here is MIXED characteristic, which is the locking side of the dichotomy
 by construction: Lemmas A, B and C and both bounds are proved and carry
 over, but the certificate has never been RUN where gaps are unbounded,

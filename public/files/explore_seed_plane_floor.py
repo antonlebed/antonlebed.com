@@ -106,6 +106,12 @@ THE RIG.
      x^4), the binomial-cofactor quadrinomial at the line's least free
      degree, through the instrument -- where v = u^4 is a power of u the
      character of (4) is not available, u -> 1 forcing v -> 1.
+  P5 THE COFACTOR QUESTION ALONG THE LINE, added at the close for the
+     front F2 leaves: every 0/1 quadrinomial with constant term 1 to
+     degree 30 (4,060 of them) factored, and the seeds among them counted
+     by whether some Z-factor is a binomial -- the (2,2) split of the
+     term count against the (1,4) one. Printed: the seed count, how many
+     lack a binomial factor, and the first few that do.
 
 THE PREDICTIONS, FIXED BEFORE THE RUN -- every kill is a printed count.
   K0  CONTROLS: the four verdicts as named in P0.
@@ -121,14 +127,19 @@ THE PREDICTIONS, FIXED BEFORE THE RUN -- every kill is a printed count.
 
   K5  THE CONTRAST (P4, fixed before its own run): 1 - x + x^2 + x^4 prints
       free -- the line's shape (4) does not reach, and the plane's does.
+  K6  THE COFACTOR (P5, fixed before its own run): the hunch is that every
+      quadrinomial seed to degree 30 has a binomial factor, the (1,4)
+      split never occurring; the count lacking one is the print, and a
+      nonzero count names the witnesses.
 
 RESOURCE ENVELOPE. The census factors 31,465 menus with sympy (~1-2 min);
 44 core tests and 43 factor tests at milliseconds each. Memory under
 200 MB. Run: python explore_seed_plane_floor.py
 
-FINDINGS (the recorded run, 11 of 11 checks, 46.5 s, the census 46 s of it;
-every figure below is that run's print. The first run, without P4, printed
-the same figures at 9 of 9 checks in 46.5 s.)
+FINDINGS (the recorded run, 11 of 11 checks, 59.5 s, the census 46 s and
+P5 13 s of it; every figure below is that run's print. The first run,
+without P4 and P5, printed the same P0-P3 figures at 9 of 9 checks in
+46.5 s; the second, without P5, the same P0-P4 figures at 11 of 11.)
 
   F1  THE KILL DID NOT FIRE (rule, exhaustive over {2..32}): 0 torsion-free
       negative factors among the 43 non-collinear size-4 seeds, all 43
@@ -155,6 +166,13 @@ the same figures at 9 of 9 checks in 46.5 s.)
   F3  THE PAIRING LEMMA held on 44 of 44 cores (property, proved in (2));
       every core in the census has a torsion zero, and the pairing
       predicate read it off the exponent vectors without factoring.
+  F4  THE (1, 4) SPLIT HAS NO WITNESS ON THE LINE EITHER (observation, to
+      degree 30): of the 4,060 quadrinomials 1 + x^a + x^b + x^c with
+      c <= 30, 1,780 are seeds and every one has a binomial Z-factor.
+      Whether a four-term seed can lack a binomial cofactor at all --
+      anywhere, any dimension -- is left open; the hand argument (4)
+      shows that if none can, every non-collinear four-term seed is
+      rooted outright and the size-4 closure is a law and not a box fact.
 """
 
 import os
@@ -329,6 +347,29 @@ def stage_p4():
     check("K5 the line's quadrinomial factor free", d['free'] is True)
 
 
+def stage_p5(dmax=30):
+    print(f"P5 THE COFACTOR QUESTION ALONG THE LINE, quadrinomials to degree {dmax}")
+    from itertools import combinations
+    x = sympy.symbols('x')
+    t0 = time.time()
+    nseeds = 0
+    lacking = []
+    for a, b, c in combinations(range(1, dmax + 1), 3):
+        P = 1 + x**a + x**b + x**c
+        fl = sympy.factor_list(P)[1]
+        facs = [Poly(f, x) for f, m in fl for _ in range(m)]
+        if not any(any(co < 0 for co in f.coeffs()) for f in facs):
+            continue
+        nseeds += 1
+        if not any(len(f.monoms()) == 2 for f in facs):
+            lacking.append(P)
+    print(f"  {nseeds} quadrinomial seeds, {len(lacking)} without a binomial"
+          f" factor ({time.time() - t0:.0f} s)")
+    for P in lacking[:8]:
+        print(f"    {P} = {sympy.factor(P)}")
+    print(f"  K6 THE COUNT LACKING A BINOMIAL FACTOR: {len(lacking)}")
+
+
 def main():
     t0 = time.time()
     stage_p0()
@@ -336,6 +377,7 @@ def main():
     stage_p2(seeds, gensof)
     stage_p3(seeds, coll)
     stage_p4()
+    stage_p5()
     passed = sum(1 for _, ok in CHECKS if ok)
     print(f"\n{passed}/{len(CHECKS)} checks passed, {time.time() - t0:.1f} s")
     for name, ok in CHECKS:
