@@ -67,10 +67,14 @@ THE HAND-ATTACK, on paper before any engine code.
       size-6 witnesses are free because their A and B have moduli that
       never agree at a torsion point; a monomial A has modulus 1
       everywhere and agrees with q(1) at once. So every non-collinear
-      size-4 seed with a binomial cofactor is ROOTED, by hand. What the
-      hand does not reach: cores with (f(1), g(1)) = (1, 4) or (4, 1),
-      where the cofactor has four terms or the negative factor does, and
-      the three cores with more than two factors.
+      size-4 seed with a binomial cofactor is ROOTED, by hand, PROVIDED
+      the bracket is the negative factor -- Z-irreducible, which the
+      print must say; at j = 0 the bracket is a binomial and the seed's
+      negative factor is a cyclotomic piece of 1 + u, rooted outright,
+      and if a bracket with j >= 1 split, the hand would not say which
+      factor the zero belongs to. What the hand does not reach: cores
+      with (f(1), g(1)) = (1, 4) or (4, 1), where the cofactor has four
+      terms or the negative factor does.
   (5) THE HUNCH, fixed before the run and marked as such: ZERO free. The
       reason is (4) -- the shape that freed the plane at size 6 needs two
       competing non-monomial coefficients, and four terms leave no room
@@ -146,8 +150,8 @@ the same figures at 9 of 9 checks in 46.5 s.)
       degree: 1 + x^3 + x^4 + x^5 = (1 + x)(1 - x + x^2 + x^4), complete
       tier, 0 zeros (P4). The plane's floor and the line's therefore part
       at size 4 for a reason the exponent lattice states: a free
-      four-term seed needs its two non-binomial monomials dependent on the
-      binomial's ratio, which is collinearity.
+      four-term seed WITH A BINOMIAL COFACTOR needs its two non-binomial
+      monomials dependent on the binomial's ratio, which is collinearity.
   F3  THE PAIRING LEMMA held on 44 of 44 cores (property, proved in (2));
       every core in the census has a torsion zero, and the pairing
       predicate read it off the exponent vectors without factoring.
