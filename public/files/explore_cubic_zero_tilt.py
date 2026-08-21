@@ -355,7 +355,12 @@ FINDINGS.
       not, so the series that compares like with like is the
       ALL-PRINCIPAL residual -- 0.663, 0.463, 0.351 at h = 3, 4 and 5.
       That residual IS the coincidence mechanism, printed rather than
-      argued, and it still DEEPENS with the class number: the deepening
+      argued, and it still DEEPENS with the class number (read
+      2026-08-21 by explore_triple_cube_term.py as the explicit formula's
+      prime-power term at the identity, the deepening the inert primes'
+      cube -- the corrected level flat in h on the wide population,
+      with residuals of opposite sign at h = 2 and 3 the term does not
+      pay; the measurement stands): the deepening
       was never the share deficit's. P3 reads the same fact
       from the other side -- the tilt's predicted ratios span 0.084
       across h = 2, 4, 5 while the measurement spans 0.547 -- which

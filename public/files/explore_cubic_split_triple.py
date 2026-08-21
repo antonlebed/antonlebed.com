@@ -491,9 +491,13 @@ FINDINGS.
       all-equal is a coincidence and h grows the number of ways to miss
       it, but the corpus's own index of dispersion is explicitly flat in
       h (the map's F3), so identifying the two is the thing this file
-      must NOT do. It is left as measured and open. h = 6, the one other
-      stratum where D is nontrivial, reads 8 against 11.6 with its
-      largest field at 0.167 -- no degenerate field in it, and at
+      must NOT do. It is left as measured and open (read 2026-08-21 by
+      explore_triple_cube_term.py: the deepening is the explicit
+      formula's cube term, the whole shortfall is not). h = 6, the one
+      other stratum where D is nontrivial, reads 8 against 11.6 with
+      its largest field at 0.167 -- no field degenerate by THIS
+      fraction, though one of the six is by the exact 3-part test that
+      file reads, at the equal fraction 1/4 its image gives -- and at
       z = -1.1 it decides nothing either way.
 
   F4. THE REGIME TRACKS WHETHER THE DISCRIMINANT IS SHARED, STRONGLY AND
