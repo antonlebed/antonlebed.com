@@ -138,7 +138,11 @@ should RISE with T (the mean falls as 1/log T) and fall slowly with x at
 fixed T (each new scale of divisors adds a geometrically smaller term).
 The census cannot separate c x / log x from slower growth at 10^7 -- the
 known figures N/pi(x) = 0.129, 0.118, 0.111, 0.107 fall with shrinking
-decrements -- and no constant is claimed.
+decrements -- and no constant is claimed. (Settled further in
+explore_blind_model.py: the heuristic built as a definite model predicts
+this census within 0.3% at every decade, and read on random factored
+integers to 10^50 it keeps the normalization below flat there too -- a
+positive limit and a slow decay to zero stay unseparated.)
 
 PREDICTIONS, frozen before the engine ran (the heuristic's, read as
 observables the rig prints; each a kill if it fails):
