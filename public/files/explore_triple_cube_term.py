@@ -314,25 +314,25 @@ all-equal event at 0.915 +- 0.019.
       (c, c, c) 0.963 +- 0.023 (z = -1.6): the equal event's residual
       is the all-principal one's. The h >= 4 strata all sit above 1
       (1.06 to 1.29), pooled 413.4 against 382.3 expected (z = +1.6).
-      What the two signs say: the spread is Poisson on the
-      expectation, which the field-to-field remainder of (6b) widens
-      without changing a sign; and BOTH residuals sit inside the
-      ramified primes' unallocated bound (F4), since a weight landing
-      on the identity raises a level and one landing in N and missing
-      the identity lowers it -- the h = 3 M deficit (114 on 928; 2 is
-      ramified in 178 of the 283 fields) is the first kind's size and
-      the h = 2 excess (+207 on 3571, against 1135 of N-weight in the
-      bound) the second's. The prime 2 moved h = 2 by +0.031 and h =
-      3 M by +0.037 (P5 froze +0.01 to +0.02 and +0.03 to +0.05, the
-      h = 2 band missed), and the level rises with |d| at h = 2, 4, 5,
-      6 and falls at both h = 3 regimes (P6's "rises" half wrong). Whether the
-      residuals are the ramified primes' powers, the remainder below
-      the discriminant (the window q^k < 1000 sits under |d| at every
-      wide field), or a third thing is left open here: the instrument
-      that decides first is the ramified primes' powers read by their
-      inertia cosets (a map extension: the inertia group's image in
-      N x| S3 per ramified prime), and the window scaled to |d| is the
-      second, a different population read.
+      What the two signs say: the spread is Poisson on the expectation,
+      which the field-to-field remainder of (6b) widens without changing
+      a sign; and BOTH residuals sit inside the ramified primes'
+      unallocated bound (F4), since a weight landing on the identity
+      raises a level and one landing in N and missing the identity
+      lowers it -- the h = 3 M deficit (114 on 928; 2 is ramified in 178
+      of the 283 fields) is the first kind's size and the h = 2 excess
+      (+207 on 3571, against 1135 of N-weight in the bound) the
+      second's. The prime 2 moved h = 2 by +0.031 and h = 3 M by +0.037
+      (P5 froze +0.01 to +0.02 and +0.03 to +0.05, the h = 2 band
+      missed), and the level rises with |d| at h = 2, 4, 5, 6 and falls
+      at both h = 3 regimes (P6's "rises" half wrong). Whether the
+      residuals are the ramified primes' powers, the remainder below the
+      discriminant (the window q^k < 1000 sits under |d| at every field
+      of the increment), or a third thing is left open here: the
+      instrument that decides first is the ramified primes' powers read
+      by their inertia cosets (a map extension: the inertia group's
+      image in N x| S3 per ramified prime), and the window scaled to |d|
+      is the second, a different population read.
 
   F3. THE CLOSED FORM OF (4) OVERSHOOTS THE MEASURED CORRECTION BY A
       THIRD TO A HALF, FOR A REASON THE RIG PRINTS (observation; P2b
