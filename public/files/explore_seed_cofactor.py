@@ -205,8 +205,10 @@ theorem on torsion points, both read full-text.
   vanishes: a(1) - b(1) = (q_s(1) - q_t(1)) / c(1) = (1 - 1) / c(1), and
   c(1) != 0 because no cyclotomic factor of 1 + w^n vanishes at 1. So
   the one non-cyclotomic factor is rooted, and EVERY NON-COLLINEAR
-  FOUR-TERM SEED IS ROOTED (theorem). Along a line v is a power of w,
-  the character is unavailable, and 1 + x^3 + x^4 + x^5 is free.
+  FOUR-TERM SEED IS ROOTED (theorem). Along a line v can be a power of
+  w, and then the character is unavailable: 1 + x^3 + x^4 + x^5 is free.
+  (It need not be: 1 + x + x^3 + x^6 = (1 + x^2)(1 + x - x^2 + x^4) has
+  w = x^2, v = x, and its bracket vanishes at x = -1.)
 
 FINDINGS (the recorded run: 9 of 9 checks, 1006.3 s -- the plane box
 364.5 s, the rank-3 box 178.3 s, the line 463.5 s -- against a 3-8 minute
