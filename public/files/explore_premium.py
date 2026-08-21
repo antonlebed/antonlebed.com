@@ -449,21 +449,27 @@ FINDINGS.
 
        for L | q-1,  q is SILENT at L  <=>  V(q) = W(L),
 
-   and THE PRIMES SILENT AT L ARE THE MEMBERS OF THE PROBE'S BLIND CLASS
-   V = W(L). At L = 2 the restriction is vacuous, q-1 being even for every
-   odd prime, so the ENTIRE silent set at L = 2 is the class V = 24 -- 400
-   primes below 30000, 0 discrepancy. That family has now been reached
+   and the primes silent at L WITH L | q-1 are exactly the members of the
+   probe's blind class V = W(L). Off that restriction silence is wider --
+   every silent q has V(q) = W(gcd(q-1, L)), the class of the part of L it
+   shares, and at every L > 2 those off the class V = W(L) are the
+   majority (explore_silent_set.py, which also proves the silent set
+   infinite at every even L). At L = 2 the restriction is vacuous, q-1
+   being even for every odd prime, so the ENTIRE silent set at L = 2 is
+   the class V = 24 -- 400 primes below 30000, 0 discrepancy. That family has now been reached
    three independent ways: as the minimum gateways (finding 6), as the
    commonest silencers of blind pairs (finding 8), and as the silent set
    at the tower's first even lambda. As algebra it is one line and a
    reader who says "both sides are W(q-1) = q*W(L)" is right; what the
    unfolding buys is that the two questions are ONE question.
    THE CONSEQUENCE IS A NEGATIVE, and it is the useful part. "Is the
-   silent set at L infinite" IS "is the blind class V = W(L) infinite".
+   blind class V = W(L) infinite" settles "is the silent set at L
+   infinite", the class being the silent set's L | q-1 part.
    At L = 2 that is the class whose one identified route runs through the
    safe primes -- the Sophie Germain question (explore_headroom.py finding
    7; since settled without it -- explore_blind_spot_infinite.py proves
-   that class infinite, so the silent set at L = 2 is infinite too). So
+   that class infinite, so the silent set at L = 2 is infinite too, and
+   explore_silent_set.py the silent set at every even L). So
    the silent set is not a way AROUND the conjecture ceiling that
    the blind-class question hits; it is the same wall approached from the
    other side, and work spent hunting non-safe silent primes at
@@ -1329,12 +1335,12 @@ def s9_silence_is_blindness():
           % (len(v24), SILENCE_CAP))
     print("    as the minimum gateways and the commonest silencers, a third"
           " face of one set")
-    print("  CONSEQUENCE: 'is the silent set at lambda infinite' IS 'is the"
-          " blind class")
-    print("    V = W(lambda) infinite', so at lambda = 2 it is the Sophie"
-          " Germain ceiling")
-    print("    already filed -- not a way around that wall but the same"
-          " wall, named twice")
+    print("  CONSEQUENCE: 'is the blind class V = W(lambda) infinite' settles"
+          " 'is the silent set")
+    print("    at lambda infinite' -- both proved, at lambda = 2 and at every"
+          " even lambda")
+    print("    (explore_blind_spot_infinite.py, explore_silent_set.py); not a"
+          " way around a wall but one wall, named twice")
     print()
 
 

@@ -112,7 +112,11 @@ nothing about the 77 composite members, which lie outside the prime
 characterization. What it closes is the question the record filed as
 conjecture-gated: the biggest blind spot is infinite, and so -- by the
 silence identity, SILENCE IS BLINDNESS -- is the silent set at the tower's
-first even lambda, lambda = 2, which is this same class.
+first even lambda, lambda = 2, which is this same class. The lift to every
+even lambda, the same sieve on the cofactor (q-1)/lambda with the demands
+lambda's even divisors add, is explore_silent_set.py's, with the census
+per lambda; the lower bound here is a floor, and whether x / log^2 x is
+the ORDER is open there.
 
 A note on vocabulary: the suspicion arrived in the record's own terms
 (safe primes, the Sophie Germain question), and the first move was to
