@@ -27,7 +27,7 @@ THE HAND-ATTACK, on paper before any engine code.
       therefore products of two 0/1 binomials and nothing else; a size-4
       seed's core is Z-reducible with a negative factor by definition, and
       since P(1) = 4 = f(1) g(1), a two-factor core has (f(1), g(1)) in
-      {(1,4), (2,2), (4,1)} -- a negative factor can evaluate to 1 at the
+      {(1,4), (2,2), (4,1)} up to a common sign -- a negative factor can evaluate to 1 at the
       all-ones point (x^3 - x + 1 does) or to 2 (x^2 - xy + y^2 + 1 does).
   (2) THE PAIRING LEMMA. A four-term 0/1 polynomial P vanishes at a torsion
       point chi iff its four monomials split into two pairs with
@@ -145,9 +145,9 @@ the same figures at 9 of 9 checks in 46.5 s.)
       four terms, the only one the box admits since u^5 beside u would need
       2^6 -- and the negative factor IS the second bracket, rooted at the
       character u -> 1, v = m_2/m_1 -> -1, which is the one zero mod 6 the
-      print counts. Along a line that character is gone, v being a power of
-      u, and the same binomial-cofactor shape is FREE at the line's least
-      degree: 1 + x^3 + x^4 + x^5 = (1 + x)(1 - x + x^2 + x^4), complete
+      print counts. Along a line the character can be gone -- it is
+      whenever v is a power of u, u -> 1 forcing v -> 1 -- and the same
+      binomial-cofactor shape is FREE at the line's least degree: 1 + x^3 + x^4 + x^5 = (1 + x)(1 - x + x^2 + x^4), complete
       tier, 0 zeros (P4). The plane's floor and the line's therefore part
       at size 4 for a reason the exponent lattice states: a free
       four-term seed WITH A BINOMIAL COFACTOR needs its two non-binomial
