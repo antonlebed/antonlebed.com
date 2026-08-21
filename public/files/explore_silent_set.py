@@ -127,7 +127,10 @@ L = 2 (N log^2 x / x reading 1.35, 1.50, 1.67, 1.85 across 10^4..10^7)
 says the lower bound may not be the order: a member q = L f r + 1 with f
 a small admissible cofactor contributes of order x/(f log^2 x), and
 whether sum 1/f over admissible f converges is a divisor-correlation
-question this file does not settle. It says nothing about the composite
+question this file does not settle (settled after this record: the bound
+is not the order, the class being >> x / (log x log log x) at every even
+lambda -- explore_blind_share.py; the sum diverges trivially, every prime
+p with 2p + 1 composite being admissible). It says nothing about the composite
 states of a class, nothing about the order of the off-class silent
 primes, and at an ODD lambda there is nothing to say: the silent set is
 empty there (the wall's 2-part jumps from 2 to at least 8), which is the

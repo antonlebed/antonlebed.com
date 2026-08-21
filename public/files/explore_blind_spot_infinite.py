@@ -116,7 +116,9 @@ first even lambda, lambda = 2, which is this same class. The lift to every
 even lambda, the same sieve on the cofactor (q-1)/lambda with the demands
 lambda's even divisors add, is explore_silent_set.py's, with the census
 per lambda; the lower bound here is a floor, and whether x / log^2 x is
-the ORDER is open there.
+the ORDER is open there (settled after this record: it is not, the class
+being >> x / (log x log log x) -- explore_blind_share.py -- and the order
+between that and x / log x open).
 
 A note on vocabulary: the suspicion arrived in the record's own terms
 (safe primes, the Sophie Germain question), and the first move was to
