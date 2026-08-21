@@ -251,12 +251,17 @@ F3 THE CENSUS BY LAMBDA (P3 hit; P4 missed at L = 24; P5 missed at
    demands on them, a miss about the constants at this scale and not
    about the theorem, whose Step 3 is asymptotic. N phi(L) log^2 x / x at
    10^7 runs from 1.855 (L = 2) and 1.778 (L = 58) down to 0.470 (L = 48)
-   and 0.423 (L = 60), falling with the number of DOORS of L -- each door
-   p is a prime the cofactor must avoid, a factor (1 - 1/(p-1)) in the
-   sieve's product -- L = 60 carrying eight (2, 3, 5, 7, 11, 13, 31, 61)
-   against L = 2's two; the band [0.5, 4] was written before the door
-   count was weighed and missed by 0.03 and 0.08 at its floor. The
-   L-dependence beyond phi(L) is the door set and the even-divisor count,
+   and 0.423 (L = 60), falling with the DOORS of L -- each door p is a
+   prime the cofactor must avoid, a factor (1 - 1/(p-1)) in the sieve's
+   product -- L = 60 carrying eight (2, 3, 5, 7, 11, 13, 31, 61) against
+   L = 2's two. It is the door SET and not the door count that prices
+   it: L = 32 with four doors (2, 3, 5, 17) reads 0.670 below L = 12 with
+   five (2, 3, 5, 7, 13) at 0.863, the one big door 17 costing less than
+   7 and 13 together; and likewise the share is priced by the demands
+   and not their count, L = 32 with five even divisors reading 0.106
+   above L = 12's 0.041 with four. The band [0.5, 4] was written before
+   the doors were weighed and missed by 0.03 and 0.08 at its floor. The
+   L-dependence beyond phi(L) is the door set and the even-divisor list,
    in the directions the proof's product and demand list name.
 
 F4 THE MECHANISM (P6 hit). Among primes q = 1 mod L below 10^7 with
