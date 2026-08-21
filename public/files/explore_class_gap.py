@@ -81,7 +81,13 @@ run record below).
    to unbounded depth while principal primes stay entry-once: the
    thermal element limit would complete exactly the nonprincipal
    columns -- the class group as a partition of places into shallow
-   (trivial class) and bottomless (nontrivial class).
+   (trivial class) and bottomless (nontrivial class). [Settled since,
+   in part: the shallow side is a PROPERTY at every class group and
+   what it bounds is the WRITES rather than the depth -- a principal
+   column is written at most once and its exponent is free -- while
+   the bottomless side is a measured rate rather than an asymptotic
+   argument, with one quantitative leg still open. Verified in
+   explore_bottomless_columns.py.]
 
 4. THE ELEMENT MISMATCH AT ITS CLASSICAL HOME (rule in range; the
    static combinatorics is textbook block-monoid theory, stated as
