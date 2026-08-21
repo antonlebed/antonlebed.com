@@ -254,15 +254,16 @@ F3 THE CENSUS BY LAMBDA (P3 hit; P4 missed at L = 24; P5 missed at
    and 0.423 (L = 60), falling with the DOORS of L -- each door p is a
    prime the cofactor must avoid, a factor (1 - 1/(p-1)) in the sieve's
    product -- L = 60 carrying eight (2, 3, 5, 7, 11, 13, 31, 61) against
-   L = 2's two. It is the door SET and not the door count that prices
-   it: L = 32 with four doors (2, 3, 5, 17) reads 0.670 below L = 12 with
-   five (2, 3, 5, 7, 13) at 0.863, the one big door 17 costing less than
-   7 and 13 together; and likewise the share is priced by the demands
-   and not their count, L = 32 with five even divisors reading 0.106
-   above L = 12's 0.041 with four. The band [0.5, 4] was written before
-   the doors were weighed and missed by 0.03 and 0.08 at its floor. The
-   L-dependence beyond phi(L) is the door set and the even-divisor list,
-   in the directions the proof's product and demand list name.
+   L = 2's two. Neither count alone orders the table: L = 32 with four
+   doors (2, 3, 5, 17) reads 0.670 below L = 12 with five (2, 3, 5, 7,
+   13) at 0.863, although its door product is the LARGER (15/16 against
+   (5/6)(11/12)), and its share 0.106 with five even divisors sits above
+   L = 12's 0.041 with four -- the door factors and the even-divisor
+   demands act together, and this file separates neither's size. The
+   band [0.5, 4] was written before the doors were weighed and missed by
+   0.03 and 0.08 at its floor. The L-dependence beyond phi(L) is the
+   door set and the even-divisor list jointly, in the directions the
+   proof's product and demand list name.
 
 F4 THE MECHANISM (P6 hit). Among primes q = 1 mod L below 10^7 with
    (q-1)/L free of prime factors below z, the fraction outside the class
