@@ -134,7 +134,11 @@ THE PREDICTIONS, FIXED BEFORE THE RUN -- every kill is a printed count.
       preliminary run this file re-derives); sizes <= 4 print 0 to degree
       30 (trinomials by Ljunggren and Tverberg, as read; quadrinomials
       unread in the all-plus case, Mills's exception carrying a minus
-      sign, so that cell is a box fact). The least degree at sizes 5 and 6, if any <= 16, is printed.
+      sign, so that cell is a box fact -- read since in full: none of
+      Mills's four exceptional forms is all-plus, so a reducible 0/1
+      quadrinomial always has a cyclotomic factor and the cell is a
+      theorem, explore_seed_cofactor.py). The least degree at sizes 5
+      and 6, if any <= 16, is printed.
   C2  THE CELL: the aim's hunch was that it prints EMPTY -- every in-box
       negative factor torsion-rooted, with the univariate degree-12 floor
       as the reason a small box cannot hold one. The checks are the

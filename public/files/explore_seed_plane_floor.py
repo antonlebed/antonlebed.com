@@ -173,6 +173,11 @@ without P4 and P5, printed the same P0-P3 figures at 9 of 9 checks in
       anywhere, any dimension -- is left open; the hand argument (4)
       shows that if none can, every non-collinear four-term seed is
       rooted outright and the size-4 closure is a law and not a box fact.
+      (Settled since: none can, in any number of
+      variables -- the cofactor theorem of explore_seed_cofactor.py, by
+      Mills's quadrinomial theorem on the line and a specialization onto
+      it in the plane -- and the size-4 closure is a theorem off every
+      line; this file's census is its instance over {2..32}.)
 """
 
 import os
