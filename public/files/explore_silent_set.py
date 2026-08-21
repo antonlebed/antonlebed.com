@@ -191,8 +191,9 @@ S3 THE CENSUS BY LAMBDA. For every L in the sweep: class members below
    the DOOR PRODUCT D(L) = prod over the odd doors p of L of (1 - 1/p) if
    p | L and (1 - 1/(p-1)) otherwise -- the chance that m = (q-1)/L avoids
    p, since q = 1 mod L puts q = 1 mod p already when p | L and leaves q
-   uniform on the nonzero residues otherwise; 2 costs nothing beyond
-   phi(L), m being odd exactly when v_2(q-1) = v_2(L) -- and the residual
+   uniform on the nonzero residues otherwise; the door 2 costs the same
+   1/2 at every L, m being odd exactly when v_2(q-1) = v_2(L), and is
+   left out of D as a common factor -- and the residual
    ratio / D, read against the EVEN-DIVISOR count of L, which is the
    number of compositeness demands a composite cofactor meets. Printed
    per L and summarized by the even-divisor count; no prediction frozen.
