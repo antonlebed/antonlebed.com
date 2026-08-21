@@ -186,6 +186,16 @@ S3 THE CENSUS BY LAMBDA. For every L in the sweep: class members below
    against a prime-cofactor count of fixed order).
    PREDICTION P5: N_L(10^7) phi(L) log^2 x / x lies in [0.5, 4] at every L
    in the sweep.
+   S3b (added to the design after S3 first printed, from the hand
+   heuristic below). The two L-dependences the proof names, separated:
+   the DOOR PRODUCT D(L) = prod over the odd doors p of L of (1 - 1/p) if
+   p | L and (1 - 1/(p-1)) otherwise -- the chance that m = (q-1)/L avoids
+   p, since q = 1 mod L puts q = 1 mod p already when p | L and leaves q
+   uniform on the nonzero residues otherwise; 2 costs nothing beyond
+   phi(L), m being odd exactly when v_2(q-1) = v_2(L) -- and the residual
+   ratio / D, read against the EVEN-DIVISOR count of L, which is the
+   number of compositeness demands a composite cofactor meets. Printed
+   per L and summarized by the even-divisor count; no prediction frozen.
 
 S4 THE MECHANISM. For L in {2, 4, 6, 12} and z in {5, 11, 23, 47}: among
    primes q = 1 mod L below 10^7 with (q-1)/L free of prime factors below
@@ -256,14 +266,19 @@ F3 THE CENSUS BY LAMBDA (P3 hit; P4 missed at L = 24; P5 missed at
    product -- L = 60 carrying eight (2, 3, 5, 7, 11, 13, 31, 61) against
    L = 2's two. Neither count alone orders the table: L = 32 with four
    doors (2, 3, 5, 17) reads 0.670 below L = 12 with five (2, 3, 5, 7,
-   13) at 0.863, although its door product is the LARGER (15/16 against
-   (5/6)(11/12)), and its share 0.106 with five even divisors sits above
-   L = 12's 0.041 with four -- the door factors and the even-divisor
-   demands act together, and this file separates neither's size. The
-   band [0.5, 4] was written before the doors were weighed and missed by
-   0.03 and 0.08 at its floor. The L-dependence beyond phi(L) is the
-   door set and the even-divisor list jointly, in the directions the
-   proof's product and demand list name.
+   13) at 0.863. Separated (S3b), the two dependences read apart: the
+   door product D -- (1 - 1/p) for a door p | L, (1 - 1/(p-1))
+   otherwise, over the odd doors -- puts L = 12 at 0.382 above L = 32 at
+   0.352, 3 dividing 12 and costing 2/3 there against 1/2 at 32; and the
+   residual ratio / D falls with the even-divisor count at every step of
+   its mean, 3.71 at one even divisor (L = 2), 3.35 at two, 2.30 at
+   three, 2.27 at four, 1.91 at five, 1.65 at six, 1.26 at eight, the
+   ranges at three and four overlapping (2.05..2.55 against 1.71..2.63).
+   The band [0.5, 4] was written before the doors were weighed and
+   missed by 0.03 and 0.08 at its floor. The L-dependence beyond phi(L)
+   is the door product times a factor falling with the even-divisor
+   demands, in the directions the proof's product and demand list name
+   -- a heuristic about the constants and not the theorem.
 
 F4 THE MECHANISM (P6 hit). Among primes q = 1 mod L below 10^7 with
    (q-1)/L free of prime factors below z, the fraction outside the class
@@ -584,6 +599,7 @@ def s3_census(lams, primes, lpf, isprime):
     p4_bad = []
     p5_bad = []
     rec = {}
+    resid = {}
     for lam in lams:
         L = lam.L
         mem = [q for q in primes if (q - 1) % L == 0
@@ -605,6 +621,13 @@ def s3_census(lams, primes, lpf, isprime):
         ratio = len(mem) * phiL * log(10 ** 7) ** 2 / 10 ** 7
         print("  lambda = %-3d phi = %-3d below 10^5, 10^6, 10^7: %s;  "
               "N phi(L) log^2 x / x = %.3f" % (L, phiL, "; ".join(row), ratio))
+        D = 1.0
+        for p in lam.odd_doors:
+            D *= (1 - 1 / p) if L % p == 0 else (1 - 1 / (p - 1))
+        ne = len(lam.even_divs)
+        resid.setdefault(ne, []).append(ratio / D)
+        print("      door product D = %.3f over %d odd doors; even divisors %d;"
+              "  ratio / D = %.2f" % (D, len(lam.odd_doors), ne, ratio / D))
         if L <= 24 and not (shares[0] < shares[1] < shares[2]):
             p4_bad.append(L)
         if not (0.5 <= ratio <= 4):
@@ -616,6 +639,13 @@ def s3_census(lams, primes, lpf, isprime):
               "10^7 at every L <= 24 (not at %s)" % p4_bad)
     predicted(not p5_bad, "P5: N phi(L) log^2 x / x within [0.5, 4] at every "
               "L (outside at %s)" % p5_bad)
+    print("  S3b ratio / D by the even-divisor count of L (mean over the L "
+          "sharing a count):")
+    for ne in sorted(resid):
+        print("      %d even divisor%s: %d value%s, mean %.2f, range %.2f..%.2f"
+              % (ne, "" if ne == 1 else "s", len(resid[ne]),
+                 "" if len(resid[ne]) == 1 else "s",
+                 sum(resid[ne]) / len(resid[ne]), min(resid[ne]), max(resid[ne])))
     return members
 
 
