@@ -310,6 +310,18 @@ own:
   (H4) the price nondecreasing in the DOOR -- new, and the one the corpus
        was consuming through H2 without naming.
 
+  [SETTLED SINCE, explore_census_theorem.py: the separate job named just
+  above was done and the list is FIVE, not four. Three of the derivation's
+  lines close outright under a per-item clock and the coarser-clock cap
+  turns out to be H4's second consumer, derived rather than measured; but
+  step B needs one more property, of exactly the species found here -- the
+  born degree's opening must not be undercut by a fresh discount, a
+  comparison across two different doors that degree-monotonicity cannot
+  reach. Nothing on the LADDER axis is needed at all. Four of the eight
+  prices below are witnesses to the missing property, which the observables
+  here could not see because they read the strand set and never WHICH item
+  runs away.]
+
 Unboundedness in the door is NOT among them. Rule in range for the
 sufficiency reading (eight prices x ten ladders, which is evidence and not
 a proof); property, proved by construction, for the termination lemma;

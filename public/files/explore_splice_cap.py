@@ -39,6 +39,14 @@ DERIVATION rather than a guess.
     a price falling in the door breaks this step and the identity with it.
  B. THE RUNAWAY IS DEGREE 1, SLOT 0, always: born degree, cheapest splice,
     first in every tie. Exactly one item crosses.
+    [SUPERSEDED IN SCOPE, explore_census_theorem.py: not always -- "born
+    degree, cheapest" compares the born opening at door 2 against a fresh
+    discount at door 1, which is a comparison ACROSS doors and needs its own
+    hypothesis. Where a degree's discount undercuts the born opening the
+    riser is not (1, 0), by witness. Every price this file runs meets the
+    condition, so nothing below moves; the other steps close under a
+    per-item clock, and the bar is more generally the door of the LAST step
+    wider than the tail, e + w being the family's one-overshoot case.]
  C. SO THE PER-ITEM CENSUS IS A FORMULA -- the ADMISSION CENSUS A. For each
     item, seeded or supplied: its entry price (0 if seeded; price(d, 1) for
     a fresh first opening; price(d, 2) for every later slot and for every
