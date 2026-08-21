@@ -54,6 +54,16 @@ THE HAND-ATTACK, on paper before any engine code.
      ladder's property and not the price's. All four hold at alpha = 2 and
      at the additive price, so the census formula is DERIVED at both new
      schedules and the sweep tests the derivation, not a guess.
+     [SUPERSEDED IN SCOPE, explore_census_theorem.py: the list is FIVE, and
+     the parenthetical above -- degree-monotonicity making the runaway
+     degree 1 slot 0 -- is the clause that does not survive. That step
+     compares the BORN degree's opening at door 2 against a fresh discount
+     at door 1, a comparison across two doors that monotonicity at a fixed
+     door cannot reach, and where a discount undercuts the born opening the
+     riser is not (1, 0), by witness. Both prices swept here meet the
+     missing condition, as does the standing one, so nothing below moves.
+     Three of the derivation's lines close outright under a per-item clock
+     and the coarser-clock cap is the door side's second consumer.]
  (b) Margins, hand-derived from the census formula at (p, e) = (2, 4),
      w = 2, two items a degree, seed (9, 13) -- frozen here so the print is
      checked against paper rather than paper against the print.
