@@ -462,7 +462,9 @@ FINDINGS.
    silent set at L infinite" IS "is the blind class V = W(L) infinite".
    At L = 2 that is the class whose one identified route runs through the
    safe primes -- the Sophie Germain question (explore_headroom.py finding
-   7). So the silent set is not a way AROUND the conjecture ceiling that
+   7; since settled without it -- explore_blind_spot_infinite.py proves
+   that class infinite, so the silent set at L = 2 is infinite too). So
+   the silent set is not a way AROUND the conjecture ceiling that
    the blind-class question hits; it is the same wall approached from the
    other side, and work spent hunting non-safe silent primes at
    L = 2 would have been work spent hunting non-safe members of

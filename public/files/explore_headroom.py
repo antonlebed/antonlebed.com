@@ -336,7 +336,11 @@ FINDINGS.
    larger than that: 178 states below 6000, of which 101 are prime (81 of
    them safe) and 77 composite, the smallest composites being 10 and 21,
    with 60, 108 and 178 members below 1500, 3000 and 6000. WHETHER THE
-   CLASS IS INFINITE IS OPEN. The safe primes are one route to settling
+   CLASS IS INFINITE IS OPEN. (Since settled, with no conjecture in it:
+   explore_blind_spot_infinite.py proves the class >> x/log^2 x, and its
+   non-safe members >> x/log^2 x by themselves, by the linear sieve at
+   the Bombieri-Vinogradov level; the route below was this record's and
+   never the class's.) The safe primes are one route to settling
    it -- they are all in the class, so their infinitude would give it --
    and that route is exactly the Sophie Germain question. But they are
    not the only route and the class is not their shadow: 81 of its 101
