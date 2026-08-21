@@ -67,6 +67,7 @@ export default {
       '/growth/carrier': 'carrier',
       '/growth/dial': 'dial',
       '/growth/inside': 'inside',
+      '/growth/blind': 'blind',
       '/growth/irreducibility': 'irreducibility',
       '/growth/thermal': 'thermal',
       '/growth/constants': 'constants',
