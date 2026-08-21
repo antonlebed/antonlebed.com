@@ -216,8 +216,9 @@ F4 THE THIRD CASE IS REAL WHERE THE REGIME IS DELETED (rule, two table
    over DISTINCT primes change vehicle 307 times in 400 moves, open
    nothing after the third move (the place of norm 2 pays door 1 at cost
    2 twice before a cost of 3 wins; the frozen P4 said "second" and the
-   walk says third), and no step certifies: a walk alternating forever
-   among two seated places, which is exactly the shape F6 hunted. The
+   walk says third), and no step certifies: over those 400 moves a walk on
+   two seated places that never settles, which is the shape F6 hunted --
+   the run MEASURES the case rather than proving the alternation endless. The
    same two columns sharing one prime do NOT alternate: the place of norm
    2 stays the vehicle at a cost climbing without bound (its door at move
    400 is 399, the cost 2^399) and nothing certifies -- one vehicle, uncertifiable, which is the certificate's own
@@ -517,7 +518,8 @@ def run_deletion(W):
                     if (tr[i - 1][3].get(pl, 0) if i else 0) == 0)
     ci, cert = SG.certified_lock(W, tr)
     cost, pl, r = tr[-1][0], tr[-1][1], tr[-1][2]
-    return changes, len(support), last_open, ci, tr, (cost, W.place_norm(pl), r)
+    return (changes, len(support), last_open, ci, tr,
+            (cost, W.place_norm(pl), r))
 
 
 def s3_deletion():
