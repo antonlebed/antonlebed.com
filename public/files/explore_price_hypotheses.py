@@ -320,7 +320,11 @@ own:
   reach. Nothing on the LADDER axis is needed at all. Four of the eight
   prices below are witnesses to the missing property, which the observables
   here could not see because they read the strand set and never WHICH item
-  runs away.]
+  runs away. And H2 is not the LADDER's property, nor a hypothesis at all:
+  the walker sends a tick to the least member at or above the depth just
+  landed on, a tick is already a member and next_at is monotone, so no
+  ladder whatever can lower a door. What reads above as untested for want
+  of a violating ladder is unfalsifiable inside this walker.]
 
 Unboundedness in the door is NOT among them. Rule in range for the
 sufficiency reading (eight prices x ten ladders, which is evidence and not

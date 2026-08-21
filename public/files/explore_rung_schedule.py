@@ -63,7 +63,10 @@ THE HAND-ATTACK, on paper before any engine code.
      riser is not (1, 0), by witness. Both prices swept here meet the
      missing condition, as does the standing one, so nothing below moves.
      Three of the derivation's lines close outright under a per-item clock
-     and the coarser-clock cap is the door side's second consumer.]
+     and the coarser-clock cap is the door side's second consumer. The
+     door monotonicity above is not the LADDER's either: the landing rule
+     sends a tick to the least member at or above the depth just landed
+     on, so no ladder whatever can lower one.]
  (b) Margins, hand-derived from the census formula at (p, e) = (2, 4),
      w = 2, two items a degree, seed (9, 13) -- frozen here so the print is
      checked against paper rather than paper against the print.

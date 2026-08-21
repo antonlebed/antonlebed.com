@@ -34,8 +34,9 @@ DERIVATION rather than a guess.
     ever created again" is a claim about a STANDING item, whose door grows
     with the tick -- and a growing door costs more only if the price is
     nondecreasing in the DOOR. That is a property of the price and a
-    fourth hypothesis, distinct from the ladder's own monotonicity in
-    time; every schedule this corpus prices with happens to have it, and
+    fourth hypothesis, distinct from the doors' monotonicity in time --
+    which is the WALKER's landing rule and no ladder's property, no ladder
+    being able to lower a tick (explore_census_theorem.py); every schedule this corpus prices with happens to have it, and
     a price falling in the door breaks this step and the identity with it.
  B. THE RUNAWAY IS DEGREE 1, SLOT 0, always: born degree, cheapest splice,
     first in every tie. Exactly one item crosses.
