@@ -262,6 +262,11 @@ F3 EXISTS-OVER-MEMBERS, THE FRESHENING REACHES MOST OF THE
    walk was measured and refused. What this leg does not observe
    is whether the 420 reach anything at distance two -- E4 asks
    exactly that question at the three stalls and nowhere else.
+   (SETTLED since, over all 420 and not only the stalls: every one
+   of them reaches a pointwise-nested strictly improving class at
+   distance two, from one member with the intermediate a distinct
+   class -- explore_pinned_composite.py E5. What survives here
+   unchanged is the distance-ONE coverage this leg measured.)
    The member choice is load-bearing exactly as the parent found
    it, which is why F1's per-pair failures and this leg's
    coverage are the same fact seen from two sides.
