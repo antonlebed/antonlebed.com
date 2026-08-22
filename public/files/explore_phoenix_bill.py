@@ -140,7 +140,16 @@ misses — predictions are not tame.)
    virgin 3-column (odd(lambda(3^2)) = 3) but DNA 9 when it lands on the
    world's SELF-GROWN 3-column at death 4 (the exponents COMPOUND); the
    spectrum law holds per run, but the realized D depends on WHEN you
-   push relative to the world's own growth of that column. THE PRICE
+   push relative to the world's own growth of that column.
+   (SETTLED SINCE BY explore_genome_fibre.py F1 and F2, at theorem
+   tier: the schedule dependence recorded here as a witness is a law
+   with a proof for every state and every odd prime. The slack
+   delta_l = d_l - c_l + 1 is a countdown of free pushes, e of them
+   give Delta d_l = max(0, e - delta_l), and the witness above is the
+   single case delta = 1 against delta = 0 at e = 2. So the fibre
+   coordinate over a genome does not accompany the compounding rate
+   -- it IS the rate, and the largest genome-exponent SPREAD across a
+   fibre over D is v_l(D)+1.) THE PRICE
    LIST (E4b, brute single-push minima): opening a target prime p costs
    the min of FIAT (push p: log2 p bits), DEPTH (push l^(e+1) per l^e ||
    odd(p-1)), COVER (push the least prime q* with the odd part dividing

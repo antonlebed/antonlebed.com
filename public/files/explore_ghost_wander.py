@@ -233,6 +233,15 @@ FINDINGS (printed output copied from the run).
    p = 2 the walk banks w = 3 over its 5 rungs against a survival line
    of 3.01 -- tracking it, because Fermat primes are dense at small
    exponents -- and then dies outright rather than falling behind.
+   (NARROWED SINCE BY explore_cascade_chars.py: the residual named
+   here is no longer the rings whose rank-1 chars avoid 2, 3 and 5
+   but the rings whose rank-1 characteristics ALL exceed 1000. That
+   rig certifies a death rung at every one of the 167 odd primes
+   below 1000, and the reduction's conjunction closes a ring the
+   moment ONE of its rank-1 characteristics is closed. What survives
+   here is the SHAPE of the residual -- a finite computation per
+   characteristic at cap p -- and the front it hands on is splitting
+   behaviour rather than ladders.)
 
 6. THE NAMED CANDIDATE MECHANISM IS THIS WALK, AND THE KILL IS THE
    BUDGET (rule). explore_lock_prime.py's HONEST SCOPE names a
