@@ -260,11 +260,13 @@ F4 THE RESIDUE'S RESIDUE CLOSES, AND IT CLOSES AT DISTANCE TWO.
    Imposing that requirement leaves the 420 untouched and costs the
    all-classes figures the doubling chain side entirely.
 F5 WHAT THE DERIVATION NOW OWES, AND IT IS SMALLER THAN THE AIM SAID.
-   The object is one member and its cells. The statement to prove: at
-   a member with the chain pinned to the present image and tree
-   patience at least two, lowering the tree patience twice gives a run
-   whose counted cells nest pointwise inside the original's and whose
-   loss strictly improves, while lowering it once does neither. The
+   The object is one member and its cells, and the once-failing case
+   is the HYPOTHESIS rather than a second conclusion -- E5 refutes the
+   universal reading outright, the twice-freshened landing nesting and
+   improving for a minority of classes overall. The statement to prove:
+   at a present-pinned class where NO member's single freshening lands
+   nested and strictly improving, some member's SECOND freshening does,
+   the two steps taken from that one member. The
    quotient, the intermediate class and the free re-selection all drop
    out of the statement, and what is left is written in the
    telescopes' own vocabulary -- one run's cells against another's,
