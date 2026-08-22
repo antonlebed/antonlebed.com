@@ -196,7 +196,7 @@ FINDINGS (entered after the run; ALL CHECKS PASS, exit 0, 5.5 s,
 15.3 MB peak under the memory watch)
 ----------------------------------------------------------------
 F1 THE RE-SELECTION IS NOT NEEDED ANYWHERE, AND THE PARENT'S ROUTE
-   SENTENCE IS FALSE. K3 fires at all three specimens. At the two
+   SENTENCE ASSERTS A NECESSITY THAT IS FALSE. K3 fires at all three specimens. At the two
    census specimens the stall is (1,0,3,0) and the unique nesting
    escape class is {(0,0,1,0), (1,0,1,0)}; at the designed specimen
    the stall is (0,1,2,0) and the escape class holds twenty members,
@@ -207,10 +207,14 @@ F1 THE RE-SELECTION IS NOT NEEDED ANYWHERE, AND THE PARENT'S ROUTE
    gets the degenerate answer: 2 of 2, 2 of 2 and 18 of 18 members of
    the intermediate class reach the escape, the stall's own descendant
    included, so no subset is singled out and no occupancy statement is
-   available to be made. What the re-selection buys is real but does
-   not include the escape: from the landing member alone one typed
-   move reaches 4, 4 and 4 classes against 5, 5 and 7 from the whole
-   class. The parent's F4 sentence -- the second freshening taken from
+   available to be made. What the re-selection buys is real -- from the
+   landing member alone one typed move reaches 4, 4 and 4 classes
+   against 5, 5 and 7 from the whole class -- but the escape is not
+   what it buys: the escape sits inside the SMALLER set at all three,
+   so it is reachable with no re-selection spent. Reachable WITH one
+   too, and that is the distinction the parent's sentence lost: the
+   route it describes exists, and the necessity it claims for it does
+   not. The parent's F4 sentence -- the second freshening taken from
    a different member, the quotient supplying the re-selection free --
    was INFERRED from the intermediate class holding a second style
    pair and never measured; its route printer collected move-type
