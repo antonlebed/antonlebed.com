@@ -192,7 +192,7 @@ printed logs. Sequential; estimated run a few minutes, the E5 census
 the driver; memory trivial (no BLAS import); exit nonzero on any check
 failure.
 
-FINDINGS (entered after the run; ALL CHECKS PASS, exit 0, 5.8 s,
+FINDINGS (entered after the run; ALL CHECKS PASS, exit 0, 5.5 s,
 15.3 MB peak under the memory watch)
 ----------------------------------------------------------------
 F1 THE RE-SELECTION IS NOT NEEDED ANYWHERE, AND THE PARENT'S ROUTE
@@ -245,9 +245,20 @@ F4 THE RESIDUE'S RESIDUE CLOSES, AND IT CLOSES AT DISTANCE TWO.
    error is a question mismatch rather than a miss: the 420 leg is not
    a strict majority but all of it, while the twice-freshened reach
    over all classes is a minority (734 of 2,546 identity tree-side,
-   1,289 of 2,955 doubling tree-side) because a class that already
-   exits at distance one has its second freshening walk PAST the exit.
-   The distance-two leg is a statement about the classes that need it.
+   1,281 of 2,955 doubling tree-side, and 0 of 597 doubling chain-side)
+   because a class that already exits at distance one has its second
+   freshening walk PAST the exit. The distance-two leg is a statement
+   about the classes that need it.
+   THE DISTANCE LABELS ARE THIS RIG'S OWN, and the audit is what made
+   them so. Every recorded exit sits at exactly one freshening (5,678
+   class-sides, no other value) and no walk freezes, so "distance one"
+   is measured here rather than inherited from the parent. And the
+   two-step leg REQUIRES a distinct intermediate class, which is not
+   free: 5,327 present-pinned members have their first freshening stay
+   inside the start class, and counting their second freshening as
+   distance two would have been counting a distance-ONE move twice.
+   Imposing that requirement leaves the 420 untouched and costs the
+   all-classes figures the doubling chain side entirely.
 F5 WHAT THE DERIVATION NOW OWES, AND IT IS SMALLER THAN THE AIM SAID.
    The object is one member and its cells. The statement to prove: at
    a member with the chain pinned to the present image and tree
@@ -281,8 +292,15 @@ second added E4 and E5 under that slate. The third re-scoped one check
 in E2 that had wired a GUESS as a hard assertion -- the parent
 telescope's own recorded trap, repeated here -- so the K3 firing is
 reported as the verdict it is rather than as a rig failure; the
-observable and every count are unchanged. Final run ALL CHECKS PASS,
-exit 0, 5.8 s.
+observable and every count are unchanged. A FOURTH run was added by the
+audit, which asked whether this rig measures the distances it labels or
+inherits them: it did inherit them, and the two checks added at that
+question found 5,327 members whose first freshening stays in class, so
+E5's two-step leg now REQUIRES a distinct intermediate class. The 420
+and every reproduction control are unchanged by it; the all-classes
+twice-freshened figures in F4 are the tightened ones. No prediction, no
+control and no finding above F4 was touched. Final run ALL CHECKS PASS,
+exit 0, 5.5 s.
 """
 
 import sys
@@ -529,12 +547,15 @@ EXPECT_D1_MISS = {("id", "tree"): 0, ("id", "chain"): 0,
 
 def two_step_hit(ev, horizon, s, cx, Lx, cellcache, sig_of, side):
     """From any member of s on this side, does freshening TWICE land
-    in a class that nests pointwise against s and strictly improves?"""
+    in a class that nests pointwise against s and strictly improves?
+    The INTERMEDIATE must be a distinct class: a first freshening that
+    stays in s makes the landing one move from a member of s, which is
+    cure-graph distance ONE and is the parent's leg, not this one."""
     for p in ev["mem"][s]:
         if not PT.is_present_pinned(p) or PT.side_of(p) != side:
             continue
         cur = PT.freshen(p)
-        if not PT.is_present_pinned(cur):
+        if sig_of[cur] == s or not PT.is_present_pinned(cur):
             continue
         cur = PT.freshen(cur)
         w = sig_of[cur]
@@ -552,6 +573,14 @@ def e5_census():
     tab = {(mp, sd): {"classes": 0, "d1": 0, "d2": 0,
                       "d1miss": 0, "d1miss-d2": 0}
            for mp in PT.CENSUS_MAPS for sd in ("tree", "chain")}
+    # The distance LABELS below are this rig's own, not the parent's:
+    # "distance one" means the first class-changing freshening is one
+    # freshening away, and "distance two" means the intermediate
+    # landing is a distinct class rather than the start class. Both
+    # are recorded here and checked, never inherited.
+    exit_d = {}
+    frozen_walks = 0
+    stayed_in_class = 0
     for horizon in PT.CENSUS_HORIZONS:
         for mp in PT.CENSUS_MAPS:
             for _wname, digs in MR.census_pool(horizon):
@@ -575,6 +604,15 @@ def e5_census():
                             continue
                         cell = tab[(mp, sd)]
                         cell["classes"] += 1
+                        if rec["best"] is not None:
+                            exit_d[rec["best"]] = \
+                                exit_d.get(rec["best"], 0) + 1
+                        frozen_walks += rec["frozen"]
+                        stayed_in_class += sum(
+                            1 for p in ev["mem"][s]
+                            if PT.is_present_pinned(p)
+                            and PT.side_of(p) == sd
+                            and sig_of[PT.freshen(p)] == s)
                         d1 = rec["best"] is not None
                         d2 = two_step_hit(ev, horizon, s, cx, Lx,
                                           cellcache, sig_of, sd)
@@ -584,6 +622,14 @@ def e5_census():
                             cell["d1miss"] += 1
                             cell["d1miss-d2"] += d2
             print("  h=%-2d %-3s done" % (horizon, mp))
+    print("  exit distances recorded %s, frozen walks %d, members "
+          "whose first freshening stays in class %d"
+          % (sorted(exit_d.items()), frozen_walks, stayed_in_class))
+    check("every recorded exit sits at ONE freshening, so the "
+          "distance labels below are measured (%s)" % sorted(exit_d),
+          set(exit_d) == {1})
+    check("no walk freezes, so every class has an exit to record "
+          "(%d)" % frozen_walks, frozen_walks == 0)
     for key in sorted(tab):
         c = tab[key]
         print("  %-3s %-5s: %d classes | distance-1 reach %d, "
