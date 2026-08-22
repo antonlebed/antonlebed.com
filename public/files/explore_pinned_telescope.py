@@ -273,11 +273,14 @@ F4 AT THE STALLS THE FIRST STEP DOES NOT NEST, AND EXACTLY ONE
    of the strictly improving classes at cure distance two --
    five, four and three at the three specimens -- EXACTLY ONE at
    each nests pointwise against the stall, and at all three it is
-   reached by tree freshening twice. The second freshening runs
-   from a DIFFERENT member of the intermediate class: that class
-   holds the same patience at a different style pair (styles
-   (0,0) beside the stall's (1,0), (1,0) and (0,1)), and the
-   quotient makes the re-selection free.
+   reached by tree freshening twice. E4 reports the move TYPES
+   over every member of the intermediate class and never which
+   member pays; what it therefore does NOT establish is that the
+   second freshening needs a different member than the first one
+   landed on. That further clause is measured and REFUTED by
+   explore_pinned_composite.py: the two freshenings run from the
+   stall's own member at one style pair throughout, and the free
+   re-selection is never spent.
 
 THE VERDICT. The pinned residue has no telescope of its own on
 the side that matters. Freshening a reference is a cure at cure
@@ -291,12 +294,13 @@ containment is false with witnesses inside the counted window
 the three stalls' measured escape radius of two actually is, read
 here for the first time: a nested improving class DOES sit at
 distance two, exactly one of the several improving ones, and the
-route to it is two freshenings composed THROUGH the quotient with
-a style re-selection in the middle. So the derivation the reader
+route to it is two tree freshenings. So the derivation the reader
 corpus's open edge still owes is not a stepwise lemma at all -- it
-is a two-move composite whose intermediate step is deliberately
-non-nesting, and the object it has to argue about is the
-intermediate CLASS rather than either endpoint. That is a sharper
+is a two-move statement whose intermediate step is deliberately
+non-nesting. Which member the second move departs from is not read
+here and is read by explore_pinned_composite.py, which finds it is
+the stall's own descendant: the object is a single member and its
+cells, not the intermediate class. That is a sharper
 statement of the owe than the corpus carried before, and it names
 the one place a proof can start.
 
