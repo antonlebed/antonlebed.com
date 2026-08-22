@@ -88,6 +88,7 @@ export default {
       '/measure/price': 'price',
       '/learning': 'learning',
       '/learning/stalls': 'stalls',
+      '/learning/nesting': 'nesting',
       '/learning/substrate': 'substrate',
       '/learning/forgetting': 'forgetting',
       '/learning/collisions': 'collisions',

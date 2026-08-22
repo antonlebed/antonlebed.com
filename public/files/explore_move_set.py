@@ -389,7 +389,8 @@ F6 EVERY STALL IN THE CORPUS DIES AT PATIENCE STEP SIZE 3, AND THE
    CLIQUE IS NEVER NEEDED. Under step3 the stall count is ZERO at
    every one of the ten landscapes -- not merely at the ten
    specimens but over every off-bottom class of all ten landscapes,
-   whose class counts run 17 to 157 and total 611. The population
+   whose class counts run 17 to 157 and total 611, of which 601
+   sit off the bottom. The population
    runs 10 (cure), 10 (nodiag), 16 (nodraw), 16 (bare), 1 (step2),
    0 (step3), 0 (clique). So the
    free-setting reader is not needed to make the point and the
