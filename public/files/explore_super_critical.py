@@ -294,7 +294,7 @@ are therefore short while the trend still moves at 2/9 per landing. PR4's
 max clause -- the load-bearing half, that no block runs its index across
 a full residue system -- stands at max 6.
 
-RUN RECORD. ALL 16 CHECKS PASS, 10.5 s wall clock; 95.1 MB peak working
+RUN RECORD. ALL 25 CHECKS PASS, 13.6 s wall clock; 129.0 MB peak working
 set against the 512 MB ceiling (memwatch). Predictions as frozen: PR1
 confirmed, PR2 first clause confirmed and second clause falsified by its
 own hand figure, PR3 confirmed after the index convention was re-derived
