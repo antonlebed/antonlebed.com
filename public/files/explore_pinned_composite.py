@@ -245,7 +245,7 @@ F4 THE RESIDUE'S RESIDUE CLOSES, AND IT CLOSES AT DISTANCE TWO.
    error is a question mismatch rather than a miss: the 420 leg is not
    a strict majority but all of it, while the twice-freshened reach
    over all classes is a minority (734 of 2,546 identity tree-side,
-   1,281 of 2,955 doubling tree-side, and 0 of 597 doubling chain-side)
+   1,279 of 2,955 doubling tree-side, and 0 of 597 doubling chain-side)
    because a class that already exits at distance one has its second
    freshening walk PAST the exit. The distance-two leg is a statement
    about the classes that need it.
@@ -253,11 +253,14 @@ F4 THE RESIDUE'S RESIDUE CLOSES, AND IT CLOSES AT DISTANCE TWO.
    them so. Every recorded exit sits at exactly one freshening (5,678
    class-sides, no other value) and no walk freezes, so "distance one"
    is measured here rather than inherited from the parent. And the
-   two-step leg REQUIRES a distinct intermediate class, which is not
-   free: 5,327 present-pinned members have their first freshening stay
-   inside the start class, and counting their second freshening as
-   distance two would have been counting a distance-ONE move twice.
-   Imposing that requirement leaves the 420 untouched and costs the
+   two-step leg REQUIRES an intermediate class distinct from BOTH
+   endpoints, and neither half is free. 5,327 present-pinned member
+   walks across the census have their first freshening stay inside the
+   start class, so their second freshening is a distance-ONE move
+   counted twice; and a second freshening can also land back in the
+   intermediate class, which is again distance one. Imposing both
+   leaves the 420 untouched -- for them the intermediate cannot qualify,
+   having no nesting improving exit by hypothesis -- and costs the
    all-classes figures the doubling chain side entirely.
 F5 WHAT THE DERIVATION NOW OWES, AND IT IS SMALLER THAN THE AIM SAID.
    The object is one member and its cells, and the once-failing case
@@ -557,11 +560,15 @@ def two_step_hit(ev, horizon, s, cx, Lx, cellcache, sig_of, side):
         if not PT.is_present_pinned(p) or PT.side_of(p) != side:
             continue
         cur = PT.freshen(p)
-        if sig_of[cur] == s or not PT.is_present_pinned(cur):
+        z = sig_of[cur]
+        if z == s or not PT.is_present_pinned(cur):
             continue
         cur = PT.freshen(cur)
         w = sig_of[cur]
-        if w == s:
+        # Landing back in the INTERMEDIATE class is distance one, not
+        # two: the improving class would then be one move from a member
+        # of s and the parent's leg already owns it.
+        if w == s or w == z:
             continue
         if w not in cellcache:
             rep = sorted(ev["mem"][w], key=SC.pol_key)[0]
