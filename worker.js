@@ -81,6 +81,7 @@ export default {
       '/walls/algebra': 'algebra',
       '/reading': 'reading',
       '/reading/quadratic': 'quadratic',
+      '/reading/shifts': 'shifts',
       '/reading/redundant': 'redundant',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
