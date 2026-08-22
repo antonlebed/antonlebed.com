@@ -307,7 +307,12 @@ here and is read by explore_pinned_composite.py, which finds it is
 the stall's own descendant: the object is a single member and its
 cells, not the intermediate class. That is a sharper
 statement of the owe than the corpus carried before, and it names
-the one place a proof can start.
+the one place a proof can start. (SETTLED SINCE BY
+explore_minimal_cell.py: the owe is discharged, and not by a two-move
+statement at all -- the doubly pinned run commits the inclusion
+MINIMUM of the cells containing the current image, so its class nests
+into every class at every step and needs no route. What survives here
+is the measured radius at the three stalls and the route behind it.)
 
 Run record. ONE engine, three runs. The first run's battery asked
 for containment at every step, and its failure at step 4 --

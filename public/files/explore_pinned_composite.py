@@ -12,7 +12,11 @@ the second taken from a DIFFERENT member of the intermediate class --
 one carrying a different style pair, which the quotient supplies free.
 So the derivation the reader corpus's open edge owes is not a stepwise
 lemma but a two-move COMPOSITE, and its object is the intermediate
-CLASS rather than either endpoint.
+CLASS rather than either endpoint. (SETTLED SINCE BY
+explore_minimal_cell.py: the owe is discharged by a one-step statement
+about the doubly pinned run, so no composite is needed. What survives
+below is the ROUTE reading -- that the free re-selection is never
+spent -- which this rig proves and the settlement does not touch.)
 
 This rig is the composite's cheapest first probe. It does not attempt
 the proof. It asks what the intermediate class IS: how many policies

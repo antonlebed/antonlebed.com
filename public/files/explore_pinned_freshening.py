@@ -376,10 +376,16 @@ which step does what. It is ONE statement about the doubly pinned run:
 that reading the present at both coordinates commits inside what any
 staler pair of the same style commits to, at every counted step -- and
 that statement needs neither the residue nor the walk that found it,
-holding at 102,092 of 102,092 members of every off-bottom class (F7). It
+holding at 102,092 of 102,092 members of every off-bottom finite-loss
+class (F7). It
 is the pointwise, per-style form of the bottom lemma, whose greedy
 optimum is a statement about the LOSS at one style pair; this one is
-about the CELLS at every style pair at once.
+about the CELLS at every style pair at once. (SETTLED SINCE BY
+explore_minimal_cell.py: the nesting half is a THEOREM and not the
+census reported here -- the doubly pinned cell is the inclusion
+minimum of the cells containing the current image, in closed form --
+and the containment itself is unscoped, the off-bottom and
+finite-loss qualifiers being the floor lemma's and not its.)
 
 Run record. ONE engine, four runs. The first ran E0-E5; K3 fired at all
 three specimens and at every one of the 420, and the follow-up slate B1,
