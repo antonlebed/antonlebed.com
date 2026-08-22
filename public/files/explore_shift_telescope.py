@@ -67,6 +67,11 @@ CT4 (distance <= 2 in the cure graph). (pt-1, pc) is one single
     improving pointwise-nested class within cure-graph distance 2
     — for EVERY map, sq included. The measured escape radius of
     exactly 2 at every stall specimen is this shift.
+    (NARROWED SINCE, and the theorem clause above is untouched: not
+    every specimen. The three sq stalls hold no shiftable member and
+    their route is not this shift, which F3 below finds; and counted
+    as one READER'S OWN MOVES rather than through the cure graph, one
+    burst trap costs three -- explore_charged_radius.py.)
 CT5 (the wall at distance 2). The distance-2 margin is capped by
     ln|C(H)| - ln|C(8)|, one refinement's price when the window
     pins to a single mediant step — the 1/D walk as a corollary.

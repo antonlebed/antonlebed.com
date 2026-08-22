@@ -257,6 +257,14 @@ spaces; it settles as a dichotomy.
      no FINITE-LOSS stall found to date survives two-move
      lookahead (the infinite-loss plateau stays the signal cure's
      customer; its radius is unbounded in the axis).
+     (NARROWED SINCE BY explore_charged_radius.py: the radius is
+     stated here THROUGH THE CURE GRAPH, whose edge exists as soon
+     as SOME member of a class carries the move, and that reading
+     survives at all six. Counted as one reader's own moves the
+     spike1@6 specimen under doubling at horizon 120, (B,W)=(2,0),
+     costs THREE -- the one class supporting a two-edge walk out of
+     it is entered and left at DISJOINT member sets. The other five
+     are unchanged.)
 
 Run record. The first run exited 0 in ~14 s, all controls and
 spine checks green on the first run; the forge found the six

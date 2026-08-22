@@ -206,6 +206,13 @@ F6 THE CURE SURVIVES. Every specimen — both census stalls and the
    quotient graph, extending the corpus's radius-2 reading to the
    new species: two-move lookahead cures every finite-loss stall
    found to date, this rig's included.
+   (NARROWED SINCE BY explore_charged_radius.py: the cure-graph
+   radius is 2 at all three of this rig's specimens under both
+   readings of the count, so nothing here moves. What the closing
+   clause over-reaches is the CORPUS: counted as one reader's own
+   moves, one of the six burst traps costs three, so two-move
+   lookahead does not cure every finite-loss stall found to date as
+   a MOVE COUNT -- only as a walk through the quotient.)
 
 THE VERDICT. The assembly question closes YES — a world CAN deny
 a trade's late winner every improving move: rule (existence by

@@ -174,18 +174,23 @@ ENGINE
 ------
 E0 the controls (C0): rebuild each parent landscape, reproduce the
    stall counts and the published radii.
-E1 the three metrics at the ten specimens (P1, P2, P3).
+E1 the three metrics at the ten specimens (P1, P2, P3), with the
+   two-move theorem's patience hypothesis and each stall's pinned
+   coordinate alongside (added after the run; see the run record).
 E2 the anatomy of any specimen where the charge bites (K2), and of
    the widest max-min spread otherwise.
 E3 the population sweep over every off-bottom finite-loss class of
    the ten landscapes (P4).
+E4 every spreading class named with its own per-member radii, and the
+   count of members reaching nothing inside the BFS cap reported
+   separately (added after the run; see the run record).
 Exact integer and Fraction arithmetic for every verdict; floating
 point only in printed logs. Sequential; estimated run a few minutes,
 the burst forge the driver; memory trivial (no BLAS import); exit
 nonzero on any check failure.
 
-FINDINGS (entered after the run; ALL CHECKS PASS, exit 0, 12.5 s,
-26.8 MB peak under the memory watch)
+FINDINGS (entered after the run; ALL CHECKS PASS, exit 0, 13.8 s,
+27.0 MB peak under the memory watch on the final run)
 ----------------------------------------------------------------
 F1 THE PUBLISHED RADIUS IS NOT MEMBER-REALISABLE, AT ONE STALL OF
    TEN, AND THE KILL-SHAPE MISSES. K2 fires exactly once: the burst
@@ -206,35 +211,63 @@ F2 THE FREENESS BUYS NOTHING AT THAT STALL EITHER. Charged and pure
    agree at 3 there, so the route the quotient's free re-selection
    would supply is not shorter than the route that spends none: one
    re-selection plus two moves is three, and three typed moves reach
-   a better class directly. Re-selection is a way of paying, never a
-   discount, at every one of the ten.
+   a better class directly. At every one of the ten, re-selection is a
+   way of paying and not a discount -- but only at the ten, and F4
+   below finds it discounting elsewhere.
+   AND P2's ARGUMENT ABOVE IS WRONG, which the run does not show
+   because the two agreed anyway; the slate stands frozen and the
+   correction belongs here. P2 claimed the ordering forbids P1 holding
+   while P2 fails. It does not: the ordering is
+   r_class <= min chg <= min pure, which permits min chg STRICTLY
+   below min pure, and that is precisely re-selection being cheaper
+   rather than merely available. E4 exhibits the phenomenon four times
+   over -- at the maximum rather than the minimum, over classes off
+   the stalls -- so the case P2 argued away is real and the corpus
+   just does not meet it at a stall.
 F3 START SELECTION IS NOT LOAD-BEARING AT ANY STALL. K3 fires. The
    three non-singleton stall classes all have size 2 and all have
    pure_hi = pure_lo, so an adversary choosing the starting member
    costs nothing anywhere in the stall corpus. P3 is wrong, and it
    was the prediction this rig was most confident of.
-F4 THE FREENESS IS REAL AND IT LIVES OFF THE STALLS. Over all 545
+F4 THE FREENESS IS REAL AND IT LIVES OFF THE STALLS. Over all 601
    off-bottom finite-loss classes of the ten landscapes the
-   per-member pure radius spreads at 7 of them, 1.3% -- P4's guessed
+   per-member pure radius spreads at 8 of them, 1.3% -- P4's guessed
    band of a tenth to a half is wrong by an order of magnitude. None
-   of the seven is a stall; every one has class radius 1 and a
-   membership of ten to twenty policies, and they sit near the
-   bottom. There the spread is wide: the census-2313 landscape's
-   rank-1 class of 16 policies carries pure radii 1, 2, 3 and 4 while
-   its class radius is 1. And at four of the seven the charge
-   strictly HELPS: that class's charged radii are 1, 2, 2, 2, the
-   rank-4 class of census-3212 goes 1,2,3 pure against 1,2,2 charged,
-   and both spike1@10 classes go to a pure maximum of 3 against a
-   charged maximum of 2. So the quotient's free re-selection is worth
-   up to two moves, and it is worth them to the UNLUCKY member and
-   never to the best one -- a mechanism for catching up, which is why
-   minimising over the start member hides it completely.
-F5 THE TWO-MOVE THEOREM IS NOT CONTACTED. The K2 stall holds no
-   member with both patiences finite and positive -- 0 of 1, its tree
-   patience being 0 -- so it sits outside the shift telescope's frame
-   exactly as the three squaring-map stalls do. The one specimen
-   where the published radius fails as a move count is one the proved
-   cure never reached.
+   of the eight is a stall; every one has class radius 1 and a
+   membership of ten to twenty policies, and every one sits in the
+   bottom fifth of its own landscape's rank order (ranks 1 to 21 of
+   19 to 157 classes). There the spread is wide: the census-2313
+   landscape's rank-1 class of 16 policies carries pure radii 1, 2, 3
+   and 4 while its class radius is 1. And at four of the eight the
+   charge strictly HELPS: that class's charged radii are 1, 2, 2, 2,
+   the rank-4 class of census-3212 goes 1,2,3 pure against 1,2,2
+   charged, and both spike1@10 classes go to a pure maximum of 3
+   against a charged maximum of 2. So the quotient's free re-selection
+   is worth up to two moves, and it is worth them to the UNLUCKY
+   member and never to the best one -- a mechanism for catching up,
+   which is why minimising over the start member hides it
+   completely.
+F5 THE PROVED CURE AND THE CORPUS'S STALLS ARE DISJOINT POPULATIONS,
+   AND THE CORPUS HAD THIS AS A FACT ABOUT THREE OF THEM. The shift
+   telescope's two-move cure is proved wherever a class holds a member
+   with both patiences finite and positive whose counted window still
+   refines. Not one of the ten stalls holds a member passing even the
+   patience half: 0 of 1 or 0 of 2 at every specimen, the ruler
+   disagreement and all six burst traps with the three squaring-map
+   ones. So the proved cure reaches no stall the corpus has found --
+   it is a theorem about the classes that do NOT stall -- where the
+   docs said only that the three squaring-map stalls sit outside its
+   frame, which read as though the other seven sat inside. Every one
+   of the ten has a patience PINNED to the current image, and no
+   species straddles the split: the three squaring-map stalls at the
+   CHAIN, at (3,0), (3,0) and (2,0), and the ruler disagreement with
+   all six burst traps at the TREE, at (0,2) or (0,3) -- so the
+   pinning is constant WITHIN a species while the tree side holds two
+   of them. The exclusion is one hypothesis and two mechanisms. This
+   is not forced by the definitions: a shiftable member with an
+   unfrozen window escapes at cure-graph
+   distance two, and stalling is a statement about distance one, so a
+   stall COULD hold one. None does.
 F6 THE THREE HORIZON-CUT STALLS AND THE THREE SQUARING-MAP STALLS ARE
    ONE LIST OF THREE. explore_shift_telescope.py SQ_SPECIMENS is the
    assembly rig's two census stalls at horizon 12 and its designed
@@ -253,6 +286,11 @@ the re-selection the metric supplies free is not what closes the gap
 there: nothing closes it, and the honest move count is 3. Off the
 stalls the same freeness is a real discount of up to two moves to the
 members that need it, at 1.3% of the off-bottom population.
+AND THE SECOND FINDING WAS NOT ASKED FOR AND IS THE LARGER ONE: no
+stall of the ten holds the two-move theorem's hypothesis, so the
+corpus's one PROVED cure and the stalls it was written beside are
+disjoint populations, and the docs said this of three of them in a
+sentence that read as though the other seven sat inside.
 
 Run record. The first run (E0-E3) exited 0 in 12.3 s with all checks
 passing and K2 firing once. E4 was added after it, no prediction band
@@ -264,7 +302,22 @@ spreading class and reports that count separately, and it is zero.
 The same edit added the two-move theorem's hypothesis check to E2
 (F5) and put the world column into E3 and E4, which had been printing
 two distinct landscapes under one label. Final run 12.5 s, 26.8 MB
-peak, ALL CHECKS PASS, exit 0.
+peak, ALL CHECKS PASS, exit 0. A third run followed an audit fix
+that changed E3 and E4's numbers and no verdict: both engines keyed
+their per-landscape de-duplication on (world label, setting, class
+count) with the stream name left out, and two distinct streams that
+shared all three -- spike1@6 and spike1@12, both under doubling at
+horizon 120 at budget 2 with 57 classes each -- collided, so one whole
+landscape was silently skipped. The population leg had been reporting
+545 classes over nine landscapes while calling them ten. Keyed on the
+stream as well it is 601 over ten, the spreading count 8 rather than
+7, and the rate 1.3% either way. Two further runs followed later
+audit rounds and a fifth confirmed the whole record, again with no
+prediction band touched: E1 gained the
+two-move theorem's patience hypothesis per specimen, which is how F5
+was found, and then each stall's PINNED coordinate, because the first
+sentence written about that hypothesis asserted a chain/tree split
+seven-three the wrong way round without computing it.
 """
 
 import os
@@ -450,9 +503,9 @@ def e0_controls(fams):
 
 def e1_metrics(fams):
     print("\nE1  THE THREE METRICS at the ten specimens")
-    print("    %-28s %-12s %-14s %5s %4s  %-9s %-9s"
+    print("    %-28s %-12s %-14s %5s %4s  %-9s %-9s %s"
           % ("specimen", "world", "setting", "|s0|", "cls",
-             "pure lo/hi", "chg lo/hi"))
+             "pure lo/hi", "chg lo/hi", "shiftable"))
     rows_out = []
     for _family, rows in fams:
         for (name, world, setting, mem, nbrs, nbr_fn,
@@ -461,10 +514,26 @@ def e1_metrics(fams):
                 better = lambda t, s=s0: qranks[t] < qranks[s]
                 rc, plo, phi, clo, chi, sz = metrics(
                     s0, mem, nbrs, nbr_fn, better)
-                print("    %-28s %-12s %-14s %5d %4s  %-9s %-9s"
+                shift = sum(1 for p in mem[s0]
+                            if p[2] not in (0, SC.INF_P)
+                            and p[3] not in (0, SC.INF_P))
+                print("    %-28s %-12s %-14s %5d %4s  %-9s %-9s %d/%d"
                       % (name, world, setting, sz, fmt(rc),
                          "%s/%s" % (fmt(plo), fmt(phi)),
-                         "%s/%s" % (fmt(clo), fmt(chi))))
+                         "%s/%s" % (fmt(clo), fmt(chi)),
+                         shift, sz))
+                pins = sorted({("tree" if p[2] == 0 else
+                                "chain" if p[3] == 0 else
+                                "neither")
+                               for p in mem[s0]})
+                print("        pinned at: %s  (patience pairs %s)"
+                      % ("+".join(pins),
+                         "; ".join(sorted(
+                             "(%s,%s)" % ("INF" if p[2] is None
+                                          else p[2],
+                                          "INF" if p[3] is None
+                                          else p[3])
+                             for p in mem[s0]))))
                 rows_out.append((name, world, setting, s0, mem, nbrs,
                                  nbr_fn, qranks, rc, plo, phi, clo,
                                  chi, sz))
@@ -552,7 +621,7 @@ def e3_population(fams):
         seen_world = set()
         for (name, world, setting, mem, nbrs, nbr_fn,
              qranks, stalls) in rows:
-            key = (world, setting, len(mem))
+            key = (name, world, setting)
             if key in seen_world:
                 continue
             seen_world.add(key)
@@ -604,7 +673,7 @@ def e4_widest(fams):
         seen_world = set()
         for (name, world, setting, mem, nbrs, nbr_fn,
              qranks, stalls) in rows:
-            key = (world, setting, len(mem))
+            key = (name, world, setting)
             if key in seen_world:
                 continue
             seen_world.add(key)
