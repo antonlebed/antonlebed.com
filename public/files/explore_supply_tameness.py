@@ -106,8 +106,9 @@ offset compression: the landing set is polynomial-per-window plus a
 geometric mark sequence, and residue questions reduce to eventually
 periodic data. Slow supplies attaining coprime values are tame by
 coverage. Value-starved supplies are the oracle channel, untame at any
-rate. Fast-but-sublinear supplies with irrational-power M are the open
-band.
+rate. Fast-but-sublinear supplies with irrational-power M -- the name is
+the classification's, and what it means is M = floor(d^c) at NON-INTEGER
+c, the rational non-integers included -- are the open band.
 
 SECTIONS.
 
