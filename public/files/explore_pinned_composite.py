@@ -283,8 +283,9 @@ THE VERDICT. The aim was written about the wrong object, and the
 correction shrinks the owe rather than growing it. There is no
 composite through a class here: at all three squaring-map stalls the
 radius-two escape is two tree freshenings of the stall's own member,
-same style pair throughout, and the free re-selection the corpus
-credited it to is never spent. What survives from the parent, and is
+same style pair throughout, and the re-selection the corpus credited it
+to is never spent on that route -- it buys other classes, just not this
+one. What survives from the parent, and is
 the whole of what makes this hard, is the non-monotonicity: the first
 freshening nests nowhere and improves nothing, so no stepwise argument
 reaches the escape and the two-step landing has to be argued directly.
@@ -294,7 +295,7 @@ freshening alone (F4), the 420 that distance one could not reach
 included, which turns the stalls from an exception into the specimen
 case of a rule stated over the whole residue.
 
-Run record. ONE engine, three runs. The first ran E0-E3; K3 fired at
+Run record. ONE engine, five runs. The first ran E0-E3; K3 fired at
 all three specimens and the follow-up slate above was frozen before
 the amended run, with no prediction, control or finding touched. The
 second added E4 and E5 under that slate. The third re-scoped one check
@@ -307,9 +308,16 @@ inherits them: it did inherit them, and the two checks added at that
 question found 5,327 members whose first freshening stays in class, so
 E5's two-step leg now REQUIRES a distinct intermediate class. The 420
 and every reproduction control are unchanged by it; the all-classes
-twice-freshened figures in F4 are the tightened ones. No prediction, no
-control and no finding above F4 was touched. Final run ALL CHECKS PASS,
-exit 0, 5.5 s.
+twice-freshened figures in F4 are the tightened ones. A FIFTH run
+closed the mirror of that same gap, again from the audit: the two-step
+landing was checked against the START class and not against the
+INTERMEDIATE one, so a second freshening returning to the class it had
+just entered counted as a distance-two escape. Excluding it moves the
+doubling tree-side all-classes figure 1,281 -> 1,279 and touches nothing
+else, the 420 included -- for those the intermediate cannot qualify,
+having no nesting improving exit by hypothesis. No prediction, no
+control and no finding above F4 was touched at any point. Final run ALL
+CHECKS PASS, exit 0, 5.5 s.
 """
 
 import sys
