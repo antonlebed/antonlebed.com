@@ -249,10 +249,18 @@ PROVED -- one exhibited cell kills an iff, every value in it is a
 rational computed exactly, and the first witness of each direction is
 re-derived by hand in this record. The COUNTS are observations over a
 designed sweep and not a census, so they are counts and never
-proportions. And the claim is EXISTENTIAL: most unequal-weight cells
-still satisfy the condition, which is why the counts are small against
-their populations and why that costs the condition nothing -- an iff
-does not survive a minority. What an auditor loses is the right to read
+proportions. And the claim is EXISTENTIAL, which is now
+COUNTED and no longer asserted: 3,879 of the 38,250 unequal-weight
+cells break either half at SOME optimum and 3,094 at every optimum, so
+about nine in ten satisfy the condition throughout, and that costs the
+condition nothing -- an iff does not survive a minority. The loose
+count is the one the statement needs: the per-atom counters take a
+failure only where every optimum agrees, which is right for a
+refutation and useless for its complement, an atom abandoned in one
+optimum and served in another having already denied the condition its
+claim to DETERMINE a fate. Both counters read 0 of 125 on each
+equal-weight arm, where the condition is proved, which is the positive
+control for the pair. What an auditor loses is the right to read
 a subgroup's fate off that subgroup's own best posterior against the
 operative level once subgroups carry unequal mass. Both the sufficiency
 and the necessity go.
@@ -400,6 +408,16 @@ def score_cell(cell, level):
     every optimum abandons, below_fail counts atoms wholly under
     `level` that every optimum serves, and at_level counts the
     indifference band -- atoms whose best posterior equals `level`.
+
+    Two CELL-level flags ride along, and they are what the EXISTENTIAL
+    reading of the counts is read from. The per-atom counters above are
+    deliberately conservative -- a failure needs EVERY optimum to agree
+    -- so they cannot support a statement about the cells that SATISFY
+    the condition, an atom abandoned in one optimum and served in
+    another already denying the condition its claim to DETERMINE a fate.
+    loose_cell is the honest complement, true where ANY optimum breaks
+    either half; forced_cell is the same at the conservative criterion,
+    and loose_cell >= forced_cell at every cell by construction.
     """
     best, arg = all_optima(cell, ALPHA)
     if best is None:
@@ -411,29 +429,38 @@ def score_cell(cell, level):
     # below-level atom is nearly FORCED to be the light one, since the
     # others must carry the target alone.
     base_below = base_above = 0
+    loose_cell = forced_cell = False
     wmin = min(cell.atom_prob(r) for r in range(cell.M))
     for r in range(cell.M):
         top = max(cell.posterior(r))
         served_always = all(sizes[r] > 0 for sizes in arg)
         abandoned_always = all(sizes[r] == 0 for sizes in arg)
+        served_ever = any(sizes[r] > 0 for sizes in arg)
+        abandoned_ever = any(sizes[r] == 0 for sizes in arg)
         light = cell.atom_prob(r) == wmin
         if top == level:
             at_level += 1
         elif top < level:
             below_atoms += 1
             base_below += light
+            loose_cell |= served_ever
+            forced_cell |= served_always
             if served_always:
                 below_fail += 1
                 light_below += light
         else:
             base_above += light
+            loose_cell |= abandoned_ever
+            forced_cell |= abandoned_always
             if abandoned_always:
                 above_fail += 1
                 light_above += light
+    assert loose_cell or not forced_cell, "loose must contain forced"
     return (below_atoms, above_fail, below_fail, at_level,
             light_above, light_below, base_below, base_above,
             sum(1 for r in range(cell.M)
-                if max(cell.posterior(r)) > level))
+                if max(cell.posterior(r)) > level),
+            loose_cell, forced_cell)
 
 
 def scan(menu, rows_list, weights, tag, shift=0):
@@ -442,7 +469,8 @@ def scan(menu, rows_list, weights, tag, shift=0):
     level and anything else is C1's deliberately wrong level."""
     tot = dict(cells=0, truth=0, below=0, above_fail=0, below_fail=0,
                at_level=0, parity=0, light_above=0, light_below=0,
-               unshiftable=0, base_below=0, base_above=0, above_atoms=0)
+               unshiftable=0, base_below=0, base_above=0, above_atoms=0,
+               loose_cells=0, forced_cells=0)
     wit_above, wit_below = [], []
     for rows in rows_list:
         for wts in weights:
@@ -467,7 +495,9 @@ def scan(menu, rows_list, weights, tag, shift=0):
             if out is None:
                 continue
             tot["cells"] += 1
-            b, af, bf, al, la, lb, bb, ba, aa = out
+            b, af, bf, al, la, lb, bb, ba, aa, lc, fc = out
+            tot["loose_cells"] += lc
+            tot["forced_cells"] += fc
             tot["base_below"] += bb
             tot["base_above"] += ba
             tot["above_atoms"] += aa
@@ -497,6 +527,10 @@ def show_arm(title, tot):
     print("   atoms wholly BELOW the level      : %d" % tot["below"])
     print("   atoms AT the level (indifference) : %d" % tot["at_level"])
     print("   ABOVE-SERVES failures             : %d" % tot["above_fail"])
+    print("   cells failing EITHER half, any optimum : %d of %d"
+          % (tot["loose_cells"], tot["cells"]))
+    print("   the same at the forced criterion       : %d of %d"
+          % (tot["forced_cells"], tot["cells"]))
     print("   BELOW-ABANDONS failures           : %d" % tot["below_fail"])
     def _pc(n, d):
         return "n/a" if not d else "%.1f%%" % (100.0 * n / d)
