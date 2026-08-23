@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>The delay line — what a growing window pool remembers</title>
-<meta name="description" content="A growing pool of windows is not memory: every window's content is the operation stream since its birth, evaluated free over the integers and reduced mod its own modulus. The normal form that proves it, the reduction of halting to certifying infinite growth it buys, and the landing dichotomy with its three-verdict decider, whose third verdict hands back a question about the supply itself.">
+<meta name="description" content="A growing pool of windows is not memory: every window's content is the operation stream since its birth, evaluated free over the integers and reduced mod its own modulus. The normal form that proves it, the reduction of halting to certifying infinite growth it buys, the certificate scheme that discharges that residual on all but one program of a measured population, and the landing dichotomy with its three-verdict decider, whose third verdict hands back a question about the supply itself.">
 <link rel="canonical" href="https://antonlebed.com/computation/delay">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -165,7 +165,8 @@ footer {
 <h1>The delay line</h1>
 <p class="lede">A growing pool of windows is not memory — its whole
 content is the operation stream played back mod the supply. What that
-normal form decides, and the one residual it leaves.</p>
+normal form decides, how far the residual it leaves can be certified,
+and the one channel neither closes.</p>
 
 <p>The machine here is the <b>element face</b> of the growth apparatus —
 the reading in which the ring's elements move under its arithmetic while
@@ -200,9 +201,10 @@ singleton.</p>
 
 <p>This page is the capped side. It proves born-at-zero rather than
 arguing it — the proof is a normal form holding for every program on
-every supply — reads off what that decides, and stops at the one channel
-the cap leaves open, which is not the machine's arithmetic but the
-supply's own.</p>
+every supply — reads off what that decides, certifies the residual it
+leaves on all but one program of a measured population, and stops at the
+one channel the cap leaves open, which is not the machine's arithmetic
+but the supply's own.</p>
 
 <article class="claim" id="normal-form">
   <div class="claim-head"><span class="claim-name">The suffix-evaluation
@@ -297,6 +299,123 @@ supply's own.</p>
   construction.</p>
   <p class="verifier">verifier:
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py"><code>explore_born_at_zero.py</code></a></p>
+</article>
+
+<article class="claim" id="growth-certificate">
+  <div class="claim-head"><span class="claim-name">The growth
+  certificate, and the direction that looked like a wall</span>
+  <span class="tier">rule</span></div>
+  <p>Certifying infinite growth — the residual
+  <a href="#normal-form">the normal form</a>'s reduction leaves open —
+  has a certificate. A <b>growth certificate</b> is a <b>segment</b> of
+  the run between two returns to the same instruction, holding at least
+  one grow. Such a segment repeats forever exactly when every zero-test
+  inside it reads the same bit at every repetition, so a certifier's job
+  is to <b>force</b> those bits — sufficient for infinite growth and
+  never necessary, a program being free to grow forever along a path
+  that repeats no segment at all. The normal form supplies five
+  forcings, each derived against the one thing this machine does that an
+  invariant argument does not usually have to survive: the pool only
+  GROWS, so a claim about every window is a claim about windows that do
+  not exist yet.</p>
+  <p>Three read the segment's last write to the tested register. If that
+  write is the constant 0, every window born before it carries it in its
+  suffix and every window born after it was born 0 with the register
+  untouched, so the test reads true at any age, modulus and pool. If it
+  is a constant <i>c</i> ≠ 0 and one window already in the pool has
+  <i>m</i> ∤ <i>c</i>, that window never leaves and the write is
+  segment-local, so it reads <i>c</i> mod <i>m</i> ≠ 0 at the same
+  position of every repetition and the test reads false forever. The
+  third <em>spends the supply</em>: the window born at the segment's
+  last grow before the test holds a fixed integer <i>E</i>, its suffix
+  being the segment word and nothing else, so <i>E</i> ≠ 0 with modulus
+  &gt; |<i>E</i>| forces the test false, and on a non-decreasing supply
+  one check certifies every repetition. A bounded supply cannot carry
+  it, and that is a witness rather than an argument: the program built
+  to leave this the only forcing available certifies on ⌈√<i>g</i>⌉ and
+  prints no certificate on the bounded supply. That is the
+  supply-specificity the normal form's scope names, reached from the
+  machine's side instead of the supply's.</p>
+  <p>What those three leave is one-directional, and that is what looked
+  like a wall. Forcing a test to read false needs a single persisting
+  witness; forcing it to read true needs every window the machine owns,
+  unborn ones included. On a draw of 600 random programs, 109 of them
+  <b>grow-heavy</b> — the run reaching 120 grows inside the step cap, an
+  observation and not a decision that it grows forever — the three left
+  57 uncovered, and 56 of the 57 failed in the reading-true direction.
+  The 52 they did certify flatter them: 49 of those hold no test at all,
+  a cycle with no branch repeating because it has no branch, which costs
+  the normal form nothing. Coverage actually carried by a forcing was
+  3.</p>
+  <p>Two more forcings close almost all of it. The fourth is free: the
+  tested register written nowhere in the segment. The segment map then
+  fixes its coordinate, every old window reads the same value forever
+  and every young window was born 0 there, so the bit is constant and
+  equals the one the run read — forced in whichever direction that was.
+  Its scan is over the whole segment, since scanning back only from the
+  test mislabels a write sitting past it. The fifth is the
+  <b>three-family instrument</b>, and it comes from sorting the windows
+  at a test the way the normal form already distinguishes them. A window
+  there is OLD (in the pool when the segment started), YOUNG-SAME (born
+  at a grow earlier in the same repetition) or YOUNG-EARLIER (born in a
+  previous one), and there is no fourth family, a window born after the
+  test in its own repetition not yet existing there. The normal form
+  gives each family its content, so forcing a true bit is three
+  questions and not one. OLD is not a question but a forcing: the
+  segment acts on (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup>, a finite set,
+  so the orbit closes and &ldquo;reads 0 at this position in every
+  repetition&rdquo; is decided per distinct pair of modulus and
+  column — and the same finite orbit pays the opposite bit too, one
+  window whose orbit omits 0 forcing the test false forever. YOUNG-SAME
+  is one fixed integer per grow position, and 0 over the integers is
+  what a certificate needs, that window's modulus differing at every
+  repetition. YOUNG-EARLIER is the question about the integers: the
+  content is the free integer evaluation of the segment word iterated on
+  itself, decided whenever that action reaches a fixed point or a
+  cycle.</p>
+  <p>Measured on the same draw, the two convert almost all of the
+  residue. The draw certifies 102 against 52, coverage carried by a
+  forcing goes from 3 to 53, and the residue falls from 57 to 7. The 7
+  are not 7 obstacles. A refusal is a verdict on the segment and not on
+  the bit — replay shows 6 of the 7 holding a test that takes both
+  values, so that segment genuinely does not repeat with the same
+  answers — and which segment gets tried is the certifier's own choice,
+  the first repeated instruction holding a grow rather than one the
+  program forces. Retried at later repeats, 6 of the 7 certify. So the
+  residue is ONE, and its reason is the one the derivation had already
+  named: its integer action neither stabilises nor cycles. The shape
+  there is sharper than the derivation expected — of the 34 integer
+  actions the draw reached, 32 hit a fixed point, 2 neither, and a
+  proper cycle never appears. The action stops moving or never settles,
+  with nothing in between. None of this touches the capacity conjecture
+  one level up: what is bounded here is a SCHEME, and a program can be
+  built to defeat any fixed set of forcings.</p>
+  <p class="scope"><b>Scope.</b> Soundness is the claim and reach is
+  measured, and they do not wear one badge. Every forcing is derived
+  from the normal form; the runs cross-check it and are not the proof —
+  102 certified programs replayed to 600 grows apiece, zero unsound,
+  with the replay walking the segment cyclically and checking the
+  instruction and every test's bit at each position. Positions and not
+  instructions: one test can execute twice inside a segment at two
+  positions with two different last writes, so keying the check by the
+  instruction manufactures its own mismatches. Every forcing is
+  reachable and none is decoration, but the evidence differs by kind —
+  the four single forcings and the orbit's false bit each fire alone on
+  a program built for them, while the three-family instrument is shown
+  the only way a conjunction of conditions allows, a program per family
+  on which that family is the one that correctly refuses. Positive
+  controls passed before any verdict was read. The coverage figures are
+  observation on one random population: 109 grow-heavy of 600 at one
+  seed, with the free case and the three-family instrument together
+  covering 48–62% of grow-heavy programs across seed and program length.
+  Two dials are unswept and named rather than claimed — the retry sweep
+  ran 11 repeats deep, and the population is a single draw. The YOUNG-SAME
+  family is needed by the derivation and, on this population, never the
+  decider: its antecedent is shadowed by the supply-spending forcing,
+  which is consulted first.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_growth_certificate.py"><code>explore_growth_certificate.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_forced_one.py"><code>explore_forced_one.py</code></a></p>
 </article>
 
 <article class="claim" id="landing-dichotomy">
@@ -446,13 +565,16 @@ supply's own.</p>
   href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_super_critical.py"><code>explore_super_critical.py</code></a></p>
 </article>
 
-<p>The two results leave the capped side open in two different places,
-and only one of them is about the machine. The normal form fixes the
-FORM of what a window holds and buys a sufficient condition off it —
-certify that a run grows forever and halting is decidable — with the
-converse unclaimed and the supply law's capacity claim, one level up on
+<p>The three results leave the capped side open in two places, and only
+one of them is about the machine. The normal form fixes the FORM of what
+a window holds and buys a sufficient condition off it — certify that a
+run grows forever and halting is decidable — with the converse
+unclaimed; the certificate then discharges that condition on all but one
+of a random draw's grow-heavy programs, and what stops it there is a
+question about an integer action rather than about the machine. Above
+both sits the supply law's capacity claim, one level up on
 <a href="/computation/recovery#supply-law">the chart</a>, still a
-conjecture. What the landing dichotomy leaves is not a gap in the
+conjecture and not something a scheme's reach can settle. What the landing dichotomy leaves is not a gap in the
 machine at all: a supply may carry a halting fact in its own tail with
 every capacity cap intact and no counter built, and which supplies do is
 classified but not finished — the band between ⌈√<i>g</i>⌉ and <i>g</i>
