@@ -81,6 +81,7 @@ export default {
       '/walls/dual': 'dual',
       '/walls/algebra': 'algebra',
       '/reading': 'reading',
+      '/reading/completions': 'completions',
       '/reading/quadratic': 'quadratic',
       '/reading/shifts': 'shifts',
       '/reading/redundant': 'redundant',
