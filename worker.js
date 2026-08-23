@@ -73,6 +73,7 @@ export default {
       '/growth/constants': 'constants',
       '/computation': 'computation',
       '/computation/recovery': 'recovery',
+      '/computation/delay': 'delay',
       '/observatory': 'observatory',
       '/walls': 'walls',
       '/walls/numbers': 'numbers',
