@@ -127,7 +127,13 @@ FINDINGS, entered after the run from printed output. All seven predictions
 landed; both controls clean.
 
 F1 THE OVER-2 CELL CLOSES: MONOGAMY IS EVERY UNRAMIFIED WINNER'S (rule,
-   proved at the quadratic shape; premises machine-checked). All six void
+   proved at the quadratic shape; premises machine-checked -- and SETTLED
+   SINCE at every residue degree f: x + x^2 has two roots in any field,
+   so hand-attack C's map vanishes identically on F_2 alone, squaring
+   lifts exact level 1 to exact level 2 at f >= 2 and every level above
+   by one, lam = (2^f - 1) * 2^(a-1), the odd-norm staircase the same at
+   every f; so the unramified half is a theorem in every ring of
+   integers, up to void ties). All six void
    walks seat exactly one place ever in 40 moves. The inert sub-cell is
    the odd-norm story re-entered: the norm-4 column 3 * 2^(a-1) climbs
    strictly (brute to depth 8 at one ring -- the completion at an inert 2

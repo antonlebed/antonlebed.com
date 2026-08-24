@@ -253,7 +253,11 @@ FINDINGS (tiers stated per line; run record at the end).
      one of them, so "arm C's window is 2" was one completion's reading
      wearing a shape's name. Swept over every shopped field with |d| <= 60
      -- 5 fields at arm A, 8 at arm B, 28 at arm C -- the k = 2 window
-     takes exactly ONE value per arm (3, 2, 2), so the shape does fix it --
+     takes exactly ONE value per arm (3, 2, 2), so the shape does fix it
+     (and derivably, the sweep a control: arms A and B fix the completion
+     outright, and at every ramified one (1+pi)^2 = 1 + 2 pi + pi^2 sits
+     at exact level 2, v_P(2 pi) = 3, so v_2 reaches 2 at depth 3 and the
+     window is 2 at all six completions) --
      and the DEEPEST LOAD-BEARING DEPTH equals it at all 41, which is what
      lifts F3's headline off its three fields. The DOOR does not: arm A's depth-1 door is 4 at all five and arm B's
      is 3 at all eight, but arm C's takes 5, 6 and 7, because what sets it
@@ -280,8 +284,9 @@ FINDINGS (tiers stated per line; run record at the end).
      Q_2(sqrt 10) print the identical column [0,1,2,2,2,3,3,4,4] here.
      The size a head buys is a rule in range on one residue, sitting
      strictly between the shape and the completion, and the extreme case
-     Q(i) sits in the d = 7 class rather than being special. What is
-     still open is WHY that class runs longest.
+     Q(i) sits in the d = 7 class rather than being special. WHY that
+     class runs longest was open here and is SETTLED SINCE,
+     explore_ramified_door.py: an odd square is 1 mod 8.
 
   WHAT THIS DOES NOT SHOW. The sweep runs only to |d| <= 60 and only at
   k = 2; the k >= 3 rows of S3 are still one field per arm. The belt
