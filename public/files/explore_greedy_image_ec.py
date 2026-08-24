@@ -300,7 +300,10 @@ F7 AND THE COUNT STILL FACTORS (rule in range, and the range is the modest
    the only way they can part is a core exponent ABOVE it -- which this
    file's menu offers as r0 + 1 and which this file never measured. At genus
    2 no such vehicle entered a tie set at all, so the question is open here
-   too rather than answered.
+   too rather than answered. (CLOSED SINCE: an offset vehicle is never a NEW
+   divisor -- minrep(-(r+j)c) + j*P represents the class the bare door must
+   cancel, so the bare door is never dearer, explore_coarse_type.py -- and
+   at genus 2 none entered a tie set, explore_greedy_image_g2.py.)
    AND WHAT A FAILURE WOULD HAVE TO LOOK LIKE, named at the freeze so the
    next ring can be aimed rather than watched: a countably infinite image
    needs the count NOT to factor, and the only shape that yields exactly

@@ -125,7 +125,11 @@ C. THE CASCADE BOUNDARY (the REDUCTION is a rule, proved by hand in the
    at any bounded cap (chained window hits ~ prod c/v_i -> 0; the
    cap-growth model threshold ~ v ln v and certified per-cap
    all-miss censuses: explore_bridge_reach.py),
-   unprovable with current least-prime-in-progression bounds. Z's
+   unprovable with current least-prime-in-progression bounds. (SINCE:
+   dead RETAIL at every odd p < 1000, each char reaching a rung of
+   certified non-prime-powers, explore_cascade_chars.py, and what a
+   WHOLESALE proof must supply is named in explore_cascade_theorem.py;
+   the wholesale statement stands open as written.) Z's
    lock existence is proved elsewhere; K's and Q(sqrt(-23))'s are
    censused.
 

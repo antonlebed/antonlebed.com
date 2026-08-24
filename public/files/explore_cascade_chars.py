@@ -148,7 +148,11 @@ FINDINGS.
      was a residual OF. What stays open is the rings whose rank-1
      characteristics ALL exceed 1000, and that is a statement about
      splitting behaviour rather than about ladders: it is the front
-     this rig hands on, and it is not answered here.
+     this rig hands on, and it is not answered here. (TAKEN SINCE by
+     explore_cascade_residual.py: that residual is inhabited at every
+     bound -- the primorial field Q(sqrt(2*3*...*P)) ramifies every prime
+     <= P -- so no sweep empties it; a uniform close needs only density
+     zero, and the retail case is decided by computing L(K).)
 
   3. THE MARGIN HELD FOR A REASON THE DERIVATION GOT WRONG. H5 passed with ZERO violations and a worst ratio
      of 1.30 at p = 7, which looks like a clean confirmation of

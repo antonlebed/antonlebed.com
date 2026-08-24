@@ -253,7 +253,10 @@ F7 WHAT IS STILL OPEN, and it is one question. Do the element world's
    pays no rider at all. The surviving flow is one clock move's rider per
    era against an era that doubles, so the rate is constant and not linear;
    whether the fed places are nonetheless unbounded is still open
-   -- explore_element_limit.py) The refinement PR6's arithmetic needed is filed
+   -- explore_element_limit.py; SETTLED SINCE by explore_rider_recursion.py:
+   they are unbounded, and how many is decided by the increment recursion
+   on (T mod h, r mod h) -- a cell inside its cycle is fed forever, one
+   only in the pre-period stops at a computable exponent) The refinement PR6's arithmetic needed is filed
    here too: "the places at exponent 1 are the opened degrees" holds where
    the clock is rational and is one short where the clock was itself opened
    fresh, the seated places being the opened degrees plus one exactly when
