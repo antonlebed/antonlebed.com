@@ -165,8 +165,9 @@ FINDINGS (the run of record below; the prints are the evidence).
   F1 (the weld, property). B_2 .. B_40 by exact recursion have the von
      Staudt-Clausen denominators, 0 mismatches. Over the primes 11 <= q <=
      10^5 the divisor criterion agrees with denom(B_{q-1}) == 6q at every
-     prime, and with wall(q-1) == 24q to 2 * 10^4; q = 7 is the one
-     exception, denom(B_6) = 42 = 6 * 7 with W(6) = 504 = 72 * 7. 1133
+     prime, and with wall(q-1) == 24q to 2 * 10^4; q = 5 and 7 are the
+     two exceptions below 11, denom(B_4) = 30 = 6 * 5 with W(4) = 240 =
+     48 * 5 and denom(B_6) = 42 = 6 * 7 with W(6) = 504 = 72 * 7. 1133
      members below 10^5.
   F2 (the integer level, observation). The share of m <= X with
      denom(B_2m) = 6 reads 0.1650, 0.1582, 0.1542, 0.1508, 0.1487 at X =
@@ -354,10 +355,13 @@ def s1_controls(isprime):
     ok(not bad, "P1a: exact B_2..B_40 denominators = the von Staudt-Clausen "
        "product: %d mismatches %s" % (len(bad), bad[:4]))
     print("  B_2 .. B_12 denominators: %s" % [B[2 * k].denominator for k in range(1, 7)])
-    ok(vsc_denominator(6, isprime) == 42 and wall(6, isprime) == 504
+    ok(vsc_denominator(4, isprime) == 30 and wall(4, isprime) == 240
+       and not in_class_divisor(5, isprime)
+       and vsc_denominator(6, isprime) == 42 and wall(6, isprime) == 504
        and not in_class_divisor(7, isprime),
-       "P1b: q = 7 is the exception: denom(B_6) = 42 = 6*7, W(6) = 504 = 72*7, "
-       "and 7 is outside the class")
+       "P1b: q = 5 and 7 are the exceptions: denom(B_4) = 30 = 6*5 with "
+       "W(4) = 240 = 48*5, denom(B_6) = 42 = 6*7 with W(6) = 504 = 72*7, "
+       "and both are outside the class")
     dis_b, dis_w, count = [], [], 0
     for q in range(11, 10 ** 5 + 1):
         if not isprime[q]:
