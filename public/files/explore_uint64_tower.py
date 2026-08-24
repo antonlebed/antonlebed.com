@@ -63,8 +63,11 @@ Predictions (stated in advance of any run):
       whole bit -- consistent with the earlier verdict (large-prime
       sets only). Beyond n = 6 each member ADDS the reciprocals of
       F_(n-1)'s factors (each factor == 1 mod 2^(n+1), so known
-      factorizations move the sum in the sixth decimal); the all-n
-      statement is OPEN alongside the factorizations themselves.
+      factorizations move the sum in the sixth decimal). The all-n
+      statement is settled since, without the factorizations:
+      explore_fermat_reciprocal_tail.py bounds an unfactored F_k's
+      reciprocal sum by Lucas's congruence alone and reads the limit
+      sum under 0.5986, so the law clears at every member.
   P7. THE ECC PAYLOAD IS THE CHECKSUM RING (property + rule,
       verified). Seven channels = RAD-shaped: the tower split takes
       data = (3, 5, 17, 257), parity = (641, 65537, 6700417) -- and
