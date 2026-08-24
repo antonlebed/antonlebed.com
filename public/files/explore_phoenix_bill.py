@@ -135,7 +135,10 @@ misses — predictions are not tame.)
    odd(lambda) after the pushes — so a push writes the world's genome,
    and richer pushes open strictly more windows (DNA 3: 12 odd windows
    incl. the Fermat + Proth-3 families; DNA 9 adds 8 more: 19, 37, 73,
-   577, ...). PREDICTED E4a MISS (upgraded): pushes are NOT schedule-
+   577, ...). (A theorem, not a run count: every death lands on the
+   wall W(lambda), whose primes are the doors of lambda = 2^t * D at
+   exponent v_p(lambda)+1, and a revival pushes only 2, raising t and
+   leaving D frozen.) PREDICTED E4a MISS (upgraded): pushes are NOT schedule-
    independent — the same push 9 = 3^2 gives DNA 3 when it lands on a
    virgin 3-column (odd(lambda(3^2)) = 3) but DNA 9 when it lands on the
    world's SELF-GROWN 3-column at death 4 (the exponents COMPOUND); the

@@ -82,7 +82,10 @@ FINDINGS (entered post-run, copied from printed output; tier-labeled).
    1,132,648 checks): every unit orbit at every censused local field obeys
    o(n+1) >= psi(o(n)) with EQUALITY whenever o(n) != i*, for EVERY unit —
    cancellation is confined to the Kummer seat, at every one of the 14 mixed-
-   char fields and both equal-char rings. The E-chain equals the law chain
+   char fields and both equal-char rings. (Off the seat the equality is a
+   theorem: in (1+x)^p - 1 the terms p*x and x^p sit at i+e and p*i and
+   every other binomial term above the smaller, so the valuation is their
+   minimum wherever they differ; the census is the record.) The E-chain equals the law chain
    (max over start classes of the psi-orbit with that class's measured
    splice) at every field. All 13 frozen chains HIT, including the two
    risk-flagged landings (Q_2(i) l=7, pattern-frozen from 3 hand samples;
