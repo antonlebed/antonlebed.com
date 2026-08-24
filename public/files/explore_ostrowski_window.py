@@ -221,8 +221,11 @@ EVERY constant-a window, a >= 2, and explore_period2_borrow.py at
 every [0; 1, a, 1, a, ...] period-2 window — so all four windows
 here carry proved cells — and explore_period3_borrow.py proves the
 x2 half at the period-3 window [0; 1, 1, 2, ...], where the flip
-rides the parity of the comb length; the unit-gate statement's
-other halves, and every other window, stay as stated.)
+rides the parity of the comb length; and explore_arithmetic_gate.py
+proves the gated half for x m and floor(n/m), m >= 2, at EVERY
+irrational window — a continuous x m would descend to the circle,
+where it tears at (1 - alpha)/m. What stays as stated beyond these
+four windows is the reading half: the units' delay.)
 """
 
 import sys
