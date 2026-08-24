@@ -245,7 +245,8 @@ FINDINGS.
      (SETTLED SINCE BY explore_silent_set.py: at every even L the primes
      q with V(q) = W(L) are >> x/log^2 x, so every designed reading is
      populated, and along L = lcm(1..n) every prime up to n+1 is a door
-     of L, so floor(W(L)) > n+1 -- the threshold is unbounded at theorem
+     of L while each door r's own term r^(v_r(W)+1) exceeds r*n, so
+     floor(W(L)) > n+1 -- the threshold is unbounded at theorem
      tier. What stays measured is that a designed reading's least
      resolver EQUALS its floor.)
 
