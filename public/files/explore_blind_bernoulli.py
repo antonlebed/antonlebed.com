@@ -20,11 +20,12 @@ that denominator: for every prime q >= 11,
 
     q in the class  <=>  denom(B_{q-1}) = 6q  <=>  {B_{q-1}} = 1/6 - 1/q.
 
-(q = 7 is the one prime with denom(B_{q-1}) = 6q outside the class: its
-cohort {2, 3, 7} is {2, 3, q}, but 3 | q-1 bumps the wall's exponent at 3
-to W(6) = 504 = 72 * 7, so V(7) = 72. For q >= 11, 3 | q-1 puts 7 in the
-cohort and the denominator, so the census's "3 does not divide q-1" clause
-is absorbed.)
+(q = 5 and q = 7 are the two primes with denom(B_{q-1}) = 6q outside the
+class: each has cohort {2, 3, q}, but 4 | 5-1 bumps the wall's exponent
+at 2 to W(4) = 240 = 48 * 5, so V(5) = 48, and 3 | 7-1 bumps it at 3 to
+W(6) = 504 = 72 * 7, so V(7) = 72. For q >= 11, 4 | q-1 puts 5 in the
+cohort and 3 | q-1 puts 7 there, so both clauses the census adds to the
+cohort condition are absorbed by the denominator.)
 
 So the sets-of-multiples question the record named is a classical one,
 and at the INTEGER level it is answered. Erdos and Wagstaff, "The
