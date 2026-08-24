@@ -203,10 +203,14 @@ FINDINGS.
      headless consumer read -- Z at 3 and at 7, the inert place over 2,
      and the ramified place of Q(sqrt3) -- at every k in range, 14 of 14
      readings, a reading whose window runs off the end of its own brute
-     column being CENSORED rather than scored -- a control rather than a
-     finding, a headless column BEING that staircase by definition. At a
-     HEADED consumer it is wrong, and that is the finding: the formula
-     describes the column a place has when it has no head.
+     column being CENSORED rather than scored. At a HEADED consumer it
+     is wrong, and that is the finding: the formula describes the column
+     a place has when it has no head. (SETTLED SINCE, narrower: every
+     headless consumer here is TAME, e <= p - 1, where the p-th power
+     map's orbit IS the staircase, so the 14 of 14 is a control on that
+     orbit; a wild headless place departs from the formula by the orbit
+     alone -- Z[2^(1/3)] over 2, e = 3, column 1, 2, 4, 4, 8,
+     explore_wild_ring.py, k = 2 window 2 against a filed 4.)
 
   F4 BUT THE HEAD DOES NOT SIMPLY WIDEN THE WINDOW -- IT ERRS IN BOTH
      DIRECTIONS, AND NOT AT ALL AT k = 1. Three readings, none of them

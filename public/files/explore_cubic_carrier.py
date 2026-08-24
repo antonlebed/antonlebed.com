@@ -260,7 +260,9 @@ F5 THE SUPPLY BITES ONLY WHILE THE CONSUMER IS SHALLOW, AND THE CARRIER
    whatever the consumer is, and only a carrier supplying k >= 2 could
    buy a ramified consumer any more room.
    THE STANDARD LADDER IS THE SCOPE OF THAT, and it is narrower than the
-   sentence reads: the window above is the HEADLESS one, exact at a
+   sentence reads: the window above is the HEADLESS one (narrower still,
+   SETTLED SINCE: the TAME one, e <= p - 1 -- a wild headless column is
+   not the staircase, explore_wild_ring.py), exact at a
    consumer whose column holds no extra flat step and departing from
    k = 2 on at one that does -- wider at some, NARROWER at others, with
    no single correction, since a head's transient makes a column climb
