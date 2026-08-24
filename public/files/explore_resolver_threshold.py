@@ -152,7 +152,9 @@ FINDINGS.
      lambda in the billions, occupancy is dense -- membership above 80
      percent of base multiples, every target populated by k <= 6 -- and
      designed readings host pairs at floors 47 and 81, each attained.
-     The stall here was the flat sweep's, not the classes'.)
+     The stall here was the flat sweep's, not the classes'. And the tail
+     by explore_silent_set.py: every reading W(L), L even, holds
+     infinitely many primes, so the threshold is unbounded, a theorem.)
 
   4. THE THRESHOLD IS NOT ITSELF READABLE (observation; 52 classes with
      three or more members below 1500). 34 of them carry more than one
