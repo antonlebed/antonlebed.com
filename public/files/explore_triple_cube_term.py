@@ -216,7 +216,13 @@ each answering something that run showed.
       places, the map's several vectors agreeing modulo the lattice 26
       of 26 times, and every one of them NON-principal of full order.
       The ramified 2 and a 2 with an unplaced place stay in the bound.
-  (B) THE REGIME AT EVERY h DIVISIBLE BY 3. The degenerate image of
+  (B) THE REGIME AT EVERY h DIVISIBLE BY 3. (Settled 2026-08-23 by
+      explore_noncyclic_level.py F4-F5: the modulus below is h/3 and not
+      h stripped of ALL its 3s, and the two agree exactly when the
+      3-part of h is 3 -- so every reading this file makes, at h = 3 and
+      h = 6, stands, and what does not is the sorting at 9 | h, where
+      this test flags nothing and nine fields are degenerate.) The
+      degenerate image of
       derivation (1) is the 3-part of N collapsed to the diagonal, and
       it is read EXACTLY per field: with m = h stripped of its 3s, a
       field is in regime D iff every fully mapped split prime has

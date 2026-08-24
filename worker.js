@@ -59,6 +59,7 @@ export default {
       '/growth/cascade': 'cascade',
       '/growth/principal': 'principal',
       '/growth/triple': 'triple',
+      '/growth/degeneracy': 'degeneracy',
       '/growth/generator': 'generator',
       '/growth/limit': 'limit',
       '/growth/schedule': 'schedule',
