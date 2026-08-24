@@ -288,7 +288,10 @@ F6 The bank watch: on this slate bank dynamics never oscillate —
    deficit: the warm-up stock drains in a single event of 1-3
    units and the bank runs dry). No save/spend cycle exists under
    periodic demand; event-size statistics would need bursty
-   streams.
+   streams. (Settled later by explore_bank_period.py: the silence is
+   this slate's demand spread, never periodicity — a periodic stream
+   whose income sits strictly inside its demand set and clears the
+   catch-up threshold cycles once per period.)
 
 THE VERDICT. Three answers.
 (Q1) NO again, third stage running — and sharper: at every

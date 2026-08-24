@@ -317,7 +317,11 @@ or the finer ruler) as the loss-born one.
 (Q3) Aperiodic demand finally makes the bank cycle: save/spend
 oscillation exists exactly at income-inside-the-demand-range, but
 with unit-size events only — event-size statistics beyond the
-degenerate point need multi-scale bursty demand.
+degenerate point need multi-scale bursty demand. (Settled later by
+explore_bank_period.py: aperiodicity is not the mechanism — a
+periodic stream cycles too once its income sits strictly inside its
+demand set and clears the catch-up threshold, and the unit event
+size was this row's own spike deficit.)
 
 Run record. The first run exited 1 at three checks: the funnel
 prediction C3 failed at exactly (2, 0), and the two margin
