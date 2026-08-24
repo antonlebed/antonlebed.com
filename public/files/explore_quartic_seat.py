@@ -47,8 +47,8 @@ THE HAND-ATTACK (pre-engine, on paper).
       reads: the smallest partial prime of K is inert in F far more
       often than the Chebotarev share 1/2 of the partial primes -- a
       bias between two classes of S4 of the same size, neither of which
-      is a square in S4 or has a square root there, so no prime-power
-      term of any explicit formula separates them.
+      is a square in S4 or a power of an element outside its own class, so
+      no prime-power term of any explicit formula separates them.
 
   (2) THE FRAME MAKES h A NUISANCE PARAMETER. The S4 statement is about
       Cl/2Cl, so it is the same statement at every even h: the least

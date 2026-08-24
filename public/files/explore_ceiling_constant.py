@@ -213,7 +213,10 @@ THE FINDINGS (the post-run record; every number is a print of the run).
       24 fields at h = 4 and 6). The generator-cell excess reads +3.01
       +- 0.33, +3.53 +- 0.45, +4.29 +- 0.59, +3.79 +- 0.67 primes per
       field at cuts 250, 400, 630, 1000; the ratio 1000/250 is 1.26 +-
-      0.26 (2.27 at z +3.9). The parents' ladder 1.246 -> 1.096 is this
+      0.26, where a count of prime squares would move by pi(31)/pi(15)
+      = 11/6 = 1.83 over those cuts, 2.2 spreads off (the 2.27 of (4) is
+      that shape over 1000 -> 10000 and was once printed here). The
+      parents' ladder 1.246 -> 1.096 is this
       count over a growing denominator, and the top band's 1 is the same
       count over a window that holds none of it.
 
@@ -294,7 +297,9 @@ were killed by memwatch at 515 MB at the lever stage with the degree-2
 populations still resident, cured by freeing them and by running the
 lever before the cubic stage; the fourth scored the slate, and R1 was
 added and run after it. No number changed between the scoring run and
-this one.
+this one. Re-run 2026-08-24 after the prime-square shape beside each
+ratio was made a function of its two cuts: 1140 checks, 250.7 s wall, peak
+442.7 MB; every figure above reprinted unchanged.
 """
 
 import os
@@ -328,7 +333,18 @@ NSCAN = 1500                         # discriminants scanned per band
 NCELL = 200                          # fields kept per (band, h+) cell
 LEVER_CAP = 1000
 SEED = 20881
-ALT_RATIO = 25.0 / 11.0              # pi(100)/pi(31): the prime-power shape
+
+
+def prime_square_shape(ca, cb):
+    """pi(sqrt(cb)) / pi(sqrt(ca)): what a count of prime squares below the
+    cut would do between the two cuts -- 25/11 = 2.27 for 1000 -> 10000
+    and 11/6 = 1.83 for 250 -> 1000."""
+    def pi(n):
+        return sum(1 for k in range(2, n + 1)
+                   if all(k % q for q in range(2, isqrt(k) + 1)))
+    return pi(isqrt(cb)) / pi(isqrt(ca))
+
+
 IMAG_GEN = {1000: 1.0011, 10000: 1.0000}
 REPRINT_TOL = 0.0015
 
@@ -478,10 +494,11 @@ def ratio_line(label, a, b, ca=1000, cb=10000):
         return None
     rt = mb / ma
     srt = abs(rt) * ((sa / ma) ** 2 + (sb / mb) ** 2) ** 0.5
-    z_alt = (ALT_RATIO - rt) / srt
+    alt = prime_square_shape(ca, cb)
+    z_alt = (alt - rt) / srt
     print("  %-34s cut %5d %s   cut %5d %s   ratio %.2f +- %.2f"
-          "  (2.27 at z %+.1f)" % (label, ca, fmt(ma, sa), cb, fmt(mb, sb),
-                                   rt, srt, z_alt))
+          "  (prime-square shape %.2f at z %+.1f)"
+          % (label, ca, fmt(ma, sa), cb, fmt(mb, sb), rt, srt, alt, z_alt))
     return rt
 
 
