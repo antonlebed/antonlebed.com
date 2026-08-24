@@ -117,7 +117,7 @@ def main():
     # =================================================================
 
     print("""
-  The factorization theorem: new_preds(k) = twin(p_k) + #factorizations.
+  The factorization rule: new_preds(k) = twin(p_k) + #factorizations.
   Does transparency correlate with the count of new predictions?
 """)
 

@@ -319,7 +319,9 @@ correction). One freeze-time arithmetic slip in P-D's hand-spot list
 as 0; the game matches the formula). The |x| trailing witness moved
 from depth 1 to depth 2 (parity is sign-blind). |x| landed at c = 0,
 one below its predicted bracket. All other predictions landed as
-frozen; no kill criterion fired; positive controls green.
+frozen; no kill criterion fired; positive controls green. Final
+run: 601 checks, wall 7.0 s, peak working set 80.0 MB (memwatch,
+512 MB limit).
 """
 
 import itertools
