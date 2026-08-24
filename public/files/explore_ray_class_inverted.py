@@ -162,7 +162,10 @@ THE HAND-DERIVATION (pre-engine, on paper).
       conductor carries no such prime is UNIFORM, with nothing granted.
       The CONVERSE is untouched and still needs the Hilbert class field
       of K built rather than bounded, so the biconditional stays where
-      it is. The corner at 9 | f with 3 ramified in k inherits the same
+      it is. (Settled later by explore_genus_index.py: the class field
+      is the genus field KF, so a usable line forces R = D and the
+      biconditional is a criterion at 3-rank 1; everything measured here
+      survives.) The corner at 9 | f with 3 ramified in k inherits the same
       upgrade, its prediction having rested on the same step.
 
 THE SLATE -- PREDICTIONS, FROZEN BEFORE THE ENGINE.
@@ -337,7 +340,9 @@ THE FINDINGS.
       carries no such prime is UNIFORM. The 193 fields agree with it and
       no longer carry it. The CONVERSE is untouched, still needs the
       Hilbert class field of K built rather than bounded, and is why the
-      biconditional stays at pattern. The corner at 9 | f with 3
+      biconditional stays at pattern (settled later by
+      explore_genus_index.py, which proves it through the genus field
+      KF; this record's own findings stand). The corner at 9 | f with 3
       ramified in k had its prediction resting on the same step and is
       upgraded with it -- the population's one such field, d_K = -11907
       at f = 63, is decided the other way by the 7 in its conductor and

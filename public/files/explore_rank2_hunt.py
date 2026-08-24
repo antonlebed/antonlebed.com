@@ -493,7 +493,10 @@ than observed, and above that rank it is not a reduction but a wrong
 answer (F2). What has no name yet is the condition 47628 satisfies: its
 generated subgroup is proper in N, contains Delta, and is not Delta, so
 the corpus's single word "degenerate" now covers two different regimes
-and the shares they carry differ by a factor of 3. Naming that, and
+and the shares they carry differ by a factor of 3. (Named later by
+explore_genus_index.py: the index is 3 to the number of lines the
+conductor carries, 47628's 126 carrying one to 24843's 91 carrying two;
+every reading here survives as its measurement.) Naming that, and
 re-reading the h = 9 stratum's levels against it, is the next question
 and it needs no new population -- both fields are in this box and the
 walk is checkpointed. What this file does NOT settle is whether index 3

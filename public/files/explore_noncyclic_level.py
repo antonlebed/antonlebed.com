@@ -90,7 +90,10 @@ THE HAND-ATTACK, on paper before any engine code.
      the Galois image to FILL N. The parent records this as forced at
      prime h, decided at h = 3 and 6, and UNCHECKED at composite h
      beyond -- which is exactly where h = 4 and h = 8 sit, and the
-     non-cyclic groups with them. The image is observable rather than
+     non-cyclic groups with them. (Settled later by derivation,
+     explore_genus_index.py: off 3 no proper subgroup of N is both
+     permutation-stable and onto Cl, so the image fills N at every such
+     h; the census below is its measurement.) The image is observable rather than
      assumable: the split primes' own triples lie in the image, so the
      subgroup they generate is a lower bound on it, and a field whose
      mapped triples generate all of N has the hypothesis confirmed at
@@ -267,7 +270,9 @@ THE FINDINGS.
     1283 x 4 x 3^-10 = 0.09. Under that bound the census settles the
     hypothesis the uniform model needs and the parents record as
     unchecked at composite h: the image fills N, or it is Delta and the
-    field's honest model share is 1 over |Delta| rather than 1/h^2.
+    field's honest model share is 1 over |Delta| rather than 1/h^2
+    (derived later, explore_genus_index.py: forced at every h prime to
+    3, and M or Delta at 3-rank 1).
 
  F5 THE DEGENERACY CONDITION IS A SUBGROUP ONE, AND THE SCALAR TEST IT
     REDUCES TO TAKES h/3 AND NOT h STRIPPED OF ITS 3s, THE TWO PARTING
