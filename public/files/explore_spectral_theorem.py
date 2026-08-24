@@ -4,7 +4,7 @@ THE QUESTION. Eigenvalue classes of the squarefree rung are tuples
 (c_1, ..., c_k) with 0 <= c_i <= floor(p_i/2), read as the real number
 sum_i 2cos(2*pi*c_i/p_i). The distinctness of all such reals is filed as a
 rule, exhaustive at k = 3..8, with a float ceiling near k = 10 (the minimum
-separation falls ~3 orders per rung). Two halves of a mechanism exist:
+separation falls ~2 orders per rung on average, unevenly). Two halves of a mechanism exist:
 real-cyclotomic linear disjointness settles every channel with p >= 5, and
 channels 2 and 3 — whose cosines are rational — leave differences in 4Z and
 3Z that cannot cancel. This rig checks the assembled argument's one
