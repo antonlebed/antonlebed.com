@@ -250,7 +250,14 @@ F3  THE EXCEPTION IS THE PLASTIC NUMBER, and it is the row where the
     beta is the root of x^3 = x + 1, the smallest Pisot number,
     algebraic degree 3 while the numeration's recurrence has order 5.
     Its count is 15 = 3 x 5, and 5 is what the arithmetic reading
-    predicts. THE PISOT FLAG IN THE TABLE IS COMPUTED ON THE WORD'S
+    predicts. (Settled at explore_cyclotomic_ghost.py: the seeded
+    places carry a periodic component on the cofactor x^2 - x + 1 --
+    the cyclotomic ghost -- and 15 = lcm(5, 3) and the period 210 are
+    its numbers read with the arithmetic reading; which words carry
+    such a component is a divisibility criterion on the word's length,
+    and this row stays the only one whose comb reads it. The
+    exception stands as recorded here.) THE PISOT FLAG IN THE TABLE IS
+    COMPUTED ON THE WORD'S
     OWN COMPANION POLYNOMIAL AND SO CAN LIE IN ONE DIRECTION: it
     prints False here because the cyclotomic factor contributes roots
     ON the unit circle, not because beta fails to be Pisot. Every
