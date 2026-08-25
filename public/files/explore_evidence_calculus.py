@@ -660,7 +660,8 @@ mean_lb = (Fraction(len(A_I), N) * sqrt_lb((a * a + b * b) / 2)
            + Fraction(len(A_T) - len(A_I), N) * sqrt_lb(b * b / 2))
 ok = mean_lb > 1
 report("quadratic merge (q = 2) INVALID: exact witness with mean > 1", ok,
-       f"S={{2,3,5}}, T={{2,3,7}} at Z/210: mean > {float(mean_lb):.3f}")
+       f"S={{2,3,5}}, T={{2,3,7}} at Z/210: mean > "
+       f"{int(mean_lb * 1000) / 1000:.3f} (a lower bound, rounded down)")
 
 # general: mean(max(E_S, E_T)) = 2 - mu(S^T) * min(1/mu_S, 1/mu_T)
 # <= 2 - 1/N (min(1/mu) >= 1; mu(S^T) >= 1/N since 0 is in every A);
