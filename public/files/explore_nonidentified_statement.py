@@ -406,8 +406,8 @@ F2  THE SIGN LAW SURVIVES NON-IDENTIFICATION, AND NON-IDENTIFICATION
     fails where the truth sits near its own end of [0, 1], the upper
     at pi = 4/5 (0.810 to 0.890) and the lower at pi = 1/5 (0.875 at
     the largest audit size). The populations are disjoint and so are
-    the bounds' failures -- no cell breaks both, so the pair is never
-    simultaneously wrong, which is what makes reading them as a
+    the bounds' failures -- no cell breaks both, so at none of the 24
+    is the pair wrong together, which is what makes reading them as a
     bracket legitimate.
     Q13 is left FAILING as frozen; the reading that survives is the
     comparison across cells and not the floor.
