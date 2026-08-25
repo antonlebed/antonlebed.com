@@ -158,9 +158,10 @@ TRANSPLANT FLAGS, fixed at the freeze.
     explore_ceiling_fourthcell.py runs, carried back here, adopted
     after explore_rank2_hunt.py measured the T10 residual firing in a
     wider box: on that box's representatives the two-rung rule
-    inflated 11 of 4825 ladders and refused 11 more, and over this
-    file's own box it left two fields excluded that another
-    representative resolves (|d| = 7699, 7771). The rung agreement is
+    inflated 11 of 4825 ladders and refused 11 more, and that reader
+    counted two of this file's excluded fields (|d| = 7699, 7771) as
+    readable -- off a single settled rung, which F5 below refuses on
+    every representative. The rung agreement is
     a property of the PRESENTATION while the class number is the
     field's, and the algebra is one-sided: a settled Hermite order is
     the index of a sublattice of the full relation lattice, hence a
@@ -169,8 +170,8 @@ TRANSPLANT FLAGS, fixed at the freeze.
     minimum is only monotone. Three moves, all at the reading. The
     read walks the field's representatives in turn and excludes only
     when every one fails. Every non-certified reading above 1 is then
-    attested through up to four further representatives, stopping at
-    the first agreement -- every reading above 1 and not only the
+    put to up to four further representatives, stopping at the first
+    agreement -- every reading above 1 and not only the
     composite ones the sibling attests, since an uncertified h = 1
     field can read a prime. On disagreement the gcd of the settled
     readings is adopted when some representative settled at exactly
@@ -302,15 +303,17 @@ THE FINDINGS.
     out of every curve, as frozen, and the profile control reads them
     as valid groups.
 
- F5 THE CENSUS IS ATTESTED AND STANDS (observation; the T11 port, run
-    after the four findings above were frozen). With every reading
-    above 1 attested through the field's other representatives, the
-    box reprints 4865 fields kept, 1367 with h > 1 and the same three
-    excluded: 1042 readings sibling-confirmed, 325 without a settled
-    sibling, 0 flips, 0 unattested, 0 fields read through a later
-    representative, and the three excluded fields read through NO
-    representative in this box. Every frozen figure above reprints to
-    the printed digit. The sibling reader that counted this census
+ F5 THE CENSUS STANDS UNDER ATTESTATION (observation; the T11 port,
+    run after the four findings above were frozen). With every reading
+    above 1 put to the field's other representatives, the box reprints
+    4865 fields kept, 1367 with h > 1 and the same three excluded:
+    1042 readings sibling-confirmed, 325 with no sibling settling --
+    which stand on the two-rung rule alone, the T10 residual still
+    open at exactly those -- 0 flips, 0 excluded on a disagreement no
+    representative attests, 0 fields read through a later
+    representative, and the three excluded fields read
+    through NO representative in this box. Every frozen figure above
+    reprints to the printed digit. The sibling reader that counted this census
     short by two fields (explore_rank2_hunt.py F7) believes a single
     settled rung -- a multiple of the truth -- where this rule wants
     two; its two "returning" fields are refused here on every
@@ -613,17 +616,18 @@ def read_field(d, cx, polys):
         return None, False, 'excluded'
     h, kind, gp, rel = got
     tag = kind
+    used = first                                   # the record's source
     if h > 1:
-        reads = [((a, b, c, O), got)]
-        others = [t for j, t in enumerate(polys) if j != first]
-        for (a2, b2, c2, O2) in others[:ATTEST_MAX]:
+        reads = [(first, (a, b, c, O), got)]
+        others = [(j, t) for j, t in enumerate(polys) if j != first]
+        for (j, (a2, b2, c2, O2)) in others[:ATTEST_MAX]:
             got2 = read_one(d, cx, a2, b2, c2, O2)
             if got2 is None:
                 continue
-            reads.append(((a2, b2, c2, O2), got2))
-            if len(set(r[1][0] for r in reads)) == 1:
+            reads.append((j, (a2, b2, c2, O2), got2))
+            if len(set(r[2][0] for r in reads)) == 1:
                 break                              # a sibling agrees
-        hs = [r[1][0] for r in reads]
+        hs = [r[2][0] for r in reads]
         if len(reads) == 1:
             tag = 'lone'
         elif len(set(hs)) == 1:
@@ -636,10 +640,11 @@ def read_field(d, cx, polys):
             if g not in hs:
                 return None, first > 0, 'unattested'
             tag = 'flip'
-            (a, b, c, O), got = next(r for r in reads if r[1][0] == g)
+            used, (a, b, c, O), got = next(r for r in reads
+                                           if r[2][0] == g)
             h, kind, gp, rel = got
     rec = (d, cx, a, b, c, O, h, kind, gp, rel_basis(rel, len(gp)))
-    return rec, first > 0, tag
+    return rec, used > 0, tag
 
 
 def wide_class_reading():

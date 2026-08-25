@@ -19,9 +19,10 @@ into (Cl/3Cl)^2 has it as kernel and lands onto the diagonal). Every
 measurement the
 corpus has of that index was taken in a box where r <= 1 at every field
 (explore_image_share.py F4: 769 trivial 3-parts, 484 at Z/3, 30 at Z/9,
-nothing else -- that census is short by two fields on the reading below,
-F7 and S3b, and the correction touches neither the Z/3 row nor the Z/9
-one). At r <= 1 the only proper subgroup of N the h/3 test can
+nothing else -- the reading below, F7 and S3b, counted that census short
+by two fields, a count the ported cure later refused, see F7; either way
+the Z/3 and Z/9 rows are untouched). At r <= 1 the only proper subgroup
+of N the h/3 test can
 name IS Delta, so the derived index law and the IDENTIFICATION riding on
 it -- that a field generating a proper subgroup generates Delta -- are
 the same statement and no measurement separates them. At r = 2 they
@@ -452,10 +453,13 @@ again.
     1284 fields with h > 1 and 770 / 484 / 30 by 3-part order, against
     its 1283 and 769 / 484 / 30. The Z/3 and Z/9 rows -- the only ones
     the hunt rides on -- are untouched. (SETTLED after this run by the
-    ported cure, explore_ceiling_topband.py T11: read with every
-    reading above 1 attested through the field's other representatives,
-    the sibling's box reprints 1283 and 769 / 484 / 30 with the same
-    three fields excluded and no representative reading them, so the
+    ported cure, explore_ceiling_topband.py T11: with every reading
+    above 1 put to the field's other representatives -- 1042 confirmed,
+    325 finding no sibling that settles -- the sibling's box reprints
+    1283 fields with h > 1, the same three
+    excluded and no representative reading them, no flip and no field
+    read through a later representative -- a record-identical
+    population, so 769 / 484 / 30 stands -- and the
     "two returning" were this reader believing the one settled rung of
     |d| = 7699's ladder, a multiple of the truth, and the census was
     never short.) AND THE LADDER MINIMUM IS A PARTIAL CURE
