@@ -156,7 +156,8 @@ completeness is part one's theorem plus the inherited flagged = seeds
 identification, not an exhaustive walk of the box. (iii) delta is exact only at
 product dimension 2, where the hull enumerator applies. (iv) The criterion's
 sufficient half remains an observation over the faces read, and a new
-population is exactly what could break it.
+population is exactly what could break it (settled since:
+explore_face_accident.py, the exact face law with its clause).
 
 FINDINGS (tiers per the standard naming scale; run record below).
 

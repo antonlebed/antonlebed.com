@@ -88,6 +88,11 @@ upper bound on the separating faces, hence a LOWER bound on delta, which is
 the direction a sampled face reading cannot supply. The sufficient half is
 not proved -- two non-monomial initial forms could still induce equal
 multisets by accident -- so it is a prediction and the run checks it.
+(Settled since: explore_face_accident.py proves the converse with one
+clause -- a face separates iff in_w(n) is non-monomial and p, q do not
+share a primitive initial form there -- and exhibits that accident in a
+genuine collision outside these boxes; at the objects below it cannot
+fire, q's polytope being a segment at all but the witness.)
 
 HAND-CHECKED ON THE WITNESS before any code. n = x0^2 x1 + x0^2 - x0 x1 +
 x1^2 + x1, p = x0 + 1 with dir (1,0), q = x0 + x1 with dir (1,-1). The four
@@ -224,6 +229,8 @@ FINDINGS (tiers per the standard naming scale; run record below).
    above and so bounds delta from BELOW, the direction a sampled face reading
    never reaches. The sufficient half was a prediction and PR2 held: no face
    the criterion allows failed to separate. K2 and K3 both stayed shut.
+   (Settled since: the sufficient half holds here by a theorem and fails
+   elsewhere -- explore_face_accident.py, the exact face law.)
 
 2. AND IT IS WHAT THE WITNESS IS (observation, exact; PR3 held, K4 did not
    fire). in_w(p) is non-monomial exactly when w is perpendicular to dir(p),

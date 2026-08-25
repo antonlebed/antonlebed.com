@@ -192,7 +192,8 @@ bound menu ELEMENTS and nothing the mathematics names. (ii) Completeness of the
 generator rests on part three's two named assumptions and its warrant is
 agreement with published populations, not a proof. (iii) The criterion's
 sufficient half remains an observation over the faces read, and widening the
-population is exactly what could break it. (iv) Nothing here leaves the menu
+population is exactly what could break it (settled since: explore_face_accident.py,
+which proves it with one clause and finds where the clause bites). (iv) Nothing here leaves the menu
 frame: a 0/1 product with a factor carrying a coefficient above 1 is outside
 every statement below, and the out-of-frame objects are counted and not graded.
 
