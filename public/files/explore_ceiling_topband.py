@@ -145,19 +145,52 @@ TRANSPLANT FLAGS, fixed at the freeze.
     CONSECUTIVE HARVEST RUNGS -- a shy lattice at one rung must
     reproduce its shyness at a strictly larger box to be believed, and
     the five specimens all heal at the second rung and hold at the
-    third. A field with no two agreeing rungs is excluded under the
-    T4 kill accounting. The certification path (exhibited generators
-    under the Minkowski bound) is copied from the class map verbatim;
-    a doubly-shy lattice, short by the same index at two boxes, would
-    still slip through, and the base subset -- where the truth is the
-    parent's -- is the measured control on that residual risk.
+    third. A field with no two agreeing rungs on any representative
+    is excluded under the T4 kill accounting. The certification path
+    (exhibited generators under the Minkowski bound) is copied from
+    the class map verbatim. A doubly-shy lattice, short by the same
+    index at two boxes, slips through the rung agreement alone, and
+    the base subset -- where the truth is the parent's -- is the
+    measured control on that residual; T11 is its cure.
+
+ T11 A LADDER READING IS ATTESTED THROUGH THE FIELD'S OTHER
+    REPRESENTATIVES, AND A FLIP RESOLVES BY DIVISIBILITY -- the cure
+    explore_ceiling_fourthcell.py runs, carried back here, adopted
+    after explore_rank2_hunt.py measured the T10 residual firing in a
+    wider box: on that box's representatives the two-rung rule
+    inflated 11 of 4825 ladders and refused 11 more, and over this
+    file's own box it left two fields excluded that another
+    representative resolves (|d| = 7699, 7771). The rung agreement is
+    a property of the PRESENTATION while the class number is the
+    field's, and the algebra is one-sided: a settled Hermite order is
+    the index of a sublattice of the full relation lattice, hence a
+    MULTIPLE of the true class number, so the truth divides every
+    settled reading and a gcd across representatives is exact where a
+    minimum is only monotone. Three moves, all at the reading. The
+    read walks the field's representatives in turn and excludes only
+    when every one fails. Every non-certified reading above 1 is then
+    attested through up to four further representatives, stopping at
+    the first agreement -- every reading above 1 and not only the
+    composite ones the sibling attests, since an uncertified h = 1
+    field can read a prime. On disagreement the gcd of the settled
+    readings is adopted when some representative settled at exactly
+    it, that representative's whole read (order, generators, lattice)
+    riding forward since everything downstream is computed against
+    the adopted lattice; the field is excluded and printed when none
+    did. A reading with no settled sibling is counted as unconfirmed
+    and never silently trusted. Readings of exactly 1 are exact floors
+    and are not attested. The counts print: fields read through a
+    later representative, sibling-confirmed, without a settled
+    sibling, flips resolved, unattested and excluded.
 
  T4 THE EXCLUSION POLICY, fixed before any wide field is read. A field
     is EXCLUDED, its discriminant printed, when the three-rung ladder
     (boxes 10, 16, 22; caps 400, 1500, 4000) ends with no two
-    consecutive readings agreeing (T10) -- rank-deficient throughout
-    included. The exclusion is a population edit, so it carries a
-    kill: more than 1% of the complex population excluded kills the
+    consecutive readings agreeing on any of its representatives (T10)
+    -- rank-deficient throughout included -- or when its
+    representatives' settled readings disagree and none settles at
+    their gcd (T11). The exclusion is a population edit, so it carries
+    a kill: more than 1% of the complex population excluded kills the
     run, the excluded fields' class numbers being unknown exactly
     where the population is being weighed.
 
@@ -269,6 +302,20 @@ THE FINDINGS.
     out of every curve, as frozen, and the profile control reads them
     as valid groups.
 
+ F5 THE CENSUS IS ATTESTED AND STANDS (observation; the T11 port, run
+    after the four findings above were frozen). With every reading
+    above 1 attested through the field's other representatives, the
+    box reprints 4865 fields kept, 1367 with h > 1 and the same three
+    excluded: 1042 readings sibling-confirmed, 325 without a settled
+    sibling, 0 flips, 0 unattested, 0 fields read through a later
+    representative, and the three excluded fields read through NO
+    representative in this box. Every frozen figure above reprints to
+    the printed digit. The sibling reader that counted this census
+    short by two fields (explore_rank2_hunt.py F7) believes a single
+    settled rung -- a multiple of the truth -- where this rule wants
+    two; its two "returning" fields are refused here on every
+    representative, so the census was never short.
+
 THE PREDICTIONS, WEIGHED.
 
  P1 PASSES EXACTLY: the base subset reprints 1.2457, 1.2012, 1.1625,
@@ -288,22 +335,31 @@ THE PREDICTIONS, WEIGHED.
  P6 PASSES: the floor moves the z by 0.09; the estimator gap is
     0.0048.
 
-RUN RECORD. 2026-08-18, Windows 11, Python 3, `python
-prime/code/memwatch.py python prime/code/explore_ceiling_topband.py`.
-One process, CPython, no BLAS. 188 checks here and 8 in the imported
-degree-3 chain, 876.6 s wall, peak working set 205.5 MB against
-memwatch's 512 MB ceiling. 4865 of 4868 fields kept; 3 excluded under
-T4 (discriminants -7699, -7771, -23928 -- the kill asserted the share
-under 1% and the run passed); 1283 mapped complex fields with H > 1;
-the pin 167 fields and 13635 partial places with 0 failures, 9 sample
-lattices needing a deeper rung (T8). EARLIER ATTEMPTS, all before any
-science print: one killed by memwatch at 514 MB commit (T9's cause),
-one stopped by the pin reading 1 of 13635 places non-principal (T8's
-catch), one stopped by the base subset reading 225 of 227 (T10's
-catch), and two runs abandoned to profiling when single fields ran
-minutes to hours (T6's and T7's causes, the 503-second element and the
-20-minute relation matrix). Every failure became a flag above; the
-science sections printed once, on this run."""
+RUN RECORD. 2026-08-25, Windows 11, Python 3, `python
+prime/code/memwatch.py python prime/code/explore_ceiling_topband.py`,
+the T11 port in place. One process, CPython, no BLAS. 188 checks here
+and 8 in the imported degree-3 chain, 1149.2 s wall (960 s of it the
+attested class reading; the 2026-08-18 run without attestation took
+876.6 s in all), peak working set 205.7 MB against memwatch's 512 MB
+ceiling. 4865 of 4868 fields kept; 3 excluded under T4 (discriminants
+-7699, -7771, -23928 -- the kill asserted the share under 1% and the
+run passed); 1283 mapped complex fields with H > 1; the pin 167 fields
+and 13635 partial places with 0 failures, 9 sample lattices needing a
+deeper rung (T8). F1-F4 and the weighed predictions are the 2026-08-18
+run's prints and this run reprinted every one of them. The port was
+REHEARSED first under TB_REHEARSE (the base box alone, 174 s, 52 MB:
+P1 reprinting exactly with attestation on, 176 confirmed and 60 lone),
+and the first full run with it crashed AFTER the science print on a
+name the rehearsal's early exit never reached -- a rehearsal that
+returns before a stage cannot exercise it; the file was swept for
+undefined names statically before the rerun. EARLIER ATTEMPTS, all
+before any science print: one killed by memwatch at 514 MB commit
+(T9's cause), one stopped by the pin reading 1 of 13635 places
+non-principal (T8's catch), one stopped by the base subset reading 225
+of 227 (T10's catch), and two runs abandoned to profiling when single
+fields ran minutes to hours (T6's and T7's causes, the 503-second
+element and the 20-minute relation matrix). Every failure became a
+flag above."""
 
 import os
 
@@ -312,6 +368,7 @@ os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 import sys
 import time
 from collections import defaultdict
+from math import gcd
 
 sys.stdout.reconfigure(line_buffering=True)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -335,6 +392,10 @@ MIN_TOT = EC.MIN_TOT
 MIN_TOT_HARD = EC.MIN_TOT_HARD
 MIN_CELL = EC.MIN_CELL
 UNRESOLVED_KILL = 0.01            # T4: excluded share that kills the run
+ATTEST_MAX = 4                    # T11: further representatives read
+REHEARSE = bool(os.environ.get("TB_REHEARSE"))   # base box, P1 only
+if REHEARSE:
+    WIDE_CAP = BASE_CAP
 
 BASE_CUM = (1.246, 1.201, 1.163, 1.096)   # the parent's frozen prints
 BASE_TOP = (0.963, 0.040)
@@ -533,9 +594,58 @@ def read_one(d, cx, a, b, c, O):
     return None
 
 
+def read_field(d, cx, polys):
+    """T10 + T11: one field's reading through its representatives --
+    the retry walk, then the attestation of any reading above 1, a
+    disagreement resolved by the gcd. Returns (rec, retried, tag): rec
+    the record or None when excluded; retried whether a later
+    representative than the first supplied it; tag the T11 outcome --
+    'excluded' (no representative reads), 'cert' / 'relH1' (exact,
+    not attested), 'confirmed', 'lone', 'flip', or 'unattested'
+    (settled readings disagree and none settles at their gcd)."""
+    got = None
+    first = 0
+    for first, (a, b, c, O) in enumerate(polys):
+        got = read_one(d, cx, a, b, c, O)
+        if got is not None:
+            break
+    if got is None:
+        return None, False, 'excluded'
+    h, kind, gp, rel = got
+    tag = kind
+    if h > 1:
+        reads = [((a, b, c, O), got)]
+        others = [t for j, t in enumerate(polys) if j != first]
+        for (a2, b2, c2, O2) in others[:ATTEST_MAX]:
+            got2 = read_one(d, cx, a2, b2, c2, O2)
+            if got2 is None:
+                continue
+            reads.append(((a2, b2, c2, O2), got2))
+            if len(set(r[1][0] for r in reads)) == 1:
+                break                              # a sibling agrees
+        hs = [r[1][0] for r in reads]
+        if len(reads) == 1:
+            tag = 'lone'
+        elif len(set(hs)) == 1:
+            tag = 'confirmed'
+        else:
+            g = hs[0]
+            for x in hs[1:]:
+                g = gcd(g, x)
+            print("  T11: d=%d settled readings %s, gcd %d" % (d, hs, g))
+            if g not in hs:
+                return None, first > 0, 'unattested'
+            tag = 'flip'
+            (a, b, c, O), got = next(r for r in reads if r[1][0] == g)
+            h, kind, gp, rel = got
+    rec = (d, cx, a, b, c, O, h, kind, gp, rel_basis(rel, len(gp)))
+    return rec, first > 0, tag
+
+
 def wide_class_reading():
     """The parent's S1 loop: the base population from the parents' own
-    box (T10), the increment from the wide one, T4 + T10 policies on."""
+    box (T10), the increment from the wide one, T4 + T10 + T11 policies
+    on."""
     t0 = time.time()
     fields6, b6 = ECP.enumerate_fields(BASE_CAP)
     fieldsW, bW = ECP.enumerate_fields(WIDE_CAP)
@@ -547,27 +657,33 @@ def wide_class_reading():
     recs = []
     excluded = []
     n_cx = n_cx_ex = 0
+    n_retry = 0
+    tags = defaultdict(int)
     for i, (ad, d, cx, polys) in enumerate(fields):
         if i and i % 500 == 0:
             print("  ... %d/%d fields, %.1f s" % (i, len(fields),
                                                   time.time() - t0))
-        a, b, c, O = polys[0]
         if cx:
             n_cx += 1
-        got = read_one(d, cx, a, b, c, O)
-        if got is None:
+        rec, retried, tag = read_field(d, cx, polys)
+        n_retry += retried
+        tags[tag] += 1
+        if rec is None:
             excluded.append(d)
             if cx:
                 n_cx_ex += 1
             continue
-        h, kind, gp, rel = got
-        recs.append((d, cx, a, b, c, O, h, kind, gp,
-                     rel_basis(rel, len(gp))))
+        recs.append(rec)
     n_hi = sum(1 for r in recs if r[6] > 1)
-    print("  class reading: %d fields kept, %d with H > 1, "
-          "%d excluded unresolved %s, %.1f s"
-          % (len(recs), n_hi, len(excluded), excluded,
+    print("  class reading: %d fields kept (%d through a later "
+          "representative), %d with H > 1, %d excluded %s, %.1f s"
+          % (len(recs), n_retry, n_hi, len(excluded), excluded,
              time.time() - t0))
+    print("  T11: readings above 1 -- %d sibling-confirmed, %d without a "
+          "settled sibling, %d flips resolved by the gcd, %d unattested "
+          "and excluded; %d fields read through no representative"
+          % (tags['confirmed'], tags['lone'], tags['flip'],
+             tags['unattested'], tags['excluded']))
     ok(n_cx_ex <= UNRESOLVED_KILL * max(n_cx, 1),
        "T4 kill: %d of %d complex fields unresolved"
        % (n_cx_ex, n_cx))
@@ -626,31 +742,8 @@ def print_band(tag, mu, se, pts):
           % (tag, TOP[0], TOP[1], mu, se, cells))
 
 
-def main():
-    t0 = time.time()
-
-    section("S1  THE WIDE POPULATION (T1, T4) -- cap %d" % WIDE_CAP)
-    recs = wide_class_reading()
-    XT.s2_pin(recs)
-    mapped = XT.s3_profiles(recs)
-    del recs                                 # T9
-    pop_base, pop_inc, pop_full = split_pop(mapped)
-    del mapped                               # T9
-    ok(all(p < 1000 for (h, c, pl) in pop_full for (p, k) in pl),
-       "a degree-3 place at or past 1000 (T2)")
-
-    section("S2  THE THREE FREEZES (derivations (2), (4))")
-    f_base, kb, kbb = freeze(pop_base, MIN_TOT)
-    f_inc, ki, kib = freeze(pop_inc, MIN_TOT)
-    f_full, kf, kfb = freeze(pop_full, MIN_TOT)
-    print("  base      %4d admissible, cum %s, bands %s"
-          % (len(f_base), kb, kbb))
-    print("  increment %4d admissible, cum %s, bands %s"
-          % (len(f_inc), ki, kib))
-    print("  wide      %4d admissible, cum %s, bands %s"
-          % (len(f_full), kf, kfb))
-
-    section("S3  P1 -- THE BASE SUBSET REPRINTS THE PARENT")
+def reprint_base(f_base, kb, kbb):
+    """P1: the base subset against the parent's frozen figures."""
     ok(len(f_base) == 227, "base admissible %d != 227" % len(f_base))
     ok(kbb == [4, 6], "base band strata %s != [4, 6]" % kbb)
     cb = EC.read_curve(f_base, kb, CUTS, "base", bands=None)
@@ -665,6 +758,46 @@ def main():
        "base top band %.4f +- %.4f against the parent's %.3f +- %.3f"
        % (mu, se, BASE_TOP[0], BASE_TOP[1]))
     print("  P1: the base subset reprints the parent's frozen figures")
+    return cb
+
+
+def main():
+    t0 = time.time()
+
+    section("S1  THE WIDE POPULATION (T1, T4) -- cap %d" % WIDE_CAP)
+    recs = wide_class_reading()
+    XT.s2_pin(recs)
+    mapped = XT.s3_profiles(recs)
+    del recs                                 # T9
+    pop_base, pop_inc, pop_full = split_pop(mapped)
+    del mapped                               # T9
+    ok(all(p < 1000 for (h, c, pl) in pop_full for (p, k) in pl),
+       "a degree-3 place at or past 1000 (T2)")
+
+    if REHEARSE:
+        section("REHEARSAL -- the base box alone, frozen and reprinted")
+        f_base, kb, kbb = freeze(pop_base, MIN_TOT)
+        print("  base      %4d admissible, cum %s, bands %s"
+              % (len(f_base), kb, kbb))
+        reprint_base(f_base, kb, kbb)
+        print()
+        print("%d checks passed here, %.1f s wall" % (CHECKS,
+                                                       time.time() - t0))
+        return
+
+    section("S2  THE THREE FREEZES (derivations (2), (4))")
+    f_base, kb, kbb = freeze(pop_base, MIN_TOT)
+    f_inc, ki, kib = freeze(pop_inc, MIN_TOT)
+    f_full, kf, kfb = freeze(pop_full, MIN_TOT)
+    print("  base      %4d admissible, cum %s, bands %s"
+          % (len(f_base), kb, kbb))
+    print("  increment %4d admissible, cum %s, bands %s"
+          % (len(f_inc), ki, kib))
+    print("  wide      %4d admissible, cum %s, bands %s"
+          % (len(f_full), kf, kfb))
+
+    section("S3  P1 -- THE BASE SUBSET REPRINTS THE PARENT")
+    cb = reprint_base(f_base, kb, kbb)
 
     section("S4  THE DEGREE-2 SIDE (imported whole, unchanged)")
     plist = primes_upto(CO.PCAP)

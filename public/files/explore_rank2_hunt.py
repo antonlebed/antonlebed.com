@@ -447,11 +447,18 @@ again.
     the difference is two fields the sibling EXCLUDED that the minimum
     resolves (|d| = 7699 at h = 2, |d| = 7771 at h = 4) against one
     (|d| = 14087) whose widened representative this reader cannot
-    resolve. So the sibling's census is right where it speaks and short
-    by two fields, both with a trivial 3-part: 1284 fields with h > 1
-    and 770 / 484 / 30 by 3-part order, against its 1283 and
-    769 / 484 / 30. The Z/3 and Z/9 rows -- the only ones the hunt
-    rides on -- are untouched. AND THE LADDER MINIMUM IS A PARTIAL CURE
+    resolve. So the sibling's census is right where it speaks, and this
+    reader counts it short by two fields, both with a trivial 3-part:
+    1284 fields with h > 1 and 770 / 484 / 30 by 3-part order, against
+    its 1283 and 769 / 484 / 30. The Z/3 and Z/9 rows -- the only ones
+    the hunt rides on -- are untouched. (SETTLED after this run by the
+    ported cure, explore_ceiling_topband.py T11: read with every
+    reading above 1 attested through the field's other representatives,
+    the sibling's box reprints 1283 and 769 / 484 / 30 with the same
+    three fields excluded and no representative reading them, so the
+    "two returning" were this reader believing the one settled rung of
+    |d| = 7699's ladder, a multiple of the truth, and the census was
+    never short.) AND THE LADDER MINIMUM IS A PARTIAL CURE
     AND IS NOT THE STANDING ONE: a minimum over rungs of ONE
     presentation is still a multiple of the truth if every rung of that
     presentation is shy. The standing guard is to re-read the
@@ -508,9 +515,9 @@ against rungs that are shy at different depths and useless against a
 presentation every rung of which is shy, and S3b MEASURES that it
 changes no class number in the sibling's box rather than proving it
 cannot. The cure to port is the sibling attestation
-explore_ceiling_fourthcell.py already runs. Either way it re-runs
-explore_ceiling_topband.py's own frozen band reprints, which is hours of
-wall and belongs under its own envelope.
+explore_ceiling_fourthcell.py already runs, and it was carried back after
+this run (explore_ceiling_topband.py T11, its band reprints re-run under
+their own envelope).
 
 RUN RECORD, and the CHECK COUNT MOVED AFTER IT: the science run below
 printed 6 checks, and the post-run sections S7b and S7c add 5 more (the
