@@ -309,11 +309,14 @@ THE FINDINGS.
     4865 fields kept, 1367 with h > 1 and the same three excluded:
     1042 readings sibling-confirmed, 325 with no sibling settling --
     which stand on the two-rung rule alone, the T10 residual still
-    open at exactly those -- 0 flips, 0 excluded on a disagreement no
-    representative attests, 0 fields read through a later
-    representative, and the three excluded fields read
-    through NO representative in this box. Every frozen figure above
-    reprints to the printed digit. The sibling reader that counted this census
+    open at exactly those, though explore_rank2_hunt.py S3b re-read
+    this sub-box through a wider box's representatives (a different
+    first polynomial at most fields) and changed no class number -- 0
+    flips, 0 excluded on a disagreement no representative attests, 0
+    fields read through a later representative, and the three excluded
+    fields read through NO representative in this box. Every frozen
+    figure above reprints to the printed digit. The sibling reader that
+    counted this census
     short by two fields (explore_rank2_hunt.py F7) believes a single
     settled rung -- a multiple of the truth -- where this rule wants
     two; its two "returning" fields are refused here on every
