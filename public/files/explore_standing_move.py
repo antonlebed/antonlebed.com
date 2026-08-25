@@ -147,8 +147,11 @@ sections assert).
    proved; verified S2). Write x_q(N) = v_q(lambda(N)) - v_q(N). The
    deepening door is exactly q^(x_q + 2) (22/22 deepening states), and
    q^(x_q + 2) BOUNDS the door at q in every branch -- 402 exact and
-   1326 strict over 1728 odd-prime/state pairs, the strict ones being
-   the openings, where a ghost pays only q. At ODD q the coordinate is
+   1326 strict over 1728 odd-prime/state pairs, every strict one an
+   OPENING at cost q where q - 1 carries a factor lambda(N) lacks, so
+   one seat of q already grows lambda (1326 of 1326; whether q itself
+   divides lambda is irrelevant, and at 1322 of them it does not). At
+   ODD q the coordinate is
    bounded BELOW at -1, and that is PROVED rather than censused: q^e
    divides N, so lambda(q^e) divides lambda(N), and lambda(q^e) carries
    q^(e-1), giving v_q(lambda) >= e_q - 1. The census agrees
