@@ -245,8 +245,9 @@ FINDINGS (tiers per the standard naming scale; run record below).
    face of dimension at most 1, so no collision there is more than a
    one-variable identity plus the co-factors riding it. NOT "one
    mechanism" -- the three sporadic t = 10 identities are regroupings of
-   Phi_2 Phi_5 Phi_10, a different identity from the t = 6 one, and
-   being collinear they are their own faces. What the two FAMILIES
+   Phi_2 Phi_5 Phi_10 (the first bare, the second and third beside a
+   spectator Phi_12 and Phi_6 riding along), a different identity from
+   the t = 6 one, and being collinear they are their own faces. What the two FAMILIES
    descend to is the t = 6 cyclotomic identity, and that is the claim
    is_cyclotomic_face tests, on the families and the escape and nowhere
    else. Proof: t = 4, 8, 9 are unique and

@@ -221,7 +221,7 @@ F1  CONTROL, FOUR PARTS, ALL PASSED -- AND THE SECOND IS A RESULT. The
     persistence reads, it is not a twin fiber, and the record's
     standing candidate was chosen against a mis-stated background.
 
-F2  THE MARGIN SETS THE RATE (observation, 18 cells of the 21 run --
+F2  THE MARGIN SETS THE RATE (observation, 18 of the 21 (cell, n) rows run --
     the three tangent ones are outside its scope by F3; Q2 and Q3 left
     FAILING as frozen). An in-box root exists exactly when A-hat lies
     in the range of A(p) = G*p - B*p^2 over [0, 1], so the no-root rate
