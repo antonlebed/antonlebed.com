@@ -15,8 +15,9 @@ operative level -- holds at 183, 105, 18 and 0 of the 741 fortieth weight
 vectors at coverage 3/4, 7/10, 3/5 and 1/2, and the clean set has no
 coordinate shape. One arithmetic regularity survived: every vector whose
 numerators share a divisor of 8 or 10 (fifths and quarters -- nine vectors)
-is clean at 3/4 and 7/10, and the gcd-10 ones at 3/5. WHY is open. Tie
-multiplicity is dead as a mechanism, and the corpus's one sufficient
+is clean at 3/4 and 7/10, and the gcd-10 ones at 3/5. WHY is open (as
+this record stood; since answered by explore_ruler_swap.py -- a swap, see
+the close below). Tie multiplicity is dead as a mechanism, and the corpus's one sufficient
 condition -- the surplus criterion D/t* < gcd/N -- clears no vector at any
 target. This file asks whether the clean set has a MECHANISM at all, and
 reads the coarse strata at an arity above three, the one measurement the
@@ -269,7 +270,9 @@ one at every stratum -- 15.3 under 56.6 at gcd 1, 91.5 under 94.6 at gcd
 10 at 3/4. What is new is the gap between them: at the coarse strata
 nearly every certificate-optimal cell is lattice-certified, and in the
 bulk fewer than a third are. An observation, and a candidate for the
-above half below, not a mechanism.
+above half below, not a mechanism (and not the mechanism: the above half
+is the swap lemma of explore_ruler_swap.py, the certificate playing no
+part in it).
 
 P4 HOLDS, AND THE REMAINDER IS ONE SHAPE. Over arm 3B's 189,126
 disagreements, 75,786 have every optimum buying below the level; 3,846
@@ -309,7 +312,12 @@ targets, as at three atoms.
 WHAT THIS LEAVES OPEN, sharper than it was: WHY NO OPTIMUM ABANDONS AN
 ABOVE-LEVEL ATOM at a fifths or quarters vector at 3/4 and 7/10 -- a
 question about the above half only, the below half being empty there by
-the bound. The graded certificate-optimality rate is the candidate. The
+the bound. The graded certificate-optimality rate is the candidate.
+(Since answered by explore_ruler_swap.py: an abandoned atom weighs at most
+1 - T, which confines abandonment at these vectors to the lightest atom,
+and every optimum abandoning it trades a partner's lowest pair for the
+light atom's labels at no extra cost -- rescued at every cell, the
+variable being the lightest mass and not the divisor.) The
 measurement the law waited on -- "the coarse strata's cleanliness at an
 arity above three" -- is answered in the direction it did not name: the
 below half it wanted tested cannot be populated at those strata and
