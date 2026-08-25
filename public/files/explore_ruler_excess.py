@@ -114,7 +114,8 @@ explore_ruler_surplus.py.
   three atoms, 256 at four. The arity-4 grid is the fortieth
   compositions into FOUR parts, restricted to the strata that carry the
   question -- gcd 10 (quarters: the equal vector alone), gcd 8 (fifths,
-  4 vectors), gcd 5 (eighths, 35), gcd 4 (tenths, 84) -- and a seeded
+  4 vectors), gcd 5 (eighths, 34 beyond the quarters' one), gcd 4
+  (tenths, 80 beyond the fifths' four) -- and a seeded
   sample of the gcd-1 bulk as the control the strata are read against.
   The "coarse" of the arity-3 law translates by LATTICE STEP, not by the
   divisor: fifths and quarters are what gcd 8 and 10 of forty mean.
@@ -292,7 +293,10 @@ arity (0 at-risk over gcd 8 and 10 on 3A, 3B, 4A, 4B), while the eighths
 the strata entering the below half exactly as the ceiling admits their
 least mass. At 3/5 the fifths gain below-level atoms (294) and go 0 of 6
 clean. So what is coarse-and-clean at 3/4 and 7/10 is the ABOVE half
-alone.
+alone -- and on menus A-E: on F-J at 7/10 the ceiling is 8/40, a fifth
+exactly, the fifths carry 36 below-level atoms (none forced) and go 3 of
+6 forced-clean, every failure above, and the quarters 3 of 3 (arm 3F's
+stratum table). The coarse law is a first-family law throughout.
 
 P5 HOLDS AT FOUR ATOMS. Fifths 4 of 4 forced-clean at 3/4 and at 7/10;
 tenths 6 of 80 at each; eighths 18 of 34 and 0 of 34; the gcd-2 sample
