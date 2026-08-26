@@ -209,8 +209,12 @@ F6  THE FRONTIER (P5 and what the grid shows unasked). Golden x 2 at
     0 appears at exactly the digitwise cells (s >= (m - 1) a_max with
     s_0 >= (m - 1)(a_1 - 1)) and nowhere else, and NO CELL READS AT 1:
     every printed lookahead is 0 or at least 2 (pattern at the grid's
-    scope; H3 grants 1 only at s >= 2m - 1, past the digitwise line,
-    so the bound never asks for it either). Below the digitwise line
+    scope; H3 grants 1 at s >= 2m - 1, which at THESE windows is past
+    the digitwise line, so the bound never asks for 1 anywhere in this
+    grid -- but the two lines CROSS at a_max > 2 + 1/(m - 1) and the
+    clause is this grid's and not a general fact, which is the whole
+    reason the pattern needed cells on the other side of the crossing:
+    explore_lookahead_band.py). Below the digitwise line
     the floor of the frontier is 2, held by silver and bronze at every
     m >= 3 across s = 1..3.
 """
