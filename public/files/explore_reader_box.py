@@ -96,7 +96,8 @@ never what they would mean).
       below it is read. THE TRACE BOX MUST EXCEED B4 OR THE TEST IS
       VACUOUS -- a trajectory cannot leave the box it was pruned in, so
       each traced cell is solved in a box a stated multiple of B4 and
-      the multiple is printed beside the maxima. (The reconstruction's own control:
+      the multiple is printed beside the maxima. (The reconstruction's
+      own control:
       the trajectory's position-0 pair must be (m d_0, -k) for an
       integer k, printed as the seed check.)
   P2  x 3 at (1, 1) over {1, 2} at c = 2 at the derived box (19, 13)
@@ -126,9 +127,11 @@ as WORKING SET with the kill read on commit: s0 in 8 s, peak 24.8 MB;
 s1's default list in 19 s, peak 519.9 MB -- KILLED at 516 MB commit on
 its eighth cell, the seven before it complete; two follow-up processes
 for the killed cells at smaller multiples, both KILLED at 514 MB commit
-with nothing printed; s2 in 6 s, peak 480.4 MB; s3 in 7 s at the doubled boxes, peak
+with nothing printed; s2 in 6 s, peak 480.4 MB; s3 in 7 s at the doubled
+boxes, peak
 519.7 MB -- KILLED at 516 MB commit on its tripled verdict box, after
-the doubled one printed. s1 was re-run after the audit added a guard skipping an
+the doubled one printed. s1 was re-run after the audit added a guard
+skipping an
 unflushed trace, which changed no printed number -- unflushed was 0
 at every cell both times.)
 
