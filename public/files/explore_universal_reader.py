@@ -128,7 +128,8 @@ one process each: x 2 (1, 1) at BOX 2 in 7 s, 382 MB, and at BOX 1.5 in
 KILLED by memwatch at 514 MB at BOX 1.5. The x 3 (1, 1) cell over
 {1, 2} at c = 2 was also run at BOX 3 (119k states) and BOX 6 (395k
 states, 511 MB); the necklace hunt was also run to period 10 in a
-scratch copy of s2, 25 s.)
+scratch copy of s2, 25 s, and to period 14 in a later one, 503 s at a
+45 MB peak.)
 
 F1  THE CONTROLS HOLD. C1a: all twelve singleton cells print the
     parent's F3 lookahead, at BOX 2 and at BOX 3. C1b: every winning
