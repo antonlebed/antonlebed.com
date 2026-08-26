@@ -172,7 +172,14 @@ F5  THE SHARPER "DOES NOT DESCEND". A band cell is a place where the
     dropped, the flush costs 1 at nine of these cells and 2 at the tenth,
     so there is no one-unit law behind the reading and "no cell reads at
     1" is not a corollary of one. What that pricing does settle is that
-    the terminal condition is the whole of what forbids lookahead 1.)
+    the terminal condition is the whole of what forbids lookahead 1.
+    And the question left open in the sentence above it -- whether a
+    band cell's completion reader reads BELOW 1 -- is answered by
+    explore_completion_reader.py, which measures that reader directly
+    with an interval game and no box in it: at nine of the ten cells it
+    reads exactly 1, so the flush's unit there is the whole distance to
+    it and not a floor, and at the tenth it reads 0 against an integer
+    reader at 2.)
 
 F6  WHY A LOSS AT THESE SLACKS IS REAL (added in the audit; F3 is
     nothing without it). Every band verdict is a WIN at 2 on top of
