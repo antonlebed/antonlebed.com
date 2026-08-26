@@ -378,6 +378,15 @@ H5  THE ONE-WAY DIRECTION IS MEASURED AND NOT ONLY ARGUED
     evidence for the direction at the boundaries, not a proof of
     monotonicity: a cell far from any boundary was not probed,
     because a flip there would break H2 as loudly.
+
+SETTLED LATER (explore_limit_column.py L3): the law above is a
+    reading at the ranges scanned and not a fact about the windows. The
+    limit column at every cell with A != B is INFINITE at r = 3 -- at
+    (8, 4) the integers 1638 and 364170 agree on 10 digits with images
+    differing at position 3, the pair sitting just past N = 300000, and
+    the next witnesses agree on 16 and 22 -- so the roof, the floor and
+    the product threshold locate the FIRST witness against the range
+    read and nothing else. The diagonal A = B reads the zero column.
 """
 
 import os

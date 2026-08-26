@@ -341,7 +341,16 @@ frozen text. That is over the ten-minute line and the necessity is the claim's
 own shape: Q4 reproduces a law stated over a grid, cell for cell, and a sample
 of the grid reproduces nothing. Stages run one at a time (argv) so no single
 call is open-ended. Peak memory ~310 MB at N = 300000 with the deeper strings,
-under memwatch at 512. """
+under memwatch at 512.
+
+SETTLED LATER (explore_limit_column.py): the rule's gated verdicts are
+final (the column is monotone in N) and its bounded verdicts are lower
+readings -- H2's 92-cell reproduction reproduced a finite-range reading,
+every cell with A != B at r = 3 having an infinite limit column, while
+H1's 210 bounded cells are bounded in the limit with the histogram the
+deepest range printed. At a periodic window the limit column is decided
+exactly by a finite carry automaton; the rule keeps its home where there
+is no period. """
 
 import os
 import sys

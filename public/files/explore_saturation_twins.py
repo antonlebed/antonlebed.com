@@ -338,6 +338,16 @@ the one the calibrated verdicts are issued at.
 Ran: s5c 341.9 s at 104.4 MB peak commit; s5 1117.7 s at 299.4 MB peak
 commit, both under memwatch at 512 -- 5.7 and 18.6 minutes against the
 6 and 19 estimated, each inside its stop.
+
+SETTLED LATER (explore_limit_column.py L3, L5): the twin's trusted
+bounded partner, (8, 4) at r = 3, is a gated column at its first bump
+(its limit column is infinite from t = 4, with explicit witnesses past
+N = 300000), as is every value-law bounded cell; so F2's (5, 5) ceiling
+was a gated population's first bump and the bounded corpus's ceiling in
+the LIMIT is (4, 4), attained at three r = 5 cells of the graded window,
+the calibrated constant one past it being 5 and the aperiodic split of
+F5 reproduced by any constant from 4 to 7. The twins were two gated
+columns at the same truncation, which is what one table cannot tell.
 """
 
 import os

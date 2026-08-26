@@ -378,6 +378,14 @@ H7  AND THE NOMINAL PERIOD WAS SLACK AT NINE CELLS WITH NO CONSEQUENCE
     because every one of their r = 2 columns is identically zero at
     every depth. H1's 210 stand. The check was owed and it is cheaper
     to run than to argue.
+
+SETTLED LATER (explore_limit_column.py L4, L6): the value law H4 leaned
+    on is a finite-range reading, its bounded cells gated in the limit,
+    so the sequence period is the period of the LIMIT COLUMN (exact,
+    6 at the graded window) while the largeness period is the scale the
+    limit VERDICT reads its parity against; neither finite reading
+    decides a cell, and the two-class family, being periodic, can be
+    read exactly by the automaton -- not yet done.
 """
 
 import os
