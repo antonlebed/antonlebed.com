@@ -262,6 +262,12 @@ class Universal:
 
     def seed(self, d0):
         M = 2 * self.m + 2                    # D8: |M| <= m_o + 2 m_i + 1
+        # pack()'s modulus IS the box, so a seeded |k| above by would
+        # alias onto another pair instead of being pruned. Every box
+        # this rig runs at clears it; the assert is what keeps that true.
+        assert M <= self.by and abs(self.m * d0) <= self.bx, (
+            "seed outside the box: it would alias (%d, %d) vs box (%d, %d)"
+            % (self.m * d0, M, self.bx, self.by))
         return tuple(sorted(self.pack(self.m * d0, -k) for k in range(-M, M + 1)))
 
     def holds0(self, st):
