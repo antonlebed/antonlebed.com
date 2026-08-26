@@ -158,13 +158,22 @@ F4  x 3 AT (1, 1) OVER {1, 2} READS AT 3, ONE ABOVE EVERY PERIODIC
     and the opponent's tree from the losing start plays quotient 1 and
     digit 0 along every branch to depth 13 (the safety fixed point
     collapsing under the pruning, not a flush failing). Whether the
-    quotient switch costs x 3 a unit of lookahead is OPEN: a decision
-    at 2 needs the necessary box, which this encoding does not fit
-    under 512 MB (BOX 6 sat at 511).
+    quotient switch costs x 3 a unit of lookahead is OPEN here: a
+    decision at 2 needs the necessary box, which this encoding does not
+    fit under 512 MB (BOX 6 sat at 511).
+    (SETTLED LATER, explore_reader_box.py: U2's box is LOOSE, not
+    wrong -- its |R_t| <= m q_{t+c+1} prices a residual that has
+    swallowed the whole pre-read, where R_t here stops at position t.
+    Re-derived from the two exact recursions the necessary box is
+    (|x|, |y|) <= (19, 13) with no c in it, which BOX 6 already
+    contains; so the loss at 2 is real and the cell reads at EXACTLY 3.
+    The 512 MB wall was the loose box's, not the question's.)
 F5  NO SHORT PERIODIC WITNESS (s2). All 71 primitive {1, 2}-necklaces
-    of period <= 8 -- 226 through period 10 in the scratch run -- read
-    x 3 at (1, 1) at lookahead 2. If the universal 3 is tight, its
-    witness is aperiodic or of period above 10.
+    of period <= 8 -- 226 through period 10, and 2,538 through period 14
+    (503 s, peak 45 MB), in scratch copies of s2 -- read x 3 at (1, 1)
+    at lookahead 2. So the universal 3 has no periodic witness at all
+    to period 14: with the 3 now settled as tight (F4's pointer), the
+    witness is the ADAPTIVE opponent itself and not any one window.
 P4 read: the printed "touched" |y| equals B_y at every cell, because
     the wrong-M branches run to the pruning edge before they leave; it
     reads the box, not the strategy, and is kept only as the check
