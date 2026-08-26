@@ -75,7 +75,9 @@ H3' WHAT H3 READS, AND WHAT IT DOES NOT (the re-derivation, and it
     carries and what its flush condition demands; H3's bound is a
     bound on the completion reader, and the integer reader's existence
     at a general irrational window is OPEN. The grid below reads it
-    exactly where the branch set is finite -- the periodic windows.
+    exactly where the game's STATE SPACE is finite -- the periodic
+    windows, where the box and the phase frame recur; the branch set
+    at a single state is finite at every window.
 H4  THE FLOORS DO NOT DISSOLVE. D6's jump sends two input tails
     converging to one non-cut input point to images a fixed rotation
     apart; a reader at any lookahead gives them a common output prefix
