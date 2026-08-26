@@ -69,7 +69,7 @@ never what they would mean).
      returns 1, and the band's integer slacks. Every published-grid
      window prints a band that misses s <= 3 entirely, and the published
      grid's OWN 144 cells are swept for band membership one by one --
-     the band hunt runs the DIAGONAL s = s_0 and three of that grid's
+     the band hunt runs the DIAGONAL s = s_0 and two of that grid's
      six (s, s_0) pairs are off it, so the emptiness is asked of the
      cells themselves and not of the diagonal through them.
   P2 THE VERDICT, and it is the sharp one. At each band cell the exact
@@ -109,7 +109,7 @@ F1  THE CONTROL HOLDS (C1). All four PARENT rows print F3's lookaheads
 F2  THE BAND IS REAL AND THE PUBLISHED GRID'S IS EMPTY (P1). Over the
     six published windows plus [4] and [5], at m = 2..5: ZERO band cells
     among the published grid's OWN 144 cells -- swept one by one, the
-    three off-diagonal (s, s_0) pairs included, since the band hunt runs
+    the two off-diagonal (s, s_0) pairs included, since the band hunt runs
     the diagonal; the grid is 6 x 4 x 6 = 144 cells of which 120 read at
     all, its zero-slack column reading at no lookahead, so the band
     sweep is over the 144 and the PATTERN's base is the 120 -- and 42
@@ -238,7 +238,7 @@ def band_of(win, m):
     """P1: the digitwise line, H3's first c = 1 slack, and the band.
 
     Hunted along the DIAGONAL s = s_0; the published grid's own six
-    (s, s_0) cells, three of them off that diagonal, are swept
+    (s, s_0) cells, two of them off that diagonal, are swept
     separately in s1 so the emptiness is a print and not an argument.
     """
     line = None
