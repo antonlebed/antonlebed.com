@@ -301,7 +301,12 @@ N7 THE STEP'S ODDNESS IS THE MODULUS'S, AND WAS NEVER A FACT ABOUT THE
    about the cells and not about the carry at all. The
    oddness did not get explained, it got MOVED -- off the carry, where
    it had two half-reasons, onto the modulus, where it has none and is
-   one question instead of two.
+   one question instead of two. (Settled by explore_slope_parity.py:
+   n is odd at every cell the census forms, by property at even radix
+   -- the census's gcd(u, v) = 1 puts g | b^c, an even n puts N/2 = 0
+   (mod g) inside the unsaturated block, and the class map's terminal
+   class is then unsaturated -- so the below-count and the measure cut
+   enter nowhere.)
 
 VERDICT, by piece.
   - THE GENERALIZED CLOSED FORM (F) is a PROPERTY: derived from
