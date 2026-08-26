@@ -346,7 +346,7 @@ N = 300000), as is every value-law bounded cell; so F2's (5, 5) ceiling
 was a gated population's first bump and the bounded corpus's ceiling in
 the LIMIT is (4, 4), attained at three r = 5 cells of the graded window,
 the calibrated constant one past it being 5 and the aperiodic split of
-F5 reproduced by any constant from 4 to 7. The twins were two gated
+F5 reproduced by any constant from 5 to 7. The twins were two gated
 columns at the same truncation, which is what one table cannot tell.
 """
 

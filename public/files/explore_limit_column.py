@@ -152,8 +152,9 @@ L1  THE CONTROLS ARE GREEN AND THE AUTOMATA ARE SMALL. C1: at the
     4 to 105 states (graded (8, 4) r = 1: 105 states from 648 forward).
     C2: every r = P and r = 2P at the designed family prints the zero
     column. C3: the engine's N = 30000 column sits at or below the
-    limit column at every depth of every cell read (0 violations over
-    the designed family, the value grid and the graded map). The box is
+    limit column at every depth of every cell of the three populations
+    (0 violations over the designed family, the value grid and the
+    graded map; s5's other strides were not checked). The box is
     not the verdict (s6): re-read at three times the slack, 0 of 302
     cells move and no trimmed automaton changes size. A cell costs well
     under a second.
@@ -206,8 +207,8 @@ L5  THE BOUNDED CORPUS'S CEILING IN THE LIMIT IS (4, 4). Over every
     constant one past the bounded ceiling is therefore 5, and the
     aperiodic split it reproduces (explore_saturation_twins.py F5:
     gated strides at peaks 7 and above, bounded ones at 3 or below)
-    is reproduced by any constant from 4 to 7 -- a margin of three
-    values, the ceiling now exact rather than measured at three
+    is reproduced by any constant from 5 to 7 -- three values of
+    margin, the ceiling now exact rather than measured at three
     ranges. The threshold stays calibration at the two aperiodic
     windows, which have no period and so no automaton.
 L6  WHAT THE RUN-LENGTH RULE IS, SEEN FROM THE LIMIT. Its gated verdicts
@@ -230,7 +231,11 @@ print's resolution); s2 inside the same run; s4 0.0 s; s5 8.7 s over
 memory far below the ceiling. Every stage is bounded and rerunnable in
 under a minute; s5 was run twice, once against the residue reading at
 scale 6 (429 cells off, the wrong scale) and once against the largeness
-scale (0 off), the comparison being the print's and not the verdicts'.
+scale (0 off), and s1 and s2 twice, the first prints flagging zero
+columns and delay-0 cells as off laws that allow them (19 and 4 false
+reds), the second 0 off at s1 and the 18 bounded-label cells at s2 --
+the comparisons being the prints' and not the verdicts', which did not
+move.
 """
 
 import os
@@ -902,8 +907,9 @@ def s1_designed():
                 elif m % 2 == 1:
                     ok = lc["inf_from"] is not None
                 else:
-                    ok = (lc["inf_from"] is None and lc["cper"] == P
-                          and res["run"] < P)
+                    ok = (lc["inf_from"] is None and res["run"] < P
+                          and (lc["cper"] == P
+                               or all(c == 0 for c in lc["col"])))
                 if not ok:
                     miss += 1
                     print("      <<< OFF THE RESIDUE LAW")
@@ -926,6 +932,8 @@ def s2_value():
         hist[key] = hist.get(key, 0) + 1
         if lab == "bnd":
             ok = lc["inf_from"] is None and (res["run"], res["peak"]) == (5, 5)
+        elif lab == "delay0":
+            ok = lc["inf_from"] is None and all(c == 0 for c in lc["col"])
         else:
             ok = lc["inf_from"] is not None
         if not ok:
@@ -934,7 +942,8 @@ def s2_value():
     print("S2 histogram (label, run, peak, period): count")
     for k in sorted(hist, key=str):
         print(f"  {k}: {hist[k]}")
-    print(f"S2 misses against the value law: {miss}")
+    print(f"S2 cells off the value law's label -- at a bounded label the fixed"
+          f" kill firing: {miss}")
 
 
 # ------------------------------------------------------------------ s3
