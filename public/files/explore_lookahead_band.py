@@ -166,6 +166,13 @@ F5  THE SHARPER "DOES NOT DESCEND". A band cell is a place where the
     completion reader's own minimum it costs at least that -- H3 is
     sufficient and not necessary, so a band cell's completion reader may
     read below 1 and this rig never asks whether it does.
+    (Settled since, by explore_flush_price.py: what stands above is the
+    cost against H3'S GRANT and only that, and it holds at all ten cells.
+    Priced instead against the same game with its terminal condition
+    dropped, the flush costs 1 at nine of these cells and 2 at the tenth,
+    so there is no one-unit law behind the reading and "no cell reads at
+    1" is not a corollary of one. What that pricing does settle is that
+    the terminal condition is the whole of what forbids lookahead 1.)
 
 F6  WHY A LOSS AT THESE SLACKS IS REAL (added in the audit; F3 is
     nothing without it). Every band verdict is a WIN at 2 on top of
