@@ -384,8 +384,10 @@ SETTLED LATER (explore_limit_column.py L4, L6): the value law H4 leaned
     so the sequence period is the period of the LIMIT COLUMN (exact,
     6 at the graded window) while the largeness period is the scale the
     limit VERDICT reads its parity against; neither finite reading
-    decides a cell, and the two-class family, being periodic, can be
-    read exactly by the automaton -- not yet done.
+    decides a cell, and the two-class family's limit map is read exactly
+    (explore_limit_maps.py L6): 18 cells off gap parity against H1's 16,
+    and two cells whose finite column is a sawtooth of period 5 that
+    the run-length rule reads gated.
 """
 
 import os

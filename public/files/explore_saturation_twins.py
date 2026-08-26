@@ -344,10 +344,12 @@ bounded partner, (8, 4) at r = 3, is a gated column at its first bump
 (its limit column is infinite from t = 4, with explicit witnesses past
 N = 300000), as is every value-law bounded cell; so F2's (5, 5) ceiling
 was a gated population's first bump and the bounded corpus's ceiling in
-the LIMIT is (4, 4), attained at three r = 5 cells of the graded window,
-the calibrated constant one past it being 5 and the aperiodic split of
-F5 reproduced by any constant from 5 to 7. The twins were two gated
-columns at the same truncation, which is what one table cannot tell.
+the LIMIT is (4, 4) over the graded window and the designed family, and
+peak 5 once the two-class family is read (explore_limit_maps.py L6: two
+cells whose finite column is the sawtooth 5 4 3 2 1 recurring with the
+period), the calibrated constant one past it being 6 and the aperiodic
+split of F5 reproduced by 6 or 7. The twins were two gated columns at
+the same truncation, which is what one table cannot tell.
 """
 
 import os

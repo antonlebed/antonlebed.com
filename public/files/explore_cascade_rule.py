@@ -343,14 +343,18 @@ of the grid reproduces nothing. Stages run one at a time (argv) so no single
 call is open-ended. Peak memory ~310 MB at N = 300000 with the deeper strings,
 under memwatch at 512.
 
-SETTLED LATER (explore_limit_column.py): the rule's gated verdicts are
-final (the column is monotone in N) and its bounded verdicts are lower
-readings -- H2's 92-cell reproduction reproduced a finite-range reading,
-every cell with A != B at r = 3 having an infinite limit column, while
-H1's 210 bounded cells are bounded in the limit with the histogram the
-deepest range printed. At a periodic window the limit column is decided
-exactly by a finite carry automaton; the rule keeps its home where there
-is no period. """
+SETTLED LATER (explore_limit_column.py, explore_limit_maps.py L6): both
+halves of the rule are finite-table readings. The bounded half is a
+lower reading -- H2's 92-cell reproduction reproduced a finite-range
+reading, every cell with A != B at r = 3 having an infinite limit
+column, while H1's 210 bounded cells are bounded in the limit with the
+histogram the deepest range printed. The gated half's run stays (the
+column is monotone in N) but need not grow: at two cells of the
+two-class family the limit column is the finite sawtooth 5 4 3 2 1
+recurring with the period, peak 5, bounded at lookahead 5 -- and D4
+reads both gated at N = 300000. At a periodic window the limit column
+is decided exactly by a finite carry automaton; the rule keeps its home
+where there is no period. """
 
 import os
 import sys

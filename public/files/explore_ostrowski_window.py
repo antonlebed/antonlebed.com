@@ -224,8 +224,12 @@ x2 half at the period-3 window [0; 1, 1, 2, ...], where the flip
 rides the parity of the comb length; and explore_arithmetic_gate.py
 proves the gated half for x m and floor(n/m), m >= 2, at EVERY
 irrational window — a continuous x m would descend to the circle,
-where it tears at (1 - alpha)/m. What stays as stated beyond these
-four windows is the reading half: the units' delay.)
+where it tears at (1 - alpha)/m. And the reading half is exact in
+the limit at these four windows (explore_limit_maps.py L2-L5): n + 1
+needs lookahead exactly 1 at every depth from 1 + [a_1 = 1] on, the
+drop by the period alternates l and l + 1, and every x m and
+floor(n/m) at m = 2..7 is unbounded from the lowest admissible digit
+-- the flip address decided cell by cell by the carry automaton.)
 """
 
 import sys

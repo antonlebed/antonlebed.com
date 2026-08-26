@@ -222,6 +222,15 @@ L6  WHAT THE RUN-LENGTH RULE IS, SEEN FROM THE LIMIT. Its gated verdicts
     keeps its use where there is no period, as the reading the
     calibration constant is added to.
 
+SETTLED LATER (explore_limit_maps.py L6, the same automaton run over the
+two-class family): L5's (4, 4) is the ceiling of the corpus read HERE
+and not of periodic windows -- two cells of that family print a finite
+column whose cycle 5 4 3 2 1 never returns to 0, peak 5, so the constant
+one past the bounded ceiling is 6, with two values of margin. And L6's
+"gated verdicts are final" holds of the RUN, which stays, and not of the
+verdict: the run-length rule reads both sawtooth cells gated where the
+limit is bounded, so its gated half is a finite-table reading too.
+
 RUN RECORD (the estimate first, then what it cost)
 Unmeasured before s0. s0 1.7 s (the controls and four timed cells); s1
 38.3 s and s3 52.6 s, all of it the engine's N = 30000 columns for C3
