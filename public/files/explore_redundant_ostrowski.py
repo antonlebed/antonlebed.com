@@ -52,7 +52,10 @@ H3  THE DELAY BOUND. Members A + j delta + [0, D] with D >= delta: an
     cell at depth L + c + 1, an arc under 2m |theta_{L+c}|, inside the
     level-L range by the invariant; it fits a member whenever
     2m |theta_{L+c}| <= |theta_{L+1}| + s S(L+1). With |theta_{k+2}| <
-    (2/3) |theta_k| everywhere, c = O(log(2m/(1+s))) works at EVERY
+    |theta_k| / (a_{k+2} + 1) <= |theta_k| / 2 everywhere (from
+    |theta_k| = a_{k+2}|theta_{k+1}| + |theta_{k+2}| and
+    |theta_{k+2}| < |theta_{k+1}|; the 2/3 a first pass used is the
+    same inequality thrown away), c = O(log(2m/(1+s))) works at EVERY
     irrational window once EXCESS > 0 (plus the seam at L = 0:
     2m |theta_c| <= EXCESS). Digitwise identities give upper bounds
     too: e_k = m d_k at s >= (m - 1) a_max is lookahead 0; golden
@@ -77,7 +80,12 @@ H3' WHAT H3 READS, AND WHAT IT DOES NOT (the re-derivation, and it
     at a general irrational window is OPEN. The grid below reads it
     exactly where the game's STATE SPACE is finite -- the periodic
     windows, where the box and the phase frame recur; the branch set
-    at a single state is finite at every window.
+    at a single state is finite at every window. (SETTLED IN PART
+    LATER, explore_universal_reader.py: in the frame (q_t, q_{t-1})
+    the game over a bounded quotient alphabet is one finite game with
+    the opponent choosing quotients -- x 2 at s = s_0 = 1 reads at 2
+    at every window with quotients <= 3, x 3 at 3 over quotients <= 2;
+    open at unbounded quotients.)
 H4  THE FLOORS DO NOT DISSOLVE. D6's jump sends two input tails
     converging to one non-cut input point to images a fixed rotation
     apart; a reader at any lookahead gives them a common output prefix
