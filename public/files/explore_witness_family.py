@@ -185,6 +185,16 @@ L5  THE GAP OBSERVABLE. Added after s3's first print: it reads 0 for
     every x m extraction and j/m for every floor, which is what names
     the mechanism from the print alone.
 
+SETTLING POINTER (explore_aperiodic_address.py). The address this rig
+proves at every PERIODIC window is a theorem at every IRRATIONAL
+window, and periodicity was never needed: what it bought here was
+m | q_K - 1 recurring, the price of witnessing with one convergent
+where two consecutive convergents are unimodular and realize every
+residue pair (Y, round(Y alpha)) mod m at every K. The raised-top
+family is that rig's sub-case a = b = 0, and the jump of L4 is its D6
+with the residue pair in place of the class. Everything read here
+stands at its scope; nothing about the address waits on a period.
+
 RUN RECORD (the estimate first, then what it cost)
 Under a minute estimated per stage; s0 0.0 s, s1 0.0 s, s2 0.1 s, s3
 0.2 s. Pure Python, standard library, memory far below the ceiling.
