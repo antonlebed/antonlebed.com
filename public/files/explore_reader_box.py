@@ -167,10 +167,13 @@ G3  THE VERDICT: x 3 AT s = s_0 = 1 OVER QUOTIENTS <= 2 READS AT
     parent's BOX-6 run (72,27) lost there too. All three contain B4's
     (19,13), so by B4 each is a real loss of the universal game, while
     the win at 3 was already certified. Since every periodic window of
-    the class reads at 2 (explore_universal_reader.py F5, now 2,538
-    primitive {1,2}-necklaces to period 14), THE QUOTIENT SWITCH COSTS
-    x 3 ONE UNIT OF LOOKAHEAD: the universal reader over a bounded
-    alphabet is strictly weaker than every stationary reader in it.
+    the class READ reads at 2 (explore_universal_reader.py F5: 2,538
+    primitive {1,2}-necklaces to period 14, and F5 scopes itself to that
+    period -- no window of the class is known to read at 3, which is not
+    the same as none doing so), THE QUOTIENT SWITCH COSTS x 3 ONE UNIT
+    OF LOOKAHEAD against the stationary readers measured: the universal
+    reader over a bounded alphabet is strictly weaker than the
+    stationary readers of the 2,538 windows read.
     EXACTLY 3 also uses monotonicity in c, which is worth saying because
     only c = 2 was run at a box containing B4: a reader at lookahead c is
     simulable at c + 1 by ignoring the extra digit it is handed, so wins
