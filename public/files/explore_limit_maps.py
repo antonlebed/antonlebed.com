@@ -107,6 +107,12 @@ period windows are explore_class_criterion.py's V1 (1,1,1,2), V2
       floor(n/m) cell printing a finite column; an infinite cell whose
       t_0 is not 1 + [a_1 = 1]; a two-class finite cell with peak >= 5
       or run >= 5.
+  P6 (added after L6 printed, frozen before s5 ran) the two-class shape
+      widened -- caps (5@1, 2@3) and (4@0, 2@2) at P = 8, 9, 10, every
+      stride 1..2P: the largest peak over the finite nonzero columns is
+      printed per window; prediction: it is at most P at every window,
+      and some finite cell carries an endless run. KILL: a finite cell
+      with peak above P.
 
 THE DESIGN
 ----------
@@ -197,11 +203,19 @@ L6  THE TWO-CLASS FAMILY'S LIMIT MAP, AND THE SAWTOOTH THAT REFUTES
     the aperiodic split (gated at 7 and above, bounded at 3 and below)
     is issued by 6 or 7: two values of margin, and a ceiling that rose
     when a wider periodic family was read.
+L7  THE SAWTOOTH IS P = 5's AND NOT THE SHAPE'S (rule at 6 windows, 108
+    cells). The same two cap placements at P = 8, 9 and 10, every
+    stride to 2P: the largest finite peak is 2 at every window (at r =
+    2), no finite column carries an endless run, and the verdict
+    vectors are the parity law's -- P6 confirmed, with room: the
+    bounded ceiling over everything this rig and its parent read stays
+    5, so the margin of L6 is not eroding with the period.
 
 RUN RECORD (the estimate first, then what it cost)
 Under a minute estimated per stage; s0 1.6 s, s1 0.5 s, s2 0.4 s, s3
 1.7 s, s4 11.7 s of which 12 s are the run-length rule's two N = 300000
-tables. Pure Python, standard library, memory far below the ceiling.
+tables, s5 0.2 s. Pure Python, standard library, memory far below the
+ceiling.
 s1 ran twice (the drop's second term, L3) and s4 twice: the first read
 gap parity's label in the wrong case and printed 38 disagreements, all
 of them the label; the second added the box re-read.
@@ -788,8 +802,40 @@ def s4_two_class():
         BOX = 1.0
 
 
+def s5_wider():
+    print("=" * 78)
+    print("S5 THE TWO-CLASS SHAPE AT P = 8, 9, 10 (P6): the bounded ceiling"
+          " against the period")
+    for P in (8, 9, 10):
+        for c1, c2, A, B in ((1, 3, 5, 2), (0, 2, 4, 2)):
+            a = graded(P, {c1: A, c2: B})
+            per = measured_period(a, 60)
+            win = Window(a, per)
+            top = (0, 0)
+            endless = []
+            codes = []
+            for r in range(1, 2 * P + 1):
+                res = read("", win, "shift", r=r, verbose=False)
+                lc = res["lc"]
+                if lc["inf_from"] is not None:
+                    codes.append("G")
+                    continue
+                if all(c == 0 for c in lc["col"]):
+                    codes.append(".")
+                    continue
+                codes.append("b")
+                if res["peak"] > top[1]:
+                    top = (r, res["peak"])
+                if res["run"] == INF:
+                    endless.append((r, res["peak"]))
+            print(f"  P={P} caps {A}@{c1}/{B}@{c2} period {per}: "
+                  f"{''.join(codes)}  largest finite peak {top[1]} at r "
+                  f"{top[0]}  endless runs {endless}"
+                  f"{'  <<< PEAK ABOVE P' if top[1] > P else ''}")
+
+
 STAGES = {"s0": s0_controls, "s1": s1_odometer, "s2": s2_mul,
-          "s3": s3_floor, "s4": s4_two_class}
+          "s3": s3_floor, "s4": s4_two_class, "s5": s5_wider}
 
 if __name__ == "__main__":
     for name in sys.argv[1:] or ["s0"]:
