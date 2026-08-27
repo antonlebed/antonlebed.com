@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Collision mechanisms — what the second factorization is</title>
+<meta name="description" content="What the second factorization at a collision is. Where the two factorizations share a factor, the face law derives the descent dimension from three polygons — a parallelism that fails at the full-dimension witness; where they share none, the mixing theorem: a pair with a three-term block is one family or one-variable, with the (3, 4) census and the one-variable search that read the family everywhere; and the sign scan deciding at a two-factor seed whether a pair collides at all.">
+<link rel="canonical" href="https://antonlebed.com/learning/mechanisms">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/measure'>Measure</a> <a href='/learning' class='up'>Learning</a></nav><nav class='sub' aria-label='Learning'><a href='/learning'>The reader descent</a> <a href='/learning/stalls'>Stalls</a> <a href='/learning/nesting'>Nesting</a> <a href='/learning/substrate'>The substrate door</a> <a href='/learning/forgetting'>Forgetting</a> <a href='/learning/collisions'>Menu collisions</a> <a href='/learning/mechanisms' aria-current='page'>Collision mechanisms</a> <a href='/learning/seeds'>Menu seeds</a> <a href='/learning/audits'>Deletion audits</a> <a href='/learning/sets'>Prediction sets</a> <a href='/learning/ceilings'>Ceilings</a> <a href='/learning/uncertainty'>Stated uncertainty</a></nav></header>
+<main>
+<h1>Collision mechanisms</h1>
+<p class="lede">What the second factorization at a collision is. Where
+the two factorizations share a factor, a criterion derives the descent
+dimension from the polygons of three factors — a parallelism that fails
+at the one full-dimension witness; where they share none, a pair with a
+three-term block is one explicit family or one-variable, a theorem; and
+at a two-factor seed one sign scan decides whether there is a second
+factorization at all.</p>
+
+<p>A <b>menu</b> is a finite set of integers at least 2 — in
+<a href="/learning/forgetting">the grown worlds</a> of the amnesia
+certificate, the moves a state admits, each move multiplying the state by
+one member. Read at a temperature <i>β</i>, with one variable
+<i>x</i><sub><i>p</i></sub> standing for <i>p</i><sup>−<i>β</i></sup> at
+each prime <i>p</i>, a menu is a polynomial with every coefficient 0 or 1,
+one term per member, and its <b>core</b> is that polynomial with its
+largest single-term factor divided out. Two pairs of menus whose products
+agree as polynomials <b>collide</b>, and the collisions that are more than
+bookkeeping are the products with two different <b>factorizations</b> in
+the semiring of such polynomials — groupings of the integer factors into
+<b>blocks</b>, each a product with no negative coefficient that splits
+into no two such — which happens only where some factor irreducible over
+the integers carries a negative coefficient, so that the nonnegative
+factors can pair around it two ways. A menu whose core has such a factor
+is a <b>seed</b>; the smallest is {2, 16}, with core 1 + <i>x</i><sup>3</sup>
+= (1 + <i>x</i>)(1 − <i>x</i> + <i>x</i><sup>2</sup>), and the smallest
+genuine collision is the <b>six-term identity</b> (1 +
+<i>x</i><sup>3</sup>)(1 + <i>x</i> + <i>x</i><sup>2</sup>) = (1 +
+<i>x</i>)(1 + <i>x</i><sup>2</sup> + <i>x</i><sup>4</sup>).
+<a href="/learning/collisions">Menu collisions</a> grades such a product
+by its faces. The exponent vectors of its terms span a hull — a segment
+when they are <b>collinear</b>, on one line, its <b>polygon</b> when the
+<b>product dimension</b> is 2; a direction picks
+out a <b>face</b> of that hull, the terms extreme that way, and keeps from
+each factor its <b>initial form</b>, that factor's own extreme terms,
+initial forms multiplying as the factors do. The <b>descent dimension</b>
+δ is the smallest dimension of a face on which the two factorizations
+already differ, each initial form <b>stripped</b> of any single-term
+factor first: δ = 1 says the mechanism is inherited from an edge, and
+δ = 2 on a two-dimensional product says it is inherited from no face at
+all, which is
+<a href="/learning/collisions#full-dimension">the full-dimension
+witness</a>, the one such object in the widest box walked. The boxes are
+the corpus's own menus: the <b>(2, 6) box</b>, sizes 2 and 6 with members
+in {2..32}, and the <b>(3, 4) box</b>, size 3 in {2..32} against size 4
+in {2..24}; a product is <b>in frame</b> when every coefficient is 0 or 1
+— twelve terms at either pairing — and the boxes' counts are read over
+in-frame products.</p>
+
+<article class="claim" id="parallel-edge">
+  <div class="claim-head"><span class="claim-name">The full-dimension
+  witness is a parallelism that fails</span>
+  <span class="tier">criterion</span></div>
+
+  <p>Grading a collision by δ does not say what puts one at full
+  dimension. What does is a criterion that DERIVES δ rather than a column
+  that agrees with it, and it starts from the shape a collision takes where
+  the two factorizations share a factor: the collision can then be written
+  with one factorization reading <i>p</i>·<i>n</i> times <i>q</i> and the
+  other <i>p</i> times <i>n</i>·<i>q</i> — a <b>block</b> being one
+  factor of a factorization in the semiring, a product of integer factors
+  with no negative coefficient that splits into no two such — one block
+  of each factorization carrying the shared <i>p</i>, the negative factor
+  <i>n</i> moving between them, and any blocks that agree on both sides
+  riding along as <b>spectators</b>. Now look along a direction. Initial forms multiply, and
+  each is stripped of its single-term factor before the two sides are
+  compared, so the face separates ONLY IF <i>n</i>'s initial form has more
+  than one term and at least one of <i>p</i>'s and <i>q</i>'s does: if
+  <i>n</i>'s is a single term both sides read the same stripped pair from
+  <i>p</i> and <i>q</i>, and if <i>p</i>'s and <i>q</i>'s are both single
+  terms both sides read <i>n</i>'s alone. That direction is proved, and it
+  is the one a sampled reading cannot reach — it bounds the separating faces
+  from above, and so bounds δ from BELOW.</p>
+
+  <p>The converse holds with one clause, and the two together make the
+  face law exact. Spectators contribute the same stripped form to both
+  sides and cancel, so with <i>P</i>, <i>N</i>, <i>Q</i> for the stripped
+  initial forms of <i>p</i>, <i>n</i>, <i>q</i> along the direction, the
+  two sides read the multisets {<i>P</i>·<i>N</i>, <i>Q</i>} and
+  {<i>P</i>, <i>N</i>·<i>Q</i>}, equal exactly when <i>N</i> = 1 or
+  <i>P</i> = <i>Q</i>, by cancellation in the polynomial ring. So <b>a
+  face separates the two factorizations if and only if <i>n</i>'s initial
+  form has more than one term and <i>p</i> and <i>q</i> do not read the
+  same stripped initial form there</b>, both directions proved. The
+  accident the sampled readings could not exclude is exactly that shared
+  form, and at the 18 objects the criterion is stated at in the (2, 6)
+  box it never fires, for a reason: at 17 of them <i>q</i> is a
+  three-term factor whose polygon is a segment, so its only many-term
+  initial form is <i>q</i> itself, three terms against <i>p</i>'s two, and
+  at the witness <i>p</i> and <i>q</i> are distinct two-term factors — the
+  231 face readings there confirmed a theorem about those objects. A
+  factor's initial form has more than one term exactly when the direction
+  is normal to a positive-dimensional face of that factor's own polygon —
+  an edge, at product dimension 2 — so the law reads: <b>δ = 1 exactly
+  when the polygon of <i>n</i> has an edge parallel to an edge of the
+  polygon of <i>p</i> or of <i>q</i> along which <i>p</i> and <i>q</i>
+  read different stripped initial forms</b>. And the clause bites. With
+  <i>p</i> = 1 + <i>t</i>, <i>n</i> = 1 − <i>t</i> + <i>t</i><sup>2</sup>
+  and <i>q</i> = (1 + <i>t</i>) + <i>y</i>(1 + <i>t</i> + <i>t</i><sup>2</sup>)
+  + <i>y</i><sup>2</sup>(1 + <i>t</i>), the product (1 + <i>t</i><sup>3</sup>)·<i>q</i>
+  is a 14-term 0/1 collision with exactly two factorizations —
+  {1 + <i>t</i><sup>3</sup>, <i>q</i>} and {1 + <i>t</i>, <i>n</i>·<i>q</i>};
+  in menu clothes {2, 16}·{2, 4, 6, 12, 18, 24, 36} = {2, 4}·{2, 6, 16,
+  18, 24, 96, 144}, a size pair outside both boxes — whose bottom and
+  top edges are both parallel to <i>n</i>'s segment and both read
+  <i>q</i>'s initial form as 1 + <i>t</i>, which is <i>p</i>: no proper
+  face separates, and δ = 2 where the edge form without its clause reads
+  1. So an edge of <i>n</i>'s polygon fails to separate in two ways, which
+  an object may mix: no parallel edge on <i>p</i> or <i>q</i>, the witness
+  at every edge, or a shared form, this object at every edge.</p>
+
+  <p>Every δ = 1 object reached is the six-term identity in different
+  clothes — or, at the two seeded by {8, 27}, its homogenization
+  <i>x</i><sup>2</sup> − <i>xy</i> + <i>y</i><sup>2</sup> — with <i>n</i> a
+  three-term factor lying on <i>p</i>'s own line and a two-term spectator
+  riding along. The witness is the only object with no spectator at all, and
+  its <i>n</i> is five terms spanning two dimensions whose polygon's edges
+  miss the directions of both two-term factors present, (1, 0) and (1, −1).
+  That is what full dimension inherited from no face means concretely, and
+  it is not the extra dimension a six-member menu makes available: the
+  dimension of <i>n</i>'s polygon agrees with δ at every object too, and agrees
+  only because every collinear <i>n</i> reached happens to sit on <i>p</i>'s
+  line. A collinear <i>n</i> on a line neither factor shares would read
+  dimension 1 and δ = 2, which the criterion says and that column cannot.</p>
+
+  <p>The criterion's own hypothesis is its boundary. It is stated at 18
+  of the 22 in-frame objects the (2, 6) box holds and cannot be stated at
+  the other four, whose two factorizations share no factor whatever: each is
+  four blocks <i>p</i><sub>1</sub><i>n</i><sub>1</sub>,
+  <i>p</i><sub>2</sub><i>n</i><sub>2</sub> against
+  <i>p</i><sub>1</sub><i>n</i><sub>2</sub>,
+  <i>p</i><sub>2</sub><i>n</i><sub>1</sub> over two nonnegative and two
+  negative factors, no block of one side dividing a block of the other.
+  There is no <i>p</i>, <i>n</i> or <i>q</i> to read a face against, so
+  the criterion is not false there; it is UNSTATED, and what stands there
+  is <a href="#mixing-theorem">classified below</a>.</p>
+
+  <p class="scope"><b>Scope.</b> The face law is a criterion, proved in
+  both directions, and checked at 157 faces over the 18 shared-factor
+  objects of the (2, 6) box, 39 of them separating, with no disagreement
+  either way; why the shared form never fires at those 18 is a property of
+  them. The parallel-edge form with its clause is the criterion restated at
+  product dimension 2 and wears its tier. The 14-term object is a property,
+  its two factorizations counted and every proper face read. Nothing here
+  disturbs the grading on Menu collisions: no face of an object without a
+  shared factor was read at all.</p>
+
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_descent26_why.py"><code>explore_descent26_why.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_descent26_close.py"><code>explore_descent26_close.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_descent26_mix.py"><code>explore_descent26_mix.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_face_accident.py"><code>explore_face_accident.py</code></a></p>
+</article>
+
+<article class="claim" id="mixing-theorem">
+  <div class="claim-head"><span class="claim-name">A mixing pair with a
+  three-term block is one family, or one-variable</span>
+  <span class="tier">theorem</span></div>
+
+  <p>Where the criterion is unstated the shape is still forced. Call two
+  factorizations of one product <b>mixing</b> when, the blocks common to
+  both set aside as spectators, no block of either divides a block of the
+  other, and <b>shared</b> otherwise. At twelve terms the block sizes on a
+  side are {2, 6}, {3, 4} or {2, 2, 3}, and a mixing pair carries no
+  spectator at all: one would leave a six-term residue, whose only
+  collision is the six-term identity, or a four-term one, which factors
+  uniquely. So wherever a three-term block sits on one side or the other
+  it is reducible — an irreducible one would have to divide a block across
+  — and a reducible three-term 0/1 polynomial is collinear, 1 +
+  <i>v</i><sup><i>a</i></sup> + <i>v</i><sup><i>b</i></sup> along one
+  direction <i>v</i>
+  (<a href="/learning/seeds#half-size-ceiling">the trinomial lemma</a>).
+  One lemma then does the rest, <b>the cycle lemma</b>: a six-term product
+  tiled two ways as a three-term block times a binomial, with the
+  binomials distinct, is the six-term identity in some power
+  <i>v</i><sup><i>s</i></sup> — each binomial pairs the six exponents as a
+  perfect matching, the two matchings' union is one alternating hexagon,
+  and a hexagon of steps <i>s</i> and <i>k</i> closes only when one step
+  is three times the other. Slice every block along the cosets of
+  <i>v</i>, run the lemma on the slices, and two outcomes remain. <b>A
+  mixing pair with a three-term block on one side or the other is
+  one-variable — every block a polynomial in <i>v</i> — or, in coordinates
+  with <i>v</i> primitive and <i>z</i> off its line, it is the family
+  {1 + <i>v</i><sup>2<i>e</i></sup> + <i>v</i><sup>4<i>e</i></sup>,
+  (1 + <i>v</i><sup>3<i>e</i></sup>) + <i>z</i>(1 + <i>v</i><sup><i>e</i></sup>)}
+  against {1 + <i>v</i><sup>3<i>e</i></sup>,
+  (1 + <i>v</i><sup>2<i>e</i></sup> + <i>v</i><sup>4<i>e</i></sup>) +
+  <i>z</i>(1 + <i>v</i><sup><i>e</i></sup> + <i>v</i><sup>2<i>e</i></sup>)},
+  <i>e</i> ≥ 1.</b> The family mixes at every <i>e</i> and every <i>z</i>
+  off the line: its four-term and six-term blocks split no further, and
+  no block divides one across, 1 + <i>v</i><sup><i>e</i></sup> and 1 +
+  <i>v</i><sup><i>e</i></sup> + <i>v</i><sup>2<i>e</i></sup> sharing no
+  cyclotomic factor.</p>
+
+  <p>Every mixing object the sweeps on Menu collisions met is this family
+  in menu clothes at <i>e</i> = 1. The four of the (2, 6) box are {2, 16} against
+  {2, 8, 32} with <i>m</i>·{1, 2, 4}, <i>v</i> the monomial of 2 and
+  <i>z</i> that of <i>m</i>/2; and the (3, 4) half holds it from the other
+  side. Read into blocks, its 71 in-frame collisions are 55 shared, every
+  one the six-term identity beside a spectator binomial, and 16 mixing,
+  every one {2, 8, 32} against <i>c</i>′·{1, 8} ∪ <i>m</i>·{1, 2} with
+  <i>c</i>′ ∈ {2, 3} — exactly the 16 pairs
+  <a href="/learning/collisions#descent-dimension">the seed reading
+  there</a> leaves where the collinear seed's partner is itself a seed. On the line the family is
+  present too, at <i>z</i> = <i>v</i><sup><i>j</i></sup>, and to exponent
+  24 it is all there is: 201 one-variable products of a three-term by a
+  four-term block collide, 124 of their pairs mix, and every one carries
+  the family's three-term side at some <i>e</i> from 1 to 6 — at two of
+  them the six-term block's cofactor splits and the other side reads three
+  blocks against two.</p>
+
+  <p class="scope"><b>Scope.</b> The dichotomy is a theorem at twelve
+  terms in any number of variables, on the cycle lemma and the trinomial
+  lemma; the family's mixing at every <i>e</i> is a property. The (3, 4)
+  reading is exact over its box, sizes 3 in {2..32} against 4 in {2..24};
+  the one-variable search is exact to exponent 24, the cycle lemma checked
+  beside it at every six-term product to exponent 30; nothing is claimed
+  of one variable past that bound. What the theorem does not reach is a
+  mixing pair with no three-term block — (2, 6) against (2, 6) — which no
+  census has shown.</p>
+
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_mixing34.py"><code>explore_mixing34.py</code></a></p>
+</article>
+
+<article class="claim" id="sign-scan">
+  <div class="claim-head"><span class="claim-name">At a two-factor seed
+  the collision condition is one sign scan</span>
+  <span class="tier">rule</span></div>
+
+  <p>Whether a pair collides at all, before any grading, has a closed form
+  wherever the seed's core is exactly two factors irreducible over the
+  integers. Write that core as <i>n</i>·<i>p</i>, with <i>n</i> the factor
+  carrying a negative coefficient and <i>p</i> the nonnegative one, and let
+  the partner's core be a single irreducible <i>q</i>. A factorization in
+  the semiring is a grouping of the integer factors <i>n</i>, <i>p</i>,
+  <i>q</i> into blocks; the groupings are five. Any grouping
+  holding <i>n</i> alone is rejected. {<i>n</i>·<i>p</i>}, {<i>q</i>}
+  always stands, <i>n</i>·<i>p</i> being the seed's own core — 0/1, and
+  unsplittable since its only split isolates <i>n</i>.
+  {<i>n</i>·<i>q</i>}, {<i>p</i>} stands exactly when <i>n</i>·<i>q</i>
+  has no negative coefficient, its only split isolating <i>n</i> the same
+  way. And the single block
+  <i>n</i>·<i>p</i>·<i>q</i> never stands, {<i>q</i>}, {<i>n</i>·<i>p</i>}
+  splitting it. So <b>the product is non-unique exactly when
+  <i>n</i>·<i>q</i> has no negative coefficient — unless <i>q</i> is
+  <i>p</i> itself, where the two standing groupings are one multiset of
+  blocks and the product is unique.</b> The derivation uses nothing of
+  <i>n</i> and <i>p</i> beyond their signs and the seed's core being 0/1,
+  so it holds at every seed of that shape, whichever side of the pair the
+  seed sits on; and the same five groupings give the sibling — a
+  two-factor core with BOTH factors negative is unique against any
+  single-factor partner, with no scan run.</p>
+
+  <p>The shape is the box's and not one core's. Both seed cores on the
+  two-member side of {2..32} are of it — (1 + <i>x</i>)(1 − <i>x</i> +
+  <i>x</i><sup>2</sup>), shared by {2, 16}, {3, 24} and {4, 32}, and
+  {8, 27}'s <i>x</i><sup>3</sup> + <i>y</i><sup>3</sup> = (<i>x</i> +
+  <i>y</i>)(<i>x</i><sup>2</sup> − <i>xy</i> + <i>y</i><sup>2</sup>), the
+  first two-variable seed core any walk here has had — and 735,357 of the
+  box's 736,281 six-member menus have a single-factor core, so the scan
+  decides the pairing of a two-member seed with a six-member menu at
+  99.87% of the box and the <b>counter</b> — the direct enumeration of a
+  product's factorizations into blocks, which the sweeps run — is
+  spent only on the rest. That is what the wide (2, 6) walk was bought
+  with. And the full-dimension witness is the scan firing: its seed
+  {3, 4, 8, 9, 18, 24} has a two-factor core, its partner {2, 3} the
+  single factor <i>x</i> + <i>y</i>, and <i>n</i>·<i>q</i> there is the
+  second factorization's own six-term factor, nonnegative as written.</p>
+
+  <p class="scope"><b>Scope.</b> Proved at every seed whose core is two
+  irreducible factors with exactly one negative, against every
+  single-factor partner. The <i>q</i> = <i>p</i> clause was found by the
+  counter on a rehearsal box, where the scan without it disagreed at 72 of
+  13,517 pairs, every one a six-member seed with <i>p</i> = 1 + <i>x</i>
+  against a two-member partner of core 1 + <i>x</i>; with the clause, 0
+  disagreements wherever the counter was run alongside — 114,449 pairs in
+  {2..24} and 96,072 in {2..32}. Where the partner's core has two or more
+  factors, or the seed's three or more, the scan says nothing and the
+  counter decides; and the scan decides collision or not and never δ,
+  which needs the factorizations and the faces.</p>
+
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_descent26.py"><code>explore_descent26.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_descent26_wide.py"><code>explore_descent26_wide.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
