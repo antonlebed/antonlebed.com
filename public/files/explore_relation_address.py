@@ -107,8 +107,9 @@ D5  THE SHIFTED MEMBERS ARE NOT ADDRESSES. At r != 0 the image point
     |theta_{D-l}|, its two drops the two codings of -alpha below depth
     D - l, parting at p_1. A window with that inequality at infinitely
     many D (a designed Liouville-type tail) has the drop UNBOUNDED
-    from p_1 + 1, while every periodic window prints it finite with
-    peak l + 1 (explore_limit_maps.py L3): the drop's column is a
+    from p_1 + 1, while the four quadratic windows print the drop by
+    their period finite with peak l + 1 (explore_limit_maps.py L3, a
+    rule at those four cells and no theorem): the drop's column is a
     Diophantine property of the window's quotients, not an address.
     At e - 2, whose quotients grow linearly and sit far below the
     denominators, the sweep never leaves a neighbourhood of 0 and the
@@ -226,8 +227,8 @@ L4  THE DROP IS A DIOPHANTINE PROPERTY OF THE WINDOW (theorem at the
     (j + 1) q_D agreeing to depth exactly D and drops parting at
     exactly 0 = p_1; the control two positions up reads its least
     parting at D + 1, one below the digit. The drop by 1 is unbounded
-    from p_1 + 1 there, at a window where every periodic reading has
-    it finite with peak 2.
+    from p_1 + 1 there, where the three constant-quotient windows,
+    whose period is 1, read the drop by 1 finite with peak 2.
 L5  AT e - 2 THE BIG DIGIT'S REACH IS THE CONSTANT 2 (observation, 20
     positions; the prediction of a growing reach was WRONG). At every
     D = 3m - 2, m = 2..21, the consecutive single-digit pairs' drops
@@ -243,8 +244,10 @@ L6  THE SCAN, RECORDED (observation at scanned scope). The drop by 1's
     l + 1 = 2, one flat and one growing, and the paper decides neither
     -- the paper's lean (a rise at e - 2) did not print. Whether the
     drop's column is finite at a window whose quotients are unbounded
-    yet far below its denominators is OPEN; the theorem covers the
-    two ends, periodic (finite) and Liouville-type (unbounded).
+    yet far below its denominators is OPEN; the two ends read are
+    the drop by the period at the four quadratic windows (finite, a
+    rule at those cells) and the Liouville-type tail (unbounded, the
+    theorem of D5).
 
 THE READING. One principle decides every shift-free relation at every
 irrational window: the image point is an affine map of the input point
