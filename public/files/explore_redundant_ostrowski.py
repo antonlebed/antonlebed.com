@@ -86,6 +86,24 @@ H3' WHAT H3 READS, AND WHAT IT DOES NOT (the re-derivation, and it
     the opponent choosing quotients -- x 2 at s = s_0 = 1 reads at 2
     at every window with quotients <= 3, x 3 at 3 over quotients <= 2;
     open at unbounded quotients.)
+    (AND NARROWED FURTHER, explore_completion_reader.py. H3 is an upper
+    bound on the completion reader and it stands as stated, but it is
+    LOOSE in both of its estimates: the residual arc is bounded here by
+    2m|theta_{L+c}| where the exact width is m(|theta_{L+c}| +
+    |theta_{L+c+1}|), and the fit is read by a ratio test on |theta|
+    where the exact quantity is the overlap itself. Rebuilt with true
+    widths the same bound beats this one at 89 of the grid's 120 cells,
+    by 2 at 30 and by 1 at 59, and is never above it. Even then it is
+    NOT that reader's minimum: at the 15 cells where the digitwise
+    writing fits, the reader reads 0 while the true-width bound reads 1
+    at nine of them and 2 at one -- a condition quantified over every
+    placement cannot see winning placements that are isolated points,
+    which is what the digitwise identity makes them. So the necessary
+    side of the overlap condition is not the overlap condition. The
+    completion reader's minimum is measured there directly instead, by
+    an interval game with no box in it, and the distance from it up to
+    the integer reader is the flush's price, printed per cell by
+    explore_flush_price.py.)
 H4  THE FLOORS DO NOT DISSOLVE. D6's jump sends two input tails
     converging to one non-cut input point to images a fixed rotation
     apart; a reader at any lookahead gives them a common output prefix
