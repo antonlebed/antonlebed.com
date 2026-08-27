@@ -203,8 +203,10 @@ F3  WHAT DECIDED THEM, BY ROUTE. At the final lookahead, 8 of the 10
     5 of the 10 (two wins, three losses) and the other 5 were decided
     by a certificate the parent held and read as "open".
 F4  P2 HOLDS: the verdict at c_comp + 1 is a WIN at all ten, by the
-    full fixpoint every time. No closure truncated anywhere in the run
-    (the largest is 727 nodes, at V2 x5 (0,1), c = 4).
+    full fixpoint every time. No closure truncated at any of the ten
+    (the largest is 727 nodes, at V2 x5 (0,1), c = 4); in the control
+    a truncation would have printed as an open cell against a decided
+    parent, and none did.
 
 TIER. F2 is an exhaustive computation at the ten cells, exact in
 Q(sqrt Disc), each lookahead decided by a certificate (a loss from an
