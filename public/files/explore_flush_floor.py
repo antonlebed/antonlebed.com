@@ -210,8 +210,13 @@ F2 and F3 are exhaustive computations at the cells named. F4 is an
 OBSERVATION at 130 cells: both sides are proved lower bounds and the
 equality has no proof of sufficiency under it; L* is read over tails
 to length P + 2, a truncation, and where c_int = L* > c_saf that
-truncation is exact by F4 itself. F5 is six cells confirming a
-derivation.
+truncation is exact by F4 itself. (SETTLED since, explore_flush_law.py:
+L* is computed with no tail length in it, by the subset automaton of
+the game -- the reader shown the whole input, from a flushed state --
+and the truncation agrees with it at 128 of the 130 cells, reading 2
+for 4 at golden x3 (0,1) and sqrt3-1 x4 (0,1), both under c_saf = 5;
+F4's equality and its counts stand, and stand at 153 cells since.)
+F5 is six cells confirming a derivation.
 """
 
 import os
