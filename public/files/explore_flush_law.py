@@ -101,7 +101,8 @@ explore_flush_floor.py's. Nothing here re-derives them; the automaton
 is built from Game.step and the box is Game's own.
 
 PREDICTIONS, FIXED BEFORE THE RUN (observables -- what the rig PRINTS,
-never what they would mean).
+never what they would mean; P3's tally is per process, s1's over the
+130 and one line per band cell, and summed by hand in F4).
   C1 (controls, run FIRST; nothing below is read if any leg is red)
      (a) THE AUTOMATON AGAINST THE DECIDER. At every window, at
          several (s, s_0, m) and level drops l, for every legal tail
@@ -150,9 +151,10 @@ ceiling refuses the game of.
 FINDINGS (entered post-run; every number below sits in this file's
 printed output. Runs under memwatch at the 512 MB default, peaks as
 WORKING SET: s0 in 22 s at 104.0 MB; s1 in 193 s at 348.8 MB; the band
-one cell per process, 23 decided between 6 s / 91.7 MB (bronze x4 s=7)
-and 68 s / 474.3 MB ([4] x5 s=12), the highest peak 503.1 MB at [5] x4
-s=9, the period-4 cells spending 69-201 s in the bounds alone; NINE
+one cell per process, 23 decided, walls from 6 s ([4] x3 s=6) to
+203 s (V2 x5 s=9, the period-4 cells spending 69-201 s in the bounds
+alone), peaks from 91.7 MB (bronze x4 s=7) to 503.1 MB ([5] x4 s=9);
+NINE
 cells KILLED at 512-530 MB commit -- V2 x5 at s = 10, 11; [5] x5 at
 s = 9, 10, 11, 12; [5] x4 at s = 10, 11, 12 -- and re-run with
 LAW_GAMES=0: the bounds print at seven of them (28-74 s, under 181 MB)
@@ -186,9 +188,12 @@ F3  THE BAND (P2). No kill. At all 23 decided cells c_int = 2 =
     the nine refused are the x4 and x5 cells of [5] at s >= 9 and of
     V2 at s >= 10, and L*_inf = 2 at seven of those too, the two V2
     x5 cells unread even there.
-F4  THE TALLY (P3). Over the 153 decided cells c_int - max(c_saf,
-    L*_inf) is 0 at every one; c_int = c_saf at 91, = L*_inf at 117,
-    both at 55.
+F4  THE TALLY (P3), SUMMED and not printed: the rig prints s1's tally
+    over the 130 and one line per band cell, a band cell being its own
+    process, so the 153-cell figures are s1's plus the 23 lines. Over
+    the 153 decided cells c_int - max(c_saf, L*_inf) is 0 at every one;
+    c_int = c_saf at 91 (none of the 23), = L*_inf at 117 (all of
+    them), both at 55.
 
 TIER. H2-H3 are a PROPERTY: L* is the clairvoyant reader's lookahead
 from a flushed state, and the automaton decides it exactly, its
