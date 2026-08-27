@@ -267,7 +267,14 @@ WHAT SURVIVES, AND IT IS A SPLIT THE CELL DID NOT HAVE.
       at c = 3/2, mod 60. The census path is positive-controlled first:
       the same code reports five never-hit classes mod 6 on the starved
       supply and exactly {4} mod 6 on the sqrt pole, which are the two
-      exclusions the corpus already owns.
+      exclusions the corpus already owns. (Settled later,
+      explore_first_hit_bound.py: two of these four powers, c = 5/2 and
+      7/3, sit ABOVE the sqrt pole, where every window is attained,
+      multiplicity is unbounded and the coverage lemma already decides
+      the question with a computable bound -- the sentence "mu below
+      one across the whole cell" above is c = 3/2's and is false there.
+      The open cell is c in (1, 2); this census stands inside it at 3/2
+      and 5/3, and that script widens it to 4/3 and 7/4.)
 
 TWO FREEZE ERRORS, both caught by the run and both worth their space.
   PR2's second clause ("at most two distinct delta values in any 50

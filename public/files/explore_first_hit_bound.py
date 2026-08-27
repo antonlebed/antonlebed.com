@@ -213,7 +213,10 @@ exactly (p - 1)/2 classes mod p at every odd prime p <= 60 not dividing
 its delta, 14,809 block-prime pairs and none off -- the class of words
 the block structure defines contains members that miss classes, so a
 statement over block parameters alone is false and coverage, where it
-holds, is carried by the jitter, which is the offset's choice. And the
+holds, is carried by the jitter, which is the offset's choice. Nor
+does bounding the block length rescue it (added after the run): with the
+jitter ALTERNATING, every block of length 2, 2,790 of 3,200
+block-prime pairs over the first 200 blocks still miss a class. And the
 offset is the whole of the arithmetic: t_{n+1} = top(d_n) - o_n with
 0 <= o_n <= w(d_n) - 2 at all 99,998 landings, and the countdown-and-
 refill recurrence -- o_{n+1} = o_n - d_n + top(d) - top(d_n) - (d -
@@ -260,8 +263,9 @@ the word's tuple (t, d) carries the gap that PRODUCED t, the sibling's
 own convention block says so, and the first run failed the identity at
 every landing -- the offset of t is read against the landing before it.
 
-RUN RECORD. 32/32 CHECKS PASS, 7.5 s wall clock; 38.1 MB peak working
-set against the 512 MB ceiling (memwatch). Predictions as frozen: PR1
+RUN RECORD. 33/33 CHECKS PASS (32 frozen plus the one added after), 8.9 s
+wall clock; 40.1 MB peak working set against the 512 MB ceiling
+(memwatch). Predictions as frozen: PR1
 confirmed; PR2 confirmed at all three powers; PR3 confirmed on the
 time bound at every L and on the index bound where reached, after the
 freeze error above; PR4 confirmed at all four powers; PR5 confirmed;
@@ -534,6 +538,30 @@ def s3_block_control(word32):
     lens = [b[1] for b in bl]
     note(f"block lengths over these: mean {sum(lens) / len(lens):.2f},"
          f" max {max(lens)} -- against p up to 59")
+    # ADDED AFTER THE RUN (not among the predictions fixed before it):
+    # the real word's blocks
+    # are short, so a reader may add "blocks of bounded length" to the
+    # class and ask again. Continue each block with its jitter
+    # ALTERNATING -- delta, delta + 1, delta, ... -- so every block has
+    # length 2, and count the block-prime pairs still missing a class
+    # over 8 p^2 landings. No band is placed; the count is printed and
+    # the finding reads it.
+    miss = 0
+    pairs2 = 0
+    for b in bl[:200]:
+        t0, d0, delta = b[2], b[3], b[4]
+        for p in primes:
+            t, d, seen = t0, d0, set()
+            for j in range(8 * p * p):
+                seen.add(t % p)
+                t += d
+                d += delta + (j & 1)
+            pairs2 += 1
+            miss += len(seen) < p
+    ok(miss > 0, f"alternating jitter (every block of length 2): {miss} of"
+       f" {pairs2} block-prime pairs over the first 200 blocks still miss"
+       " a class -- bounded block length does not rescue the counting"
+       " route")
 
 
 # ---------------------------------------------------------------- #
