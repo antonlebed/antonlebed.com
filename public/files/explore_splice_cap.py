@@ -49,8 +49,8 @@ DERIVATION rather than a guess.
     per-item clock, and the bar is more generally the door of the LAST step
     wider than the tail, e + w being the family's one-overshoot case. And
     one step further, explore_born_set.py: the witness lives on the exact
-    ladder alone -- wherever a door of width 2 or more stands before the
-    tail, a rival opened at the discount cannot pass that door before the
+    ladder alone -- wherever the ladder carries a door of width 2 or more
+    at all, a rival opened at the discount cannot pass that door before the
     born degree opens, and the born degree then overtakes it under the
     degree, door and tie hypotheses with no born condition consulted, so
     "always" is right at every ladder whose census is non-empty.]

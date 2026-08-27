@@ -66,8 +66,8 @@ THE HAND-ATTACK, on paper before any engine code.
      and the tail first, recurs at price(1, tail), and every rival's door
      prices at or above it, tying at best and losing the tie: (1, 0) is
      the unique runaway. WHAT THE LEMMA NEEDS OF THE LADDER: that x1
-     exists -- some door of width 2 or more stands between the discount
-     and the tail. The one ladder with no such door is the exact ladder,
+     exists -- the ladder carries a door of width 2 or more at all, the
+     tail's own step included. The one ladder with none is the exact ladder,
      every positive integer a member, gap 1 for ever; there the bar is the
      tail door 1, the census is empty, and a rival whose discount undercuts
      the born opening runs away at price(d, 1) with (1, 0) never opening.
@@ -254,9 +254,9 @@ F6 COARSER CLOCKS AGREE (S6, PR6). At the standing price the strand set
    by five partitions, every cell settled.
 
 THE VERDICT. The born opening grades the runaway's NAME on the exact
-ladder and nothing else anywhere. Where any door of width 2 or more stands
-between the discount and the tail -- every ladder but the all-integers
-one -- the born degree is the unique runaway under degree-monotonicity,
+ladder and nothing else anywhere. Where the ladder carries any door of
+width 2 or more, the tail's own step included -- every ladder but the
+all-integers one -- the born degree is the unique runaway under degree-monotonicity,
 door-monotonicity and the tie order alone, by the overtaking lemma of (c),
 and the walk prints its census whether or not a discount undercuts the
 born opening; on the exact ladder the census is empty, so the identity's
