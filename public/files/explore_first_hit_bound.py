@@ -96,10 +96,11 @@ input fails alone. Three inputs are available.
   the run of floor(d^c) differences across the skipped windows, and
   o_n mod L reads the fractional structure of d^c at the selected d
   at resolution 1/w(d_n). The step no elementary argument supplies:
-  that the offset's residue mod L, along the orbit's self-selected
-  sparse set of windows, takes every value -- a joint distribution
-  statement about {d^c} and the orbit's position, which is
-  equidistribution input and not a counting statement. The sibling's
+  that top(d_n) - o_n mod L -- the window top's residue less the
+  offset's -- takes every value along the orbit's self-selected sparse
+  set of windows: a joint distribution statement about floor(d^c) and
+  the orbit's position inside its window, which is equidistribution
+  input and not a counting statement. The sibling's
   "L H_L fits in range" was the shadow of this: the residue behaves as
   a fresh draw because the offset is a fresh digit at each landing.
 
@@ -217,9 +218,11 @@ offset is the whole of the arithmetic: t_{n+1} = top(d_n) - o_n with
 0 <= o_n <= w(d_n) - 2 at all 99,998 landings, and the countdown-and-
 refill recurrence -- o_{n+1} = o_n - d_n + top(d) - top(d_n) - (d -
 d_n) at the least d making it nonnegative -- reproduces (d_{n+1},
-o_{n+1}) at every one. What a proof needs is that o_n mod L takes
-every value along the orbit's own sparse set of windows. It does, as
-far as measured: the census of o_n mod 6 is 16,881 / 16,554 / 16,669 /
+o_{n+1}) at every one. What a proof needs is that top(d_n) - o_n mod L
+takes every value along the orbit's own sparse set of windows, and
+the offset is the half of that pair the arithmetic does not hand over
+in closed form. It is distributed as a fresh draw, as far as measured:
+the census of o_n mod 6 is 16,881 / 16,554 / 16,669 /
 16,642 / 16,652 / 16,600 (every class within 1.3% of uniform), mod 60
 within 5.4%, and the normalized offset theta_n = o_n / (w(d_n) - 1) is
 uniform on [0, 1) to Kolmogorov distance 0.0030 with mean 0.4989. That
