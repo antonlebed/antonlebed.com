@@ -180,6 +180,11 @@ F5  WHAT SURVIVES. Two statements, and they are not equally strong.
     the terminal condition is exactly what forbids lookahead 1: the
     safety reader does read there and the flush is the whole of what
     denies it. This does not depend on any regularity in the price.
+    (SETTLED, explore_flush_floor.py: the floor is a RULE, proved --
+    the flushed state is the exposed one, and a late digit at its cap
+    needs the two levels below it -- and c_int = max(c_saf, L*) at all
+    130 cells, L* the flushed-state bound, which is where the (4, 3)
+    cells of (b) come from.)
     (b) THE WEAKER ONE, and the capped first pass overstated it. Where
     the price is nonzero the integer reader lands on 2 at 37 of 39
     cells; the two exceptions are V1 (1,1,1,2) x5 at (1, 0) and (1, 1),
