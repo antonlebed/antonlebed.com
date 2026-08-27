@@ -207,7 +207,11 @@ cell by the parent's own h3_bound. F2's emptiness at the published grid
 is exhaustive over that grid. F3 is an observation at ten cells: the
 automaton is exact at a periodic window, so each cell is decided, but
 ten cells decide ten cells. "No cell reads at 1" is a PATTERN and this
-rig does not make it a rule.
+rig does not make it a rule. (SETTLED, explore_flush_floor.py: it is a
+RULE, proved at every periodic window -- the flushed state is the
+exposed one, and a late digit at its cap needs the two levels below it
+-- and the band cells are its sharpest exhibit; every figure above
+survives at its own scope.)
 """
 
 import os

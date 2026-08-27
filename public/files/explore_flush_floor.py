@@ -58,7 +58,9 @@ H3  FROM LEVEL k - 1 THE VALUE N q_k HAS ONE CAPPED STRING, e_k = N.
 H4  IN THE GAME'S OWN TERMS this is: at lookahead <= 1 every state
     holding the branch (0, 0) is doomed -- under zero input its play
     is forced (a positive digit makes the integer residual negative,
-    never codable again) and the adversary waits for the phase with
+    and with the input staying zero a negative residual never returns
+    to 0, so the flush is lost from there) and the adversary waits for
+    the phase with
     (m - 1) a_{k+1} > s -- so the flush refinement's target set Z is
     empty in the final fixpoint and W with it. That is the
     ANNIHILATION s3 of the parent printed at two cells, and it should
@@ -162,7 +164,7 @@ the band cells built to LOOKCAP; s4 in 1 s at 26.7 MB. Nothing ran
 bare and nothing was killed. One rig fault fixed between the first and
 the second s3 run, recorded at H7: the deep index.)
 
-F1  THE CONTROLS HOLD (C1a-C1e, 0 bad each). The decider agrees with
+F1  THE CONTROLS HOLD (C1a, C1b, C1c and C1e, 0 bad each). The decider agrees with
     an explicit enumeration at every window, level and value tested;
     L1 = L* = 0 at all 15 digitwise cells; the bounds read the same
     at k and k + P at all 130; and c_int >= max(c_saf, L*) at all 130.
@@ -183,7 +185,8 @@ F3  THE WITNESS INSIDE THE GAME (P2). V1 (1,1,1,2) x3 (3,3): 703 safe
     holders, all 7 after the digit 2. At all three the decider reads
     m a q_k uncodable from level k - 1 and codable from k - 2 (l = 2).
 F4  THE BOUND IS THE READER'S LOOKAHEAD (P3). c_int = max(c_saf, L*)
-    at ALL 130 cells. Alone, c_int = c_saf at 91 and c_int = L* at 94;
+    at ALL 130 cells: c_int = c_saf at 91 of them and c_int = L* at 94,
+    both at 55;
     c_int - L* is 0 at 94, 1 at 30, 2 at 4 and 3 at 2. The tail bound
     exceeds the single-digit one at six cells, 4 against 2 at every one
     -- golden x4, sqrt3-1 x5, V1 x3 and V2 x4 at (0, 1), and V1 x5 at

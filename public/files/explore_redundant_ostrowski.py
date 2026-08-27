@@ -234,7 +234,12 @@ F6  THE FRONTIER (P5 and what the grid shows unasked). Golden x 2 at
     reason the pattern needed cells on the other side of the crossing:
     explore_lookahead_band.py). Below the digitwise line
     the floor of the frontier is 2, held by silver and bronze at every
-    m >= 3 across s = 1..3.
+    m >= 3 across s = 1..3. (SETTLED, explore_flush_floor.py: "no cell
+    at 1" is a RULE at every periodic window, and the digitwise line's
+    s_0 half is not needed -- c_int = 0 at s >= (m - 1) a_max whatever
+    s_0, position 0's overflow spilling up into q_1; the grid's reading
+    of the s_0 condition was true of the grid, which has no cell with
+    s >= (m - 1) a_max and s_0 short.)
 """
 
 import os
