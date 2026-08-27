@@ -270,7 +270,13 @@ F7  WHAT THE INSTRUMENT COSTS, AS A SCOPE AND NOT AN APOLOGY. The two
     under one lift exhibited. What sits between them is undecided, and
     10 of the 120 grid cells sit there -- eight at (s, s_0) with
     s_0 < s or s_0 > s, two at (3, 3) for x5. They print "open" and are
-    not read (P4).
+    not read (P4). (SETTLED, explore_completion_lift.py: all ten decide
+    under the mod-1 reading, each input taking its own lift, and every
+    one reads c_comp = c_saf. Five of them were certificates this rig
+    held and read as open -- an untruncated point-game loss is the
+    exact reachable game's verdict, and play() discards it -- and five
+    needed the wrap. The scope of this file's verdicts is unchanged;
+    the ten are decided there.)
 
 TIER. F2 and F3 are exhaustive computations at the cells named, exact in
 Q(sqrt Disc) with no tolerance anywhere. F4 and F5 are OBSERVATIONS at
