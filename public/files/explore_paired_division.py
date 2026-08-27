@@ -460,7 +460,10 @@ THE FINDINGS.
       the scale that matters with the two large strata carrying it and
       two small ones not, and its SIZE is not established at either:
       nothing here derives 0.865 from 0.386, and that derivation is
-      what would close it.
+      what would close it. (Derived since: explore_first_hit_survival.py
+      reads the index at every index scale rather than at these two and
+      returns the measured first hit at every stratum; the two readings
+      above stand as the two scales they are.)
 
   F6. THE FLOOR IS PRICED ONLY AS SHARPLY AS A STRATUM SHARES ONE
       (observation, 1217 imaginary fields; P5 KILLED, and killed in the

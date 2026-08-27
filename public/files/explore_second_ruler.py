@@ -118,7 +118,12 @@ undecidability citations cannot be run, everything else asserts):
     debris coefficients are not freely choosable and the compilation
     is open. This script verifies the gadget algebra and the wall's
     exact shape; whether two places at two ratios reach full
-    universality is the named open edge.
+    universality is the named open edge. (Closed since:
+    explore_two_place_universality.py -- a CYCLIC move pattern drops
+    the form by a constant per cycle and fires for every u, so a
+    residue is read at the cost of a junk factor and two places at two
+    ratios are universal; the cone lemma and this gadget's wall stand
+    as stated, the wall being the one-walk pattern's alone.)
 
 CITED, NOT RUN (undecidability cannot be run): Minsky 1967 (two-counter
 universality; halts-iff-even witness), one-counter decidability
@@ -212,7 +217,9 @@ FINDINGS (all five predictions confirmed; tiers stated per claim).
     in range): the else branch destroys the exponent encoding.
     Whether the resulting generalized-Collatz family (Kurtz-Simon
     territory) can be compiled to a universal instance at two places
-    and two ratios is the named open edge.
+    and two ratios is the named open edge. (Closed since, universal:
+    explore_two_place_universality.py; the wall here is this
+    pattern's, not the door's.)
 
  5. THE NO-DECREMENT LAW HELD THROUGHOUT (audited: the runner's only
     mutation is INC's depth += 1; N strictly increases at every move
