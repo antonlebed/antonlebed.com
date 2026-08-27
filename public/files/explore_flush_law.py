@@ -87,8 +87,8 @@ H5  WHERE IT CAN BLOW UP. (a) The subset automaton's states are unions
     corpus's heaviest decided cell, [5] x3 s = 9 at cap 14, peaked at
     410 MB, so some of the 32 will not fit under 512 MB. Each cell is
     its own process under memwatch; a killed cell is reported UNRUN
-    and never re-run wider, the aim forbidding a widening for a
-    pattern. Cells are ordered by cap a_max + s and m, cheapest first.
+    and never re-run wider: a wider run there buys a pattern and
+    not a verdict. Cells are ordered by cap a_max + s and m, cheapest first.
     (c) c_int is searched to LOOKCAP = 3 as the band rig did (H3 of
     the parent bounds the completion reader and no integer one), and a
     cell reading "-" at 3 with c_saf and L*_inf both <= 3 is a KILL
