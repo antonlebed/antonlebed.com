@@ -66,7 +66,10 @@ H2  WHAT c_saf IS NOT, AND WHICH WAY THE ERROR RUNS. c_saf is not the
     survives as an observation and has no proof under it: c_comp,
     measured by an interval game with no box in it, EQUALS c_saf at all
     110 grid cells where both read and at all eleven cells priced below,
-    never above and never below. So the prices printed here understate
+    never above and never below -- and at the ten grid cells that game
+    left open, decided since under the circle's own lifts
+    (explore_completion_lift.py): 130 cells, none undecided. So the
+    prices printed here understate
     nothing -- they are the gap wherever the gap can be checked. (The
     tempting version of the dead argument -- "safety inside the box
     implies safety, so c_saf bounds the UNCONFINED safety minimum" -- is
