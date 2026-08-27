@@ -98,12 +98,12 @@ H3' WHAT H3 READS, AND WHAT IT DOES NOT (the re-derivation, and it
     writing fits, the reader reads 0 while the true-width bound reads 1
     at nine of them and 2 at one -- a condition quantified over every
     placement cannot see winning placements that are isolated points,
-    which is what the digitwise identity makes them. So the necessary
-    side of the overlap condition is not the overlap condition. The
-    completion reader's minimum is measured there directly instead, by
-    an interval game with no box in it, and the distance from it up to
-    the integer reader is the flush's price, printed per cell by
-    explore_flush_price.py.)
+    which is what the digitwise identity makes them. So the NECESSARY
+    side of this bound is not the overlap condition. The completion
+    reader's minimum is measured there directly instead, by an interval
+    game with no box in it, and wherever both are decided the distance
+    from it up to the integer reader is the flush's price, printed per
+    cell by explore_flush_price.py.)
 H4  THE FLOORS DO NOT DISSOLVE. D6's jump sends two input tails
     converging to one non-cut input point to images a fixed rotation
     apart; a reader at any lookahead gives them a common output prefix
