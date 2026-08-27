@@ -314,6 +314,16 @@ F6 K4 FIRES: STEP B NEEDS THE BORN OPENING, A PRICE HYPOTHESIS OF THE
    file leaves, and it is stated in the mechanism's own quantity -- a cell
    with a non-empty census, a bar strictly above the tail, and a degree
    whose fresh discount undercuts the born opening.
+   [SETTLED SINCE, explore_born_set.py: that cell was never absent -- 25
+   of them sit inside this file's own roster (Q_2 w1 under d * s^2 the
+   smallest, census 2 at depth 2), and at every one the riser is (1, 0)
+   and the walk prints its census. The reason is a derivation on H1, H3
+   and H4 alone: a rival opened at the discount cannot pass any door of
+   width 2 or more before the born degree opens, and from there the born
+   degree overtakes it. So H5 grades the runaway's NAME on the exact
+   ladder only, where the census is empty, and the identity's hypotheses
+   are THREE. The born dial itself moves nothing: born = () leaves the
+   strand set unchanged at every settled cell.]
 
 THE VERDICT. The repaired derivation does NOT close on four hypotheses. Of
 its five STEPS, three (the frozen door, the bar, and frozen-after) hold

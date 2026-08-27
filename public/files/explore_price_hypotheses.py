@@ -324,7 +324,12 @@ own:
   the walker sends a tick to the least member at or above the depth just
   landed on, a tick is already a member and next_at is monotone, so no
   ladder whatever can lower a door. What reads above as untested for want
-  of a violating ladder is unfalsifiable inside this walker.]
+  of a violating ladder is unfalsifiable inside this walker. And the born
+  condition turned out to grade the runaway's name on the exact ladder
+  only, where the census is empty (explore_born_set.py): everywhere a
+  door of width 2 or more stands before the tail, the born degree
+  overtakes any discounted rival under H1, H3 and H4 alone, so the
+  identity's hypotheses are the three named here less the ladder's.]
 
 Unboundedness in the door is NOT among them. Rule in range for the
 sufficiency reading (eight prices x ten ladders, which is evidence and not
