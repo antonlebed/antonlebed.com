@@ -167,7 +167,8 @@ replies below the tail left free.)
 F1  THE CONTROLS HOLD. C1a: 0 bad of 13,856 (tail, level-drop) pairs
     over the eight windows, four (m, s, s_0) cells each and l = 0..3 --
     the automaton and the decider agree in both directions, so the box
-    prunes no accepting string. C1b: 0 bad at 130 -- L*_inf between
+    prunes no accepting string (l = 4, which two cells of F2 read, is
+    one more forced zero on the same path). C1b: 0 bad at 130 -- L*_inf between
     L*_{P+2} and c_int at every cell.
 F2  THE UNTRUNCATED BOUND (P1). L*_inf = L*_{P+2} at 128 of the 130
     cells and RISES at two, from 2 to 4 at golden x3 (0, 1) and
