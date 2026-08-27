@@ -33,7 +33,9 @@ FINDINGS (run at N = 5*10^7, 3,001,134 rungs):
      Density per decade falls only logarithmically: 25.2% (10^4) ->
      19.7% (10^7..5*10^7) -- a slow log decay, not a die-out.
   3. (observation) Mean multiplicity is SCALE-INVARIANT: f per rich
-     rung = 1.93-1.94 in every decade from 10^4 to the horizon.
+     rung = 1.93-1.94 in every decade from 10^4 to the horizon
+     (explore_rich_rung_constants.py: the independence model's own
+     number to 0.4%, drifting down about 0.005 per decade).
      Champion f = 33 at p = 45,239,039 (p+1 = 2^8 * 3^3 * 5*7*11*17);
      highly composite p+1 keeps paying.
   4. (observation) Rich rungs OUTNUMBER twin rungs 2.51x at the
@@ -46,7 +48,8 @@ FINDINGS (run at N = 5*10^7, 3,001,134 rungs):
      measured representation count at ratio 0.994-1.013 in every
      decade past 10^3 (1.000 at the horizon). The shape constant
      C = reps(x) * (ln x)^2 / (x * lnln x) holds at 2.53-2.58 across
-     five decades; the pair supply grows ~ x*lnln(x)/ln(x) and the
+     five decades (explore_rich_rung_constants.py: the finite-x
+     reading of 2 C_2 prod (1 + 1/((l-1)(l-2))) = 2.301); the pair supply grows ~ x*lnln(x)/ln(x) and the
      expected representation count ~ x*lnln(x)/(ln x)^2 -> infinity,
      so the model says the census never dries up: infinitely many
      rich rungs, a CONJECTURE with heuristic support. It is implied
