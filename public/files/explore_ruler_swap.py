@@ -240,6 +240,11 @@ WHAT THIS LEAVES OPEN: whether the grading by lightest mass has a closed
 form -- a threshold in the slack 1 - w_min - T at which the rest must hold
 a tradable pair -- and what exchange rescues the clean vectors the swap
 does not, the (8, 8, 12, 12) permutations at four atoms first.
+(Settled since: explore_ruler_multiswap.py names the exchange -- the
+set-valued swap, a serving optimum the abandoning one dominates on the
+partners, rescuing every abandoning optimum at every clean vector at both
+arities and both targets, and the mass condition above is an EQUALITY at
+an optimum; the closed form in the slack above zero stays open.)
 """
 
 import itertools
