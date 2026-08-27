@@ -336,7 +336,10 @@ family generates make it a tie. So the list is FIVE properties of which
 only FOUR are hypotheses: H2 is a property of the walker's landing rule,
 unfalsifiable by any ladder, and the corpus's record of it as the one
 hypothesis lacking a witness was reading an impossibility as a gap in the
-sweep. Nothing on the LADDER axis is needed at all, which is the sweep's
+sweep. [And FOUR is THREE since, explore_born_set.py: the born opening
+decides the runaway's name on the exact ladder alone, where the census is
+empty, so it is not a hypothesis of the identity -- see F6's settling
+note.] Nothing on the LADDER axis is needed at all, which is the sweep's
 other half: the identity survives every ladder the arithmetic family
 cannot produce, and the corpus's bar formula is correct for a reason --
 one overshoot -- that a general ladder does not supply.
