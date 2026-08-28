@@ -229,7 +229,11 @@ mean, so the coverage condition returns; whether it can be bounded by
 the slack (dropped coverage <= w_r top_s(r) + D_R with D_R <= sigma) into
 a threshold is the closed form still owed. And the GAIN cases' own
 lemma, if one exists: the exhibit's exchange trades one heavy label for a
-light row plus a middle label, and its shape is unread.
+light row plus a middle label, and its shape is unread. (Settled later
+by explore_ruler_gain.py: every serving optimum is this exchange with
+SIGNED mass conservation, and below the clean band the dominated one is
+absent mostly because no drop-set has the mass -- the arithmetic
+obstruction; the slack threshold stays owed.)
 """
 
 import itertools

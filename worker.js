@@ -102,6 +102,7 @@ export default {
       '/learning/seeds': 'seeds',
       '/learning/audits': 'audits',
       '/learning/sets': 'sets',
+      '/learning/swap': 'swap',
       '/learning/ceilings': 'ceilings',
       '/learning/uncertainty': 'uncertainty',
       '/claims': 'claims',
