@@ -193,7 +193,8 @@ observed steps) stays open beyond the chart.
 (SETTLED FURTHER SINCE, by explore_flatten_offchart.py: the law
 below is re-established on the INVERSE dial -- h(M, J), the least height
 at width M and depth J -- exhaustively at all 63 cells M <= 12 and so at
-every height there rather than the four this chart reached, and confirmed
+every height there, where this chart reached k <= 4 at the widest of
+them and no higher than k <= 10 anywhere, and confirmed
 at 18 cells out to M = 30, all at h = 2 and all past this chart's k = 2
 reach of M <= 16. The incumbent contact below is superseded too: the
 diagonal is OEIS A059753, known and minimal to n = 14, and pure products
