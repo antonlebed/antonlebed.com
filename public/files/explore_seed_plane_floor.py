@@ -149,6 +149,9 @@ without P4 and P5, printed the same P0-P3 figures at 9 of 9 checks in
       times 1 + x^3) whose negative factor is 1 - x + x^2. So the plane's
       least free size stays 6 in the swept boxes: size 4 closed here, size
       5 empty in {2..24}, size 6 attained by the two torsion witnesses.
+      (Size 5 since decided past those boxes by explore_seed_pentanomial.py:
+      a torsion-free negative factor at size 5, beside a rooted one; free
+      outright at five stays open.)
   F2  EVERY ONE OF THE 43 HAS A BINOMIAL COFACTOR (observation, this box),
       so the hand argument (4) reaches the whole census and every verdict
       is a PROPERTY as well as a print: the 41 two-factor cores are
