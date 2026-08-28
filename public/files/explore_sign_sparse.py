@@ -185,9 +185,13 @@ are RUNS of consecutive reachable integers, and
 interval J meets A iff J contains an endpoint of H (both lie in A, as the
 fixed points of the extreme maps), or J = int H, or for some digit d the
 interval b*J - d meets A; J disjoint from H does not. Lengths grow by b
-per level, so the recursion terminates. A gap of A holding a unit
-interval must be a level-1 gap (level-k gaps are b^k times shorter), so a
-merge needs Delta - L >= b, and none exists at b = 2.
+per level, so the recursion terminates. The level-1 gaps are the longest
+gaps of A, of length (Delta - L)/b, so a merge needs Delta - L >= b, and
+none exists at b = 2. (This paragraph as frozen said a unit interval must
+sit in a LEVEL-1 gap; a level-k image of a level-1 gap has length
+(Delta - L)/b^k and can hold one once Delta - L >= b^k, outside this
+sweep -- the witness and the criterion's closed form are
+explore_sign_window.py.)
 
 PREDICTIONS, fixed here.
   Q1 At every cell of the extended sweep the minimized count equals the
