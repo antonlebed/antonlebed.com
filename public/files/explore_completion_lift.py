@@ -214,7 +214,8 @@ exact finite game or an empty fixpoint, a win from an exhibited
 strategy or a full fixpoint). The equality c_comp = c_saf is an
 OBSERVATION at 120 grid cells and 10 band cells, 130 in all, with no
 mechanism derived and none claimed; the inequality c_comp <= c_saf
-stays without proof. F3 is a reading of this rig's own routes and
+stays without proof (settled since by explore_flush_theorem.py: proved
+at every periodic window). F3 is a reading of this rig's own routes and
 claims nothing beyond them.
 """
 

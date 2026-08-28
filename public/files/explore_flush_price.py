@@ -63,7 +63,9 @@ H2  WHAT c_saf IS NOT, AND WHICH WAY THE ERROR RUNS. c_saf is not the
     completable branch at all in 300 of 300 runs -- and the box's own
     margin over completability is printed there, so the reading is
     safety's and not the pruning's. The INEQUALITY
-    survives as an observation and has no proof under it: c_comp,
+    survives as an observation and has no proof under it (settled
+    since by explore_flush_theorem.py: proved, both ways, at every
+    periodic window): c_comp,
     measured by an interval game with no box in it, EQUALS c_saf at all
     110 grid cells where both read and at all eleven cells priced below,
     never above and never below -- and at the ten grid cells that game

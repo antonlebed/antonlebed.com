@@ -285,6 +285,9 @@ for the equality and none is claimed -- that c_comp and c_saf agree
 everywhere they are both read is a fact about 110 cells, not a law. F6
 is a KILL of an argument and needs only its one witness; the inequality
 it argued for is left standing as an observation with no proof under it.
+(Settled since by explore_flush_theorem.py: c_comp = c_saf is a theorem
+at every periodic window, the state being a finite set of lift branches
+and any level-scaled box forcing a surviving branch's residual to 0.)
 The 10 undecided cells are stated as undecided and nothing is inferred
 from where they fall.
 """
