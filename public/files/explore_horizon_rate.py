@@ -99,7 +99,11 @@ F3 (pattern, the drop). Mean ln D_k over k = 13..60 is 2.869 against
    M0's 2.665 -- P3's 1.0-nat band met, its one-sided clause NOT met:
    measured sits 0.204 ABOVE the upper model, one standard error (near
    0.2 from 48 rungs), so the composite route is invisible at this
-   sample and M0 reads slightly generous rather than short. D_k = 1 at
+   sample and M0 reads slightly generous rather than short. (Settled by
+   explore_horizon_route.py, which counts the route -- it attains the
+   horizon at 2 of 58 rungs -- and prices the residual at 1.2 of the
+   model's own sd of the mean, 0.179, the empirical 0.187: noise. What
+   survives here is the certificate, the rate and M0's figures.) D_k = 1 at
    3 of the 48 rungs against M0's 3.66, band [0.09, 7.22] (P4 met);
    D_12 = 7.70 against M0's median 5 (P5 met). THE FREEZE'S ERROR: as
    first written M0 penalised a dropped 2 by 1/2 as if -chi were

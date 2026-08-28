@@ -117,7 +117,7 @@ F2 (the route counted, rule by certificate). The composite route
    attains the horizon at 2 of the 58 rungs k = 3..60: k = 22, where
    the sub-ring dropping 3 has -chi = 9 * H (D_22 = 27.97), and
    k = 53, dropping {3, 5} with -chi = 3 * H (D_53 = 46.36). M1 expects
-   1.63 of the 48 rungs k = 13..60, 95% band [-0.83, 4.08]; the count
+   1.63 of the 48 rungs k = 13..60, 95% band [0, 4.08]; the count
    is 2 (P4 met). At every other rung the attaining -chi is itself
    prime.
 F3 (the route's size, model). Over k = 13..60 the composite route
@@ -143,7 +143,7 @@ Tier: the count is a rule over k <= 60 (the certificate's, MR-25 above
 count and the spread a pattern.
 Run record: 2.8 s wall, 14.1 MB peak under memwatch; enumeration to
 cap 4096 at most, 1,905 candidates at most, survival mass under 7.9e-10
-at every k >= 7 (k = 3's finite list leaves 5.2e-2 unspent, unread).
+at every k >= 7 (below k = 7 the finite candidate list is spent).
 Seed 1032 for the certificate's MR-25 bases, the older rig's.
 """
 
@@ -259,6 +259,7 @@ def model(primes, X, composite=True, exact_drop=True, own_log=True,
             ct = cum.get(T, 0.0)
             if ct >= 1.0:
                 continue
+            q = min(q, 1.0 - ct)  # a chance is at most what the T has left
             prob = q * prod / (1 - ct)
             if p_one is None:
                 p_one = prob
@@ -377,7 +378,7 @@ def main():
     n_comp = sum(1 for r in tail if r["c"] > 1)
     exp_comp = sum(r["m1"]["p_comp"] for r in tail)
     var_comp = sum(r["m1"]["p_comp"] * (1 - r["m1"]["p_comp"]) for r in tail)
-    blo = exp_comp - 1.96 * math.sqrt(var_comp)
+    blo = max(0.0, exp_comp - 1.96 * math.sqrt(var_comp))
     bhi = exp_comp + 1.96 * math.sqrt(var_comp)
     which = [(r["k"], r["c"]) for r in tail if r["c"] > 1]
     print(f"  count {n_comp} {which if which else ''}   M1 expects "
