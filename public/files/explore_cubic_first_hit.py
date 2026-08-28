@@ -241,8 +241,9 @@ THE FINDINGS.
       0.509, 0.496, 0.462 at n = 1..5 against 0.943, 0.717, 0.612,
       0.523, 0.459 at quadratic h = 2 (explore_first_hit_survival.py
       F2): a degenerate field's split prime is ONE draw, as a quadratic
-      field's split prime is one place, and the count's regularity has
-      the same shape at the same scales. The generic half reads 0.453,
+      field's split prime is one place, and the two curves fall from 0.95
+      to the same 0.46 over five scales -- the same endpoints, not the
+      same digits between them. The generic half reads 0.453,
       0.865, 0.642, 0.754, 0.541, and its first scale carries a density
       term: measured survival 0.711 against the cell's 0.613 (deficit
       1.16 against phi 0.95), the pooled-cell reading the degree-2 rig's
