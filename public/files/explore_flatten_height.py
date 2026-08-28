@@ -190,6 +190,16 @@ vacuous against the products here, which is exactly why the
 diagonal's asymptote (floor ~ sqrt(2M/log2 M) vs the products'
 observed steps) stays open beyond the chart.
 
+(SETTLED FURTHER SINCE, by explore_flatten_offchart.py: the law
+below is re-established on the INVERSE dial -- h(M, J), the least height
+at width M and depth J -- exhaustively at all 63 cells M <= 12 and so at
+every height there rather than the four this chart reached, and confirmed
+at 18 cells out to M = 30, all at h = 2 and all past this chart's k = 2
+reach of M <= 16. The incumbent contact below is superseded too: the
+diagonal is OEIS A059753, known and minimal to n = 14, and pure products
+attain it at every n <= 11. What stays open is what this paragraph says
+stays open.)
+
 WHAT THIS SETTLES AND WHAT IT LEAVES. The parent's open sentence
 closes: the free-box flattening ceiling IS an instance of a general
 law -- the pure-product law, exhaustively in range -- and the law's
