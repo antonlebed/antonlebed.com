@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The order wall — sign as a finite-state object</title>
+<meta name="description" content="What the order wall is made of. Sign read most-significant-first through a redundant digit set factors through a finite transition monoid; its minimal machine has 2 + (reached integers of the crossed interval) − (consecutive reached pairs across a gap of the attractor) states for every finite digit set, the contiguous count being that count's maximum; the syntactic monoid's size is a leading term in the live-state count plus a closed correction, and above the ideal of decided maps it is a nilpotent algebra with a machine-free composition law; the leading-nonzero law below the reach ceiling; and the wall itself sitting in the product, finite-state and not finite-window.">
+<link rel="canonical" href="https://antonlebed.com/walls/order">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls' class='up'>Walls</a> <a href='/reading'>Reading</a> <a href='/measure'>Measure</a> <a href='/learning'>Learning</a></nav><nav class='sub' aria-label='Walls'><a href='/walls'>The archimedean wall</a> <a href='/walls/numbers'>Number systems</a> <a href='/walls/meaning'>Meaning</a> <a href='/walls/dual'>The dual pole</a> <a href='/walls/order' aria-current='page'>The order wall</a> <a href='/walls/algebra'>The division algebras</a></nav></header>
+<main>
+<h1>The order wall</h1>
+<p class="lede">Sign computed from digits is finite-state and not
+finite-window — what the wall is made of, counted exactly.</p>
+
+<p>A numeration reads a value through a <b>window</b> — its leading
+digits, to some precision, a <b>cell</b> of the window being the set of
+values one reading cannot tell apart — and reads an operation <b>at lookahead
+<i>c</i></b> when the output's window at precision <i>t</i> is a
+function of the input's at precision <i>t</i> + <i>c</i>
+(<a href="/walls/dual">The dual pole</a>, where the reading criterion
+lives). The digit set decides what a window can read. Digits
+{−<i>a</i>..<i>a</i>} in radix <i>b</i> with 2<i>a</i> + 1 = <i>b</i>
+are <b>balanced</b> — one representation per value, <b>non-redundant</b>
+— and with 2<i>a</i> + 1 &gt; <i>b</i> they are <b>redundant</b>, a
+value having many spellings. Reading through a redundant set is the
+<b>redundant purchase</b>: it makes every rational slope readable at
+bounded delay and addition local
+(<a href="/reading/redundant">Redundant arithmetic</a>), and it pays
+with the archimedean data the window still had — comparison blurs, and
+sign, folded into the digits instead of stored as its own coordinate,
+is non-local at every lookahead on either side of the purchase
+(<a href="/walls/dual#crown-exchange">the exchange of crown and blind
+spot</a>). That non-locality is the wall; this page is what the wall is
+made of. Sign is finite-state, its minimal machine is counted exactly
+for every finite digit set, and the algebra its digits generate is
+closed in the same terms.</p>
+
+<article class="claim" id="order-wall-shape">
+  <div class="claim-head"><span class="claim-name">The order wall's
+  shape</span> <span class="tier">rule</span></div>
+  <p>Sign being non-local at every lookahead on either side of the
+  purchase is the <b>order wall</b>, and that states what the wall
+  forbids rather than what it is made of. Sign <b>factors</b>. Read a
+  width-<i>n</i> numeral most-significant-first, running <i>s</i> ←
+  <i>b</i><i>s</i> + <i>d</i> on the digits <i>d</i>: once |<i>s</i>|
+  ≥ <i>a</i>/(<i>b</i> −
+  1) no continuation can outweigh what is already accumulated, and the
+  run clamps to one of two absorbing verdicts. Call <i>a</i> — how far
+  the digit set reaches on one side of zero — that side's <b>reach</b>,
+  and <i>a</i>/(<i>b</i> − 1) the <b>normalized reach</b>: how many
+  radix steps of headroom the side buys. The minimal number of
+  <b>states</b> is 2⌈<i>a</i>/(<i>b</i> − 1)⌉ + 1, and the rounding is
+  the ceiling — the <b>reach ceiling</b> below. A tail
+  of <i>m</i> digits takes every value in its whole range — because
+  2<i>a</i> + 1 ≥ <i>b</i>, the digit set spans a full residue system and
+  the tail bridges consecutive multiples of <i>b</i> — so a live state is
+  distinguishable from an absorbing
+  one exactly when some tail drives it to zero — which happens iff its
+  value is strictly below the normalized reach. The two states sitting
+  <em>at</em> it, which exist only where <i>b</i> − 1 divides <i>a</i>, are
+  never driven to zero and merge away.</p>
+  <p>A machine clamped at the floor instead holds 2⌊<i>a</i>/(<i>b</i>
+  − 1)⌋ + 3 states — 3 to 9 across the systems run — and reproduces
+  brute-force sign exactly while carrying a surplus pair wherever that
+  divisibility holds: a surplus state costs correctness nothing, so
+  agreement with brute force cannot detect one, and the floor was where a
+  machine clamped rather than a fact about sign. Over a
+  <em>signed</em> asymmetric set
+  {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>}, both reaches at least 1,
+  the count is ⌈<i>a</i><sup>−</sup>/(<i>b</i> − 1)⌉ +
+  ⌈<i>a</i><sup>+</sup>/(<i>b</i> − 1)⌉ + 1, and the two ceilings attach
+  to the <em>opposite</em> sides from the obvious reading: a positive
+  prefix can be overturned only by a negative tail, so it stays live
+  while it is below <i>a</i><sup>−</sup>/(<i>b</i> − 1). Symmetric sets
+  cannot see that crossing, both sides being equal there. Drop one reach
+  to 0 and the numeration is unsigned: no value is ever negative, every
+  positive state collapses together, and the machine has two states
+  whatever the other reach is — a degenerate regime rather than a case of
+  the formula.</p>
+  <p>Neither count is the digit set's. Let <i>D</i> be <em>any</em>
+  finite set of integers with a negative and a positive member, its
+  reaches <i>a</i><sup>−</sup> = −min <i>D</i> and <i>a</i><sup>+</sup> =
+  max <i>D</i>. A tail's contribution to the value is a point of the
+  <b>attractor</b> — the closed set of tail values Σ
+  <i>t<sub>i</sub></i><i>b</i><sup>−<i>i</i></sup>, the fixed set of the
+  maps <i>x</i> ↦ (<i>x</i> + <i>d</i>)/<i>b</i> over <i>d</i> in
+  <i>D</i> — whose two extremes the all-extreme tails supply, so the
+  thresholds are the extreme digits' alone whatever the interior, and
+  the live states are integers of the open <b>crossed interval</b>
+  (−<i>a</i><sup>+</sup>/(<i>b</i> − 1), <i>a</i><sup>−</sup>/(<i>b</i> −
+  1)). Two things then vary. An integer is <b>reached</b> when some
+  prefix has that value, a cycle question on the backward map <i>n</i> ↦
+  (<i>n</i> − <i>d</i>)/<i>b</i> that a complete residue system does not
+  settle: at radix 2 with {−1, 2, 3} the integer −2 is its own backward
+  image under the only digit of its residue and is never reached, 4
+  states against the contiguous 5. And two reached neighbours <i>v</i>
+  &lt; <i>w</i> are one state iff the reflected interval (−<i>w</i>,
+  −<i>v</i>) misses the attractor, the finite tail values being dense in
+  it — so the classes are runs of consecutive reached integers, broken
+  exactly at a gap of the attractor of length at least 1. The minimal
+  count, for every such <i>D</i>, is 2 + (reached integers of the
+  crossed interval) − (consecutive reached pairs across a gap of the
+  attractor). With Δ the largest gap between consecutive digits and
+  <i>L</i> = (<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)/(<i>b</i> − 1)
+  the hull's length, Δ ≤ <i>L</i> makes the attractor an interval and
+  nothing merges — for contiguous sets that is the covering condition —
+  and a merge needs Δ − <i>L</i> ≥ <i>b</i>, so none exists at radix 2;
+  the least positive reach that merges in the sweep is 7, at radix 3
+  with {−2, −1, 7}, where −2 and −1 are one state and four states stand
+  where the contiguous count says 6. The contiguous count is therefore
+  the <em>maximum</em> over every digit set with those reaches, lost only
+  to a cycle or a gap, and its own reachability is a descent: an integer
+  of the interval beyond the digits, stepped by the largest digit of its
+  residue, stays on its side and strictly decreases into the digits.</p>
+  <p>Each digit is therefore a map on a finite state set, and the
+  numeral's sign is the composite of its digits' maps — a product in the
+  finite <b>transition monoid</b> those maps generate under composition.
+  For the minimal machine that monoid is the <b>syntactic monoid</b> of
+  sign, the canonical object, and it has <i>L</i><sup>2</sup> + <i>L</i> + 1
+  elements plus a correction — one term per tail length <i>m</i>, counting
+  the values a length-<i>m</i> tail can take whose action leaves two or more
+  states live — where <i>L</i> is the number of <em>live</em> states, the
+  machine less its two absorbing verdicts (and not the numeral width
+  <i>n</i> above). The leading term is fixed by the state count and
+  therefore by the reach ceiling; the correction is where the reach runs out, and it
+  does run out. Radix 3 with {−7..7} and with {−8..8} share the reach
+  ceiling, the nine-state machine and the leading 57, and their monoids have
+  73 and 75 elements. The collapse onto one parameter that governs the
+  state cost therefore does not extend to the algebra the bracketing
+  evaluates: what the wall costs answers to the reach, and what the wall is
+  made of does not.</p>
+  <p>That correction is closed. A level contributes exactly when
+  <i>b</i><sup><i>m</i></sup> ≤ <i>L</i> − 1: the live states are a run of
+  <i>L</i> consecutive integers, and such a run holds two integers
+  <i>b</i><sup><i>m</i></sup> apart exactly then — so which terms exist is a
+  fact about the state count alone, and everything that escapes the reach
+  sits in their sizes. Drop the clamp, and the tail values a level admits
+  are <i>L</i> − 1 blocks of <i>L</i> − <i>b</i><sup><i>m</i></sup>
+  integers spaced <i>b</i><sup><i>m</i></sup> apart; they merge into one
+  interval when 2<i>b</i><sup><i>m</i></sup> ≤ <i>L</i> and separate when
+  they do not, with no third case.
+  <i>E</i><sub><i>m</i></sub> is that set met with the exact value range of
+  a length-<i>m</i> tail. Each side has a <b>ceiling defect</b> ε =
+  ⌈<i>a</i>/(<i>b</i> − 1)⌉ − <i>a</i>/(<i>b</i> − 1), the fraction of a
+  state the reach's rounding throws away there. Where the blocks merge the
+  tail range lies inside them outright — on each side the containment
+  rearranges to 2<i>b</i><sup><i>m</i></sup> − <i>L</i> ≤ ε(<i>b</i><sup><i>m</i></sup>
+  − 1) for that side's own ε, whose left side is at most 0 and whose right
+  side at least 0 — so the machine drops out of the count altogether and
+  <i>E</i><sub><i>m</i></sub> is the whole range,
+  (<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)(<i>b</i><sup><i>m</i></sup>
+  − 1)/(<i>b</i> − 1) + 1: every length-<i>m</i> tail leaves two or more
+  states live. That is 6076 of the 7524 contributing levels and 70% of the
+  correction by value, and all of it reads the summed reach
+  <i>a</i><sup>−</sup> + <i>a</i><sup>+</sup> at full resolution instead of
+  through the ceiling — the sum and not the split, that range depending on
+  the two reaches only through it, which is how {−7..7} and {−8..8} come
+  apart, their corrections 16 and 18 differing because 14 and 16 do. The
+  lattice structure survives only above
+  the merge, in the 1448 split levels, and there that defect decides which
+  constraint is the tighter: the
+  tail range is, iff max(ε<sup>−</sup>, ε<sup>+</sup>)(<i>b</i><sup><i>m</i></sup>
+  − 1) > 2<i>b</i><sup><i>m</i></sup> − <i>L</i>, which fires at 178 of
+  them. So the leading term reads the two reaches only through their
+  ceilings and the correction reads their sum whole, the defect's whole
+  job being to place that boundary. Where every level merges — exactly when
+  twice the largest
+  contributing <i>b</i><sup><i>m</i></sup> is at most <i>L</i>, 1946 of the
+  3579 systems swept — the correction collapses to one geometric sum and
+  the monoid is a single expression in
+  (<i>b</i>, <i>a</i><sup>−</sup>, <i>a</i><sup>+</sup>); otherwise it is
+  at most ⌊log<sub><i>b</i></sub>(<i>L</i> − 1)⌋ + 1 closed terms.</p>
+  <p>What that correction counts is an <em>algebra</em> and not only a
+  number. The maps the leading term counts — those leaving at most one
+  state live — absorb whatever they meet on either side, so they form a
+  two-sided <b>ideal</b>; collapse the whole of it to a single zero and
+  what stands above it is exactly what the correction counts. Each of
+  those elements is a tail remembered by its length <i>m</i> and its value
+  <i>t</i> and by nothing else, and two of them compose as
+  (<i>m</i><sub>1</sub>, <i>t</i><sub>1</sub>)(<i>m</i><sub>2</sub>,
+  <i>t</i><sub>2</sub>) = (<i>m</i><sub>1</sub> + <i>m</i><sub>2</sub>,
+  <i>b</i><sup><i>m</i><sub>2</sub></sup><i>t</i><sub>1</sub> +
+  <i>t</i><sub>2</sub>) — a law with no machine in it. The algebra above
+  the ideal is that law truncated, and the truncation is the only thing
+  the machine still does to it: everything past the last contributing
+  level is zero, and at
+  a split level part of that level too, so it is a truncation and nothing
+  else exactly where every level merges. It is therefore <b>nilpotent</b>
+  — a product of as many nonempty tails as there are contributing levels
+  is zero, and of one fewer is not, so the degree is
+  ⌊log<sub><i>b</i></sub>(<i>L</i> − 1)⌋ + 1,
+  the correction's own term count read again. Nothing of a group survives
+  that: an idempotent is its own power forever while every long enough
+  product is zero, so the only two are the identity and the zero and every
+  subgroup is trivial. At radix 3 with {−7..7} the contributing levels
+  are 0 and 1 — the fifteen values one digit takes and an identity, which
+  are the 16 above the ideal — and every product of two of those fifteen
+  lands in the zero.</p>
+  <p>So the algebra reads the digit set differently from the state count.
+  Substituting <i>u</i> = <i>t</i> +
+  <i>a</i><sup>−</sup>(<i>b</i><sup><i>m</i></sup> − 1)/(<i>b</i> − 1)
+  telescopes every <i>a</i><sup>−</sup> out of the composition law,
+  leaving <i>u</i> =
+  <i>b</i><sup><i>m</i><sub>2</sub></sup><i>u</i><sub>1</sub> +
+  <i>u</i><sub>2</sub>, and turns a merged level into 0 ≤ <i>u</i> ≤
+  (<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)(<i>b</i><sup><i>m</i></sup>
+  − 1)/(<i>b</i> − 1). Where every level merges the algebra therefore
+  sees the radix, the summed reach and the number of levels, and is blind
+  to how the digit set is split between the two: radix 3 with {−7..7} and
+  with {−6..8} have 7 and 6 live states and syntactic monoids of 73 and
+  59, and one and the same 16 elements above the ideal, with no exception
+  over a radix 2 to 7 sweep. A split level is what breaks that blindness,
+  and what it reads is the <em>ordered</em> pair of ceiling defects: its
+  blocks begin at 1 − (<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)/(<i>b</i>
+  − 1) − ε<sup>+</sup> − <i>b</i><sup><i>m</i></sup>ε<sup>−</sup> +
+  2<i>b</i><sup><i>m</i></sup>, which weights the two differently, where
+  the state count reads only their sum,
+  <i>L</i> = (<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)/(<i>b</i> − 1)
+  + ε<sup>−</sup> + ε<sup>+</sup> − 1. Two systems sharing the radix, the
+  summed reach and the level count and carrying a split level agree
+  exactly when they share that ordered pair, and among the pairs that
+  share the sum while swapping the order none agree at all. At radix 2
+  both defects are 0 and the blindness is total.</p>
+  <p>So sign is a per-digit map at lookahead 0
+  followed by the syntactic monoid's product, and the wall lies entirely
+  in the product: the minimal number of leading digits determining the sign is
+  the full width at every system and every width run, never <i>n</i> − 1
+  and so nothing bounded as <i>n</i> grows. Yet composition is
+  associative, and evaluating the product by a balanced-tree bracketing
+  instead of a left-to-right scan agrees with brute force everywhere —
+  depth log <i>n</i>, no data-dependent chain. Sign separates
+  <b>finite-state</b> from <b>finite-window</b>, and that is the wall:
+  not a hardness claim, and it holds at fixed width, where the argument
+  that proves it on unbounded numerals — an all-zero prefix of any depth
+  — is unavailable.</p>
+  <p>Where <i>a</i> ≤ <i>b</i> − 1 the verdict has a law simpler than
+  the product — the <b>leading-nonzero law</b>: the sign is the first
+  nonzero digit's, and a numeral is zero iff every digit is 0, a
+  zero-test at lookahead 0 on a per-digit predicate. That region is
+  exactly where the reach ceiling is 1, so the minimal machine there has
+  three states — seen only zeros, negative, positive — which is the law's
+  own machine: below the line the law is not a shortcut past the product
+  but <em>is</em> the minimal object — and the monoid there is 3 at every
+  system, so it is the whole algebra too and not only the whole
+  automaton. Above that line it fails, the smallest
+  witness sitting at radix 2 with digits {−2..2}: the string (1, −2) has
+  value zero behind a nonzero lead.</p>
+  <p>The full width is not redundancy's price. At slack ρ =
+  2<i>a</i> − <i>b</i> + 1 equal to zero — balanced ternary and radix 5
+  with digits {−2..2}, non-redundant, the read otherwise identical — the
+  determining prefix is the full width just the same: sign is comparison
+  against zero, zero sits on a cell boundary, and the non-redundant
+  window's one-cell ambiguity already puts it out of reach. Neither does
+  the state mark the regime. The count cuts across the redundancy
+  boundary rather than tracking it — 3 states at both non-redundant
+  controls and at radix 5 with {−3..3}, which is redundant — and it is
+  not a function of the slack either: at ρ = 3, radix 4 with {−3..3}
+  carries 3 states while radix 2 with {−2..2} carries 5. One dial, two
+  costs, and the two costs turn out to be one function read twice.
+  "Redundant" is exactly ρ ≥ 1, and ρ enters the price the arithmetic
+  side pays without settling it — the window margin above, the one a
+  redundant cover buys and the reading criterion prices
+  (<a href="/walls/dual#two-pole-criterion">The dual pole</a>), is
+  log<sub><i>b</i></sub>(2<i>a</i>/ρ), which needs the digit bound
+  too. What settles both is the reach: addition
+  spends ⌈<i>x</i>/(<i>b</i> − 1)⌉ slack units on a side of reach
+  <i>x</i> (<a href="/reading/redundant">Redundant arithmetic</a>) and
+  sign spends ⌈<i>x</i>/(<i>b</i> − 1)⌉ states, plus the one state that
+  is the all-zeros class. The same ceiling of the same reach, priced in
+  two currencies — and ρ, the dial the word coarsens, carries neither.
+  Comparison and equality ride sign: comparison is the sign of a
+  digitwise difference into the doubled set
+  {−2<i>a</i>..2<i>a</i>}, redundant at the same radix and so covered by
+  the same construction, and equality is that difference against zero.
+  So comparison costs 2⌈(<i>a</i><sup>−</sup> +
+  <i>a</i><sup>+</sup>)/(<i>b</i> − 1)⌉ + 1 states — and it is
+  <em>blind to the crossing</em>, the digitwise difference of an
+  asymmetric set being symmetric whatever the split was. Ordering a
+  redundant stream therefore costs strictly more state than reading its
+  sign, except where both reaches are small enough to share one
+  ceiling.</p>
+  <p class="scope"><b>Scope.</b> Rules, exhaustive at the swept widths
+  over nine symmetric digit sets — seven redundant and two balanced
+  non-redundant, the latter the control that places the full width. The
+  full-width and factorization claims are not theorems: the widths are
+  bounded by enumeration. Component tiers differ for the state count.
+  The symmetric minimal count is a <b>theorem</b> for contiguous
+  covering digit sets, proved by the tail argument above and verified
+  exhaustively at 107 systems to radix 12; the asymmetric count is a
+  <b>theorem</b> too, the same tail argument with reachability by the
+  descent above, verified at 456 signed systems to radix 9. The closed
+  form off contiguous sets is a <b>theorem</b> for every finite digit set
+  with a member of each sign, its three factors derived above and the
+  count checked against an independent minimizer at 19,450 systems over
+  two sweeps — every interior at radix 2 to 6 with reaches to 5, and
+  three- and four-digit sets at radix 2 to 5 with the positive reach to
+  15 — 236 of them merging. The syntactic monoid's size is a <b>rule</b> on the same two
+  grids — every one of those 107 symmetric and 456 signed systems — with
+  the monoid rebuilt from a machine clamped three states wider on each side
+  and minimized, so the count is a fact about sign and not about where a
+  builder clamped. The correction's closed form is a <b>rule</b> over all
+  7524 contributing levels of the 3579 distinct systems those two grids
+  and an overlapping extended sweep make up, tied at eleven of them to the
+  monoid rebuilt by closure; its merged case is a <b>theorem</b>, proved by
+  the containment above, with the 6076 merged levels a control on the proof
+  rather than its evidence. The algebra above the ideal is derived from the
+  composition law — the truncation, the nilpotency and the blindness alike.
+  At seven named systems the (<i>m</i>, <i>t</i>) description is checked
+  against the monoid rebuilt by closure as a bijection respecting products,
+  and that check runs nowhere else; the nilpotency degree is then run over a
+  radix 2 to 7 sweep of 773 systems. The blindness is a <b>theorem</b> at a
+  fixed level count, while its reading over that sweep is a <b>rule</b> — 80
+  groups of two or more systems sharing the radix, the summed reach and the
+  level count, all 80 carrying one algebra — as is the ordered-defect
+  reading: 717 pairs of split-level systems, no crossings, and 116 of those
+  pairs sharing the defect sum while differing in its order.
+  Comparison's count follows from sign's; comparison and
+  equality are otherwise reasoned from sign rather than swept.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_order_wall_shape.py"><code>explore_order_wall_shape.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sign_minimal.py"><code>explore_sign_minimal.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sign_sparse.py"><code>explore_sign_sparse.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sign_monoid.py"><code>explore_sign_monoid.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_monoid_correction.py"><code>explore_monoid_correction.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_monoid_quotient.py"><code>explore_monoid_quotient.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

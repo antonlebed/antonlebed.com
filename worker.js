@@ -81,6 +81,7 @@ export default {
       '/walls/numbers': 'numbers',
       '/walls/meaning': 'meaning',
       '/walls/dual': 'dual',
+      '/walls/order': 'order',
       '/walls/algebra': 'algebra',
       '/reading': 'reading',
       '/reading/completions': 'completions',

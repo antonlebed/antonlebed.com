@@ -301,7 +301,11 @@ G2 THE COUNT IS ceil(am/(b-1)) + ceil(ap/(b-1)) + 1 (RULE, exhaustive over
    and the sweep confirms it is reached without proving it must be. An
    unreachable state would make the formula an upper bound instead of the
    count. So the closed form is verified over the grid and derived except
-   at that step. Reducing to Part I's
+   at that step. (Settled: explore_sign_sparse.py G3 proves the step by
+   descent -- an integer of the interval beyond the digits, stepped by the
+   largest same-residue digit, stays on its side and strictly decreases
+   into the digits -- so the count is a theorem over signed contiguous
+   covering sets.) Reducing to Part I's
    2*ceil(a/(b-1)) + 1 on the symmetric diagonal at every cell of it
    (C4 = 0). So Part I's per-side reading survives the only sweep that
    could have broken it, and F3's weld holds in the general form: addition

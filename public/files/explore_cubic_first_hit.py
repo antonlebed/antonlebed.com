@@ -187,8 +187,9 @@ accumulation, no numpy, seconds. Under 512MB; wall-clock printed.
 THE FINDINGS.
 
   F1. THE SIGN PORTS, AND THE DERIVATION LANDS AT THE ONE STRATUM THAT
-      CAN GRADE IT (pattern over the five complex strata of 18 fields or
-      more; P1 SURVIVES at all five; P2 SURVIVES in its first clause and
+      CAN GRADE IT (the sign a pattern over the five complex strata of 18
+      fields or more, the landing an observation on one stratum; P1
+      SURVIVES at all five; P2 SURVIVES in its first clause and
       is KILLED in its second, h = 2 carrying no power). Index units --
       the measured mean first-hit index over the model's, E[I] = sum S_n
       exact, the bootstrap sd behind each z:
@@ -280,7 +281,12 @@ inferred; every other number of the first run is reproduced unchanged
 by the second. Null offsets (C4): h = 2 clean at 0.994 and 0.991 with
 the curve at 1.00-1.10; the thinner strata carry the leave-one-out
 inflation, 1.01 to 1.13 in both ratios at h = 3 to 5, which is what
-their ratios are read against.
+their ratios are read against. The two bootstraps differ in one
+respect: the per-stratum one holds the density fixed and resamples
+bits, while the pooled-against-split one re-prices each resample's
+leave-one-out cells, so a duplicated field there leaks its own bits
+into its reference -- the point estimates are the base population's
+and only the paired sd carries it.
 """
 
 import json
