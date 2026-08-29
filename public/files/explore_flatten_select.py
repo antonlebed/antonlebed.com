@@ -350,8 +350,13 @@ leading coefficient 2" was a fact about the two members the earlier
 chart happened to reach, and the CLASS -- integer polynomials with
 every root on the unit circle -- is what survives: all five residuals
 pass the exact unit-circle test, K-F never fires, and every one of the
-695 cyclotomic parts is a pure product. AND THE RESIDUAL IS THE FAILURE
-FLAG. The four non-trivial residuals cover 51 + 29 + 2 + 1 = 83 cells,
+695 cyclotomic parts is a pure product. SO THE CONSTRUCTIVE STATEMENT IS
+THIS: every one of the 695 cells has a minimiser that is a MONOMIAL
+TIMES A PURE PRODUCT TIMES ONE OF THE FIVE RESIDUALS, and the monomial
+costs nothing (below), so every cell has one that is a pure product
+times one of the five. That is the census's positive answer and it is
+what the class statement is about; everything below says which residual
+and how often. AND THE RESIDUAL IS THE FAILURE FLAG. The four non-trivial residuals cover 51 + 29 + 2 + 1 = 83 cells,
 which is exactly the failing set. One direction is proved rather than
 counted: residual 1 plus the pure-product census means the witness is a
 monomial times a pure product, so h is a pure height, so h >= ph, and
