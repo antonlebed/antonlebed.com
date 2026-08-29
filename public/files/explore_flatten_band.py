@@ -257,6 +257,10 @@ where the failures start. "Rank 19 and above never fails" was a true
 statement about a chart and a false one about the lattice.
 
 F4. THE MECHANISM IS THE ROOT AT -1, AND IT NAMES A CLOSED FORM FOR h.
+THE MECHANISM IS NOT A RESULT OF THIS RUN AND CARRIES NO TIER: it is the
+heuristic asymptotic argument of the hand attack above, proved at no
+rank, and every kill in this rig is aimed at what it PREDICTS rather
+than at the argument. What follows is the prediction, measured.
 The champion (1+x)^(r-1) (x-1)^J -- the unique cofactor of maximal
 vanishing order at -1, and the pure product (x^2-1)^(r-1)
 (x-1)^(J-r+1) -- attains h from a per-rank depth up, at every depth
@@ -311,14 +315,16 @@ it is forced, and the ord_{-1} readings above each threshold are 1, 2
 and 3 at ranks 2, 3 and 4: r - 1 at every one, which is the mechanism's
 own signature read directly off the answer.
 
-F8. THE COFACTOR BOUND IS THE INSTRUMENT THAT MADE THE CENSUS POSSIBLE.
-It agrees with the parent's multiset bound at all 604 answer-key cells
-of rank at most 25, and it is priced by partitions of r - 1 rather than
-of M - 1, so its cost does not grow with the depth at all. That is what
-lets this rig decide cells out to M = 144 -- rank 4 at depth 140, the
-widest cell the sweep actually reaches, the deeper ranks stopping at
-their own crossings long before the depth ceiling -- when every census
-before it stopped at 40. The whole rig closes in 71 s at a 64 MB peak.
+F8. THE COFACTOR BOUND IS THE INSTRUMENT THAT MADE THE CENSUS POSSIBLE. It
+agrees with the parent's multiset bound at all 604 answer-key cells of rank at
+most 25, and it is priced by partitions of r - 1 rather than of M - 1, so its
+cost does not grow with the depth at all. That is what lets this rig decide
+cells out to M = 144 -- rank 4 at depth 140, the widest cell the sweep actually
+reaches, the deeper ranks stopping at their own crossings long before the depth
+ceiling -- when every census before it stopped at 40. The whole rig closes in
+about 70 s at a 64 MB peak -- the wall drifts between runs, reading 69.4 to
+70.7 s over the seven timed here, so it is quoted to the nearest ten seconds
+and not pinned.
 
 THE RUN RECORD. EIGHT full runs, and the science is settled from the
 THIRD: every run after it reproduces every value of it, and each was
@@ -402,7 +408,8 @@ death had had no observable of its own. Both were fixed before any
 science printed. The later smokes are what caught run 4's two fixes.
 
 Single process, exact arithmetic throughout, peak 64 MB against the
-512 MB ceiling, wall 71 s.
+512 MB ceiling, wall about 70 s (69.4 to 70.7 across the seven timed
+runs; the peak sits at 64 MB in every one).
 """
 import os
 
