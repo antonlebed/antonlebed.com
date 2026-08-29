@@ -256,9 +256,16 @@ threshold that is the DEGENERATE one -- predict that nobody fails, 0
 false positives and 83 false negatives -- which is what a best
 threshold does when no cut beats calling the whole chart clean. The
 single exception is the ball count at the pure radius, whose best cut
-buys 7 of the 83 failures for 1 false positive. That is the honest
-answer to the question as asked: the failure flag is not a function of
-any one of these numbers.
+buys 7 of the 83 failures for 1 false positive. The failure flag is not
+a function of any one of these numbers -- BUT THE QUESTION AS ASKED IS
+ONE-SIDED AND THAT LIMIT IS LOAD-BEARING HERE RATHER THAN INCIDENTAL.
+The reporter's best threshold predicts failure on one SIDE of a cut, so
+it cannot express a WINDOW at all, and the rank scored degenerate for
+exactly that reason while a two-sided rank rule is the very next
+finding. So these seven verdicts are verdicts about ONE-SIDED cuts and
+nothing more. No variable but the rank was tried as a window, and
+whether any of the other seven carries one is untested rather than
+answered.
 
 F3. THE RANK WINDOW IS A SHARP TWO-SIDED NECESSARY CONDITION, AND IT IS
 THE ONLY THING HERE THAT SELECTS ANYTHING. Every one of the 83 failures
@@ -270,7 +277,10 @@ the 325 clean cells outside, and above all that THE WINDOW DID NOT
 WIDEN. It was 5..18 on the 550-cell chart, and adding 145 cells at
 depths 21 to 30 -- which reach rank 1 at the narrow edge and are where
 the failures now crowd -- left both endpoints exactly where they were.
-That is an out-of-sample survival and not a fit. Inside the band the
+That is an out-of-sample survival and not a fit. The rank's own
+degenerate score in F2 is not evidence against this and never was: the
+reporter cuts on one side and a window has two, so the two readings are
+of different rules and not of different data. Inside the band the
 condition is far from sufficient: 83 of 370 cells fail, 22.4%. Crossed
 with the depth, the band holds the whole story -- 3 of 154 at J <= 12,
 17 of 112 at J = 13..20, and 63 of 104 at J >= 21, so 1.9%, 15.2% and
@@ -360,10 +370,14 @@ which is the depth density read a third way and not an independent
 variable. The pure argmins at the deep cells are long runs of 1s, which
 is why.
 
-THE RUN RECORD. Two runs of the whole rig. The FIRST is superseded and
+THE RUN RECORD. Three runs of the whole rig. The FIRST is superseded and
 carried nothing wrong: arms 1 to 5 printed every value quoted above and
-the SECOND reproduces them exactly, adding only arm 6, whose three
-post-hoc measurements are labelled as such wherever they are quoted.
+each later run reproduces them exactly. The SECOND adds arm 6's first
+three post-hoc measurements and the THIRD its fourth, the enrichment
+counts over the whole chart -- added because two sentences of this
+record would otherwise have rested on a reading of 83 printed rows
+rather than on a printed count. Every post-hoc measurement is labelled
+as such wherever it is quoted.
 Before either, a SMOKE RUN at M <= 14, J <= 8 exercised every arm with
 an EMPTY failing set and found two faults that no full run could have
 shown: the plateau's subtraction was written in the wrong order in the
@@ -372,7 +386,7 @@ eleven whole-rectangle aggregates against a narrowed sweep's and
 reported eleven mismatches for a rig that was working. The first is
 corrected in the paragraph that states it; the second now reports
 itself unexercised, which is the guard C6 already carried for a single
-cell. Both were fixed before any science printed. Wall 39.8 s, single
+cell. Both were fixed before any science printed. Wall 39.6 s, single
 process, well inside the ordinary analysis footprint.
 """
 import os
