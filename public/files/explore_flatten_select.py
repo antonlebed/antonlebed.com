@@ -323,8 +323,12 @@ reader: all 153 height-1 cells -- the ones that cannot fail -- sit at
 J <= 12, so both deeper bands are entirely h >= 2 and their 9.0% and
 43.4% are the raw AND the conditioned rate at once. The shallow band
 alone moves, 0.8% raw against 1.4% over the 209 of its 362 that can
-fail at all. Read across the three bands the law does not have
-exceptions past a boundary; it stops being the answer.
+fail at all. AND THE ORDERING SURVIVES A FLOOR WELL ABOVE THE
+CONFOUND'S, which is the answer to whether the depth effect is the
+height in disguise: restricted to h >= 10 the three bands read 3.3%
+over 61 cells, 9.2% over 185 and 43.4% over 145. Read across the three
+bands the law does not have exceptions past a boundary; it stops being
+the answer.
 
 F5. THE THIRD MEMBER EXISTS AND P6 IS REFUTED -- AND SO IS THE READING
 THAT THE MULTIPLIERS HAVE LEADING COEFFICIENT 2. The extended chart's
