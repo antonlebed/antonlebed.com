@@ -346,7 +346,15 @@ leading coefficient 2" was a fact about the two members the earlier
 chart happened to reach, and the CLASS -- integer polynomials with
 every root on the unit circle -- is what survives: all five residuals
 pass the exact unit-circle test, K-F never fires, and every one of the
-695 cyclotomic parts is a pure product.
+695 cyclotomic parts is a pure product. AND THE RESIDUAL IS THE FAILURE
+FLAG. The four non-trivial residuals cover 51 + 29 + 2 + 1 = 83 cells,
+which is exactly the failing set. One direction is proved rather than
+counted: residual 1 plus the pure-product census means the witness is a
+monomial times a pure product, so h is a pure height, so h >= ph, and
+h <= ph always -- no failure. The other direction is the count, the two
+sets having the same size. So a cell fails EXACTLY when its exhibited
+minimiser is not a pure product, and the residual carries no
+information the failure flag does not and none that it lacks.
 
 F6. AT EVERY FAILURE BUT THREE, ONE KNOWN MULTIPLIER STILL ATTAINS h.
 The A-enriched and B-enriched families are swept over the same multiset
