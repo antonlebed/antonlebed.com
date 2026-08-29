@@ -296,11 +296,13 @@ evidence almost alone, and a census that tested it would have to widen in M.
 The rank's own degenerate score in F2 is not evidence against this and never
 was: the reporter cuts on one side and a window has two, so the two readings
 are of different rules and not of different data. Inside the band the condition
-is far from sufficient: 83 of 370 cells fail, 22.4%. Crossed with the depth,
-the band holds the whole story -- 3 of 154 at J <= 12, 17 of 112 at J = 13..20,
-and 63 of 104 at J >= 21, so 1.9%, 15.2% and 60.6% -- and outside it the rate
-is 0 at every depth. (Post-hoc: the window is arm 3's printed range and the
-rate inside it is arm 6's, neither predicted.)
+is far from sufficient: 83 of 370 cells fail, 22.4% raw and 25.9% over the 321
+that can fail at all. Crossed with the depth, the band holds the whole story --
+3 of 154 at J <= 12, 17 of 112 at J = 13..20, and 63 of 104 at J >= 21, so
+1.9%, 15.2% and 60.6% raw and 2.9%, 15.2% and 60.6% conditioned, the last two
+unmoved because no cell in either has h = 1 -- and outside it the rate is 0 at
+every depth on either reading. (Post-hoc: the window is arm 3's printed range
+and the rate inside it is arm 6's, neither predicted.)
 
 F4. THE PURE-PRODUCT LAW COLLAPSES IN THE DEPTH RATHER THAN FAILING
 SPORADICALLY, AND P7 HOLDS BY A WIDE MARGIN. The failure rate is 0.8%
@@ -964,21 +966,33 @@ def main():
               % (lo, hi, len(inband), len(cells),
                  sum(1 for c in inband if FAIL[c]),
                  sum(1 for c in out if FAIL[c]), len(out)))
+        # RAW AND CONDITIONED SIDE BY SIDE. The h = 1 cells cannot
+        # fail, and they sit INSIDE the window as well as outside it,
+        # so a raw in-band rate understates for the same reason a raw
+        # depth rate does.
+        ib2 = [c for c in inband if H[c][0] >= 2]
         print("      as a rule it is NECESSARY and not sufficient: "
-              "inside the band the rate is %d of %d (%.1f%%)"
+              "inside the band %d of %d fail (%.1f%%) raw, %d of %d "
+              "(%.1f%%) at h >= 2"
               % (sum(1 for c in inband if FAIL[c]), len(inband),
                  100.0 * sum(1 for c in inband if FAIL[c])
-                 / len(inband)))
+                 / len(inband),
+                 sum(1 for c in ib2 if FAIL[c]), len(ib2),
+                 100.0 * sum(1 for c in ib2 if FAIL[c]) / len(ib2)))
         print("      the band crossed with the depth, cells and "
               "failures:")
         for (nm, sel) in bands:
             i = [c for c in inband if sel(c[1])]
+            i2 = [c for c in i if H[c][0] >= 2]
             o = [c for c in out if sel(c[1])]
             print("         %-11s in band %3d cells %2d failing "
-                  "(%5.1f%%)   outside %3d cells %2d failing"
+                  "(%5.1f%% raw; %5.1f%% over the %3d at h >= 2)   "
+                  "outside %3d cells %2d failing"
                   % (nm, len(i), sum(1 for c in i if FAIL[c]),
                      100.0 * sum(1 for c in i if FAIL[c]) / len(i)
                      if i else 0.0,
+                     100.0 * sum(1 for c in i2 if FAIL[c]) / len(i2)
+                     if i2 else 0.0, len(i2),
                      len(o), sum(1 for c in o if FAIL[c])))
 
     if lo is not None:
