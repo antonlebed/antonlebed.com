@@ -424,6 +424,17 @@ down; it does not, and the four cells where h is below the pure bound
 and A does not help are precisely the four B cells. So the union of the
 three families is extremal at every one of the 550 cells, exhaustively,
 and the analogy that produced P6 was the wrong shape.
+(SETTLED SINCE, by explore_flatten_select.py, which extends this chart
+to 695 cells at M = 4..40, J = 2..30. The COUNTS above survive as
+statements about the 550 and the union's extremality does not survive
+the widening: over the wider chart the better of the A- and B-enriched
+families beats the pure bound at exactly the 83 failing cells and
+attains h at 80, so "never by an amount that leaves a gap" is false at
+three of them. Those three are precisely the cells whose residual A and
+B cannot build between them -- two needing the PRODUCT A*B and one
+needing a third member, C = 3 + 5x + 3x^2 -- so what the shortfall
+reports is which member is missing, and the union of the pure family
+with A and B alone is NOT extremal past this chart's depth.)
 
 F7. THE LAW IS ABOUT ATTAINMENT AND NOT ABOUT MINIMISERS, AND THE LEAK
 IS CONFINED TO SMALL HEIGHT (K-H fires 28 times; this arm's own

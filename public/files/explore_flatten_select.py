@@ -334,8 +334,9 @@ two new ones. Exact division over the known members separates them.
 A*B = 4 + 14x + 26x^2 + 31x^3 + 26x^4 + 14x^5 + 4x^6 appears at (39,
 24) and (40, 25) and is NOT a new member of anything -- the class is
 closed under multiplication, so a product of members is a member for
-free, and what those two cells report is the first cell where ONE
-multiplier does not suffice. The other is genuine: C = 3 + 5x + 3x^2 at
+free, and what those two cells report is the only place on the chart
+where NO SINGLE member of the class suffices -- (39, 28) needs C, which
+is one member, and every other failing cell needs A or B alone. The other is genuine: C = 3 + 5x + 3x^2 at
 (39, 28), divisible by neither A nor B, reciprocal, and with leading
 coefficient THREE. Its roots are (-5 +- i sqrt(11))/6, of modulus
 squared (25 + 11)/36 = 1 exactly, so they are on the circle and its
@@ -358,9 +359,14 @@ three exceptions are exactly the three cells naming a residual the pair
 cannot make: (39, 24) at h = 6,296 against A's 6,763 and B's 7,734, and
 (40, 25) at h = 12,075 against 12,825 and 12,702, both needing the
 product A*B; and (39, 28) at h = 170,792 against 288,844 and 173,604,
-which needs C. So the enrichment never improves without being exactly
-right, as on the earlier chart, and where it misses it names what is
-missing.
+which needs C. SO THE EARLIER CHART'S LAW THAT THE ENRICHMENT NEVER
+IMPROVES WITHOUT BEING EXACTLY RIGHT DOES NOT SURVIVE, and it is
+refuted at exactly those three cells and nowhere else. It held at all
+16 of the 550-cell chart's enriched cells and it holds at 80 of these
+83. What replaces it is sharper than a near-miss law: where the pair
+falls short it falls short by NAMING WHAT IS MISSING, the shortfall
+sitting only at the cells whose residual A and B cannot build between
+them.
 
 F7. THE PLATEAU IS REFUTED AND IN THE DIRECTION OPPOSITE TO ITS OWN
 MECHANISM. P2 predicted small plateau at the failures -- a cell where
@@ -413,18 +419,23 @@ cells, the population every other figure in this finding is quoted over --
 which is the depth density read a third way and not an independent variable.
 The pure argmins at the deep cells are long runs of 1s, which is why.
 
-THE RUN RECORD. Three runs of the whole rig. The FIRST is superseded and
-carried nothing wrong: arms 1 to 5 printed every value quoted above and
-each later run reproduces every one of them exactly. Only the two
-TIMINGS move between runs, the chart's and the whole rig's, by a few
-tenths of a second each, and that is the only reproduction claimed
-here. The LATER ones add arm 6's post-hoc measurements a piece at a
-time -- the enrichment counts among them, added because two sentences
-of this record would otherwise have rested on a reading of 83 printed
-rows rather than on a printed count -- and the last of them removes a
-DUPLICATED BASIS REDUCTION that had been costing the chart ten seconds
-while touching no result at all. Every post-hoc measurement is labelled
-as such wherever it is quoted.
+THE RUN RECORD. NINE runs of the whole rig, the rig being re-run after
+every change the audit made to it. The FIRST is superseded and carried
+nothing wrong: arms 1 to 5 printed every value quoted above and every
+later run reproduces every one of them exactly. Only the two TIMINGS
+move, the chart's and the whole rig's, by a few tenths of a second
+each, and that is the only reproduction claimed here. What the later
+runs ADD is arm 6's post-hoc measurements, a piece at a time: the
+residual factorisation, the ratio plateau, the rank cross-tab, the
+enrichment counts, the two tails' height composition, the in-band rate
+conditioned, and the chart's cost split by depth band. Each was added
+because a sentence of this record would otherwise have rested on a
+reading of printed rows rather than on a printed number. Two later runs
+changed the CODE rather than adding to it, and neither moved a result:
+one guards an arm that crashed on an empty failing set, and one deletes
+a DUPLICATED BASIS REDUCTION that had been costing the chart ten
+seconds while computing a value route_h already returned. Every
+post-hoc measurement is labelled as such wherever it is quoted.
 Before either, a SMOKE RUN at M <= 14, J <= 8 exercised every arm with
 an EMPTY failing set and found two faults that no full run could have
 shown: the plateau's subtraction was written in the wrong order in the
