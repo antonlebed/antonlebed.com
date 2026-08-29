@@ -267,34 +267,40 @@ nothing more. No variable but the rank was tried as a window, and
 whether any of the other seven carries one is untested rather than
 answered.
 
-F3. THE RANK WINDOW IS A SHARP TWO-SIDED NECESSARY CONDITION, AND IT IS
-THE ONLY THING HERE THAT SELECTS ANYTHING. Every one of the 83 failures
-sits at rank 5..18. Outside that band 325 cells fail ZERO times -- 115
-at rank 1..4 and 210 at rank 19..38 -- and both tails are populous
-rather than thin. The band is DEFINED from the failing set, so "all
-failures inside it" is a tautology and carries nothing; what carries is
-the 325 clean cells outside, and above all that THE WINDOW DID NOT
-WIDEN. It was 5..18 on the 550-cell chart, and adding 145 cells at
-depths 21 to 30 -- which reach rank 1 at the narrow edge and are where
-the failures now crowd -- left both endpoints exactly where they were.
-That is an out-of-sample survival and not a fit, BUT THE TWO WALLS WERE
-NOT TESTED EQUALLY AND THE ASYMMETRY IS LARGE. A new cell has J >= 21
-and M <= 40, so its rank is at most 19: of the 145, forty sit at rank
-<= 4 and exactly ONE at rank 19, with the remaining 104 inside the
-window. So the LOW wall was offered forty fresh chances to break and
-did not, while the HIGH wall was offered one. The low wall is the half
-this chart tested; the high wall stands on the earlier chart's evidence
-almost alone, and a census that tested it would have to widen in M.
-The rank's own degenerate score in F2 is not evidence against this and
-never was: the
-reporter cuts on one side and a window has two, so the two readings are
-of different rules and not of different data. Inside the band the
-condition is far from sufficient: 83 of 370 cells fail, 22.4%. Crossed
-with the depth, the band holds the whole story -- 3 of 154 at J <= 12,
-17 of 112 at J = 13..20, and 63 of 104 at J >= 21, so 1.9%, 15.2% and
-60.6% -- and outside it the rate is 0 at every depth. (Post-hoc: the
-window is arm 3's printed range and the rate inside it is arm 6's,
-neither predicted.)
+F3. THE RANK WINDOW IS A SHARP TWO-SIDED NECESSARY CONDITION, AND IT IS THE
+ONLY THING HERE THAT SELECTS ANYTHING. Every one of the 83 failures sits at
+rank 5..18. Outside that band 325 cells fail ZERO times -- 115 at rank 1..4 and
+210 at rank 19..38 -- and both tails are populous rather than thin. THAT RAW
+COUNT CARRIES THE SAME HEIGHT CONFOUND THE DEPTH RATES ARE CONDITIONED FOR, AND
+IT IS NOT SPREAD EVENLY BETWEEN THE TAILS. A cell with h = 1 cannot fail, and
+the high tail holds 100 of them against the low tail's 4: conditioned on h >= 2
+the clean outside is 221 cells rather than 325, 111 low and 110 high, and at h
+>= 10 it is 140, 97 low and 43 high. So the two tails are close in CONDITIONED
+strength while the raw counts read two to one, and the low tail is the
+better-evidenced of the two on every floor -- the opposite of what the raw
+numbers say (arm 6, post-hoc). Neither tail is thin after conditioning, and
+neither is explained by the height floor: 97 and 43 cells with h >= 10 have
+every room to fail and none does. The band is DEFINED from the failing set, so
+"all failures inside it" is a tautology and carries nothing; what carries is
+the clean cells outside that COULD have failed, and above all that THE WINDOW
+DID NOT WIDEN. It was 5..18 on the 550-cell chart, and adding 145 cells at
+depths 21 to 30 -- which reach rank 1 at the narrow edge and are where the
+failures now crowd -- left both endpoints exactly where they were. That is an
+out-of-sample survival and not a fit, BUT THE TWO WALLS WERE NOT TESTED EQUALLY
+AND THE ASYMMETRY IS LARGE. A new cell has J >= 21 and M <= 40, so its rank is
+at most 19: of the 145, forty sit at rank <= 4 and exactly ONE at rank 19, with
+the remaining 104 inside the window. So the LOW wall was offered forty fresh
+chances to break and did not, while the HIGH wall was offered one. The low wall
+is the half this chart tested; the high wall stands on the earlier chart's
+evidence almost alone, and a census that tested it would have to widen in M.
+The rank's own degenerate score in F2 is not evidence against this and never
+was: the reporter cuts on one side and a window has two, so the two readings
+are of different rules and not of different data. Inside the band the condition
+is far from sufficient: 83 of 370 cells fail, 22.4%. Crossed with the depth,
+the band holds the whole story -- 3 of 154 at J <= 12, 17 of 112 at J = 13..20,
+and 63 of 104 at J >= 21, so 1.9%, 15.2% and 60.6% -- and outside it the rate
+is 0 at every depth. (Post-hoc: the window is arm 3's printed range and the
+rate inside it is arm 6's, neither predicted.)
 
 F4. THE PURE-PRODUCT LAW COLLAPSES IN THE DEPTH RATHER THAN FAILING
 SPORADICALLY, AND P7 HOLDS BY A WIDE MARGIN. The failure rate is 0.8%
@@ -974,6 +980,26 @@ def main():
                      100.0 * sum(1 for c in i if FAIL[c]) / len(i)
                      if i else 0.0,
                      len(o), sum(1 for c in o if FAIL[c])))
+
+    if lo is not None:
+        # THE WINDOW'S OWN CONFOUND, counted rather than argued. The
+        # depth rates above are conditioned on h >= 2 because a cell
+        # with h = 1 cannot fail at all; the window's clean tails were
+        # quoted RAW, and the confound is not spread evenly between
+        # them. Printed per tail so the two are comparable.
+        tails = [("rank <= %d" % (lo - 1), lo - 1, True),
+                 ("rank >= %d" % (hi + 1), hi + 1, False)]
+        for (nm, cut, low) in tails:
+            t = [c for c in cells
+                 if ((c[0] - c[1] <= cut) if low
+                     else (c[0] - c[1] >= cut))]
+            print("      %-11s %3d cells, %3d at h = 1 (cannot fail), "
+                  "%3d with h >= 2, %3d with h >= 10, %d failing"
+                  % (nm, len(t), sum(1 for c in t if H[c][0] == 1),
+                     sum(1 for c in t if H[c][0] >= 2),
+                     sum(1 for c in t if H[c][0] >= 10),
+                     sum(1 for c in t if FAIL[c])))
+
 
     print("\n   (c) do the new residuals FACTOR over the known ones?")
     known = [("A", list(AQ)), ("B", list(BQ))]
