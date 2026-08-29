@@ -163,7 +163,10 @@ polynomial identity and by the part accounting, at every rank swept.
 C4 the failure flag over the parent's whole rectangle -- with the
 MULTISET bound, so that the key is reproduced by the established
 instrument and not by the new one -- against its committed 83 failures
-and its committed window (K-D).
+and its committed window (K-D). C5 arms A and B measure the same first
+failing depth by different scans -- one stopping at it, one running
+past it -- and are checked against each other at every rank they share
+(K-B).
 
 THE SWEEP, and it is two arms because the two ends cost differently.
 ARM A, the low end and the walls: ranks 1..22, scanning J upward from 2
@@ -218,8 +221,12 @@ statement about a chart and a false one about the lattice.
 F4. THE MECHANISM IS THE ROOT AT -1, AND IT NAMES A CLOSED FORM FOR h.
 The champion (1+x)^(r-1) (x-1)^J -- the unique cofactor of maximal
 vanishing order at -1, and the pure product (x^2-1)^(r-1)
-(x-1)^(J-r+1) -- attains h from a per-rank depth onward, so h has a
-closed form there with no search of any kind. At ranks 5, 6, 7 and 8
+(x-1)^(J-r+1) -- attains h from a per-rank depth up, at every depth
+past it the sweep reached, so h has a closed form there with no search
+of any kind. THE SWEEP IS WHAT BOUNDS THAT: eight depths past the
+threshold at ranks 5 to 8 and every depth to 140 at ranks 2, 3 and 4,
+which is a stopping rule and not a proof that it never reverses.
+At ranks 5, 6, 7 and 8
 that depth is J_ch = 31, 34, 59 and 61, and at ALL FOUR
 
     J_ch = J_hi + 1,
@@ -228,7 +235,9 @@ the depth the champion takes over being exactly the depth after the
 last failure. Those are two independently measured thresholds -- one
 read off a comparison with the whole pure family, one off a single
 closed-form polynomial -- and they coincide at every rank where both
-were reached. Above them arm C2 confirms h at 16 of 16 cells.
+were reached. And the second threshold is confirmed OUT OF SAMPLE: arm
+C2 re-reads h at the four depths PAST the run each rank's stopping rule
+consumed, and the champion attains it at all 16.
 
 F5. P1 IS REFUTED: THE FAILING SET IS CONTAINED IN A BAND BUT IS NOT
 ALL OF IT. K-A fired at three of the four ranks whose high end the
@@ -285,7 +294,17 @@ because some other pure product wins, which is transient, where the
 champion's win is the state the mechanism predicts is permanent. Under
 the corrected rule rank 8's last failure is J = 60, thirty-four depths
 further out, and its seven interior clean depths are F5's holes. Every
-other value in the second run reproduces in the THIRD exactly. Before
+other value in the second run reproduces in the THIRD exactly. A FOURTH
+run followed the audit and reproduces every value of the third. It
+carries two fixes that no result moved on, both found by re-smoking
+after the stopping rule changed. Arm C2 had become a TAUTOLOGY: the
+rule it exists to check is now "the champion attains h for four
+depths", and the arm was re-reading those same four, so it could not
+fail; it now starts four depths further out and is out of sample. And
+arm B was reading arm A's first failing depth rather than its own,
+which made its hole count depend on another arm's ceiling and print
+zero holes where the honest answer is that it cannot say -- it measures
+its own now, and the two arms checking each other is C5. Before
 all three, a SMOKE RUN at ranks 1..6 and J <= 12 exercised every arm
 and found two faults no full run would have shown: a control passed a
 POLYNOMIAL to a routine that takes a cyclotomic index multiset, which
@@ -674,15 +693,31 @@ def main():
             fired["K-A"] += 1
             print("   K-A rank %d: failure flag is not an interval, "
                   "blocks %s" % (r, runs))
+        # THIS ARM MEASURES ITS OWN LOW END rather than borrowing arm
+        # A's. Borrowing made the hole count depend on a cap belonging
+        # to a different arm: where arm A stops before the first
+        # failure its J_lo is None and the hole count silently prints
+        # 0 instead of refusing to answer. Measured here the two arms
+        # become an independent CHECK on each other at every rank they
+        # share, which is what K-B now reads.
+        failing = [J for J in Js if flags[J]]
+        lo_b = min(failing) if failing else None
+        if (JLO.get(r) is not None and lo_b is not None
+                and JLO[r] != lo_b):
+            fired["K-B"] += 1
+            print("   K-B rank %d: arm A's first failure is J=%d, arm "
+                  "B's is J=%d" % (r, JLO[r], lo_b))
         print("   rank %2d: failing J = %s..%s, champion from J = %s, "
               "scanned to J = %d, %d failing of %d"
-              % (r, JLO.get(r), JHI[r], JCH[r], max(Js),
-                 sum(1 for J in Js if flags[J]), len(Js)))
-        holes = [J for J in Js
-                 if JLO.get(r) is not None and JHI[r] is not None
-                 and JLO[r] < J < JHI[r] and not flags[J]]
-        print("      clean depths strictly inside the band: %d %s"
-              % (len(holes), holes))
+              % (r, lo_b, JHI[r], JCH[r], max(Js), len(failing), len(Js)))
+        if lo_b is None or JHI[r] is None:
+            print("      clean depths strictly inside the band: not "
+                  "answerable, the band has no two ends here")
+        else:
+            holes = [J for J in Js
+                     if lo_b < J < JHI[r] and not flags[J]]
+            print("      clean depths strictly inside the band: %d %s"
+                  % (len(holes), holes))
     print("   arm B in %.1f s" % (time.time() - t))
 
     print("\n   the band, rank by rank")
@@ -738,14 +773,21 @@ def main():
     print("   arm C in %.1f s" % (time.time() - t))
 
     # ------------------------ arm C2: the closed form above the crossing
-    print("\n[arm C2] h against the champion's height above each rank's "
-          "last failure")
+    print("\n[arm C2] h against the champion's height at the %d depths "
+          "PAST the run each rank's stopping rule consumed" % CLEAR_RUN)
     n2 = bad = 0
     for r in HIGH_RANKS:
         hi = JCH.get(r)
         if hi is None:
             continue
-        for J in range(hi, hi + CLEAR_RUN):
+        # OUT OF SAMPLE, AND THAT IS THE POINT. Arm B's stopping rule
+        # is itself "the champion attains h for CLEAR_RUN depths", so
+        # re-testing those same depths is a tautology that cannot
+        # fail -- which is what this arm silently became when that
+        # rule was tightened. It starts CLEAR_RUN depths PAST the run
+        # the rule consumed, and is the only thing here that could
+        # catch a crossing declared too early.
+        for J in range(hi + CLEAR_RUN, hi + 2 * CLEAR_RUN):
             M = J + r
             h, _, _, _ = route_h(M, J)
             c = height(champ(r, J))
@@ -755,8 +797,8 @@ def main():
                 fired["K-E"] += 1
                 print("   K-E rank %d J=%d: h=%d champion height=%d"
                       % (r, J, h, c))
-    print("   %d cells from a champion crossing up, %d where h is not "
-          "the champion's height" % (n2, bad))
+    print("   %d cells out of sample, %d where h is not the champion's "
+          "height" % (n2, bad))
 
     # ------------------------------------- arm D: the reconciliation
     print("\n[arm D] the reconciliation -- the chart's rank window "
