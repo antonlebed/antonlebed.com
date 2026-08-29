@@ -212,8 +212,9 @@ is needed: the corner and each rank's own first failing depth reproduce the
 census's rank set with no further input, so the two-sided window is the line M
 <= 40 crossing a per-rank depth threshold and neither wall is a fact about the
 rank. WHAT CARRIES THE DERIVATION IS 22 OF THE CHART'S 38 RANKS AND NOT ALL OF
-THEM: arm A scans ranks 1 to 22, which covers both walls and every failing rank
-and the first four ranks of the high wall itself, 19 to 22. At ranks 23 to 38
+THEM: arm A scans ranks 1 to 22: the whole of the low wall, every failing rank,
+and the first four ranks of the high wall, 19 to 22 -- not the whole of that
+wall, which runs to 38. At ranks 23 to 38
 the chart's own depths are J <= 40 - r <= 17, all inside the parent rectangle,
 so C4's completed scan decides them -- that is the census itself and not an
 independent measurement, and their exclusion from the window is therefore
