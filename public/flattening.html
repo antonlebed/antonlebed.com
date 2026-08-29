@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Flattening — the least integer polynomial vanishing to a given order at 1</title>
+<meta name="description" content="Two inverse dials on one boundary: the least height of an integer vector of given width vanishing to order J at 1, and the least degree at a given height. Products of factors x^d - 1 are extremal along the classical height-1 row, which is the problem of Borwein and Mossinghoff, at a second height, and at every cell of a chart in width and height. Read as a lattice minimum the question closes 550 cells out to width 40 and depth 20, where extremality fails as a density in the depth and every minimum is attained by a polynomial with all its roots on the unit circle: a pure product times one of exactly two non-monic multipliers.">
+<link rel="canonical" href="https://antonlebed.com/learning/flattening">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/growth'>Growth</a> <a href='/computation'>Computation</a> <a href='/observatory'>Observatory</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/measure'>Measure</a> <a href='/learning' class='up'>Learning</a></nav><nav class='sub' aria-label='Learning'><a href='/learning'>The reader descent</a> <a href='/learning/stalls'>Stalls</a> <a href='/learning/nesting'>Nesting</a> <a href='/learning/substrate'>The substrate door</a> <a href='/learning/forgetting'>Forgetting</a> <a href='/learning/collisions'>Menu collisions</a> <a href='/learning/mechanisms'>Collision mechanisms</a> <a href='/learning/seeds'>Menu seeds</a> <a href='/learning/audits'>Deletion audits</a> <a href='/learning/sets'>Prediction sets</a> <a href='/learning/swap'>The swap</a> <a href='/learning/flattening' aria-current='page'>Flattening</a> <a href='/learning/ceilings'>Ceilings</a> <a href='/learning/uncertainty'>Stated uncertainty</a></nav></header>
+<main>
+<h1>Flattening</h1>
+<p class="lede">A nonzero integer polynomial vanishes to high order at 1
+only by growing — in degree if its coefficients are bounded, in
+coefficient size if its degree is. The two dials are inverse readings of
+one boundary. Wherever a search has reached along the second — the
+classical height-1 determination and one height above it — the cheapest
+polynomial is a
+product of factors <i>x</i><sup>d</sup> − 1. Along the first, past width
+12, it is not, and what replaces it is a class with a classical name and
+exactly two members outside the products.</p>
+
+<p>Read a vector of integers <i>c</i><sub>0</sub>, …,
+<i>c</i><sub>M−1</sub> as the polynomial <i>P</i>(<i>x</i>) =
+Σ <i>c</i><sub>r</sub><i>x</i><sup>r</sup>. Its <b>width</b> is the
+number of coefficients <i>M</i>, so its degree is below <i>M</i>, and its
+<b>height</b> is the largest |<i>c</i><sub>r</sub>|. Write
+<b>flattening</b> — equivalently the <b>depth</b> <i>J</i> — for the
+multiplicity of the root 1: the largest <i>J</i> with
+(<i>x</i>−1)<sup><i>J</i></sup> dividing <i>P</i>, equivalently the
+number of iterated running sums of the coefficient vector that vanish.
+Two quantities read the boundary in opposite directions.
+<i>h</i>(<i>M</i>, <i>J</i>) is the least height of a nonzero vector of
+width <i>M</i> flattened to depth at least <i>J</i>;
+<i>d</i><sub><i>k</i></sub>(<i>J</i>) is the least degree of a nonzero
+polynomial of height at most <i>k</i> flattened to depth at least
+<i>J</i>. A <b>pure product</b> is a product of factors
+<i>x</i><sup>d</sup> − 1: with <i>J</i> factors it is flattened to depth
+exactly <i>J</i>, and the size of its expansion's first nonzero
+coefficient is the product of the <i>d</i>'s, exactly. Each chart below
+runs over <b>cells</b>, one cell being one pair of whatever two of
+<i>M</i>, <i>J</i> and <i>k</i> that chart varies.</p>
+
+<p>The question arrives from a pricing problem. Where a rule's cost is
+an integer combination of rational weights, the smallest positive value
+that combination takes decides whether a cheap rule is optimal; where
+those weights fall geometrically with ratio (<i>n</i>−1)/<i>n</i>, each
+order of vanishing at 1 is worth a factor of <i>n</i>, and the price is
+the least such polynomial inside a box the rule's own sizes pin — all of
+which is at <a href="/learning/sets#flattening-law">the flattening
+law</a>. What those sizes deny is reachable without them.</p>
+
+<article class="claim" id="free-box-ceiling">
+  <div class="claim-head"><span class="claim-name">The free box's
+  flattening ceiling</span> <span class="tier">rule</span></div>
+  <p>The <b>free box</b> at height <i>k</i> and width <i>M</i> is the
+  box no sizes pin: every coefficient ranges over [−<i>k</i>, <i>k</i>]
+  independently — so at a given height and width it contains every box
+  a set of sizes can pin there. On fifteen coefficients at height 3 the
+  free box reaches flattening exactly 6, against the depth 4 a pricing
+  box of that height leaves standing over the far end of that geometric
+  family, so the anchoring there is worth two orders of <i>n</i> on the
+  threshold. And that ceiling is an instance
+  of a general law. Charted
+  in width and height together — widths 4 to 24 at height 1, narrowing
+  to width 8 as the height rises to 10, plus the fifteen-wide cells at
+  heights 2 and 3, 94 cells each searched exhaustively — the deepest
+  flattening the free box reaches, and the least first-coefficient size
+  at that depth, are a pure product's at every cell. The ceiling of 6 is
+  that law's instance: the six-factor product
+  (<i>x</i>−1)³(<i>x</i>²−1)(<i>x</i>³−1)² has height exactly 3, and its
+  coefficient 18 is the part product 1·1·1·2·3·3.</p>
+  <p>At height 1 the chart runs widest, and inverted it is a classical
+  table. The least width whose free box reaches flattening 2, 3, 4, 5, 6
+  steps up at 4, 7, 12, 16, 23 — equivalently, the least degree of a
+  height-1 polynomial vanishing to that order at 1 runs 3, 6, 11, 15,
+  22. That is the problem of Borwein and Mossinghoff, whose abstract
+  states the least degree determined for orders up to 10 with every
+  extremal polynomial a pure product; the overlap, orders 2 through 6,
+  is computed independently here and agrees. The attaining products
+  inside this chart carry distinct factors —
+  (<i>x</i>−1)(<i>x</i>²−1)(<i>x</i>³−1) at degree 6 through
+  (<i>x</i>−1)(<i>x</i>²−1)(<i>x</i>³−1)(<i>x</i>⁴−1)(<i>x</i>⁵−1)(<i>x</i>⁷−1)
+  at degree 22 — each of height exactly 1.</p>
+  <p class="scope"><b>Scope.</b> Rule, exhaustive over its own chart: 94
+  cells in exact integer arithmetic, the search route checked against
+  full brute force at widths up to 7 and heights up to 3, and the
+  attaining products named above checked in the record. Nothing here
+  proves the products extremal — the classical determination reaches
+  order 10 at height 1, every row of this chart is exhaustive
+  computation in its own range, and the contact with the classical paper
+  is its abstract plus the independently computed overlap. What prices
+  the least height a flattening demands at a given width is the other
+  dial, charted at <a href="#second-height">the next block</a>; a closed
+  form for it stays open, and at width 9 it runs 2, 3, 9, 14 at depths 4
+  through 7, whose jumps rule out log-convexity in the depth. The
+  two-orders reading is against a pricing box of the same height on the
+  geometric family of <a href="/learning/sets#flattening-law">the
+  flattening law</a>, whose cells, box and machinery this chart shares.
+  Toy scale.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flatten_height.py"><code>explore_flatten_height.py</code></a></p>
+</article>
+
+<article class="claim" id="second-height">
+  <div class="claim-head"><span class="claim-name">Product extremality
+  at a second height</span> <span class="tier">rule</span></div>
+  <p>The chart has an inverse, and turning it tests what the height-1
+  row can only report. The two dials are inverse readings of one
+  boundary: <i>h</i>(<i>M</i>, <i>J</i>) ≤ <i>k</i> exactly when
+  <i>M</i> &gt; <i>d</i><sub><i>k</i></sub>(<i>J</i>), a vector of width
+  <i>M</i> being a polynomial of degree below <i>M</i>. On the
+  <i>h</i> side the pure-product law holds at all 63 cells with
+  4 ≤ <i>M</i> ≤ 12 — <i>h</i> is the least height of a pure product
+  fitting inside width <i>M</i> with at least <i>J</i> factors at every
+  one — and there at every height, rather than at the heights a chart
+  indexed by height can afford to reach. On the <i>d</i> side the
+  classical row is <i>k</i> = 1. Run at <i>k</i> = 1 the search used here
+  returns 1, 3, 6, 11, 15, 22, 30 at <i>J</i> = 1…7 — the
+  Borwein–Mossinghoff table again, recomputed unaided by an instrument
+  built for the other height, which is what makes the row beside it worth
+  reading at all. How far that check reaches, and where it stops, is in
+  the scope below.</p>
+  <p>That row is <i>d</i><sub>2</sub>(<i>J</i>) = 1, 2, 4, 7, 11, 16,
+  22, 26 at <i>J</i> = 1…8 — the least degree of a nonzero polynomial
+  with every coefficient in [−2, 2] flattened to depth <i>J</i>. Every
+  one of the eight equals the least degree over pure products of height
+  at most 2, so the extremality the classical determination reports at
+  height 1 is tested at a second height rather than assumed. The sharp
+  cell is <i>J</i> = 8, where the two candidate answers separate for
+  the first time: the first seven values fit
+  <i>J</i>(<i>J</i>−1)/2 + 1 exactly, which would give 29, and the
+  product family gives 26. The answer is 26. The attaining parts break
+  the shape 1, 1, 2, …, <i>J</i>−1 that produced the arithmetic
+  pattern in both ways at once, repeating a part and skipping one —
+  (1, 1, 2, 3, 3, 4, 5, 7) — so the pattern in the degrees and the
+  pattern in the parts die at the same depth, which is what says they
+  were one fact. The minimising polynomial is unique up to sign at
+  every depth the enumeration reaches, at both heights, with a single
+  exception: at height 2 and depth 1 there are two, (1, −1) and its
+  own doubling.</p>
+  <p>What the second row is for: read a vector <i>c</i> as the taps of
+  a finite-impulse filter, sending a sampled signal <i>s</i> to
+  Σ<sub>r</sub> <i>c</i><sub>r</sub> <i>s</i>(<i>t</i>−<i>r</i>). That
+  output vanishes identically on every polynomial signal of degree
+  below <i>J</i> exactly when <i>c</i> is flattened to depth <i>J</i> —
+  the same linear conditions on <i>c</i> written twice. So the shortest
+  filter with integer taps of size at most <i>k</i> that annihilates
+  polynomial drift of degree below <i>J</i> runs
+  <i>d</i><sub><i>k</i></sub>(<i>J</i>) + 1 taps long — the degree is
+  one less than the tap count — and the <i>k</i> = 2 row is the
+  shortest available to a filter carrying no multiplier, its taps
+  being 0, ±1 and ±2: a drop, an add and a shift.</p>
+  <p class="scope"><b>Scope.</b> Rule in range, and the range is the
+  claim's whole content; the inversion between the two dials is
+  algebra, holding wherever they are both defined. The inverse dial is
+  exhaustive at the 63 cells <i>M</i> ≤ 12, at every height: the
+  question behind it — is there a nonzero vector of height at most
+  <i>k</i> and width <i>M</i> flattened to depth <i>J</i> — is asked
+  twice, once by that route and once by a search over the coefficients
+  sharing no code and no cost law with it, at all 225 triples of width
+  up to 13, depth, and height up to 3, with no disagreement, and against
+  full enumeration of the box below that. The height-2 row is exhaustive
+  at <i>J</i> ≤ 8, out to degree 26, and the <i>k</i> = 1 run of the
+  same route reproduces the Borwein–Mossinghoff table at all seven
+  depths it covers. Those two checks leave a gap, and it is where the
+  row ends: the twice-asked question stops at degree 12, and the
+  classical reproduction runs to degree 30 but only at height 1, so a
+  fault peculiar to height 2 past degree 12 — which is where the last
+  three values of the row sit — is caught by neither. The filter reading
+  is a property — one set of linear conditions on <i>c</i> read twice.
+  Nothing here proves the products extremal at either height: a second
+  height agreeing is a second range of computation and not a theorem.
+  What the <i>h</i> dial does past width 12 is
+  <a href="#unit-circle-class">the block below</a>, where the
+  pure-product law fails; the 63 cells here are exhaustive and stay. The
+  uniqueness is exhaustive enumeration, over depths 1 through 7 at
+  height 2 and 1 through 6 at height 1, and it is the DEGREE dial's —
+  the height dial's is answered below and differently. Toy scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flatten_offchart.py"><code>explore_flatten_offchart.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flatten_d2.py"><code>explore_flatten_d2.py</code></a></p>
+</article>
+
+<article class="claim" id="unit-circle-class">
+  <div class="claim-head"><span class="claim-name">The flattened
+  minimum is attained on the unit circle</span>
+  <span class="tier">rule</span></div>
+  <p>Searching upward through the heights is a poor way to reach width
+  40, and it is not what the question asks for. The vectors of width
+  <i>M</i>
+  flattened to depth <i>J</i> are exactly
+  (<i>x</i>−1)<sup><i>J</i></sup>·<b>Z</b>[<i>x</i>] cut at degree below
+  <i>M</i> — a <b>lattice</b>, the set of integer combinations of
+  <i>M</i> − <i>J</i> independent vectors, that count being its
+  <b>rank</b> — so <i>h</i>(<i>M</i>,
+  <i>J</i>) is that lattice's shortest nonzero vector measured in the
+  largest coordinate. Basis reduction plus a bounded enumeration reads
+  it directly, and the bound is free rather than guessed: a vector whose
+  largest coordinate is at most <i>H</i> has Euclidean length at most
+  <i>H</i>√<i>M</i>, so the Euclidean ball of that radius contains every
+  candidate, and any lattice vector already in hand supplies the
+  <i>H</i> — the pure products, the family under test, supply nothing.
+  With the reduction's Gram–Schmidt updated incrementally rather than
+  recomputed in exact rationals at every swap — identical on output at
+  all 252 cells of the narrower chart this one widens, and 137.5 s of
+  that route against 10.0 s for 550 cells of the wider one — the chart
+  closes the 550 cells with 4 ≤ <i>M</i> ≤ 40, 2 ≤ <i>J</i> ≤ 20 and
+  <i>M</i> &gt; <i>J</i>, the rank being zero otherwise, in 22.6 s and 433,866 nodes,
+  no cell costing more than 20,287. The bill now sits in the enumeration
+  rather than the reduction, 12.6 s against 10.0, so a wider census is
+  priced by the ball's volume against the lattice's covolume.</p>
+  <p>At 530 of the 550, <i>h</i> is the least height of a pure product
+  fitting the cell. At 20 it is strictly below one, and those 20 are a
+  density in the DEPTH rather than sporadic: 3 of the 362 cells at
+  <i>J</i> ≤ 12 against 17 of the 188 at <i>J</i> ≥ 13, 0.8% against
+  9.0%. The raw split overstates, and by a mechanism the chart itself
+  supplies: 153 of the 550 cells have <i>h</i> = 1, where the least pure
+  height is 1 and <i>h</i> ≥ 1 always, so those cells cannot fail at
+  all, and a height of 1 needs width against depth, which crowds them
+  into the shallow half. Conditioned on <i>h</i> ≥ 2 the split is 1.4%
+  against 9.0%, and at <i>h</i> ≥ 10 it is 3.3% against 9.2% — the gap
+  survives every floor. The failing cells sit at ranks 5 to 18 of a
+  chart reaching rank 38, so neither variable alone selects them.</p>
+  <p>What beats the products is two fixed factors and nothing else. A
+  <b>cyclotomic</b> polynomial is the minimal polynomial of a root of
+  unity, and <i>x</i><sup>d</sup> − 1 is the product of those belonging
+  to the <i>d</i>-th roots, so a pure product is a product of
+  cyclotomics. Divide each of the 550 exhibited minimising vectors by
+  every cyclotomic factor it carries; exactly three <b>residuals</b> —
+  what each division leaves — survive the whole chart — 1 at 530 cells, <i>A</i> = 2 + 4<i>x</i> +
+  5<i>x</i>² + 4<i>x</i>³ + 2<i>x</i>⁴ at 16, and <i>B</i> =
+  2 + 3<i>x</i> + 2<i>x</i>² at 4 — and the cyclotomic part is a pure
+  product at every one of the 550. So each of those minimisers is a pure
+  product times 1, <i>A</i> or <i>B</i>, and the 20 enriched cells are
+  exactly the 20 failures. Both <i>A</i> and <i>B</i> are
+  <b>reciprocal</b> — the coefficient list reads the same backwards —
+  with leading coefficient 2 and every root on |<i>z</i>| = 1: writing
+  <i>y</i> = <i>x</i> + 1/<i>x</i> they become 2<i>y</i>² + 4<i>y</i> + 1
+  and 2<i>y</i> + 3, whose roots −1 ± √2⁄2 and −3/2 are real and inside
+  (−2, 2), which is the interval <i>y</i> = 2cos <i>θ</i> carries onto
+  the circle.</p>
+  <p>So the pure products and their two enrichments sit inside one class
+  — integer polynomials with every root on the unit circle — and
+  Kronecker is what makes that the class rather than a convenient
+  description of three cases: a monic integer polynomial with nonzero
+  constant term and every root on the circle has every root a root of
+  unity, hence is a product of cyclotomics. Being non-monic is therefore
+  the only way out of the cyclotomic products, and exactly two non-monic
+  factors occur in 550 cells. What carries the statement the rest of the
+  way to the PURE products is the census's other half — that the
+  cyclotomic part decomposes as ∏(<i>x</i><sup>d</sup> − 1) at every one
+  of the 550 — and no theorem supplies that. So the law that failed was
+  never a rival to the one that replaced it: a pure product is a monic
+  member of this class, by Kronecker a monic member is a product of
+  cyclotomics, and at every one of these cells that product is a pure
+  one. Least
+  height over (pure product)·<i>A</i>, swept over the same enumeration
+  of factor multisets as the pure family so that the two are two heights
+  of one object, beats the pure family at exactly the 16 <i>A</i> cells
+  and attains <i>h</i> at all 16: it never improves without being
+  exactly right, and the four it misses are exactly the <i>B</i>
+  cells.</p>
+  <p>The law is about attainment and not about minimisers, and the
+  difference is measured. The enumeration shrinks its radius on every
+  improvement, so it never meets a second vector of the winning height
+  and every sentence above reads one minimiser per cell. A second pass
+  at the fixed radius <i>h</i>√<i>M</i> collects them all where it can
+  afford to, which is 405 of the 550 — the rest capped by the same
+  ball-volume law, a small height with a wide lattice being where the
+  ball swallows everything. At 28 of the 405 two minimisers of one cell
+  have different residuals, and at 24 some minimiser leaves the class
+  entirely, though only at heights 1, 2, 3 and 6. So what is exhaustive
+  is that <i>h</i> is ATTAINED inside the class at every cell; that
+  everything attaining it is inside is false. The same pass answers the
+  height dial's uniqueness question, where
+  <a href="#second-height">the degree dial</a> reads unique: 246 closed
+  cells have <i>h</i> ≥ 10 and 51 of them carry more than one minimiser
+  up to sign, the largest holding nine.</p>
+  <p class="scope"><b>Scope.</b> Rule, exhaustive in range: 550 cells at
+  4 ≤ <i>M</i> ≤ 40 and 2 ≤ <i>J</i> ≤ 20, every value an exact integer
+  computation, with the attainment statement read over all 550 and the
+  minimiser statements over the 405 the second pass closes — and those
+  145 unclosed sit at the low end of the height, the pass walking
+  downward, so they lie on the same side of the height as the cells
+  where a minimiser does leave the class. The lattice
+  identification and the radius bound are properties, algebra at any
+  width and depth. Kronecker's theorem is classical and is used one way
+  only: it forbids a monic cyclotomic-free residual of positive degree
+  from having every root on the circle, and says nothing against a
+  non-monic one having a root off it. That every cyclotomic part is a
+  pure product is a census over the 550 and not a theorem. The route
+  recomputes what the other instruments cost — the height-2 boundary at
+  244 cells and the classical height-1 boundary at 415, each check
+  confirming its boundary from one side or the other, the closed form at
+  rank 1, <i>h</i>'s monotonicity in each of its two arguments at 1,044
+  comparisons, and the three refuting cells the narrower chart found
+  reproduced with their factorisations — and every split multiplies back
+  to its own witness at all 550. Twenty-two witnesses carry a factor
+  <i>x</i><sup>a</sup>, whose root at 0 is off the circle; dropping it
+  leaves the coefficient multiset, hence the height, and the
+  multiplicity at 1, hence the flattening, so the attainment statement
+  needs no qualifier. What selects a failing cell is open, as is whether
+  the class has further members past width 40 and depth 20. Toy
+  scale.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flatten_lattice.py"><code>explore_flatten_lattice.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flatten_family.py"><code>explore_flatten_family.py</code></a></p>
+</article>
+
+<p>The last of these is checkable without the instrument: the witnesses
+are integer vectors, divisibility by (<i>x</i>−1)<sup><i>J</i></sup> is
+<i>J</i> synthetic divisions, and the two multipliers are a quadratic
+and a quartic. What the pricing problem behind these charts does with
+them is <a href="/learning/sets#flattening-law">the flattening law</a>.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
