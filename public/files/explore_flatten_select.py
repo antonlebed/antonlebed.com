@@ -249,16 +249,17 @@ two controls behave: the gap separates perfectly (rank-sum 1.000, 0
 errors) and the hash does not (0.496, and its best threshold is the
 degenerate one). The whole chart is 695 cells and 611,632 nodes in
 about 28 s, worst cell (40, 23) at 28,064 nodes, and the two depth
-bands split that as 22.5 s over the earlier 550 cells against 5.5 s
-over the 145 the extension adds. The first of those is the PARENT's own
-22.6 s reproduced by a different rig on the same cells, which is a
-cheap independent check on the instrument's cost that nothing was
-asking for; the second retires this record's pre-freeze estimate of
-"about 3 s", which came from an eight-cell probe and undersampled by
-nearly half. Both timings -- the
-chart's and the whole rig's -- are quoted to the nearest second because
-both move by a few tenths between runs while every other value holds to
-the digit.
+bands split that as about 23 s over the earlier 550 cells against about
+6 s over the 145 the extension adds -- to the nearest second like the
+rest, these two drifting by tenths between runs as the others do. The
+first is the PARENT's own 22.6 s reproduced by a different rig on the
+same cells, a cheap independent check on the instrument's cost that
+nothing was asking for; the second retires this record's pre-freeze
+estimate of "about 3 s", which came from an eight-cell probe and
+undersampled it by nearly half. Every timing here -- the chart's, the whole rig's, and the
+two depth bands' -- is quoted to the nearest second because all of them
+move by tenths between runs while every other value holds to the
+digit.
 
 F2. NO PREDICTOR SELECTS A FAILING CELL AND P1 HOLDS. K-A never fires.
 Of the eight candidates on both populations, seven have a best
