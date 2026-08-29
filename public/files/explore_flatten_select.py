@@ -248,7 +248,7 @@ attainments, worst cell (40, 16) at 20,287 nodes, 433,866 nodes total
 two controls behave: the gap separates perfectly (rank-sum 1.000, 0
 errors) and the hash does not (0.496, and its best threshold is the
 degenerate one). The whole chart is 695 cells and 611,632 nodes in
-about 38 s, worst cell (40, 23) at 28,064 nodes. Both timings -- the
+about 28 s, worst cell (40, 23) at 28,064 nodes. Both timings -- the
 chart's and the whole rig's -- are quoted to the nearest second because
 both move by a few tenths between runs while every other value holds to
 the digit.
@@ -397,9 +397,10 @@ carried nothing wrong: arms 1 to 5 printed every value quoted above and
 each later run reproduces every one of them exactly. Only the two
 TIMINGS move between runs, the chart's and the whole rig's, by a few
 tenths of a second each, and that is the only reproduction claimed
-here. The SECOND adds arm 6's first
-three post-hoc measurements and the THIRD its fourth, the enrichment
-counts over the whole chart -- added because two sentences of this
+here. The LATER ones add arm 6's post-hoc
+measurements a piece at a time, and the last of them removes a
+duplicated basis reduction that had been costing the chart ten seconds
+without touching a single result -- the enrichment counts among them -- added because two sentences of this
 record would otherwise have rested on a reading of 83 printed rows
 rather than on a printed count. Every post-hoc measurement is labelled
 as such wherever it is quoted.
@@ -411,7 +412,7 @@ eleven whole-rectangle aggregates against a narrowed sweep's and
 reported eleven mismatches for a rig that was working. The first is
 corrected in the paragraph that states it; the second now reports
 itself unexercised, which is the guard C6 already carried for a single
-cell. Both were fixed before any science printed. Wall about 40 s,
+cell. Both were fixed before any science printed. Wall about 30 s,
 single
 process, well inside the ordinary analysis footprint.
 """
@@ -648,15 +649,22 @@ def main():
         t_row = time.time()
         for J in range(2, min(SWEEP_J, M - 1) + 1):
             try:
-                h, v, nodes, _ = route_h(M, J)
+                h, v, nodes, red = route_h(M, J)
             except NodeCap:
                 fired["K-D"] += 1
                 print("   K-D stalled at M=%d J=%d rank=%d" % (M, J, M - J))
                 continue
             H[(M, J)] = (h, v)
             NODES[(M, J)] = nodes
-            _, _, _, A = lll_incr(basis(M, J))
-            COVOL[(M, J)] = sum(log10_frac(a) for a in A) / 2.0
+            # THE REDUCTION IS NOT REDONE. route_h returns its reduced
+            # data as a fourth value and the covolume is the product of
+            # the Gram-Schmidt norms it already carries, so reading it
+            # costs nothing. An earlier draft discarded that value and
+            # called the reduction a second time per cell, which made
+            # this chart's 695 cells cost more than the parent's 550
+            # plus the extension's 145 -- a timing that could not be
+            # reconciled from the page, which is how it was found.
+            COVOL[(M, J)] = sum(log10_frac(a) for a in red[2]) / 2.0
         print("   M = %2d done, %.1f s (%.1f s in)"
               % (M, time.time() - t_row, time.time() - t))
     old = [c for c in H if c[1] <= OLD_J]
