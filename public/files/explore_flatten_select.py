@@ -229,39 +229,37 @@ THE ARMS.
 
 FINDINGS.
 
-F1. EVERY CONTROL PASSES AND THE PARENT'S WHOLE RECORD REPRODUCES.
-C1, the ball volume against five exact values and the stall and divisor
-counts against ten hand values, 0 wrong. C2, monotonicity at 1,324
-comparisons, 0 violations. C3, the rank-1 closed form h(M, M-1) =
-C(M-1, (M-1)//2) at 28 cells reaching C(30, 15) = 155,117,520, 0
-mismatches -- and it now certifies the NEW region, the deep chart's
-narrow edge being rank 1. C4, the covolume read off the Gram-Schmidt
-norms against an independent Bareiss determinant of the Gram matrix, 23
-cells, 0 mismatches. C5, the splitter multiplied back at all 695
-witnesses, 0 failing to reconstruct. C6, the parent's three committed
-cells exact in h, residual and cyclotomic multiset. C7 is the strongest
-of them: all ELEVEN of the parent's committed aggregates over its own
-rectangle -- 550 cells, 530 tight, 20 below, (362, 3) and (188, 17) by
-depth, 3 residuals, 0 non-pure cyclotomic parts, 16 enriched
-attainments, worst cell (40, 16) at 20,287 nodes, 433,866 nodes total
--- recomputed inside the wider sweep, 0 mismatching. The reporter's own
-two controls behave: the gap separates perfectly (rank-sum 1.000, 0
-errors) and the hash does not (0.496, and its best threshold is the
-degenerate one). The whole chart is 695 cells and 611,632 nodes in
-about 28 s, worst cell (40, 23) at 28,064 nodes, and the two depth
-bands split that as about 23 s over the earlier 550 cells against about
-6 s over the 145 the extension adds -- to the nearest second like the
-rest, these two drifting by tenths between runs as the others do. The
-first is the PARENT's own 22.6 s reproduced by a different rig on the
-same cells, a cheap independent check on the instrument's cost that
-nothing was asking for; the second retires this record's pre-freeze
-estimate of "about 3 s", which came from an eight-cell probe and
-undersampled it by nearly half. Every timing here -- the chart's, the whole rig's, and the
-two depth bands' -- is quoted to the nearest second because all of them
-move by tenths between runs while every other value holds to the
-digit.
+F1. EVERY CONTROL PASSES AND THE PARENT'S WHOLE RECORD REPRODUCES. C1, the ball
+volume against five exact values and the stall and divisor counts against ten
+hand values, 0 wrong. C2, monotonicity at 1,324 comparisons, 0 violations. C3,
+the rank-1 closed form h(M, M-1) = C(M-1, (M-1)//2) at 28 cells reaching C(30,
+15) = 155,117,520, 0 mismatches -- and it now certifies the NEW region, the
+deep chart's narrow edge being rank 1. C4, the covolume read off the
+Gram-Schmidt norms against an independent Bareiss determinant of the Gram
+matrix, 23 cells, 0 mismatches. C5, the splitter multiplied back at all 695
+witnesses, 0 failing to reconstruct. C6, the parent's three committed cells
+exact in h, residual and cyclotomic multiset. C7 is the strongest of them: all
+ELEVEN of the parent's committed aggregates over its own rectangle -- 550
+cells, 530 tight, 20 below, (362, 3) and (188, 17) by depth, 3 residuals, 0
+non-pure cyclotomic parts, 16 enriched attainments, worst cell (40, 16) at
+20,287 nodes, 433,866 nodes total -- recomputed inside the wider sweep, 0
+mismatching. The reporter's own two controls behave: the gap separates
+perfectly (rank-sum 1.000, 0 errors) and the hash does not (0.496, and its best
+threshold is the degenerate one). The whole chart is 695 cells and 611,632
+nodes in about 28 s, worst cell (40, 23) at 28,064 nodes, and the two depth
+bands split that as about 23 s over the earlier 550 cells against about 6 s
+over the 145 the extension adds -- to the nearest second like the rest, these
+two drifting by tenths between runs as the others do. The first is the PARENT's
+own 22.6 s reproduced by a different rig on the same cells, a cheap independent
+check on the instrument's cost that nothing was asking for; the second retires
+this record's pre-freeze estimate of "about 3 s", which came from an eight-cell
+probe and undersampled it by nearly half. Every timing here -- the chart's, the
+whole rig's, and the two depth bands' -- is quoted to the nearest second
+because all of them move by tenths between runs while every other value holds
+to the digit.
 
-F2. NO PREDICTOR SELECTS A FAILING CELL AND P1 HOLDS. K-A never fires.
+F2. NO ONE-SIDED CUT ON ANY CANDIDATE SELECTS A FAILING CELL, AND P1
+HOLDS AS ASKED. K-A never fires.
 Of the eight candidates on both populations, seven have a best
 threshold that is the DEGENERATE one -- predict that nobody fails, 0
 false positives and 83 false negatives -- which is what a best
@@ -290,40 +288,40 @@ the clean outside is 221 cells rather than 325, 111 low and 110 high, and at h
 strength while the raw counts read two to one, and the low tail is the
 better-evidenced of the two on every floor -- the opposite of what the raw
 numbers say (arm 6, post-hoc). Neither tail is thin after conditioning, and
-neither is explained by the height floor -- though the two are not alike
-there either: 125 of the high tail's 210 sit at h <= 2 against 7 of the
-low tail's 115, so the height floor accounts for most of the high tail
-and almost none of the low one. What it does not account for is 97
-cells low and 43 high with h >= 10, which have every room to fail and
-none does. AND THE WINDOW'S INNERMOST LOW RANK IS NOT A MEASUREMENT AT ALL, which is
-the one place either wall has a REASON behind it: at rank 1 the lattice is
-generated by (x-1)^(M-1) alone, so its shortest vector IS that generator, and
-the only pure product with M-1 factors fitting degree M-1 is that same
-polynomial, every part being forced to 1. The two bounds coincide by
-construction and a rank-1 cell cannot fail (property) -- 28 cells, which C3
-independently certifies by its closed form. The band is DEFINED from the
-failing set, so "all failures inside it" is a tautology and carries nothing;
-what carries is the clean cells outside that COULD have failed, and above all that THE WINDOW
-DID NOT WIDEN. It was 5..18 on the 550-cell chart, and adding 145 cells at
-depths 21 to 30 -- which reach rank 1 at the narrow edge and are where the
-failures now crowd -- left both endpoints exactly where they were. That is an
-out-of-sample survival and not a fit, BUT THE TWO WALLS WERE NOT TESTED EQUALLY
-AND THE ASYMMETRY IS LARGE. A new cell has J >= 21 and M <= 40, so its rank is
-at most 19: of the 145, forty sit at rank <= 4 and exactly ONE at rank 19, with
-the remaining 104 inside the window. So the LOW wall was offered forty fresh
-chances to break and did not, while the HIGH wall was offered one. The low wall
-is the half this chart tested; the high wall stands on the earlier chart's
-evidence almost alone, and a census that tested it would have to widen in M.
-The rank's own degenerate score in F2 is not evidence against this and never
-was: the reporter cuts on one side and a window has two, so the two readings
-are of different rules and not of different data. Inside the band the condition
-is far from sufficient: 83 of 370 cells fail, 22.4% raw and 25.9% over the 321
-that can fail at all. Crossed with the depth, the band holds the whole story --
-3 of 154 at J <= 12, 17 of 112 at J = 13..20, and 63 of 104 at J >= 21, so
-1.9%, 15.2% and 60.6% raw and 2.9%, 15.2% and 60.6% conditioned, the last two
-unmoved because no cell in either has h = 1 -- and outside it the rate is 0 at
-every depth on either reading. (Post-hoc: the window is arm 3's printed range
-and the rate inside it is arm 6's, neither predicted.)
+neither is explained by the height floor -- though the two are not alike there
+either: 125 of the high tail's 210 sit at h <= 2 against 7 of the low tail's
+115, so the height floor accounts for most of the high tail and almost none of
+the low one. What it does not account for is 97 cells low and 43 high with h >=
+10, which have every room to fail and none does. AND THE WINDOW'S INNERMOST LOW
+RANK IS NOT A MEASUREMENT AT ALL, which is the one place either wall has a
+REASON behind it: at rank 1 the lattice is generated by (x-1)^(M-1) alone, so
+its shortest vector IS that generator, and the only pure product with M-1
+factors fitting degree M-1 is that same polynomial, every part being forced to
+1. The two bounds coincide by construction and a rank-1 cell cannot fail
+(property) -- 28 cells, which C3 independently certifies by its closed form.
+The band is DEFINED from the failing set, so "all failures inside it" is a
+tautology and carries nothing; what carries is the clean cells outside that
+COULD have failed, and above all that THE WINDOW DID NOT WIDEN. It was 5..18 on
+the 550-cell chart, and adding 145 cells at depths 21 to 30 -- which reach rank
+1 at the narrow edge and are where the failures now crowd -- left both
+endpoints exactly where they were. That is an out-of-sample survival and not a
+fit, BUT THE TWO WALLS WERE NOT TESTED EQUALLY AND THE ASYMMETRY IS LARGE. A
+new cell has J >= 21 and M <= 40, so its rank is at most 19: of the 145, forty
+sit at rank <= 4 and exactly ONE at rank 19, with the remaining 104 inside the
+window. So the LOW wall was offered forty fresh chances to break and did not,
+while the HIGH wall was offered one. The low wall is the half this chart
+tested; the high wall stands on the earlier chart's evidence almost alone, and
+a census that tested it would have to widen in M. The rank's own degenerate
+score in F2 is not evidence against this and never was: the reporter cuts on
+one side and a window has two, so the two readings are of different rules and
+not of different data. Inside the band the condition is far from sufficient: 83
+of 370 cells fail, 22.4% raw and 25.9% over the 321 that can fail at all.
+Crossed with the depth, the band holds the whole story -- 3 of 154 at J <= 12,
+17 of 112 at J = 13..20, and 63 of 104 at J >= 21, so 1.9%, 15.2% and 60.6% raw
+and 2.9%, 15.2% and 60.6% conditioned, the last two unmoved because no cell in
+either has h = 1 -- and outside it the rate is 0 at every depth on either
+reading. (Post-hoc: the window is arm 3's printed range and the rate inside it
+is arm 6's, neither predicted.)
 
 F4. THE PURE-PRODUCT LAW COLLAPSES IN THE DEPTH RATHER THAN FAILING
 SPORADICALLY, AND P7 HOLDS BY A WIDE MARGIN. The failure rate is 0.8%
@@ -341,40 +339,38 @@ over 61 cells, 9.2% over 185 and 43.4% over 145. Read across the three
 bands the law does not have exceptions past a boundary; it stops being
 the answer.
 
-F5. THE THIRD MEMBER EXISTS AND P6 IS REFUTED -- AND SO IS THE READING
-THAT THE MULTIPLIERS HAVE LEADING COEFFICIENT 2. The extended chart's
-695 exhibited minimisers carry FIVE distinct residuals, not three: 1 at
-612 cells, B at 51 (47 of them past depth 20), A at 29 (13 past), and
-two new ones. Exact division over the known members separates them.
-A*B = 4 + 14x + 26x^2 + 31x^3 + 26x^4 + 14x^5 + 4x^6 appears at (39,
-24) and (40, 25) and is NOT a new member of anything -- the class is
-closed under multiplication, so a product of members is a member for
-free, and what those two cells report is the only place on the chart
-where NO SINGLE member of the class suffices -- (39, 28) needs C, which
-is one member, and every other failing cell needs A or B alone. The other is genuine: C = 3 + 5x + 3x^2 at
-(39, 28), divisible by neither A nor B, reciprocal, and with leading
-coefficient THREE. Its roots are (-5 +- i sqrt(11))/6, of modulus
-squared (25 + 11)/36 = 1 exactly, so they are on the circle and its
-y-polynomial 3y + 5 has its single root -5/3 inside (-2, 2), which is
-what the Sturm test reports. So the description "reciprocal with
-leading coefficient 2" was a fact about the two members the earlier
-chart happened to reach, and the CLASS -- integer polynomials with
-every root on the unit circle -- is what survives: all five residuals
-pass the exact unit-circle test, K-F never fires, and every one of the
-695 cyclotomic parts is a pure product. SO THE CONSTRUCTIVE STATEMENT IS
-THIS: every one of the 695 cells has a minimiser that is a MONOMIAL
-TIMES A PURE PRODUCT TIMES ONE OF THE FIVE RESIDUALS, and the monomial
-costs nothing (below), so every cell has one that is a pure product
-times one of the five. That is the census's positive answer and it is
-what the class statement is about; everything below says which residual
-and how often. AND THE RESIDUAL IS THE FAILURE FLAG. The four non-trivial residuals cover 51 + 29 + 2 + 1 = 83 cells,
-which is exactly the failing set. One direction is proved rather than
-counted: residual 1 plus the pure-product census means the witness is a
-monomial times a pure product, so h is a pure height, so h >= ph, and
-h <= ph always -- no failure. The other direction is the count, the two
-sets having the same size. So a cell fails EXACTLY when its exhibited
-minimiser is not a pure product, and the residual carries no
-information the failure flag does not and none that it lacks.
+F5. THE THIRD MEMBER EXISTS AND P6 IS REFUTED -- AND SO IS THE READING THAT THE
+MULTIPLIERS HAVE LEADING COEFFICIENT 2. The extended chart's 695 exhibited
+minimisers carry FIVE distinct residuals, not three: 1 at 612 cells, B at 51
+(47 of them past depth 20), A at 29 (13 past), and two new ones. Exact division
+over the known members separates them. A*B = 4 + 14x + 26x^2 + 31x^3 + 26x^4 +
+14x^5 + 4x^6 appears at (39, 24) and (40, 25) and is NOT a new member of
+anything -- the class is closed under multiplication, so a product of members
+is a member for free, and what those two cells report is the only place on the
+chart where NO SINGLE member of the class suffices -- (39, 28) needs C, which
+is one member, and every other failing cell needs A or B alone. The other is
+genuine: C = 3 + 5x + 3x^2 at (39, 28), divisible by neither A nor B,
+reciprocal, and with leading coefficient THREE. Its roots are (-5 +- i
+sqrt(11))/6, of modulus squared (25 + 11)/36 = 1 exactly, so they are on the
+circle and its y-polynomial 3y + 5 has its single root -5/3 inside (-2, 2),
+which is what the Sturm test reports. So the description "reciprocal with
+leading coefficient 2" was a fact about the two members the earlier chart
+happened to reach, and the CLASS -- integer polynomials with every root on the
+unit circle -- is what survives: all five residuals pass the exact unit-circle
+test, K-F never fires, and every one of the 695 cyclotomic parts is a pure
+product. SO THE CONSTRUCTIVE STATEMENT IS THIS: every one of the 695 cells has
+a minimiser that is a MONOMIAL TIMES A PURE PRODUCT TIMES ONE OF THE FIVE
+RESIDUALS, and the monomial costs nothing (below), so every cell has one that
+is a pure product times one of the five. That is the census's positive answer
+and it is what the class statement is about; everything below says which
+residual and how often. AND THE RESIDUAL IS THE FAILURE FLAG. The four
+non-trivial residuals cover 51 + 29 + 2 + 1 = 83 cells, which is exactly the
+failing set. One direction is proved rather than counted: residual 1 plus the
+pure-product census means the witness is a monomial times a pure product, so h
+is a pure height, so h >= ph, and h <= ph always -- no failure. The other
+direction is the count, the two sets having the same size. So a cell fails
+EXACTLY when its exhibited minimiser is not a pure product, and the residual
+carries no information the failure flag does not and none that it lacks.
 
 F6. AT EVERY FAILURE BUT THREE, ONE KNOWN MULTIPLIER STILL ATTAINS h.
 The A-enriched and B-enriched families are swept over the same multiset
@@ -1117,10 +1113,8 @@ def main():
                     p = q
                     again = True
                     break
-        print("      residual %-24s = %s%s"
-              % (str(list(res)), " * ".join(parts) if parts else "",
-                 (" * " if parts else "") + str(p)
-                 if p != [1] else ""))
+        rhs = " * ".join(parts + ([str(p)] if p != [1] else []))
+        print("      residual %-24s = %s" % (str(list(res)), rhs or "1"))
 
     print("\n   (d) the two enriched families over the WHOLE chart")
     # A cell too narrow to hold the multiplier at all -- M - 1 - 4 < J
