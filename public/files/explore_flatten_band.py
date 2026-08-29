@@ -265,8 +265,10 @@ F8. THE COFACTOR BOUND IS THE INSTRUMENT THAT MADE THE CENSUS POSSIBLE.
 It agrees with the parent's multiset bound at all 604 answer-key cells
 of rank at most 25, and it is priced by partitions of r - 1 rather than
 of M - 1, so its cost does not grow with the depth at all. That is what
-lets this rig decide cells out to M = 148 when every census before it
-stopped at 40. The whole rig closes in 71 s at a 64 MB peak.
+lets this rig decide cells out to M = 144 -- rank 4 at depth 140, the
+widest cell the sweep actually reaches, the deeper ranks stopping at
+their own crossings long before the depth ceiling -- when every census
+before it stopped at 40. The whole rig closes in 71 s at a 64 MB peak.
 
 THE RUN RECORD. THREE full runs. The FIRST was KILLED by memwatch at
 523 MB inside its first control: the cofactor list at rank 38 -- the
