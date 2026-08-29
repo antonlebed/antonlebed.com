@@ -187,7 +187,15 @@ permanent. Two thresholds are therefore reported per rank and they are
 different measurements: J_hi, the last failing depth, and J_ch, the
 depth from which the champion attains h. It remains a stopping RULE and
 not a proof -- the claim it supports holds within the swept range and
-no further. ARM C, the minimiser sets at ranks 2..4 at
+no further. THAT RANGE RUNS TO J = 140, AND THE TWO ARMS' CEILINGS ARE
+DIFFERENT ON PURPOSE: arm A stops at 45 because it only needs a FIRST
+failure and every rank that has one has it well below that, while arm B
+must reach a LAST failure and rank 7's sits at 58. The side effect is
+the low wall's strongest number. Ranks 2, 3 and 4 never give arm B a
+first failure either, so it carries them all the way to the ceiling and
+reports 139 clean depths each -- which subsumes arm A's completed scan
+at those three ranks and is why F2 quotes 140 there and 45 at rank 1,
+the only rank arm B does not cover. ARM C, the minimiser sets at ranks 2..4 at
 EVERY depth from r - 1 to 30 and not only above each rank's crossover
 -- the whole column is collected because what the crossover does to the
 SET is part of the question, and only the KILL is scoped to the cells
