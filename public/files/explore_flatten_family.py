@@ -382,8 +382,23 @@ integer polynomial with nonzero constant term and all roots on the
 circle has all roots roots of unity, hence is a product of cyclotomics,
 hence has residual 1. So a residual of positive degree can be inside the
 class only by being NON-MONIC, and the census says exactly two non-monic
-factors occur across 550 cells. The refuted pure-product law is this
-class's monic case.
+factors occur across 550 cells. The refuted pure-product law sits INSIDE
+this class's monic case and is not equal to it: Kronecker delivers the
+products of CYCLOTOMICS, and the pure products are a strict subset of
+those -- Phi_3 = 1 + x + x^2 is a product of cyclotomics and not a pure
+product, as the third section of this record says in as many words. What
+carries the statement the rest of the way to the PURE products is the
+census's other half, that the cyclotomic part decomposes as
+prod(x^{d_i} - 1) at every cell. (SETTLED SINCE, by
+explore_flatten_select.py, which extends this chart to 695 cells at
+M = 4..40, J = 2..30: the residual count is FIVE rather than three, the
+new ones being the product A*B at two cells -- no new member, the class
+being closed under multiplication -- and C = 3 + 5x + 3x^2 at one, whose
+LEADING COEFFICIENT IS THREE. Everything above survives as a statement
+about the 550, which is what it measured; what does not survive is
+"exactly two", and with it the reading of leading coefficient 2 as a
+property of the multipliers rather than of the two this chart reached.
+The unit-circle law itself survives all 695.)
 
 P2 HOLDS, and its verdict needs one clause the findings above dropped.
 22 of the 550 witnesses carry a MONOMIAL factor, and a root at 0 is not
