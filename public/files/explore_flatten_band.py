@@ -225,12 +225,17 @@ inherited rather than derived. Scanning their columns past the corner would
 need cells at rank 38 and depth beyond 30, which is where this instrument is
 dearest.
 
-F2. THE LOW WALL IS A REAL ABSENCE AND IT IS WIDER THAN THE CHART. P3
-holds without qualification: at ranks 1, 2, 3 and 4 the failure flag is
-clean at EVERY depth from 2 to 45, a completed scan reaching M = 49 and
-so past the chart's own M = 40 at all four. K-H never fired. At these
-ranks the pure family is extremal outright over the scanned range and
-not merely inside the census's corner.
+F2. THE LOW WALL IS A REAL ABSENCE AND IT IS FAR WIDER THAN THE CHART.
+P3 holds without qualification: at ranks 1, 2, 3 and 4 the failure flag
+is clean at EVERY depth from 2 to 45, a completed scan reaching M = 49
+and so past the chart's own M = 40 at all four, and K-H never fired.
+AND AT RANKS 2, 3 AND 4 IT IS CLEAN MUCH FURTHER, because arm B sweeps
+those three to the depth ceiling looking for a first failure and finds
+none: 139 depths each, J = 2 to 140, M out to 144. Rank 1 alone stops
+at 45, and it is the one that needs no scan, its bounds coinciding by
+construction. So at these ranks the pure family is extremal outright
+over three and a half times the chart's depth, and not merely inside
+the census's corner.
 
 F3. THE HIGH WALL IS A CORNER EFFECT AND IS NOT A WALL AT ALL. Rank 19
 fails first at J = 26, rank 20 at J = 23, rank 21 at J = 25 and rank 22
