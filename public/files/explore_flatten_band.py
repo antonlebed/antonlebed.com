@@ -198,30 +198,28 @@ footprint.
 
 THE FINDINGS.
 
-F1. THE RANK WINDOW IS NOT A LAW ABOUT RANK, AND P5 HOLDS EXACTLY. The
-set of ranks that can fail, derived from the measured first-failure
-depths and the chart's own corner alone as {r : J_lo(r) <= min(30, 40 -
-r)}, is {5, 6, ..., 18}. The census's own failing ranks are {5, 6, ...,
-18}. They agree rank for rank. AND WHERE THAT AGREEMENT IS EVIDENCE
-HAS TO BE SAID, BECAUSE INSIDE THE WINDOW IT IS NOT: for a rank between
-5 and 18, "its first failing depth sits on the chart" and "it fails on
-the chart" are one sentence, so the comparison restates a fact there
-and checks the plumbing. THE CONTENT IS AT THE RANKS THE WINDOW
-EXCLUDES -- which is to say it is F2 and F3, the two walls, and they
-turn out to be different things. What arm D adds over them is that
-nothing ELSE is needed: the corner and each rank's own first failing
-depth reproduce the census's rank set with no further input, so the
-two-sided window is the line M <= 40 crossing a per-rank depth
-threshold and neither wall is a fact about the rank. WHAT CARRIES THE
-DERIVATION IS 22 OF THE CHART'S 38 RANKS AND NOT ALL OF THEM: arm A
-scans ranks 1 to 22, which covers both walls and every failing rank
-with five ranks to spare above the high one. At ranks 23 to 38 the
-chart's own depths are J <= 40 - r <= 17, all inside the parent
-rectangle, so C4's completed scan decides them -- that is the census
-itself and not an independent measurement, and their exclusion from
-the window is therefore inherited rather than derived. Scanning their
-columns past the corner would need cells at rank 38 and depth beyond
-30, which is where this instrument is dearest.
+F1. THE RANK WINDOW IS NOT A LAW ABOUT RANK, AND P5 HOLDS EXACTLY. The set of
+ranks that can fail, derived from the measured first-failure depths and the
+chart's own corner alone as {r : J_lo(r) <= min(30, 40 - r)}, is {5, 6, ...,
+18}. The census's own failing ranks are {5, 6, ..., 18}. They agree rank for
+rank. AND WHERE THAT AGREEMENT IS EVIDENCE HAS TO BE SAID, BECAUSE INSIDE THE
+WINDOW IT IS NOT: for a rank between 5 and 18, "its first failing depth sits on
+the chart" and "it fails on the chart" are one sentence, so the comparison
+restates a fact there and checks the plumbing. THE CONTENT IS AT THE RANKS THE
+WINDOW EXCLUDES -- which is to say it is F2 and F3, the two walls, and they
+turn out to be different things. What arm D adds over them is that nothing ELSE
+is needed: the corner and each rank's own first failing depth reproduce the
+census's rank set with no further input, so the two-sided window is the line M
+<= 40 crossing a per-rank depth threshold and neither wall is a fact about the
+rank. WHAT CARRIES THE DERIVATION IS 22 OF THE CHART'S 38 RANKS AND NOT ALL OF
+THEM: arm A scans ranks 1 to 22, which covers both walls and every failing rank
+and the first four ranks of the high wall itself, 19 to 22. At ranks 23 to 38
+the chart's own depths are J <= 40 - r <= 17, all inside the parent rectangle,
+so C4's completed scan decides them -- that is the census itself and not an
+independent measurement, and their exclusion from the window is therefore
+inherited rather than derived. Scanning their columns past the corner would
+need cells at rank 38 and depth beyond 30, which is where this instrument is
+dearest.
 
 F2. THE LOW WALL IS A REAL ABSENCE AND IT IS WIDER THAN THE CHART. P3
 holds without qualification: at ranks 1, 2, 3 and 4 the failure flag is
