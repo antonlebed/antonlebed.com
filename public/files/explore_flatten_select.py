@@ -290,8 +290,12 @@ the clean outside is 221 cells rather than 325, 111 low and 110 high, and at h
 strength while the raw counts read two to one, and the low tail is the
 better-evidenced of the two on every floor -- the opposite of what the raw
 numbers say (arm 6, post-hoc). Neither tail is thin after conditioning, and
-neither is explained by the height floor: 97 and 43 cells with h >= 10 have
-every room to fail and none does. The band is DEFINED from the failing set, so
+neither is explained by the height floor -- though the two are not alike
+there either: 125 of the high tail's 210 sit at h <= 2 against 7 of the
+low tail's 115, so the height floor accounts for most of the high tail
+and almost none of the low one. What it does not account for is 97
+cells low and 43 high with h >= 10, which have every room to fail and
+none does. The band is DEFINED from the failing set, so
 "all failures inside it" is a tautology and carries nothing; what carries is
 the clean cells outside that COULD have failed, and above all that THE WINDOW
 DID NOT WIDEN. It was 5..18 on the 550-cell chart, and adding 145 cells at
@@ -1083,8 +1087,10 @@ def main():
                  if ((c[0] - c[1] <= cut) if low
                      else (c[0] - c[1] >= cut))]
             print("      %-11s %3d cells, %3d at h = 1 (cannot fail), "
-                  "%3d with h >= 2, %3d with h >= 10, %d failing"
+                  "%3d at h <= 2, %3d with h >= 2, %3d with h >= 10, "
+                  "%d failing"
                   % (nm, len(t), sum(1 for c in t if H[c][0] == 1),
+                     sum(1 for c in t if H[c][0] <= 2),
                      sum(1 for c in t if H[c][0] >= 2),
                      sum(1 for c in t if H[c][0] >= 10),
                      sum(1 for c in t if FAIL[c])))
