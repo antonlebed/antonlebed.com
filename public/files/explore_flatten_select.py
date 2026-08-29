@@ -248,7 +248,14 @@ attainments, worst cell (40, 16) at 20,287 nodes, 433,866 nodes total
 two controls behave: the gap separates perfectly (rank-sum 1.000, 0
 errors) and the hash does not (0.496, and its best threshold is the
 degenerate one). The whole chart is 695 cells and 611,632 nodes in
-about 28 s, worst cell (40, 23) at 28,064 nodes. Both timings -- the
+about 28 s, worst cell (40, 23) at 28,064 nodes, and the two depth
+bands split that as 22.5 s over the earlier 550 cells against 5.5 s
+over the 145 the extension adds. The first of those is the PARENT's own
+22.6 s reproduced by a different rig on the same cells, which is a
+cheap independent check on the instrument's cost that nothing was
+asking for; the second retires this record's pre-freeze estimate of
+"about 3 s", which came from an eight-cell probe and undersampled by
+nearly half. Both timings -- the
 chart's and the whole rig's -- are quoted to the nearest second because
 both move by a few tenths between runs while every other value holds to
 the digit.
@@ -645,9 +652,13 @@ def main():
           % (SWEEP_M, SWEEP_J))
     t = time.time()
     H, NODES, COVOL = {}, {}, {}
+    # SPLIT BY DEPTH BAND, because what the extension COSTS is a claim
+    # this rig makes and an eight-cell probe is not a measurement of it.
+    band_t = {"old": 0.0, "new": 0.0}
     for M in range(4, SWEEP_M + 1):
         t_row = time.time()
         for J in range(2, min(SWEEP_J, M - 1) + 1):
+            t_cell = time.time()
             try:
                 h, v, nodes, red = route_h(M, J)
             except NodeCap:
@@ -665,6 +676,7 @@ def main():
             # plus the extension's 145 -- a timing that could not be
             # reconciled from the page, which is how it was found.
             COVOL[(M, J)] = sum(log10_frac(a) for a in red[2]) / 2.0
+            band_t["old" if J <= OLD_J else "new"] += time.time() - t_cell
         print("   M = %2d done, %.1f s (%.1f s in)"
               % (M, time.time() - t_row, time.time() - t))
     old = [c for c in H if c[1] <= OLD_J]
@@ -676,6 +688,10 @@ def main():
     print("   worst cell %s at %d nodes"
           % (max(NODES, key=lambda c: NODES[c]), max(NODES.values())))
 
+    print("   of that, %.1f s on the %d cells at J <= %d and %.1f s "
+          "on the %d the depth extension adds"
+          % (band_t["old"], len(old), OLD_J, band_t["new"],
+             len(new)))
     print("\n   h(M, J), rows M, columns J = %d..%d" % (OLD_J + 1, SWEEP_J))
     print("      M |" + "".join("%12d" % J
                                 for J in range(OLD_J + 1, SWEEP_J + 1)))
