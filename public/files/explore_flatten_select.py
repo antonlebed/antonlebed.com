@@ -248,7 +248,10 @@ attainments, worst cell (40, 16) at 20,287 nodes, 433,866 nodes total
 two controls behave: the gap separates perfectly (rank-sum 1.000, 0
 errors) and the hash does not (0.496, and its best threshold is the
 degenerate one). The whole chart is 695 cells and 611,632 nodes in
-37.6 s, worst cell (40, 23) at 28,064 nodes.
+about 38 s, worst cell (40, 23) at 28,064 nodes. Both timings -- the
+chart's and the whole rig's -- are quoted to the nearest second because
+both move by a few tenths between runs while every other value holds to
+the digit.
 
 F2. NO PREDICTOR SELECTS A FAILING CELL AND P1 HOLDS. K-A never fires.
 Of the eight candidates on both populations, seven have a best
@@ -391,9 +394,10 @@ is why.
 
 THE RUN RECORD. Three runs of the whole rig. The FIRST is superseded and
 carried nothing wrong: arms 1 to 5 printed every value quoted above and
-each later run reproduces every one of them exactly. Only the WALL
-moves between runs, by a few tenths, and that is the only reproduction
-claimed here. The SECOND adds arm 6's first
+each later run reproduces every one of them exactly. Only the two
+TIMINGS move between runs, the chart's and the whole rig's, by a few
+tenths of a second each, and that is the only reproduction claimed
+here. The SECOND adds arm 6's first
 three post-hoc measurements and the THIRD its fourth, the enrichment
 counts over the whole chart -- added because two sentences of this
 record would otherwise have rested on a reading of 83 printed rows
@@ -407,7 +411,8 @@ eleven whole-rectangle aggregates against a narrowed sweep's and
 reported eleven mismatches for a rig that was working. The first is
 corrected in the paragraph that states it; the second now reports
 itself unexercised, which is the guard C6 already carried for a single
-cell. Both were fixed before any science printed. Wall 39.6 s, single
+cell. Both were fixed before any science printed. Wall about 40 s,
+single
 process, well inside the ordinary analysis footprint.
 """
 import os
