@@ -239,8 +239,11 @@ the census's corner.
 
 F3. THE HIGH WALL IS A CORNER EFFECT AND IS NOT A WALL AT ALL. Rank 19
 fails first at J = 26, rank 20 at J = 23, rank 21 at J = 25 and rank 22
-at J = 30 -- cells at M = 45, 43, 46 and 52. Every rank the census
-called clean above its window fails, and fails just outside the corner:
+at J = 30 -- cells at M = 45, 43, 46 and 52. EVERY RANK ABOVE THE
+WINDOW THAT THIS RIG SCANNED FAILS, which is ranks 19 to 22 and not the
+whole of the high wall: 23 to 38 were never taken past the corner, so
+what is shown is that the wall's first four ranks are not clean and not
+that none of the twenty is. They fail just outside the corner:
 a rank-19 cell on that chart has J at most 40 - 19 = 21, five short of
 where the failures start. "Rank 19 and above never fails" was a true
 statement about a chart and a false one about the lattice.
