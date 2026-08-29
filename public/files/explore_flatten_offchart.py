@@ -336,6 +336,28 @@ it and is NOT re-derived there, that rig sweeping its own wider range;
 what is superseded is the sentence calling d_2 absent, not the
 counts. What F6 calls the object's absence above height 2 still
 stands: d_3 and up remain uncontacted.)
+
+(AND THE QUESTION AT THE TOP OF THIS FILE IS ANSWERED NO, by
+explore_flatten_lattice.py. h(M, J) is the sup-norm shortest vector of
+the rank-(M-J) lattice (x-1)^J Z[x] cut at degree < M, and a reduction
+plus an exhaustive enumeration of the L2 ball of radius H*sqrt(M) --
+H the sup norm of any exhibited lattice vector, so no ceiling is
+borrowed from the family under test -- decides all 252 cells of
+M = 4..30, J = 2..12, including every one this rig and its sibling left
+bracketed. At 249 of them h IS the least height of a pure product; at
+THREE it is strictly below one, h(21, 12) = 39 against 44,
+h(23, 10) = 9 against 10, h(25, 12) = 25 against 28, each on an
+exhibited integer vector cleared by J synthetic divisions. So the
+pure-product law is a property of the CHARTED CORNER: what F3
+establishes exhaustively at M <= 12 stands unchanged, and the
+expectation that it continues does not. F4's local-minimum reading is
+untouched and is now the weaker statement it always was. The bracket
+COUNTS above are left as this run printed them and are reproduced there
+exactly, 174 decided and 78 bracketed; what that rig adds to them is
+the rank distribution this one never printed, which runs from 3 to 21
+with a median of 11 -- so F6's reading of the standing corner as
+low-rank was taken off the WIDEST bracket, and a bracket is wide at low
+rank by construction.)
 """
 import os
 import random

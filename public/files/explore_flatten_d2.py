@@ -448,6 +448,28 @@ enumeration would answer it directly and was not tried. So "more
 compute does not help" is exactly the claim this rig has not earned,
 and the corner is recorded as open with two candidate routes rather
 than one.
+
+(SETTLED SINCE, by explore_flatten_lattice.py, which took the second of
+those two routes: a reduction plus an exhaustive enumeration of the L2
+ball of radius H*sqrt(M) -- H the sup norm of any exhibited lattice
+vector, which needs no ceiling from the product family -- decides all
+252 cells of F6's sweep, the 78 brackets included, in 127.5 s and
+30,158 nodes total against the 10^10 a deepening needs for one of them.
+The widest is h(15, 12) = 264, the product's own height. F5 and F6 are
+unchanged as records of what THIS rig decided, and two of their
+readings are superseded. First, the corner is not low-rank: the rank
+distribution of the 78, which this sweep does not print, runs from 3 to
+21 with a median of 11 against 12 over all 252 cells, so reading the
+corner off the widest bracket read the one cell guaranteed to be
+unrepresentative -- brackets are wide at low rank because a deepening's
+cost is (2k+1)^rank. Second, and larger: PURE-PRODUCT EXTREMALITY IS
+FALSE off the charted range. At 249 of the 252 h is the least height of
+a pure product; at h(21, 12), h(23, 10) and h(25, 12) it is strictly
+below one, 39 against 44, 9 against 10 and 25 against 28, each on an
+exhibited vector cleared by J synthetic divisions. Nothing in F2 or F3
+is touched -- d_2(J) at J <= 8 and its equality with the least-degree
+height-2 product are exhaustive and stand -- and the failures sit at
+widths this ladder never reached.)
 """
 import os
 
