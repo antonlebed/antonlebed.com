@@ -256,7 +256,7 @@ past it the sweep reached, so h has a closed form there with no search
 of any kind. THE SWEEP IS WHAT BOUNDS THAT, and its two ends
 are measured differently: eight depths past the threshold at ranks 5 to
 8, where the scan stops at a crossing; and at ranks 2, 3 and 4, which
-never fail at all, the champion attains h from J = 2, 7 and 13
+fail at no depth swept, the champion attains h from J = 2, 7 and 13
 CONTINUOUSLY THROUGH J = 140. Both are stopping rules and neither is a
 proof that it never reverses.
 At ranks 5, 6, 7 and 8
