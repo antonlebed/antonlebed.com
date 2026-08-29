@@ -397,12 +397,12 @@ carried nothing wrong: arms 1 to 5 printed every value quoted above and
 each later run reproduces every one of them exactly. Only the two
 TIMINGS move between runs, the chart's and the whole rig's, by a few
 tenths of a second each, and that is the only reproduction claimed
-here. The LATER ones add arm 6's post-hoc
-measurements a piece at a time, and the last of them removes a
-duplicated basis reduction that had been costing the chart ten seconds
-without touching a single result -- the enrichment counts among them -- added because two sentences of this
-record would otherwise have rested on a reading of 83 printed rows
-rather than on a printed count. Every post-hoc measurement is labelled
+here. The LATER ones add arm 6's post-hoc measurements a piece at a
+time -- the enrichment counts among them, added because two sentences
+of this record would otherwise have rested on a reading of 83 printed
+rows rather than on a printed count -- and the last of them removes a
+DUPLICATED BASIS REDUCTION that had been costing the chart ten seconds
+while touching no result at all. Every post-hoc measurement is labelled
 as such wherever it is quoted.
 Before either, a SMOKE RUN at M <= 14, J <= 8 exercised every arm with
 an EMPTY failing set and found two faults that no full run could have
