@@ -184,9 +184,12 @@ permanent. Two thresholds are therefore reported per rank and they are
 different measurements: J_hi, the last failing depth, and J_ch, the
 depth from which the champion attains h. It remains a stopping RULE and
 not a proof -- the claim it supports holds within the swept range and
-no further. ARM C, the minimiser sets at ranks 2..4 and
-above each rank's crossover, at the fixed radius. ARM D, the
-reconciliation.
+no further. ARM C, the minimiser sets at ranks 2..4 at
+EVERY depth from r - 1 to 30 and not only above each rank's crossover
+-- the whole column is collected because what the crossover does to the
+SET is part of the question, and only the KILL is scoped to the cells
+where the champion attains h at all, P4 saying nothing where it does
+not. ARM D, the reconciliation.
 
 COST. Single process, exact integer and rational arithmetic throughout,
 no array library, memory a few megabytes. The probe's timings put the
@@ -199,9 +202,17 @@ F1. THE RANK WINDOW IS NOT A LAW ABOUT RANK, AND P5 HOLDS EXACTLY. The
 set of ranks that can fail, derived from the measured first-failure
 depths and the chart's own corner alone as {r : J_lo(r) <= min(30, 40 -
 r)}, is {5, 6, ..., 18}. The census's own failing ranks are {5, 6, ...,
-18}. They agree rank for rank and not merely at the two endpoints. So
-the two-sided window is the line M <= 40 crossing a per-rank depth
-threshold, and neither wall is a fact about the rank. WHAT CARRIES THE
+18}. They agree rank for rank. AND WHERE THAT AGREEMENT IS EVIDENCE
+HAS TO BE SAID, BECAUSE INSIDE THE WINDOW IT IS NOT: for a rank between
+5 and 18, "its first failing depth sits on the chart" and "it fails on
+the chart" are one sentence, so the comparison restates a fact there
+and checks the plumbing. THE CONTENT IS AT THE RANKS THE WINDOW
+EXCLUDES -- which is to say it is F2 and F3, the two walls, and they
+turn out to be different things. What arm D adds over them is that
+nothing ELSE is needed: the corner and each rank's own first failing
+depth reproduce the census's rank set with no further input, so the
+two-sided window is the line M <= 40 crossing a per-rank depth
+threshold and neither wall is a fact about the rank. WHAT CARRIES THE
 DERIVATION IS 22 OF THE CHART'S 38 RANKS AND NOT ALL OF THEM: arm A
 scans ranks 1 to 22, which covers both walls and every failing rank
 with five ranks to spare above the high one. At ranks 23 to 38 the
@@ -314,7 +325,30 @@ fail; it now starts four depths further out and is out of sample. And
 arm B was reading arm A's first failing depth rather than its own,
 which made its hole count depend on another arm's ceiling and print
 zero holes where the honest answer is that it cannot say -- it measures
-its own now, and the two arms checking each other is C5. The fifth run
+its own now, and the two arms checking each other is C5. A SIXTH run
+carries two more, again with no value moved. C4 was printing C1's
+restricted cell count, 604, as its own denominator: it scans all 695 of
+the rectangle and reported "83 failures at 604 cells", a right numerator
+over a wrong denominator, and the count it should have been checking --
+that it scanned the whole rectangle at all -- was checked by nothing. It
+counts its own cells now and K-D reads that too. And arm A was carrying
+a per-rank list of clean depths that nothing ever read. A SEVENTH run
+carries an OFF-BY-ONE in the cofactor bound itself, found by tracing
+the convolution's index range by hand rather than by any output: q has
+nq coefficients and (x-1)^J has J + 1, so the product has nq + J, and
+the loop ran to nq + J - 1 and dropped the leading one. It changed
+nothing and could not have -- every cofactor this family builds is a
+product of (x-1) and [d]_x factors, all monic, so the dropped value is
+always 1 while the running maximum is at least the constant term, also
++-1. That is a property of the family and not of the routine, and the
+enriched multipliers A, B and C are exactly the non-monic cofactors it
+would have broken on. The seventh run's output diffs against the sixth
+at three lines, two timings and the memory peak; every scientific value
+is identical. An EIGHTH run adds arm D's own split -- 14 of the 22
+scanned ranks inside the window where the comparison restates a fact,
+against the 8 outside it that carry the evidence -- printed because F1
+had claimed a rank-for-rank agreement without saying that fourteen of
+those ranks agree by construction. Nothing else moved. The fifth run
 carries one more, and it moved no value either: arm D was deriving the
 window by iterating the ranks this rig SWEEPS, so ranks 23 to 38 were
 excluded from the derived set by a loop bound rather than by anything
@@ -452,7 +486,17 @@ def ph_cof(M, J, xm1):
         nq = len(q)
         mx = 0
         ok = True
-        for k in range(nq + J - 1):
+        # q has nq coefficients and (x-1)^J has J + 1, so the product
+        # has nq + J of them and the LAST index is nq + J - 1. An
+        # earlier draft stopped the range one short and dropped that
+        # leading coefficient. It changed no answer here and could not
+        # have: every cofactor this family builds is a product of
+        # (x-1) and [d]_x factors, all MONIC, so the dropped value is
+        # always 1, while mx is at least the constant term, also +-1.
+        # That is a property of the family and not of the routine, and
+        # a non-monic cofactor -- which is exactly what the enriched
+        # multipliers A, B and C are -- would have broken it silently.
+        for k in range(nq + J):
             lo = max(0, k - J)
             hi = min(nq - 1, k)
             s = 0
@@ -597,8 +641,10 @@ def main():
           "its committed record")
     t = time.time()
     fails = []
+    scanned = 0
     for M in range(4, KEY_M + 1):
         for J in range(2, min(KEY_J, M - 1) + 1):
+            scanned += 1
             h, _, _, _ = route_h(M, J)
             if h > KEYPH[(M, J)]:
                 fired["K-C"] += 1
@@ -607,11 +653,12 @@ def main():
                 fails.append((M, J))
     ranks = sorted(set(M - J for (M, J) in fails))
     win = (min(ranks), max(ranks)) if ranks else None
-    print("   %d failures at %d cells (want %d); rank window %s (want %s)"
-          " in %.1f s"
-          % (len(fails), ncells, KEY_FAILURES, win, KEY_WINDOW,
-             time.time() - t))
-    if len(fails) != KEY_FAILURES or win != KEY_WINDOW:
+    print("   %d failures over %d cells scanned (want %d over %d); "
+          "rank window %s (want %s) in %.1f s"
+          % (len(fails), scanned, KEY_FAILURES, KEY_CELLS, win,
+             KEY_WINDOW, time.time() - t))
+    if (len(fails) != KEY_FAILURES or win != KEY_WINDOW
+            or scanned != KEY_CELLS):
         fired["K-D"] += 1
         print("   K-D the answer key is not reproduced")
     print("   KILLS after the controls: %s" % fired)
@@ -620,12 +667,11 @@ def main():
     print("\n[arm A] the LOW end -- scan J upward to the first failure, "
           "ranks %d..%d" % (LOW_RANKS[0], LOW_RANKS[-1]))
     t = time.time()
-    JLO, ACLEAN = {}, {}
+    JLO = {}
     for r in LOW_RANKS:
         full = r <= 4
-        clean = []
         first = None
-        for J in range(max(2, 2), LOW_JCAP + 1):
+        for J in range(2, LOW_JCAP + 1):
             M = J + r
             xm1 = xm1_pow(J)
             h, v, nodes, ph, pw = cell(M, J, xm1)
@@ -641,12 +687,9 @@ def main():
                           % (r, J))
                     first = J
                     break
-            else:
-                clean.append(J)
             if first is not None and not full:
                 break
         JLO[r] = first
-        ACLEAN[r] = clean
         print("   rank %2d: first failure at J = %s%s"
               % (r, first if first is not None
                  else "none up to %d" % LOW_JCAP,
@@ -854,6 +897,26 @@ def main():
     got = (min(derived), max(derived)) if derived else None
     print("   derived window %s against the census's %s"
           % (got, KEY_WINDOW))
+    # AND WHERE THE AGREEMENT IS EVIDENCE AND WHERE IT IS A TAUTOLOGY.
+    # For a rank INSIDE the window, "J_lo(r) <= min(30, 40 - r)" says
+    # the rank's first failure sits on the chart, which is the same
+    # sentence as "this rank fails on the chart". The two sides of the
+    # comparison are one fact there and the agreement is bookkeeping.
+    # The CONTENT is at the ranks the window excludes: those that fail
+    # only past the corner, and those that fail at no depth scanned.
+    lo_side = [r for r in LOW_RANKS
+               if JLO.get(r) is None and r not in derived]
+    hi_side = [r for r in LOW_RANKS
+               if JLO.get(r) is not None and r not in derived]
+    print("   of the %d ranks this rig scans, %d are inside the window, "
+          "where the comparison restates one fact and is a check on the "
+          "plumbing rather than evidence"
+          % (len([r for r in LOW_RANKS]), len(derived)))
+    print("   the evidence is the %d excluded ranks it scanned: %s fail "
+          "at NO depth to %d, and %s fail first at %s -- past the "
+          "corner, which is why the census never saw it"
+          % (len(lo_side) + len(hi_side), lo_side, LOW_JCAP, hi_side,
+             [JLO[r] for r in hi_side]))
     if got != KEY_WINDOW:
         fired["K-F"] += 1
         print("   K-F the derived window is not the census's")
