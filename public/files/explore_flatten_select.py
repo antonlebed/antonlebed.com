@@ -372,9 +372,23 @@ flat. The absolute reading is confounded -- heights run to 10^8 where
 the failures crowd -- and the scale-free ratio (post-hoc, arm 6) cuts
 the signal without reversing it: log10 ph(M-4, J)/ph(M, J) has rank-sum
 0.776 for LARGE, median 0.687 at the failures against 0.301 elsewhere,
-a factor of 4.9 against 2.0 over four atoms. So roughly half the
-absolute reading was the depth confound and a real effect survives it,
-pointing the other way from the hand attack. The mechanism to keep is
+a factor of 4.9 against 2.0 over four atoms. Measured as excess over
+chance -- the only way the two rank-sums are comparable, a rank-sum of
+1/2 being no signal at all -- the absolute reading carries 0.423 and
+the scale-free one 0.276, so ABOUT A THIRD of it was the depth confound
+and two thirds survive the deconfounding, still pointing the other way
+from the hand attack. TWO CLAUSES ARE OWED HERE AND BOTH CUT AGAINST
+THE FINDING. First, P2's RANKING half was right and only its SIGN was
+wrong: plateau_4 is the most associated candidate on the h >= 2 cells,
+0.390 from chance against the stall's 0.317 and the depth's 0.358, so
+the mechanism was worth repairing rather than dropping. Second, and it
+is the deflation: the DECONFOUNDED plateau carries 0.276, which is
+BELOW the raw depth's 0.358 on the same population. The plateau was
+supposed to say something the depth does not, and on this evidence it
+does not -- what survives deconfounding is real against CHANCE and not
+against the variable it was meant to beat. Read together, the
+repaired mechanism is a better story than the hand attack's and still
+not a second variable. The mechanism to keep is
 not that enrichment needs slack; it is that a pure family degrading
 fast as the width narrows is a pure family far from the true minimum.
 
@@ -390,14 +404,14 @@ a measured statement about the heuristic itself on this family, which
 is that the sup-norm question is not well approximated by the L2 ball
 it is enumerated in.
 
-F9. THE STALL AND THE ARITHMETIC ARE FLAT, AS PREDICTED. P5 holds:
-J's divisor count has rank-sum 0.589 on the h >= 2 cells, 0.089 from a
-half. P4 holds as a RATE -- a repeated part is present at essentially
-every cell on both sides -- while the stall's MAGNITUDE, the largest
-multiplicity in the pure argmin, tracks the depth (rank-sum 0.863),
-which is the depth density read a third way and not an independent
-variable. The pure argmins at the deep cells are long runs of 1s, which
-is why.
+F9. THE STALL AND THE ARITHMETIC ARE FLAT, AS PREDICTED. P5 holds: J's divisor
+count has rank-sum 0.589 on the h >= 2 cells, 0.089 from a half. P4 holds as a
+RATE -- a repeated part is present at essentially every cell on both sides --
+while the stall's MAGNITUDE, the largest multiplicity in the pure argmin,
+tracks the depth -- rank-sum 0.863 over the whole chart and 0.817 on the h >= 2
+cells, the population every other figure in this finding is quoted over --
+which is the depth density read a third way and not an independent variable.
+The pure argmins at the deep cells are long runs of 1s, which is why.
 
 THE RUN RECORD. Three runs of the whole rig. The FIRST is superseded and
 carried nothing wrong: arms 1 to 5 printed every value quoted above and
