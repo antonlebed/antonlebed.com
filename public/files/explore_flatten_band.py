@@ -7,6 +7,9 @@ cut at degree < M -- over M = 4..40, J = 2..30, and found that h beats
 the least PURE-PRODUCT height at 83 of them. Every one of the 83 sits
 at lattice rank M - J between 5 and 18. Outside that window 325 cells
 fail zero times, 221 of them with h >= 2 and so able to fail at all.
+CALL THE WINDOW'S TWO EDGES THE LOW WALL, rank 4 and below, and the
+HIGH WALL, rank 19 and above; both names are used throughout below and
+neither is defined anywhere else in this file.
 The window did not widen when the chart grew from 550 cells to 695.
 
 That census answered WHICH cells fail and gave no reason for either
@@ -242,9 +245,12 @@ The champion (1+x)^(r-1) (x-1)^J -- the unique cofactor of maximal
 vanishing order at -1, and the pure product (x^2-1)^(r-1)
 (x-1)^(J-r+1) -- attains h from a per-rank depth up, at every depth
 past it the sweep reached, so h has a closed form there with no search
-of any kind. THE SWEEP IS WHAT BOUNDS THAT: eight depths past the
-threshold at ranks 5 to 8 and every depth to 140 at ranks 2, 3 and 4,
-which is a stopping rule and not a proof that it never reverses.
+of any kind. THE SWEEP IS WHAT BOUNDS THAT, and its two ends
+are measured differently: eight depths past the threshold at ranks 5 to
+8, where the scan stops at a crossing; and at ranks 2, 3 and 4, which
+never fail at all, the champion attains h from J = 2, 7 and 13
+CONTINUOUSLY THROUGH J = 140. Both are stopping rules and neither is a
+proof that it never reverses.
 At ranks 5, 6, 7 and 8
 that depth is J_ch = 31, 34, 59 and 61, and at ALL FOUR
 
@@ -256,7 +262,7 @@ read off a comparison with the whole pure family, one off a single
 closed-form polynomial -- and they coincide at every rank where both
 were reached. And the second threshold is confirmed OUT OF SAMPLE: arm
 C2 re-reads h at the four depths PAST the run each rank's stopping rule
-consumed, and the champion attains it at all 16.
+consumed, and the champion attains it at all 28.
 
 F5. P1 IS REFUTED: THE FAILING SET IS CONTAINED IN A BAND BUT IS NOT
 ALL OF IT. K-A fired at three of the four ranks whose high end the
@@ -298,73 +304,89 @@ widest cell the sweep actually reaches, the deeper ranks stopping at
 their own crossings long before the depth ceiling -- when every census
 before it stopped at 40. The whole rig closes in 71 s at a 64 MB peak.
 
-THE RUN RECORD. THREE full runs. The FIRST was KILLED by memwatch at
-523 MB inside its first control: the cofactor list at rank 38 -- the
-parent rectangle's widest, and a rank this rig's own sweep never
-reaches -- runs to a few hundred thousand polynomials. The control was
-narrowed to the ranks the sweep uses and the answer key moved onto the
-parent's own instrument, which is where both belong; no science had
-printed. The SECOND ran clean and is superseded on ONE reading: it
-declared the last failure at rank 8 to be J = 26 on a stopping rule of
-four consecutive CLEAN depths, and its own arm C2 immediately
-contradicted that by finding the champion short of h at all four of
-them. The rule was wrong rather than the cell: a cell can be clean
-because some other pure product wins, which is transient, where the
-champion's win is the state the mechanism predicts is permanent. Under
-the corrected rule rank 8's last failure is J = 60, thirty-four depths
-further out, and its seven interior clean depths are F5's holes. Every
-other value in the second run reproduces in the THIRD exactly. A FOURTH
-and a FIFTH run followed the audit and reproduce every value of the
-third. It
-carries two fixes that no result moved on, both found by re-smoking
-after the stopping rule changed. Arm C2 had become a TAUTOLOGY: the
-rule it exists to check is now "the champion attains h for four
-depths", and the arm was re-reading those same four, so it could not
-fail; it now starts four depths further out and is out of sample. And
-arm B was reading arm A's first failing depth rather than its own,
-which made its hole count depend on another arm's ceiling and print
-zero holes where the honest answer is that it cannot say -- it measures
-its own now, and the two arms checking each other is C5. A SIXTH run
-carries two more, again with no value moved. C4 was printing C1's
-restricted cell count, 604, as its own denominator: it scans all 695 of
-the rectangle and reported "83 failures at 604 cells", a right numerator
-over a wrong denominator, and the count it should have been checking --
-that it scanned the whole rectangle at all -- was checked by nothing. It
-counts its own cells now and K-D reads that too. And arm A was carrying
-a per-rank list of clean depths that nothing ever read. A SEVENTH run
-carries an OFF-BY-ONE in the cofactor bound itself, found by tracing
-the convolution's index range by hand rather than by any output: q has
-nq coefficients and (x-1)^J has J + 1, so the product has nq + J, and
-the loop ran to nq + J - 1 and dropped the leading one. It changed
-nothing and could not have -- every cofactor this family builds is a
-product of (x-1) and [d]_x factors, all monic, so the dropped value is
+THE RUN RECORD. EIGHT full runs, and the science is settled from the
+THIRD: every run after it reproduces every value of it, and each was
+made only because the audit changed an instrument, a control or a
+print.
+
+RUN 1 was KILLED by memwatch at 523 MB inside its first control -- the
+cofactor list at rank 38, the parent rectangle's widest and a rank this
+sweep never reaches, runs to a few hundred thousand polynomials. The
+control was narrowed to the ranks the sweep uses and the answer key
+moved onto the parent's own instrument, which is where both belong. No
+science had printed.
+
+RUN 2 ran clean and is superseded on ONE reading. It declared the last
+failure at rank 8 to be J = 26, on a stopping rule of four consecutive
+CLEAN depths, and its own arm C2 immediately contradicted that by
+finding the champion short of h at all four of them. The rule was wrong
+rather than the cell: a cell can be clean because some OTHER pure
+product wins, which is transient, where the champion's win is the state
+the mechanism predicts is permanent. Under the corrected rule rank 8's
+last failure is J = 60, thirty-four depths further out, and its seven
+interior clean depths are F5's holes.
+
+RUN 3 is the record. Every value quoted in the findings above is its
+value, and runs 4 to 8 reproduce all of them.
+
+RUNS 4 TO 8 each carry audit fixes that moved no result. RUN 4: arm C2
+had become a TAUTOLOGY, since the rule it exists to check is now "the
+champion attains h for four depths" and the arm was re-reading those
+same four -- it starts four depths further out now and is out of
+sample; and arm B was reading arm A's first failing depth instead of
+its own, which made its hole count depend on another arm's ceiling and
+print zero holes where the honest answer is that it cannot say, so it
+measures its own and the two arms cross-check as C5. RUN 5: arm D was
+deriving the window by iterating the ranks this rig SWEEPS, so ranks 23
+to 38 were excluded by a loop bound rather than by anything measured
+and the result was still called a derivation; it ranges over every rank
+the chart has now and prints which its own scan decides and which the
+census does, 22 against 16. RUN 6: C4 was printing C1's restricted
+count, 604, as its own denominator -- it scans all 695 and reported "83
+failures at 604 cells", a right numerator over a wrong one, while that
+it scanned the whole rectangle at all was checked by nothing; it counts
+its own cells now and K-D reads that too. Also removed there: a
+per-rank list of clean depths arm A built and nothing read. RUN 7: an
+OFF-BY-ONE in the cofactor bound itself, found by tracing the
+convolution's index range on paper and not from any output -- q has nq
+coefficients and (x-1)^J has J + 1, so the product has nq + J, and the
+loop ran to nq + J - 1 and dropped the leading one. It changed nothing
+and could not have, every cofactor this family builds being a product
+of (x-1) and [d]_x factors and so monic, which makes the dropped value
 always 1 while the running maximum is at least the constant term, also
-+-1. That is a property of the family and not of the routine, and the
++-1. That is a property of the FAMILY and not of the routine, and the
 enriched multipliers A, B and C are exactly the non-monic cofactors it
-would have broken on. The seventh run's output diffs against the sixth
-at three lines, two timings and the memory peak; every scientific value
-is identical. An EIGHTH run adds arm D's own split -- 14 of the 22
-scanned ranks inside the window where the comparison restates a fact,
-against the 8 outside it that carry the evidence -- printed because F1
-had claimed a rank-for-rank agreement without saying that fourteen of
-those ranks agree by construction. Nothing else moved. The fifth run
-carries one more, and it moved no value either: arm D was deriving the
-window by iterating the ranks this rig SWEEPS, so ranks 23 to 38 were
-excluded from the derived set by a loop bound rather than by anything
-measured, and the result was reported as a derivation. It now ranges
-over every rank the chart has and prints which ranks its own scan
-decides and which the census does -- 22 against 16. Before
-all three, a SMOKE RUN at ranks 1..6 and J <= 12 exercised every arm
-and found two faults no full run would have shown: a control passed a
-POLYNOMIAL to a routine that takes a cyclotomic index multiset, which
-hung rather than erring, and arm C's kill was scoped to every depth it
-scanned while the prediction it tests speaks only where the champion
-attains h at all -- so it fired at seven cells that refute nothing. The
-first is replaced by the polynomial identity and the part accounting;
-the second is scoped to h == height(CHAMP) and the kill list gained the
-letter K-H, which P3's death had had no observable of its own. Both
-were fixed before any science printed. Single process, exact arithmetic
-throughout, peak 64 MB against the 512 MB ceiling, wall 71 s.
+would have broken on. Run 7 diffs against run 6 at three lines: two
+timings and the memory peak. RUN 8: arm D prints its own split, 14 of
+the 22 scanned ranks inside the window where the comparison restates a
+fact against the 8 outside it that carry the evidence, because F1 had
+called the agreement rank-for-rank without saying that fourteen of
+those ranks agree by construction. RUN 9: arm B was computing the depth
+from which the champion attains h at every rank and REPORTING it only
+where the rank also fails, so at ranks 2, 3 and 4 -- which never fail --
+the one figure that scopes the closed form there was discarded. It
+reports it now, at J = 2, 7 and 13 running continuously through the
+ceiling at 140, which also hands arm C2 twelve more out-of-sample cells,
+28 against 16, and corroborates arm C's own thresholds by a second route
+at ranks 2 and 4. Rank 3 differs between the two on purpose: the
+champion ATTAINS h from 7 and is the whole minimiser SET only from 9.
+
+THE SMOKE RUNS. One before run 1 and one after every change to an arm's
+control flow -- ranks 1..6 with J <= 12 at first, ranks 1..8 with the
+high arm at 2..6 and J to 40 afterwards, the scope widened because the
+later changes were to the high arm. The first found two faults no full
+run would have shown: a control passed a POLYNOMIAL to a routine that
+takes a cyclotomic index multiset, which hung rather than erring, and
+arm C's kill was scoped to every depth it scanned while the prediction
+it tests speaks only where the champion attains h at all, so it fired
+at seven cells that refute nothing. The first is replaced by the
+polynomial identity and the part accounting; the second is scoped to
+h == height(CHAMP), and the kill list gained the letter K-H, which P3's
+death had had no observable of its own. Both were fixed before any
+science printed. The later smokes are what caught run 4's two fixes.
+
+Single process, exact arithmetic throughout, peak 64 MB against the
+512 MB ceiling, wall 71 s.
 """
 import os
 
@@ -736,7 +758,15 @@ def main():
                 break
         done = seen and run >= CLEAR_RUN
         JHI[r] = last if done else None
-        JCH[r] = first_ch if done else None
+        # J_ch IS REPORTED WHETHER OR NOT THE RANK EVER FAILS. At a rank
+        # with no failure the loop runs to the ceiling and first_ch is
+        # the depth from which the champion has attained h continuously
+        # THROUGH that ceiling -- which is the closed form's own scope
+        # statement at those ranks, and it was being discarded because
+        # `done` requires a failure. It also corroborates arm C, which
+        # reaches the same thresholds by a different route and only to
+        # depth 30.
+        JCH[r] = first_ch
         FLAGS[r] = flags
         # K-A: the flags must read clean*, failing*, clean* and no more
         Js = sorted(flags)
@@ -765,8 +795,8 @@ def main():
             fired["K-B"] += 1
             print("   K-B rank %d: arm A's first failure is J=%d, arm "
                   "B's is J=%d" % (r, JLO[r], lo_b))
-        print("   rank %2d: failing J = %s..%s, champion from J = %s, "
-              "scanned to J = %d, %d failing of %d"
+        print("   rank %2d: failing J = %s..%s, champion attains h from "
+              "J = %s continuously through J = %d, %d failing of %d"
               % (r, lo_b, JHI[r], JCH[r], max(Js), len(failing), len(Js)))
         if lo_b is None or JHI[r] is None:
             print("      clean depths strictly inside the band: not "
