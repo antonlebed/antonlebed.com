@@ -277,7 +277,14 @@ whether any of the other seven carries one is untested rather than
 answered.
 
 F3. THE RANK WINDOW IS A SHARP TWO-SIDED NECESSARY CONDITION, AND IT IS THE
-ONLY THING HERE THAT SELECTS ANYTHING. Every one of the 83 failures sits at
+ONLY THING HERE THAT SELECTS ANYTHING. (SETTLED, and the framing rather than
+the counts: explore_flatten_band.py scans each rank's own column in the depth
+past this chart's M <= 40 corner and DERIVES the window from each rank's first
+failing depth and that corner alone -- so it is not a law about rank. Every
+count in this finding survives, being a fact about this rectangle; what does
+not is the last paragraph's advice, since the census asking for a wider M was
+run and the high wall broke at ranks 19 to 22. Read that rig's F1 to F3 before
+quoting anything below about either wall.) Every one of the 83 failures sits at
 rank 5..18. Outside that band 325 cells fail ZERO times -- 115 at rank 1..4 and
 210 at rank 19..38 -- and both tails are populous rather than thin. THAT RAW
 COUNT CARRIES THE SAME HEIGHT CONFOUND THE DEPTH RATES ARE CONDITIONED FOR, AND

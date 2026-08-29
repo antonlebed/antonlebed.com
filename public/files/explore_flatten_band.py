@@ -201,7 +201,16 @@ depths and the chart's own corner alone as {r : J_lo(r) <= min(30, 40 -
 r)}, is {5, 6, ..., 18}. The census's own failing ranks are {5, 6, ...,
 18}. They agree rank for rank and not merely at the two endpoints. So
 the two-sided window is the line M <= 40 crossing a per-rank depth
-threshold, and neither wall is a fact about the rank.
+threshold, and neither wall is a fact about the rank. WHAT CARRIES THE
+DERIVATION IS 22 OF THE CHART'S 38 RANKS AND NOT ALL OF THEM: arm A
+scans ranks 1 to 22, which covers both walls and every failing rank
+with five ranks to spare above the high one. At ranks 23 to 38 the
+chart's own depths are J <= 40 - r <= 17, all inside the parent
+rectangle, so C4's completed scan decides them -- that is the census
+itself and not an independent measurement, and their exclusion from
+the window is therefore inherited rather than derived. Scanning their
+columns past the corner would need cells at rank 38 and depth beyond
+30, which is where this instrument is dearest.
 
 F2. THE LOW WALL IS A REAL ABSENCE AND IT IS WIDER THAN THE CHART. P3
 holds without qualification: at ranks 1, 2, 3 and 4 the failure flag is
@@ -295,7 +304,8 @@ champion's win is the state the mechanism predicts is permanent. Under
 the corrected rule rank 8's last failure is J = 60, thirty-four depths
 further out, and its seven interior clean depths are F5's holes. Every
 other value in the second run reproduces in the THIRD exactly. A FOURTH
-run followed the audit and reproduces every value of the third. It
+and a FIFTH run followed the audit and reproduce every value of the
+third. It
 carries two fixes that no result moved on, both found by re-smoking
 after the stopping rule changed. Arm C2 had become a TAUTOLOGY: the
 rule it exists to check is now "the champion attains h for four
@@ -304,7 +314,13 @@ fail; it now starts four depths further out and is out of sample. And
 arm B was reading arm A's first failing depth rather than its own,
 which made its hole count depend on another arm's ceiling and print
 zero holes where the honest answer is that it cannot say -- it measures
-its own now, and the two arms checking each other is C5. Before
+its own now, and the two arms checking each other is C5. The fifth run
+carries one more, and it moved no value either: arm D was deriving the
+window by iterating the ranks this rig SWEEPS, so ranks 23 to 38 were
+excluded from the derived set by a loop bound rather than by anything
+measured, and the result was reported as a derivation. It now ranges
+over every rank the chart has and prints which ranks its own scan
+decides and which the census does -- 22 against 16. Before
 all three, a SMOKE RUN at ranks 1..6 and J <= 12 exercised every arm
 and found two faults no full run would have shown: a control passed a
 POLYNOMIAL to a routine that takes a cyclotomic index multiset, which
@@ -804,15 +820,37 @@ def main():
     print("\n[arm D] the reconciliation -- the chart's rank window "
           "derived from the band and the chart's own corner M <= %d, "
           "J <= %d" % (KEY_M, KEY_J))
-    derived = []
-    for r in LOW_RANKS:
-        lo = JLO.get(r)
-        if lo is None:
-            continue
+    # THE DERIVATION MUST RANGE OVER EVERY RANK THE CHART HAS, NOT OVER
+    # THE ONES THIS RIG SWEEPS. The chart reaches rank 38 and arm A
+    # scans to 22. Iterating the swept ranks alone EXCLUDES 23..38 by
+    # the loop bound and then reports the result as a derived set,
+    # which is an artefact dressed as a finding. They are carried here
+    # explicitly, and what carries them is named: for a rank above the
+    # sweep the chart's own depths are J <= 40 - r <= 17, all inside
+    # the parent rectangle, so C4's completed scan of that rectangle
+    # decides them -- which is the CENSUS, not an independent
+    # measurement, and the print says exactly that.
+    chart_ranks = [r for r in range(1, KEY_M - 1)
+                   if min(KEY_J, KEY_M - r) >= 2]
+    derived, by_census = [], []
+    for r in chart_ranks:
         top = min(KEY_J, KEY_M - r)
-        if lo <= top:
-            derived.append(r)
+        if r in LOW_RANKS:
+            lo = JLO.get(r)
+            if lo is not None and lo <= top:
+                derived.append(r)
+        else:
+            by_census.append(r)
+            if any(M - J == r for (M, J) in fails):
+                derived.append(r)
     print("   ranks whose band reaches the chart: %s" % derived)
+    print("   of the %d chart ranks, %d are decided by this rig's own "
+          "scan of their columns and %d only by the census C4 re-ran "
+          "-- ranks %d..%d, whose chart depths all sit inside that "
+          "rectangle, so the window's exclusion of them is the census "
+          "and not an independent measurement"
+          % (len(chart_ranks), len(chart_ranks) - len(by_census),
+             len(by_census), min(by_census), max(by_census)))
     got = (min(derived), max(derived)) if derived else None
     print("   derived window %s against the census's %s"
           % (got, KEY_WINDOW))
