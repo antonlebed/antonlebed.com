@@ -277,8 +277,16 @@ the 325 clean cells outside, and above all that THE WINDOW DID NOT
 WIDEN. It was 5..18 on the 550-cell chart, and adding 145 cells at
 depths 21 to 30 -- which reach rank 1 at the narrow edge and are where
 the failures now crowd -- left both endpoints exactly where they were.
-That is an out-of-sample survival and not a fit. The rank's own
-degenerate score in F2 is not evidence against this and never was: the
+That is an out-of-sample survival and not a fit, BUT THE TWO WALLS WERE
+NOT TESTED EQUALLY AND THE ASYMMETRY IS LARGE. A new cell has J >= 21
+and M <= 40, so its rank is at most 19: of the 145, forty sit at rank
+<= 4 and exactly ONE at rank 19, with the remaining 104 inside the
+window. So the LOW wall was offered forty fresh chances to break and
+did not, while the HIGH wall was offered one. The low wall is the half
+this chart tested; the high wall stands on the earlier chart's evidence
+almost alone, and a census that tested it would have to widen in M.
+The rank's own degenerate score in F2 is not evidence against this and
+never was: the
 reporter cuts on one side and a window has two, so the two readings are
 of different rules and not of different data. Inside the band the
 condition is far from sufficient: 83 of 370 cells fail, 22.4%. Crossed
@@ -372,7 +380,9 @@ is why.
 
 THE RUN RECORD. Three runs of the whole rig. The FIRST is superseded and
 carried nothing wrong: arms 1 to 5 printed every value quoted above and
-each later run reproduces them exactly. The SECOND adds arm 6's first
+each later run reproduces every one of them exactly. Only the WALL
+moves between runs, by a few tenths, and that is the only reproduction
+claimed here. The SECOND adds arm 6's first
 three post-hoc measurements and the THIRD its fourth, the enrichment
 counts over the whole chart -- added because two sentences of this
 record would otherwise have rested on a reading of 83 printed rows
@@ -928,28 +938,42 @@ def main():
         n, b = byrank[r]
         print("      rank %2d: %3d cells, %2d failing (%.1f%%)"
               % (r, n, b, 100.0 * b / n))
-    lo = min(c[0] - c[1] for c in cells if FAIL[c])
-    hi = max(c[0] - c[1] for c in cells if FAIL[c])
-    inband = [c for c in cells if lo <= c[0] - c[1] <= hi]
-    out = [c for c in cells if not (lo <= c[0] - c[1] <= hi)]
-    print("      the band rank %d..%d holds %d of the %d cells and ALL "
-          "%d failures; outside it %d cells fail of %d"
-          % (lo, hi, len(inband), len(cells),
-             sum(1 for c in inband if FAIL[c]),
-             sum(1 for c in out if FAIL[c]), len(out)))
-    print("      as a rule it is NECESSARY and not sufficient: inside "
-          "the band the rate is %d of %d (%.1f%%)"
-          % (sum(1 for c in inband if FAIL[c]), len(inband),
-             100.0 * sum(1 for c in inband if FAIL[c]) / len(inband)))
-    print("      the band crossed with the depth, cells and failures:")
-    for (nm, sel) in bands:
-        i = [c for c in inband if sel(c[1])]
-        o = [c for c in out if sel(c[1])]
-        print("         %-11s in band %3d cells %2d failing (%5.1f%%)   "
-              "outside %3d cells %2d failing"
-              % (nm, len(i), sum(1 for c in i if FAIL[c]),
-                 100.0 * sum(1 for c in i if FAIL[c]) / len(i) if i else 0.0,
-                 len(o), sum(1 for c in o if FAIL[c])))
+    # GUARDED, and the guard was earned twice. An empty failing set is a
+    # legitimate outcome at any narrower range, and this arm was written
+    # AFTER the smoke run that licensed the others -- so it shipped with
+    # exactly the crash the earlier smoke run existed to catch, firing
+    # after the science had printed. The second smoke run found it.
+    fails = [c[0] - c[1] for c in cells if FAIL[c]]
+    if not fails:
+        print("      no cell fails, so there is no window to report and "
+              "no band to cross with the depth")
+        lo = hi = None
+    else:
+        lo, hi = min(fails), max(fails)
+    if lo is not None:
+        inband = [c for c in cells if lo <= c[0] - c[1] <= hi]
+        out = [c for c in cells if not (lo <= c[0] - c[1] <= hi)]
+        print("      the band rank %d..%d holds %d of the %d cells and "
+              "ALL %d failures; outside it %d cells fail of %d"
+              % (lo, hi, len(inband), len(cells),
+                 sum(1 for c in inband if FAIL[c]),
+                 sum(1 for c in out if FAIL[c]), len(out)))
+        print("      as a rule it is NECESSARY and not sufficient: "
+              "inside the band the rate is %d of %d (%.1f%%)"
+              % (sum(1 for c in inband if FAIL[c]), len(inband),
+                 100.0 * sum(1 for c in inband if FAIL[c])
+                 / len(inband)))
+        print("      the band crossed with the depth, cells and "
+              "failures:")
+        for (nm, sel) in bands:
+            i = [c for c in inband if sel(c[1])]
+            o = [c for c in out if sel(c[1])]
+            print("         %-11s in band %3d cells %2d failing "
+                  "(%5.1f%%)   outside %3d cells %2d failing"
+                  % (nm, len(i), sum(1 for c in i if FAIL[c]),
+                     100.0 * sum(1 for c in i if FAIL[c]) / len(i)
+                     if i else 0.0,
+                     len(o), sum(1 for c in o if FAIL[c])))
 
     print("\n   (c) do the new residuals FACTOR over the known ones?")
     known = [("A", list(AQ)), ("B", list(BQ))]
