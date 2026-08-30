@@ -104,6 +104,7 @@ export default {
       '/learning/sets': 'sets',
       '/learning/swap': 'swap',
       '/learning/flattening': 'flattening',
+      '/learning/products': 'products',
       '/learning/ceilings': 'ceilings',
       '/learning/uncertainty': 'uncertainty',
       '/claims': 'claims',
