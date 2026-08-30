@@ -365,7 +365,11 @@ leading coefficient 2" was a fact about the two members the earlier chart
 happened to reach, and the CLASS -- integer polynomials with every root on the
 unit circle -- is what survives: all five residuals pass the exact unit-circle
 test, K-F never fires, and every one of the 695 cyclotomic parts is a pure
-product. SO THE CONSTRUCTIVE STATEMENT IS THIS: every one of the 695 cells has
+product. (SETTLED SINCE, and the surviving scope is exactly the 695: outside
+the chart a minimiser's residual can leave the circle class, at rank 22 depth
+32 and rank 26 depth 36, so what is durable here is the census over this
+rectangle and not the class as a description of the lattice;
+explore_flatten_class.py.) SO THE CONSTRUCTIVE STATEMENT IS THIS: every one of the 695 cells has
 a minimiser that is a MONOMIAL TIMES A PURE PRODUCT TIMES ONE OF THE FIVE
 RESIDUALS, and the monomial costs nothing (below), so every cell has one that
 is a pure product times one of the five. That is the census's positive answer
