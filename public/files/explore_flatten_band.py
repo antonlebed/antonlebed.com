@@ -242,8 +242,9 @@ those three to the depth ceiling looking for a first failure and finds
 none: 139 depths each, J = 2 to 140, M out to 144. Rank 1 alone stops
 at 45, and it is the one that needs no scan, its bounds coinciding by
 construction. So at these ranks the pure family is extremal outright
-over three and a half times the chart's depth, and not merely inside
-the census's corner.
+over more than four times the chart's depth and about three and a half
+times its width -- J to 140 against 30 and M to 144 against 40 -- and
+not merely inside the census's corner.
 
 F3. THE HIGH WALL IS A CORNER EFFECT AND IS NOT A WALL AT ALL. Rank 19
 fails first at J = 26, rank 20 at J = 23, rank 21 at J = 25 and rank 22
@@ -270,7 +271,12 @@ are measured differently: eight depths past the threshold at ranks 5 to
 8, where the scan stops at a crossing; and at ranks 2, 3 and 4, which
 fail at no depth swept, the champion attains h from J = 2, 7 and 13
 CONTINUOUSLY THROUGH J = 140. Both are stopping rules and neither is a
-proof that it never reverses.
+proof that it never reverses. (SETTLED AT RANK 2 SINCE: at r = 2 the
+closed form is a THEOREM for every J >= 2, minimiser unique up to sign,
+with no computation at any value -- explore_flatten_theorem.py. What is
+still a stopping rule here is ranks 3 and 4 at the low end and 5 to 8 at
+the high one; the rank-2 column below is a re-measurement of a proved
+fact.)
 At ranks 5, 6, 7 and 8
 that depth is J_ch = 31, 34, 59 and 61, and at ALL FOUR
 
@@ -306,7 +312,10 @@ J_lo(r) off a formula on this evidence.
 F7. P4 HOLDS ABOVE EACH RANK'S THRESHOLD AND FAILS BELOW IT. Of the 86
 collected cells at ranks 2, 3 and 4, sixty-nine carry exactly TWO
 minimisers at the fixed radius and both are +-CHAMP: every cell from J
-= 2 at rank 2, from J = 9 at rank 3 and from J = 13 at rank 4. Below
+= 2 at rank 2, from J = 9 at rank 3 and from J = 13 at rank 4. (The
+rank-2 half of that is now proved at EVERY depth rather than at the 29
+this arm collects -- explore_flatten_theorem.py; ranks 3 and 4 stand on
+this collection alone.) Below
 those depths the set is larger -- eight minimisers at rank 3, J = 3,
 carrying three different vanishing orders at -1 -- and K-E fired at the
 five cells there where the champion ties h without being the whole set.
