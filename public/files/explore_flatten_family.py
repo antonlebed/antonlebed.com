@@ -454,7 +454,16 @@ construction, the pass walking in DESCENDING h, and the 57 that cap are
 wherever the ball is too populous, their heights unreported. So the leak
 is confined to small height among the cells that were LOOKED at, and the
 cells that were not are on the same side of the height as the leak --
-which weakens the confinement rather than the refutation. Over the
+which weakens the confinement rather than the refutation. (SETTLED, and
+the last clause runs the WRONG WAY: explore_flatten_endvalue.py reruns
+this pass to the same 405/57/88/28 and prints the heights this arm never
+did. The capped cells are heights 1, 2, 3 and 4 and the unreached are
+all h = 1, so no unclosed cell sits above h = 4 and every one of the 297
+chart cells with h >= 5 is closed. The unexamined cells can therefore
+add a leak below the top and cannot move it, which makes the highest
+leaking height, 6, exhaustive over the whole chart and STRENGTHENS the
+confinement at its upper end. What this sentence was right to hedge is
+the LOWER end, where the 145 unclosed cells all sit.) Over the
 closed cells 305 distinct residual classes appear; A shows at 19 of them
 and B at 5, three and one more than the exhibited witnesses alone
 reported, so the count pass finds the two multipliers at cells whose
