@@ -50,7 +50,9 @@ periodic storey's machinery, imported as an instrument exactly as the
 parent rig imports them. (2) The parity expectation -- gated at
 r = 1 mod 3, not gated at r = 2 mod 3 -- is imported from the
 stride-parity reading recorded with explore_shift_repair.py, which
-that record files as a READING and not a derivation; whether it
+that record files as a READING and not a derivation (true at this
+rig's freeze; the gated half has since been derived,
+explore_parity_derivation.py); whether it
 transfers to windows sharing only the class is the question, so at
 W2/W3 it is an expectation under test, never a control.
 
