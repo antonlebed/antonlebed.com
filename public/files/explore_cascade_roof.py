@@ -249,7 +249,11 @@ H1  THE SPLIT HELD AT BOTH WINDOWS WITH NO PERIOD (rule at scanned
     scale available at an aperiodic window breaks the value law at
     exactly its three bounded cells (explore_cascade_scale.py H4). So
     H1, and H2 and H3 which read off it, stand where they were and
-    are owed a THIRD instrument, not a re-read. ** The cubic's r = 2, 4,
+    are owed a THIRD instrument, not a re-read. (Attempted since,
+    explore_cascade_closure.py: the prefix closures call e - 2's whole
+    table and certify its gated half with integer witness ladders; the
+    cubic refuses every closure observable, so the owe stands there
+    and only there.) ** The cubic's r = 2, 4,
     6, 7, 8 and e - 2's r = 2, 5, 8 -- every bounded stride either
     window has, and the cells this line of work owed a third range -- all
     hold at 300000. Eight and not the nine the leg was aimed with: that
