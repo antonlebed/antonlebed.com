@@ -59,7 +59,11 @@ P-B Rho = 2 splits by shape: cells with min(am, ap) = 1 read at
     paper's hedge over "a few cases of rho = 2" as secondary
     sources gloss the generalized-signed-digit framework; the
     framework itself is still unread and only the hand-run above
-    is ours.
+    is ours. (Since settled by a full-text read: the framework —
+    Parhami, IEEE Trans. Computers 39(1), 1990, Theorem 1 — states
+    the min = 1 exception as one clause of a proved iff for its
+    carry-free addition at radix >= 3, so the exception is the
+    framework's own theorem and not a hedge.)
 
 P-C The candidate exact law over the full asymmetric grid:
 

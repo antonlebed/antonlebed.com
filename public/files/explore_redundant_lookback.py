@@ -116,7 +116,10 @@ F3 THE FIELD'S THRESHOLD IS RADIX-BLIND, AND IT BREAKS AT RADIX 2
    PRINTED, and nothing beyond it: the framework it attributes the
    thresholds to was not read, so whether that framework carries a
    radix side condition the summary drops is UNCONTACTED and no claim
-   is made about it. The sweep is also symmetric-digit-set only, while
+   is made about it. (Since read full-text: the framework — Parhami,
+   IEEE Trans. Computers 39(1), 1990, Theorem 1 — does carry the
+   radix condition r >= 3 the summary drops, and states the rho = 2
+   exception exactly, at an endpoint of magnitude 1.) The sweep is also symmetric-digit-set only, while
    the paper's setting admits asymmetric sets -- so the hedge over
    "a few cases of rho = 2" has no witness here and is not
    contradicted either, every symmetric rho = 2 system being forced to
