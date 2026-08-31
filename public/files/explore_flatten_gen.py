@@ -165,7 +165,8 @@ minimiser's residual divided by A leaves
 degree 8, height 33, F(1) = 157 prime, F(-1) = 1, reciprocal, all
 roots ON the unit circle by the exact Sturm test, no cyclotomic part,
 every coefficient positive; admitting it drops hs from 141410 to h.
-Rank 28's third examined failing cell, J = 33 (M = 61), has residual
+Rank 28's second failing cell, J = 33 (M = 61) — depth 32 between the
+two decided clean — has residual
 
     G = 3 + 6x + 8x^2 + 6x^3 + 3x^4
 
@@ -176,10 +177,10 @@ not fire: the walk mints at two of its three ranks, and the class
 {A, B, C, D, E, F, G} now counts seven members with nothing slowing.
 
 F2. G BREAKS BOTH END-VALUE PATTERNS AT ONCE. G(-1) = 2 and G(1) = 26
-= 2*13: K2 and K3 fired, P2 and P3 die. The value 1 at -1 was five for
-five at the members and held at every deep-column residual; G is the
-first member off it, so the pattern was the first six members' and
-never the class's law -- the endvalue rule keeps exactly its proved
+= 2*13: K2 and K3 fired, P2 and P3 die. The value 1 at -1 was six for
+six at the members with F minted the rank before, and held at every
+deep-column residual; G is the first member off it, so the pattern was
+the first six members' and never the class's law -- the endvalue rule keeps exactly its proved
 scope, the chart's cells at h >= 4, and the transplant past that scope
 is what died here. With it dies the forced oddness at 1, and the
 primality reading with that: the deep rig killed primality as a law

@@ -247,6 +247,10 @@ full range before the full range is run.
 THE FINDINGS.
 
 F1. DEPTH IN A COLUMN DOES NOT MINT, AT EITHER COLUMN THAT HAS MINTED.
+(The two columns that had minted when this ran; ranks 27 and 28 later
+minted too, at a first and a second failing cell --
+explore_flatten_gen.py -- and the barrenness claim here is these two
+columns'.)
 Rank 22 from depth 33 to 44 and rank 26 from 37 to 48: 24 cells, 23
 decided, 22 of them failing, and every one of the 22 has a residual the
 class {A, B, C, D, E} already makes. No sixth member. K1 fires at both
