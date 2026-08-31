@@ -160,9 +160,10 @@ RUN RECORD
 ----------
 Recorded run: wall 29.7 s, peak working set 41.5 MB under memwatch's
 512 MB ceiling. Every cell decided, none refused, none near the state
-ceiling. Controls: all 30 S0 cells exact (golden + three designed
-windows on the recorded law; e-2's closures m = 12, 15 reproduce the
-recorded vector G b b G b b G b); 32 of 32 finite-engine-vs-limit
+ceiling. Controls: all 27 reduction cells exact (golden + three
+designed windows on the recorded law) and e-2's closures m = 12, 15
+reproduce the recorded vector G b b G b b G b at all 8 strides
+each; 32 of 32 finite-engine-vs-limit
 checks OK; zero reconstruction or legality failures.
 
 FINDINGS (each at its own tier)
@@ -186,7 +187,7 @@ F2  W1'S GATED HALF CARRIES CERTIFIED INTEGER LADDERS AND ITS BOUNDED
     r = 1, 4, 7 the walker hands out pairs verifying by integer
     arithmetic on the defining quotients with the parting position
     fixed AT THE STRIDE (part = r) while agreement climbs: 26, 50,
-    74 at m = 24 (integers to 43 digits), 44, 86 at m = 21 (to 52
+    74 at m = 24 (integers to 43 digits), 44, 86 at m = 21 (to 53
     digits). At r = 2, 5, 8 every extracted pair MISSes greedy-ness
     or verifies at negative margin (-3 to -6, parting climbing with
     agreement) -- no instance, e-2's Q7 signature.
