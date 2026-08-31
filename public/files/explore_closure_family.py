@@ -188,9 +188,13 @@ F2  W1'S GATED HALF CARRIES CERTIFIED INTEGER LADDERS AND ITS BOUNDED
     arithmetic on the defining quotients with the parting position
     fixed AT THE STRIDE (part = r) while agreement climbs: 26, 50,
     74 at m = 24 (integers to 43 digits), 44, 86 at m = 21 (to 53
-    digits). At r = 2, 5, 8 every extracted pair MISSes greedy-ness
-    or verifies at negative margin (-3 to -6, parting climbing with
-    agreement) -- no instance, e-2's Q7 signature.
+    digits). At the predicted-bounded strides every attempt MISSes
+    greedy-ness on the true window (r = 5 and 8; r = 2's closures
+    never gate, so nothing is there to extract), and the shallow
+    seam cells at the dropless strides 3 and 6 hand out only
+    negative margins (-3 and -6, parting climbing with agreement) --
+    no positive instance anywhere off r = 1, 4, 7, e-2's Q7
+    signature.
 F3  MONOTONICITY ALONG THE CLASS IS NOT LOAD-BEARING, AND THE CLASS
     STRIDE FOLLOWS ITS OWN DROP CENSUS (rule at scanned scope; Q3's
     W2 fork resolves). W2 stabilizes from m = 12 to
@@ -198,10 +202,11 @@ F3  MONOTONICITY ALONG THE CLASS IS NOT LOAD-BEARING, AND THE CLASS
     r = 1, 4, 7 certified (margins to +166, integers to 124 digits),
     the dropless class stride r = 6 delay-0, and the TRUE-dropped
     class stride r = 3 GATED at every stable closure -- but
-    closure-side only: every r = 3 pair verifies at constant margin
-    -3 with the parting position climbing alongside agreement, the
-    cubic's non-transfer signature, so the r = 3 gate stands as
-    instrument output with no certified instance.
+    closure-side only: the r = 3 extractions MISS greedy-ness at
+    m = 20 and verify at m = 21 only at constant margin -3 with the
+    parting position climbing alongside agreement, the cubic's
+    non-transfer signature, so the r = 3 gate stands as instrument
+    output with no certified instance.
 F4  BOUNDED CLASS CAPS BREAK THE VERDICT LEG AND NOT THE OTHER TWO
     (observation, one bounded window scanned; Q3's W3 fork). W3's
     verdict sequence never stabilizes -- the deep vectors cycle with
@@ -240,7 +245,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from explore_cascade_closure import (       # noqa: E402
     PrecWindow,
     read_closure,
-    seam_census,
     tile,
     true_census,
     verdict_of,
