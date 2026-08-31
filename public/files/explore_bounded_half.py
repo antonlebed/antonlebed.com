@@ -124,7 +124,10 @@ D7  THE TELESCOPE COMBS. The recurrence identity a_{k+1} theta_k =
     (the period shift is the bare coordinate map), so by the
     criterion's sufficiency leg those cells' interior emptiness is
     PROVED, not only certified.
-D8  THE EXCESS FRAME (what remains open, sharpened). At even P, even
+D8  THE EXCESS FRAME (what remains open, sharpened; the frame since
+    transported onto the rotated window's aligned problem at foreign
+    caps — explore_lattice_avoidance.py D1-D4 — with the statements
+    below surviving as the per-parity forms). At even P, even
     r, subtracting a pattern from C1 turns the lattice condition into
     a GAP statement: W = tmax - V(d) = sum w_k |theta_{k+r}| with
     w >= 0, and the universal bounded half is exactly "no periodic
