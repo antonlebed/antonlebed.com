@@ -166,12 +166,10 @@ F8  THE EVEN P >= 14 TERRAIN IS UNIFORM (N9): M < N_m at every
     P = 14..20 cell, every even nonzero r, a = 2..12 and a = a_0,
     m = 1..12 — worst ratio 0.8095 at (14, 2) a = 2 m = 1. The
     transplanted margin pattern holds: worst at small m, extreme r.
-    What a fully uniform even-P theorem still owes: three base
-    inequalities in closed form over all even P and A — G_2 > 0,
-    DeltaG_2 > 0, DeltaG_3 >= DeltaG_2 (G_1 > 0 is F7's theorem,
-    and the recursion is D9's for every m >= 2, its component
-    Cayley-Hamilton instances sitting at nonnegative indices from
-    the first).
+    The owe is SETTLED by explore_uniform_close.py: DeltaG_m has one
+    closed form at every m >= 1, positive by three elementary
+    lemmas, so the theorem is uniform with no base inequalities and
+    no threshold (G_1 > 0 stays F7's theorem as its base case).
 
 PREDICTIONS (N1-N6 frozen before the first run, N7-N9 before the
 second; observables)
