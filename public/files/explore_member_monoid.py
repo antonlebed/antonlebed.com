@@ -100,11 +100,12 @@ F3  THE GENERATOR LADDER (N3): every indecomposable is the comb, the
     FOURTH (00801001). The deeper-cut ladder continues with the
     cap; nothing beyond tooth-plus-unit shapes appears.
 F4  THE VALUES (N4, one slate miss): every indecomposable value is a
-    landed cut t(-theta_j) — 35 of 36 non-comb rows at t = 1 with
-    j = r+2 (the A = 4 families), j = r+3 (the cap-7 family) — but
+    landed cut t(-theta_j) — of the 147 generator rows 112 are the
+    comb and 34 of the 35 others sit at t = 1 with j = r+2 (the
+    A = 4 families) or j = r+3 (the cap-7 family) — but
     (8, 8, 3)'s fourth generator 00801001 lands t = 2: v = 10-16a
-    = 2(-theta_5), NOT decomposable (00801001 - 00400010 = 00401
-    0-1-1 is not a digit-wise part) — the frozen t = 1 prediction
+    = 2(-theta_5), NOT decomposable (00400010 is not digit-wise
+    below it) — the frozen t = 1 prediction
     read the A <= 4 chart's rows as the law and the cap-8 cell
     refutes the t = 1 half while the landed-cut half survives.
 F5  THE CONCATENATION CRITERION IS EXACT (N5): at all 48 chart
