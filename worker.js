@@ -83,6 +83,7 @@ export default {
       '/reading/completions': 'completions',
       '/reading/quadratic': 'quadratic',
       '/reading/shifts': 'shifts',
+      '/reading/lookahead': 'lookahead',
       '/reading/output': 'output',
       '/reading/redundant': 'redundant',
       '/instruments': 'instruments',

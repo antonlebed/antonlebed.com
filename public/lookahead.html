@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The limit of the lookahead — the excess column and what plays the period</title>
+<meta name="description" content="How far past its depth a reader of a digit shift must see, read as an object: the excess-lookahead column with its exact limit at every purely periodic window — the shift a finite automaton, the graded window's half-period stride gating exactly where its two large quotients differ — the run-length rule reading a verdict off one table, the one number that rule carries read as calibration, the pairing that refutes every criterion on a drop's two quotients at the windows with no period, and the prefix closures answering those windows wherever the large quotients keep to one residue class.">
+<link rel="canonical" href="https://antonlebed.com/reading/lookahead">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/walls'>Walls</a> <a href='/reading' class='up'>Reading</a> <a href='/instruments'>Instruments</a> <a href='/flattening'>Flattening</a> <a href='/learning'>Learning</a> <a href='/measure'>Measure</a> <a href='/observatory'>Observatory</a> <a href='/growth'>Growth</a> <a href='/schedule'>Schedule</a> <a href='/principal'>Places</a> <a href='/computation'>Computation</a></nav><nav class='sub' aria-label='Reading'><a href='/reading'>The reading geometry</a> <a href='/reading/completions'>Completions</a> <a href='/reading/quadratic'>Quadratic windows</a> <a href='/reading/shifts'>Digit shifts</a> <a href='/reading/lookahead' aria-current='page'>The lookahead limit</a> <a href='/reading/output'>The widened output</a> <a href='/reading/redundant'>Redundant arithmetic</a></nav></header>
+<main>
+<h1>The limit of the lookahead</h1>
+<p class="lede">One number per depth measures how far past its depth a
+reader of a digit shift must see; the column of those numbers has an
+exact limit at every periodic window, and it is what plays the period
+at a window that has none.</p>
+
+<p>An <b>Ostrowski window</b> writes <i>n</i> = Σ <i>b<sub>k</sub></i>
+<i>q<sub>k</sub></i> over the denominators of an irrational
+<i>α</i>'s continued-fraction convergents, its <b>partial quotients</b>
+<i>a<sub>k</sub></i> setting the digit caps: <b>legality</b> caps
+<i>b</i><sub>0</sub> at <i>a</i><sub>1</sub> − 1 and
+<i>b<sub>k</sub></i> at <i>a</i><sub><i>k</i>+1</sub>, and forces a
+zero below any digit sitting at its cap. The depth-<i>t</i> cell of
+<i>n</i> is the set of inputs agreeing with it on their <i>t</i>
+low-order digits, and the <b>agreement depth</b> of a pair is the
+number of low-order digits they share (the family is on
+<a href="/reading/quadratic">Quadratic windows</a>). A <b>shift</b>
+moves every digit up by a fixed <b>stride</b> <i>r</i>, renormalizing —
+the <b>repair</b> — where the moved string breaks legality; a window
+<b>reads</b> it at <b>lookahead <i>c</i></b> when the output cell at
+depth <i>t</i> is a function of the input cell at depth
+<i>t</i> + <i>c</i>. Three verdicts exist: lookahead 0, <b>bounded</b>,
+and <b>gated</b> — no one lookahead serving every depth. On the
+<b>designed family</b> [0; (1, …, 1, <i>a</i>)<sup>∞</sup>] — one
+<b>large quotient</b> <i>a</i> per period of length <i>P</i>, every
+other quotient 1 — the verdict is the <b>stride law</b>'s: a stride
+≡ 0 mod <i>P</i> reads at lookahead 0, an even nonzero residue reads
+bounded, an odd residue gates
+(<a href="/reading/shifts">Digit shifts</a>, which owns the law and
+its mechanism). Here the lookahead itself is the object.</p>
+
+<span id="value-law"></span>
+<article class="claim" id="half-period-gate">
+  <div class="claim-head"><span class="claim-name">The limit of the
+  lookahead, and the half-period stride</span> <span class="tier">theorem</span></div>
+  <p>A reading of a shift at a range <i>N</i> is one number per depth.
+  The <b>excess-lookahead column</b> records, at each depth <i>t</i>,
+  how much further than <i>t</i> a reader must see before it can commit
+  <i>t</i> digits of the image, taken over the inputs below <i>N</i>. It
+  can only rise as <i>N</i> grows, so it has a limit at every depth,
+  finite or not — and at a periodic window that limit is computable.
+  Put <i>θ<sub>k</sub></i> = <i>q<sub>k</sub>α</i> −
+  <i>p<sub>k</sub></i>, the signed deficit of the <i>k</i>-th
+  convergent; with the quotients periodic of length <i>P</i> the
+  recurrence gives <i>θ</i><sub><i>k</i>+<i>P</i></sub> =
+  <i>ηθ<sub>k</sub></i> for a unit <i>η</i> of ℤ + ℤ<i>α</i> with
+  |<i>η</i>| &lt; 1. A shift's image is the greedy string of the same
+  value; so reading input and image from the bottom digit up, the
+  running discrepancy divided by <i>θ<sub>k</sub></i> is a point of one
+  fixed lattice per phase, bounded in both embeddings on any run that
+  can still end in agreement — finitely many carries — and the shift is
+  a <b>finite automaton</b>. Drive two of its runs with one common input:
+  the pairs whose images have already parted form an eventually periodic
+  sequence of sets, so the limit column is eventually periodic in
+  <i>t</i> or infinite from some depth on, and which, with the period
+  and the values, is read off the automaton in under a second per
+  cell. A reading at any finite range sits at or below the limit, so a
+  bounded reading is open to the next range, and no finite table by
+  itself decides that a column is infinite. At a quadratic <i>α</i> the
+  graph of addition itself is recognized by a finite automaton — three
+  sliding-window passes over the digits, alternating in direction
+  (Hieronymi and Terry, 2018; the golden case is Frougny's) — so the
+  arithmetic maps, each written from addition, have regular graphs
+  there too, as a shift's is outright; what the column reads is the delay its function
+  needs when read once from the bottom, which a regular graph leaves
+  open — ×<i>m</i>'s is regular and gated.</p>
+  <p>Give the period two different large quotients and the limit map is
+  the stride law read against the length at which the large quotients
+  recur, with one departure. The <b>graded window</b>
+  [0; (1, 1, <i>A</i>, 1, 1, <i>B</i>)<sup>∞</sup>] has its large
+  quotients three apart while its sequence repeats at six. Read against
+  3, strides 1, 4, 7 gate at every pair; strides 2, 5, 8 read at bounded
+  lookahead at every pair; stride 6 needs none; and the
+  <b>half-period</b> stride 3 — the one shift carrying each large
+  quotient onto the other, a large digit dropping onto a position that
+  is itself an absorber — gates at every pair with <i>A</i> ≠ <i>B</i>
+  and needs no lookahead where <i>A</i> = <i>B</i>, where the window is
+  the designed family and 3 is its period. The gate is explicit: at
+  (8, 4) the integers 1638 and 364170 agree on ten digits and their
+  images differ at position 3; one turn of the automaton's six-cycle
+  later the witnesses agree on sixteen digits (66277120), then on
+  twenty-two. A value law once read here — the pair bounded exactly when
+  <i>B</i> &lt; <i>A</i> ≤ 2<i>B</i> + 1 and <i>A</i>·<i>B</i> ≥ 30, at
+  zero misses over 92 pairs, three ranges and two classifiers — was a
+  statement about how deep that first witness sits against the range
+  read: at (8, 4) it sits just past <i>N</i> = 300000, the deepest range
+  scanned. What survives of it is that the verdict is not a function of
+  the large quotients' positions alone, since <i>A</i> = <i>B</i> and
+  <i>A</i> ≠ <i>B</i> share every position and read differently.</p>
+  <p class="scope"><b>Scope.</b> The existence of the limit column and
+  its eventual periodicity are a theorem at every purely periodic window
+  and every stride, derived with nothing imported. The values are exact
+  computations, a rule over the cells read: the 210 pairs
+  <i>B</i> = 3..12, <i>A</i> = 4..24 at every stride 1..8 — none off the
+  map above — and the 92 pairs of the old grid at stride 3, every one
+  with <i>A</i> ≠ <i>B</i> infinite and every one with
+  <i>A</i> = <i>B</i> zero. Controls: 5000 of 5000 pairs accepted at
+  three windows and three strides, exactly one image accepted at each
+  of the first 300 inputs there; the period strides of the designed family printing the zero
+  column; the finite column at <i>N</i> = 30000 at or below the limit
+  at every depth of every cell of the three populations; the
+  automaton's pruning box tripled without a verdict moving. A window with no period has no automaton.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_limit_column.py"><code>explore_limit_column.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_span.py"><code>explore_cascade_span.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_values.py"><code>explore_cascade_values.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_rule.py"><code>explore_cascade_rule.py</code></a></p>
+</article>
+
+<article class="claim" id="run-length-rule">
+  <div class="claim-head"><span class="claim-name">The run-length
+  rule</span> <span class="tier">rule</span></div>
+  <p>Before the automaton, a verdict was read off a range comparison —
+  the agreement depth one range reached against another's — which makes
+  it partly a fact about the range set a sweep happened to use. A verdict
+  can instead be read off a <b>single table</b>, and the thing that
+  decides it is a length.</p>
+  <p>At a window whose quotient sequence has period <i>P</i>, cut the
+  excess-lookahead column into maximal runs of nonzero entries. An
+  obstruction that is <i>local</i> — generated by a bounded configuration
+  of digits — recurs wherever that configuration recurs, and the rule
+  read a run of length <i>P</i> or more as the sign of something else:
+  consecutive copies of a local bump would touch, so — the argument
+  ran — such a run is not a local feature of the period and the stride
+  is gated, while runs shorter than <i>P</i> read at bounded delay. The
+  tell was to be not the decline of exactly one per depth but whether
+  the decline <b>outlasts the period</b>.</p>
+  <p>Both halves are readings. The bounded half is a lower reading: the
+  column only rises with the range, so a bounded table is open to the
+  next range. The gated half fails on a <b>sawtooth</b>: touching copies
+  merge, and at two pairs of a two-class family — period 5, one large
+  quotient 5 or 4 and another 2, stride 4 — the limit column is
+  5 4 3 2 1 recurring with the period and never returning to 0, bounded
+  at lookahead 5, which the rule reads gated at <i>N</i> = 300000. A run
+  that has outlasted the period stays, and need not grow. No choice of
+  length repairs either half. Two lengths are fixed by a
+  window's own data — the length at which the quotient sequence repeats
+  and the length at which its pattern of large quotients repeats — and at
+  the graded window they differ, 6 against 3. The sequence period is what
+  the limit column carries, exactly — the period of every finite nonzero
+  limit column at the graded window is 6 — but reading runs against it
+  calls the half-period stride's first bump, 5 4 3 2 1, bounded where the
+  limit gates it; reading against 3 would gate the 175 pairs at stride 2
+  whose limit column is the finite 0 0 0 3 2 1 recurring at six. At a
+  periodic window the rule is a first reading and the automaton the
+  verdict.</p>
+  <p class="scope"><b>Scope.</b> Rule at scanned scope, periodic windows.
+  The 210-pair region <i>B</i> = 3..12 over <i>A</i> = 4..24 at
+  <i>r</i> = 2 it reads bounded throughout is bounded in the limit, with
+  the histogram the deepest range printed — 18 zero columns, 17 with a
+  single 1, 175 with the run 3 2 1 — now exact. It reads, with
+  nothing refused, all 84 pairs of a two-class family — eight windows
+  whose period carries two large quotients each, over
+  <i>P</i> = 4..7 — whose limit map is now exact: the criterion
+  predicting a verdict from the large quotients' positions alone fails
+  at 18 of the 84 in the limit, at 16 under this rule at one range, and
+  the two sawtooth pairs are where this rule's gated half fails. The
+  threshold itself was read off the nine designed windows, so
+  those are a consistency check and not an independent control. Reading
+  at the data's own depth rather than the shared cap of 10 moves no pair
+  of the map and reproduces the designed family's parity law at 0 misses
+  of 54 strides against 4 at the cap. The rule is bounded to periodic
+  windows by derivation — a window whose quotient sequence never repeats
+  has no length it is entitled to — so at ∛2 − 1 it refuses 7 of the 8
+  strides scanned and at <i>e</i> − 2 four of 8, reaching the rest only
+  where the column runs to the scan's own lookahead cap, or where the
+  shift needs no repair at all and reads at lookahead 0 for that
+  reason.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_rule.py"><code>explore_cascade_rule.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_scale.py"><code>explore_cascade_scale.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_limit_column.py"><code>explore_limit_column.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_limit_maps.py"><code>explore_limit_maps.py</code></a></p>
+</article>
+
+<article class="claim" id="calibrated-cap">
+  <div class="claim-head"><span class="claim-name">The lookahead cap is
+  calibration</span> <span class="tier">pattern</span></div>
+  <p>Every clause of that rule follows from something — the run against
+  the period from what makes an obstruction local, the refusal from the
+  room a signature needs — except one. A column whose <b>peak</b> — the
+  largest entry it reaches — climbs to a fixed ceiling is read as
+  saturated, and that ceiling is a bare number: a threshold on the
+  excess itself, not the table-depth cap above. It is also the only
+  clause left where there is no period, once the strides needing no
+  repair at all are set aside, so every other verdict at ∛2 − 1 and
+  <i>e</i> − 2 rests on it.</p>
+  <p>Nothing in a finite column can replace it, and the reason is now
+  sharper than the exhibit that first showed it. One column the range
+  comparison gated at the cubic — the single run 5 4 3 2 1 at depth 11 —
+  had an exact twin, same depth and same lengths, at (8, 4) of the graded
+  window at the half-period stride, then read bounded; that twin is a
+  gated column at its first bump, so the two were two gated columns at
+  the same truncation, which is exactly what one table cannot tell from
+  a bounded one. So the number is read off the bounded corpus instead,
+  and that corpus's ceiling is a limit rather than a measurement at
+  three ranges — and it is the ceiling of the corpus <em>read</em>: over
+  every finite limit column of the graded window at strides 2, 5 and 8
+  and of the designed family the largest run and peak are 4 and 4,
+  attained at three pairs of stride 5, and the two-class family adds
+  two bounded pairs at peak 5, the sawtooth above, whose peak is its
+  period. The honest constant is one past the widest corpus read, 6.
+  The split it must reproduce at the two windows with no period has its
+  gated strides at peaks 12, 9, 7 (∛2 − 1, strides 1, 3, 5) and 12, 10,
+  7 (<i>e</i> − 2, strides 1, 4, 7) at <i>N</i> = 300000, with every
+  bounded stride at 3 or below, so 6 or 7 issues the same split — two
+  values of margin, and a ceiling that rose by one when one more
+  periodic family was read.</p>
+  <p class="scope"><b>Scope.</b> Pattern at the two windows with no
+  period, and it stays pattern: they have no automaton, and the constant
+  does inductive work there that nothing derives. The bounded ceiling it
+  is calibrated on is exact — the limit columns of 210 pairs at three
+  strides, of the designed family at its even nonzero residues and of
+  the two-class family's 84 pairs.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_saturation_twins.py"><code>explore_saturation_twins.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_limit_column.py"><code>explore_limit_column.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_limit_maps.py"><code>explore_limit_maps.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_rule.py"><code>explore_cascade_rule.py</code></a></p>
+</article>
+
+<article class="claim" id="drop-ends">
+  <div class="claim-head"><span class="claim-name">Neither end of a
+  drop decides</span> <span class="tier">observation</span></div>
+  <p>A criterion on one <b>drop</b> — a large quotient overflowing onto
+  a landing site, judged by the two quotients — is what a periodic
+  window's readings are made of, the window having one drop and
+  repeating it forever. A window with no period carries a whole multiset
+  of quotient pairs per stride, so any such criterion reads a verdict per
+  site and the quantifier over them is the question. There is none, and the witness needs neither quantifier nor
+  count. At <i>e</i> − 2 the quotient pattern 1, 1, 2<i>n</i> puts a 1
+  at every landing site, so its strides pair up carrying one identical
+  multiset of drop-site quotient pairs — the even quotients dropping
+  onto 1 — at identical drop positions <i>j</i> = 1, 4, 7, 10, 13,
+  differing only in where the drop lands, at <i>j</i> + <i>r</i>. And
+  the pairs read gated, bounded, gated, bounded, gated, bounded. Any
+  criterion that is a function of a drop's source gives both members of
+  a pair one verdict, so it must be wrong at one member of each — at
+  least three of the six scored strides — and three is exactly what
+  every form scored: the <b>roof</b> — a dropping quotient held to at
+  most one more than twice its landing site's — under either
+  quantifier, and the product of the two quotients at its threshold. A
+  miss, not a silence.</p>
+  <p>With the graded window above that empties both ends of a drop's
+  source. The graded window kills the positions, <i>A</i> = <i>B</i> and
+  <i>A</i> ≠ <i>B</i> carrying one set of large positions and different
+  verdicts; this kills the values, two strides of one window carrying
+  one quotient-pair multiset and different verdicts. Where
+  <i>e</i> − 2's
+  verdict does live is the absorbing end: its large quotients sit on
+  one residue class mod 3, which is why it is the <i>P</i> = 3 pattern
+  the stride law already calls. The cubic ∛2 − 1 has no such class —
+  its quotients above 1 sit at positions 0, 2, 5, 8, 10, 12, 13, 15, …,
+  with gaps of 1, 2 and 3 from the start — and there the roof scores
+  independently and misses too, 2 of 7 strides existentially and 4 of 7
+  universally, with no count or fraction threshold separating. So
+  nothing read off a drop's source plays the period at a window that
+  has none; what does, where anything does, is read off the window's
+  own prefix — <a href="#prefix-closures">the prefix closures</a>.</p>
+  <p class="scope"><b>Scope.</b> Observation at the two windows with no
+  period, <i>e</i> − 2 and ∛2 − 1, every scored stride read at three
+  ranges. Three forms are scored — roof existential, roof universal,
+  product at its threshold — each under both bounds on which drop sites
+  count, and each missing three at <i>e</i> − 2; at the cubic the
+  roof misses 2 of 7 strides existentially and 4 of 7 universally;
+  that no <em>statistic</em> over the
+  pairs can do better is the argument above and not a further
+  measurement. What is refuted is any reading of an aperiodic stride
+  off a drop's source; at the graded window the limit map above is
+  exact and reads the drop's two quotients only as equal or not.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_roof.py"><code>explore_cascade_roof.py</code></a></p>
+</article>
+
+<article class="claim" id="prefix-closures">
+  <div class="claim-head"><span class="claim-name">The prefix closures
+  and the one-class windows</span> <span class="tier">rule</span></div>
+  <p>For a window with quotients <i>a</i><sub>1</sub>,
+  <i>a</i><sub>2</sub>, … the <i>m</i>-th <b>prefix closure</b> is
+  [0; (<i>a</i><sub>1</sub> … <i>a<sub>m</sub></i>)<sup>∞</sup>] — the
+  window's own prefix, tiled. Every closure is purely periodic, so the
+  finite automaton of <a href="#half-period-gate">the limit of the
+  lookahead</a> decides it exactly, and a window with no period gets a
+  <em>ladder</em> of exact verdicts, one per <i>m</i>. The candidate
+  law is composite: a stride along which the quotient sequence is
+  non-decreasing has no drop and reads at lookahead 0; every other
+  stride takes the eventual verdict of its closure ladder, where that
+  ladder stabilizes. On the designed family the closure at any multiple
+  of the period is the window itself, so the candidate reduces to the
+  stride law by construction.</p>
+  <p>At <i>e</i> − 2 it is the whole table. The verdict vector over
+  strides 1..8 is the same at every closure from <i>m</i> = 12 through
+  21 — gated at 1, 4, 7, not at 2, 5, 8 — the drops the tiling
+  manufactures at the dropless strides 3 and 6 gate only while they
+  dominate the period and wash out after, and the gated half is
+  certified: pairs extracted from deep closures verify by integer
+  arithmetic on the true window, two explicit integers agreeing on ever
+  more low-order digits — past 120 — while their images part at a
+  position fixed per stride at 1, 3, 6. And the call is the residue
+  class's rather than <i>e</i> − 2's. Call a window <b>one-class</b>
+  when its quotients above 1 sit on one residue class mod
+  <i>P</i>: three designed one-class windows at <i>P</i> = 3, sharing
+  nothing with <i>e</i> − 2 but the class — quotients 1, 1,
+  <i>c<sub>k</sub></i> with <i>c<sub>k</sub></i> the primes, the primes
+  adjacently transposed, and 2 plus the Thue–Morse bit — read the same
+  split, gated at <i>r</i> ≡ 1 mod 3 against not gated at
+  <i>r</i> ≡ 2 mod 3, with certified pairs landing at exactly the
+  strides ≡ 1 mod 3 at all three (agreement climbing to 170 digits)
+  and at no other stride. The legs separate: the split and the certificates ride
+  the class alone — unbounded, transposed and bounded large quotients
+  alike — while <em>stabilization</em> of the ladder needs the large
+  quotients unbounded (the Thue–Morse window's deep vectors cycle with
+  the tiled word, its peaks still separating the split), and a stride
+  that lands the class on itself follows its own drops: none, and it
+  reads at lookahead 0; genuine ones, as at the transposed window's
+  stride 3, and it gates in every stable closure while handing out no
+  certified pair. The cubic ∛2 − 1, with no class, refuses every
+  observable at once: its ladder never stabilizes, its peaks grow at
+  every stride alike where the one-class windows hold a band, and no
+  extracted pair verifies with its images parting below its agreement.
+  What plays the period at a window that has none is, wherever the
+  window is one-class, the class; at the cubic the question stays open,
+  and it has now refused three instrument generations.</p>
+  <p class="scope"><b>Scope.</b> Rule at scanned scope: closures to
+  <i>m</i> = 21 (24 at the prime window, 30 at the cubic), every
+  stride to 8, every cell decided exactly. The certified
+  ladders are verified instances — explicit integer pairs checked by
+  greedy arithmetic on the defining quotients, counted only where the
+  images part strictly below the agreement. That stabilization needs
+  unbounded large quotients rests on one bounded window and stays
+  observation. Controls: the golden-ratio and designed windows reproduce
+  the stride law at every cell, and the finite column at range 30000
+  sits at or below the limit column at every checked cell.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cascade_closure.py"><code>explore_cascade_closure.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_closure_family.py"><code>explore_closure_family.py</code></a></p>
+</article>
+
+<p>The same automaton, run as a game with the digits the reader may
+write widened past legality while the input stays legal, separates the
+arithmetic maps' two refusals — the account is on
+<a href="/reading/output">The widened output</a>.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
