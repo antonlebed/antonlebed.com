@@ -137,7 +137,8 @@ F1  CONTROL PASSES (K1): designed(3, 2) and designed(3, 5), r = 1,
     all 29 depths per cell, target index r+1 -- the derived periodic
     cut s = q_{r+1} (explore_parity_derivation.py F2's P = 3 row).
 F2  THE TELESCOPE IDENTITY HOLDS AT EVERY CELL (theorem -- D2's two
-    cap-1 lines are the proof; certified at all eight windows x
+    cap-1 lines are the proof, with D3's head identity folded in at
+    phase 0; certified at all eight windows x
     r = 1, 4, 7 x T = 2..30): partial sums equal
     (q_{j0+3T+2} - q_tgt, p_{j0+3T+2} - p_tgt) exactly, tgt = r+1 at
     phase 2 and r at phases 0/1 -- 24 aperiodic cells, 696 depth
