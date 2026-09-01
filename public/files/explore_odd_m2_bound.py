@@ -149,7 +149,10 @@ F6  THE CENSUS PINCH — THE ODD-P EVEN-RESIDUE HALF CLOSES WHOLE
     even P's {0, comb}, and the enumerated 12-cell zero-only census
     (explore_odd_transfer.py F7) its corollary rather than its
     evidence. What stays open at odd P: the ODD period multiples
-    (mP odd — the congruence layer itself does not exist there) and
+    (mP odd — the congruence layer itself does not exist there;
+    SETTLED by explore_odd_doubling.py — a period-mP pattern is a
+    period-2mP pattern with the same tail value, so this theorem at
+    2m closes them, and only the odd residues survive as open) and
     the odd residues (non-comb cycles recorded).
 
 PREDICTIONS (frozen before the run; observables)
