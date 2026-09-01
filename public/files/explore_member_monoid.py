@@ -458,8 +458,7 @@ def s2():
         caps2 = aligned_caps(P, A, r, 2)
         for e in ms2:
             u, v = e[:P], e[P:]
-            if not ((not any(u) or u in ms1)
-                    and (not any(v) or v in ms1)):
+            if not (u in ms1 and v in ms1):
                 bad_block += 1
                 print(f"  ({P},{A},{r}) m=2 member "
                       f"{''.join(map(str, e))}: block NOT an m=1"
