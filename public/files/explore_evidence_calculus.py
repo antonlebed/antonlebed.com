@@ -91,8 +91,9 @@ Findings preview:
      is an e-variable iff their EFFECTIVE read-sets are disjoint --
      cylinders read complements (valid iff S u T = all), classicality
      reads S minus {2} (channel 2's classicality is the VACUOUS bet:
-     every residue mod 2 is already in {0,1} -- the decality as the
-     trivial e-variable), mixed valid iff T subset S u {2}. The
+     every residue mod 2 is already idempotent, F_2 being exactly
+     {0,1}, so its e-variable is the constant 1), mixed valid iff
+     T subset S u {2}. The
      multiplicative law is the excess bookkeeping: E[E_S E_T] = 1/mu(S v T).
   4. LOG E-VALUE = TROPICAL VALUATION (rule): evidence factors are
      1/P per independent channel read; log-evidence is the log-mass
