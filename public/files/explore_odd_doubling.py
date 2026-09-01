@@ -63,7 +63,8 @@ F1  THE DIRECT TEST IS VALIDATED (s0, all pass): direct_member ==
     can say True.
 F2  THE DOUBLING IDENTITY IS EXACT (s1, all pass): at all 766,232
     legal cyclic patterns over the odd cells (P <= 7, A in {2, 3},
-    m in {1, 2, 3}), s_xy(d2) equals the (1 + eta^m) S coordinates
+    m in {1, 2, 3}), d2 is cyclically legal under the doubled caps
+    (asserted), s_xy(d2) equals the (1 + eta^m) S coordinates
     and direct_member(d, m) == direct_member(d2, 2m) — zero
     mismatches either leg.
 F3  THE ODD MULTIPLES ARE CLOSED (s2 + the hand-attack): the census
@@ -223,15 +224,18 @@ def s0():
 
 
 def s1():
-    print("== s1: the doubling identity — S(d2) = (1+eta^m)S and "
-          "member(d, m) == member(d2, 2m)")
+    print("== s1: the doubling identity — S(d2) = (1+eta^m)S, "
+          "d2 legal, and member(d, m) == member(d2, 2m)")
     checked = bad_s = bad_m = 0
+    from explore_deep_pairs import legal_cyclic
     for (P, r) in odd_cells(7):
         for A in (2, 3):
             cell = Cell(P, A)
             for m in (1, 2, 3):
                 caps = aligned_caps(P, A, r, m)
+                caps2 = aligned_caps(P, A, r, 2 * m)
                 for e in enum_legal_cyclic(caps):
+                    assert legal_cyclic(list(e) + list(e), caps2)
                     d = d_of(list(e), r)
                     d2 = d + d
                     checked += 1
