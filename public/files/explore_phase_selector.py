@@ -55,7 +55,13 @@ D4  WHY PHASE 2 CANNOT REPAIR DOWN TO q_r (the floor, within the
     family): lifting -theta_{r+1} to -theta_r needs a head equal to
     theta_{r+1} - theta_r = theta_{r-1} (a[r] = 1 at r = 1 mod 3
     != 2), a tooth at digit position k = -1 -- below the
-    r-truncation's reach, teeth starting at theta_r. Cell-level
+    r-truncation's reach, teeth starting at theta_r. And no
+    multi-tooth head substitutes: a head is sum d_k theta_{k+r} =
+    M alpha - N with M = sum d_k q_{k+r}, so head = theta_{r-1}
+    forces M = q_{r-1} by irrationality, while every available
+    weight q_{k+r} >= q_r > q_{r-1} at r >= 4, and at r = 1 the one
+    weight equal to q_0 = 1 is q_1 at position 0, shut by the
+    leading-digit cap d[0] <= a[0] - 1 = 0. Cell-level
     minimality -- no OTHER family straddling a shallower cut -- is
     what the walker's minimal parting certifies per cell (inf_from is
     the least parting over all pairs, and p_s is monotone in s); the
