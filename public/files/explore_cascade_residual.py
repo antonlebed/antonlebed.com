@@ -207,7 +207,7 @@ FINDINGS.
      probability (p-1)/2p + 1/p = (p+1)/(2p), the inert half PLUS the
      ramified 1/p -- so ramification is a bonus term on top of
      inertness rather than an alternative to it, worth prod (1 + 1/p) ~
-     e^gamma ln L over the whole range.
+     (6 e^gamma / pi^2) ln L over the whole range.
 
   4. THE MARGIN'S FAILURE WAS THE INSTRUMENT, AND THE GUARD POINTS THE
      WRONG WAY FOR THAT. As first run, H5 FAILED on one champion and
@@ -517,7 +517,7 @@ print("\nPOST-HOC A  the refined density, diagnosing H5")
 # (4) priced a prime's failure to be rank-1 at 1/2 -- the inert half. But
 # RAMIFIED is also a failure, so the true per-prime survival is
 # (p-1)/2/p + 1/p = (p+1)/(2p), and the product over p < L carries an extra
-# factor prod (1 + 1/p) ~ e^gamma ln L. That factor is what makes the
+# factor prod (1 + 1/p) ~ (6 e^gamma / pi^2) ln L. That factor is what makes the
 # observed ratio DRIFT DOWNWARD instead of sitting on a constant, which is
 # the shape H5's fixed band could not express.
 print(f"    {'L':>5} {'log|D|':>8} {'crude':>8} {'refined':>8} {'ratio':>8}")

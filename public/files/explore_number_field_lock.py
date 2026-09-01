@@ -84,7 +84,8 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    Z's wander in ideal dress; PR5a). THE EDIT (proved): a 5-ghost
    needs 5 | lambda with 4 not| lambda — impossible in K, because
    every 5-carrier drags 4 in: split p = 1 mod 5 is chi20-gated to
-   p = 1, 9 mod 20 (so 4 | p-1), inert q gives 8 | q^2-1, and P5's own
+   p = 1 mod 20 (the split classes are 1, 3, 7, 9 mod 20 and only 1
+   is 1 mod 5; so 4 | p-1), inert q gives 8 | q^2-1, and P5's own
    column carries 4. Census: ghosts fire at char 7 only. The Fermat-
    gate mechanism reaches the ghost spectrum: class field
    theory edits which hauntings are possible. (Z has 5-ghosts: seed
