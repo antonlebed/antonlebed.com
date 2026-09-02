@@ -124,6 +124,7 @@ export default {
       '/schedule/rings': 'rings',
       '/schedule/carrier': 'carrier',
       '/schedule/dial': 'dial',
+      '/schedule/certificate': 'certificate',
       '/principal': 'principal',
       '/principal/triple': 'triple',
       '/principal/degeneracy': 'degeneracy',
