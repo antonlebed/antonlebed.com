@@ -117,7 +117,7 @@ FINDINGS (entered post-run, copied from printed output).
 
 1. THE RUNG IS THE JUMP SET'S SECOND WEIGHT (rule in range; 120
    fields at three windows: the six ramified quadratics, the 48
-   quartics and zeta_8, 65 octics and zeta_16 — PR3 and PR6 hit, and
+   quartics and zeta_8, 64 octics and zeta_16 — PR3 and PR6 hit, and
    more than PR3 asked): at every field the first frontier point is
    (1, log_2 e + 1) at weight 2e = p*i* (the seat's image: -1 has
    weight e = rho^{log_2 e}(1)), and the class-1 rung — the deepest
