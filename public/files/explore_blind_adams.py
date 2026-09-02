@@ -81,7 +81,8 @@ FINDINGS (one run).
   F3 (P3 half held, half refuted; observation). D does not determine V:
       888 of the 9588 primes below 10^5 carry a headroom above the least
       lift of their denominator (V(29) = 240 against V(137) = 480 at
-      D = 30 both), 720 of them loose at the prime 2, and 476 of the
+      D = 30 both; the least pair with one D and two V is q = 17, 29,
+      V = 960 against 240), 720 of them loose at the prime 2, and 476 of the
       1196 primes q == 9 (mod 16) are loose. The share is positive at
       every range read and FALLING: 0.117 below 10^4, 0.093 below 10^5,
       against the prediction of a tenth or more, flat or rising. The
@@ -252,6 +253,15 @@ def s2(isprime, B):
     for q in primes:
         fibre_min[D[q]] = min(fibre_min.get(D[q], V[q]), V[q])
     print("  witness: V(29) = %d, V(137) = %d, D(29) = %d, D(137) = %d" % (V[29], V[137], D[29], D[137]))
+    seen = {}
+    least = None
+    for q in primes:
+        if D[q] in seen and V[seen[D[q]]] != V[q]:
+            least = (seen[D[q]], q)
+            break
+        seen.setdefault(D[q], q)
+    print("  least witness pair (same D, different V): q = %d, %d with D = %d, V = %d, %d"
+          % (least[0], least[1], D[least[0]], V[least[0]], V[least[1]]))
     shares = []
     for x in (10_000, 100_000):
         ps = [q for q in primes if q <= x]
