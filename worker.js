@@ -111,6 +111,7 @@ export default {
       '/growth/fields': 'fields',
       '/growth/cascade': 'cascade',
       '/growth/inside': 'inside',
+      '/growth/probe': 'probe',
       '/growth/blind': 'blind',
       '/growth/irreducibility': 'irreducibility',
       '/growth/thermal': 'thermal',
