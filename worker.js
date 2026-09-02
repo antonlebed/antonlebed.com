@@ -118,6 +118,8 @@ export default {
       '/growth/constants': 'constants',
       '/schedule': 'schedule',
       '/schedule/limit': 'limit',
+      '/schedule/image': 'image',
+      '/schedule/openings': 'openings',
       '/schedule/clock': 'clock',
       '/schedule/rings': 'rings',
       '/schedule/carrier': 'carrier',

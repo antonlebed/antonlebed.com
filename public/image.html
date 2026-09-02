@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The greedy image — how many limits a cheapest-move policy reaches</title>
+<meta name="description" content="Off the integers the cheapest move is a class, and the set of limits it reaches is a product over the walk's surviving tied openings of the tie multiplicity at each: the multiplicity as an orbit count with the ring taken out, the species a tie can be, the one certificate that separates two branches' limits and its port to a number ring by the local degree, what the rings measure, and lockstep, the theorem that makes the count factor.">
+<link rel="canonical" href="https://antonlebed.com/schedule/image">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/instruments'>Instruments</a> <a href='/flattening'>Flattening</a> <a href='/learning'>Learning</a> <a href='/measure'>Measure</a> <a href='/observatory'>Observatory</a> <a href='/growth'>Growth</a> <a href='/schedule' class='up'>Schedule</a> <a href='/principal'>Places</a> <a href='/computation'>Computation</a></nav><nav class='sub' aria-label='Schedule'><a href='/schedule'>The pricing schedule</a> <a href='/schedule/limit'>The limit</a> <a href='/schedule/image' aria-current='page'>The greedy image</a> <a href='/schedule/openings'>The surviving openings</a> <a href='/schedule/clock'>The clock</a> <a href='/schedule/rings'>Which rings walk</a> <a href='/schedule/carrier'>The shopped carrier</a> <a href='/schedule/dial'>The clock dial</a></nav></header>
+<main>
+<h1>The greedy image</h1>
+<p class="lede">Off the integers the cheapest move is a class of moves, one
+per way of breaking each tie, and the set of limits that class reaches is
+one formula: a product over the walk's surviving tied openings of how many
+ways each can be taken. What that multiplicity is, which kinds of tie there
+are, and the one certificate that proves two branches never meet.</p>
+
+<p>Throughout, a <b>state</b> is a nonzero ring element, a <b>move</b>
+multiplies it, and <b><i>λ</i></b> is the exponent of the unit group of the
+quotient. A <b>place</b> is a prime of the ring with an integer <b>degree</b>
+(the degree of the irreducible over <b>F</b><sub>2</sub>[<i>x</i>], the
+log-norm over a number ring); seating one is an <b>opening</b>, deepening a
+seated one a <b>clock move</b>, which advances the <b>tick</b> <i>T</i> every
+price is read against, and the exponent it lands on is set by the place's
+<b>door</b>, the least climb that raises <i>λ</i> against the state's
+<b>invariant</b> <i>L</i>, the least common multiple of the seated places'
+<i>λ</i>'s. A <b>fresh</b> move is an opening, paid at its degree's
+discount, and a <b>vehicle</b> is the divisor a move seats. The <b>menu</b> is
+the priced set of admissible moves, a <b>tie</b> a menu with several minima, a
+<b>branch</b> one way of breaking it; a walk <b>locks</b> when it stops
+opening for good and the move it then repeats forever is its <b>recurrent
+vehicle</b>. A coordinate carried up without bound is a <b>runaway</b>, one
+left above exponent 1 by a move never affordable again a <b>strand</b>. In the
+<b>ideal world</b> a move seats one place power; in the <b>element world</b> it
+must be a single element and seats a <b>core</b>, the place power aimed at,
+plus a <b>rider</b>, the cheapest product of places whose ideal class cancels
+the core's, read off the class group's <b>minimal representatives</b>. The
+whole vocabulary, and the schedule family the laws are stated in, is
+<a href="/schedule">The pricing schedule</a>.</p>
+
+<p>The <b>greedy image</b> is the set
+of limits the minimal-move policy class reaches from a seed, a limit being
+the formal product a trajectory converges to
+(<a href="/schedule/limit">The limit</a>). A tied opening
+is <b>surviving</b> when the branches it opens reach distinct limits. The
+<b>rider's reach</b> is how far a minimal representative can carry a place —
+the <b>genus</b> over a curve, the Minkowski bound over a number ring. A
+place's <b>colour</b> is its (degree, class).</p>
+
+<h2>One formula, three factors</h2>
+
+<article class="claim" id="formula">
+  <div class="claim-head"><span class="claim-name">The greedy image is a
+  product over surviving openings of the tie multiplicity</span>
+  <span class="tier">rule</span></div>
+  <p>Over <b>Z</b> the image is a point at every law, &ldquo;least
+  <i>m</i>&rdquo; being a total order. Off <b>Z</b> it is, over every ring
+  run under dynamics,</p>
+  <div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">∣</mi><mrow><mi mathvariant="normal">I</mi><mi mathvariant="normal">m</mi></mrow><mi mathvariant="normal">∣</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><munder><mo>∏</mo><mtext>surviving openings</mtext></munder><mo stretchy="false">(</mo><mtext>tie multiplicity at the opening</mtext><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">|\mathrm{Im}| \;=\; \prod_{\text{surviving openings}} (\text{tie multiplicity at the opening}),</annotation></semantics></math></span></div>
+  <p>which reads as a lower bound on a count of limits and exactly as a
+  cardinality. Three ring facts feed it: the MULTIPLICITY at an opening,
+  HOW MANY openings there are, and what the recurrent vehicle CARRIES, which
+  decides how many survive. Choices at an opening the certificate below covers have disjoint
+  images, so the image is at least the SUM over tied <b>types</b> — a type being a
+  member's colour — of their sub-images, and lockstep equates terms only inside a type: the formula
+  follows one branch and multiplies its width where the count adds the
+  others. At the six function-field rings the openings are endless and a
+  larger factor is still the continuum. Where the correction bites is a
+  finite image: in the class-3 quadratic ring's element world every tie is
+  cross-class — conjugate cores carry inverse classes — so the within-class
+  product scores one at every opening while the count of distinct limits
+  reads two at 4 of 27 seeds, and the class-2 ring's within-class width 2
+  and that ring's sum over two class branches are one number 2 with two
+  objects behind it. The class group divides the tie WIDTH and not the
+  image: a principal world's within-type opening is the same-degree places
+  of one class, about 1/<i>h</i> as wide, but the classes it separates are
+  choices too, so the division reaches the count only through the
+  rider.</p>
+  <p class="scope"><b>Scope.</b> A synthesis over seven rings — six with
+  degrees adding, two quadratic number rings with norms multiplying — each
+  factor a rule in range on the pages and blocks below. The lower-bound
+  reading is a derivation: the within-type width is 1 at 38 openings on
+  measured trajectories and 121 further tie states while a certificate
+  proves two limits survive each; in the class-3 ring none of 35 tie
+  states over 164 seeds has a principal core.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_greedy_image_nf.py"><code>explore_greedy_image_nf.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_greedy_image_ec.py"><code>explore_greedy_image_ec.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_reordering.py"><code>explore_reordering.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_class_species_nf.py"><code>explore_class_species_nf.py</code></a></p>
+</article>
+
+<h2>The multiplicity at an opening</h2>
+
+<article class="claim" id="orbit-count">
+  <div class="claim-head"><span class="claim-name">The multiplicity is an
+  orbit count, which takes the ring out of that factor</span>
+  <span class="tier">rule</span></div>
+  <p>Strip the ring and the items of one degree are interchangeable, so
+  every permutation preserving what the price READS is an automorphism of
+  the dynamics, and the reachable configurations of a shape are one orbit.
+  A block of the readable colouring holding <i>n</i> items, <i>k</i> seated
+  with an exponent multiset, contributes
+  <i>n</i>!/((<i>n</i>−<i>k</i>)!·∏ mult(<i>e</i>)!), and the image is the
+  SUM over reachable shapes of the PRODUCT of those — a multinomial read
+  off the supply, the dynamics run only to enumerate the shapes, one or two
+  per ring. The per-opening product is the corner where every opened degree
+  carries one item at exponent 1. Three things the orbit reading decides: a
+  degree seated <i>m</i> times contributes C(<i>n</i>, <i>m</i>) and not
+  the falling factorial, the <i>m</i>! seating orders reaching one divisor,
+  so a trajectory count is not a limit count wherever a degree opens
+  twice; the strand a fast clock leaves
+  (<a href="/schedule#strand">the strand</a>) multiplies as a free
+  coordinate; and the sum over shapes overcounts limits, a clock move on
+  the runaway taking two shapes to one reading, 487 configurations to 461
+  readings at <b>F</b><sub>2</sub>[<i>x</i>]. The supply is PRICE-BLIND:
+  both filtrations price the menu key and not the item, so the factor is
+  invariant under the additive/multiplicative swap. The class colouring
+  refines the supply from a vector to a matrix rather than leaving the
+  schedule, the refined multinomial holding where the colour-blind one
+  fails.</p>
+  <p class="scope"><b>Scope.</b> Proved by orbit–stabiliser over the
+  schedule; a rule in range at 8 supplies, 16 reachable shapes, 35,752
+  configurations enumerated with identities in, 0 off; the refined
+  multinomial at 0 shapes off against 76 for the colour-blind one over 8
+  supplies. What stays outside is the bundle a rider seats, never its
+  price. &ldquo;The&rdquo; runaway is the last clock mover only under a
+  single global clock (<a href="/schedule/openings#global-reading">The
+  surviving openings</a>).</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_schedule_image.py"><code>explore_schedule_image.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_filtration_price.py"><code>explore_filtration_price.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_class_schedule.py"><code>explore_class_schedule.py</code></a></p>
+</article>
+
+<article class="claim" id="tie-species">
+  <div class="claim-head"><span class="claim-name">A tie set is not one
+  kind of thing, and what a decline is depends on which datum the members
+  differ in</span> <span class="tier">rule</span></div>
+  <p><i>λ</i> reads (degree, depth) and the element world reads the class,
+  so a tie splits into species. Different degrees with one member fresh is
+  a REORDERING: a fresh move multiplies <i>λ</i> by an odd
+  2<sup><i>d</i></sup> − 1 and a clock move raises only the 2-adic part, so
+  neither disturbs the other's door and both orders reach one divisor —
+  not always in two moves, a clocked member leaving its own place a cheaper
+  door that invites moves before the orders meet. The same degree in
+  different CLASSES is a CHOICE, and the line is the rider's reach:
+  whichever core is taken, the other is unseated at a degree now carrying a
+  seated place, so its vehicle stays dearer forever, and beyond the reach —
+  the genus over a curve, the Minkowski bound over a number ring — no
+  minimal representative carries it back as a passenger; below the line a
+  declined core is a loan the rider repays, above it a loss. Two clock
+  moves at different degrees is a choice too, each raising the clock and
+  making the other dearer. And where a decline is neither, it is
+  <a href="/schedule#rider-discount">the rider's discount</a>, the loser
+  out-competed rather than dominated.</p>
+  <p class="scope"><b>Scope.</b> A rule in range: 691 of 2810 tie states
+  straddle two degrees; 3439 rejoins and 980 delayed ones, 0 undecided
+  over six rings in the ideal world; the class choice proved, 473
+  certificates over four rings, 344 forward checks past the reach with no
+  return and 5 of 6 returning below it; the two-clock choice proved in the
+  ideal world, 952 of 952 pairs, and 396 of 558 in the element world.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_greedy_image_ec.py"><code>explore_greedy_image_ec.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_reordering.py"><code>explore_reordering.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_undercut.py"><code>explore_undercut.py</code></a></p>
+</article>
+
+<article class="claim" id="undercut-lemma">
+  <div class="claim-head"><span class="claim-name">One certificate
+  separates branches, and starvation is it at exponent zero</span>
+  <span class="tier">rule</span></div>
+  <p>Separating two branches' limits takes a proof that some coordinate's
+  future is determined. Read a state through its door prices: with
+  <i>T</i> the tick, a place of degree <i>d</i> at exponent <i>e</i> prices
+  its door at <i>d</i>·(<i>T</i> + 1 − <i>e</i>), and a clock move raises
+  every door count alike while resetting the mover's. <b>If some place of
+  degree at most <i>P</i>'s is cheaper by more than the genus, and neither
+  it nor <i>P</i> can be seated fresh, and no rider can carry <i>P</i>,
+  then <i>P</i> is never a minimal move again</b>: a clock move changes
+  the gap by (<i>d</i><sub><i>P</i></sub> − <i>d</i><sub><i>Q</i></sub>)
+  (<i>T</i>′ − <i>T</i>) ≥ 0, and clocking the witness resets it to the
+  bottom, widening the gap; a place still seatable fresh has a door of 1
+  and jumps the moment it is taken, so a witness that can jump is no
+  witness. <i>P</i>'s exponent is frozen and the limit reads it finite.
+  Starvation is the lemma with the witness the declined core's seated
+  sibling, a place of its own degree; the freeze is the lemma with an exponent
+  pinned where it stands. What is proved is that the LOCK is unnecessary:
+  a sprawling world determines coordinates, all but about one of the 8 to
+  17 places the lemma speaks about at a walked state.</p>
+  <p class="scope"><b>Scope.</b> Proved for the ideal world; a rule in
+  range with the genus as slack in the element world, 60,972 of 60,972
+  cores the starvation certificate covers subsumed, six rings; the
+  determined-coordinate census is over reached states and not the
+  limit.</p>
+  <p class="verifier">verifier:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_undercut.py"><code>explore_undercut.py</code></a></p>
+</article>
+
+<article class="claim" id="local-degree">
+  <div class="claim-head"><span class="claim-name">Over a number ring the
+  certificate compares by the local degree, and that half binds</span>
+  <span class="tier">rule</span></div>
+  <p>Ported, the lemma needs two hypotheses equal characteristic hides. A
+  seated place reads the state's invariant through one <i>p</i>-adic
+  valuation
+  (<a href="/schedule/clock">The clock</a>), so the tick is a VECTOR over
+  the rational primes and two places share a clock only if they share a
+  residue characteristic; and inside one characteristic the ladder is the
+  place's own, so the comparison is by degree times ladder gap — in the
+  tail <i>e</i>·<i>f</i>, the LOCAL DEGREE — and not by the norm. Over
+  <b>F</b><sub>2</sub>[<i>x</i>] one characteristic and one ladder factor
+  out and leave the degree. No quadratic ring decides the local-degree
+  clause, its two places over one prime being conjugate; the cubic field
+  of least |discriminant| supplies 23 = <i>P</i>·<i>Q</i><sup>2</sup>,
+  equal norm, local degrees 1 and 2, and there the readings disagree — by
+  <i>f</i> the certificate freezes <i>P</i>, by <i>e</i>·<i>f</i> it
+  refuses — and one fresh seating carrying 23<sup>3</sup> REVERSES the order,
+  <i>P</i> falling to 23<sup>4</sup> against <i>Q</i> at 23<sup>5</sup>. With <i>g</i> a place's ladder gap, a jump of <i>j</i> levels moves the
+  log-cost gap by
+  <i>j</i>·(<i>f</i><sub><i>P</i></sub><i>g</i><sub><i>P</i></sub> −
+  <i>f</i><sub><i>Q</i></sub><i>g</i><sub><i>Q</i></sub>), nonnegative
+  exactly under the hypothesis. And the freeze's own cases are instances:
+  every place the lock freezes is a SPLIT place, which is exactly what the
+  shared-clock hypothesis demands, so that hypothesis predicts which
+  coordinates a ring can freeze; inert and ramified places stay the lock's
+  alone, by stasis rather than a monotone gap, the recurrent vehicle never
+  reaching their characteristic. One invariant, two sufficient
+  conditions.</p>
+  <p class="scope"><b>Scope.</b> Proved in the ideal world, a rule in range
+  in the element world; the refutation an observation at one ring, one
+  prime, one configuration. 36 of 36 frozen (seed, place) records
+  certified over two rings and both worlds, the certificate firing before
+  the lock at 34 of the 36; 58 of 58 inert and ramified frozen records
+  unmoved. The ring that decides it never walks, clocking its least-norm place
+  forever (<a href="/schedule/rings">Which rings walk</a>), so nothing here
+  is a claim about its walks.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_undercut_nf.py"><code>explore_undercut_nf.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cubic_undercut.py"><code>explore_cubic_undercut.py</code></a></p>
+</article>
+
+<article class="claim" id="rider-reach">
+  <div class="claim-head"><span class="claim-name">What is left open is the
+  rider's reach, and the last twelve separate one move later</span>
+  <span class="tier">rule</span></div>
+  <p>Of the declined pairs the certificate does not cover, nearly all have
+  a branch refused for a core inside the rider's reach — the depth species, two
+  clock moves at different degrees, at every occurrence and most class ones — a few for a core still
+  seatable fresh, the state the discount out-competes, and twelve for a
+  witness not clearing the slack, the genus: eight tied with a witness exactly, four
+  cheaper by less than the genus, all in the element world. Those separate
+  anyway: a tie is not symmetric when the witness holds the lower degree, a
+  clock move at a degree-1 witness leaving a degree-2 target at 12 against
+  4, and the refusing state has exactly one minimal move, the witness's, so
+  the target is frozen one move into the branch that declined it while the
+  other seats it. Every uncovered pair is refused by a hypothesis, and what
+  still wants a certificate is the rider's reach.</p>
+  <p class="scope"><b>Scope.</b> A rule in range: 1866 uncovered pairs
+  each filed under both branches' refusals, 1822 inside the reach, 32
+  fresh-seatable, 12 at the slack, off 7 tie states.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_undercut.py"><code>explore_undercut.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_the_twelve.py"><code>explore_the_twelve.py</code></a></p>
+</article>
+
+<article class="claim" id="width-measured">
+  <div class="claim-head"><span class="claim-name">What the rings measure:
+  width 2 by conjugation, and width 3 at degree 3</span>
+  <span class="tier">rule</span></div>
+  <p>Over <b>F</b><sub>2</sub>[<i>x</i>] &ldquo;least&rdquo; orders by
+  degree and ties are generic — the void's first move is a three-way tie
+  at cost 2 — and every irreducible of a degree contributes the same
+  2<sup><i>d</i></sup> − 1 to <i>λ</i>, so cost structure depends on the
+  degrees opened and not on which member: two policies differing only
+  there run in LOCKSTEP. Over a quadratic number ring the ideal world's
+  multiplicity is 2 by proof: a door costs the place's norm to a power, a
+  power of the place's rational prime, so equal costs lie over one prime
+  and a prime carries two places only when it splits. At degree 3 both
+  halves open, measured on the cubic field of discriminant −283:
+  one rational prime carries places of two NORMS, the only tie species among
+  the walked seeds being a norm-2 place at door 2 against a norm-4 place at
+  door 1, equal cost 4 with no conjugation behind it; and a prime splitting
+  completely carries three places, a planted state seating all three at
+  depth 1 bottoming its menu at a three-way tie whose branches lock three
+  distinct limits.</p>
+  <p class="scope"><b>Scope.</b> A rule: 618 tie-set encounters over both
+  worlds at the two quadratic rings, all of multiplicity 2 and all
+  conjugate pairs, 12 element ones straddling two rational primes; the
+  cubic species read at the seeds to a norm bound and at a planted
+  state, no such seed reaching the three-way tie.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_greedy_image_nf.py"><code>explore_greedy_image_nf.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_headed_cubic_walk.py"><code>explore_headed_cubic_walk.py</code></a></p>
+</article>
+
+<h2>Why the count factors</h2>
+
+<article class="claim" id="lockstep">
+  <div class="claim-head"><span class="claim-name">Lockstep is a theorem,
+  and the type the rings were measured with is the type that
+  factors</span> <span class="tier">theorem</span></div>
+  <p>Everything the engine reads is a function of a place's (degree,
+  class), so any permutation of places preserving that colouring is an
+  automorphism of the whole dynamics, and two tie members of one REFINED
+  type — the colouring plus the state depth — are carried one to the other
+  by a permutation fixing the state; the subtrees are isomorphic, every
+  later opening carries the same multiplicity, and the count FACTORS at
+  every ring. The measured type drops the state depth, and the gap could
+  only open through a core exponent above its door, a route the
+  bare-door lemma (<a href="/schedule#element-schedule">The pricing
+  schedule</a>) closes at any genus; the rider route needs two distinct
+  places of one degree and one class within the rider's reach, and the
+  least degree at which two places share a class is 1, 2, 5, 5, 6, 6
+  against genus 0, 1, 1, 1, 1, 2, clearing it by one at both ends of the
+  ladder and by four or more between. What carries the formula's risk is
+  the reading of a cross-type decline as a reordering, and that reading is
+  right for the cross-degree half and wrong for the same-degree
+  cross-class one, which is a choice above the genus. The width the
+  formula multiplies is bought by depth, not geography: exhaustively over
+  shallow states the within-type width is at most 2 and exactly 1 at
+  nearly every element tie state, while the same rings' trajectories reach
+  widths in the hundreds and thousands across the elliptic ladder.</p>
+  <p class="scope"><b>Scope.</b> Proved for the refined type, certified
+  2533 times at genus 2; the measured type a rule in range, 44,484
+  state-menus over six rings and two worlds with 0 collisions and 169
+  tie-set parts over the number rings with 0. The shallow census is over
+  states of degree ≤ 9 to 11, 6038 of 6195 element tie states at
+  within-type width 1.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_greedy_image_g2.py"><code>explore_greedy_image_g2.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_coarse_type.py"><code>explore_coarse_type.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_class_species_nf.py"><code>explore_class_species_nf.py</code></a></p>
+</article>
+
+<p>How many openings a walk makes, which of them the recurrent vehicle
+swallows, and what an exhausted or stopped ladder counts to — the second
+and third factors — are <a href="/schedule/openings">The surviving
+openings</a>. Where greed's single point sits inside the free image is
+<a href="/schedule/limit#greed-interior">The limit</a>.</p>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>
