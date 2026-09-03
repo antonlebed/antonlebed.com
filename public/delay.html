@@ -160,461 +160,481 @@ footer {
 </style>
 </head>
 <body>
-<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/instruments'>Instruments</a> <a href='/flattening'>Flattening</a> <a href='/learning'>Learning</a> <a href='/measure'>Measure</a> <a href='/observatory'>Observatory</a> <a href='/growth'>Growth</a> <a href='/schedule'>Schedule</a> <a href='/principal'>Places</a> <a href='/computation' class='up'>Computation</a></nav><nav class='sub' aria-label='Computation'><a href='/computation'>The machine reading</a> <a href='/computation/recovery'>The recovery chart</a> <a href='/computation/delay' aria-current='page'>The delay line</a></nav></header>
+<header class="site"><nav aria-label='Sections'><a href='/'>Home</a> <a href='/object'>Object</a> <a href='/walls'>Walls</a> <a href='/reading'>Reading</a> <a href='/instruments'>Instruments</a> <a href='/flattening'>Flattening</a> <a href='/learning'>Learning</a> <a href='/measure'>Measure</a> <a href='/observatory'>Observatory</a> <a href='/growth'>Growth</a> <a href='/schedule'>Schedule</a> <a href='/principal'>Places</a> <a href='/computation' class='up'>Computation</a></nav><nav class='sub' aria-label='Computation'><a href='/computation'>The machine reading</a> <a href='/computation/dividend'>The static dividend</a> <a href='/computation/recovery'>The recovery chart</a> <a href='/computation/delay' aria-current='page'>The delay line</a></nav></header>
 <main>
 <h1>The delay line</h1>
-<p class="lede">A growing pool of windows is not memory — its whole
+<p class="lede">A growing pool of windows is not memory: its whole
 content is the operation stream played back mod the supply. What that
 normal form decides, how far the residual it leaves can be certified,
 and the one channel neither closes.</p>
 
-<p>The machine here is the <b>element face</b> of the growth apparatus —
-the reading in which the ring's elements move under its arithmetic while
-the window set grows — with none of the imported primitives
-<a href="/computation/recovery">the recovery chart</a> prices: a finite
-control over <b>registers</b> — one value per <b>window</b>, a window
-being one modulus in the machine's growing set — moving under
-componentwise ring operations, reading only the native <b>zero-test</b>,
-which asks whether a register is zero at every window at once, and able
-to <b>grow</b>, minting one fresh window at the frontier. The moduli are
-served by a fixed <b>supply</b>: write <i>m<sub>g</sub></i> for the
-modulus of the <i>g</i>-th window minted. A fresh window is
-<b>born-at-zero</b> — it holds no value the machine did not write into
-it after it existed — and the only handle a program has on one is the
-<b>frontier singleton</b>, the register reading 1 at the freshest window
-and 0 at every older one, which is what lets a program address a window
-at all.</p>
+<p>The machine is the <b>element face</b> of the growth apparatus with
+no imported primitive: <i>r</i> <b>registers</b>, each a column over a
+<b>pool</b> of <b>windows</b> <b>Z</b>/<i>m</i>, with componentwise add,
+subtract, multiply and write-constant; one global <b>zero-test</b>, the
+AND of a register's per-window zero bits; <b>grow</b>, which appends a
+fresh window <b>born at zero</b>; and the <b>frontier singleton</b>,
+the register reading 1 at the freshest window and 0 at every older one,
+the only handle a program has on a window. The <b>supply</b> is the
+sequence <i>m<sub>g</sub></i>, the modulus of the <i>g</i>-th window
+grown; its <b>rate</b> is o(<i>g</i>) below linear and Ω(<i>g</i>) at
+or above, and the canonical slow supply
+<i>m<sub>g</sub></i> = max(2, ⌈√<i>g</i>⌉) is the <b>sqrt pole</b>. A
+bounded supply leaves the machine finite-state and a linear one makes
+it universal (<a href="/computation/recovery#supply-law">the supply
+law</a>); everything here is the band between. A <b>rider</b> is a
+counter held as a residue in one pointed window at the frontier; its
+zero-test <b>fires</b> when the value wraps to 0, a fire is
+<b>pending</b> while its next true lies in the future, and the fire's
+time is a <b>landing</b>. A register is <b>faithful</b> when its value
+tracks its increment count. The <b>inverse supply</b> is
+<i>M</i>(<i>d</i>) = max{<i>g</i> : <i>m</i>(<i>g</i>) ≤ <i>d</i>}; a
+landing with gap <i>d</i> sits in the window
+(<i>M</i>(<i>d</i> − 1), <i>M</i>(<i>d</i>)] and its <b>offset</b> is the
+distance from the window top down to the landing. A supply is
+<b>tame</b> when the questions a decider extracts about it — is some
+landing ≡ <i>a</i> mod <i>L</i> — are decidable. Universality is
+Minsky's, cited.</p>
 
-<p>The supply's rate sets the class. A bounded supply leaves the machine
-finite-state; a supply growing at least linearly makes it
-Turing-universal, a sparse counter under a pointer re-seated on the
-frontier at every step — the <b>frontier rider</b> — being enough at the
-one-digit corner, <i>m<sub>g</sub></i> &gt; <i>g</i>, and needing nothing
-imported at all; and a
-<b>sublinear</b> supply is <b>capped</b>: every construction tried holds
-at most a program constant's worth of exact capacity, and that no
-construction ever exceeds that is conjectured rather than proved (<a
-href="/computation/recovery#supply-law">the supply law</a>). The
-mechanism named for the cap is <b>bandwidth</b>: every operation is
-componentwise, so value crosses between windows only one bit at a time
-outward through the zero-test and one unit at a time inward through the
-singleton.</p>
+<h2>The rate, and why everything caps</h2>
 
-<p>This page is the capped side. It proves born-at-zero rather than
-arguing it — the proof is a normal form holding for every program on
-every supply — reads off what that decides, certifies infinite growth
-on all but one program of a measured population, and stops at the
-one channel the cap leaves open, which is not the machine's arithmetic
-but the supply's own.</p>
+<article class="claim" id="cap-lemma">
+  <div class="claim-head"><span class="claim-name">The phase boundary is
+  the linear rate, and the crux is re-basing, not carry</span>
+  <span class="tier">rule</span></div>
+  <p>A carry across two <em>addressed</em> windows is in the class: save
+  the singleton as a persistent idempotent, one addressed window per
+  register, and carry when the low digit wraps by increment-then-zero-test
+  on the sparse low register. But a positional value
+  Σ digit<sub><i>i</i></sub>·<i>W<sub>i</sub></i> has the moduli as its
+  bases, and migrating a digit-window to a fresher modulus rescales the
+  higher weights by the unknown ratio <i>m</i>′/<i>m</i>, a
+  multiplication by an unknown the class cannot perform; only the top
+  digit migrates cleanly. <b>The cap lemma:</b> a faithful value never
+  exceeds <i>W<sub>d</sub></i>·<i>m</i><sub>frontier</sub>, with
+  <i>W<sub>d</sub></i> the frozen product of the lower bases, a constant
+  the program chooses. So a counter survives exactly when
+  <i>W<sub>d</sub></i>·<i>m<sub>g</sub></i> ≥ <i>g</i> for some fixed
+  <i>W<sub>d</sub></i>, which is <i>m<sub>g</sub></i> = Ω(<i>g</i>); on
+  the sqrt pole the cap is exactly <i>W<sub>d</sub></i>², and a
+  value-dependent grow schedule is the regress — value 100 at base 3
+  needs 1,089 grows before counting. Every scheme built caps on any
+  o(<i>g</i>) supply by the same principle, born at zero: a fresh
+  window carries no value information and the only native load into it
+  is the unary transfer, bounded by one modulus. The single rider wraps
+  at count 3; the positional counter caps by re-basing; the CRT counter,
+  value as residues and exact while it is below the lcm, caps by lcm
+  freeze, a grown window being born 0 and not the value's residue; and
+  the unary support counter has no decrement, being
+  <a href="/computation#growth-machine">the growth machine</a>.</p>
+  <p class="scope"><b>Scope.</b> Rule on the universal side, verified at
+  <i>m<sub>g</sub></i> = ⌈<i>g</i>/3⌉ with the carry exact at bases 3
+  and 4 over counts 0 to 11; the sqrt-pole caps 4, 9, 16, 25 measured at
+  <i>W<sub>d</sub></i> = 2 to 5. That <em>no</em> construction
+  simulates two counters on an o(<i>g</i>) supply is conjectured: three
+  exact schemes are ruled out, and the normal form below makes
+  born-at-zero a theorem rather than an argument.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sqrt_supply.py">
+  <code>explore_sqrt_supply.py</code></a></p>
+</article>
+
+<article class="claim" id="third-class">
+  <div class="claim-head"><span class="claim-name">The decidable side is a
+  third class, and its mechanism is bandwidth</span>
+  <span class="tier">rule</span></div>
+  <p>The o(<i>g</i>) machine has unboundedly many distinct moduli — 20
+  after 2,000 steps and rising — so no finite column alphabet, and its
+  registers reset, so no monotonicity; one program exhibits both and is
+  still decided, so the class is neither finite-state nor
+  well-structured by monotonicity. <b>The bandwidth principle:</b> the
+  componentwise operations never move value between windows, so value
+  crosses windows only through the global zero-test, one bit out, and
+  the frontier singleton, one unit in, <i>O</i>(1) per operation. Two
+  consequences, both measured: an addressed faithful value is bounded by
+  a program constant — the top-migratable counter's faithful top digit
+  is 3 at horizons 200 and 800 on the sqrt pole and grows 50 to 200 on
+  the linear successor supply — and a faithful register's firing period
+  is a program constant: the CRT register's zero-test is a pulse that
+  fires only once growth stops, at the lcm of the frozen set (60, 420,
+  4,620 for 0, 1, 2 grown windows), so an unbounded firing period needs
+  freezing at a data-dependent window count, the regress again. The
+  counterexample face is closed: a cross-window product materializes at
+  no window, blind pre-growth of <i>G</i><sub>0</sub> windows buys
+  capacity ⌊√<i>G</i><sub>0</sub>⌋ (11, 21, 31 at 100, 400, 900), and an
+  unbounded period detector is the regress.</p>
+  <p class="scope"><b>Scope.</b> Rule for the structure and the three
+  named schemes; that no fourth scheme exists is the conjecture
+  above.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_decidable_side.py">
+  <code>explore_decidable_side.py</code></a></p>
+</article>
+
+<h2>The normal form, and the reduction it buys</h2>
 
 <article class="claim" id="normal-form">
-  <div class="claim-head"><span class="claim-name">The suffix-evaluation
-  normal form</span> <span class="tier">theorem</span></div>
-  <p>Born-at-zero is not a principle the constructions keep running
-  into; it is a normal form on the whole machine. Write the <b>op
-  word</b> for the sequence of operations a run has executed so far.
-  Then along any run, the content of register <i>i</i> at a window born at time
-  <i>τ</i> with modulus <i>m</i> is
-  <i>E<sub>i</sub></i>(the op word since <i>τ</i>) mod <i>m</i>, where
-  <i>E<sub>i</sub></i> is the free evaluation of that suffix over the
-  integers from the all-zero state. The induction on the op word is
-  short: reduction mod <i>m</i> is a ring homomorphism, so the
-  componentwise operations commute with it; write-constant writes one
-  integer; a grow never touches an old window; and the frontier
-  singleton is 1 − ONES, where ONES is a register write-constant set to
-  1 and re-set to 1 at every grow, so that the windows born since carry
-  0 there and complementing marks exactly the new one. Both moves are
-  native, so the singleton introduces no case of its own.</p>
-  <p>The registers therefore carry no information beyond the op word.
-  A window's whole content is a function of its own modulus and the
-  suffix since its birth; two windows of equal age and modulus are
-  identical forever; and the configuration abstracts to the control
-  state plus the <em>set</em> of pairs (a window's column — its
-  <i>r</i>-tuple of register contents — and its modulus), with every
-  operation broadcast to all pairs and a grow inserting the zero pair.
-  That reset-broadcast structure holds for every program on every
-  supply, with no hypothesis on the growth rate. The window pool is a
-  delay line of the op stream sampled mod the supply, and not writable
-  memory.</p>
-  <p>What it buys is a reduction. After a run's last grow the whole
-  configuration lives in the finite space of control states times
-  ∏<sub><i>k</i></sub>(<b>Z</b>/<i>m<sub>k</sub></i>)<sup><i>r</i></sup>,
-  and the machine reads no input between grows — the supply is
-  consulted only at a grow. So the plain decider is complete for every
-  run with finitely many grows: simulate; answer HALT on halt; answer
-  LOOP at the first repeat of the <em>full</em> configuration, control
-  state and every window's column, with no grow between the two
-  occurrences. That certificate is sound — equal configurations have
-  equal futures, and the repeated <b>segment</b> — the stretch of a run
-  between two repeats, of a whole configuration here and of a single
-  instruction in the certificate below — holds no grow, window counts
-  being monotone and equal at its ends — and by pigeonhole it always
-  lands. Deciding halting on a supply therefore reduces to
-  semi-deciding that a run grows infinitely often: if every
-  forever-growing program admits a finite certificate of growing
-  forever, halting is decidable, since halt, loop and growth
-  certificates searched in parallel leave one always landing — and an
-  undecidable supply must carry forever-growing programs no
-  certificate scheme covers. Completeness makes &ldquo;grows forever&rdquo;
-  co-semi-decidable for free, its complement being exactly
-  halt-or-loop. The naive rule refuted below repeats a
-  <em>compressed</em> signature, and that compression is the whole
-  difference: the exact repeat is sound and exponentially patient, the
-  compressed one fast and wrong.</p>
-  <p>One sharpening the proof forces on the supply law
-  (<a href="/computation/recovery#supply-law">the recovery chart</a>): a
-  window
-  evolving under the shared op word realizes any fixed integer
-  polynomial recurrence in its age, not only a constant or the age mod
-  its own modulus. Fibonacci runs as a growing-window clock, its
-  zero-set at modulus <i>m</i> the multiples of the <b>rank of
-  apparition</b> α(<i>m</i>) — the least index at which <i>m</i>
-  divides a Fibonacci number — and the global zero-test fires as a
-  period-60 pulse at frozen moduli 2, 3, 4, 5. That is the same 60 the
-  frozen pulse below carries and not the same computation: there the
-  period is the lcm of the frozen moduli 3, 4, 5; here it is the lcm of
-  the ranks of apparition of 2, 3, 4, 5 — that is, of 3, 4, 6, 5. What
-  is new is not the pulse but what carries it: a window content that is
-  neither a program constant nor the age mod its own modulus, which is
-  the repertoire the bandwidth argument had enumerated too narrowly.
-  The capacity arguments
-  are untouched, having only ever used that a fixed window evolves
+  <div class="claim-head"><span class="claim-name">Born at zero is a
+  theorem: the suffix-evaluation normal form</span>
+  <span class="tier">theorem</span></div>
+  <p>Write the <b>op word</b> for the sequence of operations a run has
+  executed. Along any run, register <i>i</i> at a window born at time
+  <i>τ</i> with modulus <i>m</i> holds <i>E<sub>i</sub></i>(the op word
+  since <i>τ</i>) mod <i>m</i>, the free evaluation over <b>Z</b> from
+  the all-zero state. The induction on the op word is short: reduction
+  mod <i>m</i> is a ring homomorphism, so the componentwise operations
+  commute with it; write-constant writes one integer; a grow never
+  touches an old window; and the frontier singleton is 1 − ONES, where
+  ONES is a register set to 1 and re-set at every grow, both moves
+  native. So the registers carry no information beyond the op word; two
+  windows of equal age and modulus are identical forever; and the
+  configuration abstracts to (control, the <em>set</em> of pairs (column
+  mod <i>m</i>, <i>m</i>)) with every operation broadcast and grow
+  inserting the zero pair — a <b>reset-broadcast</b> structure, for
+  every program on every supply, with no rate hypothesis. The window
+  pool is a delay line of the op stream sampled mod the supply, never
+  writable memory. One sharpening: a window under the shared op word
+  realizes any fixed integer polynomial recurrence in its age, not only
+  a constant or the age mod its own modulus. Fibonacci runs as a
+  growing-window clock, its zero-set at modulus <i>m</i> the multiples
+  of the <b>rank of apparition</b>, the least index at which <i>m</i>
+  divides a Fibonacci number, and the global zero-test fires as a
+  period-60 pulse at frozen moduli 2, 3, 4, 5 — the lcm of the ranks 3,
+  4, 6, 5, a different computation from the CRT pulse's lcm 60 at moduli
+  3, 4, 5.</p>
+  <p class="scope"><b>Scope.</b> Proved by induction on the op word;
+  5,571 window-checkpoints over 60 random programs on three supplies
+  are the cross-check, 0 mismatches, never the proof. The Fibonacci
+  witness is observation at moduli 2, 3, 4, 5. The capacity arguments
+  above are untouched, having only used that a fixed window evolves
   inside (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup> under the shared word,
   which is the normal form itself.</p>
-  <p class="scope"><b>Scope.</b> The normal form is proved by induction
-  on the op word; the randomized run — 5,571 window checkpoints across
-  60 random programs on the sublinear, linear and bounded supplies,
-  zero mismatches — is a cross-check and never the proof. The decider
-  battery is rule tier: HALT, a certified LOOP far inside its
-  pigeonhole bound, and NO-CERTIFICATE at the step cap on a
-  forever-growing program — the residual class, by design — with both
-  positive controls passed before any verdict was read. The widened
-  repertoire follows from the normal form by construction; its
-  Fibonacci witness is observation, run-verified at moduli 2, 3, 4, 5,
-  where the classical characterization of the Fibonacci zero-set by the
-  rank of apparition fixes the pulse's period at
-  lcm(3, 4, 6, 5) = 60. One direction of the reduction is proved —
-  certifiability gives decidability — and the converse is not claimed:
-  &ldquo;grows forever&rdquo; is co-semi-decidable, and nothing here
-  makes it semi-decidable. Certifying infinite growth is the residual the
-  supply law leaves open, and it cannot be <b>supply-uniform</b> — one
-  scheme covering every supply — since the supply that plants a halting
-  fact in a tail switch, below, refutes that by construction.</p>
-  <p class="verifier">verifier:
-  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py"><code>explore_born_at_zero.py</code></a></p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py">
+  <code>explore_born_at_zero.py</code></a></p>
 </article>
+
+<article class="claim" id="halting-reduction">
+  <div class="claim-head"><span class="claim-name">Halting reduces to
+  semi-deciding that the run grows forever</span>
+  <span class="tier">rule</span></div>
+  <p>After a run's last grow the whole configuration lives in
+  <i>Q</i> × ∏(<b>Z</b>/<i>m<sub>k</sub></i>)<sup><i>r</i></sup> and the
+  machine reads no input between grows, so the <b>plain decider</b> —
+  simulate, HALT on halt, LOOP at the first repeat of the <em>full</em>
+  configuration with no grow between — is complete for every run with
+  finitely many grows, by pigeonhole; the exact repeat is sound and
+  exponentially patient, where a compressed descriptor's first repeat is
+  fast and wrong (below). If every forever-growing program admits a
+  finite certificate, halting is decidable, the three certificates
+  searched in parallel; any undecidable supply must carry
+  forever-growing programs no scheme covers. "Grows forever" is
+  co-semi-decidable for free, its complement being halt-or-loop.</p>
+  <p class="scope"><b>Scope.</b> The reduction is derived from the
+  normal form; the plain decider is a rule on its battery — HALT, a
+  certified LOOP far inside its pigeonhole bound, and NO-CERTIFICATE at
+  the step cap on a forever-growing program, both positive controls
+  passed first. Whether decidability conversely forces certifiability is
+  not claimed.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py">
+  <code>explore_born_at_zero.py</code></a></p>
+</article>
+
+<h2>The growth certificate</h2>
 
 <article class="claim" id="growth-certificate">
-  <div class="claim-head"><span class="claim-name">The growth
-  certificate, and the direction that looked like a wall</span>
+  <div class="claim-head"><span class="claim-name">A sound certificate
+  exists: a segment whose tests are forced</span>
   <span class="tier">rule</span></div>
-  <p>Certifying infinite growth — the residual <a
-  href="#normal-form">the normal form</a>'s reduction leaves open — has
-  a certificate. A <b>growth certificate</b> is a segment between two
-  returns to the same instruction, holding at least one grow — the
-  weaker of the two repeats, the plain decider's needing the whole
-  configuration back. Such a segment repeats forever exactly when every
-  zero-test inside it reads the same bit at every repetition, so a
-  certifier's job is to <b>force</b> those bits — sufficient for
-  infinite growth and never necessary, a program being free to grow
-  forever along a path that repeats no segment at all. The normal form
-  supplies five forcings, each derived against the one thing this
-  machine does that an invariant argument does not usually have to
-  survive: the pool only GROWS, so a claim about every window is a claim
-  about windows that do not exist yet.</p>
-  <p>Three read the segment's last write to the register a test reads.
-  If that write is the constant 0, every window born before it carries
-  it in its suffix and every window born after it was born 0 with the
-  register untouched, so the test reads true at any age, modulus and
-  pool. If it is a constant <i>c</i> ≠ 0 and one window already in the
-  pool has <i>m</i> ∤ <i>c</i>, that window never leaves and the write
-  is segment-local, so it reads <i>c</i> mod <i>m</i> ≠ 0 at the same
-  position of every repetition and the test reads false forever. The
-  third <em>spends the supply</em>: the window born at the segment's
-  last grow before the test holds a fixed integer <i>E</i>, its suffix
-  being the segment word and nothing else, so <i>E</i> ≠ 0 with modulus
-  &gt; |<i>E</i>| forces the test false, and on a non-decreasing supply
-  one check certifies every repetition. A bounded supply cannot carry
-  it, and that is a witness rather than an argument: the program built
-  to leave this the only forcing available certifies on ⌈√<i>g</i>⌉ and
-  prints no certificate on the bounded supply. The normal form's scope
-  already demands that no certificate scheme be supply-uniform, and
-  demands it from the supply's side; this is the same specificity
-  turning up on the machine's, in one forcing rather than in a
-  scheme.</p>
-  <p>What those three leave is one-directional, and that is what looked
-  like a wall. Forcing a test to read false needs a single persisting
-  witness; forcing it to read true needs every window the machine owns,
-  unborn ones included. On a draw of 600 random programs, 109 of them
-  <b>grow-heavy</b> — the run reaching 120 grows inside the step cap, an
-  observation and not a decision that it grows forever — the three left
-  57 uncovered, and 56 of the 57 failed in the reading-true direction.
-  The 52 they did certify flatter them: 49 of those hold no test at all,
-  a cycle with no branch repeating because it has no branch, which costs
-  the normal form nothing. Coverage actually carried by a forcing was 3
-  of the 109, and that figure is never read alone: across the sweep's
-  cells it runs 0 to 3, so what the three carry is nil to a handful and
-  not a rate.</p>
-  <p>Two more forcings close almost all of it. The fourth is free: the
-  tested register written nowhere in the segment. The segment map then
-  fixes its coordinate, every old window reads the same value forever
-  and every young window was born 0 there, so the bit is constant and
-  equals the one the run read — forced in whichever direction that was.
-  Its scan is over the whole segment, since scanning back only from the
-  test mislabels a write sitting past it. The fifth is the
-  <b>three-family instrument</b>, and it comes from sorting the windows
-  at a test the way the normal form already distinguishes them. A window
-  there is OLD (in the pool when the segment started), YOUNG-SAME (born
-  at a grow earlier in the same repetition) or YOUNG-EARLIER (born in a
-  previous one), and there is no fourth family, a window born after the
-  test in its own repetition not yet existing there. The normal form
-  gives each family its content, so forcing a true bit is three
-  questions and not one. OLD is not a question but a forcing: the
-  segment acts on (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup>, a finite set,
-  so the orbit closes and &ldquo;reads 0 at this position in every
-  repetition&rdquo; is decided per distinct pair of modulus and
-  column — and the same finite orbit pays the opposite bit too, one
-  window whose orbit omits 0 forcing the test false forever. YOUNG-SAME
-  is one fixed integer per grow position, and 0 over the integers is
-  what a certificate needs, that window's modulus differing at every
-  repetition. YOUNG-EARLIER is the question about the integers: the
-  content is the segment word's own free integer evaluation, iterated
-  from the integer the window's birth repetition left it holding, and it
-  is decided whenever that action reaches a fixed point or a
-  cycle.</p>
-  <p>Measured on the same draw, the two convert almost all of the
-  residue. The draw certifies 102 against 52, coverage carried by a
-  forcing goes from 3 to 53, and the residue falls from 57 to 7. Swept
-  across seed and program length, what the free case's true direction
-  and the three-family instrument carry between them settles at 48 to
-  62% of grow-heavy programs, which is the stable form of the same
-  reading. The 7 are not 7 obstacles. A refusal says only that this
-  instrument could not force that bit on that segment, and nothing about
-  the bit — replay shows 6 of the 7 holding a test that takes both
-  values, so that segment genuinely does not repeat with the same
-  answers and no sound scheme could have forced it — and which segment
-  gets tried is the certifier's own choice, the first repeated
-  instruction holding a grow rather than one the program forces. Retried
-  at later repeats, 6 of the 7 certify. So on this draw the residue is
-  ONE, and its reason is the one the derivation had already named: its
-  integer action neither stabilises nor cycles. The shape there is
-  sharper than the derivation expected — of the 34 integer actions the
-  draw reached, 32 hit a fixed point, 2 neither, and a proper cycle
-  appears in none of them. The action stops moving or never settles,
-  with nothing in between. None of this touches the capacity conjecture
-  one level up: what is bounded here is a SCHEME, and a program can be
-  built to defeat any fixed set of forcings.</p>
-  <p class="scope"><b>Scope.</b> Soundness is the claim and reach is
-  measured, and they do not wear one badge. Every forcing is derived
-  from the normal form; the runs cross-check it and are not the proof —
-  102 certified programs replayed to 600 grows apiece, zero unsound,
-  with the replay walking the segment cyclically and checking the
-  instruction and every test's bit at each position. Positions and not
-  instructions: one test can execute twice inside a segment at two
-  positions with two different last writes, so keying the check by the
-  instruction manufactures its own mismatches. Every forcing is
-  reachable and none is decoration, but the evidence differs by kind —
-  the four single forcings and the orbit's false bit each fire alone on
-  a program built for them, while the three-family instrument is shown
-  the only way a conjunction of conditions allows, a program per family
-  on which that family is the one that correctly refuses — for OLD and
-  YOUNG-EARLIER. YOUNG-SAME has none, since a program making it the
-  decider has to go to the bounded supply, where the supply-spending
-  forcing does not exist. Both positive controls passed. The coverage
-  figures are observation on one random population: 109 grow-heavy of 600
-  at one seed, with seed and program length swept one dial at a time.
-  Two dials are unswept and named rather than claimed — the retry sweep
-  ran 11 repeats deep, and the population is a single draw. The YOUNG-SAME
-  family is needed by the derivation and, on this population, never the
-  decider: its antecedent is shadowed by the supply-spending forcing,
-  which is consulted first.</p>
-  <p class="verifier">verifier:
-  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_growth_certificate.py"><code>explore_growth_certificate.py</code></a>,
-  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_forced_one.py"><code>explore_forced_one.py</code></a></p>
+  <p>A <b>certificate</b> is a segment of the run between two equal
+  program counters holding at least one grow; it repeats forever exactly
+  when every test inside it reads the same bit at every repetition, and
+  the scheme's job is to <b>force</b> those bits, sufficient and never
+  necessary. Every window at a test is <b>old</b> (in the pool when the
+  segment started), <b>young-same</b> (born at a grow in the same
+  repetition) or <b>young-earlier</b> (born in a previous one), and the
+  normal form gives each its content. The forcings. LOCK-ONE: the last
+  write to the tested register inside the segment is the constant 0, so
+  every window reads 0 at any age. LOCK-ZERO-C: the last write is
+  <i>c</i> ≠ 0 and one pool window has <i>m</i> ∤ <i>c</i>. LOCK-ZERO-F:
+  the window born at the segment's last grow before the test holds a
+  fixed integer <i>E</i> with <i>m</i> &gt; |<i>E</i>| — the one lock
+  that <em>spends the supply</em>, which a bounded supply cannot carry,
+  witnessed by a program that certifies on the sqrt pole and prints no
+  certificate on a bounded one. LOCK-STATIC: the register is written
+  nowhere in the segment, so the bit is constant and equal to the one
+  read, the scan over the whole segment, since a backward scan from the
+  test mislabels 13 of 46. And for old windows the segment's orbit on
+  (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup> is eventually periodic, so
+  "reads 0 at this offset forever" is decided per window and the same
+  orbit pays a ZERO lock. Young-same is one fixed integer per grow
+  offset, derived-necessary and shadowed by LOCK-ZERO-F on the census;
+  young-earlier is the free integer action of the segment word iterated
+  over <b>Z</b>, decided whenever it reaches a fixed point or a cycle.
+  Every lock is reachable and fires alone on a program built for it.</p>
+  <p class="scope"><b>Scope.</b> Soundness and supply-specificity are
+  derived from the normal form, with 102 certified programs replayed to
+  600 grows apiece, 0 unsound, every test's bit checked at every offset
+  of a cyclic walk — positions and not instructions, one test executing
+  twice in a segment at two positions with two different last writes.
+  Coverage is the next block's, an observation.</p>
+  <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_growth_certificate.py">
+  <code>explore_growth_certificate.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_forced_one.py">
+  <code>explore_forced_one.py</code></a></p>
 </article>
+
+<article class="claim" id="forced-one">
+  <div class="claim-head"><span class="claim-name">The forced-one wall
+  fell, and the residue on one draw is one program</span>
+  <span class="tier">observation</span></div>
+  <p>Forcing a test to read false needs one persisting witness; forcing
+  it to read true needs every window the machine owns, unborn ones
+  included, and that looked like a wall. On a draw of 600 random
+  programs, 109 <b>grow-heavy</b> — the run reaching 120 grows inside
+  the step cap, an observation and not a decision that it grows forever
+  — the three original locks certified 52, 49 of them holding no test
+  at all (a branch-free cycle repeats because it has no branch), so
+  lock-carried coverage was 3 and never a rate; across seeds it runs 0
+  to 3 per cell. With the static lock and the three-family reading
+  attached the same draw certifies 102, lock-carried coverage is 53,
+  the branch-free share falls from 94% to 48% with the 49 unchanged,
+  and the free case carries the plurality and not the bulk (32 by
+  LOCK-STATIC against 20 by the dynamic arms, the order reversing at
+  program length 20). Of the 7 left, 6 hold a test whose bit takes both
+  values on replay, so <em>that</em> segment cannot repeat with the same
+  answers, and the certifier's cut — the first repeated program counter
+  holding a grow — is its own choice: retried at repeats 2 to 7, 6 of
+  the 7 certify. The survivor is the route limit: its free integer
+  action neither stabilises nor cycles. Over the 34 integer actions the
+  census reached, 32 hit a fixed point, 2 neither, and a proper cycle
+  never appears; the survivor's read value settles while its state does
+  not. None of this touches the capacity conjecture: what is bounded is
+  a scheme, and a program can be built to defeat any arm.</p>
+  <p class="scope"><b>Scope.</b> One census cell of 600 random programs
+  at one seed, the segment choice swept 11 repeats deep, seed and
+  program length swept one dial at a time; the stable form across the
+  sweep is 48 to 62% of grow-heavy programs carried by the free case
+  and the three-family reading together.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_forced_one.py">
+  <code>explore_forced_one.py</code></a></p>
+</article>
+
+<h2>The decision procedure</h2>
 
 <article class="claim" id="landing-dichotomy">
-  <div class="claim-head"><span class="claim-name">The landing
-  dichotomy and the three-verdict decider</span>
-  <span class="tier">rule</span></div>
-  <p>A capped counter riding the frontier still fires its zero-test,
-  at growing gaps — the modulus creeps as the supply grows. Call a
-  zero-test currently false whose next true lies in the future a
-  <b>pending fire</b>. On every sublinear supply a pending fire
-  <b>lands</b> at a computable time: the count advances by exactly
-  one per pass while the modulus is non-decreasing, so the wrap
-  cannot be skipped — at the first pass where the count reaches the
-  modulus, equality holds — and the landing is read off the supply
-  directly. On a linear supply the same fire can hang pending
-  forever: a <b>faithful</b> counter, one whose addressed value is its
-  count rather than a masked stand-in for it, never re-zeros. The
-  o(<i>g</i>)/Ω(<i>g</i>) boundary is the same line a third time —
-  capacity cap and class placement
-  (<a href="/computation/recovery#supply-law">the supply law</a>), fire
-  landing here.</p>
-  <p>The naive halting test — declare a loop at the first repeat of a
-  signal's compressed <b>signature</b>, its kind and phase rather than
-  its contents — is phase-blind, and doubly unsound: a plain frozen
-  pulse of period 60 already draws a false loop against a true halt,
-  and a riding signal's growing gaps fool it unboundedly. The sound
-  replacement is a three-verdict decider — HALT with the halt time;
-  LOOP with a certificate, a never-fires proof or one round of
-  self-simulation; or SUPPLY-ARITHMETIC with the question extracted.
-  Signals are classified constant, frozen-periodic, riding, or
-  growing-uniform; the walk predicts every fire from the descriptor
-  and checks itself against the concrete machine at each step; a
-  branch that consults another signal's phase has its question handed
-  over rather than guessed. Zero false verdicts on the full battery,
-  both killers of the naive rule included.</p>
-  <p>The third verdict is the law's other half. Each landing hands the
-  machine one bit of the supply's
-  fine structure — on a smooth track every wrap lands at the same
-  clock phase; switch the supply's residue class once, late, and the
-  first post-switch wrap trips a detector — so a computable sublinear
-  supply can encode an arbitrary halting fact in a tail switch, and
-  halting over such supplies is undecidable with every capacity cap
-  intact: reading a planted bit builds no counter, and universality
-  does not reopen. Decidability on the sublinear side is therefore
-  <b>rate plus supply tameness</b>: the rate caps the machine's own
-  arithmetic and forces every fire to land; the supply's own
-  arithmetic is the one channel left open.</p>
-  <p>Which supplies are tame is itself classified, and the variable is
-  the <b>inverse supply</b> <i>M</i>(<i>d</i>) — the last count served
-  while the modulus reads <i>d</i> or below — not the rate. A wrap at
-  modulus <i>d</i> sits in the stretch of counts
-  (<i>M</i>(<i>d</i>−1), <i>M</i>(<i>d</i>)] shifted by where the
-  frontier started, walked in steps of
-  <i>d</i>, and the <b>offset</b> — the distance from that stretch's
-  top down to its last wrap — obeys o(<i>d</i>) = (o(<i>d</i>−1) +
-  <i>M</i>(<i>d</i>) − <i>M</i>(<i>d</i>−1)) mod <i>d</i> at every
-  populated stretch, an empty one carrying it over without the mod.
-  Four cells. At <i>M</i> = <i>d</i><sup><i>c</i></sup> the recurrence
-  compresses with a parity: odd <i>c</i> makes the added step
-  <i>M</i>(<i>d</i>) − <i>M</i>(<i>d</i>−1) ≡ +1 mod <i>d</i>, so the
-  offset freezes — <i>d</i> minus a constant the starting point
-  sets — and the wrap times are exactly polynomial, no geometric
-  content at all; even <i>c</i> makes it −1 mod <i>d</i>,
-  and the checked even powers print the ⌈√<i>g</i>⌉ supply's own
-  <b>marks</b> — the modulus values used once rather than twice —
-  3·2<sup><i>n</i></sup> with the seed included, at the same starting
-  point, while at <i>M</i> = ⌊<i>d</i><sup>2</sup>/2⌋ the offset
-  counts down one value in two and the marks are exactly
-  3<sup><i>n</i></sup> + 1, the first at 10: the geometric ratio is a
-  fingerprint of
-  <i>M</i>, never a universal constant. Slow supplies — those
-  repeating some value coprime to <i>L</i> at least <i>L</i>
-  times — are tame by the <b>coverage lemma</b>: that value's stretch
-  walks across every residue class mod <i>L</i>, so reachability is
-  decided from a finite prefix. Its contrapositive, the
-  <b>starvation lemma</b>, places the
-  planted-bit supply above: keeping any class empty forces every such
-  value out of the supply — the smooth track, every value in one
-  class, is maximal starvation — and a value-starved supply stays
-  untame at any rate, its phase legible one bit per wrap. Between
-  ⌈√<i>g</i>⌉ and <i>g</i> the cell is open, and it is exactly that
-  wide: below ⌈√<i>g</i>⌉ — <i>M</i> = ⌊<i>d</i><sup><i>c</i></sup>⌋
-  at <i>c</i> above 2 — every stretch is walked, and walked more often
-  the further out, so the coverage lemma decides the question with a
-  bound read off <i>M</i> alone (checked at <i>c</i> = 5/2, 7/3 and 9/4
-  for every <i>L</i> ≤ 60); inside the cell no stretch is walked twice
-  past an explicit modulus, and the repair a reader
-  would reach for has been tried. The extracted question needs only
-  coverage: "is some wrap ≡ <i>a</i> mod <i>L</i>" asks whether ONE class
-  is hit at all, and every class hit settles it at every <i>a</i> —
-  arithmetic where equidistribution is analytic. And nothing is missing:
-  at the four non-integer
-  <i>c</i> = 4/3, 3/2, 5/3 and 7/4 inside the cell, every class of every
-  <i>L</i> ≤ 60 is hit, the last at wrap 363, 410, 365 and 450. But
-  coverage here is a waiting time. What
-  a decider reads is the wrap at which the last class first appears
-  counting from the START of the run — the only place it can count from
-  — and that sits at 0.63 to 1.46 times the <b>coupon-collector</b>
-  value, the mean rolls needed to see all <i>L</i> faces of a die. The
-  same GAPS shuffled — the same multiset of gaps, so the same residues
-  among them, and only their order destroyed — pay the same law: the
-  shape is not the arithmetic's. What a proof would need is named: a
-  wrap's residue is its stretch's top less its <b>offset</b>, the
-  distance down from that top, and the offset is a fresh digit of the
-  walk's position at a resolution that grows without bound — measured
-  uniform to within 0.003, and no counting argument makes such a digit
-  take every value; a wrap's stretch continued without that digit's
-  jitter is a quadratic and misses just under half the classes at every
-  odd prime.</p>
-  <p class="scope"><b>Scope.</b> The landing dichotomy is derived and
-  run-verified — landings on ⌈√<i>g</i>⌉ and ⌈log<sub>2</sub> <i>g</i>⌉
-  supplies
-  within the derived bound, the linear hang exhibited over 4000
-  passes. The decider's verdicts are exact on the signal fragment
-  named above, bisimulation-checked per call, battery-verified. The
-  supply-oracle refutation is by construction. The canonical
-  ⌈√<i>g</i>⌉ supply is TAME, and provably so rather than
-  conjecturally: its wrap times are closed-form. Writing
-  <i>s</i>(<i>v</i>) for the largest 3·2<sup><i>n</i></sup> at most
-  <i>v</i>, every wrap sits at <i>v</i><sup>2</sup> −
-  2<i>s</i>(<i>v</i>) − 1 or <i>v</i><sup>2</sup> − <i>v</i> −
-  2<i>s</i>(<i>v</i>−1) − 1. The proof is an offset counting down
-  one per modulus value and resetting at zero, so above the first few
-  values the marks are exactly the powers-of-two multiples of 3 — the
-  sequence's whole non-polynomial content — and structurally so, that
-  offset never reading where the frontier started: every starting point
-  gives a seed and then exact doublings. Two things follow,
-  and they divide on that line. Because 2<i>s</i>(<i>v</i>) vanishes
-  modulo 6, the wraps are <i>v</i><sup>2</sup> − 1 and
-  <i>v</i><sup>2</sup> − <i>v</i> − 1 there, so no wrap is ever
-  congruent to 4 mod 6 and a program halting on one loops forever —
-  but that exclusion belongs to this starting point rather than to the
-  supply, being the only one of eight measured that excludes a class.
-  What survives any starting point is that the residues occurring
-  modulo any <i>L</i> are settled by a finite check, verified against
-  enumeration for every <i>L</i> ≤ 60. In the classification, the
-  coverage and starvation lemmas are proved, as is the added step's
-  parity at every power; the freeze and the marks are run-verified at
-  the checked cases (<i>c</i> = 3 and 5; <i>c</i> = 2, 4, 6, 8; the
-  scaled line) at the starting point run, with the
-  recurrence checked against the concrete machine on every supply
-  named and the coverage bound never exceeded across 61
-  supply–modulus pairs. Two things remain open: the conjecture that
-  every sublinear program's signals reduce to the four kinds, on the
-  bandwidth principle — the normal form above widens what a uniform
-  window may hold, to any fixed integer recurrence in the age, which is
-  a repertoire claim and leaves this four-way split of signals
-  standing — and the
-  classification's own open cell, the
-  band between ⌈√<i>g</i>⌉ and <i>g</i>, which is a coverage theorem: a
-  computable <i>B</i> with every class mod <i>L</i> hit by wrap
-  <i>B</i>(<i>L</i>) is the same statement as every class being hit, the
-  first appearance then being computable by enumeration, so the
-  coupon-collector value's fit is not what is asked. The bound above the
-  cell is rule tier, checked at three powers; the cell's width — one
-  wrap per stretch past an explicit modulus — is derived; the offset's
-  uniformity is observation over 10<sup>5</sup> wraps at one power, as
-  is the census over the four supplies inside, and so is the
-  first-appearance reading the refuted repair rests on — seven moduli,
-  against the shuffled control.</p>
+  <div class="claim-head"><span class="claim-name">Pending fires land on
+  the sublinear side, and the first-repeat rule is
+  phase-blind</span> <span class="tier">rule</span></div>
+  <p>A riding counter's pending fire lands at a computable time on every
+  o(<i>g</i>) supply with any fixed grows-per-pass: the value advances by
+  one while the modulus is non-decreasing, so the first pass with
+  <i>v</i> + 1 ≥ <i>m</i> has equality and the wrap cannot be skipped.
+  On the linear side the same fire hangs pending forever, a faithful
+  counter never re-zeroing. So the o(<i>g</i>)/Ω(<i>g</i>) line is drawn
+  a third time: capacity cap, class placement, fire landing. The
+  first-repeat heuristic — LOOP on a repeated (control, zero-vector)
+  signature — is doubly unsound: a frozen lcm pulse of period 60 draws a
+  false LOOP at step 15 against a true halt at 250, and a riding
+  counter's growing gaps (fires at 9, 24, 45, 72, 105, 141) draw one
+  unboundedly. <b>The phase ladder:</b> bounded hidden phase (frozen,
+  recovered by tracking the frozen residues), growing but computable
+  phase (riding, recovered by the landing), phase pushed into the
+  supply (not recoverable machine-side).</p>
+  <p class="scope"><b>Scope.</b> The landing is proved by the crossing
+  argument and mechanized: landings on the ⌈√<i>g</i>⌉ and
+  ⌈log<sub>2</sub> <i>g</i>⌉ supplies within the derived bound, the
+  linear hang exhibited over 4,000 passes.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_pending_fires.py">
-  <code>explore_pending_fires.py</code></a>, <a
-  href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_wrap_word.py"><code>explore_wrap_word.py</code></a>, <a
-  href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_supply_tameness.py"><code>explore_supply_tameness.py</code></a>, <a
-  href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_super_critical.py"><code>explore_super_critical.py</code></a>, <a
-  href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_first_hit_bound.py"><code>explore_first_hit_bound.py</code></a></p>
+  <code>explore_pending_fires.py</code></a></p>
 </article>
 
-<p>The three results leave the capped side open in two places, and only
-one of them is about the machine. The normal form fixes the FORM of what
-a window holds and buys a sufficient condition off it — certify that a
-run grows forever and halting is decidable — with the converse
-unclaimed; the certificate then discharges that condition on all but one
-of a random draw's grow-heavy programs, its one survivor turning on an
-integer action that neither settles nor cycles. Above both sits the
-supply law's capacity claim, one level up on <a
-href="/computation/recovery#supply-law">the chart</a>, still a
-conjecture and not something a scheme's reach can settle. What the
-landing dichotomy leaves is not a gap in the machine at all: a supply
-may carry a halting fact in its own tail with every capacity cap intact
-and no counter built, and which supplies do is classified but not
-finished — the band between ⌈√<i>g</i>⌉ and <i>g</i> is the open cell.
-Rate caps the arithmetic; tameness closes the channel; neither stands in
-for the other.</p>
+<article class="claim" id="three-verdict-decider">
+  <div class="claim-head"><span class="claim-name">The three-verdict
+  decider is sound on its fragment, and decidability is rate plus
+  supply tameness</span> <span class="tier">rule</span></div>
+  <p>Verdicts HALT(<i>t</i>), LOOP(certificate),
+  SUPPLY-ARITHMETIC(extracted question). Signals are classified riding,
+  frozen, growing-uniform or constant, predictions are
+  bisimulation-checked against the concrete machine tick for tick, and
+  an exact descriptor walk decides halts, with a fire branch that
+  consults another signal's phase having its question <em>extracted</em>
+  rather than guessed. Zero false verdicts on the battery, both naive
+  killers included; outside the fragment the answer is out-of-fragment.
+  <b>The supply oracle</b> closes the other face: the machine reads one
+  bit per landing about the supply's fine structure — on an all-0-mod-6
+  track every wrap lands at clock phase 0; one tail switch to 1 mod 6
+  and the first post-switch wrap trips the detector — so for computable
+  o(<i>g</i>) supplies encoding "machine <i>e</i> halts" in a tail
+  switch, halting is undecidable with every capacity cap intact and
+  universality not reopened. The rate caps the machine's own arithmetic
+  and forces every fire to land; the supply's arithmetic is the one
+  remaining input channel.</p>
+  <p class="scope"><b>Scope.</b> Rule for the fragment, battery-verified
+  per call; the supply oracle is a refutation by construction. Taxonomy
+  completeness — that every o(<i>g</i>) program's signals reduce to the
+  four kinds — is conjectured on the bandwidth principle, the normal
+  form's widened repertoire being a claim about what a window may hold
+  and leaving the four-way split of signals standing.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_pending_fires.py">
+  <code>explore_pending_fires.py</code></a></p>
+</article>
+
+<h2>Which supplies are tame</h2>
+
+<article class="claim" id="sqrt-pole">
+  <div class="claim-head"><span class="claim-name">The sqrt pole is solved:
+  the wrap word has a closed form, and the residue questions are
+  decided by a finite check</span> <span class="tier">rule</span></div>
+  <p>With <i>s</i>(<i>v</i>) the largest 3·2<sup><i>n</i></sup> ≤ <i>v</i>,
+  every landing is <i>v</i>² − 2<i>s</i>(<i>v</i>) − 1 or
+  <i>v</i>² − <i>v</i> − 2<i>s</i>(<i>v</i> − 1) − 1, the two coinciding
+  at <i>v</i> = 3·2<sup><i>n</i></sup>. The proof is <b>the offset
+  recurrence</b>: the distance from a gap value's window top to its last
+  landing counts down by one per value and resets to <i>v</i> at zero,
+  the window having length 2<i>v</i> − 2 and being walked in steps of
+  <i>v</i>; the gap values used once rather than twice are exactly the
+  powers-of-two multiples of 3, the sequence's whole non-polynomial
+  content, and multiplicity is at most 2. The recurrence never reads the
+  frontier offset, so the doubling is the supply's while the seed is the
+  start's (3 at offset 0, 2 at offset 1, 5 at offset 5). At the rig's
+  own offset the landings mod 6 are <i>v</i>² − 1 and
+  <i>v</i>² − <i>v</i> − 1, which never take the value 4, so a program
+  halting on a landing ≡ 4 mod 6 loops forever, decided — but the
+  exclusion belongs to the offset and not to the supply, every other
+  offset tested hitting all six classes. The extracted class is decided
+  for every <i>L</i> by a split check: below the point where a block
+  [3·2<sup><i>n</i></sup>, 3·2<sup><i>n</i>+1</sup>) first spans
+  <i>L</i> values the landings are enumerated, above it the reachable
+  residues follow from <i>v</i>² and <i>v</i>² − <i>v</i> over <i>v</i>
+  mod <i>L</i> against the tail set of 6·2<sup><i>n</i></sup> mod
+  <i>L</i>.</p>
+  <p class="scope"><b>Scope.</b> Proved by the offset recurrence and
+  checked on 199,999 landings to about 10<sup>10</sup>; the split check
+  equals enumeration for every <i>L</i> ≤ 60 and is load-bearing at
+  every <i>L</i> divisible by 4, 22 of 60 classes excluded at
+  <i>L</i> = 60. The structure lives in the gap index as a quadratic
+  plus a leading-binary-digit read; the capped-depth automaton counts
+  not saturating at bases 2, 3, 6 are an observation and never a proof
+  of non-automaticity.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_wrap_word.py">
+  <code>explore_wrap_word.py</code></a></p>
+</article>
+
+<article class="claim" id="tameness-classification">
+  <div class="claim-head"><span class="claim-name">The classification runs
+  on the inverse supply, in four cells</span>
+  <span class="tier">rule</span></div>
+  <p>The top offset obeys
+  <i>o</i>(<i>d</i>) = (<i>o</i>(<i>d</i> − 1) + <i>M</i>(<i>d</i>) −
+  <i>M</i>(<i>d</i> − 1)) mod <i>d</i> at every populated window, an
+  empty one carrying it over without the mod. (i) <b>Quasi-polynomial</b>
+  <i>M</i>, the critical band, is tame by offset compression with a
+  parity: at <i>M</i> = <i>d<sup>c</sup></i> with <i>c</i> odd the
+  decrement is +1 mod <i>d</i>, the offset freezes at <i>d</i> − 2 at the
+  canonical start, other starts moving the constant, and the landing set
+  is exactly polynomial with no geometric content; with <i>c</i> even
+  the decrement is −1 mod <i>d</i>, proved at every even <i>c</i>, and
+  the checked even powers carry the sqrt pole's marks
+  3·2<sup><i>n</i></sup> seed included, while the scaled line
+  <i>M</i> = ⌊<i>d</i>²/2⌋ carries 3<sup><i>n</i></sup> + 1 — the ratio a
+  fingerprint of <i>M</i> and never a universal constant. (ii) <b>Slow</b>
+  supplies are tame by <b>the coverage lemma</b>: one attained value
+  coprime to <i>L</i> with multiplicity ≥ <i>L</i> walks its window
+  across all of <b>Z</b>/<i>L</i>, so every class is hit by that window's
+  top and reachability is decided from a finite prefix. (iii) Its
+  contrapositive, <b>the starvation lemma</b>, places the oracle: keeping
+  any class empty forces every coprime high-multiplicity value out of
+  the supply, so the planted-bit track — all values ≡ 0 mod <i>L</i> —
+  is maximal starvation and the oracle's design was forced;
+  value-starved supplies stay untame at any rate. (iv) The
+  <b>super-critical</b> band is the open cell, next.</p>
+  <p class="scope"><b>Scope.</b> The coverage and starvation lemmas are
+  proved, as is the decrement's parity at every power; the freeze and
+  the marks are rule at the checked families (<i>c</i> = 3, 5; <i>c</i> =
+  2, 4, 6, 8; the scaled line), the recurrence bisimulated against the
+  tick rider on every supply run and the coverage bound never exceeded
+  across 61 supply–modulus pairs.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_supply_tameness.py">
+  <code>explore_supply_tameness.py</code></a></p>
+</article>
+
+<article class="claim" id="first-hit-bound">
+  <div class="claim-head"><span class="claim-name">Above c = 2 every window
+  is attained, and the first-hit bound is computed from M
+  alone</span> <span class="tier">rule</span></div>
+  <p>At <i>M</i> = ⌊<i>d<sup>c</sup></i>⌋ with <i>c</i> &gt; 2 every
+  window is attained and multiplicity is unbounded, the width
+  <i>w</i>(<i>d</i>) ≥ <i>c</i>(<i>d</i> − 1)<sup><i>c</i>−1</sup> − 1
+  exceeding <i>d</i> from an explicit <i>d</i><sub>0</sub>, so the
+  coverage lemma decides the residue question with a bound
+  <i>T</i>(<i>L</i>) = top(<i>d</i>*), <i>d</i>* the first value coprime
+  to <i>L</i> at or above the threshold
+  <i>c</i>(<i>d</i> − 1)<sup><i>c</i>−1</sup> − 2 ≥ <i>Ld</i>, growing as
+  <i>L</i><sup><i>c</i>/(<i>c</i>−2)</sup>. Inside the band
+  <i>c</i> ∈ (1, 2) multiplicity is at most 1 beyond an explicit
+  <i>d</i><sub>1</sub>, so the lemma has no hypothesis at any <i>L</i>:
+  the open cell is exactly that wide.</p>
+  <p class="scope"><b>Scope.</b> Rule for the bound, verified at
+  <i>c</i> = 5/2, 7/3, 9/4 against every <i>L</i> ≤ 60; the cell's width
+  is derived.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_first_hit_bound.py">
+  <code>explore_first_hit_bound.py</code></a></p>
+</article>
+
+<article class="claim" id="open-cell">
+  <div class="claim-head"><span class="claim-name">The open cell is exactly
+  c in (1, 2), and its question is a coverage theorem on the
+  offset</span> <span class="tier">observation</span></div>
+  <p>A computable first-hit bound <i>B</i>(<i>L</i>) is the same
+  statement as every class being hit — the first appearance is then
+  computable by enumeration — so the bound's size (<i>L</i>·<i>H<sub>L</sub></i>
+  in range, the coupon-collector law the word's own shuffle also pays)
+  is not what is asked, and the change of currency from equidistribution
+  to coverage restates the cell in the decider's own terms and leaves it
+  as hard. The step a proof cannot take elementarily is named: a
+  landing's residue is its offset's,
+  <i>t</i><sub><i>n</i>+1</sub> = top(<i>d<sub>n</sub></i>) − <i>o<sub>n</sub></i>,
+  the offset moved by an exact countdown-and-refill recurrence and being
+  a fresh digit of the orbit's position at resolution
+  1/<i>w</i>(<i>d<sub>n</sub></i>) with <i>w</i> → ∞, so a proof needs
+  top(<i>d<sub>n</sub></i>) − <i>o<sub>n</sub></i> mod <i>L</i> to take
+  every value along the orbit's own sparse set of windows —
+  equidistribution input on <em>selected</em> windows, not a counting
+  statement. It cannot come from the block structure: inside a maximal
+  run of constant gap difference <i>δ</i> the landings are
+  <i>t<sub>j</sub></i> = <i>t</i><sub>0</sub> + <i>j</i>·<i>d</i><sub>0</sub> +
+  <i>δ</i>·<i>j</i>(<i>j</i> + 1)/2 exactly, and a block continued
+  jitter-free is a quadratic missing (<i>p</i> − 1)/2 classes mod every
+  odd prime <i>p</i> ∤ <i>δ</i>, so coverage where it holds is carried
+  by the jitter, the offset's choice. Measured, the offset is
+  equidistributed — the normalized offset uniform on [0, 1) to
+  Kolmogorov distance 0.003 over 10<sup>5</sup> landings — and it has a
+  closed form: the normalized offset is
+  1 − frac((<i>t<sub>n</sub></i> + 2)<sup>1/<i>c</i></sup>) to first
+  order, a Weyl word along the landing orbit, uncorrelated at every lag
+  1 to 8, with star discrepancy falling as <i>N</i><sup>−0.58</sup> at
+  <i>c</i> = 3/2 and <i>N</i><sup>−0.37</sup> at <i>c</i> = 7/4 over the
+  decade to 10<sup>6</sup>, a random source's rate or worse and never a
+  rotation's. The census stands at four powers inside the cell
+  (<i>c</i> = 4/3, 3/2, 5/3, 7/4) by every <i>L</i> ≤ 60 by every class
+  with no obstruction anywhere, the last class hit at landing 363, 410,
+  365, 450; and a YES has a short certificate somewhere, the
+  best-position window at most 3<i>L</i> over every <i>L</i> ≤ 60 — a
+  fact about the word and not about a decider that cannot start where
+  the certificate is.</p>
+  <p class="scope"><b>Scope.</b> Observation inside the band: the census
+  at four powers, positive-controlled on the two supplies whose
+  exclusions the sqrt pole and the scaled line own; the block law
+  checked on 51,150 runs with no exception and the jitter-free miss on
+  14,809 pairs; the closed form is a property of top(<i>d</i>) =
+  ⌊<i>d<sup>c</sup></i>⌋ − 2, mean deviation under 3·10<sup>−4</sup> at
+  <i>c</i> = 3/2 and 7/4. What stays open is the coverage theorem on
+  <i>c</i> ∈ (1, 2): that a window top's residue less its landing's
+  offset takes every value mod <i>L</i> along the orbit's selected
+  windows.</p>
+  <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_super_critical.py">
+  <code>explore_super_critical.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_three_prints.py">
+  <code>explore_three_prints.py</code></a></p>
+</article>
 
 </main>
 <footer>

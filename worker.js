@@ -130,6 +130,7 @@ export default {
       '/principal/degeneracy': 'degeneracy',
       '/principal/generator': 'generator',
       '/computation': 'computation',
+      '/computation/dividend': 'dividend',
       '/computation/recovery': 'recovery',
       '/computation/delay': 'delay',
       '/claims': 'claims',
