@@ -136,6 +136,7 @@ export default {
       '/principal/generator': 'generator',
       '/principal/observatory': 'observatory',
       '/claims': 'claims',
+      '/tools': 'tools',
       '/claims/object': 'claims-object',
       '/claims/walls': 'claims-walls',
       '/claims/reading': 'claims-reading',
