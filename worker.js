@@ -56,6 +56,7 @@ export default {
       '/learning/products': '/flattening/products',
       '/learning/multipliers': '/flattening/multipliers',
       '/observatory': '/principal/observatory',
+      '/claims/observatory': '/claims/principal',
     };
     const redir = REDIRECTS[url.pathname];
     if (redir) return Response.redirect(new URL(redir, url.origin), 301);
