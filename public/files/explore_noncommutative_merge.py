@@ -25,15 +25,15 @@ digits) natively — distinct from the POP the depth-face ratchet forbade (II.1 
 which the invertible non-commutative ops recover here (the honest partial, P4). The
 wall a commutative ring hits
 on STRUCTURE is BRANCHING: ring x is commutative, so a leaf's left/right path LR
-equals RL (the multiset collapse of explore_structure_dependence.py; the branching
-kill of explore_recursion_growth.py A3). The one thing a non-commutative op can add
+equals RL (the multiset collapse of the structure-dependence record; the branching
+kill of the recursion-growth record's A3). The one thing a non-commutative op can add
 is exactly this: distinguish LR from RL. So cast three tests the BRANCHING readback.
 
 WHOSE VOCABULARY (fixed before any engine code was written). Three suspicions, all
 TRANSPLANTS, all flagged and put at risk:
   [T1] "a finite structural op (permutation group / matrix monoid over a fixed
        ring) caps branching depth = a RATCHET" is transplanted from the depth-face
-       ratchet (explore_recursion_growth.py II.1) and the precision ratchet
+       ratchet (the recursion-growth record's II.1) and the precision ratchet
        (explore_dual_merge.py). MARKED; the wrap point is MEASURED (distinct-path
        count vs |image|), not inferred from the analogy.
   [T2] "a non-commutative MIXING op couples the channels = the carry analog" is
@@ -50,7 +50,7 @@ and fillers live in k channels (the tower windows). A leaf's structural position
 is its L/R path; encode a path by an op OTHER than commutative x:
   - Op C  (commutative ring x, the CONTROL / the tower): path w -> product of
       position-atoms p_{w_i}. Commutative, so LR = RL: the branch structure
-      COLLAPSES (explore_structure_dependence.py verbatim).
+      COLLAPSES (the structure-dependence record verbatim).
   - Op P  (permutation rho, non-commutative but independence-PRESERVING): path w
       -> rho_{w_1} o rho_{w_2} o ... in the symmetric group S_k, with rho_L, rho_R
       NON-commuting permutations. Distinguishes LR != RL. rho is an automorphism of

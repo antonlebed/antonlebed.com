@@ -64,7 +64,7 @@ THE HAND-DERIVATION (frozen pre-engine; adjudicated in the RUN RECORD).
 PREDICTIONS (fixed before the run; adjudicated post-run in the RUN RECORD).
   PR1 (analogy lift). The VSA fills held-out (lexeme, cell) at accuracy 1.000; the
       non-compositional control near 0 (exact integer match is structureless). The
-      lift explore_composition_lift.py showed for fixed-function readout, now via
+      lift the composition-lift record showed for fixed-function readout, now via
       TRANSFORM EXTRACTION -- a new modality, the VSA's own move.
   PR2 (the unit price -- the nativeness cost). Exact unbind needs the anchor form a
       UNIT. A unit encoder gives analogy 1.000; a random-INTEGER encoder degrades,
@@ -105,7 +105,7 @@ FINDINGS (tiers inline; run record below; all sections assert).
    T_c = form(anchor, c) * form(anchor, citation)^-1 from ONE anchor lexeme, apply
    to every other lexeme's citation form, recover its cell c exactly. The matched
    non-compositional control (a random bijection to units) scores 0/55 = 0.000. This
-   reproduces the capability lift explore_composition_lift.py established, in
+   reproduces the capability lift the composition-lift record established, in
    a NEW modality -- transform extraction (the VSA's own a:b::c:? move), not fixed-
    function readout -- and it is exact because the lexeme CANCELS from the ring
    transform (T = c2 * c1^-1, lexeme-free), the systematic-generalization guarantee.

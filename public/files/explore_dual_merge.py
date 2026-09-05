@@ -15,15 +15,15 @@ full archimedean magnitude the tower deleted. The DUAL POLE (explore_dual_pole.p
 IS that escape realized — keep ONLY the archimedean window, delete every finite
 place; ÷base is native there. Cast two runs the converse test on it: does native
 division/order buy the matching readback, and does the flat, order-invariant
-role independence (explore_structure_dependence.py, the §I control the tower reads
+role independence (the structure-dependence record, the §I control the tower reads
 NATIVELY) SURVIVE on a substrate that carries native division? The verdict needs
 BOTH answers on ONE substrate.
 
 WHOSE VOCABULARY (fixed before any engine code was written). Two suspicions, both
 TRANSPLANTS, both flagged and put at risk:
   [T1] "the magnitude wall dissolves to precision — a PRECISION RATCHET" is
-       transplanted from the DEPTH-face ratchet (explore_recursion_growth.py
-       §II.1), reading the tower's window-count growth m onto the dual pole's
+       transplanted from the DEPTH-face ratchet (the recursion-growth
+       record, §II.1), reading the tower's window-count growth m onto the dual pole's
        digit-precision growth t. It is not assumed: the collision structure
        (which trees share a window at precision t) is measured empirically, not
        inferred from the analogy.

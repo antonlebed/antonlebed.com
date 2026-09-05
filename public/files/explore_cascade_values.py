@@ -238,7 +238,7 @@ H1  THE TWO-RANGE VERDICT IS NOT THE WINDOW'S VERDICT AT THIS CELL,
     makes the re-read affordable: the classifier reads growth and
     saturation at the DEEPEST range, so a deeper range can only turn
     a cell GATED, and the gated cells need no second look.
-    (Settled later, explore_cascade_second.py H1: one-way holds in the
+    (Settled later by a second cascade record: one-way holds in the
     range CEILING, which is the direction argued here and the only one
     this rig varies. The range FLOOR is a second axis, and lowering it
     gates BY CONSTRUCTION -- so what survives is the affordability

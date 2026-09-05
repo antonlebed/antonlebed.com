@@ -50,7 +50,7 @@ class is strictly inside the pre-period.
 (C) COPRIME RADIX AND MODULUS KILL IT OUTRIGHT. If gcd(b, g) = 1 then
 t -> b t + kappa is a bijection of Z/g, every orbit is a pure cycle, the
 pre-period is 0, and (B) leaves no level at all. This is why
-explore_slope_tail.py's residual test opens with the same gcd.
+the tail record's residual test opens with the same gcd.
 
 (D) TWO HITS NEED A PRE-PERIOD OF AT LEAST 3. Two levels 1 <= j1 < j2
 strictly inside the pre-period tau force tau >= 3. In the shifted

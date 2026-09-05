@@ -1,7 +1,7 @@
 """The safety game IS a tree-avoidance condition, and what that does to
 the saturation criterion's surviving rule.
 
-THE QUESTION. explore_slope_tail.py proved the saturation criterion
+THE QUESTION. An earlier record, the tail record, proved the saturation criterion
 wherever every unsaturated class an orbit meets below depth J recurs,
 and left a residual: gcd(b, g) > 1, J >= 2, and an unsaturated class
 strictly inside a pre-period below J. It measured 7 such cells, exact
@@ -14,7 +14,7 @@ about the reachable tree, it is cheap to evaluate, and it makes the
 counterexample hunt arithmetic rather than a game replay.
 
 THE DERIVATION, hand-attacked on paper before this engine existed.
-Conventions re-derived from explore_slope_tail.py's rgame, which took
+Conventions re-derived from the tail record's rgame, which took
 them verbatim from explore_slope_lattice.py. Notation is that file's:
 L the state scale, phi = L w / z the phase, N = L b^c the emission
 step, q = L u / v the injection step, g = gcd(q, N), n = N / g, I the
@@ -84,7 +84,7 @@ THE DESIGN, frozen before the engine.
 
 P-A The controls come back through this code path: rgame verbatim,
     the four integer delays, the three specimen sparse sets EXACTLY as
-    sets, and explore_slope_tail.py's residual census -- 7 cells, all
+    sets, and the tail record's residual census -- 7 cells, all
     at J = 2, with their (g, n, J).
 P-B THE ENDPOINT BOUND, which is the one step (K) borrows. At every
     cell of the old scope: for every m in I and every injection digit
@@ -248,7 +248,7 @@ F7 BECAUSE THE START CLASS IS THE ONE CLASS THE MAP FIXES. kappa is
    an identity, holding at 6984/6984 with no hypothesis. The start
    class therefore has pre-period 0 and is recurrent, which is
    exactly the condition the cycle corollary needs -- the residual
-   explore_slope_tail.py left cannot contain it. Two consequences.
+   the tail record left cannot contain it. Two consequences.
    The delay criterion is PROVED ENTIRE, for every radix, every
    symmetric redundant digit set, every rational slope and every
    phase: no residual, no cell count, and nothing beyond the
@@ -294,7 +294,7 @@ VERDICT, by piece, since they do not share a tier.
     test does, which are CHECKS on the two proofs and not evidence
     for either.
   - THE SATURATION CRITERION'S WINNING-SET CLAUSE IS FALSE beyond the
-    region explore_slope_tail.py proved. It is not a rule awaiting
+    region the tail record proved. It is not a rule awaiting
     more cells and it is not repairable by a wider digit set: 19
     counterexamples, the smallest with 13 winning states against the
     criterion's 9. It is SWAPPED for the tree law, which is exact,
@@ -346,7 +346,7 @@ def digits(a):
 
 
 # --------------------------------------------------------------- game
-# rgame and interval are VERBATIM explore_slope_tail.py, which took
+# rgame and interval are VERBATIM the tail record's, which took
 # them verbatim from explore_slope_lattice.py. Copied rather than
 # imported so this file is a standalone record; P-A checks the copy.
 
@@ -457,7 +457,7 @@ def cell(b, a, c, u, v, w=0, z=1):
 
 
 def is_residual(b, a, ce):
-    """(I) of explore_slope_tail.py: does this cell escape the cycle
+    """(I) of the tail record: does this cell escape the cycle
     corollary? Some class of I meets an unsaturated class strictly
     inside its own pre-period, below J."""
     if gcd(b, ce["g"]) == 1 or ce["J"] == 1:
@@ -519,7 +519,7 @@ SPECIMENS = [(2, 1, 1, 3, 1, 7, 0, {3, 10, 17}),
 
 
 def old_scope(cap_c=3):
-    """explore_slope_tail.py's scope, verbatim."""
+    """The tail record's scope, verbatim."""
     for (b, a) in WINDOWS:
         for (u, v) in SLOPES:
             for c in range(cap_c + 1):

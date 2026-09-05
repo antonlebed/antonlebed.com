@@ -6,7 +6,7 @@ THE QUESTION
 The verdict classifier this cascade of rigs shares gates a cell when the
 excess-lookahead witness A_top at the FIRST range read sits below A_top
 at the LAST. Two defects follow, both established
-(explore_cascade_second.py H1 and H4) and neither re-measured here.
+(by a second cascade record) and neither re-measured here.
 What the rule reads is the range SPAN rather than the range DEPTH, and
 in the floor direction that is one-way BY CONSTRUCTION -- so a whole
 row's gated run at B = 12 exists only because 30000 is in the range set

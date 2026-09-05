@@ -7,8 +7,8 @@ bracket nesting and nothing more.
 THE QUESTION (the first cast of the wall-dissolution hunt). Four prior probes
 located the recursion wall precisely: Merge (binary-branching hierarchy with
 matching) is representable on the tower but a NATIVE read on NEITHER face
-(explore_structure_dependence.py, explore_recursion_growth.py,
-explore_element_merge.py), and the two walls are the two halves of the DELETED
+(the structure-dependence, recursion-growth and element-merge
+records), and the two walls are the two halves of the DELETED
 archimedean place — the order/count RELATION and the MAGNITUDE. A wall in the
 CURRENT design is never proof the wall is NECESSARY; the standing first move is
 to hunt a design space where it DISSOLVES, going as deep as the founding
@@ -16,11 +16,11 @@ construction (the archimedean deletion included). The question here: is deleting
 the archimedean place the only way — or is there a PRINCIPLED substrate that
 keeps a MINIMAL slice of archimedean structure (the nesting Merge needs) WITHOUT
 re-importing the full magnitude/order the tower deleted, on which Merge is a
-NATIVE read while the flat-role nativeness (the structure-dependence reading,
-explore_structure_dependence.py) SURVIVES?
+NATIVE read while the flat-role nativeness (the structure-dependence
+record) SURVIVES?
 
 WHOSE VOCABULARY (fixed before any engine code was written). The suspicion is written
-in the vocabulary of the two-halves UNIFICATION (explore_element_merge.py §II.3):
+in the vocabulary of the two-halves UNIFICATION (the element-merge record's §II.3):
 the wall = {order/count RELATION, MAGNITUDE}. That is the CURRENT design's
 diagnosis; the dissolution hunt must not inherit it as a verdict. It is MARKED as
 a transplant and put at risk: the whole point is to find a substrate where at
@@ -86,7 +86,7 @@ new substrate:
           inverse (it merely computed the wrong thing, B2b). What the register
           DOES buy natively is the VALUATION (the code's trailing close-run, a
           depth scalar) via zero-tests of p^{t-i}*v, and the bottom digit (mod p) — a
-          DEPTH read (a ratchet, the depth face of explore_recursion_growth.py),
+          DEPTH read (a ratchet, the depth face of the recursion-growth record),
           NOT the tree STRUCTURE. Reading the higher digits with Python's `%` on
           the ambient integer uses the magnitude the ring does not natively
           carry: it is the borrow performed OFF-substrate.
@@ -179,11 +179,11 @@ trees to m = 4.
 THE VERDICT (observation tier, exhaustive at scope): CONSERVATION LAW, located at
 the ZERO-DIVISOR borrow — no dissolution, no partial dissolution. The
 p-adic-augmented tower does not read Merge natively. It natively reads the
-VALUATION (depth — a ratchet, the depth face of explore_recursion_growth.py) but
+VALUATION (depth — a ratchet, the depth face of the recursion-growth record) but
 not the tree STRUCTURE: branching and matching need the digit sequence, and
 peeling the digits is division by the base p, which is a ZERO-DIVISOR in any
 finite register (no meadow inverse) — the borrow, in p-adic form. This is
-explore_element_merge.py's magnitude wall re-instantiated on the new substrate:
+the element-merge record's magnitude wall re-instantiated on the new substrate:
 changing WHICH archimedean slice is kept (the p-adic filtration here) does not
 dissolve it. The reason is a clean no-free-lunch: for the digits to BE the
 bracket structure the base must DIVIDE the modulus (that is what makes the
@@ -217,7 +217,7 @@ than a minimal slice. The Minsky-fold argument (matching adds no wall) is at
 observation tier over the census, not a proof over all codes. And the
 non-nativeness of the higher digits rests on the ARGUMENT that ÷p is not a meadow
 op (p a zero-divisor, no inverse — demonstrated) and the deflation changes the
-modulus — the same style of argument as explore_element_merge.py B2b (field-op /
+modulus — the same style of argument as the element-merge record's B2b (field-op /
 polynomial-degree), not an exhaustive search over all native-op programs.
 
 RUN RECORD (python prime/code/explore_merge_dissolution.py, well under a second,
@@ -421,7 +421,7 @@ def main():
     print(f"p={p} in Z/p^t (q={q}): meadow inverse of p exists? {inv_exists}")
     print("  -> p is a ZERO-DIVISOR: /p (digit descent / deflation) is NOT a")
     print("  field op. WORSE than the squarefree tower, where the base HAD an")
-    print("  inverse (it merely computed the wrong thing, explore_element_merge.py B2b).")
+    print("  inverse (it merely computed the wrong thing, the element-merge record's B2b).")
 
     # what the register DOES read natively: the valuation (depth), not structure
     print("\n  what IS native: the VALUATION (the trailing close-run, a depth scalar) --")

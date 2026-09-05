@@ -82,7 +82,7 @@ D5 THE REGIME SPLIT. The fresher run's tree reference t and the
    is one step staler and can sit outside, so the derivation
    covers the fresher-run-flanks role only — which E4c reports
    is the role every observed crossing takes (the elder commits
-   the straddle in all 3,626; explore_near_side.py finds that
+   the straddle in all 3,626; the near-side record finds that
    tally order-dependent — at 2,945 of them BOTH cells are
    straddles — and replaces it with the direction-specific fact
    the argument actually needs, that the ELDER's near endpoint
@@ -255,7 +255,7 @@ F4 ONE CATALOG, TWO MECHANISMS, AND THE SPLIT IS THE MAP'S.
    straddle in every one of the 3,626, so the refused door is
    always the fresher run's — the reference the fresh regime
    puts inside the chain reference, and the one case the
-   argument covers. (Scoped by explore_near_side.py: the
+   argument covers. (Scoped by the near-side record: the
    committer test runs elder-first and at 2,945 of the 3,626 BOTH
    cells are straddles, so this tally reports an order and not a
    role. What survives, direction-specific and universal, is that

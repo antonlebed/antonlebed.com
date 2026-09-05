@@ -3,7 +3,7 @@ know before a door on the ladder can open.
 
 THE QUESTION
 ------------
-explore_near_side.py closed the shape question and left ONE pinned
+The near-side record closed the shape question and left ONE pinned
 configuration: the elder chained to a straddle S_q(w) while the
 flank run stands in a cell that still holds L_q, the straddle's
 near ladder point, strictly interior. The census says that bucket
