@@ -76,6 +76,7 @@ export default {
       '/object/frequency': 'frequency',
       '/object/naming': 'naming',
       '/walls': 'walls',
+      '/walls/size': 'size',
       '/walls/numbers': 'numbers',
       '/walls/meaning': 'meaning',
       '/walls/dual': 'dual',
