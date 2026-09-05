@@ -383,7 +383,8 @@ def records():
     """Every resolved complex field of the wide box with a 2-rank-1 class
     group and the sibling's place floor, with its ORDER kept (the
     sibling's records drop it). QSEAT_CACHE may name a pickle of the
-    mapped records, for iteration; the default runs the class reading."""
+    mapped records: read when present, written after the class reading
+    when absent; unset, the class reading runs and nothing is kept."""
     cache = os.environ.get("QSEAT_CACHE")
     if cache and os.path.exists(cache):
         with open(cache, "rb") as fh:
@@ -392,6 +393,12 @@ def records():
     else:
         import explore_ceiling_topband as TB
         mapped = XT.s3_profiles(TB.wide_class_reading())
+        if cache:
+            # the name given and the file absent: write it, so the
+            # class reading (the whole of the wall) is paid once
+            with open(cache, "wb") as fh:
+                pickle.dump(mapped, fh)
+            print("  mapped records written to %s" % cache)
     out = records_from(mapped)
     if QUICK:
         stride = max(1, len(out) // 80)
