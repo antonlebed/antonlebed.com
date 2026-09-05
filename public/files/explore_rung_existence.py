@@ -214,7 +214,7 @@ def ok(cond, msg):
 def fib(n):
     """F_n for any integer n (F_{-n} = (-1)^{n+1} F_n)."""
     if n < 0:
-        return (-1) ** (n + 1) * fib(-n)
+        return (-1) ** (1 - n) * fib(-n)
     a, b = 0, 1
     for _ in range(n):
         a, b = b, a + b
