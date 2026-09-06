@@ -258,7 +258,7 @@ parent's F3 within 0.0017 at every cell.
       ramified share above it (0.0883 against 0.0769 at p = 3).
 
   F4. THE DEGREE-2 FAMILY HAS NO SUCH TERM (observation; P5 holds).
-      Over 58356 fundamental discriminants to 96000 the quadratic split
+      Over 58357 fundamental discriminants to 96000 the quadratic split
       share among unramified fields sits at 1/2 in every one of the 60
       cells, the largest |z| 0.2 and the pooled z per prime within
       +-0.09 at all ten primes: the degree-2 table's flattening under
@@ -269,8 +269,8 @@ parent's F3 within 0.0017 at every cell.
       BOTH WAYS (observation, a print; P6 as read). At p = 997 the
       first box reads 0.175 +- 0.019 against 0.151 and the band [300,
       1000) 0.1623 +- 0.0018 against a predicted mean of 0.1480 where
-      the window is above the discriminant; in the four middle boxes
-      the band sits BELOW the two terms, 0.1516 +- 0.0011 against
+      the window is above the discriminant; from 6000 up the band
+      sits BELOW the two terms, 0.1516 +- 0.0011 against
       0.1553, 0.1541 +- 0.0008 against 0.1568, 0.1549 +- 0.0005 against
       0.1582, 0.1584 +- 0.0004 against 0.1593, and below 1/6 in every
       box (z -2.5 to -20.8). The two terms are a small-p statement;
@@ -279,13 +279,15 @@ parent's F3 within 0.0017 at every cell.
 
 RUN RECORD. 2026-09-06, Windows 11, Python 3, `python
 prime/code/memwatch.py python prime/code/explore_family_term.py`. One
-process, CPython, no BLAS. 18 checks, 371.9 s wall, peak working set
-349.9 MB against memwatch's 512 MB ceiling: the enumeration 247 s and
+process, CPython, no BLAS. 18 checks, 369.8 s wall, peak working set
+350.1 MB against memwatch's 512 MB ceiling: the enumeration 246 s and
 the whole of the peak, the types 18 s, the degree-2 arm and the band
 the rest. Rehearsed first at cap 6000 (14 s, 35 MB, every stage
 exercised, P1-P5 holding on two boxes); the scratch count control that
 fixed C0's band and the memory envelope ran before the file was
-written.
+written; the record run is the second full run, after the audit put
+the discriminant -4 back into the quadratic sieve (the first run's
+58356 read 58357, every other figure unchanged).
 """
 
 import os
@@ -643,11 +645,11 @@ def fundamental_discs(cap):
         for m in range(q * q, cap + 1, q * q):
             sqf[m] = False
     out = []
-    for m in range(2, cap + 1):
+    for m in range(1, cap + 1):
         if not sqf[m]:
             continue
         for D in (m, -m):
-            if D % 4 == 1:
+            if D % 4 == 1 and D != 1:
                 out.append(D)
         if m % 4 in (2, 3) and 4 * m <= cap:
             out.append(4 * m)
