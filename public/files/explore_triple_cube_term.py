@@ -173,7 +173,8 @@ THE CONTROLS, run before any prediction is read.
       not asserted. The first draft of this control put the powers
       landing in N alone on both sides and read the corrected share
       within 2 sigma of 1/6; with the whole group's powers below it
-      reads under 1/6 by about 2 sigma, and the ramified primes' own
+      reads under 1/6 by 1.9 sigma on the base run and 3.9 on the wide
+      one, and the ramified primes' own
       term is explore_triple_ramified_term.py's, which also reads why
       no such share is a control of the term.
   C3  THE WEIGHTS SUM TO ZERO: every split prime's k-th power triple
