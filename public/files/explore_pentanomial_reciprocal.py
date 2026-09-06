@@ -149,8 +149,9 @@ rehearsal that forced the F3 split is described under F3).
       the "value 1 forces cyclotomic" route is dead.
 
   What the print supports: to degree 70 the open question of Filaseta and
-  Solan holds, and the only place a non-cyclotomic reciprocal factor of a
-  0/1 pentanomial has been seen is inside a reciprocal pentanomial, always
+  Solan holds, and the only place a PROPER non-cyclotomic reciprocal factor
+  of a 0/1 pentanomial has been seen is inside a reciprocal pentanomial
+  (an irreducible reciprocal pentanomial is its own, F3a), always
   alone among the non-cyclotomic factors and always beside a Phi_m with m
   a multiple of 5 or of 6. A witness for the question would be either a non-reciprocal
   pentanomial sharing a non-cyclotomic factor with its reciprocal, which
