@@ -168,8 +168,14 @@ THE CONTROLS, run before any prediction is read.
       map and exercises the cube landing in N: over EVERY field of the
       population (1103, h = 1 included) the raw share of totally split
       primes among the odd unramified primes below 1000 sits below 1/6
-      by at least 5 sigma, and the corrected share within 2 sigma of
-      1/6.
+      by at least 5 sigma; the corrected share is printed with EVERY
+      power in the denominator (the event G takes each q^k at 1/k) and
+      not asserted. The first draft of this control put the powers
+      landing in N alone on both sides and read the corrected share
+      within 2 sigma of 1/6; with the whole group's powers below it
+      reads under 1/6 by about 2 sigma, and the ramified primes' own
+      term is explore_triple_ramified_term.py's, which also reads why
+      no such share is a control of the term.
   C3  THE WEIGHTS SUM TO ZERO: every split prime's k-th power triple
       sums to zero in the class group (as (3) requires), checked at
       every power used.
@@ -291,8 +297,10 @@ all-equal event at 0.915 +- 0.019.
       1.097 +- 0.171 against 1/12 (z = +0.74, +0.56). The h = 3
       degenerate regime reads 0.968 +- 0.029 against 1/3 (994 of 3086,
       raw 0.966). C2 over all 4865 fields and 804,769 odd unramified
-      primes: raw 0.14953 against 1/6 at z = -41.3, corrected 0.16740
-      at z = +1.77, the correction 3.55 per field. The prime 2 (A):
+      primes: raw 0.14953 against 1/6 at z = -41.3, corrected 0.16507
+      at z = -3.85 with every power below (17272 on N against 28903 on
+      G, 3.55 per field on N); the first print read 0.16740 at +1.77
+      with N's powers alone on both sides. The prime 2 (A):
       every degree-1 place above it placed (no field unplaced), the
       map's vectors agreeing modulo the lattice at every field (C4);
       it is ramified in 161, inert in 140, partial in 151 and totally
@@ -383,7 +391,10 @@ rehearsal raised KeyError 'split' at the first common-index-divisor
 field -- the claim was wrong and the draft is recorded in (A); then
 with (4)'s closed form summing over the prime 2 as well, which changed
 F3's column and nothing else. The base run ran after each edit and
-reprinted C1 each time.
+reprinted C1 each time. 2026-09-06: C2's denominator corrected to the
+whole group's powers and its assertion dropped, both runs repeated
+(base 199.2 s, wide 1097.7 s, peaks 77.3 and 126.1 MB), every other
+figure reprinting unchanged.
 """
 
 import os
@@ -809,7 +820,7 @@ def s_reproduce(strata):
 def s_split_control(recs):
     section("C2  THE TOTALLY SPLIT COUNT over every field -- the event N")
     t0 = time.time()
-    raw = tot = corr = 0.0
+    raw = tot = corr = corr_g = 0.0
     nf = 0
     for (d, cx, a, b, c, O, h, kind, gp, rel) in recs:
         nf += 1
@@ -826,23 +837,25 @@ def s_split_control(recs):
             for (kk, n) in powers(q):
                 if kk < 2:
                     continue
+                corr_g += 1.0 / kk        # every power lands in G
                 if (kd == 'split' or (kd == 'partial' and kk % 2 == 0)
                         or (kd == 'inert' and kk % 3 == 0)):
                     corr += 1.0 / kk
     share = 1.0 / 6
     se = math.sqrt(share * (1 - share) / tot)
     z_raw = (raw / tot - share) / se
-    z_cor = ((raw + corr) / (tot + corr) - share) / se
+    z_cor = ((raw + corr) / (tot + corr_g) - share) / se
     print("  %d fields, %d odd unramified primes, %d totally split"
           % (nf, int(tot), int(raw)))
     print("  raw share       %.5f   z = %+.2f against 1/6"
           % (raw / tot, z_raw))
-    print("  correction      %.1f on N over %d fields (%.2f per field)"
-          % (corr, nf, corr / nf))
-    print("  corrected share %.5f   z = %+.2f    (%.1f s)"
-          % ((raw + corr) / (tot + corr), z_cor, time.time() - t0))
+    print("  correction      %.1f on N, %.1f on G, over %d fields "
+          "(%.2f per field on N)" % (corr, corr_g, nf, corr / nf))
+    print("  corrected share %.5f   z = %+.2f on the binomial bar; the "
+          "ramified primes' own term is explore_triple_ramified_term.py"
+          " C2's    (%.1f s)"
+          % ((raw + corr) / (tot + corr_g), z_cor, time.time() - t0))
     ok(z_raw <= -5, "raw totally split share not short at 5 sigma")
-    ok(abs(z_cor) <= 2, "corrected share off 1/6 at z = %.2f" % z_cor)
 
 
 def s_levels(strata, nfields, base=None):
