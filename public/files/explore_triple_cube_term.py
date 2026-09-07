@@ -287,7 +287,11 @@ all-equal event at 0.915 +- 0.019.
           h = 9 M    30 fields     4 of   711  raw 0.456  level 1.200 +- 0.313
 
       The raw shortfall runs from 0.86 to 0.12 across the strata and
-      the corrected level does not move with h; the inert cube's
+      the corrected level does not move with h within these bars
+      (superseded on the population 24000 < |d| <= 96000, where the
+      bars halve and the same level rises with h, 1.19 to 1.88 at h =
+      4 to 9: explore_triple_excess_box.py F4; the flatness survives
+      as a statement about this population's bars); the inert cube's
       share of the all-principal correction reads 0.170, 0.247, 0.334,
       0.450, 0.401, 0.638, 0.518, 0.689 at h = 2 to 9 (base: 0.187,
       0.298, 0.486, 0.472 at h = 2 to 5). The regimes of (B): the
@@ -492,9 +496,12 @@ def expected_corr(h, event, nfields, lo, hi):
 
 # --------------------------------------------------------------- the walk
 def new_cell():
+    # w_qk / e_qk: the weight landing in N / on {e} keyed "kind:q:k", a
+    # record this file's own prints never read (explore_triple_image_level.py
+    # reads it: an image-share read needs every term by source and power).
     return dict(ns=0, n3=0, neq=0, cN=0.0, c3=0.0, cE=0.0,
                 c3_src=dict(ssq=0.0, psq=0.0, icb=0.0, scb=0.0, hi=0.0),
-                unalloc=0.0)
+                unalloc=0.0, w_qk={}, e_qk={})
 
 
 SMALL = {}          # (h, reg) -> kinds and shares over the bases q^2 < cap
@@ -502,12 +509,16 @@ TWO = {'disagree': 0}   # (h, reg) -> the prime 2's kinds; C4's count
 REGIME = dict(agree=0, disagree=0)   # h = 3: the exact test vs HIGH_FRAC
 
 
-def land(cell, w, in_N, in_e, in_D, src):
+def land(cell, w, in_N, in_e, in_D, src, tag=None):
     if in_N:
         cell['cN'] += w
+        if tag:
+            cell['w_qk'][tag] = cell['w_qk'].get(tag, 0.0) + w
     if in_e:
         cell['c3'] += w
         cell['c3_src'][src] += w
+        if tag:
+            cell['e_qk'][tag] = cell['e_qk'].get(tag, 0.0) + w
     if in_D:
         cell['cE'] += w
 
@@ -614,7 +625,7 @@ def walk_field(rec, per_prime, piv, k, two):
                     continue
                 in_N = in_e = in_D = True
                 src = 'icb' if kk == 3 else 'hi'
-            land(cell, w, in_N, in_e, in_D, src)
+            land(cell, w, in_N, in_e, in_D, src, "%s:%d:%d" % (kd, q, kk))
     # the prime 2's powers (A), by (3) like any prime; a ramified 2 or
     # one with an unplaced place stays in the bound. Its k = 1 is no
     # count: the raw counts are the odd primes' by construction.
@@ -629,14 +640,14 @@ def walk_field(rec, per_prime, piv, k, two):
         if kd2 == 'inert':
             if kk % 3 == 0:
                 land(cell, w, True, True, True,
-                     'icb' if kk == 3 else 'hi')
+                     'icb' if kk == 3 else 'hi', "inert:2:%d" % kk)
         elif kd2 == 'partial' and placed:
             a2 = placed[0]
             if kk % 2 == 0:
                 land(cell, w, True,
                      ST.is_principal(scale(a2, kk // 2), piv, k),
                      ST.is_principal(scale(a2, 3 * kk // 2), piv, k),
-                     'psq' if kk == 2 else 'hi')
+                     'psq' if kk == 2 else 'hi', "partial:2:%d" % kk)
         elif kd2 == 'split' and placed and len(placed) == 3:
             kv = [scale(v, kk) for v in placed]
             if not ST.sums_to_zero(kv, piv, k):
@@ -645,7 +656,8 @@ def walk_field(rec, per_prime, piv, k, two):
                  all(ST.is_principal(v, piv, k) for v in kv),
                  (ST.same_class(kv[0], kv[1], piv, k)
                   and ST.same_class(kv[0], kv[2], piv, k)),
-                 'ssq' if kk == 2 else 'scb' if kk == 3 else 'hi')
+                 'ssq' if kk == 2 else 'scb' if kk == 3 else 'hi',
+                 "split:2:%d" % kk)
         else:
             cell['unalloc'] += w
     return cells, bad, small
@@ -656,6 +668,9 @@ def merge(into, cell):
         into[key] += cell[key]
     for key in into['c3_src']:
         into['c3_src'][key] += cell['c3_src'][key]
+    for key in ('w_qk', 'e_qk'):
+        for tag, w in cell.get(key, {}).items():
+            into[key][tag] = into[key].get(tag, 0.0) + w
 
 
 def read_population(recs, base_cap=None):

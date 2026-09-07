@@ -377,8 +377,10 @@ def kronecker(D, q):
 
 # -------------------------------------------------------- the ramified walk
 def new_rcell():
+    # w_qk / e_qk: the weight on N / on {e} keyed "type:q:k", read by
+    # explore_triple_image_level.py and by no print of this file's.
     return dict(cN=0.0, c3=0.0, cE=0.0, walked=0.0, unplaced=0.0,
-                src=dict((t, 0.0) for t in TYPES))
+                src=dict((t, 0.0) for t in TYPES), w_qk={}, e_qk={})
 
 
 def merge_r(into, cell):
@@ -386,6 +388,9 @@ def merge_r(into, cell):
         into[key] += cell[key]
     for t in TYPES:
         into['src'][t] += cell['src'][t]
+    for key in ('w_qk', 'e_qk'):
+        for tag, w in cell.get(key, {}).items():
+            into[key][tag] = into[key].get(tag, 0.0) + w
 
 
 def new_census():
@@ -506,6 +511,8 @@ def walk_ramified(rec, piv, k, census, checks):
             w /= inert_order
             cell['cN'] += w
             cell['src'][typ] += w
+            tag = "%s:%d:%d" % (typ, q, kk)
+            cell['w_qk'][tag] = cell['w_qk'].get(tag, 0.0) + w
             kP = CT.scale(vP, kk)
             if typ == 'p2q':
                 kQ = CT.scale(vQ, kk)
@@ -517,6 +524,7 @@ def walk_ramified(rec, piv, k, census, checks):
                 in_D = True
             if in_e:
                 cell['c3'] += w
+                cell['e_qk'][tag] = cell['e_qk'].get(tag, 0.0) + w
             if in_D:
                 cell['cE'] += w
     return cells
