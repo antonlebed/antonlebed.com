@@ -184,7 +184,8 @@ FINDINGS (entered post-run, copied from printed output).
    weight above the freedom rung 28, which the capped rule reads as
    28, and the anchor's [1] reads 28 too. The census's 65-field sample saw 16 classes; none of the 20 is
    among them, and the capped rule at e = 8 is a prediction here, not
-   a reading.
+   a reading (read since at 8192 Haar-random octics and derived for
+   every 2-power e, explore_rung_theorem.py).
 
 4. THE HAND VALUE IS THE THEOREM'S OWN CROSS-CHECK (H2): Serre's
    masses over the six ramified quadratics — 1/8 at each of sqrt 2,
