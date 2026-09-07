@@ -197,8 +197,10 @@ TRANSPLANT FLAGS, fixed at the freeze.
     the map's vectors do not, which is where the drift showed. The
     walks recorded below are the fixed ones; the readings of boxes 0
     and 1 re-read under the fix are identical to their checkpoints,
-    the four larger boxes' readings were not re-read; the completion
-    of (9), applied to all six, is the lineage pass, its diff below.
+    boxes 2 and 3 re-read fresh by explore_triple_far_window.py under
+    the seeded harvest move no class number, boxes 4 and 5 were not
+    re-read; the completion of (9), applied to all six, is the
+    lineage pass, its diff below.
 
 THE SLATE -- PREDICTIONS FROZEN BEFORE THE ENGINE.
 
