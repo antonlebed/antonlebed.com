@@ -86,7 +86,13 @@ TRANSPLANT FLAGS, fixed at the freeze.
     installed version re-runs the shop's original on its first 20,000
     calls, asserting equality call by call, and every harvest row is
     further checked by the shop's own per-element checksum, which
-    requires the place valuations to sum against v_p(N) exactly.
+    requires the place valuations to sum against v_p(N) exactly. The
+    memo's owner was at first the order's id(), which a freed order's
+    successor can inherit, so a stale ladder under coinciding place
+    rows could answer for the next field; the owner is now the order
+    itself, held (found by explore_triple_image_level.py, whose walks
+    drifted by a field between processes; readings and walks made
+    before the fix ran exposed to it).
 
  T7 THE SECOND BLOWUP, ONE LEVEL UP, SAME DISEASE, SAME CURE. With T6
     in place a second wide field (one of the two at d = -14703) still
@@ -460,9 +466,14 @@ def place_valuation_cached(O, v, P, cap):
     lattices, self-checked against the original for its first calls.
     T9: the cache holds one field at a time -- no ladder is consulted
     across fields, so anything else is dead weight."""
-    if _PV_OWNER[0] != id(O):
+    if _PV_OWNER[0] is not O:
+        # the owner is held, never its id(): a freed order's id is reused
+        # by the next field's, and a stale ladder under coinciding place
+        # rows then answers for the wrong field (found by
+        # explore_triple_image_level.py, whose walks drifted by a field
+        # between processes)
         _PV_CACHE.clear()
-        _PV_OWNER[0] = id(O)
+        _PV_OWNER[0] = O
     key = tuple(tuple(r) for r in P)
     lad = _PV_CACHE.get(key)
     if lad is None:
