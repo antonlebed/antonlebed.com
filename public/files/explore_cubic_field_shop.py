@@ -83,7 +83,14 @@ THE HAND-ATTACK, on paper before any engine code.
   of norm under the bound is PRINCIPAL -- a generator found by direct
   search -- then h = 1, certified constructively. If some place resists:
   an upper structure comes from relations (smooth principal elements
-  over the places above the primes to 29, Smith normal form: the
+  over the places above the primes to 29, seeded with the relations
+  the construction forces -- (p) = prod P_i^e_i is principal wherever
+  every place of p is a column -- since a rational prime's own norm p^3
+  can lie outside the element box, and a lattice missing that row
+  reads twice the class number while two representatives of the field
+  agree on it -- and the seed never decides when a box LADDER stops,
+  since a seeded lattice can be full-rank at a box that still lacks an
+  element relation (bare_order); Smith normal form: the
   quotient Z^k by the found relations SURJECTS onto Cl, so its order H
   is finite only at full rank and h then divides H; H = 1 certifies
   h = 1), and the lower bound from a NON-PRINCIPALITY CERTIFICATE: in a
@@ -1015,10 +1022,48 @@ def all_places_upto_prime(O, pcap):
     return out
 
 
+def forced_relations(gen_places, n=3):
+    """The relations the construction forces, one per rational prime p
+    every one of whose places is a generator column: (p) = prod P_i^e_i
+    is principal, so sum_i e_i [P_i] = 0. The element harvest misses it
+    whenever p^n lies outside the box (found at d = -6791, where the
+    three places over 19 are columns, 19^3 = 6859 is out of reach, and
+    the lattice without the row reads h = 4 for a field of class number
+    2); a prime with a place off the columns (a degree-2 place, a place
+    over the norm cap) forces nothing expressible and gets no row."""
+    by_p = {}
+    for i, (p, e, f, _name, _P) in enumerate(gen_places):
+        by_p.setdefault(p, []).append((i, e, f))
+    rows = []
+    for p in sorted(by_p):
+        cols = by_p[p]
+        if sum(e * f for (_i, e, f) in cols) != n:
+            continue
+        row = [0] * len(gen_places)
+        for (i, e, _f) in cols:
+            row[i] = e
+        rows.append(row)
+    return rows
+
+
+def bare_order(rows, gen_places, n=3):
+    """The order of a harvest WITHOUT its seeded forced rows -- the
+    element box's own saturation, which is what a ladder's STOP rule
+    must read: the forced rows can complete the rank of a box that
+    still lacks an element relation, and a stop read on the seeded
+    order fires early on a multiple of h (d = -9251: the bare harvest
+    rank-deficient at two rungs and 2 at the third, the seeded one 6,
+    6, 2). The reading itself is the seeded order, never larger."""
+    return hermite_order(rows[len(forced_relations(gen_places, n)):],
+                         len(gen_places))
+
+
 def harvest_relations(O, gen_places, box=REL_BOX, cap=400):
+    """The relation rows of one box: the forced rows first (bare_order
+    skips them), then every smooth element's valuation vector."""
     n = O.n
     prime_set = sorted(set(p for (p, _, _, _, _) in gen_places))
-    rows = []
+    rows = forced_relations(gen_places, n)
     for v in element_boxes(n, box):
         if all(x == 0 for x in v):
             continue
@@ -1066,11 +1111,9 @@ def relation_generators(O):
 def relation_H(O):
     gen_places = relation_generators(O)
     rows = harvest_relations(O, gen_places)
-    H = hermite_order(rows, len(gen_places))
-    if H is None:
+    if bare_order(rows, gen_places) is None:
         rows = harvest_relations(O, gen_places, box=REL_BOX + 6, cap=1500)
-        H = hermite_order(rows, len(gen_places))
-    return H
+    return hermite_order(rows, len(gen_places))
 
 
 def certify_h(O, d, cx, poly):

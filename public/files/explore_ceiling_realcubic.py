@@ -476,9 +476,10 @@ def read_one3(d, cx, a, b, c, O):
         H = CFS.hermite_order(rows2, len(gp))
         if H == 1:
             return 1, 'relH1', gp, rows2      # T7: a multiple of h
-        hist.append(H)
-        if (len(hist) >= 3 and H is not None
-                and hist[-2] == H and hist[-3] == H):
+        Hb = CFS.bare_order(rows2, gp)        # the stop rule's order
+        hist.append(Hb)
+        if (len(hist) >= 3 and Hb is not None
+                and hist[-2] == Hb and hist[-3] == Hb):
             return H, 'H', gp, rows2
     return None
 

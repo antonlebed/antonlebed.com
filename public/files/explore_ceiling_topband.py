@@ -604,10 +604,11 @@ def read_one(d, cx, a, b, c, O):
     prevH = None
     for (box, cap) in RUNGS:
         rows2 = CFS.harvest_relations(O, gp, box=box, cap=cap)
-        H = CFS.hermite_order(rows2, len(gp))
-        if H is not None and H == prevH:
+        Hb = CFS.bare_order(rows2, gp)         # the stop rule's order
+        if Hb is not None and Hb == prevH:
+            H = CFS.hermite_order(rows2, len(gp))   # the seeded reading
             return H, ('relH1' if H == 1 else 'H'), gp, rows2
-        prevH = H
+        prevH = Hb
     return None
 
 

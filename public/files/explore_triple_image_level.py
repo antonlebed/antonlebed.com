@@ -159,6 +159,17 @@ THE HAND-DERIVATION (pre-engine, on paper).
       fields).
       Rehearsed at cap 6000. Estimate: 2 hours the first
       time, peak 350 MB at the enumeration.
+  (9) THE KEPT READINGS ARE COMPLETED ON LOAD. A reading's relation
+      lattice made before the shop seeded the forced relations --
+      (p) = prod P_i^e_i principal wherever every place of p is a
+      column, a row the element harvest misses when p^3 lies outside
+      its box -- can carry a spurious torsion element and read twice
+      the class number, both representatives agreeing (found by
+      explore_triple_far_window.py, whose walk to 10000 reached the
+      cube of a generator prime and asked the triple to sum to zero).
+      The loader adds the forced rows to every kept basis, recomputes
+      the order, rewrites the checkpoint and prints the fields whose
+      class number moved; a fresh reading is complete by construction.
 
 TRANSPLANT FLAGS, fixed at the freeze.
 
@@ -186,8 +197,8 @@ TRANSPLANT FLAGS, fixed at the freeze.
     the map's vectors do not, which is where the drift showed. The
     walks recorded below are the fixed ones; the readings of boxes 0
     and 1 re-read under the fix are identical to their checkpoints,
-    the four larger boxes' readings were not re-read (the backlog's
-    lineage pass).
+    the four larger boxes' readings were not re-read; the completion
+    of (9), applied to all six, is the lineage pass, its diff below.
 
 THE SLATE -- PREDICTIONS FROZEN BEFORE THE ENGINE.
 
@@ -257,23 +268,34 @@ raw level by bin; the structure census; P1-P5. Flags: `--cap N`,
 
 FINDINGS. The parent's population re-read: 16313 complex fields to
 |d| <= 96000, the same three excluded, 6444 with h > 1 by the map's
-order (2202 at h = 2). C0 held at all eleven groups, every source and
+order (2204 at h = 2). THE COMPLETION (9) moves nine class numbers of
+6449 read above 1, every one by a factor of 2: d = -6791 (4 to 2),
+-10015 (6 to 3), -10187 (8 to 4), -10355 (4 to 2), -44587 (2 to 1),
+-46027 (4 to 2), -73591 (2 to 1), -87767 (4 to 2), -91564 (2 to 1);
+LMFDB gives 2, 4, 2 at -6791, -10187, -10355, the completed values.
+Three of the nine the map's order had already corrected; the other
+six had passed C6, the map's lattice missing the same row. Under the
+completion every figure below reprints to 0.001 (the h = 2 all-box f
+0.232 against 0.23, box 2's image level 0.825 against 0.824). C0 held
+at all eleven groups, every source and
 k, count_pow agreeing on the cyclic ones. C1: the six h = 2 uniform
 levels and the six S5b-convention image levels reprint the parent to
-the digit; the new-box rows at h = 4, 5, 6, 8 and 9 within 0.0005
+the digit (box 2's uniform 1.085 against its 1.084 after the
+completion); the new-box rows at h = 4, 5, 6, 8 and 9 within 0.0005
 and the row at h = 7 off by 0.0055 (151 fields, 47 all-principal, a
 fifth of the row's bar; the parent's walk ran under the cache bug of
 T4, and the first walks here, run under it too, had h = 8 off by
 0.021 and h = 7 by the same 0.0055); the by-source sums off the
-pooled cN and c3 by 8.6e-12. C2: replicate spreads 0.0363, 0.0175,
+pooled cN and c3 by 8.6e-12. C2 (500 replicates, the slate's 2000 a
+slip): spreads 0.0363, 0.0175,
 0.0249 against summand sds 0.0364, 0.0170, 0.0258 (Poisson 0.051,
 0.024, 0.036). C3 at every field; C4 at the rehearsal; C5 clean in
-every box (8961 lift relations in the top box). C6: the map's order
-differs from the class reading's at nine fields -- d = -10015 (6, 3),
--13484 (81, 9), -39251, -46027, -49595, -75239, -87767 (4, 2 each),
+every box (8961 lift relations in the top box). C6 after the
+completion: the map's order differs from the class reading's at six
+fields -- d = -13484 (81, 9), -39251, -49595, -75239 (4, 2 each),
 -46891 (16, 8), -93715 (20, 10) -- always smaller, the reading missing
 a relation whose generator lies outside the harvest box; every one is
-keyed at the map's order, as the parents keyed them. A tenth the
+keyed at the map's order, as the parents keyed them. A field the
 walks under the cache bug listed, d = -80787 (8, 4), reads 8 both
 ways under the fix: that disagreement was the cache's.
 
@@ -340,7 +362,9 @@ readings 611, 1491 and 4439 s, the walks 72, 226 and 438 s), peak
 cache fix, 695 s over the six boxes, 19393 checks, and a second fresh
 process identical to it cell for cell; the read stage alone from the
 checkpoints 1.0 s. Before the fix two walks of the same readings had
-differed at three fields' strata.
+differed at three fields' strata. 2026-09-07, the completion (9):
+the six boxes' walks redone from the completed readings, 693 s, 19393
+checks, peak 157 MB.
 """
 
 import os
@@ -653,6 +677,50 @@ def walk_box(bi, readings):
                 disagree=disagree)
 
 
+def complete_readings(R, bi):
+    """(9): a checkpoint written before the shop's harvest seeded the
+    forced relations is completed in place -- the rows added to each
+    reading's basis, the class number recomputed -- and the fields
+    whose class number moves are printed; returns their count."""
+    moved = []
+    for s in R['readings']:
+        (d, cx, a, b, c, h, kind, gp, rel, tag) = s
+        if rel is None:
+            continue
+        forced = TB.CFS.forced_relations([tuple(t) for t in gp])
+        rows = [list(r) for r in rel]
+        if all(CCM.in_span(f, CCM.echelon(rows, len(gp)), len(gp))
+               for f in forced):
+            continue
+        rows = TB.rel_basis(rows + forced, len(gp))
+        H = TB.CFS.hermite_order(rows, len(gp))
+        s[8] = rows
+        if H != h:
+            moved.append((d, h, H))
+            s[5] = H
+    print("  box %d: %d readings completed by the forced relations, the "
+          "class number moving at %d %s" % (bi, len(R['readings']),
+                                            len(moved), moved))
+    return len(moved)
+
+
+def load_readings(bi):
+    """The kept readings of one box, completed (9) and rewritten when the
+    completion changes them."""
+    rpath = os.path.join(CKPT, "readings%d.json" % bi)
+    R = json.load(open(rpath))
+    print("  box %d readings loaded: %d fields, %d excluded, "
+          "%.1f s when run" % (bi, len(R['readings']),
+                               len(R['excluded']), R['wall']))
+    TB._HO_CTRL[0] = 0          # (8): the cross-check budget was spent
+    #                             by the run that wrote the checkpoint
+    if not R.get('completed'):
+        complete_readings(R, bi)
+        R['completed'] = True
+        json.dump(R, open(rpath, "w"))
+    return R
+
+
 def s2_boxes(fields):
     section("S2  THE BOX READS -- readings then walks, each checkpointed "
             "per box in %s" % CKPT)
@@ -660,14 +728,10 @@ def s2_boxes(fields):
     for bi in range(len(BOXES)):
         rpath = os.path.join(CKPT, "readings%d.json" % bi)
         if os.path.exists(rpath) and not FRESH:
-            R = json.load(open(rpath))
-            print("  box %d readings loaded: %d fields, %d excluded, "
-                  "%.1f s when run" % (bi, len(R['readings']),
-                                       len(R['excluded']), R['wall']))
-            TB._HO_CTRL[0] = 0      # (8): the cross-check budget was spent
-            #                         by the run that wrote the checkpoint
+            R = load_readings(bi)
         else:
             R = read_box_readings(bi, fields)
+            R['completed'] = True
             if not os.path.isdir(CKPT):
                 os.makedirs(CKPT)
             json.dump(R, open(rpath, "w"))

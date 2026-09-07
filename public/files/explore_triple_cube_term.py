@@ -179,7 +179,9 @@ THE CONTROLS, run before any prediction is read.
       no such share is a control of the term.
   C3  THE WEIGHTS SUM TO ZERO: every split prime's k-th power triple
       sums to zero in the class group (as (3) requires), checked at
-      every power used.
+      every power used, k = 1 included: a triple off zero at k = 1 is
+      a lattice missing a relation the construction forces (the shop's
+      forced_relations), not a Frobenius reading.
 
 THE DESIGN. The parents' enumeration and class reading over the
 complex fields; one walk per mapped field over its split and partial
@@ -591,6 +593,8 @@ def walk_field(rec, per_prime, piv, k, two):
                 continue
             if kk == 1:
                 if kd == 'split' and len(vecs) == 3:
+                    if not ST.sums_to_zero(vecs, piv, k):
+                        bad += 1        # the lattice lacks a forced relation
                     cell['ns'] += 1
                     z = sum(1 for v in vecs if ST.is_principal(v, piv, k))
                     eq = (ST.same_class(vecs[0], vecs[1], piv, k)

@@ -784,7 +784,7 @@ def harvest(O, gen_places):
     """The shop's relation harvest with its own escalation: the wider box
     where the default one leaves Z^G/L infinite (derivation (4))."""
     rows = CFS.harvest_relations(O, gen_places)
-    if CFS.hermite_order(rows, len(gen_places)) is None:
+    if CFS.bare_order(rows, gen_places) is None:
         rows = CFS.harvest_relations(O, gen_places,
                                      box=CFS.REL_BOX + 6, cap=1500)
     return [list(r) for r in rows]
