@@ -137,6 +137,7 @@ export default {
       '/principal/degeneracy': 'degeneracy',
       '/principal/generator': 'generator',
       '/principal/observatory': 'observatory',
+      '/principal/jumpset': 'jumpset',
       '/claims': 'claims',
       '/tools': 'tools',
       '/claims/object': 'claims-object',
