@@ -244,10 +244,14 @@ L6  THE SCAN, RECORDED (observation at scanned scope). The drop by 1's
     l + 1 = 2, one flat and one growing, and the paper decides neither
     -- the paper's lean (a rise at e - 2) did not print. Whether the
     drop's column is finite at a window whose quotients are unbounded
-    yet far below its denominators is OPEN; the two ends read are
+    yet far below its denominators was OPEN here; the two ends read are
     the drop by the period at the four quadratic windows (finite, a
     rule at those cells) and the Liouville-type tail (unbounded, the
-    theorem of D5).
+    theorem of D5). (Settled by explore_drop_column.py: at e - 2 the
+    column is infinite at every depth, a big digit's sweep landing on
+    -alpha over an explicit head at every m, and this scan's flat
+    reading ended below the m = 5 witness; the scope surviving here is
+    the finite-range table itself.)
 
 THE READING. One principle decides every shift-free relation at every
 irrational window: the image point is an affine map of the input point
