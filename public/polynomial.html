@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Polynomial maps — the delay of a map of streams, and of a chain</title>
-<meta name="description" content="The delay of a polynomial map of digit streams with disjoint terms through a signed digit set: the Lebesgue margin in the map's Lipschitz constant from degree 2 on, the reader with no strategy behind it, and a lattice clause with a wedge for the sums, the product's delay over the digit sets through radix 7 whose window holds its own products; and the chained delay: a multiplier feeding an adder pays the sum of the two floors whatever its digits, and the fused unit reads below it.">
+<meta name="description" content="The delay of a polynomial map of digit streams with disjoint terms through a signed digit set: the Lebesgue margin in the map's Lipschitz constant from degree 2 on, the reader with no strategy behind it, and a lattice clause with a wedge for the sums, the product's delay over the digit sets through radix 7 whose window holds its own products; and the chained delay: a multiplier feeding an adder pays the sum of the two floors whatever its digits, and the fused unit reads below it; and the comparator delay: max, min, the clamp and the rectifier read at lookahead 0, |x| at 0 iff the set is symmetric, and a comparator inside any unit is free.">
 <link rel="canonical" href="https://antonlebed.com/reading/polynomial">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -179,8 +179,8 @@ nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
 <main>
 <h1>Polynomial maps</h1>
 <p class="lede">The delay of a polynomial map of digit streams read
-through a signed digit set, and what a chain of two readers pays
-against one.</p>
+through a signed digit set, what a chain of two readers pays
+against one, and what a comparator costs inside a unit.</p>
 
 <p>A <b>stream</b> is a numeral in radix <i>b</i> over a digit set
 <i>D</i> = {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>}, read from its
@@ -477,6 +477,77 @@ table's system is one of them.</p>
   <p class="verifier">verifiers:
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_chain_delay.py"><code>explore_chain_delay.py</code></a>,
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_polynomial_delay.py"><code>explore_polynomial_delay.py</code></a></p>
+</article>
+
+<h2>Comparators</h2>
+
+<article class="claim" id="comparator-delay">
+  <div class="claim-head"><span class="claim-name">The comparator
+  delay</span> <span class="tier">theorem</span></div>
+  <p>The margin law never grants lookahead 0, and the field's table
+  gives max and min on-line delay 0 (Ercegovac and Lang, Digital
+  Arithmetic, 2003, Table 9.1); the reason is the lattice. Every cell
+  of depth <i>n</i> has its lower end on (Z − <i>M</i><sup>−</sup>)/<i>b<sup>n</sup></i>
+  and width ω/<i>b<sup>n</sup></i>, the output cells included, and a
+  cell of depth <i>n</i> meets a cell of depth <i>n</i> − 1 inside one
+  of the latter's <b>children</b>, the depth-<i>n</i> cells whose lower
+  ends run through the parent's lattice points from its own lower end
+  up, the last ending at the parent's top (the <b>cell lemma</b>). So
+  a <b>cell-valued</b> map, one whose image of every box of prefixes
+  lies inside some cell of the same depth, reads at lookahead 0 at
+  every system: the <b>committed</b> cell, the one the reader's
+  emitted digits name, holds the image, the image lies in a cell, the
+  cell meets the committed one inside a child, and that child is a
+  legal digit. max and min of any number of streams and their
+  compositions are cell-valued, the image of a box under max lying in
+  the input cell with the larger top: the <b>clamp</b>
+  min(max(<i>x</i>, <i>y</i>), <i>z</i>), the <b>rectifier</b>
+  max(<i>x</i>, 0), whose image is a point inside the committed cell
+  when the cell sits below 0, and the identity as the case of one
+  stream. |<i>x</i>| is cell-valued iff its <b>mirror</b>, the cell
+  reflected through 0, is a cell, (<i>b</i> − 1) | (<i>a</i><sup>+</sup>
+  − <i>a</i><sup>−</sup>), which within the radix means a symmetric
+  set; at every asymmetric system the reader dies at 0 in one round
+  and survives at 1, the margin's grant. <b>The comparator is
+  free.</b> A reader's death is a property of the image alone: an
+  image inside the committed cell fails every child iff it strictly
+  contains an <a href="#polynomial-delay">overlap zone</a>, and a cell
+  strictly contains no zone. A <b>fused</b> unit
+  <i>G</i>(<i>w</i>, max(<i>y</i>, <i>z</i>)), one reader seeing every
+  stream, has each box image inside <i>G</i>'s image of a box of its
+  own inputs at the same depth, the cell of <i>y</i> or of <i>z</i>
+  with the larger top standing for the comparator, so a fused death is
+  a death of <i>G</i>; and on the diagonal <i>y</i> = <i>z</i> the
+  adversary hands the reader <i>G</i>'s own game, so the fused unit
+  reads no earlier. For every map <i>G</i> of streams the delay of
+  <i>G</i>(<i>w</i>, max(<i>y</i>, <i>z</i>)) equals the delay of
+  <i>G</i>(<i>w</i>, <i>y</i>), min likewise; a comparator on an
+  output, max(<i>G</i>(<i>x</i>), <i>z</i>), costs at most <i>G</i>'s
+  delay, its image lying inside <i>G</i>'s or inside <i>z</i>'s cell.
+  max(<i>x</i>, <i>y</i>) + <i>z</i> reads at the
+  <a href="/reading/redundant#lookahead-law">lookahead criterion</a>'s
+  floor for <i>x</i> + <i>z</i> and <i>x</i>·max(<i>y</i>, <i>z</i>)
+  at the <a href="#two-stream-delay">product's</a>. A datapath's
+  delay table is its arithmetic skeleton's with the comparators
+  deleted: a digit-serial network's rectifier and pooling cost no
+  lookahead, fused into the multiply–add or not.</p>
+  <p class="scope"><b>Scope.</b> Theorem for the cell-valued maps, the
+  free comparator inside a unit and the bound on an output, at every
+  radix and contiguous digit set with slack 1 or more, the output
+  aligned with the inputs and led by one position for the map with an
+  additive part; the exhaustive search is the check, 80 systems over
+  five maps surviving at 0 uncertified (max, min and the rectifier at
+  the 20 systems of radices 2..5, max of three and the clamp at the 10
+  of radices 2..4), the fused sum at the two-sum's floor at 10 of 10
+  systems of radices 2..4 and the fused product at the product's at
+  the 7 representable systems, each certified one lookahead below. The
+  |<i>x</i>| clause is a criterion at the 13 representable systems of
+  radices 2..5, <i>a</i><sup>−</sup> ≤ <i>a</i><sup>+</sup>: the 6
+  symmetric survive at 0 by the theorem, the 7 asymmetric are
+  certified dead at 0, and all 13 survive the search at 1. Whether a
+  comparator on an output is exactly free is open.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_comparator_delay.py"><code>explore_comparator_delay.py</code></a></p>
 </article>
 
 </main>
