@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Polynomial maps — the delay of a map of streams, and of a chain</title>
+<meta name="description" content="The delay of a polynomial map of digit streams with disjoint terms through a signed digit set: the Lebesgue margin in the map's Lipschitz constant from degree 2 on, the reader with no strategy behind it, and a lattice clause with a wedge for the sums, the product's delay over every digit set through radix 7; and the chained delay: a multiplier feeding an adder pays the sum of the two floors whatever its digits, and the fused unit reads below it.">
+<link rel="canonical" href="https://antonlebed.com/reading/polynomial">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+h3.subject { font-size: 1.05rem; margin: 1.6rem 0 0.1rem; }
+p.subject { margin: 0 0 0.3rem; color: var(--muted); }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+pre, .files {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--card);
+  border-radius: 5px;
+  padding: 0.5rem 0.6rem;
+  margin: 0.6rem 0;
+}
+.files { color: var(--muted); }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Subjects'><a href='/'>Home</a> <a href='/#specimen'>The specimen</a> <a href='/#reading' class='up'>Reading</a> <a href='/#growth'>Growth</a> <a href='/#evaluation'>Evaluation</a> <a href='/#fields'>Fields</a> <a href='/tools'>Tools</a> <a href='/claims'>What is proved</a></nav><nav class='sub' aria-label='Reading'><a href='/walls'>Walls</a> <a href='/reading' class='up'>Windows</a> <a href='/measure'>Measure</a></nav><nav class='sub sub2' aria-label='Windows'><a href='/reading'>The reading geometry</a> <a href='/reading/completions'>Completions</a> <a href='/reading/quadratic'>Quadratic windows</a> <a href='/reading/shifts'>Digit shifts</a> <a href='/reading/members'>The gated members</a> <a href='/reading/lookahead'>The lookahead limit</a> <a href='/reading/output'>The widened output</a> <a href='/reading/redundant'>Redundant arithmetic</a> <a href='/reading/polynomial' aria-current='page'>Polynomial maps</a></nav></header>
+<main>
+<h1>Polynomial maps</h1>
+<p class="lede">The delay of a polynomial map of digit streams read
+through a signed digit set, and what a chain of two readers pays
+against one.</p>
+
+<p>A <b>stream</b> is a numeral in radix <i>b</i> over a digit set
+<i>D</i> = {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>}, read from its
+most significant digit: the first <i>t</i> digits name a <b>cell</b> of
+values, an interval, and the cells refine toward a point as <i>t</i>
+grows. A map of streams is <b>read at lookahead</b> <i>c</i> when its
+output's first <i>t</i> digits are a function of the inputs' first
+<i>t</i> + <i>c</i>; the least such <i>c</i> is the map's <b>delay</b>,
+and a map with a finite delay is <b>local</b> at this end. The set's
+<b>slack</b> ρ = <i>a</i><sup>−</sup> + <i>a</i><sup>+</sup> + 1 −
+<i>b</i> counts the digits it holds beyond the radix; at slack 1 or more
+a value has several writings and the cells overlap, which is what lets
+a product or a sum be local at all. Its <b>reach</b> is <i>W</i> =
+<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>, the width of what the
+unseen digits can still contribute. An operation injects a
+<b>spread</b>, the width of what its unseen digits can still move the
+output by; with <i>c</i> digits of lookahead an overlapping cover
+swallows whole any spread up to <i>b<sup>c</sup></i>ρ, and the
+<b>Lebesgue margin</b> is the least <i>c</i> at which that reaches the
+spread injected, a size-only count. The laws below read a map's exact
+delay against that margin; the slope and addition laws over the same
+sets, and the leading end's own vocabulary, are on
+<a href="/reading/redundant">Redundant arithmetic</a>. A census below
+counts <b>digit systems</b>, one per (radix, digit set), written radix
+<i>b</i> over {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>}, and a
+table's system is one of them.</p>
+
+<h2>Polynomial maps</h2>
+
+<article class="claim" id="polynomial-delay">
+  <div class="claim-head"><span class="claim-name">The polynomial
+  delay</span> <span class="tier">criterion</span></div>
+  <p>Let <i>f</i> be a polynomial in streams over a contiguous set
+  {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} at radix <i>b</i> whose
+  terms have disjoint variable sets, the output aligned with the
+  inputs and led by <i>o</i> positions when its range needs it (a
+  sum's range doubles the window, so a map with an additive part runs
+  led by one), and let <b>Lip₁</b> be the largest L¹ norm of its
+  gradient over the window, in window units, which disjoint terms
+  attain at the corner of largest magnitude: <i>dM̂</i><sup><i>d</i> −
+  1</sup> for a monomial of degree <i>d</i>, 2<i>M̂</i> + 1 for the
+  <b>multiply–add</b> <i>xy</i> + <i>z</i> and for <i>x</i>² +
+  <i>y</i>, <i>k</i> for a sum of <i>k</i> streams. With <i>L</i> the
+  lookahead plus the lead, the <b>margin law</b> — the Lebesgue margin
+  with the injected spread read as Lip₁<i>W</i> —</p>
+  <div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>b</mi><mi>L</mi></msup><mi>ρ</mi><mtext>  </mtext><mo>≥</mo><mtext>  </mtext><msub><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">p</mi></mrow><mn>1</mn></msub><mtext> </mtext><mo stretchy="false">(</mo><msup><mi>a</mi><mo lspace="0em" rspace="0em">−</mo></msup><mo>+</mo><msup><mi>a</mi><mo lspace="0em" rspace="0em">+</mo></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">b^{L}\rho \;\ge\; \mathrm{Lip}_{1}\,(a^{-}+a^{+})</annotation></semantics></math></span></div>
+  <p>suffices for every continuous map and is the floor wherever a
+  term has degree 2 or more, the Lipschitz constant its only
+  parameter: the square shares the product's delay, the three degree-3
+  shapes share one, the multiply–add and <i>x</i>² + <i>y</i> share
+  theirs, one lookahead above the product's at radix 2 over {−1..1}
+  (3 against 2). An
+  <b>affine</b> map's floor sits on a lattice instead. In units of
+  <i>b</i><sup>−(<i>t</i>+1)</sup> at the emitted level, with
+  <i>M</i><sup>±</sup> = <i>a</i><sup>±</sup>/(<i>b</i> − 1) and
+  ω = <i>M</i><sup>−</sup> + <i>M</i><sup>+</sup> the reach at that
+  scale, a sum of <i>k</i> streams has its image endpoints on the
+  lattice (<i>s</i> − <i>kM</i><sup>−</sup>)/<i>b<sup>L</sup></i>,
+  <i>s</i> an integer, so it is dead at <i>L</i> iff an integer lies
+  in</p>
+  <div class="mathrow"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mo stretchy="false">(</mo><msup><mi>b</mi><mi>L</mi></msup><mo>−</mo><mi>k</mi><mo stretchy="false">)</mo><mtext> </mtext><msup><mi>M</mi><mo lspace="0em" rspace="0em">+</mo></msup><mo separator="true">,</mo><mtext>  </mtext><mtext>  </mtext><msup><mi>b</mi><mi>L</mi></msup><mo>−</mo><mo stretchy="false">(</mo><msup><mi>b</mi><mi>L</mi></msup><mo>−</mo><mi>k</mi><mo stretchy="false">)</mo><mtext> </mtext><msup><mi>M</mi><mo lspace="0em" rspace="0em">−</mo></msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\bigl((b^{L}-k)\,M^{+},\;\; b^{L}-(b^{L}-k)\,M^{-}\bigr),</annotation></semantics></math></span></div>
+  <p>the <a href="/reading/redundant#lookahead-law">lookahead criterion</a> at <i>k</i> =
+  2, the identity's
+  survival at lookahead 0 at <i>k</i> = 1 (the interval is (0, 1)),
+  and the three-sum's floor at <i>k</i> = 3. The interval's length is
+  the margin's excess <i>k</i>ω − <i>b<sup>L</sup></i>(ω − 1), so the
+  margin is exact off the <b>wedge</b> — the systems where that length
+  is positive and the interval holds no integer — and one digit high
+  on it: the two-sum's wedge is <a href="/reading/redundant#margin-wedge">addition's</a>,
+  the identity's is
+  every system, the three-sum's is empty through radix 4 and first
+  appears at radix 5 over {−4..4}. A sum of streams is a lattice map
+  with a wedge, never a map that reads below the margin outright; a
+  non-affine map's reachable endpoints are dense at the emitted scale
+  (the stream correction on
+  <a href="/reading#stream-correction">Reading</a>), so its wedge is
+  empty. One law, read by shape, with <i>â</i> =
+  max(<i>a</i><sup>−</sup>, <i>a</i><sup>+</sup>), <i>W</i> =
+  <i>a</i><sup>−</sup> + <i>a</i><sup>+</sup> and <i>M̂</i> =
+  max(<i>M</i><sup>−</sup>, <i>M</i><sup>+</sup>):</p>
+  <table class="chart">
+    <thead>
+      <tr><th>map</th><th>Lip₁</th><th>the law, denominators cleared</th><th>the
+      floor</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><i>x</i></td><td>1</td><td><i>b<sup>L</sup></i>ρ ≥
+      <i>W</i></td><td>the lattice clause at <i>k</i> = 1: alive at
+      lookahead 0</td></tr>
+      <tr><td><i>x</i> + <i>y</i></td><td>2</td><td><i>b<sup>L</sup></i>ρ
+      ≥ 2<i>W</i></td><td>the clause at <i>k</i> = 2, one below the law
+      on addition's wedge</td></tr>
+      <tr><td><i>x</i> + <i>y</i> + <i>z</i></td><td>3</td>
+      <td><i>b<sup>L</sup></i>ρ ≥ 3<i>W</i></td><td>the clause at
+      <i>k</i> = 3, its wedge first at radix 5 over {−4..4}</td></tr>
+      <tr><td><i>xy</i>, <i>x</i>²</td><td>2<i>M̂</i></td>
+      <td><i>b<sup>L</sup></i>(<i>b</i> − 1)ρ ≥ 2<i>âW</i></td><td>the
+      law, proved</td></tr>
+      <tr><td><i>x</i>³, <i>x</i>²<i>y</i>, <i>xyz</i></td>
+      <td>3<i>M̂</i>²</td><td><i>b<sup>L</sup></i>(<i>b</i> − 1)²ρ ≥
+      3<i>â</i>²<i>W</i></td><td>the law, certified system by
+      system</td></tr>
+      <tr><td><i>xy</i> + <i>z</i>, <i>x</i>² + <i>y</i></td>
+      <td>2<i>M̂</i> + 1</td><td><i>b<sup>L</sup></i>(<i>b</i> − 1)ρ ≥
+      (2<i>â</i> + <i>b</i> − 1)<i>W</i></td><td>the law, certified
+      system by system</td></tr>
+    </tbody>
+  </table>
+  <p>The reader has no strategy. The output cells are [<i>p</i> −
+  <i>M</i><sup>−</sup>, <i>p</i> + <i>M</i><sup>+</sup>] and the image
+  of the input boxes is an interval inside the parent cell; a digit is
+  legal iff its cell holds the image, so the reader is dead iff the
+  image <em>strictly contains</em> an <b>overlap zone</b> [<i>m</i> +
+  1 − <i>M</i><sup>−</sup>, <i>m</i> + <i>M</i><sup>+</sup>] of two
+  consecutive cells — a condition on the streams alone. The adversary
+  fixes the streams in advance and any legal digit is as good as any
+  other, so the <b>greedy reader</b>, any legal digit and no
+  backtracking, survives wherever any reader does. Sufficiency: every
+  prefix box lies in [−<i>M</i><sup>−</sup><i>b<sup>n</sup></i>,
+  <i>M</i><sup>+</sup><i>b<sup>n</sup></i>], so by the mean value
+  theorem every image is at most Lip₁ω<i>b</i><sup>−<i>L</i></sup>
+  long, and the law says that is at most the zone's length ω − 1; with
+  disjoint terms the corner width approaches that bound from below at
+  every prefix length, or equals it when every term is affine, so the
+  bound is the sup. Necessity is the excess placed on a zone: when the
+  law fails by an integer excess <i>E</i> ≥ 1 the corner image exceeds
+  the zone by a gap proportional to <i>E</i>/<i>b<sup>L</sup></i> over
+  a range of top prefixes, and the map's reachable endpoints sweep it.
+  For the product, hold the streams' sum at 2<i>U</i> − 2<i>I</i>,
+  <i>U</i> the prefix of <i>n</i> largest digits, and slide the split
+  (<i>U</i> − <i>I</i> + <i>i</i>, <i>U</i> − <i>I</i> − <i>i</i>): the
+  image keeps its length, its lower end falls by (2<i>i</i> −
+  1)/<i>K</i> a step with <i>K</i> = <i>b</i><sup><i>n</i>+<i>c</i></sup>,
+  and at <i>I</i> = ⌈√<i>K</i>⌉ the dead arcs of consecutive splits
+  overlap and sweep a full unit. The square has no split: along
+  <i>u<sub>j</sub></i> = <i>u</i><sub>0</sub> − <i>jb<sup>h</sup></i>
+  with 2<i>h</i> ≥ <i>n</i> + <i>c</i> the phase of (<i>u</i> −
+  <i>M</i><sup>−</sup>)²/<i>K</i> is linear in <i>j</i>, its step
+  2<i>r</i>/((<i>b</i> − 1)<i>b</i><sup><i>n</i>+<i>c</i>−<i>h</i></sup>)
+  set by <i>u</i><sub>0</sub>'s low digits alone, and a large enough
+  <i>r</i> makes the arcs sweep a unit once the step is under half
+  the gap. The multiply–add is the first map where a lattice part and
+  a dense part meet — <i>z</i>'s endpoint on a lattice of step
+  <i>b</i><sup>−<i>L</i></sup>, <i>xy</i>'s sliding along the split
+  line — and the union sweeps. On the diagonal the product row's
+  right side is 4<i>a</i>² and its inequality is the delay condition of the
+  <b>on-line multiplier</b>, the field's most-significant-first
+  multiplier (Trivedi and Ercegovac, 1977, as restated in Frougny,
+  Pavelka, Pelantová and Svobodová, DMTCS 2019, Corollary 2.2, an
+  upper bound with optimality left open), read here as the floor for
+  every reader and carried off the diagonal, up the degrees and into
+  the multiply–add; that multiplier's rounding select is empty at five
+  of the seven asymmetric systems of radices 2..5 and overpays at radix 5
+  over {−3..4}, reading 2 against the floor 1. The product's law is
+  addition's <i>b<sup>c</sup></i>ρ ≥ 2<i>W</i> times <i>M̂</i>, the
+  spread a bilinear map injects being the sum's scaled by the largest
+  operand, and the digit is the second stream's: at radix 2 over
+  {−1, 0, 1} the worst constant slope of magnitude at most 1 reads at
+  1 while two streams need 2, and at every system the worst slope reads
+  one below the product's floor unless the floor is already 1. Two
+  digits suffice at degree 2 (<i>b</i>² ≥ 4(<i>b</i> − 1)), and the
+  degree-3 census reads 2 with 3 at radix 2 over {−1..1} alone. The
+  <span id="two-stream-delay">product's delay</span> over every
+  contiguous set through radix 7 whose window holds its own products,
+  (<i>a</i><sup>−</sup>)² ≤ <i>a</i><sup>+</sup>(<i>b</i> − 1):</p>
+  <table class="chart">
+    <thead>
+      <tr><th>radix</th><th>delay 1</th><th>delay 2</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2</td><td>—</td><td>{−1..1}</td></tr>
+      <tr><td>3</td><td>—</td><td>{−1..2}, {−2..2}</td></tr>
+      <tr><td>4</td><td>{−3..3}</td><td>{−1..3}, {−2..2},
+      {−2..3}</td></tr>
+      <tr><td>5</td><td>{−3..3}, {−3..4}, {−4..4}</td><td>{−1..4},
+      {−2..3}, {−2..4}</td></tr>
+      <tr><td>6</td><td>{−3..4}, {−3..5}, {−4..4}, {−4..5},
+      {−5..5}</td><td>{−1..5}, {−2..4}, {−2..5}, {−3..3}</td></tr>
+      <tr><td>7</td><td>{−3..5}, {−3..6}, {−4..4}, {−4..5}, {−4..6},
+      {−5..5}, {−5..6}, {−6..6}</td><td>{−1..6}, {−2..5}, {−2..6},
+      {−3..4}, {−4..3}</td></tr>
+    </tbody>
+  </table>
+  <p class="scope"><b>Scope.</b> Criterion at the certified systems, the
+  output aligned with the inputs and led by one position for the maps
+  with an additive part, <i>L</i> counting the lead. Sufficiency is
+  proved for every continuous
+  map. Necessity is proved for the product (the split line kills by
+  the game's own legality at all 36 systems tried, radices 2..8, the
+  bottom corner included; the death criterion agrees with the game's
+  legality at 19,364,453 states within two rounds at every system of
+  radices 2..5, and the floor is the same at the flush offset at the
+  13 systems of radices 2..5) and for the square (the progression line
+  kills at all 13 systems of radices 2..5, the reader dying at or before
+  the predicted level), and certified one lookahead below the law at
+  every representable system of radices 2..5 for the cube and
+  <i>x</i>²<i>y</i> (20 each), <i>xyz</i> (4, radices 2..3), the
+  multiply–add and <i>x</i>² + <i>y</i> (20 each, their floors
+  agreeing at every shared system), the greedy reader surviving the
+  search at the law's lookahead at every one, and the degree-3 floors
+  agreeing at all 20 systems the cube and <i>x</i>²<i>y</i> share and at
+  <i>xyz</i>'s 4. The affine clause
+  is a rule at the scanned scope: the lookahead criterion at <i>k</i>
+  = 2, and agreeing with the game at 78 of 78 system–lookahead pairs at
+  <i>k</i> = 1 and 3 over radices 2..5. Terms sharing a variable and
+  piecewise-affine maps are outside the law's scope.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_product_delay.py"><code>explore_product_delay.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_product_necessity.py"><code>explore_product_necessity.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_monomial_delay.py"><code>explore_monomial_delay.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_square_line.py"><code>explore_square_line.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_polynomial_delay.py"><code>explore_polynomial_delay.py</code></a></p>
+</article>
+
+<h2>Chained units</h2>
+
+<article class="claim" id="chained-delay">
+  <div class="claim-head"><span class="claim-name">The chained
+  delay</span> <span class="tier">criterion</span></div>
+  <p>A <b>chain</b> is a product reader that sees <i>x</i> and <i>y</i>
+  and emits a stream <i>P</i> = <i>xy</i> over the same digit set at
+  lookahead <i>L</i>₁, feeding a sum reader that sees <i>P</i> and
+  <i>z</i>, aligned with <i>P</i>, and emits <i>xy</i> + <i>z</i> at
+  lookahead <i>L</i>₂; it reads the inputs at <i>L</i>₁ + <i>L</i>₂,
+  and the <b>fused</b> unit is the <a href="#polynomial-delay">
+  multiply–add</a> above, one reader seeing all three streams. The
+  product reader picks its digit by any rule wherever two are legal,
+  and the sum reader may know the rule. What it then knows of
+  <i>xy</i> is the <b>fibre</b> of the prefix it has seen, the union
+  of the product images of every (<i>x</i>, <i>y</i>) prefix the rule
+  sends there, and a cell holds the fibre plus <i>z</i>'s box iff it
+  holds the fibre's <b>hull</b>, an interval inside <i>P</i>'s own
+  cell, <b>inset</b> by α and β from the cell's ends in cell units. So
+  the sum reader is dead at <i>L</i>₂ iff an integer lies in the
+  two-sum's lattice interval with its ends drawn in,
+  ((<i>b</i><sup><i>L</i>₂</sup> − 2)<i>M</i><sup>+</sup> + β,
+  <i>b</i><sup><i>L</i>₂</sup> − (<i>b</i><sup><i>L</i>₂</sup> −
+  2)<i>M</i><sup>−</sup> − α), and its <b>escape cost</b> is the least
+  α + β that empties the interval. The product reader pays for insets
+  out of its slack: every image at level <i>n</i> + <i>L</i>₁ must sit
+  in some hull, and consecutive hulls, at unit spacing, must overlap
+  by the image width, so α + β ≤ (ω − 1) −
+  2<i>M̂</i>ω/<i>b</i><sup><i>L</i>₁</sup>, its <b>slack budget</b>,
+  nonnegative exactly from the product's own floor on; a reader into
+  cells inset by (α, β) reads at the product's law with the slack ρ −
+  (<i>b</i> − 1)(α + β). <b>The escape law</b>: the chain survives at
+  (<i>L</i>₁, <i>L</i>₂) iff the escape cost fits the budget. At every
+  system of radices 2..5 it fits only where the interval is already
+  empty, so the chain's floor is <i>L</i>₁* + <i>L</i>₂*, the two
+  units' own floors, whatever the multiplier does with its digits. The
+  composition rule is the hardware field's own — "for a series of
+  online operations, the overall latency is the sum of online delays"
+  (Usman, Ercegovac and Lee, 2023) — and it is here a floor: no
+  selection rule for the multiplier lowers the aligned sum. The fused
+  unit sits below the chain wherever the product's margin absorbs the
+  addition outright, its floor the product's own, and at radix 2 over
+  {−1..1}, where it pays one for <i>z</i> and the adder alone pays
+  two; the two are level where the product's floor is 1 and both pay
+  one for <i>z</i>:</p>
+  <table class="chart">
+    <thead>
+      <tr><th><i>L</i>₁*, <i>L</i>₂*</th><th>systems</th><th>chain</th>
+      <th>fused</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2, 2</td><td>radix 2 over {−1..1}</td><td>4</td><td>3</td></tr>
+      <tr><td>2, 2</td><td>radix 3 over {−1..2}, {−2..1}; radix 4 over
+      {−1..3}, {−2..2}, {−3..1}; radix 5 over {−1..4}, {−2..3}, {−3..2},
+      {−4..1}</td><td>4</td><td>2</td></tr>
+      <tr><td>2, 1</td><td>radix 3 over {−2..2}; radix 4 over {−2..3},
+      {−3..2}; radix 5 over {−2..4}, {−4..2}</td><td>3</td><td>2</td></tr>
+      <tr><td>1, 1</td><td>radix 4 over {−3..3}; radix 5 over {−3..3},
+      {−3..4}, {−4..3}, {−4..4}</td><td>2</td><td>2</td></tr>
+    </tbody>
+  </table>
+  <p>An <b>eager</b> adder, wired to read <i>z</i> as it arrives rather
+  than aligned with <i>P</i>, counts the insets <i>b</i><sup><i>L</i>₁</sup>-fold and
+  closes exactly one lookahead at the nine systems with <i>L</i>₂* = 2
+  at radix ≥ 3, and only through the multiplier's choice (insets of
+  1/18 at radix 3 over {−1..2}, 1/100 at radix 5 over {−1..4}); it
+  reaches the fused floor at the same five systems and nowhere else.</p>
+  <p class="scope"><b>Scope.</b> Criterion at the 20 systems of radices
+  2..5 for the aligned chain: every death the escape law names below
+  the sum of floors is certified against every multiplier rule by a
+  covering search over the product images (22 pairs, each at the
+  first level), and the survivals rest on the product's floor and the
+  lattice clause at zero insets; the inset clause agrees with the game
+  at 120 system–lookahead–inset triples and the narrowed reader is a
+  rule at 28 system–inset pairs, radices 2..4. The eager adder's floor
+  is a rule, its survivals resting on the narrowed law at insets the
+  game did not run. The fused floor is the
+  <a href="#polynomial-delay">polynomial delay</a>'s.</p>
+  <p class="verifier">verifiers:
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_chain_delay.py"><code>explore_chain_delay.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_polynomial_delay.py"><code>explore_polynomial_delay.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

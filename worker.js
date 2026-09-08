@@ -90,6 +90,7 @@ export default {
       '/reading/lookahead': 'lookahead',
       '/reading/output': 'output',
       '/reading/redundant': 'redundant',
+      '/reading/polynomial': 'polynomial',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',
