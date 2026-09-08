@@ -183,7 +183,9 @@ FINDINGS (entered post-run, copied from printed output).
    (the C-optimal witness is a K-cube only mod U_4, and the
    correction enters at psi(4) = 12 < 21 — the naive transport
    argument has a gap); whether D_m = e * delta_subfield in
-   general is open.
+   general is open. (Settled: explore_storey_descent.py — D_m
+   descends by a congruence of p-th powers, no cube needed; a storey
+   adds e_K to D_1 and multiplies every higher D_m by p.)
 
 5. THE HASSE-HERBRAND CONTACT (the formula t = p*i* - delta is
    classical Kummer-conductor theory; the instances verified by
