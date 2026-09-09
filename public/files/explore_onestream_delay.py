@@ -186,7 +186,10 @@ the margin law's L* at all 150 pairs, rising by two per digit of pole
 depth by the law and by homogeneity; the necessity proof's constants
 survive their numerical check at every pair; and the square root's
 delay, a criterion pair by pair before, is the theorem's first
-specimen.
+specimen. (explore_onestream_widened.py drops the corner, the
+monotonicity on the window and the curvature bound: every C^2 map of
+one stream that is not affine reads at L*, and this record's theorem
+is its special case; every print here stands.)
 
 RUN RECORD: pure Python, integers for every verdict and floats for the
 candidates, the counts and the phases, standard library; under
