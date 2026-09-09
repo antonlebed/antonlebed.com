@@ -215,7 +215,10 @@ min_J A_J(s) n^-J, its constants integers computed from the size
 profile alone, its argmin an explicit polynomial, its jumps the size
 profile stepping out of a flattener's window. Left genuinely open: a
 proof that the size profile is eventually constant in n -- observed
-across four decades, and NOT settled by the theta = 1 cell, whose own
+across four decades (since settled by explore_ruler_profilecert.py:
+constant for all n >= 1451 and different at 1450, every branch of the
+certificate the sign of a polynomial in theta and the threshold an
+exact root isolation), and NOT settled by the theta = 1 cell, whose own
 profile differs (111111123333333 against the far rungs'
 111112222233333, computed post-run): at theta = 1 the atom masses tie
 and the certificate's strictly-above set collapses, so the profile at
