@@ -160,7 +160,9 @@ F2  THE INVERSE DIAL AT k = 3..8 (rule, exact; the pure-product law
     d_k(J) and cleared by J synthetic divisions outside the lattice
     code. The cells past the table (d > 44: k = 1 at J >= 9, k = 2 at
     J >= 10, k = 5, 6 at J = 13, k = 7, 8 at J = 14) are ladder values
-    with the law unread.
+    with the law unread by this table (read since by
+    explore_flatten_dk_edge.py's partition walk: the law holds at all
+    nine, with exactly J parts).
 F3  THE TWO INSTRUMENTS AGREE (E3). The height-domain ladder at k = 3
     prints 1, 2, 3, 5, 8, 11, 17 at J = 1..7 -- AGREE at every depth,
     the J = 7 row at 5,813,796 nodes in 6.8 s -- and at J = 8 refutes
