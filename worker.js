@@ -80,6 +80,7 @@ export default {
       '/walls/numbers': 'numbers',
       '/walls/meaning': 'meaning',
       '/walls/dual': 'dual',
+      '/walls/benford': 'benford',
       '/walls/order': 'order',
       '/walls/algebra': 'algebra',
       '/reading': 'reading',

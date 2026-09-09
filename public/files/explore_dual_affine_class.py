@@ -166,7 +166,10 @@ F4  THE SUM CRITERION HOLDS AT EVERY CELL (theorem by the hand attack;
     base 2 and 3 at base 10 -- floor(n/3) + floor(n/6) and
     floor(n/6) + floor(n/12) at both, 3 floor(n/3) + floor(n/7) at
     base 10 (U = 24, reduced numerator 8) -- and at none at base 6.
-    The exact cells' least lookahead runs 1 to 6 and sits at or under
+    The exact cells' least lookahead (read at t = 1, 2, a lower bound
+    on the true c*: explore_dual_least_lookahead.py reads c* = 4 at
+    floor(n/3) + floor(n/9), base 2, where this scan reads 3, the deep
+    witness first at t = 4) runs 1 to 6 and sits at or under
     K + digits(a) + digits(W) - 1 at every one of the 42 exact cells,
     meeting it at 15 ((3, 5) at base 10: a = 1875, W = 5,
     K = 0, c = 4 at the bound; (3, 7): a = 21, W = 6, c = 2 at the
