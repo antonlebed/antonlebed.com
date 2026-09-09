@@ -213,9 +213,10 @@ VERDICT. The piecewise-affine comparators read at lookahead 0 at
 every cell, because their images are cells and cells nest into
 children; |x| reads at 0 iff the digit set is symmetric and at 1
 otherwise; and a comparator anywhere in a datapath adds nothing to
-its on-line delay -- inside a unit exactly, on an output at most. A
-datapath's delay table is its arithmetic skeleton's with the
-comparators deleted.
+its on-line delay -- inside a unit exactly, on an output at most
+(exactly, by explore_output_comparator.py: the constant bottom stream
+and the translation lemma). A datapath's delay table is its
+arithmetic skeleton's with the comparators deleted.
 
 RUN RECORD: pure Python, integers only, standard library; under
 memwatch, peak commit 12.0 MB against the 512 MB default; wall 113 s
