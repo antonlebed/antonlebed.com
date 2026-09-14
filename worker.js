@@ -92,6 +92,7 @@ export default {
       '/reading/output': 'output',
       '/reading/redundant': 'redundant',
       '/reading/polynomial': 'polynomial',
+      '/reading/chains': 'chains',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
       '/measure/price': 'price',
