@@ -329,7 +329,8 @@ fixed-h+ row reaches 0.95 of nominal, regressed on log10|D|, has slope
 -0.245, +0.002, -0.136, +0.003 and -0.080 at h+ = 2, 3, 4, 6, 8 -- five
 bands each but h+ = 3, whose top band never falls below 0.95 and so
 contributes four. Derivation (1) predicted +0.5 and P2 dies on it with
-room to spare: every slope is at or below zero. THE SLOPES ARE NOT ZERO
+room to spare: three slopes are below zero and two within 0.003 of it,
+none near +0.5. THE SLOPES ARE NOT ZERO
 AND THE READING IS NOT "FLAT" -- at h+ = 2 the reach runs 2.32, 2.12,
 1.88, 2.15, 1.57 over the bands, which across the lever is the transient
 ending a factor of four EARLIER at the largest fields, and at h+ = 4 a

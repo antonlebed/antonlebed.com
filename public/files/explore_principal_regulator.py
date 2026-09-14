@@ -52,8 +52,8 @@ WHICH REGULATOR THIS IS, AND WHY IT IS THE ONE THAT PAIRS WITH h+.  The
 form cycle is a NARROW object, so R_cyc is expected to be the narrow
 regulator R+ = log(eps+) with eps+ the fundamental totally positive unit:
 R+ = R when N(eps) = +1 and 2R when N(eps) = -1, against h+ = 2h and h+ = h
-respectively.  Either way h+ R+ = 2 h R = 2 sqrt(D) L(1, chi) by the class
-number formula.  So AT FIXED h+ the regulator is sqrt(D) L(1, chi) up to a
+respectively.  Either way h+ R+ = 2 h R = sqrt(D) L(1, chi) by the class
+number formula (h log eps = sqrt(D) L(1, chi) / 2; D = 5 gives 0.4812).  So AT FIXED h+ the regulator is sqrt(D) L(1, chi) up to a
 constant, and a within-band tercile of it is a tercile of L(1, chi) up to
 the band's own factor-of-two spread in sqrt(D) -- which K4 removes by
 re-cutting on R+/sqrt(D).  This is not an aside: L(1, chi) is the same
