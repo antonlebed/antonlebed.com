@@ -109,8 +109,9 @@ F3 THE BETA ARM [rule at 27 of the 30 pairs; three unreached]. Dead at
    falsified (K-check at each alive pair). The descent: one L below,
    every alive pair dies -- the plastic x y at a = 1 at round 4 at
    L = 6, at a = 2 at round 4 at L = 8, the divider at a = 1 at round
-   6 at L = 4, at a = 2 at round 4 at L = 4 (L = 5 and 6 unreached) --
-   so the strategy buys nothing where the tree reached, at most one L
+   6 at L = 4, at a = 2 at round 4 at L = 4 (L = 5 and 6 unreached),
+   and x^2 + y at the Narayana root at a = 1 (L* = 6) at round 2 at
+   L = 4 -- so the strategy buys nothing where the tree reached, at most one L
    at every unreached pair but the plastic divider at a = 2, and at
    most three there.
 
