@@ -33,7 +33,9 @@ root x^3 = x^2 + x + 1 (1.839) and the plastic number x^3 = x + 1
 (1.3247, the least Pisot number, M = 3.08 at a = 1). Every base is a
 unit (constant term +-1), so nothing here depends on that: the engine
 carries fractions of elements. The kill rounds at the record's pairs
-were 4 and 5 where the contiguous sets' were 1 to 4; a state-dependent
+were 4 and 5 where the contiguous sets' were read as 1 to 4 (a
+transplant from the gap sets' range; the contiguous arm, F6, prints
+1 to 3); a state-dependent
 set delays the kill because the reader steers between misaligned
 parents, and the delay should grow with the number of legal parents an
 image typically has, which grows with a (more redundancy) and shrinks
@@ -113,7 +115,8 @@ F3 THE BETA ARM [rule at 27 of the 30 pairs; three unreached]. Dead at
    most three there.
 
 F4 THE ROUNDS. Over the 44 pairs read: 1 at 13, 2 at 10, 3 at 2, 4 at
-   4, 5 at 7, 6 at 1, 9 at 1, 12 at 1, against the contiguous 1 to 4;
+   4, 5 at 7, 6 at 1, 9 at 1, 12 at 1, against the contiguous 1 to 3
+   (F6);
    the round grows with the redundancy -- with a at a fixed base
    (silver x^2 + y from 1 to 5) and as beta - 1 falls (the plastic
    number's 9 and 12) -- as the derivation's own reading said, and the
@@ -129,11 +132,19 @@ F5 THE UNREACHED PASS (--deepen, 300 s per pair). x^2 + y at the
    verdict is 41 of its 44 pairs dead below L* and three unreached,
    none alive.
 
+F6 THE CONTIGUOUS ARM (--contiguous). The same confined tree at every
+   contiguous cell of radices 2..5 with slack at least 1, x y, x^2 + y
+   and the divider at P = 1/(b - 1), at L* - 1: dead at all 60 pairs,
+   rounds 1 at 35, 2 at 23 and 3 at 2 (x y at (5,4,2) and (3,2,2)),
+   the deepest kill at 206 nodes, wall 0.3 s -- the contiguous range
+   the sweep's rounds are read against is 1 to 3, not the 1 to 4 the
+   derivation carried from the gap sets.
+
 VERDICT. Off the contiguous sets the margin law's L* is the delay at
 every one of the 41 pairs the tree reached, over three integer gap-set
 maps, five Pisot bases and two digit radii; the reader's strategy
-delays the kill -- to round 12 at the plastic number, three times the
-contiguous record's deepest -- and never escapes it where the tree
+delays the kill -- to round 12 at the plastic number, four times the
+contiguous arm's deepest -- and never escapes it where the tree
 reaches, buying nothing where the tree reaches and at most one L at
 every unreached pair but one. The
 frozen kill bar of six rounds was a transplant and is retired: the
@@ -149,6 +160,7 @@ five-minute line by the per-pair caps, named here; the unreached pass
 593 s more. Prints reproduced by:
 python prime/code/explore_delay_sweep.py [NODE_BUDGET]
 python prime/code/explore_delay_sweep.py --deepen Narayana:1:1,plastic:2:0,plastic:2:2 300
+python prime/code/explore_delay_sweep.py --contiguous
 """
 
 import os
@@ -335,6 +347,38 @@ def beta_arm(budget):
     return rounds, table
 
 
+def contiguous_arm(budget):
+    """--contiguous: the same tree at every contiguous cell of radices
+    2..5 with slack at least 1, x y, x^2 + y and the divider at
+    P = 1/(b - 1), at L* - 1 -- the contiguous kill rounds the sweep's
+    are read against, printed by the instrument that read the sweep."""
+    print("\n=== THE CONTIGUOUS ARM: radices 2..5, x y, x^2 + y and the divider at P = 1/(b - 1), L* - 1")
+    rounds = Counter()
+    n = 0
+    for b in (2, 3, 4, 5):
+        for am in range(1, b):
+            for ap in range(1, b):
+                if am + ap + 1 - b < 1:
+                    continue
+                D = tuple(range(-am, ap + 1))
+                for fmap in (ms.Product(b, am, ap), ms.SquarePlus(b, am, ap),
+                             ms.Division(b, am, ap, Fr(1, b - 1))):
+                    Le = ms.law_L(b, am, ap, fmap)
+                    o = ms.least_lead(b, am, ap, fmap)
+                    rd = bd.ConfinedGap(b, D, Le - 1 - o, fmap, o)
+                    t1 = time.time()
+                    r, depth = rd.certificate(budget, wall=PAIR_WALL, max_rounds=MAX_ROUNDS)
+                    verdict = ("dead r=%d" % r if r is not None else
+                               ("ALIVE to round %d" % depth if depth >= MAX_ROUNDS
+                                else "UNREACHED at round %d" % depth))
+                    print(f"  ({b},{am},{ap}) {fmap.name} L*={Le} o={o}: {verdict} "
+                          f"[{rd.nodes} nodes {time.time() - t1:.1f}s]")
+                    rounds[r if r is not None else ("alive" if depth >= MAX_ROUNDS else "unreached")] += 1
+                    n += 1
+    print(f"  rounds over {n} pairs: {dict(sorted(rounds.items(), key=lambda kv: str(kv[0])))}")
+    return rounds
+
+
 def deepen(specs, wall):
     """--deepen base:a:map[,...]: the confined tree at L* - 1 to round
     DEEP_ROUNDS under a longer wall at the named pairs (base by name
@@ -360,13 +404,16 @@ def main():
     if len(sys.argv) > 2 and sys.argv[1] == "--deepen":
         deepen(sys.argv[2], float(sys.argv[3]) if len(sys.argv) > 3 else 300.0)
         return
+    if len(sys.argv) > 1 and sys.argv[1] == "--contiguous":
+        contiguous_arm(int(sys.argv[2]) if len(sys.argv) > 2 else PAIR_BUDGET)
+        return
     budget = int(sys.argv[1]) if len(sys.argv) > 1 else PAIR_BUDGET
     t0 = time.time()
     controls(budget)
     ri = integer_arm(budget)
     rb, table = beta_arm(budget)
     allr = ri + rb
-    print("\n=== P-D THE ROUNDS over the sweep (the contiguous record: 1 to 4)")
+    print("\n=== P-D THE ROUNDS over the sweep (the contiguous arm: --contiguous)")
     print(f"  {dict(sorted(allr.items(), key=lambda kv: str(kv[0])))}")
     alive = [t for t in table if t[5] == "alive"]
     unreached = [t for t in table if t[5] == "unreached"]
