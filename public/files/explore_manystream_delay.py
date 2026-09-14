@@ -218,7 +218,9 @@ F3 DIVISION READS AT THE MARGIN, ITS LOOKAHEAD THE NUMERATOR'S
    reciprocal's reader emitted before it read at 40 of 120 pairs
    (explore_onestream_delay.py), the divider's never does, the numerator
    stream's partial 1/D costing a lookahead the pole's lead cannot buy.
-   P-C held.
+   P-C held. (The never-negative reading is a property of the law's
+   closed forms at every P, with c* = 0 attained at deep pairs:
+   explore_divider_lookahead.py.)
 
 F4 THE PROOF'S CONSTANT. A cube at 153 of 153 pairs, the sampled check
    clean (K7 never fired); N_0 from 4.39e4 to 2.52e9 ((4,3,3) at
