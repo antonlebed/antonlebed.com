@@ -279,8 +279,9 @@ F7 THE PRICING ARITHMETIC (identity + measured): the trailing price
 F8 THE SPECIMENS (rule): 2^n is leading-dead at any redundancy (a
    depth-4 fiber spans 4 output exponents, exact) yet
    trailing-READABLE at base 10 with c_min = 1 ON THE SATURATED
-   RANGE n >= t (ord(2 mod 5^t) = 4*5^{t-1} | 10^{t+1}; collision
-   at c = 0; below saturation the 2-column still ramps — 2^1 and
+   RANGE n >= t (ord(2 mod 5^t) = 4*5^{t-1} | 10^{t+1}, and | 10^t
+   from t = 2, so c = 0 reads there and the one collision at c = 0
+   is t = 1's, 2^3 against 2^13; below saturation the 2-column still ramps — 2^1 and
    2^{1+10^{t+1}} differ mod 2^t — a genuine exception family, the
    residue wall's shallow leak in mirror) and trailing-dead at
    base 3 at every n (the order tower carries the factor 2 that
@@ -914,11 +915,16 @@ def s8_specimens():
     ok(pow(2, 3, 10) != pow(2, 13, 10),
        "2^n determined at c=0 (collision missing)")
     for t in (2, 3):
+        ok(all(pow(2, n, 10**t) == pow(2, n + 10**t, 10**t)
+               for n in range(t, t + 60)),
+           f"2^n not determined mod 10^{t} by n mod 10^{t} (c=0 from t=2)")
+    for t in (2, 3):
         ok(pow(2, 1, 2**t) != pow(2, 1 + 10**(t + 1), 2**t),
            f"no shallow 2-column collision at t={t}")
     print("  2^n trailing, base 10: readable at c_min = 1 ON THE "
           "SATURATED RANGE n >= t (ord(2 mod 5^t) = 4*5^{t-1} | "
-          "10^{t+1}; c=0 collision 2^3=8 vs 2^13=..2); below "
+          "10^{t+1}; c=0 collision 2^3=8 vs 2^13=..2 at t=1, and c=0 "
+          "reads from t=2 since 4*5^{t-1} | 10^t); below "
           "saturation the 2-column still ramps (2^1 vs 2^{1+10^{t+1}}"
           " differ mod 2^t) -- the shallow-ramp exception is the "
           "residue wall's shallow leak in mirror")
