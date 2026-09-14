@@ -93,10 +93,10 @@ printed output).
 F1 THE CONTROLS HOLD. Rounds 5, 5 and 12 at 626, 785 and 11,897
    confined nodes, the record's rounds; K1 never fired.
 
-F2 THE FORCED MOVE [property, checked over 1.4 million nodes]. At every
-   node of every pair whose image is wider than the zone the legal-digit
-   count is 1, or 0 at the kill: 0 nodes with two at a wide image over
-   the 30 beta pairs and the four integer controls. The tie is exact at
+F2 THE FORCED MOVE [property, checked]. At every node of every pair
+   whose image is wider than the zone the legal-digit count is 1, or 0
+   at the kill: 0 nodes with two at a wide image over the 931,412
+   confined nodes of the 30 beta pairs and the four integer controls. The tie is exact at
    an integer radix and admits two: 16 nodes at radix 2 x y, 4 at its
    divider, none in base beta.
 
@@ -140,7 +140,7 @@ map, with the reader's narrow-box choices a perturbation worth at most
 one round where it is worth anything.
 
 RUN RECORD: pure Python, the shipped engines imported; under memwatch,
-peak commit 41 MB against the 512 MB default, wall 168 s at the pair
+peak commit 46 MB against the 512 MB default, wall 168 s at the pair
 budget 300,000 nodes and 20 s per pair, the puppets at 10 s. Prints
 reproduced by:
 python prime/code/explore_delay_choice.py [NODE_BUDGET] [WALL_SECONDS]
@@ -325,7 +325,8 @@ def main():
             print(f"  {label}: {res['two_narrow']} of {res['nodes']} nodes ({100 * res['two_narrow'] / res['nodes']:.1f}%), "
                   f"histogram {sorted(res['hist'].items())}")
     print(f"  pairs with a two-digit node: {sum(1 for _, r in rows if r['two_narrow'])} of {len(rows)}; "
-          f"nodes with 2+ legal digits at a wide or tied image over every pair: {sum(r['two_wide'] for _, r in rows)}")
+          f"nodes with 2+ legal digits at a wide image over every pair: {sum(r['two_wide'] for _, r in rows)} "
+          f"of {sum(r['nodes'] for _, r in rows)} confined nodes at the 30 pairs")
 
     print("\n=== P-D THE PUPPET: the free reader's round against the readers with the choice removed")
     for B in ds.beta_bases():
