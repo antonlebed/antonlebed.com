@@ -587,7 +587,7 @@ class BetaReader:
         round or None, the deepest round completed). Confined: the
         adversary's moves outside the excess region are skipped, which
         loses no kill and no survival (a box below the threshold has
-        an image narrower than every zone, as does every descendant)."""
+        an image no wider than any zone, as does every descendant)."""
         self.budget, self.t_end = budget, time.time() + wall
         self.confined = confined
         root = (self.B.zero,) * self.d
@@ -724,7 +724,7 @@ def deepen(B, rows, budget):
 class ConfinedGap(gl.GapReader):
     """The gap-set reader with the adversary confined to the excess
     region of the generalized law: a box whose width rate is at most
-    z_min b^L / w has an image narrower than every zone, so it and its
+    z_min b^L / w has an image no wider than any zone, so it and its
     descendants never kill."""
 
     def __init__(self, b, D, c, fmap, o):
