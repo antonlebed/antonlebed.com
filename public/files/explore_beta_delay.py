@@ -151,8 +151,9 @@ F4 THE GAME [rule at the four pairs]. Dead at L* - 1 at every pair and
    5 (626 and 785 nodes of the confined tree, where the full tree
    survived three rounds at 150,000 nodes and, at the rehearsal, the
    Narayana divider three rounds at three million): one round past the
-   contiguous and gap-set kills, the strategy delaying the kill and
-   never escaping it. The transplant held; the line's kill did not
+   contiguous and gap-set kills, the kill delayed and never escaped
+   (the delay's mechanism is explore_delay_choice.py's: the reader's
+   move is forced at every box that can kill). The transplant held; the line's kill did not
    fire, by one round.
 
 F5 THE CONFINEMENT [property, checked]. The confined tree reproduces

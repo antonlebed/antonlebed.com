@@ -99,8 +99,8 @@ F3 THE BETA ARM [rule at 27 of the 30 pairs; three unreached]. Dead at
    five pairs -- alive through round 6 -- and the deep certificate
    killed two of them: the frozen bar of six rounds was a transplant
    from bases where the kills sit at 1 to 6, and at the plastic number
-   the reader's strategy delays the kill to 9 and 12 rounds without
-   escaping it. Alive at the 60 s cap, unreached: x^2 + y at the
+   the kill is delayed to 9 and 12 rounds without escaping (the delay
+   is the excess's, not a strategy's: explore_delay_choice.py). Alive at the 60 s cap, unreached: x^2 + y at the
    Narayana root, a = 1 (round 7 completed, 670,785 nodes), and at the
    plastic number a = 2 both x y (round 8, 342,237) and the divider
    (round 7, 428,992); x^2 + y at a = 2 unreached at the Narayana root
@@ -143,11 +143,12 @@ F6 THE CONTIGUOUS ARM (--contiguous). The same confined tree at every
 
 VERDICT. Off the contiguous sets the margin law's L* is the delay at
 every one of the 41 pairs the tree reached, over three integer gap-set
-maps, five Pisot bases and two digit radii; the reader's strategy
-delays the kill -- to round 12 at the plastic number, four times the
-contiguous arm's deepest -- and never escapes it where the tree
-reaches, buying nothing where the tree reaches and at most one L at
-every unreached pair but one. The
+maps, five Pisot bases and two digit radii; the kill is delayed -- to
+round 12 at the plastic number, four times the contiguous arm's
+deepest, by the excess's small share of the zone and not by the
+reader's play (explore_delay_choice.py) -- and never escaped where the
+tree reaches, the reader buying nothing where the tree reaches and at
+most one L at every unreached pair but one. The
 frozen kill bar of six rounds was a transplant and is retired: the
 kill round is unbounded across bases as far as the sweep can see, and
 the instrument that decides a pair is the confined tree with a wall,
