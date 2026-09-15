@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The delay engines — on-line delay read, certified and tabulated</title>
+<meta name="description" content="Three scripts to run or import on the delay of an on-line unit: the many-stream engine reading a map's delay and its certificate, the piecewise delay's clause tables, and the lookahead table printing the lead, the law's L* and the lookahead of the product, the multiply–add, x² + y, the reciprocal, the root and the divider from the box width rate and the range, with the chain, Pisot-base and gap-set columns and their certifiers beside it.">
+<link rel="canonical" href="https://antonlebed.com/tools/delays">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+h3.subject { font-size: 1.05rem; margin: 1.6rem 0 0.1rem; }
+p.subject { margin: 0 0 0.3rem; color: var(--muted); }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+pre, .files {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--card);
+  border-radius: 5px;
+  padding: 0.5rem 0.6rem;
+  margin: 0.6rem 0;
+}
+.files { color: var(--muted); }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Subjects'><a href='/'>Home</a> <a href='/#specimen'>The specimen</a> <a href='/#reading'>Reading</a> <a href='/#growth'>Growth</a> <a href='/#evaluation'>Evaluation</a> <a href='/#fields'>Fields</a> <a href='/tools' class='up'>Tools</a> <a href='/claims'>What is proved</a></nav><nav class='sub' aria-label='Tools'><a href='/tools'>The library and the roster</a> <a href='/tools/delays' aria-current='page'>The delay engines</a></nav></header>
+<main>
+<h1>The delay engines</h1>
+<p class="lede">Three scripts that read the delay of an on-line unit:
+the many-stream engine, the piecewise clause tables, and the lookahead
+table that prints a unit's delay from two numbers of its map.</p>
+
+<p>An <b>on-line unit</b> reads its operands most significant digit
+first, through a signed digit set, and emits its result the same way;
+what it costs is how many input digits it must see past each output
+digit. Each script below is served verbatim at <code>/files/</code>,
+is the full record of the claim it verifies, prints its own checks in
+one Python 3 process, needs no package outside the standard library,
+and finds a sibling it imports beside itself; its run record states
+its own peak and wall time. Each entry says what to run, what to pass
+in and what it printed here; the pages that state the result and its
+tier are linked from each entry, and <a href="/claims">What is
+proved</a> lists every claim with its script.</p>
+
+<h2>The many-stream delay</h2>
+
+<p>A map of digit streams, each read through a signed digit set from
+its most significant digit, is <b>local</b> at lookahead <i>c</i> when
+its output's first <i>t</i> digits are a function of the inputs' first
+<i>t</i> + <i>c</i>, and every C² map of any number of streams that is
+not affine on the window is local at exactly the margin in its box
+width rate: with Λ the sup over the window of the gradient's L¹ norm
+Σ|∂<sub><i>i</i></sub><i>f</i>|, ρ the digit set's <b>slack</b> (its
+digits beyond the radix) and <i>o</i> the <b>lead</b> its range sets
+(the output's first digit <i>o</i> positions above the input's), the
+least <i>L</i> = <i>c</i> + <i>o</i> with <i>b<sup>L</sup></i>ρ ≥
+Λ(<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)
+(<a href="/redundancy/polynomial#many-stream-theorem">the many-stream
+theorem</a>, proved; the polynomial maps, the square root, the
+reciprocal and the divider its specimens). The engine in
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_manystream_delay.py"><code>explore_manystream_delay.py</code></a>
+reads that delay and its certificate for a map of <i>d</i> streams you
+hand it. A map is a class with three attributes, <code>name</code>,
+<code>d</code> and <code>e</code>, an integer direction along which
+the Hessian is nonzero, and ten methods, exact where a verdict rests on
+them: <code>image(us, n)</code>, the integer ends and common
+denominator (<i>lo</i>, <i>hi</i>, <i>S</i>) of the image over the box
+of the <i>n</i>-digit prefixes <code>us</code>; <code>approx(xs)</code>,
+a float; <code>window_range(Mm, Mp)</code>, the range's ends as
+fractions, for the lead; <code>law_ok(b, rho, wsum, L)</code>, the
+margin law at <i>L</i> in exact arithmetic; <code>lam()</code>, Λ;
+<code>grad_iv(box)</code> and <code>hess_e_iv(box, e)</code>, interval
+bounds on the partials and on <i>e</i><sup>T</sup><i>He</i> over a
+float box; <code>grad(xs)</code> and <code>hess_e(xs, e)</code>, the
+same at a point, for the spot check; and <code>peak(Mm, Mp)</code>, the
+corner where Λ sits. The five classes in the file — the product, the
+multiply–add, <i>x</i>² + <i>y</i>, <i>x</i>² + <i>xy</i> and the
+divider <i>x</i>/(<i>s</i> + <i>y</i>) at a pole distance — are
+templates. With <code>least_lead</code> and <code>law_L</code> reading
+the lead and <i>L</i>*, <code>ReaderD(b, am, ap, c, map, o,
+lam_law)</code> is the game at lookahead <i>c</i> and lead <i>o</i>,
+<code>lam_law</code> the law's threshold on the box width rate at the
+<i>L</i> under test: <code>scan(budget, region=True)</code> walks the
+<b>excess region</b>, the prefix boxes whose width rate exceeds that
+threshold, pruned by interval bounds on partial tuples, and returns
+the least output depth at which some box's image strictly contains an
+<b>overlap zone</b>, the interval two consecutive output cells share,
+with the input depth, the prefixes read and the count at that depth,
+or <code>None</code> first when the budget runs out;
+<code>certificate_depth(budget, confined=True)</code> plays the
+exhaustive game with the adversary's moves confined to the region,
+returning its round and the depth searched. <code>Cube</code> finds
+the ball where every partial is one-signed and the Hessian is bounded
+away from zero, <code>LineRegion</code> the proof's constant <i>N</i>₀
+along the lattice line through it, and <code>one_pair(b, am, ap, map,
+label)</code> prints the whole certificate line. The run at radices
+2..5 takes 40 s and 52 MB; the calls below took under a second.</p>
+
+<pre>&gt;&gt;&gt; from fractions import Fraction
+&gt;&gt;&gt; from explore_manystream_delay import Division, SquareCross, ReaderD, least_lead, law_L, one_pair
+&gt;&gt;&gt; f = Division(2, 1, 1, Fraction(2))     # x/(s + y) at radix 2 over {-1..1}, P = 2
+&gt;&gt;&gt; o, L = least_lead(2, 1, 1, f), law_L(2, 1, 1, f)
+&gt;&gt;&gt; o, L, L - o                            # lead, L*, lookahead c*
+(-1, 1, 2)
+&gt;&gt;&gt; W = 2.0; lam_law = (W - 1) * 2 ** (L - 1) / W   # the threshold at L* - 1
+&gt;&gt;&gt; ReaderD(2, 1, 1, L - o - 1, f, o, lam_law).scan(400_000, region=True)
+(3, 4, 83, 5)                             # dead at c* - 1: output depth 3, input depth 4
+&gt;&gt;&gt; ReaderD(2, 1, 1, L - o, f, o).scan(150_000, region=False)
+(None, 7, 86309, 65025)                   # alive at c* through input depth 7
+&gt;&gt;&gt; ReaderD(2, 1, 1, L - o - 1, f, o, lam_law).certificate_depth(150_000, confined=True)
+(3, 4)                                    # the confined tree agrees: round 3, searched to 4
+&gt;&gt;&gt; r = one_pair(3, 2, 2, SquareCross(3, 2, 2))
+  (3,2,2) : o=1 L*=2 c*=1 | L*-1: g=1.667 cube r=0.125 e=(1, 0) kappa=2 Delta=0.25 N_0=6.62e+04 [H=64] kill t=2 n=2 (region 1; line holds 1, before 0); tree 2 [3] | L*: scan clean n&lt;=4, tree survives [2] | P-D n=10 N=14761: D_N=0.004 vs B=0.96; |S_h|/vdC=0.00,0.00,0.00 (bound below N at 3 of 3)</pre>
+
+<h2>The piecewise delay</h2>
+
+<p>A map of one stream that is C² on each of finitely many pieces,
+its affine data rational, has its delay decided by three finite
+clauses: a curved piece's sup of |<i>f</i>′| against the law's
+threshold, an affine piece's lattice over one period, and a kink's
+straddlers at the depths below that period
+(<a href="/redundancy/piecewise#piecewise-theorem">the piecewise
+theorem</a>, proved). Two engines read it. In
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_piecewise_delay.py"><code>explore_piecewise_delay.py</code></a>,
+the piecewise-affine case, <code>two_piece(s_left, s_right, kappa,
+d_left)</code> builds a continuous two-piece map, the right offset
+forced by the kink; <code>Table(b, am, ap, f)</code> is the clause
+table at one digit system, <code>verdict(L)</code> which pieces and
+kinks kill at <i>L</i> with the lattice cycle's depths and
+<code>floor(Lstar)</code> the least <i>L</i> with every clause empty;
+<code>engine_floor(b, am, ap, f, o, Lstar)</code> plays the game at the
+lead <i>o</i>, the region scan and the confined tree, and returns the
+certified floor with the verdict at each <i>L</i> read, a kill as its
+output depth, input depth, prefix and whether the prefix straddles. In
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_piecewise_smooth.py"><code>explore_piecewise_smooth.py</code></a>
+the pieces are polynomials of degree at most 3, monotone on each:
+<code>PolyPieces(coeffs, kinks, Mm, Mp, name)</code> takes one
+coefficient list per piece, low to high, and the kinks in order;
+<code>TableS</code> adds the curved clause, marking a piece
+<code>'a'</code> by its sup or <code>'b'</code> by its lattice and a
+kink by the depth at which it first fires, and its
+<code>engine_floor</code> is the game. The runs at radices 2..5 take
+338 s and 213 s; the calls below took under four seconds.</p>
+
+<pre>&gt;&gt;&gt; from fractions import Fraction
+&gt;&gt;&gt; from explore_piecewise_delay import two_piece, Table, engine_floor, law_L
+&gt;&gt;&gt; from explore_onestream_delay import least_lead
+&gt;&gt;&gt; f = two_piece(Fraction(1, 2), 1, 0, 0)        # x/2 on x &lt;= 0, x on x &gt;= 0
+&gt;&gt;&gt; law_L(5, 2, 3, f), least_lead(5, 2, 3, f)      # L* and the lead at radix 5 over {-2..3}
+(1, 0)
+&gt;&gt;&gt; Table(5, 2, 3, f).verdict(0)                  # at L = 0 the slope-1/2 piece kills, the kink is empty
+({0: True, 1: False}, {0: False}, (2, 2, 2))
+&gt;&gt;&gt; engine_floor(5, 2, 3, f, 0, 1)[0]              # the game agrees: floor 1, the margin's
+1
+&gt;&gt;&gt; from explore_piecewise_smooth import specimen_below, TableS, engine_floor as engine_floor_s
+&gt;&gt;&gt; g = specimen_below(Fraction(1, 2), 1)         # x/5 + x^2/20 on x &lt;= 0, x on x &gt;= 0, at radix 3 over {-1..2}
+&gt;&gt;&gt; g.sup, TableS(3, 1, 2, g).verdict(0)          # the sup per piece; every clause empty at L = 0
+([Fraction(1, 5), Fraction(1, 1)], ({0: None, 1: None}, {0: None}, (2, 2), []))
+&gt;&gt;&gt; TableS(3, 1, 2, g).verdict(-1)                # at L = -1 the sup, the identity's lattice and the kink all fire
+({0: 'a', 1: 'b'}, {0: 0}, (2, 2), [])
+&gt;&gt;&gt; engine_floor_s(3, 1, 2, g, 0, 1)[0]            # the game's floor 0, one below the margin
+0</pre>
+
+
+<h2>The lookahead table</h2>
+
+<p>The law above makes a unit's delay a function of two numbers of
+its map, its box width rate Λ and the ends of its range, which set the
+lead. So the delays the hardware literature derives unit by unit
+— the multiplier's, the square root's, the divider's, each from its
+own selection rule — are one table, and
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_lookahead_table.py"><code>explore_lookahead_table.py</code></a>
+prints it. <code>table(b, am, ap, P)</code> takes the radix, the digit
+set {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} and, for the units
+with a pole, the <b>pole distance</b> <i>P</i>, the least value the
+radicand or the denominator takes over the window, and returns for
+each of six units — the product, the multiply–add, <i>x</i>² +
+<i>y</i>, the reciprocal 1/(<i>s</i> + <i>x</i>), the root
+√(<i>s</i> + <i>x</i>) and the divider <i>x</i>/(<i>s</i> + <i>y</i>)
+— the lead <i>o</i>, the law's <i>L</i>*, the lookahead <i>c</i>* =
+<i>L</i>* − <i>o</i>, and the value of the <b>lead law</b>: <i>c</i>*
+sits within one digit of log<sub><i>b</i></sub>(Λ<i>M</i><sup>+</sup>(<i>a</i><sup>−</sup>
++ <i>a</i><sup>+</sup>)/(<i>G</i>ρ)), <i>G</i> the range's top, so
+the map enters only through its <b>relative gradient</b> Λ/<i>G</i>,
+and a unit emits before it reads (<i>c</i>* &lt; 0) exactly where that
+ratio falls along its family — the reciprocal and the root without
+bound as <i>P</i> grows, the divider never (a property, both halves
+closed forms;
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_lead_law.py"><code>explore_lead_law.py</code></a>,
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_divider_lookahead.py"><code>explore_divider_lookahead.py</code></a>).
+The floor is
+<a href="/redundancy/polynomial#many-stream-theorem">the many-stream
+theorem</a>'s, proved at every contiguous digit set;
+<code>Unit(name, lam, lo, hi)</code> is the template for a unit of your
+own, its rate and its range's ends as exact rationals.</p>
+
+<p>Three columns stand beside the table. <code>chain_rows(b, am,
+ap)</code> is the <b>chain column</b>, one unit's digit stream fed to
+a second: for the multiplier feeding an adder, a product consumer
+(<i>xy</i>)<i>z</i> and a sum-fed consumer <i>z</i>(<i>x</i> +
+<i>y</i>) it prints the naive delay, the sum of the two units' floors,
+and the floor <a href="/redundancy/chains#chained-delay">the escape
+law</a> admits, marking a chain that reads below the sum; at slack 1
+the mark is the <b>threshold-miss law</b>, a gain exactly where the
+consumer's own threshold is missed by at most the producer's budget
+(the product-fed root 1/φ, the sum-fed <i>b</i>/(<i>b</i> + 2); a
+property, the gain cells a rule to radix 40;
+<a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_threshold_miss.py"><code>explore_threshold_miss.py</code></a>).
+<code>beta_row(B, f)</code> is the <b>Pisot column</b>, the law read in
+a base β that is not an integer — a Pisot unit, the streams and the
+output over {−<i>a</i>..<i>a</i>} — and <code>certify_beta(B, f)</code>
+its certifier, the level walk at <i>L</i>* − 1, which carries one
+number per box and no game and returns the round at which the forced
+reader dies; <code>gap_row(b, D, f)</code> is the <b>gap-set
+column</b>, the law over a digit set <i>D</i> with a gap, the slack
+replaced by the least overlap of the set's cells, and
+<code>certify_gap(b, D, f, L)</code> the confined tree that decides the
+delay below it. Both are the many-stream theorem's clauses for those
+numerations, where the delay is a rule at the pairs certified and the
+law's sufficiency a property. The run at radices 2..5, which checks
+every closed form against the engines' own loops at 243 pairs, takes
+1 s and 74 MB; the calls below took under half a second.</p>
+
+<pre>&gt;&gt;&gt; from fractions import Fraction
+&gt;&gt;&gt; from explore_lookahead_table import table, chain_rows, beta_base, beta_row, certify_beta, gap_row, certify_gap
+&gt;&gt;&gt; t = table(4, 2, 2, Fraction(1, 3))         # radix 4 over {-2..2}, the pole units at P = 1/3
+&gt;&gt;&gt; t["x y"], t["x/(s+y)"]                      # (lead, L*, lookahead, the lead law's value)
+((0, 2, 2, 1.5), (1, 3, 2, 1.7924812503605783))
+&gt;&gt;&gt; table(4, 2, 2, 32)["1/(s+x)"]               # the reciprocal at a deep pole emits two digits before it reads
+(-2, -4, -2, -1.7924812503605783)
+&gt;&gt;&gt; chain_rows(4, 2, 2)                         # naive, floor, gain, the threshold-miss law's verdict
+{'(x y) + z': (4, 4, False, None), '(x y) z': (4, 3, True, True), 'z (x + y)': (3, 3, False, False)}
+&gt;&gt;&gt; import explore_beta_delay as bd
+&gt;&gt;&gt; B = beta_base("golden")
+&gt;&gt;&gt; beta_row(B, bd.BProduct(B)), certify_beta(B, bd.BProduct(B))
+((4, 1, 3), (5, 1976, 5))                       # L* = 4 at lead 1; the walk at L = 3 kills at round 5, 1976 boxes
+&gt;&gt;&gt; import explore_manystream_delay as ms
+&gt;&gt;&gt; f = ms.Product(3, 3, 2)
+&gt;&gt;&gt; gap_row(3, (-3, -1, 0, 1, 2), f), certify_gap(3, (-3, -1, 0, 1, 2), f, 2)
+((3, 1, Fraction(1, 2)), (4, 3, 36539))         # L* = 3, lead 1, least zone 1/2; the tree at L = 2 kills at round 4</pre>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

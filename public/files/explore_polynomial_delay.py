@@ -56,8 +56,9 @@ THE MULTIPLY-ADD'S LAW, Lip1 = 2 Mh + 1:
 
     b^L (b-1) rho >= (2 ah + b - 1)(am + ap),
 
-one lookahead above the product's at radix 2 ((2,1,1): L* = 3 against
-the product's c* = 2) and equal to it wherever the product's excess
+its L* one above the product's at radix 2 ((2,1,1): L* = 3 against
+the product's 2, the lead 1 against 0, the lookahead c* = 2 at both)
+and equal to it wherever the product's excess
 was slack enough. x^2 + y shares it (Lip1 = 2 Mh + 1 again); the
 three-stream sum x + y + z has Lip1 = 3, the law b^L rho >= 3(am + ap).
 

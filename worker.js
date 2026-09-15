@@ -147,6 +147,7 @@ export default {
       '/principal/generator': 'generator',
       '/principal/observatory': 'observatory',
       '/principal/jumpset': 'jumpset',
+      '/tools/delays': 'delays',
       '/claims': 'claims',
       '/tools': 'tools',
       '/claims/object': 'claims-object',

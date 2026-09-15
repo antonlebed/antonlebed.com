@@ -304,9 +304,10 @@ class Walk(bd.BetaReader):
         B = self.B
         return tuple(B.sub(u1, B.mul(B.beta, u))[0] for u, u1 in zip(us, us1))
 
-    def walk(self, r_stop, cap, wall):
-        """Rounds 1..r_stop (or until the level cap or the wall); per
-        round a dict of prints. States: (us, n, q, t, eta, eta_A, lo_f)."""
+    def walk(self, r_stop, cap, wall, stop_dead=False):
+        """Rounds 1..r_stop (or until the level cap or the wall, or, with
+        stop_dead, the first round with a dead box); per round a dict of
+        prints. States: (us, n, q, t, eta, eta_A, lo_f)."""
         t_end = time.time() + wall
         B, w, a = self.B, self.wf, self.a
         level = [((B.zero,) * self.d, 0, B.zero, 0, None, None, None)]
@@ -363,6 +364,8 @@ class Walk(bd.BetaReader):
             GA, NA = circle_gap(deltas_A) if r_open is not None and r > r_open else (None, 0)
             rounds.append(dict(r=r, n=max(0, r + self.c), boxes=nboxes, killable=killable, NB=NB, GB=GB,
                                NA=NA, GA=GA, gmax=gmax, dead=dead))
+            if stop_dead and dead:
+                return rounds, r_open, r, total
             level = nxt
             if not level:
                 break
