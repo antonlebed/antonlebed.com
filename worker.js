@@ -97,6 +97,7 @@ export default {
       '/redundancy/output': 'output',
       '/redundancy/redundant': 'redundant',
       '/redundancy/polynomial': 'polynomial',
+      '/redundancy/piecewise': 'piecewise',
       '/redundancy/chains': 'chains',
       '/measure': 'measure',
       '/measure/worlds': 'worlds',
