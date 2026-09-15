@@ -44,9 +44,11 @@ j < J differ by a height-1 vector of flattening >= J, and m_j over
 0/1 vectors ranges in [0, C(M, j+1)]; so h(M, J) = 1 whenever
 2^M > prod_{j<J} (C(M, j+1) + 1) (property, proved by counting). The
 floor grows as sqrt(2M / log2 M) in J, while the binary products
-(x-1)(x^2-1)(x^4-1)... give flattening floor(log2 M) at height 1; the
-floor passes the products only near M ~ 500-1000, far past any
-exhaustive chart. So whatever the chart prints for the height-1
+(x-1)(x^2-1)(x^4-1)... give flattening floor(log2 M) at height 1; by
+this count the floor passes the binary products near M ~ 230, far past
+any exhaustive chart, and never the classical distinct-part products
+(F3), whose degrees grow about quadratically in J. So whatever the
+chart prints for the height-1
 diagonal, its asymptote is NOT settled here, and the record must say
 so.
 
