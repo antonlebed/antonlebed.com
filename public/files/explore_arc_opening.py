@@ -184,7 +184,9 @@ round n_open - c. At L* the excess is at most 0 and no box opens, the
 margin law's sufficiency in one line; below it the tree kills 0 to 2
 rounds past the opening at every one of 25 pairs, so the certificate
 depth is the formula plus two. Open: the lag's proof, and its
-mechanism, which the overshoot bounds on one side only.
+mechanism, which the overshoot bounds on one side only (read since as
+the forced level walk's covering plus 0 or 1, explore_covering_lag.py
+F5; the closed form and the lag rule stand as printed here).
 
 RUN RECORD: pure Python, the shipped engines imported; boxes walked
 level by level, a level capped at LEVEL_CAP boxes and a pair at WALL
