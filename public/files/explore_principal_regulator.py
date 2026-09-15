@@ -229,7 +229,7 @@ asking how many chances it would get.
 WHAT THIS CLOSES.  The standing objection to the cycle-length refutation
 was that the theory names a SIZE and only a COUNT had been killed.  Over
 real quadratic fields at fixed h+ that distinction does not exist: the
-class number formula ties h+ R+ to 2 sqrt(D) L(1, chi), and the mean step
+class number formula ties h+ R+ to sqrt(D) L(1, chi), and the mean step
 ties R+ to l.  The |D| gradient at fixed h+ still has no mechanism, and
 finding one now needs a population where the regulator and h+ move
 INDEPENDENTLY -- which quadratic fields do not supply, and which is a
