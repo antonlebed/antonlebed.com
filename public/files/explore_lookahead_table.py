@@ -438,9 +438,12 @@ def print_chain(bmax):
                 ok(gain == law, f"K3 ({b},{am},{ap}) {name}: search {gain}, law {law}")
         print(f"  ({b},{am},{ap}) rho={rho} | " + " | ".join(parts))
     print(f"  gains: {gains}; the law checked at {checked} slack-1 rows")
+    # the record's gain cells within the radices swept
+    want_p = [c for c in [(4, 2, 2)] if c[0] <= bmax]
+    want_s = [c for c in [(5, 2, 3), (5, 3, 2)] if c[0] <= bmax]
     ok(gains.get("(x y) + z") is None, "K3 the aligned adder gains somewhere")
-    ok(gains.get("(x y) z") == [(4, 2, 2)], f"K3 (x y) z gains at {gains.get('(x y) z')}")
-    ok(gains.get("z (x + y)") == [(5, 2, 3), (5, 3, 2)], f"K3 z (x + y) gains at {gains.get('z (x + y)')}")
+    ok(gains.get("(x y) z", []) == want_p, f"K3 (x y) z gains at {gains.get('(x y) z')}")
+    ok(gains.get("z (x + y)", []) == want_s, f"K3 z (x + y) gains at {gains.get('z (x + y)')}")
 
 
 def print_beta():
