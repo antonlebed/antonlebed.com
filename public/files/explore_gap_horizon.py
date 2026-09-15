@@ -150,7 +150,9 @@ F2 THE 42 PAIRS [rule at the 30 state-dependent pairs]. The depth-2
    CENTER at exactly its three losses: the divider over
    {-3, -2, -1, 0, 2} (4 against CENTER's 2), x y over
    {-3, -1, 0, 1, 2} and the divider over {-2, 0, 1, 2, 3} (4 against
-   3), at the free reader's node count at the first and third. The
+   3), at the node count of the fixed puppet that matches the free
+   round at the first and third (31,313 and 283,376) and at the free
+   reader's own at the second (36,539). The
    reading in P-B held at its lower end (0 of 30), and P-C held (below
    CENTER at 0 of 42).
 
@@ -172,8 +174,9 @@ VERDICT. The reader's game at a state-dependent gap set has no
 bounded horizon: a two-node lookahead under the midpoint score buys
 every round the free reader buys where the deepest kill is round 4
 and one round fewer where it is round 6, the ladder rising one round
-per depth (4, 4, 5 against 6), and at kills of round 8 or deeper the
-one-step puppet falls two or more rounds short. The reader at a
+per depth (4, 4, 5 against 6), and at the two pairs alive past round
+7 the one-step puppet dies at 6 and 7, at least two and one rounds
+short. The reader at a
 state-dependent set is a search whose depth grows with the round it
 certifies, and the confined tree is not replaced by a fixed-depth
 rule at any digit set where the choice is real.
