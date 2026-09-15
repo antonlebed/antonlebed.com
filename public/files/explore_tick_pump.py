@@ -288,8 +288,8 @@ F1 THE TICK LADDER IS LAMBDA'S JUMP SET, AND A NUMBER RING'S GAP IS ITS
    rather than tolerated.
    CORRECTED BY explore_head_width.py F2: "p - 1 <= e" is a true statement
    ABOUT these 90 places and not a criterion. A head needs f = 1, mu_p in
-   K_P and e = (p-1)p^t, and the two conditions part at 8 of 23 places read
-   across 20 local fields — including both inert places over 2, which no
+   K_P and e = (p-1)p^t, and the two conditions part at 9 of 24 places read
+   across 21 local fields — including both inert places over 2, which no
    ring here has. The 90 hold because every ring here is quadratic.
    AND THE LADDER THIS SECTION HANDS A PLACE IS THE TAIL ALONE, which is not
    the ladder the sections below read. explore_headed_ladder.py F1 finds
