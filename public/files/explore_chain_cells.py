@@ -90,7 +90,7 @@ F3 THE GOLDEN WINDOW [rule to radix 40; the reduction proved]. The
    down to +0.001 at (22,9,13). The nearest miss at every other radix
    but 20 is the cell (b, 2, b - 1), slack 2 and Mh = 1, where
    E2(1) = w - 1 and E2 - S = 2w/b^2 exactly, a miss that shrinks as
-   1/b^2 and never closes; at radix 20 the slack-1 cell (20,8,12),
+   1/b^2 and never closes (radix 2 has no such cell); at radix 20 the slack-1 cell (20,8,12),
    Mh = 12/19 just outside the window, misses by 8/5415.
 F4 P3 HELD: the symmetric cells (b, b/2, b/2) have L2* = 1 at every
    even b from 6 to 40, their Mh = b/(2 (b - 1)) below 1/phi from
