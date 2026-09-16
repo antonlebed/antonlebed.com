@@ -139,7 +139,7 @@ RESULTS (the run below prints the record; all confirmed):
      q_min - 1 everywhere; no sub-law realization anywhere swept.
   P5 conics row (odd d <= 121): primes {3, 5} + odd multiples of 3
      -- reproduces the earlier census (5, 9, 15 in; 25, 35 out); tax witnesses
-     (5 vs 25/35: 2 vs 4; 7 vs 49/77: 3 vs 6; 13 vs 143: 5 vs 10).
+     (5 vs 25/35: 2 vs 4; 7 vs 49/77: 3 vs 6; 13 vs 169: 5 vs 12).
   P6 verdicts reproduced at second primes: (15, 61), (25, 151),
      (35, 211).
 
@@ -537,9 +537,9 @@ check(set(conics) == {3, 5} | {d for d in range(9, 122, 2) if d % 3 == 0},
       f"-- 5, 9, 15 in; 25, 35 out (reproduced)")
 check(law(5) == 2 < 4 == law(25) == law(35)
       and law(7) == 3 < 6 == law(49) == law(77)
-      and law(13) == 5 < 10 == law(143),
+      and law(13) == 5 < 12 == law(169),
       "the composite tax: 5 vs 25/35 = 2 vs 4; 7 vs 49/77 = 3 vs 6; "
-      "13 vs 143 = 5 vs 10")
+      "13 vs 169 = 5 vs 12")
 print("  D_min, odd d <= 121:")
 print("   " + "  ".join(f"{d}:{law(d)}" for d in range(3, 122, 2)))
 

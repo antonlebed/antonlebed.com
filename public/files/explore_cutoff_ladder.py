@@ -39,7 +39,8 @@ CL2 (the ceiling identity). v(u^{p^{m+1}} - 1) = v(u^{p^m} - 1)
 CL3 (the value menu + the trichotomy one layer up). The matching walk
     that computes delta stops only at non-psi-image levels; the image
     of psi on (0, i*] covers p*Z inside (i*, p*i*], so
-      delta in {l in (i*, p*i*) : p ∤ l} u {p*i*} u {inf}.
+      delta in {l in (i*, p*i*) : p ∤ l} u {p*i*} u {inf}   (p | i*;
+    at p ∤ i* no p-th power of a 1-unit sits at level i*: delta = i*).
     (e = 2, p = 2: {3} u {4} u {inf} — ONE ramified value exists,
     which is why all four ramified quadratics share the cut 3/2.)
     Trichotomy, all p, m = 1: K(zeta_{p^2})/K is RAMIFIED iff

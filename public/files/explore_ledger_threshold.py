@@ -16,8 +16,8 @@ alpha -> 0, and a designed COUNT-weighted reserve thrives-for-all-reward iff den
 (threshold rho_c = limsup nt_frac, DEGENERATE at 0 under the conjecture). Two remainders
 burn. (i) Is alpha -> 0 provable UNCONDITIONALLY, or is it genuinely analytic (BV/BFI)?
 (ii) Is there a DESIGNED growth fate whose threshold is a NONTRIVIAL analytic constant,
-not a degenerate 0? Notable if true: a combinatorial reserve-solvency threshold sitting at an
-irrational analytic value.
+not a degenerate 0? Notable if true: a combinatorial reserve-solvency threshold sitting at a
+named analytic value.
 
 THE HINGE: both remainders are the SAME object —
 COLLISIONS (a prime power q^a dividing several shifted primes p-1). Let
@@ -38,7 +38,7 @@ P+(m) = largest prime factor of m. theta(x) = Sum_{p<=x} log p ~ x (Mertens/PNT)
 log phi(p_k#) = Sum_{i<=k} log(p_i - 1) ~ theta(p_k). The complexity-ledger raise at a
 non-transparent NEW-prime step is dominated by log P+(p-1) (explore_complexity_ledger.py,
 CL1: new prime == P+(p-1), 100% in range). Golomb-Dickman constant lambda_GD =
-0.6243299... = the mean of log P+(n)/log n over integers n (a Dickman integral, irrational).
+0.6243299... = the mean of log P+(n)/log n over integers n (a Dickman integral).
 
 PREDICTIONS (fixed before the run), FR1-FR4:
 
@@ -85,7 +85,7 @@ PREDICTIONS (fixed before the run), FR1-FR4:
     Golomb-Dickman constant lambda_GD' (~0.6243: Pomerance's conjecture, a THEOREM under
     Elliott-Halberstam -- Granville/Wang, the mean-from-distribution bridge elementary;
     full PD spectrum Bharadwaj-Rodgers arXiv:2402.11884; unconditionally open).
-    NONTRIVIAL, irrational, UNconditionally positive
+    NONTRIVIAL, UNconditionally positive
     and STABLE -- unlike alpha's decline and unlike explore_complexity_ledger.py's
     degenerate 0. Assert (the DATA,
     not the algebraically-forced sign): rho_c(k) in (0.5, 0.65) at every milestone and
@@ -165,7 +165,7 @@ FINDINGS (tier-labeled; run record at bottom; all sections assert).
    alpha DECLINES 0.2963 -> 0.1651, and rho_c > alpha at every milestone. The crossover:
    rho = 0.55 sinks (R = -3036), rho = 0.60 thrives (R = +2184), so the threshold sits at
    rho_c ~ 0.58 in range. Notably: a purely combinatorial reserve-solvency threshold
-   (does the reserve stay solvent for a given reward?) sitting at an IRRATIONAL analytic
+   (does the reserve stay solvent for a given reward?) sitting at a NAMED analytic
    value. Its LIMIT is the Golomb-Dickman constant lambda_GD = 0.6243 under
    Elliott-Halberstam (Dickman governance of P+(p-1): Pomerance's conjecture, conditional
    proof Granville/Wang; unconditionally open),
@@ -184,7 +184,7 @@ explore_collision_equivalence.py; face i). The SIZE reserve (multiplicity / prod
 every occurrence, so its threshold is a positive nontrivial constant (~0.58 in range,
 the Golomb-Dickman constant under EH) (face ii). Collisions are the
 hinge: the same prime-power repeats that make the count-threshold degenerate-and-hard
-make the size-threshold an irrational analytic
+make the size-threshold a named analytic
 value.
 
 RUN RECORD (this file, ~2 s, 14 checks, well under 512 MB, no numpy; all sections assert).

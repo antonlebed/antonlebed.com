@@ -40,7 +40,7 @@ TWO STRUCTURED SUB-FAMILIES populate the zoo.
     event E; rho_c = delta (a log-weighted density = the natural density, PNT-in-AP).
     - E = "p == 1 mod 4"                -> delta = 1/2 (rational; Dirichlet/Chebotarev).
     - E = "2 is a primitive root mod p" -> delta = ARTIN's constant A = 0.3739558...
-      (irrational; NOT a single Chebotarev class -- an infinite Kummer intersection,
+      (NOT a single Chebotarev class -- an infinite Kummer intersection,
       hence Hooley under GRH). Cheap: 2 is a primitive root iff for every prime
       q | (p-1), 2^((p-1)/q) != 1 (mod p); the factorization of p-1 is already in hand,
       and base 2 carries no Artin correction.
@@ -75,7 +75,7 @@ edit copying printed output):
     realizes ANY nonnegative prime log-average as a solvency threshold; every value is
     trivially reachable by scaling (w = c*log p), so the content is which STRUCTURED weights
     hit which NAMED constants, charted by two families (rank -> a PD spectrum with Sum = 1;
-    density -> the density itself). The zoo prints three named irrational
+    density -> the density itself). The zoo prints three named
     constants as reserve thresholds -- Golomb-Dickman 0.6243 (rank 1), the PD second
     moment ~0.21 (rank 2), Artin 0.3739 (density) -- plus rational anchors (1/2, and 1.0
     for w = log p), all mutually distinct in range. THIS is the lateral escape EXECUTED:
@@ -113,7 +113,7 @@ reserve computes nothing the incumbent does not. The vertigo is that a designed-
 economy's solvency boundary IS exactly these constants. The Dirichlet-abscissa
 solvency mechanism (a geometric rather than Cesaro criterion), left open here as a
 possible third kind, was settled by explore_abscissa_reserve.py: NO third constant --
-the abscissa is the settled end.
+the abscissa is the smooth end.
 
 FINDINGS (run record at bottom; all sections assert).
 
@@ -156,7 +156,7 @@ FINDINGS (run record at bottom; all sections assert).
    solvency threshold -- so every value in [0, inf) is reachable (trivially, by scaling
    w = c*log p), and the content is which STRUCTURED weights land on which NAMED constants,
    charted by two families -- RANK (a PD spectrum with Sum = 1) and DENSITY (the density
-   itself). Three named irrational constants appear as reserve thresholds,
+   itself). Three named analytic constants appear as reserve thresholds,
    mutually distinct and ORDERED in range: PD_2 0.1931 < Artin 0.3749 < Golomb-Dickman
    0.5791, alongside rational anchors (1/2 for p==1 mod4, 1.0 for w=log p). This is the
    broader answer worked out above: not one third constant but the
@@ -497,12 +497,12 @@ def section_FR4(rr, d_pr2, d_p14):
         ("p == 1 mod 4 density",   "rational",   0.5,        d_p14),
         ("rank 1  log P+(p-1)",    "Golomb-Dickman", LAMBDA_GD, rr[0]),
     ]
-    # the three IRRATIONAL named constants realized must be mutually distinct in range
+    # the three named analytic constants realized must be mutually distinct in range
     vals = [rr[0], rr[1], d_pr2]             # GD, PD_2, Artin (in-range)
     distinct = (abs(vals[0] - vals[1]) > 0.1 and abs(vals[0] - vals[2]) > 0.1
                 and abs(vals[1] - vals[2]) > 0.1)
     ok(distinct,
-       "FR4: the three named irrational thresholds (GD, PD_2, Artin) are distinct in range")
+       "FR4: the three named analytic thresholds (GD, PD_2, Artin) are distinct in range")
     ok(rr[1] < d_pr2 < rr[0],
        "FR4: the zoo is ORDERED PD_2 < Artin < GD in range (rank2 < density < rank1)")
     print(f"    {'weight w(p)':>24} {'kind':>16} {'conj limit':>11} {'in-range':>9}")

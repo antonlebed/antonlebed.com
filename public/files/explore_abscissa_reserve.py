@@ -1,5 +1,5 @@
 """explore_abscissa_reserve.py -- the Dirichlet-abscissa reserve
-(the settled end).
+(the smooth end).
 
 THE QUESTION. explore_complexity_ledger.py, explore_ledger_threshold.py, and
 explore_reserve_zoo.py built reserves whose solvency threshold is a CESARO
@@ -38,7 +38,7 @@ extending the Bombieri-Friedlander-Iwaniec mean-value range; Baker-Harman 1998 g
 Fouvry-Grupp -> Friedlander 1/(2 sqrt e)). Each dyadic block (x, 2x] then contributes
 >= x^(1 - beta*s)/(log x)^C to D(s), so D(s) DIVERGES UNCONDITIONALLY for every
 s < 1/0.2844 ~ 3.52 -- in particular at s = 1, 2, 3 computed here. sigma_c > 3.51 is
-a theorem; ONLY the endpoint sigma_c = +inf (divergence at EVERY s) is open, with
+a theorem; divergence past 3.52, so the endpoint sigma_c = +inf, is open, with
 Pierpont infinitude a sufficient certificate (Erdos's friability conjecture, a
 density-count statement, is another route). The first draft's clean two-kinds map
 ("density-hard vs existence-hard") over-read: the fixed-s tail questions are
@@ -52,8 +52,8 @@ TWO ENDS of the P+ distribution (the inversion -- computed, robust):
                                          s ~ 3.52, existence-shaped only at the
                                          sigma_c = +inf endpoint (Pierpont sufficient)
 The "third KIND" of reserve is NOT a third constant and NOT a clean third hardness:
-the abscissa is the SETTLED end of the distribution -- both ends are governed by one
-circle (shifted-prime level of distribution), open at the bulk, proved at the tail.
+the abscissa is the SMOOTH end of the distribution -- both ends are governed by one
+circle (shifted-prime level of distribution), open at the bulk, proved below 3.51 at the tail.
 
 PREDICTIONS AR1-AR4 (fixed before the run; worked by hand before this script existed;
 findings below were entered afterward from the script's own printed output):
@@ -109,7 +109,7 @@ is a property (5 known Fermat primes in range; the finiteness itself conjectural
 the smooth-count growth an observation. AR3 is the argument that the abscissa realizes
 no new analytic constant; its hardness reading is corrected by the pin -- divergence at
 every s < 1/0.2844 ~ 3.52 is a THEOREM (Lichtman/Baker-Harman friable-shifted-prime
-counts, the BFI circle), sigma_c > 3.51, and only sigma_c = +inf stays open, with
+counts, the BFI circle), sigma_c > 3.51, and divergence past 3.52 stays open, with
 smooth-shifted-prime existence (Pierpont, Pi_2, explore_conjecture_bridge.py) a SUFFICIENT
 certificate, not an equivalent. AR4 is an observation isolating the shift's signature, which
 lives at the ENDPOINT: integer sigma_c = +inf is provable (3-smooth integers are infinite),
@@ -150,13 +150,13 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
                         (explore_complexity_ledger.py / explore_ledger_threshold.py /
                         explore_reserve_zoo.py: Fouvry-BFI for the Dickman Golomb-Dickman/PD
                         constants, GRH for Artin);
-     DIRICHLET absc. -> SMOOTH tail (rough only 0.046 of D(2)) -> NO constant: divergence
+     DIRICHLET absc. -> SMOOTH tail (rough only 0.046 of D(2)) -> NO constant expected: divergence
                         PROVED for s < ~3.52 (the same BFI circle -- Lichtman extends the
-                        BFI mean-value range), open only at the sigma_c = +inf endpoint,
+                        BFI mean-value range), open past it, and at the sigma_c = +inf endpoint
                         where Pierpont/Fermat existence (Sigma_1/Pi_2, explore_conjecture_bridge.py)
                         is the sufficient certificate.
    So the "third KIND" of reserve this question asked for is neither a third constant nor a
-   clean third hardness: the abscissa is the SETTLED end -- one circle (shifted-prime
+   clean third hardness: the abscissa is the SMOOTH end -- one circle (shifted-prime
    level of distribution) governs both ends, conjectural at the bulk, proved at the tail,
    existence-shaped only at the tail's endpoint. The honest lateral resolution of the
    third-weighting question.
@@ -188,7 +188,7 @@ factually wrong -- divergence there is a theorem (friable shifted primes: Baker-
 beta 0.2961, Lichtman 2022 arXiv:2211.09641 beta 0.2843, counts >> x/(log x)^C per dyadic
 block; Thm 1.1 + intro chronology read in the primary at audit time -- the statement, not
 the proof). The computed findings (the inversion, the growth table, the control)
-were unaffected; the headline was recast from "third hardness" to "the settled end."
+were unaffected; the headline was recast from "third hardness" to "the smooth end."
 Predictions AR1-AR4 were worked by hand before this script existed. A calibration bias was
 caught: the first pass's hand thresholds were miscalibrated -- AR1(a) guessed the
 rough log-mass fraction > 0.85 (actual 0.7456) and AR4 tested a small-q-band fraction > 0.70
@@ -202,7 +202,7 @@ integer control (C_3 = 100 >> 31, reciprocal rough-fraction 0.0321).
 Related: explore_conjecture_bridge.py (the fate-conjecture functor, the Sigma_1/Pi_2
 existence hierarchy); explore_complexity_ledger.py / explore_ledger_threshold.py /
 explore_reserve_zoo.py (the Cesaro reserve zoo, the density constants); this script studies
-the abscissa mechanism, the settled end, unifying the two.
+the abscissa mechanism, the smooth end, unifying the two.
 """
 
 import sys
@@ -499,7 +499,7 @@ def section_AR4(ps):
 
 def main():
     print("=" * 72)
-    print("THE DIRICHLET-ABSCISSA RESERVE  -  the settled end")
+    print("THE DIRICHLET-ABSCISSA RESERVE  -  the smooth end")
     print("=" * 72)
     ps, pp, logpp, rough = build()
     print(f"trajectory: primorial schedule k=1..{K_MAX}, p_max={ps[-1]} "

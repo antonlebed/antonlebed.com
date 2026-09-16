@@ -96,10 +96,11 @@ PREDICTIONS (stated before the run):
         units a != 1, so 2 = NOT(-1), and induction c = NOT(-(c-1))
         generates EVERY constant as a word in one graded leaf; then
         [x = c] = gate_1(x c^-1) pins every unit residue exactly
-        (0 and 1 are the pair bits'). The meadow inverse is the
-        WALL-BREAKER: every measurement wall in the hierarchy --
-        including the single-leaf wall -- is a fact about
-        inverse-free alphabets; total division buys omniscience.
+        (0 and 1 are the pair bits'). FREE NESTING is the
+        WALL-BREAKER (the inverse is itself the power x^(lambda-1),
+        so NOT and MUL alone close): every measurement wall in the
+        hierarchy -- including the single-leaf wall -- is a fact
+        about alphabets that apply NOT only to letters.
  P6 (rule): RING LEVEL. All reads are ring polynomials assembling
     per channel (gates of CRT words); on RAD the d(240) = 20
     equality-grading rungs are distinct as relations; the deciding
@@ -533,7 +534,7 @@ for p in P31:
 check(ok, "meadow-term closure from EVERY graded start = all of F_p "
           "(exhaustive p <= 31): every constant is a word, [x = c] = "
           "gate_1(x c^-1) -- the full meadow family identifies every "
-          "residue; all measurement walls are inverse-free facts")
+          "residue; all measurement walls are letter-NOT facts")
 
 # ----------------------------------------------------------------------
 section("VI. RING LEVEL (RAD)")

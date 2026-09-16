@@ -73,7 +73,7 @@ THE THEOREM (all censused shapes are corollaries): windows
     (2^mu - 1 intermediate | 3e/2 - 1 top); skeleton constants at
     e/2 and 5e/4 only (one at e = 2; the j = 3 constant at 2e + e/8
     NEVER enters any window); blind rungs; the unique no-stop
-    vector; the lock w_1 = 1; the m = 1 law p(i*+1); the odd-c
+    vector; the lock w_1 = 1 (e > 2; at e = 2 its +1 cancels w_1); the m = 1 law p(i*+1); the odd-c
     no-bonus. NEW COROLLARY C7: zeta_{2e} makes the class-1 game
     literally stopless (zeta^e = -1), and Q_2(zeta_{2e}) is the only
     e-window containing it => the digit vector of

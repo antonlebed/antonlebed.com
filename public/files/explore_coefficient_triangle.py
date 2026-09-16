@@ -39,8 +39,8 @@ digits.
 THE HAND DERIVATION (on paper, before the engine).
 
 H1  THE FIXED-POINT EQUATION. F(pi) = 0 reads pi^e = p (d - sum b_i
-    pi^i) = p D, so w = -p/pi^e = -1/D, and inside the digit ring,
-    where p = -w pi^e, D = d_0 + sum_{k>=1} delta_k (-w)^k pi^{ke}
+    pi^i) = p D, so w = -p/pi^e = -1/D (+1/D at p = 2), and inside the
+    digit ring, where p = -w pi^e (2 = w pi^e at p = 2), D = d_0 + sum_{k>=1} delta_k (-w)^k pi^{ke}
     - sum_{i,k} beta_{i,k} (-w)^k pi^{i+ke}: each coefficient digit
     enters as a monomial at ITS level times a power of w, whose
     digit-0 is 1. So D = d_0 (1 + E) with E a sum of terms each of
