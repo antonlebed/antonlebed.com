@@ -39,7 +39,10 @@ THE DERIVATION, before the engine.
   is alive-able. THE GAP: for numerator p the largest alive-able slope
   is p / (p + ceil((p - 1)(b - 1)/rho)), so nothing is alive-able
   strictly between sigma_gap = max_p of that and 1, and the p = 2
-  value 2 / (2 + ceil((b - 1)/rho)) is predicted to be the max. A map
+  value 2 / (2 + ceil((b - 1)/rho)) is predicted to be the max
+  (corrected post-run: the max over p >= 2; at p = 1 the slope 1/2 is
+  alive-able at every cell, W - 2 rho <= b - 1 holding whenever
+  rho >= 1, so the gap is (max(1/2, sigma_gap), 1)). A map
   tracking the curve where the curve's slope lies in the gap must
   ZIGZAG between slope 1 and slopes at or below sigma_gap, each piece
   no longer than 2 eps over the slope mismatch.
