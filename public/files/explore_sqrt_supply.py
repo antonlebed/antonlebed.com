@@ -254,7 +254,7 @@ output; run record at the end).
    W_d * sqrt(g) >= g fails for g > W_d^2 (S4: divergence at b^2). Faster
    growth (K grows/INC) does not help (K*W_d >= sqrt(g) fails for large
    g), and a value-dependent grow schedule is the REGRESS: reaching
-   value 100 at base 3 needs 1089 grows BEFORE counting, and timing them
+   value 100 at base 3 needs 1090 grows BEFORE counting, and timing them
    needs the very unbounded counter being built.
 
 4. BORN-AT-ZERO BOUNDS EVERY SCHEME'S CAPACITY TO const * m_frontier
@@ -355,7 +355,7 @@ lcm(3,4,5)-1; grow mod 7 born 0 where the invariant needs V mod 7 = 1,
 so the lcm freezes at 60). S4 the cap + the boundary (sqrt cap
 {2:4, 3:9, 4:16, 5:25} = b^2; on the LINEAR supply m_g = ceil(g/3) < g
 the b=4 counter runs 600 INCs UNCAPPED while the same counter caps at 16
-on sqrt -- linear is universal; pre-provision regress 1089 grows for
+on sqrt -- linear is universal; pre-provision regress 1090 grows for
 value 100 at base 3). S5 verdict (sqrt cap at g > b^2 = 9; log
 b*log2(g) << g). The frozen predictions all confirmed on the first run
 (PR4 sharper -- cap exactly W_d^2); two post-run refinements followed:
