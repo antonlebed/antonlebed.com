@@ -197,17 +197,31 @@ or above, and the canonical sublinear supply
 <i>m<sub>g</sub></i> = max(2, ⌈√<i>g</i>⌉) is the <b>sqrt pole</b>. A
 bounded supply leaves the machine finite-state and a linear one makes
 it universal (<a href="/computation/recovery#supply-law">the supply
-law</a>); everything here is the band between. A <b>rider</b> is a
+law</a>); everything here is the band between. A supply linear on some stretches
+and slow on others is neither, and nothing here places it. A <b>rider</b> is a
 counter held as a residue in one <b>pointed</b> window at the frontier,
 the window a pointer register singles out; its
 zero-test <b>fires</b> when the value wraps to 0, a fire is
 <b>pending</b> while its next true lies in the future, and the fire's
 time is a <b>landing</b>. A register is <b>faithful</b> when its value
 tracks its increment count. The <b>inverse supply</b> is
-<i>M</i>(<i>d</i>) = max{<i>g</i> : <i>m</i>(<i>g</i>) ≤ <i>d</i>}; a
-landing with gap <i>d</i> sits in the window
-(<i>M</i>(<i>d</i> − 1), <i>M</i>(<i>d</i>)] and its <b>offset</b> is the
-distance from the window top down to the landing. A supply is
+<i>M</i>(<i>d</i>) = max{<i>g</i> : <i>m</i>(<i>g</i>) ≤ <i>d</i>}. A <b>pass</b> is one
+tick of a rider: grow, increment, zero-test. A landing <b>enters</b> by
+the gap <i>d</i> from the landing before it (from time 0 for the first),
+the modulus it wraps, and <b>leaves</b> by the gap to the next; one
+entered by <i>d</i> has its frontier index in the <b>span</b> of
+<i>d</i>, (<i>M</i>(<i>d</i> − 1), <i>M</i>(<i>d</i>)], with
+<i>M</i>(1) = 0. The <b>start</b> <i>p</i> is the number of windows
+grown before the first pass, so pass <i>t</i> sees frontier index
+<i>t</i> + <i>p</i>, and the <b>span top</b> in time is
+top(<i>d</i>) = <i>M</i>(<i>d</i>) − <i>p</i>; the canonical start is
+<i>p</i> = 2. A landing's <b>offset</b> is top(<i>d</i>) less the
+landing, <i>d</i> the gap it enters by; the offset <i>o</i>(<i>d</i>) of
+a gap value <i>d</i> is that of the last landing entered by <i>d</i>, and
+<i>o</i>(<i>d</i> − 1) where none is. A gap value is <b>attained</b>
+when some landing enters by it, its <b>multiplicity</b> the number that
+do, and its <b>width</b> is <i>w</i>(<i>d</i>) = top(<i>d</i>) −
+top(<i>d</i> − 1). A supply is
 <b>tame</b> when the questions a decider extracts about it — is some
 landing ≡ <i>a</i> mod <i>L</i> — are decidable. Universality is
 Minsky's, cited.</p>
@@ -232,7 +246,8 @@ Minsky's, cited.</p>
   the program chooses. So a counter survives exactly when
   <i>W<sub>d</sub></i>·<i>m<sub>g</sub></i> ≥ <i>g</i> for some fixed
   <i>W<sub>d</sub></i>, which is <i>m<sub>g</sub></i> = Ω(<i>g</i>); on
-  the sqrt pole the cap is exactly <i>W<sub>d</sub></i>², and a
+  the sqrt pole a counter first miscounts at exactly
+  <i>W<sub>d</sub></i>², and a
   value-dependent grow schedule is the regress — value 100 at base 3
   needs 1,090 grows before counting. Every scheme built caps on any
   o(<i>g</i>) supply by the same principle, born at zero: a fresh
@@ -245,7 +260,7 @@ Minsky's, cited.</p>
   <a href="/computation#growth-machine">the growth machine</a>.</p>
   <p class="scope"><b>Scope.</b> Rule on the universal side, verified at
   <i>m<sub>g</sub></i> = ⌈<i>g</i>/3⌉ with the carry exact at bases 3
-  and 4 over counts 0 to 11; the sqrt-pole caps 4, 9, 16, 25 measured at
+  and 4 over counts 0 to 11; the sqrt-pole first miscounts at 4, 9, 16, 25 measured at
   <i>W<sub>d</sub></i> = 2 to 5. That <em>no</em> construction
   simulates two counters on an o(<i>g</i>) supply is conjectured: three
   exact schemes are ruled out, and the normal form below makes
@@ -347,7 +362,7 @@ Minsky's, cited.</p>
   <p class="scope"><b>Scope.</b> The reduction is derived from the
   normal form; the plain decider is a rule on its battery — HALT, a
   certified LOOP far inside its pigeonhole bound, and NO-CERTIFICATE at
-  the step cap on a forever-growing program, both positive controls
+  the step limit on a forever-growing program, both positive controls
   passed first. Whether decidability conversely forces certifiability is
   not claimed.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py">
@@ -380,15 +395,15 @@ Minsky's, cited.</p>
   read, the scan over the whole segment, since a backward scan from the
   test mislabels 13 of 46. And for old windows the segment's orbit on
   (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup> is eventually periodic, so
-  "reads 0 at this offset forever" is decided per window and the same
+  "reads 0 at this position forever" is decided per window and the same
   orbit pays a ZERO lock. Young-same is one fixed integer per grow
-  offset, derived-necessary and shadowed by LOCK-ZERO-F on the census;
+  position, derived-necessary and shadowed by LOCK-ZERO-F on the census;
   young-earlier is the free integer action of the segment word iterated
   over <b>Z</b>, decided whenever it reaches a fixed point or a cycle.
   Every lock is reachable and fires alone on a program built for it.</p>
   <p class="scope"><b>Scope.</b> Soundness and supply-specificity are
   derived from the normal form, with 102 certified programs replayed to
-  600 grows apiece, 0 unsound, every test's bit checked at every offset
+  600 grows apiece, 0 unsound, every test's bit checked at every position
   of a cyclic walk — positions and not instructions, one test executing
   twice in a segment at two positions with two different last writes.
   Coverage is the next block's, an observation.</p>
@@ -406,7 +421,7 @@ Minsky's, cited.</p>
   it to read true needs every window the machine owns, unborn ones
   included, and that looked like a wall. On a draw of 600 random
   programs, 109 <b>grow-heavy</b> — the run reaching 120 grows inside
-  the step cap, an observation and not a decision that it grows forever
+  the step limit, an observation and not a decision that it grows forever
   — the three original locks certified 52, 49 of them holding no test
   at all (a branch-free cycle repeats because it has no branch), so
   lock-carried coverage was 3 and never a rate; across seeds it runs 0
@@ -501,23 +516,28 @@ Minsky's, cited.</p>
   <div class="claim-head"><span class="claim-name">The sqrt pole is solved:
   the wrap word has a closed form, and the residue questions are
   decided by a finite check</span> <span class="tier">rule</span></div>
-  <p>With <i>s</i>(<i>v</i>) the largest 3·2<sup><i>n</i></sup> ≤ <i>v</i>,
-  every landing is <i>v</i>² − 2<i>s</i>(<i>v</i>) − 1 or
+  <p>With <i>s</i>(<i>v</i>) the largest 3·2<sup><i>n</i></sup> ≤ <i>v</i>
+  over <i>n</i> ≥ −1, so that <i>s</i>(2) = 3/2, every landing that
+  leaves by <i>v</i> is <i>v</i>² − 2<i>s</i>(<i>v</i>) − 1 or
   <i>v</i>² − <i>v</i> − 2<i>s</i>(<i>v</i> − 1) − 1, the two coinciding
   at <i>v</i> = 3·2<sup><i>n</i></sup>. The proof is <b>the offset
-  recurrence</b>: the distance from a gap value's window top to its last
-  landing counts down by one per value and resets to <i>v</i> at zero,
-  the window having length 2<i>v</i> − 2 and being walked in steps of
-  <i>v</i>; the gap values used once rather than twice are exactly the
-  powers-of-two multiples of 3, the sequence's whole non-polynomial
+  recurrence</b>: the offset of <i>v</i> counts down by one per value and
+  resets at zero, <i>o</i>(<i>v</i>) = <i>o</i>(<i>v</i> − 1) − 1 and
+  <i>o</i>(<i>v</i>) = <i>v</i> − 1 wherever <i>o</i>(<i>v</i> − 1) = 0,
+  because the landings that leave by <i>v</i>, each <i>v</i> before one
+  entered by <i>v</i>, lie in (<i>f</i>(<i>v</i> − 1), <i>f</i>(<i>v</i>)] with
+  <i>f</i>(<i>v</i>) = top(<i>v</i>) − <i>v</i> = <i>v</i>² − <i>v</i> − 2,
+  an interval of length 2<i>v</i> − 2 walked in steps of <i>v</i>, and
+  top(<i>v</i> − 1) + 1 is never a landing; the gap values that landings leave by once rather than twice are
+  exactly the powers-of-two multiples of 3, the sequence's whole non-polynomial
   content, and multiplicity is at most 2. The recurrence never reads the
-  frontier offset, so the doubling is the supply's while the seed is the
-  start's (3 at offset 0, 2 at offset 1, 5 at offset 5). At the rig's
-  own offset the landings mod 6 are <i>v</i>² − 1 and
+  start, so the doubling is the supply's while the seed is the start's
+  (3 at start 0, 2 at start 1, 5 at start 5). At the canonical start the
+  landings mod 6 are <i>v</i>² − 1 and
   <i>v</i>² − <i>v</i> − 1, which never take the value 4, so a program
   halting on a landing ≡ 4 mod 6 loops forever, decided — but the
-  exclusion belongs to the offset and not to the supply, every other
-  offset tested hitting all six classes. The extracted class is decided
+  exclusion belongs to the start and not to the supply, every other
+  start tested hitting all six classes. The extracted class is decided
   for every <i>L</i> by a split check: below the point where a block
   [3·2<sup><i>n</i></sup>, 3·2<sup><i>n</i>+1</sup>) first spans
   <i>L</i> values the landings are enumerated, above it the reachable
@@ -525,7 +545,9 @@ Minsky's, cited.</p>
   mod <i>L</i> against the tail set of 6·2<sup><i>n</i></sup> mod
   <i>L</i>.</p>
   <p class="scope"><b>Scope.</b> Proved by the offset recurrence and
-  checked on 199,999 landings to about 10<sup>10</sup>; the split check
+  checked on 199,999 landings to about 10<sup>10</sup>, and from the
+  first landing, <i>t</i> = 2, on every rider landing to 10<sup>6</sup>,
+  each inside its span in frontier and in time; the split check
   equals enumeration for every <i>L</i> ≤ 60 and is load-bearing at
   every <i>L</i> divisible by 4, 22 of 60 classes excluded at
   <i>L</i> = 60. The structure lives in the gap index as a quadratic
@@ -538,10 +560,10 @@ Minsky's, cited.</p>
   <div class="claim-head"><span class="claim-name">The classification runs
   on the inverse supply, in four cells</span>
   <span class="tier">rule</span></div>
-  <p>The top offset obeys
+  <p>The offset <i>o</i>(<i>d</i>) of a gap value <i>d</i> obeys
   <i>o</i>(<i>d</i>) = (<i>o</i>(<i>d</i> − 1) + <i>M</i>(<i>d</i>) −
-  <i>M</i>(<i>d</i> − 1)) mod <i>d</i> at every populated window, an
-  empty one carrying it over without the mod. (i) <b>Quasi-polynomial</b>
+  <i>M</i>(<i>d</i> − 1)) mod <i>d</i> at every attained <i>d</i>, an
+  unattained one carrying it over without the mod. (i) <b>Quasi-polynomial</b>
   <i>M</i>, the critical band, is tame by offset compression with a
   parity: at <i>M</i> = <i>d<sup>c</sup></i> with <i>c</i> odd the
   decrement is +1 mod <i>d</i>, the offset freezes at <i>d</i> − 2 at the
@@ -553,10 +575,10 @@ Minsky's, cited.</p>
   <i>M</i> = ⌊<i>d</i>²/2⌋ carries 3<sup><i>n</i></sup> + 1 — the ratio a
   fingerprint of <i>M</i> and never a universal constant. (ii) <b>Slow</b>
   supplies, those repeating some value coprime to <i>L</i> at least
-  <i>L</i> times, are tame by <b>the coverage lemma</b>: the window of
+  <i>L</i> times, are tame by <b>the coverage lemma</b>: the span of
   a value coprime to <i>L</i>, walked in steps of that value at least
   <i>L</i> times, crosses all of <b>Z</b>/<i>L</i>, so every class is
-  hit by that window's
+  hit by a landing at or before that span's
   top and reachability is decided from a finite prefix. (iii) Its
   contrapositive, <b>the starvation lemma</b>, places the oracle: keeping
   any class empty forces every coprime high-multiplicity value out of
@@ -575,11 +597,11 @@ Minsky's, cited.</p>
 </article>
 
 <article class="claim" id="first-hit-bound">
-  <div class="claim-head"><span class="claim-name">Above c = 2 every window
+  <div class="claim-head"><span class="claim-name">Above c = 2 every gap value
   is attained, and the first-hit bound is computed from M
   alone</span> <span class="tier">rule</span></div>
   <p>At <i>M</i> = ⌊<i>d<sup>c</sup></i>⌋ with <i>c</i> &gt; 2 every
-  window is attained and multiplicity is unbounded, the width
+  gap value is attained and multiplicity is unbounded, the width
   <i>w</i>(<i>d</i>) ≥ <i>c</i>(<i>d</i> − 1)<sup><i>c</i>−1</sup> − 1
   exceeding <i>d</i> from an explicit <i>d</i><sub>0</sub>, so the
   coverage lemma decides the residue question with a bound
@@ -608,14 +630,15 @@ Minsky's, cited.</p>
   is not what is asked, and the change of currency from equidistribution
   to coverage restates the cell in the decider's own terms and leaves it
   as hard. The step a proof cannot take elementarily is named: a
-  landing's residue is its offset's,
-  <i>t</i><sub><i>n</i>+1</sub> = top(<i>d<sub>n</sub></i>) − <i>o<sub>n</sub></i>,
-  the offset moved by an exact countdown-and-refill recurrence and being
+  landing's residue is fixed by its span top and its offset,
+  <i>t<sub>n</sub></i> = top(<i>d<sub>n</sub></i>) − <i>o<sub>n</sub></i>,
+  <i>d<sub>n</sub></i> the gap <i>t<sub>n</sub></i> enters by and
+  <i>o<sub>n</sub></i> its offset, the offset moved by the exact recurrence and being
   a fresh digit of the orbit's position at resolution
   1/<i>w</i>(<i>d<sub>n</sub></i>) with <i>w</i> → ∞, so a proof needs
   top(<i>d<sub>n</sub></i>) − <i>o<sub>n</sub></i> mod <i>L</i> to take
-  every value along the orbit's own sparse set of windows —
-  equidistribution input on <em>selected</em> windows, not a counting
+  every value along the orbit's own sparse set of spans —
+  equidistribution input on <em>selected</em> spans, not a counting
   statement. It cannot come from the block structure: inside a maximal
   run of constant gap difference <i>δ</i> the landings are
   <i>t<sub>j</sub></i> = <i>t</i><sub>0</sub> + <i>j</i>·<i>d</i><sub>0</sub> +
@@ -623,7 +646,8 @@ Minsky's, cited.</p>
   jitter-free is a quadratic missing (<i>p</i> − 1)/2 classes mod every
   odd prime <i>p</i> ∤ <i>δ</i>, so coverage where it holds is carried
   by the jitter, the offset's choice. Measured, the offset is
-  equidistributed — the normalized offset uniform on [0, 1) to
+  equidistributed — the normalized offset
+  <i>o<sub>n</sub></i>/<i>w</i>(<i>d<sub>n</sub></i>) uniform on [0, 1) to
   Kolmogorov distance 0.003 over 10<sup>5</sup> landings — and it has a
   closed form: the normalized offset is
   1 − frac((<i>t<sub>n</sub></i> + 2)<sup>1/<i>c</i></sup>) to first
@@ -635,7 +659,8 @@ Minsky's, cited.</p>
   (<i>c</i> = 4/3, 3/2, 5/3, 7/4) by every <i>L</i> ≤ 60 by every class
   with no obstruction anywhere, the last class hit at landing 363, 410,
   365, 450; and a YES has a short certificate somewhere, the
-  best-position window at most 3<i>L</i> over every <i>L</i> ≤ 60 — a
+  shortest run of consecutive landings hitting every class, placed at
+  its best position, at most 3<i>L</i> long over every <i>L</i> ≤ 60 — a
   fact about the word and not about a decider that cannot start where
   the certificate is.</p>
   <p class="scope"><b>Scope.</b> Observation inside the band: the census
@@ -645,9 +670,9 @@ Minsky's, cited.</p>
   14,809 pairs; the closed form is a property of top(<i>d</i>) =
   ⌊<i>d<sup>c</sup></i>⌋ − 2, mean deviation under 3·10<sup>−4</sup> at
   <i>c</i> = 3/2 and 7/4. What stays open is the coverage theorem on
-  <i>c</i> ∈ (1, 2): that a window top's residue less its landing's
+  <i>c</i> ∈ (1, 2): that a span top's residue less its landing's
   offset takes every value mod <i>L</i> along the orbit's selected
-  windows.</p>
+  spans.</p>
   <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_super_critical.py">
   <code>explore_super_critical.py</code></a>,
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_three_prints.py">
