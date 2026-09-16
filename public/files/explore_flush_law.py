@@ -186,8 +186,8 @@ F3  THE BAND (P2). No kill. At all 23 decided cells c_int = 2 =
     the grid's V1 x3 (3, 3) -- every price-2 cell of the corpus is a
     period-4 window whose released reader needs no lookahead at all.
     The 23 run from cap 10 to cap 16 and 1 + s = 13 against 2m = 10;
-    the nine refused are the x4 and x5 cells of [5] at s >= 9 and of
-    V2 at s >= 10, and L*_inf = 2 at seven of those too, the two V2
+    the nine refused are [5] x5 at s >= 9, [5] x4 at s >= 10 and V2
+    x5 at s >= 10, and L*_inf = 2 at seven of those too, the two V2
     x5 cells unread even there.
 F4  THE TALLY (P3), SUMMED and not printed: the rig prints s1's tally
     over the 130 and one line per band cell, a band cell being its own

@@ -55,7 +55,7 @@ D3  THE CRITERION (both directions). Gate at (P, A, r) <==> the box
     walk "t periods of zeros, then the cycle forever" emits a legal
     string with star exactly ell, and each cycle visit yields a
     strict straddle pair (truncate the tmin- and tmax-attaining tails
-    deep enough), parting at the fixed position p_s of the straddled
+    deep enough), parting at the fixed position z_s of the straddled
     cut. Any cycle in the real-pruned graph is automatically live
     (loop it), so no liveness fixed point is needed; eps = 0 is
     excluded by eps' > 0.

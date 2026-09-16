@@ -214,10 +214,10 @@ c_comp = c_saf is a THEOREM at every purely periodic window, every m >=
 1 and every slack pair with s_0 <= s + 1 -- the box's own hypothesis,
 which is the one place the engine's derivation enters -- and the 130
 frozen cells are its verification. What is NOT claimed: anything at a
-non-periodic window (no frame, no box), or under the greedy rule on the
-output (the parents' rule=True variant, whose cap depends on the
-previous output digit; the argument goes through unchanged but no cell
-of it was read here), or that c_saf as a NUMBER is cheap to compute --
+non-periodic window, bounded quotients included, or under the greedy
+rule on the output (the parents' rule=True variant, whose cap depends on
+the previous output digit; the argument goes through unchanged but no
+cell of it was read here), or that c_saf as a NUMBER is cheap to compute --
 the theorem moves the completion reader's minimum onto a finite game and
 says which finite game, and nothing about that game's size.
 

@@ -5,14 +5,14 @@ selects the form.
 THE QUESTION
 ------------
 The parting law (explore_parity_derivation.py) reads a straddled cut
--s*alpha off its parting position p_s = min{p : q_{p+1} >= max(s, 2)},
+-s*alpha off its parting position z_s = min{z : q_{z+1} >= max(s, 2)},
 and the two derived periodic families give two closed forms: at odd P
 the cut has s = q_{r+1} and the designed parting is the stride itself;
-at even P the cut has s = q_r, parting p_{q_r}. The recorded aperiodic
+at even P the cut has s = q_r, parting z_{q_r}. The recorded aperiodic
 parting signatures are exactly these two forms: the one-class windows'
 certified ladders (W1 primes, W2 swapped, W3 Thue-Morse,
 explore_closure_family.py F2-F4) part at the stride, while e-2 parts at
-1, 3, 6 at strides 1, 4, 7 -- p_{q_r} on its own denominators. Nothing
+1, 3, 6 at strides 1, 4, 7 -- z_{q_r} on its own denominators. Nothing
 recorded names which CUT an aperiodic ladder actually straddles: the
 parting only pins s to one q-window, (q_p, q_{p+1}] at parting p for
 s >= 2, the max(s, 2) clamp folding s = 1 into s = 2's parting. This
@@ -63,10 +63,10 @@ numerators run p[0] = 0, p[1] = 1 on the same recursion, so
 theta_0 = alpha; image value = sum d_k q_{k+r}, parting = first diff
 of the greedy image strings, part_pos on the window's own q).
   Consistency of the predictions with the recorded vectors. e-2's q:
-    1, 1, 3, 4, 7, 32, 39, 71, ... If s = q_r then p_s at r = 1, 4, 7
-    is p_1 = 1 (q_2 = 3 >= 2), p_7 = 3 (q_4 = 7 >= 7), p_71 = 6
+    1, 1, 3, 4, 7, 32, 39, 71, ... If s = q_r then z_s at r = 1, 4, 7
+    is z_1 = 1 (q_2 = 3 >= 2), z_7 = 3 (q_4 = 7 >= 7), z_71 = 6
     (q_7 = 71 >= 71): the recorded 1, 3, 6. If s = q_{r+1} on any
-    strictly increasing q then p_s = r exactly: W1-W3's recorded
+    strictly increasing q then z_s = r exactly: W1-W3's recorded
     part = stride. Both forms are consistent with their recorded
     partings, so the parting alone cannot separate the forms and the
     extraction adds content: the pinned window (q_p, q_{p+1}] holds
@@ -174,8 +174,8 @@ F1  CONTROLS PASS (K1): all eight derived periodic cells extract
 F2  THE RECORDED FOUR'S CUTS ARE THE TWO CLOSED FORMS EXACTLY
     (verified instances; Q2 and Q3 land whole). W1/W2/W3 at
     r = 1, 4, 7 straddle s = q_{r+1} of their own numeration (W1:
-    2, 12, 98; W2: 2, 16, 98; W3: 2, 12, 98), parting = r = p_s.
-    e-2 straddles s = q_r (1, 7, 71), parting 1, 3, 6 = p_{q_r}. No
+    2, 12, 98; W2: 2, 16, 98; W3: 2, 12, 98), parting = r = z_s.
+    e-2 straddles s = q_r (1, 7, 71), parting 1, 3, 6 = z_{q_r}. No
     third form: every extracted s is a DENOMINATOR of its own window,
     q_r or q_{r+1}, never a value between them -- and at r = 1, where
     the max(s, 2) clamp makes the partings of s = 1 and s = 2
@@ -192,7 +192,7 @@ F3  THE CLASS PHASE SELECTS THE FORM AND THE CAP VALUES DO NOT
 F4  PHASE 0 SIDES WITH PHASE 1, WITH ITS OWN PARTING VECTOR
     (observation, two windows; Q4b's fork). W6 and W7 (2n and primes
     at phase 0) both straddle s = q_r (W6: 2, 23, 334; W7: 2, 18,
-    228 at r = 1, 4, 7), parting 0, 3, 6 = p_{q_r} on their own
+    228 at r = 1, 4, 7), parting 0, 3, 6 = z_{q_r} on their own
     denominators (part 0 at r = 1 because q_1 = 2 >= 2 there). So
     the selector is binary, not ternary: the designed form
     s = q_{r+1} appears EXACTLY at phase 2 -- the class at the last
@@ -384,7 +384,7 @@ def run_cell(tag, sh, a, r, expect=None):
                    else f"  EXPECT-MISS (want {expect})")
         print(f"  {tag} r {r} turns {turns}: agree {agree} part {diff}"
               f" cut s = {s} (q_r {qr}, q_r+1 {qr1}) form {fm}"
-              f" p_s {pp} {ok_part} cycle {cyc}{exp}")
+              f" z_s {pp} {ok_part} cycle {cyc}{exp}")
         seen.append((s, t, fm))
     return seen
 

@@ -50,7 +50,7 @@ Findings preview (full statements at the bottom):
      p^7 + p^4 - p^3 (plus-type at every odd p).
   3. NILPOTENTS RETURN AND THE MEADOW SPLITS BY THE DECALITY: one
      doubling reinstates what squarefree-ness banished (p^2 - 1
-     nonzero nilpotents per channel). Powering inverse (Clifford
+     nonzero nilpotents per odd channel). Powering inverse (Clifford
      a^(m+1) = a) dead for every m; central-polynomial regularity
      dead; the adjugate map adj(A) det(A)^(2p-3) is a total polynomial
      unit-exact inverse but the cone collapses to 0 (meadow laws die);
@@ -325,7 +325,7 @@ section("IV. NILPOTENTS RETURN; THE MEADOW SPLITS BY THE DECALITY")
 # Squarefree-ness banished nilpotents from Z/N (the lesson of
 # explore_super_log.py: they
 # kill the Clifford extension). One doubling reinstates them over a
-# FIELD: E12^2 = 0. Census: p^2 - 1 nonzero nilpotents per channel.
+# FIELD: E12^2 = 0. Census: p^2 - 1 nonzero nilpotents per odd channel.
 for p in (2, 3, 5):
     nil = sum(1 for A in all_mats(p)
               if any(A) and mmul(A, A, p) == ZERO)
@@ -665,7 +665,7 @@ print("""
 
 3. NILPOTENTS RETURN AND THE MEADOW SPLITS BY THE DECALITY (rule).
    One doubling reinstates what squarefree-ness banished: p^2 - 1
-   nonzero nilpotents per channel (E12^2 = 0) -- the same disease that
+   nonzero nilpotents per odd channel (E12^2 = 0) -- the same disease that
    kills the Clifford extension of explore_super_log.py off the
    squarefree locus, now
    unavoidable over a field. Inverse tiers: powering (a^(m+1) = a)

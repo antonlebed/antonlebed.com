@@ -31,8 +31,8 @@ lookahead c_inf(t) is the least c-hat such that inputs sharing a
 depth-(t + c-hat) cell have images sharing a depth-t cell; it is
 infinite when no c-hat serves (explore_limit_column.py D5 reads the
 same number off the pair automaton: A_inf(t) = t + c_inf(t) - 1).
-p_1 = 0 when a_1 >= 2 and 1 when a_1 = 1, the lowest admissible digit;
-q_t >= 2 exactly from t = p_1 + 1.
+z_1 = 0 when a_1 >= 2 and 1 when a_1 = 1, the lowest admissible digit;
+q_t >= 2 exactly from t = z_1 + 1.
 
 D1  THE IMAGE POINT OF A SHIFT-FREE RELATION. Take r = 0 and cancel
     gcd(m_o, m_i) (it divides c or the relation is empty). The domain
@@ -55,7 +55,7 @@ D2  THE CONTAINMENT PRINCIPLE (m_o = 1). f(x) = m_i x + c alpha is a
     no c-hat serves. f^{-1}(-s alpha) = {(-(s + c) alpha + j)/m_i : j
     mod m_i}, a cut iff m_i u = s + c with j = 0.
 D3  THE MEMBERS. (i) m_i >= 2: the preimage with j != 0 is never a
-    cut -- INFINITE from p_1 + 1 for every c: x m + c has the address
+    cut -- INFINITE from z_1 + 1 for every c: x m + c has the address
     of x m. The unimodular family witnesses it with the target pair
     (c + 1 mod m, rho), rho = 0 unless m divides c + 1 and then 1, so
     the inputs converge to (rho - (c + 1) alpha)/m, never a cut.
@@ -65,17 +65,17 @@ D3  THE MEMBERS. (i) m_i >= 2: the preimage with j != 0 is never a
     FINITE and exact at every irrational window. At c = 1, q_{t+1} =
     a_{t+1} q_t + q_{t-1} >= q_t + 1 at t >= 1 and c-hat = 0 never
     serves: the column is [q_t >= 2], the odometer's lookahead 1 from
-    p_1 + 1 on -- the rule the automaton read at fourteen windows, now
+    z_1 + 1 on -- the rule the automaton read at fourteen windows, now
     a theorem at all of them. At c >= 2 the column is eventually 1
     with early entries above 1 exactly where q_{t+1} - q_t < c, that
     is (a_{t+1} - 1) q_t + q_{t-1} < c.
     (iii) m_i = 1, c < 0: the preimage of -alpha is (|c| - 1) alpha,
-    a LATTICE point and never a cut -- INFINITE from p_1 + 1. The
+    a LATTICE point and never a cut -- INFINITE from z_1 + 1. The
     witness needs no residue at all: n = |c| - 1 + q_K has image
     q_K - 1, whose point theta_K - alpha sits beside -alpha on the side
     of theta_K, alternating with K, within |theta_K|; so the images of
     consecutive K are the two codings of -alpha below depth K and part
-    at p_1, while the inputs converge to the lattice point
+    at z_1, while the inputs converge to the lattice point
     (|c| - 1) alpha. THE DECREMENT BORROWS AND THE INCREMENT DOES NOT:
     n - 1 is unbounded from the lowest admissible digit at every
     irrational window while n + 1 reads 1 forever.
@@ -83,7 +83,7 @@ D4  m_o >= 2: THE JUMP. By D1 the images of inputs converging to one
     point accumulate at the m_o points (m_i x + c alpha + j)/m_o,
     1/m_o apart; as the input point sweeps the circle so does the pair,
     and some position puts a depth-t cut between two of them, which
-    the lattice reaches by density: INFINITE from p_1 + 1 for every
+    the lattice reaches by density: INFINITE from z_1 + 1 for every
     (m_o, m_i, c) -- the floors' jump (explore_aperiodic_address.py
     D6), the floors being the union over c = -eps. The witness pair:
     x_0 + m_o q_K against x_0 + m_o q_K + a q_{K+4} + b q_{K+5} with
@@ -105,9 +105,9 @@ D5  THE SHIFTED MEMBERS ARE NOT ADDRESSES. At r != 0 the image point
     q_{D-l} suffices, |theta_k| > 1/(q_{k+1} + q_k) -- the sweep wraps
     the circle and some consecutive pair straddles -alpha within
     |theta_{D-l}|, its two drops the two codings of -alpha below depth
-    D - l, parting at p_1. A window with that inequality at infinitely
+    D - l, parting at z_1. A window with that inequality at infinitely
     many D (a designed Liouville-type tail) has the drop UNBOUNDED
-    from p_1 + 1, while the four quadratic windows print the drop by
+    from z_1 + 1, while the four quadratic windows print the drop by
     their period finite with peak l + 1 (explore_limit_maps.py L3, a
     rule at those four cells and no theorem): the drop's column is a
     Diophantine property of the window's quotients, not an address.
@@ -145,27 +145,27 @@ parting is the first position where they differ.
       windows and the two controls, c = 1, 2, 3, every K from 8 to the
       top of the certified ladder: the inputs c - 1 + q_K and c - 1 +
       q_{K+1} agree to depth >= K - 2 and their images q_K - 1 and
-      q_{K+1} - 1 part at EXACTLY p_1. KILL: a parting != p_1 or an
+      q_{K+1} - 1 part at EXACTLY z_1. KILL: a parting != z_1 or an
       agreement below K - 2 anywhere.
   P6  (x m + c, exact integers) same windows, m = 2..7, c in {-2, -1,
       1, 2}, K = 8..top: the D3(i) family's inputs n_K, n_{K+1} agree
-      to depth >= K - 18 and the images m n + c part at EXACTLY p_1.
+      to depth >= K - 18 and the images m n + c part at EXACTLY z_1.
       KILL as P5 with the slack 18.
   P7  (the jump, exact integers) same windows, the six relations of
       P4, K = 8, 12, ..., top: some x_0 < 3000 in the class gives the
       D4 pair agreeing to depth >= K - 18 with images parting at
-      EXACTLY p_1. KILL: no such x_0 at some cell.
+      EXACTLY z_1. KILL: no such x_0 at some cell.
   P8  (the drop's dichotomy) (a) the designed Liouville-type window
       a_1 = 2, a_k = 1 except a_{D+1} = q_D + q_{D-1} at D = 4, 8, ...,
       24: at every such D some j <= a_{D+1} - 1 has the drops by 1 of
-      j q_D and (j + 1) q_D parting at EXACTLY p_1 = 0, the inputs
+      j q_D and (j + 1) q_D parting at EXACTLY z_1 = 0, the inputs
       agreeing to depth exactly D; and at D + 2 (a_{D+3} = 1) the
       least parting over the consecutive pairs is >= D - 2, the
       negative control. KILL: a big-digit D with no such j within 2 of
       the predicted crossing. (b) at e - 2, D = 3m + 1 for m = 1..20
       (a_{D+1} = 2m, asserted): the least parting over consecutive
       single-digit pairs is printed as a reach D - 1 - parting;
-      prediction: no pair parts at p_1, and the reach at m = 20
+      prediction: no pair parts at z_1, and the reach at m = 20
       exceeds the reach at m = 1 by at least 2. (c) the finite-range
       column c_N(t) of the drop by 1 at e - 2 (t = 2..5) and cbrt(2)
       - 1 (t = 1..4), N = 10^4 and 10^5: RECORDED. The paper's lean:
@@ -213,10 +213,10 @@ L3  THE EXACT FAMILIES WITNESS EVERY APERIODIC CELL (rule at the
     P5: the decrement's pair c - 1 + q_K, c - 1 + q_{K+1} agrees to
     depth EXACTLY K at every one of the 50 K read (the minimum of
     agreement - K is 0 at all 27 cells) and the images q_K - 1, q_{K+1}
-    - 1 part at exactly p_1, 0 off in 1350 readings -- the two parities
+    - 1 part at exactly z_1, 0 off in 1350 readings -- the two parities
     of q_K - 1 are the two codings of -alpha. P6: x m + c at m = 2..7,
     c in {-2, -1, 1, 2}: agreement within 8 of K everywhere (the slack
-    18 loose by a factor above 2) and parting exactly p_1, 0 off in
+    18 loose by a factor above 2) and parting exactly z_1, 0 off in
     10800 readings. P7: the jump pair finds its x_0 at or below 3 at
     every (cell, K) of the 54 cells x 11 K, 0 without.
 L4  THE DROP IS A DIOPHANTINE PROPERTY OF THE WINDOW (theorem at the
@@ -225,9 +225,9 @@ L4  THE DROP IS A DIOPHANTINE PROPERTY OF THE WINDOW (theorem at the
     pair (j, j + 1) within 2 of the predicted crossing -- j = 3, 129,
     220716, 647577653847, then 26 and 52 digits -- has inputs j q_D,
     (j + 1) q_D agreeing to depth exactly D and drops parting at
-    exactly 0 = p_1; the control two positions up reads its least
+    exactly 0 = z_1; the control two positions up reads its least
     parting at D + 1, one below the digit. The drop by 1 is unbounded
-    from p_1 + 1 there, where the three constant-quotient windows,
+    from z_1 + 1 there, where the three constant-quotient windows,
     whose period is 1, read the drop by 1 finite with peak 2.
 L5  AT e - 2 THE BIG DIGIT'S REACH IS THE CONSTANT 2 (observation, 20
     positions; the prediction of a growing reach was WRONG). At every
@@ -236,7 +236,7 @@ L5  AT e - 2 THE BIG DIGIT'S REACH IS THE CONSTANT 2 (observation, 20
     inside the depth-(D - 3) cell of 0, because the big quotient two
     positions below, a_{D-2} = 2m - 2, sets that cell's scale --
     linear growth of the quotients is growth RELATIVE to nothing. The
-    one pair parting at p_1 is D = 4, where D - 3 = 1 = p_1 coincide.
+    one pair parting at z_1 is D = 4, where D - 3 = 1 = z_1 coincide.
 L6  THE SCAN, RECORDED (observation at scanned scope). The drop by 1's
     finite-range column reads 9 8 7 6 at t = 2..5 at e - 2 at BOTH N =
     10^4 and 10^5, flat across the decade, and 8 7 6 5 rising to 10 9
@@ -475,7 +475,7 @@ def s2_families(ws):
     print("=" * 78)
     print("S2 THE EXACT FAMILIES (P5-P7)")
     ok = True
-    print("-- P5: the decrement's family, agreement >= K - 2, parting p_1")
+    print("-- P5: the decrement's family, agreement >= K - 2, parting z_1")
     for w in ws.values():
         for c in PRED_CS:
             n = off = 0
@@ -489,7 +489,7 @@ def s2_families(ws):
             ok &= off == 0
             print(f"  {w.name:26s} n - {c}: {n} K, {off} off, min(agreement - K)"
                   f" = {agmin}, parting {w.p1} predicted")
-    print("-- P6: x m + c, agreement >= K - 18, parting p_1")
+    print("-- P6: x m + c, agreement >= K - 18, parting z_1")
     for w in ws.values():
         for m in range(2, 8):
             n = off = 0
@@ -567,7 +567,7 @@ def s3_drop(ws):
     q, p = build_qp(a, npos)
     p1 = 0 if a[0] >= 2 else 1
     print(f"-- P8(a): the Liouville-type window, a_1 = 2, big quotients at "
-          f"D = {LIOUVILLE_D}; p_1 = {p1}")
+          f"D = {LIOUVILLE_D}; z_1 = {p1}")
     for D in LIOUVILLE_D:
         big = a[D]                      # a_{D+1}
         assert big == q[D] + q[D - 1]
@@ -619,7 +619,7 @@ def s3_drop(ws):
     ms = sorted(reaches)
     grew = reaches[ms[-1]] - reaches[ms[0]]
     ok &= anyp1 == 0 and grew >= 2
-    print(f"  pairs parting at p_1: {anyp1}; reach at m = {ms[-1]} minus reach "
+    print(f"  pairs parting at z_1: {anyp1}; reach at m = {ms[-1]} minus reach "
           f"at m = {ms[0]}: {grew}")
     # (c) the finite-range column of the drop by 1
     print("-- P8(c): the drop by 1's finite-range column c_N(t), RECORDED")

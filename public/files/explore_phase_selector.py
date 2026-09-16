@@ -64,7 +64,7 @@ D4  WHY PHASE 2 CANNOT REPAIR DOWN TO q_r (the floor, within the
     leading-digit cap d[0] <= a[0] - 1 = 0. Cell-level
     minimality -- no OTHER family straddling a shallower cut -- is
     what the walker's minimal parting certifies per cell (inf_from is
-    the least parting over all pairs, and p_s is monotone in s); the
+    the least parting over all pairs, and z_s is monotone in s); the
     universal statement stays open, priced with the bounded half's.
 D5  THE STRADDLE IS FREE. The deficit after tooth T is
     theta_{j0+3T+2}, sign (-1)^{j0+3T+2}: alternates with T, so

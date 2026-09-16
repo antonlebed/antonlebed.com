@@ -44,7 +44,7 @@ reads theta_{j+P}; lam_of returns lambda with S = (1 - eta) lambda).
       word is a member at every cap at which it is legal: PERSISTENCE.
       The rung law's equality is the theorem, not the congruence. A
       one-cap word needs |C| >= |Dt_A|, possible only below cap
-      (3 F_P + 2)/F_{P-2}, about 8.
+      (3 F_P + 2)/F_{P-2}: 11 at P = 4, near 8 beyond.
   D3  THE GOLDEN READING. The identity S = (1 - eta) lambda is linear in
       A once lambda's (theta_{P-2}, theta_{P-1})-coordinates are fixed,
       so it holds at two caps iff it holds identically in A iff it holds

@@ -12,7 +12,7 @@ half: explicit comb families, constructed in closed form rather than
 searched, whose shifted image points provably accumulate at a CUT of the
 window's coding circle — the two-coding points -s*alpha — from both
 sides, which forces the two greedy images apart at the fixed position
-p_s = min{p : q_{p+1} >= max(s, 2)} while input agreement climbs without
+z_s = min{z : q_{z+1} >= max(s, 2)} while input agreement climbs without
 bound. Gating becomes a per-cell exact certificate in integer
 arithmetic; the automaton stays the independent verdict instrument.
 
@@ -59,7 +59,7 @@ D4  EVEN P, ODD r — CLOSED FORM. The class sits at odd positions, so
     r+1+2j and TELESCOPE: partial sums theta_{K+1} - theta_r, so the
     image limit is exactly -theta_r = -(q_r alpha - p_r): THE CUT
     -q_r alpha, s = q_r, at every even-P one-class window and every odd
-    r — predicting parting position p_{q_r} (= 1 at r = 1, r - 1 at
+    r — predicting parting position z_{q_r} (= 1 at r = 1, r - 1 at
     r >= 3). The deficit theta_{K+1} keeps one sign (eta > 0); the
     straddle partner raises the comb's deepest CLASS tooth from 1 to 2
     (legal, A >= 2), adding theta at a position class+r = 0 mod P whose
@@ -98,13 +98,13 @@ PREDICTIONS, FIXED BEFORE THE RUN (observables — what the rig PRINTS)
       odd r, comb truncations M = 2..12: input agreement depth climbs
       by P per step; the exact sign of (image value + s) alpha - m
       alternates with M; the greedy images of consecutive truncations
-      part at p_s once M is past a small burn-in, at every scanned M.
-      KILL: signs stop alternating, or parting departs p_s at large M.
+      part at z_s once M is past a small burn-in, at every scanned M.
+      KILL: signs stop alternating, or parting departs z_s at large M.
   N5 (even-P ladders: gate certificates). For P = 2, 4, 6, A = 2, 3,
       odd r, comb depth K: the pair (comb, comb with deepest class
       tooth raised) agrees to the raised position while the images'
       exact signs around -q_r alpha are opposite and the greedy images
-      part at p_{q_r}, at every K scanned. KILL: as N4.
+      part at z_{q_r}, at every K scanned. KILL: as N4.
   N6 (bounded half, exact enumeration): at P = 2..8, A = 2, 3, every
       even nonzero residue r, no legal cyclic pattern of period P or 2P
       solves (I - H^L) lambda = Psi with alpha-part <= -1 — except the
@@ -132,13 +132,13 @@ F3  THE EVEN-P TELESCOPE IS EXACT (N3 lands): 140 truncations across
     cap 1 at even positions, which is the even-P one-class structure).
 F4  ODD-P GATE CERTIFICATES (N4 lands, 12 cells x 11 truncations):
     deficit signs alternate with M at every cell (eta < 0), and the
-    consecutive-truncation images part at exactly p_s = r at every
+    consecutive-truncation images part at exactly z_s = r at every
     scanned depth from the first — the designed odd-P parting IS the
     stride, which is the recorded aperiodic W1-W3 signature
     (explore_closure_family.py F2: part = r at 1, 4, 7).
 F5  EVEN-P GATE CERTIFICATES (N5 lands, 12 cells x 8 depths): the
     raised-class-tooth pair's images sit on exactly opposite sides of
-    -q_r alpha at every depth, parting at p_{q_r} = 1, 2, 4 at
+    -q_r alpha at every depth, parting at z_{q_r} = 1, 2, 4 at
     r = 1, 3, 5 — the r - 1 shape that is e-2's recorded parting
     vector 1, 3, 6 at strides 1, 4, 7.
 F6  THE BOUNDED HALF STAYS ENUMERATED (N6 lands): at P = 2..8,
@@ -260,7 +260,7 @@ class Cell:
 
 
 def part_pos(cell, s):
-    """p_s = min{p : q_{p+1} >= max(s, 2)}."""
+    """z_s = min{z : q_{z+1} >= max(s, 2)}."""
     s = max(s, 2)
     p = 0
     while cell.q[p + 1] < s:
@@ -366,7 +366,7 @@ def s2_evenP_telescope():
 def s3_oddP_ladders():
     print("=" * 74)
     print("S3 ODD P GATE CERTIFICATES: alternating exact signs around"
-          " the cut, parting at p_s")
+          " the cut, parting at z_s")
     bad = 0
     for P in (3, 5, 7):
         for A in (2, 3):
@@ -401,10 +401,10 @@ def s3_oddP_ladders():
                 pgood = all(x == ps for x in settled)
                 if not (alt and pgood):
                     bad += 1
-                    print(f"  FAIL P={P} A={A} r={r} s={s} p_s={ps} "
+                    print(f"  FAIL P={P} A={A} r={r} s={s} z_s={ps} "
                           f"signs={signs} parts={parts}")
                 else:
-                    print(f"  P={P} A={A} r={r}: cut -{s}a, p_s={ps}, "
+                    print(f"  P={P} A={A} r={r}: cut -{s}a, z_s={ps}, "
                           f"deficit signs alternate, partings settle at "
                           f"{ps} (raw {parts})")
     print(f"  {'PASS' if bad == 0 else 'FAIL'}")
@@ -452,10 +452,10 @@ def s4_evenP_ladders():
                 settled = [t[2] for t in rows[2:]]
                 if not good or any(x != ps for x in settled):
                     bad += 1
-                    print(f"  FAIL P={P} A={A} r={r} s={s} p_s={ps} "
+                    print(f"  FAIL P={P} A={A} r={r} s={s} z_s={ps} "
                           f"rows={rows}")
                 else:
-                    print(f"  P={P} A={A} r={r}: cut -{s}a, p_s={ps}, "
+                    print(f"  P={P} A={A} r={r}: cut -{s}a, z_s={ps}, "
                           f"pair signs opposite at every depth, "
                           f"partings settle at {ps} "
                           f"(raw {[t[2] for t in rows]})")

@@ -298,9 +298,9 @@ F4  WHAT DECIDES IT IS THE PARITY OF r MOD P (rule at scanned scope
     P = 2 tests only two of the three arms, having no even nonzero
     residue at all, so its whole content is that r odd gates and
     r even is the period shift. The even/odd reading is not the only
-    rule fitting P <= 4 -- gated iff gcd(r, P) = 1 fits every cell
-    through P = 4 -- and P = 5 is what parts them, its residues 2 and
-    4 being coprime to 5 and bounded. And e - 2's large caps sit at
+    rule fitting P = 2 and 4 -- gated iff gcd(r, P) = 1 fits every
+    cell there -- and P = 3 is what parts them, its residue 2 being
+    coprime to 3 and bounded. And e - 2's large caps sit at
     j = 1 mod 3 while the designed family's sit at j = P - 1 mod P, a
     different residue class obeying the same law, which is evidence
     the law reads the SPACING of the large caps and not their

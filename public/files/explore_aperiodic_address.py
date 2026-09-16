@@ -42,9 +42,9 @@ D2  THE PARTING DEPTH. -t alpha separates two DISTINCT depth-(p+1)
     cells iff t <= q_{p+1} and q_{p+1} >= 2 (with one cell the cut is
     the wrap point of the single arc, not a boundary between two).
     So the two codings of -t alpha part at
-        p_t = min{ p >= 0 : q_{p+1} >= max(t, 2) }.
-    Golden: p_1 = p_2 = 1 (q_2 = 2), p_3 = 2 -- the b_1 of the x 3
-    witness and the b_2 of D4 there. p_1 = 0 iff a_1 >= 2, else 1:
+        z_t = min{ z >= 0 : q_{z+1} >= max(t, 2) }.
+    Golden: z_1 = z_2 = 1 (q_2 = 2), z_3 = 2 -- the b_1 of the x 3
+    witness and the b_2 of D4 there. z_1 = 0 iff a_1 >= 2, else 1:
     the lowest admissible digit, at every window.
 D3  WHAT ANY WITNESS IS. A witness family for x m has inputs n, n'
     agreeing to depth D -> infinity and images m n, m n' parting at a
@@ -60,10 +60,10 @@ D3  WHAT ANY WITNESS IS. A witness family for x m has inputs n, n'
     different limits agree to a bounded depth only; and c_r is a cut
     only at (t, r) = (m, 0), where c = -alpha and n alpha = -alpha +
     star(Y)/m puts each input on the side of ITS image, so the two
-    inputs part at p_1 themselves. So a witness at the cut -t alpha
+    inputs part at z_1 themselves. So a witness at the cut -t alpha
     is exactly a residue PAIR (Y, P_Y) mod m = (t, r) != (m, 0)
     realized by zero-low-digit Y with star -> 0 from BOTH sides; it
-    parts at p_t; the address is the least p_t over the realized t.
+    parts at z_t; the address is the least z_t over the realized t.
 D4  EVERY PAIR IS REALIZED, AT EVERY IRRATIONAL WINDOW. A zero-low-
     digit Y = sum c_i q_{k_i} has pair sum c_i (q_{k_i}, p_{k_i}) mod
     m. Consecutive convergents are UNIMODULAR -- q_k p_{k+1} - q_{k+1}
@@ -87,7 +87,7 @@ D5  THE EXPLICIT FAMILY at the cut -alpha, r = 0. For K >= 0 put
     |theta_K| -- every d <= K - c_m -- no other cut is nearer (best
     approximation: ||j alpha|| >= |theta_{d-1}| for 0 < |j| < q_d),
     so the images' depth-d cells are the two neighbours of -alpha, its
-    two codings: they part at EXACTLY p_1 once K >= p_1 + 1 + c_m.
+    two codings: they part at EXACTLY z_1 once K >= z_1 + 1 + c_m.
     The inputs: n_K alpha = -alpha/m + star(Y_K)/m mod 1, all within
     (2m - 1) |theta_K| / m of the point -alpha/m, which is never a
     cut; the depth-d cell of -alpha/m contains the ball of radius
@@ -99,7 +99,7 @@ D5  THE EXPLICIT FAMILY at the cut -alpha, r = 0. For K >= 0 put
     bounded the star by (m + 1) |theta_K|, which holds only at m = 2;
     the print's slack of 5 clears both figures.
     THEOREM (x m). At every irrational window and every m >= 2 the
-    x m column is unbounded from depth p_1 + 1: the flip address is
+    x m column is unbounded from depth z_1 + 1: the flip address is
     the lowest admissible digit, with no periodicity anywhere.
 D6  THE FLOORS. Inputs x_0 + Y and x_0 + Y' with Y, Y' zero-low-digit
     of DIFFERENT residue pairs converge to x_0 alpha, never a cut, so
@@ -110,10 +110,10 @@ D6  THE FLOORS. Inputs x_0 + Y and x_0 + Y' with Y, Y' zero-low-digit
     apart. Take Y = m q_K, pair (0, 0), and Y' = m q_K + q_{K+4},
     pair (q_{K+4}, p_{K+4}) mod m != (0, 0) since gcd(q, p) = 1. As
     x_0 steps by m both limits rotate by alpha, densely; the depth-
-    (p_1 + 1) partition has q_{p_1+1} >= 2 arcs, and a dense orbit
+    (z_1 + 1) partition has q_{z_1+1} >= 2 arcs, and a dense orbit
     cannot keep a fixed nonzero displacement inside one arc (C minus
     (C - delta) is a nonempty open set): some x_0 puts the two limits
-    in different depth-(p_1 + 1) cells off the cuts, and the depth-p_1
+    in different depth-(z_1 + 1) cells off the cuts, and the depth-z_1
     partition is one cell. THEOREM (floors): the same address at
     every irrational window, by the same macroscopic tear.
 D7  THE DESIGNED TAIL. A window where q_K = 1 mod m NEVER recurs
@@ -129,7 +129,7 @@ D7  THE DESIGNED TAIL. A window where q_K = 1 mod m NEVER recurs
 PREDICTIONS, FIXED BEFORE THE RUN (observables -- what the rig PRINTS,
 never what they would mean). Agreement of two strings is the number of
 low positions on which they agree; parting is the first position on
-which they differ. p_1 = 0 at a_1 >= 2 and 1 at a_1 = 1.
+which they differ. z_1 = 0 at a_1 >= 2 and 1 at a_1 = 1.
   C1 (controls, run FIRST; nothing below is read if any is red)
       (a) positive: the D5 family at the golden window, m = 3, 5, 7,
       parts at exactly 1 at every K >= 8, and at bronze, m = 2, at
@@ -143,16 +143,16 @@ which they differ. p_1 = 0 at a_1 >= 2 and 1 at a_1 = 1.
   P1  THE FAMILY AT THE APERIODIC WINDOWS. At e - 2 and cbrt(2) - 1,
       m = 2..7, and at the designed tail for m = 3..7, at every K from
       8 to the top of the certified ladder: the inputs n_K, n_{K+1}
-      agree to depth >= K - 18, and the images part at EXACTLY p_1.
-      KILL: a parting != p_1 at any K >= 8, or an agreement below
+      agree to depth >= K - 18, and the images part at EXACTLY z_1.
+      KILL: a parting != z_1 at any K >= 8, or an agreement below
       K - 18.
   P2  THE FLOORS. Same windows and m, K = 8, 12, 16, ...: some x_0 <
       3000 gives inputs x_0 + m q_K, x_0 + m q_K + q_{K+4} agreeing
       to depth >= K - 18 with images floor(./m) parting at EXACTLY
-      p_1. KILL: no such x_0 at some K.
+      z_1. KILL: no such x_0 at some K.
   P3  THE SCAN'S HALF (the instrument the storey used off
       periodicity, explore_nonquadratic_window.py). The finite-range
-      lookahead c_N(p_1 + 1) of x 2, x 3, floor(n/2), floor(n/3) at
+      lookahead c_N(z_1 + 1) of x 2, x 3, floor(n/2), floor(n/3) at
       e - 2 and cbrt(2) - 1 rises by at least 1 from N = 10^4 to
       N = 10^5. KILL: flat across the decade.
 
@@ -182,9 +182,9 @@ L1  THE CONTROLS ARE GREEN. (a) The D5 family parts at exactly 1 at
     period <= 20 (at m = 3 the residues are {0, 2} only). (d) The
     unimodular solve was unique at every K read.
 L2  THE FAMILY WITNESSES EVERY APERIODIC CELL (rule at 17 cells x 49
-    K; the derivation D1-D5 a theorem). At e - 2 (p_1 = 1), cbrt(2)
-    - 1 (p_1 = 0) and the five designed tails (p_1 = 0), every m, at
-    every K = 8..56: the images part at EXACTLY p_1 -- no other
+    K; the derivation D1-D5 a theorem). At e - 2 (z_1 = 1), cbrt(2)
+    - 1 (z_1 = 0) and the five designed tails (z_1 = 0), every m, at
+    every K = 8..56: the images part at EXACTLY z_1 -- no other
     value printed anywhere -- and the inputs agree to a depth in
     [K - 5, K], rising from 4..8 at K = 8 to 51..56 at K = 56. The
     derived slack 18 is loose by a factor above 3. P1 confirmed at
@@ -194,11 +194,11 @@ L2  THE FAMILY WITNESSES EVERY APERIODIC CELL (rule at 17 cells x 49
 L3  THE FLOORS' JUMP FINDS ITS x_0 BELOW 29 EVERYWHERE (rule at 17
     cells x 13 K; D6 a theorem). Some x_0 < 29 -- and 0 at 126 of the
     221 readings -- puts the two limit points in different depth-
-    (p_1 + 1) cells at every K = 8, 12, ..., 56 at every window and
-    every m, the images parting at exactly p_1 with the inputs
+    (z_1 + 1) cells at every K = 8, 12, ..., 56 at every window and
+    every m, the images parting at exactly z_1 with the inputs
     agreeing past K - 18. P2 confirmed, 0 off; the scan's ceiling
     3000 was never approached.
-L4  THE SCAN AGREES (pattern at scanned scope). c_N(p_1 + 1) rises by
+L4  THE SCAN AGREES (pattern at scanned scope). c_N(z_1 + 1) rises by
     1 or 2 from N = 10^4 to 10^5 at all eight (window, map) cells:
     10 -> 11 and 10 -> 12 for x 2 and x 3 at e - 2, 9 -> 11 for both
     at cbrt(2) - 1, the floors 11 -> 12 and 10 -> 12. P3 confirmed.
@@ -390,7 +390,7 @@ def s1_family(ws):
                 kills += 1
         parts = sorted(set(r[2] for r in rows))
         slack = min(r[1] - r[0] for r in rows)
-        print("%-26s m=%d p1=%d K=%d..%d: parting %s; input agreement - K "
+        print("%-26s m=%d z1=%d K=%d..%d: parting %s; input agreement - K "
               "in [%d, %d]; first/last agreement %d/%d"
               % (w.name, m, w.p1, rows[0][0], rows[-1][0], parts, slack,
                  max(r[1] - r[0] for r in rows), rows[0][1], rows[-1][1]))
@@ -423,7 +423,7 @@ def s2_floors(ws):
             if hit is None:
                 kills += 1
             found.append((K, hit))
-        print("%-26s m=%d p1=%d: least x0 per K %s"
+        print("%-26s m=%d z1=%d: least x0 per K %s"
               % (w.name, m, w.p1,
                  " ".join("%d:%s" % (K, "NONE" if h is None else h[0])
                           for K, h in found)))
@@ -473,7 +473,7 @@ def main():
     stages = sys.argv[1:] or ["s0", "s1", "s2", "s3"]
     ws = windows()
     for k, w in ws.items():
-        print("window %-12s %-26s positions built %d, K read to %d, p1=%d"
+        print("window %-12s %-26s positions built %d, K read to %d, z1=%d"
               % (k, w.name, len(w.q) - 1, w.k_top - 1, w.p1))
     if "s0" in stages and not s0_controls(ws):
         print("controls red: nothing below is read")

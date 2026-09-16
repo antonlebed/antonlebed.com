@@ -329,8 +329,8 @@ F3  THE SHIFT'S READABILITY IS A PROPERTY OF THE STRIDE, AND UNITS
     AND THIS IS THE STOREY'S POINT, which the stride sweep
     STRENGTHENS rather than costs. At every non-quadratic window here
     there is no unit family for any shift to be the action of — no
-    period, no order, no fundamental unit, and at e - 2 no algebraic
-    units of any kind — and at every one of them some stride reads at
+    period and no unit acting, and at e - 2 no algebraic units of
+    any kind — and at every one of them some stride reads at
     bounded delay anyway, and at delay 0 in six of the twelve
     (window, stride) cells scanned. The window where NO
     scanned stride reads at delay 0 is the CUBIC, which is the one
