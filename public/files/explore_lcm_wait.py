@@ -73,10 +73,11 @@ least ratio below 1.
 THE CONTROLS (run before any prediction is read).
   C1 THE SUPPLY PAIRS DIFFER DEEP AND AGREE NEAR: printed moduli lists,
      C'_A != C'_B, the near moduli equal.
-  C2 THE COMPARATOR SEES A DEEP READ. The prime reader R on a pair whose
-     next modulus 15 is coprime to deep B's moduli only if deep B holds
-     no 3 or 5: the pair must print differing exits (the comparison is
-     not blind).
+  C2 THE COMPARATOR SEES A DEEP READ. The prime reader R on a pair with
+     next modulus 15, deep [2, 7, 11, 13] (coprime to 15) against deep
+     [2, 3, 7, 11] (sharing 3): the pair must print differing exits (the
+     comparison is not blind). (Wording clarified at audit; the code and
+     its print are unchanged.)
   C3 THE SOLVER against the step engine on 200 random programs at deep
      d = 3 (lcm 30), pass cap 3,000: agreement wherever the step engine
      ends.
@@ -108,16 +109,29 @@ FINDINGS (entered after the run; every number is printed output).
 2. THE PRIME READER PAYS THE CLASS'S PRICE, NOT ITS OWN (observation on
    planted supplies d = 5..12). R exits second at each new prime and
    first at 3 p_d, at passes 8,192 to 70,647,808 times C', the 2^14
-   near window multiplying C. So by (4) no one-read trip reads
-   gcd(C', m') in passes polynomial in g on m_g = g + 1; coincidence
-   trial division costs the lcm it would have divided by.
+   near window multiplying C. So by (4) a trip whose answer turns on the
+   deep moduli pays their lcm on one of two supplies agreeing from the
+   last pre-trip window on: choosing the periods cannot make coincidence
+   trial division cheap. (4)'s last clause, "no trip reads that gcd in
+   passes polynomial in g" on m_g = g + 1, overreaches: on one fixed
+   supply the deep moduli are fixed with the near ones, and the argument
+   alone bounds no trip there.
 
 SCOPE + HONESTY. The argument is for trips from a true read, which is
 every trip in the class; the rig's loops are grow-free with u holding up
 to three GROWs, and loops holding a GROW rest on explore_one_and.py's
 pass bound, argued there, not rigged here. The deep/near split puts the
 last pre-trip window with the near ones because pulses before the first
-GROW reach it; a read of that one modulus is not an lcm read.
+GROW reach it; a read of that one modulus is not an lcm read. Read
+later (marked): the deep windows take only ticks in a growing loop as
+well, so X_b = n_b k + c_b there too and (2) needs no pass bound; and
+every supply has a companion agreeing from the last pre-trip window on
+with the other gcd and a larger C' (one deep modulus times a prime of m',
+or every deep modulus replaced by a distinct prime above C' m'), so a
+trip that tells the gcd on every supply waits its own bound on each. That
+companion argument is not run; rerun at the prints above, the supply with
+the smaller bound waited it in all 428 differing pairs, least ratio
+1.000000000004986, pass exactly C' = 401120980260 against K = 2, N = 1.
 
 RUN RECORD (python prime/code/memwatch.py
 prime/code/explore_lcm_wait.py; 0.5 s wall clock, 11.5 MB peak working
