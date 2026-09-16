@@ -111,7 +111,7 @@ F2 THE DUAL HIDING LAW (rule; derived + exhaustive over the scanned
    on every deep fiber iff p | b, and otherwise nonzero on every deep
    fiber with bias < 1/L (the printed maxima sit at the smallest
    scanned depth: 0.0208 = 2/(3*32) at b=2, p=3, L=32, the derived
-   ceiling (p-1)/(pL) attained). Mirror of the finite pole's
+   ceiling (p-1)/(pL) reached there, as it is only where L = +-1 mod p). Mirror of the finite pole's
    sign-hiding law (bias exactly zero iff channel 2 is unknown).
 F3 THE RESIDUE WALL (property): no deep fiber decides any residue
    (the map is non-constant at length >= 2, the predicate [p | n] at

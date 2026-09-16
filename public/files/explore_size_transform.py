@@ -12,8 +12,9 @@ This script states and verifies the algebraic theorem behind the wall.
 Findings preview (full statements at the bottom):
   1. THE CRITERION: on a squarefree ring, channel-local = compatible =
      polynomial functions. The CRT log trivializes EXACTLY the polynomial
-     functions, and only the thin tower has this equivalence (mod 4:
-     64 polynomial < 256 channel-local functions).
+     functions, and only the thin tower has this equivalence (mod 8:
+     1024 polynomial < 262144 channel-local functions; mod 4 the two
+     meet at 64).
   2. THE WALL: sign / comparison / overflow are incompatible, hence not
      polynomial, hence no channel-local algorithm computes them -- and the
      obstruction is invariant under every channel-local change of
@@ -147,16 +148,32 @@ print(f"(b) Z/30 constructive: 200 random channel-local functions lifted "
       f"{'VERIFIED' if ok else 'FAILED'}")
 assert ok
 
-# (c) Fat contrast at Z/4: one channel, so EVERY function (256) is
-#     channel-local; polynomial functions are fewer.
-poly4 = set()
-for code in range(4 ** 4):                 # degree < mu(4) = 4 suffices
-    coeffs = [(code >> (2 * j)) & 3 for j in range(4)]
-    poly4.add(tuple(sum(co * pow(x, j, 4) for j, co in enumerate(coeffs)) % 4
-                    for x in range(4)))
-print(f"(c) Z/4 (fat): {len(poly4)} polynomial functions of 256 "
-      f"channel-local -- the equivalence is THIN-ONLY")
-assert len(poly4) == 64
+# (c) Fat contrast. Channel-local reads f(x) mod p off x mod p for the
+#     primes p | N. At Z/4 that is 4 parity maps times 2^4 lifts = 64,
+#     exactly the polynomial functions, so the equivalence survives the
+#     first non-squarefree modulus; at Z/8 it is 4 * 4^8 = 262144 against
+#     far fewer polynomial functions. (Reading a channel as a whole CRT
+#     component instead, every function on Z/4 is local, 256.)
+def poly_functions(n, deg):
+    out = set()
+    for code in range(n ** deg):
+        coeffs = [(code // n ** j) % n for j in range(deg)]
+        out.add(tuple(sum(co * pow(x, j, n) for j, co in enumerate(coeffs))
+                      % n for x in range(n)))
+    return out
+def local_mod2(f):
+    return all(f[x] % 2 == f[x % 2] % 2 for x in range(len(f)))
+poly4 = poly_functions(4, 4)               # degree < 4 suffices at Z/4
+local4 = sum(1 for code in range(4 ** 4)
+             if local_mod2([(code >> (2 * j)) & 3 for j in range(4)]))
+assert len(poly4) == 64 == local4 and all(local_mod2(f) for f in poly4)
+poly8 = poly_functions(8, 6)               # degree < 6 suffices at Z/8
+assert poly_functions(8, 5) == poly8 and all(local_mod2(f) for f in poly8)
+local8 = 4 * 4 ** 8                        # parity map, then 4 lifts each
+print(f"(c) Z/4: {len(poly4)} polynomial = {local4} channel-local; "
+      f"Z/8 (fat): {len(poly8)} polynomial of {local8} channel-local "
+      f"-- the equivalence is THIN-ONLY, first failing at Z/8")
+assert len(poly8) == 1024
 
 print()
 print("    => The CRT log trivializes EXACTLY the polynomial functions:")
@@ -464,7 +481,8 @@ print("""
    On a squarefree ring: channel-local = compatible = polynomial
    functions. Exhaustive at Z/6 (all 46656 functions: 108 = 108 = 108);
    constructive Lagrange+CRT lift at Z/30. The equivalence is THIN-ONLY:
-   mod 4 has 64 polynomial of 256 channel-local functions. The CRT log
+   mod 8 has 1024 polynomial of 262144 channel-local functions, mod 4
+   64 of 64. The CRT log
    trivializes exactly the polynomial functions -- this is the algebraic
    form of the RNS literature's "non-positional" truism.
 

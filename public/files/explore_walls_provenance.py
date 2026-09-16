@@ -97,8 +97,8 @@ THE PROVENANCE CHART (the deliverable; tier: rule unless noted):
                                    two cyclic windows, swept whole
                                    n <= 10 + the size-8 cases)
   product of fields (squarefree)   the locality criterion local =
-                                   compatible = polynomial (Z/4: 64 of
-                                   256 -- explore_size_transform.py),
+                                   compatible = polynomial (Z/8: 1024 of
+                                   262144 -- explore_size_transform.py),
                                    Clifford/meadow (sec VI boundary
                                    witness; criterion in
                                    explore_super_log.py), Euclid's
@@ -411,7 +411,7 @@ Each wall pinned to its minimal carrier (rule unless noted):
 
   PRODUCT OF FIELDS (squarefree -- the blueprint's own floor):
     - the locality criterion local = compatible = polynomial (thin
-      boundary Z/4: 64 of 256)
+      boundary Z/8: 1024 of 262144)
     - Clifford/meadow, Euclid's-loop death, e-calculus carriers
       (sec VI boundary witness; criterion in explore_super_log.py)
 

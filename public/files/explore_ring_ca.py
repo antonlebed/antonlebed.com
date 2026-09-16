@@ -24,7 +24,7 @@ one unpredicted finding, THE FREEZE, below):
      is a power map: it breaks measurement walls INSIDE a
      channel, never the locality wall between channels. (Local =>
      product decomposition holds for any product ring; the
-     "= polynomial" leg is squarefree-only, thin boundary Z/4.)
+     "= polynomial" leg is squarefree-only, thin boundary Z/8.)
      Verified: exhaustive channel-locality at Z/6, n = 3, all 216
      inputs, over a 3-rule battery (polynomial / diamond-of-sum /
      gate-composite); trajectory channel-invariance at Z/30 on a

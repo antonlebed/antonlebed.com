@@ -80,7 +80,11 @@ THE RULER READING (synthesis; the necessity direction's state):
    the archimedean re-import has TWO GRADES -- OVERHEARING (coupling
    enough to interpret undecidable questions) vs REBUILDING (definitional
    x). R2a is a no-man's-land strictly between Presburger and Peano.
- - NECESSITY stands OPEN in general, settled inside the charted classes:
+ - NECESSITY is a question only RELATIVE to X's own content: a
+   noncomputable X inside 2^N is undecidable by its membership sentences
+   alone, one numeral each, which is why Semenov's criterion carries
+   effectivity and monadic-decidability hypotheses. Relativized, it
+   stands OPEN in general, settled inside the charted classes:
    Semenov's criterion IS the no-mid-scale-ruler characterization for
    sparse sets/functions; Hieronymi-Schulz + the dichotomy close the
    automatic class (any two independent non-trivial scales suffice; one

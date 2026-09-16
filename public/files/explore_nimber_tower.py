@@ -62,14 +62,18 @@ Findings preview (full statements at the bottom):
      a^(lambda+1) = a, meadow inverse, phi = prod(2^e_i - 1). Canonical
      rungs f = x^(2^d) + x have channels <-> Frobenius orbits of
      F_{2^d}-points, lambda = 2^d - 1 (MERSENNE by construction), and
-     collapse = Frobenius^d = d squarings. The two char-2 constructions
+     the Clifford identity a^(2^d) = a is Frobenius^d, d squarings,
+     while the collapse a^lambda is the product of a's d - 1 nontrivial
+     conjugates with a, d - 1 squarings AND d - 1 multiplies -- not the
+     cheap collapse, which needs lambda a power of two. The two char-2 constructions
      realize the two hardware families as index rings: vertical/nim
      -> one Fermat tower, horizontal/mirror -> per-channel Mersenne
      rings (the rung-wide product is not a single Z/M).
   4. THE CRITERION TRANSFERS: channel-local = compatible = polynomial
      on squarefree F_2[x]/f (exhaustive at the 4- and 8-element rings;
      constructive Lagrange + CRT glue), and thin-only again
-     (F_2[x]/x^2 has polynomial strictly inside channel-local). The
+     (F_2[x]/x^3 has polynomial strictly inside channel-local, 1024 of
+     262144; at x^2 the two meet at 64). The
      locality criterion never used the integers.
   5. THE SIZE WALL SOFTENS EXACTLY IN ITS ARCHIMEDEAN PART: deg is
      incompatible (witnesses at every channel -- the information core
@@ -580,8 +584,9 @@ print("d = 3 rung: channels are the Frobenius orbits of F_8 points")
 print("  (orbit sizes 1,1,3,3 -> x, x+1, x^3+x+1, x^3+x^2+1)")
 
 # Clifford identity on canonical rungs IS Frobenius^d: a^(2^d) = a, so
-# lambda = 2^d - 1 -- MERSENNE BY CONSTRUCTION -- and the collapse
-# costs d squarings (both knobs at once).
+# lambda = 2^d - 1 -- MERSENNE BY CONSTRUCTION. The identity costs d
+# squarings; the collapse a^lambda = a * a^2 * ... * a^(2^(d-1)) costs
+# d - 1 multiplies beside them.
 for d in (2, 3, 4):
     rung = (1 << (1 << d)) ^ 2
     lam = lcm_list([2 ** e - 1 for e in range(1, d + 1) if d % e == 0])
@@ -589,7 +594,7 @@ for d in (2, 3, 4):
     for a in range(1 << (1 << d)):               # every ring element
         assert ppow(a, 2 ** d, rung) == a
 print("canonical rungs d = 2,3,4: a^(2^d) = a for every element --")
-print("  lambda = 2^d - 1 (Mersenne), collapse = d squarings (Frobenius)")
+print("  lambda = 2^d - 1 (Mersenne), identity = d squarings (Frobenius)")
 
 # Working ring W: the 'first five irreducibles' primorial, deg 10.
 F5_IRR = IRR[:5]
@@ -746,26 +751,39 @@ print("F_2 x F_4 (8 elements): exhaustive compatible (pruned DFS) =")
 print("  local = polynomial = 1024 = 2^2 * 4^4; every local function")
 print("  realized constructively by Lagrange + degreewise CRT glue")
 
-# Thin-only, mirrored: F_2[x]/x^2 has nilpotents; polynomial functions
-# sit strictly inside the 256 functions (= channel-local, vacuously).
-polyN = set()
-for length in (6, 8):
-    cur = set()
-    for code in range(4 ** length):
-        cs = [(code >> (2 * i)) & 3 for i in range(length)]
-        vals = []
-        for a in range(4):
-            v = 0
-            for c in reversed(cs):
-                v = pmul(v, a) & 3 ^ c           # mod x^2: keep low 2 bits
-            vals.append(v)
-        cur.add(tuple(vals))
-    if polyN:
-        assert cur == polyN                      # stabilized
-    polyN = cur
-assert len(polyN) < 256
-print(f"F_2[x]/x^2 (nilpotent): polynomial functions = {len(polyN)} of 256")
-print("  -- the equivalence is THIN-only in the mirror too (cf. Z/4: 64/256)")
+# Thin-only, mirrored: F_2[x]/x^n has nilpotents. Channel-local reads
+# f mod x off a mod x, the one channel's residue field F_2: 4 maps on
+# F_2 times 2^(n-1) lifts per point. At x^2 that is 64 and the
+# polynomial functions fill it; at x^3 it is 4 * 4^8 = 262144 and they
+# do not. (Reading the whole local ring as one channel, all 256.)
+def poly_functions_trunc(n, lengths):
+    mask, size, seen = (1 << n) - 1, 1 << n, None
+    for length in lengths:
+        cur = set()
+        for code in range(size ** length):
+            cs = [(code >> (n * i)) & mask for i in range(length)]
+            vals = []
+            for a in range(size):
+                v = 0
+                for c in reversed(cs):
+                    v = pmul(v, a) & mask ^ c    # mod x^n: keep low n bits
+                vals.append(v)
+            cur.add(tuple(vals))
+        if seen is not None:
+            assert cur == seen                   # stabilized
+        seen = cur
+    return seen
+def local_mod_x(f):
+    return all(f[a] & 1 == f[a & 1] & 1 for a in range(len(f)))
+poly2 = poly_functions_trunc(2, (6, 8))
+local2 = sum(1 for code in range(4 ** 4)
+             if local_mod_x([(code >> (2 * i)) & 3 for i in range(4)]))
+assert len(poly2) == 64 == local2 and all(local_mod_x(f) for f in poly2)
+poly3 = poly_functions_trunc(3, (5, 6))
+assert all(local_mod_x(f) for f in poly3) and len(poly3) < 4 * 4 ** 8
+print(f"F_2[x]/x^2: polynomial = channel-local = {len(poly2)}; "
+      f"F_2[x]/x^3 (nilpotent): polynomial {len(poly3)} of {4 * 4 ** 8}")
+print("  -- the equivalence is THIN-only in the mirror too (cf. Z/8)")
 
 # ----------------------------------------------------------------------
 section("V. THE SIZE WALL IN THE MIRROR")
@@ -930,7 +948,8 @@ print("""
    phi = prod(2^e_i - 1) (all exhaustive at the 1024-element W).
    Canonical rungs f = x^(2^d)+x have channels <-> FROBENIUS ORBITS of
    F_2^d-points, lambda = 2^d - 1 MERSENNE BY CONSTRUCTION, and the
-   collapse x^lambda = Frobenius^d = d squarings. So the two char-2
+   identity a^(2^d) = a = Frobenius^d = d squarings, the collapse
+   a^lambda adding d - 1 multiplies. So the two char-2
    constructions realize the two designed-tower hardware families as INDEX RINGS:
    vertical/nim -> one Fermat tower, horizontal/mirror -> PER-CHANNEL
    Mersenne rings Z/(2^e-1) (designed iff 2^e-1 squarefree: fails
@@ -945,8 +964,8 @@ print("""
    compatible = polynomial on squarefree F_2[x]/f: 16 = 16 = 16 at
    F_2 x F_2 (brute), 1024 = 1024 = 1024 at F_2 x F_4 (pruned-DFS
    exhaustive compatible; every local function realized constructively
-   by Lagrange + degreewise CRT glue); thin-only again (F_2[x]/x^2:
-   polynomial strictly inside the 256 functions). The locality
+   by Lagrange + degreewise CRT glue); thin-only again (F_2[x]/x^3:
+   1024 polynomial of 262144 channel-local; F_2[x]/x^2, 64 of 64). The locality
    criterion never used the integers.
 
 5. THE SIZE WALL SOFTENS EXACTLY IN ITS ARCHIMEDEAN PART (rule +

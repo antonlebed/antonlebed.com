@@ -22,7 +22,7 @@ digits(W) - 1, W = ceil(C / lambda) + 1 the crossing's distance bound,
 met at 15 cells; c* itself was not derived.
 
 THE HAND ATTACK. Write d = digits_b(a), m = v_b(a) and a' = a / b^m,
-the part of a prime to b.
+a with its largest power of b divided out.
   THE DEEP LAYER. For J >= r + K the crossing of M b^J is exactly
 N = a M b^{J-r}. Its fiber at precision t + c has depth j = digits(aM)
 + J - r - t - c, positive for J large, and N is aligned iff b^j | N

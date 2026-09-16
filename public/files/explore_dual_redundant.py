@@ -160,7 +160,7 @@ a margin, not the kill — it is asserted separately at every scope.
 Engine: pure python, exact integers and Fractions, no sampling in
 any wall verdict; seconds.
 
-FINDINGS (from the run: 90309 checks, exit 0, ~2 s)
+FINDINGS (from the run: 90314 checks, exit 0, ~2 s)
 ---------------------------------------------------
 F1 THE PREFIX-INTERVAL LAW (rule; exhaustive at five (b,a), depths
    1-3): the fiber is the full interval V*b^j +- a*R_j, overlap
@@ -242,7 +242,8 @@ F8 THE REDUNDANCY LEAK (rule; exact rationals): counting bias on
    3/6665 at (10,6) p=5 — vanishing O(1/b^j) but zero only when
    p | 2a+1; string-measure bias CONSTANT: 1/6, 1/26, 3/65 at the
    same scopes, with exact restoration at (10,7) p=5 (5 | 15) and
-   (9,4) p=3 (3 | 9), bias exactly 0 under BOTH measures there.
+   (9,7) p=3 (3 | 15), bias exactly 0 under BOTH measures there,
+   (9,4) reading 0 as the non-redundant window it is.
    The parity leak stands: 2a+1 is odd, so rad(b) | 2a+1 fails at
    every even base — an even-base redundant window always leaks
    the parity the non-redundant window hides exactly.
@@ -702,7 +703,7 @@ def s7_division():
 def s8_leak():
     print("== S8 THE REDUNDANCY LEAK (both measures) ==")
     for (b, a, p) in [(2, 1, 2), (10, 6, 2), (10, 6, 5), (10, 7, 5),
-                      (10, 7, 2), (9, 4, 3)]:
+                      (10, 7, 2), (9, 4, 3), (9, 7, 3)]:
         j = 3
         R = repunit(b, j)
         L = 2 * a * R + 1
@@ -737,7 +738,8 @@ def s8_leak():
         for a in range((b + 1) // 2, b):
             ok((2 * a + 1) % 2 == 1, "parity")
     print("  even bases: 2a+1 odd, rad(b) | 2a+1 impossible -- the "
-          "parity leak stands; b=9, a=4 restores (3 | 9)")
+          "parity leak stands; b=9, a=7 restores (3 | 15), where "
+          "b=9, a=4 is the non-redundant window itself")
 
 
 def main():
