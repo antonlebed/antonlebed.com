@@ -7,7 +7,7 @@ log-average
   rho_c(w) = lim Sum_{i<=k} w(p_i) / theta(p_k),      theta(x) = Sum_{p<=x} log p,
 realizing analytic DENSITY constants (Golomb-Dickman, the Poisson-Dirichlet spectrum,
 Artin). This question asks for a genuinely DIFFERENT solvency MECHANISM: a Dirichlet
-ABSCISSA -- the least s at which the resource series
+ABSCISSA -- the infimum of the s at which the resource series
   D(s) = Sum_p 1/P+(p-1)^s        (P+(m) = largest prime factor of m)
 converges (or equals 1) -- a geometric/analytic criterion, not an average. Does the
 abscissa realize a NEW named constant, of a different KIND than the Cesaro zoo?
@@ -37,8 +37,8 @@ extending the Bombieri-Friedlander-Iwaniec mean-value range; Baker-Harman 1998 g
 0.2961, the chronology runs Erdos 1935 -> Wooldridge -> Pomerance -> Balog ->
 Fouvry-Grupp -> Friedlander 1/(2 sqrt e)). Each dyadic block (x, 2x] then contributes
 >= x^(1 - beta*s)/(log x)^C to D(s), so D(s) DIVERGES UNCONDITIONALLY for every
-s < 1/0.2844 ~ 3.52 -- in particular at s = 1, 2, 3 computed here. sigma_c > 3.51 is
-a theorem; divergence past 3.52, so the endpoint sigma_c = +inf, is open, with
+s < 1/0.2843 ~ 3.517 -- in particular at s = 1, 2, 3 computed here. sigma_c > 3.51 is
+a theorem; divergence past 3.517, so the endpoint sigma_c = +inf, is open, with
 Pierpont infinitude a sufficient certificate (Erdos's friability conjecture, a
 density-count statement, is another route). The first draft's clean two-kinds map
 ("density-hard vs existence-hard") over-read: the fixed-s tail questions are
@@ -49,7 +49,7 @@ THE DUALITY (the headline, as corrected). The zoo's TWO solvency mechanisms sit 
 TWO ENDS of the P+ distribution (the inversion -- computed, robust):
   Cesaro average  -> BULK (rough P+)  -> OPEN density constants (GD/PD/Artin; BFI, GRH)
   Dirichlet absc. -> SMOOTH tail      -> NO constant; degenerate by theorem below
-                                         s ~ 3.52, existence-shaped only at the
+                                         s ~ 3.517, existence-shaped only at the
                                          sigma_c = +inf endpoint (Pierpont sufficient)
 The "third KIND" of reserve is NOT a third constant and NOT a clean third hardness:
 the abscissa is the SMOOTH end of the distribution -- both ends are governed by one
@@ -108,8 +108,8 @@ reflect, the PROVED divergence at s = 2, 3: THE LITERATURE PIN); AR2(b)'s Fermat
 is a property (5 known Fermat primes in range; the finiteness itself conjectural) and
 the smooth-count growth an observation. AR3 is the argument that the abscissa realizes
 no new analytic constant; its hardness reading is corrected by the pin -- divergence at
-every s < 1/0.2844 ~ 3.52 is a THEOREM (Lichtman/Baker-Harman friable-shifted-prime
-counts, the BFI circle), sigma_c > 3.51, and divergence past 3.52 stays open, with
+every s < 1/0.2843 ~ 3.517 is a THEOREM (Lichtman/Baker-Harman friable-shifted-prime
+counts, the BFI circle), sigma_c > 3.51, and divergence past 3.517 stays open, with
 smooth-shifted-prime existence (Pierpont, Pi_2, explore_conjecture_bridge.py) a SUFFICIENT
 certificate, not an equivalent. AR4 is an observation isolating the shift's signature, which
 lives at the ENDPOINT: integer sigma_c = +inf is provable (3-smooth integers are infinite),
@@ -137,7 +137,7 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    shrink to 0 (mere monotonicity is vacuous for a positive series). This in-range signal
    reflects a THEOREM (see THE LITERATURE PIN above): friable-shifted-prime counts (Lichtman
    2022 beta > 0.2843, >> x/(log x)^C per dyadic block) force D(s) = +inf unconditionally for
-   every s < 1/0.2844 ~ 3.52, so sigma_c > 3.51. The climb is carried by SMOOTH SHIFTED PRIMES:
+   every s < 1/0.2843 ~ 3.517, so sigma_c > 3.51. The climb is carried by SMOOTH SHIFTED PRIMES:
    the Fermat count (P+=2) is frozen at exactly 5 (3,5,17,257,65537 -- conjecturally all
    there are), while the B-smooth counts grow, C_3 12 -> 31, C_5 19 -> 95, C_7 26 -> 196.
    One-directional pinning at the ENDPOINT: any C_B infinite => D(s) diverges for EVERY s
@@ -151,7 +151,7 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
                         explore_reserve_zoo.py: Fouvry-BFI for the Dickman Golomb-Dickman/PD
                         constants, GRH for Artin);
      DIRICHLET absc. -> SMOOTH tail (rough only 0.046 of D(2)) -> NO constant expected: divergence
-                        PROVED for s < ~3.52 (the same BFI circle -- Lichtman extends the
+                        PROVED for s < ~3.517 (the same BFI circle -- Lichtman extends the
                         BFI mean-value range), open past it, and at the sigma_c = +inf endpoint
                         where Pierpont/Fermat existence (Sigma_1/Pi_2, explore_conjecture_bridge.py)
                         is the sufficient certificate.
@@ -423,7 +423,7 @@ def section_AR2(ps, pp):
         print(row)
     print(f"    last-decade tail fraction (k {MILE[-2]}->{MILE[-1]}): "
           f"D(2) {tail_frac[2]:.2f}, D(3) {tail_frac[3]:.2f}  (non-vanishing, unlike a convergent tail)")
-    print(f"    => divergence at s < ~3.52 is a THEOREM (friable shifted primes, docstring pin);")
+    print(f"    => divergence at s < ~3.517 is a THEOREM (friable shifted primes, docstring pin);")
     print(f"       any C_B infinite => sigma_c = +inf (Pierpont conj. infinite -> D diverges at every s)")
     print()
     return fermat_at[K], {B: cB_at[B][K] for B in B_LIST}, {s: D_at[s][K] for s in S_LIST}
@@ -438,7 +438,7 @@ def section_AR3(pp, logpp, rough, fermat_ct, cB):
     fr_log, fr_recip, _, _ = rough_split(pp, logpp, rough)
     # the duality in one assert: Cesaro emphasizes the rough bulk, the abscissa the
     # smooth tail, and the smooth tail is Fermat-bounded but Pierpont-growing -> the
-    # abscissa realizes no nondegenerate constant (degeneracy proved for s < ~3.52,
+    # abscissa realizes no nondegenerate constant (degeneracy proved for s < ~3.517,
     # docstring pin; existence-shaped only at the sigma_c = +inf endpoint)
     ok(fr_log > 0.70 and fr_recip < 0.15 and fermat_ct == 5 and cB[3] > fermat_ct,
        "AR3: Cesaro reads the bulk (open density constants) / abscissa reads the smooth "
@@ -446,7 +446,7 @@ def section_AR3(pp, logpp, rough, fermat_ct, cB):
     print(f"    CESARO average  ->  bulk (rough P+, {fr_log:.3f} of log-mass)  ->  "
           f"OPEN density constants (BFI/Fouvry, GRH; ch 27-29)")
     print(f"    DIRICHLET absc. ->  smooth tail (rough only {fr_recip:.3f} of D(2))  ->  "
-          f"NO constant: proved divergent s < ~3.52; endpoint sigma_c = +inf open")
+          f"NO constant: proved divergent s < ~3.517; endpoint sigma_c = +inf open")
     print(f"       (Fermat {fermat_ct} bounded, Pierpont-3smooth {cB[3]} growing: any C_B "
           f"infinite => sigma_c = +inf -- the Pi_2 sufficient certificate, ch 25)")
     print(f"    => the 'third KIND' is neither a third constant nor a clean third hardness:")

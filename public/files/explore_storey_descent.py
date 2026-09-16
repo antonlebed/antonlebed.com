@@ -211,7 +211,8 @@ FINDINGS (entered post-run, copied from printed output).
    whose leading F_9-digit is off F_3 cannot be repaired by the
    climb's steps — the climb's reach, not the field's), and the
    boundary control moves: the designed sextic reads 9 = p i* and
-   its f = 3 lift 16 >= 13.
+   its f = 3 lift, which holds zeta_9 (D_1 infinite), climbs to the
+   cap 16 >= 13.
 
 4. THE CLIMB'S REACH (a rig fact): at every ramified rung the random
    climb (24-40 starts of class i*/p^m) reached the law's value

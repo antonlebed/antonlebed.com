@@ -85,7 +85,7 @@ Findings preview:
      matrix is full rank really and tropically. Whether the earlier
      failure modes always sort by rank level was an open hook here;
      RESOLVED, REFUTED (the rank-sorting record block below + section
-     VI: what order's full rank detected was the LIFT).
+     VI: what order's above-cap rank detected was the LIFT).
   3. THE PRODUCT RULE IS CRT INDEPENDENCE (rule): cylinder and
      classicality e-variables are exact (mean = 1); a product of two
      is an e-variable iff their EFFECTIVE read-sets are disjoint --
@@ -854,7 +854,7 @@ report("grading at Z/210, all splits: {2} rank 1 (rectangle), {3}/{5}/{7}"
        "zero rows 0/6/12, the chart's witness (3,1) among the {7}-split's;"
        " proper failure caps its own split")
 
-# (e) what full rank detects: the lift. Order exceeds the fold cap.
+# (e) what rank above the fold cap detects: the lift.
 oranks = {p: split_rank[("order", p)] for p in ps3}
 ok = oranks[2] > 2 and oranks[3] > 3 and oranks[5] > 5
 report(f"order's split ranks at Z/30: {oranks} exceed the fold caps 2/3/5", ok,
