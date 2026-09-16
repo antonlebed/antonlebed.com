@@ -41,8 +41,8 @@ degree-1 place" in one breath. At degree 3 those come apart: a rational
 prime has three unramified shapes and TWO of them carry a degree-1 place.
 So every statement here is about a PLACE and its residue degree, never
 about a prime and its splitting, and the principality test is applied to
-the degree-1 PLACE. That is the roadmap's fifth trap and it is what
-forces the vocabulary.
+the degree-1 PLACE. That is a trap, and it is what forces the
+vocabulary.
 
 TRANSPLANT FLAGS, fixed at the freeze.
 
@@ -283,7 +283,7 @@ THE POSITIVE CONTROLS, run and read FIRST.
       prime; and measured L_1 equals the least odd unramified prime
       carrying a degree-1 place. Printed as two mismatch counts over the
       certified stratum, both of which must be 0, and as the count of
-      fields they ran over. This is the roadmap's fourth trap -- pin the
+      fields they ran over. This is a trap guarded against -- pin the
       instrument where the answer is an identity -- and it doubles as
       the price of the search box of derivation (3).
 

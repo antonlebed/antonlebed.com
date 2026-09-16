@@ -118,7 +118,7 @@ THE SLATE -- PREDICTIONS, FROZEN BEFORE THE ENGINE.
       groups of real quadratic fields in this range are overwhelmingly of
       small order with their non-trivial part 2-torsion; doubling the
       sample doubles the count of a rare type rather than making it
-      common. This prediction is the one the roadmap's move was aimed at
+      common. This prediction is the one the probe was aimed at
       buying, and it is frozen as a NO so that the run decides it.
 
   P3. THE PER-STRATUM PATTERN STAYS UNEXPLAINED. Over the gated strata at
@@ -130,7 +130,7 @@ THE SLATE -- PREDICTIONS, FROZEN BEFORE THE ENGINE.
 THE KILLS, AS OBSERVABLES -- what the rig PRINTS. Each is arithmetic on a
 printed number; the meaning is weighed after the controls are read.
 
-  K1 kills P1, and it is the roadmap's frozen observable verbatim: the
+  K1 kills P1, and it is the observable fixed before the run, verbatim: the
      printed pooled RES-h* at |D| <= 8000 against the printed pooled
      NULL-B band at complement dimension >= 3. Inside the band, or a
      printed ratio to the band's top below 1.1, is the kill.

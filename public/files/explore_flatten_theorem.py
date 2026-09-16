@@ -929,9 +929,9 @@ def arm_F(fired):
 def arm_G(fired):
     """The premises the rank-3 route would rest on, measured here.
 
-    They belong in a rig and not in a roadmap: an aim that carries
-    figures nothing prints is exactly the species this corpus keeps
-    catching. Three readings, none of them a proof.
+    They belong in a rig and not in a statement of aims: an aim that
+    carries figures nothing prints is exactly the error this corpus
+    keeps catching. Three readings, none of them a proof.
     """
     print("\nARM G -- WHAT A RANK-3 ATTEMPT WOULD REST ON")
     # (i) the reversal symmetry survives the antisymmetric row.

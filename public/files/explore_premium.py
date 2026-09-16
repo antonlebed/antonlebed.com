@@ -213,7 +213,7 @@ S9 WHAT THE SILENT SET IS (added to the design after section 5 printed,
    way. The algebra is one line once both definitions are unfolded and a
    reader who says "both sides are W(q-1) = q*W(L)" is right; what the
    unfolding buys is the identification, and its consequence is a
-   roadmap-level NEGATIVE stated in this section's finding.
+   NEGATIVE stated in this section's finding.
    PREDICTION S9a: for every L in the sweep and every fresh prime q < 30000
    with L | q-1, q is silent at L iff V(q) = W(L), 0 exceptions.
    PREDICTION S9b: the silent set at L = 2 above 5 equals the set of

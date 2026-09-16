@@ -66,7 +66,7 @@ THE HAND-DERIVATION (pre-engine, on paper).
       model FORM and not density.
 
   (2) WHERE q(p) COMES FROM, AND WHY IT CANNOT BE THE FIELD'S OWN BITS.
-      The roadmap's trap (2) asks for the same field at the same prime
+      Trap (2) asks for the same field at the same prime
       scale. The scale half is met by binning: q is read from the bin p
       falls in, on frozen geometric edges about three and a half to the
       decade, so a share pooled over 1-1000 is never fed to a model
@@ -357,7 +357,7 @@ THE FINDINGS.
       the local density, it is REVERSED: with the measured share in
       hand the model runs LATE, by 8% of the measured mean at h = 7
       to 29% at h = 5. So the answer to the question
-      the roadmap asked -- does the share account for the first hit
+      posed before the run -- does the share account for the first hit
       exactly -- is no in a direction nobody had named. The share is
       not merely the same ORDER as the undershoot, it is slightly
       MORE than it.

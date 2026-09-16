@@ -35,7 +35,7 @@ the rows. Refining both at once cannot say which one moved anything. So:
   ARM 1 -- THE WEIGHT LATTICE ALONE. The same five menus A-E, in
   twentieths, unchanged; the weight grid becomes all 741 ordered
   compositions of 40 into three positive parts, against 171 at
-  twentieths. This is the arm that answers the roadmap's question,
+  twentieths. This is the arm that answers the question,
   because it is the only one where a MOVED endpoint has one cause. The
   even-numerator vectors are the twentieth grid exactly, so this arm
   contains its own predecessor and must reproduce it (C3).

@@ -338,7 +338,7 @@ THE POSITIVE CONTROLS, run and read FIRST.
       sample of the certified fields as three counts: fields whose map
       lattice has order above 1, places the map calls non-principal, and
       places the map cannot place at all. The first two must be 0. This
-      is the roadmap's pin and it prices the saturation gap where the
+      pins the instrument and prices the saturation gap where the
       answer is known.
 
   C2. THE NORM ACCOUNTING AT EVERY ACCEPTED ELEMENT. For every alpha the

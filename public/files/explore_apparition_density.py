@@ -147,7 +147,7 @@ alpha = (1+sqrt2)^{1,3,5} and print identical rows to 4 decimals
 (0.2922 / 0.2911 / 0.4168 / 0.1670); a = 1 and a = 4 (alpha =
 phi, phi^3) likewise (0.3337 / 0.3332 / 0.3330 / 0.3331).
 
-THE ROADMAP'S ANSWER. Certificate-less windows are the MAJORITY:
+THE ANSWER. Certificate-less windows are the MAJORITY:
 at a generic constant-a window, 2/3 of odd primes m have no
 both-parity boundary class and the gate needs comb machinery;
 on the Pell family the certificate-less share rises to 17/24.

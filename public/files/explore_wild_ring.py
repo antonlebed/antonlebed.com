@@ -13,7 +13,7 @@ are totally ramified, so the walk's own vehicle is the place a surplus
 would price out. K = Q[x]/(x^3 - 2), with 2 and 3 both totally ramified
 and 3 the corpus's first wild place at an odd prime.
 
-THE KILL-SHAPE THE ROADMAP FROZE, as an observable: the sweep prints a
+THE KILL-SHAPE FIXED BEFORE THE RUN, as an observable: the sweep prints a
 walk that SEATS (by its own move rule, not by planting) a place Q with
 v_p(N(Q) - 1) larger than every v_p(L) the three quadratic rings' walks
 build in the same run. What that would MEAN -- the stop law scoped by ring
@@ -36,8 +36,8 @@ TRANSPLANT FLAGS, fixed at the freeze.
     AND e = (p-1)p^t) is used as a PREDICTION, never inside lam_P. Its
     own counterexample list already measures the LOCAL fields of both
     ramified places here -- Z[2^(1/3)] and Z[3^(1/3)], excess 0, each
-    failing the e = (p-1)p^t clause -- so the expectation the roadmap
-    carried (a head at the wild place) is refuted by a filed result
+    failing the e = (p-1)p^t clause -- so the expectation carried
+    in (a head at the wild place) is refuted by a filed result
     before this engine runs, and the run is the global confirmation.
  T3 Maximality is NOT inherited from a squarefree discriminant -- disc
     x^3 - 2 is -108 = -2^2 * 3^3 and the squarefree argument the -23
@@ -159,7 +159,7 @@ PREDICTIONS, fixed before the engine ran, each naming what the rig PRINTS.
      at Z[i], p = 2, reproducing the filed reading -- and neither cubic
      ring's walks beat it; no walk SEATS a place Q with v_p(N(Q) - 1)
      above 3 for any residue characteristic p of its state. FREE
-     READ-OFF, the roadmap's: the count of steps at which the lone-door
+     READ-OFF: the count of steps at which the lone-door
      menu and the populated-door menu name different chosen places, per
      ring -- the first reading of whether the widening ever changes what
      a walk DOES rather than what a strand costs.
@@ -172,7 +172,7 @@ KILL-SHAPES, as observables.
   K3 Dedekind's criterion returns non-coprime at 2 or 3: Z[theta] is not
      maximal, the engine's place enumeration is unsound, stop.
   K4 the sweep prints a walk-seated place whose v_p(N(Q) - 1) exceeds
-     every v_p(L) the three quadratic walks print: the roadmap's kill --
+     every v_p(L) the three quadratic walks print: the kill --
      the stop law is scoped by ring arithmetic.
   K5 the void walk does not lock inside the walker's cap.
 
@@ -225,7 +225,7 @@ F1 BOTH HAND COLUMNS HOLD, AND THE COLUMN'S TAME/WILD LINE IS e < p - 1,
    so its below-standard tail is a headed column's displacement, and
    the HEADLESS level shift is X's alone.]
 
-F2 THE MAXIMALITY ARGUMENT THE ROADMAP OWED, COMPUTED (property;
+F2 THE MAXIMALITY ARGUMENT OWED, COMPUTED (property;
    Dedekind's criterion evaluated in-engine at 2 and 3, the census over
    all 2262 sieved primes). disc(x^3 - 2) = -108 = -2^2 * 3^3, not
    squarefree, so the -23 engine's licence does not transfer. Dedekind
@@ -238,13 +238,13 @@ F2 THE MAXIMALITY ARGUMENT THE ROADMAP OWED, COMPUTED (property;
    2.940 < 3 and the one prime of norm <= 2 is (theta), principal:
    h = 1, an ideal-world engine.
 
-F3 NO HEAD ANYWHERE, AND THE ROADMAP'S EXPECTATION DIED ON A FILED
+F3 NO HEAD ANYWHERE, AND THE PRIOR EXPECTATION DIED ON A FILED
    RESULT BEFORE THE ENGINE RAN (rule in range; all 8 places of norm <=
    30 -- both ramified places included -- at depth 14, excess 0 at every
    one). The head criterion's e = (p-1)p^t clause fails at both ramified
    places (3 is neither a power of 2 nor 2*3^t), exactly as
    explore_head_width.py F2's counterexample list already measured for
-   the LOCAL fields Z[2^(1/3)] and Z[3^(1/3)] -- the roadmap's "a head
+   the LOCAL fields Z[2^(1/3)] and Z[3^(1/3)] -- the prior "a head
    is expected where the -23 field has none" was refuted by that filing
    at the freeze, recorded in T2, and the global run confirms it. What
    the ring supplies instead is F1's pair: columns that deviate from
@@ -292,7 +292,7 @@ F5 THE WALKED SURPLUS IS ZERO AT FOUR OF FIVE RINGS AND 1 AT THE FIFTH,
    is only this paragraph's closing verdict that a bound was still owed.]
 
 F6 THE LONE AND POPULATED MENUS PART AT 409 OF 720 STEPS, IN THREE OF
-   THE FIVE RINGS (rule in range; the roadmap's free read-off, every
+   THE FIVE RINGS (rule in range; the free read-off, every
    step of the sweep, first specimens printed per walk). The answer to
    "do the two menus ever name different places in an actual ring" is
    YES, massively: 7 of the 12 walks part from their lone-menu

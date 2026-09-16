@@ -11,7 +11,7 @@ pattern and the alternating comb C1 has its tail value
 S_m/(1 - eta^m) in the lattice L (at r = 0 the classification is a
 theorem already, with both classical telescopes among the
 exceptions). The
-roadmapped candidate mechanism is the m = 1 congruence — the period-P
+candidate mechanism is the m = 1 congruence — the period-P
 column sums read in L/(1 - eta)L. This probe tests the hand-derivation
 that sharpens the mechanism into a closed-form kill, and reads whether
 it extends to every period.

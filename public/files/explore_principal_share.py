@@ -164,7 +164,7 @@ THE POSITIVE CONTROLS, run and read FIRST.
       1 every split prime is narrow principal, so the share must be
       exactly 1.0000 in EVERY bin and at both signs. Any binning
       apparatus that shows a p-dependence there is broken before it is
-      read -- this is the trap the roadmap named, and it is a control and
+      read -- this is the trap named before the run, and it is a control and
       not a finding.
 
   C2. THE INCUMBENT REGRESSION. Restricted to p <= 1000 and to the same

@@ -264,7 +264,7 @@ I5 lam = 1 IS FORCED. K4 never fired: 0 binding levels with lam > 1
    nothing the assembly is about. explore_slope_assemble.py's
    H6 files this as a measurement and its S-E hunts a discriminator for
    it in rho; there is none to hunt. Its reduce_levels' lam > 1
-   exclusion, and the roadmap's warning that a lam > 1 cell must be
+   exclusion, and the standing warning that a lam > 1 cell must be
    counted separately, can never fire.
 
 I6 THE SLOPE WAS NEVER AN AXIS, WHICH IS WHY EVERY CENSUS MISSED THIS.

@@ -348,7 +348,7 @@ degrees never reaches it. PR9's two kills both missed, but its guess was
 wrong in the same breath: making the least degree born covered moves the
 census to the least FRESH-openable degree (3), not to twice the least degree
 (4), and reading that back across every row is what produced F3.
-THE HANDOVER'S SLATE, carried in from the roadmap: "the clock's degree is 1
+THE PRIOR EXPECTATION, stated before the run: "the clock's degree is 1
 at every b >= 3" is CONFIRMED for the steady state and REFUTED for the
 transient, which the hand-attack found before any code ran. And one debt the
 transplant flags understate: flag 1 says nothing is carried from the corner
