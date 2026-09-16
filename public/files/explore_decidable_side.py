@@ -1,7 +1,10 @@
 """
 explore_decidable_side.py -- CLASSIFYING THE DECIDABLE SIDE: what kind of
 machine is the growing-window class on a sublinear supply, and is its
-halting really decidable? (Sibling of explore_sqrt_supply.py,
+halting really decidable? (Settled against its findings' capacity bounds
+by explore_doubling_counter.py: a counter timing its own grows is
+faithful and unbounded on the sqrt pole, so the bounds here hold for
+programs that do not time their grows. Sibling of explore_sqrt_supply.py,
 explore_bit_supply.py, explore_growth_machine.py,
 explore_minimal_carrier.py, explore_frontier_rider.py.)
 

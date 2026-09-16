@@ -1,7 +1,9 @@
 """
 explore_sqrt_supply.py -- THE SQRT SUPPLY: is the growing-window machine
 universal when the supply rises unboundedly but slower than the count,
-m_g = ceil(sqrt(g))? (Sibling of explore_bit_supply.py,
+m_g = ceil(sqrt(g))? (Settled by explore_doubling_counter.py: yes, universal,
+by a counter that times its own grows; the caps and the regress below hold
+for schedules fixed by the INC count. Sibling of explore_bit_supply.py,
 explore_minimal_carrier.py, explore_frontier_rider.py, and
 explore_growth_machine.py -- the phase boundary of the supply law.)
 

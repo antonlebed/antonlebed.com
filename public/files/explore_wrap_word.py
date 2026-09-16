@@ -356,8 +356,9 @@ run record at the end).
    Everything in findings 1-4 was derived at ONE offset, the sibling
    rig's pregrow = 2, and the two halves separate cleanly. The DOUBLING
    is structural: across offsets 0, 1, 2, 3, 5, 10, 17 and 40 the
-   singletons are always a seed followed by exact ratio-2 steps -- seed
-   3 at offset 0, 2 at offset 1, 5 at offset 5, 7 at offset 40 -- which
+   singletons are always a seed of one or two values followed by exact
+   ratio-2 steps -- the doubling run starting at 3 at offset 0, 2 at
+   offset 1, 5 at offset 5, 10 at offset 40 (S7's seed [7, 10]) -- which
    is forced, since the offset recurrence never reads the offset, it
    only counts down and resets. The RESIDUE answers are not: shifting
    the start shifts every landing, and only pregrow = 2 excludes class 4
