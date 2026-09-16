@@ -29,8 +29,8 @@ write-constant commutes with it, GROW never touches an old window, and
 the fresh-window singleton is built from write-constant and a register
 (1 - ONES) so it introduces no extra case. Consequences: the registers
 carry no information beyond the op word -- a window's whole content is
-a function of (the suffix since its birth, its own modulus); two
-windows with equal age and modulus are identical forever; the
+a function of (the suffix since its birth, its own modulus), the same at
+equal birth time and modulus; the
 configuration abstracts to (control state, the set of pairs (column
 vector mod m, m)) with every op broadcast to all pairs and GROW
 inserting the zero pair -- the reset-broadcast structure, with NO rate

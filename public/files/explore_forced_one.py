@@ -59,8 +59,8 @@ THE HAND ATTACK (on paper, before this file's engine).
   repetition" is DECIDED per window, and the pool at the segment start
   is finite. Two windows of equal modulus and equal column have equal
   orbits, so the work is per DISTINCT (m, column) pair and not per
-  window -- which the normal form already said, equal age and modulus
-  being identical forever.
+  window -- which the normal form already said, a window's column being
+  a function of its birth time and modulus.
 
   ARM B -- YOUNG-SAME IS A FINITE INTEGER CHECK. The suffix W[d+1:s]
   is fixed, so E(W[d+1:s])[a] is one integer per grow offset d < s,

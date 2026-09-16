@@ -181,13 +181,16 @@ nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
 <p class="lede">A growing pool of windows holds nothing but the
 operation stream played back mod the supply, and on every unbounded
 supply that is enough for two counters. How a counter survives on a
-slow supply where the fixed schedules built cap, what the normal form reduces halting to, how
-far that residual can be certified, and what a decider sound on a
+slow supply where every counter built on a fixed grow schedule caps,
+what the normal form reduces halting to, how far that residual can be
+certified, and what a decider sound on a
 fragment of programs still has to ask the supply.</p>
 
 <p>The machine is the <b>element face</b> of the growth apparatus with
-no imported primitive: <i>r</i> <b>registers</b>, each a column over a
-<b>pool</b> of <b>windows</b> <b>Z</b>/<i>m</i>, with componentwise add,
+no imported primitive: <i>r</i> <b>registers</b>, each holding one
+residue at every window of a <b>pool</b> of <b>windows</b>
+<b>Z</b>/<i>m</i>, the <b>column</b> at a window being the <i>r</i>
+residues held there, with componentwise add,
 subtract, multiply and write-constant; one global <b>zero-test</b>, the
 AND of a register's per-window zero bits; <b>grow</b>, which appends a
 fresh window <b>born at zero</b>; and the <b>frontier singleton</b>,
@@ -205,11 +208,10 @@ counter</a>. A <b>rider</b> is a
 counter held as a residue in one <b>pointed</b> window at the frontier,
 the window a pointer register singles out; its
 zero-test <b>fires</b> when the value wraps to 0, a fire is
-<b>pending</b> while its next true lies in the future, and the fire's
+<b>pending</b> while its next true zero-test lies in the future, and the fire's
 time is a <b>landing</b>. A register is <b>faithful</b> when its value
 tracks its increment count. The <b>inverse supply</b> is
-<i>M</i>(<i>d</i>) = max{<i>g</i> : <i>m</i>(<i>g</i>) ≤ <i>d</i>}. A <b>pass</b> is one
-tick of a rider: grow, increment, zero-test. A landing <b>enters</b> by
+<i>M</i>(<i>d</i>) = max{<i>g</i> : <i>m</i>(<i>g</i>) ≤ <i>d</i>}. A <b>pass</b> is one tick of a rider: grow a fixed number of windows, the <b>grows-per-pass</b>, one unless said, then increment and zero-test. A landing <b>enters</b> by
 the gap <i>d</i> from the landing before it (from time 0 for the first),
 the modulus it wraps, and <b>leaves</b> by the gap to the next; one
 entered by <i>d</i> has its frontier index in the <b>span</b> of
@@ -235,41 +237,48 @@ Minsky's, cited.</p>
   <div class="claim-head"><span class="claim-name">The doubling counter
   times its own grows</span>
   <span class="tier">rule</span></div>
-  <p>The value <i>V</i> sits on one pointed window, its pointer
-  <i>P</i> the frontier singleton saved while that window was the
-  freshest, so
+  <p>The value <i>V</i> sits on one pointed window of modulus
+  <i>m<sub>P</sub></i>, its pointer <i>P</i> the frontier singleton
+  saved while that window was the freshest, so
   <i>V</i> + <i>P</i> adds one there and nowhere else, <i>V</i> &lt;
   <i>m<sub>P</sub></i> holds exactly, and the zero-test is truthful.
-  When <i>V</i> + <i>P</i> would wrap to 0 the counter
-  <b>migrates</b>: it grows one window, saves the new frontier singleton
+  When an increment is due and <i>V</i> + <i>P</i>, computed into a
+  scratch register, tests zero, the counter first <b>migrates</b>: it grows one window, saves the new frontier singleton
   <i>F</i>, and compares <i>m<sub>F</sub></i> against
   2<i>m<sub>P</sub></i> by stepping a residue counter on each of the
   two windows in lockstep — <i>F</i> outlasts when <i>P</i>'s counter wraps twice
   before <i>F</i>'s wraps once, a wrap count bounded by 2 being all the
-  control the compare needs — and repeats until <i>F</i> outlasts; then
-  it moves the value across one unit at a time, decrementing on
-  <i>P</i> and incrementing on <i>F</i> until <i>V</i> tests zero, and
-  re-points <i>P</i> to <i>F</i>. The compare is exact and runs after
+  control the compare needs, the two scratch counters written back to 0
+  before the next compare — and repeats until <i>F</i> outlasts; then
+  it moves the value across one unit at a time, decrementing <i>V</i>
+  by <i>P</i> and incrementing a second register by <i>F</i> until
+  <i>V</i> tests zero, takes the second register as <i>V</i>, re-points
+  <i>P</i> to <i>F</i>, and applies the increment. The compare is exact and runs after
   every grow, so a migration ends exactly when some later window has
   modulus above 2<i>m<sub>P</sub></i>, which is the supply being
-  unbounded and nothing more. Two such counters keep independent
+  unbounded and nothing more; any factor above 1 would carry the value,
+  and 2 keeps the migrations to one per doubling of the modulus. Compared
+  only once per <b>block</b> of <i>m<sub>P</sub></i> grows, the block
+  counted by a counter on <i>P</i>'s window, the migration still ends on
+  a nondecreasing supply, but not on one whose large moduli avoid the
+  block ends. Two such counters keep independent
   pointers, a grow for one being born 0 in the other, so a two-counter
   machine runs on one pool. The grows are timed by counters on windows
   the program already points at, each faithful below its own modulus,
   never by a counter larger than the one being built.</p>
   <p class="scope"><b>Scope.</b> Rule: the invariant and the termination
   are argued from the construction, and the programs, written in machine
-  operations, are checked window by window against a dense engine
-  computing the frontier singleton as 1 − ONES. Printed: 0 → 2000 → 0
-  with no lie on the sqrt pole with the compare run once per block of
-  <i>m<sub>P</sub></i> grows (9,424,910 grows to reach 2000); 0 → 200 →
-  0 with the compare after every grow on <i>m<sub>g</sub></i> =
-  <i>g</i> at even <i>g</i> and 2 at odd <i>g</i>, where the block form
-  exhausts its budget at value 1, and on <i>m<sub>g</sub></i> = <i>g</i>
-  at powers of two and 2 elsewhere; <i>B</i> := 3<i>A</i> then
-  <i>A</i> := <i>B</i> ending at (900, 0) on the sqrt pole and (300, 0)
-  on the alternating supply; with every modulus 2 the budget runs out at
-  value 1.</p>
+  operations, are checked window by window against a second engine that
+  stores every register at every window. Printed, with no miscount after
+  any operation: 0 → 2000 → 0 on the sqrt pole with the compare once per
+  block (9,424,910 grows to reach 2000); 0 → 200 → 0 with the compare
+  after every grow on <i>m<sub>g</sub></i> = <i>g</i> at even <i>g</i>
+  and 2 at odd <i>g</i>, where the block compare stops at value 1 with
+  its grow budget spent, and on <i>m<sub>g</sub></i> = <i>g</i> at
+  powers of two and 2 elsewhere; <i>B</i> := 3<i>A</i> then <i>A</i> :=
+  <i>B</i> from <i>A</i> = 300 ending at (900, 0) on the sqrt pole and
+  from <i>A</i> = 100 ending at (300, 0) on the alternating supply; with
+  every modulus 2 the grow budget runs out at value 1.</p>
   <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_doubling_counter.py">
   <code>explore_doubling_counter.py</code></a>,
   <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_unbounded_supply.py">
@@ -281,27 +290,25 @@ Minsky's, cited.</p>
   growing once per increment cap below the linear rate, and the crux is
   re-basing, not carry</span>
   <span class="tier">rule</span></div>
-  <p>A carry across two <em>addressed</em> windows is in the class: save
-  the singleton as a persistent idempotent, one addressed window per
-  register, and carry when the low digit wraps by increment-then-zero-test
-  on the sparse low register. But a positional value
-  Σ digit<sub><i>i</i></sub>·<i>W<sub>i</sub></i> has the moduli as its
+  <p>A carry across two <em>addressed</em> windows, each singled out by a
+  saved frontier singleton, is within the machine: save one per digit,
+  and carry when the low digit wraps by increment-then-zero-test on the
+  low register, nonzero at its one window. But a positional value
+  Σ digit<sub><i>i</i></sub>·<i>W<sub>i</sub></i>, <i>W<sub>i</sub></i>
+  the product of the bases below digit <i>i</i>, has the moduli as its
   bases, and migrating a digit-window to a fresher modulus rescales the
   higher weights by the unknown ratio <i>m</i>′/<i>m</i>, a
-  multiplication by an unknown the class cannot perform; only the top
+  multiplication by an unknown the machine cannot perform; only the top
   digit migrates cleanly, and that obstruction is <b>re-basing</b>; a
   counter moving only its top digit is <b>top-migratable</b>.
   <b>The cap lemma:</b> on a nondecreasing
   supply such a counter's faithful value never exceeds
   <i>W<sub>d</sub></i>·<i>m</i><sub>frontier</sub>, with
   <i>W<sub>d</sub></i> the frozen product of the lower bases, a constant
-  the program chooses. Growing once per increment it survives exactly
-  when <i>W<sub>d</sub></i>·<i>m<sub>g</sub></i> ≥ <i>g</i> for some
-  fixed <i>W<sub>d</sub></i>, which is <i>m<sub>g</sub></i> =
-  Ω(<i>g</i>); on the sqrt pole the top-migratable counter first
+  the program chooses. Growing once per increment it survives without bound exactly when some fixed <i>W<sub>d</sub></i> keeps <i>W<sub>d</sub></i>·<i>m<sub>g</sub></i> abreast of <i>g</i> at every count, which is <i>m<sub>g</sub></i> = Ω(<i>g</i>); on the sqrt pole the top-migratable counter first
   miscounts at exactly <i>W<sub>d</sub></i>². The other fixed schedules
   cap the same way, a fresh window carrying no value information: the
-  single rider wraps at count 3; the CRT counter, value as residues and
+  single rider wraps there at count 3; the CRT counter, value as residues and
   exact while it is below the lcm, caps by lcm freeze, a grown window
   being born 0 and not the value's residue; and the unary support
   counter has no decrement, being
@@ -314,7 +321,8 @@ Minsky's, cited.</p>
   <p class="scope"><b>Scope.</b> Rule for the named schemes, verified at
   <i>m<sub>g</sub></i> = ⌈<i>g</i>/3⌉ with the carry exact at bases 3
   and 4 over counts 0 to 11; the sqrt pole's first miscounts at counts
-  4, 9, 16, 25, measured at <i>W<sub>d</sub></i> = 2 to 5. The linear
+  4, 9, 16, 25, measured at <i>W<sub>d</sub></i> = 2 to 5; at
+  ⌈<i>g</i>/3⌉ a base-4 counter runs 600 increments uncapped. The linear
   rate is the line of this schedule, not of the machine.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sqrt_supply.py">
   <code>explore_sqrt_supply.py</code></a></p>
@@ -322,8 +330,7 @@ Minsky's, cited.</p>
 
 <article class="claim" id="third-class">
   <div class="claim-head"><span class="claim-name">Bandwidth is per
-  operation, and caps a counter only at boundedly many operations per
-  increment</span>
+  operation, and caps the named counters on a slow supply only at boundedly many operations per increment</span>
   <span class="tier">rule</span></div>
   <p>The componentwise operations never move value between windows, so
   value crosses windows only through the global zero-test, one bit out,
@@ -344,8 +351,8 @@ Minsky's, cited.</p>
   pre-growth of <i>G</i><sub>0</sub> windows buys a capacity of order
   √<i>G</i><sub>0</sub> (faithful to 10, 20, 30 at 100, 400, 900, the
   first lie one above ⌊√<i>G</i><sub>0</sub>⌋). The doubling counter spends
-  unboundedly many grows and steps per migration, so its value and its
-  riders' firing periods are unbounded while every operation still moves
+  unboundedly many grows and steps per migration, so its value and the
+  firing periods of its compare counters are unbounded while every operation still moves
   <i>O</i>(1).</p>
   <p class="scope"><b>Scope.</b> Rule for the principle and the three
   named schemes; the placement is shown on one program.</p>
@@ -368,10 +375,11 @@ Minsky's, cited.</p>
   commute with it; write-constant writes one integer; a grow never
   touches an old window; and the frontier singleton is 1 − ONES, where
   ONES is a register set to 1 and re-set at every grow, both moves
-  native. So the registers carry no information beyond the op word; two
-  windows of equal age and modulus are identical forever; and the
-  configuration abstracts to (control, the <em>set</em> of pairs (column
-  mod <i>m</i>, <i>m</i>)) with every operation broadcast and grow
+  native. So the registers carry no information beyond the op word; at
+  each step a window's column is fixed by its birth time and its
+  modulus; and the
+  configuration abstracts to (control, the <em>set</em> of pairs (column,
+  <i>m</i>)) with every operation broadcast and grow
   inserting the zero pair — a <b>reset-broadcast</b> structure, for
   every program on every supply, with no rate hypothesis. The window
   pool is a delay line of the op stream sampled mod the supply: it holds
@@ -399,22 +407,23 @@ Minsky's, cited.</p>
   <span class="tier">rule</span></div>
   <p>After a run's last grow the whole configuration lives in
   <i>Q</i> × ∏(<b>Z</b>/<i>m<sub>k</sub></i>)<sup><i>r</i></sup> and the
-  machine reads no input between grows, so the <b>plain decider</b> —
+  machine reads no input between grows, <i>m<sub>k</sub></i> the
+  modulus of the <i>k</i>-th window, so the <b>plain decider</b> —
   simulate, HALT on halt, LOOP at the first repeat of the <em>full</em>
   configuration with no grow between — is complete for every run with
   finitely many grows, by pigeonhole; the exact repeat is sound and
-  exponentially patient, where a compressed descriptor's first repeat is
-  fast and wrong (below). If every forever-growing program admits a
+  exponentially patient, where the first repeat of a compressed summary
+  of the configuration is fast and wrong (below). If every forever-growing program admits a
   finite certificate, halting is decidable, halt, loop and certificate
   searched in parallel; every unbounded supply being universal, each
   carries forever-growing programs no certificate family covers, so a
   certificate scheme reaches a fragment. "Grows forever" is
   co-semi-decidable for free, its complement being halt-or-loop.</p>
   <p class="scope"><b>Scope.</b> The reduction is derived from the
-  normal form; the plain decider is a rule on its battery — HALT, a
-  certified LOOP far inside its pigeonhole bound, and NO-CERTIFICATE at
-  the step limit on a forever-growing program, both positive controls
-  passed first.</p>
+  normal form; the plain decider is a rule on its battery — HALT and a
+  certified LOOP far inside its pigeonhole bound, the two positive
+  controls, passed first, and no certificate at the step limit on a
+  forever-growing program, as designed.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py">
   <code>explore_born_at_zero.py</code></a></p>
 </article>
@@ -504,18 +513,20 @@ Minsky's, cited.</p>
 <h2>The decision procedure</h2>
 
 <article class="claim" id="landing-dichotomy">
-  <div class="claim-head"><span class="claim-name">Pending fires land on
-  the sublinear side, and the first-repeat rule is
+  <div class="claim-head"><span class="claim-name">Pending fires land on every nondecreasing sublinear supply, and the first-repeat rule is
   phase-blind</span> <span class="tier">rule</span></div>
   <p>A riding counter's pending fire lands at a computable time on every
   nondecreasing o(<i>g</i>) supply with any fixed grows-per-pass: the
   value advances by
   one while the modulus is non-decreasing, so the first pass with
   <i>v</i> + 1 ≥ <i>m</i> has equality and the wrap cannot be skipped.
-  On the linear side the same fire hangs pending forever, a faithful
-  counter never re-zeroing. So for riders at a fixed grows-per-pass the
-  o(<i>g</i>)/Ω(<i>g</i>) line is the fire landing's, as it is the line
-  of <a href="#cap-lemma">counters growing once per increment</a>. The
+  On a linear supply it depends on the slope against the grows-per-pass:
+  at one grow per pass the successor supply
+  <i>m<sub>g</sub></i> = <i>g</i> + 1 keeps the fire pending forever, a
+  faithful counter never re-zeroing, while at
+  <i>m<sub>g</sub></i> = ⌈<i>g</i>/3⌉, below <i>g</i>, the single rider wraps.
+  Sublinearity is what makes every fire land at every fixed
+  grows-per-pass. The
   first-repeat heuristic — LOOP on a repeated (control, zero-vector)
   signature — is doubly unsound: a frozen lcm pulse of period 60 draws a
   false LOOP at step 15 against a true halt at 250, and a riding
@@ -526,20 +537,20 @@ Minsky's, cited.</p>
   supply (not recoverable machine-side).</p>
   <p class="scope"><b>Scope.</b> The landing is proved by the crossing
   argument and mechanized: landings on the ⌈√<i>g</i>⌉ and
-  ⌈log<sub>2</sub> <i>g</i>⌉ supplies within the derived bound, the
-  linear hang exhibited over 4,000 passes.</p>
+  ⌈log<sub>2</sub> <i>g</i>⌉ supplies within the time the argument
+  bounds, the successor supply's hang exhibited over 4,000 passes.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_pending_fires.py">
   <code>explore_pending_fires.py</code></a></p>
 </article>
 
 <article class="claim" id="three-verdict-decider">
   <div class="claim-head"><span class="claim-name">The three-verdict
-  decider is sound on its fragment, and the fragment's decidability is
-  supply tameness</span> <span class="tier">rule</span></div>
-  <p>The <b>fragment</b> is the lasso programs whose zero-tested
-  registers are each touched in the loop body only by rider increments,
-  by adds of singletons saved before the loop, by uniform constant adds
-  in a growing body, or not at all, with resets allowed on fire branches;
+  decider is sound on its fragment, and a tame supply decides the fragment</span> <span class="tier">rule</span></div>
+  <p>The <b>fragment</b> is the programs made of a setup followed by
+  one loop, whose zero-tested registers are each touched in the loop body
+  only by rider increments, by adds of singletons saved before the loop,
+  by adds of one constant at every window in a loop that grows, or not
+  at all, with resets allowed on fire branches;
   the doubling counter, saving singletons inside its loop, is outside it.
   Verdicts HALT(<i>t</i>), LOOP(certificate),
   SUPPLY-ARITHMETIC(extracted question). Signals are classified riding,
@@ -547,11 +558,12 @@ Minsky's, cited.</p>
   bisimulation-checked against the concrete machine tick for tick, and
   an exact descriptor walk decides halts, with a fire branch that
   consults another signal's phase having its question <em>extracted</em>
-  rather than guessed. Zero false verdicts on the battery, both naive
-  killers included; outside the fragment the answer is out-of-fragment.
+  rather than guessed, so wherever the extracted questions are decidable
+  the fragment is. Zero false verdicts on the battery, both naive
+  killers included; a program outside the fragment gets no verdict.
   <b>The supply oracle</b> closes the other face: the machine reads one
   bit per landing about the supply's fine structure — on an all-0-mod-6
-  track every wrap lands at clock phase 0; one tail switch to 1 mod 6
+  track every wrap lands at phase 0 of a frozen clock mod 6; one tail switch to 1 mod 6
   and the first post-switch wrap trips the detector — so over the
   computable o(<i>g</i>) supplies encoding "machine <i>e</i> halts" in a
   tail switch, a fragment program's halting is undecidable in <i>e</i>.

@@ -235,8 +235,9 @@ second half; mod 60: 38 of 60 classes).
 FINDINGS (entered after the run; every number below is from the printed
 output; run record at the end).
 
-1. THE LANDING DICHOTOMY -- o(g) forces every riding fire to land; the
-   linear side lets it hang forever (rule, proved by the crossing
+1. THE LANDING DICHOTOMY -- o(g) forces every riding fire to land; a
+   linear supply can let it hang forever, the successor supply at one
+   grow per pass does, while m_g = ceil(g/3) lands (below g the single rider wraps, explore_sqrt_supply.py) (rule, proved by the crossing
    argument and mechanized; S1). A riding counter's pending fire lands
    at the first elapsed count meeting the creeping modulus; on any o(g)
    supply with any FIXED grows-per-pass K this is forced by the
@@ -478,7 +479,8 @@ def s1_landing_dichotomy():
     ok(hung and v == 4000,
        "successor (linear) supply: v_t = t exactly for 4000 passes -- the "
        "armed fire stays PENDING FOREVER (the faithful counter never "
-       "re-zeros); landing is the sublinear side's property")
+       "re-zeros); landing at every grows-per-pass is the sublinear "
+       "side's property")
     fires_sq = riding_fires(sqrt_mod, K=1, pregrow=30, horizon=3000)
     gaps = [b - a for a, b in zip(fires_sq, fires_sq[1:])]
     ok(all(b >= a for a, b in zip(gaps, gaps[1:])) and gaps[-1] > gaps[0],
