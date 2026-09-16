@@ -214,11 +214,19 @@ FINDINGS (tiers per the standard naming scale; run record below).
    coprime-cube-pair menu.
 
 3. SIZE 3 IS CHARACTERIZED TOO, AND THE SET IS TINY (rule, verified
-   exhaustively against factorization at all 39,711 menus of {2..64}, 0
-   disagreements). A three-element menu is a seed exactly when its reduced
+   exhaustively against factorization at all 39,711 menus of {2..64} and
+   at the 780 menus {2, 2^(a+1), 2^(b+1)} with b <= 40, 0 disagreements
+   at either). A three-element menu is a seed exactly when its reduced
    exponent vectors are COLLINEAR -- so the core is 1 + x^a + x^b in a
-   single monomial direction -- and {0, a, b} meets all three residues
-   modulo 3, and {a, b} is not {1, 2}. The three clauses are three
+   single primitive monomial direction -- and, with 3^e the largest power
+   of 3 dividing both a and b, {0, a/3^e, b/3^e} meets all three residues
+   modulo 3, and {a, b} is not {3^e, 2*3^e}. AS FIRST STATED the clause
+   read {0, a, b} itself against the residues and excluded only {1, 2}:
+   false at 1 + x^6 + x^12 = Phi_9 Phi_18, a seed with residues {0}, and
+   at the 20 seeds of the line to degree 40 with 3 | a and 3 | b, none of
+   which the box reaches, its exponents stopping at 5 (the line census
+   in main, added with the fix; found by a cold read of the published
+   statement). The three clauses are three
    different facts, and only one of them is this file's. ATTRIBUTION: the
    univariate half -- that a 0/1 trinomial is reducible exactly when a
    cyclotomic factor divides it, so that Phi_3 divisibility is the only
@@ -241,10 +249,12 @@ FINDINGS (tiers per the standard naming scale; run record below).
    supplied (honest limit (ii)), and it now has one;
    and the classical half is credited here without its source having
    been read. The
-   residue condition itself is elementary -- divisibility by 1 + x + x^2
-   is exactly {0, a, b} meeting all three residues -- and the last clause
-   removes 1 + x + x^2 itself, which is divisible by itself and
-   irreducible. Five menus in the whole box pass:
+   residue condition itself is elementary -- 1 + x^a + x^b vanishes at a
+   root of unity exactly when x^a and x^b are the two primitive cube
+   roots there, which after dividing out 3^e is {0, a/3^e, b/3^e} meeting
+   all three residues, the factor then being 1 + y + y^2 at y = x^(3^e)
+   -- and the last clause removes that factor itself, Phi_(3^(e+1)),
+   which is irreducible. Five menus in the whole box pass:
    {2,4,64}, {2,8,32}, {2,32,64}, {3,12,48} and {4,16,64}. Three distinct
    cores between them -- 1 + x^2 + x^4 carried by three of the five,
    1 + x + x^5 and 1 + x^4 + x^5 by one each, the last two being each
@@ -301,9 +311,10 @@ FINDINGS (tiers per the standard naming scale; run record below).
    the seeds can be ENUMERATED directly at any bound, or generated with no
    bound at all -- one parametric family per size, each read straight off
    its criterion. Size 2 is {c*u, c*v} with u, v coprime d-th powers and d
-   carrying an odd prime factor. Size 3 is {c, c*Q^a, c*Q^b} with Q >= 2,
-   c >= 2 and {0, a, b} meeting all three residues mod 3 without being
-   {0, 1, 2} -- the collinearity clause IS that form, the primitive
+   carrying an odd prime factor. Size 3 is {c, c*Q^a, c*Q^b} with Q >= 2
+   not a perfect power, c >= 2, and {0, a/3^e, b/3^e} meeting all three
+   residues mod 3 with {a, b} not {3^e, 2*3^e}, 3^e the largest power of
+   3 dividing both -- the collinearity clause IS that form, the primitive
    direction wearing integer clothes as Q, and the five seeds of the box
    are 2*{1,2,32}, 2*{1,4,16}, 2*{1,16,32}, 3*{1,4,16} and 4*{1,4,16}.
    The box survives on the
@@ -324,6 +335,9 @@ audit found S1's first check recomputing its own input and replaced it
 with the two invariance checks (finding 0 (iii)); run 5 passed both but
 counted a sample that listed the seeds twice at stride 1, and run 6 is on
 the deduplicated sample: 22/22, and every figure above is that run's.
+Run 7 corrected the size-3 criterion's residue clause and added the line
+census to degree 40: 23/23 in 135.6 s, peak working set 104.6 MB, the box
+figures unchanged.
 """
 
 import os
@@ -343,6 +357,9 @@ PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]
 X = symbols(' '.join(f'y{i}' for i in range(len(PRIMES))))
 
 CHECKS = []
+
+
+LINE_DEG = 40
 
 
 def check(name, ok):
@@ -450,11 +467,16 @@ def criterion_seed3(A):
     design; the reading it locks is finding 3. The reduced vectors are
     {0, a*v, b*v} or they are not collinear at all; a non-collinear 0/1
     trinomial is a monomial image of 1 + u + v and irreducible, so only
-    the collinear ones can be seeds, and there the core is 1 + x^a + x^b,
-    divisible by 1 + x + x^2 exactly when {0, a, b} meets all three
-    residues mod 3, and reducible exactly when that quotient is not
-    trivial -- which excludes {a, b} = {1, 2}, the polynomial 1 + x + x^2
-    itself.
+    the collinear ones can be seeds, and there the core is 1 + x^a + x^b.
+    With 3^e the largest power of 3 dividing both a and b, it has a
+    cyclotomic factor exactly when {0, a/3^e, b/3^e} meets all three
+    residues mod 3 -- then x^a and x^b are the two primitive cube roots
+    of unity at a root of 1 + y + y^2, y = x^(3^e) -- and it is reducible
+    exactly when that factor is not the whole core, which excludes
+    {a, b} = {3^e, 2*3^e}, the irreducible cyclotomic Phi_(3^(e+1)).
+    The first version skipped the division by 3^e and called
+    1 + x^6 + x^12 = Phi_9 Phi_18 irreducible; the {2..64} box never
+    reaches a pair both divisible by 3, and the line census in main does.
     """
     pts = vectors(A)
     if not collinear(pts):
@@ -471,6 +493,8 @@ def criterion_seed3(A):
     ts = [0, int(g1), int(d2[i] // w[i])]
     lo = min(ts)
     a, b = sorted(t - lo for t in ts)[1:]
+    while a % 3 == 0 and b % 3 == 0:      # x^3 -> x keeps the root-of-unity test
+        a, b = a // 3, b // 3
     if len({0, a % 3, b % 3}) != 3:
         return False
     return {a, b} != {1, 2}
@@ -683,6 +707,18 @@ def stage3(out):
           f" {len(wrong3)} disagreements with the factorization instrument")
     check("S3 the size-3 criterion agrees with factorization at every menu",
           not wrong3)
+    # the box's exponents stay at 5 or below, so no pair there is divisible
+    # by 3 twice over; the line to degree 40 reaches every such pair
+    line = [(a, b) for b in range(2, LINE_DEG + 1) for a in range(1, b)]
+    wrongl = [(a, b) for a, b in line
+              if criterion_seed3((2, 2 ** (a + 1), 2 ** (b + 1)))
+              != is_seed((2, 2 ** (a + 1), 2 ** (b + 1)))]
+    print(f"  size 3 on the line: criterion evaluated on {len(line)} menus"
+          f" {{2, 2^(a+1), 2^(b+1)}}, b <= {LINE_DEG}, {len(wrongl)}"
+          f" disagreements; seeds with 3 | a and 3 | b:"
+          f" {sum(1 for a, b in line if a % 3 == 0 and b % 3 == 0 and is_seed((2, 2 ** (a + 1), 2 ** (b + 1))))}")
+    check("S3 the size-3 criterion agrees with factorization on the line",
+          not wrongl)
     check("S3 the size-3 seeds are the measured five",
           sorted(seeds3) == [(2, 4, 64), (2, 8, 32), (2, 32, 64),
                              (3, 12, 48), (4, 16, 64)])
