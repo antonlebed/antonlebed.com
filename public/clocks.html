@@ -180,9 +180,10 @@ nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
 <h1>The clock machine</h1>
 <p class="lede">A machine that can only start clocks, advance them
 together, nudge the newest one and ask whether they coincide at zero.
-With one coincidence read per register it runs two counters on every
-unbounded supply and needs no pointer to an old window; with one read
-over every register it keeps no memory across a read.</p>
+With one zero-test per register it runs two counters on every
+unbounded supply and needs no pointer to an old window; with one
+zero-test over every register a true read leaves only the control state
+and the number of windows grown.</p>
 
 <p>The <b>clock machine</b> runs on a <b>supply</b>
 <i>m<sub>g</sub></i>, the modulus of the <i>g</i>-th <b>window</b>
@@ -191,7 +192,8 @@ grown, each window a residue ring <b>Z</b>/<i>m</i>. It has <i>r</i>
 control, and four operations: <b>tick</b>, add ±1 at every window of
 one register; <b>pulse</b>, add ±1 at the newest window of one register
 only; <b>grow</b>, append a window born at 0 in every register; and a
-<b>zero-test</b>, true when every window it reads holds 0. No operation
+<b>zero-test</b>, true when every window it reads holds 0, the windows
+of one register or of every register as each block below states. No operation
 names an older window, so each window runs as a clock of period
 <i>m</i> and a zero-test reads whether clocks coincide at 0. Write
 <i>C</i> = lcm(<i>m</i><sub>1</sub>, …, <i>m<sub>g</sub></i>) over the
@@ -202,13 +204,15 @@ growing-window machine of <a href="/computation/delay">the delay
 line</a> with multiply, write-constant and register-to-register
 addition removed, so the saved pointer that
 <a href="/computation/delay#doubling-counter">the doubling counter</a>
-keeps is not available. Universality is Minsky's, cited.</p>
+keeps is not available. Universality is Minsky's (Minsky 1967),
+cited.</p>
 
 <article class="claim" id="clock-counter">
   <div class="claim-head"><span class="claim-name">The clock counter
   needs no saved pointer</span>
   <span class="tier">rule</span></div>
-  <p>Register <i>A</i> holds <i>V</i> mod <i>m</i> at every window.
+  <p>Register <i>A</i> holds the counter's value <i>V</i> as <i>V</i>
+  mod <i>m</i> at every window.
   Then a tick is an increment or a decrement, and the zero-test of
   <i>A</i> is true exactly when <i>V</i> ≡ 0 mod <i>C</i>, so the
   counter is faithful below <i>C</i> and its overflow is visible: a true
@@ -224,19 +228,21 @@ keeps is not available. Universality is Minsky's, cited.</p>
   increment, grows, runs the round trip and retries, so it grows only at
   an overflow and reaches <i>N</i> in exactly the least <i>g</i> with
   <i>C</i> &gt; <i>N</i>; <i>C</i> is at least every modulus, so it is
-  unbounded on every unbounded supply. Two counters sharing one timer
-  run a two-counter machine. Both ingredients carry weight: without the
+  unbounded on every unbounded supply. Two counters sharing one timer,
+  each repaired by its own round trip after a grow since a grow misaligns
+  both, run a two-counter machine. Both ingredients carry weight: without the
   pulse the first loop stops at the least <i>s</i> with <i>s</i> ≡
   <i>V</i> mod <i>C</i><sub>0</sub>, the lcm before the grow, and
   <i>s</i> ≡ 0 mod <i>m</i>′, so it hangs when
-  gcd(<i>C</i><sub>0</sub>, <i>m</i>′) does not divide <i>V</i> and
-  lands at a wrong value otherwise; without the timer the counter miscounts
-  at 2.</p>
+  gcd(<i>C</i><sub>0</sub>, <i>m</i>′) does not divide <i>V</i>, is
+  right when <i>m</i>′ divides <i>V</i>, and lands at a wrong value
+  otherwise; without the timer, growing at overflow with no round trip,
+  the counter miscounts at 2 on the sqrt pole.</p>
   <p class="scope"><b>Scope.</b> Rule: the invariant is argued from the
   construction, and the programs are checked against a second engine
   that stores every register at every window. Printed with no miscount
   after any operation: 0 → 20000 → 0 on the sqrt pole in 101 grows, and
-  65 grows to reach 2000, where the doubling counter spends 9,424,910;
+  65 grows to reach 2000, where the doubling counter spends 9,424,910 grows;
   0 → 100 → 0 on <i>m<sub>g</sub></i> = max(2, ⌊log<sub>2</sub>
   <i>g</i>⌋ + 1) in 64 grows; 0 → 2000 → 0 on <i>m<sub>g</sub></i> =
   <i>g</i> at even <i>g</i> and 2 at odd <i>g</i> in 18 grows;
@@ -263,7 +269,7 @@ keeps is not available. Universality is Minsky's, cited.</p>
   in, each copy of <i>v</i> a <b>pass</b>, and the trip ends at the
   first read on that word that is true, or never. Let <i>v</i> hold a
   grow, and let every window grown during the loop have modulus above
-  4|<i>v</i>|. A window born during pass <i>i</i> holds in one register,
+  4|<i>v</i>|, |<i>v</i>| its number of unit operations. A window born during pass <i>i</i> holds in one register,
   at a fixed read position in pass <i>k</i> ≥ <i>i</i> + 2, the integer
   <i>c</i> + (<i>k</i> − <i>i</i>)<i>n</i>, with <i>c</i> fixed by the
   grow it was born at and <i>n</i> the register's net tick over one
@@ -271,17 +277,29 @@ keeps is not available. Universality is Minsky's, cited.</p>
   finds the windows born at one grow in passes <i>k</i> − 3 and
   <i>k</i> − 2 at 0; their integers are at most 4|<i>v</i>| in size,
   below their moduli, so both are 0, and they differ by <i>n</i>, so
-  every net tick is 0. With every net tick 0 each window's integer stops
-  moving, and the answer at a read position is the same in every pass
-  from the third on. So the first true read falls in <i>u</i> or by pass 3, and on a
-  supply tending to infinity, once every modulus exceeds a program
-  constant, a trip that ends grows a bounded number of times: a run is a finite automaton reading the supply's
-  arithmetic one way, and whether its halting is decidable rides on that
-  arithmetic. The hypothesis carries weight: with the loop's moduli 2, a
+  every net tick is 0. With every net tick 0 the answer at a read
+  position is the same in every pass from the third on: a window born
+  before the loop holds one integer from pass 2 on, the ticks cancelling
+  over a pass and the pulses reaching only the newest window; a loop
+  window born two or more passes back holds <i>c</i>, fixed by its grow;
+  and the windows born in the last two passes hold integers fixed by
+  their position in <i>v</i>, the same at every pass from the third.
+  An old window is one window holding one integer, so its answer does
+  not move; each loop window's integer is at most 4|<i>v</i>| in size,
+  below every loop modulus, so it reads 0 exactly when it is 0 whichever
+  new modulus it sits under. So the first true read falls in <i>u</i> or by pass 3, and on a
+  supply tending to infinity, not merely unbounded, once every modulus exceeds a constant
+  fixed by the program, a trip that ends grows a bounded number of
+  times, a loop without a grow adding none. So from that point on a run
+  is its finite control walking the number of windows grown upward in
+  bounded steps,
+  each step decided by the supply's moduli up to it, and whether its halting is
+  decidable rides on the supply's arithmetic and is not settled
+  here. The hypothesis carries weight: with the loop's moduli 2, a
   four-operation loop ends in pass 500 after 500 grows. The gap to
   <a href="#clock-counter">the clock counter</a> is reading one register
-  while another holds a value, the seam counter systems also have:
-  vector addition systems with one zero-tested counter have decidable
+  while another holds a value. Counter systems split at the same
+  place: vector addition systems with one zero-tested counter have decidable
   reachability, and two zero-tested counters give Minsky machines
   (Reinhardt 2008; Bonnet, Finkel, Leroux and Zeitoun 2012); a joint test of every counter is one test of a counter
   carrying their sum.</p>

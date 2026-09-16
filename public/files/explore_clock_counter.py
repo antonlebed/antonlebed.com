@@ -154,8 +154,9 @@ FINDINGS (entered after the run; every number is printed output).
    hand attack's (6) is read with a correction found by a second
    reader: without the pulse the first loop fires at the least s with
    s = V mod C_old and s = 0 mod m', so it hangs exactly when gcd(C_old,
-   m') does not divide V and otherwise lands the counter at a wrong
-   value; the sqrt pole's first overflow, C_old = m' = 2 at V = 1, is
+   m') does not divide V, returns the true value when m' divides V (s =
+   V), and otherwise lands the counter at a wrong value (a third reader's
+   correction, checked by brute force over C_old < 40, m' < 20); the sqrt pole's first overflow, C_old = m' = 2 at V = 1, is
    the hanging case.
 
 SCOPE + HONESTY. The counts are observations at the sizes run; the
