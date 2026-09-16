@@ -311,11 +311,13 @@ FINDINGS (tiers per the standard naming scale; run record below).
    the seeds can be ENUMERATED directly at any bound, or generated with no
    bound at all -- one parametric family per size, each read straight off
    its criterion. Size 2 is {c*u, c*v} with u, v coprime d-th powers and d
-   carrying an odd prime factor. Size 3 is {c, c*Q^a, c*Q^b} with Q >= 2
-   not a perfect power, c >= 2, and {0, a/3^e, b/3^e} meeting all three
+   carrying an odd prime factor. Size 3 is {c*V^b, c*U^a*V^(b-a), c*U^b}
+   with U, V coprime and U/V not a perfect power, 0 < a < b, and {0, a/3^e, b/3^e} meeting all three
    residues mod 3 with {a, b} not {3^e, 2*3^e}, 3^e the largest power of
    3 dividing both -- the collinearity clause IS that form, the primitive
-   direction wearing integer clothes as Q, and the five seeds of the box
+   direction wearing integer clothes as the pair (U, V), the old form
+   {c, c*Q^a, c*Q^b} being V = 1 only and missing a mixed-sign direction
+   such as {32, 48, 243}, and the five seeds of the box
    are 2*{1,2,32}, 2*{1,4,16}, 2*{1,16,32}, 3*{1,4,16} and 4*{1,4,16}.
    The box survives on the
    PARTNER side, where nothing here touches it. That is the design
