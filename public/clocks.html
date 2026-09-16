@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>The clock machine — counters read by coincidence</title>
+<meta name="description" content="A machine whose only operations start a clock, advance a register's clocks together, nudge the newest clock and test whether clocks coincide at zero. With one test per register a counter repaired at each grow by a timer is faithful on every unbounded supply and three registers are universal; with one test over every register a true read leaves only control and the grow count.">
+<link rel="canonical" href="https://antonlebed.com/computation/clocks">
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>:root {
+  color-scheme: dark;
+  --bg: #15171a;
+  --fg: #d6d4cf;
+  --muted: #94928c;
+  --accent: #d99a6c;
+  --rule: #33363b;
+  --trail: #b3b0aa;
+  --card: #1c1f23;
+  --scroll: #3f434a;
+  --scroll-hover: #565b63;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main, header.site, footer {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site { padding-top: 1.1rem; }
+main { padding-bottom: 2rem; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 0.2rem;
+  row-gap: 0.25rem;
+}
+@media (max-width: 40rem) {
+  nav { justify-content: flex-start; column-gap: 0.45rem; }
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.28rem 0.34rem;
+  border-radius: 5px;
+  background: var(--card);
+}
+nav a.up { color: var(--trail); background: var(--rule); }
+nav a[aria-current] {
+  color: var(--fg);
+  background: var(--rule);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+nav a:hover { color: var(--accent); background: var(--rule); }
+@media (forced-colors: active) {
+  nav a[aria-current] { text-decoration: underline; }
+}
+nav.sub {
+  justify-content: flex-start;
+  column-gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--rule);
+}
+h1 { font-size: 1.55rem; line-height: 1.25; margin: 1.6rem 0 0.4rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+h3.subject { font-size: 1.05rem; margin: 1.6rem 0 0.1rem; }
+p.subject { margin: 0 0 0.3rem; color: var(--muted); }
+.lede { color: var(--muted); }
+a { color: var(--accent); }
+code, .tbl, .verifier {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+code { font-size: 0.92em; }
+.mathrow { overflow-x: auto; overflow-y: hidden; margin: 0.8rem 0; }
+math[display="block"] { margin: 0; font-size: clamp(0.78rem, 3.2vw, 1rem); }
+.claim {
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  padding: 0.7rem 1rem 0.6rem;
+  margin: 1.3rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.claim-name { font-weight: 600; }
+.tier {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.claim p { margin: 0.45rem 0; }
+.scope { font-size: 0.92rem; color: var(--muted); }
+.verifier { font-size: 0.83rem; color: var(--muted); }
+.verifier a { color: inherit; }
+pre, .files {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--card);
+  border-radius: 5px;
+  padding: 0.5rem 0.6rem;
+  margin: 0.6rem 0;
+}
+.files { color: var(--muted); }
+.scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: clamp(0.7rem, 2.7vw, 0.82rem); margin: 0.8rem 0; }
+.tbl th, .tbl td {
+  padding: 0.18rem 0.55rem;
+  text-align: right;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tbl th:first-child, .tbl td:first-child { text-align: left; padding-left: 0; }
+.tbl th:last-child, .tbl td:last-child { padding-right: 0; }
+.tbl th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0; }
+.chart th, .chart td {
+  padding: 0.3rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+.chart th:first-child, .chart td:first-child { padding-left: 0; }
+.chart th:last-child, .chart td:last-child { padding-right: 0; }
+.chart th { color: var(--muted); font-weight: 600; }
+ul.sections, ul.children { padding-left: 1.2rem; }
+ul.sections li, ul.children li { margin: 0.35rem 0; }
+.sections .kids { display: block; font-size: 0.92rem; }
+ul.claims { padding-left: 1.2rem; }
+ul.claims li { margin: 0.35rem 0; font-size: 0.95rem; }
+.claim ul { padding-left: 1.2rem; margin: 0.45rem 0; }
+.claim li { margin: 0.3rem 0; }
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
+</style>
+</head>
+<body>
+<header class="site"><nav aria-label='Subjects'><a href='/'>Home</a> <a href='/#specimen'>The specimen</a> <a href='/#reading'>Reading</a> <a href='/#growth' class='up'>Growth</a> <a href='/#evaluation'>Evaluation</a> <a href='/#fields'>Fields</a> <a href='/tools'>Tools</a> <a href='/claims'>What is proved</a></nav><nav class='sub' aria-label='Growth'><a href='/growth'>The self-growing tower</a> <a href='/schedule'>Schedule</a> <a href='/computation' class='up'>Computation</a></nav><nav class='sub sub2' aria-label='Computation'><a href='/computation'>The machine reading</a> <a href='/computation/dividend'>The static dividend</a> <a href='/computation/recovery'>The recovery chart</a> <a href='/computation/delay'>The delay line</a> <a href='/computation/clocks' aria-current='page'>The clock machine</a></nav></header>
+<main>
+<h1>The clock machine</h1>
+<p class="lede">A machine that can only start clocks, advance them
+together, nudge the newest one and ask whether they coincide at zero.
+With one coincidence read per register it runs two counters on every
+unbounded supply and needs no pointer to an old window; with one read
+over every register it keeps no memory across a read.</p>
+
+<p>The <b>clock machine</b> runs on a <b>supply</b>
+<i>m<sub>g</sub></i>, the modulus of the <i>g</i>-th <b>window</b>
+grown, each window a residue ring <b>Z</b>/<i>m</i>. It has <i>r</i>
+<b>registers</b>, each holding one residue at every window, finite
+control, and four operations: <b>tick</b>, add ±1 at every window of
+one register; <b>pulse</b>, add ±1 at the newest window of one register
+only; <b>grow</b>, append a window born at 0 in every register; and a
+<b>zero-test</b>, true when every window it reads holds 0. No operation
+names an older window, so each window runs as a clock of period
+<i>m</i> and a zero-test reads whether clocks coincide at 0. Write
+<i>C</i> = lcm(<i>m</i><sub>1</sub>, …, <i>m<sub>g</sub></i>) over the
+windows grown. A register is <b>faithful</b> when its value tracks the
+count of increments applied to it, and the <b>sqrt pole</b> is the
+supply <i>m<sub>g</sub></i> = max(2, ⌈√<i>g</i>⌉). The machine is the
+growing-window machine of <a href="/computation/delay">the delay
+line</a> with multiply, write-constant and register-to-register
+addition removed, so the saved pointer that
+<a href="/computation/delay#doubling-counter">the doubling counter</a>
+keeps is not available. Universality is Minsky's, cited.</p>
+
+<article class="claim" id="clock-counter">
+  <div class="claim-head"><span class="claim-name">The clock counter
+  needs no saved pointer</span>
+  <span class="tier">rule</span></div>
+  <p>Register <i>A</i> holds <i>V</i> mod <i>m</i> at every window.
+  Then a tick is an increment or a decrement, and the zero-test of
+  <i>A</i> is true exactly when <i>V</i> ≡ 0 mod <i>C</i>, so the
+  counter is faithful below <i>C</i> and its overflow is visible: a true
+  zero-test right after an increment means <i>V</i> + 1 = <i>C</i>. A
+  grow breaks the invariant: the grown window, of modulus <i>m</i>′, is
+  born 0 rather than <i>V</i> mod <i>m</i>′. A second register <i>R</i>, the <b>timer</b>, starting at
+  zero repairs it in 2<i>V</i> steps: tick <i>A</i> down, pulse its
+  newest window back up and tick <i>R</i> up until <i>A</i> tests zero,
+  which holds the new window at 0 while the old ones reach 0 after
+  exactly <i>V</i> steps; then tick <i>R</i> down and <i>A</i> up until
+  <i>R</i> tests zero, which leaves <i>A</i> at <i>V</i> at every
+  window, the new one included. On overflow the counter undoes the
+  increment, grows, runs the round trip and retries, so it grows only at
+  an overflow and reaches <i>N</i> in exactly the least <i>g</i> with
+  <i>C</i> &gt; <i>N</i>; <i>C</i> is at least every modulus, so it is
+  unbounded on every unbounded supply. Two counters sharing one timer
+  run a two-counter machine. Both ingredients carry weight: without the
+  pulse the first loop stops at the least <i>s</i> with <i>s</i> ≡
+  <i>V</i> mod <i>C</i><sub>0</sub>, the lcm before the grow, and
+  <i>s</i> ≡ 0 mod <i>m</i>′, so it hangs when
+  gcd(<i>C</i><sub>0</sub>, <i>m</i>′) does not divide <i>V</i> and
+  lands at a wrong value otherwise; without the timer the counter miscounts
+  at 2.</p>
+  <p class="scope"><b>Scope.</b> Rule: the invariant is argued from the
+  construction, and the programs are checked against a second engine
+  that stores every register at every window. Printed with no miscount
+  after any operation: 0 → 20000 → 0 on the sqrt pole in 101 grows, and
+  65 grows to reach 2000, where the doubling counter spends 9,424,910;
+  0 → 100 → 0 on <i>m<sub>g</sub></i> = max(2, ⌊log<sub>2</sub>
+  <i>g</i>⌋ + 1) in 64 grows; 0 → 2000 → 0 on <i>m<sub>g</sub></i> =
+  <i>g</i> at even <i>g</i> and 2 at odd <i>g</i> in 18 grows;
+  <i>B</i> := 3<i>A</i> from <i>A</i> = 300, then <i>A</i> :=
+  <i>B</i>, ending at (900, 0) on three registers. With every modulus 2
+  a 10<sup>4</sup>-grow budget runs out at value 1, and without the
+  pulse the round trip hangs at value 1 on the sqrt pole. The zero-test
+  here reads one register at a time; read over every register at once,
+  the machine keeps no memory (<a href="#one-read">one read keeps no
+  memory</a>).</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_clock_counter.py">
+  <code>explore_clock_counter.py</code></a></p>
+</article>
+
+<article class="claim" id="one-read">
+  <div class="claim-head"><span class="claim-name">One read keeps no
+  memory</span>
+  <span class="tier">rule</span></div>
+  <p>Call the run from a true read to the next a <b>trip</b>. At a true
+  read every window holds 0, so the configuration is the control state
+  and the number of windows grown. Every read until the next true one
+  answers false, so the operations of the trip are a <b>lasso</b>
+  <i>u</i> <i>v</i> <i>v</i> <i>v</i> ⋯ fixed by the state it starts
+  in, each copy of <i>v</i> a <b>pass</b>, and the trip ends at the
+  first read on that word that is true, or never. Let <i>v</i> hold a
+  grow, and let every window grown during the loop have modulus above
+  4|<i>v</i>|. A window born during pass <i>i</i> holds in one register,
+  at a fixed read position in pass <i>k</i> ≥ <i>i</i> + 2, the integer
+  <i>c</i> + (<i>k</i> − <i>i</i>)<i>n</i>, with <i>c</i> fixed by the
+  grow it was born at and <i>n</i> the register's net tick over one
+  pass, its pulses being over by then. A true read in pass <i>k</i> ≥ 4
+  finds the windows born at one grow in passes <i>k</i> − 3 and
+  <i>k</i> − 2 at 0; their integers are at most 4|<i>v</i>| in size,
+  below their moduli, so both are 0, and they differ by <i>n</i>, so
+  every net tick is 0. With every net tick 0 each window's integer stops
+  moving, and the answer at a read position is the same in every pass
+  from the third on. So the first true read falls in <i>u</i> or by pass 3, and on a
+  supply tending to infinity, once every modulus exceeds a program
+  constant, a trip that ends grows a bounded number of times: a run is a finite automaton reading the supply's
+  arithmetic one way, and whether its halting is decidable rides on that
+  arithmetic. The hypothesis carries weight: with the loop's moduli 2, a
+  four-operation loop ends in pass 500 after 500 grows. The gap to
+  <a href="#clock-counter">the clock counter</a> is reading one register
+  while another holds a value, the seam counter systems also have:
+  vector addition systems with one zero-tested counter have decidable
+  reachability, and two zero-tested counters give Minsky machines
+  (Reinhardt 2008; Bonnet, Finkel, Leroux and Zeitoun 2012); a joint test of every counter is one test of a counter
+  carrying their sum.</p>
+  <p class="scope"><b>Scope.</b> Rule: argued from the construction. No
+  trip whose loop grows and reads ended past pass 3 over 21,500 random
+  programs of two registers and up to six control states, on
+  <i>m<sub>g</sub></i> = <i>g</i> + 1 and the sqrt pole, and over 41,500
+  lasso-shaped programs; a constructed loop inside the hypothesis ends
+  in pass 3, so the bound is attained; the pass-500 loop, its moduli
+  raised to <i>g</i> + 16, has not ended after 600 passes. Two engines,
+  one storing every residue at every window, agreed on 14,547
+  reads.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_one_and.py">
+  <code>explore_one_and.py</code></a></p>
+</article>
+
+</main>
+<footer>
+<p>Public domain (CC0)</p>
+</footer>
+</body>
+</html>

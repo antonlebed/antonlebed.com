@@ -124,6 +124,7 @@ export default {
       '/computation/dividend': 'dividend',
       '/computation/recovery': 'recovery',
       '/computation/delay': 'delay',
+      '/computation/clocks': 'clocks',
       '/learning': 'learning',
       '/learning/stalls': 'stalls',
       '/learning/nesting': 'nesting',
