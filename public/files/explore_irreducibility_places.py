@@ -34,9 +34,11 @@ the clock reads the PLACE, not just the fate.
 
 S2 THE CLOCK DECREASES WITH TRANSPARENT RICHNESS, AND THE RICHNESS IS RESIDUE
 DATA (observation). More small transparent primes -> larger cofactor sum ->
-crossing at SMALLER beta. The transparent set reads q's residues, the rules
-below stated AT AN ODD COLUMN and not at q = 2, where the condition is p-1 a
-power of 2 and the set is the Fermat primes (S3): 2 always;
+crossing at SMALLER beta. The transparent set is {p != q : p-1 | (q-1)q^inf}
+and the exclusion p != q is PART OF THE CRITERION, since q-1 divides itself;
+the residue rules below are stated AT AN ODD COLUMN and not at q = 2, where
+the condition is p-1 a power of 2 and the set is the Fermat primes (S3):
+2 at every q but 2 itself;
 3 for every q != 3 (q=3 uniquely blind, its own column prime); 5 iff
 q = 1 mod 4; 7 iff q = 1 mod 3 OR q = 3 (the column's own powers supply the
 3-part of 7-1=6: 6 | 2*3^inf -- the i >= 1 route p = d*q^i + 1 that the

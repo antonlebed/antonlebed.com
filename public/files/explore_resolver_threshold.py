@@ -115,6 +115,9 @@ FINDINGS.
      ALWAYS THE ANSWER (theorem for the bound, measurement for the rate).
      No pair's least resolver falls below floor(V) = min_q q^(v_q(V)+1),
      and 90 of the 96 pairs -- 93.8% -- resolve at exactly that value, far
+     (THE 96 ARE THE BLIND CLASSES below 1500, one representative pair
+     each, the class's two smallest members, which is what blind_pairs()
+     returns; 4542 blind pairs sit under that cap),
      above the 70% guessed at the freeze. Nothing is censored: every pair
      in the pool resolves under 200, and the floors present run 2, 3, 4, 5,
      7, 8, 9, 11. The six misses are small and all land on 3, 4 or 7. So

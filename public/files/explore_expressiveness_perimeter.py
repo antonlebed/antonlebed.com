@@ -12,8 +12,14 @@ of each capability -- NATIVE LAW or PAID SIMULATION?
 THE OBJECT. The tower reads an integer through its residue windows:
     n |-> (n mod p_1, ..., n mod p_k).
 EVERY native tower predicate -- unit (sieve survivor), quadratic residue,
-idempotent support, ECC syndrome, the seed-flower -chi, transparency -- is a
-function of that CRT tuple and nothing else. So the tower's ENTIRE native
+idempotent support, ECC syndrome, the seed-flower -chi -- is a
+function of that CRT tuple and nothing else. TRANSPARENCY IS NOT ONE OF
+THEM, and an earlier version of this list wrongly said so: it is a
+predicate of an ARRIVING PRIME against the accumulated lambda, so it belongs to the
+growth dynamics and not to the static ring, and p - 1 | lambda is fixed
+by p mod W(lambda), purely periodic at a period that is NOT squarefree.
+Nothing here ever verified it; the verified members are the unit set and
+the ECC syndrome. So the tower's ENTIRE native
 predicate repertoire is ONE class: the SQUAREFREE-PERIODIC BOOLEAN ALGEBRA
 -- Boolean combinations of residue-mod-p tests = unions of residue classes
 modulo a squarefree (primorial) modulus = purely periodic subsets of Z with
