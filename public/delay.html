@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>The delay line — what a growing window pool remembers</title>
-<meta name="description" content="A growing pool of windows is not memory: every window's content is the operation stream since its birth, evaluated free over the integers and reduced mod its own modulus. The normal form that proves it, the reduction of halting to certifying infinite growth it buys, the certificate scheme that certifies infinite growth on all but one program of a measured population, and the landing dichotomy with its three-verdict decider, whose third verdict hands back a question about the supply itself.">
+<meta name="description" content="A growing pool of windows holds only the operation stream since each window's birth, evaluated free over the integers and reduced mod its own modulus, and on every unbounded supply that is enough for two counters. The doubling counter that shows it, the counters that cap below the linear rate and why, the normal form, the reduction of halting to certifying infinite growth it buys, the certificate scheme that certifies infinite growth on all but one program of a measured population, and the landing dichotomy with its three-verdict decider, sound on a fragment, whose third verdict hands back a question about the supply itself.">
 <link rel="canonical" href="https://antonlebed.com/computation/delay">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -178,10 +178,12 @@ nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
 <header class="site"><nav aria-label='Subjects'><a href='/'>Home</a> <a href='/#specimen'>The specimen</a> <a href='/#reading'>Reading</a> <a href='/#growth' class='up'>Growth</a> <a href='/#evaluation'>Evaluation</a> <a href='/#fields'>Fields</a> <a href='/tools'>Tools</a> <a href='/claims'>What is proved</a></nav><nav class='sub' aria-label='Growth'><a href='/growth'>The self-growing tower</a> <a href='/schedule'>Schedule</a> <a href='/computation' class='up'>Computation</a></nav><nav class='sub sub2' aria-label='Computation'><a href='/computation'>The machine reading</a> <a href='/computation/dividend'>The static dividend</a> <a href='/computation/recovery'>The recovery chart</a> <a href='/computation/delay' aria-current='page'>The delay line</a></nav></header>
 <main>
 <h1>The delay line</h1>
-<p class="lede">A growing pool of windows is not memory: its whole
-content is the operation stream played back mod the supply. What that
-normal form decides, how far the residual it leaves can be certified,
-and the one channel neither closes.</p>
+<p class="lede">A growing pool of windows holds nothing but the
+operation stream played back mod the supply, and on every unbounded
+supply that is enough for two counters. How a counter survives on a
+slow supply where the fixed schedules built cap, what the normal form reduces halting to, how
+far that residual can be certified, and what a decider sound on a
+fragment of programs still has to ask the supply.</p>
 
 <p>The machine is the <b>element face</b> of the growth apparatus with
 no imported primitive: <i>r</i> <b>registers</b>, each a column over a
@@ -193,12 +195,13 @@ the register reading 1 at the freshest window and 0 at every older one,
 the only handle a program has on a window. The <b>supply</b> is the
 sequence <i>m<sub>g</sub></i>, the modulus of the <i>g</i>-th window
 grown; its <b>rate</b> is o(<i>g</i>) below linear and Ω(<i>g</i>) at
-or above, and the canonical sublinear supply
+or above, a supply swinging between the two being neither, and the
+canonical sublinear supply
 <i>m<sub>g</sub></i> = max(2, ⌈√<i>g</i>⌉) is the <b>sqrt pole</b>. A
-bounded supply leaves the machine finite-state and a linear one makes
-it universal (<a href="/computation/recovery#supply-law">the supply
-law</a>); everything here is the band between. A supply linear on some stretches
-and slow on others is neither, and nothing here places it. A <b>rider</b> is a
+bounded supply leaves the machine finite-state and every unbounded one
+makes it universal (<a href="/computation/recovery#supply-law">the supply
+law</a>), the second by <a href="#doubling-counter">the doubling
+counter</a>. A <b>rider</b> is a
 counter held as a residue in one <b>pointed</b> window at the frontier,
 the window a pointer register singles out; its
 zero-test <b>fires</b> when the value wraps to 0, a fire is
@@ -226,11 +229,57 @@ top(<i>d</i> − 1). A supply is
 landing ≡ <i>a</i> mod <i>L</i> — are decidable. Universality is
 Minsky's, cited.</p>
 
-<h2>The rate, and why everything caps</h2>
+<h2>Capacity: every unbounded supply carries two counters</h2>
+
+<article class="claim" id="doubling-counter">
+  <div class="claim-head"><span class="claim-name">The doubling counter
+  times its own grows</span>
+  <span class="tier">rule</span></div>
+  <p>The value <i>V</i> sits on one pointed window, its pointer
+  <i>P</i> the frontier singleton saved while that window was the
+  freshest, so
+  <i>V</i> + <i>P</i> adds one there and nowhere else, <i>V</i> &lt;
+  <i>m<sub>P</sub></i> holds exactly, and the zero-test is truthful.
+  When <i>V</i> + <i>P</i> would wrap to 0 the counter
+  <b>migrates</b>: it grows one window, saves the new frontier singleton
+  <i>F</i>, and compares <i>m<sub>F</sub></i> against
+  2<i>m<sub>P</sub></i> by stepping a residue counter on each of the
+  two windows in lockstep — <i>F</i> outlasts when <i>P</i>'s counter wraps twice
+  before <i>F</i>'s wraps once, a wrap count bounded by 2 being all the
+  control the compare needs — and repeats until <i>F</i> outlasts; then
+  it moves the value across one unit at a time, decrementing on
+  <i>P</i> and incrementing on <i>F</i> until <i>V</i> tests zero, and
+  re-points <i>P</i> to <i>F</i>. The compare is exact and runs after
+  every grow, so a migration ends exactly when some later window has
+  modulus above 2<i>m<sub>P</sub></i>, which is the supply being
+  unbounded and nothing more. Two such counters keep independent
+  pointers, a grow for one being born 0 in the other, so a two-counter
+  machine runs on one pool. The grows are timed by counters on windows
+  the program already points at, each faithful below its own modulus,
+  never by a counter larger than the one being built.</p>
+  <p class="scope"><b>Scope.</b> Rule: the invariant and the termination
+  are argued from the construction, and the programs, written in machine
+  operations, are checked window by window against a dense engine
+  computing the frontier singleton as 1 − ONES. Printed: 0 → 2000 → 0
+  with no lie on the sqrt pole with the compare run once per block of
+  <i>m<sub>P</sub></i> grows (9,424,910 grows to reach 2000); 0 → 200 →
+  0 with the compare after every grow on <i>m<sub>g</sub></i> =
+  <i>g</i> at even <i>g</i> and 2 at odd <i>g</i>, where the block form
+  exhausts its budget at value 1, and on <i>m<sub>g</sub></i> = <i>g</i>
+  at powers of two and 2 elsewhere; <i>B</i> := 3<i>A</i> then
+  <i>A</i> := <i>B</i> ending at (900, 0) on the sqrt pole and (300, 0)
+  on the alternating supply; with every modulus 2 the budget runs out at
+  value 1.</p>
+  <p class="verifier">verifiers: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_doubling_counter.py">
+  <code>explore_doubling_counter.py</code></a>,
+  <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_unbounded_supply.py">
+  <code>explore_unbounded_supply.py</code></a></p>
+</article>
 
 <article class="claim" id="cap-lemma">
-  <div class="claim-head"><span class="claim-name">The phase boundary is
-  the linear rate, and the crux is re-basing, not carry</span>
+  <div class="claim-head"><span class="claim-name">Positional counters
+  growing once per increment cap below the linear rate, and the crux is
+  re-basing, not carry</span>
   <span class="tier">rule</span></div>
   <p>A carry across two <em>addressed</em> windows is in the class: save
   the singleton as a persistent idempotent, one addressed window per
@@ -240,63 +289,66 @@ Minsky's, cited.</p>
   bases, and migrating a digit-window to a fresher modulus rescales the
   higher weights by the unknown ratio <i>m</i>′/<i>m</i>, a
   multiplication by an unknown the class cannot perform; only the top
-  digit migrates cleanly. <b>The cap lemma:</b> a faithful value never
-  exceeds <i>W<sub>d</sub></i>·<i>m</i><sub>frontier</sub>, with
+  digit migrates cleanly, and that obstruction is <b>re-basing</b>; a
+  counter moving only its top digit is <b>top-migratable</b>.
+  <b>The cap lemma:</b> on a nondecreasing
+  supply such a counter's faithful value never exceeds
+  <i>W<sub>d</sub></i>·<i>m</i><sub>frontier</sub>, with
   <i>W<sub>d</sub></i> the frozen product of the lower bases, a constant
-  the program chooses. So a counter survives exactly when
-  <i>W<sub>d</sub></i>·<i>m<sub>g</sub></i> ≥ <i>g</i> for some fixed
-  <i>W<sub>d</sub></i>, which is <i>m<sub>g</sub></i> = Ω(<i>g</i>); on
-  the sqrt pole the top-migratable counter first miscounts at exactly
-  <i>W<sub>d</sub></i>², and a
-  value-dependent grow schedule is the regress — value 100 at base 3
-  needs 1,090 grows before counting. Every scheme built caps on any
-  o(<i>g</i>) supply by the same principle, born at zero: a fresh
-  window carries no value information and the only native load into it
-  is the unary transfer, bounded by one modulus. The single rider wraps
-  at count 3; the positional counter caps by re-basing; the CRT counter,
-  value as residues and exact while it is below the lcm, caps by lcm
-  freeze, a grown window being born 0 and not the value's residue; and
-  the unary support counter has no decrement, being
-  <a href="/computation#growth-machine">the growth machine</a>.</p>
-  <p class="scope"><b>Scope.</b> Rule on the universal side, verified at
+  the program chooses. Growing once per increment it survives exactly
+  when <i>W<sub>d</sub></i>·<i>m<sub>g</sub></i> ≥ <i>g</i> for some
+  fixed <i>W<sub>d</sub></i>, which is <i>m<sub>g</sub></i> =
+  Ω(<i>g</i>); on the sqrt pole the top-migratable counter first
+  miscounts at exactly <i>W<sub>d</sub></i>². The other fixed schedules
+  cap the same way, a fresh window carrying no value information: the
+  single rider wraps at count 3; the CRT counter, value as residues and
+  exact while it is below the lcm, caps by lcm freeze, a grown window
+  being born 0 and not the value's residue; and the unary support
+  counter has no decrement, being
+  <a href="/computation#growth-machine">the growth machine</a>. A grow
+  schedule set by the value looks like a regress — value 100 at base 3
+  needs 1,090 grows before counting, as if timing the grows needed a
+  counter larger than the one held — and
+  <a href="#doubling-counter">the doubling counter</a> is the way out of
+  it.</p>
+  <p class="scope"><b>Scope.</b> Rule for the named schemes, verified at
   <i>m<sub>g</sub></i> = ⌈<i>g</i>/3⌉ with the carry exact at bases 3
-  and 4 over counts 0 to 11; the sqrt pole's first miscounts at counts 4, 9, 16, 25, measured at
-  <i>W<sub>d</sub></i> = 2 to 5. That <em>no</em> construction
-  simulates two counters on an o(<i>g</i>) supply is conjectured: three
-  exact schemes are ruled out, and the normal form below makes
-  born-at-zero a theorem rather than an argument.</p>
+  and 4 over counts 0 to 11; the sqrt pole's first miscounts at counts
+  4, 9, 16, 25, measured at <i>W<sub>d</sub></i> = 2 to 5. The linear
+  rate is the line of this schedule, not of the machine.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_sqrt_supply.py">
   <code>explore_sqrt_supply.py</code></a></p>
 </article>
 
 <article class="claim" id="third-class">
-  <div class="claim-head"><span class="claim-name">The decidable side is a
-  third class, and its mechanism is bandwidth</span>
+  <div class="claim-head"><span class="claim-name">Bandwidth is per
+  operation, and caps a counter only at boundedly many operations per
+  increment</span>
   <span class="tier">rule</span></div>
-  <p>The o(<i>g</i>) machine has unboundedly many distinct moduli — 20
-  after 2,000 steps and rising — so no finite column alphabet, and its
-  registers reset, so no monotonicity; one program exhibits both and is
-  still decided, so the class is neither finite-state nor
-  well-structured by monotonicity. <b>The bandwidth principle:</b> the
-  componentwise operations never move value between windows, so value
-  crosses windows only through the global zero-test, one bit out, and
-  the frontier singleton, one unit in, <i>O</i>(1) per operation. Two
-  consequences, both measured: an addressed faithful value is bounded by
-  a program constant — the top-migratable counter's faithful top digit
-  is 3 at horizons 200 and 800 on the sqrt pole and grows 50 to 200 on
-  the linear successor supply — and a faithful register's firing period
-  is a program constant: the CRT register's zero-test is a pulse that
-  fires only once growth stops, at the lcm of the frozen set (60, 420,
-  4,620 for 0, 1, 2 grown windows), so an unbounded firing period needs
-  freezing at a data-dependent window count, the regress again. The
-  counterexample face is closed: a cross-window product materializes at
-  no window, blind pre-growth of <i>G</i><sub>0</sub> windows buys a
-  capacity of order √<i>G</i><sub>0</sub> (faithful to 11, 21, 31 at
-  100, 400, 900, one above ⌊√<i>G</i><sub>0</sub>⌋), and an unbounded
-  period detector is the regress.</p>
-  <p class="scope"><b>Scope.</b> Rule for the structure and the three
-  named schemes; that no fourth scheme exists is the conjecture
-  above.</p>
+  <p>The componentwise operations never move value between windows, so
+  value crosses windows only through the global zero-test, one bit out,
+  and the frontier singleton, one unit in, <i>O</i>(1) per operation:
+  the <b>bandwidth principle</b>. On the sqrt pole the machine is
+  neither finite-state nor well-structured by monotonicity — 20 distinct
+  moduli after 2,000 steps and rising, so no finite column alphabet, and
+  registers that reset — and one program exhibiting both is still
+  decided. What bandwidth caps, on a sublinear supply, is a named
+  scheme spending boundedly many operations per increment. There an
+  addressed faithful value is a
+  program constant — the top-migratable counter's faithful top digit is
+  3 at horizons 200 and 800 on the sqrt pole and grows 50 to 200 on the
+  linear successor supply — and so is a firing period: the CRT
+  register's zero-test is a pulse that fires only once growth stops, at
+  the lcm of the frozen set (60, 420, 4,620 for 0, 1, 2 grown windows).
+  A cross-window product materializes at no window, and blind
+  pre-growth of <i>G</i><sub>0</sub> windows buys a capacity of order
+  √<i>G</i><sub>0</sub> (faithful to 10, 20, 30 at 100, 400, 900, the
+  first lie one above ⌊√<i>G</i><sub>0</sub>⌋). The doubling counter spends
+  unboundedly many grows and steps per migration, so its value and its
+  riders' firing periods are unbounded while every operation still moves
+  <i>O</i>(1).</p>
+  <p class="scope"><b>Scope.</b> Rule for the principle and the three
+  named schemes; the placement is shown on one program.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_decidable_side.py">
   <code>explore_decidable_side.py</code></a></p>
 </article>
@@ -322,8 +374,9 @@ Minsky's, cited.</p>
   mod <i>m</i>, <i>m</i>)) with every operation broadcast and grow
   inserting the zero pair — a <b>reset-broadcast</b> structure, for
   every program on every supply, with no rate hypothesis. The window
-  pool is a delay line of the op stream sampled mod the supply, never
-  writable memory. One sharpening: a window under the shared op word
+  pool is a delay line of the op stream sampled mod the supply: it holds
+  what the program wrote and nothing else, and the doubling counter's
+  values are written into it. One sharpening: a window under the shared op word
   realizes any fixed integer polynomial recurrence in its age, not only
   a constant or the age mod its own modulus. Fibonacci runs as a
   growing-window clock, its zero-set at modulus <i>m</i> the multiples
@@ -335,10 +388,7 @@ Minsky's, cited.</p>
   <p class="scope"><b>Scope.</b> Proved by induction on the op word;
   5,571 window-checkpoints over 60 random programs on three supplies
   are the cross-check, 0 mismatches, never the proof. The Fibonacci
-  witness is observation at moduli 2, 3, 4, 5. The capacity arguments
-  above are untouched, having only used that a fixed window evolves
-  inside (<b>Z</b>/<i>m</i>)<sup><i>r</i></sup> under the shared word,
-  which is the normal form itself.</p>
+  witness is observation at moduli 2, 3, 4, 5.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py">
   <code>explore_born_at_zero.py</code></a></p>
 </article>
@@ -355,16 +405,16 @@ Minsky's, cited.</p>
   finitely many grows, by pigeonhole; the exact repeat is sound and
   exponentially patient, where a compressed descriptor's first repeat is
   fast and wrong (below). If every forever-growing program admits a
-  finite certificate, halting is decidable, the three certificates
-  searched in parallel; any undecidable supply must carry
-  forever-growing programs no scheme covers. "Grows forever" is
+  finite certificate, halting is decidable, halt, loop and certificate
+  searched in parallel; every unbounded supply being universal, each
+  carries forever-growing programs no certificate family covers, so a
+  certificate scheme reaches a fragment. "Grows forever" is
   co-semi-decidable for free, its complement being halt-or-loop.</p>
   <p class="scope"><b>Scope.</b> The reduction is derived from the
   normal form; the plain decider is a rule on its battery — HALT, a
   certified LOOP far inside its pigeonhole bound, and NO-CERTIFICATE at
   the step limit on a forever-growing program, both positive controls
-  passed first. Whether decidability conversely forces certifiability is
-  not claimed.</p>
+  passed first.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_born_at_zero.py">
   <code>explore_born_at_zero.py</code></a></p>
 </article>
@@ -439,8 +489,9 @@ Minsky's, cited.</p>
   action neither stabilises nor cycles. Over the 34 integer actions the
   census reached, 32 hit a fixed point, 2 neither, and a proper cycle
   never appears; the survivor's read value settles while its state does
-  not. None of this touches the capacity conjecture: what is bounded is
-  a scheme, and a program can be built to defeat any arm.</p>
+  not. None of this bears on capacity, which
+  <a href="#doubling-counter">the doubling counter</a> settles: what is
+  bounded is a scheme, and a program can be built to defeat any arm.</p>
   <p class="scope"><b>Scope.</b> One census cell of 600 random programs
   at one seed, the segment choice swept 11 repeats deep, seed and
   program length swept one dial at a time; the stable form across the
@@ -457,12 +508,14 @@ Minsky's, cited.</p>
   the sublinear side, and the first-repeat rule is
   phase-blind</span> <span class="tier">rule</span></div>
   <p>A riding counter's pending fire lands at a computable time on every
-  o(<i>g</i>) supply with any fixed grows-per-pass: the value advances by
+  nondecreasing o(<i>g</i>) supply with any fixed grows-per-pass: the
+  value advances by
   one while the modulus is non-decreasing, so the first pass with
   <i>v</i> + 1 ≥ <i>m</i> has equality and the wrap cannot be skipped.
   On the linear side the same fire hangs pending forever, a faithful
-  counter never re-zeroing. So the o(<i>g</i>)/Ω(<i>g</i>) line is drawn
-  a third time: capacity cap, class placement, fire landing. The
+  counter never re-zeroing. So for riders at a fixed grows-per-pass the
+  o(<i>g</i>)/Ω(<i>g</i>) line is the fire landing's, as it is the line
+  of <a href="#cap-lemma">counters growing once per increment</a>. The
   first-repeat heuristic — LOOP on a repeated (control, zero-vector)
   signature — is doubly unsound: a frozen lcm pulse of period 60 draws a
   false LOOP at step 15 against a true halt at 250, and a riding
@@ -481,9 +534,14 @@ Minsky's, cited.</p>
 
 <article class="claim" id="three-verdict-decider">
   <div class="claim-head"><span class="claim-name">The three-verdict
-  decider is sound on its fragment, and decidability is rate plus
+  decider is sound on its fragment, and the fragment's decidability is
   supply tameness</span> <span class="tier">rule</span></div>
-  <p>Verdicts HALT(<i>t</i>), LOOP(certificate),
+  <p>The <b>fragment</b> is the lasso programs whose zero-tested
+  registers are each touched in the loop body only by rider increments,
+  by adds of singletons saved before the loop, by uniform constant adds
+  in a growing body, or not at all, with resets allowed on fire branches;
+  the doubling counter, saving singletons inside its loop, is outside it.
+  Verdicts HALT(<i>t</i>), LOOP(certificate),
   SUPPLY-ARITHMETIC(extracted question). Signals are classified riding,
   frozen, growing-uniform or constant, predictions are
   bisimulation-checked against the concrete machine tick for tick, and
@@ -494,18 +552,15 @@ Minsky's, cited.</p>
   <b>The supply oracle</b> closes the other face: the machine reads one
   bit per landing about the supply's fine structure — on an all-0-mod-6
   track every wrap lands at clock phase 0; one tail switch to 1 mod 6
-  and the first post-switch wrap trips the detector — so for computable
-  o(<i>g</i>) supplies encoding "machine <i>e</i> halts" in a tail
-  switch, halting is undecidable with every capacity cap intact and
-  universality not reopened. The rate caps the machine's own arithmetic
-  and forces every fire to land; the supply's arithmetic is the one
-  remaining input channel.</p>
+  and the first post-switch wrap trips the detector — so over the
+  computable o(<i>g</i>) supplies encoding "machine <i>e</i> halts" in a
+  tail switch, a fragment program's halting is undecidable in <i>e</i>.
+  Inside the fragment a nondecreasing sublinear supply forces every
+  fire to land and the
+  supply's arithmetic is the one remaining input channel; outside it the
+  machine is universal on its own.</p>
   <p class="scope"><b>Scope.</b> Rule for the fragment, battery-verified
-  per call; the supply oracle is a refutation by construction. Taxonomy
-  completeness — that every o(<i>g</i>) program's signals reduce to the
-  four kinds — is conjectured on the bandwidth principle, the normal
-  form's widened repertoire being a claim about what a window may hold
-  and leaving the four-way split of signals standing.</p>
+  per call; the supply oracle is a refutation by construction.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_pending_fires.py">
   <code>explore_pending_fires.py</code></a></p>
 </article>

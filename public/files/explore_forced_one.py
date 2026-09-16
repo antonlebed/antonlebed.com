@@ -413,8 +413,9 @@ backward SLICE of the state is the next instrument, the state being what
 fails to settle while the READ VALUE sometimes does. Two dials remain
 unswept and are named rather than claimed: the segment choice was swept
 only 11 repeats deep, and the whole census is one random population.
-None of this touches the capacity conjecture, which asks whether EVERY
-forever-growing program is certifiable: what is bounded here is a
+None of this bears on capacity: every unbounded supply carries
+forever-growing programs no certificate covers, since the machine is
+universal there (explore_doubling_counter.py); what is bounded here is a
 scheme, and a program can be built to defeat any of these arms.
 
 D10 WHAT ARM B DECIDES, added by the audit round that noticed the claim

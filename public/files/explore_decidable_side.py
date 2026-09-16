@@ -1,10 +1,10 @@
 """
 explore_decidable_side.py -- CLASSIFYING THE DECIDABLE SIDE: what kind of
 machine is the growing-window class on a sublinear supply, and is its
-halting really decidable? (Settled against its findings' capacity bounds
-by explore_doubling_counter.py: a counter timing its own grows is
-faithful and unbounded on the sqrt pole, so the bounds here hold for
-programs that do not time their grows. Sibling of explore_sqrt_supply.py,
+halting really decidable? (Settled by explore_doubling_counter.py and
+explore_unbounded_supply.py: no, the machine is universal on every
+unbounded supply, by a counter timing its own grows; the bounds here hold
+for schemes spending boundedly many ops per INC. Sibling of explore_sqrt_supply.py,
 explore_bit_supply.py, explore_growth_machine.py,
 explore_minimal_carrier.py, explore_frontier_rider.py.)
 
@@ -226,19 +226,17 @@ firing-period measurement above.
 FINDINGS (entered after the run; every number below is from the printed
 output; run record at the end).
 
-1. THE DECIDABLE SIDE IS A THIRD CLASS -- a reset-broadcast system with
-   bounded live registers, neither pole (rule for the structure /
-   conjecture for full generality; the headline; S6, S1-S5). The
-   sublinear-supply growing-window machine is decidable (CONJECTURED,
-   finding 5's scope), but the PLACEMENT is a rule: it sits at neither
-   known pole. NOT finite-state (explore_bit_supply.py) -- its moduli grow
+1. THE PLACEMENT -- a reset-broadcast system at neither decidable pole
+   (rule for the structure; S6, S1-S5). The sublinear-supply
+   growing-window machine is not decidable (it is universal,
+   explore_doubling_counter.py), and its structure sits at neither known
+   pole. NOT finite-state (explore_bit_supply.py) -- its moduli grow
    without bound (S6: 20 distinct moduli after 2000 steps and rising, no
    finite column alphabet); NOT a WSTS by monotonicity
    (explore_growth_machine.py) -- its registers RESET (S6: a reset lowers A
    from [1,1,1] to [0,0,0], non-monotone; it may still be a WSTS by a
    reset-net wqo, the open reduction). One exhibited program is BOTH at
-   once and is still decided (LOOP, 5 abstract steps). The conjectured
-   decidability rests on the BANDWIDTH PRINCIPLE (finding 2).
+   once and is still decided (LOOP, 5 abstract steps).
 
 2. THE BANDWIDTH PRINCIPLE -- inter-window value flow is O(1) per op, the
    mechanism under born-at-zero (rule, by construction; S1, S4). add, sub,
@@ -251,9 +249,12 @@ output; run record at the end).
    horizon 200 == 3 at horizon 800) while the same counter on the
    successor (linear) supply grows with the horizon (50 -> 200); (ii) a
    FAITHFUL register's firing period is a program constant (finding 3).
-   The addressed bound is exactly the cap lemma (explore_sqrt_supply.py)
-   read per window; it holds on the sublinear side and fails on the linear
-   side, matching the supply-law boundary.
+   Both are consequences for a scheme spending boundedly many ops per
+   INC: the principle is per OP, and the doubling counter spends
+   unboundedly many grows and steps per migration, so its addressed value
+   and its riders' periods are unbounded. The addressed bound is the cap
+   lemma (explore_sqrt_supply.py) read per window, holding for that
+   schedule on the sublinear side and failing on the linear side.
 
 3. PERIOD-AND-FREEZE -- a faithful firing period is a program constant; an
    unbounded firing period needs a data-dependent freeze (rule, by
@@ -267,16 +268,16 @@ output; run record at the end).
    EXTENDS it, not freezes it at setup (S4: 60, 420, 4620 = lcm{3,4,5},
    lcm{3,4,5,7}, lcm{3,4,5,7,11}). So for a FIXED program (which freezes
    after a control-constant number of grows) the firing period is a
-   program CONSTANT, possibly large; an UNBOUNDED firing period needs
-   freezing at a DATA-DEPENDENT window count = the very counter (the
-   regress). A reset register's period is its reset stride (S4: 5). This
-   bounds every faithful counter -- but the per-program constant can be
-   large, so it does NOT by itself make the (control, zero-test)
-   abstraction small (the residual, finding 5's scope).
+   program CONSTANT, possibly large, for a register frozen after a
+   control-constant number of grows. A reset register's period is its
+   reset stride (S4: 5). The bound is the pulse's and the frozen
+   schedule's: a rider on a SAVED window has period that window's
+   modulus, which a program choosing when to save makes unbounded
+   (explore_doubling_counter.py).
 
-4. THE COUNTEREXAMPLE FACE IS CLOSED -- no fourth scheme beats
-   const * m_frontier (rule for the three named families; conjecture that
-   there is no fourth; S2, S3, S4). (a) MUL-PRODUCT: componentwise mul
+4. THREE COUNTEREXAMPLE FAMILIES DIE -- none beats const * m_frontier
+   (rule for the three named families; a fourth, the doubling counter,
+   does; S2, S3, S4). (a) MUL-PRODUCT: componentwise mul
    materializes a cross-window product a*b at NO window (S2: a*b = 15
    lands as [0,0,0]); per-window squaring reaches a big value fast (2..62)
    but stays < m_frontier (97), so a squaring counter caps like the others
@@ -285,12 +286,10 @@ output; run record at the end).
    a CONSTANT for fixed control (S3: G0 = 100/400/900 -> lies at
    11/21/31); an unbounded faithful ride needs grows-per-INC -> infinity
    -- at the lie the machine has already grown ~ count^2 windows (S3: 934
-   at count 31) -- which needs the very counter being built (the regress,
-   no fixpoint below universality). (c) PERIOD DETECTOR: an unbounded
-   FIRING period needs a data-dependent freeze (finding 3), folding into
-   the regress. All three die by the bandwidth principle, so the
-   born-at-zero conjecture (explore_sqrt_supply.py) is FIRMED, not merely
-   re-stated.
+   at count 31), which blind pre-growth cannot supply; growth timed off
+   the held value can (explore_doubling_counter.py). (c) PERIOD DETECTOR:
+   the CRT pulse's period is fixed at its freeze (finding 3). All three
+   die by the bandwidth principle at bounded ops per INC.
 
 5. THE DECIDER + ITS HONEST LIMIT -- a first-repeat heuristic, sound on the
    battery, and the growing-period signal that bounds it (rule on the
@@ -323,10 +322,10 @@ the cap lemma per window), period-and-freeze (a faithful firing period is
 a program constant; an unbounded firing period needs a data-dependent
 freeze), and the three counterexample-face kills are proved-by-construction
 and exhibited here; the decider is validated on a battery, not proved sound
-for every program. What is NOT closed to a proof is GENERAL decidability of
-every o(g) program -- that NO construction whatsoever escapes
-const * m_frontier and that a SOUND decision procedure exists. The named
-residual is the GROWING-PERIOD zero-test: a frontier-riding capped counter
+for every program. General decidability of o(g) programs is FALSE
+(explore_doubling_counter.py escapes const * m_frontier on every
+unbounded supply); a sound procedure exists for a fragment
+(explore_pending_fires.py). The named residual of this script's decider is the GROWING-PERIOD zero-test: a frontier-riding capped counter
 fires with unboundedly growing gaps (9, 24, 45, ...), so the
 (control, zero-test) trajectory is NOT ultimately periodic and the naive
 first-repeat decider is unsound for it -- a sound procedure must track
@@ -336,13 +335,10 @@ a plain period-60 pulse already draws a false LOOP -- phase-blindness;
 it IS recoverable machine-side by tracking the frozen residues, where
 the growing-period signal needs the landing lemma). Both are consistent
 with the class not being finite-state.
-The three natural schemes and the bandwidth argument make
-general decidability a STRONG conjecture on the born-at-zero principle --
-argued from the op semantics (a fresh window's post-birth content is a
-function of constants, the frontier singleton, and its own born-0
-registers, only unary transfer accumulating value), not machine-checked
-over all machines. The class is placed between the poles; the residual is
-named; the conjecture is firmed.
+The three natural schemes and the bandwidth argument bound schemes at
+bounded ops per INC and no further; the conjecture once drawn from them,
+general decidability, is refuted. The class is placed between the poles;
+the residual is named.
 
 RUN RECORD (python prime/code/explore_decidable_side.py, <1 s wall clock,
 trivial memory, 22 checks, all sections assert). S1 addressed bound (sqrt
@@ -359,11 +355,11 @@ class (reset [1,1,1] -> [0,0,0] non-monotone; 20 distinct moduli after 2000
 steps; decided LOOP in 5). One battery-label correction preceded adjudication
 (a program annotated LOOP in fact halts by the rider's wrap; corrected to a
 genuine grows-forever loop). All six frozen predictions confirmed on the first
-clean run. Verdict: the o(g) decidable side is a THIRD class -- a
-reset-broadcast system with bounded live registers, decidable (conjectured)
-by the bandwidth principle; general o(g) decidability a strong conjecture, the
-primary residual (the GROWING-PERIOD zero-test of a frontier-riding capped
-counter) named.
+clean run. Verdict: the o(g) machine is a reset-broadcast system at
+neither decidable pole; the bandwidth principle caps schemes at bounded ops
+per INC; the first-repeat decider's residual (the GROWING-PERIOD zero-test
+of a frontier-riding capped counter) named. General o(g) decidability,
+conjectured here at the run, is false (explore_doubling_counter.py).
 """
 
 import math
@@ -556,7 +552,7 @@ def s2_mul_kill():
 
 
 # ================================================================ #
-# S3 -- the bootstrap kill (candidate b: the regress)              #
+# S3 -- the bootstrap kill (candidate b: blind pre-growth)          #
 # ================================================================ #
 
 class Rider:
@@ -613,22 +609,22 @@ def pregrow_first_lie(pregrow, incs=400):
 
 
 def s3_bootstrap_kill():
-    print("\n== S3  the bootstrap kill (blind pre-grow, the regress) ==")
+    print("\n== S3  the bootstrap kill (blind pre-grow) ==")
     lies = {}
     for g0 in (100, 400, 900):
         lie, grows_at = pregrow_first_lie(g0)
         lies[g0] = (lie, grows_at)
         exp = math.isqrt(g0)
         ok(lie is not None and abs(lie - exp) <= max(3, exp // 3),
-           f"pre-grow G0={g0}: faithful up to count {lie} ~ floor(sqrt G0)="
-           f"{exp}, then the zero-test lies (constant capacity for fixed G0)")
-    # the regress: at the lie the total grows ~ count^2 -- to be faithful at
-    # value s the machine must already have grown ~ s^2 windows
+           f"pre-grow G0={g0}: first lie at count {lie} ~ floor(sqrt G0)="
+           f"{exp} (constant capacity for fixed G0)")
+    # at the lie the total grows ~ count^2 -- to be faithful at value s by
+    # blind pre-growth the machine must already have grown ~ s^2 windows
     lie, grows_at = lies[900]
     ok(grows_at >= lie * lie // 2,
-       f"the regress: at the lie (count {lie}) the machine has grown "
+       f"at the lie (count {lie}) the machine has grown "
        f"{grows_at} windows ~ count^2 -- a faithful unbounded ride needs "
-       "grows-per-INC -> infinity, i.e. the counter it is building")
+       "grows-per-INC -> infinity, which blind pre-growth cannot give")
 
 
 # ================================================================ #
@@ -704,8 +700,8 @@ def s4_period_and_freeze():
             ever = True
     ok(not ever,
        "grow-EVERY-step: the CRT pulse NEVER fires (the youngest window is "
-       "nonzero) -- to fire you must STOP growing; an unbounded FIRING period "
-       "needs freezing at a data-dependent window count = the regress")
+       "nonzero) -- to fire you must STOP growing, so the pulse's period "
+       "is set by where the program freezes")
 
     # (iii) a reset register: period = the reset stride, a program constant
     stride, moduli = 5, [2, 3]
@@ -920,7 +916,7 @@ def s5_decider():
 # ================================================================ #
 
 def s6_the_class():
-    print("\n== S6  the class (third decidable class, both poles broken) ==")
+    print("\n== S6  the class (at neither decidable pole) ==")
     # one program that is BOTH non-monotone AND unbounded-modulus, decided.
     L = lambda s: ("label", s)
     code = [
@@ -955,46 +951,35 @@ def s6_the_class():
     verdict, steps, grows = decide(code, sqrt_mod)
     ok(verdict == "LOOP",
        f"YET DECIDED: {verdict} in {steps} abstract steps ({grows} windows) "
-       "-- a reset-broadcast system with bounded live registers, decidable "
-       "by the ultimately-periodic control/zero-test trajectory")
+       "-- a reset-broadcast system with bounded live registers, this program "
+       "decided by the ultimately-periodic control/zero-test trajectory")
 
     print("""
-  THE DECIDABLE SIDE, placed (synthesis, if S1-S6 hold):
+  THE SUBLINEAR MACHINE, placed (synthesis, if S1-S6 hold):
 
-  The sublinear supply's growing-window machine is a THIRD class (decidable
-  CONJECTURED), placed at neither known pole:
+  The sublinear supply's growing-window machine sits at neither known
+  decidable pole:
     - NOT finite-state (explore_bit_supply.py): its moduli grow without
       bound, so the column alphabet is infinite.
     - NOT a WSTS by monotonicity (explore_growth_machine.py): its registers
-      RESET, so the state is non-monotone (it may still be a WSTS by a
-      reset-net wqo -- the open reduction).
-  Its conjectured decidability rests on a THIRD reason -- the BANDWIDTH
-  PRINCIPLE. Value moves
-  between windows only through the global zero-test (1 bit out) and the
-  frontier singleton (1 unit in), O(1) per op, so:
+      RESET, so the state is non-monotone.
+  THE BANDWIDTH PRINCIPLE: value moves between windows only through the
+  global zero-test (1 bit out) and the frontier singleton (1 unit in),
+  O(1) per op, so for a scheme spending boundedly many ops per INC:
     (i)   addressed live values are bounded by a program constant (S1),
-    (ii)  a FAITHFUL register's firing period is a program constant -- the
+    (ii)  a frozen register's firing period is a program constant -- the
           CRT pulse fires only after growth STOPS, at period lcm(the frozen
-          window set) (extended by growing more before freezing, not frozen
-          at setup), and a program that keeps growing kills the pulse; an
-          unbounded FIRING period needs freezing at a data-dependent window
-          count = the regress (S4),
-  so no faithful unbounded counter exists, and the counterexample face is
-  closed: mul-product (S2), bootstrap (S3), and unbounded-period detection
-  (S4) all die by the bandwidth principle. The decider is exhibited on a
-  battery incl. grows-forever loops (S5), but the first-repeat rule is a
-  HEURISTIC, not sound in general. HONEST SCOPE: the bandwidth bounds and the
-  three kills are proved-by-construction; the decider is validated on a
-  battery, not proved sound for every program. GENERAL o(g) decidability --
-  that no construction escapes and that a SOUND decision procedure exists --
-  stays a STRONG CONJECTURE on the bandwidth principle. The residual is now
-  NAMED: the GROWING-PERIOD zero-test -- a frontier-riding capped counter
-  fires with unboundedly growing gaps (9, 24, 45, ...), so its trajectory is
-  not ultimately periodic and a sound procedure must track pending fires (as
-  the growth machine's decider tracks its monotone zero-pattern). That
-  procedure is built in explore_pending_fires.py (the three-verdict
-  decider + the landing lemma); the conjecture's honest scope is refined
-  there -- decidability = rate + supply tameness.
+          window set), and a program that keeps growing kills the pulse
+          (S4),
+  and mul-product (S2), bootstrap (S3) and the frozen pulse (S4) all cap.
+  The bound is per op, not per INC: a counter timing its own grows spends
+  unboundedly many per migration and is faithful on every unbounded
+  supply (explore_doubling_counter.py), so the machine is universal. The
+  first-repeat decider is exhibited on a battery incl. grows-forever loops
+  (S5) and is a HEURISTIC, not sound in general: a frontier-riding capped
+  counter fires with unboundedly growing gaps (9, 24, 45, ...), so a sound
+  procedure must track pending fires, built for a fragment in
+  explore_pending_fires.py.
 """)
 
 

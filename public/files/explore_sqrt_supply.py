@@ -1,9 +1,10 @@
 """
 explore_sqrt_supply.py -- THE SQRT SUPPLY: is the growing-window machine
 universal when the supply rises unboundedly but slower than the count,
-m_g = ceil(sqrt(g))? (Settled by explore_doubling_counter.py: yes, universal,
-by a counter that times its own grows; the caps and the regress below hold
-for schedules fixed by the INC count. Sibling of explore_bit_supply.py,
+m_g = ceil(sqrt(g))? (Settled by explore_doubling_counter.py and
+explore_unbounded_supply.py: yes, universal, on every unbounded supply, by
+a counter that times its own grows; the caps below hold for schedules
+fixed by the INC count. Sibling of explore_bit_supply.py,
 explore_minimal_carrier.py, explore_frontier_rider.py, and
 explore_growth_machine.py -- the phase boundary of the supply law.)
 
@@ -106,7 +107,8 @@ capacity cannot grow online). (Refined post-run, finding 1: the boundary
 is the LINEAR rate o(g) vs Omega(g), not m_g > g -- because W_d is a
 FREE constant, a multi-digit counter with W_d > g/m_g universalizes any
 linear m_g = Omega(g), even m_g < g where the single rider wraps; the
-sqrt supply is decidable because it is SUBLINEAR, not because m_g < g.)
+sqrt supply caps the once-per-INC counter because it is SUBLINEAR, not
+because m_g < g.)
 
 THE DESIGN (what each section asks; findings enter post-run only).
 
@@ -194,9 +196,10 @@ five CONFIRMED, the decidable verdict, PR4 not refuted).
 FINDINGS (entered after the run; every number below is from the printed
 output; run record at the end).
 
-1. THE PHASE BOUNDARY IS THE LINEAR RATE, o(g) vs Omega(g) -- NOT m_g > g
-   (rule on the universal side, conjecture on the decidable side; the
-   headline; S1-S5). THE CAP LEMMA: on any supply a positional counter's
+1. FOR A COUNTER GROWING ONCE PER INC THE BOUNDARY IS THE LINEAR RATE,
+   o(g) vs Omega(g) -- NOT m_g > g (rule for that schedule; the headline;
+   S1-S5; the machine itself is universal on every unbounded supply,
+   explore_doubling_counter.py). THE CAP LEMMA: on any supply a positional counter's
    faithfully-representable value is bounded by value <= W_d * m_frontier,
    where W_d is the frozen product of the lower digit bases -- a FREE
    constant the program chooses -- and m_frontier the ridable top modulus.
@@ -211,17 +214,16 @@ output; run record at the end).
        rider wraps (S4: b=4 runs 600 INCs uncapped). Multi-digit EXTENDS
        the rider's reach down to any linear rate; the tower's p_n > n is
        far inside.
-     * m_g = o(g) (sublinear) => DECIDABLE. W_d * m_g = o(g) < g for every
-       fixed W_d, so every scheme caps: the sqrt supply's top-migratable
-       counter caps at exactly W_d^2 (S4: {2:4, 3:9, 4:16, 5:25} = b^2),
-       the log supply at O(W_d * log g), the unary support-counter is
-       decrement-free (the growth machine). The unbounded-but-slow gap
-       is on the decidable side.
-   The cap lemma is BOTH the universality construction (linear) and the
-   decidability obstruction (sublinear); m_g > g is only its W_d = 1
-   corner. (The rider's universal side is proved, explore_minimal_carrier.py;
-   the multi-digit linear extension and the sublinear cap are exhibited
-   here; general o(g) decidability is conjectured, finding 4.)
+     * m_g = o(g) (sublinear) => CAPPED. W_d * m_g = o(g) < g for every
+       fixed W_d, so every once-per-INC scheme caps: the sqrt supply's
+       top-migratable counter caps at exactly W_d^2 (S4: {2:4, 3:9, 4:16,
+       5:25} = b^2), the log supply at O(W_d * log g), the unary
+       support-counter is decrement-free (the growth machine).
+   The cap lemma is the universality construction for this schedule
+   (linear) and its obstruction (sublinear); m_g > g is only its W_d = 1
+   corner. (The rider's universal side is proved,
+   explore_minimal_carrier.py; the multi-digit linear extension and the
+   sublinear cap are exhibited here.)
 
 2. CARRY IS IN THE CLASS -- the crux was not "no carry" (rule; S2). A
    carry across two ADDRESSED windows is expressible with the native
@@ -259,8 +261,8 @@ output; run record at the end).
    value 100 at base 3 needs 1090 grows BEFORE counting, and timing them
    needs the very unbounded counter being built.
 
-4. BORN-AT-ZERO BOUNDS EVERY SCHEME'S CAPACITY TO const * m_frontier
-   (rule; S1, S3b, S4 + the argument -- the unifying principle; this is
+4. BORN-AT-ZERO BOUNDS EVERY FIXED-SCHEDULE SCHEME'S CAPACITY TO
+   const * m_frontier (rule; S1, S3b, S4 + the argument; this is
    the cap lemma's mechanism -- it forces the o(g) caps AND permits the
    linear universality, since const * m_frontier keeps pace with the count
    iff m_g = Omega(g)). A fresh window is born 0 state-INDEPENDENTLY (the
@@ -269,10 +271,12 @@ output; run record at the end).
    singleton w repeatedly while draining a source -- the rider), which
    fills it one unit per step, bounded by that window's own modulus;
    base-extension (writing V mod m_new in O(1)) is the deleted
-   archimedean borrow, not native (the keystone lemma). So NO scheme can
-   grow its exact capacity online beyond the const-times-m_frontier the
-   rider carries into one fresh window. Every exact-counter scheme caps
-   this way: (i) the single-window rider (d = 1) wraps at m_pointed <
+   archimedean borrow, not native (the keystone lemma). So no scheme
+   spending a bounded number of grows per INC can grow its exact capacity
+   beyond the const-times-m_frontier the rider carries into one fresh
+   window; a scheme that spends unboundedly many, timed off its own
+   value, does (explore_doubling_counter.py). Every fixed-schedule scheme
+   here caps this way: (i) the single-window rider (d = 1) wraps at m_pointed <
    value on the sqrt supply (S1: count 3), no fixed grow-per-INC factor
    rescuing it; (ii) the positional multi-digit counter caps by re-basing
    (finding 3, S4: exactly W_d^2); (iii) the CRT / redundant counter caps
@@ -284,18 +288,19 @@ output; run record at the end).
    control confirms the boundary is real: the SAME single-window rider on
    the successor supply m_g = g + 1 > g runs 200 INCs with no lie (S1).
 
-5. THE GENERALIZATION -- the boundary is the linear rate (universal side
-   a rule, decidable side conjectured; S4, S5). The cap lemma
+5. THE GENERALIZATION -- for the once-per-INC schedule the boundary is
+   the linear rate (rule; S4, S5). The cap lemma
    value <= W_d * m_frontier bounds every supply, and the survival test
    W_d * m_g >= g splits by GROWTH RATE. On m_g = Omega(g) a fixed
    W_d > g/m_g clears the bar: every linear supply is UNIVERSAL (a rule,
    proved-by-construction), verified on m_g = ceil(g/3) < g (S4: uncapped)
    where the single rider wraps. On m_g = o(g) the product W_d * m_g stays
    o(g) < count for every fixed W_d, so every exact-counter scheme CAPS (a
-   rule: sqrt at O(W_d^2), log at O(W_d * log g)) and the regime is
-   DECIDABLE (conjectured on born-at-zero, finding 4). So the phase
+   rule: sqrt at O(W_d^2), log at O(W_d * log g)). So that schedule's
    boundary is o(g) vs Omega(g) -- the LINEAR rate -- and m_g > g is only
-   where the single-digit rider alone suffices.
+   where the single-digit rider alone suffices. It is not the machine's:
+   a counter timing its own grows is faithful on every unbounded supply
+   (explore_doubling_counter.py, explore_unbounded_supply.py).
 
 SCOPE + HONESTY. The single-window universal side (m_g > g) is a proved
 rule (explore_frontier_rider.py / explore_minimal_carrier.py). The carry
@@ -313,33 +318,15 @@ so each counter's hi < m_frontier holds at its INC (value <= total INCs
 <= g < W_d * m_g), and the two frozen low digits are distinct fixed
 windows. The single-counter exhibition plus this composition is the
 proof; the full halts-iff-even battery on paired multi-digit counters is
-not re-run here. What is NOT closed to a proof is GENERAL
-decidability of the o(g) regime -- that NO construction whatsoever
-simulates a 2-counter machine. The argument rules out THREE exact-counter schemes
-(positional-addressed, CRT-redundant, unary-support) via the unifying
-BORN-AT-ZERO principle (finding 4): a fresh window carries no value
-information, and only the unary transfer -- bounded by one modulus --
-loads value into it, so no scheme grows exact capacity past
-const-times-m_frontier without the non-native base-extension lift. That
-principle is argued from the op semantics (the fresh window's post-birth
-content is a function of constants + w + its own born-0 registers, and
-only iterated w-transfer accumulates value), not machine-checked
-exhaustively over all machines, so the decidable verdict for o(g)
-remains a strong CONJECTURE -- but on the born-at-zero principle, a much
-firmer footing than "these three schemes happen to fail."
-(SETTLED SINCE, two ways, and this paragraph's own wording is what they
-correct. The born-at-zero principle is no longer argued: it is the
-suffix-evaluation normal form, proved by induction on the op word in
-explore_born_at_zero.py, which also reduces the open half to one
-residual -- semi-deciding that a run grows infinitely often. And
-"general decidability of the o(g) regime" above names the MACHINE-side
-capacity conjecture only; it is not the same statement as halting being
-decidable on an o(g) supply, since the supply's own arithmetic is a
-second channel and an untame supply carries halting facts with every
-cap intact -- explore_pending_fires.py and explore_supply_tameness.py.
-What survives here unchanged is the capacity material: the cap lemma,
-the carry gadget, the re-basing argument, the lcm freeze, and the
-linear-rate boundary.)
+not re-run here. The three exact-counter schemes ruled out
+(positional-addressed, CRT-redundant, unary-support) fail by the
+BORN-AT-ZERO principle (finding 4), since proved as the suffix-evaluation
+normal form (explore_born_at_zero.py). The principle bounds what a
+bounded number of grows per INC can load, and no more: the conjecture
+once drawn from it, that NO construction simulates a 2-counter machine
+on an o(g) supply, is false (explore_doubling_counter.py,
+explore_unbounded_supply.py), so the regress in S4 is the pre-provisioned
+schedule's and not the machine's.
 The cap W_d^2 is the
 best case of the top-migratable family; a specific program's W_d is
 whatever its frozen lower bases multiply to, always a constant. The
@@ -364,7 +351,8 @@ b*log2(g) << g). The frozen predictions all confirmed on the first run
 the CRT scheme also caps by born-at-zero (the unifying principle), and
 the LINEAR-supply test relocated the boundary from m_g > g (the
 single-rider corner) to o(g) vs Omega(g) (the linear rate).
-Verdict: m_g = Omega(g) UNIVERSAL, m_g = o(g) DECIDABLE (conjectured).
+Verdict: for a counter growing once per INC, m_g = Omega(g) UNIVERSAL and
+m_g = o(g) CAPPED.
 """
 
 import math
@@ -843,14 +831,14 @@ def s4_the_cap():
 
     # the pre-provision regress: to reach value N with W_d = b, the frontier
     # modulus must exceed N/b, i.e. g > (N/b)^2 grows must precede the count
-    # -- a value-dependent (super-linear) pre-growth the finite control
-    # cannot schedule without an unbounded counter (the regress).
+    # -- a value-dependent (super-linear) pre-growth no fixed schedule
+    # provides; explore_doubling_counter.py times it off the value itself.
     N, b = 100, 3
     pre = (N // b) ** 2
     ok(pre > N,
        f"pre-provisioning value {N} at base {b} needs {pre} grows before "
-       f"counting (>{N} INCs): the regress -- timing them needs the counter "
-       "being built")
+       f"counting (>{N} INCs): no schedule fixed in advance provisions "
+       "it")
 
 
 # ================================================================ #
@@ -902,15 +890,15 @@ def s5_verdict():
       wraps (S4: b=4 runs unbounded). Multi-digit EXTENDS the rider's
       reach down to any linear rate; the tower's p_n > n is far inside.
 
-    m_g = o(g)      =>  DECIDABLE.  W_d * m_g = o(g) < g for every fixed
-      W_d, so every scheme caps: the sqrt supply at O(W_d^2) (S4:
-      {2:4,3:9,4:16,5:25} = b^2), the log supply at O(W_d * log g), the
-      unary support-counter decrement-free. The unbounded-but-slow gap
-      is decidable (general decidability conjectured on born-at-zero).
+    m_g = o(g)      =>  CAPPED.  W_d * m_g = o(g) < g for every fixed
+      W_d, so every once-per-INC scheme caps: the sqrt supply at
+      O(W_d^2) (S4: {2:4,3:9,4:16,5:25} = b^2), the log supply at
+      O(W_d * log g), the unary support-counter decrement-free.
 
-  The cap lemma is BOTH the universality construction (linear) and the
-  decidability obstruction (sublinear); the single-window m_g > g is only
-  its W_d = 1 corner.
+  The cap lemma is this schedule's universality construction (linear) and
+  its obstruction (sublinear); the single-window m_g > g is only its
+  W_d = 1 corner. A counter timing its own grows is not capped
+  (explore_doubling_counter.py).
 """)
 
 

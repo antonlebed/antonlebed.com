@@ -5,8 +5,11 @@ SUPER-CRITICAL CELL: derive one, or name the step that blocks it.
 block identity this script reuses, and of explore_supply_tameness.py,
 whose coverage lemma turns out to reach half of what the sibling swept.)
 
-THE SETTING. For the growing-window machine on a sublinear modulus
-supply, DECIDABILITY = RATE + SUPPLY TAMENESS, and the classification
+THE SETTING. For the fragment of growing-window programs the
+three-verdict decider covers (explore_pending_fires.py; the machine is
+universal on every unbounded supply, explore_doubling_counter.py),
+decidability on a sublinear modulus supply is SUPPLY TAMENESS, and the
+classification
 of supplies runs on the inverse supply M(d) = max{g : m(g) <= d}. Four
 cells: quasi-polynomial M is tame by offset compression; SLOW supplies
 -- any m growing slower than every g^(1/2 - eps), which is M(d) growing

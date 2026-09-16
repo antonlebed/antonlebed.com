@@ -1,8 +1,13 @@
 """
 explore_pending_fires.py -- THE PENDING FIRES: a sound decision procedure
 for the sublinear-supply growing-window machine, and the true scope of its
-decidability. (Sibling of explore_decidable_side.py -- which named the
-growing-period residual -- and of explore_sqrt_supply.py,
+decidability. (The decider is sound on a fragment; the machine is not
+decidable at all, being universal on every unbounded supply by a counter
+that saves singletons inside its loop, explore_doubling_counter.py, so
+the setting's "third decidable class" and the design's "the machine adds
+no undecidable content" are read as statements about the fragment.
+Sibling of explore_decidable_side.py -- which named the growing-period
+residual -- and of explore_sqrt_supply.py,
 explore_bit_supply.py, explore_growth_machine.py,
 explore_minimal_carrier.py.)
 
@@ -242,10 +247,11 @@ output; run record at the end).
    modulus-length of phase), and the landing time is COMPUTABLE by
    direct evaluation of the supply. On the
    successor (linear) supply the armed fire stays pending forever
-   (v_t = t exactly, 4000 passes). The o(g)/Omega(g) boundary is the
-   same line a THIRD time -- capacity cap, class placement, fire
-   landing -- and landing computability is exactly what a sound decider
-   needs. A data-dependent K is the regress, excluded as before.
+   (v_t = t exactly, 4000 passes). For riders at a fixed K the
+   o(g)/Omega(g) boundary is the fire landing's, as it is the capacity
+   cap's for a counter growing once per INC, and landing computability
+   is exactly what a sound decider needs. A data-dependent K is outside
+   the fragment.
 
 2. THE FIRST-REPEAT RULE IS PHASE-BLIND -- doubly unsound, and the
    growing-period signal is only the deeper of two failures (rule,
@@ -284,8 +290,9 @@ output; run record at the end).
    signal's phase. All four sibling verdicts reproduced with
    certificates; zero false verdicts.
 
-4. THE SUPPLY ORACLE -- rate-only decidability is FALSE; the honest law
-   is decidability = rate + supply tameness (rule by construction; S4).
+4. THE SUPPLY ORACLE -- a fixed fragment program's halting is undecidable
+   over computable o(g) supplies, so the fragment's decidability is
+   supply tameness (rule by construction; S4).
    The machine reads one bit per landing about the supply's fine
    structure: on the smooth track (every modulus 0 mod 6) the detector's
    every wrap lands at clock phase 0 and it runs forever (4000 steps, no
@@ -294,12 +301,11 @@ output; run record at the end).
    supply family S_e = smooth track switching iff TM_e ever halts (each
    S_e computable, monotone, o(g)), the fixed detector halts on S_e iff
    TM_e halts: halting on adversarial computable o(g) supplies is
-   UNDECIDABLE -- with every capacity cap intact (no faithful counter
-   exists; the machine merely reads the oracle stream). This resolves
-   the sibling script's crux BOTH ways, properly split: the machine
-   adds no undecidable content of its own (finding 3's architecture +
-   the landing lemma), and the supply can plant any. Universality does
-   NOT reopen: reading one planted bit per landing builds no counter.
+   UNDECIDABLE for that one program, which builds no counter and merely
+   reads the oracle stream. Split: the fragment adds no undecidable
+   content of its own (finding 3's architecture + the landing lemma), and
+   the supply can plant any. Outside the fragment the machine is
+   universal on its own (explore_doubling_counter.py).
 
 5. THE WRAP-WORD RESIDUE PROBLEM -- the sharpened residual, and it has
    real number theory (observation; S5). The sqrt supply's wrap word
@@ -325,14 +331,12 @@ with their certificates, and the supply-oracle detector are
 proved-by-construction and mechanized here; the bisimulation guard makes
 every descriptor claim checked, not assumed. The FRAGMENT is stated
 exactly (see above); outside it the decider answers OUT-OF-FRAGMENT.
-What stays open: (i) taxonomy completeness -- that every o(g) program's
-signals reduce to the four kinds (conjectured; the bandwidth principle
-is the argument, not a proof over all machines); (ii) the wrap-word
-arithmetic of the canonical supplies (the extracted question class);
-(iii) the general-supply statement is now CLOSED in the negative -- the
-supply oracle makes rate-only decidability false, so the earlier
-conjecture must be read with the supply fixed and tame, which is how the
-sqrt instance was always used. Toy horizons throughout (asserted where
+Taxonomy completeness -- that every o(g) program's signals reduce to the
+four kinds -- is FALSE: the doubling counter saves singletons inside its
+loop and makes every unbounded supply universal
+(explore_doubling_counter.py), so the decider's reach is its fragment.
+What stays open is the wrap-word arithmetic of the canonical supplies
+(the extracted question class). Toy horizons throughout (asserted where
 load-bearing); the reduction's f(s) is stated, not run to large e.
 
 RUN RECORD (python prime/code/explore_pending_fires.py, ~1 s wall clock
@@ -347,8 +351,8 @@ gaps non-decreasing, multiplicity <= 2, mod-6 classes
 {0: 408, 1: 407, 2: 204, 3: 407, 5: 1011} (class 4 empty), mod-60 38/60.
 Verdict: a SOUND decision procedure exists for the fragment (the
 three-verdict decider), the naive rule is doubly refuted, the landing
-dichotomy puts fire-landing on the same o(g)/Omega(g) line as capacity,
-and the general conjecture is re-scoped -- decidability = rate + supply
+dichotomy puts fire-landing on the o(g)/Omega(g) line of the
+once-per-INC capacity cap, and the fragment's decidability is supply
 tameness; the supply is an oracle, and the wrap word is the open
 arithmetic.
 """
@@ -1004,11 +1008,10 @@ def s4_supply_oracle():
   for Turing machine e, let S_e = the smooth track, switching to the
   1-mod-6 track at position f(s) if TM_e halts at step s (f computable,
   monotone). Each S_e is computable and o(g); the FIXED detector halts on
-  S_e iff TM_e ever halts. So halting for the o(g) class ON ADVERSARIAL
-  COMPUTABLE SUPPLIES is undecidable -- while every capacity cap stands
-  (no faithful counter exists; the machine reads the supply as an oracle,
-  one bit per landing). Rate-only decidability is FALSE; the honest law is
-  decidability = rate + supply tameness.
+  S_e iff TM_e ever halts. So halting of one fixed fragment program ON
+  ADVERSARIAL COMPUTABLE SUPPLIES is undecidable -- the program builds no
+  counter and reads the supply as an oracle, one bit per landing. Inside
+  the fragment, decidability is supply tameness.
 """)
 
 

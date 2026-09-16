@@ -5,15 +5,16 @@ explore_wrap_word.py, whose closed form and offset recurrence are the
 sqrt-supply instance of the machinery generalized here; and of
 explore_pending_fires.py, whose supply oracle is the untame pole.)
 
-THE SETTING. The honest decidability law for the growing-window machine
-on a sublinear modulus supply reads DECIDABILITY = RATE + SUPPLY
-TAMENESS: the rate caps the machine's own arithmetic and forces every
-pending fire to land, and the one remaining input channel is the
-supply's fine arithmetic. Its two poles are on record -- the canonical
+THE SETTING. The growing-window machine is universal on every unbounded
+supply (explore_doubling_counter.py), and on the fragment of programs
+explore_pending_fires.py's three-verdict decider covers, decidability is
+SUPPLY TAMENESS: the rate forces every pending fire to land, and the one
+remaining input channel is the supply's fine arithmetic. Its two poles
+are on record -- the canonical
 supply m(g) = ceil sqrt g is fully solved (closed-form landings, the
 offset recurrence, reachable residues decided for every modulus L up to
-60), while a supply with a planted tail switch makes halting
-undecidable with every capacity cap intact. Between them sits the
+60), while a supply with a planted tail switch makes a fixed fragment
+program's halting undecidable. Between them sits the
 classification this script works: for which computable sublinear
 supplies is the extracted supply-arithmetic question -- "is some landing
 time congruent to a mod L?" -- decidable?

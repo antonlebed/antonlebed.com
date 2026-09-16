@@ -252,7 +252,9 @@ output; run record at the end).
    m_g = ceil(log g)) is unbounded (this argument is silent) but too
    slow for the rider's headroom -- open. (RESOLVED in
    explore_sqrt_supply.py: the boundary is the LINEAR rate o(g) vs
-   Omega(g), NOT m_g > g; the slow gap is decidable because SUBLINEAR.)
+   Omega(g), NOT m_g > g, for a counter growing once per INC; the slow
+   gap is universal by a counter timing its own grows,
+   explore_doubling_counter.py.)
 
 SCOPE + HONESTY. The bisimulation is verified on a finite battery of
 five programs over the full op battery (GROW, OR, XOR, AND, SET0, JZ),
@@ -807,7 +809,8 @@ def s6_generalization():
   the supply law's necessity side is still open. (RESOLVED in
   explore_sqrt_supply.py: the boundary is the LINEAR rate, o(g) vs
   Omega(g), not m_g > g -- a multi-digit counter universalizes any
-  linear m_g; the slow gap is decidable because SUBLINEAR.)
+  linear m_g; the slow gap is universal too, by a counter timing its
+  own grows, explore_doubling_counter.py.)
 """)
 
 

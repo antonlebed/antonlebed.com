@@ -6,11 +6,13 @@ explore_supply_tameness.py, whose four-cell classification leaves this
 one cell open; and of explore_wrap_word.py, whose closed form and offset
 recurrence solve the sqrt pole below it.)
 
-THE SETTING. For the growing-window machine on a sublinear modulus
-supply the honest law reads DECIDABILITY = RATE + SUPPLY TAMENESS: the
-rate caps the machine's own arithmetic and forces every pending fire to
-land, and the one remaining input channel is the supply's fine
-arithmetic, extracted as the question "is some landing time congruent to
+THE SETTING. For the fragment of growing-window programs the
+three-verdict decider covers (explore_pending_fires.py; the machine
+itself is universal on every unbounded supply,
+explore_doubling_counter.py), decidability on a sublinear modulus supply
+is SUPPLY TAMENESS: the rate forces every pending fire to land, and the
+one remaining input channel is the supply's fine arithmetic, extracted
+as the question "is some landing time congruent to
 a mod L?". The classification of supplies runs on the INVERSE supply
 M(d) = max{g : m(g) <= d} rather than on the rate, and it has four cells:
 quasi-polynomial M is tame by offset compression, slow supplies are tame
