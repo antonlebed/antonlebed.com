@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>The clock machine — counters read by coincidence</title>
-<meta name="description" content="A machine whose only operations start a clock, advance a register's clocks together, nudge the newest clock and test whether clocks coincide at zero. With one test per register a counter repaired at each grow by a timer is faithful on every unbounded supply and three registers are universal; with one test over every register a true read leaves only control and the grow count.">
+<meta name="description" content="A machine whose only operations start a clock, advance a register's clocks together, nudge the newest clock and test whether clocks coincide at zero. With one test per register a counter repaired at each grow by a timer is faithful on every unbounded supply and three registers are universal; with one test over every register a true read leaves only control and the grow count, one trip reads whether the next modulus is prime at the price of the lcm, and chained trips run an automaton over the primes.">
 <link rel="canonical" href="https://antonlebed.com/computation/clocks">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -183,7 +183,9 @@ together, nudge the newest one and ask whether they coincide at zero.
 With one zero-test per register it runs two counters on every
 unbounded supply and needs no pointer to an old window; with one
 zero-test over every register a true read leaves only the control state
-and the number of windows grown.</p>
+and the number of windows grown, one trip reads whether the next modulus
+is prime at a price of the order of the lcm, and chained trips run a
+finite automaton over the primes.</p>
 
 <p>The <b>clock machine</b> runs on a <b>supply</b>
 <i>m<sub>g</sub></i>, the modulus of the <i>g</i>-th <b>window</b>
@@ -293,9 +295,8 @@ cited.</p>
   times, a loop without a grow adding none. So from that point on a run
   is its finite control walking the number of windows grown upward in
   bounded steps,
-  each step decided by the supply's moduli up to it, and whether its halting is
-  decidable rides on the supply's arithmetic and is not settled
-  here. The hypothesis carries weight: with the loop's moduli 2, a
+  each step decided by the supply's moduli up to it; what one step reads
+  is <a href="#prime-reader">one trip reads primality</a>. The hypothesis carries weight: with the loop's moduli 2, a
   four-operation loop ends in pass 500 after 500 grows. The gap to
   <a href="#clock-counter">the clock counter</a> is reading one register
   while another holds a value. Counter systems split at the same
@@ -314,6 +315,145 @@ cited.</p>
   reads.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_one_and.py">
   <code>explore_one_and.py</code></a></p>
+</article>
+
+<article class="claim" id="prime-reader">
+  <div class="claim-head"><span class="claim-name">One trip reads
+  primality</span>
+  <span class="tier">rule</span></div>
+  <p>Under one read over every register, take the trip <i>u</i> = grow,
+  <i>v</i> = tick <i>B</i> +1, read, pulse <i>B</i> +1, read, pulse
+  <i>B</i> −1, from a true read after <i>g</i> grows, with <i>C</i> the
+  lcm of the <i>g</i> moduli grown before it and <i>m</i>′ the new
+  modulus. At pass <i>k</i> the old windows hold <i>k</i> and the newest
+  holds <i>k</i> at the first read and <i>k</i> + 1 at the second, so
+  the first read is true when <i>C</i> and <i>m</i>′ divide <i>k</i>, and
+  the second when <i>C</i> divides <i>k</i> and <i>k</i> ≡ −1 mod
+  <i>m</i>′, which is solvable exactly when gcd(<i>C</i>, <i>m</i>′) = 1,
+  at pass <i>C</i>·((−<i>C</i><sup>−1</sup>) mod <i>m</i>′), before the
+  first read's pass lcm(<i>C</i>, <i>m</i>′). So the trip ends at its
+  second read exactly when <i>m</i>′ &gt; 1 is coprime to every earlier
+  modulus, and on <i>m<sub>g</sub></i> = <i>g</i> + 1, where <i>C</i> =
+  lcm(2, …, <i>g</i> + 1), exactly when <i>g</i> + 2 is prime. Move the
+  pulses: <i>v</i> = tick +1, pulse −1, read <i>a</i>, pulse −1, read
+  <i>b</i>, pulse +2, read <i>c</i>, all on <i>B</i>. The newest window
+  holds <i>k</i> − 1, <i>k</i> − 2 and <i>k</i> at the three reads, so
+  <i>c</i> is true at pass lcm(<i>C</i>, <i>m</i>′) always; at a prime
+  <i>p</i> = <i>g</i> + 2 ≥ 3, with <i>x</i> = <i>C</i><sup>−1</sup> mod
+  <i>p</i>, read <i>a</i> is true at pass <i>Cx</i> and read <i>b</i> at
+  <i>C</i>(2<i>x</i> mod <i>p</i>), both before <i>Cp</i>, so the trip
+  ends at <i>a</i> exactly when <i>x</i> &lt; <i>p</i>/2. At a composite
+  <i>g</i> + 2 other than 4, reads <i>a</i> and <i>b</i> are never true
+  and the trip ends at <i>c</i>. This bit is a residue of the lcm, not a
+  fact about which neighbours are prime powers: for no <i>L</i> ≤ 40 do
+  <i>p</i> mod <i>L</i> and whether each of <i>p</i> ± 1, <i>p</i> ± 2 is
+  prime, a higher prime power or neither fix it over the primes to 2000
+  (the primes 19 and 139 agree on that key at <i>L</i> = 40 and differ
+  in the bit).</p>
+  <p class="scope"><b>Scope.</b> Rule: argued for every <i>g</i>, and
+  checked by an exact solver of the trip's congruences at <i>g</i> = 0 to
+  200, where the first trip ends at its second read at exactly the 46
+  <i>g</i> with <i>g</i> + 2 prime; a second engine, stepping each
+  window's operations and combining the zero sets by the Chinese
+  remainder theorem, prints the bit at all 302 primes from 3 to 2000,
+  147 of them 1. On a supply of 60 planted windows, a new prime above
+  10<sup>4</sup> or 2<sup>14</sup>, the first trip tells them apart 60
+  times in 60. The local-key refutation is toy-scale: keys at <i>L</i>
+  ≤ 40 over the primes to 2000.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_prime_reader.py">
+  <code>explore_prime_reader.py</code></a>, <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_prime_chain.py">
+  <code>explore_prime_chain.py</code></a></p>
+</article>
+
+<article class="claim" id="prime-word">
+  <div class="claim-head"><span class="claim-name">Chained trips walk
+  the prime word</span>
+  <span class="tier">rule</span></div>
+  <p>Each ending of the trip in <a href="#prime-reader">one trip reads
+  primality</a> is a true read one grow later, so the trip can be
+  chained. Give every state <i>s</i> of a deterministic automaton over
+  the letters {first, second}, naming which read ends a trip, its own copy of the trip, and send a true
+  read in copy <i>s</i> to the grow of copy δ(<i>s</i>, letter). After
+  <i>t</i> trips the control sits in the copy of the automaton's state
+  on the first <i>t</i> letters of the word whose letter at <i>n</i> ≥ 2
+  is whether <i>n</i> is prime, so the program halts exactly when the
+  automaton accepts a prefix of that word. Whether it does is a sentence
+  of the monadic second-order theory of (<b>N</b>, &lt;, primes), which
+  is decidable if Dickson's conjecture, the linear case of Schinzel's
+  Hypothesis H, holds (Bateman, Jockusch and Woods 1993) and not known
+  to be decidable otherwise (Büchi and Landweber 1969 noted that a
+  decision procedure would in principle settle the twin prime
+  conjecture; Berthé, Karimov, Nieuwveld,
+  Ouaknine, Vahanwala and Worrell 2024). One such program's halting is a
+  named question: the automaton that remembers the last 3159 letters
+  past <i>n</i> = 2 and halts when they hold 447 primes halts exactly
+  when π(<i>x</i> + 3159) − π(<i>x</i>) &gt; π(3159) = 446 for some
+  <i>x</i> ≥ 2, a failure of the second Hardy–Littlewood conjecture
+  π(<i>x</i> + <i>y</i>) ≤ π(<i>x</i>) + π(<i>y</i>) at <i>y</i> =
+  3159. An admissible 447-tuple fits in 3159 consecutive integers, so
+  the prime <i>k</i>-tuple conjecture, which Dickson's implies, makes it
+  halt (Hensley and Richards 1973), and no counterexample is known. The
+  seven-operation trip chains the same way over the letters {<i>a</i>,
+  <i>b</i>, <i>c</i>}, adding the bit's primes to the theory, and no
+  hypothesis in the role of Dickson's conjecture is cited here for the
+  bit; to 30000, every assignment of the bit to twin primes, to
+  consecutive primes and to the triplets (<i>p</i>, <i>p</i> + 2,
+  <i>p</i> + 6) and (<i>p</i>, <i>p</i> + 4, <i>p</i> + 6) occurs, the
+  largest deviation from a fair independent coin 1.63 standard
+  deviations.</p>
+  <p class="scope"><b>Scope.</b> Rule for the reduction, argued; the
+  decidability is cited, and the Hardy–Littlewood instance is argued
+  from the cited tuple, not recomputed. Printed through <i>n</i> = 202:
+  the recording chain's 201 letters equal primality; 40 random automata
+  of two to six states run as programs exactly as run on the word; the
+  window automata at <i>y</i> = 2 to 8 never halt at π(<i>y</i>) + 1
+  primes and halt at π(<i>y</i>) exactly where a direct scan does. The
+  claim covers chains of these trips only: a general trip also reads
+  prime-power letters, <i>g</i> modulo constants of the program and
+  residues of the lcm. The bit statistics are toy-scale: four patterns
+  over the primes to 30000.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_prime_chain.py">
+  <code>explore_prime_chain.py</code></a></p>
+</article>
+
+<article class="claim" id="lcm-wait">
+  <div class="claim-head"><span class="claim-name">A read of the old
+  moduli waits out their lcm</span>
+  <span class="tier">rule</span></div>
+  <p>Call the windows grown before a trip, all but the last, <b>deep</b>,
+  and <i>C</i>′ the lcm of their moduli. A pulse reaches only the newest
+  window, so no deep window takes one during the trip, and every deep
+  window of a register holds the same integer <i>X</i>, the ticks since
+  the trip began. They all read 0 exactly when <i>C</i>′ divides
+  <i>X</i>, so when <i>X</i> = 0 or |<i>X</i>| ≥ <i>C</i>′. In a loop
+  without a grow <i>X</i> = <i>nk</i> + <i>c</i> at pass <i>k</i>, with
+  <i>n</i> the net tick of a pass and <i>c</i> fixed by the program; with
+  <i>N</i> the largest |<i>n</i>| (at least 1) and <i>K</i> the largest
+  |<i>c</i>|, a true read at a pass below (<i>C</i>′ − <i>K</i>)/<i>N</i>
+  has <i>X</i> = 0 in every register, a condition the program alone
+  fixes, and a loop with a grow ends within a bounded number of passes
+  (<a href="#one-read">one read keeps no memory</a>), where <i>X</i> is
+  bounded too. Every other window reads a congruence modulo its own
+  modulus. So every true read before that pass is fixed by the program
+  and the moduli from the last pre-trip window on, and a trip that tells
+  gcd(<i>C</i>′, <i>m</i>′) = 1 from gcd &gt; 1 at a fixed next modulus
+  <i>m</i>′ waits at least (<i>C</i>′ − <i>K</i>)/<i>N</i> passes on one
+  side. On <i>m<sub>g</sub></i> = <i>g</i> + 1, <i>C</i>′ = lcm(2, …,
+  <i>g</i>) grows as <i>e</i><sup><i>g</i>(1 + <i>o</i>(1))</sup>, so the
+  pass of order <i>C</i> in <a href="#prime-reader">one trip reads
+  primality</a> is the price of the machine, not of that trip: reading a
+  gcd by coincidence costs the lcm it divides by.</p>
+  <p class="scope"><b>Scope.</b> Rule: argued past a constant of the
+  program. Checked by the exact solver on 3,000 random programs, each run
+  on two supplies that share the last pre-trip modulus and the next four
+  and differ in the deep moduli, each lcm above 10<sup>6</sup>: of 1,184
+  pairs with an ending below both bounds, none differed; the 428 pairs
+  that differ all waited, the least ratio of pass to bound
+  1.000000000005, so the bound is attained up to <i>K</i>. Loops with a
+  grow rest on the pass bound argued in <a href="#one-read">one read
+  keeps no memory</a> and are not run here.</p>
+  <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_lcm_wait.py">
+  <code>explore_lcm_wait.py</code></a></p>
 </article>
 
 </main>
