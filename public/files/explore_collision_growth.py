@@ -140,9 +140,9 @@ FINDINGS (tiers inline; run record below; all sections assert).
 5. THE MYOPIA IS GENERIC (observation at scope; S4). least-new's grown set is
    never below the minimum cover (40/40) and STRICTLY overpays in 40 of 40
    random small instances -- the set-cover myopia is pervasive here, not
-   occasional, because smallest-first least-new grabs 2 (odd differences are
-   always present) even when a single larger prime covers the whole demand (hand
-   instance D = {1, 770}: least-new [2, 3] vs minimum cover [3]). Reaching the
+   occasional, because smallest-first least-new takes the smallest hitting
+   primes even where fewer larger ones cover (hand instance D = {1, 770}:
+   least-new [2, 3] vs minimum cover [3]). Reaching the
    optimal data-shaped substrate costs lookahead, echoing the growth-capability
    myopia gap. [PR4]
 

@@ -163,7 +163,7 @@ F1 THE DETERMINANT IS NOT THE HYPOTHESIS, AND IT NEVER WAS: THE
    82,422 at 3, zero short. THAT COLUMN IS THE WHOLE OF THE EMPIRICAL
    CONTENT, and the rest of the table cannot come out any other way:
    the pieces TILE the reference, so index(J) IS the minimum over
-   them (D4), and once the occupied piece never attains that minimum
+   them (D4), and once the occupied piece always reaches sigma + 1
    the G2 verdict is the conjunction over the unoccupied ones by
    arithmetic. The printed cross-tabulation — 568,195 holds at
    |det| = 1 with nothing unoccupied to fail, 14,939 against 73,354
