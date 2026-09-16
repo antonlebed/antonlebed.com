@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Tools — what these notes hand you to run</title>
-<meta name="description" content="The runnable part of the primorial tower notes: crt.py, a single-file CRT arithmetic library with its self-check and API table, and seven results shipped as scripts a reader can run or import — the exact residue-number-system comparator and its cost law, the readout's bits-to-word bijection with the tame readout and the cutoff law, the flattening chart's shortest-vector method and its multiplier-free filter table, the class-order grading of the principal shortfall, and the three on-line delay engines on a page of their own. Each entry states what to run, what to pass in and what it prints.">
+<meta name="description" content="The runnable part of the primorial tower notes: crt.py, a single-file CRT arithmetic library with its self-check and API table, and the results shipped as scripts a reader can run or import — the exact residue-number-system comparator and its cost law, the readout's bits-to-word bijection with the tame readout and the cutoff law, the flattening chart's shortest-vector method and its multiplier-free filter table, the class-order grading of the principal shortfall, and the three on-line delay engines on a page of their own. Each entry states what to run and what it prints.">
 <link rel="canonical" href="https://antonlebed.com/tools">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -178,7 +178,7 @@ nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
 <header class="site"><nav aria-label='Subjects'><a href='/'>Home</a> <a href='/#specimen'>The specimen</a> <a href='/#reading'>Reading</a> <a href='/#growth'>Growth</a> <a href='/#evaluation'>Evaluation</a> <a href='/#fields'>Fields</a> <a href='/tools' class='up'>Tools</a> <a href='/claims'>What is proved</a></nav><nav class='sub' aria-label='Tools'><a href='/tools' aria-current='page'>The library and the roster</a> <a href='/tools/delays'>The delay engines</a></nav></header>
 <main>
 <h1>Tools</h1>
-<p class="lede">The runnable part of these notes: one library, seven
+<p class="lede">The runnable part of these notes: one library, the
 results packaged as scripts a reader can run or import, and the
 on-line delay engines on a page of their own.</p>
 
@@ -189,11 +189,10 @@ one Python 3 process that prints its own checks; a script that imports
 a sibling finds it beside itself in the same directory, and one that
 needs a package outside the standard library names it in its imports
 (the twelve on this page need none, and the largest of them peaks
-under 180 MB). The entries below are the ones with something to
-<em>use</em> — a function to call on your own input — and each states
-what to run, what to pass in and what it printed here. The pages that
-state the result and its tier are linked from each entry;
-<a href="/claims">What is proved</a> lists every claim with its script.</p>
+near 310 MB). The entries below are the ones with something to
+<em>use</em>, a function to call on your own input or a census to
+rerun; <a href="/claims">What is proved</a> lists every claim with its
+script.</p>
 
 <ul class='children'><li><a href='/tools/delays'>The delay engines</a> — the many-stream engine, the piecewise clause tables and the lookahead table printing six units' delays from two numbers of each map</li></ul>
 
@@ -226,11 +225,15 @@ crt.py self-test: 90 checks passed in 0.01s</pre>
 &gt;&gt;&gt; ecc_correct(bad, RAD_RING)
 ((0, 0, 2, 0, 9, 3, 8), 2)</pre>
 
-<p>From rung 7 on a ring carries the tower split: the first
-<i>k</i>−3 channels are data and the last three are parity, an
-error-correcting code of minimum distance 4 that locates and repairs
-any one corrupted channel (<a href="/object#tower-split">the tower
-split</a>). The API, the ring passed explicitly to every call that
+<p>From rung 7 on a primorial ring carries the tower split: the first
+<i>k</i>−3 channels are data and the last three are parity, a code of
+minimum distance 4 over the values below the product of the data
+primes (210 at rung 7), which locates and repairs any one corrupted
+channel of such a value (<a href="/object#tower-split">the tower
+split</a>). A value at or above that product lies outside the code,
+where <code>ecc_correct</code> can return a wrong repair, and its
+<code>None</code> channel means no single error was found, a clean
+codeword included. The API, the ring passed explicitly to every call that
 reads one:</p>
 
 <table class="chart">
@@ -247,11 +250,11 @@ reads one:</p>
 <tr><td><code>ecc_encode(data, ring)</code></td><td>data residues to the full tuple with parity</td></tr>
 <tr><td><code>ecc_syndrome ecc_detect ecc_locate ecc_correct</code></td><td>the parity check, whether it fails, which channel, the repair</td></tr>
 <tr><td><code>decode_partial(t, ring, channels)</code></td><td>reconstruction from a channel subset</td></tr>
-<tr><td><code>eigenvalue(t, ring)</code>, <code>eigenvalue_of(n, ring)</code></td><td>the channel-step graph's eigenvalue at that character</td></tr>
+<tr><td><code>eigenvalue(t, ring)</code>, <code>eigenvalue_of(n, ring)</code></td><td>the eigenvalue at the character indexed by <code>t</code> of the channel-step graph, the product of cycles on the moduli</td></tr>
 <tr><td><code>chord_distance_sq(t, ring)</code>, <code>spectral_gap(ring)</code></td><td>the squared torus distance from 0; its least nonzero value</td></tr>
 <tr><td><code>hamming_distance hamming_degree hamming_neighbors</code></td><td>the channel Hamming graph</td></tr>
-<tr><td><code>euler_characteristic(ring)</code></td><td><i>N</i>·(1 − <i>k</i> + Σ 1/<i>q<sub>i</sub></i>)</td></tr>
-<tr><td><code>seed_flower(primes, exponents=None)</code></td><td>the sub-ring on those primes and its −χ, the naming map</td></tr>
+<tr><td><code>euler_characteristic(ring)</code></td><td><i>N</i>·(1 − <i>k</i> + Σ 1/<i>q<sub>i</sub></i>), <i>q<sub>i</sub></i> the moduli</td></tr>
+<tr><td><code>seed_flower(primes, exponents=None)</code></td><td>(−χ, the sub-ring on those primes), χ its Euler characteristic</td></tr>
 <tr><td><code>is_prime factorize euler_phi carmichael_lambda mod_inverse primes_up_to</code></td><td>the number-theory primitives the rest is built on</td></tr>
 </table>
 
@@ -260,11 +263,12 @@ reads one:</p>
 <p>A <b>residue number system</b> stores an integer as its residues
 modulo pairwise coprime moduli, so addition and multiplication run
 channel by channel and comparison is the operation that does not. Write
-<i>N</i> for the product of the moduli and <i>D</i>(<i>x</i>) =
-Σ<sub><i>p</i></sub> ⌊<i>x</i>/<i>p</i>⌋; then <i>D</i> is a linear
-function of the residues modulo <i>SQ</i> = Σ<sub><i>p</i></sub>
-<i>N</i>/<i>p</i>, and the packed key <i>D</i>(<i>x</i>)·<i>p</i><sub>min</sub>
-+ (<i>x</i> mod <i>p</i><sub>min</sub>) is strictly increasing on
+<i>N</i> for the product of the moduli, <i>q</i> ranging over them,
+and <i>D</i>(<i>x</i>) = Σ<sub><i>q</i></sub> ⌊<i>x</i>/<i>q</i>⌋; then <i>D</i> is a linear
+function of the residues modulo <i>SQ</i> = Σ<sub><i>q</i></sub>
+<i>N</i>/<i>q</i>, and the packed key <i>D</i>(<i>x</i>)·<i>q</i><sub>min</sub>
++ (<i>x</i> mod <i>q</i><sub>min</sub>), <i>q</i><sub>min</sub> the
+least modulus, is strictly increasing on
 [0, <i>N</i>), so comparing keys compares integers exactly from
 residues alone
 (<a href="/walls/size#exact-comparator">the exact comparator</a>, a rule
@@ -290,18 +294,20 @@ class is then yours for any moduli:</p>
 <h2>The cost law</h2>
 
 <p>The key's dot product runs at width log₂<i>SQ</i> = log₂<i>N</i> +
-log₂ Σ<sub><i>p</i></sub> 1/<i>p</i>, so the comparator computes
-narrower than reconstructing the integer exactly when Σ 1/<i>p</i>
+log₂ Σ<sub><i>q</i></sub> 1/<i>q</i>, so the comparator computes
+narrower than reconstructing the integer exactly when Σ 1/<i>q</i>
 &lt; 1 (<a href="/walls/size#cost-law">the cost law</a>, proved): no
 primorial rung qualifies from the third on, and a set of a few large
-primes does. <code>width_row(moduli, label)</code> in the same script
+moduli does. <code>width_row(moduli, label)</code> in the same script
 prints the verdict for any set:</p>
 
 <pre>&gt;&gt;&gt; from explore_rns_comparator import width_row
 &gt;&gt;&gt; width_row((13, 15, 17), "{13,15,17}")
-  {13,15,17}     k= 3  log2 N =   11.7  log2 SQ =    9.4  sum 1/p = 0.2024  -&gt; NARROWER
+  {13,15,17}                   k= 3  log2 N =   11.7  log2 SQ =    9.4  sum 1/p = 0.2024  -&gt; NARROWER
+0.2024132730015083
 &gt;&gt;&gt; width_row((2, 3, 5), "{2,3,5}")
-  {2,3,5}        k= 3  log2 N =    4.9  log2 SQ =    5.0  sum 1/p = 1.0333  -&gt; wider</pre>
+  {2,3,5}                      k= 3  log2 N =    4.9  log2 SQ =    5.0  sum 1/p = 1.0333  -&gt; wider
+1.0333333333333334</pre>
 
 <p>The law is also a ruler for other methods.
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_comparator_ruler.py"><code>explore_comparator_ruler.py</code></a>
@@ -318,8 +324,12 @@ log₂<i>SQ</i>):</p>
 <pre>$ python explore_comparator_ruler.py
 …
 P5 {3,5,7}                      sum1/m=0.676190     SQ&lt;M  width: D=6.1497 floor=6.7142
+P5 {97,101,103}                 sum1/m=0.029919     SQ&lt;M  width: D=14.8818 floor=19.9446
+…
 P5 {2,3,7,43}                   sum1/m=0.999446     SQ&lt;M  width: D=10.8178 floor=10.8186
+P5 {2,3,7,43,1807}              sum1/m=1.000000     SQ&lt;M  width: D=21.6380 floor=21.6380
 P5 {2,3,7,41}                   sum1/m=1.000581     SQ&gt;=M  width: D=10.7507 floor=10.7499
+P5 {2,3,5}                      sum1/m=1.033333     SQ&gt;=M  width: D=4.9542 floor=4.9069
 P5 {2,3,5,7,11,13,17}           sum1/m=1.402846     SQ&gt;=M  width: D=19.4499 floor=18.9616
 ALL CHECKS PASS: 118485 correctness pairs, 2 controls, 8 placement sets</pre>
 
@@ -328,19 +338,23 @@ ALL CHECKS PASS: 118485 correctness pairs, 2 controls, 8 placement sets</pre>
 <p>A totally ramified extension of <b>Q</b><sub>2</sub> of even degree
 <i>e</i> is given by an Eisenstein polynomial <i>F</i> =
 <i>x<sup>e</sup></i> + Σ 2<i>b<sub>i</sub>x<sup>i</sup></i> − 2<i>d</i>,
-and it prints a <b>window word</b>: the 3<i>e</i>/2 − 1 binary digits,
-read in the field, of the unit 2/<i>π<sup>e</sup></i> for <i>π</i> a
-root of <i>F</i> — the digits that decide where each unit's repeated
-squaring first lands
-(<a href="/principal/observatory">Observatory</a> defines the game).
+<i>b<sub>i</sub></i> integers and <i>d</i> odd, and it prints a <b>window
+word</b>: the 3<i>e</i>/2 − 1 binary digits, read in the field, of the
+unit 2/<i>π<sup>e</sup></i> for <i>π</i> a root of <i>F</i>
+(<a href="/principal/observatory">Observatory</a> reads the unit
+squarings off it).
 The map from the sub-leading coefficient bits of <i>F</i> to the word is
 unitriangular, hence a bijection: every word is printed by exactly one
-reduced design, and a greedy level-by-level solve finds it
+<b>reduced design</b>, the polynomial with its deeper digits zeroed, and a greedy level-by-level solve finds it
 (<a href="/principal/observatory#triangle">the triangle</a>, a theorem;
 exhaustive at <i>e</i> = 4, 6, 8). In
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_readout_triangle.py"><code>explore_readout_triangle.py</code></a>,
 <code>solve(e, word)</code> takes the word as a tuple and returns the
-design's bits, <code>grid_eis(e, bits)</code> turns them into the
+design's bits packed into one integer, bit <i>r</i> − 1 the choice at
+level <i>r</i> — the low bit of <i>b<sub>r</sub></i> for <i>r</i> &lt;
+<i>e</i>, <i>d</i> mod 4 at <i>r</i> = <i>e</i>, the next bit of
+<i>b</i><sub><i>r</i>−<i>e</i></sub> above, every other bit of
+<i>F</i> zero in a reduced design — with the number of words it read, <code>grid_eis(e, bits)</code> turns them into the
 coefficients of <i>F</i> (low to high, monic) and
 <code>window(e, bits)</code> reads the word back. The run, 8.6 s,
 censuses the bijection and places 27 words at <i>e</i> = 16.</p>
@@ -354,9 +368,9 @@ censuses the bijection and places 27 words at <i>e</i> = 16.</p>
 &gt;&gt;&gt; window(8, bits)
 (1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1)</pre>
 
-<p>At an odd prime the word is (<i>w</i><sub>0</sub>, …, <i>w<sub>e</sub></i>),
-a function of the coefficients mod <i>p</i> and the constant term mod
-<i>p</i>², and the same greedy solve designs any word with
+<p>At an odd prime the in-window word is (<i>w</i><sub>0</sub>, …,
+<i>w<sub>e</sub></i>), the triangle's first <i>e</i> + 1 levels, a function of the coefficients mod <i>p</i>² and the constant term mod
+<i>p</i>³, and the same greedy solve designs any word with
 <i>w</i><sub>0</sub> ≠ 0
 (<a href="/principal/observatory#odd-p-triangle">the odd-<i>p</i>
 face</a>). In
@@ -375,13 +389,15 @@ takes 2.7 s.</p>
 
 <h2>The tame readout and the cutoff law</h2>
 
-<p>At an odd prime <i>p</i>, in a totally ramified window of degree
+<p>At an odd prime <i>p</i>, in a <b>window</b>, a totally ramified
+extension of <b>Q</b><sub><i>p</i></sub> of degree
 <i>e</i> with residue field <b>F</b><sub><i>p</i></sub> and integral seat
 <i>i</i>* = <i>e</i>/(<i>p</i> − 1), a unit 1 + <i>ρπ<sup>c</sup></i>
 with <i>c</i>·<i>p<sup>m</sup></i> = <i>i</i>* is in <b>arrival class</b>
-<i>c</i>, and its <b>landing</b> is the valuation of
-<i>u</i><sup><i>p</i><sup><i>m</i>+1</sup></sup> − 1. One formula is the
-whole game: the least landing of class <i>c</i> is
+<i>c</i>, <i>ρ</i> a unit, and its <b>landing</b>, the depth its
+repeated <i>p</i>-th power reaches, is the valuation of
+<i>u</i><sup><i>p</i><sup><i>m</i>+1</sup></sup> − 1 for such a unit
+<i>u</i>. One formula carries every class: the least landing of class <i>c</i> is
 <i>p</i>·<i>i</i>* + min(<i>δ<sub>w</sub></i>, <i>p<sup>m</sup></i>),
 where the <b>window defect</b> <i>δ<sub>w</sub></i> is the valuation of
 −<i>p</i>/<i>π<sup>e</sup></i> − 1
@@ -403,23 +419,35 @@ unit and the sampled orbits. The run, 12 s, censuses twenty fields at
 &gt;&gt;&gt; {c: sorted(v) for c, v in spec.items()}
 {1: [10], 3: [10, 11, 12, 14]}</pre>
 
-<p>One layer up, the approach to a root of unity of order <i>p</i>²
-that the window does not contain is cut at the level <i>δ</i>/<i>p</i>,
-where the <b>Kummer defect</b> <i>δ</i> = max<sub><i>y</i></sub>
-<i>v</i>(<i>y<sup>p</sup></i> − <i>ζ<sub>p</sub></i>) is measured inside
-the window by its own climb
+<p>Where the window holds no root of unity of order <i>p</i>², no
+<i>y</i> has <i>y<sup>p</sup></i> = <i>ζ<sub>p</sub></i>, and the
+<b>Kummer defect</b> <i>δ</i> = max<sub><i>y</i></sub>
+<i>v</i>(<i>y<sup>p</sup></i> − <i>ζ<sub>p</sub></i>) measures how
+close one comes. At <i>m</i> = 1, in the class <i>c</i> =
+<i>i</i>*/<i>p</i>, each root's approach is cut at the level
+<i>δ</i>/<i>p</i>, and the class's <b>arrival ceiling</b>, the landing
+its climb toward 1 sticks at, is (<i>p</i> − 1)·<i>i</i>* + <i>δ</i>;
+<i>δ</i> is measured inside the window by its own climb
 (<a href="/principal/observatory#cutoff-law">the cutoff law</a>, a rule
 across seventeen fields at <i>p</i> = 2, 3, 5).
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cutoff_ladder.py"><code>explore_cutoff_ladder.py</code></a>
-runs the ladder in 3.6 s; the recipe for one field at <i>p</i> = 3 is
-four calls on the imported window object:</p>
+runs that census in 3.6 s. For one field at <i>p</i> = 3, the window is
+<code>LF(name, p, g, eis, amax)</code> from its imported sibling, with
+<code>g</code> = [0, 1] the residue field's defining polynomial
+(<b>F</b><sub>3</sub> itself) and <code>amax</code> the deepest level
+tracked; <code>defect_climb(F, T_inv, cap, rng)</code>, handed
+<i>ζ</i>₃<sup>−1</sup>, climbs toward <i>ζ</i>₃ to level
+<code>cap</code> and returns <i>δ</i>, and
+<code>landing_climb(F, c, P, cap, rng)</code> returns as its second
+value where class <code>c</code>'s climb on
+<i>y<sup>P</sup></i> − 1 sticks:</p>
 
 <pre>&gt;&gt;&gt; import random, explore_local_clock as lc, explore_cutoff_ladder as cl
 &gt;&gt;&gt; rng = random.Random(213)
 &gt;&gt;&gt; F = lc.LF("x^6+3x^4+3", 3, [0, 1], [3, 0, 0, 0, 3, 0, 1], 18)
 &gt;&gt;&gt; delta = cl.defect_climb(F, cl.zinv(F, cl.zeta3_el(F), 2), 14, rng)
-&gt;&gt;&gt; delta, cl.landing_climb(F, 1, 9, 16, rng)[1]
-(7, 13)                              # the cut is 7/3, the ceiling 2·i* + δ = 13</pre>
+&gt;&gt;&gt; delta, cl.landing_climb(F, 1, 9, 16, rng)[1]      # the cut 7/3, the ceiling 2·i* + δ = 13
+(7, 13)</pre>
 
 <h2>The shortest-vector method</h2>
 
@@ -462,7 +490,7 @@ to 8</a>: <i>d</i><sub>2</sub>(<i>J</i>) = 1, 2, 4, 7, 11, 16, 22,
 <i>x<sup>d</sup></i> − 1 factors). In
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_flatten_d2.py"><code>explore_flatten_d2.py</code></a>,
 <code>Route().run(N, J, k)</code> decides whether some polynomial of
-degree <i>N</i> qualifies, by a search in the coefficients under a
+degree at most <i>N</i> qualifies, by a search in the coefficients under a
 propagation bound, so the ladder is a scan; <code>cyclotomic_floor(J, k)</code>
 is a lower bound at no cost. The ladder to <i>J</i> = 6 takes 2 s; the
 full run, which carries the ladder to 8 and cross-checks two other
@@ -484,11 +512,17 @@ routes, about 32 minutes.</p>
 
 <h2>The class-order grading</h2>
 
-<p>Over a quadratic field, the share of a class's split primes that
-are small runs short of its nominal in the classes of small order and
-long in the generators of the narrow class group — a ladder in the
-order, the trivial class at the bottom
-(<a href="/principal#order-grading">the order grading</a>). Three
+<p>Over a quadratic field, take a class's share of its field's split
+primes that fall in the <b>bottom bin</b> (odd split primes below 1000
+of those to 10,000). Paired within a field against that field's other
+classes of order above 2, orders 2, 3 and 4 run short — a negative mean
+difference, lower in the stated share of fields — and order 5 or more
+long; priced against the nominal 1/<i>h</i><sup>+</sup>,
+<i>h</i><sup>+</sup> the narrow class number, the trivial class sits at
+the bottom and the level rises with the order at every real stratum
+and six of ten imaginary ones, each break an odd order below a smaller
+one, with one even inversion, order 6 below order 4 at <i>h</i><sup>+</sup> = 12 (<a href="/principal#order-grading">the order
+grading</a>, an observation). Three
 scripts print it; each is a census with its population set by the
 constants at the head of the file, and the runs below are the printed
 record. <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_class_order.py"><code>explore_class_order.py</code></a>
@@ -519,7 +553,8 @@ by narrow class number, then the column read at each stratum:</p>
 
 <p>And <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_cubic_order_level.py"><code>explore_cubic_order_level.py</code></a>
 puts the degree-3 table — the partial primes of complex cubic fields,
-enumerated by its imported parent — into the same denomination
+enumerated by its imported parent — into the same absolute reading
+against 1/<i>h</i>, <i>h</i> the class number
 (<a href="/principal/generator#ceiling-ports">the ceiling ports</a>),
 201 s and 77 MB:</p>
 

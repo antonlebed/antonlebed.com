@@ -362,7 +362,8 @@ run record at the end).
    is forced, since the offset recurrence never reads the offset, it
    only counts down and resets. The RESIDUE answers are not: shifting
    the start shifts every landing, and only pregrow = 2 excludes class 4
-   mod 6, every other offset tested hitting all six classes. So the
+   mod 6, while pregrows 0, 4, 7 and 11 exclude classes 0, 2, 5 and 1 and
+   the other nine offsets tested hit all six classes. So the
    mod-6 exclusion of finding 3 is a fact about the sibling rig's
    initialization and never about the sqrt supply, and the decidability
    of finding 4 is what survives generally -- the same derivation runs
@@ -457,7 +458,7 @@ no kill fired.
 
 RUN RECORD (python prime/code/memwatch.py prime/code/explore_wrap_word.py;
 13.8 s wall clock, 54.2 MB peak working set against the 512 MB ceiling,
-24 checks, all sections assert). S1 2437 landings to t = 1500000,
+25 checks, all sections assert). S1 2437 landings to t = 1500000,
 census {0: 408, 1: 407, 2: 204, 3: 407, 5: 1011} reproduced exactly.
 S2 10^7 landings, non-decreasing, max multiplicity 2, largest gap
 5000012. S3 22 singletons, S(D)/ln D = 1.426 at D = 5000012, values
@@ -467,8 +468,9 @@ exact on 199999 landings, t = 5 to 10001803491; 15 coincidences, all at
 3 * 2^n. S4 class 4 empty at every horizon, weights 2.000/2.000/1.000/
 2.000/5.000, mod-60 38 of 60 at both 10^4 and 10^7. S5 controls 2 and
 21-plateau; no base saturates. S6 procedure == brute for all L in 2..60.
-S7 eight frontier offsets, every one a seed then exact doubling; only
-pregrow = 2 excludes class 4 mod 6. S8 1988 landings to t = 999463, 0
+S7 fourteen frontier offsets (0..11, 17, 40), every one a seed then
+exact doubling; only pregrow = 2 excludes class 4 mod 6, pregrows 0, 4,
+7, 11 exclude classes 0, 2, 5, 1, the other nine hit all six. S8 1988 landings to t = 999463, 0
 outside any window, 0 at top(d-1) + 1, control 9 outside; offsets equal
 at 998 values; extended closed form exact on 1985 landings from t = 2.
 Verdict: the residue problem is CLOSED -- the wrap word has a closed
@@ -889,7 +891,7 @@ def s6_decision_procedure():
 # S7 -- what the initialization owns                                #
 # ================================================================ #
 
-PREGROWS = (0, 1, 2, 3, 5, 10, 17, 40)
+PREGROWS = tuple(range(12)) + (17, 40)
 
 def s7_initialization():
     """THE THIRD SLATE, frozen before this section's code and asked by
@@ -910,6 +912,7 @@ def s7_initialization():
     print("  pregrow  singleton seed + ratios          classes hit mod 6")
     all_doubling = True
     excluders = []
+    excluded = {}
     for pg in PREGROWS:
         fires = rider_landings(400000, pregrow=pg)
         gaps = [b - a for a, b in zip([0] + fires, fires)]
@@ -922,6 +925,8 @@ def s7_initialization():
         hit = sorted(set(t % 6 for t in fires))
         if 4 not in hit:
             excluders.append(pg)
+        if len(hit) < 6:
+            excluded[pg] = sorted(set(range(6)) - set(hit))
         print(f"  {pg:<8} seed {singles[:2]}, then "
               f"{'x2 exactly' if all(r == 2.0 for r in ratios) else 'NOT x2'}"
               f"        {hit}")
@@ -931,9 +936,13 @@ def s7_initialization():
        f"frontier offset, it only counts down and resets")
     ok(excluders == [2],
        f"the mod-6 EXCLUSION is not: only pregrow {excluders} excludes "
-       f"class 4, and the others hit all six -- so that exclusion is a "
-       f"fact about the sibling rig's initialization, never about the "
-       f"sqrt supply, and every residue claim here inherits that scope")
+       f"class 4 -- so that exclusion is a fact about the sibling rig's "
+       f"initialization, never about the sqrt supply, and every residue "
+       f"claim here inherits that scope")
+    others = {pg: c for pg, c in excluded.items() if pg != 2}
+    ok(others == {0: [0], 4: [2], 7: [5], 11: [1]},
+       f"which class a start excludes moves with the start: excluded "
+       f"classes by pregrow {excluded}, every other pregrow hitting all six")
     return excluders
 
 

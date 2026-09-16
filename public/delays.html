@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>The delay engines — on-line delay read, certified and tabulated</title>
-<meta name="description" content="Three scripts to run or import on the delay of an on-line unit: the many-stream engine reading a map's delay and its certificate, the piecewise delay's clause tables, and the lookahead table printing the lead, the law's L* and the lookahead of the product, the multiply–add, x² + y, the reciprocal, the root and the divider from the box width rate and the range, with the chain, Pisot-base and gap-set columns and their certifiers beside it.">
+<meta name="description" content="Three engines to run or import on the delay of an on-line unit: the many-stream engine reading a map's delay and its certificate, the piecewise delay's clause tables, and the lookahead table printing the lead, the law's L* and the lookahead of the product, the multiply–add, x² + y, the reciprocal, the root and the divider from the box width rate and the range, with the chain, Pisot-base and gap-set columns and their certifiers beside it.">
 <link rel="canonical" href="https://antonlebed.com/tools/delays">
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>:root {
@@ -180,7 +180,7 @@ nav.sub2 { margin-top: 0.3rem; padding-left: 1.4rem; }
 <h1>The delay engines</h1>
 <p class="lede">The engines that read the delay of an on-line unit:
 the many-stream engine, the piecewise clause tables, and the lookahead
-table that prints a unit's delay from two numbers of its map.</p>
+table that prints a unit's delay from its rate and its range.</p>
 
 <p>An <b>on-line unit</b> reads its operands most significant digit
 first, through a signed digit set, and emits its result the same way;
@@ -189,23 +189,26 @@ digit. Each script below is served verbatim at <code>/files/</code>,
 is the full record of the claim it verifies, prints its own checks in
 one Python 3 process, needs no package outside the standard library,
 and finds a sibling it imports beside itself; its run record states
-its own peak and wall time. Each entry says what to run, what to pass
-in and what it printed here; the pages that state the result and its
-tier are linked from each entry, and <a href="/claims">What is
-proved</a> lists every claim with its script.</p>
+its own peak and wall time. <a href="/claims">What is proved</a>
+lists every claim with its script.</p>
 
 <h2>The many-stream delay</h2>
 
 <p>A map of digit streams, each read through a signed digit set from
 its most significant digit, is <b>local</b> at lookahead <i>c</i> when
 its output's first <i>t</i> digits are a function of the inputs' first
-<i>t</i> + <i>c</i>, and every C² map of any number of streams that is
-not affine on the window is local at exactly the <b>margin</b>, the
-least lookahead the law below grants, in its box width rate: with Λ
-the sup over the window of the gradient's L¹ norm
-Σ|∂<sub><i>i</i></sub><i>f</i>|, ρ the <b>slack</b> of the digit set
-{−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} (its digits beyond the
-radix) and <i>o</i> the <b>lead</b> its range sets
+<i>t</i> + <i>c</i>. Over the digit set
+{−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} at radix <i>b</i> a stream's
+values fill [−<i>M</i><sup>−</sup>, <i>M</i><sup>+</sup>],
+<i>M</i><sup>±</sup> = <i>a</i><sup>±</sup>/(<i>b</i> − 1)
+(<code>Mm</code> and <code>Mp</code> below), and the <b>window</b> is the
+product of those intervals over the streams. Every C² map of any number
+of streams that is not affine on the window is local at exactly the
+<b>margin</b>, the least lookahead the law below grants, a law in its
+<b>box width rate</b> Λ, the sup over the window of the gradient's
+L¹ norm
+Σ|∂<sub><i>i</i></sub><i>f</i>|, ρ = <i>a</i><sup>−</sup> + <i>a</i><sup>+</sup> + 1 − <i>b</i> the
+<b>slack</b> of the digit set (its digits beyond the radix), at least 1, and <i>o</i> the <b>lead</b> its range sets
 (the output's first digit <i>o</i> positions above the input's), the
 least <i>L</i> = <i>c</i> + <i>o</i> with <i>b<sup>L</sup></i>ρ ≥
 Λ(<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>)
@@ -230,30 +233,35 @@ float box; <code>grad(xs)</code> and <code>hess_e(xs, e)</code>, the
 same at a point, for the spot check; and <code>peak(Mm, Mp)</code>, the
 corner where Λ sits. The five classes in the file — the product, the
 multiply–add, <i>x</i>² + <i>y</i>, <i>x</i>² + <i>xy</i> and the
-divider <i>x</i>/(<i>s</i> + <i>y</i>) at a <b>pole distance</b>, the
-least value of its denominator over the window — are templates. With
+divider <i>x</i>/(<i>s</i> + <i>y</i>) at a <b>pole distance</b>
+<i>P</i>, the least value of its denominator over the window, which
+fixes the shift <i>s</i> = <i>M</i><sup>−</sup> + <i>P</i> — are
+templates. With
 <code>least_lead</code> and <code>law_L</code> reading the lead and the
 least <i>L</i> the law admits, written <i>L</i>*, <code>ReaderD(b, am,
 ap, c, map, o, lam_law)</code> is the <b>game</b> — a reader at
 lookahead <i>c</i> and lead <i>o</i> against an adversary choosing the
 streams — <code>lam_law</code>, optional, the law's threshold on the box
-width rate at the <i>L</i> under test: <code>scan(budget, region=True)</code> walks the
+width rate at the <i>L</i> under test: <code>scan(budget, region)</code>, with
+<code>region</code> true, walks the
 <b>excess region</b>, the prefix boxes whose width rate exceeds that
 threshold, pruned by interval bounds on partial tuples, and returns
 the least output depth at which some box's image strictly contains an
 <b>overlap zone</b>, the interval two consecutive output cells share,
 with the input depth, the prefixes read and the count at that depth,
 or <code>None</code> first when the budget runs out;
-<code>certificate_depth(budget, confined=True)</code> plays the
-exhaustive game with the adversary's moves confined to the region,
-returning its round and the depth searched. <code>Cube</code> finds
+<code>certificate_depth(budget, confined)</code>, with
+<code>confined</code> true, plays the exhaustive game with the
+adversary's moves confined to the region, returning its kill
+<b>round</b>, the output depth at which the reader dies, and the input
+depth searched. <code>Cube</code> finds
 the ball where every partial is one-signed and the Hessian is bounded
 away from zero, <code>LineRegion</code> the proof's constant <i>N</i>₀
 along the lattice line through it, and <code>one_pair(b, am, ap, map,
-label)</code>, the label optional, prints the whole certificate line,
-its last field the proof's discrepancy check, <i>D<sub>N</sub></i>
-against its bound <i>B</i>. The run at radices
-2..5 takes 40 s and 52 MB; the calls below took under a second.</p>
+label, o)</code>, the label and the lead optional, prints the whole certificate line,
+its last field the proof's discrepancy check, the discrepancy
+<code>D_N</code> against its bound. The run at radices
+2..5 takes 43 s and 51 MB; the calls below took under a second.</p>
 
 <pre>&gt;&gt;&gt; from fractions import Fraction
 &gt;&gt;&gt; from explore_manystream_delay import Division, SquareCross, ReaderD, least_lead, law_L, one_pair
@@ -273,11 +281,15 @@ against its bound <i>B</i>. The run at radices
 
 <h2>The piecewise delay</h2>
 
-<p>A map of one stream that is C² on each of finitely many pieces,
-its affine data rational, has its delay decided by three finite
+<p>A continuous map of one stream that is C² on each of finitely many
+pieces, its kinks rational and its affine pieces' slopes and offsets
+rational, has its delay decided by three finite
 clauses: a curved piece's sup of |<i>f</i>′| against the law's
-threshold, an affine piece's lattice over one period, and a kink's
-straddlers at the depths below that period
+threshold; an affine piece's image ends, whose phase runs through a
+<b>lattice</b> that cycles in the depth, checked over one
+<b>period</b> of that cycle; and the prefixes whose boxes
+<b>straddle</b> a kink, those containing it, at the depths below that
+period
 (<a href="/redundancy/piecewise#piecewise-theorem">the piecewise
 theorem</a>, proved). Two engines read it. In
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_piecewise_delay.py"><code>explore_piecewise_delay.py</code></a>,
@@ -285,7 +297,9 @@ the piecewise-affine case, <code>two_piece(s_left, s_right, kappa,
 d_left)</code> builds a continuous two-piece map, the right offset
 forced by the kink; <code>Table(b, am, ap, f)</code> is the clause
 table at one digit system, <code>verdict(L)</code> which pieces and
-kinks kill at <i>L</i> with the lattice cycle's depths and
+kinks kill at <i>L</i>, with the cycle's depths (where every affine
+piece holds a full period, where the check ends, and the depth the
+cycle returns to) and
 <code>floor(Lstar)</code> the least <i>L</i> with every clause empty;
 <code>engine_floor(b, am, ap, f, o, Lstar)</code> plays the game at the
 lead <i>o</i>, the region scan and the confined tree, and returns the
@@ -295,10 +309,13 @@ output depth, input depth, prefix and whether the prefix straddles. In
 the pieces are polynomials of degree at most 3, monotone on each:
 <code>PolyPieces(coeffs, kinks, Mm, Mp, name)</code> takes one
 coefficient list per piece, low to high, and the kinks in order;
-<code>TableS</code> adds the curved clause, marking a piece with the
+<code>TableS</code> adds the curved clause, its depths the first two
+and a fourth field listing straddlers that killed with no adjacent
+piece's clause firing (empty, as the theorem says), marking a piece with the
 string tag <code>'a'</code> when its sup decides or <code>'b'</code>
 when its lattice does and a kink by the depth at which it first fires;
-<code>specimen_below</code> builds the file's specimen that reads below
+<code>specimen_below(Mm, Mp)</code> builds, at the window
+[−<code>Mm</code>, <code>Mp</code>], the file's specimen that reads below
 the margin, a curved piece beside the identity, and
 <code>engine_floor</code> is the game. The runs at radices 2..5 take
 338 s and 213 s; the calls below took under four seconds.</p>
@@ -325,11 +342,11 @@ the margin, a curved piece beside the identity, and
 
 <h2>The lookahead table</h2>
 
-<p>The law above makes a unit's delay a function of two numbers of
-its map, its box width rate Λ and the ends of its range, which set the
-lead. So the delays the hardware literature derives unit by unit
-— the multiplier's, the square root's, the divider's, each from its
-own selection rule — are one table, and
+<p>The law above makes a unit's delay a function of its box width
+rate Λ and its range, whose ends set the lead. So the delays derived
+unit by unit for hardware — the multiplier's, the square root's, the
+divider's, each from its own selection rule — have their floors in one
+table, and
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_lookahead_table.py"><code>explore_lookahead_table.py</code></a>
 prints it. <code>table(b, am, ap, P)</code> takes the radix, the digit
 set {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} and, for the units
@@ -340,51 +357,66 @@ each of six units — the product, the multiply–add, <i>x</i>² +
 √(<i>s</i> + <i>x</i>) and the divider <i>x</i>/(<i>s</i> + <i>y</i>)
 — the lead <i>o</i>, the law's <i>L</i>*, the
 lookahead <i>c</i>* = <i>L</i>* − <i>o</i>, and the value of the
-<a href="/redundancy/polynomial#lead-law"><b>lead law</b></a>: <i>c</i>* sits within one digit of
+<a href="/redundancy/polynomial#lead-law"><b>lead law</b></a>: at a unit
+whose range's top sets its lead (a positive range, or a multiplied
+stream's), <i>c</i>* sits within one digit of
 log<sub><i>b</i></sub>(Λ<i>M</i><sup>+</sup>(<i>a</i><sup>−</sup> +
 <i>a</i><sup>+</sup>)/(<i>G</i>ρ)), <i>M</i><sup>+</sup> =
-<i>a</i><sup>+</sup>/(<i>b</i> − 1) the window's top and <i>G</i> the
+<i>a</i><sup>+</sup>/(<i>b</i> − 1) a stream's top and <i>G</i> the
 range's, so
 the map enters only through its <b>relative gradient</b> Λ/<i>G</i>,
-and a unit emits before it reads (<i>c</i>* &lt; 0) exactly where that
-ratio falls along its family — the reciprocal and the root without
-bound as <i>P</i> grows, the divider never (a property, both halves
+and a unit runs ahead without bound (<i>c</i>* → −∞) exactly where
+that ratio falls to 0 along its family — the reciprocal and the root
+as <i>P</i> grows, the divider never (a property, both halves
 closed forms;
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_lead_law.py"><code>explore_lead_law.py</code></a>,
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_divider_lookahead.py"><code>explore_divider_lookahead.py</code></a>).
 The floor is
 <a href="/redundancy/polynomial#many-stream-theorem">the many-stream
-theorem</a>'s, proved at every contiguous digit set;
-<code>Unit(name, lam, lo, hi)</code> is the template for a unit of your
-own, its rate and its range's ends as exact rationals.</p>
+theorem</a>'s, proved at every contiguous digit set of slack at least 1;
+<code>Unit(name, lam, lo, hi, sq)</code> is the template for a unit of
+your own, its rate and its range's ends as exact rationals, with
+<code>sq</code> true for a root, whose rate and ends are passed squared,
+and <code>unit_row(b, am, ap, unit)</code> returns its row.</p>
 
 <p>Three columns stand beside the table. <code>chain_rows(b, am,
 ap)</code> is the <b>chain column</b>, one unit's digit stream fed to
 a second: for the multiplier feeding an adder, a product consumer
 (<i>xy</i>)<i>z</i> and a sum-fed consumer <i>z</i>(<i>x</i> +
-<i>y</i>) it prints the naive delay, the sum of the two units' floors,
+<i>y</i>) it returns the naive delay, the sum of the two units' floors,
 and the floor <a href="/redundancy/chains#chained-delay">the escape
 law</a> admits, marking a chain that reads below the sum; at slack 1
 the mark is the <a href="/redundancy/chains#threshold-miss-law"><b>threshold-miss
-law</b></a>, a gain exactly where the
-consumer's own threshold is missed by at most the producer's budget
-(the product-fed root 1/φ, the sum-fed <i>b</i>/(<i>b</i> + 2); a
+law</b></a>, a gain exactly where the consumer's box width rate
+Λ₂ exceeds its threshold at <i>L</i> = 1, which is 1 at slack 1, by
+at most a budget of order 1/<i>b</i> that the producer's floor leaves;
+with <i>M̂</i> = max(<i>M</i><sup>−</sup>, <i>M</i><sup>+</sup>), the
+producer's top <i>M̂</i>² fed a product at lead 0 and
+2<i>M̂</i>/<i>b</i> fed a sum at lead 1, Λ₂ = <i>M̂</i> + <i>M̂</i>²
+and <i>M̂</i>(1 + 2/<i>b</i>), so the threshold is met at <i>M̂</i> =
+1/φ and at <i>b</i>/(<i>b</i> + 2), and fed a product the law reads 0
+&lt; Λ₂ − 1 ≤ (<i>M̂</i>/<i>b</i>)(1 − 2<i>M̂</i>/<i>b</i>); a
+consumer whose range does not fit the cell is absent from the rows (a
 property, the gain cells a rule to radix 40;
 <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_threshold_miss.py"><code>explore_threshold_miss.py</code></a>).
 <code>beta_row(B, f)</code> is the <b>Pisot column</b>, the law read in
 a base β that is not an integer — a Pisot unit, the streams and the
 output over {−<i>a</i>..<i>a</i>} — and <code>certify_beta(B, f)</code>
-its certifier, the level walk at <i>L</i>* − 1, which carries one
-number per box and no game and returns the round at which a reader
-with its digit forced at every box dies, the boxes walked and the
-round reached; <code>gap_row(b, D, f)</code> is the <b>gap-set
-column</b>, the law over a digit set <i>D</i> with a gap, the slack
-replaced by the least overlap of the set's cells, and
+its level walk at <i>L</i>* − 1, which carries one number per box and
+no game and returns the round at which a reader dies whose digit is
+<b>forced</b> at every box, the one output digit whose cell holds the
+box's image, the boxes walked and the round reached, that round
+the game certificate's at 22 of 23 decided pairs and one earlier at
+the plastic base's <i>x</i>² + <i>y</i>; <code>gap_row(b, D, f)</code> is the <b>gap-set
+column</b>, the law over a digit set with a gap, written
+<i>b<sup>L</sup>z</i> ≥ Λ<i>w</i> with <i>w</i> the digit span over
+<i>b</i> − 1 and <i>z</i> the least zone two sibling cells share
+(ρ/(<i>b</i> − 1) at a contiguous set, the law above), and
 <code>certify_gap(b, D, f, L)</code> the confined tree that decides the
 delay below it, returning the kill round, the rounds completed and
-the nodes. Both are the many-stream theorem's clauses for those
-numerations, where the delay is a rule at the pairs certified and the
-law's sufficiency a property. The run at radices 2..5, which checks
+the nodes. Both carry the many-stream law to those numerations, where
+the delay is a rule at the pairs certified and the law's sufficiency a
+property. The run at radices 2..5, which checks
 every closed form against the engines' own loops at 243 pairs, takes
 1 s and 74 MB; the calls below took under half a second.</p>
 
@@ -393,13 +425,13 @@ every closed form against the engines' own loops at 243 pairs, takes
 &gt;&gt;&gt; t = table(4, 2, 2, Fraction(1, 3))         # radix 4 over {-2..2}, the pole units at P = 1/3
 &gt;&gt;&gt; t["x y"], t["x/(s+y)"]                      # (lead, L*, lookahead, the lead law's value)
 ((0, 2, 2, 1.5), (1, 3, 2, 1.7924812503605783))
-&gt;&gt;&gt; table(4, 2, 2, 32)["1/(s+x)"]               # the reciprocal at a deep pole emits two digits before it reads
+&gt;&gt;&gt; table(4, 2, 2, 32)["1/(s+x)"]               # the reciprocal far from its pole emits two digits before it reads
 (-2, -4, -2, -1.7924812503605783)
 &gt;&gt;&gt; chain_rows(4, 2, 2)                         # naive, floor, gain, the threshold-miss law's verdict
 {'(x y) + z': (4, 4, False, None), '(x y) z': (4, 3, True, True), 'z (x + y)': (3, 3, False, False)}
 &gt;&gt;&gt; import explore_beta_delay as bd
-&gt;&gt;&gt; B = beta_base("golden")
-&gt;&gt;&gt; beta_row(B, bd.BProduct(B)), certify_beta(B, bd.BProduct(B))
+&gt;&gt;&gt; beta = beta_base("golden")
+&gt;&gt;&gt; beta_row(beta, bd.BProduct(beta)), certify_beta(beta, bd.BProduct(beta))
 ((4, 1, 3), (5, 1976, 5))                       # L* = 4 at lead 1; the walk at L = 3 kills at round 5, 1976 boxes
 &gt;&gt;&gt; import explore_manystream_delay as ms
 &gt;&gt;&gt; f = ms.Product(3, 3, 2)

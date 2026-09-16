@@ -61,9 +61,9 @@ FIRST pass with v + 1 >= m equality holds (m > v and m <= v + 1 force
 m = v + 1) -- the wrap cannot be skipped, and its time is computable by
 direct evaluation of the supply. On the LINEAR side the same fire can hang PENDING FOREVER
 (the faithful counter never re-zeros -- the successor supply's rider has
-v_t = t exactly). So the o(g)/Omega(g) boundary is the same line a THIRD
-time: capacity cap, class placement, and now fire landing -- and
-landing-computability is exactly what a sound decider needs. A
+v_t = t exactly). (The hand attack read this as the o(g)/Omega(g) line
+a third time; finding 6 corrects it: the line is the per-pass slope.)
+Landing-computability is exactly what a sound decider needs. A
 multi-digit counter fires exactly at its top digit's wrap (the carry
 chain synchronizes digits: the top wraps only when the low just
 wrapped), so one landing lemma covers composite counters; a
@@ -184,6 +184,25 @@ S5  THE WRAP-WORD RESIDUE PROBLEM (the sharpened residual, measured).
     of completeness on the sqrt supply is exactly the arithmetic of
     this word -- a supply question, not a machine question.
 
+S6  THE LANDING CRITERION (added later; the question S1 left open: on a
+    linear supply, which slope divides a landing from a hang?). Claim
+    derived on paper first: on a NONDECREASING supply, with K grows per
+    pass and start p, a fire armed at pass t0 (v = 0 after the add)
+    lands at exactly T(t0) = min{t > t0 : m(K*t + p) <= t - t0}, and
+    hangs iff that set is empty. Proof: v_t = t - t0 while no wrap, and
+    v_{t-1} < m(K(t-1) + p) <= m(K*t + p), so the add wraps iff
+    t - t0 = m(K*t + p) iff (by the same inequality) t - t0 >= m(K*t + p).
+    No rate hypothesis. Corollaries: every fire lands iff t - m(K*t + p)
+    is unbounded above; on m_g = ceil(g/a), (a - K)*t >= p + a*t0 gives
+    landing iff K < a, at T = max(t0 + 1, ceil((p + a*t0)/(a - K))), gaps
+    geometric with ratio a/(a - K), and at K >= a no fire after the
+    first. At the slope boundary the sublinear correction decides:
+    m_g = g - isqrt(g) at K = 1 lands every fire (T = t0^2 from t0 >= 2).
+    The rig: the criterion's fire list against riding_fires' recurrence
+    on sqrt, log, successor, ceil(g/a) for a = 1..6 and a seeded random
+    nondecreasing staircase, at K = 1..8, p = 0..5, horizon 3000; the
+    ceil(g/a) closed form against the recurrence; the boundary supply.
+
 PREDICTIONS (fixed before the run; adjudication added post-run).
   PR1  Sqrt supply at K = 1, 2, 4 and log supply: every pending fire
        lands, at the a priori landing time; successor supply: the fire
@@ -204,9 +223,14 @@ PREDICTIONS (fixed before the run; adjudication added post-run).
        multiplicity small (about two); residues mod 6 populate at least
        4 classes over k <= 2000 with at least 2 classes still recurring
        in the second half (no absorbing class).
+  PR7  The criterion's fire list equals the recurrence's in every cell
+       (480 cells, 0 mismatches); ceil(g/a) lands every fire iff K < a
+       with the closed-form T at every fire; at K >= a at most one fire;
+       g - isqrt(g) at K = 1 fires at 1, 2, 4, 16, 256.
 
 PREDICTIONS ADJUDICATED (post-run): all six CONFIRMED on the first clean
-run (23 checks). One hand-bound correction preceded it: the pre-run
+run (23 checks); PR7, added with S6, CONFIRMED on its first run (26
+checks). One hand-bound correction preceded it: the pre-run
 landing bound (the threshold n* alone) was too tight -- the first assert
 showed the landing arrives within one further modulus-length past the
 threshold (the phase; a bound valid for the smooth supplies used here,
@@ -248,11 +272,11 @@ output; run record at the end).
    modulus-length of phase), and the landing time is COMPUTABLE by
    direct evaluation of the supply. On the
    successor (linear) supply the armed fire stays pending forever
-   (v_t = t exactly, 4000 passes). For riders at a fixed K the
-   o(g)/Omega(g) boundary is the fire landing's, as it is the capacity
-   cap's for a counter growing once per INC, and landing computability
-   is exactly what a sound decider needs. A data-dependent K is outside
-   the fragment.
+   (v_t = t exactly, 4000 passes). Sublinearity is sufficient for
+   landing at every fixed K and not necessary, so the o(g)/Omega(g) line
+   is not the landing's; which slope divides landing from hanging is
+   finding 6. Landing computability is exactly what a sound decider
+   needs; a data-dependent K is outside the fragment.
 
 2. THE FIRST-REPEAT RULE IS PHASE-BLIND -- doubly unsound, and the
    growing-period signal is only the deeper of two failures (rule,
@@ -327,6 +351,22 @@ output; run record at the end).
    one, and the residue questions are decided by a finite check
    (explore_wrap_word.py).
 
+6. THE LANDING CRITERION -- on every nondecreasing supply a fire armed at
+   pass t0 lands at exactly T(t0) = min{t > t0 : m(K*t + p) <= t - t0}
+   and hangs iff no such t exists, so every fire lands iff t - m(K*t + p)
+   is unbounded above (criterion, proved by the crossing inequality in
+   the S6 design, no rate hypothesis; checked in 480 of 480 cells, S6).
+   The rate enters only through that supremum: the dividing slope is the
+   modulus's growth PER PASS against the rider's one. On m_g = ceil(g/a)
+   every fire lands iff K < a, at T = max(t0 + 1, ceil((p + a*t0)/(a -
+   K))), gaps geometric with ratio a/(a - K) (ceil(g/3), K = 2, p = 2:
+   2, 8, 26, 80, 242, ...; ceil(g/5), K = 3: 1, 3, 8, 20, 50, 125, ...,
+   ratio 5/2), and at K >= a no fire follows the first, the successor
+   supply's hang being the a = 1 row. At the slope-one boundary the
+   sublinear correction decides: m_g = g - isqrt(g) at K = 1 lands every
+   fire, at 1, 2, 4, 16, 256, T = t0^2. So o(g) is sufficient for
+   landing at every fixed K and never necessary.
+
 SCOPE + HONESTY. The landing lemma, both killers, the decider's verdicts
 with their certificates, and the supply-oracle detector are
 proved-by-construction and mechanized here; the bisimulation guard makes
@@ -341,7 +381,7 @@ What stays open is the wrap-word arithmetic of the canonical supplies
 load-bearing); the reduction's f(s) is stated, not run to large e.
 
 RUN RECORD (python prime/code/explore_pending_fires.py, ~1 s wall clock
-measured, trivial memory, 23 checks, all sections assert). S1 landings
+measured, trivial memory, 26 checks, all sections assert). S1 landings
 2/2/4/2 vs bound 5; successor pending 4000 passes; pregrow-30 fires
 6/13/21/29/38, gaps 7/8/8/9/9. S2 lcm fire tick 60; rider halt step 29 =
 pass 7; youngest window 1. S3 killer 1 naive LOOP@15 vs HALT@250, sound
@@ -350,11 +390,13 @@ verdicts + the tick-1 fall-through. S4 smooth 4000 steps no halt;
 switched HALT@559; extraction verdict on the detector. S5 2437 landings,
 gaps non-decreasing, multiplicity <= 2, mod-6 classes
 {0: 408, 1: 407, 2: 204, 3: 407, 5: 1011} (class 4 empty), mod-60 38/60.
+S6 criterion == recurrence 480/480; ceil(g/a) closed form to 20000
+passes; g - isqrt(g) fires 1, 2, 4, 16, 256.
 Verdict: a SOUND decision procedure exists for the fragment (the
-three-verdict decider), the naive rule is doubly refuted, the landing
-dichotomy puts fire-landing on the o(g)/Omega(g) line of the
-once-per-INC capacity cap, and the fragment's decidability is supply
-tameness; the supply is an oracle, and the wrap word is the open
+three-verdict decider), the naive rule is doubly refuted, a fire
+lands exactly when the per-pass modulus falls behind the rider (the
+landing criterion, sublinear sufficient and not necessary), and the
+fragment's decidability is supply tameness; the supply is an oracle, and the wrap word is the open
 arithmetic.
 """
 
@@ -457,7 +499,7 @@ def a_priori_first_landing(mod_at, K=1, pregrow=0, horizon=4000):
     return None
 
 def s1_landing_dichotomy():
-    print("== S1  the landing dichotomy (o(g) lands, linear hangs) ==")
+    print("== S1  the landing dichotomy (o(g) lands, successor hangs) ==")
     for name, mod_at, K in (("sqrt K=1", sqrt_mod, 1),
                             ("sqrt K=2", sqrt_mod, 2),
                             ("sqrt K=4", sqrt_mod, 4),
@@ -479,8 +521,8 @@ def s1_landing_dichotomy():
     ok(hung and v == 4000,
        "successor (linear) supply: v_t = t exactly for 4000 passes -- the "
        "armed fire stays PENDING FOREVER (the faithful counter never "
-       "re-zeros); landing at every grows-per-pass is the sublinear "
-       "side's property")
+       "re-zeros); a sublinear supply lands at every grows-per-pass, and "
+       "S6 gives the exact line")
     fires_sq = riding_fires(sqrt_mod, K=1, pregrow=30, horizon=3000)
     gaps = [b - a for a, b in zip(fires_sq, fires_sq[1:])]
     ok(all(b >= a for a, b in zip(gaps, gaps[1:])) and gaps[-1] > gaps[0],
@@ -1053,10 +1095,74 @@ def s5_wrap_word():
 """)
 
 
+def criterion_fires(mod_at, K=1, pregrow=0, horizon=4000):
+    """The landing criterion: from each fire t0 (0 at the start), the next
+    fire is the least t > t0 with m(K*t + pregrow) <= t - t0."""
+    fires, t0 = [], 0
+    for t in range(1, horizon + 1):
+        if mod_at(max(1, K * t + pregrow)) <= t - t0:
+            fires.append(t)
+            t0 = t
+    return fires
+
+def s6_landing_criterion():
+    print("== S6  the landing criterion (which slope lands) ==")
+    import random
+    def ceil_div(a):
+        return lambda g: -(-g // a)
+    rng = random.Random(3)
+    steps = [1]
+    for _ in range(40000):
+        steps.append(steps[-1] + (1 if rng.random() < 0.02 else 0))
+    staircase = lambda g: steps[min(g, len(steps) - 1)]
+    supplies = {"sqrt": sqrt_mod, "log": log_mod, "successor": succ_mod,
+                "staircase": staircase}
+    for a in range(1, 7):
+        supplies[f"ceil(g/{a})"] = ceil_div(a)
+    cells = mismatches = 0
+    for name, m in supplies.items():
+        for K in range(1, 9):
+            for p in range(0, 6):
+                cells += 1
+                if riding_fires(m, K, p, 3000) != criterion_fires(m, K, p, 3000):
+                    mismatches += 1
+    ok(mismatches == 0,
+       f"criterion == recurrence in {cells - mismatches} of {cells} cells "
+       "(10 nondecreasing supplies, K = 1..8, p = 0..5, horizon 3000)")
+    closed_ok = lands_ok = hangs_ok = True
+    for a in range(1, 7):
+        for K in range(1, 9):
+            for p in range(0, 6):
+                fires = riding_fires(ceil_div(a), K, p, 20000)
+                if K < a:
+                    t0, pred = 0, []
+                    while True:
+                        T = max(t0 + 1, -(-(p + a * t0) // (a - K)))
+                        if T > 20000:
+                            break
+                        pred.append(T)
+                        t0 = T
+                    closed_ok &= fires == pred
+                    lands_ok &= len(fires) >= 3
+                else:
+                    hangs_ok &= len(fires) <= 1
+    ok(closed_ok and lands_ok and hangs_ok,
+       "ceil(g/a), a = 1..6: K < a lands every fire at "
+       "T = max(t0+1, ceil((p + a*t0)/(a-K))) to 20000 passes; "
+       "K >= a fires at most once")
+    print(f"  ceil(g/3), K = 2, p = 2: {riding_fires(ceil_div(3), 2, 2, 20000)}")
+    print(f"  ceil(g/5), K = 3, p = 0: {riding_fires(ceil_div(5), 3, 0, 20000)}")
+    edge = lambda g: max(1, g - math.isqrt(g))
+    fe = riding_fires(edge, 1, 0, 20000)
+    ok(fe == [1, 2, 4, 16, 256] and fe == criterion_fires(edge, 1, 0, 20000),
+       f"slope-1 boundary m_g = g - isqrt(g), K = 1: fires {fe}")
+
+
 if __name__ == "__main__":
     s1_landing_dichotomy()
     s2_taxonomy_bisimulated()
     s3_killers_and_sound_decider()
     s4_supply_oracle()
     s5_wrap_word()
+    s6_landing_criterion()
     print(f"\nALL SECTIONS PASS ({CHECKS} checks)")

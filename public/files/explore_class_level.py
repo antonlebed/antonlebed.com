@@ -257,7 +257,8 @@ THE FINDINGS.
   the placebo comparison and not the frozen number.
   The rise is exceptionless at the real side and at six of the ten
   imaginary strata. Where it breaks, it breaks at an ODD-order cell every
-  time and at no other -- AND WHAT CARRIES THAT IS WHERE THE INVERSIONS
+  time, and the one even-order inversion (below) falls at h+ = 12, a
+  stratum its order-3 cell already breaks -- AND WHAT CARRIES THAT IS WHERE THE INVERSIONS
   FALL, NOT HOW BIG THEY ARE, which C6 is equally the scale for: three of
   the four steps below are smaller than their own stratum's placebo
   spread (0.043 against 0.109 at h+ = 6, 0.029 against 0.061 at 10, 0.060

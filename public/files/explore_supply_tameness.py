@@ -87,7 +87,9 @@ every window with mu >= L has gcd(d, L) > 1. The supply oracle's
 planted track (every modulus value divisible by L) is exactly maximal
 starvation: all gaps are 0 mod L, the landings never leave one class,
 and the only structure a landing can report is the supply's own value
-arithmetic. The oracle's design was FORCED, not merely clever.
+arithmetic. The oracle's design is the EXTREME the lemma allows: values
+sharing a factor with L, or coprime values attained fewer than L times,
+starve too.
 
 (4) THE SUPER-CRITICAL BAND (m = ceil g^(2/3): faster than sqrt, still
 sublinear). M(d) = isqrt(d^3), multiplicity ~ (3/2) d^(-1/2) -> 0:
@@ -106,8 +108,9 @@ critical band, both parities and any rational scaling -- is tame by
 offset compression: the landing set is polynomial-per-window plus a
 geometric mark sequence, and residue questions reduce to eventually
 periodic data. Slow supplies attaining coprime values are tame by
-coverage. Value-starved supplies are the oracle channel, untame at any
-rate. Fast-but-sublinear supplies with irrational-power M -- the name is
+coverage. Value-starved supplies are the oracle channel, where a
+supply can plant bits at any rate (a starved supply is not thereby
+untame). Fast-but-sublinear supplies with irrational-power M -- the name is
 the classification's, and what it means is M = floor(d^c) at NON-INTEGER
 c, the rational non-integers included -- are the open band.
 
@@ -253,9 +256,10 @@ output).
    questions reduce to eventually periodic data (rule at the checked
    families; conjectured at every quasi-polynomial M). (ii) Slow
    supplies attaining coprime values are tame by COVERAGE (proved).
-   (iii) Value-starved supplies are the oracle channel, untame at any
-   rate (proved by the starvation contrapositive; the planted-bit
-   construction was forced to live here). (iv) Irrational-power M in
+   (iii) Value-starved supplies are the oracle channel: an empty class
+   forces starvation (proved by the contrapositive), so a planted-bit
+   construction is forced to live here, at any rate; starvation alone
+   is not untameness. (iv) Irrational-power M in
    the super-critical band is the OPEN CELL: equidistribution
    observed, no elementary mechanism proves it.
 
