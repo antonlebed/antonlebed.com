@@ -158,7 +158,10 @@ F3 THE LOWER DIGIT. eps_rob(L = -1) is attained at depth 0 or 1 at
 
 F4 THE GAP. sigma_gap = 2 / (2 + ceil((b - 1)/rho)) at 20 of 20:
    (2/3, 1) at the four cells with rho = b - 1, (1/2, 1) at nine,
-   (2/5, 1) at three and (1/3, 1) at four. P-F held.
+   (2/5, 1) at three and (1/3, 1) at four. P-F held. (Superseded as
+   the gap: sigma_gap is the max over p >= 2, and slope 1/2 is
+   alive-able at every cell, so the gap is (1/2, 1) at the sixteen
+   cells below 2/3; the printed values stand as sigma_gap's.)
 
 F5 THE FLOOR IS TIGHT WHERE THE SEARCH REACHES. 95 Table-certified
    designs, 95 alive by the engine's scan at L = 0 (K2, K3 never
