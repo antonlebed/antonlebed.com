@@ -34,8 +34,10 @@ the clock reads the PLACE, not just the fate.
 
 S2 THE CLOCK DECREASES WITH TRANSPARENT RICHNESS, AND THE RICHNESS IS RESIDUE
 DATA (observation). More small transparent primes -> larger cofactor sum ->
-crossing at SMALLER beta. The transparent set reads q's residues: 2 always;
-3 for every odd q != 3 (q=3 uniquely blind, its own column prime); 5 iff
+crossing at SMALLER beta. The transparent set reads q's residues, the rules
+below stated AT AN ODD COLUMN and not at q = 2, where the condition is p-1 a
+power of 2 and the set is the Fermat primes (S3): 2 always;
+3 for every q != 3 (q=3 uniquely blind, its own column prime); 5 iff
 q = 1 mod 4; 7 iff q = 1 mod 3 OR q = 3 (the column's own powers supply the
 3-part of 7-1=6: 6 | 2*3^inf -- the i >= 1 route p = d*q^i + 1 that the
 residue shorthand elides). So beta_col^q is FIXED BY the transparent set
@@ -62,7 +64,9 @@ beta_col^q: 2:1.6045, 3:1.4959, 5:1.4206, 7:1.4234, 11:1.4367, 13:1.3409,
 explore_irreducibility_order.py's beta_col EXACTLY by the general q-column
 machinery (independent cross-validation). Closed-form cofactor cross-checked vs
 brute cofactor_divisors on N=q^6 (q=2,3,5,7,11). S2: transparent rules verified
-(2 all; 3 all odd q!=3; 5 iff q=1 mod4; 7 iff q=1 mod3 or q=3); median beta_col q=1
+(2 all; at an ODD column 3 all q!=3, 5 iff q=1 mod4, 7 iff q=1 mod3 or
+q=3 -- at q=2 the condition is p-1 a power of 2, the Fermat primes, and
+the residue rules do not carry); median beta_col q=1
 mod4 = 1.3881 < q=3 mod4 = 1.4234 (beta_col DECREASES with richness, PR4
 corrected). S3: q=2 Fermat set = {3,5,17,257,65537}; beta_col^2 = 1.60449 is the
 spectrum MAX (Fermat-only, no 2-base -- least rich; the mechanism argues global
@@ -237,8 +241,8 @@ def s2(bc):
     med = lambda xs: sorted(xs)[len(xs) // 2]
     ok(med(c1) < med(c3),
        f"S2 median(q=1 mod4)={med(c1):.4f} !< median(q=3 mod4)={med(c3):.4f}")
-    print(f"  transparent rules verified (2 all; 3 all odd q!=3; 5 iff q=1(4); "
-          f"7 iff q=1(3) or q=3);")
+    print(f"  transparent rules verified at an ODD column (2 all; 3 all q!=3; "
+          f"5 iff q=1(4); 7 iff q=1(3) or q=3); q=2 is the Fermat case")
     print(f"  median beta_col: q=1 mod4 {med(c1):.4f} < q=3 mod4 {med(c3):.4f} "
           f"(beta_col decreases with richness)")
 

@@ -67,8 +67,10 @@ must reproduce).
   rung shallower); a = 13: d = 7 (door 12289 at x = 0); a = 15: d = 4
   (door 65537); a = 16: d = 2 (door 65537). a = 14 is left open by
   hand: it hinges on whether 3 * 2^13 + 1 = 24577 is prime, which is
-  not settled here. Composite least resolvers at a = 11 and a = 12 --
-  the species is a window, not a fluke.
+  not settled here. Least resolvers that are NOT PRIME POWERS at a = 11
+  and a = 12 -- 28 and 14, where the 4 at a = 7 and the 8 at a = 14 are
+  composite but are prime powers and so are no counterexample to the
+  shape. The species is a window, not a fluke.
 
   (D) THE DEEP LADDER BASE. A state N is in the class of reading V0
   exactly when N = W(L)/V0 with L = lambda(N), so members biject with
