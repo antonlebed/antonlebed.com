@@ -117,7 +117,7 @@ F3 THE RESIDUE WALL (property): no deep fiber decides any residue
    (the map is non-constant at length >= 2, the predicate [p | n] at
    length > p); below the prime's scale the predicate can leak — the
    fiber [4, 6) decides [7 | n] = False. The mirror of the size wall,
-   with a shallow boundary the size wall does not have.
+   with a leak at fibers shorter than p the size wall does not have.
 F4 THE EXPONENT-DETERMINACY SPLIT + THE EQUALITY WALL (property +
    witnesses): e(ab) - e(a) - e(b) lands in {0, 1} (proved by the
    two-sided bound b^(e_a+e_b) <= ab < b^(e_a+e_b+2); scanned below

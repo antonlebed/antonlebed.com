@@ -70,7 +70,7 @@ Findings preview (full statements at the bottom):
      -> one Fermat tower, horizontal/mirror -> per-channel Mersenne
      rings (the rung-wide product is not a single Z/M).
   4. THE CRITERION TRANSFERS: channel-local = compatible = polynomial
-     on squarefree F_2[x]/f (exhaustive at the 4- and 8-element rings;
+     on squarefree F_2[x]/f (exhaustive at the squarefree 4- and 8-element rings;
      constructive Lagrange + CRT glue), and thin-only again
      (F_2[x]/x^3 has polynomial strictly inside channel-local, 1024 of
      262144; at x^2 the two meet at 64). The
@@ -586,7 +586,7 @@ print("  (orbit sizes 1,1,3,3 -> x, x+1, x^3+x+1, x^3+x^2+1)")
 # Clifford identity on canonical rungs IS Frobenius^d: a^(2^d) = a, so
 # lambda = 2^d - 1 -- MERSENNE BY CONSTRUCTION. The identity costs d
 # squarings; the collapse a^lambda = a * a^2 * ... * a^(2^(d-1)) costs
-# d - 1 multiplies beside them.
+# d - 1 squarings and d - 1 multiplies.
 for d in (2, 3, 4):
     rung = (1 << (1 << d)) ^ 2
     lam = lcm_list([2 ** e - 1 for e in range(1, d + 1) if d % e == 0])
@@ -949,7 +949,7 @@ print("""
    Canonical rungs f = x^(2^d)+x have channels <-> FROBENIUS ORBITS of
    F_2^d-points, lambda = 2^d - 1 MERSENNE BY CONSTRUCTION, and the
    identity a^(2^d) = a = Frobenius^d = d squarings, the collapse
-   a^lambda adding d - 1 multiplies. So the two char-2
+   a^lambda costing d - 1 squarings and d - 1 multiplies. So the two char-2
    constructions realize the two designed-tower hardware families as INDEX RINGS:
    vertical/nim -> one Fermat tower, horizontal/mirror -> PER-CHANNEL
    Mersenne rings Z/(2^e-1) (designed iff 2^e-1 squarefree: fails

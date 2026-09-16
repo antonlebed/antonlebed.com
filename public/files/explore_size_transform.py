@@ -172,7 +172,7 @@ assert poly_functions(8, 5) == poly8 and all(local_mod2(f) for f in poly8)
 local8 = 4 * 4 ** 8                        # parity map, then 4 lifts each
 print(f"(c) Z/4: {len(poly4)} polynomial = {local4} channel-local; "
       f"Z/8 (fat): {len(poly8)} polynomial of {local8} channel-local "
-      f"-- the equivalence is THIN-ONLY, first failing at Z/8")
+      f"-- proved THIN-ONLY, first failing at Z/8")
 assert len(poly8) == 1024
 
 print()
