@@ -249,7 +249,9 @@ each rank the clean cell immediately below the first failure has a
 minimiser whose residual is 1 -- a pure product, cyclotomics only --
 and the first failing cell one depth up has a minimiser that is the
 same kind of object with one cyclotomic BLOCK replaced by a single
-non-cyclotomic factor. Counted over all 83 failing cells: at 78 the
+non-cyclotomic factor. The smallest specimen, printed in the near-end
+table: rank 5, J = 18, M = 23, h = 3638 against the pure argmin's
+4420, the cofactor (1+x)^2[1, 1, 1] traded for (1+x)^2[2, 3, 2]. Counted over all 83 failing cells: at 78 the
 minimiser's cyclotomic multiset is a SUBSET of the pure argmin's at the
 same cell -- nothing gained -- and at 73 the dropped block and the
 residual have the same degree, so the minimiser is the pure argmin with

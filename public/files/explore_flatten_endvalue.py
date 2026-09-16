@@ -277,10 +277,9 @@ the 24 leaking cells). The 24 closed cells whose minimiser set leaves
 the unit-circle family have heights 1, 2, 3 and 6 -- reproducing F7 of
 the parent exactly -- while the 16 that lose the end value have heights
 1, 2 and 3. The cells at h = 6 therefore leak off the circle and keep
-R(-1) = 1. So the circle membership and the end value are independent
-properties of a residual, and E -- the one minted member with roots off
+R(-1) = 1. So leaving the circle does not cost a residual its end value, and E -- the one minted member with roots off
 the circle, whose value at -1 is 1 -- is not the exception it looked
-like but the first instance of a separation the chart shows at h = 6
+like but another instance of a separation the chart shows at h = 6
 too -- F8 names the polynomial that shows it there.
 
 F5. THE TWO SUB-POPULATIONS THE AIM NAMED ARE NOT THE POPULATION, AND
@@ -351,7 +350,7 @@ not entirely, and the fourth is
 
 MONIC, degree 6, reciprocal, carrying no cyclotomic factor by
 construction, value 1 at -1 and 19 at 1, divisible over Z by neither A
-nor B, and with roots OFF the unit circle -- which Kronecker forces
+nor B, and with some roots OFF the unit circle -- which Kronecker forces
 rather than merely permits, a monic cyclotomic-free integer polynomial
 with nonzero constant term being unable to have all its roots on the
 circle. It appears at exactly ONE cell, M = 18, J = 8, h = 6, which is

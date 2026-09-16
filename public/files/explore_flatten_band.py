@@ -288,7 +288,8 @@ read off a comparison with the whole pure family, one off a single
 closed-form polynomial -- and they coincide at every rank where both
 were reached. And the second threshold is confirmed OUT OF SAMPLE: arm
 C2 re-reads h at the four depths PAST the run each rank's stopping rule
-consumed, and the champion attains it at all 28.
+consumed, and the champion attains it at all 16 at ranks 5 to 8, and at
+all 28 with ranks 2, 3 and 4.
 
 F5. P1 IS REFUTED: THE FAILING SET IS CONTAINED IN A BAND BUT IS NOT
 ALL OF IT. K-A fired at three of the four ranks whose high end the

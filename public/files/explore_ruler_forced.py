@@ -8,7 +8,7 @@ atom precisely when its best label's posterior falls below the operative
 level, PROVIDED the atoms carry equal mass. The family sweep and the
 lattice refinement both scored a weight vector CLEAN by a criterion
 strictly stronger than that law: every optimum of every cell abandons
-exactly the below-level atoms. The law asks only that the threshold rule
+the below-level atoms and serves the above-level ones. The law asks only that the threshold rule
 BE one optimum. The two come apart wherever a cell has several optima,
 and the gap is not small -- equal mass itself fails the strong reading
 at two of the four targets swept.

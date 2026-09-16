@@ -217,7 +217,7 @@ posterior POSITIVE -- as on every menu here; a zero label can sit untaken
 at no coverage -- every partner of an abandoning optimum is full, and
 at 3/4 with three atoms the partners' masses sum to 30/40 = 3 w_min, so
 "one label off each" conserves mass at every such vector: THE ZERO-SLACK
-ROW IS A THEOREM -- every abandoning optimum at every vector of lightest
+ROW IS PROVED (three atoms, three labels, 3/4) -- every abandoning optimum at every vector of lightest
 mass 10/40 at 3/4 is rescued, 180 of 180 by this exchange, 30 of 30
 vectors clean, the lemma reaching 9 of them. The general zero-slack
 statement is the subset-sum sum_S a_i d_i = k w_min with d_i in 0..k over

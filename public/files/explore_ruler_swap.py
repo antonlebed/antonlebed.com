@@ -1,4 +1,4 @@
-"""WHY DOES NO OPTIMUM ABANDON AN ABOVE-LEVEL ATOM AT A COARSE WEIGHT VECTOR?
+"""WHY IS NO ABOVE-LEVEL ATOM ABANDONED BY EVERY OPTIMUM AT A COARSE VECTOR?
 The feasibility bound, the swap lemma, and the lightest mass as the variable.
 
 (The menus are IMPORTED from explore_ruler_abandon.py, explore_ruler_family.py
@@ -11,8 +11,9 @@ THE QUESTION
 ------------
 On the first menu family at coverage 3/4 and 7/10, the nine fortieth weight
 vectors whose numerators share a divisor of 8 or 10 (fifths and quarters)
-take no forced failure: no optimum abandons an atom whose best posterior sits
-above the operative level. The below half of that law is vacuous by a mass
+take no forced failure: no atom whose best posterior sits above the
+operative level is abandoned by every optimum, though some optima abandon
+one. The below half of that law is vacuous by a mass
 bound (an atom wholly under the level weighs at most 1 - T/s_max, and no
 fifths or quarters atom is that light). The above half is open: certificate
 optimality is dead as its mechanism (the coarse certificates fail at 34 to
@@ -181,15 +182,15 @@ above-level atom at any of the nine coarse vectors is rescued by one swap
 permutations never abandon there), 80 / 44 / 38 at 7/10, all rescued --
 and the same at the five coarse arity-4 vectors: 168 / 100 at 3/4, 717 /
 444 at 7/10. The rescue never needs the mass condition relaxed: mass-fail
-is 0 at every coarse vector on every arm but 1/2. So no optimum abandons
-an above-level atom at a coarse vector BECAUSE the rest is within a slack
+is 0 at every coarse vector on every arm but 1/2. So no above-level atom
+at a coarse vector is abandoned by every optimum BECAUSE the rest is within a slack
 of full coverage and holds a pair a prefix of the light atom trades for
 at no extra cost; a rule, the lemma proved and the count exhaustive.
 
 THE FEASIBILITY BOUND HOLDS EVERYWHERE (P1; K-A silent) and it is NOT what
-decides the coarse vectors, which sit inside it. What it decides is the
-top of the grid: at 3/4 every vector with lightest mass 9/40 or more is
-clean above (39 of 39 at 9, 30 of 30 at 10, and every vector at 11 to 13
+decides the coarse vectors, which sit inside it. What it decides alone is
+lightest mass past 1 - T (11/40 at 3/4, 13/40 at 7/10); the sweep finds
+at 3/4 every vector with lightest mass 9/40 or more clean above (39 of 39 at 9, 30 of 30 at 10, and every vector at 11 to 13
 -- the last 36 being the window's own, with no abandonable atom), at 7/10
 every vector at 10/40 or more (30 of 30, then 21, 12, 3).
 

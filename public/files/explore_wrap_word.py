@@ -370,9 +370,10 @@ run record at the end).
 
 SCOPE + HONESTY. Findings 1, 2 and 3 are proved by the offset
 recurrence and hold for every v >= 4, which is where the offset's closed
-form is checked and below which s(v-1) has no value: the singletons at
-gaps 2 and 3 are initialization edges, verified computationally and not
-argued, and every singleton from 6 up is derived. Finding 4's procedure is proved by
+form is checked and below which s(v-1) has no value over n >= 0: the
+singleton at gap 2 is the initialization edge, verified computationally
+and not argued, and every singleton from 3 up is derived, the 3 once s
+is read over n >= -1 (finding 7). Finding 4's procedure is proved by
 construction and checked against enumeration only for L <= 60 and
 landings to k = 2000000; larger L is a wider check, not a different
 argument. That enumeration runs off the closed-form GENERATOR rather
@@ -388,9 +389,74 @@ which finding 6 is the measurement of: the doubling survives any offset,
 the residue answers do not, and no claim here is a claim about every
 sublinear supply.
 
+THE THIRD SLATE -- ONE WINDOW, THREE COORDINATES (fixed before its engine
+code, S8; asked by a cold read of the published statement, which names a
+window's top three ways).
+THE QUESTION. The window of gap value d has its top written three ways:
+the inverse supply M(d) = max{g : m(g) <= d}, which is d*d here; this
+record's f(d) = d*d - d - 2; and top(d) = M(d) - 2 in
+explore_supply_tameness.py and explore_super_critical.py. What does each
+count, and where does the closed form of finding 1 start?
+THE HAND ATTACK. At pass t the frontier is g = t + p, p the pregrow (2
+here), and the rider wraps at a pass whose modulus is the gap INTO that
+landing. So a landing whose incoming gap is d has its frontier in
+(M(d-1), M(d)] and its time in (top(d-1), top(d)], top(d) = M(d) - p;
+the landing before it, the SOURCE of gap d, whose OUTGOING gap is d,
+sits in (f(d-1), f(d)] with f(d) = top(d) - d. One window, three
+coordinates: frontier, landing, source. The two offsets are one number,
+top(d) minus the last landing entered by d equalling f(d) minus the last
+source of d, since the two landings differ by d. Finding 1's v is the
+OUTGOING gap. At v = 3, t_first needs s(2), which "the largest 3 * 2^n
+at most v" does not supply; read over n >= -1, s(2) = 3/2 and
+t_first(3) = t_last(3) = 9 - 6 - 1 = 2, the first landing, a singleton
+at 3 = 3 * 2^0.
+THE PREDICTIONS.
+  PR11 Over every landing of the concrete rider to t = 10^6 (p = 2), a
+       landing entered by gap d has frontier in (M(d-1), M(d)] and time
+       in (top(d-1), top(d)], and a landing leaving by gap d lies in
+       (f(d-1), f(d)]; the point top(d-1) + 1 is never a landing, so
+       each window's landings span at most 2d - 2 in both time
+       coordinates.
+  PR12 The source offset a_v = f(v) - (last source of v) equals the
+       landing offset o(v) = top(v) - (last landing entered by v) at
+       every attained v >= 3.
+  PR13 With s(v) the largest 3 * 2^n at most v over n >= -1, the closed
+       forms reproduce every landing from t = 2 in order with no extras,
+       coinciding exactly at v = 3 * 2^n, n >= 0; with n >= 0 alone
+       t_first(3) has no value.
+  PR14 For d = 2..5 the three tops print M = 4, 9, 16, 25,
+       top = 2, 7, 14, 23 and f = 0, 4, 10, 18.
+THE KILLS, as prints: a landing outside its window in any coordinate; a
+v with a_v != o(v); a landing the extended closed form misses or adds.
+THE POSITIVE CONTROL: the same window test run with M(d) replaced by
+M(d) + 1 must report landings outside their windows. (Replaced at the
+first run by M(d) - 1: the +1 shift printed 0 outside, blind by PR11's
+own empty point top(d-1) + 1, so it could not have failed.)
+THIRD SLATE ADJUDICATED (post-run): PR11, PR12, PR13 and PR14 CONFIRMED;
+no kill fired.
+
+7. ONE WINDOW, THREE COORDINATES (property from the pass-to-frontier
+   map, checked; S8). The three tops are one window read in three
+   coordinates at the canonical start: M(d) in the frontier, top(d) =
+   M(d) - 2 in the time of the landings the gap d ENTERS, f(d) =
+   top(d) - d in the time of the landings it LEAVES, printing 4, 9, 16,
+   25 / 2, 7, 14, 23 / 0, 4, 10, 18 at d = 2..5. Over all 1988 rider
+   landings to t = 999463, largest incoming gap 1000, none sits outside
+   its frontier, landing or source window, top(d-1) + 1 is never a
+   landing, and no window's landings span past 2d - 2; the window test
+   lowered to M(d) - 1 puts 9 landings outside, the ones at a top. The
+   two offsets are one number at all 998 attained v >= 3. Finding 1's v
+   is the OUTGOING gap, and its closed form starts one landing earlier
+   than finding 1 states: with s(v) the largest 3 * 2^n at most v over
+   n >= -1, so s(2) = 3/2, the forms reproduce all 1985 landings from
+   t = 2 to 996464 in order, coinciding exactly at 3, 6, 12, 24, ...;
+   read over n >= 0 alone, t_first(3) has no value. So the singleton at 3
+   is derived, not an initialization edge, and only the gap 2, whose
+   source is the start t = 0 and not a landing, is.
+
 RUN RECORD (python prime/code/memwatch.py prime/code/explore_wrap_word.py;
-13.3 s wall clock, 54.1 MB peak working set against the 512 MB ceiling,
-16 checks, all sections assert). S1 2437 landings to t = 1500000,
+13.8 s wall clock, 54.2 MB peak working set against the 512 MB ceiling,
+24 checks, all sections assert). S1 2437 landings to t = 1500000,
 census {0: 408, 1: 407, 2: 204, 3: 407, 5: 1011} reproduced exactly.
 S2 10^7 landings, non-decreasing, max multiplicity 2, largest gap
 5000012. S3 22 singletons, S(D)/ln D = 1.426 at D = 5000012, values
@@ -401,7 +467,9 @@ exact on 199999 landings, t = 5 to 10001803491; 15 coincidences, all at
 2.000/5.000, mod-60 38 of 60 at both 10^4 and 10^7. S5 controls 2 and
 21-plateau; no base saturates. S6 procedure == brute for all L in 2..60.
 S7 eight frontier offsets, every one a seed then exact doubling; only
-pregrow = 2 excludes class 4 mod 6.
+pregrow = 2 excludes class 4 mod 6. S8 1988 landings to t = 999463, 0
+outside any window, 0 at top(d-1) + 1, control 9 outside; offsets equal
+at 998 values; extended closed form exact on 1985 landings from t = 2.
 Verdict: the residue problem is CLOSED -- the wrap word has a closed
 form, the extracted question class is decided by a finite check, the
 mod-6 exclusion is a proved obstruction at the rig's own offset rather
@@ -868,6 +936,98 @@ def s7_initialization():
     return excluders
 
 
+def s8_window_coordinates(horizon=1000000, pregrow=2):
+    """One window, three coordinates: frontier M(d), landing top(d) and
+    source f(d), read off the concrete rider, and the closed form's start."""
+    print("== S8 one window, three coordinates ==")
+    M = lambda d: d * d if d >= 2 else pregrow
+    top = lambda d: M(d) - pregrow
+    f = lambda d: top(d) - d
+    times = rider_landings(horizon, pregrow)
+    starts = [0] + times
+    incoming = [b - a for a, b in zip(starts, times)]
+    print("   d:   M    top   f")
+    for d in range(2, 6):
+        print(f"   {d}: {M(d):3d}  {top(d):4d}  {f(d):3d}")
+    ok([(M(d), top(d), f(d)) for d in range(2, 6)]
+       == [(4, 2, 0), (9, 7, 4), (16, 14, 10), (25, 23, 18)],
+       "PR14: the three tops at d = 2..5 are M = 4, 9, 16, 25, "
+       "top = 2, 7, 14, 23, f = 0, 4, 10, 18")
+
+    def outside(Mfun):
+        topf = lambda d: Mfun(d) - pregrow
+        bad = 0
+        for t, d in zip(times, incoming):
+            if not (Mfun(d - 1) < t + pregrow <= Mfun(d)):
+                bad += 1
+            elif not (topf(d - 1) < t <= topf(d)):
+                bad += 1
+        return bad
+
+    bad_front = outside(M)
+    bad_src = sum(1 for src, d in zip(starts[:-1], incoming)
+                  if src > 0 and not (f(d - 1) < src <= f(d)))
+    tset = set(times)
+    edge_hits = [d for d in range(3, max(incoming) + 1)
+                 if top(d - 1) + 1 in tset]
+    by_in, by_out = {}, {}
+    for t, d in zip(times, incoming):
+        by_in.setdefault(d, []).append(t)
+    for src, d in zip(starts[:-1], incoming):
+        by_out.setdefault(d, []).append(src)
+    span_in = max(v[-1] - v[0] for v in by_in.values())
+    wide = [d for d, v in by_in.items() if v[-1] - v[0] > 2 * d - 2]
+    wide += [d for d, v in by_out.items() if v[-1] - v[0] > 2 * d - 2]
+    print(f"   {len(times)} landings to t = {times[-1]}, largest incoming gap "
+          f"{max(incoming)}; outside frontier/landing windows {bad_front}, "
+          f"outside source windows {bad_src}, landings at top(d-1)+1: "
+          f"{len(edge_hits)}, windows spanning past 2d-2: {len(wide)}")
+    ok(bad_front == 0 and bad_src == 0 and not edge_hits and not wide,
+       "PR11: every landing sits in its frontier, landing and source "
+       "window, top(d-1)+1 is never a landing, no window spans past 2d-2")
+    control = outside(lambda d: M(d) - 1)
+    print(f"   positive control, M(d) - 1: {control} landings outside")
+    ok(control > 0, "the window test detects a top shifted by one")
+
+    a_eq = [v for v in by_out if v >= 3 and v in by_in
+            and f(v) - by_out[v][-1] != top(v) - by_in[v][-1]]
+    ok(not a_eq,
+       f"PR12: the source offset equals the landing offset at all "
+       f"{sum(1 for v in by_out if v >= 3 and v in by_in)} attained v >= 3")
+
+    def s_ext(v):
+        s = 3.0 / 2
+        while 2 * s <= v:
+            s *= 2
+        return s
+
+    def s_int(v):
+        return None if v < 3 else s_ext(v)
+
+    vmax = max(by_out) - 1
+    derived = []
+    for v in range(3, vmax + 1):
+        first = v * v - v - 2 * s_ext(v - 1) - 1
+        last = v * v - 2 * s_ext(v) - 1
+        if first != last:
+            derived.append(int(first))
+        derived.append(int(last))
+    cut = [t for t in times if t <= derived[-1]]
+    coincide = [v for v in range(3, vmax + 1)
+                if v * v - v - 2 * s_ext(v - 1) - 1
+                == v * v - 2 * s_ext(v) - 1]
+    print(f"   extended closed form, v = 3..{vmax}: {len(derived)} landings "
+          f"from t = {derived[0]} to {derived[-1]}, coincidences at "
+          f"{coincide[:5]}...; integer s(2) is {s_int(2)}")
+    ok(derived == cut and derived[0] == 2,
+       "PR13: with s over n >= -1 the closed forms reproduce every landing "
+       "from t = 2, in order, no extras")
+    ok(coincide == [3 * 2 ** n for n in range(40) if 3 * 2 ** n <= vmax]
+       and s_int(2) is None,
+       "PR13: coincidences exactly at 3 * 2^n from n = 0; the integer "
+       "reading leaves t_first(3) without a value")
+
+
 if __name__ == "__main__":
     s1_closed_form_control()
     s2_alphabet()
@@ -877,4 +1037,5 @@ if __name__ == "__main__":
     s5_automaticity()
     s6_decision_procedure()
     s7_initialization()
+    s8_window_coordinates()
     print(f"\nALL SECTIONS PASS ({CHECKS} checks)")

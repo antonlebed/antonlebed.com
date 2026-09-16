@@ -9,9 +9,8 @@ sets exactly, which is the control that licenses every other number here.)
 
 THE QUESTION
 ------------
-On the designed prediction-set family the forced abandonment law -- every
-optimum abandons exactly the atoms whose best posterior sits under the
-operative level -- holds at 183, 105, 18 and 0 of the 741 fortieth weight
+On the designed prediction-set family the forced abandonment law -- no atom
+is failed by every optimum, below or above the operative level -- holds at 183, 105, 18 and 0 of the 741 fortieth weight
 vectors at coverage 3/4, 7/10, 3/5 and 1/2, and the clean set has no
 coordinate shape. One arithmetic regularity survived: every vector whose
 numerators share a divisor of 8 or 10 (fifths and quarters -- nine vectors)
@@ -309,8 +308,8 @@ there, over 448 and 3,960 below-level atoms at the tenths and 0 and
 1,080 at the eighths), and ZERO in both halves at gcd 8 and 10 at both
 targets, as at three atoms.
 
-WHAT THIS LEAVES OPEN, sharper than it was: WHY NO OPTIMUM ABANDONS AN
-ABOVE-LEVEL ATOM at a fifths or quarters vector at 3/4 and 7/10 -- a
+WHAT THIS LEAVES OPEN, sharper than it was: WHY NO ABOVE-LEVEL ATOM IS
+ABANDONED BY EVERY OPTIMUM at a fifths or quarters vector at 3/4 and 7/10 -- a
 question about the above half only, the below half being empty there by
 the bound. The graded certificate-optimality rate is the candidate.
 (Since answered by explore_ruler_swap.py: an abandoned atom weighs at most
