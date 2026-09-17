@@ -57,6 +57,13 @@ load-bearing:
   D. Skipping yield, per-round tick.
   E. Arm A plus if_mod, a branch on the tick's residue, which is finite
      control on its own.
+  F. if_rung(R, else), a branch on the tick's EQUALITY with a rung, in a
+     looping workload: a feeder pings c every 12 ticks, H forwards each
+     token on c to r, and T receives r and branches, both branches
+     returning to its receive. Its control twin E-loop is the same
+     workload with T's branch an if_mod. Added after the run below, to
+     settle whether a branch on a rung downstream of a wait is a third
+     call escaping the relaxation, or the residue branch capped.
 The workload (arm A's, reused by the others): a producer and consumer
 over a data channel with a CREDIT channel back (W credits seeded, the
 producer receives a credit before each send, the consumer returns one
@@ -124,12 +131,26 @@ Predictions fixed before the run.
   P8. sleep_until on a rung the tick has passed never wakes: the
       one-shot equality is a ratchet and a missed rung is missed for
       good, printed as the sleeping task's pc after the run.
+  P9. (Arm F, frozen before its engine.) R is set to the tick of T's
+      first feeder-driven branch, E-loop's residue to that tick's
+      residue. (a) Seeding c with one token moves T's branch off R and
+      changes its outcome, in F and in E-loop. (b) Relaxed F's one-step
+      census is zero under the control extended by the rung phase (the
+      tick while at most R, one symbol past it). (c) F's path census
+      diverges over states whose tick is at most R and is ZERO over
+      states past R: the equality holds at one tick, so past the rung
+      the branch is constant and a token more changes timing only.
+      E-loop's path census over the same late states diverges: the
+      residue recurs. The hand argument beside it: before the rung the
+      run is a bounded prefix, R rounds of seven steps, so a branch
+      read once costs an unfolding and not the class.
 Positive controls, run before any verdict is read: the syntax checker
 flags a planted "<" and a planted min() in a sibling snippet; the
 kernel's deterministic step agrees with a hand-traced round of the
 credit workload; the Karp-Miller tree on the credit system reproduces
 the deterministic run's max occupancy W; the monotonicity checker fires
-on arm B (its census is arm A's control).
+on arm B (its census is arm A's control); E-loop's late-window path
+census is F's control, read before F's.
 
 Kill criteria, as prints (the card's three kill-shapes, corrected).
   K1. The assertion fails on the kernel class, or the workload needs an
@@ -140,7 +161,10 @@ Kill criteria, as prints (the card's three kill-shapes, corrected).
   K3. Relaxed arm A is monotone only with a drop transition present
       (capacity finite), never at infinite capacity: the class is lossy
       with no finite-quotient core.
-A miss on all three names the class VASS with a finite-quotient core
+  K4. (Arm F.) F's path census over states past R prints a divergence:
+      the rung branch recurs, a third escaping call beside trecv and
+      if_mod.
+A miss on K1-K3 names the class VASS with a finite-quotient core
 (the seat table, the position, the tick's residue), and the decidable
 question is coverability of the may-pass relaxation, sound for the
 kernel's safety properties.
@@ -152,7 +176,8 @@ capacity and the credit window never filled; the consumer was slowed by
 the residue wait before any verdict was read, and the predictions stand
 as written.
   F1. P1 holds. Two classes walked, no forbidden node; the Compare
-      census is Eq 29, Is 4, IsNot 3; one subtraction, recv's. The
+      census is Eq 30, Is 4, IsNot 3 (29 before arm F's if_rung
+      added one); one subtraction, recv's. The
       planted snippet is flagged twice. The checker fired once during
       the build, on a sorted() over channel NAMES in the state
       accessors, replaced by the fixed channel enumeration: the
@@ -194,6 +219,19 @@ as written.
       a wait's timing into control, and the may-pass tool cannot see it.
   F8. P8 holds: the late task is seated at its sleep_until forever,
       the on-time task exits.
+  F9. P9 holds, every part. T's first branch falls at tick 9 unseeded
+      and tick 2 with one token on c, landing at pc 2 against pc 3 in F
+      and in E-loop alike. Relaxed F's one-step census is zero over
+      1,260 pairs with the rung phase in control, relaxed E-loop's zero.
+      The path census, E-loop's control first: past tick 9, 351
+      divergences over 351 pairs. F up to tick 9: 51 over 72 pairs; F
+      past tick 9: zero over 351. K4 missed: a branch on a rung's
+      equality downstream of a wait escapes the relaxation only while
+      its rung is ahead, the flip-timing channel capped at one crossing,
+      where the residue branch recurs at every period. That past the
+      rung the branch is constant is by construction (the equality is
+      false at every later tick); that before it a token more changes
+      the outcome is the rig's observation at one workload.
 Tier: rule at the rig's scale (the syntax assertion, the censuses and
 the tree are exhaustive over what they enumerate; the class claims
 lean on the standard theorems named in the question). Verdict: all
@@ -209,7 +247,9 @@ branch is a zero test (two tested channels reach the Minsky corner),
 and a BRANCH on the clock's residue downstream of a wait, the second being the flip-timing channel
 of the read surface inside a kernel; a residue WAIT is harmless. The
 tool proves only what the relaxation keeps, so a property whose truth
-rides on timing is outside it.
+rides on timing is outside it. A branch on a rung's equality is the
+second call capped: it escapes only before its rung and never past it
+(F9).
 
 Contact, after the run. The class landing is the asynchronous-programs
 theorem: a multiset task buffer under a nondeterministic scheduler has
@@ -377,6 +417,12 @@ class Kernel:
         elif op == "sleep_until":
             if self.rung_is(ins[1]):
                 t.pc = t.pc + 1
+        elif op == "if_rung":
+            self.reads["if_rung:rung-branch"] += 1
+            if self.rung_is(ins[1]):
+                t.pc = t.pc + 1
+            else:
+                t.pc = ins[2]
         elif op == "spawn":
             if self.spawn(ins[1]) is None:
                 t.pc = ins[2]
@@ -500,9 +546,11 @@ PERIOD = 12
 
 
 # --- instrument 3: one-step monotonicity -----------------------------------------
-def control_of(st, period):
+def control_of(st, period, rung=None):
     pos, seats, tick, counts = st
-    return (pos, seats, tick % period)
+    if rung is None:
+        return (pos, seats, tick % period)
+    return (pos, seats, tick % period, tick if tick <= rung else "past")
 
 
 def successors(kfactory, st, relaxed):
@@ -529,8 +577,8 @@ def successors(kfactory, st, relaxed):
     return outs
 
 
-def covered(t, t2, period):
-    if control_of(t, period) != control_of(t2, period):
+def covered(t, t2, period, rung=None):
+    if control_of(t, period, rung) != control_of(t2, period, rung):
         return False
     return all(b == OMEGA or (a != OMEGA and a <= b) for a, b in zip(t[3], t2[3]))
 
@@ -554,7 +602,8 @@ def failing_coordinates(t, S2, period):
     return "+".join(best)
 
 
-def monotonicity_census(kfactory, states, relaxed, period, bumps=((1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1))):
+def monotonicity_census(kfactory, states, relaxed, period, bumps=((1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1)),
+                        rung=None):
     viol = Counter()
     pairs = 0
     for st in states:
@@ -564,7 +613,7 @@ def monotonicity_census(kfactory, states, relaxed, period, bumps=((1, 0, 0), (0,
             S1 = successors(kfactory, st, relaxed)
             S2 = successors(kfactory, st2, relaxed)
             for t in S1:
-                if not any(covered(t, t2, period) for t2 in S2):
+                if not any(covered(t, t2, period, rung) for t2 in S2):
                     k = kfactory()
                     k.set_state(st)
                     task = k.seated[SEATS[st[0]]]
@@ -879,6 +928,70 @@ def main():
     print(f"  late task: {'still seated at pc ' + str(late.pc) if late else 'exited'}; "
           f"ontime task: {'seated' if k.seated[SEATS[1]] else 'exited'}")
     assert late is not None and late.pc == 1 and k.seated[SEATS[1]] is None
+
+    print("=" * 72)
+    print("P9: arm F, a branch on a rung's equality downstream of a wait")
+    # G pings c every 12 ticks; H forwards c to r; T receives r and
+    # branches, pc 2 on the branch's then, pc 3 on its else.
+    def progs_F(branch):
+        return {
+            "G": [("sleep_mod", 12, 6), ("send", "c"), ("goto", 0)],
+            "H": [("recv", "c"), ("send", "r"), ("goto", 0)],
+            "T": [("recv", "r"), branch, ("goto", 0), ("goto", 0)],
+        }
+
+    def fac_F(branch, seed=0):
+        def make():
+            k = Kernel(progs_F(branch), ("c", "r"), cap=None, seeds={"c": seed})
+            for n in ("G", "H", "T"):
+                k.spawn(n)
+            return k
+        return make
+
+    def first_branch_tick(fac):
+        k = fac()
+        for _ in range(7 * 40):
+            t = k.seated[SEATS[2]]
+            if k.pos == 2 and t.pc == 1:
+                return k.tick
+            k.step()
+        return None
+    R = first_branch_tick(fac_F(("if_rung", -1, 3), 0))
+    R1 = first_branch_tick(fac_F(("if_rung", -1, 3), 1))
+    print(f"  T's first branch tick: unseeded {R}, c seeded with one token {R1}")
+    assert R is not None and R1 is not None and R != R1
+    bF, bE = ("if_rung", R, 3), ("if_mod", 12, R % 12, 3)
+    for label, br in (("F", bF), ("E-loop", bE)):
+        out = {}
+        for seed in (0, 1):
+            k = fac_F(br, seed)()
+            while not (k.pos == 2 and k.seated[SEATS[2]].pc == 1):
+                k.step()
+            k.step()
+            out[seed] = k.seated[SEATS[2]].pc
+        print(f"  {label}: T's first branch lands at pc {out[0]} unseeded, {out[1]} seeded")
+        assert out[0] != out[1]
+    BF = ((1, 0), (0, 1), (1, 1))
+    facF, facEL = fac_F(bF), fac_F(bE)
+    runF = reachable_states(facF, 7 * 60)
+    relF, pairsF = monotonicity_census(facF, runF, True, 12, bumps=BF, rung=R)
+    print(f"  relaxed F one-step census, rung phase in control: {pairsF} pairs, violations {dict(relF)}")
+    assert sum(relF.values()) == 0
+    relEL, _ = monotonicity_census(facEL, reachable_states(facEL, 7 * 60), True, 12, bumps=BF)
+    print(f"  relaxed E-loop one-step census: violations {dict(relEL)}")
+    before = [st for st in runF if st[2] <= R]
+    after = [st for st in runF if not st[2] <= R]
+    afterEL = [st for st in reachable_states(facEL, 7 * 60) if not st[2] <= R]
+    PSTEPS = 7 * 30
+    divEL, pEL = path_census(facEL, afterEL[::3], PSTEPS, BF)
+    print(f"  CONTROL E-loop past tick {R}: {pEL} pairs, divergences {dict(divEL)}")
+    assert sum(divEL.values()) > 0
+    divFb, pFb = path_census(facF, before[::3], PSTEPS, BF)
+    divFa, pFa = path_census(facF, after[::3], PSTEPS, BF)
+    print(f"  F at ticks up to {R}: {pFb} pairs, divergences {dict(divFb)}")
+    print(f"  F past tick {R}:     {pFa} pairs, divergences {dict(divFa)}")
+    assert sum(divFb.values()) > 0
+    assert sum(divFa.values()) == 0, "K4: the rung branch recurs"
 
     print("=" * 72)
     print("VERDICT: K1 missed (no order read), K2 missed (relaxed A monotone), "
