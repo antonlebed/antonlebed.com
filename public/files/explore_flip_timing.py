@@ -224,7 +224,8 @@ confirmed).
     proof in S5's design; its mechanics exhaustive at probe scale):
     with the unflipped history among the histories, EVERY-halt is
     decidable for any deterministic bulk behind k ratchet flags whose
-    frozen fate questions are decidable from each configuration, the
+    frozen fate questions are decidable uniformly (one procedure for every
+    configuration and flag word) and whose halt is absorbing, the
     history raising no further flag having to halt on its own and its
     finite run capping the raises worth trying. The decider matched
     brute at every cell: B_M NO after one frozen call; C YES exactly
