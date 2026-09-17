@@ -192,7 +192,8 @@ vacuous against the products here, which is exactly why the
 diagonal's asymptote (floor ~ sqrt(2M/log2 M) vs the products'
 observed steps) stays open beyond the chart.
 
-(ORDER CLASSICAL, read since: this floor is Borwein, Erdelyi and Kos,
+(ORDER CLASSICAL, read since: this floor is the box-principle argument
+of Borwein, Erdelyi and Kos,
 "Littlewood-type problems on [0,1]", Proc. London Math. Soc. 79 (1999),
 Theorem 2.7, called well known there; their Theorem 2.4 caps a
 {-1,0,1} polynomial with constant term +-1 at (16/7)sqrt(n) + 4 zeros
@@ -219,7 +220,8 @@ a PROOF of product extremality (the classical determination reaches
 m <= 10 at height 1; every row here, height 1 included, is
 exhaustive computation in range), any closed form for h(M, J) (not
 log-convex in J, and under its Minkowski read throughout the known
-cells), and the height-1 diagonal's asymptote.
+cells), and the height-1 diagonal's asymptote (its order classical up
+to a log factor, the note beside F6).
 """
 
 import os
