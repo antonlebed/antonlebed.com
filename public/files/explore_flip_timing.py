@@ -3,7 +3,7 @@ discipline ALONE enough to confine undecidability, whatever the bulk
 is? (The composite frame is explore_read_surface.py's -- a bulk
 coupled to an environment through a boundary of monotone one-shot
 flags; the finite-control confinement theorem it rests on is
-explore_interactive_hand.py's ratchet theorem.)
+explore_interactive_hand.py's ratchet law.)
 
 THE QUESTION. Two verified results say a ratchet boundary (monotone
 flags, each flipping false-to-true at most once, never resetting)
@@ -21,7 +21,7 @@ INTERFACE CONJECTURE -- would drop the bulk restriction entirely:
 
 If true, decidability regions of mixed systems would be drawn by the
 boundary's read grammar alone, with no hypothesis on the bulk's own
-move class. The danger channel is visible in the ratchet theorem's
+move class. The danger channel is visible in the ratchet law's
 own proof: a flip's TIMING is boundary information, and a
 finite-control bulk cannot store it -- but an UNBOUNDED bulk can.
 This script settles the conjecture by counterexample: one ratchet

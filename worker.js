@@ -123,6 +123,7 @@ export default {
       '/computation': 'computation',
       '/computation/dividend': 'dividend',
       '/computation/recovery': 'recovery',
+      '/computation/interface': 'interface',
       '/computation/delay': 'delay',
       '/computation/clocks': 'clocks',
       '/learning': 'learning',

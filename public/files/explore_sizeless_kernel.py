@@ -183,9 +183,11 @@ as written.
       coverable and 4 not, tock omega, 2,378 nodes; without credits,
       data omega and any count coverable, 396 nodes.
   F6. P6 holds: seeds 2 and 4 halt, 3 and 5 loop, on the kernel's own
-      try-receive. Scope: one tested channel is a one-counter machine,
-      decidable; the Minsky corner is two tested channels, which the
-      construction reaches by the same call on a second channel.
+      try-receive. Scope: one tested channel beside untested ones is a
+      vector addition system with one zero test, reachability decidable
+      (Reinhardt 2008; Bonnet 2011); the Minsky corner is two tested
+      channels, which the construction reaches by the same call on a
+      second channel.
   F7. P7 holds. T's branch reads residue 8 when c is empty and 1 when
       c holds a token, and ends at pc 3 against pc 2, while relaxed E's
       one-step census is zero: the branch on the clock's residue turns
@@ -201,9 +203,10 @@ tick's residue), once its deterministic scheduling is relaxed to "a
 task may be delayed a step", and coverability of that relaxation is
 the tool run; the relaxation is clock-preserving for the oblivious
 scheduler and for the skipping one with a per-round tick, and for no
-scheduler that skips against a per-step tick. Two system calls reach the
-Minsky corner and none of the workload's waits does: a try-receive, and a BRANCH on the clock's
-residue downstream of a wait, the second being the flip-timing channel
+scheduler that skips against a per-step tick. Two system calls leave the
+class and none of the workload's waits does: a try-receive, whose empty
+branch is a zero test (two tested channels reach the Minsky corner),
+and a BRANCH on the clock's residue downstream of a wait, the second being the flip-timing channel
 of the read surface inside a kernel; a residue WAIT is harmless. The
 tool proves only what the relaxation keeps, so a property whose truth
 rides on timing is outside it.

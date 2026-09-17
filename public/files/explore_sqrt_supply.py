@@ -153,7 +153,7 @@ S4  THE CAP + THE BOUNDARY (the adjudicator). Build the top-migratable
     the boundary is o(g) vs Omega(g), not m_g > g.
 
 S5  VERDICT + GENERALIZE. From value <= W_d * m_frontier and the survival
-    test W_d * m_g >= g: universality iff m_g = Omega(g) (a fixed W_d
+    test W_d * m_g > g: universality iff m_g = Omega(g) (a fixed W_d
     clears the bar); every o(g) supply is capped (sqrt at O(W_d^2), log at
     O(W_d * log g)); print the boundary (the linear rate) and the honest
     scope (general o(g) decidability -- all constructions -- conjectured
@@ -204,12 +204,12 @@ output; run record at the end).
    where W_d is the frozen product of the lower digit bases -- a FREE
    constant the program chooses -- and m_frontier the ridable top modulus.
    A faithful counter's value tracks its INC count (<= g with one
-   grow/INC), so it survives iff W_d * m_g >= g for some FIXED W_d, i.e.
+   grow/INC), so it survives iff W_d * m_g > g for some FIXED W_d, i.e.
    iff m_g = Omega(g) (liminf m_g/g > 0):
      * m_g = Omega(g) (linear or faster) => UNIVERSAL. The single-window
        rider (W_d = 1) needs m_g > g; a d-digit positional counter with
        frozen base W_d > g/m_g -- a constant when m_g = Omega(g) -- has
-       capacity W_d * m_g >= g and counts faithfully. So EVERY linear
+       capacity W_d * m_g > g and counts faithfully. So EVERY linear
        supply is universal, including m_g = ceil(g/3) < g where the single
        rider wraps (S4: b=4 runs 600 INCs uncapped). Multi-digit EXTENDS
        the rider's reach down to any linear rate; the tower's p_n > n is
@@ -291,7 +291,7 @@ output; run record at the end).
 5. THE GENERALIZATION -- for the once-per-INC schedule the boundary is
    the linear rate (rule; S4, S5). The cap lemma
    value <= W_d * m_frontier bounds every supply, and the survival test
-   W_d * m_g >= g splits by GROWTH RATE. On m_g = Omega(g) a fixed
+   W_d * m_g > g splits by GROWTH RATE. On m_g = Omega(g) a fixed
    W_d > g/m_g clears the bar: every linear supply is UNIVERSAL (a rule,
    proved-by-construction), verified on m_g = ceil(g/3) < g (S4: uncapped)
    where the single rider wraps. On m_g = o(g) the product W_d * m_g stays
@@ -878,14 +878,14 @@ def s5_verdict():
       value  <=  W_d * m_frontier
 
   A faithful counter's value tracks its INC count (<= g with one
-  grow/INC), so it survives iff W_d * m_g >= g for some FIXED W_d, i.e.
+  grow/INC), so it survives iff W_d * m_g > g for some FIXED W_d, i.e.
   iff m_g = Omega(g) (liminf m_g/g > 0). THE BOUNDARY IS THE LINEAR RATE,
   o(g) vs Omega(g) -- NOT m_g > g:
 
     m_g = Omega(g)  =>  UNIVERSAL.  The single-window rider (W_d = 1)
       needs m_g > g; but a d-digit positional counter with frozen base
       W_d > g/m_g -- a CONSTANT whenever m_g = Omega(g) -- has capacity
-      W_d * m_g >= g and counts faithfully. So EVERY linear supply is
+      W_d * m_g > g and counts faithfully. So EVERY linear supply is
       universal, including m_g = ceil(g/3) < g where the single rider
       wraps (S4: b=4 runs unbounded). Multi-digit EXTENDS the rider's
       reach down to any linear rate; the tower's p_n > n is far inside.

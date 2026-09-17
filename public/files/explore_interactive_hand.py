@@ -56,7 +56,7 @@ make it halt? does EVERY hand?) or relative to a fixed hand policy.
 THE HAND ANALYSIS THE RUN VERIFIES (proofs here; the run checks every
 checkable step; Minsky universality is cited, not re-proved):
 
- 1. THE RATCHET THEOREM (depth face): pushes are ABSOLUTELY inert.
+ 1. THE RATCHET LAW (depth face): pushes are ABSOLUTELY inert.
     Depths never decrease -- machine INCs and hand pushes only raise --
     so every depth-face read atom v_p >= c is MONOTONE along any run:
     it flips false-to-true at most ONCE, ever. A program with k atoms
@@ -147,7 +147,7 @@ checkable step; Minsky universality is cited, not re-proved):
     gcd-scar flips exactly the threshold atoms it crosses -- one
     write-once flag for a fresh 2-scar against a v_2 >= 2 atom, none
     thereafter),
-    so they are class-inert by the ratchet theorem while remaining
+    so they are class-inert by the ratchet law while remaining
     basin-programming (one push re-locks any world onto a chosen
     column: the universal rudder and the relock rule, proved in
     explore_interactive_observer.py -- cited for the basin half, not
@@ -173,7 +173,7 @@ checkable step; Minsky universality is cited, not re-proved):
     ANY hand whatsoever (section 1). Interaction is a channel, and the
     deleted resource prices its bandwidth.
 
-SCOPE + HONESTY. The ratchet theorem is about the modelled depth face:
+SCOPE + HONESTY. The ratchet law is about the modelled depth face:
 literal threshold atoms, no indirection, monotone moves -- the
 decidable sibling's own read discipline; adding any non-monotone read
 re-opens the second-ruler door and is priced there. The game decider
@@ -181,7 +181,7 @@ and its bounded-exhaustive cross-check run on a small battery
 (exhaustive over schedules acting within a stated prefix; the decider
 itself is exact on the quotient). Section 2's depth-face failure is a
 WITNESS of the wall's shape for the natural protocol; the proof that no
-protocol works is the ratchet theorem, not the witness. Minsky
+protocol works is the ratchet law, not the witness. Minsky
 two-counter universality is cited, not re-derived; the mailbox and
 sync simulations verify step-exactness and halting transfer on witness
 batteries. Whether the BARE element class is decidable stays open
@@ -222,7 +222,7 @@ PREDICTIONS (fixed before the run):
 FINDINGS (entered after the run; 27/27 checks; all five predictions
 confirmed, no misses):
 
- F1. THE RATCHET THEOREM'S MECHANISM VERIFIED (rule at the battery;
+ F1. THE RATCHET LAW'S MECHANISM VERIFIED (rule at the battery;
      the theorem itself is the docstring's proof). On all four battery
      machines the game decider on the capped-depth quotient agreed
      exactly with bounded-exhaustive schedule enumeration (SOME-hand
@@ -301,7 +301,7 @@ def check(name, ok):
 
 
 # ----------------------------------------------------------------------
-# S1  THE RATCHET THEOREM: game decider vs exhaustive schedules
+# S1  THE RATCHET LAW: game decider vs exhaustive schedules
 # ----------------------------------------------------------------------
 # A machine: atoms = [(p, c), ...] threshold reads; prog = {state:
 # ('halt',) | ('inc', p, next) | ('br', atom_index, if_true, if_false)}.
@@ -454,7 +454,7 @@ def schedules_for(atoms, T):
 
 
 def s1():
-    print("S1  THE RATCHET THEOREM: decider vs exhaustive schedules")
+    print("S1  THE RATCHET LAW: decider vs exhaustive schedules")
     total_runs = 0
     for name, atoms, prog, expected in BATTERY:
         k = len(atoms)

@@ -2,7 +2,7 @@
 drawn by a boundary's read grammar survive COMPOSITION with a
 universal core? (The core is the frontier rider of
 explore_frontier_rider.py -- its rig is reused verbatim where
-needed. Related: explore_interactive_hand.py (the ratchet theorem
+needed. Related: explore_interactive_hand.py (the ratchet law
 and the publishing split, whose read-side machinery this composite
 instantiates), explore_ecc_borrow.py (the base-extension door whose
 O(1) sync prices the control route), explore_growth_machine.py.)
