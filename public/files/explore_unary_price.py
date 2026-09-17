@@ -74,10 +74,10 @@ PREDICTIONS (frozen before the run; hand-derived from value <= op count):
       EXPONENTIAL succinctness gap the hunch feared: the coarse classes
       (decidable, P, NP, PSPACE) are closed under a polynomial time
       factor, so no POSSIBILITY and no coarse-class membership is
-      crossed. (A quadratic factor is still a real fine-grained
-      time-hierarchy separation -- DTIME(n) vs DTIME(n^2), the FMR
-      real-time regime -- so "efficiency" is a genuine polynomial cost,
-      not a constant; the point is polynomial, not exponential.)
+      crossed. (A quadratic factor is still a genuine polynomial cost, not a
+      constant, though no lower bound over ALL bare programs is proved
+      here, so no class separation is claimed; the point is polynomial,
+      not exponential.)
   F3. AGGREGATE ON A REAL TWO-COUNTER RUN. On a genuine two-counter
       simulation (the halts-iff-even reference machine, seeds loaded by
       increments), the total bare price equals the sum of the values
@@ -119,12 +119,11 @@ output; run record at the end).
    coarse-class boundary and buys no POSSIBILITY: it buys EFFICIENCY (a
    polynomial factor on the sync layer), confirming the existing
    pricing rather than upgrading it. The precise refutation: the gap is
-   polynomial, not the exponential succinctness gap feared. (Honest
-   caveat: a quadratic factor IS a real fine-grained separation by the
-   time hierarchy theorem -- DTIME(n) vs DTIME(n^2) -- and the very
-   real-time counter hierarchy contacted below (Fischer-Meyer-Rosenberg)
-   is linear-sensitive; "efficiency" is a genuine polynomial cost, not
-   nothing. What is false is only the strong reading -- an exponential,
+   polynomial, not the exponential succinctness gap feared. (Caveat:
+   the real-time counter hierarchy contacted below (Fischer-Meyer-
+   Rosenberg) is linear-sensitive; "efficiency" is a genuine polynomial
+   cost, not nothing, though a separation would need a lower bound over
+   all bare programs, which this record does not prove. What is false is only the strong reading -- an exponential,
    succinctness-grade jump.)
 
 3. THE PRICE IS PURE RE-ENCODING ON A REAL RUN (rule; S3). On a genuine
@@ -199,7 +198,7 @@ prose of findings 2 and 4, predictions F2 and F4, the verdict, and the
 S4 assert/print messages -- (i) scoping the class claim (the gap is
 polynomial, not the exponential succinctness gap feared: the coarse
 classes are closed under it, but a quadratic factor is a real
-fine-grained time-hierarchy separation) and (ii) correcting the
+polynomial cost, no separation claimed) and (ii) correcting the
 layer-1 label (T is the ABSTRACT op count, not itself a Schroeppel
 blow-up; the measured T = 66 is not a Turing simulation). Two code
 changes, both output-neutral: S2 now asserts its ratio and bound on

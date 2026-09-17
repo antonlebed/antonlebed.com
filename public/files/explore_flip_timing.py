@@ -59,10 +59,10 @@ hypothesis holds, its conclusion fails, and the conjecture is FALSE.
 Read discipline alone does not confine; the bulk's own move class is
 a load-bearing hypothesis. What survives is exactly the verified
 pair above (finite-control / flag-word-driven bulks) and the
-move-disciplined salvage: a bulk class closed under product with a
-finite lattice of monotone flags keeps decidability (for
-well-quasi-ordered monotone bulks the product is again monotone over
-a wqo -- the classical well-structured route, Finkel-Schnoebelen;
+move-disciplined salvage: a well-structured bulk (monotone over a wqo)
+keeps its upward-closed questions decidable behind the flags, since its
+product with a finite lattice of monotone flags is again monotone over
+a wqo (the classical well-structured route, Finkel-Schnoebelen;
 the flags land the composite back in the incumbent frame, where
 decidability is graded by MOVES, not reads).
 
@@ -168,9 +168,11 @@ confirmed).
     values, its target is upward-closed, and its quantified answers
     match the tree. The confinement results for finite-control and
     flag-word-driven bulks survive untouched, and the salvage is
-    move-disciplined: a bulk class closed under product with the
-    finite monotone flag lattice keeps decidability (wqo route,
-    cited). What draws the decidability region is the bulk's move
+    move-disciplined: a well-structured bulk keeps its upward-closed
+    questions decidable, its product with the finite monotone flag
+    lattice staying well-structured (wqo route, cited). (Settled here:
+    "any bulk class closed under that product" was the earlier form,
+    false as stated, since B_M's class is closed under it too.) What draws the decidability region is the bulk's move
     class WITH the read grammar -- the read grammar alone is not
     sufficient.
 
