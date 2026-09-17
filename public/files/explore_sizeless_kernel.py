@@ -203,8 +203,8 @@ tick's residue), once its deterministic scheduling is relaxed to "a
 task may be delayed a step", and coverability of that relaxation is
 the tool run; the relaxation is clock-preserving for the oblivious
 scheduler and for the skipping one with a per-round tick, and for no
-scheduler that skips against a per-step tick. Two system calls leave the
-class and none of the workload's waits does: a try-receive, whose empty
+scheduler that skips against a per-step tick. Two system calls escape the
+relaxation and none of the workload's waits does: a try-receive, whose empty
 branch is a zero test (two tested channels reach the Minsky corner),
 and a BRANCH on the clock's residue downstream of a wait, the second being the flip-timing channel
 of the read surface inside a kernel; a residue WAIT is harmless. The
