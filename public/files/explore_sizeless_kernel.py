@@ -227,7 +227,7 @@ as written.
       divergences over 351 pairs. F up to tick 9: 51 over 72 pairs; F
       past tick 9: zero over 351. K4 missed: a branch on a rung's
       equality downstream of a wait escapes the relaxation only while
-      its rung is ahead, the flip-timing channel capped at one crossing,
+      its rung is ahead, the flip-timing channel read once,
       where the residue branch recurs at every period. That past the
       rung the branch is constant is by construction (the equality is
       false at every later tick); that before it a token more changes
@@ -254,9 +254,10 @@ second call capped: it escapes only before its rung and never past it
 Contact, after the run. The class landing is the asynchronous-programs
 theorem: a multiset task buffer under a nondeterministic scheduler has
 safety verification equal to Petri-net coverability, EXPSPACE-complete;
-with cancel, which resets a handler's pending count, one test for the
-absence of a pending handler makes it undecidable, while emptiness tests
-of a fixed set of handlers without cancel keep it decidable (Ganty and
+with cancel, which resets a handler's pending count, even a single test
+for the absence of a pending handler makes it undecidable, while
+emptiness tests of one fixed set of handlers without cancel, one zero
+test on the set's total, keep it decidable (Ganty and
 Majumdar, "Algorithmic verification of asynchronous programs", ACM
 TOPLAS 2012, sections 6, 7.6 and 8); their real-time
 extension, where a clock advances only when no zero-delay task is
