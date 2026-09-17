@@ -118,6 +118,36 @@ S4  THE CONTRAST (what the counterexample does NOT break).
     branch-tree computation. The wqo-product closure is cited, the
     instance verified.
 
+S5  THE EVERY SIDE (derived on paper before this section's code).
+    Claim: for a deterministic bulk behind k ratchet flags whose
+    frozen fate questions are decidable from each configuration at
+    each flag word, EVERY-halt -- the unflipped history among the
+    histories -- is decidable by a capped recursion: decide the
+    frozen run from the current configuration; if it never halts,
+    the history raising no further flag is a non-halting history
+    and the answer is NO; if it halts after T steps, only raises
+    before those T steps can change anything, so recurse on each
+    of the T configurations with each nonempty set of the flags
+    still down raised there. Depth at most k, each level finite.
+    (Finitely branching bulks by the same recursion over the frozen
+    run's finite tree, König's lemma.) The decider is checked
+    against brute enumeration of flip times over the probe range
+    plus never, on three families:
+    (a) B_M itself: WAIT-frozen never halts, so NO at the first call.
+    (b) C_{M,H,c}: WAIT halts on its own when its counter reaches H;
+        a flip at WAIT counter w enters SIM with budget w + c.
+    (c) D_{M,H,c}: two flags. In WAIT, flag a enters SIM with budget
+        w + c, flag b alone halts at once, a taking priority; in SIM
+        flag b makes each step cost two units of budget.
+    Frozen deciders for C and D simulate to a bound computed from
+    the configuration (WAIT: H - w + w + c + 3 steps; SIM:
+    budget + 2), a terminating procedure. Then the contrast:
+    (d) E_M under OBLIGED flipping (sigma_inf excluded): WAIT never
+        halts; a flip at w enters SIM with budget w, halting when
+        the budget runs out with M unhalted and looping forever if
+        M halts within it. EVERY-halt over flipping schedules is
+        then "M halts at no budget", the complement of halting.
+
 FROZEN PREDICTIONS (fixed before the engine ran):
   F1  S1: B_M1 halts under sigma_t iff t >= 2; B_M2 iff t >= 7;
       B_M3 under no sigma_t in range; every flip transcribes t
@@ -131,11 +161,23 @@ FROZEN PREDICTIONS (fixed before the engine ran):
       answers match brute; the monotone bulk preserves order on all
       sampled pairs and its tree answers match brute.
 
+  F5  S5: the capped decider equals brute at every cell: B_M NO
+      across the battery; C_{M,H,c} YES iff h <= c (the flip at w = 0
+      carries the least budget), so M1 YES iff c >= 2, M2 iff c >= 7,
+      M3 never, at H in {3, 10} and c in {0, 1, 2, 7, 9}; D agrees
+      with brute at the same cells, whatever its answers.
+  F6  S5(d): obliged EVERY-halt(E_M) == not halts(M) across the
+      battery (NO for M1 and M2 by the witness t = h, YES for M3 in
+      range and closed by its cycle certificate); E_M's frozen
+      deciders agree with brute.
+
 KILL CONDITIONS. Any F1-F3 miss means the construction is wrong
 (the counterexample claim would be withdrawn, not patched in place).
-F4 misses would mean the contrast is misdrawn.
+F4 misses would mean the contrast is misdrawn. An F5 miss at any cell
+withdraws the EVERY-side claim; an F6 miss withdraws the claim that it
+rests on the unflipped history.
 
-FINDINGS (entered after the run; all 33 checks pass, F1-F4 all
+FINDINGS (entered after the runs; all 46 checks pass, F1-F6 all
 confirmed).
 
 1.  THE TIMING TRANSCRIPTION (rule over the stated ranges): at every
@@ -168,15 +210,34 @@ confirmed).
     values, its target is upward-closed, and its quantified answers
     match the tree. The confinement results for finite-control and
     flag-word-driven bulks survive untouched, and the salvage is
-    move-disciplined: a well-structured bulk keeps its upward-closed
-    questions decidable, its product with the finite monotone flag
-    lattice staying well-structured (wqo route, cited). (Settled here:
+    move-disciplined: a well-structured bulk keeps its SOME question
+    for an upward-closed target decidable, its product with the flag
+    words staying well-structured when two configurations are compared
+    only at the same flag word, the order the toy checks (a finite set
+    under equality is a wqo; wqo route, cited). (Settled here:
     "any bulk class closed under that product" was the earlier form,
     false as stated, since B_M's class is closed under it too.) What draws the decidability region is the bulk's move
     class WITH the read grammar -- the read grammar alone is not
     sufficient.
 
-RUN RECORD: python explore_flip_timing.py -- 33 checks pass, < 1 s,
+5.  THE CHANNEL IS ONE-SIDED (theorem, by the capped recursion's
+    proof in S5's design; its mechanics exhaustive at probe scale):
+    with the unflipped history among the histories, EVERY-halt is
+    decidable for any deterministic bulk behind k ratchet flags whose
+    frozen fate questions are decidable from each configuration, the
+    history raising no further flag having to halt on its own and its
+    finite run capping the raises worth trying. The decider matched
+    brute at every cell: B_M NO after one frozen call; C YES exactly
+    at h <= c (M1 at c >= 2, M2 at c >= 7, M3 never); the two-flag D
+    at all 30 cells, YES at M1 with c in {7, 9} and NO elsewhere.
+    Obliged flipping breaks the cap: EVERY-halt(E_M) over flipping
+    schedules is NO for M1 and M2 and YES for M3, the complement of
+    halting, while E_M with the unflipped history is NO for all three.
+    So the flip-timing channel makes SOME-halt the halting problem and
+    leaves EVERY-halt decidable, and needs no move frame for the EVERY
+    side.
+
+RUN RECORD: python explore_flip_timing.py -- 46 checks pass, < 1 s,
 plain Python. The first run failed at check 32: the S4 toy had put
 the halt bit inside the state tuple (equality-compared in the order)
 instead of using the standard upward-closed-target (coverability)
@@ -184,7 +245,11 @@ convention; S4(ii) was rewritten to that convention and the run
 repeated green. S1-S3 were not altered after their first green run.
 Two cosmetic simplifications (decide_sim's dead final return;
 bulk_step's redundant terminal-mode expression) were made after the
-green run; each rerun printed identically.
+green run; each rerun printed identically. S5 (checks 34-46) was
+added after its design was frozen above and passed on its first run
+(one syntax error fixed before it); its brute
+enumeration flips each flag at a time in 0..15 or never, and the
+S4 closure line's wording was corrected at the same run.
 """
 
 # ---------------------------------------------------------------- #
@@ -480,9 +545,183 @@ def s4_contrast():
     brute_every = all(mono_fate(t) for t in T_RANGE) and mono_fate(None)
     ok(brute_some is True and brute_every is False,
        "monotone bulk: quantified answers (SOME yes, EVERY no) match the tree")
-    print("  (the general closure -- wqo x finite flag lattice stays wqo,")
+    print("  (the general closure -- wqo x flag words under equality stays wqo,")
     print("   monotonicity preserved -- is the classical well-structured")
     print("   route, cited; decidability graded by MOVES is what survives.)")
+
+
+# ---------------------------------------------------------------- #
+# S5  the every side                                                #
+# ---------------------------------------------------------------- #
+
+LOOP = "LOOP"
+
+
+def every_brute(step, init, flag_names, horizon, obliged=False):
+    """EVERY-halt by brute: every assignment of a flip time in T_RANGE
+    (or never, unless obliged) to each flag, run to the horizon."""
+    import itertools
+    times = list(T_RANGE) + ([] if obliged else [None])
+    for assign in itertools.product(times, repeat=len(flag_names)):
+        conf = init
+        halted = False
+        for n in range(1, horizon + 1):
+            up = frozenset(f for f, t in zip(flag_names, assign)
+                           if t is not None and n > t)
+            conf = step(conf, up)
+            if conf[0] == BHALT:
+                halted = True
+                break
+        if not halted:
+            return False
+    return True
+
+
+def every_capped(step, frozen, conf, up, flag_names, stats):
+    """The capped recursion: decide the frozen run; NO if it never
+    halts; else recurse on each raise before its halting step."""
+    import itertools
+    stats[0] += 1
+    halts, T = frozen(conf, up)
+    if not halts:
+        return False
+    down = [f for f in flag_names if f not in up]
+    c = conf
+    for _ in range(T):
+        for r in range(1, len(down) + 1):
+            for S in itertools.combinations(down, r):
+                up2 = up | frozenset(S)
+                if not every_capped(step, frozen, step(c, up2), up2,
+                                    flag_names, stats):
+                    return False
+        c = step(c, up)
+    return True
+
+
+def frozen_by_bound(step, bound):
+    """A frozen decider simulating to a bound computed from the
+    configuration: returns (halts, steps to halt)."""
+    def frozen(conf, up):
+        c = conf
+        for n in range(bound(conf) + 1):
+            if c[0] == BHALT:
+                return True, n
+            c = step(c, up)
+        return False, None
+    return frozen
+
+
+def sim_tail(prog, conf, cost):
+    mode, w, budget, mconf = conf
+    if m_halted(prog, mconf[0]):
+        return (BHALT, w, budget, mconf)
+    if budget == 0:
+        return (DEAD, w, budget, mconf)
+    return (SIM, w, budget - min(cost, budget), m_step(prog, mconf))
+
+
+def make_C(prog, H, c):
+    def step(conf, up):
+        mode, w, budget, mconf = conf
+        if mode in (BHALT, DEAD):
+            return conf
+        if mode == WAIT:
+            if "a" in up:
+                return (SIM, w, w + c, (0, 0, 0))
+            return (BHALT, w + 1, None, None) if w + 1 >= H else (WAIT, w + 1, None, None)
+        return sim_tail(prog, conf, 1)
+    def bound(conf):
+        return (H + c + 3) if conf[0] == WAIT else ((conf[2] or 0) + 2)
+    return step, frozen_by_bound(step, bound)
+
+
+def make_D(prog, H, c):
+    def step(conf, up):
+        mode, w, budget, mconf = conf
+        if mode in (BHALT, DEAD):
+            return conf
+        if mode == WAIT:
+            if "a" in up:
+                return (SIM, w, w + c, (0, 0, 0))
+            if "b" in up:
+                return (BHALT, w, None, None)
+            return (BHALT, w + 1, None, None) if w + 1 >= H else (WAIT, w + 1, None, None)
+        return sim_tail(prog, conf, 2 if "b" in up else 1)
+    def bound(conf):
+        return (H + c + 3) if conf[0] == WAIT else ((conf[2] or 0) + 2)
+    return step, frozen_by_bound(step, bound)
+
+
+def make_B(prog):
+    def step(conf, up):
+        return bulk_step(prog, conf, "a" in up)
+    def frozen(conf, up):
+        if conf[0] == WAIT and "a" not in up:
+            return False, None          # decide_wait_frozen, S2
+        return frozen_by_bound(step, lambda k: (k[1] if k[0] == WAIT
+                                                else (k[2] or 0)) + 3)(conf, up)
+    return step, frozen
+
+
+def make_E(prog):
+    def step(conf, up):
+        mode, w, budget, mconf = conf
+        if mode in (BHALT, LOOP):
+            return conf
+        if mode == WAIT:
+            return (SIM, w, w, (0, 0, 0)) if "a" in up else (WAIT, w + 1, None, None)
+        if m_halted(prog, mconf[0]):
+            return (LOOP, w, budget, mconf)
+        if budget == 0:
+            return (BHALT, w, budget, mconf)
+        return (SIM, w, budget - 1, m_step(prog, mconf))
+    return step
+
+
+def s5_every(halt_times):
+    print("\nS5 THE EVERY SIDE (the capped recursion)")
+    init = (WAIT, 0, None, None)
+    one, two = ["a"], ["a", "b"]
+    for name, prog, _ in BATTERY:
+        step, frozen = make_B(prog)
+        stats = [0]
+        dec = every_capped(step, frozen, init, frozenset(), one, stats)
+        brute = every_brute(step, init, one, HORIZON)
+        ok(dec is False and brute is False and stats[0] == 1,
+           "%s: B EVERY-halt NO by decider (1 frozen call) and brute" % name)
+    for name, prog, _ in BATTERY:
+        h = halt_times[name]
+        cells_C, cells_D, calls = [], [], [0, 0]
+        for H in (3, 10):
+            for c in (0, 1, 2, 7, 9):
+                step, frozen = make_C(prog, H, c)
+                st = [0]
+                dec = every_capped(step, frozen, init, frozenset(), one, st)
+                calls[0] += st[0]
+                brute = every_brute(step, init, one, HORIZON)
+                cells_C.append(dec == brute == (h is not None and h <= c))
+                step, frozen = make_D(prog, H, c)
+                st = [0]
+                dec = every_capped(step, frozen, init, frozenset(), two, st)
+                calls[1] += st[0]
+                brute = every_brute(step, init, two, HORIZON)
+                cells_D.append(dec == brute)
+                print("    %s H=%-2d c=%d  C: %-5s D: %-5s" % (
+                    name, H, c, every_brute(*[make_C(prog, H, c)[0], init, one, HORIZON]),
+                    brute))
+        ok(all(cells_C), "%s: C decider == brute == (h <= c) at all 10 cells"
+           " (%d frozen calls)" % (name, calls[0]))
+        ok(all(cells_D), "%s: D (two flags) decider == brute at all 10 cells"
+           " (%d frozen calls)" % (name, calls[1]))
+    for name, prog, halts in BATTERY:
+        step = make_E(prog)
+        obliged = every_brute(step, init, one, HORIZON, obliged=True)
+        unobliged = every_brute(step, init, one, HORIZON)
+        ok(obliged == (not halts) and unobliged is False,
+           "%s: E obliged EVERY-halt %s == not halts(M); with never: NO"
+           % (name, obliged))
+    _, why = m_halt_time(M3, HORIZON)
+    ok(why == "cycle", "E_M3's YES closed beyond range by M3's cycle certificate")
 
 
 # ---------------------------------------------------------------- #
@@ -493,4 +732,5 @@ if __name__ == "__main__":
     s2_hypothesis()
     s3_reduction(halt_times)
     s4_contrast()
+    s5_every(halt_times)
     print("\nALL %d CHECKS PASS" % CHECKS[0])
