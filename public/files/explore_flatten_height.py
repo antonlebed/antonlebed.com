@@ -192,6 +192,13 @@ vacuous against the products here, which is exactly why the
 diagonal's asymptote (floor ~ sqrt(2M/log2 M) vs the products'
 observed steps) stays open beyond the chart.
 
+(ORDER CLASSICAL, read since: this floor is Borwein, Erdelyi and Kos,
+"Littlewood-type problems on [0,1]", Proc. London Math. Soc. 79 (1999),
+Theorem 2.7, called well known there; their Theorem 2.4 caps a
+{-1,0,1} polynomial with constant term +-1 at (16/7)sqrt(n) + 4 zeros
+at 1. So the height-1 diagonal's degree grows between c1*J^2 and
+c2*J^2*log J, and only the log factor is open beyond the chart.)
+
 (SETTLED FURTHER SINCE, by explore_flatten_offchart.py: the law
 below is re-established on the INVERSE dial -- h(M, J), the least height
 at width M and depth J -- exhaustively at all 63 cells M <= 12 and so at
