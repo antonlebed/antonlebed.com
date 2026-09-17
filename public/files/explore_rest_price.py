@@ -36,7 +36,7 @@ THE DESIGN. Integer arithmetic throughout: posteriors in twentieths
 in units of 1/(20D), cost in units of 1/D. Every size vector of a cell
 is enumerated; the optimum set and each atom's forced fate are read
 off it; g is read off the vectors that give the atom size 0.
-  ARM 3: three atoms, both menus, every row triple, the 171 unequal
+  ARM 3: three atoms, both menus, every row triple, the 153 unequal
     weight vectors in twentieths (the sweep of explore_four_prints.py
     Q1, one key index across both menus).
   ARM 4: four atoms, both menus, every row quadruple, the 84 weight
