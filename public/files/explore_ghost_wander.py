@@ -218,6 +218,16 @@ FINDINGS (printed output copied from the run).
    often at bounded cost and ABSORBS the tail (explore_module_law.py
    B(i), whose norm-finiteness hypothesis is what the pigeonhole
    step spends) -- which is the lock.
+   WHAT THE PRIME-POWER WIDENING BUYS, asked as a control (H6b, 6/6):
+   the same walk over PRIMES ALONE gives p = 2: 1, 2, 4, 5, 6, 8 via
+   5, 17, 97, 193, 257 and p = 3, p = 5 unchanged, so the supplies
+   part at exactly one rung and every death is the SAME -- V = 8, 2
+   and 3. The widening moves the TRACE and not the kill: 9 banks two
+   rungs at V = 1 where the best prime there banks one, and the walk
+   has caught up by the next rung. So a census run over primes alone
+   is a narrower reading of the same kill and not an instrument defect
+   on the kill side, and the p = 3 and p = 5 arms, whose witness list
+   is empty, are the positive control on the parameterised walk.
 
 5. WHAT THIS DOES TO THE BOUNDARY (scope stated exactly). Modulo the
    explore_module_law.py C reduction, cited and not re-derived here --
@@ -544,6 +554,61 @@ print(f"  widening witnesses (prime-power carriers that are NOT prime): "
       f"{[(p, n, s) for p, v, n, s in allwit]}")
 ok(any(p == 2 and n == 9 for p, v, n, s in allwit),
    "H6: the norm 9 = 3^2 carries a p = 2 rung -- the widening is real")
+
+# H6b WHAT THE WIDENING BUYS, asked as a control rather than as a witness.
+# H6 shows the prime-power supply is REACHED; it does not say whether
+# reaching it changes the answer. Re-walk the same three characteristics
+# over PRIMES ALONE and read the death against the prime-power death.
+# FROZEN BEFORE THE RUN: at p = 3 and p = 5 the witness list above is
+# empty, so both supplies must give the same trace AND the same death,
+# which makes those two arms the positive control on this code path; at
+# p = 2 the supplies part at V = 1 (9 banks two rungs, the best prime
+# there banks one) and the prediction is that the traces differ while
+# the death does NOT, the widening buying one rung and nothing after it.
+# A differing death would make the prime census an instrument defect on
+# the kill side rather than a narrower reading of the same kill.
+
+
+def relader(p, primes_only):
+    """The H5 walk again, with the supply as an argument."""
+    V, trace, carriers = 1, [1], []
+    for _ in range(RUNG_CAP):
+        B = p ** door_exp(p, V)
+        hits = []
+        for n in range(2, B):
+            if vp(n - 1, p) <= V:
+                continue
+            pp, _split = is_prime_power(n)
+            if not pp:
+                continue
+            if primes_only and not BR.is_primeZ(n):
+                continue
+            hits.append(n)
+        if not hits:
+            return trace, carriers, V
+        n = max(hits, key=lambda h: vp(h - 1, p))
+        carriers.append(n)
+        V = vp(n - 1, p)
+        trace.append(V)
+    return trace, carriers, None
+
+
+print()
+print("  H6b what the widening BUYS -- the same walk over primes alone:")
+for p in (2, 3, 5):
+    pw_trace, pw_car, pw_death = relader(p, False)
+    pr_trace, pr_car, pr_death = relader(p, True)
+    print(f"    p = {p}: prime powers {pw_trace} via {pw_car}, dies at "
+          f"V = {pw_death}")
+    print(f"    p = {p}: primes alone {pr_trace} via {pr_car}, dies at "
+          f"V = {pr_death}")
+    ok(pw_trace == walks[p][3] and pw_death == walks[p][0],
+       f"H6b: p = {p} the parameterised walk reproduces H5's trace and "
+       f"death over the prime-power supply -- the positive control")
+    ok(pr_death == pw_death,
+       f"H6b: p = {p} the prime-only supply dies at the SAME rung "
+       f"(V = {pr_death} against {pw_death}) -- the widening moves the "
+       f"trace, not the kill")
 
 print()
 print("=" * 72)
