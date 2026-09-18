@@ -207,7 +207,9 @@ FINDINGS.
      probability (p-1)/2p + 1/p = (p+1)/(2p), the inert half PLUS the
      ramified 1/p -- so ramification is a bonus term on top of
      inertness rather than an alternative to it, worth prod (1 + 1/p) ~
-     (6 e^gamma / pi^2) ln L over the whole range.
+     (6 e^gamma / pi^2) ln L over the whole range against the crude
+     model's 1/2 a prime. (The factor is read against that 1/2 and not
+     against (p-1)/2p, which it would beat by prod (p+1)/(p-1).)
 
   4. THE MARGIN'S FAILURE WAS THE INSTRUMENT, AND THE GUARD POINTS THE
      WRONG WAY FOR THAT. As first run, H5 FAILED on one champion and
