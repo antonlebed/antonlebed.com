@@ -95,7 +95,8 @@ image.  What differs is only the ambient, and the ambient is what decides the
 answer's SHAPE.  The name for that: THE AMBIENT TRICHOTOMY.
 
 P1 SURVIVES — the shift is exact.  286,107 (k, s, S) triples over k=2..12 and
-primes s<200: ZERO disagreements between the |S|-dependent form, the fixed-target
+primes s<200 absent from the rung (a member s has no inverse mod itself, so the
+b_i run over the rung's primes other than s): ZERO disagreements between the |S|-dependent form, the fixed-target
 form with b_i = p_i^{-1} - 1 (mod s) and target -1, and brute-force divisibility
 of -chi.  The equivalence is a one-line identity (subtract 1 from each of the |S|
 terms), so the plural "targets" in the corpus reading was a presentation, not a

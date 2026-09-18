@@ -100,8 +100,8 @@ FINDINGS (the run's prints; tiers as the charter names them).
 
  F2. THE SHAPE CONSTANT IN CLOSED FORM (derivation within the
      Hardy-Littlewood heuristic; the prime-average the classical
-     mean-value law, verified; P2 held whole): A = prod_{ell odd} (1 + 1/((ell-1)
-     (ell-2))) = 1.74272540 and C_2 = 0.66016182, so C_inf = 2*C_2*A
+     mean-value law, verified; P2 held whole): A = prod_{ell odd PRIME}
+     (1 + 1/((ell-1)(ell-2))) = 1.74272540 and C_2 = 0.66016182, so C_inf = 2*C_2*A
      = 2.300962. The prime-average of g(q-1) reads 1.742358 at q <=
      10^7, within 0.02% of A, and W_0(y) - A lnln y settles at B =
      -0.5516 from 10^5 on.
