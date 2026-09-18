@@ -354,18 +354,23 @@ print("""
   that a cited claim needs, not a blind test. What is genuinely open is
   whether the mode then stalls at one d or keeps climbing.
 
-  METHOD. Walk k = 3..40, build the shell polynomial by the same
+  METHOD. Walk k = 3..200, build the shell polynomial by the same
   product as the table above, and print argmax d beside k-1. No Ring is
-  built: only the prime list and integer coefficients are needed.
+  built: only the prime list and integer coefficients are needed. The
+  table shows k <= 40; past that only the offset k - mode is reported,
+  and only where it CHANGES, since a second step down is the thing the
+  wider walk is for.
 """)
 
 print(f"  {'k':>3} {'p_k':>5} {'mode d':>7} {'k-1':>5} {'e_mode/N':>10} {'e_{k-1}/N':>11}")
 print(f"  {'-'*50}")
 
-MODE_K_MAX = 40
+MODE_K_MAX = 200
 mode_primes = first_n_primes(MODE_K_MAX)
 mode_coeffs = [1]
 first_break = None
+offset_steps = []
+prev_offset = None
 for k in range(1, MODE_K_MAX + 1):
     p = mode_primes[k - 1]
     nc = [0] * (len(mode_coeffs) + 1)
@@ -379,14 +384,17 @@ for k in range(1, MODE_K_MAX + 1):
     mode_d = max(range(len(mode_coeffs)), key=lambda d: mode_coeffs[d])
     if first_break is None and mode_d != k - 1:
         first_break = k
-    if k >= 18 or k % 4 == 0:
+    if k - mode_d != prev_offset:
+        offset_steps.append((k, k - mode_d))
+        prev_offset = k - mode_d
+    if k <= 40 and (k >= 18 or k % 4 == 0):
         print(f"  {k:>3} {p:>5} {mode_d:>7} {k - 1:>5} "
               f"{mode_coeffs[mode_d] / Nk:>10.4f} {mode_coeffs[k - 1] / Nk:>11.4f}")
 
 print()
 print(f"  First k where the modal shell is NOT the next-to-last: {first_break}")
-print(f"  Mode at k = {MODE_K_MAX}: d = "
-      f"{max(range(len(mode_coeffs)), key=lambda d: mode_coeffs[d])}, k-1 = {MODE_K_MAX - 1}")
+print(f"  Offset k - mode, every k where it changes, over k = 1..{MODE_K_MAX}:")
+print(f"    {offset_steps}")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -590,11 +598,14 @@ print("""
    earlier reading of this line — "median stays at or below k/2, most
    elements at moderate distance" — was the distribution read from the
    wrong end and is withdrawn.)
-   THE MODE LEAVES THE TOP AT k=23 (rule, walked k=3..40). The modal
+   THE MODE LEAVES THE TOP AT k=23 (rule, walked k=3..200). The modal
    shell is the next-to-last, d = k-1, at every rung through k=22 and
    never again: at k=23 the mode is d=21 against k-1=22, and from there
-   it tracks k-2 to k=40, the modal fraction holding near 0.3155 while
-   e_{k-1}/N falls 0.3161 -> 0.2884. The top shell is never modal at any
+   it tracks k-2 to k=200 -- the offset k - mode changes at exactly two
+   k over that whole walk, 3 and 23 -- with the modal fraction holding
+   near 0.3155 over k=23..40 while e_{k-1}/N falls 0.3161 -> 0.2884. One
+   step down, not a drift: the second step is not in the first 200
+   rungs. The top shell is never modal at any
    k, since e_{k-1}/e_k = sum 1/(p_i - 1) > 1 always; the step down is
    forced because e_{k-1} > e_{k-2} asks sum a_i > sum_{i<j} a_i a_j
    with a_i = 1/(p_i - 1), whose left side grows like log log k and
