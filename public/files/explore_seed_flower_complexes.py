@@ -78,8 +78,9 @@ FINDINGS (11/11 checks green).
      classes, 16 of them non-singleton (rule -- exhaustive at that
      range). The famous flower is not even alone in its homotopy type:
      {2,3,5} and {2,31} share -chi = 29 (one wedge of 30 circles, one
-     image {29}); the largest class is -chi = 71 = {2,3,11}, {5,19},
-     {7,13}. The classes split evenly by shape: 8 mix sizes and 8 are
+     image {29}); the largest class holding a ring of more than one prime
+     is -chi = 71 = {2,3,11}, {5,19}, {7,13} -- the largest class of
+     all is the eleven singletons at -chi = -1. The classes split evenly by shape: 8 mix sizes and 8 are
      same-size pairs or triples ({2,13} and {3,7} at -chi = 11;
      {2,13,17} and {5,7,11} at 603).
   3. DISTANCE-2 RETURNS ARE THE NORM, not the exception: 838/1175 =

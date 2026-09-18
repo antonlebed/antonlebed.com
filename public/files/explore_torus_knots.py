@@ -40,7 +40,10 @@ FINDINGS (tiers per claim; scope = primes {2..23}, i.e. tower k <= 9):
    fiber of a Brieskorn homology sphere is spin with unimodular form
    (known background); verified exhaustively at k <= 9. All 84 are
    negative. Casson invariants lambda = sigma/8 run from -1
-   (Poincare sphere) to -308 (Sigma(17,19,23)); level totals
+   (attained at the Poincare sphere Sigma(2,3,5) and at Sigma(2,3,7))
+   to -308 (Sigma(17,19,23)); over the 56 odd triples, which are the
+   ones adding data beyond their pairs, the range is -4 (Sigma(3,5,7))
+   to the same -308. Level totals
    k = 3..9: -1, -8, -47, -187, -615, -1625, -3873.
 4. (property) CHANNEL 2 IS THE SUSPENSION COORDINATE: sigma(2,q,r) =
    sigma(T(q,r)) exactly — definitional, since the z^2 suspension IS
@@ -152,6 +155,20 @@ def main():
     allneg3 = all(s < 0 for s in trip_sigs.values())
     print(f"\nall {len(trip_sigs)} triple signatures negative: {allneg3}")
     assert allneg3
+
+    # The range's ENDPOINTS, named rather than left to be read off the
+    # table: the top of the range is attained more than once, and the
+    # 56 odd triples -- the ones this file's point 4 says are the only
+    # new objects -- do not reach it at all.
+    top = max(trip_sigs.values())
+    at_top = sorted(t for t, s in trip_sigs.items() if s == top)
+    odd_sigs = {t: s for t, s in trip_sigs.items() if 2 not in t}
+    otop = max(odd_sigs.values())
+    print(f"lambda range over all {len(trip_sigs)}: {top // 8} at "
+          f"{at_top} down to {min(trip_sigs.values()) // 8}")
+    print(f"lambda range over the {len(odd_sigs)} odd triples: {otop // 8} at "
+          f"{sorted(t for t, s in odd_sigs.items() if s == otop)} down to "
+          f"{min(odd_sigs.values()) // 8}")
 
     print(f"\n{'level':>6s} {'#triples':>9s} {'sig total':>11s} {'lambda total':>13s}")
     for k in range(3, 10):

@@ -338,6 +338,58 @@ for r in rows:
 
 
 # ═══════════════════════════════════════════════════════════════════════
+section("WHERE THE MODAL SHELL LEAVES THE TOP")
+print("""
+  THE QUESTION. The shell polynomial's largest coefficient sits at
+  d = k-1 at every rung this file otherwise walks, and that reading has
+  been carried as if it held for all k. It cannot: e_{k-1}/e_k =
+  sum 1/(p_i - 1) > 1 always, so the top shell is never modal, but
+  e_{k-1} > e_{k-2} asks sum a_i > sum_{i<j} a_i a_j with
+  a_i = 1/(p_i - 1), and the left side grows like log log k while the
+  right grows like its square. The mode must leave d = k-1 at some
+  finite k, and the question is which.
+
+  PREDICTION, fixed before this block ran: k = 23, from a scratch count
+  made earlier in the same sitting; the walk below is the confirmation
+  that a cited claim needs, not a blind test. What is genuinely open is
+  whether the mode then stalls at one d or keeps climbing.
+
+  METHOD. Walk k = 3..40, build the shell polynomial by the same
+  product as the table above, and print argmax d beside k-1. No Ring is
+  built: only the prime list and integer coefficients are needed.
+""")
+
+print(f"  {'k':>3} {'p_k':>5} {'mode d':>7} {'k-1':>5} {'e_mode/N':>10} {'e_{k-1}/N':>11}")
+print(f"  {'-'*50}")
+
+MODE_K_MAX = 40
+mode_primes = first_n_primes(MODE_K_MAX)
+mode_coeffs = [1]
+first_break = None
+for k in range(1, MODE_K_MAX + 1):
+    p = mode_primes[k - 1]
+    nc = [0] * (len(mode_coeffs) + 1)
+    for j, c in enumerate(mode_coeffs):
+        nc[j] += c
+        nc[j + 1] += c * (p - 1)
+    mode_coeffs = nc
+    if k < 3:
+        continue
+    Nk = sum(mode_coeffs)
+    mode_d = max(range(len(mode_coeffs)), key=lambda d: mode_coeffs[d])
+    if first_break is None and mode_d != k - 1:
+        first_break = k
+    if k >= 18 or k % 4 == 0:
+        print(f"  {k:>3} {p:>5} {mode_d:>7} {k - 1:>5} "
+              f"{mode_coeffs[mode_d] / Nk:>10.4f} {mode_coeffs[k - 1] / Nk:>11.4f}")
+
+print()
+print(f"  First k where the modal shell is NOT the next-to-last: {first_break}")
+print(f"  Mode at k = {MODE_K_MAX}: d = "
+      f"{max(range(len(mode_coeffs)), key=lambda d: mode_coeffs[d])}, k-1 = {MODE_K_MAX - 1}")
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # VIII. FORMAN-RICCI ACROSS THE TOWER
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -538,6 +590,16 @@ print("""
    earlier reading of this line — "median stays at or below k/2, most
    elements at moderate distance" — was the distribution read from the
    wrong end and is withdrawn.)
+   THE MODE LEAVES THE TOP AT k=23 (rule, walked k=3..40). The modal
+   shell is the next-to-last, d = k-1, at every rung through k=22 and
+   never again: at k=23 the mode is d=21 against k-1=22, and from there
+   it tracks k-2 to k=40, the modal fraction holding near 0.3155 while
+   e_{k-1}/N falls 0.3161 -> 0.2884. The top shell is never modal at any
+   k, since e_{k-1}/e_k = sum 1/(p_i - 1) > 1 always; the step down is
+   forced because e_{k-1} > e_{k-2} asks sum a_i > sum_{i<j} a_i a_j
+   with a_i = 1/(p_i - 1), whose left side grows like log log k and
+   whose right side grows like its square. So "the largest shell is the
+   next-to-last" is a statement IN RANGE, and the range ends.
 
 6. LAMBDA-PHI RATIO. log(lambda)/log(phi) — how much of the available
    complexity, measured by phi, the dynamics actually uses. It is NOT
