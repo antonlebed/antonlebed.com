@@ -237,7 +237,8 @@ in a universe whose columns thin, finite support does not settle a walk.
 Whether the theorem's mechanism -- a non-increasing cost sequence after
 the regime -- has a counterpart on the SPRAWL side, where the support
 grows forever, is not asked here. (Settled 2026-08-23, and elsewhere:
-explore_module_law.py's crystal and absorption make it the SAME cost
+explore_module_law.py's single-place moves and absorption make it the
+SAME cost
 sequence read for divergence rather than for monotonicity -- a
 bounded-cost tail is equivalent to a lock, and equal-characteristic move
 costs diverge. Nothing in this file's own scope moves.)
