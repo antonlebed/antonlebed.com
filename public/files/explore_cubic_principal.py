@@ -19,7 +19,9 @@ F1-F4).
 
 Rank and signature are ONE condition at degree 2: by Dirichlet a number
 field has unit rank 0 exactly when it is Q or imaginary quadratic, which
-is exactly when the norm form is definite. So no quadratic field tells
+among quadratic fields is exactly when the norm form is definite (higher
+up they part: a totally imaginary quartic field has a definite norm form
+and unit rank 1). So no quadratic field tells
 them apart and widening within degree 2 cannot ask which the floor
 answered to. What a widening to degree 3 CAN ask is a different question,
 and it is the one this rig asks: does the flat coverage survive when a

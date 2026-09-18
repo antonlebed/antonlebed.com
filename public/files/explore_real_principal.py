@@ -196,13 +196,16 @@ THE FINDINGS.
       11665, 12469, 13321, 14401, 19041), so the reading is not being
       shown to cap NOWHERE, only to stop caring about |D|.
 
-      AND THE TWO CANDIDATE EXPLANATIONS ARE ONE (property). By
-      Dirichlet's unit theorem a number field has unit rank 0 exactly
-      when it is Q or imaginary quadratic -- which is exactly when the
-      norm form is definite. So "unit rank" and "archimedean signature"
-      are not two hypotheses here waiting for a field to separate them:
-      no number field does. Whatever a higher-degree widening measures,
-      it is not that.
+      AND THE TWO CANDIDATE EXPLANATIONS ARE ONE AT DEGREE 2
+      (property). By Dirichlet's unit theorem a number field has unit
+      rank 0 exactly when it is Q or imaginary quadratic, which AMONG
+      QUADRATIC FIELDS is exactly when the norm form is definite. So
+      "unit rank" and "archimedean signature" are not two hypotheses
+      here waiting for a field to separate them: no quadratic field
+      does. Higher up they part -- a totally imaginary quartic field
+      has a definite norm form and unit rank 1 -- so a widening that
+      leaves degree 2 is measuring the RANK, which is the hypothesis
+      the floor's argument uses.
 
   F3. THE UNDERSHOOT SURVIVES THE FLOOR'S REMOVAL AND GROWS WITH THE
       CLASS NUMBER (observation, 8 class numbers, 1208 fields). This is
