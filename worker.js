@@ -90,6 +90,7 @@ export default {
       '/reading': 'reading',
       '/reading/completions': 'completions',
       '/reading/quadratic': 'quadratic',
+      '/reading/address': 'address',
       '/reading/shifts': 'shifts',
       '/reading/members': 'members',
       '/reading/lookahead': 'lookahead',
