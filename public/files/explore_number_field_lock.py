@@ -130,7 +130,7 @@ FINDINGS (tiers below; run record at bottom; all sections assert).
    (j 2->3), lands in the wild chain's flat window (lambda = 4 for
    j = 3..6), and loses the lock to fresh Q7 at 7 — greedy myopia
    parks it at the worst spot (PR6). But seed P2^5, born two depths
-   from the window's end and so one norm-4 move from the next tick,
+   from the next tick and so one norm-4 move from it,
    locks 2 at 4/move from move 1: the wild seat can't hold
    what it grabs shallow, yet holds what it is given deep. The 2-adic
    seat — thermal max of every clock spectrum — is
