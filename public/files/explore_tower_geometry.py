@@ -396,6 +396,55 @@ print(f"  First k where the modal shell is NOT the next-to-last: {first_break}")
 print(f"  Offset k - mode, every k where it changes, over k = 1..{MODE_K_MAX}:")
 print(f"    {offset_steps}")
 
+print("""
+  HOW FAR DOES THE OFFSET GO? The exact walk above cannot answer it: its
+  coefficients are integers the size of a primorial, so k in the tens of
+  thousands is out of reach that way. It does not need them. Writing
+  D = k - d for the channels an element AGREES in, the shell count at
+  distance d is phi(N) * e_D(a) with a_i = 1/(p_i - 1), so the mode is
+  argmax_D e_D(a) and the whole question is about the elementary
+  symmetric functions of the reciprocals of the shifted primes. Those
+  are three floats updated per prime, positive throughout, no
+  cancellation.
+
+  The offset is UNBOUNDED, and the reason is Mertens: e_1(a) =
+  sum 1/(p_i - 1) diverges, so every e_j is eventually overtaken by
+  e_{j+1} and the mode leaves each offset in turn. What the walk buys is
+  WHERE the first steps are, which divergence that slow does not tell.
+
+  CONTROL: over k = 3..200 the float argmax must equal the offset the
+  exact integer walk above found, or the reduction is wrong.
+""")
+
+FLOAT_K_MAX = 70000
+fps = first_n_primes(FLOAT_K_MAX)
+es = [1.0, 0.0, 0.0, 0.0, 0.0]        # e_0..e_4 of a
+float_steps, prev_off, ctrl_bad = [], None, []
+exact_by_k = dict(offset_steps)
+running = None
+for k, p in enumerate(fps, 1):
+    a = 1.0 / (p - 1)
+    for j in range(4, 0, -1):
+        es[j] += a * es[j - 1]
+    off = max(range(1, 5), key=lambda j: es[j])
+    if off != prev_off:
+        float_steps.append((k, p, off))
+        prev_off = off
+    if k in exact_by_k:
+        running = exact_by_k[k]
+    if 3 <= k <= MODE_K_MAX and running is not None and off != running:
+        ctrl_bad.append(k)
+
+print(f"  control over k = 3..{MODE_K_MAX}: float argmax disagrees with the "
+      f"exact walk at {len(ctrl_bad)} k")
+assert not ctrl_bad
+print(f"  offset steps over k = 1..{FLOAT_K_MAX} (k, p_k, new offset):")
+for k, p, off in float_steps:
+    print(f"    k = {k:>6,}  p_k = {p:>9,}  mode = k - {off}")
+print(f"  margin at the second step: e_2 - e_3 crosses by about "
+      f"{abs(es[2] - es[3]):.3e} at k = {FLOAT_K_MAX:,}, against a double's "
+      f"~1e-11 on this sum")
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # VIII. FORMAN-RICCI ACROSS THE TOWER
@@ -598,14 +647,18 @@ print("""
    earlier reading of this line — "median stays at or below k/2, most
    elements at moderate distance" — was the distribution read from the
    wrong end and is withdrawn.)
-   THE MODE LEAVES THE TOP AT k=23 (rule, walked k=3..200). The modal
-   shell is the next-to-last, d = k-1, at every rung through k=22 and
-   never again: at k=23 the mode is d=21 against k-1=22, and from there
-   it tracks k-2 to k=200 -- the offset k - mode changes at exactly two
-   k over that whole walk, 3 and 23 -- with the modal fraction holding
-   near 0.3155 over k=23..40 while e_{k-1}/N falls 0.3161 -> 0.2884. One
-   step down, not a drift: the second step is not in the first 200
-   rungs. The top shell is never modal at any
+   THE MODE WALKS OFF THE TOP, AND NEVER STOPS (theorem for the
+   unboundedness, rule for the steps: exact k=3..200, float arm to
+   k=70,000, control green). Write D = k - d for the channels an element
+   agrees in; the shell count at distance d is phi(N)*e_D(a) with
+   a_i = 1/(p_i - 1), so the mode is argmax_D e_D(a). Then e_1(a) =
+   sum 1/(p_i - 1) DIVERGES by Mertens, so every e_j is eventually
+   overtaken by e_{j+1} and the offset k - mode grows without bound --
+   there is no resting place. The steps are far apart: offset 1 through
+   k=22, offset 2 from k=23 (mode 21 against k-1=22), offset 3 from
+   k=67,333 (p_k = 846,113), and nothing else below 70,000. Over
+   k=23..40 the modal fraction holds near 0.3155 while e_{k-1}/N falls
+   0.3161 -> 0.2884; it is not a constant either, only slow. The top shell is never modal at any
    k, since e_{k-1}/e_k = sum 1/(p_i - 1) > 1 always; the step down is
    forced because e_{k-1} > e_{k-2} asks sum a_i > sum_{i<j} a_i a_j
    with a_i = 1/(p_i - 1), whose left side grows like log log k and
