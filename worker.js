@@ -145,6 +145,7 @@ export default {
       '/flattening/products': 'products',
       '/flattening/multipliers': 'multipliers',
       '/principal': 'principal',
+      '/principal/shortfall': 'shortfall',
       '/principal/triple': 'triple',
       '/principal/degeneracy': 'degeneracy',
       '/principal/generator': 'generator',
