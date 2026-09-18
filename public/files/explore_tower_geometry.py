@@ -121,7 +121,11 @@ print("""
           = 1 - k / degree
 
   As k grows, sum(p_i) ~ k^2 * ln(k) / 2 (PNT), so degree ~ k^2 ln(k) / 2.
-  Thus kappa -> 1 - 2/(k*ln(k)) -> 1. The torus gets rounder.
+  Thus kappa -> 1 - 2/(k*ln(k)) -> 1 -- by GAINING TERMS, not by any
+  channel curving more: each kappa_i = (p_i - 2)/degree holds a fixed
+  numerator over a growing denominator, so every per-channel value
+  FALLS as k climbs (17: 15/51 at k=7, 15/267 at k=14). "The torus
+  gets rounder" is a reading of the total only.
 """)
 
 print(f"  {'k':>3} {'sum(p_i-2)':>12} {'degree':>8} {'kappa':>12} {'1-k/deg':>12} {'kappa(2)':>10}")
@@ -628,8 +632,11 @@ section("XII. KEY FINDINGS")
 
 print("""
 1. CURVATURE APPROACHES 1. Ollivier-Ricci total kappa = 1 - k/degree.
-   Since degree ~ k^2*ln(k)/2, kappa -> 1. The torus gets uniformly
-   rounder as you climb. No plateau/jump distinction in curvature.
+   Since degree ~ k^2*ln(k)/2, kappa -> 1. NOT "uniformly rounder": the
+   total climbs by gaining terms while every per-channel contribution
+   (p_i - 2)/degree falls, the largest going 15/51 at k=7 to 41/267 at
+   k=14. The two readings move opposite ways and only the total climbs.
+   No plateau/jump distinction in curvature either way.
 
 2. HEAT KERNEL: HAMMING SLOWS, CHORD SLOWS. Both half-lives grow with k.
    Hamming half-life ~ degree/2 * ln(2) (controlled by Z/2 bottleneck).
