@@ -404,13 +404,26 @@ print("""
   distance d is phi(N) * e_D(a) with a_i = 1/(p_i - 1), so the mode is
   argmax_D e_D(a) and the whole question is about the elementary
   symmetric functions of the reciprocals of the shifted primes. Those
-  are three floats updated per prime, positive throughout, no
-  cancellation.
+  are four floats updated per prime, positive throughout, no
+  cancellation. The argmax is taken over D = 1..4, which suffices
+  exactly because the offset moves one step at a time and does not
+  reach 4 inside this walk; at k = 1 the mode is a TIE, e_0 = e_1 = 1,
+  and the walk reports the upper of the two.
 
-  The offset is UNBOUNDED, and the reason is Mertens: e_1(a) =
-  sum 1/(p_i - 1) diverges, so every e_j is eventually overtaken by
-  e_{j+1} and the mode leaves each offset in turn. What the walk buys is
-  WHERE the first steps are, which divergence that slow does not tell.
+  THE OFFSET IS UNBOUNDED, and the proof is four lines, not a gesture
+  at Mertens. Write S = e_1(a) = sum 1/(p_i - 1), which DIVERGES
+  (Mertens), and P2 = sum a_i^2 <= sum 1/(p-1)^2, which CONVERGES.
+    (i)  Deleting one index: e_j(a) = e_j(a drop i) + a_i e_{j-1}(a drop i), and
+         every term is positive, so e_j(a drop i) >= e_j(a) - a_i e_{j-1}(a).
+    (ii) Counting each (j+1)-subset once per member:
+         (j+1) e_{j+1}(a) = sum_i a_i e_j(a drop i) >= S e_j - P2 e_{j-1}.
+    (iii) Induction on j: e_0 = 1 and e_1 = S -> oo give the base. If
+         e_{j-1}/e_j -> 0 then (ii) gives e_{j+1}/e_j >= (S - o(1))/(j+1)
+         -> oo, which is the step and also delivers e_j/e_{j+1} -> 0.
+    (iv) So for every J there is a k past which e_{j+1} > e_j for all
+         j <= J, and the argmax exceeds J. No offset is a resting place.
+  What the walk buys is WHERE the first steps are, which a divergence
+  that slow does not tell.
 
   CONTROL: over k = 3..200 the float argmax must equal the offset the
   exact integer walk above found, or the reduction is wrong.
@@ -441,9 +454,18 @@ assert not ctrl_bad
 print(f"  offset steps over k = 1..{FLOAT_K_MAX} (k, p_k, new offset):")
 for k, p, off in float_steps:
     print(f"    k = {k:>6,}  p_k = {p:>9,}  mode = k - {off}")
-print(f"  margin at the second step: e_2 - e_3 crosses by about "
-      f"{abs(es[2] - es[3]):.3e} at k = {FLOAT_K_MAX:,}, against a double's "
-      f"~1e-11 on this sum")
+# Is a double good enough to LOCATE a crossing? The test is the size of
+# one prime's change in the quantity that crosses, against the error of
+# the accumulation -- not the gap at the end of the walk, which says
+# nothing about where the crossing sat.
+step_k, step_p = float_steps[-1][0], float_steps[-1][1]
+per_step = (1.0 / (step_p - 1)) * abs(es[2] - es[1])
+print(f"  at the last step (k = {step_k:,}) one prime moves e_3 - e_2 by "
+      f"about {per_step:.2e}, against an accumulated double error of "
+      f"~{FLOAT_K_MAX * 2.2e-16 * es[2]:.1e} on a sum this size: the "
+      f"crossing k is pinned well inside one step")
+print(f"  end of walk: e_1 = {es[1]:.4f}  e_2 = {es[2]:.4f}  "
+      f"e_3 = {es[3]:.4f}  e_4 = {es[4]:.4f}")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -658,12 +680,12 @@ print("""
    k=22, offset 2 from k=23 (mode 21 against k-1=22), offset 3 from
    k=67,333 (p_k = 846,113), and nothing else below 70,000. Over
    k=23..40 the modal fraction holds near 0.3155 while e_{k-1}/N falls
-   0.3161 -> 0.2884; it is not a constant either, only slow. The top shell is never modal at any
-   k, since e_{k-1}/e_k = sum 1/(p_i - 1) > 1 always; the step down is
-   forced because e_{k-1} > e_{k-2} asks sum a_i > sum_{i<j} a_i a_j
-   with a_i = 1/(p_i - 1), whose left side grows like log log k and
-   whose right side grows like its square. So "the largest shell is the
-   next-to-last" is a statement IN RANGE, and the range ends.
+   0.3161 -> 0.2884; it is not a constant either, only slow. The TOP
+   shell is never modal past the first rung, e_{k-1}/e_k = sum
+   1/(p_i - 1) being > 1 from k=2 up and exactly 1 at k=1, where the
+   two tie. So "the largest shell is the next-to-last" was a statement
+   IN RANGE wearing no range, and the same is true of any offset put in
+   its place.
 
 6. LAMBDA-PHI RATIO. log(lambda)/log(phi) — how much of the available
    complexity, measured by phi, the dynamics actually uses. It is NOT
