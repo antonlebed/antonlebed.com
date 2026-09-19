@@ -221,7 +221,7 @@ F2 SO THE COARSE TYPE IS THE FACTORING TYPE, AT EVERY RING ON THE LADDER
    most g -- and the gate closes that: the least degree at which two
    distinct places share a class is 1, 2, 5, 5, 6 and 6 against genus 0, 1,
    1, 1, 1 and 2 -- margins of 1, 1, 4, 4, 5 and 4. The gate is thin at the
-   TWO ENDS of the ladder and nowhere between: at F_2[x], where every place
+   TWO LOWEST RUNGS and nowhere above: at F_2[x], where every place
    carries the trivial class and the two degree-1 places share it, and at
    the h = 2 ring, where two degree-2 places share a nonzero class. Each
    clears its genus by exactly one degree.
