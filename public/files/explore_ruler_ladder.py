@@ -118,10 +118,20 @@ range = stated).
    comparison records min_a |a - b*log2(3)| over b <= 2000 improve
    EXACTLY at b = 1, 2, 5, 12, 41, 53, 306, 665 = the continued-
    fraction convergent denominators of log2(3), both sides computed
-   from a 60-digit CF (Lagrange best-approximation). Two independent
-   scales jointly generate a magnitude ruler of unbounded precision; a
-   dependent pair never sharpens. This is the MECHANISM of the R2
-   doors.
+   from a 60-digit CF (Lagrange best-approximation). TWO FURTHER ARMS,
+   because the ruler reading quotes the LADDER'S OWN record gaps and
+   the dependent pair's locked ratio, and neither was the statistic
+   this section printed at first. (a) Walking {2^a 3^b} upward, the
+   record-setting (smallest) neighbour ratios sit at exponent pairs
+   1/1, 2/1, 3/2, 8/5, 19/12 -- ratio 1.5000 -> 1.01364 -- every one a
+   CONVERGENT of log2(3), a best ONE-SIDED approximation and a
+   different object from the two-sided records above, whose b run
+   1, 2, 5, 12, 41, 53, 306, 665. (b) The locked ratio of a dependent
+   pair is NOT 2: for bases c^m, c^n the product ladder is
+   {c^(ma+nb)} and locks at c^gcd(m,n), so (3,9) locks at 3 where
+   (2,8) locks at 2, and (4,16) at 4. Two independent scales jointly
+   generate a magnitude ruler of unbounded precision; a dependent pair
+   never sharpens. This is the MECHANISM of the R2 doors.
 
 2. THE PUTNAM DOOR RUNS (rule, brute-verified 0 <= x <= 60, all
    y <= 3721; S2). The mid-scale archimedean read: y = x^2 iff
@@ -343,7 +353,41 @@ def s1_joint_ladder():
     check(set(records) == conv_dens,
           f"records {records} vs convergents {sorted(conv_dens)}")
     print(f"     records of min_a|a - b*log2(3)| at b = {records}")
-    print(f"     = CF convergent denominators (Lagrange)   [PASS]")
+    print(f"     = CF convergent denominators (Lagrange)")
+
+    # THE LADDER'S OWN RECORD GAPS (the statistic the ruler reading
+    # quotes, and a DIFFERENT object from the two-sided approximation
+    # records above): walking {2^a 3^b} upward, each new smallest
+    # neighbour ratio 2^da*3^db is a best ONE-SIDED approximation, so
+    # its exponent pair |da|/|db| should be a convergent of log2(3).
+    pairs = sorted((2 ** a * 3 ** b, a, b)
+                   for a in range(70) for b in range(45)
+                   if 2 <= 2 ** a * 3 ** b <= LIMIT)
+    convergents = set(zip(ps, qs))
+    gap_recs, best_r = [], None
+    for (x, a1, b1), (y, a2, b2) in zip(pairs, pairs[1:]):
+        r = y / x
+        if best_r is None or r < best_r - 1e-15:
+            best_r = r
+            gap_recs.append((r, abs(a2 - a1), abs(b2 - b1)))
+    for r, da, db in gap_recs:
+        check((da, db) in convergents,
+              f"gap record 2^{da}/3^{db} (ratio {r:.6f}) not a convergent")
+    print("     ladder gap records at a/b = "
+          + ", ".join(f"{da}/{db}" for _, da, db in gap_recs)
+          + f" (ratio {gap_recs[0][0]:.4f} -> {gap_recs[-1][0]:.5f})")
+    print("     = CF convergents of log2(3), every one   [PASS]")
+
+    # A SECOND DEPENDENT PAIR: the locked ratio is the COMMON ROOT, not
+    # 2. For bases c^m, c^n the product ladder is {c^(ma+nb)}, so it
+    # locks at c^gcd(m,n) -- (2,8) gives 2 and (3,9) gives 3.
+    prods9 = sorted(set(
+        x for x in (3 ** a * 9 ** b for a in range(40) for b in range(20))
+        if 3 <= x <= LIMIT))
+    for x, y in zip(prods9, prods9[1:]):
+        check(y == 3 * x, "dependent pair (3,9) locked at ratio 3")
+    print(f"     (3,9) product ladder: all {len(prods9)-1} ratios exactly "
+          f"3 -- the locked ratio is the common root, not 2   [PASS]")
 
 
 # ----------------------------------------------------------------------
