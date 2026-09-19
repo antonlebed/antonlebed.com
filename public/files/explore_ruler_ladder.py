@@ -59,11 +59,14 @@ THE RULER READING (synthesis; the necessity direction's state):
  - EVERY door mints a ruler: any non-Presburger M c= N definably yields
    an EXPANDING set -- unbounded gaps, a scale (Michaux-Villemaire 1996,
    Thm 29 in Bes's survey).
- - ONE ruler never opens the door: Semenov's compatibility criterion is
-   literally "every derived linear probe is bounded or outruns the set"
-   -- no readable MID-SCALE ruler (x^2 fails exactly because the
-   successor-gap 2x+1 is one; verified S2). One full ladder (Buchi) is
-   still decidable: a scale with nothing independent to compare against.
+ - ONE ruler opens the door only by being readable MID-SCALE, which is
+   what Semenov's compatibility criterion forbids: literally "every
+   derived linear probe is bounded or outruns the set" (x^2 fails
+   exactly because the successor-gap 2x+1 is neither -- unbounded, and
+   below x^2 from x = 3; verified S2, and one ruler is enough at that
+   door). A ruler MEETING the criterion is safe alone, and one full
+   ladder (Buchi) is still decidable: a scale with nothing independent
+   to compare against.
  - The door opens when TWO INDEPENDENT rulers get COMPARED: V_k+V_l /
    k^N+l^N (multiplicative independence = the joint ladder is dense,
    verified S1), B_6 (Lucas digit reads at two primes; Kummer: the
@@ -128,8 +131,10 @@ range = stated).
    different object from the two-sided records above, whose b run
    1, 2, 5, 12, 41, 53, 306, 665. (b) The locked ratio of a dependent
    pair is NOT 2: for bases c^m, c^n the product ladder is
-   {c^(ma+nb)} and locks at c^gcd(m,n), so (3,9) locks at 3 where
-   (2,8) locks at 2, and (4,16) at 4. Two independent scales jointly
+   {c^(ma+nb)} and locks at c^gcd(m,n), so (3,9) locks at 3 and
+   (4,16) at 4 where (2,8) locks at 2 -- (4,16) sharing (2,8)'s common
+   root and not its ratio, which is why the common root is not the
+   formula either. All three printed. Two independent scales jointly
    generate a magnitude ruler of unbounded precision; a dependent pair
    never sharpens. This is the MECHANISM of the R2 doors.
 
@@ -378,16 +383,22 @@ def s1_joint_ladder():
           + f" (ratio {gap_recs[0][0]:.4f} -> {gap_recs[-1][0]:.5f})")
     print("     = CF convergents of log2(3), every one   [PASS]")
 
-    # A SECOND DEPENDENT PAIR: the locked ratio is the COMMON ROOT, not
-    # 2. For bases c^m, c^n the product ladder is {c^(ma+nb)}, so it
-    # locks at c^gcd(m,n) -- (2,8) gives 2 and (3,9) gives 3.
-    prods9 = sorted(set(
-        x for x in (3 ** a * 9 ** b for a in range(40) for b in range(20))
-        if 3 <= x <= LIMIT))
-    for x, y in zip(prods9, prods9[1:]):
-        check(y == 3 * x, "dependent pair (3,9) locked at ratio 3")
-    print(f"     (3,9) product ladder: all {len(prods9)-1} ratios exactly "
-          f"3 -- the locked ratio is the common root, not 2   [PASS]")
+    # FURTHER DEPENDENT PAIRS: the locked ratio is NOT 2, and it is not
+    # the common root either. For bases c^m, c^n the product ladder is
+    # {c^(ma+nb)}, so it locks at c^gcd(m,n): (3,9) at 3 and (4,16) at
+    # 4, the second sharing (2,8)'s common root and not its ratio.
+    for b1, b2, want in ((3, 9, 3), (4, 16, 4)):
+        lad = sorted(set(
+            x for x in (b1 ** a * b2 ** b
+                        for a in range(60) for b in range(30))
+            if b1 <= x <= LIMIT))
+        for x, y in zip(lad, lad[1:]):
+            check(y == want * x,
+                  f"dependent pair ({b1},{b2}) locked at ratio {want}")
+        print(f"     ({b1},{b2}) product ladder: all {len(lad)-1} ratios "
+              f"exactly {want}")
+    print("     = c^gcd(m,n) for bases c^m, c^n, never 2 by default"
+          "   [PASS]")
 
 
 # ----------------------------------------------------------------------
