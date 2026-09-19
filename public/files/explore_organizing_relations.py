@@ -40,7 +40,10 @@ Findings preview (full statements at the bottom):
      betweenness, and the order-grading are NOT. The failures differ
      in kind: order/betweenness fail MAXIMALLY (every channel
      projection saturates -- the conjunction of projections is the
-     full relation, channels see nothing), the grading fails
+     full relation, channels see nothing) FROM RUNG 2, the onset
+     being two channels and not the tower: at rung 1 the conjunction
+     of the single projection IS the relation, so order is
+     conjunctive there and does not fail at all. The grading fails
      PROPERLY (projections are proper -- channels see something,
      the glue is cross-channel). Cyclifying buys nothing:
      btw(0,a,b) <=> a < b by definition, so the ternary cyclic
@@ -70,9 +73,9 @@ Findings preview (full statements at the bottom):
      though not conjunctive. In the limit the grade lattice completes
      to Steinitz's supernatural divisibility lattice exactly as the
      idempotents complete to P(Primes). But the grading does NOT
-     separate Z: fixed integers climb to the TOP of the lattice too
-     (verified n = 2, 3: the lcm of ord_p(n) accumulates prime
-     powers); only support separates Z, and almost every element sits
+     separate Z: fixed integers PAST +-1 climb to the TOP of the
+     lattice too (verified n = 2, 3: the lcm of ord_p(n) accumulates
+     prime powers; 0 and +-1 sit at grades 1, 1 and 2); only support separates Z, and almost every element sits
      at the top grade (Dirichlet + Borel-Cantelli) while EVERY
      support stratum is null -- location, not magnitude, is the
      organizing data of the bulk.
@@ -204,6 +207,22 @@ nR, nC, sat, _ = conjunctive_report("divisibility", rel_div, R4, ENC4)
 assert nR == nC == math.prod(p * p - p + 1 for p in R4.primes)
 nR, nC, sat, _ = conjunctive_report("order <=", rel_le, R4, ENC4)
 assert nR == N4 * (N4 + 1) // 2 and nC == N4 * N4 and sat
+# THE ONSET of order's maximal failure, because the page states one and
+# this rig tested only Z/210: at ONE channel the conjunction of a single
+# projection IS the relation, so order is conjunctive and does not fail
+# at all. Rung 2 is where two channels can be read against each other.
+for k in (1, 2, 3):
+    ring = thin_ring(k)
+    enc = [encode(x, ring) for x in range(ring.N)]
+    nR_, nC_, sat_, _ = conjunctive_report(
+        "order rung %d" % k, lambda x, y: x <= y, ring, enc)
+    if k == 1:
+        assert nR_ == nC_ and not sat_, (k, nR_, nC_, sat_)
+    else:
+        assert nC_ == ring.N * ring.N and sat_ and nR_ < nC_, (k, nR_, nC_)
+print("  order is CONJUNCTIVE at rung 1 (one projection is the relation)")
+print("  and fails MAXIMALLY from rung 2 on: the onset is two channels,")
+print("  not the tower -- Z/6 already saturates every projection")
 nR, nC, sat, proj_od = conjunctive_report("ord-divides", rel_orddiv, R4, ENC4)
 assert nR < nC < N4 * N4 and not sat
 # the grading's cross-channel glue, exhibited: (x_7, y_7) = (3, 1) is in
@@ -588,22 +607,26 @@ print("  the deleted place; only its purpose (the gcd) survives")
 # vanishes outright, and that set is exactly supp x subset of supp y,
 # which is the one-step support read again and not a descent.
 for ring, enc, N in ((R3, ENC3, N3), (R4, ENC4, N4)):
-    stop, cyc, sub = {}, 0, 0
-    for x0 in range(N):
+    stop, cyc = {}, 0
+    first, subset = set(), set()       # the two SETS, not their counts:
+    for x0 in range(N):                # equal sizes would not say "exactly"
         for y0 in range(N):
             if all(u <= v for u, v in
                    zip([1 if x0 % p else 0 for p in ring.primes],
                        [1 if y0 % p else 0 for p in ring.primes])):
-                sub += 1
+                subset.add((x0, y0))
             a, b = x0, y0
             for i in range(1, 4 * ring.k + 4):
                 a, b = b, a * (1 - e_supp(b, ring, enc)) % N
                 if b == 0:
                     stop[i] = stop.get(i, 0) + 1
+                    if i == 1:
+                        first.add((x0, y0))
                     break
             else:
                 cyc += 1
-    assert stop.get(1) == sub, (stop.get(1), sub)
+    assert first == subset, len(first ^ subset)
+    sub = len(subset)
     print("  Z/%d: %d of %d pairs reach 0, %d of them at the FIRST step"
           % (N, sum(stop.values()), N * N, stop[1]))
     print("    and those %d are exactly the pairs with supp x <= supp y;"
@@ -683,7 +706,8 @@ print("""
    the idempotents complete to P(Primes) (classical contact, named).
    But the grading separates nothing that matters: almost every
    element sits at the TOP grade (P[q^e | period] -> 1, monotone,
-   computed to 300 channels), and fixed integers sit at the top too
+   computed to 300 channels), and fixed integers past +-1 sit at the
+   top too
    (n = 2, 3: the lcm of ord_p(n) over p <= 10^4 already swallows
    all prime powers <= 32). Only SUPPORT separates Z from the bulk
    -- and every support stratum is Haar-null (largest stratum 0.05
