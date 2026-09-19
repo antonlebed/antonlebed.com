@@ -207,10 +207,11 @@ nR, nC, sat, _ = conjunctive_report("divisibility", rel_div, R4, ENC4)
 assert nR == nC == math.prod(p * p - p + 1 for p in R4.primes)
 nR, nC, sat, _ = conjunctive_report("order <=", rel_le, R4, ENC4)
 assert nR == N4 * (N4 + 1) // 2 and nC == N4 * N4 and sat
-# THE ONSET of order's maximal failure, because the page states one and
-# this rig tested only Z/210: at ONE channel the conjunction of a single
-# projection IS the relation, so order is conjunctive and does not fail
-# at all. Rung 2 is where two channels can be read against each other.
+# THE ONSET of order's maximal failure, which the tests above (Z/210,
+# Z/30) do not reach: at ONE channel the conjunction of a single
+# projection IS the relation, so order is conjunctive there and does
+# not fail at all. Rung 2 is where two channels can be read against
+# each other, and Z/6 already saturates every projection.
 for k in (1, 2, 3):
     ring = thin_ring(k)
     enc = [encode(x, ring) for x in range(ring.N)]
