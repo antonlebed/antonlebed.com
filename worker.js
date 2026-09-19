@@ -148,6 +148,7 @@ export default {
       '/principal/shortfall': 'shortfall',
       '/principal/triple': 'triple',
       '/principal/degeneracy': 'degeneracy',
+      '/principal/forcing': 'forcing',
       '/principal/generator': 'generator',
       '/principal/observatory': 'observatory',
       '/principal/jumpset': 'jumpset',
