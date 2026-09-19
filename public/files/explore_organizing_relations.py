@@ -81,7 +81,8 @@ Findings preview (full statements at the bottom):
      the lambda-chain has height 4 at RAD -- depth is a constant of
      the RING, not of the element (recursion compiles to fixed-depth
      loops; Meyer-Ritchie flavor). Euclid's loop has no meadow
-     analogue (the remainder cannot shrink: explicit 2-cycle), but
+     analogue (the remainder cannot SHRINK; where it does not vanish
+     outright it 2-cycles, swept at Z/30 and Z/210), but
      its PURPOSE trivializes: the gcd ideal is a one-step support
      read, (x, y) = (e_{supp x OR supp y}). In the limit both
      surviving lattices lose well-foundedness (infinite descending
@@ -582,6 +583,34 @@ print("  Euclid's loop (x, y) -> (y, x off supp(y)) enters a 2-cycle and")
 print("  never reaches y = 0 (witness at Z/30): with no size, the")
 print("  remainder cannot SHRINK -- division-with-remainder died with")
 print("  the deleted place; only its purpose (the gcd) survives")
+# and the witness swept, because "never terminates" was read off it as
+# a law: the loop DOES reach 0 on the pairs where the remainder
+# vanishes outright, and that set is exactly supp x subset of supp y,
+# which is the one-step support read again and not a descent.
+for ring, enc, N in ((R3, ENC3, N3), (R4, ENC4, N4)):
+    stop, cyc, sub = {}, 0, 0
+    for x0 in range(N):
+        for y0 in range(N):
+            if all(u <= v for u, v in
+                   zip([1 if x0 % p else 0 for p in ring.primes],
+                       [1 if y0 % p else 0 for p in ring.primes])):
+                sub += 1
+            a, b = x0, y0
+            for i in range(1, 4 * ring.k + 4):
+                a, b = b, a * (1 - e_supp(b, ring, enc)) % N
+                if b == 0:
+                    stop[i] = stop.get(i, 0) + 1
+                    break
+            else:
+                cyc += 1
+    assert stop.get(1) == sub, (stop.get(1), sub)
+    print("  Z/%d: %d of %d pairs reach 0, %d of them at the FIRST step"
+          % (N, sum(stop.values()), N * N, stop[1]))
+    print("    and those %d are exactly the pairs with supp x <= supp y;"
+          % sub)
+    print("    %d enter the 2-cycle. Non-termination is the WITNESS's,"
+          % cyc)
+    print("    not the loop's: what has no analogue is the SHRINKING")
 # (e) in the limit, both surviving lattices lose well-foundedness:
 # finite shadow -- the attained chain length k+1 is unbounded in k.
 for k in range(3, 13):
@@ -675,8 +704,13 @@ print("""
    splits: the gcd IDEAL is a one-step support read ((x, y) =
    (e_{supp union}), exhaustive Z/30 + the gcd identity at Z/210),
    while Euclid's LOOP has no meadow analogue -- the sizeless
-   remainder x(1 - e_supp(y)) enters a 2-cycle and never terminates
-   (witness). In the limit, both surviving lattices have infinite
+   remainder x(1 - e_supp(y)) cannot SHRINK, and the witness's own
+   non-termination is not the loop's: swept exhaustively, 470 of the
+   900 pairs at Z/30 and 19,172 of the 44,100 at Z/210 DO reach 0,
+   441 and 18,963 of them at the first step, and that first-step set
+   is exactly the pairs with supp x <= supp y -- the one-step support
+   read again, never a descent. 430 and 24,928 enter the 2-cycle.
+   In the limit, both surviving lattices have infinite
    descending chains: well-founded descent joins lambda and ECC in
    the DIES column of explore_limit_object.py. The trade against Z: Z is well-founded with
    unbounded recursion depth; the tower is bounded-depth at every
