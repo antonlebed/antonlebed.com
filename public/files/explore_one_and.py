@@ -153,20 +153,20 @@ SCOPE + HONESTY. THIS ENGINE'S OPS CARRY ANY STEP AND THE CLASS'S CARRY
 +-1, which is what |v| in UNIT ops is for: expanding an op of step d
 into d unit ops inserts no read and moves no read's value, so a
 general-step program and its +-1 expansion end at the same pass, the
-expansion's op count being exactly the unit count the hypothesis 4|v|
-is stated in. So P5's witness, whose v holds a pulse of 2, is a
-+-1 program of the class at |v| = 7 (argued, not run). The argument
-covers every program and every supply
-whose moduli exceed 4|v| inside the loop, so on a supply tending to
-infinity it holds past a program constant; the sweeps are two banks and
-at most 11 control states. What it removes is memory: a run is a finite
-automaton reading the supply's arithmetic one way, since each trip's
-ops are fixed by its start state and its exit is read off moduli that g
-names. Whether halting in the class is decidable on a given supply rides
-on that arithmetic and is not claimed. The per-bank AND class
-(explore_clock_counter.py) is universal with three banks, so the whole
-gap between the two classes is whether a bank can be read while another
-holds a value.
+expansion's op count being exactly the unit count the hypothesis 4|v| is
+stated in. So P5's witness, whose v holds a pulse of 2, EXPANDS to a +-1
+program of the class whose v is 7 ops and ends at the same pass (argued,
+not run); the witness itself is not one. The argument covers every
+program and every supply whose moduli exceed 4|v| inside the loop, so on
+a supply tending to infinity it holds past a program constant; the
+sweeps are two banks and at most 11 control states. What it removes is
+memory: a run is a finite automaton reading the supply's arithmetic one
+way, since each trip's ops are fixed by its start state and its exit is
+read off moduli that g names. Whether halting in the class is decidable
+on a given supply rides on that arithmetic and is not claimed. The
+per-bank AND class (explore_clock_counter.py) is universal with three
+banks, so the whole gap between the two classes is whether a bank can be
+read while another holds a value.
 
 RUN RECORD (python prime/code/memwatch.py prime/code/explore_one_and.py;
 2.8 s wall clock, 13.2 MB peak working set, 32 checks). C1 14547 TEST
