@@ -39,6 +39,14 @@ THE KEY OBJECTS.
      query q and every admissible pool (one containing at least one
      >=t neighbour of q) IFF the label is constant on the connected
      components of G_t.
+     G_t IS THE WORLD'S GRAPH AND THE QUERY IS IN W, which the (<=)
+     leg below consumes when it says "q's component" and the sweep
+     supplies by drawing q from names. Over the STORE's graph alone
+     the criterion is FALSE, and the witness is cheap: q, a, b on four
+     windows with ov(q,a) = ov(q,b) = t = 2 and ov(a,b) = 0 leaves a
+     and b in different (singleton) components, so labelling them
+     apart is component-constant while q ties them at the deepest
+     overlap with disagreeing labels.
        (<=) An exemplar achieving ov >= t is itself a G_t-neighbour of
        q, hence in q's component; constancy gives the true label, and
        every tied exemplar sits in the same component -- ties
@@ -561,6 +569,30 @@ def main():
         if cc == ex:
             agree_t += 1
     check("PR2: same at the tiny world, 27/27 labelings", agree_t == 27)
+
+    # THE WORLD IS NOT THE STORE, and the criterion is false over the
+    # store's own graph. A cold reader of the page raised this and the
+    # page had narrowed the world to the store; the arm is here so the
+    # narrowing cannot come back silently. q, a, b on four windows:
+    # ov(q,a) = ov(q,b) = t = 2 and ov(a,b) = 0.
+    W4 = {"q": (0, 0, 0, 0), "a": (0, 0, 1, 1), "b": (1, 1, 0, 0)}
+    ov4 = lambda x, y: sum(1 for i in range(4) if W4[x][i] == W4[y][i])
+    check("witness overlaps (q,a) (q,b) (a,b) = 2, 2, 0",
+          (ov4("q", "a"), ov4("q", "b"), ov4("a", "b")) == (2, 2, 0))
+    lab_split = {"q": 0, "a": 0, "b": 1}
+    store_comps = components(["a", "b"], ov4, 2)
+    check("over the STORE's graph the split labeling is "
+          "component-constant", is_component_constant(lab_split,
+                                                      store_comps),
+          f"components {sorted(sorted(c) for c in store_comps)}")
+    check("...yet the readout is NOT exact: the criterion FAILS over "
+          "the store", not exact_readout_everywhere(W4.keys(), ov4,
+                                                    lab_split, 2))
+    world_comps = components(W4.keys(), ov4, 2)
+    check("over the WORLD's graph q, a, b are ONE component, so no "
+          "component-constant labeling separates a from b",
+          len(world_comps) == 1 and not
+          is_component_constant(lab_split, world_comps))
 
     # ------------------------------------------------------------------
     print("\n-- PR3: THE READABLE HULL --")
