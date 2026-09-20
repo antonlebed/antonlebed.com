@@ -32,8 +32,9 @@ the next comb extension cost a q_K (K = 3M + 3). Then
 
 an integer top charge c that absorbs the extension EXISTS iff a is
 ODD, and then c = (a-1)/2. The absorption is TOP-LOCAL: the charge
-is conserved and moves two positions up; every digit below is
-untouched. That conserved half-charge is the invariant. At even a no
+is conserved and moves THREE positions up, K-1 to K+2, which is the
+comb's own step and what the identity above prints; every digit below
+is untouched. That conserved half-charge is the invariant. At even a no
 integer c solves 2c = a - 1, the leftover q_K spreads downward, and
 the bottom restripes.
 
@@ -165,7 +166,7 @@ THE READING: the parity split is the ABSORPTION LEMMA. The window's
 two unit quotients give the doubling identity q_{K+2} = 2 q_K +
 q_{K-1} at K = 0 (mod 3), so a top charge c q_{K-1} absorbs the
 next comb extension a q_K top-locally iff 2c = a - 1. Odd a: the
-charge (a-1)/2 exists, is conserved, and climbs two positions per
+charge (a-1)/2 exists, is conserved, and climbs three positions per
 extension — everything below is untouched, the image bottom freezes
 at (0, 1, (a+1)/2), and xa is READABLE along the comb (theorem, all
 odd a >= 3, all M). Even a: the best integer charge a/2 - 1 leaves
