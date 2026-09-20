@@ -288,7 +288,13 @@ print(f"  the maximal failure mode, the size wall in ternary clothes")
 # channels can supply. Betweenness fails MAXIMALLY from rung 2, the
 # claim under test; rung 1 is degenerate, Z/2 having no three distinct
 # elements. The grading half held; the betweenness half did NOT, and
-# the asserts below record what the arm printed.
+# the asserts below record what the arm printed. EACH ARM CARRIES ITS
+# OWN POSITIVE CONTROL, read before either verdict: the grading's
+# rung 4 must reproduce the ord-divides line above (23,196 against
+# 25,308) and betweenness's rung 3 the Z/30 block above (12,180 true
+# triples, every projection saturated) -- a rung sweep that disagreed
+# with the single-rung runs it extends would be the harness, not the
+# claim.
 def period_rel(ring, enc):
     per = [math.lcm(*(ordp(r, p) for r, p in zip(enc[x], ring.primes)))
            for x in range(ring.N)]
@@ -297,8 +303,10 @@ def period_rel(ring, enc):
 for k in (1, 2, 3, 4):
     ring = thin_ring(k)
     enc = [encode(x, ring) for x in range(ring.N)]
-    nR_, nC_, sat_, _ = conjunctive_report(
+    nR_, nC_, sat_, projg = conjunctive_report(
         "grading rung %d" % k, period_rel(ring, enc), ring, enc)
+    print("    proj " + ", ".join(f"{len(projg[i])}/{ring.primes[i] ** 2}"
+                                  for i in range(k)))
     if k <= 2:
         assert nR_ == nC_, (k, nR_, nC_)          # conjunctive
     else:
@@ -309,7 +317,8 @@ print("  cannot cover, and at Z/30 channel 5's ord(2) = 4 can")
 
 for k in (2, 3):
     ring = thin_ring(k)
-    n, enc = ring.N, [encode(x, thin_ring(k)) for x in range(thin_ring(k).N)]
+    n = ring.N
+    enc = [encode(x, ring) for x in range(n)]
     projb_k, nb = [set() for _ in range(k)], 0
     for a in range(n):
         for b in range(n):
@@ -327,6 +336,33 @@ for k in (2, 3):
     print(f"  betweenness rung {k} (Z/{n}): |R| = {nb}, |conj| = {nb_conj}, "
           f"proj {sizes} -> {'MAXIMAL' if sat_k else 'PROPER'}")
     assert nb < nb_conj and sat_k == (k >= 3), (k, nb, nb_conj, sat_k)
+# RUNG 4 FOR BETWEENNESS, so "from rung 3" rests on more than the rung
+# it starts at. The full triple enumeration is 210^3 twice; it is not
+# needed, because MAXIMAL is exactly saturation and saturation is an
+# EXISTENCE statement -- one witness per residue triple PROVES it, while
+# the conjunction being wider than R follows from saturation alone
+# (|R| is half the distinct triples and the conjunction is all of them).
+# So: for every channel and every residue triple of that channel, find
+# distinct a, b, c in Z/210 carrying it with btw(a, b, c) true.
+rng = random.Random(1307)
+missing = []
+for i, p in enumerate(R4.primes):
+    for u in range(p):
+        for v in range(p):
+            for w in range(p):
+                for _ in range(400):
+                    a = (u + p * rng.randrange(N4 // p)) % N4
+                    b = (v + p * rng.randrange(N4 // p)) % N4
+                    c = (w + p * rng.randrange(N4 // p)) % N4
+                    if len({a, b, c}) == 3 and btw(a, b, c, N4):
+                        break
+                else:
+                    missing.append((p, u, v, w))
+assert not missing, missing[:5]
+print(f"  betweenness rung 4 (Z/{N4}): every channel projection SATURATES,")
+print(f"  witnessed triple by triple over all "
+      f"{sum(p ** 3 for p in R4.primes)} residue triples of the four")
+print("  channels, so the maximal mode holds at rungs 3 and 4")
 print("  so betweenness does NOT reach the maximal mode at rung 2: it")
 print("  fails PROPERLY there (channel 3 keeps 24 of its 27 triples) and")
 print("  MAXIMALLY from rung 3 -- order's onset is not betweenness's")
