@@ -1,10 +1,12 @@
-"""explore_double_birth.py — the ledger's serial law: one new prime power
+"""explore_double_birth.py — the ledger's serial law: one BASE raised
 per lambda jump, characterized as record disjointness and searched far.
 
 THE QUESTION. The tower's complexity ledger holds one unproved singleton
-law: on the primorial schedule, every lambda jump introduces EXACTLY ONE
-new prime power (rule, verified k <= 10^4 — never two at once). What IS
-that law, and how far does it hold?
+law: on the primorial schedule, every lambda jump raises the exponent of
+EXACTLY ONE base q, the new prime power being q^{v_q(p-1)} (rule,
+verified k <= 10^4 — never two bases at once; a base carried up several
+levels in one jump is ONE birth, see the coverage lemma's parenthetical).
+What IS that law, and how far does it hold?
 
 THE CHARACTERIZATION (theorem, hand-proved before this script existed).
 Write f(m) = least prime p with p ≡ 1 (mod m). On the primorial schedule

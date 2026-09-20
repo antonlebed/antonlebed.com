@@ -113,8 +113,9 @@ D6 [property; the Haar statement is classical] BENFORD = THE DUAL
     needed a measure named. Dual pole — ambient R_{>0}
     (multiplicative), rung the scale circle, Haar = log-uniform,
     and the reading partition (digit windows) is NOT a coset
-    partition: cell m carries Haar log_b((m+1)/m) — BENFORD'S LAW
-    IS THE GRID/HAAR MISMATCH, and that mismatch is why every
+    partition: cell m carries Haar log_b((m+1)/m) — THAT INEQUALITY OF
+    CELLS UNDER HAAR IS THE GRID/HAAR MISMATCH, and the digit law it
+    forces is what Benford's law is usually written as, and that mismatch is why every
     density at this pole is measure-carrying. Exact checks: the
     pushforward of Benford under x -> q x (rational q) returns
     every window's Haar — the preimage is a single arc of the
@@ -221,8 +222,9 @@ F5 THE PAIR DENSITY LIMITS (rule): counting -> 2(1 - b^{-j})/b^c
    the mean of F3's hump R(x) over x uniform in [0,1], two
    independent derivations of one constant, both confirmed. The
    counting limit carries no base-entangled constant, where the
-   Benford one carries K_b: each operand contributes b^{-c}, an
-   additive lookahead budget. The sibling's printed ratio
+   Benford one carries K_b: each operand contributes b^{-c} and the
+   two ADD, so a second operand costs as much as the first rather
+   than compounding with it. The sibling's printed ratio
    wobble (1.79-2.09) is finite-t plus the saturated c=1 cell;
    the limit ratio is exactly b under both measures.
 F6 BENFORD = THE DUAL HAAR (property): the rational-arc telescope
@@ -236,8 +238,8 @@ F6 BENFORD = THE DUAL HAAR (property): the rational-arc telescope
    pole ambient Z, rung Z/N, Haar counting, reading cells = cosets
    (equal Haar); dual pole ambient R_{>0}, rung the scale circle
    R_{>0}/b^Z, Haar log-uniform, reading cells NOT cosets (cell m
-   has Haar log_b((m+1)/m) — Benford's law is the grid/Haar
-   mismatch, and that mismatch is why only this pole's densities
+   has Haar log_b((m+1)/m) — that inequality of cells under Haar is
+   the grid/Haar mismatch and the digit law it forces is Benford's, and that mismatch is why only this pole's densities
    carry a measure tag).
 F7 THE CARRY LINEARIZATION (rule): the Benford pair-carry
    probability converges to 1/2 at every base (0.49949 at b=2,
