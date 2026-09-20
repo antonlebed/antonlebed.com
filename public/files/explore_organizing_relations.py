@@ -38,14 +38,18 @@ Findings preview (full statements at the bottom):
   1. THE CONJUNCTIVE SPLIT (rule): equality and divisibility ARE
      conjunctions of their channel projections; order, cyclic
      betweenness, and the order-grading are NOT. The failures differ
-     in kind: order/betweenness fail MAXIMALLY (every channel
-     projection saturates -- the conjunction of projections is the
-     full relation, channels see nothing) FROM RUNG 2, the onset
-     being two channels and not the tower: at rung 1 the conjunction
-     of the single projection IS the relation, so order is
-     conjunctive there and does not fail at all. The grading fails
-     PROPERLY (projections are proper -- channels see something,
-     the glue is cross-channel). Cyclifying buys nothing:
+     in kind, and the THREE ONSETS ARE NOT ONE. Order fails
+     MAXIMALLY (every channel projection saturates -- the conjunction
+     of projections is the full relation, channels see nothing) FROM
+     RUNG 2, the onset being two channels and not the tower: at
+     rung 1 the conjunction of the single projection IS the relation,
+     so order is conjunctive there and does not fail at all.
+     Betweenness reaches that mode only FROM RUNG 3: at rung 2
+     channel 3 keeps 24 of its 27 triples, a PROPER failure, so the
+     ternary relation needs a third channel for what order gets from
+     two. The grading fails PROPERLY from RUNG 3 (projections are
+     proper -- channels see something, the glue is cross-channel) and
+     is conjunctive at rungs 1 and 2. Cyclifying buys nothing:
      btw(0,a,b) <=> a < b by definition, so the ternary cyclic
      relation carries the whole size wall.
   2. THE CONSUMPTION AXIS (rule): the swap partition is {0 | rest}
@@ -271,6 +275,61 @@ print(f"  betweenness at Z/30: every channel projection saturates")
 print(f"  (all p^3 residue triples appear among the {n_true} true triples")
 print(f"  of {n_dist} distinct): conjunction of projections = EVERYTHING --")
 print(f"  the maximal failure mode, the size wall in ternary clothes")
+
+# THE ONSETS OF THE OTHER TWO FAILURES. Order's onset has the rung 1-3
+# loop above; the grading was run only at Z/210 and betweenness only at
+# Z/30, so "onset rung 3" and "from rung 2" were carried by order's arm
+# and had none of their own. Slate, frozen before this arm ran: the
+# grading is CONJUNCTIVE at rungs 1 and 2 -- over Z/6 the period is 1 or
+# 2, and 2 exactly at x = 2 mod 3, so channel 3's projection is 7 pairs
+# of 9, PROPER, while the conjunction still closes on R because "x = 2
+# mod 3 forces y = 2 mod 3" IS the relation there -- and fails PROPERLY
+# from rung 3, where ord_5(2) = 4 exceeds every period the other two
+# channels can supply. Betweenness fails MAXIMALLY from rung 2, the
+# claim under test; rung 1 is degenerate, Z/2 having no three distinct
+# elements. The grading half held; the betweenness half did NOT, and
+# the asserts below record what the arm printed.
+def period_rel(ring, enc):
+    per = [math.lcm(*(ordp(r, p) for r, p in zip(enc[x], ring.primes)))
+           for x in range(ring.N)]
+    return lambda x, y: per[y] % per[x] == 0
+
+for k in (1, 2, 3, 4):
+    ring = thin_ring(k)
+    enc = [encode(x, ring) for x in range(ring.N)]
+    nR_, nC_, sat_, _ = conjunctive_report(
+        "grading rung %d" % k, period_rel(ring, enc), ring, enc)
+    if k <= 2:
+        assert nR_ == nC_, (k, nR_, nC_)          # conjunctive
+    else:
+        assert nR_ < nC_ and not sat_, (k, nR_, nC_, sat_)   # proper
+print("  the grading is CONJUNCTIVE at rungs 1 and 2 and fails PROPERLY")
+print("  from rung 3: two channels cannot hold a torsion level the other")
+print("  cannot cover, and at Z/30 channel 5's ord(2) = 4 can")
+
+for k in (2, 3):
+    ring = thin_ring(k)
+    n, enc = ring.N, [encode(x, thin_ring(k)) for x in range(thin_ring(k).N)]
+    projb_k, nb = [set() for _ in range(k)], 0
+    for a in range(n):
+        for b in range(n):
+            for c in range(n):
+                if len({a, b, c}) == 3 and btw(a, b, c, n):
+                    nb += 1
+                    for i in range(k):
+                        projb_k[i].add((enc[a][i], enc[b][i], enc[c][i]))
+    nb_conj = sum(1 for a in range(n) for b in range(n) for c in range(n)
+                  if all((enc[a][i], enc[b][i], enc[c][i]) in projb_k[i]
+                         for i in range(k)))
+    sat_k = all(len(projb_k[i]) == ring.primes[i] ** 3 for i in range(k))
+    sizes = ", ".join(f"{len(projb_k[i])}/{ring.primes[i] ** 3}"
+                      for i in range(k))
+    print(f"  betweenness rung {k} (Z/{n}): |R| = {nb}, |conj| = {nb_conj}, "
+          f"proj {sizes} -> {'MAXIMAL' if sat_k else 'PROPER'}")
+    assert nb < nb_conj and sat_k == (k >= 3), (k, nb, nb_conj, sat_k)
+print("  so betweenness does NOT reach the maximal mode at rung 2: it")
+print("  fails PROPERLY there (channel 3 keeps 24 of its 27 triples) and")
+print("  MAXIMALLY from rung 3 -- order's onset is not betweenness's")
 
 # ----------------------------------------------------------------------
 section("II. THE CONSUMPTION PARTITION: BITS PER CHANNEL")
@@ -659,12 +718,15 @@ print("""
    reading iff it equals the conjunction of its channel projections.
    Equality and divisibility do (exhaustive at Z/210; divisibility's
    conjunct is "y_p = 0 or x_p != 0"). Order, cyclic betweenness, and
-   the order-grading do not -- and the failures differ in kind: order
-   and betweenness fail MAXIMALLY (every projection saturates; the
-   conjunction is the full relation -- channels retain nothing), the
-   grading fails PROPERLY (projections proper: witness (3,1) at
-   channel 7 -- whether an order is coverable depends on the OTHER
-   channels). Cyclifying buys nothing: btw(0,a,b) <=> a < b and
+   the order-grading do not -- and the failures differ in kind AND in
+   onset (swept rungs 1-4, betweenness 1-3). Order fails MAXIMALLY
+   (every projection saturates; the conjunction is the full relation
+   -- channels retain nothing) from rung 2, betweenness only from
+   rung 3 (at rung 2 channel 3 keeps 24 of its 27 triples: PROPER),
+   and the grading fails PROPERLY from rung 3 (projections proper:
+   witness (3,1) at channel 7 -- whether an order is coverable
+   depends on the OTHER channels), being conjunctive at rungs 1 and
+   2. Cyclifying buys nothing: btw(0,a,b) <=> a < b and
    btw is translation-invariant, so the ternary cyclic relation is
    interdefinable with order and carries the whole size wall.
 
