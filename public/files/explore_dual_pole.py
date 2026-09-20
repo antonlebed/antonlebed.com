@@ -48,7 +48,7 @@ P2 [T, rule] THE DUAL HIDING LAW: on a deep fiber, the bias of the
     iff channel 2 is among the unknown windows.
 P3 [T, property] THE RESIDUE WALL: the residue map n mod p is
     non-constant on every fiber of length >= 2, and the predicate
-    [p | n] is non-constant on every fiber of length >= p — no deep
+    [p | n] is non-constant on every fiber of length > p — no deep
     size window reads any finite place exactly. Below the prime's own
     scale (L <= p) the predicate can leak (a fiber may miss every
     multiple): the shallow leak.
@@ -100,21 +100,27 @@ THE FINDINGS
 ------------
 Verdict: the dual pole is RICH. The walls machinery runs there with
 exact mirror laws, and the pole carries one native unification with no
-finite-pole counterpart. 132 checks green.
+finite-pole counterpart. 133 checks green.
 
 F1 THE FIBER LEMMA (property, exhaustive at bases 2, 3, 10): the
    fibers of W_{b,t} are sign-definite contiguous integer intervals of
    length exactly b^max(0, e+1-t). One fiber geometry per pole:
    arithmetic progressions hide size, intervals hide residue.
 F2 THE DUAL HIDING LAW (rule; derived + exhaustive over the scanned
-   depths): the bias of [n = r mod p] on a deep fiber is EXACTLY zero
+   depths; p PRIME, which the derivation's "p | b^j iff p | b" step
+   needs and which P2 left unsaid -- at p = 4, b = 2 the bias is zero
+   on every fiber of depth 2 or more): the bias of [n = r mod p] on a
+   deep fiber is EXACTLY zero
    on every deep fiber iff p | b, and otherwise nonzero on every deep
    fiber with bias < 1/L (the printed maxima sit at the smallest
    scanned depth: 0.0208 = 2/(3*32) at b=2, p=3, L=32, the derived
    ceiling (p-1)/(pL) reached there, as it is only where L = +-1 mod p). Mirror of the finite pole's
    sign-hiding law (bias exactly zero iff channel 2 is unknown).
-F3 THE RESIDUE WALL (property): no deep fiber decides any residue
-   (the map is non-constant at length >= 2, the predicate [p | n] at
+F3 THE RESIDUE WALL (property): no deep fiber decides the RESIDUE map
+   (non-constant at length >= 2, and a deep fiber is at least b long),
+   while the PREDICATE [p | n] is answered by LENGTH and not by depth,
+   so a deep fiber shorter than p decides it
+   (the predicate non-constant at
    length >= p, tightened from > p and printed at the one scanned
    triple where a fiber of length exactly p exists, b = 2, p = 2,
    e = 2, two such fibers); below the prime's scale the
