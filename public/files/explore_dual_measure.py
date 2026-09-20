@@ -91,7 +91,8 @@ D5 [derived, rule-shape] THE PAIR DENSITY LIMITS: as t grows at
     fixed lookahead c and depth j, in the unsaturated regime
     (2 b^{1-c} <= 1):
 
-        counting:  D_pair -> 2 (1 - b^{-j}) / b^c      (base-free)
+        counting:  D_pair -> 2 (1 - b^{-j}) / b^c
+                   (no base-entangled constant; contrast K_b)
         Benford:   D_pair -> 2 (1 - b^{-j}) K_b / b^c,
                    K_b = (b-1)^2 / (b ln^2 b)
 
@@ -219,8 +220,9 @@ F5 THE PAIR DENSITY LIMITS (rule): counting -> 2(1 - b^{-j})/b^c
    K_b = (b-1)^2/(b ln^2 b) (1.041, 1.105, 1.528) — and K_b equals
    the mean of F3's hump R(x) over x uniform in [0,1], two
    independent derivations of one constant, both confirmed. The
-   counting limit is base-free: each operand contributes b^{-c},
-   an additive lookahead budget. The sibling's printed ratio
+   counting limit carries no base-entangled constant, where the
+   Benford one carries K_b: each operand contributes b^{-c}, an
+   additive lookahead budget. The sibling's printed ratio
    wobble (1.79-2.09) is finite-t plus the saturated c=1 cell;
    the limit ratio is exactly b under both measures.
 F6 BENFORD = THE DUAL HAAR (property): the rational-arc telescope
