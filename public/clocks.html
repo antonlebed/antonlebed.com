@@ -196,12 +196,13 @@ control, and four operations: <b>tick</b>, add ±1 at every window of
 one register; <b>pulse</b>, add ±1 at the newest window of one register
 only; <b>grow</b>, append a window born at 0 in every register; and a
 <b>zero-test</b>, true when every window it reads holds 0, the windows
-of one register or of every register as each block below states. No operation
+of one register or of every register as each block below states. Performing
+one is a <b>read</b>, the word every block below uses. No operation
 names an older window, so each window runs as a clock of period
-<i>m</i> and a zero-test reads whether clocks coincide at 0. Write
+<i>m</i> and a read tells whether clocks coincide at 0. Write
 <i>C</i> = lcm(<i>m</i><sub>1</sub>, …, <i>m<sub>g</sub></i>) over the
-windows grown. A register is <b>faithful</b> when its value tracks the
-count of increments applied to it, and the <b>sqrt pole</b> is the
+windows grown. A register is <b>faithful</b> over a range of values when
+its value tracks the count of increments applied to it there, and the <b>sqrt pole</b> is the
 supply <i>m<sub>g</sub></i> = max(2, ⌈√<i>g</i>⌉). The machine is the
 growing-window machine of <a href="/computation/delay">the delay
 line</a> with multiply, write-constant and register-to-register
@@ -238,9 +239,9 @@ cited.</p>
   unbounded on every unbounded supply. Two counters sharing one timer,
   each repaired by its own round trip after a grow since a grow misaligns
   both, run a two-counter machine. Both ingredients carry weight: without the
-  pulse the first loop stops at the least <i>s</i> with <i>s</i> ≡
+  pulse the first loop stops at the least value that is ≡
   <i>V</i> mod <i>C</i><sub>0</sub>, the lcm before the grow, and
-  <i>s</i> ≡ 0 mod <i>m</i>′, so it hangs when
+  ≡ 0 mod <i>m</i>′, so it hangs when
   gcd(<i>C</i><sub>0</sub>, <i>m</i>′) does not divide <i>V</i>, is
   right when <i>m</i>′ divides <i>V</i>, and lands at a wrong value
   otherwise; without the timer, growing at overflow with no round trip,
@@ -253,8 +254,8 @@ cited.</p>
   0 → 100 → 0 on <i>m<sub>g</sub></i> = max(2, ⌊log<sub>2</sub>
   <i>g</i>⌋ + 1) in 64 grows; 0 → 2000 → 0 on <i>m<sub>g</sub></i> =
   <i>g</i> at even <i>g</i> and 2 at odd <i>g</i> in 18 grows;
-  <i>B</i> := 3<i>A</i> from <i>A</i> = 300, then <i>A</i> :=
-  <i>B</i>, ending at (900, 0) on three registers. With every modulus 2
+  a second counter register <i>B</i> := 3<i>A</i> from <i>A</i> = 300,
+  then <i>A</i> := <i>B</i>, ending at (900, 0) on three registers. With every modulus 2
   a 10<sup>4</sup>-grow budget runs out at value 1, and without the
   pulse the round trip hangs at value 1 on the sqrt pole. The zero-test
   here reads one register at a time; read over every register at once,
@@ -276,7 +277,7 @@ cited.</p>
   in, each copy of <i>v</i> a <b>pass</b>, and the trip ends at the
   first read on that word that is true, or never. Let <i>v</i> hold a
   grow, and let every window grown during the loop have modulus above
-  4|<i>v</i>|, |<i>v</i>| its number of unit operations. A window born during pass <i>i</i> holds in one register,
+  4|<i>v</i>|, |<i>v</i>| its number of operations. A window born during pass <i>i</i> holds in one register,
   at a fixed read position in pass <i>k</i> ≥ <i>i</i> + 2, the integer
   <i>c</i> + (<i>k</i> − <i>i</i>)<i>n</i>, with <i>c</i> fixed by the
   grow it was born at and <i>n</i> the register's net tick over one
@@ -351,10 +352,10 @@ cited.</p>
   read <i>c</i>, all on <i>B</i>, nine operations with the grow. The newest window
   holds <i>k</i> − 1, <i>k</i> − 2 and <i>k</i> at the three reads, so
   <i>c</i> is true at pass lcm(<i>C</i>, <i>m</i>′) always; at a prime
-  <i>p</i> = <i>g</i> + 2 ≥ 3, with <i>x</i> = <i>C</i><sup>−1</sup> mod
-  <i>p</i>, read <i>a</i> is true at pass <i>Cx</i> and read <i>b</i> at
-  <i>C</i>(2<i>x</i> mod <i>p</i>), both before <i>Cp</i>, so the trip
-  ends at <i>a</i> exactly when <i>x</i> &lt; <i>p</i>/2. At a composite
+  <i>p</i> = <i>g</i> + 2 ≥ 3, read <i>a</i> is true at pass
+  <i>C</i>(<i>C</i><sup>−1</sup> mod <i>p</i>) and read <i>b</i> at
+  <i>C</i>(2<i>C</i><sup>−1</sup> mod <i>p</i>), both before <i>Cp</i>, so the trip
+  ends at <i>a</i> exactly when <i>C</i><sup>−1</sup> mod <i>p</i> &lt; <i>p</i>/2. At a composite
   <i>g</i> + 2 other than 4, reads <i>a</i> and <i>b</i> are never true
   and the trip ends at <i>c</i>; at 2 it ends at <i>a</i> and at 4 at
   <i>b</i>. Call the prime's <b>bit</b> 1 when the trip ends at
@@ -403,8 +404,10 @@ cited.</p>
   decision procedure would in principle settle the twin prime
   conjecture; Berthé, Karimov, Nieuwveld,
   Ouaknine, Vahanwala and Worrell 2024). One such program's halting is a
-  named question: the automaton that remembers the last 3159 letters
-  past <i>n</i> = 2 and halts when they hold 447 primes halts exactly
+  named question. Call a <b>window automaton</b> one that remembers the
+  last <i>y</i> letters and halts when they hold a stated number of
+  primes; the one at <i>y</i> = 3159 with threshold 447, reading
+  past <i>n</i> = 2, halts exactly
   when π(<i>x</i> + 3159) − π(<i>x</i>) &gt; π(3159) = 446 for some
   <i>x</i> ≥ 2, a failure of the second Hardy–Littlewood conjecture
   π(<i>x</i> + <i>y</i>) ≤ π(<i>x</i>) + π(<i>y</i>) at <i>y</i> =
@@ -414,7 +417,7 @@ cited.</p>
   Richards', 1973), and no counterexample to the second Hardy–Littlewood
   conjecture is known. The
   nine-operation trip chains the same way over the letters {<i>a</i>,
-  <i>b</i>, <i>c</i>}, adding the bit's primes to the theory, and no
+  <i>b</i>, <i>c</i>}, adding the primes whose bit is 1 to the theory as a second predicate, and no
   hypothesis in the role of Dickson's conjecture is cited here for the
   bit; to 30000, every assignment of the bit to twin primes, to
   consecutive primes and to the triplets (<i>p</i>, <i>p</i> + 2,
@@ -424,7 +427,7 @@ cited.</p>
   <p class="scope"><b>Scope.</b> Rule for the reduction, argued; the
   decidability is cited, and the Hardy–Littlewood instance is argued
   from the cited tuple, not recomputed. Printed through <i>n</i> = 202:
-  the recording chain's 201 letters equal primality; 40 random automata
+  the recorder chain's 201 letters equal primality; 40 random automata
   of two to six states run as programs exactly as run on the word; the
   window automata at <i>y</i> = 2 to 8 never halt at π(<i>y</i>) + 1
   primes and halt at π(<i>y</i>) exactly where a direct scan does. The
@@ -442,9 +445,11 @@ cited.</p>
   <span class="tier">rule</span></div>
   <p>Under one read over every register, take a trip, the lasso run from
   a start state at a true read after at least two grows, on any supply,
-  and let <i>m</i>′ &gt; 1 be the modulus of its first grow (a trip that
-  ends before growing cannot tell the gcd). Call the windows grown before the trip, all but the
-  last, <b>deep</b>, and <i>C</i>′ the lcm of their moduli. A pulse
+  and let <i>m</i>′ &gt; 1 be the modulus of its first grow. Call the
+  windows grown before the trip, all but the
+  last, <b>deep</b>, and <i>C</i>′ the lcm of their moduli. The gcd at
+  issue throughout is gcd(<i>C</i>′, <i>m</i>′), which a trip that ends
+  before growing has no <i>m</i>′ to tell. A pulse
   reaches only the newest window and a grow only adds a window, so every
   deep window of a register takes only the ticks and holds one integer
   <i>X</i>, the ticks since the trip began; they all read 0 exactly when
@@ -453,14 +458,15 @@ cited.</p>
   <i>c</i>, with <i>n</i> the register's net tick over a pass and
   <i>c</i> fixed by the program, and before the loop |<i>X</i>| is
   bounded by the program; with <i>N</i> the largest |<i>n</i>| (at least
-  1) and <i>K</i> a bound on every |<i>c</i>| and on those, a true read
-  before pass (<i>C</i>′ − <i>K</i>)/<i>N</i> has <i>X</i> = 0 in every
+  1) and <i>K</i> a program constant above every |<i>c</i>| and every
+  pre-loop |<i>X</i>|, a true read
+  before the <b>pass bound</b> (<i>C</i>′ − <i>K</i>)/<i>N</i> has <i>X</i> = 0 in every
   register, a condition the program alone fixes. Every other window reads
   a congruence modulo its own modulus. So whether each read before that
   pass is true is fixed by the program and the moduli from the last pre-trip
   window on: two supplies agreeing on those moduli share every ending
-  below the smaller of their two bounds, and where the trip ends
-  differently on them it waits its own bound on the supply with the
+  below the smaller of their two pass bounds, and where the trip ends
+  differently on them it waits its own pass bound on the supply with the
   smaller one. Any supply has a companion that agrees from its last
   pre-trip window on, has the other gcd and a larger <i>C</i>′: multiply
   one deep modulus by a prime factor of <i>m</i>′ when the gcd is 1, and
@@ -476,7 +482,7 @@ cited.</p>
   the exact solver on 3,000 random programs whose loops do not grow, each
   run on two supplies that share the last pre-trip modulus and the next
   four and differ in the deep moduli, each lcm above 10<sup>6</sup>: of
-  1,184 pairs with an ending below both bounds, none differed; in each of
+  1,184 pairs with an ending below both pass bounds, none differed; in each of
   the 428 pairs that differ, the supply with the smaller bound waited it,
   the least ratio of pass to bound 1.000000000005, a pass of exactly
   <i>C</i>′ against a bound of <i>C</i>′ − 2.</p>

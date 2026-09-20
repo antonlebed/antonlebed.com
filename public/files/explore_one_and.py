@@ -149,7 +149,14 @@ FINDINGS (entered after the run; every number is printed output).
 
 The dense and offset engines agreed on 14,547 global TESTs (C1).
 
-SCOPE + HONESTY. The argument covers every program and every supply
+SCOPE + HONESTY. THIS ENGINE'S OPS CARRY ANY STEP AND THE CLASS'S CARRY
++-1, which is what |v| in UNIT ops is for: expanding an op of step d
+into d unit ops inserts no read and moves no read's value, so a
+general-step program and its +-1 expansion end at the same pass, the
+expansion's op count being exactly the unit count the hypothesis 4|v|
+is stated in. So P5's witness, whose v holds a pulse of 2, is a
++-1 program of the class at |v| = 7 (argued, not run). The argument
+covers every program and every supply
 whose moduli exceed 4|v| inside the loop, so on a supply tending to
 infinity it holds past a program constant; the sweeps are two banks and
 at most 11 control states. What it removes is memory: a run is a finite
