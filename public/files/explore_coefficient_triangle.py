@@ -86,9 +86,10 @@ H4  THE MASS LAW FROM THE COEFFICIENTS. The Haar measure on Eisenstein
     (explore_hit_triangle.py H1) and the jump set's law is the record
     reading's pushforward (H3 there), which is Pagano's law. So at
     every p, given Theorem 1.4 for the module, the mass law is derived
-    from the coefficients through three unitriangular maps composed:
-    coefficient digits -> digits of w -> hit vector -> jump set, the
-    last a record reading. Pagano's Theorem 10.1 excludes p = 2 with
+    from the coefficients through two unitriangular maps and a record
+    reading composed: coefficient digits -> digits of w -> hit vector,
+    both unitriangular, then the jump set as that vector's record
+    reading, which is not. Pagano's Theorem 10.1 excludes p = 2 with
     e even; the composed triangle does not.
 H5  THE FIRST ROWS BY HAND at p = 2, e = 4, with beta_i = beta_{i,0}:
     w_1 = beta_1; w_2 = beta_2 + beta_1 (T^2's beta_1^2 = beta_1);
@@ -193,8 +194,8 @@ from open-gate Eisenstein polynomials onto digit strings with w_0 = 1
 — is a THEOREM (H1-H2, the pricing of every reading of w at or above
 its entry level); its instances rules at the cells read. THE MASS LAW
 FROM THE COEFFICIENTS — Pagano's law is the pushforward of the Haar
-measure on Eisenstein polynomials through three unitriangular maps
-composed — is a THEOREM at every p given Theorem 1.4 (H4 with
+measure on Eisenstein polynomials through two unitriangular maps and a
+record reading composed — is a THEOREM at every p given Theorem 1.4 (H4 with
 explore_hit_triangle.py H1-H3), its instances rules at (2, 2), (2, 4),
 (3, 6). The rows are records of the computation.
 

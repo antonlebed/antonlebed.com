@@ -48,7 +48,7 @@ P2 [T, rule] THE DUAL HIDING LAW: on a deep fiber, the bias of the
     iff channel 2 is among the unknown windows.
 P3 [T, property] THE RESIDUE WALL: the residue map n mod p is
     non-constant on every fiber of length >= 2, and the predicate
-    [p | n] is non-constant on every fiber of length > p — no deep
+    [p | n] is non-constant on every fiber of length >= p — no deep
     size window reads any finite place exactly. Below the prime's own
     scale (L <= p) the predicate can leak (a fiber may miss every
     multiple): the shallow leak.
@@ -115,7 +115,10 @@ F2 THE DUAL HIDING LAW (rule; derived + exhaustive over the scanned
    sign-hiding law (bias exactly zero iff channel 2 is unknown).
 F3 THE RESIDUE WALL (property): no deep fiber decides any residue
    (the map is non-constant at length >= 2, the predicate [p | n] at
-   length > p); below the prime's scale the predicate can leak — the
+   length >= p, tightened from > p and printed at the one scanned
+   triple where a fiber of length exactly p exists, b = 2, p = 2,
+   e = 2, two such fibers); below the prime's scale the
+   predicate can leak — the
    fiber [4, 6) decides [7 | n] = False. The mirror of the size wall,
    with a leak at fibers shorter than p the size wall does not have.
 F4 THE EXPONENT-DETERMINACY SPLIT + THE EQUALITY WALL (property +
@@ -295,15 +298,26 @@ def check_dual_hiding():
 # ---------------------------------------------------------------- CHECK 3
 def check_residue_wall():
     print("CHECK 3 - the residue wall + the shallow leak (P3)")
-    for b, t, e, p in [(2, 2, 5, 3), (10, 2, 3, 7), (3, 2, 4, 5)]:
+    # (2, 2, 5, 2) is the arm that makes L >= p non-vacuous: p is a
+    # power of the base there, so a fiber of length EXACTLY p exists.
+    # At the other three triples p divides no power of b and no fiber
+    # has that length, which is why the loose bound "L > p" stood.
+    for b, t, e, p in [(2, 2, 5, 3), (10, 2, 3, 7), (3, 2, 4, 5),
+                       (2, 2, 2, 2)]:
+        at_p = 0
         for m, lo, hi in fibers_at(b, t, e):
             L = hi - lo
             if L >= 2:
                 ok_res = len({n % p for n in range(lo, hi)}) > 1
                 assert ok_res, "residue map constant on a fiber"
-            if L > p:
+            if L >= p:
                 vals = {n % p == 0 for n in range(lo, hi)}
-                assert vals == {True, False}, "predicate constant, L > p"
+                assert vals == {True, False}, "predicate constant, L >= p"
+                if L == p:
+                    at_p += 1
+        print("  b=%2d t=%d e=%d p=%2d: predicate non-constant at every "
+              "L >= p, %d fiber(s) at L = p exactly"
+              % (b, t, e, p, at_p))
         ok(True, "wall at b=%d t=%d e=%d p=%d" % (b, t, e, p))
     # the shallow leak: a fiber below the prime's scale missing all
     # multiples decides the predicate
