@@ -313,9 +313,10 @@ F4  HALF (b) IS ANSWERED BY FIXED POINTS, AND CYCLES NEVER APPEAR
     which names a backward SLICE of the state as the next instrument
     and is an observation, "stable for 200 steps" not being stable.
 
-F5  THE FREE CASE CARRIES THE PLURALITY BUT NOT THE BULK, AND THE
-    PREDICTION INVERTS ON ONE DIAL (observation; the prediction half
-    held). Of the 53 lock-carried programs, 28 carry STATIC-1 alone, 17
+F5  THE FREE CASE CARRIES 32 OF THE 53, NOT THE WHOLE THE SLATE
+    PREDICTED, AND THE PREDICTION INVERTS ON ONE DIAL (observation; the
+    prediction half held; the heading once said "the plurality but not
+    the bulk", and 32 of 53 is a majority). Of the 53 lock-carried programs, 28 carry STATIC-1 alone, 17
     ONE-DYN alone, 3 both, and the remaining 5 an older lock (ONE 3,
     STATIC-0 1, STATIC-1 with ZERO-C 1) -- so STATIC-1 is on 32 and
     ONE-DYN on 20. The frozen prediction said the static case would
