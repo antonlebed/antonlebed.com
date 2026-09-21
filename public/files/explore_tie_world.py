@@ -55,8 +55,10 @@ A = {2,4}, B = {2}, c = 4 -- here realized as a CLOSED fiber that
 also holds a second, DIFFERENT-product tie class: P and Q tie by
 EQUAL multisets (Z(2) = Z(4) as polynomials), the Lemma-C shape.
 Whole-fiber products: pi_1 = x^5 (1 + x)^2 (P, Q) against
-pi_2 = x^4 (1 + x) (A, B); the ratio x (1 + x) is never 1, so the
-coarse state Phi = g leaks the route at every beta and the pairing
+pi_2 = x^4 (1 + x) (A, B); the ratio x (1 + x) is not identically 1,
+so the coarse state Phi = g leaks the route at every beta but one
+(x (1 + x) = 1 at x = (sqrt 5 - 1)/2, beta = log2 of the golden
+ratio, off the grid, where it is tuned-flat) and the pairing
 refinement {P, Q} | {A, B} is spread and flat at every beta -- the
 strict working amnesiac, funded by a designed witness-free tie.
 
@@ -91,7 +93,7 @@ x = 2^-beta, computed by this rig independently and cross-checked
 against the imported Fraction evaluation at every grid beta.
 
 RUN RECORD (post-run edit; copied from the printed run). 11 checks,
-0 failed, ~0.7 s. Every frozen prediction hit on the first run:
+0 failed, ~0.7 s; 12 since P6c was added, 0 failed. Every frozen prediction hit on the first run:
   P1  control: 363 multi-route W_B fibers at age <= 3, 0 tied at
       beta = 1 -- the parent reproduced on its own code path.
   P2  the desert PERSISTS at age 4: 441 age-4 multi-route fibers
@@ -107,10 +109,16 @@ RUN RECORD (post-run edit; copied from the printed run). 11 checks,
       clean on all four routes at all grid betas.
   P5  P/Q tie with EQUAL multisets (the Lemma-C contrast pair).
   P6  Phi = g leaks at every grid beta (pi_1 != pi_2; the ratio is
-      x (1+x), never 1) and the pairing {P,Q} | {A,B} is spread +
+      x (1+x), not identically 1) and the pairing {P,Q} | {A,B} is spread +
       flat symbolically and on the grid: the strict working
       amnesiac lands at grade S in a multi-route order-carrying
-      world.
+      world. SETTLED SINCE (P6c, added when a cold reader solved
+      x (1 + x) = 1): unequal polynomials are not unequal at every
+      beta. pi_1 - pi_2 = x^4 (1 + x)(x^2 + x - 1) vanishes at
+      x = (sqrt 5 - 1)/2, beta = log2 of the golden ratio = 0.694242,
+      where Phi = g is flat: the coarse state is tuned-flat there and
+      leaks at every other beta, so it is still not robust-flat and the
+      amnesiac is still strict.
 VERDICT. Both residues settle. (a) The desert persists one age
 past the parent's scope: plain breadth stays injective at beta = 1
 through age 4, consistent with the quarantine theorem's fineness
@@ -124,6 +132,7 @@ temperature. The tie itself is proved (an algebraic identity), the
 fiber censuses exact and exhaustive at the stated scope.
 """
 
+import math
 from fractions import Fraction
 
 from explore_working_amnesiac import (
@@ -292,6 +301,24 @@ def main():
         for b in BETAS)
     check("P6a Phi = g leaks (pi_1 != pi_2 at every grid beta)",
           leak and pp != pa)
+    # Unequal POLYNOMIALS are not unequal at every beta: pi_1 - pi_2 =
+    # x^4 (1 + x)(x^2 + x - 1), whose one root in (0, 1) is
+    # x = (sqrt 5 - 1)/2, beta = log2 of the golden ratio.
+    diff = dict(pp)
+    for e, c in pa.items():
+        diff[e] = diff.get(e, 0) - c
+    diff = {e: c for e, c in diff.items() if c}
+    fact = {7: 1, 6: 2, 4: -1}  # x^4 (1 + x)(x^2 + x - 1), expanded
+    x0 = (5 ** 0.5 - 1) / 2
+    beta0 = math.log2(1 / x0)
+    print("  pi_1 - pi_2 = %s = x^4 (1 + x)(x^2 + x - 1)"
+          % dict(sorted(diff.items())))
+    print("  its one root in (0, 1): x = (sqrt 5 - 1)/2 = %.6f, "
+          "beta = log2(golden ratio) = %.6f" % (x0, beta0))
+    check("P6c the leak has ONE flat temperature, beta = log2(phi) "
+          "(off the grid)", diff == fact
+          and abs(x0 * x0 + x0 - 1) < 1e-12
+          and all(b != beta0 for b in BETAS))
     blocks = [(P, Q), (A, B)]
     spread = all(len(set(blk)) >= 2 for blk in blocks)
     flat_sym = (pp == pq) and (pa == pb)
