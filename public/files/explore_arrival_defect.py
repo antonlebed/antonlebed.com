@@ -3,7 +3,8 @@
 
 THE QUESTION. The two-gear census found the
 per-class splice landings of the breathing clock's transient. Seat-STARTER
-classes (v(u-1) = i*) land at p*i*+1 universally (dying seats). ARRIVAL
+classes (v(u-1) = i*) have their least landing at p*i*+1 universally
+(dying seats; a root of unity on the seat never lands). ARRIVAL
 classes (level-c units whose Frobenius segment reaches the seat, e = c*2^m
 at p = 2) land DEEPER by an extra {0, 0, 1, 2, 5} across the censused
 fields — finer than (e, f, different-exponent). WHAT CLASSICAL INVARIANT
@@ -28,7 +29,7 @@ before this file existed; one pre-engine correction — AD6's class-4 value,
 where the escape-branch e+c was beaten by tree avoidance, the e=2/zeta8
 agreement having been the coincidence e = c+2):
 
-AD1 (regression): every dying-seat starter lands at p*i*+1.
+AD1 (regression): the dying-seat starters' least landing is p*i*+1.
 AD2 (out-of-sample fields): Q2(sqrt10), Q2(sqrt-10): landing minima
     {2: 5, 1: 5}, and their E-chains equal Q2(sqrt2)'s.
 AD3 (the trichotomy — the classical identity at e = 2): across all six
