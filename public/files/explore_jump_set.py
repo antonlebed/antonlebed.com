@@ -304,7 +304,8 @@ def tstar(F):
 
 
 def pullback(F, i):
-    """The unique (a, b), a in T*, with rho^b(a) = i."""
+    """The (a, b), a in T*, with rho^b(a) = i and b least: the first
+    member of T* met going down (e* + k e is also rho^(M+1+k)(c_0))."""
     estar, b = F.p * F.seat, 0
     while True:
         if i == estar or (i < estar and i % F.p):

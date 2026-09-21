@@ -19,7 +19,7 @@ THE OBJECTS. The digits of w are its canonical expansion w = sum w_r
 pi^r with w_r in {0, ..., p - 1}, w_0 = 1 at the open gate. THE DIGIT
 RING: the digit strings of length N with the carry rule p = sigma w
 pi^e, sigma = -1 at odd p and +1 at p = 2 (the sign of w's definition),
-so a coefficient q p at level r becomes sigma q w at level r + e; it is
+so a coefficient z p at level r becomes sigma z w at level r + e; it is
 O_K / pi^N for the window whose Eisenstein polynomial is the
 distinguished factor of p - sigma pi^e w(pi), and it reads only the
 digits w_j with j < N - e. The greedy dlog, the pullback along
@@ -115,9 +115,10 @@ FINDINGS (entered post-run, copied from printed output).
 
 1. THE RING IS THE FIELD, AND M e DIGITS SUFFICE (PR1, PR2 hit, 0 off
    at 534 open-gate fields: fifteen of the tame readout's twenty,
-   x^12 - 2, the six ramified quadratics, 512 Haar octics carrying 19
-   jump sets, and the six anchors; three random tails past M e at
-   each). Hit sets below CAP: x^6+3x+3 [3, 4, 7, 8] I=[1, 4]
+   x^12 - 2, the six ramified quadratics and 512 Haar octics carrying
+   19 jump sets, three random tails past M e at each; the six anchors
+   are read by PR3 and are NOT in the 534, which is n_open's own sum,
+   15 + 1 + 6 + 512, corrected at a later cold read). Hit sets below CAP: x^6+3x+3 [3, 4, 7, 8] I=[1, 4]
    beta=[2, 1]; x^18+3 [9, 18, 21, 25, 30, 32, 33, 36, 37, 39, 42]
    I=[1, 7, 25] beta=[3, 2, 1]; x^12-2 (c_0 = 3, M e = 24, CAP 37)
    [12, 18, 21, 24, 27, 36] I=[3, 9, 21] beta=[3, 2, 1]; x^2-2

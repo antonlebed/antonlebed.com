@@ -19,9 +19,11 @@ THE OBJECTS (explore_jump_set.py and explore_rung_odd.py conventions).
 K = Q_p[x]/(F), F Eisenstein of degree e, f = 1, seat i* = c_0 p^M
 with p not dividing c_0, e* = p i* = i* + e, rho(i) = min(p i, i + e),
 T* = {a < e* : p not dividing a} u {e*}; the pullback of a level L is
-the unique (a, b) with a in T* and rho^b(a) = L. The relation is
+the (a, b) with a in T*, rho^b(a) = L and b least (e* + k e is
+also rho^(M+1+k)(c_0); the least b makes it unique). The relation is
 r = p dlog(zeta_p); its frontier (I, beta) is the jump set; w_2 is
-the weight of the second frontier point. B := (1 + pi^(c_0))^(d p^M)
+the weight of the second frontier point (written W_2 on the page,
+where w_2 is also the second digit of w). B := (1 + pi^(c_0))^(d p^M)
 is the seat's basis monomial, d the leading digit of zeta_p - 1 at
 level i*; u' := zeta_p / B; tau := v(u' - 1) - i* is THE TAIL of
 zeta_p past its leading basis monomial.

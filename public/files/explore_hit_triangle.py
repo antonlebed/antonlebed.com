@@ -22,9 +22,13 @@ whether that map is unitriangular, and what follows.
 THE OBJECTS. The HIT DIGIT h_L at level L is the digit d of the
 monomial (1 + pi^a)^(d p^b) the greedy dlog strips at L (0 = no hit;
 at p = 2 a hit indicator; a unit times the residual's digit); the HIT VECTOR is (h_(i*+1), ..., h_(i*+Me)), Me
-entries. The pullback of L is the unique (a, b) with a in T* and
-rho^b(a) = L, rho(i) = min(p i, i + e); the ORBIT of a is
-{a, rho(a), rho^2(a), ...}. The RECORD READING of a hit vector:
+entries. The pullback of L is the (a, b) with a in T*, rho^b(a) = L
+and b least -- the first member of T* met going down, which is what
+pullback() computes; e* + k e is also rho^(M+1+k)(c_0), so without
+"least" the pair is not unique -- and rho(i) = min(p i, i + e); the
+ORBIT of a is the levels pulling back to it, {a, rho(a), rho^2(a), ...}
+cut where the line meets another member of T* (c_0's at i*, since
+rho(i*) = e* is its own member), so orbits are disjoint. The RECORD READING of a hit vector:
 scanning levels upward from the seat, a hit at L with pullback
 (a, b) that is the first hit in a's orbit has order b + 1; it is a
 frontier point iff its order is strictly below every earlier
