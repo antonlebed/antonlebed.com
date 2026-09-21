@@ -163,6 +163,17 @@ F3 SIGN IS NOT FINITE-WINDOW AT ANY OF THEM (rule, exhaustive). The
    non-redundant window's ambiguity of one cell is already enough to
    put it out of reach. Without this row the finding would have been
    filed as a redundancy price by its placement alone.
+   (SETTLED SINCE: the full width is a PROPERTY, not a rule, and the
+   transplant paragraph above was wrong to call the all-zero prefix
+   unavailable here. At every symmetric digit set and every width n,
+   0...0 followed by +1 and by -1 are two width-n strings agreeing on
+   n - 1 leading digits with opposite signs, so no c < n determines the
+   sign. The enumeration's own colliding pairs are that prefix: at
+   (2,1,8), (5,3,5) and (3,1,8) minimal_window returns 0...0 against
+   0...0 with a nonzero last digit, and only at (2,3,5) a pair with a
+   nonzero lead. What the 67 cells measure beyond the argument is
+   nothing; the row's content is the slack-zero comparison, and that
+   too follows from the prefix, which needs only 1 and -1 in D.)
 
 F4 AND THE STATE DOES NOT MARK THE REGIME EITHER (rule at the swept
    systems). Sign's whole cost sits in the state, the cone being
