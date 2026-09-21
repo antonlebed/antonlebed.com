@@ -227,7 +227,8 @@ over D at lead 0, which D's window holds only where am^2 <= ap (b - 1)
 (representable_xy). P-D's last column now prints the least lead at
 which the window holds P: 0 at 13 of the 20 cells, 1 at (3,2,1),
 (4,3,1), (4,3,2), (5,3,2), (5,4,1), (5,4,2) and (5,4,3). F3's deaths
-stand at all 20, since the covering search places a hull at every
+stand wherever it ran, radices 2..4 with (3,2,1), (4,3,1) and
+(4,3,2) among them, since the covering search places a hull at every
 integer prefix value and never imposes the window's bound on P, which
 only frees the multiplier. F4's survivals do not: they rest on a
 product reader at lead 0, which at those seven does not exist. So

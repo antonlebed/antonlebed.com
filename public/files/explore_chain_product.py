@@ -8,7 +8,9 @@ a product reader feeding a sum reader pays the sum of the two units'
 floors L1* + L2* whatever the multiplier does with its digit choice,
 because the sum reader's death is a lattice clause the multiplier's
 hull insets cannot empty within its slack budget, and the fused unit
-reads below the chain at 15 of 20 cells. That was one pair, one linear
+reads below the chain at 15 of 20 cells (settled since: P is writable
+at lead 0 at only 13 of the 20, and there the count is 9 of 13;
+explore_chain_delay.py's settled-since note). That was one pair, one linear
 consumer. This rig runs the same escape law on two more pairs: a
 NONLINEAR consumer, the product (x y) z, and a producer with a LEAD, the
 reciprocal 1/(s + x) feeding a product, at the pairs where the
