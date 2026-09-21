@@ -1,5 +1,5 @@
 """The fourth shape's not-a-ring half proved: x2 has no continuous
-extension to the Tribonacci completion — the step-4 comb family.
+extension to the Tribonacci completion — the step-4 witness comb family.
 
 THE QUESTION
 ------------
