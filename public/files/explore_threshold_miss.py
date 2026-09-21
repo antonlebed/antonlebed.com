@@ -1,4 +1,4 @@
-"""The threshold-miss law: is the golden window a Diophantine fact about
+"""The threshold-miss law: is the golden band a Diophantine fact about
 the product consumer's root 1/phi, or the general shape of a chain's
 gain at slack 1 -- a threshold missed by less than the budget -- with
 the root whatever the consumer's own box width rate makes it?
@@ -7,7 +7,7 @@ THE QUESTION. The escape law reads the chain (x y) z below the sum of
 its units' floors at exactly the slack-1 cells whose hull height Mh
 sits just above 1/phi -- the golden convergents from above and their
 mediants, nine of the 37 radices to 40 (explore_chain_cells.py F3,
-the golden window). The hypothesis under test is that the
+the golden band). The hypothesis under test is that the
 gain is a DIOPHANTINE condition of the hull height against the
 consumer's threshold root, so that a numeration is designed for
 latency by choosing Mh as a convergent of that root and a mixed
@@ -142,7 +142,7 @@ F5 THE CERTIFIER at (5,2,3) (Mh = 3/4, above the root 5/7 by 0.0357;
    at (1, 1) dead at level 2 (P5 said 1; the producer's own death
    needs the second level to show). K3 and K4 never fired.
 
-VERDICT. The golden window is one instance of THE THRESHOLD-MISS LAW:
+VERDICT. The golden band is one instance of THE THRESHOLD-MISS LAW:
 at slack 1 a product-type consumer gains one lookahead over the sum of
 floors exactly when its own margin threshold is missed by at most the
 producer's budget, 0 < Lam2 - 1 <= (Mh/w) S(L1*), and the root is

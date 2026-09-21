@@ -73,7 +73,7 @@ F2 P2 MISSED: THE GAIN RECURS. Radices 6..9 print two alive pairs,
    what it reaches: the consumer at the escape insets (9/640, 9/640)
    is clear at level 2 (its budget), the narrowed producer kills at
    L - 1 at level 2 and is unreached at L = 2.
-F3 THE GOLDEN WINDOW [rule to radix 40; the reduction proved]. The
+F3 THE GOLDEN BAND [rule to radix 40; the reduction proved]. The
    alive pairs to radix 40 are all at (2, 1) and all at slack rho = 1:
    (4,2,2), (9,4,5), (12,5,7), (17,7,10), (22,9,13), (25,10,15),
    (30,12,18), (33,13,20), (38,15,23) and their mirrors, nine of the
@@ -97,7 +97,7 @@ F4 P3 HELD: the symmetric cells (b, b/2, b/2) have L2* = 1 at every
    b = 6 on.
 
 VERDICT. The radix-4 gain is not one cell's accident: it is the first
-member of a golden window, the slack-1 cells whose hull height is a
+member of a golden band, the slack-1 cells whose hull height is a
 rational just above 1/phi, recurring at about a quarter of the
 radices to 40 and at (2, 1) every time. What the law promises at
 those cells past radix 4 is uncertified: the covering certificate at

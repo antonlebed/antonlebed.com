@@ -1,4 +1,4 @@
-"""The streaming covering certifier: does the golden window's first
+"""The streaming covering certifier: does the golden band's first
 cell past radix 4, (9,4,5) at (2, 1), carry an assignment of the
 product's images to the multiplier's hulls at every level reached, as
 the escape law promises, or a covering certificate that no rule can
@@ -12,7 +12,7 @@ stream, each hull's tight extent inside its box and SAFE against every
 z box at level n, safe meaning the extent times the z box strictly
 contains no overlap zone at output level n - L2. That search
 enumerates every prefix pair, 54 million at its first level at
-(9,4,5) (2, 1), against a cap of one million, so the golden window
+(9,4,5) (2, 1), against a cap of one million, so the golden band
 past radix 4 (explore_chain_cells.py F3) rests on the law's word. This
 rig rebuilds the certifier so that the level is streamed and the
 search never holds the pair set.
@@ -134,7 +134,7 @@ F4 THE WINDOW'S NEXT CELL, (12,5,7) (2, 1), with E2 = 60/847 against
    S = 59/726, finds an assignment at level 2 (106 hulls, 22621
    prefixes).
 
-VERDICT. The golden window is no longer the law's word only: at its
+VERDICT. The golden band is no longer the law's word only: at its
 first cell past radix 4 the covering search finds an assignment at
 every level to 4, the deepest the certifier has reached at any cell,
 and at the next cell at level 2, while the same cell's law-dead pairs

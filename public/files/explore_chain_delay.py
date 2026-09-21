@@ -220,6 +220,23 @@ slack of an endpoint, and an aligned adder never has one there. The
 composed-margin conjecture dies by this print: a network of on-line
 units does not read at the composed margin unless it is fused.
 
+SETTLED SINCE THE RECORD RUN: P IS NOT WRITABLE AT SEVEN OF THE 20.
+The census filters on representable_ma, the multiply-add fitting the
+root cell led by one, while the chain's product reader emits P = x y
+over D at lead 0, which D's window holds only where am^2 <= ap (b - 1)
+(representable_xy). P-D's last column now prints the least lead at
+which the window holds P: 0 at 13 of the 20 cells, 1 at (3,2,1),
+(4,3,1), (4,3,2), (5,3,2), (5,4,1), (5,4,2) and (5,4,3). F3's deaths
+stand at all 20, since the covering search places a hull at every
+integer prefix value and never imposes the window's bound on P, which
+only frees the multiplier. F4's survivals do not: they rest on a
+product reader at lead 0, which at those seven does not exist. So
+F4's criterion holds at the 13, where the print reads informed =
+naive at 13, the fused floor below the chain at 9 and equal at 4, the
+eager chain below the informed at 5 and at the fused floor at 4; at
+the seven the floors' sum is a lower bound and the chain that leads P
+by one is not priced here. Wall 238 s, peak commit 51.1 MB.
+
 RUN RECORD: pure Python, exact rationals, standard library; under
 memwatch, peak commit 50.7 MB against the 512 MB default; wall 220 s
 at the defaults (4, 3), the exact-rational games most of it. Prints
@@ -599,7 +616,7 @@ def main():
                         print(f"  K3 OPEN ({b},{am},{ap}) (L1,L2)=({L1},{L2}): an assignment exists at every n <= {nmax}")
 
     print("\n=== P-D: the price table, radices 2..5")
-    print("  cell | L1* L2* | fused | naive | informed (L1,L2,alpha,beta) | eager (L1,L2,alpha,beta) | naive eager")
+    print("  cell | L1* L2* | fused | naive | informed (L1,L2,alpha,beta) | eager (L1,L2,alpha,beta) | naive eager | P's lead")
     nfused_below = nequal = ninf_below_naive = 0
     rows = []
     for (b, am, ap) in census(5):
@@ -615,11 +632,22 @@ def main():
         nequal += Lf == inf[0]
         ninf_below_naive += inf[0] < L1s + L2s
         rows.append((b, am, ap, L1s, L2s, Lf, L1s + L2s, inf, eag, eag0))
-        print(f"  ({b},{am},{ap}) | {L1s} {L2s} | {Lf} | {L1s + L2s} | {inf[0]} ({inf[1]},{inf[2]},{inf[3]},{inf[4]}) | {eag[0]} ({eag[1]},{eag[2]},{eag[3]},{eag[4]}) | {eag0}")
+        o = 0   # the least lead at which D's window holds P = x y
+        while not (-Mm * Mp >= -Mm * b ** o and Mh ** 2 <= Mp * b ** o):
+            o += 1
+        rows[-1] += (o,)
+        print(f"  ({b},{am},{ap}) | {L1s} {L2s} | {Lf} | {L1s + L2s} | {inf[0]} ({inf[1]},{inf[2]},{inf[3]},{inf[4]}) | {eag[0]} ({eag[1]},{eag[2]},{eag[3]},{eag[4]}) | {eag0} | {o}")
     print(f"  {len(rows)} cells: fused below the informed chain at {nfused_below}, equal at {nequal}; "
           f"informed below naive at {ninf_below_naive}; eager below informed at "
           f"{sum(1 for r in rows if r[8][0] < r[7][0])}, eager at the fused floor at {sum(1 for r in rows if r[8][0] == r[5])}, "
           f"informed eager below naive eager at {sum(1 for r in rows if r[8][0] < r[9])}")
+    W = [r for r in rows if r[10] == 0]
+    print(f"  P written at lead 0 at {len(W)} of {len(rows)} cells (representable_xy agrees at "
+          f"{sum(1 for r in rows if (r[10] == 0) == representable_xy(r[0], r[1], r[2]))}); over those: "
+          f"informed = naive at {sum(1 for r in W if r[7][0] == r[6])}, fused below the chain at "
+          f"{sum(1 for r in W if r[5] < r[7][0])}, equal at {sum(1 for r in W if r[5] == r[7][0])}; "
+          f"eager below informed at {sum(1 for r in W if r[8][0] < r[7][0])}, eager at the fused floor at "
+          f"{sum(1 for r in W if r[8][0] == r[5])}")
     ok(nfused_below > 0, "K4: the informed chain reads at the fused floor at every cell")
     if ninf_below_naive:
         print("  K5: the multiplier's choice buys the aligned adder a lookahead somewhere")
