@@ -103,7 +103,7 @@ RUN RECORD (15/15 checks, 13 s, peak 13.5 MB under memwatch).
      each checked on their own residues and pass. At p = 5 the first
      found is period 10 by 3 and 11. The covering exists at TEN odd
      characteristics, 3, 5, 7, 11, 13, 17, 19, 23, 31 and 37, and at
-     none from 41 to 997 -- a floor set by the search's reach
+     no other p below 1000, 29 included -- a floor set by the search's reach
      (q < 2000, orders dividing 5040), not a wall: the prediction of
      "a handful, none at p >= 100" held, and (4)'s e^(p/4) heuristic
      was pessimistic, p = 37 closing with primes up to 67.
