@@ -600,11 +600,13 @@ print("""
    the DEFECT IDEAL (delta(x_i) = x_i^2 - x_i): idempotents of any
    commutative ring form a Boolean algebra (standard), so any law's
    LHS - RHS vanishes in Z[x]/(x_i^2 - x_i). The eleven charted laws
-   each deform in a single variable: excluded middle by +delta,
-   contradiction by -delta, absorption by delta*(1-b), both
-   distributivities by delta*bc / -delta*(1-b)(1-c), modus ponens by
-   -delta*(1-b) -- each holds whenever that ONE variable is classical.
-   Contraposition and De Morgan survive identically. delta is the
+   each deform in a single variable: the idempotence of AND by +delta
+   and of OR by -delta, a IMP a and excluded middle by +delta,
+   contradiction by -delta, the two absorptions by delta*(1-b) and
+   -delta*b, both distributivities by delta*bc / -delta*(1-b)(1-c),
+   modus ponens by -delta*(1-b) -- each holds whenever that ONE
+   variable is classical -- and contraposition by nothing; De Morgan
+   survives identically too. delta is the
    curvature of the logic; it vanishes channel-wise iff the residue
    reads 0 or 1.
 

@@ -171,7 +171,8 @@ stage first.
 
 FINDINGS. Two populations as the parent's: the parents' box (|d| <=
 6000, 1103 fields, 94 + 45 + 18 + 18 at h = 2, 3 M, 4, 5) and the
-wide one (|d| <= 24000, 4865 fields, 1367 with h > 1); the wide
+wide one (|d| <= 24000, 4865 fields of both signatures, 1367 with
+h > 1, the walks reading the complex ones alone); the wide
 figures are the claim's. C1 reprinted the parent's F1 to the third
 decimal on both, the walked ramified weights equalling the parent's
 bound in every stratum; C3 held at every ramified prime mapped (479

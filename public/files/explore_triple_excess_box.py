@@ -278,8 +278,13 @@ disagreement. C4: 3 of 16313.
       2.128 (z +5.6, +5.4, +3.1, +5.7, +4.2, +6.7, +4.8, +4.6, +3.9),
       so the flatness was the bars', not the level's. An inert prime's cube lands on e at
       every h and a totally ramified place is principal at every h
-      prime to 3, each counted against 1/h^2, so the forcing's excess
-      grows as h^2 -- the shape of the rise. The image-share read at
+      prime to 3, each counted against 1/h^2, so a forced landing enters
+      the level at h^2 times its weight over the split count -- the
+      shape of the rise, which grows more slowly than h^2 because that
+      weight per split prime falls with h (explore_triple_image_level.py
+      F2 prints the forcing). The both-terms level can fall below the
+      unramified one, as at h = 11: a ramified term adds to cN at every
+      placed power and to c3 only where it lands. The image-share read at
       those strata needs every term's N weight by source and power,
       which this file's cells do not keep.
 
