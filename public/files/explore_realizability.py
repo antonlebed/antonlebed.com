@@ -48,8 +48,8 @@ the censuses adjudicate):
     [0, B(B+1) - 1] >= [0, q-1] before wraparound is even used --
     upper-bounds: c(q) = Theta(sqrt q), between ~sqrt(2q) - 3/2
     and 2*ceil(sqrt q) - 1. A first hand-guess "c = floor or
-    floor + 1" was REFUTED by the run (the excess grows: +3 at
-    q = 53, +4 at q = 149): the covering obstruction beyond
+    floor + 1" was REFUTED by the run (the excess grows, unevenly:
+    first +3 at q = 53, first +4 at q = 89, +2 again at 107): the covering obstruction beyond
     counting strengthens with q, and c is not even monotone in q
     (c(107) = 16 < 17 = c(103)). Also c(q) <= q - 2 every odd q
     (B = 2 chains the intervals [2j, j + q - 2] into [0, q-1]),
