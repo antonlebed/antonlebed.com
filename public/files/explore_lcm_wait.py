@@ -1,5 +1,5 @@
 """
-explore_lcm_wait.py -- THE LCM IS WAITED OUT: in the one-AND clock class
+explore_lcm_wait.py -- THE LCM WAIT: in the one-AND clock class
 (explore_one_and.py), must every trip exit that depends on the moduli
 grown long ago wait out their lcm?
 

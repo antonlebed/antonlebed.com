@@ -1,8 +1,7 @@
 """
-explore_prime_chain.py -- CHAINED TRIPS READ A WORD: in the one-AND clock
-class (explore_one_and.py), a trip whose every exit leaves a true read one
-grow later can be chained, so a program walks a word over the supply one
-letter per trip. What word do the prime reader and an order reader walk
+explore_prime_chain.py -- CHAINED TRIPS: in the one-AND clock class
+(explore_one_and.py), can a program chain its trips to walk a word over
+the supply one letter per trip? What word do the prime reader and an order reader walk
 on m_g = g + 1, and what does that make of halting?
 
 THE SETTING. The class and the exact trip solver of

@@ -1,5 +1,7 @@
 """
-THE RESET CORNER -- the forgetful borrow resolved at the knife edge.
+THE RESET CORNER -- the first in a series of four perimeter probes: does
+the forgetful borrow, a reset in place of a decrement, buy universality
+back at the knife edge?
 
 The archimedean dial (explore_archimedean_dial.py) located Turing-completeness
 at a KNIFE EDGE: universality = an exact ZERO-TEST + a BORROW, and the

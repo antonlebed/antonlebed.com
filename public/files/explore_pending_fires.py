@@ -1,7 +1,7 @@
 """
-explore_pending_fires.py -- THE PENDING FIRES: a sound decision procedure
-for the sublinear-supply growing-window machine, and the true scope of its
-decidability. (The decider is sound on a fragment; the machine is not
+explore_pending_fires.py -- THE PENDING FIRES: is there a sound decision
+procedure for the sublinear-supply growing-window machine, and how far does
+its decidability reach? (The decider is sound on a fragment; the machine is not
 decidable at all, being universal on every unbounded supply by a counter
 that saves singletons inside its loop, explore_doubling_counter.py, so
 the setting's "third decidable class" and the design's "the machine adds

@@ -1,8 +1,7 @@
 """
-explore_forced_one.py -- THE FORCED-ONE INSTRUMENT: the one direction
-the growth certificate cannot force, attacked in the window families
-the normal form distinguishes -- THREE of them, where the question was
-posed as two. (Sibling of explore_growth_certificate.py,
+explore_forced_one.py -- THE FORCED-ONE INSTRUMENT: can the one
+direction the growth certificate cannot force be decided in the window
+families the normal form distinguishes? (Sibling of explore_growth_certificate.py,
 whose certifier, population and supplies this file reuses; the machine
 and its VM are explore_born_at_zero.py's.)
 
