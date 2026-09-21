@@ -25,7 +25,7 @@ bad local minima.
 VOCABULARY NOTE. "Landscape", "local minimum", and "descent" are
 used here as finite-graph notions only: a neighbor relation on a
 finite policy set, strict-improvement moves, and a stall = a policy
-with no strictly better neighbor. Loss comparisons are exact
+off the optimum with no strictly better neighbor. Loss comparisons are exact
 rational-product comparisons (sums of logarithms of rationals
 compare by cross-multiplying big integers). Nothing is
 differentiated.

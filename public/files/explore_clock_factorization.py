@@ -136,7 +136,9 @@ FINDINGS (entered post-run, copied from printed output).
    threshold (a = 18/6/33/33/35/66/1/20 across the eight columns) the
    pre-tick cofactor EQUALS C_lim to 1e-12, a staircase before that.
 
-3. THE TWINS SPLIT BY MENU ALONE (CF5 hit): sqrt3-column 1.44746 vs
+3. THE TWINS SPLIT BY MENU ALONE (CF5 hit; "alone" is against the
+   chain -- the two fields' own zetas differ as well, so the split is
+   what the fields are): sqrt3-column 1.44746 vs
    zeta3-column 1.33357 (gap 0.1139) — same (p, e, f) = (3, 2, 1),
    opposite tick parities, and the chain TRANSPLANT moves neither root
    (1e-9). What the deep clock reads of "the field beyond (p, e, f)" is
