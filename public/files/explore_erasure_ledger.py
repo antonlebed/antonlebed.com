@@ -486,7 +486,7 @@ ok(not is_bijection(reset, vals), "RESET is many-to-one")
 # GUARDED DEC v -> v-1 on v>=1: a bijection {1..M} -> {0..M-1}, zero erasure
 gdom = list(range(1, M + 1))
 gdec = lambda v: v - 1
-ok(is_bijection(gdec, gdom), "guarded DEC is a bijection")
+ok(is_bijection(gdec, gdom), "guarded DEC is injective, a bijection onto its image")
 e_gdec, _ = erasure_bits(gdec, gdom)
 ok(abs(e_gdec) < 1e-12, "guarded DEC erases 0 bits")
 
@@ -497,7 +497,7 @@ ok(0 < e_sdec < 0.2, "saturating DEC erases only a sliver (0<e<0.2)")
 
 # INC and ZERO-TEST: zero erasure (INC injective; a test does not modify)
 inc = lambda v: v + 1
-ok(is_bijection(inc, vals), "INC is a bijection")
+ok(is_bijection(inc, vals), "INC is injective, a bijection onto its image")
 e_inc, _ = erasure_bits(inc, vals)
 ok(abs(e_inc) < 1e-12, "INC erases 0 bits")
 
