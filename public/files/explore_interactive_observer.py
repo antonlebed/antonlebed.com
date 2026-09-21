@@ -203,7 +203,7 @@ HONEST SCOPE. The witness thermometer's 1/(beta-1)^2 limit is a PNT
 heuristic (the in-range floors are bucket-certified); the pole duel
 is a three-beta observation, not a theorem. The rudder's general-q
 construction relies on Dirichlet for P (instantiated 16/16 at
-q <= 13); targets and states beyond the census are argued, not
+q in {3, 5, 7, 13}, 11 not tried); targets and states beyond the census are argued, not
 swept. The phoenix protocol is the MINIMAL one (least push,
 unconditionally 2); richer intervention policies (programming D
 mid-flight, non-2 pushes) are unexplored. All watch results assume

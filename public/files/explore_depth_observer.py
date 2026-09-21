@@ -85,7 +85,8 @@ sections assert).
    it). Falsifiability flips symmetrically: at T = 0 any second
    window refutes the cold genesis outright (post-lock greedy never
    leaves the column), while thermal genesis -- never refutable at
-   finite depth -- is now CONFIRMABLE-IN-THE-LIMIT. The
+   finite depth -- is now REFUTABLE-IN-THE-LIMIT, cold genesis
+   confirmable in the limit where breadth caps it. The
    finite-memory law is the BREADTH fate's law, not a law of grown
    worlds: depth remembers, breadth forgets.
 
