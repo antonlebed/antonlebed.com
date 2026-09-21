@@ -186,7 +186,7 @@ FINDINGS (entered post-run, copied from printed output).
    argument has a gap); whether D_m = e * delta_subfield in
    general is open. (Settled: explore_storey_descent.py — D_m
    descends by a congruence of p-th powers, no cube needed; a storey
-   adds e_K to D_1 and multiplies every higher D_m by p.)
+   adds e_K to D_1 and sets every higher D_m(K) to p * D_(m-1)(C).)
 
 5. THE HASSE-HERBRAND CONTACT (the formula t = p*i* - delta is
    classical Kummer-conductor theory; the instances verified by

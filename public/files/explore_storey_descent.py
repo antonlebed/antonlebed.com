@@ -133,7 +133,7 @@ D_1 = p i* - t:
                                             t_(K/C) = p i*_C, always),
   D_1(K) = p D_1(C) + e_K - (p-1) l         if l > D_1(C),
 the two agreeing at l = D_1(C). SD3 now has a first rung: the storey
-adds e_K to D_1 and multiplies every higher D_m by p.
+adds e_K to D_1 and sets every higher D_m(K) to p * D_(m-1)(C).
 P8 (the first rung, fresh): x^18-6 over x^6-6 and x^18+3x^12+3 over
     x^6+3x^4+3 read D_1 = 7 + 18 = 25; x^8+2 over x^4+2 reads
     7 + 8 = 15; x^4-10 over x^2-10 reads 3 + 4 = 7; K_4 (l = 4 < 7)
