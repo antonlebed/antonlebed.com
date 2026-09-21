@@ -381,11 +381,12 @@ the one that was open.
       end, at these ranks, is arithmetic. WHO WINS INSTEAD IS THE
       CONTENT. At rank 3 it is 1 + x, the champion of the rank BELOW,
       at J = 2, 4 and 6 -- ALONE only at 6, tying with 1 + x + x^2 at
-      the other two. At rank 4 it is (1 + x)(1 + x + x^2), alone, one
-      cofactor for the whole run J = 3..12 -- which has vanishing
-      order 1 at -1, not 3, so below the threshold the winner is a
-      LOW-order cofactor and the asymptotic argument that says only
-      the order matters is not merely imprecise there, it points the
+      the other two. At rank 4 it is (1 + x)(1 + x + x^2), alone at
+      every depth J = 3..12 but 11, where it ties the champion at
+      99 -- which has vanishing order 1 at -1, not 3, so below the
+      threshold the winner is a LOW-order cofactor and the
+      asymptotic argument that says only the order matters is not
+      merely imprecise there, it points the
       wrong way. AND THE NON-ATTAINING SET IS RAGGED, not an interval:
       it is {2, 4, 6} at rank 3, the odd depths between being exact
       TIES, and {3,...,10, 12} at rank 4, where the champion attains
@@ -419,8 +420,8 @@ the one that was open.
       coefficient pair to 4. WHAT DOES NOT SURVIVE IS THE HEIGHT
       COMPARISON. The transplanted (L4) asks D2 <= D1 - 1, which FAILS
       at every J from 2 to 8 and holds from 9 to 200 -- and rank 3's
-      own threshold is 7, so the two depths where the champion first
-      wins are exactly the two the transplanted argument cannot reach.
+      own threshold is 7, so the transplanted argument misses exactly
+      the champion's first two attaining depths, 7 and 8.
       The other opening is no better placed: |q(-1)| 2^J <= M * height
       gives height >= 2^J/(J+3) when q(-1) is nonzero, which clears D2
       from J = 11 to 200 but fails at J = 2..8 and again at 10. Both
