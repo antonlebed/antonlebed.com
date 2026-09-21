@@ -3,7 +3,8 @@ confines the proper prime powers, and the rung's invisibility to every
 small-prime instrument.
 
 THE QUESTION. explore_cascade_chars.py closed the cascade boundary at
-every odd characteristic below 1000 by direct computation: each odd
+every odd characteristic below 1000 by direct computation (for walks
+starting at V = 1, the scope explore_cascade_seed.py settles): each odd
 prime p reaches a rung V where all p-1 affordable carriers
 m*p^(V+1)+1, 1 <= m <= p-1, are certified non-prime-powers.
 explore_cascade_residual.py then proved that no extension of that sweep

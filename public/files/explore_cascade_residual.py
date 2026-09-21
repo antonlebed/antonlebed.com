@@ -5,7 +5,9 @@ THE QUESTION. explore_cascade_chars.py closed the cascade boundary at
 every odd characteristic below 1000, which by the reduction's
 conjunction (a carrier is demanded at EVERY characteristic carrying a
 rank-1 place, so breaking ONE suffices) closes every char-0 ring
-possessing a rank-1 characteristic below 1000. The residual it handed
+possessing a rank-1 characteristic below 1000 (for seeds starting at or
+below the death rung; for every seed only at the eleven characteristics
+explore_cascade_seed.py covers). The residual it handed
 on is the rings whose rank-1 characteristics ALL exceed 1000, and the
 question is whether that residual is inhabited -- and if it is, whether
 extending the sweep is a route to emptying it.

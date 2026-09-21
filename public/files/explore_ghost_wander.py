@@ -233,7 +233,9 @@ FINDINGS (printed output copied from the run).
    explore_module_law.py C reduction, cited and not re-derived here --
    and since PROVED in that section for the ideal world, which turns
    this modulo into a scope: a char-0 trajectory with a rank-1 place
-   over 2, 3 or 5 LOCKS, unconditionally in the ideal world. Every number ring has rank-1 places at infinitely
+   over 2, 3 or 5 LOCKS, unconditionally in the ideal world (the walk
+   starts at V = 1; explore_cascade_seed.py shows the death recurs, so
+   the lock holds from every seed). Every number ring has rank-1 places at infinitely
    many chars (Chebotarev), so the open content is no longer a wander
    RATE at all -- it is the residual family of rings whose rank-1
    chars all avoid 2, 3 and 5, and for each such char the walk is a

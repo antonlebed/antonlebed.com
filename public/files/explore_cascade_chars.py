@@ -145,7 +145,11 @@ FINDINGS.
      closed as soon as ONE of its rank-1 characteristics is closed. So
      every char-0 ring possessing a rank-1 characteristic below 1000
      now has its cascade boundary closed -- which is what the residual
-     was a residual OF. What stays open is the rings whose rank-1
+     was a residual OF. (Settled by explore_cascade_seed.py: every walk
+     here starts at V = 1, and a seed can start above its death rung,
+     so the close holds for seeds starting at or below it; for every
+     seed it survives at 2 and the ten odd characteristics 3 to 37
+     where a covering congruence makes dead rungs recur.) What stays open is the rings whose rank-1
      characteristics ALL exceed 1000, and that is a statement about
      splitting behaviour rather than about ladders: it is the front
      this rig hands on, and it is not answered here. (TAKEN SINCE by
