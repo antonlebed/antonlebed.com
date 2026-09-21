@@ -41,7 +41,7 @@ pi = x, f = 1. T* at e = 2: {1, 3, 4}; at e = 4: {1, 3, 5, 7, 8}.
 The basis eta_a = 1 + pi^a, a in T*; the coordinate vector of a
 1-unit u is its DISCRETE LOG in that basis, computed by successive
 approximation: at weight i = v(u - 1) pull i back along rho to the
-unique (a, b) in T* x Z_{>=0} with rho^b(a) = i (i = p*i* is the
+(a, b) in T* x Z_{>=0} with rho^b(a) = i and b least (i = p*i* is the
 basis level e* itself, never (i*, 1) — the seat squares cancel at
 f = 1, which is exactly why e* is a basis level), divide u by
 eta_a^{p^b}, add p^b to c_a, repeat until u = 1 to the working
