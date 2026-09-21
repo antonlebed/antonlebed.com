@@ -73,6 +73,11 @@ RESULTS (the record; checks below encode the measured law):
   C2 x C2 x C2 verified maximal, sealing C2 x C4 as the minimal
   proper carrier among products of cyclic windows (smaller cases all
   in the sweep).
+  Strict betweenness (three distinct points) prints its projections
+  saturated at Z/15 and not at Z/6 or Z/10: its maximal mode waits
+  for a fiber of three points over every window, not for a third
+  window, so its rung-2 remnant on the tower is Z/6's two-point
+  fiber over 3.
 
 THE PROVENANCE CHART (the deliverable; tier: rule unless noted):
   cyclic group, no product, no     size/sign hiding (sec I; bias law;
@@ -261,6 +266,21 @@ print("  carrier: two coprime windows -- fields play no role in the")
 print("  conjunctive kill (the fold/rank caps inherit the same carrier:")
 print("  the fold-cap proof's hypotheses are the coprime split + difference")
 print("  invariance, never primality)")
+# strict betweenness (three DISTINCT points): what its maximal mode
+# waits for is a fiber of three points over every window, not a third
+# window. Z/6's fiber over 3 has two points and misses the three
+# all-equal triples; Z/15, two windows with fibers of 5 and 3,
+# saturates; Z/10's fiber over 5 has two points and misses five.
+def strict_btw(N):
+    return lambda a, b, c: len({a, b, c}) == 3 and (b - a) % N < (c - a) % N
+for N, mods, sat_want in ((6, (2, 3), False), (15, (3, 5), True),
+                          (10, (2, 5), False)):
+    n_true, n_conj, sat = conj_report(N, mods, strict_btw(N), arity=3)
+    assert sat == sat_want, (N, sat)
+    print(f"  strict betweenness Z/{N} {mods}: projections saturate = {sat}")
+print("  so strict betweenness reaches the maximal mode on TWO windows")
+print("  once every fiber holds three points (Z/15); the tower's rung-2")
+print("  remnant is Z/6's two-point fiber over 3, not a missing channel")
 
 # ----------------------------------------------------------------------
 section("V. THE GRADING IS A SHARED-TORSION GROUP FACT (no ring at all)")

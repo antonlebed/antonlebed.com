@@ -60,7 +60,7 @@ the corpus's flush offset; the criterion is convention-free once the
 levels are matched): the image is [s - 2M-, s + 2M+] b^-c with
 s = u + v ANY integer, a lattice of pitch b^-c, so the reader dies
 iff an integer lies in the open interval
-((b^c - 2) M+, b^c - (b^c - 2) M-), whose length 2W - b^c rho/(b-1)
+((b^c - 2) M+, b^c - (b^c - 2) M-), whose length (2W - b^c rho)/(b-1)
 is the sum's Lebesgue excess. The reading lemma's stream correction
 is this and nothing else: the set of image endpoints a map can reach
 at the emitted scale against the dead arc — dense for the bilinear
