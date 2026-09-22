@@ -44,7 +44,10 @@ with t_1 the least t making that true. There digits(n*) <= d + t + K -
 1 and the fiber depth at precision t + c is at most d + K - 1 - c: no
 shallow-layer crossing is deep at c >= d + K - 1, hence
     c* <= max(c_deep, d + K - 1)   once the t < t_1 cells are checked,
-sharper than the old bound by digits(W). At K = 0 with b not dividing
+sharper than the old bound by digits(W). CORRECTION, after the record:
+n* < b^{d+t+K} gives digits(n*) <= d + t + K, not d + t + K - 1, so the
+step proves only c* <= max(c_deep, d + K); the sharper d + K - 1 is E3's
+reading at every exact cell, a rule, and the K = 0 law needs only d + K. At K = 0 with b not dividing
 a (m = 0, a' = a >= 2): c_deep = d and the shallow layer is shallow at
 every c >= d - 1 < d for t >= t_1, so
     THE LEAST-LOOKAHEAD LAW: c* = digits_b(a) when K = 0 and b does

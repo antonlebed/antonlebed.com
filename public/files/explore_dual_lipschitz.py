@@ -194,7 +194,7 @@ separately at every scope, never folded into the verdict.
 Engine: pure python, exact integers (the game state is the integer
 L*R), no sampling in any verdict; seconds.
 
-FINDINGS (from the run: 601 checks, exit 0, ~6 s)
+FINDINGS (from the run: 623 checks, exit 0, ~6 s)
 --------------------------------------------------
 F1 R1 (criterion, elementary, verified at stated scopes): trailing
    readability at lookahead c IS d_b-Lipschitz with constant b^c, and
@@ -275,7 +275,13 @@ F7 THE PRICING ARITHMETIC (identity + measured): the trailing price
    of *u is ceil(log_b u + margin) with log_b u = SUM_p v_p(u)
    log_b p, the product formula — the ultrametric window prices by
    the max over places, the archimedean window by the sum: each
-   pole prices in its own metric's arithmetic.
+   pole prices in its own metric's arithmetic. The leading price is
+   MEASURED by the game (S7): x6 = 4 and x12 = 5 at (2,1), x21 = 2 at
+   (10,6), where the margin alone, a log-metric constant of 1, gives 1
+   at all three. So R4's "same log metric" was the design's slip: the
+   game plays words of one fixed length, whose cells V b^j +- a R_j are
+   intervals of |x - y| at one exponent, and there a scaling by u/v has
+   Lipschitz constant u/v, which is the log_b u the price carries.
 F8 THE SPECIMENS (rule): 2^n is leading-dead at any redundancy (a
    depth-4 fiber spans 4 output exponents, exact) yet
    trailing-READABLE at base 10 with c_min = 1 ON THE SATURATED
@@ -300,8 +306,10 @@ F9 THE TWO-POLE READING CRITERION (synthesis, the experiment's
    (F1, F2), bought by any positive Lebesgue cover (F4, F6), and at
    non-redundant archimedean windows degenerates to the alignment
    clause = the radical gates plus the phase-shape law (F3, F5).
-   The constants unify: lookahead = log_b(Lipschitz constant) +
-   window margin, with the margin 0 at ultrametric windows,
+   The constants unify: lookahead = ceil(log_b(Lipschitz constant) +
+   window margin), the constant in the window's own metric (at a
+   redundant cover the fixed-exponent |x - y| of F7, not the log
+   metric), with the margin 0 at ultrametric windows,
    log_b(2a/(2a-b+1)) at redundant covers, and infinite (a wall)
    at misaligned non-redundant reads.
 
@@ -880,9 +888,14 @@ def s7_pricing():
         marg = 2 * a - b + 1
         ok(b**(pd - 1) * marg < 2 * a * u <= b**pd * marg or pd == 0,
            f"leading price bracket off at x{u} ({b},{a})")
-        print(f"  leading ({b},{a}): price(x{u}) = {pd} = "
+        cm = cmin_rational(b, a, u, 1, cap=10)
+        ok(cm == pd, f"MEASURED leading price != formula at x{u}")
+        alone = max(0, math.ceil(math.log(2 * a / marg, b) - 1e-12))
+        ok(alone < cm, f"margin alone reaches the price at x{u}")
+        print(f"  leading ({b},{a}): MEASURED price(x{u}) = {cm} = "
               f"ceil(SUM_p v_p log_b p + margin) "
-              f"(log_{b} {u} = {lg:.3f})")
+              f"(log_{b} {u} = {lg:.3f}); the margin alone, a log-metric "
+              f"constant of 1, would give {alone}")
     print("  the archimedean window prices by SUM over places (the "
           "product formula), the ultrametric window by MAX -- each "
           "pole in its own metric's arithmetic")
@@ -895,7 +908,7 @@ def s8_specimens():
     print("== S8 THE SPECIMENS ==")
     # 2^n leading-dead at any redundancy: a deep input fiber whose
     # image spans several exponents fits no output cell.
-    lo, hi = 10240, 10249  # the depth-4 base-10 fiber [1024*10, +10)
+    lo, hi = 10240, 10249  # the ten-integer base-10 fiber at precision 4
     span = (len(str(2**hi)) - 1) - (len(str(2**lo)) - 1)
     ok(span >= 2, "2^n image exponent span too small")
     print("  2^n leading: fiber [10240,10249] spans %d output "

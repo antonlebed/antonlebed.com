@@ -28,11 +28,11 @@ FINDINGS (naming tiers as below):
    powers up to 1, hence inverses; non-units are excluded twice over:
    their powers reach an idempotent, never 1, and binding by a
    non-unit is not bijective). U(Z/N) = prod_p U(p) with each channel cyclic, so a
-   subgroup is a linear code over the exponent space prod_p Z/(p-1),
+   subgroup is a group code in the exponent space prod_p Z/(p-1),
    and window distance = exponent Hamming distance (window p is wrong
    iff the exponent coordinate differs; proof: per-channel dlog is a
    bijection, g_p^a = g_p^b iff (p-1) | a-b).
-   CLASSICAL CODING THEORY IMPORTS WHOLESALE into the binding-invariant
+   CODING THEORY'S DISTANCE RESULTS IMPORT into the binding-invariant
    regime through the index transform. The additive twin is trivial:
    additive subgroups of prod F_p are sub-products (min distance 1) —
    dictionaries live on the multiplicative side. Instances:

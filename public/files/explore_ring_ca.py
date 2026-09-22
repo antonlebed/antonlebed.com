@@ -46,7 +46,7 @@ one unpredicted finding, THE FREEZE, below):
      Neither is channel-local: [x=0] differs at 15 = 0 mod 3;
      ALIVE_{g>=2} at Z/30 differs at 25 vs 15 (equal mod 2, outputs
      1 vs 0). No ring polynomial computes either (the locality
-     criterion; provenance: any composite modulus -- at one field
+     criterion; provenance: any modulus with two distinct primes -- at one field
      [a=0] is Fermat's 1 - a^(p-1)). LANDED (S3).
  PR4 (observation -> witness): GRADED LIFE COUPLES. Two soups equal
      on the channel-5 plane, differing elsewhere, diverge on the

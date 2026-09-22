@@ -167,7 +167,7 @@ F1 THE PREFIX-INTERVAL LAW (rule; exhaustive at five (b,a), depths
    2a*R_j - b^j + 1, Lebesgue count lambda_j = 2a*R_j - b^j + 2 —
    both directions (lambda_j fits, lambda_j + 1 fails). At (2,1)
    lambda_j = 2^j exactly; balanced ternary overlaps 0 (the
-   partition). The redundant window is an overlapping COVER; the
+   partition; lambda = 1 there, a single point, not P-A's 0). The redundant window is an overlapping COVER; the
    non-redundant one is its Lebesgue-number-0 degeneration.
 F2 THE STERN LAW (rule): the multiplicity recursion holds exactly
    ((2,1) t=5 on 63 values; (10,6) t=3 on 1333), and at (2,1) the
