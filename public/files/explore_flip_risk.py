@@ -48,8 +48,9 @@ statement was first written in.
       at population values, as the derivation that produced the law
       held them, and the wrong one for an auditor who estimates all
       four terms from the same samples. The two are not even
-      proportional: var_m enters A-hat and D with opposite signs, so
-      the correlations differ in sign as well as size.
+      proportional: var_m enters D at half its weight in A-hat and
+      var_n enters D alone, so the correlations differ in size and in
+      which samples carry them.
 
   (2) AND THE SPREAD IS PREDICTIVE, WHICH COSTS A FACTOR sqrt(2). The
       auditor holds D1 and asks about D2, not about the population's D.
@@ -248,9 +249,9 @@ F2  THE SPREAD IS SOLVED AND THE FORM IS NOT (PR4 pass, and it is the
     BUT sd(D) IS NOT sd(A-hat), AND THE CORRECTION HAS NO FIXED SIGN:
     at W2 the gap's spread is NARROWER (0.0199 against 0.0238 at
     n = 1000, 16 percent), at W3 WIDER (0.0162 against 0.0146, 11
-    percent). var_m enters A-hat and D with opposite signs, so which
-    way the substitution moves is a property of the cell's variances
-    and not a constant factor -- hand-attack (1) confirmed, including
+    percent). var_n enters D and not A-hat, and var_m at half weight,
+    so which way the substitution moves is a property of the cell's
+    variances and not a constant factor -- hand-attack (1) confirmed, including
     its reason.
 
 F3  PR2 FAILED AS AN OBSERVABLE, AND THE FIRST FORM'S ERROR IS NOT

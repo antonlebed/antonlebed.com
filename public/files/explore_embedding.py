@@ -43,8 +43,9 @@ THE THREE SPLITS (the native/blind boundary, at the embedding level).
      separate), BUT the affix now sits at stem-length-dependent positions, so
      T_cell depends on stem length -> the shared transform BREAKS unless every
      stem has equal length. Order and shared-transform EXCHANGE.
-  3. FUSIONAL (vowel mutation / suppletion: foot->feet, go->went -- no shared
-     substring transform): phi_hom gives no shared transform, so held-out
+  3. FUSIONAL at its suppletive extreme (a stem change, foot->feet, or
+     suppletion, go->went -- no shared substring transform; the field's
+     "fusional" is one form carrying stem and features at once): phi_hom gives no shared transform, so held-out
      analogy fails (KILL). Rescuing it needs either a per-lexeme CODEBOOK
      (covers only SEEN lexemes -> no held-out generalization) or a stem-
      SIMILARITY metric (which stems pattern together -- the DELETED archimedean
