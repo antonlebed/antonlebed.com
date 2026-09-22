@@ -304,7 +304,12 @@ F7 AND THE FORMULA HAS A GAP IN IT: no greedy image is COUNTABLY INFINITE
    countable set. If finitely many survive, the product is finite. If
    infinitely many do, the choice functions number at least 2^aleph0 and
    at most aleph0^aleph0, which is the same cardinal -- so the image is
-   exactly the continuum. Nothing lands between. The three measured worlds
+   exactly the continuum. Nothing lands between. (Written reading F6 as
+   an equality; where an image is finite the product is only its FLOOR,
+   so the finite half needs the TIED
+   openings finitely many, every limit being one branch's, and endless
+   ties of which finitely many survive are closed only in range --
+   independence over F_2[x] reaches one point.) The three measured worlds
    sit at 1, at 2^t and at the continuum, and the gap says the space
    between the finite ones and the continuum is EMPTY -- not that the
    finite ones are powers of 2, which is an accident of the sample rather

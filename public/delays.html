@@ -184,8 +184,8 @@ table that prints a unit's delay from its rate and its range.</p>
 
 <p>An <b>on-line unit</b> reads its operands most significant digit
 first, through a signed digit set, and emits its result the same way;
-what it costs is how many input digits it must see past each output
-digit. Each script below is served verbatim at <code>/files/</code>,
+what it costs is how many input digits it must see past each output digit, negative where it emits ahead of what
+it reads. Each script below is served verbatim at <code>/files/</code>,
 is the full record of the claim it verifies, prints its own checks in
 one Python 3 process, needs no package outside the standard library,
 and finds a sibling it imports beside itself; its run record states
@@ -201,7 +201,8 @@ its output's first <i>t</i> digits are a function of the inputs' first
 {−<i>a</i><sup>−</sup>..<i>a</i><sup>+</sup>} at radix <i>b</i> a stream's
 values fill [−<i>M</i><sup>−</sup>, <i>M</i><sup>+</sup>],
 <i>M</i><sup>±</sup> = <i>a</i><sup>±</sup>/(<i>b</i> − 1)
-(<code>Mm</code> and <code>Mp</code> below), and the <b>window</b> is the
+(<code>Mm</code> and <code>Mp</code> below, as <code>am</code> and
+<code>ap</code> are <i>a</i><sup>±</sup>), and the <b>window</b> is the
 product of those intervals over the streams. Every C² map of any number
 of streams that is not affine on the window is local at exactly the
 <b>margin</b>, the least lookahead the law below grants, a law in its
@@ -226,7 +227,8 @@ denominator (<i>lo</i>, <i>hi</i>, <i>S</i>) of the image over the box
 of the <i>n</i>-digit prefixes <code>us</code>; <code>approx(xs)</code>,
 a float; <code>window_range(Mm, Mp)</code>, the range's ends as
 fractions, for the lead; <code>law_ok(b, rho, wsum, L)</code>, the
-margin law at <i>L</i> in exact arithmetic; <code>lam()</code>, Λ;
+law at <i>L</i> in exact arithmetic, <code>wsum</code> =
+<i>a</i><sup>−</sup> + <i>a</i><sup>+</sup>; <code>lam()</code>, Λ;
 <code>grad_iv(box)</code> and <code>hess_e_iv(box, e)</code>, interval
 bounds on the partials and on <i>e</i><sup>T</sup><i>He</i> over a
 float box; <code>grad(xs)</code> and <code>hess_e(xs, e)</code>, the
@@ -234,7 +236,7 @@ same at a point, for the spot check; and <code>peak(Mm, Mp)</code>, the
 corner where Λ sits. The five classes in the file — the product, the
 multiply–add, <i>x</i>² + <i>y</i>, <i>x</i>² + <i>xy</i> and the
 divider <i>x</i>/(<i>s</i> + <i>y</i>) at a <b>pole distance</b>
-<i>P</i>, the least value of its denominator over the window, which
+<i>P</i> &gt; 0, the least value of its denominator over the window, which
 fixes the shift <i>s</i> = <i>M</i><sup>−</sup> + <i>P</i> — are
 templates. With
 <code>least_lead</code> and <code>law_L</code> reading the lead and the
@@ -249,7 +251,10 @@ threshold, pruned by interval bounds on partial tuples, and returns
 the least output depth at which some box's image strictly contains an
 <b>overlap zone</b>, the interval two consecutive output cells share,
 with the input depth, the prefixes read and the count at that depth,
-or <code>None</code> first when the budget runs out;
+or, when the budget runs out inside a depth, <code>None</code> with the
+last input depth scanned clean, the prefixes read through it and its
+count;
+with <code>region</code> false it walks every prefix;
 <code>certificate_depth(budget, confined)</code>, with
 <code>confined</code> true, plays the exhaustive game with the
 adversary's moves confined to the region, returning its kill
@@ -257,9 +262,9 @@ adversary's moves confined to the region, returning its kill
 depth searched. <code>Cube</code> finds
 the ball where every partial is one-signed and the Hessian is bounded
 away from zero, <code>LineRegion</code> the proof's constant <i>N</i>₀
-along the lattice line through it, and <code>one_pair(b, am, ap, map,
+along the proof's lattice line through it, and <code>one_pair(b, am, ap, map,
 label, o)</code>, the label and the lead optional, prints the whole certificate line,
-its last field the proof's discrepancy check, the discrepancy
+its last fields the proof's discrepancy check, the discrepancy
 <code>D_N</code> against its bound. The run at radices
 2..5 takes 43 s and 51 MB; the calls below took under a second.</p>
 
@@ -310,8 +315,9 @@ the pieces are polynomials of degree at most 3, monotone on each:
 <code>PolyPieces(coeffs, kinks, Mm, Mp, name)</code> takes one
 coefficient list per piece, low to high, and the kinks in order;
 <code>TableS</code> adds the curved clause, its depths the first two
-and a fourth field listing straddlers that killed with no adjacent
-piece's clause firing (empty, as the theorem says), marking a piece with the
+and a fourth field listing straddlers that killed at or past the full-period depth with
+no adjacent piece's clause firing (empty, as the theorem's containment
+step says), marking a piece with the
 string tag <code>'a'</code> when its sup decides or <code>'b'</code>
 when its lattice does and a kink by the depth at which it first fires;
 <code>specimen_below(Mm, Mp)</code> builds, at the window
@@ -328,7 +334,7 @@ the margin, a curved piece beside the identity, and
 (1, 0)
 &gt;&gt;&gt; Table(5, 2, 3, f).verdict(0)                  # at L = 0 the slope-1/2 piece kills, the kink is empty
 ({0: True, 1: False}, {0: False}, (2, 2, 2))
-&gt;&gt;&gt; engine_floor(5, 2, 3, f, 0, 1)[0]              # the game agrees: floor 1, equal to the margin's L*
+&gt;&gt;&gt; engine_floor(5, 2, 3, f, 0, 1)[0]              # the game agrees: floor 1, equal to the law's L*
 1
 &gt;&gt;&gt; from explore_piecewise_smooth import specimen_below, TableS, engine_floor as engine_floor_s
 &gt;&gt;&gt; g = specimen_below(Fraction(1, 2), 1)         # x/5 + x^2/20 on x &lt;= 0, x on x &gt;= 0, at radix 3 over {-1..2}
@@ -336,7 +342,7 @@ the margin, a curved piece beside the identity, and
 ([Fraction(1, 5), Fraction(1, 1)], ({0: None, 1: None}, {0: None}, (2, 2), []))
 &gt;&gt;&gt; TableS(3, 1, 2, g).verdict(-1)                # at L = -1 the sup, the identity's lattice and the kink all fire
 ({0: 'a', 1: 'b'}, {0: 0}, (2, 2), [])
-&gt;&gt;&gt; engine_floor_s(3, 1, 2, g, 0, 1)[0]            # the game's floor 0, one below the margin
+&gt;&gt;&gt; engine_floor_s(3, 1, 2, g, 0, 1)[0]            # the game's floor 0, one below the law's L*
 0</pre>
 
 
@@ -383,10 +389,10 @@ and <code>unit_row(b, am, ap, unit)</code> returns its row.</p>
 ap)</code> is the <b>chain column</b>, one unit's digit stream fed to
 a second: for the multiplier feeding an adder, a product consumer
 (<i>xy</i>)<i>z</i> and a sum-fed consumer <i>z</i>(<i>x</i> +
-<i>y</i>) it returns the naive delay, the sum of the two units' floors,
-and the floor <a href="/redundancy/chains#chained-delay">the escape
+<i>y</i>) it returns the naive <i>L</i>, the sum of the two units'
+<i>L</i>*, and the least <i>L</i> <a href="/redundancy/chains#chained-delay">the escape
 law</a> admits, marking a chain that reads below the sum; at slack 1
-the mark is the <a href="/redundancy/chains#threshold-miss-law"><b>threshold-miss
+the two consumers' mark is the <a href="/redundancy/chains#threshold-miss-law"><b>threshold-miss
 law</b></a>, a gain exactly where the consumer's box width rate
 Λ₂ exceeds its threshold at <i>L</i> = 1, which is 1 at slack 1, by
 at most a budget of order 1/<i>b</i> that the producer's floor leaves;
