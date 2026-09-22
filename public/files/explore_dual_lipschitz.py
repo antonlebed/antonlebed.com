@@ -282,8 +282,8 @@ F7 THE PRICING ARITHMETIC (identity + measured): the trailing price
    game plays words of one fixed length, whose cells V b^j +- a R_j are
    intervals of |x - y| at one exponent, and there a scaling by u/v has
    Lipschitz constant u/v, which is the log_b u the price carries.
-F8 THE SPECIMENS (rule): 2^n is leading-dead at any redundancy (a
-   depth-4 fiber spans 4 output exponents, exact) yet
+F8 THE SPECIMENS (rule): 2^n is leading-dead at any redundancy (the
+   ten-integer precision-4 fiber at base 10 spans 4 output exponents, exact) yet
    trailing-READABLE at base 10 with c_min = 1 ON THE SATURATED
    RANGE n >= t (ord(2 mod 5^t) = 4*5^{t-1} | 10^{t+1}, and | 10^t
    from t = 2, so c = 0 reads there and the one collision at c = 0
