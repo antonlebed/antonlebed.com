@@ -254,12 +254,13 @@ F2 THE RACE IS SETTLED BY A BUDGET AND NEVER RUNS AS A RATE COMPARISON
    Z[i], where BOTH walks seat the corpus's filed maximum of 3 -- v_2(N - 1)
    at the inert place over 3 -- and it sits EXACTLY at its own ceiling,
    floor(log_2 9) being 3. That tightness is not depth and should not be read
-   as any: the ceiling is attained precisely when the seated norm's N - 1 is a
-   PURE power of p, and 9 - 1 = 8 is. The reading worth keeping is that the
-   largest supply anybody has measured is the largest one the budget allows,
-   not that the two agree by anything but arithmetic. The largest supply
-   anybody has measured is the largest one the budget allows, which is why
-   five rings kept returning the same small number.
+   as any: the p-free ceiling floor(log_2 C) can be met only at p = 2, where
+   the seated norm is 2^k + 1 -- N - 1 a PURE power of 2, as 9 - 1 = 8 is --
+   and no price paid reaches 2^(k+1); at an odd p a surplus k needs
+   N >= p^k + 1 >= 2^(k+1). The reading worth keeping is that the largest
+   supply anybody has measured is the largest one the budget allows, not
+   that the two agree by anything but arithmetic, which is why five rings
+   kept returning the same small number.
 
 F3 THE LOCK PERMANENCE CERTIFICATE, AND THE WITNESS THAT PROVES NOTHING
    (theorem for the certificate; rule in range for its 12 of 12, five
