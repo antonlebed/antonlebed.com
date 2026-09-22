@@ -34,9 +34,14 @@ must reproduce).
   (m odd), the deeper state's lambda is lcm(2^(a-1+x), lambda(m)): the
   doors it can open are the primes u' * 2^k + 1 with u' dividing the odd
   part of lambda(m) and k at most the 2-depth -- Fermat primes when
-  m = 1, PROTH primes otherwise. A move resolves the adjacent pair
-  (2^a, 2^(a+1)) exactly when such a prime sits at the deeper state's
-  depth and not at the shallower's. For the pair (2^11, 2^12):
+  lambda(m) is a power of two, PROTH primes otherwise. A move with
+  v_2(lambda(m)) < a-1+x resolves the adjacent pair (2^a, 2^(a+1))
+  exactly when such a prime sits at the deeper state's depth and not at
+  the shallower's. (A move at least that deep in 2 gives both states one
+  lambda, and the pair then splits by the factor 2 between them alone:
+  m = 17 splits (16, 32) at V = 60 against 30, which no door predicts.
+  The least resolvers below are brute-forced, so the table stands
+  whatever the clause.) For the pair (2^11, 2^12):
 
     - the 2-ladder is doorless to d = 32: 2^k + 1 is composite for
       k = 11..15 (2049, 4097 = 17*241, 8193 = 3*2731, 16385 = 5*29*113,
@@ -204,8 +209,9 @@ FINDINGS.
      a = 11 (d = 28) and a = 12 (d = 14): a window, not a fluke. The
      least resolver of an adjacent 2-power pair is min over moves
      2^x * m of the first u' * 2^(a-1+x) + 1 that is PRIME with u'
-     dividing the odd part of lambda(m) -- Fermat primes on the pure
-     ladder, Proth primes off it -- so whether the minimum is a prime
+     dividing the odd part of lambda(m), over the moves 2-adically
+     shallower than the deeper state -- Fermat primes where lambda(m) is
+     a power of two, Proth primes otherwise -- so whether the minimum is a prime
      power is primality numerology at exact depths, not structure, and
      the threshold's growth along the family reduces to Proth-prime
      gaps (conjecture-gated; the view, not a claim).
@@ -246,8 +252,8 @@ FINDINGS.
      supply keeps every designed floor populated forever.
      (SETTLED SINCE BY explore_silent_set.py: at every even L the primes
      q with V(q) = W(L) are >> x/log^2 x, so every designed reading is
-     populated, and along L = lcm(1..n) every prime up to n+1 is a door
-     of L while each door r's own term r^(v_r(W)+1) exceeds r*n, so
+     populated, and along L = lcm(1..n) every odd prime up to n+1 is a
+     door of L, 2 carried by the wall's 2-part, while each door r's own term r^(v_r(W)+1) exceeds r*n, so
      floor(W(L)) > n+1 -- the threshold is unbounded at theorem
      tier. What stays measured is that a designed reading's least
      resolver EQUALS its floor.)

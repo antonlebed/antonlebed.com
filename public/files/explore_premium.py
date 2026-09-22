@@ -410,7 +410,8 @@ FINDINGS.
    above 1 that happens to agree, and 168 are the admitted-alone imports of
    finding 5, of which 136 import a SAFE prime. So the minimum-gateway
    family of finding 6 supplies the commonest silencers of finding 5, and
-   the family that IS the largest blind class is the family that keeps
+   the family that IS the largest blind class's prime part is the family
+   that keeps
    blind classes blind.
 
 9. THE PREMIUM OF ANY PRIME-POWER MOVE IS LAMBDA PLUS ONE EXPONENT

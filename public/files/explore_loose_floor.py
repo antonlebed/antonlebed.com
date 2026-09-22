@@ -144,8 +144,8 @@ at any prime.
  F3 ONE DECADE FURTHER [observation]. The loose-at-2 share reads 0.0592
     below 10^8, decade ratios 0.829, 0.896, 0.926, 0.951 from 10^4; Ford's
     full shape gives 0.850, 0.884, 0.906, 0.921 and the pure power 0.981,
-    0.984, 0.987, 0.989. The measured ratios run AHEAD of the shape's from
-    10^6 on -- the share flattens faster than the multiplication-table law
+    0.984, 0.987, 0.989. The measured ratios run AHEAD of the shape's in
+    every decade after the first (10^5 to 10^6 on) -- the share flattens faster than the multiplication-table law
     does -- the reading a positive limit predicts, though five points prove
     no limit (L4); the span over 10^4..10^7 is 0.688 for this component
     against the shape's 0.680, the coincidence the suspicion was built on.

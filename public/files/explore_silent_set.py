@@ -263,7 +263,12 @@ F3 THE CENSUS BY LAMBDA (P3 hit; P4 missed at L = 24; P5 missed at
    share is 0.000, 0.000, 0.006 across the three decades, flat where P4
    had it rising: the heuristic counted the cofactors and not the
    demands on them, a miss about the constants at this scale and not
-   about the theorem, whose Step 3 is asymptotic. N phi(L) log^2 x / x at
+   about the theorem, whose Step 3 is asymptotic. The limit runs the
+   other way from this table: the primes with (q-1)/L prime are
+   O(x/log^2 x) by an upper-bound sieve, while every class has positive
+   density among the primes (explore_blind_bernoulli.py), so the
+   composite-cofactor share tends to 1 at every even L and the zeros at
+   L = 48 and 60 are this scale's. N phi(L) log^2 x / x at
    10^7 runs from 1.855 (L = 2) and 1.778 (L = 58) down to 0.470 (L = 48)
    and 0.423 (L = 60), falling with the DOORS of L -- each door p is a
    prime the cofactor must avoid, a factor (1 - 1/(p-1)) in the sieve's
