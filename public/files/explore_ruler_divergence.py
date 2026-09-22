@@ -207,7 +207,8 @@ the two-slack verdict of finding 6).
 
 1. THE FAMILY HANDS OVER A THIRD CLOSED FORM, AND IT IS THE SECOND
    ONE SEEN AGAIN (rule; derived by hand, confirmed in Fraction on
-   all 35 (cell, t) slices). u_p = (1/M) sum_r ((c - 2B(r))/c)^2 is
+   all 35 (cell, t) slice evaluations, 32 distinct: three of the five
+   cells sit inside the 30-threshold profile). u_p = (1/M) sum_r ((c - 2B(r))/c)^2 is
    0, 1/49, 1/49, 1/49 and 1/121 on the five cells, so the exact
    Henze-Penrose bracket is [1/2, 1/2], [3/7, 24/49] three times,
    and [5/11, 60/121]. Its UPPER endpoint equals the 1-NN asymptote

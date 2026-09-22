@@ -331,7 +331,9 @@ F6  THE ANSWER IS NO, AND THE FAILURE IS ANTI-MONOTONE IN THE DAMAGE
     computed separately from the run above). It is b that converges
     here and never the gap, which is what "converged gap" abbreviates.
     So the direction is knowable from inside only where the uncounted
-    term is still MOVING. That is what an exact-truth ruler is for,
+    term is still MOVING -- to these two subsampling instruments; the
+    nested fits' difference in explore_uncounted_corner.py reads a
+    settled gap from inside, within the classes it nests. That is what an exact-truth ruler is for,
     and it is why the companion rig's plane had to be measured against
     closed forms rather than against an estimate of itself.
 
