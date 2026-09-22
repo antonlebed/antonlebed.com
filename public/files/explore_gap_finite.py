@@ -152,7 +152,8 @@ finite-state in the coordinate the level walk rides: the image's
 offset above its cell takes a number of distinct values that rises at
 every depth at all 30 radix-3 pairs and all 4 base-beta pairs, on a
 grain (b - 1)^2 b^(n + L) that refines with the depth and is filled
-to a rising share, where the sum's offsets number 18 at every depth.
+to a rising share, where the adder's offsets number 18 at every depth at its three
+control sets.
 The unboundedness is the derivation's, the product of two prefixes
 carrying its low digits into the offset, and the count is its print;
 an automaton for the game would have to carry the partial product, as
