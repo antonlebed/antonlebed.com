@@ -75,7 +75,7 @@ scores the SOURCE bound j <= K(N) beside it:
     r 8  (2,1) (4,1) (6,1)
 
 E - 2 IS THE WITNESS AND IT NEEDS NO QUANTIFIER AND NO COUNT. Its
-quotient pattern 1, 1, 2n puts a cap of 1 under every overflow at every
+quotient pattern 1, 2n, 1 puts a cap of 1 under every overflow at every
 stride, so its drop sites are the even caps dropping onto 1 and nothing
 else -- and the strides PAIR UP with IDENTICAL multisets: r = 1 with
 r = 2, r = 4 with r = 5, r = 7 with r = 8, position for position in
@@ -283,7 +283,7 @@ H2  NO FUNCTION OF THE DROP-SITE CAP PAIRS IS THE LAW AT A WINDOW WITH
     kill fires three times, at both site bounds). What dies is the
     LIFT; the value law itself is a statement about the graded family's
     half-period cell and is untouched here. At e - 2 the quotient
-    pattern 1, 1, 2n puts a
+    pattern 1, 2n, 1 puts a
     cap of 1 under every overflow, so the strides PAIR UP with
     identical drop-site cap multisets -- r = 1 with r = 2, r = 4 with
     r = 5, r = 7 with r = 8, the even caps 2, 4, 6, ... dropping onto 1
