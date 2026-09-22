@@ -324,10 +324,11 @@ F5 THE ONSET (P7c and P7 hit). The least class member with a composite
    each cofactor a product of two primes, and the first three equal to
    S3's sieve-route least, every one passing wall(q-1) == q W(L). The
    census's zeros at 48 and 60 end at 1.10 and 2.37 times its cap: the
-   onset climbs with the even-divisor demands (about 2 * 10^5, 10^6,
-   3 * 10^6, 10^7, 2 * 10^7 across the five), so a finite census reads
-   zero at a large-period class exactly where its cap sits below that
-   class's onset.
+   onset climbs along the multiples of 12 (about 2 * 10^5, 10^6,
+   3 * 10^6, 10^7, 2 * 10^7 across the five), 24 and 36 sharing six
+   even divisors and still apart by 2.7 times, so what orders the onset
+   is not read here; a finite census reads zero at a class exactly
+   where its cap sits below that class's onset.
 
 RUN RECORD. The first run's P6 pair check looked only for the demand
 (d) and printed 1 bad q with no pair -- q = 43 at L = 6, whose cofactor
@@ -732,8 +733,8 @@ MR_BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
 
 
 def is_prime_big(n, isprime):
-    """the sieve below CAP, a Miller-Rabin deterministic below 3.3e24
-    above it."""
+    """the sieve below CAP, above it a Miller-Rabin on the twelve prime
+    bases to 37, deterministic below 3.1e23; the walk stays under 10^9."""
     if n <= CAP:
         return bool(isprime[n])
     if n % 2 == 0:
