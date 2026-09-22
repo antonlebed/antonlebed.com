@@ -389,7 +389,7 @@ F5 THE LIMIT'S SHAPE SURVIVES EVERY LADDER UNDER A GLOBAL CLOCK, AND UNDER A
    local too and carries three runaway coordinates. (CORRECTED SINCE,
    explore_headed_ladder.py F2: this passage read "a number ring keeps its
    flat support because its gap is 1 or 2", and it does not -- a ring's
-   HEADED places stand at sup 3, 4 and 5, and the count above exponent 1
+   HEADED places' sups run to 5, and the count above exponent 1
    reads the SUP gap -- the tail deciding the recurrent price instead.
    The ring's flat support is F11's arithmetic, not this cell.) (SCOPED SINCE, F9: those three are ONE runaway and two
    STRANDS -- items carried above exponent 1 and then priced out -- which is
@@ -539,7 +539,7 @@ F10 THE STOP LAW AND THE LIMIT SURVIVE THE FOUR-INGREDIENT CROSS, AND THE ONE
        the price's degree-visible range and not over the family.
        (CORRECTED SINCE, explore_headed_ladder.py F2: this cell was read as
        carrying "a number ring keeps its flat support because its gap is 1 or
-       2", and it does not -- a ring's headed places stand at sup 3, 4 and 5,
+       2", and it does not -- a ring's headed places' sups run to 5,
        where the gap-5 cell carries six coordinates above exponent 1. The
        ring's flat support is F11's arithmetic; this corner is about gaps 1
        and 2 and about nothing else.)

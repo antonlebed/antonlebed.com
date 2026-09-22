@@ -192,7 +192,8 @@ THE FINDINGS (the post-run record; every number is a print of the run).
       8 +0.267 +- 0.079; ranks 2 to 6 +0.167, +0.133, +0.120, +0.113,
       +0.090 and rank 10 +0.079 +- 0.017 (4.6 sigma); pooled +0.200 +-
       0.008 over ranks 1-3, +0.108 +- 0.009 over 4-6, +0.094 +- 0.008
-      over 7-10. The least partial place is a non-square 80 times in 100.
+      over 7-10. The least partial place is a non-square 80 times in 100
+      at rank 1 pooled, 81 at h = 2.
       The certificate covers 602 of these fields; the 2-part of the other
       238 fields' labels rests on the relation lattice alone.
 

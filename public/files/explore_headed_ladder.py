@@ -279,8 +279,8 @@ F2 SO THE CORRECTION IS TO THE DICTIONARY, NOT TO THE LAWS: A PLACE HANDS
    THE NUMBER RING'S FLAT SUPPORT, not the result. explore_tick_pump.py
    F10 has "the exact and gap-2 ladders read exactly 1 at all 14 of their
    degree-visible cells, so a number ring keeps its flat support because
-   its gap is 1 or 2". A ring's headed places are not at gap 2: they are at
-   sup 3, 4 and 5, and the gap-5 cell carries SIX coordinates above
+   its gap is 1 or 2". A ring's headed places are not at gap 2: their sups
+   run to 5, and the gap-5 cell carries SIX coordinates above
    exponent 1 under a per-item clock. The ring's flat support is measured
    directly and stands -- explore_tick_pump.py F11 walks both rings and
    finds it -- but it stands on that section's ARITHMETIC (the greedy walk

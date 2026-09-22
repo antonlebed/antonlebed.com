@@ -79,8 +79,9 @@ THE FINDINGS (the post-run record; every number is a print of the run).
 
   F3  THE RESIDUAL STANDS. Above 7 the share is 0.760 +- 0.035, seven
       null bars over the Chebotarev 1/2: what the smallest factors
-      explain is a third of the excess, and two thirds of it is not
-      theirs at this cut.
+      explain is about a quarter of the h = 2 excess (+0.341 over 1/2,
+      from F1's 407 of 484, falling to +0.260), and three quarters of it
+      is not theirs at this cut.
 
 RUN RECORD. 2026-09-05, Windows 11, Python 3, `python
 prime/code/memwatch.py --limit 512 prime/code/explore_least_factor_seat.py`.
