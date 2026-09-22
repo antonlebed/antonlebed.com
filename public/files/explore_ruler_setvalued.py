@@ -29,7 +29,7 @@ magnitude class
 
 which is the sign bit at k = 2 and is otherwise the family's unopened
 non-binary anatomy. Its dial is derived in the HAND DERIVATION below:
-the class blocks are a Sturmian pattern whose density is (c mod k)/k
+the class blocks are a mechanical-word pattern whose density is (c mod k)/k
 and whose PHASE is the atom r/M, so the optimal set's identity moves
 with the observable while its size is a closed form. The fiber-index
 read Y = j was considered and rejected at the gate: under the uniform
@@ -241,7 +241,7 @@ the blocks, it does not move them. Under q = 1, writing c = ak + b with
     n_y = a + [ ceil((y+1)b/k - f) - ceil(yb/k - f) ],   f := r/M,
 
 so exactly b = c mod k classes carry a+1 and the rest carry a, at every
-atom, and WHICH ones is the Sturmian word of density b/k at phase f.
+atom, and WHICH ones is the mechanical word of slope b/k at phase f.
 Hence: b = 0 (k | c) is the DEAD cell, exactly flat; b >= 1 with q = 1
 gives every atom the same mass MULTISET so the conditional and marginal
 optima coincide; and q != 1 makes the masses themselves atom-dependent,
