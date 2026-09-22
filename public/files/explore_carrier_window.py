@@ -206,10 +206,11 @@ FINDINGS.
      column being CENSORED rather than scored. At a HEADED consumer it
      is wrong, and that is the finding: the formula describes the column
      a place has when it has no head. (SETTLED SINCE, narrower: every
-     headless consumer here is TAME, e <= p - 1, where the p-th power
+     headless consumer here has e <= p - 1, where the p-th power
      map's orbit IS the staircase, so the 14 of 14 is a control on that
-     orbit; a wild headless place departs from the formula by the orbit
-     alone -- Z[2^(1/3)] over 2, e = 3, column 1, 2, 4, 4, 8,
+     orbit; a headless place with e >= p departs from the formula by the
+     orbit alone -- Z[2^(1/3)] over 2, e = 3, tame since 2 does not divide
+     3, column 1, 2, 4, 4, 8,
      explore_wild_ring.py, k = 2 window 2 against a filed 4.)
 
   F4 BUT THE HEAD DOES NOT SIMPLY WIDEN THE WINDOW -- IT ERRS IN BOTH

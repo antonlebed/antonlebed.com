@@ -212,11 +212,11 @@ F3 NO PLACE OF THIS RING CARRIES A HEAD, AND THE CORRECTED CRITERION IS WHY
    p - 1 <= e, would predict a head at the place over 2, where e = 1 and
    p - 1 = 1. The corrected one (explore_head_width.py F2: f = 1 with mu_p
    in K_P and e = (p-1)p^t) predicts none, because that place has f = 3.
-   The engine agrees with the corrected form. This is the first reading in
-   the corpus where the two versions of the criterion DISAGREE and the
-   engine decides between them -- at the three quadratic rings every place
-   over 2 has f <= 2 and f = 1 wherever e > 1, so the clause that separates
-   them is never exercised.
+   The engine agrees with the corrected form. The two versions DISAGREE
+   at every unramified place over 2 of residue degree above 1, so a
+   quadratic ring's inert 2 (e = 1, f = 2; Z[w]'s, among the three
+   quadratic rings) already separates them, headless as the corrected form
+   says; this ring's f = 3 place is the same clause read at a cubic.
 
 F4 A COLOUR PLUS A GAP DETERMINES LAMBDA HERE, AND THE GAP COLUMN IS WHAT
    DOES THE WORK (rule in range; 551 places of norm <= 4000 to depth 14, 0
