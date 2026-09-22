@@ -185,7 +185,7 @@ unbounded supply and needs no pointer to an old window; with one
 zero-test over every register a true read leaves only the control state
 and the number of windows grown; on the supply <i>g</i> + 1 one trip
 reads whether the next modulus is prime, waiting at least the lcm of
-the moduli, and chained trips run a finite automaton over the
+the moduli grown before it, and chained trips run a finite automaton over the
 primes.</p>
 
 <p>The <b>clock machine</b> runs on a <b>supply</b>
@@ -201,8 +201,8 @@ one is a <b>read</b>, the word every block below uses. No operation
 names an older window, so each window runs as a clock of period
 <i>m</i> and a read tells whether clocks coincide at 0. Write
 <i>C</i> = lcm(<i>m</i><sub>1</sub>, …, <i>m<sub>g</sub></i>) over the
-windows grown. A register is <b>faithful</b> over a range of values when
-its value tracks the count of increments applied to it there, and the <b>sqrt pole</b> is the
+windows grown. A counter is <b>faithful</b> over a range of values when
+the value it reports is the net count of increments and decrements applied to it there, and the <b>sqrt pole</b> is the
 supply <i>m<sub>g</sub></i> = max(2, ⌈√<i>g</i>⌉). The machine is the
 growing-window machine of <a href="/computation/delay">the delay
 line</a> with multiply, write-constant and register-to-register
@@ -223,7 +223,8 @@ cited.</p>
   zero-test right after an increment means <i>V</i> + 1 = <i>C</i>. A
   grow breaks the invariant: the grown window, of modulus <i>m</i>′, is
   born 0 rather than <i>V</i> mod <i>m</i>′. A second register <i>R</i>, the <b>timer</b>, starting at
-  zero repairs it in 2<i>V</i> steps: tick <i>A</i> down, pulse its
+  zero repairs it in a <b>round trip</b> of 2<i>V</i> steps, <i>V</i> being below
+  <i>C</i><sub>0</sub>, the lcm before the grow, as it is at an overflow: tick <i>A</i> down, pulse its
   newest window back up and tick <i>R</i> up until <i>A</i> tests zero,
   which holds the new window at 0 while the old ones reach 0 after
   exactly <i>V</i> steps; then tick <i>R</i> down and <i>A</i> up until
@@ -234,13 +235,13 @@ cited.</p>
   chart</a> grants as a single primitive operation and which costs here
   the 2<i>V</i> steps above. On overflow the counter undoes the
   increment, grows, runs the round trip and retries, so it grows only at
-  an overflow and reaches <i>N</i> in exactly the least <i>g</i> with
-  <i>C</i> &gt; <i>N</i>; <i>C</i> is at least every modulus, so it is
+  an overflow and reaches a value <i>T</i> in exactly the least <i>g</i> with
+  <i>C</i> &gt; <i>T</i>; <i>C</i> is at least every modulus, so it is
   unbounded on every unbounded supply. Two counters sharing one timer,
   each repaired by its own round trip after a grow since a grow misaligns
   both, run a two-counter machine. Both ingredients carry weight: without the
-  pulse the first loop stops at the least value that is ≡
-  <i>V</i> mod <i>C</i><sub>0</sub>, the lcm before the grow, and
+  pulse the round trip's first half stops at the least step count that is ≡
+  <i>V</i> mod <i>C</i><sub>0</sub> and
   ≡ 0 mod <i>m</i>′, so it hangs when
   gcd(<i>C</i><sub>0</sub>, <i>m</i>′) does not divide <i>V</i>, is
   right when <i>m</i>′ divides <i>V</i>, and lands at a wrong value
@@ -269,7 +270,7 @@ cited.</p>
   <div class="claim-head"><span class="claim-name">One read keeps no
   memory</span>
   <span class="tier">rule</span></div>
-  <p>Call the run from a true read to the next a <b>trip</b>. At a true
+  <p>Under one read over every register, call the run from a true read to the next a <b>trip</b>. At a true
   read every window holds 0, so the configuration is the control state
   and the number of windows grown. Every read until the next true one
   answers false, so the operations of the trip are a <b>lasso</b>
@@ -280,7 +281,7 @@ cited.</p>
   4|<i>v</i>|, |<i>v</i>| its number of operations. A window born during pass <i>i</i> holds in one register,
   at a fixed read position in pass <i>k</i> ≥ <i>i</i> + 2, the integer
   <i>c</i> + (<i>k</i> − <i>i</i>)<i>n</i>, with <i>c</i> fixed by the
-  grow it was born at and <i>n</i> the register's net tick over one
+  grow it was born at and the read position, and <i>n</i> the register's net tick over one
   pass, its pulses being over by then. A true read in pass <i>k</i> ≥ 4
   finds the windows born at one grow in passes <i>k</i> − 3 and
   <i>k</i> − 2 at 0; their integers are at most 4|<i>v</i>| in size,
@@ -396,7 +397,7 @@ cited.</p>
   <i>t</i> letters, and on the supply <i>g</i> + 1 the letter of trip
   <i>t</i> is whether <i>t</i> + 1 is prime, so the program halts exactly
   when the automaton accepts a prefix of the word whose letter at
-  <i>n</i> ≥ 2 is whether <i>n</i> is prime. Whether it does is a sentence
+  <i>j</i> ≥ 2 is whether <i>j</i> is prime. Whether it does is a sentence
   of the monadic second-order theory of (<b>N</b>, &lt;, primes), which
   is decidable if Dickson's conjecture, the linear case of Schinzel's
   Hypothesis H, holds (Bateman, Jockusch and Woods 1993) and not known
@@ -407,7 +408,7 @@ cited.</p>
   named question. Call a <b>window automaton</b> one that remembers the
   last <i>y</i> letters and halts when they hold a stated number of
   primes; the one at <i>y</i> = 3159 with threshold 447, reading
-  past <i>n</i> = 2, halts exactly
+  past <i>j</i> = 2, halts exactly
   when π(<i>x</i> + 3159) − π(<i>x</i>) &gt; π(3159) = 446 for some
   <i>x</i> ≥ 2, a failure of the second Hardy–Littlewood conjecture
   π(<i>x</i> + <i>y</i>) ≤ π(<i>x</i>) + π(<i>y</i>) at <i>y</i> =
@@ -426,10 +427,11 @@ cited.</p>
   mean under a fair independent coin.</p>
   <p class="scope"><b>Scope.</b> Rule for the reduction, argued; the
   decidability is cited, and the Hardy–Littlewood instance is argued
-  from the cited tuple, not recomputed. Printed through <i>n</i> = 202:
-  the recorder chain's 201 letters equal primality; 40 random automata
+  from the cited tuple, not recomputed. Printed through <i>j</i> = 202:
+  the recorder chain's 201 letters, the automaton that remembers nothing
+  and prints each letter, equal primality; 40 random automata
   of two to six states run as programs exactly as run on the word; the
-  window automata at <i>y</i> = 2 to 8 never halt at π(<i>y</i>) + 1
+  window automata at <i>y</i> = 2 to 8, reading past <i>j</i> = 2, never halt at π(<i>y</i>) + 1
   primes and halt at π(<i>y</i>) exactly where a direct scan does. The
   claim covers chains of these trips only: a general trip also reads
   prime-power letters, <i>g</i> modulo constants of the program and
@@ -479,11 +481,12 @@ cited.</p>
   bounded by this argument.</p>
   <p class="scope"><b>Scope.</b> Rule: argued past a constant of the
   program; the companion construction is argued and not run. Checked by
-  the exact solver on 3,000 random programs whose loops do not grow, each
+  the exact solver on 3,000 random programs whose loops do not grow and
+  whose stems grow at most four times, each
   run on two supplies that share the last pre-trip modulus and the next
-  four and differ in the deep moduli, each lcm above 10<sup>6</sup>: of
-  1,184 pairs with an ending below both pass bounds, none differed; in each of
-  the 428 pairs that differ, the supply with the smaller bound waited it,
+  four and differ in the deep moduli, each lcm above 10<sup>6</sup>: of the
+  3,000 pairs, 1,184 ended below both pass bounds and none differed; in each of
+  the 428 whose endings differ, the supply with the smaller bound waited it,
   the least ratio of pass to bound 1.000000000005, a pass of exactly
   <i>C</i>′ against a bound of <i>C</i>′ − 2.</p>
   <p class="verifier">verifier: <a href="https://github.com/antonlebed/antonlebed.com/blob/main/public/files/explore_lcm_wait.py">

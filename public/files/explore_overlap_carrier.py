@@ -200,7 +200,7 @@ predictions).
 
 1. CHAINS RIDE THE COUNT CARRIER (rule). The chain the ultrametric
    provably refuses (filed: zero realizations in 27000 Z/30 triples)
-   is realized by the count at the first opportunity: (0, 6, 16) in
+   is realized by the count (at Z/6 already, 0, 4, 1 at 1, 1, 0): (0, 6, 16) in
    Z/30 with overlaps (2, 2, 1), and the probe world carries the chain
    A1 - A2 - A3 (3, 3, 2) INSIDE a readable component -- representation
    is cheap here (PR1).
