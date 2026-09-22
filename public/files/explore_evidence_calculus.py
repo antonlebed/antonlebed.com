@@ -71,7 +71,7 @@ PREDICTIONS (stated before computing, per protocol):
      power-mean inequality), and die on the max side: max-merge
      means approach the union bound 2 on cylinder pairs as the rung
      grows. min loses evidence but stays valid; max fabricates.
-     The third pillar is NOT a third semiring point -- it is a
+     The third pillar is NOT another semiring point -- it is a
      second-order axis (bets over masses) anchored at the summing
      end, with the tropical valuation as its log-shadow.
 

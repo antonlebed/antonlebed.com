@@ -97,7 +97,7 @@ to the exact PD / Shepp-Lloyd constants is a THEOREM under Elliott-Halberstam (l
 distribution 1 => the full joint PD(1) law, Bharadwaj-Rodgers arXiv:2402.11884 Thm 7;
 the bridge from distributional convergence to these Cesaro log-averages is elementary --
 ratios bounded by 1 carry the means, partial summation carries the log-weighting;
-Pomerance's conjecture, j=1 Granville/Wang; shifted primes hold level 1/2 = BV
+Pomerance's conjecture, j=1 Wang after Granville; shifted primes hold level 1/2 = BV
 unconditionally, buying only restricted-support PD correlations -- open)
 -- what is asserted is the ordered, positive, summing-to-1
 spectrum and the j=1 identity with explore_ledger_threshold.py. FR3's threshold = density is a rule; the

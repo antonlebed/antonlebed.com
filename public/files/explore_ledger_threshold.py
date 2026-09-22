@@ -83,7 +83,7 @@ PREDICTIONS (fixed before the run), FR1-FR4:
     R(k) = rho*theta(p_k) - Sum_{i<=k} log P+(p_i - 1). Thrives
     (R -> +inf) iff rho > rho_c = lim Sum log P+(p-1)/theta(p_k) = the shifted-prime
     Golomb-Dickman constant lambda_GD' (~0.6243: Pomerance's conjecture, a THEOREM under
-    Elliott-Halberstam -- Granville/Wang, the mean-from-distribution bridge elementary;
+    Elliott-Halberstam -- Wang after Granville, the mean-from-distribution bridge elementary;
     full PD spectrum Bharadwaj-Rodgers arXiv:2402.11884; unconditionally open).
     NONTRIVIAL, UNconditionally positive
     and STABLE -- unlike alpha's decline and unlike explore_complexity_ledger.py's
@@ -107,7 +107,7 @@ UNCONDITIONALLY stays open (EQUIVALENT to the transparency-density conjecture (d
 transparency density tend to 1?) -- the collision equivalence,
 explore_collision_equivalence.py; not resolved here). FR4's rho_c is the in-range mean; its
 equality to the classical Golomb-Dickman 0.6243 is a theorem under Elliott-Halberstam
-(Pomerance's conjecture; Granville/Wang, full PD spectrum Bharadwaj-Rodgers) and open
+(Pomerance's conjecture; Wang after Granville, full PD spectrum Bharadwaj-Rodgers) and open
 unconditionally (best tail: Ding-Wang limsup <= -(7/2)log c) -- what is asserted is that the
 threshold is a positive, stable, nontrivial constant well away from 0 and from alpha, i.e.
 NOT the degenerate explore_complexity_ledger.py threshold. The incumbent is
@@ -168,7 +168,7 @@ FINDINGS (tier-labeled; run record at bottom; all sections assert).
    (does the reserve stay solvent for a given reward?) sitting at a NAMED analytic
    value. Its LIMIT is the Golomb-Dickman constant lambda_GD = 0.6243 under
    Elliott-Halberstam (Dickman governance of P+(p-1): Pomerance's conjecture, conditional
-   proof Granville/Wang; unconditionally open),
+   proof Wang after Granville; unconditionally open),
    but the in-range value does NOT pin it: the POSITIVE CONTROL (same P+ machinery on the
    INTEGERS n <= x) gives the integer mean 0.6636 -> 0.6523, approaching GD from ABOVE,
    while the shifted mean 0.5377 -> 0.5783 approaches from BELOW -- the two STRADDLE 0.6243,
@@ -180,7 +180,7 @@ FINDINGS (tier-labeled; run record at bottom; all sections assert).
 THE UNIFICATION. Both remainders are the SAME collision structure.
 alpha (distinct / lcm) LOSES the collision mass, so it -> 0 -- and forcing that is
 analytic-hard, EQUIVALENT to the density conjecture (the collision equivalence,
-explore_collision_equivalence.py; face i). The SIZE reserve (multiplicity / product) KEEPS
+explore_collision_equivalence.py; face i). The SIZE reserve (log P+ paid at every step, repeats included) KEEPS
 every occurrence, so its threshold is a positive nontrivial constant (~0.58 in range,
 the Golomb-Dickman constant under EH) (face ii). Collisions are the
 hinge: the same prime-power repeats that make the count-threshold degenerate-and-hard
