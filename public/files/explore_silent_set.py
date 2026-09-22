@@ -210,6 +210,21 @@ S4 THE MECHANISM. For L in {2, 4, 6, 12} and z in {5, 11, 23, 47}: among
    four L, and every bad q carries such a pair (0 exceptions -- the
    criterion restated, a control on the bookkeeping).
 
+S5 THE ONSET (added after the census, from a scratch print that
+   put the first composite-cofactor member at L = 48 just past the
+   census's cap). At every multiple of 12 in the sweep: the LEAST class
+   member whose cofactor m = (q-1)/L is composite, found by walking the
+   odd composite m upward past 10^7 with a deterministic Miller-Rabin for
+   every number the sieve does not reach.
+   PREDICTION P7: L = 48 reads 10,962,769 = 48 * 353 * 647 + 1 and
+   L = 60 reads 23,712,421 (the scratch print re-derived).
+   CONTROL P7c, run first: at every multiple of 12 whose composite share
+   is positive below 10^7, the walk's least equals the least
+   composite-cofactor member of S3's sieve-route list; and every least
+   the walk finds satisfies the DEFINITION wall(q-1) == q * W(L), the
+   wall computed with the Miller-Rabin primality, as S1 checks the
+   criterion.
+
 WHAT WOULD KILL WHAT (observables). P1 dies on one printed disagreement
 or a census figure off 101 / 81 / 20. P2 dies on one printed class-part
 mismatch, a printed off-class count of 0 at some L > 2 or above 0 at
@@ -220,12 +235,14 @@ on a printed L = 2 figure off the record's. P4 dies on one decade pair at
 one L <= 24 whose printed share does not rise. P5 dies on one printed
 ratio outside [0.5, 4]. P6 dies on a printed bad fraction that rises
 between consecutive z at some L, or on one printed bad q with no pair.
+P7c dies on one printed mismatch against S3's list or one least failing
+the definition; P7 dies on a printed least at 48 or 60 off its number.
 None of them touches the theorem, whose proof is above; a miss on P4 or
 P5 would be a miss of a heuristic about the CONSTANTS and would be
 recorded as that.
 
 FINDINGS (from the printed run; 664,578 odd primes to 10^7, 25 even
-lambda-values to 60, 12 checks of which 10 controls and 2 predictions,
+lambda-values to 60, 15 checks of which 12 controls and 3 predictions,
 wall 7.5 s, peak working set 92.5 MB under the memory watch).
 
 F1 THE CRITERION IS THE CLASS (control, P1 hit). Over every prime
@@ -268,7 +285,7 @@ F3 THE CENSUS BY LAMBDA (P3 hit; P4 missed at L = 24; P5 missed at
    O(x/log^2 x) by an upper-bound sieve, while every class has positive
    density among the primes (explore_blind_bernoulli.py), so the
    composite-cofactor share tends to 1 at every even L and the zeros at
-   L = 48 and 60 are this scale's. N phi(L) log^2 x / x at
+   L = 48 and 60 are this scale's, ending just past the cap (F5). N phi(L) log^2 x / x at
    10^7 runs from 1.855 (L = 2) and 1.778 (L = 58) down to 0.470 (L = 48)
    and 0.423 (L = 60), falling with the DOORS of L -- each door p is a
    prime the cofactor must avoid, a factor (1 - 1/(p-1)) in the sieve's
@@ -300,6 +317,18 @@ F4 THE MECHANISM (P6 hit). Among primes q = 1 mod L below 10^7 with
    L = 6, and 5, 7, 13 at L = 12, which a z of 5 does not sift), 0
    without.
 
+F5 THE ONSET (P7c and P7 hit). The least class member with a composite
+   cofactor, at the multiples of 12: 218,437 = 12 * 109 * 167 + 1;
+   1,270,537 = 24 * 167 * 317 + 1; 3,440,413 = 36 * 227 * 421 + 1;
+   10,962,769 = 48 * 353 * 647 + 1; 23,712,421 = 60 * 227 * 1741 + 1 --
+   each cofactor a product of two primes, and the first three equal to
+   S3's sieve-route least, every one passing wall(q-1) == q W(L). The
+   census's zeros at 48 and 60 end at 1.10 and 2.37 times its cap: the
+   onset climbs with the even-divisor demands (about 2 * 10^5, 10^6,
+   3 * 10^6, 10^7, 2 * 10^7 across the five), so a finite census reads
+   zero at a large-period class exactly where its cap sits below that
+   class's onset.
+
 RUN RECORD. The first run's P6 pair check looked only for the demand
 (d) and printed 1 bad q with no pair -- q = 43 at L = 6, whose cofactor
 7 is a door of L and is killed by the bump rule (b); the check now
@@ -309,7 +338,7 @@ now separates controls (a miss is a FAIL) from predictions (a miss is
 printed, counted, and recorded above), and the final line says which.
 S2b was added to the design after S2 first printed and before its engine
 was written. Estimate before the run: under five minutes and 100 MB;
-measured 7.5 s and 92.5 MB.
+measured 7.5 s and 92.5 MB; with S5, 7.0 s and 92.4 MB.
 """
 
 import os
@@ -697,6 +726,115 @@ def s4_mechanism(lams, primes, lpf, isprime, members):
        "a door not below z since m is z-rough)" % (noe, bumps))
 
 
+# ------------------------------------------------------------ the onset
+
+MR_BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+
+
+def is_prime_big(n, isprime):
+    """the sieve below CAP, a Miller-Rabin deterministic below 3.3e24
+    above it."""
+    if n <= CAP:
+        return bool(isprime[n])
+    if n % 2 == 0:
+        return False
+    d, s = n - 1, 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+    for a in MR_BASES:
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(s - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
+
+
+def wall_big(fac, isprime):
+    """W(n) from its definition with the Miller-Rabin primality."""
+    n = 1
+    for p, e in fac:
+        n *= p ** e
+    W = 2 if n % 2 else 2 ** (v_p(n, 2) + 2)
+    for d in divisors_from(fac):
+        p = d + 1
+        if p > 2 and is_prime_big(p, isprime):
+            W *= p ** (v_p(n, p) + 1)
+    return W
+
+
+def in_class_big(q, lam, lpf, isprime):
+    """in_class with every primality through is_prime_big; m < CAP."""
+    L = lam.L
+    m = (q - 1) // L
+    if m % 2 == 0 or m == 1:
+        return False
+    for p in lam.odd_doors:
+        if m % p == 0:
+            return False
+    fdivs = divisors_from(factor(m, lpf))
+    for e in lam.even_divs:
+        for f in fdivs:
+            if f == 1 or (e == L and f == m):
+                continue
+            d = e * f
+            if L % d == 0:
+                continue
+            if is_prime_big(d + 1, isprime):
+                return False
+    return True
+
+
+def least_composite_member(lam, lpf, isprime):
+    L = lam.L
+    for m in range(9, CAP, 2):
+        if isprime[m]:
+            continue
+        q = L * m + 1
+        if is_prime_big(q, isprime) and in_class_big(q, lam, lpf, isprime):
+            return q, m
+    return None, None
+
+
+def s5_onset(lams, lpf, isprime, members):
+    section("S5 THE ONSET (the least composite-cofactor member at each "
+            "multiple of 12)")
+    mism = []
+    undef = []
+    found = {}
+    for lam in lams:
+        L = lam.L
+        if L % 12:
+            continue
+        q, m = least_composite_member(lam, lpf, isprime)
+        found[L] = q
+        comp = [x for x in members[L] if not isprime[(x - 1) // L]]
+        sieve_least = comp[0] if comp else None
+        if sieve_least is not None and sieve_least != q:
+            mism.append((L, q, sieve_least))
+        fac = merge(factor(L, lpf), factor(m, lpf))
+        if wall_big(fac, isprime) != q * lam.W:
+            undef.append(L)
+        print("  lambda = %-3d least composite-cofactor member %s = %d * %s + 1"
+              "  (cofactor %s);  S3's least below 10^7: %s"
+              % (L, "{:,}".format(q), L, m,
+                 " * ".join("%d^%d" % (p, e) if e > 1 else str(p)
+                            for p, e in factor(m, lpf)),
+                 "{:,}".format(sieve_least) if sieve_least else "none"))
+    ok(not mism, "P7c: the walk's least equals S3's sieve-route least wherever "
+       "S3 has one (mismatches %s)" % mism)
+    ok(not undef, "P7c: every least satisfies wall(q-1) == q W(L) "
+       "(failing at %s)" % undef)
+    predicted(found.get(48) == 10962769 and found.get(60) == 23712421,
+              "P7: least 10,962,769 at lambda = 48 and 23,712,421 at 60 "
+              "(read %s, %s)" % (found.get(48), found.get(60)))
+
+
 def main():
     t0 = time.time()
     print("explore_silent_set.py -- is the silent set infinite at every even "
@@ -715,6 +853,7 @@ def main():
     s2_correction(lams, primes, lpf, isprime)
     members = s3_census(lams, primes, lpf, isprime)
     s4_mechanism(lams, primes, lpf, isprime, members)
+    s5_onset(lams, lpf, isprime, members)
     print()
     print("  wall %.1f s" % (time.time() - t0))
     if FAILS:
