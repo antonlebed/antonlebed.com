@@ -214,7 +214,8 @@ THE FINDINGS (the post-run record; every number is a print of the run).
       +- 0.33, +3.53 +- 0.45, +4.29 +- 0.59, +3.79 +- 0.67 primes per
       field at cuts 250, 400, 630, 1000; the ratio 1000/250 is 1.26 +-
       0.26, where a count of prime squares would move by pi(31)/pi(15)
-      = 11/6 = 1.83 over those cuts, 2.2 spreads off (the 2.27 of (4) is
+      = 11/6 = 1.83 over those cuts (2 without the prime 2, which the
+      cubic populations omit), 2.2 spreads off (the 2.27 of (4) is
       that shape over 1000 -> 10000 and was once printed here). The
       parents' ladder 1.246 -> 1.096 is this
       count over a growing denominator, and the top band's 1 is the same

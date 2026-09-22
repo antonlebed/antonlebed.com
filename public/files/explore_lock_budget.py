@@ -166,7 +166,8 @@ F1 A NUMBER RING'S GREEDY WALK HAS NO GROWING BUDGET: THE RECURRENT PRICE IS
    2, 3, 13 and 25 at K23; the largest (last cost)/(first cost) over all 131
    is 1. The mechanism is a two-line derivation the run confirms rather than
    assumes: deepening P from e to e + r takes the depth to e + r AND takes
-   v_p(L) to e + r - 1, which is the new depth minus one, so the next door
+   v_p(L) to e + r - 1, which is the new depth minus one (odd p; a degree-1
+   place over 2 runs one lower from depth 3, the same rise), so the next door
    at P is 1 and the vehicle costs exactly N(P) per move forever. The lone
    exception is the shape the hand-attack flagged -- 1 of the 131 locks
    (K5's R2, at cost 4 = 2^2) has a vehicle whose own door is 2, the
