@@ -21,7 +21,7 @@ rho = am + ap + 1 - b >= 1, M+- = a+-/(b-1), w = M- + M+. A box inside
 an affine piece of slope s = p/q kills at lookahead L iff its lower
 end's phase lies in the piece's dead arc (1 - g, 1), g = |s| w/b^L -
 (w - 1), and over the prefixes the phases form a lattice of step
-delta = gcd(p, q b^L)/(q b^L) with an offset that cycles in n. At
+delta = gcd(p, q b^L)/(q b^L) with an offset eventually periodic in n. At
 L = L* - 1 the steepest piece has g > 0 by the definition of L*.
   THE SEGMENT LEMMA. An open arc of length g contains a point of every
   lattice of step delta < g, whatever the offset; so a piece with

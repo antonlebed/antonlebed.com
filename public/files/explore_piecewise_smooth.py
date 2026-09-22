@@ -185,20 +185,21 @@ F5 THE CONTAINMENT LEMMA READ. Over every specimen and design, every
    at shallow depth: the earlier lemma's shifted box is not a prefix
    there. P-E held.
 
-F6 TWO STREAMS. |x| y and max(x, y) z are dead at L* - 1 and alive at
-   L* at 20 of 20 each, L* in {1, 2}, the kills at input depth 0 to 3.
-   P-F held; K6 never fired.
+F6 SEVERAL STREAMS. |x| y (two streams) and max(x, y) z (three: the
+   engine's d = 3, which the frozen P-F called two) are dead at L* - 1
+   and alive at L* at 20 of 20 each, L* in {1, 2}, the kills at input
+   depth 0 to 3. P-F held; K6 never fired.
 
 VERDICT. A map of one stream that is C^2 on each of finitely many
 pieces is dead below the margin exactly when a non-affine piece has
 sup|f'| above the law's threshold, an affine piece's lattice fires, or
 a straddler kills below n_full: three clauses, a sup, a cycle and a
 shallow scan, agreeing with the engine at every L read over 20 + 20 +
-20 + 20 + 8 cells and 0 failures; the two-stream pieces read at the
+20 + 20 + 8 cells and 0 failures; the several-stream pieces read at the
 theorem verbatim.
 
 RUN RECORD: pure Python, exact fractions for every one-stream verdict
-and exact integers for the two-stream images, standard library; under
+and exact integers for the several-stream images, standard library; under
 memwatch, peak commit 146 MB against the 512 MB default; wall 213 s at
 radices 2..5, the same-sign search the bulk of it. Prints reproduced
 by: python prime/code/explore_piecewise_smooth.py [BMAX]

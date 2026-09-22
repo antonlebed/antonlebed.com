@@ -136,7 +136,8 @@ ascends at s = 9 and 12 and is fresh at neither, its column reading
 finite at scope, while [1, 2] is infinite. The reason is REACH: the
 family's head q_7 - j, j <= 3, sits in a gap of the drop-representable
 set (position 7's cap-1 digit forbids position 6, so no drop on
-positions 1..8 lies in (45, 68)). THE PARITY-CHAIN LEMMA: write R(K)
+positions 1..8 lies in (46, 68); the slate wrote 45, one short:
+2 q_5 + 2 q_3 + 2 q_0 = 36 + 8 + 2 = 46 is a legal drop). THE PARITY-CHAIN LEMMA: write R(K)
 for "q_K - 1 is a drop on positions 1..K". Since q_K - 1 = a_K q_{K-1} +
 q_{K-2} - 1, and the digit a_K is legal at position K when a_K <=
 a_{K+1} (at the cap it forces position K - 1 to zero, which the

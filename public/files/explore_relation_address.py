@@ -106,7 +106,9 @@ D5  THE SHIFTED MEMBERS ARE NOT ADDRESSES. At r != 0 the image point
     the circle and some consecutive pair straddles -alpha within
     |theta_{D-l}|, its two drops the two codings of -alpha below depth
     D - l, parting at z_1. A window with that inequality at infinitely
-    many D (a designed Liouville-type tail) has the drop UNBOUNDED
+    many D (a designed Liouville-type tail: the name means fast-growing
+    quotients, a_{D+1} near q_D giving irrationality measure about 3,
+    not a Liouville number) has the drop UNBOUNDED
     from z_1 + 1, while the four quadratic windows print the drop by
     their period finite with peak l + 1 (explore_limit_maps.py L3, a
     rule at those four cells and no theorem): the drop's column is a

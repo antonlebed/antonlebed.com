@@ -191,8 +191,8 @@ window, and periodicity was never needed: what it bought here was
 m | q_K - 1 recurring, the price of witnessing with one convergent
 where two consecutive convergents are unimodular and realize every
 residue pair (Y, round(Y alpha)) mod m at every K. The raised-top
-family is that rig's sub-case a = b = 0, and the jump of L4 is its D6
-with the residue pair in place of the class. Everything read here
+family is that rig's one-convergent case, Y = q_K = 1 mod m, and the
+jump of L4 is its D6 with the residue pair in place of the class. Everything read here
 stands at its scope; nothing about the address waits on a period.
 
 RUN RECORD (the estimate first, then what it cost)

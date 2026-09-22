@@ -334,7 +334,8 @@ F3  THE SHIFT'S READABILITY IS A PROPERTY OF THE STRIDE, AND UNITS
     bounded delay anyway, and at delay 0 in six of the twelve
     (window, stride) cells scanned. The window where NO
     scanned stride reads at delay 0 is the CUBIC, which is the one
-    whose field has units.
+    whose field is known to have units (the exploding window's
+    algebraic status is not settled here).
 F4  BOTH QUANTITIES CALLED THE ROOF ARE WINDOW-INDEPENDENT (rule; the
     count follows from the standard uniqueness theorem, and both are
     verified exhaustively at every window and depth measured).

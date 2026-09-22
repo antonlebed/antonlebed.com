@@ -11,8 +11,9 @@ d_k <= a_{k+1}, d_k = a_{k+1} forces d_{k-1} = 0). The DROP BY 1 deletes
 the low digit: n -> sum_{k>=1} d_k q_{k-1}. Its lookahead column c(t) is
 the least c-hat such that inputs sharing t + c-hat low digits have drops
 sharing t low digits, infinite when none serves. At every purely periodic
-window the drop's column is finite (explore_limit_maps.py L3, a rule at
-four cells); at a designed Liouville-type window it is infinite from the
+window the drop by the period has a finite column (explore_limit_maps.py
+L3, a rule at four cells; the drop by 1 is infinite at sqrt(3) - 1); at a
+designed Liouville-type (fast-growing) window it is infinite from the
 lowest admissible digit (explore_relation_address.py L4, a theorem). The
 middle was open: e - 2 = [0; 1, 2, 1, 1, 4, 1, 1, 6, ...], whose quotients
 grow linearly while its denominators grow like a factorial, read a flat

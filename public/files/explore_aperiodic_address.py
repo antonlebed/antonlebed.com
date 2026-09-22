@@ -72,7 +72,8 @@ D4  EVERY PAIR IS REALIZED, AT EVERY IRRATIONAL WINDOW. A zero-low-
     uniquely. No recurrence hypothesis at all. The "recurring residue
     set" this file's first pass named was the artifact of using ONE
     convergent where two are unimodular; the raised-top family is the
-    sub-case a = b = 0 with q_K itself = 1 mod m.
+    case one convergent realizes, Y = q_K itself with q_K = 1 mod m
+    (not a = b = 0 of D5's formula, whose Y would be m q_K).
 D5  THE EXPLICIT FAMILY at the cut -alpha, r = 0. For K >= 0 put
     K' = K + 4, let (a_K, b_K) in [0, m)^2 solve
         a (q_{K'}, p_{K'}) + b (q_{K'+1}, p_{K'+1}) = (1, 0) mod m,
