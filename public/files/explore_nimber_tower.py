@@ -46,8 +46,10 @@ Findings preview (full statements at the bottom):
      of the nim-rung is a squarefree all-field designed tower --
      on the five Fermat PRIMES for n <= 5, where at n = 5 it is exactly
      the machine-word specimen Z/(2^32 - 1) = 3*5*17*257*65537; at
-     n = 6 on the prime factors of F_0..F_5 (still squarefree); beyond,
-     it rides the OPEN all-Fermat-squarefree question.
+     n = 6 on the prime factors of F_0..F_5 (still squarefree); through
+     n = 12 squarefree too, F_0..F_11 being products of distinct primes
+     (explore_fermat_reciprocal_tail.py checks each factorization);
+     beyond, it rides the OPEN all-Fermat-squarefree question.
   2. NAPIER INVERSION: the vertical tower has the PERFECT second log
      (cyclic units: one discrete log, no CRT detour -- what the
      primorial tower lacks at every rung k >= 3) and the maximally
@@ -59,7 +61,8 @@ Findings preview (full statements at the bottom):
      by depth 9). Chain height is a design knob.
   3. THE MIRROR PRIMORIAL: F_2[x]/f (f squarefree) carries the full
      blueprint -- CRT bijection, 2^k idempotents, Clifford
-     a^(lambda+1) = a, meadow inverse, phi = prod(2^e_i - 1). Canonical
+     a^(lambda+1) = a, meadow inverse a^(2 lambda - 1) (a^(lambda - 1)
+     once lambda >= 2), phi = prod(2^e_i - 1). Canonical
      rungs f = x^(2^d) + x have channels <-> Frobenius orbits of
      F_{2^d}-points, lambda = 2^d - 1 (MERSENNE by construction), and
      the Clifford identity a^(2^d) = a is Frobenius^d, d squarings,
@@ -70,7 +73,7 @@ Findings preview (full statements at the bottom):
      -> one Fermat tower, horizontal/mirror -> per-channel Mersenne
      rings (the rung-wide product is not a single Z/M).
   4. THE CRITERION TRANSFERS: channel-local = compatible = polynomial
-     on squarefree F_2[x]/f (exhaustive at the squarefree 4- and 8-element rings;
+     on squarefree F_2[x]/f (exhaustive at F_2 x F_2 and F_2 x F_4;
      constructive Lagrange + CRT glue), and thin-only again
      (F_2[x]/x^3 has polynomial strictly inside channel-local, 1024 of
      262144; at x^2 the two meet at 64). The
@@ -940,12 +943,14 @@ print("""
    Lambda of the index ring is 2^(2^(n-1)) (the cheap-collapse knob)
    for n <= 5 -- and the knob DIES at n = 6 with F_5's compositeness
    (lambda(2^64-1) is not a 2-power), though squarefree/all-field
-   survives. All-Fermat-squarefree is OPEN.
+   survives, through n = 12 (F_0..F_11 products of distinct primes,
+   explore_fermat_reciprocal_tail.py). All-Fermat-squarefree is OPEN.
 
 3. THE MIRROR PRIMORIAL (rule, exhaustive small rings). F_2[x]/f with
    f squarefree carries the full blueprint: CRT bijection, 2^k
-   idempotents, Clifford a^(lambda+1) = a, meadow inverse a^(lambda-1),
-   phi = prod(2^e_i - 1) (all exhaustive at the 1024-element W).
+   idempotents, Clifford a^(lambda+1) = a, meadow inverse a^(lambda-1)
+   once lambda >= 2 (a^(2 lambda - 1) in general: at f = x^2 + x,
+   lambda = 1 and a^0 sends 0 to 1), phi = prod(2^e_i - 1) (all exhaustive at the 1024-element W).
    Canonical rungs f = x^(2^d)+x have channels <-> FROBENIUS ORBITS of
    F_2^d-points, lambda = 2^d - 1 MERSENNE BY CONSTRUCTION, and the
    identity a^(2^d) = a = Frobenius^d = d squarings, the collapse

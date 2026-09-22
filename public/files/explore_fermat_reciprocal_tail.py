@@ -62,8 +62,9 @@ FINDINGS (post-run edit, copied from the printed output).
       law sum 1/p < 0.6 holds at EVERY member n >= 2 of the
       Fermat-spine family -- RULE, proved from Lucas's congruence and
       the size of F_k, the factorizations past F_11 never consulted.
-      The squarefree question (whether the all-field channels survive
-      past n = 6) is untouched and stays open.
+      The squarefree question is settled through F_11 by section I's
+      own check (distinct primes, product F_k), so the all-field
+      channels survive through n = 12; past it, untouched and open.
 
 RUN RECORD. python prime/code/explore_fermat_reciprocal_tail.py --
 0.3 s, memory trivial; 53 checks, 0 failed.

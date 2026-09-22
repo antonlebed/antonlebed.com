@@ -161,7 +161,8 @@ F5 THE POLE ARM IS A RESCALING. 30 pairs, all certified at L* - 1 and
    every step exactly two, as the law says. And the kill moves with
    it whole: at (2,1,1) every m kills at t = 3 and n = m + 3 in an
    excess region of 5 prefixes, at (5,3,3) at t = 2 and n = m + 2 in a
-   region of 4. The reason is homogeneity: 1/(P/b^m + x) at x/b^m is
+   region of 4. The reason is homogeneity: with x here the input's
+   height above its least value, 1/(P/b^m + x) at x/b^m is
    b^m/(P + x), so the game at pole depth m is the game at depth 0
    with the input read m digits deeper and the output m digits
    larger, L up by 2m exactly; the square root's b^(-m/2) scaling
