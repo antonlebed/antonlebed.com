@@ -165,9 +165,14 @@ RUN RECORD (the estimate first, then what it cost)
 Seconds to a minute estimated; 3 min 26 s wall, the estimate missed
 by the C2 head enumerations to s = 12 at three windows and the
 cube-root DP to its cap. Pure Python, standard
-library, exact integers; the head DP at the cube-root window's s = 16
-is the largest table, under the 3 x 10^6 cap; memory far below the
-ceiling.
+library, exact integers. Memory is NOT small: the head cap is tested
+only after a whole level is built, and the level that trips it, at
+the cube-root window's s = 17, holds more than a gigabyte of pairs. A
+re-run under a 512 MB ceiling was killed just after the s = 16 line,
+and one under 1024 MB at the same point (peak 1.14 GB), so everything
+above prints below 512 MB except the scope-ending cap line at s = 17.
+Testing the cap as the level grows would bound the table at 3 x 10^6
+entries.
 """
 import os
 import sys
