@@ -213,9 +213,10 @@ bulk's 135 of 552. At 7/10: 0 through mass 6, then 6 of 57, 6 of 48, 27
 of 39, 30 of 30, all above -- and the 6 clean at lightest mass 8 are
 EXACTLY the six fifths, the gcd-1 vectors there going 0 of 24. The
 lemma's mass condition s w_r <= w_r' reads this: at (8, 16, 16) and
-(8, 8, 24) every partner mass is a multiple of the lightest, so two
-labels of the light atom trade evenly for one pair of a 16/40 atom (the
-hand cell's rescue), while at (8, 15, 17) or (8, 12, 20) a 15/40 or 12/40
+(8, 8, 24) every partner mass is a multiple of the lightest, so labels
+of the light atom trade evenly for one pair of any partner -- two for a
+16/40 pair (the hand cell's rescue), three for a 24/40, one for an
+8/40 -- while at (8, 15, 17) or (8, 12, 20) a 15/40 or 12/40
 partner admits only s = 1. The grading by lightest mass is an observation
 on the designed sweep; the divisibility reading at the edge is an
 observation at one edge (three atoms, 7/10, lightest mass 8), and at four
