@@ -209,7 +209,7 @@ WHAT THIS LEAVES OPEN: the coverage kind's own threshold -- at lightest
 mass 4 and 5 a drop-set conserves mass and every one fails coverage, and
 whether the slack bounds that failure into a closed condition is the
 same question the dominated exchange left at sigma > 0; and the
-collapse, which takes every stratum at once.
+collapse, which leaves no stratum by 1/2.
 
 THE DESIGN
 ----------
