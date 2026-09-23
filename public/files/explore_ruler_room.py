@@ -407,8 +407,8 @@ AND IT DOES NOT EXPLAIN THE COLLAPSE. Every stratum collapses, the
 coarse ones simply last longer: the gcd = 1 rate runs 24.5, 13.6, 2.2,
 0 while the gcd = 10 rate runs 100, 100, 100, 0. What empties the set
 acts on all six strata, and gcd sorts the SURVIVORS rather than causing
-the death -- not in order, the gcd-8 stratum reading zero at 3/5 below
-the lower strata. The 1/2 column is the sharpest form of it -- even
+the death -- not in order, the gcd-8 stratum reading zero at 3/5 where
+the gcd-1 and gcd-2 strata do not. The 1/2 column is the sharpest form of it -- even
 the vector that is clean everywhere else fails there.
 
 WHAT THIS LEAVES. The first EXACT sub-description of the clean set the
