@@ -166,8 +166,8 @@ Seconds to a minute estimated; 3 min 26 s wall, the estimate missed
 by the C2 head enumerations to s = 12 at three windows and the
 cube-root DP to its cap. Pure Python, standard
 library, exact integers. Memory is NOT small: the head cap is tested
-only after a whole level is built, and the level that trips it, at
-the cube-root window's s = 17, holds more than a gigabyte of pairs. A
+only after a whole level is built, and building the table that trips
+it, at the cube-root window's s = 17, takes more than a gigabyte. A
 re-run under a 512 MB ceiling was killed just after the s = 16 line,
 and one under 1024 MB at the same point (peak 1.14 GB), so everything
 above prints below 512 MB except the scope-ending cap line at s = 17.
