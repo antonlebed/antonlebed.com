@@ -130,7 +130,10 @@ FINDINGS (naming tiers below; run record follows; all sections assert).
    its greatest is > X - Q. Two fiber spans can be disjoint only when
    Q >= (X + 2)/2. So at or below half coverage NO archimedean fact
    about [1, X] is certain — no determined points, no determined
-   pairs — for ANY budget shape, ragged or rigid. Onsets: points at
+   pairs — for ANY budget shape, ragged or rigid. (Settled later:
+   'no archimedean fact' overreaches, since residue 0 certifies
+   n >= Q; the law is exactly that no point is located and no pair
+   ordered.) Onsets: points at
    2Q - X >= 1, pairs at 2Q - X >= 2 (at 2Q - X = 1 the single
    determined middle element sits strictly inside every other fiber's
    span; from 2, determined singles pair up). Verified: pair
