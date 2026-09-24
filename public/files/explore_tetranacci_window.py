@@ -16,7 +16,7 @@ continuous extension and the degree-4 completion is not a ring. The
 completion's positive side is a CLASSICAL IMPORT, contacted before
 this rig was built: the k-bonacci substitution is the substitutive
 Arnoux-Rauzy sequence, substitutive Arnoux-Rauzy sequences have pure
-discrete spectrum (Berthe-Steiner-Thuswaldner), so the degree-k
+discrete spectrum (Berthe-Jolivet-Siegel), so the degree-k
 system is measurably isomorphic to a translation of the (k-1)-torus
 — T^3 here; the rig measures only its numeric shadow (cells
 contracting at the conjugate roots' own rates). TRANSPLANTS, flagged
