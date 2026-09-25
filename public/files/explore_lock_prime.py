@@ -33,6 +33,14 @@ FINDINGS (naming tiers below; run record follows; all sections assert).
    already haunts the dynamics with no window of its own. Cost of a
    ghost: q. What a ghost buys: nothing recurrent — its post-move
    door jumps to q^{v_q(lambda)+1} or worse.
+   (Settled later: the trichotomy holds over this sweep and not in
+   general. A fourth kind, an opening at its full price
+   q^{v_q(lambda)+2} with q | lambda and (q-1) | lambda (2^{v+3} at 2),
+   is minimal when no prime == 1 mod q^{v_q(lambda)+1} lies below that
+   price: the prime seed 961440481 opens 3 at 81. It seats q with the
+   recurrence invariant, so finding 3's lock criterion and finding 4's
+   wander bound stand as "the first non-ghost pick locks"; the rewrite
+   is growth.py.)
 
 3. THE LOCK CRITERION (rule, proved; verified 2000 seeds x 30
    post-lock steps). Deepenings and fresh openings establish THE
