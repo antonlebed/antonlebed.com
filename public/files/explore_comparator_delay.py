@@ -212,7 +212,8 @@ F4 THE COMPARATOR IS FREE [theorem (4) below, found after the print;
 VERDICT. The piecewise-affine comparators read at lookahead 0 at
 every cell, because their images are cells and cells nest into
 children; |x| reads at 0 iff the digit set is symmetric and at 1
-otherwise; and a comparator anywhere in a datapath adds nothing to
+otherwise, within the radix (off it the clause is (b - 1) | (ap - am):
+(2,1,2) reads at 0); and a comparator anywhere in a datapath adds nothing to
 its on-line delay -- inside a unit exactly, on an output at most
 (exactly, by explore_output_comparator.py: the constant bottom stream
 and the translation lemma). A datapath's delay table is its
