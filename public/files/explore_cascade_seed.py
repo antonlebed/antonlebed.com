@@ -119,6 +119,12 @@ RUN RECORD (15/15 checks, 13 s, peak 13.5 MB under memwatch).
   whose exponent at p starts at or below it; a seed starting above it
   is not covered by any certificate this corpus holds, and at large p
   the recurrence is the death-rung question itself.
+  (SETTLED LATER: the last sentence overreaches. A trajectory can cross
+  a dead rung by deepening a place over p; it crosses only finitely
+  many, since each crossing makes the next move cost at most p^(ef).
+  So a single certified D(p) stops no trajectory, and the eleven
+  covered characteristics lock every seed because their dead rungs
+  are infinitely many, not because a walk cannot pass one.)
 """
 
 import os

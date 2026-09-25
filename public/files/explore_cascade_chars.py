@@ -149,7 +149,13 @@ FINDINGS.
      here starts at V = 1, and a seed can start above its death rung,
      so the close holds for seeds starting at or below it; for every
      seed it survives at 2 and the ten odd characteristics 3 to 37
-     where a covering congruence makes dead rungs recur.) What stays open is the rings whose rank-1
+     where a covering congruence makes dead rungs recur.)
+     (SETTLED LATER, a second time: no seed range survives either. A
+     trajectory can cross a death rung by deepening a place over p,
+     so one certified death closes nothing; what closes a ring is a
+     rank-1 characteristic with infinitely many dead rungs, which the
+     coverings give at the eleven characteristics 2 to 37. The sweep
+     stands as evidence that every ladder walked dies.) What stays open is the rings whose rank-1
      characteristics ALL exceed 1000, and that is a statement about
      splitting behaviour rather than about ladders: it is the front
      this rig hands on, and it is not answered here. (TAKEN SINCE by

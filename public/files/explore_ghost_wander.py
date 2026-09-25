@@ -218,6 +218,16 @@ FINDINGS (printed output copied from the run).
    often at bounded cost and ABSORBS the tail (explore_module_law.py
    B(i), whose norm-finiteness hypothesis is what the pigeonhole
    step spends) -- which is the lock.
+   (SETTLED LATER: the stuck door is not permanent. At a dead rung the
+   trajectory can still raise v_p(lambda) by deepening a place over
+   p, crossing the rung, and nothing above forbids it. What the
+   argument does give is finiteness: each such crossing leaves that
+   place owning v_p(lambda), so the next move costs at most p^(ef),
+   and a trajectory whose costs diverge has finitely many moves that
+   cheap. So a trajectory crosses finitely many dead rungs, a
+   characteristic with INFINITELY many forces the lock, and a single
+   death forces nothing. The locks at 2, 3 and 5 survive on the dead
+   rungs' recurrence, explore_cascade_seed.py.)
    WHAT THE PRIME-POWER WIDENING BUYS, asked as a control (H6b, 6/6):
    the same walk over PRIMES ALONE gives p = 2: 1, 2, 4, 5, 6, 8 via
    5, 17, 97, 193, 257 and p = 3, p = 5 unchanged, so the supplies
