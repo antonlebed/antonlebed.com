@@ -155,7 +155,12 @@ F4 THE RESIDUE-CHARACTERISTIC DICHOTOMY (pattern at three rings; the
    widens only when its next ladder rung divides L, and the divisors a
    rung waits for (the factors of q - 1 first, powers of q above) a
    seed's L need never carry -- the stall. T1's sketch held per ring;
-   retired.
+   retired. (SETTLED LATER: the dichotomy is these three rings', not a
+   law. L is an lcm, so a seating raises v_2(L) only to its own v_2,
+   never in lockstep; and Q(sqrt(-78)) catches its ramified place over
+   2 from the void, paying 3, 3, 8, 8, 4, 4, the place over 2 seated at
+   step 3 at price 8 and running away. The counts above stand as this
+   sweep's.)
 F5 THE TRANSIENT REDUCTION HOLDS (PR2, PR6 met). 3109 walks, 0
    monotone violations, 0 post-lock violations, 0 unlocked. The
    hand-attack C derivation stands on checked premises: a strict late
