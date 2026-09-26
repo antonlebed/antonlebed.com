@@ -247,7 +247,15 @@ F5 THE VOID WALK IS DEGENERATE, AND ITS DEGENERACY IS F3 READ AS A PRICE
    the void's cheapest opening at 4 and is abandoned at exponent 3 when its
    plateau prices the next door at 32. So a head is not a curiosity of the
    ladder -- it is the only thing that makes a greedy walk in a number ring
-   do anything, and a ring without one has a walk that says nothing. Every
+   do anything, and a ring without one has a walk that says nothing.
+   (SETTLED LATER: the head is not what moves a walk. A void walk leaves
+   its winner when the winner is ramified, its tail price N^e above the
+   void price, headed or not; only a norm-2 place of e = 2 rises by its
+   head alone. Q[x]/(x^3 - 2), headless, leaves its norm-3 winner at the
+   third move, and Q(sqrt(-123)), with no head anywhere, pays 3, 3, 9, 9,
+   ... forever on its ramified place over 3: the norms = 1 mod 3 below 9
+   are 4 and 7, both covered once 6 | L, so nothing can jump its count.
+   This walk is degenerate because its winner is unramified.) Every
    informative state in THIS ring is a PLANTED one, which is a fact about
    the instrument and is stated so the next rig does not read a walk here as
    evidence.
