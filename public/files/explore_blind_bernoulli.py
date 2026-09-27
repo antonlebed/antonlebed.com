@@ -84,8 +84,8 @@ the Chernoff-Rankin step is f = z^{Omega_p(n)}, z < 1 for "few prime
 factors" and z > 1 for "many".
  (1) f = z^{Omega(n)} on N = {n <= y : n+1 prime} gives sum_{p <= y}
      z^{Omega(p-1)} << (y/log y)(log y)^{z-1}; at z = 2/3, #{p <= y :
-     Omega(p-1) < (2/3) log log y} << y/(log y)^{1+d1}, d1 = (2/3) log(3/2)
-     - 1/3 = 0.0635 (the shape of Erdos's 1935 bound). Then Brun-Titchmarsh per
+     Omega(p-1) < (2/3) log log y} << y/(log y)^{1+d1}, d1 = 1/3 - (2/3)
+     log(3/2) = 0.0630 (the shape of Erdos's 1935 bound). Then Brun-Titchmarsh per
      such p: for p <= sqrt(x) the sum of 1/phi(p-1) over few-factor p > T
      is << (log log T)/(log T)^d1; for p > sqrt(x), dyadic in p with
      pi(x; p-1, 1) << x/(phi(p-1) log(x/p)), the total is << pi(x)
@@ -113,6 +113,22 @@ positive: N_24(x) ~ delta_inf pi(x). The order the record left open
 between x/(log x log log x) and x/log x is x/log x; the floor was a floor.
 Nothing conjectural enters; the external inputs are Dirichlet's theorem,
 Harris's inequality, and Pollack's sifted-set Shiu bound.
+
+BOTH HALVES ARE IN THE LITERATURE (read in full after the derivation
+above). The tail eps(T) << (log T)^{-c}, uniformly in x, is Theorem 3 of
+Luca, Pizarro-Madariaga and Pomerance, "On the counting function of
+irregular primes", Indag. Math. 26 (2015) 147-161, at u = 1, v = -1;
+the derivation above re-proves it. The theorem itself is the case d = 6
+of Theorem 3 of Pomerance and Wagstaff, "The denominators of the
+Bernoulli numbers", Acta Arith. (online first 2022; arXiv:2105.13252):
+for every d in the set of Bernoulli denominators, the primes q with
+denom(B_{q-1}) = dq have a positive relative density. Their Table 6
+counts 601,804 primes to 10^8 with denominator 6q; the census in F3,
+which runs over the primes from 7, reads 601,803, the one missing being
+5, and the class V = 24 is 601,802, since 7 has the denominator and
+reads 72. What is not theirs is the
+lift below: their classes never cap a valuation, and the class at a
+general lambda is their set cut by a residue condition.
 
 THE LIFT TO EVERY EVEN lambda, by hand. The blind class of lambda's own
 wall is the primes q = 1 (mod lambda) with W(q-1) = W(lambda) q: within
