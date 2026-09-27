@@ -269,7 +269,11 @@ F2 AND THAT COST IS A SECOND COLUMN -- THE LADDER, WHICH THE SUPPLY DOES NOT
    that an agreement at a p - 1 <= e place would count against it too: 32
    agree, 3 part from depth 3 on, 35 of 35 on the criterion. So the column is
    a formula in the colour and its gap except where p <= e + 1 -- these two rings' places
-   over 2, though a ring in which 3 ramified would carry a head there too.
+   over 2, though a ring in which 3 ramified with mu_3 in the completion
+   would carry a head there too: in Q(sqrt delta) the ramified place over
+   3 has one iff delta = 6 mod 9, and none at delta = 3 mod 9. [SETTLED
+   LATER: the formula holds at a place exactly where e <= p - 1 and there
+   is no head, so p <= e + 1 is necessary for a miss, not sufficient.]
    (PR6 as first drafted named the wildly ramified place alone. It was
    corrected at the FREEZE against that filed criterion, before any run: the
    ramification reading of a criterion that is not about ramification would
