@@ -320,6 +320,19 @@ F5 THE SURPLUS DICHOTOMY IS EXACT, AND GREEDY REFUSES ITS DIVERGENT SIDE
    same window. So "a ring walk's surplus stays small" is a fact about
    GREEDY and not about the dynamics, and the object that is bounded
    outright is the SUPPORT.
+   (SETTLED LATER: greedy does reach the divergent side. In the cubic
+   rings of x^3 + 2x + 1, x^3 + x^2 + x + 2 and x^3 + x^2 + 3x + 2, 2
+   splits into a place of norm 2 and one of norm 4, and from the void
+   both cost 4: the norm-2 place pays door 2, and the norm-4 place opens
+   at exponent 1 because its first rung 3 does not divide L, a power of
+   2. With every tie followed, one walk takes both and then runs the
+   norm-2 place, paying 4, 4, 4, 2, 2, ...; the norm-4 place stays at
+   exponent 1 while v_2(L) climbs, pending 2^12 at move 6 and 2^80 at
+   move 40. A seated place's first rung covers its sibling's only when
+   the sibling's residue degree divides its own, since p^f - 1 divides
+   p^g - 1 exactly when f divides g, and 2 does not divide 1. So the
+   surplus is frozen or diverges under greedy as well, and what a
+   certified lock bounds is the support.)
 
 F6 NO WALK CYCLES: 140 SEEDS OVER FIVE RINGS AND EVERY ONE CERTIFIES
    (pattern, 140 seeds, 200 moves each; the last probe run here, its slate in
