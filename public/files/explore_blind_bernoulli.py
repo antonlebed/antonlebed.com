@@ -120,8 +120,8 @@ Luca, Pizarro-Madariaga and Pomerance, "On the counting function of
 irregular primes", Indag. Math. 26 (2015) 147-161, at u = 1, v = -1;
 the derivation above re-proves it. The theorem itself is the case d = 6
 of Theorem 3 of Pomerance and Wagstaff, "The denominators of the
-Bernoulli numbers", Acta Arith. (online first 2022; arXiv:2105.13252):
-for every d in the set of Bernoulli denominators, the primes q with
+Bernoulli numbers", Acta Arith. (doi 10.4064/aa210601-16-11;
+arXiv:2105.13252): for every d in the set of Bernoulli denominators, the primes q with
 denom(B_{q-1}) = dq have a positive relative density. Their Table 6
 counts 601,804 primes to 10^8 with denominator 6q; the census in F3,
 which runs over the primes from 7, reads 601,803, the one missing being
