@@ -326,6 +326,14 @@ F5  AND THE LEAST-WRONG STATEMENT IS OPTIMISTIC EVERYWHERE, WHICH IS THE
     is told is half its true size fails toward confidence. That is a
     property of the arm and not of the sweep: 2p(1 - p) is pinned at 1/2
     where the truth is 1/2, so sharpening can only push it down.
+    (Settled later, and the last two sentences are FALSE as a law.
+    The pinning holds at small mu only. At large mu the noise
+    flattening of F2 reaches this arm as it reaches every scale above
+    0: its folded mean meets the pair rate at mu* = 2.18 and exceeds it
+    beyond, and at this run's largest world row it states 0.011 against
+    a realized 0.007, inside that row's noise. "Below 1 at all six
+    rows" is true of the model column at these rows and of nothing
+    wider. F4's "does NOT over-warn at large mu" has the same scope.)
 
 F6  SPLIT-HALF ANSWERS THE WRONG SIZE AND CARRIES A THIRD COST THE SLATE
     DID NOT NAME (PR5 pass on direction, one row 0.003 outside the
