@@ -282,12 +282,12 @@ control was built too small, recorded below.
      larger than the replaced record's because B here is built from
      every prime below q and not only from the rival moves that needed
      raising.
-  Tiers: (1), (2) and (6) are theorems, verified in the ranges
-  printed; (3) is a criterion, proved both ways, verified in the
-  ranges printed; (4) is a rule, proved, with the bound 271129 proved and the search
-  an observation, and the reading of the least unrealizable number as
-  the least prime Sierpinski number rests on the literature's list of
-  known primes; (5) is a property.
+  Tiers: (1), (2) and (6) are theorems, verified in the ranges printed;
+  (3) is a criterion, proved both ways, verified in the ranges printed;
+  (4) is a rule, proved, with the bound 271129 proved and the search an
+  observation, and the reading of the least unrealizable number as the
+  least prime Sierpinski number rests on the literature's list of known
+  primes; (5) is a property.
 
 RUN RECORD. python bridges.py: 19/19 checks, 9.0 s, peak 57.5 MB under
 a 512 MB ceiling. The slate's "windows" were renamed SEATS and its odd
